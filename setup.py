@@ -1,18 +1,14 @@
 from distutils.core import setup
 
 long_description = """
-Backport of Python 2.7 collections.OrderedDict class which works on 2.6.
-Only changes from baseline 2.7 code:
+Backport of Python 2.7 collections.OrderedDict class which works on 2.6.  See
+https://github.com/taldcroft/odict for the (minimal) changes from original code.
 
-Add:
-from collections import MutableMapping
-
-Delete:
-from _collections import deque, defaultdict
+Testing has been minimal but it appears to work.  Caveat emptor.
 """
 
 setup(name='odict',
-      version=1.0,
+      version='1.0',
       description='Python 2.6 backport of Python 2.7 collections.OrderedDict',
       long_description=long_description,
       author='Tom Aldcroft',
