@@ -6,7 +6,15 @@
 Welcome to Astropy's documentation!
 ===================================
 
+The current AstroPy documentation is limited.  For more information, see the `github wiki <http://github.com/astropy/astropy/wiki>`_ for the project.
+
 Contents:
+
+.. toctree::
+   :maxdepth: 2
+   
+   development/index
+
 
 .. toctree::
    :maxdepth: 2
