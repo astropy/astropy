@@ -2,55 +2,79 @@
 Documentation Guidelines (Draft 2)
 ==================================
 
-.. warning:: 
+.. warning::
     This document is currently in Draft form and is subject to change.
 
-Astropy Documentation Rules and Recommendations
+AstroPy Documentation Rules and Recommendations
 -----------------------------------------------
 
-This section describes the standards for documentation format affiliated packages that must follow for consideration of integration into the core module, as well as the standard Astropy docstring format.
+This section describes the standards for documentation format affiliated
+packages that must follow for consideration of integration into the core
+module, as well as the standard AstroPy docstring format.
 
 * Documentation shall use the Sphinx documentation tool.
-* The template package will provide a recommended general structure for documentation.
-* Docstrings must be provided for all public  classes, methods, and functions.  
-* Docstrings will be incorporated into the documentation using a version of numpydoc included with astropy, and should follow the numpy/scipy docstring standards, included below.
-* Examples and/or tutorials are strongly encouraged for typical use-cases of a particular module or class.
-* Any external package dependencies aside from Numpy, Scipy, or matplotlib must be explicitly mentioned in the documentation.
-* Configuration options using the :mod:`astropy.config` mechanisms must be explicitly mentioned in the documentation.
 
-Numpy/SciPy Docstring Rules
+* The template package will provide a recommended general structure for
+  documentation.
+
+* Docstrings must be provided for all public classes, methods, and functions.
+
+* Docstrings will be incorporated into the documentation using a version of
+  numpydoc included with AstroPy, and should follow the NumPy_/SciPy_
+  docstring standards, included below.
+
+* Examples and/or tutorials are strongly encouraged for typical use-cases of a
+  particular module or class.
+
+* Any external package dependencies aside from NumPy_, SciPy_, or Matplotlib_
+  must be explicitly mentioned in the documentation.
+
+* Configuration options using the :mod:`astropy.config` mechanisms must be
+  explicitly mentioned in the documentation.
+
+NumPy/SciPy Docstring Rules
 ---------------------------
-The original source for these docstring standards is the numpy_ project, and the associated numpydoc_ tools. The most up-to-date version of these standards can be found at `numpy's github site <http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
 
-.. _numpy: http://numpy.scipy.org/
+The original source for these docstring standards is the NumPy_ project, and
+the associated numpydoc_ tools. The most up-to-date version of these standards
+can be found at `numpy's github site
+<http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
+guidelines below have been adapted to the AstroPy pacakge.
+
+.. _NumPy: http://numpy.scipy.org/
 .. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
+.. _Matplotlib: http://matplotlib.sourceforge.net/
 
 Overview
 ^^^^^^^^
+
 In general, we follow the standard Python style conventions as described here:
+
  * `Style Guide for C Code <http://www.python.org/peps/pep-0007.html>`_
  * `Style Guide for Python Code <http://www.python.org/peps/pep-0008.html>`_
  * `Docstring Conventions <http://www.python.org/peps/pep-0257.html>`_
 
 Additional PEPs of interest regarding documentation of code:
+
  * `Docstring Processing Framework <http://www.python.org/peps/pep-0256.html>`_
  * `Docutils Design Specification <http://www.python.org/peps/pep-0258.html>`_
 
 Use a code checker:
- * `pylint <http://www.logilab.org/857>`_
- * `pyflakes` easy_install pyflakes
- * `pep8.py <http://svn.browsershots.org/trunk/devtools/pep8/pep8.py>`_
 
-The following import conventions are used throughout the NumPy source
+ * `pylint <http://www.logilab.org/857>`_
+ * `pyflakes <http://pypi.python.org/pypi/pyflakes>`_
+ * `pep8.py <https://github.com/jcrocholl/pep8>`_
+
+The following import conventions are used throughout the AstroPy source
 and documentation::
 
    import numpy as np
    import matplotlib as mpl
    import matplotlib.pyplot as plt
 
-Do not abbreviate ``scipy``. There is no motivating use case to
-abbreviate it in the real world, so we avoid it in the documentation
-to avoid confusion.
+Do not abbreviate ``scipy``. There is no motivating use case to abbreviate
+it in the real world, so we avoid it in the documentation to avoid
+confusion.
 
 It is not necessary to do ``import numpy as np`` at the beginning of
 an example.  However, some sub-modules, such as ``fft``, are not
@@ -64,8 +88,9 @@ after which you may use it::
 
 Docstring Standard
 ^^^^^^^^^^^^^^^^^^
+
 A documentation string (docstring) is a string that describes a module,
-function, class, or method definition.  The docstring is a special attribute
+function, class, or method definition. The docstring is a special attribute
 of the object (``object.__doc__``) and, for consistency, is surrounded by
 triple double quotes, i.e.::
 
@@ -75,40 +100,29 @@ triple double quotes, i.e.::
 
    """
 
-NumPy, SciPy_, and the scikits follow a common convention for
-docstrings that provides for consistency, while also allowing our
-toolchain to produce well-formatted reference guides.  This document
-describes the current community consensus for such a standard.  If you
-have suggestions for improvements, post them on the `numpy-discussion
-list`_.
+NumPy_ and SciPy_ have defined a common convention for docstrings that
+provides for consistency, while also allowing our toolchain to produce
+well-formatted reference guides. This format should be used for AstroPy
+docstrings.
 
-Our docstring standard uses `re-structured text (reST)
+This docstring standard uses `re-structured text (reST)
 <http://docutils.sourceforge.net/rst.html>`_ syntax and is rendered
 using Sphinx_ (a pre-processor that understands the particular
-documentation style we are using).  While a rich set of
-markup is available, we limit ourselves to a very basic subset, in
-order to provide docstrings that are easy to read on text-only
-terminals.
+documentation style we are using). While a rich set of markup is
+available, we limit ourselves to a very basic subset, in order to
+provide docstrings that are easy to read on text-only terminals.
 
 A guiding principle is that human readers of the text are given
-precedence over contorting docstrings so our tools produce nice
-output.  Rather than sacrificing the readability of the docstrings, we
-have written pre-processors to assist Sphinx_ in its task.
+precedence over contorting docstrings so our tools produce nice output.
+Rather than sacrificing the readability of the docstrings, we have
+written pre-processors to assist Sphinx_ in its task.
 
 The length of docstring lines should be kept to 75 characters to
 facilitate reading the docstrings in text terminals.
 
-Status
-^^^^^^
-We are busy converting existing docstrings to the new format,
-expanding them where they are lacking, as well as writing new ones for
-undocumented functions.  Volunteers are welcome to join the effort on
-our new documentation system (see the `Documentation Editor
-<http://docs.scipy.org/doc/>`_ and the `Developer Zone
-<http://www.scipy.org/Developer_Zone/DocMarathon2008>`_).
-
 Sections
 ^^^^^^^^
+
 The sections of the docstring are:
 
 1. **Short summary**
@@ -124,7 +138,7 @@ The sections of the docstring are:
         """
 
    The function signature is normally found by introspection and
-   displayed by the help function.  For some functions (notably those
+   displayed by the help function. For some functions (notably those
    written in C) the signature is not available, so we have to specify
    it as the first line of the docstring::
 
@@ -138,38 +152,36 @@ The sections of the docstring are:
 2. **Deprecation warning**
 
    A section (use if applicable) to warn users that the object is deprecated.
-   Section contents should include: 
+   Section contents should include:
 
-   * In what Numpy version the object was deprecated, and when it will be
-     removed.
+   * In what AstroPy version the object was deprecated, and when it will
+     be removed.
 
-   * Reason for deprecation  if this is useful information (e.g., object
+   * Reason for deprecation if this is useful information (e.g., object
      is superseded, duplicates functionality found elsewhere, etc.).
 
-   * New recommended way of obtaining the same functionality. 
+   * New recommended way of obtaining the same functionality.
 
    This section should use the note Sphinx directive instead of an
    underlined section header.
 
    ::
 
-     .. note:: Deprecated in Numpy 1.6
-               `ndobj_old` will be removed in Numpy 2.0, it is replaced by
+     .. note:: Deprecated in AstroPy 1.2
+               `ndobj_old` will be removed in AstroPy 2.0, it is replaced by
                `ndobj_new` because the latter works also with array subclasses.
 
 3. **Extended summary**
 
-   A few sentences giving an extended description.  This section
-   should be used to clarify *functionality*, not to discuss
-   implementation detail or background theory, which should rather be
-   explored in the **notes** section below.  You may refer to the
-   parameters and the function name, but parameter descriptions still
-   belong in the **parameters** section.
+   A few sentences giving an extended description. This section should be used
+   to clarify *functionality*, not to discuss implementation detail or
+   background theory, which should rather be explored in the **notes** section
+   below. You may refer to the parameters and the function name, but parameter
+   descriptions still belong in the **parameters** section.
 
 4. **Parameters**
 
-   Description of the function arguments, keywords and their
-   respective types.
+   Description of the function arguments, keywords and their respective types.
 
    ::
 
@@ -178,10 +190,10 @@ The sections of the docstring are:
      x : type
         Description of parameter `x`.
 
-   Enclose variables in single backticks.  
+   Enclose variables in single backticks.
 
-   For the parameter types, be as preciese as possible.  Below are a
-   few examples of parameters and their types.
+   For the parameter types, be as precise as possible. Below are a few
+   examples of parameters and their types.
 
    ::
 
@@ -190,24 +202,23 @@ The sections of the docstring are:
      filename : str
      copy : bool
      dtype : data-type
-     iterable : iterable object     
+     iterable : iterable object
      shape : int or tuple of int
      files : list of str
 
-   If it is not necessary to specify a keyword argument, use
-   ``optional``::
+   If it is not necessary to specify a keyword argument, use ``optional``::
 
      x : int, optional
 
-   Optional keyword parameters have default values, which are
-   displayed as part of the function signature.  They can also be
-   detailed in the description::
+   Optional keyword parameters have default values, which are displayed as
+   part of the function signature. They can also be detailed in the
+   description::
 
      Description of parameter `x` (the default is -1, which implies summation
      over all axes).
 
-   When a parameter can only assume one of a fixed set of values,
-   those values can be listed in braces::
+   When a parameter can only assume one of a fixed set of values, those values
+   can be listed in braces::
 
      order : {'C', 'F', 'A'}
          Description of `order`.
@@ -220,60 +231,61 @@ The sections of the docstring are:
 
 5. **Returns**
 
-   Explanation of the returned values and their types, of the same
-   format as **parameters**.
+   Explanation of the returned values and their types, of the same format as
+   **parameters**.
 
 6. **Other parameters**
 
-   An optional section used to describe infrequently used parameters.
-   It should only be used if a function has a large number of keyword
-   prameters, to prevent cluttering the **parameters** section.
+   An optional section used to describe infrequently used parameters. It
+   should only be used if a function has a large number of keyword parameters,
+   to prevent cluttering the **parameters** section.
 
 7. **Raises**
 
-   An optional section detailing which errors get raised and under
-   what conditions::
+   An optional section detailing which errors get raised and under what
+   conditions::
 
      Raises
      ------
-     LinAlgException
-         If the matrix is not numerically invertible.
+     InvalidWCSException
+         If the WCS information is invalid.
 
-   This section should be used judiciously, i.e only for errors
-   that are non-obvious or have a large chance of getting raised.
+   This section should be used judiciously, i.e only for errors that are
+   non-obvious or have a large chance of getting raised.
 
 8. **See Also**
 
-   An optional section used to refer to related code.  This section
-   can be very useful, but should be used judiciously.  The goal is to
-   direct users to other functions they may not be aware of, or have
-   easy means of discovering (by looking at the module docstring, for
-   example).  Routines whose docstrings further explain parameters
-   used by this function are good candidates.
+   An optional section used to refer to related code. This section can be very
+   useful, but should be used judiciously. The goal is to direct users to
+   other functions they may not be aware of, or have easy means of discovering
+   (by looking at the module docstring, for example). Routines whose
+   docstrings further explain parameters used by this function are good
+   candidates.
 
-   As an example, for ``numpy.mean`` we would have::
+   As an example, for a hypothetical function ``astropy.wcs.sky2pix``
+   converting sky to pixel coordinates, we would have::
 
      See Also
      --------
-     average : Weighted average
+     pix2sky : Convert pixel to sky coordinates
 
-   When referring to functions in the same sub-module, no prefix is
-   needed, and the tree is searched upwards for a match.
+   When referring to functions in the same sub-module, no prefix is needed,
+   and the tree is searched upwards for a match.
 
-   Prefix functions from other sub-modules appropriately.  E.g.,
-   whilst documenting the ``random`` module, refer to a function in
-   ``fft`` by
+   Prefix functions from other sub-modules appropriately. E.g., whilst
+   documenting a hypothetical ``astropy.vo`` module, refer to a function in
+   ``table`` by
 
    ::
 
-     fft.fft2 : 2-D fast discrete Fourier transform
+     table.read : Read in a VO table
 
    When referring to an entirely different module::
 
-     scipy.random.norm : Random variates, PDFs, etc.
+     astropy.coords : Coordinate handling routines
 
-   Functions may be listed without descriptions, and this is
-   preferable if the functionality is clear from the function name::
+   Functions may be listed without descriptions, and this is preferable if the
+   functionality is clear from the function name::
 
      See Also
      --------
@@ -283,10 +295,10 @@ The sections of the docstring are:
 
 9. **Notes**
 
-   An optional section that provides additional information about the
-   code, possibly including a discussion of the algorithm. This
-   section may include mathematical equations, written in
-   `LaTeX <http://www.latex-project.org/>`_ format::
+   An optional section that provides additional information about the code,
+   possibly including a discussion of the algorithm. This section may include
+   mathematical equations, written in `LaTeX <http://www.latex-project.org/>`_
+   format::
 
      The FFT is a fast implementation of the discrete Fourier transform:
 
@@ -316,15 +328,14 @@ The sections of the docstring are:
    Note that LaTeX is not particularly easy to read, so use equations
    sparingly.
 
-   Images are allowed, but should not be central to the explanation;
-   users viewing the docstring as text must be able to comprehend its
-   meaning without resorting to an image viewer.  These additional
-   illustrations are included using::
+   Images are allowed, but should not be central to the explanation; users
+   viewing the docstring as text must be able to comprehend its meaning
+   without resorting to an image viewer. These additional illustrations are
+   included using::
 
      .. image:: filename
 
-   where filename is a path relative to the reference guide source
-   directory.
+   where filename is a path relative to the reference guide source directory.
 
 10. **References**
 
@@ -346,65 +357,64 @@ The sections of the docstring are:
       and neural-network techniques," Computers & Geosciences, vol. 22,
       pp. 585-588, 1996.
 
-   Referencing sources of a temporary nature, like web pages, is
-   discouraged.  References are meant to augment the docstring, but
-   should not be required to understand it.  References are numbered, starting
-   from one, in the order in which they are cited.  
+   Referencing sources of a temporary nature, like web pages, is discouraged.
+   References are meant to augment the docstring, but should not be required
+   to understand it. References are numbered, starting from one, in the order
+   in which they are cited.
 
 11. **Examples**
 
    An optional section for examples, using the `doctest
-   <http://www.python.org/doc/lib/module-doctest.html>`_ format.
-   This section is meant to illustrate usage, not to provide a
-   testing framework -- for that, use the ``tests/`` directory.
-   While optional, this section is very strongly encouraged.
+   <http://docs.python.org/library/doctest.html>`_ format. This section
+   is meant to illustrate usage, not to provide a testing framework -- for
+   that, use the ``tests/`` directory. While optional, this section is very
+   strongly encouraged.
 
-   When multiple examples are provided, they should be separated by
-   blank lines. Comments explaining the examples should have blank
-   lines both above and below them::
+   When multiple examples are provided, they should be separated by blank
+   lines. Comments explaining the examples should have blank lines both above
+   and below them::
 
-     >>> np.add(1, 2)
-     3
+     >>> astropy.wcs.sky2pix(233.2, -12.3)
+     (134.5, 233.1)
 
      Comment explaining the second example
 
-     >>> np.add([1, 2], [3, 4])
-     array([4, 6])
+     >>> astropy.coords.fk5_to_gal("00:42:44.33 +41:16:07.5")
+     (121.1743, -21.5733)
 
    For tests with a result that is random or platform-dependent, mark the
    output as such::
 
-     >>> import numpy.random
-     >>> np.random.rand(2)
-     array([ 0.35773152,  0.38568979])  #random     
+     >>> astropy.coords.randomize_position(244.9, 44.2, radius=0.1)
+     (244.855, 44.13)  #random
 
    You can run examples using::
 
-     >>> np.test(doctests=True)
+     >>> astropy.test(doctests=True)
 
-   It is not necessary to use the doctest markup ``<BLANKLINE>`` to
-   indicate empty lines in the output. Note that the option to run
-   the examples through ``numpy.test`` is provided for checking if the
-   examples work, not for making the examples part of the testing framework.
+   It is not necessary to use the doctest markup ``<BLANKLINE>`` to indicate
+   empty lines in the output. Note that the option to run the examples through
+   ``numpy.test`` is provided for checking if the examples work, not for
+   making the examples part of the testing framework.
 
-   The examples may assume that ``import numpy as np`` is executed before
-   the example code in *numpy*. Additional examples may make use of
-   *matplotlib* for plotting, but should import it explicitly, e.g.,
-   ``import matplotlib.pyplot as plt``.
+   The examples may assume that ``import numpy as np`` is executed before the
+   example code Additional examples may make use of *matplotlib*
+   for plotting, but should import it explicitly, e.g., ``import
+   matplotlib.pyplot as plt``.
 
-   
 Documenting classes
 ^^^^^^^^^^^^^^^^^^^
 
 Class docstring
 ```````````````
+
 Use the same sections as outlined above (all except ``Returns`` are
-applicable).  The constructor (``__init__``) should also be documented
-here, the **parameters** section of the docstring details the constructors
+applicable). The constructor (``__init__``) should also be documented here,
+the **parameters** section of the docstring details the constructors
 parameters.
 
-An ``Attributes`` section, located below the **parameters** section,
-may be used to describe class variables::
+An ``Attributes`` section, located below the **parameters** section, may be
+used to describe class variables::
 
   Attributes
   ----------
@@ -413,8 +423,8 @@ may be used to describe class variables::
   y : float
       The Y coordinate.
 
-Attributes that are properties and have their own docstrings can be
-simply listed by name::
+Attributes that are properties and have their own docstrings can be simply
+listed by name::
 
   Attributes
   ----------
@@ -425,65 +435,63 @@ simply listed by name::
   y : float
       The Y coordinate
 
-In general, it is not necessary to list class methods.  Those that are
-not part of the public API have names that start with an underscore.
-In some cases, however, a class may have a great many methods, of
-which only a few are relevant (e.g., subclasses of ndarray).  Then, it
-becomes useful to have an additional ``Methods`` section::
+In general, it is not necessary to list class methods. Those that are not part
+of the public API have names that start with an underscore. In some cases,
+however, a class may have a great many methods, of which only a few are
+relevant (e.g., subclasses of ndarray). Then, it becomes useful to have an
+additional ``Methods`` section::
 
-  class Photo(ndarray):
+  class Table(ndarray):
       """
-      Array with associated photographic information.
+      A class to represent tables of data
 
       ...
 
       Attributes
       ----------
-      exposure : float
-          Exposure in seconds.
+      columns : list
+          List of columns
 
       Methods
       -------
-      colorspace(c='rgb')
-          Represent the photo in the given colorspace.
-      gamma(n=1.0)
-          Change the photo's gamma exposure.
-
+      read(filename)
+          Read a table from a file
+      sort(column, order='ascending')
+          Sort by `column`
       """
 
-If it is necessary to explain a private method (use with care!), it can
-be referred to in the **extended summary** or the **notes**. Do not
-list private methods in the Methods section.
+If it is necessary to explain a private method (use with care!), it can be
+referred to in the **extended summary** or the **notes**. Do not list private
+methods in the Methods section.
 
-Note that `self` is *not* listed as the first parameter of methods.
+Note that ``self`` is *not* listed as the first parameter of methods.
 
 Method docstrings
 `````````````````
-Document these as you would any other function.  Do not include
-``self`` in the list of parameters.  If a method has an equivalent function
-(which is the case for many ndarray methods for example), the function
-docstring should contain the detailed documentation, and the method docstring
-should refer to it.  Only put brief summary and See Also sections in the method
-docstring.
 
+Document these as you would any other function. Do not include ``self`` in the
+list of parameters. If a method has an equivalent function (which is the case
+for many ndarray methods for example), the function docstring should contain
+the detailed documentation, and the method docstring should refer to it. Only
+put brief summary and See Also sections in the method docstring.
 
 Documenting class instances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Instances of classes that are part of the Numpy API (for example `np.r_`
-`np,c_`, `np.index_exp`, etc.) may require some care. To give these
-instances a useful docstring, we do the following:
 
-* Single instance: If only a single instance of a class is exposed,
-  document the class. Examples can use the instance name.
+Instances of classes that are part of the AstroPy API may require some care.
+To give these instances a useful docstring, we do the following:
 
-* Multiple instances: If multiple instances are exposed, docstrings
-  for each instance are written and assigned to the instances'
-  ``__doc__`` attributes at run time. The class is documented as usual, and
-  the exposed instances can be mentioned in the Notes and See Also sections.
+* Single instance: If only a single instance of a class is exposed, document
+  the class. Examples can use the instance name.
 
+* Multiple instances: If multiple instances are exposed, docstrings for each
+  instance are written and assigned to the instances' ``__doc__`` attributes
+  at run time. The class is documented as usual, and the exposed instances can
+  be mentioned in the Notes and See Also sections.
 
 Documenting constants
 ^^^^^^^^^^^^^^^^^^^^^
+
 Use the same sections as outlined for functions where applicable::
 
    1. summary
@@ -497,9 +505,9 @@ Docstrings for constants will not be visible in text terminals
 to them like for for class instances), but will appear in the
 documentation built with Sphinx.
 
-
 Documenting modules
 ^^^^^^^^^^^^^^^^^^^
+
 Each module should have a docstring with at least a summary line. Other
 sections are optional, and should be used in the same order as for documenting
 functions when they are appropriate::
@@ -517,11 +525,11 @@ hard to get a good overview of all functionality provided by looking at the
 source file(s) or the __all__ dict.
 
 Note that license and author info, while often included in source files, do not
-belong in docstrings. 
-
+belong in docstrings.
 
 Other points to keep in mind
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 * Notes and Warnings : If there are points in the docstring that deserve
   special emphasis, the reST directives for a note or warning can be used
   in the vicinity of the context of the warning (inside a section). Syntax:
@@ -547,22 +555,20 @@ Other points to keep in mind
 
 Common reST concepts
 ^^^^^^^^^^^^^^^^^^^^
+
 For paragraphs, indentation is significant and indicates indentation in the
 output. New paragraphs are marked with a blank line.
 
-Use *italics*, **bold**, and ``courier`` if needed in any explanations
-(but not for variable names and doctest code or multi-line code).
-Variable, module and class names should be written between single
-back-ticks (```numpy```).
+Use *italics*, **bold**, and ``courier`` if needed in any explanations (but
+not for variable names and doctest code or multi-line code). Variable, module
+and class names should be written between single back-ticks (```astropy```).
 
-A more extensive example of reST markup can be found in `this example
-document <http://docutils.sourceforge.net/docs/user/rst/demo.txt>`_;
-the `quick reference
-<http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_ is
+A more extensive example of reST markup can be found in `this example document
+<http://docutils.sourceforge.net/docs/user/rst/demo.txt>`_; the `quick
+reference <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_ is
 useful while editing.
 
-Line spacing and indentation are significant and should be carefully
-followed.
+Line spacing and indentation are significant and should be carefully followed.
 
 Conclusion
 ^^^^^^^^^^
@@ -572,11 +578,6 @@ format shown here is available.  Refer to `How to Build API/Reference
 Documentation
 <http://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.txt>`_
 on how to use Sphinx_ to build the manual.
-
-This document itself was written in ReStructuredText, and may be converted to
-HTML using::
-
-  $ rst2html HOWTO_DOCUMENT.txt HOWTO_DOCUMENT.html
 
 .. _SciPy: http://www.scipy.org
 .. _numpy-discussion list: http://www.scipy.org/Mailing_Lists
