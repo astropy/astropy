@@ -16,7 +16,7 @@ access to the upstream repo.  Being a maintainer, you've got read-write access.
 It's good to have your upstream remote have a scary name, to remind you that
 it's a read-write remote::
 
-    git remote add upstream-rw git@github.com:ipython/astropy.git
+    git remote add upstream-rw git@github.com:astropy/astropy.git
     git fetch upstream-rw
 
 *******************

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ''' Checkout gitwash repo into directory and do search replace on name '''
-#Invoke this for astropy: ./gitwash_dumper.py development Astropy --repo-name=astropy --github-user=ipython --project-url="http://astropy.org" --project-ml-url="http://mail.scipy.org/mailman/listinfo/astropy"
+#Invoke this for astropy: ./gitwash_dumper.py development Astropy --repo-name=astropy --github-user=astropy --project-url="http://astropy.org" --project-ml-url="http://mail.scipy.org/mailman/listinfo/astropy"
 
 import os
 from os.path import join as pjoin
