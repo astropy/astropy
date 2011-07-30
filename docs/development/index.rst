@@ -10,3 +10,4 @@ The information in the following pages are relevant for anyone interesting in co
     codeguide
     docguide
     testguide
+    gitwash/index
