@@ -11,3 +11,4 @@ The information in the following pages are relevant for anyone interesting in co
     docguide
     testguide
     gitwash/index
+    workflow/index
