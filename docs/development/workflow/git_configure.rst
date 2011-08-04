@@ -6,6 +6,16 @@
 
 .. _git-config-basic:
 
+Bare Minimum
+============
+
+The only absolutely necessary configuration step is identifying yourself and your contact info::
+
+     git config --global user.name "Your Name"
+     git config --global user.email you@yourdomain.example.com
+
+Once you've done this, you can actually ignore the rest of the document unless you want to customize the behavior of git.
+
 Overview
 ========
 
@@ -30,7 +40,7 @@ Here is an example ``.gitconfig`` file::
           editor = vim
 
   [merge]
-          summary = true
+          log = true
 
 You can edit this file directly or you can use the ``git config --global``
 command::

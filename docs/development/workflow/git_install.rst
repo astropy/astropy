@@ -31,7 +31,7 @@ If you have Fink installed, you can do::
 
     sudo apt-get install git
 
-In addition, you may want to use a GUI to manage your git repositories. A good example of a free GUI is `GitX <https://github.com/brotherbard/gitx>`_.
+In addition, you may want to use a GUI to manage your git repositories. A good example of a free Mac GUI is `GitX <http://gitx.frim.nl/>`_. Other (non-free) examples include `Tower <http://www.git-tower.com/>`_ and `SourceTree <http://www.sourcetreeapp.com/>`_. GitHub have also recently released `GitHub for Mac <http://mac.github.com/>`_.
 
 Windows
 -------
