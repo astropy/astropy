@@ -52,7 +52,7 @@ If there are only a few commits, consider rebasing to upstream::
 
     # Fetch upstream changes
     git fetch upstream-rw
-    
+
     # Rebase
     git rebase upstream-rw/master
 
