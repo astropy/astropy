@@ -10,7 +10,19 @@ peoples' changes into the upstream repository.
 Being as how you're a maintainer, you are completely on top of the basic stuff
 in :ref:`development-workflow`.
 
-The instructions in :ref:`linking-to-upstream` add a remote that has read-only
+*******************************************************
+Integrating changes via the web interface (recommended)
+*******************************************************
+
+Whenever possible, merge pull requests automatically via the pull request manager on GitHub. Merging should only be done manually if there is a really good reason to do this!
+
+Make sure that pull requests do not contain a messy history with merges, etc. If this is the case, then follow the manual instructions, and make sure the fork is rebased to tidy the history before committing.
+
+****************************
+Integrating changes manually
+****************************
+
+First, check out the ``astropy`` repository. The instructions in :ref:`linking-to-upstream` add a remote that has read-only
 access to the upstream repo.  Being a maintainer, you've got read-write access.
 
 It's good to have your upstream remote have a scary name, to remind you that
@@ -19,14 +31,10 @@ it's a read-write remote::
     git remote add upstream-rw git@github.com:astropy/astropy.git
     git fetch upstream-rw
 
-*******************
-Integrating changes
-*******************
-
 Let's say you have some changes that need to go into trunk
 (``upstream-rw/master``).
 
-The changes are in some branch that you are currently on.  For example, you are
+The changes are in some branch that you are currently on. For example, you are
 looking at someone's changes like this::
 
     git remote add someone git://github.com/someone/astropy.git
@@ -34,7 +42,7 @@ looking at someone's changes like this::
     git branch cool-feature --track someone/cool-feature
     git checkout cool-feature
 
-So now you are on the branch with the changes to be incorporated upstream.  The
+So now you are on the branch with the changes to be incorporated upstream. The
 rest of this section assumes you are on this branch.
 
 A few commits
@@ -44,7 +52,8 @@ If there are only a few commits, consider rebasing to upstream::
 
     # Fetch upstream changes
     git fetch upstream-rw
-    # rebase
+
+    # Rebase
     git rebase upstream-rw/master
 
 Remember that, if you do a rebase, and push that, you'll have to close any
@@ -59,19 +68,19 @@ If there are a longer series of related commits, consider a merge instead::
     git fetch upstream-rw
     git merge --no-ff upstream-rw/master
 
-The merge will be detected by github, and should close any related pull requests
-automatically.
+The merge will be detected by github, and should close any related pull
+requests automatically.
 
-Note the ``--no-ff`` above.  This forces git to make a merge commit, rather than
-doing a fast-forward, so that these set of commits branch off trunk then rejoin
-the main history with a merge, rather than appearing to have been made directly
-on top of trunk.
+Note the ``--no-ff`` above. This forces git to make a merge commit, rather
+than doing a fast-forward, so that these set of commits branch off trunk then
+rejoin the main history with a merge, rather than appearing to have been made
+directly on top of trunk.
 
 Check the history
 =================
 
-Now, in either case, you should check that the history is sensible and you have
-the right commits::
+Now, in either case, you should check that the history is sensible and you
+have the right commits::
 
     git log --oneline --graph
     git log -p upstream-rw/master..

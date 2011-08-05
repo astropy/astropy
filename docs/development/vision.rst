@@ -1,3 +1,5 @@
+.. _vision:
+
 Vision for a common Astronomy Python package
 ============================================
 
