@@ -14,7 +14,7 @@ You want to tell us about it |emdash| best of all!
 The easiest way is to make a *patch* or set of patches. Here we explain how.
 Making a patch is the simplest and quickest, but if you're going to be doing
 anything more than simple quick things, please consider following
-:ref:`advanced-worflow` instead.
+:ref:`advanced-workflow` instead.
 
 Making patches
 ==============
@@ -22,7 +22,7 @@ Making patches
 Overview
 --------
 
-If you haven't already configured git (:ref:git_configure)::
+If you haven't already configured git (:ref:`git-configure-impatient`)::
 
     git config --global user.name "Your Name"
     git config --global user.email you@yourdomain.example.com

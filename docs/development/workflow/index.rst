@@ -1,7 +1,7 @@
 .. _using-git:
 
 Contributing To/Developing Astropy or Affiliated Packages
-======================================================
+=========================================================
 
 Summary
 -------
@@ -26,6 +26,8 @@ the version control system and workflow that they want, but ultimately the
 changes need to be merged into a fork of the core repository and submitted via
 a pull request to the core repository, either by the team or by the
 coordination committee.
+
+.. _git-configure-impatient:
 
 For the Impatient
 -----------------

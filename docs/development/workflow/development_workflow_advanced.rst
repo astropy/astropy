@@ -7,6 +7,8 @@ Development Workflow (Advanced)
 In the present document, we refer to the AstroPy ``master`` branch, as the
 *trunk*.
 
+.. _forking:
+
 Creating a fork
 ===============
 
@@ -40,8 +42,12 @@ The following example shows how to fork the core ``astropy`` repository, but the
    Now, after a short pause and some 'Hardcore forking action', you
    should find yourself at the home page for your own forked copy of Astropy_.
 
+
+
 Setting up the fork to work on
 ------------------------------
+
+.. _linking-to-upstream:
 
 Overview
 ^^^^^^^^
