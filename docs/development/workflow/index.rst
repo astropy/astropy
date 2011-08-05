@@ -1,6 +1,6 @@
 .. _using-git:
 
-Contributing/Developing Astropy or Affiliated Packages
+Contributing To/Developing Astropy or Affiliated Packages
 ======================================================
 
 Summary
