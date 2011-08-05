@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Astropy's documentation!
-===================================
+Astropy: Astronomy and Astrophysics in Python
+=============================================
 
 The current AstroPy documentation is limited, as no code has yet been developed.  
 For more information, see the `github wiki <http://github.com/astropy/astropy/wiki>`_ page of the project.
