@@ -1,0 +1,22 @@
+{% extends "!layout.html" %}
+
+{% block rootrellink %}
+        <li><img src="{{ pathto('_static/astropylogo16.png', 1) }}" alt=""
+                 style="vertical-align: middle; margin-top: -1px"/></li>
+        <li><a href="{{ pathto('index') }}">{{ shorttitle }}</a>{{ reldelim1 }}</li>
+{% endblock %}
+
+{%- block document %}
+     <div class="documentwrapper">
+     {%- if render_sidebar %}
+       <div class="bodywrapper">
+     {%- endif %}
+         <div class="body">
+           <br><img src="{{ pathto("_static/astropylogofull.png", 1) }}" alt="Astropy logo" height="120"/><br>
+           {% block body %} {% endblock %}
+         </div>
+     {%- if render_sidebar %}
+       </div>
+     {%- endif %}
+     </div>
+{%- endblock %}
