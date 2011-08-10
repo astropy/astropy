@@ -165,7 +165,7 @@ Add the following code to Emacs configurations.
 Delete trailing white spaces and blank lines
 --------------------------------------------
 
-To manually delete trailing whitespaces, press `C-d C-w`, which will
+To manually delete trailing whitespaces, press `C-t C-w`, which will
 run the command "delete-whitespaces`. This command is also run when a
 file is saved, and hence all trailing whitespaces will be deleted on
 saving a Python file.
@@ -180,10 +180,10 @@ black lines at the end of a file.
 
 .. code-block:: scheme
 
-  ;; Remove trailing whitespace manually by typing C-d C-w.
+  ;; Remove trailing whitespace manually by typing C-t C-w.
   (add-hook 'python-mode-hook
             (lambda ()
-              (local-set-key (kbd "C-d C-w")
+              (local-set-key (kbd "C-t C-w")
                              'delete-trailing-whitespace)))
    
   ;; Automatically remove trailing whitespace when file is saved.
