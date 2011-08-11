@@ -77,12 +77,11 @@ Coding Style/Conventions
   syntax. This is primarily due to improved relative import support since PEP8
   was developed, and to simplify the process of moving modules.
 
-  See :doc:`codeguide_emacs` for some configuration options for Emacs
-  that helps in ensuring conformance to pep8.
-
 .. note:: A pep8.py checker script is available at
           http://pypi.python.org/pypi/pep8.
 
+          See :doc:`codeguide_emacs` for some configuration options for
+          Emacs that helps in ensuring conformance to PEP8.
 
 * The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
   matplotlib.pyplot as plt`` naming conventions should be used wherever
