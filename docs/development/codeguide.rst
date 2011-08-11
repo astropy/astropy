@@ -80,6 +80,9 @@ Coding Style/Conventions
 .. note:: A pep8.py checker script is available at
           http://pypi.python.org/pypi/pep8.
 
+          See :doc:`codeguide_emacs` for some configuration options for
+          Emacs that helps in ensuring conformance to PEP8.
+
 * The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
   matplotlib.pyplot as plt`` naming conventions should be used wherever
   relevant. ``from packagename import *`` should never be used, except as a
