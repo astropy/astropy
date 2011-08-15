@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Astropy'
-copyright = u'2011, Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration'
+copyright = u'2011, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perry Greenfield'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -215,6 +215,11 @@ man_pages = [
      [u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration'], 1)
 ]
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+# This is added to the end of RST files - a good place to put substitutions to
+# be used globally.
+rst_epilog = """
+.. _Astropy: http://astropy.org
+"""
