@@ -303,6 +303,19 @@ might read::
 This ensures that ``from submodule import *`` only imports :func:`foo` and
 :class:`AClass`, but not :class:`numpy.array` or :func:`numpy.linspace`.
 
+
+Additional Resources
+--------------------
+
+Further tips and hints relating to the coding guidelines are included below.
+
+.. toctree::
+    :maxdepth: 1
+
+    codeguide_emacs
+
+
+
 .. _Numpy: http://numpy.scipy.org/
 .. _Scipy: http://www.scipy.org/
 .. _matplotlib: http://matplotlib.sourceforge.net/

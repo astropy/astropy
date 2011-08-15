@@ -7,7 +7,7 @@ The information in the following pages are relevant for anyone interesting in co
     :maxdepth: 1
 
     vision
+    workflow/index
     codeguide
     docguide
     testguide
-    workflow/index
