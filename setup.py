@@ -21,7 +21,7 @@ LONG_DESCRIPTION = astropy.__doc__
 
 #use the find_packages tool to locate all packages and modules other than
 #those that are in "tests" 
-astropyspkgs = find_packages(exclude=['tests'])
+astropypkgs = find_packages(exclude=['tests'])
 
 #treat everything in scripts except README.rst as a script to be installed
 astropyscripts = glob('scripts/*')

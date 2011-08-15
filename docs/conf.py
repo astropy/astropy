@@ -217,6 +217,7 @@ man_pages = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog = """
