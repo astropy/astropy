@@ -5,11 +5,13 @@ from __future__ import division
 from distribute_setup import use_setuptools
 use_setuptools()
 
-from setuptools import setup,find_packages
+from setuptools import setup,find_packages,Extension
 from glob import glob
+from warnings import warn
 
-import astropy
+import astropy,os
 from astropy.version import version as versionstring
+from astropy.version import release
 
 NAME = 'Astropy'
 
@@ -27,9 +29,45 @@ astropypkgs = find_packages(exclude=['tests'])
 astropyscripts = glob('scripts/*')
 astropyscripts.remove('scripts/README.rst')
 
+#C extensions that are not Cython-based should be added here.
+extensions = []
+
+# Look for Cython files - compile with Cython if it is not a release and Cython
+# is installed.  Otherwise, use the .c files that live next to the Cython files.
+
+try:
+    import Cython
+    have_cython = True
+except ImportEror:
+    have_cython = False
+    
+pyxfiles = []
+for  dirpath, dirnames, filenames in os.walk('astropy'):
+    modbase = dirpath.replace(os.sep,'.')
+    for fn in filenames:
+        if fn.endswith('.pyx'):
+            fullfn = os.path.join(dirpath,fn)
+            extmod = modbase+'.'+fn[:-4] #package name must match file name
+            pyxfiles.append((extmod,fullfn))
+    
+if not release and have_cython:
+    #add .pyx files
+    for extmod,pyxfn in pyxfiles:
+        extensions.append(Extension(extmod,[pyxfn]))
+else:
+    #add .c files
+    for extmod,pyxfn in pyxfiles:
+        cfn = pyxfn[:-4]+'.c'
+        if os.path.exists(cfn):
+            extensions.append(Extension(extmod,[cfn]))
+        else:
+            warnstr = 'Could not find Cython-generated C extension ' + \
+                 '{0} - The {1} module will be skipped.'.format(cfn,extmod)
+            warn(warnstr)
+
 #Implement a version of build_sphinx that automatically creates the docs/_build
-#dir - this is needed because github won't create the _build dir because it 
-#initially has no files
+#dir - this is needed because github won't create the _build dir because it has
+#no tracked files
 try:
     from sphinx.setup_command import BuildDoc
     
@@ -56,6 +94,7 @@ setup(name=NAME,
       description=SHORT_DESCRIPTION,
       packages=astropypkgs,
       package_data={'astropy':['data/*']},
+      ext_modules=extensions,
       scripts=astropyscripts,
       requires=['numpy','scipy'],
       install_requires=['numpy'],
