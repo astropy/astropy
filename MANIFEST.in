@@ -1,4 +1,15 @@
+include README.rst
+
 include distribute_setup.py
+recursive-include astropy/data *
+recursive-include astropy *.pyx *.c
+
 recursive-include docs *
 recursive-include licenses *
+recursive-include tests *
+recursive-include extern *
+
+exclude *.pyc *.o 
 prune docs/_build
+prune build
+
