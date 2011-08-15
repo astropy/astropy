@@ -215,6 +215,10 @@ man_pages = [
      [u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration'], 1)
 ]
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+# This is added to the end of RST files - a good place to put substitutions to
+# be used globally.
+rst_epilog = """
+.. _Astropy: http://astropy.org
+"""
