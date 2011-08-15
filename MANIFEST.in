@@ -1,0 +1,4 @@
+include distribute_setup.py
+recursive-include docs *
+recursive-include licenses *
+prune docs/_build
