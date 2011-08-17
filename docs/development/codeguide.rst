@@ -95,11 +95,16 @@ Coding Style/Conventions
   requires a computationally-expensive operation. The example below
   illustrates this guideline.
 
-* Classes are discouraged from using the builtin python :func:`super`
-  function, unless absolutely needed. If used, it should be used
-  consistentently by all subclasses, and noted in the class’s docstrings. An
-  example illustrating why this is important (and alternative solutions) is
-  included below.
+* All new classes should be new-style classes inheriting from :class:`object`
+  (in Python 3 this is a non-issue as all classes are new-style by default).
+  The one exception to this rule is older classes in third-party libraries such
+  the Python standard library or numpy.
+
+* Classes should use the builtin :func:`super` function when making calls to
+  methods in their super-class(es) unless there are specific reasons not to.
+  :func:`super` should be used consistently in all subclasses since it does not
+  work otherwise.  An example illustrating why this is important is included
+  below.
 
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
