@@ -188,10 +188,11 @@ a get/set method. For lengthy or complex calculations, however, use a method::
 super() vs. direct calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example shows why the use of :func:`super` can be confusing for
-subclasses, and gives an alternative syntax::
+This example shows why the use of :func:`super` leads to a more consistent
+method resolution order than manually calling methods of the super classes in a
+multiple inheritance case::
 
-    #This is dangerous and bug-prone!
+    # This is dangerous and bug-prone!
 
     class A(object):
         def method(self):
@@ -200,20 +201,20 @@ subclasses, and gives an alternative syntax::
 
     class B(A):
         def method(self):
-            super(B, self).method()
             print 'Doing B'
+            A.method(self)
 
 
     class C(A):
         def method(self):
-            A.method(self)
             print 'Doing C'
-
+            A.method(self)
 
     class D(C, B):
         def method(self):
-            super(D, self).method()
             print 'Doing D'
+            B.method(self)
+            C.method(self)
 
 if you then do::
 
@@ -222,49 +223,72 @@ if you then do::
 
 you will see::
 
-    Doing A
     Doing B
+    Doing A
 
 which is what you expect, and similarly for C. However, if you do::
 
     >>> d = D()
     >>> d.method()
 
-you might expect to have it call both method in the order A,C,B,D. But it
-doesn't - instead you see::
+you might expect to see the methods called in the order D, B, C, A but instead
+you see::
 
+    Doing D
+    Doing B
     Doing A
     Doing C
-    Doing D
+    Doing A
 
-because the the ``A.method(self)`` in C effectively short-circuits the super
-mechanism. Thus, it's crucial that all classes in an inheritance hierarchy
-consistently use super and not mix super with the direct syntax. The simplest
-approach is to explicitly call each class' method and avoid super completely::
 
-    #This is safer
+because both ``B.method()`` and ``C.method()`` call ``A.method()`` unaware of
+the fact that they're being called as part of a chain in a hierarchy.  When
+``B.method()`` is called it is unaware that it's being called from a subclass
+that inherts from both ``B`` and ``C``, and that ``C.method()`` should be
+called next.  By calling :func:`super` the entire method resolution order for
+``D`` is precomputed, enabling each superclass to cooperatively determine which
+class should be handed control in the next :func:`super` call::
+
+    # This is safer
+
     class A(object):
-        def __init__(self, a):
-            self.a = 1
-
+        def method(self):
+            print 'Doing A'
 
     class B(A):
-        def __init__(self, a, b):
-            A.__init__(self, a)
-            self.b = b
+        def method(self):
+            print 'Doing B'
+            super(B, self).method()
 
 
     class C(A):
-        def __init__(self, a, c):
-            A.__init__(self, a)
-            self.c = c
-
+        def method(self):
+            print 'Doing C'
+            super(C, self).method()
 
     class D(C, B):
-        def __init__(self, a, b, c, d):
-            B.__init__(self, a, b)
-            C.__init__(self, a, c)
-            self.d = d
+        def method(self):
+            print 'Doing D'
+            super(D, self).method()
+
+::
+
+    >>> d = D()
+    >>> d.method()
+    Doing D
+    Doing C
+    Doing B
+    Doing A
+
+As you can see, each superclass's method is entered only once.  For this to
+work it is very important that each method in a class that calls its
+superclass's version of that method use :func:`super` instead of calling the
+method directly.  In the most common case of single-inheritance, using
+`super()` is functionally equivalent to calling the superclass's method
+directly.  But as soon as a class is used in a multiple-inheritance
+hierarchy it must use `super()` in order to cooperate with other classes in
+the hierarchy.
+
 
 Acceptable use of ``from module import *``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
