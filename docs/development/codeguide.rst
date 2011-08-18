@@ -109,10 +109,6 @@ Coding Style/Conventions
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
 
-.. note:: For more info on the pros and cons of using super, see
-          http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
-          or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
-
 Including C code
 ----------------
 
@@ -213,8 +209,8 @@ multiple inheritance case::
     class D(C, B):
         def method(self):
             print 'Doing D'
-            B.method(self)
             C.method(self)
+            B.method(self)
 
 if you then do::
 
@@ -235,16 +231,16 @@ you might expect to see the methods called in the order D, B, C, A but instead
 you see::
 
     Doing D
-    Doing B
-    Doing A
     Doing C
+    Doing A
+    Doing B
     Doing A
 
 
 because both ``B.method()`` and ``C.method()`` call ``A.method()`` unaware of
 the fact that they're being called as part of a chain in a hierarchy.  When
-``B.method()`` is called it is unaware that it's being called from a subclass
-that inherts from both ``B`` and ``C``, and that ``C.method()`` should be
+``C.method()`` is called it is unaware that it's being called from a subclass
+that inherts from both ``B`` and ``C``, and that ``B.method()`` should be
 called next.  By calling :func:`super` the entire method resolution order for
 ``D`` is precomputed, enabling each superclass to cooperatively determine which
 class should be handed control in the next :func:`super` call::
@@ -284,10 +280,14 @@ As you can see, each superclass's method is entered only once.  For this to
 work it is very important that each method in a class that calls its
 superclass's version of that method use :func:`super` instead of calling the
 method directly.  In the most common case of single-inheritance, using
-`super()` is functionally equivalent to calling the superclass's method
+``super()`` is functionally equivalent to calling the superclass's method
 directly.  But as soon as a class is used in a multiple-inheritance
-hierarchy it must use `super()` in order to cooperate with other classes in
+hierarchy it must use ``super()`` in order to cooperate with other classes in
 the hierarchy.
+
+.. note:: For more info on the pros and cons of using super, see
+          http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
+          or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
 
 
 Acceptable use of ``from module import *``
