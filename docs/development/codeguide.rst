@@ -95,18 +95,30 @@ Coding Style/Conventions
   requires a computationally-expensive operation. The example below
   illustrates this guideline.
 
-* Classes are discouraged from using the builtin python :func:`super`
-  function, unless absolutely needed. If used, it should be used
-  consistentently by all subclasses, and noted in the class’s docstrings. An
-  example illustrating why this is important (and alternative solutions) is
-  included below.
+* All new classes should be new-style classes inheriting from :class:`object`
+  (in Python 3 this is a non-issue as all classes are new-style by default).
+  The one exception to this rule is older classes in third-party libraries such
+  the Python standard library or numpy.
+
+* Classes should use the builtin :func:`super` function when making calls to
+  methods in their super-class(es) unless there are specific reasons not to.
+  :func:`super` should be used consistently in all subclasses since it does not
+  work otherwise.  An example illustrating why this is important is included
+  below.
+
+* Multiple inheritance should be avoided in general without good reason.
+  Mulitple inheritance is complicated to implement well, which is why many
+  object-oriented languages, like Java, do not allow it at all.  Python does
+  enable multiple inheritance through use of the
+  `C3 Linearization <http://www.python.org/download/releases/2.3/mro/>`_
+  algorithm, which provides a consistent method resolution ordering.
+  Non-trivial multiple-inheritance schemes should not be attempted without
+  good justification, or without understanding how C3 is used to determine
+  method resolution order.  However, trivial multiple inheritance using
+  orthogonal base classes, known as the 'mixin' pattern, may be used.
 
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
-
-.. note:: For more info on the pros and cons of using super, see
-          http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
-          or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
 
 Including C code
 ----------------
@@ -183,10 +195,11 @@ a get/set method. For lengthy or complex calculations, however, use a method::
 super() vs. direct calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example shows why the use of :func:`super` can be confusing for
-subclasses, and gives an alternative syntax::
+This example shows why the use of :func:`super` leads to a more consistent
+method resolution order than manually calling methods of the super classes in a
+multiple inheritance case::
 
-    #This is dangerous and bug-prone!
+    # This is dangerous and bug-prone!
 
     class A(object):
         def method(self):
@@ -195,20 +208,20 @@ subclasses, and gives an alternative syntax::
 
     class B(A):
         def method(self):
-            super(B, self).method()
             print 'Doing B'
+            A.method(self)
 
 
     class C(A):
         def method(self):
-            A.method(self)
             print 'Doing C'
-
+            A.method(self)
 
     class D(C, B):
         def method(self):
-            super(D, self).method()
             print 'Doing D'
+            C.method(self)
+            B.method(self)
 
 if you then do::
 
@@ -217,49 +230,76 @@ if you then do::
 
 you will see::
 
-    Doing A
     Doing B
+    Doing A
 
 which is what you expect, and similarly for C. However, if you do::
 
     >>> d = D()
     >>> d.method()
 
-you might expect to have it call both method in the order A,C,B,D. But it
-doesn't - instead you see::
+you might expect to see the methods called in the order D, B, C, A but instead
+you see::
 
-    Doing A
-    Doing C
     Doing D
+    Doing C
+    Doing A
+    Doing B
+    Doing A
 
-because the the ``A.method(self)`` in C effectively short-circuits the super
-mechanism. Thus, it's crucial that all classes in an inheritance hierarchy
-consistently use super and not mix super with the direct syntax. The simplest
-approach is to explicitly call each class' method and avoid super completely::
 
-    #This is safer
+because both ``B.method()`` and ``C.method()`` call ``A.method()`` unaware of
+the fact that they're being called as part of a chain in a hierarchy.  When
+``C.method()`` is called it is unaware that it's being called from a subclass
+that inherts from both ``B`` and ``C``, and that ``B.method()`` should be
+called next.  By calling :func:`super` the entire method resolution order for
+``D`` is precomputed, enabling each superclass to cooperatively determine which
+class should be handed control in the next :func:`super` call::
+
+    # This is safer
+
     class A(object):
-        def __init__(self, a):
-            self.a = 1
-
+        def method(self):
+            print 'Doing A'
 
     class B(A):
-        def __init__(self, a, b):
-            A.__init__(self, a)
-            self.b = b
+        def method(self):
+            print 'Doing B'
+            super(B, self).method()
 
 
     class C(A):
-        def __init__(self, a, c):
-            A.__init__(self, a)
-            self.c = c
-
+        def method(self):
+            print 'Doing C'
+            super(C, self).method()
 
     class D(C, B):
-        def __init__(self, a, b, c, d):
-            B.__init__(self, a, b)
-            C.__init__(self, a, c)
-            self.d = d
+        def method(self):
+            print 'Doing D'
+            super(D, self).method()
+
+::
+
+    >>> d = D()
+    >>> d.method()
+    Doing D
+    Doing C
+    Doing B
+    Doing A
+
+As you can see, each superclass's method is entered only once.  For this to
+work it is very important that each method in a class that calls its
+superclass's version of that method use :func:`super` instead of calling the
+method directly.  In the most common case of single-inheritance, using
+``super()`` is functionally equivalent to calling the superclass's method
+directly.  But as soon as a class is used in a multiple-inheritance
+hierarchy it must use ``super()`` in order to cooperate with other classes in
+the hierarchy.
+
+.. note:: For more info on the pros and cons of using super, see
+          http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
+          or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
+
 
 Acceptable use of ``from module import *``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
