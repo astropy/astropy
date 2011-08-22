@@ -109,9 +109,9 @@ Coding Style/Conventions
 * Multiple inheritance should be avoided in general without good reason.
   Mulitple inheritance is complicated to implement well, which is why many
   object-oriented languages, like Java, do not allow it at all.  Python does
-  enable sensible multiple inheritance through use of the
+  enable multiple inheritance through use of the
   `C3 Linearization <http://www.python.org/download/releases/2.3/mro/>`_
-  algorithm, which was invented for Dylan, and is also used by Perl 6.
+  algorithm, which provides a consistent method resolution ordering.
   Non-trivial multiple-inheritance schemes should not be attempted without
   good justification, or without understanding how C3 is used to determine
   method resolution order.  However, trivial multiple inheritance using
@@ -309,9 +309,7 @@ A 'mixin' is a class that is not meant to be used as a class's primary
 superclass.  Inheriting from a mixin class is not a form of specialization;
 rather, the mixin merely provdes an additional set of functionality to the
 class.  It should not share any methods or attributes with the class or any of
-its other superclasses.  This is roughly similar to "interfaces" in Java, which
-are provided mainly because Java does not otherwise support multiple
-inheritance.
+its other superclasses.
 
 A popular mixin class is :class:`UserDict.DictMixin` (in Python >= 2.6 use
 :class:`collections.MutableMapping` instead).  For any class that defines at a
