@@ -115,8 +115,7 @@ Coding Style/Conventions
   Non-trivial multiple-inheritance schemes should not be attempted without
   good justification, or without understanding how C3 is used to determine
   method resolution order.  However, trivial multiple inheritance using
-  orthogonal base classes, known as the 'mixin' pattern, may be used.  An
-  example of using mixin classes is included below.
+  orthogonal base classes, known as the 'mixin' pattern, may be used.
 
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
@@ -300,50 +299,6 @@ the hierarchy.
 .. note:: For more info on the pros and cons of using super, see
           http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
           or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
-
-
-Trivial multiple inheritance with mixin classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-A 'mixin' is a class that is not meant to be used as a class's primary
-superclass.  Inheriting from a mixin class is not a form of specialization;
-rather, the mixin merely provdes an additional set of functionality to the
-class.  It should not share any methods or attributes with the class or any of
-its other superclasses.
-
-A popular mixin class is :class:`UserDict.DictMixin` (in Python >= 2.6 use
-:class:`collections.MutableMapping` instead).  For any class that defines at a
-minimum the :func:`__getitem__`, :func:`__setitem__`, and :func:`keys` methods,
-:class:`DictMixin` fills out the rest of the :class:`dict` interface.  That is,
-given::
-
-    from UserDict import DictMixin
-
-    class MyDict(object, DictMixin):
-        def __init__(self, ...):
-            ...
-
-        def __getitem__(self, key):
-            ...
-
-        def __setitem__(self, key, value):
-            ...
-
-        def keys(self):
-            ...
-
-it is then possible to use :class:`MyDict` in exactly the same ways one might
-use a normal :class:`dict`::
-
-    >>> d = MyDict()
-    >>> d.values()
-    ...
-    >>> d.iteritems()
-    ...
-
-``d.values()``, ``d.iteritems()``, and any other methods expected of a
-:class:`dict` are automatically provided by inheriting from :class:`DictMixin`
-and work as expected.
 
 
 Acceptable use of ``from module import *``
