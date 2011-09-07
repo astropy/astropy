@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division
 from astropy.version import version as __version__
-#to see the actual version, look at the first variable defined in the file
-#astropy/version.py
+#the version number can be found in the "version" variable of version.py
 
 """_Astropy is a package intended to contain core functionality and some
 common tools needed for performing astronomy and astrophysics research with 

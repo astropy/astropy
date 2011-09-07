@@ -3,9 +3,9 @@ from __future__ import division
 
 """
 Version numbering for astropy. The `major`, `minor`, and `bugfix` varaibles hold
-the respective parts of the version number. The `release` variable is True if 
-this is a release, and False if this is a development version of astropy. For
-the actual version string, use::
+the respective parts of the version number (bugfix is '0' if absent). The 
+`release` variable is True if this is a release, and False if this is a 
+development version of astropy. For the actual version string, use::
 
     from astropy.version import version
     
@@ -15,11 +15,14 @@ or::
     
 """
 
-version = '0.0.0dev'
+version = '0.0dev'
 
-major = int(version.split('.')[0])
-minor = int(version.split('.')[1])
-bugfix = int(version.split('.')[2].replace('dev',''))
+
+_versplit = version.replace('dev','').split('.')
+major = int(_versplit[0])
+minor = int(_versplit[1])
+bugfix = 0 if len(_versplit)<3 else int(_versplit[2])
+del _versplit
 
 release = not version.endswith('dev')
 
