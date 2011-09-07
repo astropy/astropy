@@ -1,7 +1,9 @@
 Documentation for Developers
 ============================
 
-The information in the following pages are relevant for anyone interesting in contributing to AstroPy:
+The information in the following pages are relevant for anyone interesting in
+contributing to Astropy. In addition, the :doc:`../overview` is a useful guide
+to the layout of the `astropy` package.
 
 .. toctree::
     :maxdepth: 1
