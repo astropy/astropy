@@ -101,27 +101,16 @@ except ImportError: #sphinx not present
 class astropy_build_py(du_build_py):
     def run(self):
         from os import path
+        from astropy.version import _get_version_py_str
         res = du_build_py.run(self)
         
         versfile = path.join(self.build_lib,'astropy','version.py')
         print 'freezing version number to',versfile
         with open(versfile,'w') as f: #this overwrites the actual version.py
-            f.write(self.get_version_py())
+            f.write(_get_version_py_str())
         
         return res
         
-    def get_version_py(self):
-        import datetime
-        from astropy.version import _frozen_version_py_template
-        from astropy.version import version,major,minor,bugfix,release
-        
-        timestamp = str(datetime.datetime.now())
-        return _frozen_version_py_template.format(timestamp=timestamp,
-                                                  verstr=version,
-                                                  maj=major,
-                                                  minor=minor,
-                                                  bugfix=bugfix,
-                                                  rel=release)
 cmdclassd['build_py'] = astropy_build_py
 
     

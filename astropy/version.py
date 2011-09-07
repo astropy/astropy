@@ -9,15 +9,19 @@ the actual version string, use::
 
     from astropy.version import version
     
+or::
+
+    from astropy import __version__
+    
 """
 
-major = 0
-minor = 0
-bugfix = 0
+version = '0.0.0dev'
 
-release = False
+major = int(version.split('.')[0])
+minor = int(version.split('.')[1])
+bugfix = int(version.split('.')[2].replace('dev',''))
 
-version = '{0}.{1}.{2}'.format(major,minor,bugfix)    
+release = not version.endswith('dev')
 
 
 def _get_git_devstr(sha=False):
@@ -54,16 +58,16 @@ def _get_git_devstr(sha=False):
         
     if p.returncode == 128:
         warn('No git repository present! Using default dev version.')
-        return 'dev'
+        return ''
     elif p.returncode != 0:
         warn('Git failed while determining revision count: '+stderr)
-        return 'dev'
+        return ''
     
     if sha:
-        return 'dev-git-'+stdout[:40]
+        return '-git-'+stdout[:40]
     else:
         nrev = stdout.count('\n')
-        return  'dev-r%i'%nrev
+        return  '-r%i'%nrev
     
 if not release:
     version = version+_get_git_devstr(False)
@@ -79,3 +83,14 @@ bugfix = {bugfix}
 
 release = {rel}
 """[1:]
+
+def _get_version_py_str(self):
+    import datetime
+    
+    timestamp = str(datetime.datetime.now())
+    return _frozen_version_py_template.format(timestamp=timestamp,
+                                              verstr=version,
+                                              maj=major,
+                                              minor=minor,
+                                              bugfix=bugfix,
+                                              rel=release)
