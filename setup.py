@@ -119,8 +119,8 @@ class astropy_build_py(du_build_py):
         return _frozen_version_py_template.format(timestamp=timestamp,
                                                   verstr=version,
                                                   maj=major,
-                                                  minor=minor
-                                                  bigfux=bugfix,
+                                                  minor=minor,
+                                                  bugfix=bugfix,
                                                   rel=release)
 cmdclassd['build_py'] = astropy_build_py
 
@@ -140,5 +140,6 @@ setup(name=NAME,
       #license = '', #TODO: decide on a license
       url='http://astropy.org',
       long_description=LONG_DESCRIPTION,
-      cmdclass = cmdclassd
+      cmdclass = cmdclassd,
+      zip_safe=False
 )
