@@ -104,7 +104,7 @@ class astropy_build_py(du_build_py):
 
     def run(self):
 
-        from astropy.version import _get_version_py_str
+        from astropy.version_helper import _get_version_py_str
 
         res = du_build_py.run(self)
 
