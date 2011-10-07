@@ -20,6 +20,7 @@ packages = find_packages(exclude=['tests'])
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = glob.glob('scripts/*')
+scripts.remove('scripts/README.rst')
 
 # This dictionary stores the command classes used in setup below
 cmdclassd = {}
