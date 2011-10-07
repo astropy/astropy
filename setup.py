@@ -42,7 +42,7 @@ extensions = []
 try:
     import Cython
     have_cython = True
-except ImportEror:
+except ImportError:
     have_cython = False
     
 pyxfiles = []
