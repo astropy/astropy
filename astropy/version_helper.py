@@ -2,10 +2,13 @@
 from __future__ import division
 
 """
-Version numbering for AstroPy. The `major`, `minor`, and `bugfix` variables
-hold the respective parts of the version number (bugfix is '0' if absent). The
-`release` variable is True if this is a release, and False if this is a
-development version of astropy. For the actual version string, use::
+Utilities for generating the version string for AstroPy and the version.py
+module, which contains version info for the package.
+
+Within the generated astropy.version module, the `major`, `minor`, and `bugfix`
+variables hold the respective parts of the version number (bugfix is '0' if
+absent). The `release` variable is True if this is a release, and False if this
+is a development version of astropy. For the actual version string, use::
 
     from astropy.version import version
 
@@ -35,7 +38,6 @@ def _get_git_devstr(sha=False):
     """
     Determines the number of revisions in this repository.
 
-    These
 
     Parameters
     ----------
