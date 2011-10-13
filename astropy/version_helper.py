@@ -75,7 +75,6 @@ def _get_git_devstr(sha=False):
         nrev = stdout.count('\n')
         return  '-r%i' % nrev
 
-    version = version + _get_git_devstr(False)
 
 # This is used by setup.py to create a new version.py - see that file for
 # details
@@ -100,7 +99,12 @@ if pkg_resources:
     dist = pkg_resources.get_distribution('AstroPy')
     if dist.precedence == pkg_resources.DEVELOP_DIST:
         from astropy.version_helper import _get_git_devstr
-        version += _get_git_devstr()
+        if '-r' in version:
+            version_base = version.split('-r', 1)[0]
+        try:
+            version = version_base + _get_git_devstr()
+        except OSError:
+            pass
 """[1:]
 
 
