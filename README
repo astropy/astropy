@@ -1,4 +1,0 @@
-Backport of Python 2.7 collections.OrderedDict class which works on 2.6.  See
-https://github.com/taldcroft/odict for the (minimal) changes from original code.
-
-Testing has been minimal but it appears to work.  Caveat emptor.
