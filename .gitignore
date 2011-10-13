@@ -4,6 +4,10 @@
 *.o
 *.so
 
+# Ignore .c files by default to avoid including generated code. If you want to
+# add a non-generated .c extension, use `git add -f filename.c`.
+*.c
+
 #sphinx
 _build
 
