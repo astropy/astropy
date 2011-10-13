@@ -1,0 +1,188 @@
+Platforms on which the installation procedures and test suite were
+exercised
+
+
+WCSLIB version 4.8 (2011/08/15)
+-------------------------------
+
+* Dell Latitude D620 (Intel Centrino Duo, i686), Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.24-1-686 (32-bit)
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+
+* Dell PowerEdge 2950 (Intel Xeon, 8 x X5460), Debian linux 5.0.8 (lenny)
+  uname -r (kernel version): 2.6.26-2-amd64 (64-bit)
+  gcc --version: gcc (Debian 4.3.2-1.1) 4.3.2
+  gfortran --version: GNU Fortran (Debian 4.3.2-1.1) 4.3.2
+
+
+* Marvell SheevaPlug (Feroceon 88FR131 rev 1 ARM v5L), Debian linux 6.0 
+  (squeeze)
+  uname -r (kernel version): 2.6.32-5-kirkwood
+  gcc --version: gcc (Debian 4.4.5-8) 4.4.5
+  gfortran --version: GNU Fortran (Debian 4.4.5-8) 4.4.5
+
+
+* Mac mini (Intel Core 2 Duo) running Mac OS X 10.6.2 (10C540)
+  uname -r (Darwin kernel version): 10.2.0
+  gcc --version: i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1
+                 (Apple Inc. build 5646)
+  gfortran --version: GNU Fortran (GCC) 4.5.0 20100107 (experimental)
+
+
+* Enterprise 450 Model 2250 (Sparc, sun4u 64-bit), SunOS 5.9 (Solaris 9)
+  uname -r (SunOS version): 5.9
+  gcc --version: gcc (GCC) 4.5.1
+  gfortran --version: GNU Fortran (GCC) 4.5.1
+
+
+WCSLIB version 4.7 (2011/02/07)
+-------------------------------
+
+* Dell Latitude D630 (Intel Centrino, i686) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.24-1-686
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+
+* Sun SunFire V20z (AMD Opteron, x86_64) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.18-6-amd64
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+
+* Enterprise 450 Model 2250 (Sparc, sun4u 64-bit), SunOS 5.9 (Solaris 9)
+  uname -r (SunOS version): 5.9
+  gcc --version: gcc (GCC) 4.5.1
+  gfortran --version: GNU Fortran (GCC) 4.5.1
+
+    and
+
+  cc -V: cc: Sun WorkShop 6 update 2 C 5.3 Patch 111679-14 2004/02/20
+  f77 -V: f77: Sun WorkShop 6 update 2 FORTRAN 77 5.3 Patch 111691-07
+          2004/04/23
+
+
+* Mac Xserve (Quad-Core Intel Xeon) running Mac OS X 10.6.5 (10H575)
+  uname -r (Darwin kernel version): 10.5.0
+  gcc --version: 4.2.1 (Apple Inc. build 5664)
+  gfortran --version: GNU Fortran (GCC) 4.5.0 20100107 (experimental)
+
+
+* Mac mini (Intel Core 2 Duo) running Mac OS X 10.6.2 (10C540)
+  uname -r (Darwin kernel version): 10.2.0
+  gcc --version: i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1
+                 (Apple Inc. build 5646)
+  gfortran --version: GNU Fortran (GCC) 4.5.0 20100107 (experimental)
+
+
+* Mac mini (Intel Core Duo) running Mac OS X 10.4.9 (8P2137)
+  uname -r (Darwin kernel version): 8.9.1
+  gcc --version: gcc (GCC) 4.3.0 20070316 (experimental)
+  g77 --version: GNU Fortran (GCC) 3.4.0
+
+
+WCSLIB version 4.5 (2010/07/16)
+-------------------------------
+
+* Dell Latitude D630 (Intel Centrino, i686) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.24-1-686
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+    and
+
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  ifort -V: Intel(R) Fortran Compiler for 32-bit applications, Version 8.1
+            Build 20041118Z Package ID: l_fc_pc_8.1.023
+
+
+* Mac mini (Intel Core 2 Duo, i386) running Mac OS X 10.6.2 (10C540)
+  uname -r (Darwin kernel version): 10.2.0
+  gcc --version: i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1
+                 (Apple Inc. build 5646)
+  gfortran --version: GNU Fortran (GCC) 4.5.0 20100107 (experimental)
+
+
+* Mac mini (Intel Core Duo, i386) running Mac OS X 10.4.9 (8P2137)
+  uname -r (Darwin kernel version): 8.9.1
+  gcc --version: gcc (GCC) 4.3.0 20070316 (experimental)
+  g77 --version: GNU Fortran (GCC) 3.4.0
+
+    and
+
+  gcc --version: gcc (GCC) 4.3.0 20070316 (experimental)
+  gfortran --version: GNU Fortran (GCC) 4.3.0 20070316 (experimental)
+
+
+* Sun SunFire V20z (AMD Opteron, x86_64) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.18-6-amd64
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+    and
+
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  gfortran --version: GNU Fortran 95 (GCC) 4.1.2 20061115 (prerelease)
+                      (Debian 4.1.1-21)
+
+
+* Sun Ultra-60 (Sparc, sun4u) running SunOS 5.6 (Solaris 2.6)
+  uname -r (SunOS version): 5.6
+  gcc --version: 2.95.3
+  g77 --version: GNU Fortran 0.5.25 20010315 (release)
+
+    and
+
+  cc -V: cc: Sun WorkShop 6 update 2 C 5.3 Patch 111679-14 2004/02/20
+  f77 -V: f77: Sun WorkShop 6 update 2 FORTRAN 77 5.3 Patch 111691-07
+          2004/04/23
+
+
+
+WCSLIB version 4.4 (2009/08/06)
+-------------------------------
+
+* Dell Latitude D630 (Intel Centrino, i686) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.24-1-686
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+
+* Mac mini (Intel Core Duo, i386) running Mac OS X 10.4.9 (8P2137)
+  uname -r (Darwin kernel version): 8.9.1
+  gcc --version: gcc (GCC) 4.3.0 20070316 (experimental)
+  g77 --version: GNU Fortran (GCC) 3.4.0
+
+    and
+
+  gcc --version: gcc (GCC) 4.3.0 20070316 (experimental)
+  gfortran --version: GNU Fortran (GCC) 4.3.0 20070316 (experimental)
+
+
+* Sun SunFire V20z (AMD Opteron, x86_64) running Debian linux 4.0 (etch)
+  uname -r (kernel version): 2.6.18-6-amd64
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  g77 --version: GNU Fortran (GCC) 3.4.6 (Debian 3.4.6-5)
+
+    and
+
+  gcc --version: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+  gfortran --version: GNU Fortran 95 (GCC) 4.1.2 20061115 (prerelease)
+                      (Debian 4.1.1-21)
+
+
+* Sun SunBlade 1000 (Sparc, sun4u) running SunOS 5.8 (Solaris 2.8)
+  uname -r (SunOS version): 5.8
+  gcc --version: 2.95.3
+  g77 --version: GNU Fortran 0.5.25 20010315 (release)
+
+    and
+
+  cc -V: cc: Sun WorkShop 6 update 2 C 5.3 Patch 111679-14 2004/02/20
+  f77 -V: f77: Sun WorkShop 6 update 2 FORTRAN 77 5.3 Patch 111691-07
+          2004/04/23
+
+------------------------------------------------------------------------------
+$Id: VALIDATION,v 4.8.1.1 2011/08/15 08:07:07 cal103 Exp cal103 $

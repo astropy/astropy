@@ -20,6 +20,15 @@ if not RELEASE:
     VERSION += _get_git_devstr(False)
 _generate_version_py(VERSION, RELEASE)
 
+from astropy import setuputils
+
+from astropy.wcs import setup_package as wcs_setup_package
+setup_packages = [
+    wcs_setup_package
+    ]
+
+BUILD = 'release' # Should be 'release' or 'debug'
+assert BUILD in ('release', 'debug')
 
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
@@ -29,11 +38,23 @@ packages = find_packages(exclude=['tests'])
 scripts = glob.glob('scripts/*')
 scripts.remove('scripts/README.rst')
 
+# Check that Numpy is installed
+setuputils.check_numpy()
+
 # This dictionary stores the command classes used in setup below
 cmdclassd = {}
 
+# A dictionary to keep track of all package data to install
+package_data = {'astropy': ['data/*']}
+
 # C extensions that are not Cython-based should be added here.
 extensions = []
+
+for package in setup_packages:
+    if hasattr(package, 'get_extensions'):
+        extensions.extend(package.get_extensions(BUILD))
+    if hasattr(package, 'get_package_data'):
+        package_data.update(package.get_package_data())
 
 # Look for Cython files - compile with Cython if it is not a release
 # and Cython is installed. Otherwise, use the .c files that live next
@@ -109,7 +130,7 @@ setup(name='AstroPy',
       version=VERSION,
       description='Community-developed python astronomy tools',
       packages=packages,
-      package_data={'astropy': ['data/*']},
+      package_data=package_data,
       ext_modules=extensions,
       scripts=scripts,
       requires=['numpy', 'scipy'],
