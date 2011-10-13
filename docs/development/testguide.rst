@@ -14,6 +14,19 @@ Testing Framework
 
 The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_ framework.
 
+Running Tests
+=============
+
+Using py.test
+-------------
+
+TODO
+
+Using astropy.test()
+--------------------
+
+TODO
+
 Using data in tests
 ===================
 
@@ -21,11 +34,11 @@ Tests can include very small datafiles, but any files significantly larger
 than the source code should be placed on a remote server. The base URL for the
 test files will be::
 
-    http://tests.astropy.org/
+    http://data.astropy.org/
 
 and files will be accessed by their MD5 hash, for example::
 
-    http://tests.astropy.org/94935ac31d585f68041c08f87d1a19d4
+    http://data.astropy.org/94935ac31d585f68041c08f87d1a19d4
 
 Tests then retrieve data via this URL. This implicitly allows versioning,
 since different versions of data files will have different hashes. Old data
@@ -52,14 +65,6 @@ or::
 
     astropy/io/fits/test.py
 
-These tests should then be callable using::
-
-    astropy.io.fits.test()
-
-This functionality is especially important for people who install packages
-through bundles and package managers, where the original source code for the
-tests is not immediately available.
-
 Interoperability tests
 ----------------------
 
@@ -72,7 +77,7 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-modules.
+sub-modules. This functionality is especially important for people who install packages through bundles and package managers, where the original source code for the tests is not immediately available.
 
 Regression tests
 ================
@@ -130,6 +135,8 @@ Tests that need to make use of a data file should use the
 should be requested using filenames in the first case, and MD5 hashes in the
 second. Each of these functions returns the local path to the file (and in the
 case of remote data, it is the path to the downloaded file)::
+
+.. warning:: This is going to change
 
     from astropy.util.testing import get_local_test_data, \
                                      get_remote_test_data
