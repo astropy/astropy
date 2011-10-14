@@ -1,3 +1,13 @@
+"""
+Backport of the Python 2.7 collections.OrderedDict class to Python 2.6.
+
+Ordered dictionaries are just like regular dictionaries but they remember the
+order that items were inserted.  When iterating over an ordered dictionary,
+the items are returned in the order their keys were first added.
+
+See: http://docs.python.org/library/collections.html#collections.OrderedDict
+"""
+
 __all__ = ['OrderedDict']
 
 from collections import MutableMapping
