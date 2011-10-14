@@ -74,7 +74,7 @@ release = '0.0.0'
 exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
-#default_role = None
+default_role = 'obj'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -223,7 +223,11 @@ man_pages = [
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'python':('http://docs.python.org/',None),
+                        'numpy':('http://docs.scipy.org/doc/numpy/',None),
+                        'scipy':('http://docs.scipy.org/doc/scipy/reference/',None),
+                        'matplotlib':('http://matplotlib.sourceforge.net/',None),
+                      }
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
