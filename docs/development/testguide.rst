@@ -77,7 +77,9 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-modules. This functionality is especially important for people who install packages through bundles and package managers, where the original source code for the tests is not immediately available.
+sub-modules. This functionality is especially important for people who install 
+packages through bundles and package managers, where the original source code 
+for the tests is not immediately available.
 
 Regression tests
 ================
