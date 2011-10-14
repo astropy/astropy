@@ -29,6 +29,11 @@ Interface and Dependencies
   and Matplotlib_ (versions for these packages will be specified in the
   Astropy ``setup.py`` file and on PyPI_).
 
+* The package should be importable from the source tree at build time.
+  This means that, for example, if the package relies on C extensions
+  that have yet to be built, the Python code is still importable, even
+  if none of its functionality will work.
+
 * Additional dependencies are allowed for sub-modules or in function calls,
   but they must be noted in the package documentation and should only affect
   the relevant component.

@@ -13,3 +13,4 @@ to the layout of the `astropy` package.
     codeguide
     docguide
     testguide
+    building_packaging
