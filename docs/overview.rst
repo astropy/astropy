@@ -24,6 +24,8 @@ Astropy contains the following base-level modules:
 * :mod:`~astropy.extern`
     This module contains small python packages that are not unique to astropy
     but are convinient to include as part of the astropy source code.
+* :mod:`~astropy.tests`
+    This module contains astropy tests and test helpers.
 
 
 Affiliated Packages
