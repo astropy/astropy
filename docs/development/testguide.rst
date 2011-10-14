@@ -134,9 +134,11 @@ Tests that need to make use of a data file should use the
 ``get_local_test_data`` and ``get_remote_test_data`` functions, and test files
 should be requested using filenames in the first case, and MD5 hashes in the
 second. Each of these functions returns the local path to the file (and in the
-case of remote data, it is the path to the downloaded file)::
+case of remote data, it is the path to the downloaded file):
 
 .. warning:: This is going to change
+
+::
 
     from astropy.util.testing import get_local_test_data, \
                                      get_remote_test_data
