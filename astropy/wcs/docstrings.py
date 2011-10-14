@@ -30,8 +30,9 @@ The order of the polynomial in the `SIP`_ ``A_i_j`` array (``A_ORDER``).
 all_pix2sky = """
 all_pix2sky(pixcrd, origin) -> ``double array[ncoord][nelem]``
 
-Transforms pixel coordinates to sky coordinates by doing all of the
-following:
+Transforms pixel coordinates to sky coordinates.
+
+Does the following:
 
     - Detector to image plane correction (optionally)
 
@@ -43,31 +44,43 @@ following:
 
 The first three (the distortion corrections) are done in parallel.
 
-- *pixcrd*: double array[ncoord][nelem].  Array of pixel coordinates.
+Parameters
+----------
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
 
 %s
 
-Returns an array of sky coordinates.
+Returns
+-------
+world : double array[ncoord][nelem]
+    Returns an array of sky coordinates.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `InconsistentAxisTypesError`: Inconsistent or unrecognized
-  coordinate axis types.
+ValueError
+    Invalid parameter value.
 
-- `ValueError`: Invalid parameter value.
+ValueError
+    Invalid coordinate transformation parameters.
 
-- `ValueError`: Invalid coordinate transformation parameters.
+ValueError
+    x- and y-coordinate arrays are not the same size.
 
-- `ValueError`: x- and y-coordinate arrays are not the same size.
+InvalidTransformError
+    Invalid coordinate transformation.
 
-- `InvalidTransformError`: Invalid coordinate transformation.
-
-- `InvalidTransformError`: Ill-conditioned coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 """ % __.ORIGIN()
 
 alt = """
@@ -224,7 +237,10 @@ celfix = """
 Translates AIPS-convention celestial projection types, ``-NCP`` and
 ``-GLS``.
 
-Returns ``0`` for success; ``-1`` if no change required.
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
 """
 
 cname = """
@@ -425,7 +441,10 @@ cylfix()
 
 Fixes WCS keyvalues for malformed cylindrical projections.
 
-Returns ``0`` for success; ``-1`` if no change required.
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
 """
 
 data = """
@@ -467,13 +486,17 @@ datfix()
 
 Translates the old ``DATE-OBS`` date format to year-2000 standard form
 ``(yyyy-mm-ddThh:mm:ss)`` and derives ``MJD-OBS`` from it if not
-already set.  Alternatively, if `~astropy.wcs.Wcsprm.mjdobs` is set
-and `~astropy.wcs.Wcsprm.dateobs` isn't, then
-`~astropy.wcs.Wcsprm.datfix` derives `~astropy.wcs.Wcsprm.dateobs`
-from it.  If both are set but disagree by more than half a day then
-`ValueError` is raised.
+already set.
 
-Returns ``0`` for success; ``-1`` if no change required.
+Alternatively, if `~astropy.wcs.Wcsprm.mjdobs` is set and
+`~astropy.wcs.Wcsprm.dateobs` isn't, then `~astropy.wcs.Wcsprm.datfix`
+derives `~astropy.wcs.Wcsprm.dateobs` from it.  If both are set but
+disagree by more than half a day then `ValueError` is raised.
+
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
 """
 
 delta = """
@@ -508,16 +531,22 @@ The dimensions of the tabular array
 DistortionLookupTable = """
 DistortionLookupTable(*table*, *crpix*, *crval*, *cdelt*)
 
-- *table*: 2-dimensional array for the distortion lookup table.
-
-- *crpix*: the distortion array reference pixel (a 2-tuple)
-
-- *crval*: is the image array pixel coordinate (a 2-tuple)
-
-- *cdelt*: is the grid step size (a 2-tuple)
-
 Represents a single lookup table for a `Paper IV`_ distortion
 transformation.
+
+Parameters
+----------
+table : 2-dimensional array
+    The distortion lookup table.
+
+crpix : 2-tuple
+    The distortion array reference pixel
+
+crval : 2-tuple
+    The image array pixel coordinate
+
+cdelt : 2-tuple
+    The grid step size
 """
 
 equinox = """
@@ -568,9 +597,14 @@ find_all_wcs(relax=0, keysel=0)
 
 Find all WCS transformations in the header.
 
-- *header*: A string containing the raw FITS header data.
+Parameters
+----------
 
-- *relax*: Degree of permissiveness:
+header : str
+    The raw FITS header data.
+
+relax : bool or int
+    Degree of permissiveness:
 
     - `False`: Recognize only FITS keywords defined by the published
       WCS standard.
@@ -581,19 +615,21 @@ Find all WCS transformations in the header.
     - `int`: a bit field selecting specific extensions to accept.  See
       :ref:`relaxread` for details.
 
-- *keysel*: Vector of flag bits that may be used to restrict the
-  keyword types considered:
+keysel : sequence of flags
+    Used to restrict the keyword types considered:
 
-     - ``WCSHDR_IMGHEAD``: Image header keywords.
+    - ``WCSHDR_IMGHEAD``: Image header keywords.
 
-     - ``WCSHDR_BIMGARR``: Binary table image array.
+    - ``WCSHDR_BIMGARR``: Binary table image array.
 
-     - ``WCSHDR_PIXLIST``: Pixel list keywords.
+    - ``WCSHDR_PIXLIST``: Pixel list keywords.
 
-   If zero, there is no restriction.  If -1, wcspih() is called,
-   rather than wcstbh().
+    If zero, there is no restriction.  If -1, `wcspih` is called,
+    rather than `wcstbh`.
 
-Returns a list of `~astropy.wcs._astropy.wcs._Wcsprm` objects.
+Returns
+-------
+wcs_list : list of `~astropy.wcs._astropy.wcs._Wcsprm` objects
 """
 
 fix = """
@@ -604,50 +640,62 @@ Applies all of the corrections handled separately by
 `~astropy.wcs.Wcsprm.celfix`, `~astropy.wcs.Wcsprm.spcfix` and
 `~astropy.wcs.Wcsprm.cylfix`.
 
-- *translate_units*: string. Do potentially unsafe translations of
-  non-standard unit strings.
+Parameters
+----------
 
-  Although ``"S"`` is commonly used to represent seconds, its
-  translation to ``"s"`` is potentially unsafe since the standard
-  recognizes ``"S"`` formally as Siemens, however rarely that may be
-  used.  The same applies to ``"H"`` for hours (Henry), and ``"D"``
-  for days (Debye).
+translate_units : str
+    Do potentially unsafe translations of non-standard unit strings.
 
-  This string controls what to do in such cases, and is
-  case-insensitive.
+    Although ``"S"`` is commonly used to represent seconds, its
+    translation to ``"s"`` is potentially unsafe since the standard
+    recognizes ``"S"`` formally as Siemens, however rarely that may be
+    used.  The same applies to ``"H"`` for hours (Henry), and ``"D"``
+    for days (Debye).
 
-  - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
+    This string controls what to do in such cases, and is
+    case-insensitive.
 
-  - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
+    - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
 
-  - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
+    - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
+
+    - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
 
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
 
-- *naxis*: int array[naxis].  Image axis lengths.  If this array is
-  set to zero or ``None``, then `~astropy.wcs.Wcsprm.cylfix` will not
-  be invoked.
+naxis : int array[naxis]
+    Image axis lengths.  If this array is set to zero or ``None``,
+    then `~astropy.wcs.Wcsprm.cylfix` will not be invoked.
 
-Returns a dictionary containing the following keys, each referring to
-a status string for each of the sub-fix functions that were
-called:
+Returns
+-------
+status : dict
 
-- `~astropy.wcs.Wcsprm.datfix`
+    Returns a dictionary containing the following keys, each referring
+    to a status string for each of the sub-fix functions that were
+    called:
 
-- `~astropy.wcs.Wcsprm.unitfix`
+    - `~astropy.wcs.Wcsprm.datfix`
 
-- `~astropy.wcs.Wcsprm.celfix`
+    - `~astropy.wcs.Wcsprm.unitfix`
 
-- `~astropy.wcs.Wcsprm.spcfix`
+    - `~astropy.wcs.Wcsprm.celfix`
 
-- `~astropy.wcs.Wcsprm.cylfix`
+    - `~astropy.wcs.Wcsprm.spcfix`
+
+    - `~astropy.wcs.Wcsprm.cylfix`
 """
 
 get_offset = """
 get_offset(*x, y*) -> (*x, y*)
 
-Returns the offset from the distortion table for pixel point (*x, y*).
+Returns the offset as defined in the distortion lookup table.
+
+Returns
+-------
+coordinate : coordinate pair
+    The offset from the distortion table for pixel point (*x, y*).
 """
 
 get_cdelt = """
@@ -677,8 +725,13 @@ specified in the header.
 get_ps = """
 get_ps() -> list of tuples
 
-Returns ``PSi_ma`` keywords for each *i* and *m*.  Returned as a list
-of tuples of the form (*i*, *m*, *value*):
+Returns ``PSi_ma`` keywords for each *i* and *m*.
+
+Returns
+-------
+ps : list of tuples
+
+    Returned as a list of tuples of the form (*i*, *m*, *value*):
 
     - *i*: int.  Axis number, as in ``PSi_ma``, (i.e. 1-relative)
 
@@ -686,16 +739,20 @@ of tuples of the form (*i*, *m*, *value*):
 
     - *value*: string.  Parameter value.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.set_ps`
+See also
+--------
+astropy.wcs.Wcsprm.set_ps : Set PSi_ma values
 """
 
 get_pv = """
 get_pv() -> list of tuples
 
-Returns ``PVi_ma`` keywords for each *i* and *m*.  Returned as a list
-of tuples of the form (*i*, *m*, *value*):
+Returns ``PVi_ma`` keywords for each *i* and *m*.
+
+Returns
+-------
+
+    Returned as a list of tuples of the form (*i*, *m*, *value*):
 
     - *i*: int.  Axis number, as in ``PVi_ma``, (i.e. 1-relative)
 
@@ -703,23 +760,27 @@ of tuples of the form (*i*, *m*, *value*):
 
     - *value*: string. Parameter value.
 
+See also
+--------
+astropy.wcs.Wcsprm.set_pv : Set `PVi_ma` values
+
+Notes
+-----
+
 Note that, if they were not given, `~astropy.wcs.Wcsprm.set` resets
 the entries for ``PVi_1a``, ``PVi_2a``, ``PVi_3a``, and ``PVi_4a`` for
 longitude axis *i* to match (``phi_0``, ``theta_0``), the native
 longitude and latitude of the reference point given by ``LONPOLEa``
 and ``LATPOLEa``.
-
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.set_pv`
 """
 
 has_cd = """
 has_cd() -> bool
 
-Returns `True` if ``CDi_ja`` is present.  ``CDi_ja`` is an alternate
-specification of the linear transformation matrix, maintained for
-historical compatibility.
+Returns `True` if ``CDi_ja`` is present.
+
+``CDi_ja`` is an alternate specification of the linear transformation
+matrix, maintained for historical compatibility.
 
 Matrix elements in the IRAF convention are equivalent to the product
 ``CDi_ja = CDELTia * PCi_ja``, but the defaults differ from that of
@@ -733,9 +794,9 @@ the original FITS specification.
 While ``CDi_ja`` may not formally co-exist with ``PCi_ja``, it may
 co-exist with ``CDELTia`` and ``CROTAia`` which are to be ignored.
 
-.. seealso::
-
-   `cd`
+See also
+--------
+cd : Get the raw ``CDi_ja`` values.
 """
 
 has_cdi_ja = """
@@ -748,9 +809,10 @@ compatibility.
 has_crota = """
 has_crota() -> bool
 
-Returns `True` if ``CROTAia`` is present.  ``CROTAia`` is an
-alternate specification of the linear transformation matrix,
-maintained for historical compatibility.
+Returns `True` if ``CROTAia`` is present.
+
+``CROTAia`` is an alternate specification of the linear transformation
+matrix, maintained for historical compatibility.
 
 In the AIPS convention, ``CROTAia`` may only be associated with the
 latitude axis of a celestial axis pair.  It specifies a rotation in
@@ -761,9 +823,9 @@ the image plane that is applied *after* the ``CDELTia``; any other
 ``CDELTia`` may formally co-exist with ``CDi_ja`` but if so are to be
 ignored.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.crota`
+See also
+--------
+astropy.wcs.Wcsprm.crota : Get the raw ``CROTAia`` values
 """
 
 has_crotaia = """
@@ -779,9 +841,9 @@ has_pc() -> bool
 Returns `True` if ``PCi_ja`` is present.  ``PCi_ja`` is the
 recommended way to specify the linear transformation matrix.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.pc`
+See also
+--------
+astropy.wcs.Wcsprm.pc : Get the raw ``PCi_ja`` values
 """
 
 has_pci_ja = """
@@ -917,115 +979,131 @@ the pixel coordinate, solves for the remaining elements by iterating
 on the unknown celestial coordinate element using
 `~astropy.wcs.Wcsprm.s2p`.
 
-- *mixpix*: int.  Which element on the pixel coordinate is given.
+Parameters
+----------
+mixpix : int
+    Which element on the pixel coordinate is given.
 
-- *mixcel*: int.  Which element of the celestial coordinate is
-  given. If mixcel* = ``1``, celestial longitude is given in
-  ``world[self.lng]``, latitude returned in ``world[self.lat]``.  If
-  *mixcel* = ``2``, celestial latitude is given in
-  ``world[self.lat]``, longitude returned in ``world[self.lng]``.
+mixcel : int
+    Which element of the celestial coordinate is given. If *mixcel* =
+    ``1``, celestial longitude is given in ``world[self.lng]``,
+    latitude returned in ``world[self.lat]``.  If *mixcel* = ``2``,
+    celestial latitude is given in ``world[self.lat]``, longitude
+    returned in ``world[self.lng]``.
 
-- *vspan*: pair of floats.  Solution interval for the celestial
-  coordinate, in degrees.  The ordering of the two limits is
-  irrelevant.  Longitude ranges may be specified with any convenient
-  normalization, for example ``(-120,+120)`` is the same as
-  ``(240,480)``, except that the solution will be returned with the
-  same normalization, i.e. lie within the interval specified.
+vspan : pair of floats
+    Solution interval for the celestial coordinate, in degrees.  The
+    ordering of the two limits is irrelevant.  Longitude ranges may be
+    specified with any convenient normalization, for example
+    ``(-120,+120)`` is the same as ``(240,480)``, except that the
+    solution will be returned with the same normalization, i.e. lie
+    within the interval specified.
 
-- *vstep*: float.  Step size for solution search, in degrees.  If
-  ``0``, a sensible, although perhaps non-optimal default will be
-  used.
+vstep : float
+    Step size for solution search, in degrees.  If ``0``, a sensible,
+    although perhaps non-optimal default will be used.
 
-- *viter*: int.  If a solution is not found then the step size will be
-  halved and the search recommenced.  *viter* controls how many times
-  the step size is halved.  The allowed range is 5 - 10.
+viter : int
+    If a solution is not found then the step size will be halved and
+    the search recommenced.  *viter* controls how many times the step
+    size is halved.  The allowed range is 5 - 10.
 
-- *world*: double array[naxis].  World coordinate elements.
-  ``world[self.lng]`` and ``world[self.lat]`` are the celestial
-  longitude and latitude, in degrees.  Which is given and which
-  returned depends on the value of *mixcel*.  All other elements are
-  given.  The results will be written to this array in-place.
+world : double array[naxis]
+    World coordinate elements.  ``world[self.lng]`` and
+    ``world[self.lat]`` are the celestial longitude and latitude, in
+    degrees.  Which is given and which returned depends on the value
+    of *mixcel*.  All other elements are given.  The results will be
+    written to this array in-place.
 
-- *pixcrd*: double array[naxis].  Pixel coordinate.  The element
-  indicated by *mixpix* is given and the remaining elements will be
-  written in-place.
+pixcrd : double array[naxis].
+    Pixel coordinates.  The element indicated by *mixpix* is given and
+    the remaining elements will be written in-place.
 
 %s
 
-Returns dictionary with the following keys:
+Returns
+-------
+result : dict
 
-- *phi* (double array[naxis])
+    Returns a dictionary with the following keys:
 
-- *theta* (double array[naxis])
+    - *phi* (double array[naxis])
 
-  - Longitude and latitude in the native coordinate system of the
-    projection, in degrees.
+    - *theta* (double array[naxis])
 
-- *imgcrd* (double array[naxis])
+        - Longitude and latitude in the native coordinate system of
+          the projection, in degrees.
 
-  - Image coordinate elements.  ``imgcrd[self.lng]`` and
-    ``imgcrd[self.lat]`` are the projected *x*- and *y*-coordinates,
-    in decimal degrees.
+    - *imgcrd* (double array[naxis])
 
-- *world* (double array[naxis])
+        - Image coordinate elements.  ``imgcrd[self.lng]`` and
+          ``imgcrd[self.lat]`` are the projected *x*- and
+          *y*-coordinates, in decimal degrees.
 
-  - Another reference to the *world* argument passed in.
+    - *world* (double array[naxis])
 
-**Exceptions:**
+        - Another reference to the *world* argument passed in.
 
-- `MemoryError` Memory allocation failed.
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `InconsistentAxisTypesError`: Inconsistent or unrecognized
-  coordinate axis types.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `ValueError`: Invalid parameter value.
+ValueError
+    Invalid parameter value.
 
-- `InvalidTransformError`: Invalid coordinate transformation
-  parameters.
+InvalidTransformError
+    Invalid coordinate transformation parameters.
 
-- `InvalidTransformError` Ill-conditioned coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 
-- `InvalidCoordinateError`: Invalid world coordinate.
+InvalidCoordinateError
+    Invalid world coordinate.
 
-- `NoSolutionError`: No solution found in the specified interval.
+NoSolutionError
+    No solution found in the specified interval.
 
-.. seealso::
+See also
+--------
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Get the axes numbers for latitude and longitude
 
-   `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`
+Notes
+-----
 
-.. note::
+Initially, the specified solution interval is checked to see if it's a
+\"crossing\" interval.  If it isn't, a search is made for a crossing
+solution by iterating on the unknown celestial coordinate starting at
+the upper limit of the solution interval and decrementing by the
+specified step size.  A crossing is indicated if the trial value of
+the pixel coordinate steps through the value specified.  If a crossing
+interval is found then the solution is determined by a modified form
+of \"regula falsi\" division of the crossing interval.  If no crossing
+interval was found within the specified solution interval then a
+search is made for a \"non-crossing\" solution as may arise from a
+point of tangency.  The process is complicated by having to make
+allowance for the discontinuities that occur in all map projections.
 
-  Initially, the specified solution interval is checked to see if it's
-  a "crossing" interval.  If it isn't, a search is made for a crossing
-  solution by iterating on the unknown celestial coordinate starting
-  at the upper limit of the solution interval and decrementing by the
-  specified step size.  A crossing is indicated if the trial value of
-  the pixel coordinate steps through the value specified.  If a
-  crossing interval is found then the solution is determined by a
-  modified form of "regula falsi" division of the crossing interval.
-  If no crossing interval was found within the specified solution
-  interval then a search is made for a "non-crossing" solution as may
-  arise from a point of tangency.  The process is complicated by
-  having to make allowance for the discontinuities that occur in all
-  map projections.
+Once one solution has been determined others may be found by
+subsequent invocations of `~astropy.wcs.Wcsprm.mix` with suitably
+restricted solution intervals.
 
-  Once one solution has been determined others may be found by
-  subsequent invocations of `~astropy.wcs.Wcsprm.mix` with suitably
-  restricted solution intervals.
+Note the circumstance that arises when the solution point lies at a
+native pole of a projection in which the pole is represented as a
+finite curve, for example the zenithals and conics.  In such cases two
+or more valid solutions may exist but `~astropy.wcs.Wcsprm.mix` only
+ever returns one.
 
-  Note the circumstance that arises when the solution point lies at a
-  native pole of a projection in which the pole is represented as a
-  finite curve, for example the zenithals and conics.  In such cases
-  two or more valid solutions may exist but `~astropy.wcs.Wcsprm.mix`
-  only ever returns one.
-
-  Because of its generality, `~astropy.wcs.Wcsprm.mix` is very
-  compute-intensive.  For compute-limited applications, more efficient
-  special-case solvers could be written for simple projections, for
-  example non-oblique cylindrical projections.
+Because of its generality, `~astropy.wcs.Wcsprm.mix` is very
+compute-intensive.  For compute-limited applications, more efficient
+special-case solvers could be written for simple projections, for
+example non-oblique cylindrical projections.
 """ % __.ORIGIN()
 
 mjdavg = """
@@ -1128,62 +1206,74 @@ p2s(pixcrd, origin)
 
 Converts pixel to sky coordinates.
 
-- *pixcrd*: double array[ncoord][nelem].  Array of pixel coordinates.
+Parameters
+----------
+
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
 
 %s
 
-Returns a dictionary with the following keys:
+Returns
+-------
+result : dict
+    Returns a dictionary with the following keys:
 
-- *imgcrd*: double array[ncoord][nelem]
+    - *imgcrd*: double array[ncoord][nelem]
 
-  - Array of intermediate sky coordinates.  For celestial axes,
-    ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
-    projected *x*-, and *y*-coordinates, in pseudo degrees.  For
-    spectral axes, ``imgcrd[][self.spec]`` is the intermediate
-    spectral coordinate, in SI units.
+      - Array of intermediate sky coordinates.  For celestial axes,
+        ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
+        projected *x*-, and *y*-coordinates, in pseudo degrees.  For
+        spectral axes, ``imgcrd[][self.spec]`` is the intermediate
+        spectral coordinate, in SI units.
 
-- *phi*: double array[ncoord]
+    - *phi*: double array[ncoord]
 
-- *theta*: double array[ncoord]
+    - *theta*: double array[ncoord]
 
-  - Longitude and latitude in the native coordinate system of the
-    projection, in degrees.
+      - Longitude and latitude in the native coordinate system of the
+        projection, in degrees.
 
-- *world*: double array[ncoord][nelem]
+    - *world*: double array[ncoord][nelem]
 
-  - Array of sky coordinates.  For celestial axes,
-    ``world[][self.lng]`` and ``world[][self.lat]`` are the celestial
-    longitude and latitude, in degrees.  For spectral axes,
-    ``world[][self.spec]`` is the intermediate spectral coordinate, in
-    SI units.
+      - Array of sky coordinates.  For celestial axes,
+        ``world[][self.lng]`` and ``world[][self.lat]`` are the
+        celestial longitude and latitude, in degrees.  For spectral
+        axes, ``world[][self.spec]`` is the intermediate spectral
+        coordinate, in SI units.
 
-- *stat*: int array[ncoord]
+    - *stat*: int array[ncoord]
 
-  - Status return value for each coordinate. ``0`` for success,
-    ``1+`` for invalid pixel coordinate.
+      - Status return value for each coordinate. ``0`` for success,
+        ``1+`` for invalid pixel coordinate.
 
-**Exceptions:**
+Raises
+------
 
-- `MemoryError`: Memory allocation failed.
+MemoryError
+    Memory allocation failed.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `InconsistentAxisTypesError`: Inconsistent or unrecognized
-  coordinate axis types.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `ValueError`: Invalid parameter value.
+ValueError
+    Invalid parameter value.
 
-- `ValueError`: *x*- and *y*-coordinate arrays are not the same size.
+ValueError
+    *x*- and *y*-coordinate arrays are not the same size.
 
-- `InvalidTransformError`: Invalid coordinate transformation
-  parameters.
+InvalidTransformError
+    Invalid coordinate transformation parameters.
 
-- `InvalidTransformError`: Ill-conditioned coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`
+See also
+--------
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Definition of the latitude andlongitude axes
 """ % __.ORIGIN()
 
 p4_pix2foc = """
@@ -1192,15 +1282,25 @@ p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 Convert pixel coordinates to focal plane coordinates using `Paper IV`_
 lookup-table distortion correction.
 
-- *pixcrd*: double array[ncoord][nelem].  Array of pixel coordinates.
+Parameters
+----------
+pixcrd : double array[ncoord][nelem].
+    Array of pixel coordinates.
 
 %s
 
-Returns an array of focal plane coordinates.
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Returns an array of focal plane coordinates.
 
-- `MemoryError`: Memory allocation failed.
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `ValueError`: Invalid coordinate transformation parameters.
+ValueError
+    Invalid coordinate transformation parameters.
 """ % __.ORIGIN()
 
 pc = """
@@ -1250,17 +1350,25 @@ pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 Perform both `SIP`_ polynomial and `Paper IV`_ lookup-table distortion
 correction in parallel.
 
-- *pixcrd*: double array[ncoord][nelem].  Array of pixel coordinates.
+Parameters
+----------
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
 
 %s
 
-Returns an array of focal plane coordinates.
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Returns an array of focal plane coordinates.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
-
-- `ValueError`: Invalid coordinate transformation parameters.
+ValueError
+    Invalid coordinate transformation parameters.
 """ % __.ORIGIN()
 
 piximg_matrix = """
@@ -1329,60 +1437,68 @@ s2p(sky, origin)
 
 Transforms sky coordinates to pixel coordinates.
 
-- *sky*: double array[ncoord][nelem].  Array of sky coordinates, in
-  decimal degrees.
+Parameters
+----------
+sky : double array[ncoord][nelem]
+    Array of sky coordinates, in decimal degrees.
 
 %s
 
-Returns a dictionary with the following keys:
+Returns
+-------
+result : dict
+    Returns a dictionary with the following keys:
 
-- *phi*: double array[ncoord]
+    - *phi*: double array[ncoord]
 
-- *theta*: double array[ncoord]
+    - *theta*: double array[ncoord]
 
-  - Longitude and latitude in the native coordinate system of the
-    projection, in degrees.
+        - Longitude and latitude in the native coordinate system of
+          the projection, in degrees.
 
-- *imgcrd*: double array[ncoord][nelem]
+    - *imgcrd*: double array[ncoord][nelem]
 
-  - Array of intermediate sky coordinates.  For celestial axes,
-    ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
-    projected *x*-, and *y*-coordinates, in pseudo "degrees".  For
-    quadcube projections with a ``CUBEFACE`` axis, the face number is
-    also returned in ``imgcrd[][self.cubeface]``.  For spectral axes,
-    ``imgcrd[][self.spec]`` is the intermediate spectral coordinate,
-    in SI units.
+       - Array of intermediate sky coordinates.  For celestial axes,
+         ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
+         projected *x*-, and *y*-coordinates, in pseudo \"degrees\".
+         For quadcube projections with a ``CUBEFACE`` axis, the face
+         number is also returned in ``imgcrd[][self.cubeface]``.  For
+         spectral axes, ``imgcrd[][self.spec]`` is the intermediate
+         spectral coordinate, in SI units.
 
-- *pixcrd*: double array[ncoord][nelem]
+    - *pixcrd*: double array[ncoord][nelem]
 
-  - Array of pixel coordinates.  Pixel coordinates are
-    zero-based.
+        - Array of pixel coordinates.  Pixel coordinates are
+          zero-based.
 
-- *stat*: int array[ncoord]
+    - *stat*: int array[ncoord]
 
-  - Status return value for each coordinate. ``0`` for
-    success, ``1+`` for invalid pixel coordinate.
+        - Status return value for each coordinate. ``0`` for success,
+          ``1+`` for invalid pixel coordinate.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `InconsistentAxisTypesError` Inconsistent or unrecognized coordinate
-  axis types.
+ValueError
+    Invalid parameter value.
 
-- `ValueError`: Invalid parameter value.
+InvalidTransformError
+   Invalid coordinate transformation parameters.
 
-- `InvalidTransformError`: Invalid coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 
-- `InvalidTransformError`: Ill-conditioned coordinate transformation
-  parameters.
-
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`
+See also
+--------
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Definition of the latitude and longitude axes
 """ % (__.ORIGIN())
 
 scale = """
@@ -1422,22 +1538,25 @@ recognizes ``GLS`` as a synonym for ``SFL``.  It does alias
 translation for the AIPS spectral types (``FREQ-LSR``, ``FELO-HEL``,
 etc.) but without changing the input header keywords.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `InconsistentAxisTypesError`: Inconsistent or unrecognized
-  coordinate axis types.
+ValueError
+    Invalid parameter value.
 
-- `ValueError`: Invalid parameter value.
+InvalidTransformError
+    Invalid coordinate transformation parameters.
 
-- `InvalidTransformError`: Invalid coordinate transformation
-  parameters.
-
-- `InvalidTransformError`: Ill-conditioned coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 """
 
 set_tabprm = """
@@ -1449,18 +1568,26 @@ the class according to information supplied within it.
 Note that this routine need not be called directly; it will be invoked by
 functions that need it.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
-
-- `InvalidTabularParameters`: Invalid tabular parameters.
+InvalidTabularParameters
+    Invalid tabular parameters.
 """
 
 set_ps = """
 set_ps(list)
 
-Sets `PSi_ma` keywords for each *i* and *m*.  The input must be a
-sequence of tuples of the form (*i*, *m*, *value*):
+Sets `PSi_ma` keywords for each *i* and *m*.
+
+Parameters
+----------
+ps : sequence of tuples
+
+    The input must be a sequence of tuples of the form (*i*, *m*,
+    *value*):
 
     - *i*: int.  Axis number, as in ``PSi_ma``, (i.e. 1-relative)
 
@@ -1468,16 +1595,22 @@ sequence of tuples of the form (*i*, *m*, *value*):
 
     - *value*: string.  Parameter value.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.get_ps`
+See also
+--------
+astropy.wcs.Wcsprm.get_ps
 """
 
 set_pv = """
 set_pv(list)
 
-Sets `PVi_ma` keywords for each *i* and *m*.  The input must be a
-sequence of tuples of the form (*i*, *m*, *value*):
+Sets `PVi_ma` keywords for each *i* and *m*.
+
+Parameters
+----------
+pv : list of tuples
+
+    The input must be a sequence of tuples of the form (*i*, *m*,
+    *value*):
 
     - *i*: int.  Axis number, as in ``PVi_ma``, (i.e. 1-relative)
 
@@ -1485,9 +1618,9 @@ sequence of tuples of the form (*i*, *m*, *value*):
 
     - *value*: float.  Parameter value.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.get_pv`
+See also
+--------
+astropy.wcs.Wcsprm.get_pv
 """
 
 sip = """
@@ -1501,27 +1634,32 @@ Sip(*a, b, ap, bp, crpix*)
 The `~astropy.wcs.Sip` class performs polynomial distortion correction
 using the `SIP`_ convention in both directions.
 
-   Shupe, D. L., M. Moshir, J. Li, D. Makovoz and R. Narron.  2005.
-   "The SIP Convention for Representing Distortion in FITS Image
-   Headers."  ADASS XIV.
+Parameters
+----------
+a : double array[m+1][m+1]
+    The ``A_i_j`` polynomial for pixel to focal plane transformation.
+    Its size must be (*m* + 1, *m* + 1) where *m* = ``A_ORDER``.
 
-- *a*: double array[m+1][m+1].  The ``A_i_j`` polynomial for pixel to
-  focal plane transformation.  Its size must be (*m* + 1, *m* + 1)
-  where *m* = ``A_ORDER``.
+b : double array[m+1][m+1]
+    The ``B_i_j`` polynomial for pixel to focal plane transformation.
+    Its size must be (*m* + 1, *m* + 1) where *m* = ``B_ORDER``.
 
-- *b*: double array[m+1][m+1].  The ``B_i_j`` polynomial for pixel to
-  focal plane transformation.  Its size must be (*m* + 1, *m* + 1)
-  where *m* = ``B_ORDER``.
+ap : double array[m+1][m+1]
+    The ``AP_i_j`` polynomial for pixel to focal plane transformation.
+    Its size must be (*m* + 1, *m* + 1) where *m* = ``AP_ORDER``.
 
-- *ap*: double array[m+1][m+1].  The ``AP_i_j`` polynomial for pixel
-  to focal plane transformation.  Its size must be (*m* + 1, *m* + 1)
-  where *m* = ``AP_ORDER``.
+bp : double array[m+1][m+1]
+    The ``BP_i_j`` polynomial for pixel to focal plane transformation.
+    Its size must be (*m* + 1, *m* + 1) where *m* = ``BP_ORDER``.
 
-- *bp*: double array[m+1][m+1].  The ``BP_i_j`` polynomial for pixel to
-  focal plane transformation.  Its size must be (*m* + 1, *m* + 1) where
-  *m* = ``BP_ORDER``.
+crpix : double array[2]
+    The reference pixel.
 
-- *crpix*: double array[2].  The reference pixel.
+Notes
+-----
+Shupe, D. L., M. Moshir, J. Li, D. Makovoz and R. Narron.  2005.
+"The SIP Convention for Representing Distortion in FITS Image
+Headers."  ADASS XIV.
 """
 
 sip_foc2pix = """
@@ -1530,18 +1668,25 @@ sip_foc2pix(*foccrd, origin*) -> double array[ncoord][nelem]
 Convert focal plane coordinates to pixel coordinates using the `SIP`_
 polynomial distortion convention.
 
-- *foccrd*: double array[ncoord][nelem].  Array of focal plane
-  coordinates.
+Parameters
+----------
+foccrd : double array[ncoord][nelem]
+    Array of focal plane coordinates.
 
 %s
 
-Returns an array of pixel coordinates.
+Returns
+-------
+pixcrd : double array[ncoord][nelem]
+    Returns an array of pixel coordinates.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
-
-- `ValueError`: Invalid coordinate transformation parameters.
+ValueError
+    Invalid coordinate transformation parameters.
 """ % __.ORIGIN()
 
 sip_pix2foc = """
@@ -1550,17 +1695,25 @@ sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 Convert pixel coordinates to focal plane coordinates using the `SIP`_
 polynomial distortion convention.
 
-- *pixcrd*: double array[ncoord][nelem].  Array of pixel coordinates.
+Parameters
+----------
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
 
 %s
 
-Returns an array of focal plane coordinates.
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Returns an array of focal plane coordinates.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
-
-- `ValueError`: Invalid coordinate transformation parameters.
+ValueError
+    Invalid coordinate transformation parameters.
 """ % __.ORIGIN()
 
 spcfix = """
@@ -1570,7 +1723,10 @@ Translates AIPS-convention spectral coordinate types.  {``FREQ``,
 ``VELO``, ``FELO``}-{``OBS``, ``HEL``, ``LSR``} (e.g. ``FREQ-LSR``,
 ``VELO-OBS``, ``FELO-HEL``)
 
-Returns ``0`` for success; ``-1`` if no change required.
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
 """
 
 spec = """
@@ -1592,41 +1748,50 @@ Spectral reference frame (standard of rest), ``SPECSYSa``.
 sptr = """
 sptr(ctype, i=-1)
 
-Translates the spectral axis in a WCS object.  For example, a ``FREQ``
-axis may be translated into ``ZOPT-F2W`` and vice versa.
+Translates the spectral axis in a WCS object.
 
-- *ctype*: string.  Required spectral ``CTYPEia``, maximum of 8
-  characters.  The first four characters are required to be given and
-  are never modified.  The remaining four, the algorithm code, are
-  completely determined by, and must be consistent with, the first
-  four characters.  Wildcarding may be used, i.e.  if the final three
-  characters are specified as ``"???"``, or if just the eighth
-  character is specified as ``"?"``, the correct algorithm code will
-  be substituted and returned.
+For example, a ``FREQ`` axis may be translated into ``ZOPT-F2W`` and
+vice versa.
 
-- *i*: int.  Index of the spectral axis (0-relative).  If ``i < 0`` (or not
-  provided), it will be set to the first spectral axis identified
-  from the ``CTYPE`` keyvalues in the FITS header.
+Parameters
+----------
+ctype : string
+    Required spectral ``CTYPEia``, maximum of 8 characters.  The first
+    four characters are required to be given and are never modified.
+    The remaining four, the algorithm code, are completely determined
+    by, and must be consistent with, the first four characters.
+    Wildcarding may be used, i.e.  if the final three characters are
+    specified as ``\"???\"``, or if just the eighth character is
+    specified as ``\"?\"``, the correct algorithm code will be
+    substituted and returned.
 
-**Exceptions:**
+i : int
+    Index of the spectral axis (0-relative).  If ``i < 0`` (or not
+    provided), it will be set to the first spectral axis identified
+    from the ``CTYPE`` keyvalues in the FITS header.
 
-- `MemoryError`: Memory allocation failed.
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `SingularMatrixError`: Linear transformation matrix is singular.
+SingularMatrixError
+    Linear transformation matrix is singular.
 
-- `InconsistentAxisTypesError`: Inconsistent or unrecognized
-  coordinate axis types.
+InconsistentAxisTypesError
+    Inconsistent or unrecognized coordinate axis types.
 
-- `ValueError`: Invalid parameter value.
+ValueError
+    Invalid parameter value.
 
-- `InvalidTransformError`: Invalid coordinate transformation
-  parameters.
+InvalidTransformError
+    Invalid coordinate transformation parameters.
 
-- `InvalidTransformError`: Ill-conditioned coordinate transformation
-  parameters.
+InvalidTransformError
+    Ill-conditioned coordinate transformation parameters.
 
-- `InvalidSubimageSpecificationError`: Invalid subimage specification
-  (no spectral axis).
+InvalidSubimageSpecificationError
+    Invalid subimage specification (no spectral axis).
 """
 
 ssysobs = """
@@ -1636,9 +1801,9 @@ The actual spectral reference frame in which there is no differential
 variation in the spectral coordinate across the field-of-view,
 ``SSYSOBSa``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.specsys`, `~astropy.wcs.Wcsprm.velosys`
+See also
+--------
+astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.velosys
 """
 
 ssyssrc = """
@@ -1661,65 +1826,68 @@ practice, this means that the ``PCi_ja`` matrix of the original image
 must not contain non-zero off-diagonal terms that associate any of the
 subimage axes with any of the non-subimage axes.
 
-- *axes*: int or a sequence.
+Parameters
+----------
+axes : int or a sequence.
 
-  - If an int, include the first *N* axes in their original
-    order.
+    - If an int, include the first *N* axes in their original order.
 
-  - If a sequence, may contain a combination of image axis numbers
-    (1-relative) or special axis identifiers (see below).  Order is
-    significant; ``axes[0]`` is the axis number of the input image that
-    corresponds to the first axis in the subimage, etc.
+    - If a sequence, may contain a combination of image axis numbers
+      (1-relative) or special axis identifiers (see below).  Order is
+      significant; ``axes[0]`` is the axis number of the input image
+      that corresponds to the first axis in the subimage, etc.
 
-  - If ``0``, ``[]`` or ``None``, do a deep copy.
+    - If ``0``, ``[]`` or ``None``, do a deep copy.
 
-Coordinate axes types may be specified using either strings or
-special integer constants.  The available types are:
+    Coordinate axes types may be specified using either strings or
+    special integer constants.  The available types are:
 
-  - ``'longitude'`` / ``WCSSUB_LONGITUDE``: Celestial longitude
+    - ``'longitude'`` / ``WCSSUB_LONGITUDE``: Celestial longitude
 
-  - ``'latitude'`` / ``WCSSUB_LATITUDE``: Celestial latitude
+    - ``'latitude'`` / ``WCSSUB_LATITUDE``: Celestial latitude
 
-  - ``'cubeface'`` / ``WCSSUB_CUBEFACE``: Quadcube ``CUBEFACE`` axis
+    - ``'cubeface'`` / ``WCSSUB_CUBEFACE``: Quadcube ``CUBEFACE`` axis
 
-  - ``'spectral'`` / ``WCSSUB_SPECTRAL``: Spectral axis
+    - ``'spectral'`` / ``WCSSUB_SPECTRAL``: Spectral axis
 
-  - ``'stokes'`` / ``WCSSUB_STOKES``: Stokes axis
+    - ``'stokes'`` / ``WCSSUB_STOKES``: Stokes axis
 
-  - ``'celestial'`` / ``WCSSUB_CELESTIAL``: An alias for the
-    combination of ``'longitude'``, ``'latitude'`` and ``'cubeface'``.
+    - ``'celestial'`` / ``WCSSUB_CELESTIAL``: An alias for the
+      combination of ``'longitude'``, ``'latitude'`` and ``'cubeface'``.
 
-Returns a `~astropy.wcs.WCS` object, which is a deep copy of the
-original object.
+Returns
+-------
+new_wcs : `~astropy.wcs.WCS` object
 
-**Exceptions:**
+Raises
+------
+MemoryError
+    Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
+InvalidSubimageSpecificationError
+    Invalid subimage specification (no spectral axis).
 
-- `InvalidSubimageSpecificationError`: Invalid subimage specification
-  (no spectral axis).
+NonseparableSubimageCoordinateSystem
+    Non-separable subimage coordinate system.
 
-- `NonseparableSubimageCoordinateSystem`: Non-separable subimage
-  coordinate system.
-
-.. note::
-
-  Combinations of subimage axes of particular types may be extracted
-  in the same order as they occur in the input image by combining the
-  integer constants with the 'binary or' (``|``) operator.  For
-  example::
+Notes
+-----
+Combinations of subimage axes of particular types may be extracted in
+the same order as they occur in the input image by combining the
+integer constants with the 'binary or' (``|``) operator.  For
+example::
 
     wcs.sub([WCSSUB_LONGITUDE | WCSSUB_LATITUDE | WCSSUB_SPECTRAL])
 
-  would extract the longitude, latitude, and spectral axes in the same
-  order as the input image.  If one of each were present, the
-  resulting object would have three dimensions.
+would extract the longitude, latitude, and spectral axes in the same
+order as the input image.  If one of each were present, the resulting
+object would have three dimensions.
 
-  For convenience, ``WCSSUB_CELESTIAL`` is defined as the combination
-  ``WCSSUB_LONGITUDE | WCSSUB_LATITUDE | WCSSUB_CUBEFACE``.
+For convenience, ``WCSSUB_CELESTIAL`` is defined as the combination
+``WCSSUB_LONGITUDE | WCSSUB_LATITUDE | WCSSUB_CUBEFACE``.
 
-  The codes may also be negated to extract all but the types
-  specified, for example::
+The codes may also be negated to extract all but the types specified,
+for example::
 
     wcs.sub([
       WCSSUB_LONGITUDE,
@@ -1727,15 +1895,15 @@ original object.
       WCSSUB_CUBEFACE,
       -(WCSSUB_SPECTRAL | WCSSUB_STOKES)])
 
-  The last of these specifies all axis types other than spectral or
-  Stokes.  Extraction is done in the order specified by `axes`, i.e. a
-  longitude axis (if present) would be extracted first (via
-  ``axes[0]``) and not subsequently (via ``axes[3]``).  Likewise for
-  the latitude and cubeface axes in this example.
+The last of these specifies all axis types other than spectral or
+Stokes.  Extraction is done in the order specified by `axes`, i.e. a
+longitude axis (if present) would be extracted first (via ``axes[0]``)
+and not subsequently (via ``axes[3]``).  Likewise for the latitude and
+cubeface axes in this example.
 
-  The number of dimensions in the returned object may be less than or
-  greater than the length of `axes`.  However, it will never exceed
-  the number of axes in the input image.
+The number of dimensions in the returned object may be less than or
+greater than the length of `axes`.  However, it will never exceed the
+number of axes in the input image.
 """
 
 tab = """
@@ -1769,6 +1937,8 @@ to_header = """
 to_header(relax=False)
 
 `to_header` translates a WCS object into a FITS header.
+
+The details of the header depends on context:
 
     - If the `~astropy.wcs.Wcsprm.colnum` member is non-zero then a
       binary table image array header will be produced.
@@ -1814,7 +1984,11 @@ pixel lists forms by manipulating the `~astropy.wcs.Wcsprm.colnum` or
 `~astropy.wcs.Wcsprm.colax` members of the `~astropy.wcs.Wcsprm.WCS`
 object.
 
-- *relax*: Degree of permissiveness:
+Parameters
+----------
+
+relax : bool or int
+    Degree of permissiveness:
 
     - `False`: Recognize only FITS keywords defined by the published
       WCS standard.
@@ -1825,7 +1999,10 @@ object.
     - `int`: a bit field selecting specific extensions to write.
       See :ref:`relaxwrite` for details.
 
-Returns a raw FITS header as a string.
+Returns
+-------
+header : str
+    Raw FITS header as a string.
 """
 
 ttype = """
@@ -1841,37 +2018,6 @@ UnitConverter(have, want, translate_units='')
 Creates an object for performing conversion from one system of units
 to another.
 
-- *have* string: :ref:`fits-unit` to convert from, with or without
-  surrounding square brackets (for inline specifications); text
-  following the closing bracket is ignored.
-
-- *want* string: :ref:`fits-unit` to convert to, with or without
-  surrounding square brackets (for inline specifications); text
-  following the closing bracket is ignored.
-
-- *ctrl* string (optional): Do potentially unsafe translations of
-  non-standard unit strings.
-
-  Although ``"S"`` is commonly used to represent seconds, its
-  recognizes ``"S"`` formally as Siemens, however rarely that may be
-  translation to ``"s"`` is potentially unsafe since the standard
-  used.  The same applies to ``"H"`` for hours (Henry), and ``"D"``
-  for days (Debye).
-
-  This string controls what to do in such cases, and is
-  case-insensitive.
-
-  - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
-
-  - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
-
-  - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
-
-  Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
-  does all of them.
-
-  See :ref:`fits-unit` for more information.
-
 Use the returned object's `~astropy.wcs.UnitConverter.convert` method
 to convert values from *have* to *want*.
 
@@ -1880,63 +2026,118 @@ a units specification where it does not create ambiguity (e.g. not
 between a metric prefix and a basic unit string), including in strings
 like ``"log (m ** 2)"`` which is formally disallowed.
 
-**Exceptions:**
+Parameters
+----------
 
-- `ValueError`: Invalid numeric multiplier.
+have : string
+    :ref:`fits-unit` to convert from, with or without surrounding
+    square brackets (for inline specifications); text following the
+    closing bracket is ignored.
 
-- `SyntaxError`: Dangling binary operator.
+want : string
+    ref:`fits-unit` to convert to, with or without surrounding square
+    brackets (for inline specifications); text following the closing
+    bracket is ignored.
 
-- `SyntaxError`: Invalid symbol in INITIAL context.
+ctrl : string, optional
+    Do potentially unsafe translations of non-standard unit strings.
 
-- `SyntaxError`: Function in invalid context.
+    Although ``\"S\"`` is commonly used to represent seconds, its
+    recognizes ``\"S\"`` formally as Siemens, however rarely that may
+    be translation to ``\"s\"`` is potentially unsafe since the
+    standard used.  The same applies to ``\"H\"`` for hours (Henry),
+    and ``\"D\"`` for days (Debye).
 
-- `SyntaxError`: Invalid symbol in EXPON context.
+    This string controls what to do in such cases, and is
+    case-insensitive.
 
-- `SyntaxError`: Unbalanced bracket.
+    - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
 
-- `SyntaxError`: Unbalanced parenthesis.
+    - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
 
-- `SyntaxError`: Consecutive binary operators.
+    - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
 
-- `SyntaxError`: Internal parser error.
+    Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
+    does all of them.
 
-- `SyntaxError`: Non-conformant unit specifications.
+    See :ref:`fits-unit` for more information.
 
-- `SyntaxError`: Non-conformant functions.
+Raises
+------
+ValueError
+    Invalid numeric multiplier.
 
-- `ValueError`: Potentially unsafe translation.
+SyntaxError
+    Dangling binary operator.
+
+SyntaxError
+    Invalid symbol in INITIAL context.
+
+SyntaxError
+    Function in invalid context.
+
+SyntaxError
+    Invalid symbol in EXPON context.
+
+SyntaxError
+    Unbalanced bracket.
+
+SyntaxError
+    Unbalanced parenthesis.
+
+SyntaxError
+    Consecutive binary operators.
+
+SyntaxError
+    Internal parser error.
+
+SyntaxError
+    Non-conformant unit specifications.
+
+SyntaxError
+    Non-conformant functions.
+
+ValueError
+    Potentially unsafe translation.
 """
 
 unitfix = """
 unitfix(translate_units='')
 
-Translates non-standard ``CUNITia`` keyvalues.  For example, ``DEG`` ->
-``deg``, also stripping off unnecessary whitespace.
+Translates non-standard ``CUNITia`` keyvalues.
 
-- *translate_units*: string.  Do potentially unsafe translations of
-  non-standard unit strings.
+For example, ``DEG`` -> ``deg``, also stripping off unnecessary
+whitespace.
 
-  Although ``"S"`` is commonly used to represent seconds, its
-  recognizes ``"S"`` formally as Siemens, however rarely that may be
-  translation to ``"s"`` is potentially unsafe since the standard
-  used.  The same applies to ``"H"`` for hours (Henry), and ``"D"``
-  for days (Debye).
+Parameters
+----------
+translate_units : string, optional
+    Do potentially unsafe translations of non-standard unit strings.
 
-  This string controls what to do in such cases, and is
-  case-insensitive.
+    Although ``\"S\"`` is commonly used to represent seconds, its
+    recognizes ``\"S\"`` formally as Siemens, however rarely that may
+    be translation to ``\"s\"`` is potentially unsafe since the
+    standard used.  The same applies to ``\"H\"`` for hours (Henry),
+    and ``\"D\"`` for days (Debye).
 
-  - If the string contains ``"s"``, translate ``"S"`` to ``"s"``.
+    This string controls what to do in such cases, and is
+    case-insensitive.
 
-  - If the string contains ``"h"``, translate ``"H"`` to ``"h"``.
+    - If the string contains ``\"s\"``, translate ``\"S\"`` to ``\"s\"``.
 
-  - If the string contains ``"d"``, translate ``"D"`` to ``"d"``.
+    - If the string contains ``\"h\"``, translate ``\"H\"`` to ``\"h\"``.
 
-  Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
-  does all of them.
+    - If the string contains ``\"d\"``, translate ``\"D\"`` to ``\"d\"``.
 
-  See :ref:`fits-unit` for more information.
+    Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
+    does all of them.
 
-Returns ``0`` for success; ``-1`` if no change required.
+    See :ref:`fits-unit` for more information.
+
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
 """
 
 velangl = """
@@ -1957,9 +2158,9 @@ coordinate, ``VELOSYSa``.
 
 An undefined value is represented by NaN.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.specsys`, `~astropy.wcs.Wcsprm.ssysobs`
+See also
+--------
+astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
 """
 
 want = """
@@ -1971,7 +2172,7 @@ This value always uses standard unit names, even if the
 
 wcs = """
 A `~astropy.wcs.Wcsprm` object to perform the basic `wcslib`_ WCS
-tranformation.
+transformation.
 """
 
 Wcs = """
@@ -1983,14 +2184,16 @@ Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
 To perform all distortion corrections and WCS tranformation, use
 `all_pix2sky`.
 
-- *sip*: A `~astropy.wcs.Sip` object or ``None``
+Parameters
+----------
+sip : `~astropy.wcs.Sip` object or `None`
 
-- *cpdis*: A pair of `~astropy.wcs.DistortionLookupTable` objects, or
+cpdis : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
   ``(None, None)``.
 
-- *wcsprm*: A `~astropy.wcs.Wcsprm` object
+wcsprm : `~astropy.wcs.Wcsprm` object
 
-- *det2im*: A pair of `~astropy.wcs.DistortionLookupTable` objects, or
+det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
    ``(None, None)``.
 """
 
@@ -2006,16 +2209,20 @@ However, it does recognize free-format character (NOST 100-2.0,
 Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
 (Sect. 5.2.4) for all keywords.
 
-- *header*: A PyFITS header object or a string containing the raw FITS
-  header data or ``None``.  If ``None``, the object will be
-  initialized to default values.
+Parameters
+----------
+header : A PyFITS header, string, or `None`.
+  If ``None``, the object will be initialized to default values.
 
-- *key*: The key referring to a particular WCS transform in the
-  header.  This may be either ``' '`` or ``'A'``-``'Z'`` and
-  corresponds to the ``"a"`` part of ``"CTYPEia"``.  (*key*
-  may only be provided if *header* is also provided.)
+key : string, optional
+    The key referring to a particular WCS transform in the header.
+    This may be either ``' '`` or ``'A'``-``'Z'`` and corresponds to
+    the ``\"a\"`` part of ``\"CTYPEia\"``.  (*key* may only be
+    provided if *header* is also provided.)
 
-- *relax*: Degree of permissiveness:
+relax : bool or int, optional
+
+    Degree of permissiveness:
 
     - `False`: Recognize only FITS keywords defined by the published
       WCS standard.
@@ -2026,31 +2233,37 @@ Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
     - `int`: a bit field selecting specific extensions to accept.  See
       :ref:`relaxread` for details.
 
-- *naxis*: The number of sky coordinates axes for the object.
-  (*naxis* may only be provided if *header* is ``None``.)
+naxis : int, optional
+    The number of sky coordinates axes for the object.  (*naxis* may
+    only be provided if *header* is `None`.)
 
-- *keysel*: Vector of flag bits that may be used to restrict the
-  keyword types considered:
+keysel : sequence of flag bits, optional
+    Vector of flag bits that may be used to restrict the keyword types
+    considered:
 
-     - ``WCSHDR_IMGHEAD``: Image header keywords.
+        - ``WCSHDR_IMGHEAD``: Image header keywords.
 
-     - ``WCSHDR_BIMGARR``: Binary table image array.
+        - ``WCSHDR_BIMGARR``: Binary table image array.
 
-     - ``WCSHDR_PIXLIST``: Pixel list keywords.
+        - ``WCSHDR_PIXLIST``: Pixel list keywords.
 
-   If zero, there is no restriction.  If -1, the underlying wcslib
-   function ``wcspih()`` is called, rather than ``wcstbh()``.
+    If zero, there is no restriction.  If -1, the underlying wcslib
+    function ``wcspih()`` is called, rather than ``wcstbh()``.
 
-- *colsel*: A sequence of table column numbers used to restrict the
-  keywords considered.  ``None`` indicates no restriction.
+colsel : sequence of int
+    A sequence of table column numbers used to restrict the keywords
+    considered.  `None` indicates no restriction.
 
-**Exceptions:**
+Raises
+------
+MemoryError
+     Memory allocation failed.
 
-- `MemoryError`: Memory allocation failed.
+ValueError
+     Invalid key.
 
-- `ValueError`: Invalid key.
-
-- `KeyError`: Key not found in FITS header.
+KeyError
+     Key not found in FITS header.
 """
 
 Wtbarr = """

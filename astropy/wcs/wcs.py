@@ -108,25 +108,30 @@ class WCS(WCSBase):
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=False, naxis=None, keysel=None, colsel=None):
         """
-        - *header*: A string containing the header content, or a
-          PyFITS header object.  If *header* is not provided or None,
-          the object will be initialized to default values.
+        Parameters
+        ----------
+        header : PyFITS header object, string or None
+            If *header* is not provided or None, the object will be
+            initialized to default values.
 
-        - *fobj*: A PyFITS file (hdulist) object. It is needed when
-          header keywords point to a `Paper IV`_ Lookup table
-          distortion stored in a different extension.
+        fobj : A PyFITS file (hdulist) object, optional
+            It is needed when header keywords point to a `Paper IV`_
+            Lookup table distortion stored in a different extension.
 
-        - *key*: A string.  The name of a particular WCS transform to
-          use.  This may be either ``' '`` or ``'A'``-``'Z'`` and
-          corresponds to the ``"a"`` part of the ``CTYPEia`` cards.
-          *key* may only be provided if *header* is also provided.
+        key : string, optional
+            The name of a particular WCS transform to use.  This may
+            be either ``' '`` or ``'A'``-``'Z'`` and corresponds to
+            the ``\"a\"`` part of the ``CTYPEia`` cards.  *key* may
+            only be provided if *header* is also provided.
 
-        - *minerr*: A floating-point value.  The minimum value a
-          distortion correction must have in order to be applied. If
-          the value of ``CQERRja`` is smaller than *minerr*, the
-          corresponding distortion is not applied.
+        minerr : float, optional
+            The minimum value a distortion correction must have in
+            order to be applied. If the value of ``CQERRja`` is
+            smaller than *minerr*, the corresponding distortion is not
+            applied.
 
-        - *relax*: Degree of permissiveness:
+        relax : bool or int
+            Degree of permissiveness:
 
             - `False`: Recognize only FITS keywords defined by the
               published WCS standard.
@@ -137,22 +142,24 @@ class WCS(WCSBase):
             - `int`: a bit field selecting specific extensions to
               accept.  See :ref:`relaxread` for details.
 
-        - *naxis*: int or sequence.  Extracts specific coordinate axes
-          using :meth:`~astropy.wcs.Wcsprm.sub`.  If a header is
-          provided, and *naxis* is not ``None``, *naxis* will be
-          passed to :meth:`~astropy.wcs.Wcsprm.sub` in order to select
-          specific axes from the header.  See
-          :meth:`~astropy.wcs.Wcsprm.sub` for more details about this
-          parameter.
+        naxis : int or sequence, optional
+            Extracts specific coordinate axes using
+            :meth:`~astropy.wcs.Wcsprm.sub`.  If a header is provided,
+            and *naxis* is not ``None``, *naxis* will be passed to
+            :meth:`~astropy.wcs.Wcsprm.sub` in order to select
+            specific axes from the header.  See
+            :meth:`~astropy.wcs.Wcsprm.sub` for more details about
+            this parameter.
 
-        - *keysel*: A list of flags used to select the keyword types
-          considered by wcslib.  When ``None``, only the standard
-          image header keywords are considered (and the underlying
-          wcspih() C function is called).  To use binary table image
-          array or pixel list keywords, *keysel* must be set.
+        keysel : sequence of flags, optional
+            A sequence of flags used to select the keyword types
+            considered by wcslib.  When ``None``, only the standard
+            image header keywords are considered (and the underlying
+            wcspih() C function is called).  To use binary table image
+            array or pixel list keywords, *keysel* must be set.
 
-          Each element in the list should be one of the following
-          strings:
+            Each element in the list should be one of the following
+            strings:
 
             - 'image': Image header keywords
 
@@ -160,38 +167,43 @@ class WCS(WCSBase):
 
             - 'pixel': Pixel list keywords
 
-          Keywords such as ``EQUIna`` or ``RFRQna`` that are common to
-          binary table image arrays and pixel lists (including
-          ``WCSNna`` and ``TWCSna``) are selected by both 'binary' and
-          'pixel'.
+            Keywords such as ``EQUIna`` or ``RFRQna`` that are common
+            to binary table image arrays and pixel lists (including
+            ``WCSNna`` and ``TWCSna``) are selected by both 'binary'
+            and 'pixel'.
 
-        - *colsel*: A sequence of table column numbers used
-          to restrict the WCS transformations considered to only those
-          pertaining to the specified columns.  If `None`, there is no
-          restriction.
+        colsel : sequence of int
+            A sequence of table column numbers used to restrict the
+            WCS transformations considered to only those pertaining to
+            the specified columns.  If `None`, there is no
+            restriction.
 
-        .. warning::
+        Raises
+        ------
+        MemoryError
+             Memory allocation failed.
 
-          astropy.wcs supports arbitrary *n* dimensions for the core WCS
-          (the transformations handled by WCSLIB).  However, the Paper
-          IV lookup table and SIP distortions must be two dimensional.
-          Therefore, if you try to create a WCS object where the core
-          WCS has a different number of dimensions than 2 and that
-          object also contains a Paper IV lookup table or SIP
-          distortion, a `ValueError` exception will be raised.  To
-          avoid this, consider using the *naxis* kwarg to select two
-          dimensions from the core WCS.
+        ValueError
+             Invalid key.
 
-        **Exceptions:**
+        KeyError
+             Key not found in FITS header.
 
-        - `MemoryError`: Memory allocation failed.
+        AssertionError
+             Lookup table distortion present in the header but *fobj*
+             not provided.
 
-        - `ValueError`: Invalid key.
-
-        - `KeyError`: Key not found in FITS header.
-
-        - `AssertionError`: Lookup table distortion present in the
-          header but fobj not provided.
+        Notes
+        -----
+        astropy.wcs supports arbitrary *n* dimensions for the core WCS
+        (the transformations handled by WCSLIB).  However, the Paper
+        IV lookup table and SIP distortions must be two dimensional.
+        Therefore, if you try to create a WCS object where the core
+        WCS has a different number of dimensions than 2 and that
+        object also contains a Paper IV lookup table or SIP
+        distortion, a `ValueError` exception will be raised.  To avoid
+        this, consider using the *naxis* kwarg to select two
+        dimensions from the core WCS.
         """
         if header is None:
             if naxis is None:
@@ -308,7 +320,16 @@ naxis kwarg.
         image on the sky after all available distortions have been
         applied.
 
-        Returns a (4, 2) array of (*x*, *y*) coordinates.
+        Parameters
+        ----------
+        header : pyfits header object, optional
+
+        undistort : bool, optional
+            If `True`, take SIP and distortion lookup table into account
+
+        Returns
+        -------
+        coord : (4, 2) array of (*x*, *y*) coordinates.
         """
         if header is None:
             try:
@@ -619,8 +640,9 @@ naxis kwarg.
     def all_pix2sky(self, *args, **kwargs):
         return self._array_converter(self._all_pix2sky, 'output', *args, **kwargs)
     all_pix2sky.__doc__ = """
-        Transforms pixel coordinates to sky coordinates by doing all
-        of the following in order:
+        Transforms pixel coordinates to sky coordinates.
+
+        Performs all of the following in order:
 
             - Detector to image plane correction (optionally)
 
@@ -630,48 +652,57 @@ naxis kwarg.
 
             - `wcslib`_ WCS transformation
 
+        Parameters
+        ----------
         %s
 
+            For a transformation that is not two-dimensional, the
+            two-argument form must be used.
+
         %s
 
-        For a transformation that is not two-dimensional, the
-        two-argument form must be used.
+        Returns
+        -------
 
-        .. note::
+        %s
 
-            The order of the axes for the result is determined by the
-            `CTYPEia` keywords in the FITS header, therefore it may
-            not always be of the form (*ra*, *dec*).  The
-            `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
-            `~astropy.wcs.Wcsprm.lattyp` and
-            `~astropy.wcs.Wcsprm.lngtyp` members can be used to
-            determine the order of the axes.
+        Notes
+        -----
+        The order of the axes for the result is determined by the
+        `CTYPEia` keywords in the FITS header, therefore it may not
+        always be of the form (*ra*, *dec*).  The
+        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
+        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
+        members can be used to determine the order of the axes.
 
-        **Exceptions:**
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
 
-        - `MemoryError`: Memory allocation failed.
+        SingularMatrixError
+            Linear transformation matrix is singular.
 
-        - `SingularMatrixError`: Linear transformation matrix is
-          singular.
+        InconsistentAxisTypesError
+            Inconsistent or unrecognized coordinate axis types.
 
-        - `InconsistentAxisTypesError`: Inconsistent or unrecognized
-          coordinate axis types.
+        ValueError
+            Invalid parameter value.
 
-        - `ValueError`: Invalid parameter value.
+        ValueError
+            Invalid coordinate transformation parameters.
 
-        - `ValueError`: Invalid coordinate transformation parameters.
+        ValueError
+            x- and y-coordinate arrays are not the same size.
 
-        - `ValueError`: x- and y-coordinate arrays are not the same
-          size.
+        InvalidTransformError
+            Invalid coordinate transformation parameters.
 
-        - `InvalidTransformError`: Invalid coordinate transformation
-          parameters.
-
-        - `InvalidTransformError`: Ill-conditioned coordinate
-          transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS(
-            'sky coordinates, in degrees', 'naxis', 8),
-               __.RA_DEC_ORDER(8))
+        InvalidTransformError
+            Ill-conditioned coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
+               __.RA_DEC_ORDER(8),
+               __.RETURNS('sky coordinates, in degrees', 8))
 
     def wcs_pix2sky(self, *args, **kwargs):
         if self.wcs is None:
@@ -680,53 +711,63 @@ naxis kwarg.
                                      'output', *args, **kwargs)
     wcs_pix2sky.__doc__ = """
         Transforms pixel coordinates to sky coordinates by doing only
-        the basic `wcslib`_ transformation.  No `SIP`_ or `Paper IV`_
-        table lookup distortion correction is applied.  To perform
-        distortion correction, see `~astropy.wcs.WCS.all_pix2sky`,
+        the basic `wcslib`_ transformation.
+
+        No `SIP`_ or `Paper IV`_ table lookup distortion correction is
+        applied.  To perform distortion correction, see
+        `~astropy.wcs.WCS.all_pix2sky`,
         `~astropy.wcs.WCS.sip_pix2foc`, `~astropy.wcs.WCS.p4_pix2foc`,
         or `~astropy.wcs.WCS.pix2foc`.
 
+        Parameters
+        ----------
         %s
 
+            For a transformation that is not two-dimensional, the
+            two-argument form must be used.
+
         %s
 
-        For a transformation that is not two-dimensional, the
-        two-argument form must be used.
+        Returns
+        -------
 
-        .. note::
+        %s
 
-            The order of the axes for the result is determined by the
-            `CTYPEia` keywords in the FITS header, therefore it may
-            not always be of the form (*ra*, *dec*).  The
-            `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
-            `~astropy.wcs.Wcsprm.lattyp` and
-            `~astropy.wcs.Wcsprm.lngtyp` members can be used to
-            determine the order of the axes.
+        Notes
+        -----
+        The order of the axes for the result is determined by the
+        `CTYPEia` keywords in the FITS header, therefore it may not
+        always be of the form (*ra*, *dec*).  The
+        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
+        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
+        members can be used to determine the order of the axes.
 
-        **Exceptions:**
+        MemoryError
+            Memory allocation failed.
 
-        - `MemoryError`: Memory allocation failed.
+        SingularMatrixError
+            Linear transformation matrix is singular.
 
-        - `SingularMatrixError`: Linear transformation matrix is
-          singular.
+        InconsistentAxisTypesError
+            Inconsistent or unrecognized coordinate axis types.
 
-        - `InconsistentAxisTypesError`: Inconsistent or unrecognized
-          coordinate axis types.
+        ValueError
+            Invalid parameter value.
 
-        - `ValueError`: Invalid parameter value.
+        ValueError
+            Invalid coordinate transformation parameters.
 
-        - `ValueError`: Invalid coordinate transformation parameters.
+        ValueError
+            x- and y-coordinate arrays are not the same size.
 
-        - `ValueError`: x- and y-coordinate arrays are not the same
-          size.
+        InvalidTransformError
+            Invalid coordinate transformation parameters.
 
-        - `InvalidTransformError`: Invalid coordinate transformation
-          parameters.
-
-        - `InvalidTransformError`: Ill-conditioned coordinate
-          transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('sky coordinates, in degrees.', 'naxis', 8),
-               __.RA_DEC_ORDER(8))
+        InvalidTransformError
+            Ill-conditioned coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
+               __.RA_DEC_ORDER(8),
+               __.RETURNS('sky coordinates, in degrees', 8))
 
     def wcs_sky2pix(self, *args, **kwargs):
         if self.wcs is None:
@@ -738,42 +779,57 @@ naxis kwarg.
         the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
         IV`_ table lookup distortion is applied.
 
+        Parameters
+        ----------
         %s
 
+            For a transformation that is not two-dimensional, the
+            two-argument form must be used.
+
         %s
 
-        For a transformation that is not two-dimensional, the
-        two-argument form must be used.
+        Returns
+        -------
 
-        .. note::
+        %s
 
-            The order of the axes for the input sky array is
-            determined by the `CTYPEia` keywords in the FITS header,
-            therefore it may not always be of the form (*ra*, *dec*).
-            The `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
-            `~astropy.wcs.Wcsprm.lattyp` and
-            `~astropy.wcs.Wcsprm.lngtyp` members can be used to
-            determine the order of the axes.
+        Notes
+        -----
+        The order of the axes for the input sky array is determined by
+        the `CTYPEia` keywords in the FITS header, therefore it may
+        not always be of the form (*ra*, *dec*).  The
+        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
+        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
+        members can be used to determine the order of the axes.
 
-        **Exceptions:**
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
 
-        - `MemoryError`: Memory allocation failed.
+        SingularMatrixError
+            Linear transformation matrix is singular.
 
-        - `SingularMatrixError`: Linear transformation matrix is
-          singular.
+        InconsistentAxisTypesError
+            Inconsistent or unrecognized coordinate axis types.
 
-        - `InconsistentAxisTypesError`: Inconsistent or unrecognized
-          coordinate axis types.
+        ValueError
+            Invalid parameter value.
 
-        - `ValueError`: Invalid parameter value.
+        ValueError
+            Invalid coordinate transformation parameters.
 
-        - `InvalidTransformError`: Invalid coordinate transformation
-          parameters.
+        ValueError
+            x- and y-coordinate arrays are not the same size.
 
-        - `InvalidTransformError`: Ill-conditioned coordinate
-          transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('pixel coordinates', 'naxis', 8),
-               __.RA_DEC_ORDER(8))
+        InvalidTransformError
+            Invalid coordinate transformation parameters.
+
+        InvalidTransformError
+            Ill-conditioned coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
+               __.RA_DEC_ORDER(8),
+               __.RETURNS('pixel coordinates', 8))
 
     def pix2foc(self, *args, **kwargs):
         return self._array_converter(self._pix2foc, None, *args, **kwargs)
@@ -782,14 +838,25 @@ naxis kwarg.
         `SIP`_ polynomial distortion convention and `Paper IV`_
         table-lookup distortion correction.
 
+        Parameters
+        ----------
+
         %s
 
-        **Exceptions:**
+        Returns
+        -------
 
-        - `MemoryError`: Memory allocation failed.
+        %s
 
-        - `ValueError`: Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('focal coordinates', '2', 8))
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('2', 8),
+               __.RETURNS('focal coordinates', 8))
 
     def p4_pix2foc(self, *args, **kwargs):
         return self._array_converter(self._p4_pix2foc, None, *args, **kwargs)
@@ -797,14 +864,25 @@ naxis kwarg.
         Convert pixel coordinates to focal plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
 
+        Parameters
+        ----------
+
         %s
 
-        **Exceptions:**
+        Returns
+        -------
 
-        - `MemoryError`: Memory allocation failed.
+        %s
 
-        - `ValueError`: Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('focal coordinates', '2', 8))
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('2', 8),
+               __.RETURNS('focal coordinates', 8))
 
     def det2im(self, *args, **kwargs):
         return self._array_converter(self._det2im, None, *args, **kwargs)
@@ -812,14 +890,25 @@ naxis kwarg.
         Convert detector coordinates to image plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
 
+        Parameters
+        ----------
+
         %s
 
-        **Exceptions:**
+        Returns
+        -------
 
-        - `MemoryError`: Memory allocation failed.
+        %s
 
-        - `ValueError`: Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('pixel coordinates', '2', 8))
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('2', 8),
+               __.RETURNS('pixel coordinates', 8))
 
     def sip_pix2foc(self, *args, **kwargs):
         if self.sip is None:
@@ -840,14 +929,25 @@ naxis kwarg.
         for that, use `~astropy.wcs.WCS.pix2foc` or
         `~astropy.wcs.WCS.p4_pix2foc`.
 
+        Parameters
+        ----------
+
         %s
 
-        **Exceptions:**
+        Returns
+        -------
 
-        - `MemoryError`: Memory allocation failed.
+        %s
 
-        - `ValueError`: Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('focal coordinates', '2', 8))
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('2', 8),
+               __.RETURNS('focal coordinates', 8))
 
     def sip_foc2pix(self, *args, **kwargs):
         if self.sip is None:
@@ -866,14 +966,25 @@ naxis kwarg.
         even if that information existed in the FITS file that
         initialized this `~astropy.wcs.WCS` object.
 
+        Parameters
+        ----------
+
         %s
 
-        **Exceptions:**
+        Returns
+        -------
 
-        - `MemoryError`: Memory allocation failed.
+        %s
 
-        - `ValueError`: Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('pixel coordinates', '2', 8))
+        Raises
+        ------
+        MemoryError
+            Memory allocation failed.
+
+        ValueError
+            Invalid coordinate transformation parameters.
+        """ % (__.TWO_OR_THREE_ARGS('2', 8),
+               __.RETURNS('pixel coordinates', 8))
 
     def to_header(self, relax=False):
         """
@@ -915,18 +1026,23 @@ naxis kwarg.
 
           8. Keyword order may be changed.
 
-        - *relax*: Degree of permissiveness:
+        Parameters
+        ----------
+        relax : bool or int
+            Degree of permissiveness:
 
-          - `False`: Recognize only FITS keywords defined by the
-            published WCS standard.
+            - `False`: Recognize only FITS keywords defined by the
+              published WCS standard.
 
-          - `True`: Admit all recognized informal extensions of the WCS
-            standard.
+            - `True`: Admit all recognized informal extensions of the
+              WCS standard.
 
-          - `int`: a bit field selecting specific extensions to write.
-            See :ref:`relaxwrite` for details.
+            - `int`: a bit field selecting specific extensions to
+              write.  See :ref:`relaxwrite` for details.
 
-        Returns a `pyfits`_ Header object.
+        Returns
+        -------
+        header : `pyfits`_ Header object
         """
         if not HAS_PYFITS:
             raise ImportError(
@@ -956,12 +1072,16 @@ naxis kwarg.
         Writes out a `ds9`_ style regions file. It can be loaded
         directly by `ds9`_.
 
-        - *filename*: string.  Output file name - default is
-          ``'footprint.reg'``
+        Parameters
+        ----------
+        filename : string, optional
+            Output file name - default is ``'footprint.reg'``
 
-        - *color*: string.  Color to use when plotting the line.
+        color : string, optional
+            Color to use when plotting the line.
 
-        - *width*: int.  Width of the region line.
+        width : int, optional
+            Width of the region line.
         """
         if not filename:
             filename = 'footprint.reg'
@@ -1005,60 +1125,62 @@ naxis kwarg.
 
     def get_axis_types(self):
         """
-        ``list of dicts``
-
         Similar to `self.wcsprm.axis_types <_wcs._Wcsprm.axis_types>`
         but provides the information in a more Python-friendly format.
 
-        Returns a list of dictionaries, one for each axis, each
-        containing attributes about the type of that axis.
+        Returns
+        -------
+        result : list of dicts
 
-        Each dictionary has the following keys:
+            Returns a list of dictionaries, one for each axis, each
+            containing attributes about the type of that axis.
 
-        - 'coordinate_type':
+            Each dictionary has the following keys:
 
-          - None: Non-specific coordinate type.
+            - 'coordinate_type':
 
-          - 'stokes': Stokes coordinate.
+              - None: Non-specific coordinate type.
 
-          - 'celestial': Celestial coordinate (including ``CUBEFACE``).
+              - 'stokes': Stokes coordinate.
 
-          - 'spectral': Spectral coordinate.
+              - 'celestial': Celestial coordinate (including ``CUBEFACE``).
 
-        - 'scale':
+              - 'spectral': Spectral coordinate.
 
-          - 'linear': Linear axis.
+            - 'scale':
 
-          - 'quantized': Quantized axis (``STOKES``, ``CUBEFACE``).
+              - 'linear': Linear axis.
 
-          - 'non-linear celestial': Non-linear celestial axis.
+              - 'quantized': Quantized axis (``STOKES``, ``CUBEFACE``).
 
-          - 'non-linear spectral': Non-linear spectral axis.
+              - 'non-linear celestial': Non-linear celestial axis.
 
-          - 'logarithmic': Logarithmic axis.
+              - 'non-linear spectral': Non-linear spectral axis.
 
-          - 'tabular': Tabular axis.
+              - 'logarithmic': Logarithmic axis.
 
-        - 'group'
+              - 'tabular': Tabular axis.
 
-          - Group number, e.g. lookup table number
+            - 'group'
 
-        - 'number'
+              - Group number, e.g. lookup table number
 
-          - For celestial axes:
+            - 'number'
 
-            - 0: Longitude coordinate.
+              - For celestial axes:
 
-            - 1: Latitude coordinate.
+                - 0: Longitude coordinate.
 
-            - 2: ``CUBEFACE`` number.
+                - 1: Latitude coordinate.
 
-          - For lookup tables:
+                - 2: ``CUBEFACE`` number.
 
-            - the axis number in a multidimensional table.
+              - For lookup tables:
 
-        ``CTYPEia`` in ``"4-3"`` form with unrecognized algorithm code will
-        generate an error.
+                - the axis number in a multidimensional table.
+
+            ``CTYPEia`` in ``"4-3"`` form with unrecognized algorithm code will
+            generate an error.
         """
         if self.wcs is None:
             raise AttributeError(
@@ -1112,9 +1234,12 @@ def find_all_wcs(header, relax=False, keysel=None):
     """
     Find all the WCS transformations in the given header.
 
-    - *header*: A string or PyFITS header object.
+    Parameters
+    ----------
+    header : string or PyFITS header object.
 
-    - *relax*: Degree of permissiveness:
+    relax : bool or int, optional
+        Degree of permissiveness:
 
         - `False`: Recognize only FITS keywords defined by the
           published WCS standard.
@@ -1125,25 +1250,29 @@ def find_all_wcs(header, relax=False, keysel=None):
         - `int`: a bit field selecting specific extensions to accept.
           See :ref:`relaxread` for details.
 
-    - *keysel*: A list of flags used to select the keyword types
-      considered by wcslib.  When ``None``, only the standard image
-      header keywords are considered (and the underlying wcspih() C
-      function is called).  To use binary table image array or pixel
-      list keywords, *keysel* must be set.
+    keysel : sequence of flags, optional
+        A list of flags used to select the keyword types considered by
+        wcslib.  When ``None``, only the standard image header
+        keywords are considered (and the underlying wcspih() C
+        function is called).  To use binary table image array or pixel
+        list keywords, *keysel* must be set.
 
-      Each element in the list should be one of the following strings:
+        Each element in the list should be one of the following strings:
 
-        - 'image': Image header keywords
+            - 'image': Image header keywords
 
-        - 'binary': Binary table image array keywords
+            - 'binary': Binary table image array keywords
 
-        - 'pixel': Pixel list keywords
+            - 'pixel': Pixel list keywords
 
-      Keywords such as ``EQUIna`` or ``RFRQna`` that are common to
-      binary table image arrays and pixel lists (including ``WCSNna``
-      and ``TWCSna``) are selected by both 'binary' and 'pixel'.
+        Keywords such as ``EQUIna`` or ``RFRQna`` that are common to
+        binary table image arrays and pixel lists (including
+        ``WCSNna`` and ``TWCSna``) are selected by both 'binary' and
+        'pixel'.
 
-    Returns a list of `WCS` objects.
+    Returns
+    -------
+    wcses : list of `WCS` objects
     """
     if isinstance(header, string_types):
         header_string = header
