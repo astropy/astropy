@@ -9,6 +9,7 @@ try:
 except ImportError:
     HAVE_PYTEST = False
     
+import astropy
 import astropy.extern.pytest
 
 def pytest_main(args=None,plugins=None):
@@ -52,11 +53,11 @@ def runtests(module=None):
         main = pytest_main
     
     if module is None:
-        main()
+        main(astropy.__path__[0])
     else:
-        module = module.replace('.',os.path.sep)
+        module_path = os.path.join(astropy.__path__[0],module.replace('.',os.path.sep))
         
-        if not os.path.isdir(module):
-            raise ValueError('Location not found: {0}'.format(module))
+        if not os.path.isdir(module_path):
+            raise ValueError('Module not found: {0}'.format(module))
             
         main(args=module)
