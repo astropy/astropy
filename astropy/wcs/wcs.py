@@ -743,15 +743,8 @@ naxis kwarg.
 
         {}
 
-        Notes
-        -----
-        The order of the axes for the result is determined by the
-        `CTYPEia` keywords in the FITS header, therefore it may not
-        always be of the form (*ra*, *dec*).  The
-        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
-        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
-        members can be used to determine the order of the axes.
-
+        Raises
+        ------
         MemoryError
             Memory allocation failed.
 
@@ -775,6 +768,16 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
+
+        Notes
+        -----
+        The order of the axes for the result is determined by the
+        `CTYPEia` keywords in the FITS header, therefore it may not
+        always be of the form (*ra*, *dec*).  The
+        `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
+        `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
+        members can be used to determine the order of the axes.
+
         """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('sky coordinates, in degrees', 8))
