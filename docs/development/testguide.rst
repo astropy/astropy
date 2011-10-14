@@ -122,10 +122,16 @@ tests should include the ticket URL where the bug was reported.
 Writing tests
 =============
 
+``py.test`` has the following test discovery rules:
+
+ * ``test_*.py`` or ``*_test.py`` files
+ * ``Test`` prefixed classes (without an ``__init__`` method)
+ * ``test_`` prefixed functions and methods
+
 Consult the `test discovery rules
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
-for information on how to name files and tests so that they automatically discovered
-by ``py.test``.
+for information on how to name files and tests so that they are automatically
+discovered by ``py.test``.
 
 Simple example
 --------------
