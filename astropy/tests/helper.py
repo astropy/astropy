@@ -63,12 +63,14 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
 
     all_args = module_path
     if args is not None:
-        all_args += " {}".format(args)
+        all_args += " {0}".format(args)
     if verbose:
         all_args += " -v"
     if pastebin is not None:
         if pastebin in ['failed', 'all']:
-            all_args += " --pastebin={}".format(pastebin)
+            all_args += " --pastebin={0}".format(pastebin)
+        elif pastebin:
+            all_args += " --pastebin=failed"
         else:
             raise Exception("pastebin should be 'failed' or 'all'")
 
