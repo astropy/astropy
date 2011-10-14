@@ -50,11 +50,16 @@ package_data = {'astropy': ['data/*']}
 # C extensions that are not Cython-based should be added here.
 extensions = []
 
+# Extra data files
+data_files = []
+
 for package in setup_packages:
     if hasattr(package, 'get_extensions'):
         extensions.extend(package.get_extensions(BUILD))
     if hasattr(package, 'get_package_data'):
         package_data.update(package.get_package_data())
+    if hasattr(package, 'get_data_files'):
+        data_files.extend(package.get_data_files())
 
 # Look for Cython files - compile with Cython if it is not a release
 # and Cython is installed. Otherwise, use the .c files that live next
@@ -142,5 +147,6 @@ setup(name='AstroPy',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
-      zip_safe=False
-)
+      zip_safe=False,
+      data_files=data_files
+      )

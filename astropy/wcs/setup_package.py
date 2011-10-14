@@ -4,9 +4,11 @@ CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
 
 from distutils.core import Extension
+import glob
 from os.path import join
 import os.path
 import sys
+
 from astropy import setuputils
 
 WCSROOT = os.path.dirname(__file__)
@@ -244,4 +246,7 @@ def get_package_data():
         }
     return package_data
 
-# TODO: Install headers
+def get_data_files():
+    header_files = glob.glob('astropy/wcs/src/*.h')
+    return [('', ['astropy/wcs/pywcs.py']),
+            ('astropy/wcs/include', header_files)]
