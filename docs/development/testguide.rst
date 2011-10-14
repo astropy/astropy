@@ -130,8 +130,8 @@ Writing tests
 
 Consult the `test discovery rules
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
-for information on how to name files and tests so that they are automatically
-discovered by ``py.test``.
+for detailed information on how to name files and tests so that they are 
+automatically discovered by ``py.test``.
 
 Simple example
 --------------
