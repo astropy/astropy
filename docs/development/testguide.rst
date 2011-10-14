@@ -3,7 +3,8 @@ Testing Guidelines (Draft 2)
 ============================
 
 .. warning::
-    This document is currently in Draft form and is subject to change.
+    This document is currently in Draft form and is subject to change. Not all
+    described functionality may be implemented.
 
 This section describes the testing framework and format standards for tests in
 AstroPy core modules (this also serves as recommendations for affiliated
@@ -46,7 +47,16 @@ py.test has a number of `command line usage options.
 Using astropy.test()
 --------------------
 
-TODO
+Tests can be run from within AstroPy with::
+
+    import astropy
+    astropy.test()
+    
+This will run all the default tests for AstroPy.
+
+Tests for a specific module can be run in a similar manner::
+
+    astropy.io.fits.test()
 
 Using data in tests
 ===================
@@ -112,8 +122,10 @@ tests should include the ticket URL where the bug was reported.
 Writing tests
 =============
 
-Tests are essentially functions that start with `test_` (other functions are
-ignored)
+Consult the `test discovery rules
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+for information on how to name files and tests so that they automatically discovered
+by ``py.test``.
 
 Simple example
 --------------
