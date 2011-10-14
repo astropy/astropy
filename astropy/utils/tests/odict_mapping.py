@@ -301,3 +301,9 @@ class BasicTestMappingProtocol(unittest.TestCase):
         self.assertEqual(len(d), 0)
 
         self.assertRaises(KeyError, d.pop, k)
+
+    def assertIn(self, key, d):
+        self.assertTrue(key in d)
+
+    def assertNotIn(self, key, d):
+        self.assertFalse(key in d)

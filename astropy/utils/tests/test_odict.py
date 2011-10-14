@@ -21,8 +21,15 @@ from astropy.utils.odict import OrderedDict
 class TestOrderedDict(unittest.TestCase):
 
     def test_init(self):
-        with self.assertRaises(TypeError):
+
+        try:
             OrderedDict([('a', 1), ('b', 2)], None)                                 # too many args
+            assert False
+        except TypeError:
+            pass
+        else:
+            assert False
+
         pairs = [('a', 1), ('b', 2), ('c', 3), ('d', 4), ('e', 5)]
         self.assertEqual(sorted(OrderedDict(dict(pairs)).items()), pairs)           # dict input
         self.assertEqual(sorted(OrderedDict(**dict(pairs)).items()), pairs)         # kwds input
@@ -41,8 +48,15 @@ class TestOrderedDict(unittest.TestCase):
             [('a', 1), ('b', 2), ('c', 3), ('d', 4), ('e', 5), ('f', 6), ('g', 7)])
 
     def test_update(self):
-        with self.assertRaises(TypeError):
+
+        try:
             OrderedDict().update([('a', 1), ('b', 2)], None)                        # too many args
+            assert False
+        except TypeError:
+            pass
+        else:
+            assert False
+
         pairs = [('a', 1), ('b', 2), ('c', 3), ('d', 4), ('e', 5)]
         od = OrderedDict()
         od.update(dict(pairs))
@@ -77,8 +91,15 @@ class TestOrderedDict(unittest.TestCase):
         od = OrderedDict(pairs)
         del od['a']
         self.assertNotIn('a', od)
-        with self.assertRaises(KeyError):
+
+        try:
             del od['a']
+            assert False
+        except KeyError:
+            pass
+        else:
+            assert False
+
         self.assertEqual(list(od.items()), pairs[:2] + pairs[3:])
 
     def test_setitem(self):
@@ -108,8 +129,15 @@ class TestOrderedDict(unittest.TestCase):
         od = OrderedDict(pairs)
         while pairs:
             self.assertEqual(od.popitem(), pairs.pop())
-        with self.assertRaises(KeyError):
+
+        try:
             od.popitem()
+            assert False
+        except:
+            pass
+        else:
+            assert False
+
         self.assertEqual(len(od), 0)
 
     def test_pop(self):
@@ -120,8 +148,15 @@ class TestOrderedDict(unittest.TestCase):
         while pairs:
             k, v = pairs.pop()
             self.assertEqual(od.pop(k), v)
-        with self.assertRaises(KeyError):
+
+        try:
             od.pop('xyz')
+            assert False
+        except KeyError:
+            pass
+        else:
+            assert False
+
         self.assertEqual(len(od), 0)
         self.assertEqual(od.pop(k, 12345), 12345)
 
@@ -211,6 +246,11 @@ class TestOrderedDict(unittest.TestCase):
         od['a'] = 1
         self.assertEqual(list(od.items()), [('b', 2), ('a', 1)])
 
+    def assertIn(self, key, d):
+        self.assertTrue(key in d)
+
+    def assertNotIn(self, key, d):
+        self.assertFalse(key in d)
 
 class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
     type2test = OrderedDict
