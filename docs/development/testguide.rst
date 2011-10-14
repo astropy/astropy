@@ -6,13 +6,14 @@ Testing Guidelines (Draft 2)
     This document is currently in Draft form and is subject to change.
 
 This section describes the testing framework and format standards for tests in
-Astropy core modules (this also serves as recommendations for affiliated
+AstroPy core modules (this also serves as recommendations for affiliated
 packages).
 
 Testing Framework
 =================
 
-The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_ framework.
+The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_
+framework.
 
 Running Tests
 =============
@@ -20,7 +21,27 @@ Running Tests
 Using py.test
 -------------
 
-TODO
+The simplest way to run tests from the command line is to simply type::
+
+    py.test
+    
+``py.test`` will look for files that `look like tests 
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_ 
+in the currect directory and all recursive directories then run all the code that
+`looks like tests 
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+within those files.
+
+You may specify a specific test file or directory at the command line::
+
+    py.test test_file.py
+    
+To run a specific test within a file use the ``-k`` option::
+
+    py.test test_file.py -k "test_function"
+    
+py.test has a number of `command line usage options. 
+<http://pytest.org/latest/usage.html>`_
 
 Using astropy.test()
 --------------------
