@@ -49,7 +49,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -81,7 +81,7 @@ InvalidTransformError
 
 InvalidTransformError
     Ill-conditioned coordinate transformation parameters.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 alt = """
 ``str``
@@ -1019,7 +1019,7 @@ pixcrd : double array[naxis].
     Pixel coordinates.  The element indicated by *mixpix* is given and
     the remaining elements will be written in-place.
 
-%s
+{}
 
 Returns
 -------
@@ -1105,7 +1105,7 @@ Because of its generality, `~astropy.wcs.Wcsprm.mix` is very
 compute-intensive.  For compute-limited applications, more efficient
 special-case solvers could be written for simple projections, for
 example non-oblique cylindrical projections.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 mjdavg = """
 ``double``
@@ -1213,7 +1213,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -1276,7 +1276,7 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude andlongitude axes
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 p4_pix2foc = """
 p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
@@ -1289,7 +1289,7 @@ Parameters
 pixcrd : double array[ncoord][nelem].
     Array of pixel coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -1303,7 +1303,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 pc = """
 ``double array[naxis][naxis]``
@@ -1357,7 +1357,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -1371,7 +1371,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 piximg_matrix = """
 ``double array[2][2]`` (read-only)
@@ -1444,7 +1444,7 @@ Parameters
 sky : double array[ncoord][nelem]
     Array of sky coordinates, in decimal degrees.
 
-%s
+{}
 
 Returns
 -------
@@ -1502,7 +1502,7 @@ See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
     Definition of the latitude and longitude axes
-""" % (__.ORIGIN())
+""".format(__.ORIGIN())
 
 scale = """
 ``double``
@@ -1676,7 +1676,7 @@ Parameters
 foccrd : double array[ncoord][nelem]
     Array of focal plane coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -1690,7 +1690,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 sip_pix2foc = """
 sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
@@ -1703,7 +1703,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-%s
+{}
 
 Returns
 -------
@@ -1717,7 +1717,7 @@ MemoryError
 
 ValueError
     Invalid coordinate transformation parameters.
-""" % __.ORIGIN()
+""".format(__.ORIGIN())
 
 spcfix = """
 spcfix() -> int

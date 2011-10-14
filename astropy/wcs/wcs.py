@@ -56,7 +56,7 @@ else:
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
-           "astropy.pwcs did not pass its sanity check for your build " \
+           "astropy.wcs did not pass its sanity check for your build " \
            "on your platform."
 
 if sys.version_info[0] >= 3:
@@ -257,12 +257,11 @@ class WCS(WCSBase):
                 raise ValueError(
                     """
 Paper IV lookup tables and SIP distortions only work in 2 dimensions.
-However, WCSLIB has detected %d dimensions in the core WCS keywords.
+However, WCSLIB has detected {} dimensions in the core WCS keywords.
 To use core WCS in conjunction with Paper IV lookup tables or SIP
 distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
-""" %
-                    wcsprm.naxis)
+""".format(wcsprm.naxis))
         self.get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
@@ -446,7 +445,7 @@ naxis kwarg.
                         'distortion.'
                     dp = (d_kw + str(i)).strip()
                     d_extver = header.get(dp + '.EXTVER', 1)
-                    if i == header[dp + '.AXIS.%s' % i]:
+                    if i == header[dp + '.AXIS.' + str(i)]:
                         d_data = fobj['WCSDVARR', d_extver].data
                     else:
                         d_data = (fobj['WCSDVARR', d_extver].data).transpose()
@@ -491,13 +490,13 @@ naxis kwarg.
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    a[i, j] = header.get(("A_%d_%d" % (i, j)), 0.0)
+                    a[i, j] = header.get(("A_{}_{}".format(i, j)), 0.0)
 
             m = int(header["B_ORDER"])
             b = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    b[i, j] = header.get(("B_%d_%d" % (i, j)), 0.0)
+                    b[i, j] = header.get(("B_{}_{}".format(i, j)), 0.0)
         elif "B_ORDER" in header:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -516,13 +515,13 @@ naxis kwarg.
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    ap[i, j] = header.get("AP_%d_%d" % (i, j), 0.0)
+                    ap[i, j] = header.get("AP_{}_{}".format(i, j), 0.0)
 
             m = int(header["BP_ORDER"])
             bp = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    bp[i, j] = header.get("BP_%d_%d" % (i, j), 0.0)
+                    bp[i, j] = header.get("BP_{}_{}".format(i, j), 0.0)
         elif "BP_ORDER" in header:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
@@ -644,7 +643,7 @@ naxis kwarg.
                 sky = self._normalize_sky_output(sky)
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
-        raise TypeError("Expected 2 or 3 arguments, %d given" % len(args))
+        raise TypeError("Expected 2 or 3 arguments, {} given".format(len(args)))
 
     def all_pix2sky(self, *args, **kwargs):
         return self._array_converter(
@@ -664,17 +663,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        %s
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Notes
         -----
@@ -710,9 +709,9 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
-               __.RA_DEC_ORDER(8),
-               __.RETURNS('sky coordinates, in degrees', 8))
+        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+                   __.RA_DEC_ORDER(8),
+                   __.RETURNS('sky coordinates, in degrees', 8))
 
     def wcs_pix2sky(self, *args, **kwargs):
         if self.wcs is None:
@@ -732,17 +731,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        %s
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Notes
         -----
@@ -776,9 +775,9 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
-               __.RA_DEC_ORDER(8),
-               __.RETURNS('sky coordinates, in degrees', 8))
+        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+                   __.RA_DEC_ORDER(8),
+                   __.RETURNS('sky coordinates, in degrees', 8))
 
     def wcs_sky2pix(self, *args, **kwargs):
         if self.wcs is None:
@@ -793,17 +792,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        %s
+        {}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Notes
         -----
@@ -839,9 +838,9 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('naxis', 8),
-               __.RA_DEC_ORDER(8),
-               __.RETURNS('pixel coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+                   __.RA_DEC_ORDER(8),
+                   __.RETURNS('pixel coordinates', 8))
 
     def pix2foc(self, *args, **kwargs):
         return self._array_converter(self._pix2foc, None, *args, **kwargs)
@@ -853,12 +852,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Raises
         ------
@@ -867,8 +866,8 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('2', 8),
-               __.RETURNS('focal coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+                   __.RETURNS('focal coordinates', 8))
 
     def p4_pix2foc(self, *args, **kwargs):
         return self._array_converter(self._p4_pix2foc, None, *args, **kwargs)
@@ -879,12 +878,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Raises
         ------
@@ -893,8 +892,8 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('2', 8),
-               __.RETURNS('focal coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+                   __.RETURNS('focal coordinates', 8))
 
     def det2im(self, *args, **kwargs):
         return self._array_converter(self._det2im, None, *args, **kwargs)
@@ -905,12 +904,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Raises
         ------
@@ -919,8 +918,8 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('2', 8),
-               __.RETURNS('pixel coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+                   __.RETURNS('pixel coordinates', 8))
 
     def sip_pix2foc(self, *args, **kwargs):
         if self.sip is None:
@@ -944,12 +943,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Raises
         ------
@@ -958,8 +957,8 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('2', 8),
-               __.RETURNS('focal coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+                   __.RETURNS('focal coordinates', 8))
 
     def sip_foc2pix(self, *args, **kwargs):
         if self.sip is None:
@@ -981,12 +980,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        %s
+        {}
 
         Returns
         -------
 
-        %s
+        {}
 
         Raises
         ------
@@ -995,8 +994,8 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """ % (__.TWO_OR_THREE_ARGS('2', 8),
-               __.RETURNS('pixel coordinates', 8))
+        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+                   __.RETURNS('pixel coordinates', 8))
 
     def to_header(self, relax=False):
         """
@@ -1107,7 +1106,7 @@ naxis kwarg.
         f.write('linear\n')
         f.write('polygon(')
         self.footprint.tofile(f, sep=',')
-        f.write(') # color=%s, width=%d \n' % (color, width))
+        f.write(') # color={}, width={d} \n'.format(color, width))
         f.close()
 
     def get_naxis(self, header=None):
@@ -1131,13 +1130,16 @@ naxis kwarg.
         """
         print('WCS Keywords\n')
         if hasattr(self.wcs, 'cd'):
-            print('CD_11  CD_12: %r %r' % (
+            print('CD_11  CD_12: {!r} {!r}'.format(
                 self.wcs.cd[0, 0],  self.wcs.cd[0, 1]))
-            print('CD_21  CD_22: %r %r' % (
+            print('CD_21  CD_22: {!r} {!r}'.format(
                 self.wcs.cd[1, 0],  self.wcs.cd[1, 1]))
-        print('CRVAL    : %r %r' % (self.wcs.crval[0], self.wcs.crval[1]))
-        print('CRPIX    : %r %r' % (self.wcs.crpix[0], self.wcs.crpix[1]))
-        print('NAXIS    : %r %r' % (self.naxis1, self.naxis2))
+        print('CRVAL    : {!r} {!r}'.format(
+            self.wcs.crval[0], self.wcs.crval[1]))
+        print('CRPIX    : {!r} {!r}'.format(
+            self.wcs.crpix[0], self.wcs.crpix[1]))
+        print('NAXIS    : {!r} {!r}'.format(
+            self.naxis1, self.naxis2))
 
     def get_axis_types(self):
         """
