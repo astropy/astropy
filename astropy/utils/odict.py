@@ -11,16 +11,14 @@ See: http://docs.python.org/library/collections.html#collections.OrderedDict
 __all__ = ['OrderedDict']
 
 from collections import MutableMapping
-from operator import itemgetter as _itemgetter, eq as _eq
-from keyword import iskeyword as _iskeyword
-import sys as _sys
-import heapq as _heapq
-from itertools import repeat as _repeat, chain as _chain, starmap as _starmap, \
-                      ifilter as _ifilter, imap as _imap
+from operator import eq as _eq
+from itertools import imap as _imap
+
 try:
     from thread import get_ident
 except ImportError:
     from dummy_thread import get_ident
+
 
 def _recursive_repr(user_function):
     'Decorator to make a repr function return "..." for a recursive call'
