@@ -60,4 +60,4 @@ def runtests(module=None):
         if not os.path.isdir(module_path):
             raise ValueError('Module not found: {0}'.format(module))
             
-        main(args=module)
+        main(args=module_path)
