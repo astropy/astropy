@@ -11,3 +11,5 @@ except ImportError:
 common tools needed for performing astronomy and astrophysics research with
 Python. It also provides an index for other astronomy packages and tools for
 managing them."""
+
+from .tests.helper import run_tests as test
