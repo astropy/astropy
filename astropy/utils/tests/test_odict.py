@@ -7,23 +7,16 @@ test_support.py and mapping_tests.py that provide support for those
 tests.
 """
 
-import unittest, doctest, operator
+import unittest
 import inspect
-import pickle, cPickle, copy
-from random import randrange, shuffle
-import keyword
-import re
-import sys
-from collections import Hashable, Iterable, Iterator
-from collections import Sized, Container, Callable
-from collections import Set, MutableSet
-from collections import Mapping, MutableMapping
-from collections import Sequence, MutableSequence
+import pickle
+import copy
+from random import shuffle
 
-import astropy.utils.tests.odict_support as test_support
 import astropy.utils.tests.odict_mapping as mapping_tests
 
 from astropy.utils.odict import OrderedDict
+
 
 class TestOrderedDict(unittest.TestCase):
 
@@ -219,7 +212,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertEqual(list(od.items()), [('b', 2), ('a', 1)])
 
 
-
 class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
     type2test = OrderedDict
 
@@ -227,8 +219,10 @@ class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
         d = self._empty_mapping()
         self.assertRaises(KeyError, d.popitem)
 
+
 class MyOrderedDict(OrderedDict):
     pass
+
 
 class SubclassMappingTests(mapping_tests.BasicTestMappingProtocol):
     type2test = MyOrderedDict
@@ -236,15 +230,3 @@ class SubclassMappingTests(mapping_tests.BasicTestMappingProtocol):
     def test_popitem(self):
         d = self._empty_mapping()
         self.assertRaises(KeyError, d.popitem)
-
-import collections
-
-def test_main(verbose=None):
-    test_classes = [TestOrderedDict, 
-                    GeneralMappingTests, SubclassMappingTests
-                    ]
-    test_support.run_unittest(*test_classes)
-    test_support.run_doctest(collections, verbose)
-
-if __name__ == "__main__":
-    test_main(verbose=True)
