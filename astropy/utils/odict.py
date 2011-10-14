@@ -42,11 +42,7 @@ def _recursive_repr(user_function):
     return wrapper
 
 
-################################################################################
-### OrderedDict
-################################################################################
-
-class OrderedDict(dict, MutableMapping):
+class BackportedOrderedDict(dict, MutableMapping):
     'Dictionary that remembers insertion order'
     # An inherited dict maps keys to values.
     # The inherited dict provides __getitem__, __len__, __contains__, and get.
@@ -191,4 +187,7 @@ class OrderedDict(dict, MutableMapping):
                    all(_imap(_eq, self.iteritems(), other.iteritems()))
         return dict.__eq__(self, other)
 
-
+try:
+    from collections import OrderedDict
+except:
+    OrderedDict = BackportedOrderedDict
