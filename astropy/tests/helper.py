@@ -44,7 +44,7 @@ def pytest_main(args=None,plugins=None):
     pytest.main(args=args,plugins=plugins)
     
 
-def runtests(module=None):
+def run_tests(module=None):
     import os.path
     
     if HAVE_PYTEST:
