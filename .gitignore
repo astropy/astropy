@@ -1,4 +1,4 @@
-#compiled files
+# Compiled files
 *.py[co]
 *.a
 *.o
@@ -8,7 +8,10 @@
 # add a non-generated .c extension, use `git add -f filename.c`.
 *.c
 
-#sphinx
+# Other generated files
+astropy/version.py
+
+# Sphinx
 _build
 
 # Packages/installer info
@@ -24,5 +27,5 @@ sdist
 develop-eggs
 .installed.cfg
 
-# other
+# Other
 .*.swp

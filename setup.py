@@ -7,12 +7,19 @@ use_setuptools()
 import os
 import glob
 from setuptools import setup, find_packages, Extension
-from distutils.command.build_py import build_py as du_build_py
 from warnings import warn
 
 import astropy
-from astropy.version import version as version_string
-from astropy.version import release
+from astropy.version_helper import _get_git_devstr, _generate_version_py
+
+
+VERSION = '0.0dev'
+RELEASE = not VERSION.endswith('dev')
+
+if not RELEASE:
+    VERSION += _get_git_devstr(False)
+_generate_version_py(VERSION, RELEASE)
+
 
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
@@ -47,7 +54,7 @@ for  dirpath, dirnames, filenames in os.walk('astropy'):
             extmod = modbase + '.' + fn[:-4]  # Package must match file name
             pyxfiles.append((extmod, fullfn))
 
-if not release and have_cython:
+if not RELEASE and have_cython:
 
     from Cython.Distutils import build_ext as cython_build_ext
     cmdclassd['build_ext'] = cython_build_ext
@@ -96,31 +103,10 @@ except ImportError:  # Sphinx not present
     pass
 
 
-# This customize build_py command replaces the source version.py with
-# one that has a fixed version number.  This is necessary to support version
-# numbers pulled from the git repository.
 
-class astropy_build_py(du_build_py):
-
-    def run(self):
-
-        from astropy.version_helper import _get_version_py_str
-
-        res = du_build_py.run(self)
-
-        versfile = os.path.join(self.build_lib, 'astropy', 'version.py')
-
-        print 'Freezing version number to', versfile
-
-        with open(versfile, 'w') as f:  # This overwrites the actual version.py
-            f.write(_get_version_py_str())
-
-        return res
-
-cmdclassd['build_py'] = astropy_build_py
 
 setup(name='AstroPy',
-      version=version_string,
+      version=VERSION,
       description='Community-developed python astronomy tools',
       packages=packages,
       package_data={'astropy': ['data/*']},
