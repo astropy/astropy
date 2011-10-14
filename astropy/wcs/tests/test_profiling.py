@@ -8,6 +8,8 @@ from numpy.testing import assert_array_almost_equal
 from astropy import wcs
 
 ROOT_DIR = None
+
+
 def setup():
     global ROOT_DIR
 
@@ -17,6 +19,7 @@ def setup():
     # astropy.wcs.__file__
 
     ROOT_DIR = os.path.join(os.path.dirname(wcs.__file__), 'tests')
+
 
 def test_maps():
     def test_map(filename):
@@ -32,14 +35,15 @@ def test_maps():
         pix = wcsobj.wcs_sky2pix(x, 1)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = [ x for x in glob.glob(os.path.join(ROOT_DIR, "maps", "*.hdr")) ]
+    hdr_file_list = [x for x in glob.glob(
+        os.path.join(ROOT_DIR, "maps", "*.hdr"))]
 
     # actually perform a test for each one
-    for filename in hdr_file_list :
+    for filename in hdr_file_list:
 
         # use the base name of the file, because everything we yield
         # will show up in the test name in the pandokia report
-        filename = os.path.basename( filename )
+        filename = os.path.basename(filename)
 
         # yield a function name and parameters to make a generated test
         yield test_map, filename
@@ -53,15 +57,14 @@ def test_maps():
     # how many do we expect to see?
     n_data_files = 28
 
-    if len(hdr_file_list) != n_data_files :
+    if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_maps has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR
-                )
-            )
+                len(hdr_file_list), n_data_files, ROOT_DIR))
         # b.t.w.  If this assert happens, nose reports one more test
         # than it would have otherwise.
+
 
 def test_spectra():
     def test_spectrum(filename):
@@ -77,14 +80,15 @@ def test_spectra():
         pix = wcsobj.wcs_sky2pix(x, 1)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = [ x for x in glob.glob(os.path.join(ROOT_DIR, "spectra", "*.hdr")) ]
+    hdr_file_list = [x for x in glob.glob(
+        os.path.join(ROOT_DIR, "spectra", "*.hdr"))]
 
     # actually perform a test for each one
-    for filename in hdr_file_list :
+    for filename in hdr_file_list:
 
         # use the base name of the file, because everything we yield
         # will show up in the test name in the pandokia report
-        filename = os.path.basename( filename )
+        filename = os.path.basename(filename)
 
         # yield a function name and parameters to make a generated test
         yield test_spectrum, filename
@@ -98,13 +102,10 @@ def test_spectra():
     # how many do we expect to see?
     n_data_files = 6
 
-    if len(hdr_file_list) != n_data_files :
+    if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_spectra has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR
-                )
-            )
+                len(hdr_file_list), n_data_files, ROOT_DIR))
         # b.t.w.  If this assert happens, nose reports one more test
         # than it would have otherwise.
-

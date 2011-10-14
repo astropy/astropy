@@ -1,4 +1,4 @@
-from __future__ import division # confidence high
+from __future__ import division  # confidence high
 del division
 # We don't want the "division" symbol in the namespace, since it
 # should have only docstrings
@@ -1072,7 +1072,8 @@ NoSolutionError
 
 See also
 --------
-astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Get the axes numbers for latitude and longitude
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
+    Get the axes numbers for latitude and longitude
 
 Notes
 -----
@@ -1273,7 +1274,8 @@ InvalidTransformError
 
 See also
 --------
-astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Definition of the latitude andlongitude axes
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
+    Definition of the latitude andlongitude axes
 """ % __.ORIGIN()
 
 p4_pix2foc = """
@@ -1498,7 +1500,8 @@ InvalidTransformError
 
 See also
 --------
-astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng : Definition of the latitude and longitude axes
+astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
+    Definition of the latitude and longitude axes
 """ % (__.ORIGIN())
 
 scale = """

@@ -26,7 +26,7 @@ together in a pipeline:
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
 """
 
-from __future__ import division # confidence high
+from __future__ import division  # confidence high
 
 # stdlib
 import copy
@@ -56,7 +56,8 @@ else:
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
-           """astropy.pwcs did not pass its sanity check for your build on your platform."""
+           "astropy.pwcs did not pass its sanity check for your build " \
+           "on your platform."
 
 if sys.version_info[0] >= 3:
     string_types = (bytes,)
@@ -79,6 +80,7 @@ else:
     WCSBase = object
     Wcsprm = object
 
+
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -91,7 +93,8 @@ def _parse_keysel(keysel):
                 keysel_flags |= _wcs.WCSHDR_PIXLIST
             else:
                 raise ValueError(
-                    "keysel must be a list of 'image', 'binary' and/or 'pixel'")
+                    "keysel must be a list of 'image', 'binary' " +
+                    "and/or 'pixel'")
     else:
         keysel_flags = -1
 
@@ -337,29 +340,29 @@ naxis kwarg.
                 # do not require a header parameter
                 naxis1 = self.naxis1
                 naxis2 = self.naxis2
-            except AttributeError :
+            except AttributeError:
                 print("Need a valid header in order to calculate footprint\n")
                 return None
         else:
             naxis1 = header.get('NAXIS1', None)
             naxis2 = header.get('NAXIS2', None)
 
-        corners = np.zeros(shape=(4,2),dtype=np.float64)
+        corners = np.zeros(shape=(4, 2), dtype=np.float64)
         if naxis1 is None or naxis2 is None:
             return None
 
-        corners[0,0] = 1.
-        corners[0,1] = 1.
-        corners[1,0] = 1.
-        corners[1,1] = naxis2
-        corners[2,0] = naxis1
-        corners[2,1] = naxis2
-        corners[3,0] = naxis1
-        corners[3,1] = 1.
+        corners[0, 0] = 1.
+        corners[0, 1] = 1.
+        corners[1, 0] = 1.
+        corners[1, 1] = naxis2
+        corners[2, 0] = naxis1
+        corners[2, 1] = naxis2
+        corners[3, 0] = naxis1
+        corners[3, 1] = 1.
         if undistort:
             return self.all_pix2sky(corners, 1)
         else:
-            return self.wcs_pix2sky(corners,1)
+            return self.wcs_pix2sky(corners, 1)
 
     def _read_det2im_kw(self, header, fobj):
         """
@@ -367,9 +370,9 @@ naxis kwarg.
         plane correction.
         """
         cpdis = [None, None]
-        crpix = [0.,0.]
-        crval = [0.,0.]
-        cdelt = [1.,1.]
+        crpix = [0., 0.]
+        crval = [0., 0.]
+        cdelt = [1., 1.]
 
         if fobj is None:
             return (None, None)
@@ -391,10 +394,10 @@ naxis kwarg.
         d2im_hdr = fobj[('D2IMARR', 1)].header
         naxis = d2im_hdr['NAXIS']
 
-        for i in range(1,naxis+1):
-            crpix[i-1] = d2im_hdr.get('CRPIX'+str(i), 0.0)
-            crval[i-1] = d2im_hdr.get('CRVAL'+str(i), 0.0)
-            cdelt[i-1] = d2im_hdr.get('CDELT'+str(i), 1.0)
+        for i in range(1, naxis + 1):
+            crpix[i - 1] = d2im_hdr.get('CRPIX' + str(i), 0.0)
+            crval[i - 1] = d2im_hdr.get('CRVAL' + str(i), 0.0)
+            cdelt[i - 1] = d2im_hdr.get('CDELT' + str(i), 1.0)
 
         cpdis = DistortionLookupTable(d2im_data, crpix, crval, cdelt)
 
@@ -425,12 +428,12 @@ naxis kwarg.
             err_kw = 'CQERR'
 
         tables = {}
-        for i in range(1, self.naxis+1):
-            d_error = header.get(err_kw+str(i), 0.0)
+        for i in range(1, self.naxis + 1):
+            d_error = header.get(err_kw + str(i), 0.0)
             if d_error < err:
                 tables[i] = None
                 continue
-            distortion = dist+str(i)
+            distortion = dist + str(i)
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
@@ -439,17 +442,21 @@ naxis kwarg.
                             "pyfits is required to use Paper IV lookup tables")
 
                     assert isinstance(fobj, pyfits.HDUList), \
-                        'A pyfits HDUList is required for Lookup table distortion.'
-                    dp = (d_kw+str(i)).strip()
-                    d_extver = header.get(dp+'.EXTVER', 1)
-                    if i == header[dp+'.AXIS.%s'%i]:
+                        'A pyfits HDUList is required for Lookup table ' + \
+                        'distortion.'
+                    dp = (d_kw + str(i)).strip()
+                    d_extver = header.get(dp + '.EXTVER', 1)
+                    if i == header[dp + '.AXIS.%s' % i]:
                         d_data = fobj['WCSDVARR', d_extver].data
                     else:
                         d_data = (fobj['WCSDVARR', d_extver].data).transpose()
                     d_header = fobj['WCSDVARR', d_extver].header
-                    d_crpix = (d_header.get('CRPIX1', 0.0), d_header.get('CRPIX2', 0.0))
-                    d_crval = (d_header.get('CRVAL1', 0.0), d_header.get('CRVAL2', 0.0))
-                    d_cdelt = (d_header.get('CDELT1', 1.0), d_header.get('CDELT2', 1.0))
+                    d_crpix = (d_header.get('CRPIX1', 0.0),
+                               d_header.get('CRPIX2', 0.0))
+                    d_crval = (d_header.get('CRVAL1', 0.0),
+                               d_header.get('CRVAL2', 0.0))
+                    d_cdelt = (d_header.get('CDELT1', 1.0),
+                               d_header.get('CDELT2', 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix,
                                                      d_crval, d_cdelt)
                     tables[i] = d_lookup
@@ -481,19 +488,19 @@ naxis kwarg.
                     "keyword for SIP distortion")
 
             m = int(header["A_ORDER"])
-            a = np.zeros((m+1, m+1), np.double)
-            for i in range(m+1):
-                for j in range(m-i+1):
+            a = np.zeros((m + 1, m + 1), np.double)
+            for i in range(m + 1):
+                for j in range(m - i + 1):
                     a[i, j] = header.get(("A_%d_%d" % (i, j)), 0.0)
 
             m = int(header["B_ORDER"])
-            b = np.zeros((m+1, m+1), np.double)
-            for i in range(m+1):
-                for j in range(m-i+1):
+            b = np.zeros((m + 1, m + 1), np.double)
+            for i in range(m + 1):
+                for j in range(m - i + 1):
                     b[i, j] = header.get(("B_%d_%d" % (i, j)), 0.0)
         elif "B_ORDER" in header:
             raise ValueError(
-                "B_ORDER provided without corresponding A_ORDER "
+                "B_ORDER provided without corresponding A_ORDER " +
                 "keyword for SIP distortion")
         else:
             a = None
@@ -506,15 +513,15 @@ naxis kwarg.
                     "keyword for SIP distortion")
 
             m = int(header["AP_ORDER"])
-            ap = np.zeros((m+1, m+1), np.double)
-            for i in range(m+1):
-                for j in range(m-i+1):
+            ap = np.zeros((m + 1, m + 1), np.double)
+            for i in range(m + 1):
+                for j in range(m - i + 1):
                     ap[i, j] = header.get("AP_%d_%d" % (i, j), 0.0)
 
             m = int(header["BP_ORDER"])
-            bp = np.zeros((m+1, m+1), np.double)
-            for i in range(m+1):
-                for j in range(m-i+1):
+            bp = np.zeros((m + 1, m + 1), np.double)
+            for i in range(m + 1):
+                for j in range(m - i + 1):
                     bp[i, j] = header.get("BP_%d_%d" % (i, j), 0.0)
         elif "BP_ORDER" in header:
             raise ValueError(
@@ -550,7 +557,7 @@ naxis kwarg.
                 return sky
             elif self.wcs.lng == 1 and self.wcs.lat == 0:
                 # Reverse the order of the columns
-                return sky[:,::-1]
+                return sky[:, ::-1]
             else:
                 raise ValueError(
                     "WCS does not have longitude and latitude celestial " +
@@ -558,11 +565,12 @@ naxis kwarg.
         else:
             if self.wcs.lng < 0 or self.wcs.lat < 0:
                 raise ValueError(
-                    "WCS does not have both longitude and latitude celestial " +
-                    "axes, therefore (ra, dec) data can not be used as input")
+                    "WCS does not have both longitude and latitude "
+                    "celestial axes, therefore (ra, dec) data can not be " +
+                    "used as input")
             out = np.zeros((sky.shape[0], self.wcs.naxis))
-            out[:,self.wcs.lng] = sky[:,0]
-            out[:,self.wcs.lat] = sky[:,1]
+            out[:, self.wcs.lng] = sky[:, 0]
+            out[:, self.wcs.lat] = sky[:, 1]
             return out
 
     def _normalize_sky(self, sky):
@@ -579,7 +587,7 @@ naxis kwarg.
                 return sky
             elif self.wcs.lng == 1 and self.wcs.lat == 0:
                 # Reverse the order of the columns
-                return sky[:,::-1]
+                return sky[:, ::-1]
             else:
                 raise ValueError(
                     "WCS does not have longitude and latitude celestial "
@@ -590,8 +598,8 @@ naxis kwarg.
                     "WCS does not have both longitude and latitude celestial "
                     "axes, therefore (ra, dec) data can not be returned")
             out = np.empty((sky.shape[0], 2))
-            out[:,0] = sky[:,self.wcs.lng]
-            out[:,1] = sky[:,self.wcs.lat]
+            out[:, 0] = sky[:, self.wcs.lng]
+            out[:, 1] = sky[:, self.wcs.lat]
             return out
 
     def _array_converter(self, func, sky, *args, **kwargs):
@@ -622,7 +630,8 @@ naxis kwarg.
                 origin = int(origin)
             except:
                 raise TypeError(
-                    "When providing three arguments, they must be (x, y, origin)")
+                    "When providing three arguments, they must be " +
+                    "(x, y, origin)")
             if x.size != y.size:
                 raise ValueError("x and y arrays are not the same size")
             length = x.size
@@ -638,7 +647,8 @@ naxis kwarg.
         raise TypeError("Expected 2 or 3 arguments, %d given" % len(args))
 
     def all_pix2sky(self, *args, **kwargs):
-        return self._array_converter(self._all_pix2sky, 'output', *args, **kwargs)
+        return self._array_converter(
+            self._all_pix2sky, 'output', *args, **kwargs)
     all_pix2sky.__doc__ = """
         Transforms pixel coordinates to sky coordinates.
 
@@ -707,8 +717,9 @@ naxis kwarg.
     def wcs_pix2sky(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'],
-                                     'output', *args, **kwargs)
+        return self._array_converter(
+            lambda xy, o: self.wcs.p2s(xy, o)['world'],
+            'output', *args, **kwargs)
     wcs_pix2sky.__doc__ = """
         Transforms pixel coordinates to sky coordinates by doing only
         the basic `wcslib`_ transformation.
@@ -772,8 +783,9 @@ naxis kwarg.
     def wcs_sky2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        return self._array_converter(lambda xy, o: self.wcs.s2p(xy, o)['pixcrd'],
-                                     'input', *args, **kwargs)
+        return self._array_converter(
+            lambda xy, o: self.wcs.s2p(xy, o)['pixcrd'],
+            'input', *args, **kwargs)
     wcs_sky2pix.__doc__ = """
         Transforms sky coordinates to pixel coordinates, using only
         the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
@@ -1051,7 +1063,7 @@ naxis kwarg.
         header_string = self.wcs.to_header(relax)
         cards = pyfits.CardList()
         for i in range(0, len(header_string), 80):
-            card_string = header_string[i:i+80]
+            card_string = header_string[i:i + 80]
             if pyfits.__version__[0] >= '3':
                 card = pyfits.Card.fromstring(card_string)
             else:
@@ -1086,7 +1098,9 @@ naxis kwarg.
         if not filename:
             filename = 'footprint.reg'
         comments = '# Region file format: DS9 version 4.0 \n'
-        comments += '# global color=green font="helvetica 12 bold select=1 highlite=1 edit=1 move=1 delete=1 include=1 fixed=0 source\n'
+        comments += ('# global color=green font="helvetica 12 bold ' +
+                     'select=1 highlite=1 edit=1 move=1 delete=1 ' +
+                     'include=1 fixed=0 source\n')
 
         f = open(filename, 'a')
         f.write(comments)
@@ -1105,9 +1119,9 @@ naxis kwarg.
 
     def rotateCD(self, theta):
         _theta = DEGTORAD(theta)
-        _mrot = np.zeros(shape=(2,2),dtype=np.double)
-        _mrot[0] = (np.cos(_theta),np.sin(_theta))
-        _mrot[1] = (-np.sin(_theta),np.cos(_theta))
+        _mrot = np.zeros(shape=(2, 2), dtype=np.double)
+        _mrot[0] = (np.cos(_theta), np.sin(_theta))
+        _mrot[1] = (-np.sin(_theta), np.cos(_theta))
         new_cd = np.dot(self.wcs.cd, _mrot)
         self.wcs.cd = new_cd
 
@@ -1117,8 +1131,10 @@ naxis kwarg.
         """
         print('WCS Keywords\n')
         if hasattr(self.wcs, 'cd'):
-            print('CD_11  CD_12: %r %r' % (self.wcs.cd[0,0],  self.wcs.cd[0,1]))
-            print('CD_21  CD_22: %r %r' % (self.wcs.cd[1,0],  self.wcs.cd[1,1]))
+            print('CD_11  CD_12: %r %r' % (
+                self.wcs.cd[0, 0],  self.wcs.cd[0, 1]))
+            print('CD_21  CD_22: %r %r' % (
+                self.wcs.cd[1, 0],  self.wcs.cd[1, 1]))
         print('CRVAL    : %r %r' % (self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : %r %r' % (self.wcs.crpix[0], self.wcs.crpix[1]))
         print('NAXIS    : %r %r' % (self.naxis1, self.naxis2))
@@ -1190,8 +1206,7 @@ naxis kwarg.
             0: None,
             1: 'stokes',
             2: 'celestial',
-            3: 'spectral'
-            }
+            3: 'spectral'}
 
         scale_map = {
             0: 'linear',
@@ -1199,8 +1214,7 @@ naxis kwarg.
             2: 'non-linear celestial',
             3: 'non-linear spectral',
             4: 'logarithmic',
-            5: 'tabular'
-            }
+            5: 'tabular'}
 
         result = []
         for axis_type in self.wcs.axis_types:
@@ -1225,6 +1239,7 @@ naxis kwarg.
 
 def DEGTORAD(deg):
     return (deg * np.pi / 180.)
+
 
 def RADTODEG(rad):
     return (rad * 180. / np.pi)

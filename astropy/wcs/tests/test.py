@@ -9,6 +9,7 @@ from astropy import wcs
 
 ROOT_DIR = None
 
+
 def setup():
     global ROOT_DIR
 
@@ -42,16 +43,16 @@ def test_maps():
 
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
-
     # get the list of the hdr files that we want to test
-    hdr_file_list = [ x for x in glob.glob(os.path.join(ROOT_DIR, "maps", "*.hdr")) ]
+    hdr_file_list = [x for x in glob.glob(
+        os.path.join(ROOT_DIR, "maps", "*.hdr"))]
 
     # actually perform a test for each one
-    for filename in hdr_file_list :
+    for filename in hdr_file_list:
 
         # use the base name of the file, because everything we yield
         # will show up in the test name in the pandokia report
-        filename = os.path.basename( filename )
+        filename = os.path.basename(filename)
 
         # yield a function name and parameters to make a generated test
         yield test_map, filename
@@ -65,13 +66,11 @@ def test_maps():
     # how many do we expect to see?
     n_data_files = 28
 
-    if len(hdr_file_list) != n_data_files :
+    if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_maps has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR
-                )
-            )
+                len(hdr_file_list), n_data_files, ROOT_DIR))
         # b.t.w.  If this assert happens, nose reports one more test
         # than it would have otherwise.
 
@@ -79,7 +78,8 @@ def test_maps():
 # test_spectra() is a generator
 def test_spectra():
 
-    # test_spectrum() is the function that is called to perform the generated test
+    # test_spectrum() is the function that is called to perform the
+    # generated test
     def test_spectrum(filename):
 
         # the test parameter is the base name of the file to use; find
@@ -96,14 +96,15 @@ def test_spectra():
         assert len(all) == 9
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = [ x for x in glob.glob(os.path.join(ROOT_DIR, "spectra", "*.hdr")) ]
+    hdr_file_list = [x for x in glob.glob(os.path.join(
+        ROOT_DIR, "spectra", "*.hdr"))]
 
     # actually perform a test for each one
-    for filename in hdr_file_list :
+    for filename in hdr_file_list:
 
         # use the base name of the file, because everything we yield
         # will show up in the test name in the pandokia report
-        filename = os.path.basename( filename )
+        filename = os.path.basename(filename)
 
         # yield a function name and parameters to make a generated test
         yield test_spectrum, filename
@@ -117,40 +118,39 @@ def test_spectra():
     # how many do we expect to see?
     n_data_files = 6
 
-    if len(hdr_file_list) != n_data_files :
+    if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_spectra has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR
-                )
-            )
+                len(hdr_file_list), n_data_files, ROOT_DIR))
         # b.t.w.  If this assert happens, nose reports one more test
         # than it would have otherwise.
 
 
 def test_units():
     u = wcs.UnitConverter("log(MHz)", "ln(Hz)")
-    print(u.convert([1,2,3,4]))
+    print(u.convert([1, 2, 3, 4]))
 
 basic_units = "m s g rad sr K A mol cd".split()
 derived_units = "Hz J W V N Pa C Ohm ohm S F Wb T H lm lx".split()
 add_all_units = "eV Jy R G barn".split()
 add_sup_units = "a yr pc bit byte Byte".split()
 add_sub_units = "mag".split()
-general_units = "deg arcmin arcsec mas d h min erg Ry u D DEGREE DEGREES".split()
+general_units = \
+              "deg arcmin arcsec mas d h min erg Ry u D DEGREE DEGREES".split()
 astro_units = "Angstrom angstrom AU lyr beam solRad solMass solLum Sun".split()
 device_units = "adu bin chan count ct photon ph pixel pix voxel".split()
 
 sub_prefixes = "y z a f p n u m c d".split()
 sup_prefixes = "da h k M G T P E Z Y".split()
 
-def test_all_units():
 
+def test_all_units():
     def test_self(x):
         # x appears in the test name. If we would have had an ambiguous
         # test name, we had -xxx added to the unit name.  Remove it if
         # necessary.
-        if '-' in x :
+        if '-' in x:
             x = x.split('-')[0]
 
         # here is the test:
@@ -171,27 +171,27 @@ def test_all_units():
     all = sorted(basic_units + derived_units + add_all_units + add_sup_units
             + add_sub_units + general_units + astro_units + device_units)
 
-
     # Pandokia has non-case-sensitve test names; since the unit name is
     # showing up in the test name, we want to disambiguate any name collisions.
     # Here is a list of all the lower-cased unit name names.
-    all_lower = [ x.lower() for x in all ]
+    all_lower = [x.lower() for x in all]
 
     # here are serial numbers to use to disambiguate
-    unique_tags = { }
+    unique_tags = {}
 
-    for unit in all :
+    for unit in all:
         # disambiguate the test name, if necessary
         l_unit = unit.lower()
-        if unit != l_unit and l_unit in all_lower :
+        if unit != l_unit and l_unit in all_lower:
             n = unique_tags.get(l_unit, 1)
             unique_tags[n] = n + 1
 
             # the test will tear off the part after the '-'
-            unit = '%s-%d' % ( unit, n)
+            unit = '%s-%d' % (unit, n)
 
         # perform the test
         yield test_self, unit
+
 
 def test_unit_prefixes():
     def test_self(x, p):
@@ -220,4 +220,3 @@ def test_unit_prefixes():
     for unit in add_sub_units:
         for prefix in sub_prefixes:
             yield test_self, unit, prefix
-

@@ -2,12 +2,14 @@
 astropy.wcs-specific utilities for generating boilerplate in docstrings.
 """
 
-from __future__ import division # confidence high
+from __future__ import division  # confidence high
+
 
 def _fix(content, indent=0):
     lines = content.split('\n')
     indent = '\n' + ' ' * indent
     return indent.join(lines)
+
 
 def TWO_OR_THREE_ARGS(naxis, indent=0):
     return _fix(
@@ -25,11 +27,13 @@ def TWO_OR_THREE_ARGS(naxis, indent=0):
     standards this is 0.
 """ % naxis, indent)
 
+
 def RETURNS(out_type, indent=0):
     return _fix("""result : array
     Returns the %s.  If the input was a single array and
     origin, a single array is returned, otherwise a tuple of arrays is
     returned.""" % out_type, indent)
+
 
 def ORIGIN(indent=0):
     return _fix(
@@ -39,6 +43,7 @@ origin : int
     standards use an origin of 1.  Numpy and C use array indexing with
     origin at 0.
 """, indent)
+
 
 def RA_DEC_ORDER(indent=0):
     return _fix(

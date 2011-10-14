@@ -46,7 +46,7 @@ The basic workflow is as follows:
          coordinates.  Commonly used for narrow column correction.
 """
 
-from __future__ import division # confidence high
+from __future__ import division  # confidence high
 
 import sys
 if sys.version_info[0] >= 3:
@@ -54,4 +54,6 @@ if sys.version_info[0] >= 3:
 else:
     from wcs import *
 
-class Wcsprm(Wcsprm): pass
+
+class Wcsprm(Wcsprm):
+    pass

@@ -1,4 +1,4 @@
-from __future__ import with_statement, division # confidence high
+from __future__ import with_statement, division  # confidence high
 
 CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
@@ -14,21 +14,27 @@ from astropy import setuputils
 WCSROOT = os.path.dirname(__file__)
 WCSVERSION = "4.8.2"
 
+
 def b(s):
     return s.encode('ascii')
 
 if sys.version_info[0] >= 3:
+
     def string_escape(s):
         s = s.decode('ascii').encode('ascii', 'backslashreplace')
         s = s.replace(b('\n'), b('\\n'))
         return s.decode('ascii')
+
     from io import StringIO
     string_types = (str, bytes)
 else:
+
     def string_escape(s):
         return s.encode('string_escape')
+
     from cStringIO import StringIO
     string_types = (str, unicode)
+
 
 def determine_64_bit_int():
     """
@@ -58,6 +64,7 @@ def determine_64_bit_int():
     except ValueError:
         return "long long int"
 
+
 def write_wcsconfig_h():
     """
     Writes out the wcsconfig.h header with local configuration.
@@ -76,6 +83,8 @@ def write_wcsconfig_h():
 
 ######################################################################
 # GENERATE DOCSTRINGS IN C
+
+
 def generate_c_docstrings():
     from astropy.wcs import docstrings
     docstrings = docstrings.__dict__
@@ -133,7 +142,7 @@ MSVC, do not support string literals greater than 256 characters.
         # For portability across various compilers, we need to fill the
         # docstrings in 256-character chunks
         for i in range(0, len(val), 256):
-            chunk = string_escape(val[i:i+256]).replace('"', '\\"')
+            chunk = string_escape(val[i:i + 256]).replace('"', '\\"')
             c_file.write('   strncpy(doc_%s + %d, "%s", %d);\n' % (
                 key, i, chunk, min(len(val) - i, 256)))
         c_file.write("\n")
@@ -142,15 +151,16 @@ MSVC, do not support string literals greater than 256 characters.
     setuputils.write_if_different(
         join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue())
 
+
 def get_extensions(build_type='release'):
     write_wcsconfig_h()
     generate_c_docstrings()
 
     ######################################################################
     # WCSLIB
-    wcslib_path = join(WCSROOT, "src", "wcslib") # Path to wcslib
-    wcslib_cpath = join(wcslib_path, "C") # Path to wcslib source files
-    wcslib_files = [ # List of wcslib files to compile
+    wcslib_path = join(WCSROOT, "src", "wcslib")  # Path to wcslib
+    wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
+    wcslib_files = [  # List of wcslib files to compile
         'flexed/wcsbth.c',
         'flexed/wcspih.c',
         'flexed/wcsulex.c',
@@ -174,7 +184,7 @@ def get_extensions(build_type='release'):
 
     ######################################################################
     # ASTROPY.WCS-SPECIFIC AND WRAPPER SOURCE FILES
-    astropy_wcs_files = [ # List of astropy.wcs files to compile
+    astropy_wcs_files = [  # List of astropy.wcs files to compile
         'distortion.c',
         'distortion_wrap.c',
         'docstrings.c',
@@ -218,8 +228,8 @@ def get_extensions(build_type='release'):
     if sys.platform == 'win32':
         define_macros.append(('YY_NO_UNISTD_H', None))
         define_macros.append(('_CRT_SECURE_NO_WARNINGS', None))
-        define_macros.append(('_NO_OLDNAMES', None)) # for mingw32
-        define_macros.append(('NO_OLDNAMES', None)) # for mingw64
+        define_macros.append(('_NO_OLDNAMES', None))  # for mingw32
+        define_macros.append(('NO_OLDNAMES', None))  # for mingw64
 
     if sys.platform.startswith('linux'):
         define_macros.append(('HAVE_SINCOS', None))
@@ -227,24 +237,22 @@ def get_extensions(build_type='release'):
     return [
         Extension('astropy.wcs._wcs',
                   wcslib_files + astropy_wcs_files,
-                  include_dirs =
-                  [setuputils.get_numpy_include_path(),
-                   wcslib_cpath,
-                   join(WCSROOT, "src")
-                   ],
+                  include_dirs=[
+                      setuputils.get_numpy_include_path(),
+                      wcslib_cpath,
+                      join(WCSROOT, "src")],
                   define_macros=define_macros,
                   undef_macros=undef_macros,
                   extra_compile_args=extra_compile_args,
                   extra_link_args=extra_link_args,
-                  libraries=libraries
-                  )
-        ]
+                  libraries=libraries)]
+
 
 def get_package_data():
     package_data = {
-        'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr']
-        }
+        'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr']}
     return package_data
+
 
 def get_data_files():
     header_files = glob.glob('astropy/wcs/src/*.h')
