@@ -34,10 +34,10 @@ m_e = cgs.m_e * 1.e-3  # kg
 stef_boltz = 2. * pi ** 5 * k_B ** 4 / 15. / h ** 3. / c ** 2.
 
 # Electron charge
-e = cgs.e / 2997924580.  # statcoulombs
+e = cgs.e / 2997924580.  # C
 
 # Avogadro's number
-N_A = 6.0221367e23
+N_A = cgs.N_A
 
 # Gas constant
 R = N_A * k_B
@@ -56,7 +56,7 @@ kpc = 1000. * pc  # m
 # TIME
 
 # Year
-year = 31556925.9936
+year = cgs.year
 
 # SOLAR QUANTITIES
 
