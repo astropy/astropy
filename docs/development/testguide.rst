@@ -3,16 +3,18 @@ Testing Guidelines (Draft 2)
 ============================
 
 .. warning::
-    This document is currently in Draft form and is subject to change.
+    This document is currently in Draft form and is subject to change. Not all
+    described functionality may be implemented.
 
 This section describes the testing framework and format standards for tests in
-Astropy core modules (this also serves as recommendations for affiliated
+AstroPy core modules (this also serves as recommendations for affiliated
 packages).
 
 Testing Framework
 =================
 
-The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_ framework.
+The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_
+framework.
 
 Running Tests
 =============
@@ -20,12 +22,46 @@ Running Tests
 Using py.test
 -------------
 
-TODO
+The simplest way to run tests from the command line is to simply type::
+
+    py.test
+    
+``py.test`` will look for files that `look like tests 
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_ 
+in the currect directory and all recursive directories then run all the code that
+`looks like tests 
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+within those files.
+
+You may specify a specific test file or directory at the command line::
+
+    py.test test_file.py
+    
+To run a specific test within a file use the ``-k`` option::
+
+    py.test test_file.py -k "test_function"
+    
+py.test has a number of `command line usage options. 
+<http://pytest.org/latest/usage.html>`_
 
 Using astropy.test()
 --------------------
 
-TODO
+Tests can be run from within AstroPy with::
+
+    import astropy
+    astropy.test()
+    
+This will run all the default tests for AstroPy.
+
+Tests for a specific module can be run by specifying the module in the call
+to the ``test()`` function::
+
+    astropy.test('io.fits')
+    
+In addition the ``test`` function supports any of the options that can be
+passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
+and convenience options ``verbose=`` and ``pastebin=``.
 
 Using data in tests
 ===================
@@ -77,7 +113,9 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-modules. This functionality is especially important for people who install packages through bundles and package managers, where the original source code for the tests is not immediately available.
+sub-modules. This functionality is especially important for people who install 
+packages through bundles and package managers, where the original source code 
+for the tests is not immediately available.
 
 Regression tests
 ================
@@ -89,8 +127,16 @@ tests should include the ticket URL where the bug was reported.
 Writing tests
 =============
 
-Tests are essentially functions that start with `test_` (other functions are
-ignored)
+``py.test`` has the following test discovery rules:
+
+ * ``test_*.py`` or ``*_test.py`` files
+ * ``Test`` prefixed classes (without an ``__init__`` method)
+ * ``test_`` prefixed functions and methods
+
+Consult the `test discovery rules
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
+for detailed information on how to name files and tests so that they are 
+automatically discovered by ``py.test``.
 
 Simple example
 --------------
