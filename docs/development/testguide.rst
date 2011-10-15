@@ -54,9 +54,14 @@ Tests can be run from within AstroPy with::
     
 This will run all the default tests for AstroPy.
 
-Tests for a specific module can be run in a similar manner::
+Tests for a specific module can be run by specifying the module in the call
+to the ``test()`` function::
 
-    astropy.io.fits.test()
+    astropy.test('io.fits')
+    
+In addition the ``test`` function supports any of the options that can be
+passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
+and convenience options ``verbose=`` and ``pastebin=``.
 
 Using data in tests
 ===================
