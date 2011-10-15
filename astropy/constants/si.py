@@ -2,7 +2,7 @@
 
 from numpy import pi
 
-import cgs
+from . import cgs
 
 # PHYSICAL CONSTANTS
 
