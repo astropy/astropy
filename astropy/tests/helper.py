@@ -72,6 +72,6 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
         elif pastebin:
             all_args += " --pastebin=failed"
         else:
-            raise Exception("pastebin should be 'failed' or 'all'")
+            raise ValueError("pastebin should be 'failed' or 'all'")
 
     main(args=all_args, plugins=plugins)
