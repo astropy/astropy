@@ -1,7 +1,6 @@
 import sys
 import base64
 import zlib
-import imp
 
 from .. import __path__ as astropy_path
 
@@ -33,6 +32,35 @@ except ImportError:
     
 
 def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
+    """
+    Run AstroPy tests using py.test. A proper set of arguments is constructed
+    and passed to `pytest.main`.
+    
+    Parameters
+    ----------
+    module : str, optional
+        The name of a specific module to test, e.g. 'io.fits' or 'utils'.
+        If nothing is specified all default AstroPy tests are run.
+        
+    args : str, optional
+        Additional arguments to be passed to `pytest.main` in the `args`
+        keyword argument. 
+        
+    plugins : str, optional
+        Arguments to passed to `pytest.main` in the `plugins` keyword argument.
+        
+    verbose : bool, optional
+        Convenience option to turn on verbose output from py.test. Passing True
+        is the same as specifying `-v` in `args`.
+        
+    pastebin : {'failed','all',True,None}, optional
+        Convenience option for turning on py.test pastebin output.
+        
+    See Also
+    --------
+    pytest.main : py.test function wrapped by `run_tests`.
+    
+    """
     import os.path
 
     if module is None:
