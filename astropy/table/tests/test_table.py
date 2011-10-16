@@ -1,4 +1,4 @@
-from . import Table, ArgumentError
+from .. import Table, ArgumentError
 import pytest
 
 
