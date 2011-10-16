@@ -122,6 +122,11 @@ Coding Style/Conventions
   method resolution order.  However, trivial multiple inheritance using
   orthogonal base classes, known as the 'mixin' pattern, may be used.
 
+* ``__init__.py`` files for modules should not contain any significant 
+  implementation code. ``__init__.py`` can contain docstrings and code for 
+  organizing the module layout, however (e.g. ``from submodule import *``
+  in accord with the guideline above). 
+
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
 
