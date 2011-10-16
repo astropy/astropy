@@ -47,7 +47,9 @@ py.test has a number of `command line usage options.
 Using astropy.test()
 --------------------
 
-Tests can be run from within AstroPy with::
+AstroPy includes a standalone version of py.test that allows to tests
+to be run even if py.test is not installed. Tests can be run from within 
+AstroPy with::
 
     import astropy
     astropy.test()
@@ -59,7 +61,7 @@ to the ``test()`` function::
 
     astropy.test('io.fits')
     
-In addition the ``test`` function supports any of the options that can be
+In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
 and convenience options ``verbose=`` and ``pastebin=``.
 
@@ -202,6 +204,16 @@ indicated by the ``tempfile`` module, so that the test files will eventually
 get removed by the system. In the long term, once test data files become too
 large, we will need to design a mechanism for removing test data immediately.
 
+Tests that create files
+-----------------------
+
+Tests may often be run from directories where users do not have write permissions
+so tests which create files should always do so in temporary directories. This
+can be done with the `py.test tmpdir function argument
+<http://pytest.org/latest/getting-started.html#going-functional-requesting-a-unique-temporary-directory>`_
+or with Python's built-in `tempfile module 
+<http://docs.python.org/library/tempfile.html#module-tempfile>`_.
+
 Setting up/Tearing down tests
 -----------------------------
 
@@ -313,4 +325,18 @@ These take one argument, which is the function being tested::
 
     def teardown_method(function):
         pass
+        
+Using py.test helper functions
+------------------------------
+
+If your tests need to use `py.test helper functions 
+<http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as ``pytest.raises``,
+import ``pytest`` into your test module like so::
+
+    from ...tests.helper import pytest
+    
+You may need to adjust the relative import to work for the depth of your module.
+``tests.helper`` imports ``pytest`` either from the users system or ``extern.pytest``
+if the user does not have py.test installed so that users need not install py.test
+to run AstroPy's tests.
     
