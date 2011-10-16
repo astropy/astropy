@@ -24,13 +24,17 @@ class Column(object):
     '''A class to contain information about columns'''
 
     def __init__(self, name=None, dtype=None, units=None, format=None,
-                 description=None):
+                 description=None, meta=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
         self.meta = OrderedDict()
+
+        if meta is not None:
+            for key in meta:
+                self.meta[key] = meta[key]
 
         object.__setattr__(self, 'dtype', dtype)
 
