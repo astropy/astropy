@@ -4,6 +4,22 @@ from astropy.utils import OrderedDict
 from structhelper import _append_field
 
 
+class ArgumentError(Exception):
+    pass
+
+
+def insert_odict(d_old, position, key, value):
+    '''Convenience function to insert values into an OrderedDict'''
+    d_new = OrderedDict()
+    for i, k in enumerate(d_old):
+        if position == i:
+            d_new[key] = value
+        d_new[k] = d_old[k]
+    if position == len(d_old):
+        d_new[key] = value
+    return d_new
+
+
 class Column(object):
     '''A class to contain information about columns'''
 
@@ -72,13 +88,13 @@ class Table(object):
 
     def __getitem__(self, item):
         if self._data is None or item not in self.columns:
-            raise Exception("Column %s does not exist" % item)
+            raise KeyError("Column {0} does not exist".format(item))
         else:
             return self._data[item]
 
     def __setitem__(self, item, value):
         if self._data is None or item not in self.columns:
-            raise Exception("Column %s does not exist" % item)
+            raise KeyError("Column {0} does not exist".format(item))
         else:
             self._data[item] = value
 
@@ -127,17 +143,25 @@ class Table(object):
         # Convert data to requested type
         if data is None:
             if dtype is None:
-                raise Exception("dtype is required if data is not specified")
+                raise ArgumentError("dtype is required if data is not specified")
             else:
-                if shape:
-                    data = np.zeros((self.__len__(), ) + shape, dtype=dtype)
-                elif self.__len__() > 0:
-                    data = np.zeros(self.__len__(), dtype=dtype)
+                if self.__len__() > 0:
+                    length = self.__len__()
                 else:
-                    raise Exception("If you want to add an empty column to an empty table, you need to specify the length of the table when initializing the Table instance.")
+                    length = self._length
+
+                if length is not None:
+                    if shape:
+                        data = np.zeros((length, ) + shape, dtype=dtype)
+                    else:
+                        data = np.zeros(length, dtype=dtype)
+                else:
+                    raise ArgumentError("If you want to add an empty column to an empty table, you need to specify the length of the table when initializing the Table instance.")
         else:
             if self._length is not None and len(data) != self._length:
-                raise Exception("data length does not match length specified when initializing Table")
+                raise ValueError("data length does not match length specified when initializing Table")
+            if self._data is not None and len(data) != self.__len__():
+                raise ValueError("data length does not match table length")
             data = np.array(data, dtype=dtype)
 
         # Create Column instance to describe the column
@@ -145,19 +169,25 @@ class Table(object):
                         format=format, description=description)
 
         if (before, after, position).count(None) < 2:
-            raise Exception("Only one of before/after/position can be specified")
+            raise ArgumentError("Only one of before/after/position can be specified")
 
         if before is not None:
             if before in self.columns.keys():
                 position = self.columns.keys().index(before)
             else:
-                raise Exception("Column {0} does not exist".format(before))
+                raise KeyError("Column {0} does not exist".format(before))
 
         if after is not None:
             if after in self.columns.keys():
-                position = self.columns.keys().index(after)
+                position = self.columns.keys().index(after) + 1
             else:
-                raise Exception("Column {0} does not exist".format(after))
+                raise KeyError("Column {0} does not exist".format(after))
+
+        if position is not None:
+            if position > len(self.columns):
+                raise ValueError("position cannot be larger than the number of columns")
+            if position < 0:
+                raise ValueError("position cannot be negative")
 
         if data.ndim > 1:
             dtype_new = (name, data.dtype, data.shape[1:])
@@ -173,6 +203,6 @@ class Table(object):
 
         # Add the metadata to the columns attribute
         if not np.equal(position, None):
-            self.columns.insert(position, name, column)
+            self.columns = insert_odict(self.columns, position, name, column)
         else:
             self.columns[name] = column
