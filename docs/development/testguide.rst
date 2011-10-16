@@ -336,7 +336,7 @@ import ``pytest`` into your test module like so::
     from ...tests.helper import pytest
     
 You may need to adjust the relative import to work for the depth of your module.
-``tests.helper`` imports ``pytest`` either from the users system or ``extern.pytest``
-if the user does not have py.test installed so that users need not install py.test
-to run AstroPy's tests.
+``tests.helper`` imports ``pytest`` either from the user's system or ``extern.pytest``
+if the user does not have py.test installed. This is so that users need not 
+install py.test to run AstroPy's tests.
     
