@@ -1,1 +1,1 @@
-from .table import Table, ArgumentError
+from .table import Column, Table, ArgumentError
