@@ -210,7 +210,7 @@ Tests that create files
 Tests may often be run from directories where users do not have write permissions
 so tests which create files should always do so in temporary directories. This
 can be done with the `py.test tmpdir function argument
-<http://pytest.org/latest/getting-started.html#going-functional-requesting-a-unique-temporary-directory>`_
+<http://pytest.org/latest/tmpdir.html>`_
 or with Python's built-in `tempfile module 
 <http://docs.python.org/library/tempfile.html#module-tempfile>`_.
 
