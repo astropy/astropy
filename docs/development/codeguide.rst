@@ -125,7 +125,9 @@ Coding Style/Conventions
 * ``__init__.py`` files for modules should not contain any significant 
   implementation code. ``__init__.py`` can contain docstrings and code for 
   organizing the module layout, however (e.g. ``from submodule import *``
-  in accord with the guideline above). 
+  in accord with the guideline above). If a module is small enough that 
+  it fits in one file, it should simple be a single file, rather than a 
+  directory with an ``__init__.py`` file. 
 
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
