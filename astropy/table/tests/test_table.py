@@ -1,5 +1,7 @@
-from .. import Table, ArgumentError
 import pytest
+import numpy as np
+
+from .. import Table, ArgumentError
 
 
 class TestEmptyData():
@@ -144,3 +146,64 @@ class TestArrayColumns():
         t.add_column('b', dtype=int, shape=(2, 4, 6))
         assert t['b'].shape == (3, 2, 4, 6)
         assert t['b'][0].shape == (2, 4, 6)
+
+
+class TestRemove():
+
+    def test_1(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.remove_columns('a')
+        assert t.columns.keys() == []
+        assert t._data is None
+
+    def test_2(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.add_column('b', [4, 5, 6])
+        t.remove_columns('a')
+        assert t.columns.keys() == ['b']
+        assert t._data.dtype.names == ('b',)
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+
+
+class TestKeep():
+
+    def test_1(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.add_column('b', [4, 5, 6])
+        t.keep_columns([])
+        assert t.columns.keys() == []
+        assert t._data is None
+
+    def test_2(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.add_column('b', [4, 5, 6])
+        t.keep_columns('b')
+        assert t.columns.keys() == ['b']
+        assert t._data.dtype.names == ('b',)
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+
+
+class TestRename():
+
+    def test_1(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.rename_column('a', 'b')
+        assert t.columns.keys() == ['b']
+        assert t._data.dtype.names == ('b',)
+        assert np.all(t['b'] == np.array([1, 2, 3]))
+
+    def test_2(self):
+        t = Table()
+        t.add_column('a', [1, 2, 3])
+        t.add_column('b', [4, 5, 6])
+        t.rename_column('a', 'c')
+        t.rename_column('b', 'a')
+        assert t.columns.keys() == ['c', 'a']
+        assert t._data.dtype.names == ('c', 'a')
+        assert np.all(t['c'] == np.array([1, 2, 3]))
+        assert np.all(t['a'] == np.array([4, 5, 6]))

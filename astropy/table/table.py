@@ -1,7 +1,7 @@
 import numpy as np
 
 from astropy.utils import OrderedDict
-from structhelper import _append_field
+from structhelper import _append_field, _drop_fields
 
 
 class ArgumentError(Exception):
@@ -17,6 +17,17 @@ def insert_odict(d_old, position, key, value):
         d_new[k] = d_old[k]
     if position == len(d_old):
         d_new[key] = value
+    return d_new
+
+
+def rename_odict(d_old, before, after):
+    '''Convenience function to rename keys in an OrderedDict'''
+    d_new = OrderedDict()
+    for k in d_old:
+        if k == before:
+            d_new[after] = d_old[k]
+        else:
+            d_new[k] = d_old[k]
     return d_new
 
 
@@ -103,7 +114,7 @@ class Table(object):
             self._data[item] = value
 
     def keys(self):
-        return self.columns.keys
+        return self.columns.keys()
 
     def __len__(self):
         if self._data is None:
@@ -170,20 +181,20 @@ class Table(object):
 
         # Create Column instance to describe the column
         column = Column(name=name, dtype=data.dtype, units=units,
-                        format=format, description=description)
+                        format=format, description=description, meta=meta)
 
         if (before, after, position).count(None) < 2:
             raise ArgumentError("Only one of before/after/position can be specified")
 
         if before is not None:
-            if before in self.columns.keys():
-                position = self.columns.keys().index(before)
+            if before in self.keys():
+                position = self.keys().index(before)
             else:
                 raise KeyError("Column {0} does not exist".format(before))
 
         if after is not None:
-            if after in self.columns.keys():
-                position = self.columns.keys().index(after) + 1
+            if after in self.keys():
+                position = self.keys().index(after) + 1
             else:
                 raise KeyError("Column {0} does not exist".format(after))
 
@@ -210,3 +221,70 @@ class Table(object):
             self.columns = insert_odict(self.columns, position, name, column)
         else:
             self.columns[name] = column
+
+    def remove_columns(self, names):
+        '''
+        Remove several columns from the table
+
+        Parameters
+        ----------
+        names : list
+            A list containing the names of the columns to remove
+        '''
+
+        if isinstance(names, basestring):
+            names = [names]
+
+        for name in names:
+            if name not in self.columns:
+                raise KeyError("Column {0} does not exist".format(name))
+
+        for name in names:
+            self.columns.pop(name)
+
+        self._data = _drop_fields(self._data, names)
+
+    def keep_columns(self, names):
+        '''
+        Keep only the columns specified (remove the others)
+
+        Parameters
+        ----------
+        names : list
+            A list containing the names of the columns to keep. All other
+            columns will be removed.
+        '''
+
+        if isinstance(names, basestring):
+            names = [names]
+
+        for name in names:
+            if name not in self.columns:
+                raise KeyError("Column {0} does not exist".format(name))
+
+        remove = list(set(self.keys()) - set(names))
+
+        self.remove_columns(remove)
+
+    def rename_column(self, before, after):
+        '''
+        Rename a column
+
+        Parameters
+        ----------
+        before : str
+            The current name of the column.
+        after : str
+            The new name for the column
+        '''
+
+        if before not in self.keys():
+            raise KeyError("Column {0} does not exist".format(before))
+
+        if after in self.keys():
+            raise KeyError("Column {0} already exists".format(after))
+
+        pos = self.columns.keys().index(before)
+        self._data.dtype.names = self.keys()[:pos] + [after, ] + self.keys()[pos + 1:]
+
+        self.columns = rename_odict(self.columns, before, after)
