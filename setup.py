@@ -8,6 +8,7 @@ import os
 import glob
 from setuptools import setup, find_packages, Extension
 from warnings import warn
+import importlib
 
 import astropy
 from astropy.version_helper import _get_git_devstr, _generate_version_py
@@ -22,11 +23,17 @@ _generate_version_py(VERSION, RELEASE)
 
 from astropy import setuputils
 
-from astropy.wcs import setup_package as wcs_setup_package
-setup_packages = [
-    wcs_setup_package
-    ]
+# Find all of the setup_package.py modules, import them, and add them
+# to the setup_packages list.
+setup_packages = []
+for root, dirs, files in os.walk('astropy'):
+    if 'setup_package.py' in files:
+        name = root.replace(os.path.sep, '.') + '.setup_package'
+        module = importlib.import_module(name)
+        setup_packages.append(module)
 
+# TODO: The type of build should be specifiable from the command line
+# or a .cfg file.
 BUILD = 'release' # Should be 'release' or 'debug'
 assert BUILD in ('release', 'debug')
 
@@ -38,7 +45,11 @@ packages = find_packages(exclude=['tests'])
 scripts = glob.glob('scripts/*')
 scripts.remove('scripts/README.rst')
 
-# Check that Numpy is installed
+# Check that Numpy is installed.
+# NOTE: We can not use setuptools/distribute/packaging to handle this
+# dependency for us, since some of the subpackages need to be able to
+# access numpy at build time, and they are configured before
+# setuptools has a chance to check and resolve the dependency.
 setuputils.check_numpy()
 
 # This dictionary stores the command classes used in setup below
@@ -53,6 +64,8 @@ extensions = []
 # Extra data files
 data_files = []
 
+# For each of the setup_package.py modules, extract any information
+# that is needed to install them.
 for package in setup_packages:
     if hasattr(package, 'get_extensions'):
         extensions.extend(package.get_extensions(BUILD))

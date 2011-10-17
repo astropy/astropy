@@ -1,4 +1,4 @@
-from __future__ import with_statement, division  # confidence high
+from __future__ import division  # confidence high
 
 CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
@@ -249,12 +249,12 @@ def get_extensions(build_type='release'):
 
 
 def get_package_data():
-    package_data = {
+    # Installs the testing data files
+    return {
         'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr']}
-    return package_data
 
 
 def get_data_files():
-    header_files = glob.glob('astropy/wcs/src/*.h')
+    # Installs the pywcs.py wrapper module and the header files
     return [('', ['astropy/wcs/pywcs.py']),
-            ('astropy/wcs/include', header_files)]
+            ('astropy/wcs/include', glob.glob('astropy/wcs/src/*.h'))]

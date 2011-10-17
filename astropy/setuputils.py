@@ -5,6 +5,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 import os.path
 
+
 def write_if_different(filename, data):
     """
     Write *data* to *filename*, if the content of the file is
@@ -20,6 +21,7 @@ def write_if_different(filename, data):
         with open(filename, 'wb') as fd:
             fd.write(data)
 
+
 def check_numpy():
     """
     Check that Numpy is installed and it is of the minimum version we
@@ -30,6 +32,7 @@ def check_numpy():
     major, minor, rest = numpy.__version__.split(".", 2)
     if (int(major), int(minor)) < (1, 3):
         raise ImportError("numpy version 1.3 or later must be installed to build astropy")
+
 
 def get_numpy_include_path():
     """
