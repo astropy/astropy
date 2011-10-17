@@ -288,3 +288,17 @@ class Table(object):
         self._data.dtype.names = self.keys()[:pos] + [after, ] + self.keys()[pos + 1:]
 
         self.columns = rename_odict(self.columns, before, after)
+
+    def sort(self, keys):
+        '''
+        Sort the table according to one or more keys. This operates
+        on the existing table (and does not return a new table).
+
+        Parameters
+        ----------
+        keys : str or list of str
+            The key(s) to order the table by
+        '''
+        if type(keys) is not list:
+            keys = [keys]
+        self._data.sort(order=keys)

@@ -207,3 +207,32 @@ class TestRename():
         assert t._data.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
+
+
+class TestSort():
+
+    def test_single(self):
+        t = Table()
+        t.add_column('a', [2, 1, 3])
+        t.add_column('b', [6, 5, 4])
+        assert np.all(t['a'] == np.array([2, 1, 3]))
+        assert np.all(t['b'] == np.array([6, 5, 4]))
+        t.sort('a')
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['b'] == np.array([5, 6, 4]))
+        t.sort('b')
+        assert np.all(t['a'] == np.array([3, 1, 2]))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+
+    def test_multiple(self):
+        t = Table()
+        t.add_column('a', [2, 1, 3, 2, 3, 1])
+        t.add_column('b', [6, 5, 4, 3, 5, 4])
+        assert np.all(t['a'] == np.array([2, 1, 3, 2, 3, 1]))
+        assert np.all(t['b'] == np.array([6, 5, 4, 3, 5, 4]))
+        t.sort(['a', 'b'])
+        assert np.all(t['a'] == np.array([1, 1, 2, 2, 3, 3]))
+        assert np.all(t['b'] == np.array([4, 5, 3, 6, 4, 5]))
+        t.sort(['b', 'a'])
+        assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
+        assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
