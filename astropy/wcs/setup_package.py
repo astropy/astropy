@@ -106,7 +106,9 @@ edit doc/docstrings.py
 #ifndef __DOCSTRINGS_H__
 #define __DOCSTRINGS_H__
 
+#if defined(_MSC_VER)
 void fill_docstrings(void);
+#endif
 
 """)
     for key in keys:
@@ -131,6 +133,7 @@ MSVC, do not support string literals greater than 256 characters.
 #include <string.h>
 #include "docstrings.h"
 
+#if defined(_MSC_VER)
 """)
     for key in keys:
         val = docstrings[key]
@@ -147,6 +150,15 @@ MSVC, do not support string literals greater than 256 characters.
                 key, i, chunk, min(len(val) - i, 256)))
         c_file.write("\n")
     c_file.write("\n}\n\n")
+
+    c_file.write("#else /* UNIX */\n")
+
+    for key in keys:
+        val = docstrings[key]
+        c_file.write('char doc_{0}[{1}] = "{2}";\n\n'.format(
+            key, len(val), string_escape(val).replace('"', '\\"')))
+
+    c_file.write("#endif\n")
 
     setuputils.write_if_different(
         join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue())
