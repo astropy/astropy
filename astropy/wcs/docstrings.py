@@ -49,7 +49,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{}
+{0}
 
 Returns
 -------
@@ -1019,7 +1019,7 @@ pixcrd : double array[naxis].
     Pixel coordinates.  The element indicated by *mixpix* is given and
     the remaining elements will be written in-place.
 
-{}
+{0}
 
 Returns
 -------
@@ -1213,7 +1213,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{}
+{0}
 
 Returns
 -------
@@ -1289,7 +1289,7 @@ Parameters
 pixcrd : double array[ncoord][nelem].
     Array of pixel coordinates.
 
-{}
+{0}
 
 Returns
 -------
@@ -1357,7 +1357,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{}
+{0}
 
 Returns
 -------
@@ -1444,7 +1444,7 @@ Parameters
 sky : double array[ncoord][nelem]
     Array of sky coordinates, in decimal degrees.
 
-{}
+{0}
 
 Returns
 -------
@@ -1676,7 +1676,7 @@ Parameters
 foccrd : double array[ncoord][nelem]
     Array of focal plane coordinates.
 
-{}
+{0}
 
 Returns
 -------
@@ -1703,7 +1703,7 @@ Parameters
 pixcrd : double array[ncoord][nelem]
     Array of pixel coordinates.
 
-{}
+{0}
 
 Returns
 -------

@@ -8,7 +8,6 @@ import os
 import glob
 from setuptools import setup, find_packages, Extension
 from warnings import warn
-import importlib
 
 import astropy
 from astropy.version_helper import _get_git_devstr, _generate_version_py
@@ -29,7 +28,7 @@ setup_packages = []
 for root, dirs, files in os.walk('astropy'):
     if 'setup_package.py' in files:
         name = root.replace(os.path.sep, '.') + '.setup_package'
-        module = importlib.import_module(name)
+        module = setuputils.import_module(name)
         setup_packages.append(module)
 
 # TODO: The type of build should be specifiable from the command line

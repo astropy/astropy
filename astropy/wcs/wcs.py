@@ -257,7 +257,7 @@ class WCS(WCSBase):
                 raise ValueError(
                     """
 Paper IV lookup tables and SIP distortions only work in 2 dimensions.
-However, WCSLIB has detected {} dimensions in the core WCS keywords.
+However, WCSLIB has detected {0} dimensions in the core WCS keywords.
 To use core WCS in conjunction with Paper IV lookup tables or SIP
 distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
@@ -490,13 +490,13 @@ naxis kwarg.
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    a[i, j] = header.get(("A_{}_{}".format(i, j)), 0.0)
+                    a[i, j] = header.get(("A_{0}_{1}".format(i, j)), 0.0)
 
             m = int(header["B_ORDER"])
             b = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    b[i, j] = header.get(("B_{}_{}".format(i, j)), 0.0)
+                    b[i, j] = header.get(("B_{0}_{1}".format(i, j)), 0.0)
         elif "B_ORDER" in header:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -515,13 +515,13 @@ naxis kwarg.
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    ap[i, j] = header.get("AP_{}_{}".format(i, j), 0.0)
+                    ap[i, j] = header.get("AP_{0}_{1}".format(i, j), 0.0)
 
             m = int(header["BP_ORDER"])
             bp = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    bp[i, j] = header.get("BP_{}_{}".format(i, j), 0.0)
+                    bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
         elif "BP_ORDER" in header:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
@@ -643,7 +643,7 @@ naxis kwarg.
                 sky = self._normalize_sky_output(sky)
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
-        raise TypeError("Expected 2 or 3 arguments, {} given".format(len(args)))
+        raise TypeError("Expected 2 or 3 arguments, {0} given".format(len(args)))
 
     def all_pix2sky(self, *args, **kwargs):
         return self._array_converter(
@@ -663,17 +663,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        {}
+        {0}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {}
+        {1}
 
         Returns
         -------
 
-        {}
+        {2}
 
         Notes
         -----
@@ -731,17 +731,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        {}
+        {0}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {}
+        {1}
 
         Returns
         -------
 
-        {}
+        {2}
 
         Raises
         ------
@@ -795,17 +795,17 @@ naxis kwarg.
 
         Parameters
         ----------
-        {}
+        {0}
 
             For a transformation that is not two-dimensional, the
             two-argument form must be used.
 
-        {}
+        {1}
 
         Returns
         -------
 
-        {}
+        {2}
 
         Notes
         -----
@@ -855,12 +855,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        {}
+        {0}
 
         Returns
         -------
 
-        {}
+        {1}
 
         Raises
         ------
@@ -881,12 +881,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        {}
+        {0}
 
         Returns
         -------
 
-        {}
+        {1}
 
         Raises
         ------
@@ -907,12 +907,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        {}
+        {0}
 
         Returns
         -------
 
-        {}
+        {1}
 
         Raises
         ------
@@ -946,12 +946,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        {}
+        {0}
 
         Returns
         -------
 
-        {}
+        {1}
 
         Raises
         ------
@@ -983,12 +983,12 @@ naxis kwarg.
         Parameters
         ----------
 
-        {}
+        {0}
 
         Returns
         -------
 
-        {}
+        {1}
 
         Raises
         ------
@@ -1109,7 +1109,7 @@ naxis kwarg.
         f.write('linear\n')
         f.write('polygon(')
         self.footprint.tofile(f, sep=',')
-        f.write(') # color={}, width={d} \n'.format(color, width))
+        f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
     def get_naxis(self, header=None):

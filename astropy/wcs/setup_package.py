@@ -72,10 +72,10 @@ def write_wcsconfig_h():
     h_file = StringIO()
     h_file.write("""
     /* WCSLIB library version number. */
-    #define WCSLIB_VERSION {}
+    #define WCSLIB_VERSION {0}
 
     /* 64-bit integer data type. */
-    #define WCSLIB_INT64 {}
+    #define WCSLIB_INT64 {1}
     """.format(WCSVERSION, determine_64_bit_int()))
     setuputils.write_if_different(
         join(WCSROOT, 'src', 'wcsconfig.h'),
@@ -111,7 +111,7 @@ void fill_docstrings(void);
 """)
     for key in keys:
         val = docstrings[key]
-        h_file.write('extern char doc_{}[{}];\n'.format(key, len(val)))
+        h_file.write('extern char doc_{0}[{1}];\n'.format(key, len(val)))
     h_file.write("\n#endif\n\n")
 
     setuputils.write_if_different(
@@ -134,7 +134,7 @@ MSVC, do not support string literals greater than 256 characters.
 """)
     for key in keys:
         val = docstrings[key]
-        c_file.write('char doc_{}[{}];\n'.format(key, len(val)))
+        c_file.write('char doc_{0}[{1}];\n'.format(key, len(val)))
 
     c_file.write("\nvoid fill_docstrings(void)\n{\n")
     for key in keys:
@@ -143,7 +143,7 @@ MSVC, do not support string literals greater than 256 characters.
         # docstrings in 256-character chunks
         for i in range(0, len(val), 256):
             chunk = string_escape(val[i:i + 256]).replace('"', '\\"')
-            c_file.write('   strncpy(doc_{} + {}, "{}", {});\n'.format(
+            c_file.write('   strncpy(doc_{0} + {1}, "{2}", {3});\n'.format(
                 key, i, chunk, min(len(val) - i, 256)))
         c_file.write("\n")
     c_file.write("\n}\n\n")

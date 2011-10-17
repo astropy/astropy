@@ -16,7 +16,7 @@ def TWO_OR_THREE_ARGS(naxis, indent=0):
 """args : flexible
     Either two or three arguments may be provided.
 
-        - 2 arguments: An *N* x *{}* array of *x*- and
+        - 2 arguments: An *N* x *{0}* array of *x*- and
           *y*-coordinates, and an *origin*.
 
         - 3 arguments: 2 one-dimensional arrays of *x* and *y*
@@ -30,7 +30,7 @@ def TWO_OR_THREE_ARGS(naxis, indent=0):
 
 def RETURNS(out_type, indent=0):
     return _fix("""result : array
-    Returns the {}.  If the input was a single array and
+    Returns the {0}.  If the input was a single array and
     origin, a single array is returned, otherwise a tuple of arrays is
     returned.""".format(out_type), indent)
 
