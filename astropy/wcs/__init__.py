@@ -49,10 +49,7 @@ The basic workflow is as follows:
 from __future__ import division  # confidence high
 
 import sys
-if sys.version_info[0] >= 3:
-    exec("from .wcs import *")
-else:
-    from wcs import *
+from .wcs import *
 
 
 class Wcsprm(Wcsprm):

@@ -41,18 +41,11 @@ except ImportError:
     HAS_PYFITS = False
 
 # local
-if sys.version_info[0] >= 3:
-    from . import _docutil as __
-    try:
-        from . import _wcs
-    except ImportError:
-        _wcs = None
-else:
-    import _docutil as __
-    try:
-        import _wcs
-    except ImportError:
-        _wcs = None
+from . import _docutil as __
+try:
+    from . import _wcs
+except ImportError:
+    _wcs = None
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
