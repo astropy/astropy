@@ -2,5 +2,5 @@
 # Cython files here.
 
 !*.c
-src/docstrings.c
-src/docstrings.h
+docstrings.c
+docstrings.h
