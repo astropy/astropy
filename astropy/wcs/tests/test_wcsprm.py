@@ -17,7 +17,7 @@ def b(s):
 ROOT_DIR = None
 
 
-def setup():
+def setup_module():
     global ROOT_DIR
     ROOT_DIR = os.path.dirname(__file__)
 

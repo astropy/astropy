@@ -10,7 +10,7 @@ from astropy import wcs
 ROOT_DIR = None
 
 
-def setup():
+def setup_module():
     global ROOT_DIR
 
     # do not use __file__ here - we want to find the data files that
