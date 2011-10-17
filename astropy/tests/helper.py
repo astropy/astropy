@@ -1,28 +1,16 @@
 import sys
 import base64
 import zlib
-import imp
+
+from .. import __path__ as astropy_path
+
 
 try:
     import pytest
-    HAVE_PYTEST = True
+    
 except ImportError:
-    HAVE_PYTEST = False
-
-from .. import __path__ as astropy_path
-from ..extern import pytest as extern_pytest
-
-def pytest_main(args=None,plugins=None):
-    """
-    Implements pytest.main() after importing from a stand-alone module produced
-    with py.test --genscript. Method adapted from file created by
-    py.test --genscript.
-
-    See Also
-    --------
-    pytest.main : This takes the same arguments.
-
-    """
+    from ..extern import pytest as extern_pytest
+    
     if sys.version_info >= (3, 0):
         exec("def do_exec_def(co, loc): exec(co, loc)\n")
         extern_pytest.do_exec = do_exec_def
@@ -41,17 +29,39 @@ def pytest_main(args=None,plugins=None):
     sys.meta_path.append(importer)
 
     pytest = importer.load_module('pytest')
-    pytest.main(args=args,plugins=plugins)
-
+    
 
 def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
-
+    """
+    Run AstroPy tests using py.test. A proper set of arguments is constructed
+    and passed to `pytest.main`.
+    
+    Parameters
+    ----------
+    module : str, optional
+        The name of a specific module to test, e.g. 'io.fits' or 'utils'.
+        If nothing is specified all default AstroPy tests are run.
+        
+    args : str, optional
+        Additional arguments to be passed to `pytest.main` in the `args`
+        keyword argument. 
+        
+    plugins : str, optional
+        Arguments to passed to `pytest.main` in the `plugins` keyword argument.
+        
+    verbose : bool, optional
+        Convenience option to turn on verbose output from py.test. Passing True
+        is the same as specifying `-v` in `args`.
+        
+    pastebin : {'failed','all',True,None}, optional
+        Convenience option for turning on py.test pastebin output.
+        
+    See Also
+    --------
+    pytest.main : py.test function wrapped by `run_tests`.
+    
+    """
     import os.path
-
-    if HAVE_PYTEST:
-        main = pytest.main
-    else:
-        main = pytest_main
 
     if module is None:
         module_path = astropy_path[0]
@@ -74,4 +84,4 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
         else:
             raise ValueError("pastebin should be 'failed' or 'all'")
 
-    main(args=all_args, plugins=plugins)
+    pytest.main(args=all_args, plugins=plugins)
