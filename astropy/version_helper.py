@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import division
+from __future__ import division, print_function
 
 """
 Utilities for generating the version string for AstroPy and the version.py
@@ -74,7 +74,7 @@ def _get_git_devstr(sha=False):
     if sha:
         return '-git-' + stdout[:40]
     else:
-        nrev = stdout.count('\n')
+        nrev = stdout.decode('utf-8').count('\n')
         return  '-r%i' % nrev
 
 
@@ -137,7 +137,7 @@ def _generate_version_py(version, release):
     version_py = os.path.join('astropy', 'version.py')
 
     if current_version != version:
-        print 'Freezing version number to', version_py
+        print('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:  # This overwrites the actual version.py
             f.write(_get_version_py_str(version, release))

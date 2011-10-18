@@ -20,7 +20,7 @@ def write_if_different(filename, data):
 
     if original_data != data:
         with open(filename, 'wb') as fd:
-            fd.write(data)
+            fd.write(data.encode('utf-8'))
 
 
 def check_numpy():
