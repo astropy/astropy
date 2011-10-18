@@ -9,7 +9,7 @@ from os.path import join
 import os.path
 import sys
 
-from astropy import setuputils
+from astropy import setup_helpers
 
 WCSROOT = os.path.dirname(__file__)
 WCSVERSION = "4.8.2"
@@ -77,7 +77,7 @@ def write_wcsconfig_h():
     /* 64-bit integer data type. */
     #define WCSLIB_INT64 {1}
     """.format(WCSVERSION, determine_64_bit_int()))
-    setuputils.write_if_different(
+    setup_helpers.write_if_different(
         join(WCSROOT, 'src', 'wcsconfig.h'),
         h_file.getvalue())
 
@@ -116,7 +116,7 @@ void fill_docstrings(void);
         h_file.write('extern char doc_{0}[{1}];\n'.format(key, len(val)))
     h_file.write("\n#endif\n\n")
 
-    setuputils.write_if_different(
+    setup_helpers.write_if_different(
         join(WCSROOT, 'src', 'docstrings.h'), h_file.getvalue())
 
     c_file = StringIO()
@@ -160,7 +160,7 @@ MSVC, do not support string literals greater than 256 characters.
 
     c_file.write("#endif\n")
 
-    setuputils.write_if_different(
+    setup_helpers.write_if_different(
         join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue())
 
 
@@ -250,7 +250,7 @@ def get_extensions(build_type='release'):
         Extension('astropy.wcs._wcs',
                   wcslib_files + astropy_wcs_files,
                   include_dirs=[
-                      setuputils.get_numpy_include_path(),
+                      setup_helpers.get_numpy_include_path(),
                       wcslib_cpath,
                       join(WCSROOT, "src")],
                   define_macros=define_macros,

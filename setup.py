@@ -20,7 +20,7 @@ if not RELEASE:
     VERSION += _get_git_devstr(False)
 _generate_version_py(VERSION, RELEASE)
 
-from astropy import setuputils
+from astropy import setup_helpers
 
 # Find all of the setup_package.py modules, import them, and add them
 # to the setup_packages list.
@@ -28,7 +28,7 @@ setup_packages = []
 for root, dirs, files in os.walk('astropy'):
     if 'setup_package.py' in files:
         name = root.replace(os.path.sep, '.') + '.setup_package'
-        module = setuputils.import_module(name)
+        module = setup_helpers.import_module(name)
         setup_packages.append(module)
 
 # TODO: The type of build should be specifiable from the command line
@@ -49,7 +49,7 @@ scripts.remove('scripts/README.rst')
 # dependency for us, since some of the subpackages need to be able to
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
-setuputils.check_numpy()
+setup_helpers.check_numpy()
 
 # This dictionary stores the command classes used in setup below
 cmdclassd = {}
