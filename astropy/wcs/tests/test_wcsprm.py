@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 
@@ -563,7 +565,7 @@ def test_spcfix():
     header = open(os.path.join(ROOT_DIR, 'spectra', 'orion-velo-1.hdr'),
                   'rb').read()
     w = _wcs._Wcsprm(header)
-    print w.spcfix()
+    print(w.spcfix())
     assert w.spcfix() == 0
 
 
