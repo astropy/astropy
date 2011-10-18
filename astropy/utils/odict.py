@@ -12,7 +12,7 @@ __all__ = ['OrderedDict']
 
 try:
     from collections import OrderedDict
-except:
+except ImportError:
 
     from collections import MutableMapping
     from operator import eq as _eq
