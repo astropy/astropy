@@ -1,0 +1,4 @@
+This directory contains C code generated from the Flex description
+files (*.l) in the parent directory by flex 2.5.33 under Debian etch.
+These pre-generated source files may be used during installation if
+Flex 2.5.9 or later is not available on the build host.

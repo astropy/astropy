@@ -1,0 +1,160 @@
+#-----------------------------------------------------------------------------
+# Makefile overrides for various combinations of architecture, operating
+# system and compiler.  Used for development and testing only, not required
+# for building WCSLIB.
+#
+# Variables like CC and CFLAGS are exported into the environment so that they
+# will be seen by 'configure'.  Thus, normal usage is as follows:
+#
+#   make distclean
+#   make FLAVOUR=Linux configure
+#   make
+#
+# Reminder: add '-d' to FLFLAGS for debugging.
+#
+# $Id: flavours,v 4.8.1.1 2011/08/15 08:07:07 cal103 Exp cal103 $
+#-----------------------------------------------------------------------------
+
+# The list of FLAVOURs can be set on the command line.
+F := $(shell echo $(FLAVOURS) | tr a-z A-Z)
+ifeq "$F" ""
+  F :=
+  FLAVOURS := ""
+endif
+
+ifeq "$F" "LINUX"
+  override FLAVOURS := "" Linux Linuxp
+endif
+
+ifeq "$F" "SUN"
+  override FLAVOURS := "" SUN/GNU SUN/GNU3 SUN/GNUp SUN/ANSI
+endif
+
+ifeq "$F" "PURE"
+  override FLAVOURS := SUN/Pure SUN/Quant
+endif
+
+F :=
+
+
+# Various C standards handled by features.h in Linux.
+FEATURES :=
+ifeq "$(notdir $(shell pwd))" "utils"
+  # To get off_t for fseeko() usage in fitshdr when gcc is invoked with the
+  # -std=c89 (same as -ansi) or the -std=c99 options.
+  FEATURES := -D_XOPEN_SOURCE
+endif
+
+
+# Linux with gcc/gfortran (also works for Darwin).
+ifeq "$(FLAVOUR)" "Linux"
+  F := $(FLAVOUR)
+  export CC       := gcc -std=c89 -pedantic
+  export CPPFLAGS := $(FEATURES)
+  export CFLAGS   := -g -O0 -Wall -Wpadded -Wno-long-long
+  export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
+         VALGRIND := valgrind -v --leak-check=yes
+endif
+
+ifeq "$(FLAVOUR)" "Linuxp"
+  F := $(FLAVOUR)
+  export CC       := gcc -std=c89 -pedantic
+  export CPPFLAGS := $(FEATURES)
+  export CFLAGS   := -pg -g -O -Wall -Wpadded -Wno-long-long
+  export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
+  export LDFLAGS  := -pg -g $(filter -L%, $(LDFLAGS))
+  override EXTRA_CLEAN := gmon.out bb.out
+endif
+
+
+# Solaris with gcc/gfortran 4.x (lynx).
+ifeq "$(FLAVOUR)" "SUN/GNU"
+  F := $(FLAVOUR)
+  export CC       := gcc -std=c89
+  export CPPFLAGS := $(FEATURES)
+  export CFLAGS   := -g -Wall -Wpadded -Wno-long-long
+  export F77      := gfortran
+  export FFLAGS   := -g -fimplicit-none -Wall -I.
+  LD      := gcc
+endif
+
+ifeq "$(FLAVOUR)" "SUN/GNU3"
+  F := $(FLAVOUR)
+  export CC       := gcc-3.1.1 -std=c89
+  export CPPFLAGS := $(FEATURES)
+  export CFLAGS   := -g -Wall -Wpadded -Wno-long-long
+  export F77      := g77-3.1.1
+  export FFLAGS   := -g -Wimplicit -Wunused -Wno-globals -I.
+  LD      := gcc-3.1.1
+endif
+
+ifeq "$(FLAVOUR)" "SUN/GNUp"
+  F := $(FLAVOUR)
+  export CC       := gcc -std=c89 -pedantic
+  export CPPFLAGS := $(FEATURES)
+  export CFLAGS   := -pg -a -g -O -Wall -Wpadded -Wno-long-long
+  export FFLAGS   := -pg -a -g -O -fimplicit-none -Wall -I.
+  export LDFLAGS  := -pg -a -g $(filter -L%, $(LDFLAGS))
+  override EXTRA_CLEAN := gmon.out bb.out
+endif
+
+
+# Solaris with SUN cc/f77.
+ifeq "$(FLAVOUR)" "SUN/ANSI"
+  F := $(FLAVOUR)
+  WCSTRIG := NATIVE
+  export CC       := cc
+  export CFLAGS   := -g -I/usr/local/include
+  export F77      := f77
+  export FFLAGS   := -g -erroff=WDECL_LOCAL_NOTUSED
+  LD      := f77
+endif
+
+
+# Purify and quantify in Solaris.
+ifeq "$(FLAVOUR)" "SUN/Pure"
+  F := $(FLAVOUR)
+  WCSTRIG := NATIVE
+  export CC       := purify gcc
+  export CFLAGS   := -g
+  export F77      := purify gcc
+  export FFLAGS   := -g -Wimplicit -Wno-globals -I.
+  export LDFLAGS  := $(filter -L%, $(LDFLAGS))
+  override EXTRA_CLEAN := *_pure_p*.[ao] *.pcv .pure ../C/*_pure_p*.[ao]
+endif
+
+ifeq "$(FLAVOUR)" "SUN/Quant"
+  F := $(FLAVOUR)
+  WCSTRIG := NATIVE
+  export CC       := quantify gcc
+  export CFLAGS   := -g
+  export F77      := quantify gcc
+  export FFLAGS   := -g -Wimplicit -Wno-globals -I.
+  export LDFLAGS  := $(filter -L%, $(LDFLAGS))
+  override EXTRA_CLEAN := *_pure_q*.[ao] .pure
+endif
+
+ifneq "$F" "$(FLAVOUR)"
+  override FLAVOUR := unrecognised
+endif
+
+# gmake uses FC in place of configure's F77.
+ifdef F77
+  FC := $(F77)
+endif
+
+ifndef TIMER
+  TIMER := date +"%a %Y/%m/%d %X %z, executing on $$HOST"
+endif
+
+ifdef FLAVOUR
+  TIMER := $(TIMER) ; echo "    with $(FLAVOUR) FLAVOUR."
+endif
+
+show ::
+	-@ echo 'For code development...'
+	-@ echo '  FLAVOURS    := $(FLAVOURS)'
+	-@ echo '  FLAVOUR     := $(FLAVOUR)'
+	-@ echo '  VALGRIND    := $(VALGRIND)'
+	-@ echo '  EXTRA_CLEAN := $(EXTRA_CLEAN)'
+	-@ echo ''

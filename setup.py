@@ -20,6 +20,21 @@ if not RELEASE:
     VERSION += _get_git_devstr(False)
 _generate_version_py(VERSION, RELEASE)
 
+from astropy import setup_helpers
+
+# Find all of the setup_package.py modules, import them, and add them
+# to the setup_packages list.
+setup_packages = []
+for root, dirs, files in os.walk('astropy'):
+    if 'setup_package.py' in files:
+        name = root.replace(os.path.sep, '.') + '.setup_package'
+        module = setup_helpers.import_module(name)
+        setup_packages.append(module)
+
+# TODO: The type of build should be specifiable from the command line
+# or a .cfg file.
+BUILD = 'release' # Should be 'release' or 'debug'
+assert BUILD in ('release', 'debug')
 
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
@@ -29,11 +44,34 @@ packages = find_packages(exclude=['tests'])
 scripts = glob.glob('scripts/*')
 scripts.remove('scripts/README.rst')
 
+# Check that Numpy is installed.
+# NOTE: We can not use setuptools/distribute/packaging to handle this
+# dependency for us, since some of the subpackages need to be able to
+# access numpy at build time, and they are configured before
+# setuptools has a chance to check and resolve the dependency.
+setup_helpers.check_numpy()
+
 # This dictionary stores the command classes used in setup below
 cmdclassd = {}
 
+# A dictionary to keep track of all package data to install
+package_data = {'astropy': ['data/*']}
+
 # C extensions that are not Cython-based should be added here.
 extensions = []
+
+# Extra data files
+data_files = []
+
+# For each of the setup_package.py modules, extract any information
+# that is needed to install them.
+for package in setup_packages:
+    if hasattr(package, 'get_extensions'):
+        extensions.extend(package.get_extensions(BUILD))
+    if hasattr(package, 'get_package_data'):
+        package_data.update(package.get_package_data())
+    if hasattr(package, 'get_data_files'):
+        data_files.extend(package.get_data_files())
 
 # Look for Cython files - compile with Cython if it is not a release
 # and Cython is installed. Otherwise, use the .c files that live next
@@ -109,7 +147,7 @@ setup(name='AstroPy',
       version=VERSION,
       description='Community-developed python astronomy tools',
       packages=packages,
-      package_data={'astropy': ['data/*']},
+      package_data=package_data,
       ext_modules=extensions,
       scripts=scripts,
       requires=['numpy', 'scipy'],
@@ -121,5 +159,6 @@ setup(name='AstroPy',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
-      zip_safe=False
-)
+      zip_safe=False,
+      data_files=data_files
+      )
