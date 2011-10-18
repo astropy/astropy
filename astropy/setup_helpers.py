@@ -12,6 +12,8 @@ def write_if_different(filename, data):
     Write *data* to *filename*, if the content of the file is
     different.
     """
+    assert isinstance(data, bytes)
+
     if os.path.exists(filename):
         with open(filename, 'rb') as fd:
             original_data = fd.read()
@@ -20,7 +22,7 @@ def write_if_different(filename, data):
 
     if original_data != data:
         with open(filename, 'wb') as fd:
-            fd.write(data.encode('utf-8'))
+            fd.write(data)
 
 
 def check_numpy():

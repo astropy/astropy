@@ -79,7 +79,7 @@ def write_wcsconfig_h():
     """.format(WCSVERSION, determine_64_bit_int()))
     setup_helpers.write_if_different(
         join(WCSROOT, 'src', 'wcsconfig.h'),
-        h_file.getvalue())
+        h_file.getvalue().encode('ascii'))
 
 ######################################################################
 # GENERATE DOCSTRINGS IN C
@@ -117,7 +117,7 @@ void fill_docstrings(void);
     h_file.write("\n#endif\n\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'docstrings.h'), h_file.getvalue())
+        join(WCSROOT, 'src', 'docstrings.h'), h_file.getvalue().encode('utf-8'))
 
     c_file = StringIO()
     c_file.write("""/*
@@ -161,7 +161,7 @@ MSVC, do not support string literals greater than 256 characters.
     c_file.write("#endif\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue())
+        join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue().encode('utf-8'))
 
 
 def get_extensions(build_type='release'):
