@@ -10,41 +10,40 @@ See: http://docs.python.org/library/collections.html#collections.OrderedDict
 
 __all__ = ['OrderedDict']
 
-from collections import MutableMapping
-from operator import eq as _eq
-from itertools import imap as _imap
-
-try:
-    from thread import get_ident
-except ImportError:
-    from dummy_thread import get_ident
-
-
-def _recursive_repr(user_function):
-    'Decorator to make a repr function return "..." for a recursive call'
-    repr_running = set()
-
-    def wrapper(self):
-        key = id(self), get_ident()
-        if key in repr_running:
-            return '...'
-        repr_running.add(key)
-        try:
-            result = user_function(self)
-        finally:
-            repr_running.discard(key)
-        return result
-
-    # Can't use functools.wraps() here because of bootstrap issues
-    wrapper.__module__ = getattr(user_function, '__module__')
-    wrapper.__doc__ = getattr(user_function, '__doc__')
-    wrapper.__name__ = getattr(user_function, '__name__')
-    return wrapper
-
-
 try:
     from collections import OrderedDict
 except:
+
+    from collections import MutableMapping
+    from operator import eq as _eq
+    from itertools import imap as _imap
+
+    try:
+        from thread import get_ident
+    except ImportError:
+        from dummy_thread import get_ident
+
+
+    def _recursive_repr(user_function):
+        'Decorator to make a repr function return "..." for a recursive call'
+        repr_running = set()
+
+        def wrapper(self):
+            key = id(self), get_ident()
+            if key in repr_running:
+                return '...'
+            repr_running.add(key)
+            try:
+                result = user_function(self)
+            finally:
+                repr_running.discard(key)
+            return result
+
+        # Can't use functools.wraps() here because of bootstrap issues
+        wrapper.__module__ = getattr(user_function, '__module__')
+        wrapper.__doc__ = getattr(user_function, '__doc__')
+        wrapper.__name__ = getattr(user_function, '__name__')
+        return wrapper
 
     class OrderedDict(dict, MutableMapping):
         'Dictionary that remembers insertion order'
