@@ -207,8 +207,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 cdelt = """
@@ -329,8 +329,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 crpix = """
@@ -465,9 +465,9 @@ dateavg = """
 Representative mid-point of the date of observation in ISO format,
 ``yyyy-mm-ddThh:mm:ss``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.dateobs`
+See also
+--------
+astropy.wcs.Wcsprm.dateobs
 """
 
 dateobs = """
@@ -476,9 +476,9 @@ dateobs = """
 Start of the date of observation in ISO format,
 ``yyyy-mm-ddThh:mm:ss``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.dateavg`
+See also
+--------
+astropy.wcs.Wcsprm.dateavg
 """
 
 datfix = """
@@ -796,7 +796,7 @@ co-exist with ``CDELTia`` and ``CROTAia`` which are to be ignored.
 
 See also
 --------
-cd : Get the raw ``CDi_ja`` values.
+astropy.wcs.Wcsprm.cd : Get the raw ``CDi_ja`` values.
 """
 
 has_cdi_ja = """
@@ -1115,9 +1115,9 @@ corresponding to ``DATE-AVG``.
 
 An undefined value is represented by NaN.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.mjdobs`
+See also
+--------
+astropy.wcs.Wcsprm.mjdobs
 """
 
 mjdobs = """
@@ -1128,9 +1128,9 @@ corresponding to ``DATE-OBS``.
 
 An undefined value is represented by NaN.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.mjdavg`
+See also
+--------
+astropy.wcs.Wcsprm.mjdavg
 """
 
 name = """
@@ -1329,8 +1329,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 phi0 = """
@@ -1341,9 +1341,9 @@ celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
 the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
 to a projection-specific default.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.theta0`
+See also
+--------
+astropy.wcs.Wcsprm.theta0
 """
 
 pix2foc = """
@@ -1743,9 +1743,9 @@ specsys = """
 
 Spectral reference frame (standard of rest), ``SPECSYSa``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.ssysobs`, `~astropy.wcs.Wcsprm.velosys`.
+See also
+--------
+astropy.wcs.Wcsprm.ssysobs, astropy.wcs.Wcsprm.velosys
 """
 
 sptr = """
@@ -1931,9 +1931,9 @@ celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
 the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
 to a projection-specific default.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.phi0`
+See also
+--------
+astropy.wcs.Wcsprm.phi0
 """
 
 to_header = """
