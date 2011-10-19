@@ -27,3 +27,4 @@ Contents:
 
    examples.rst
    api.rst
+   history.rst

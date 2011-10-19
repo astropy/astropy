@@ -93,7 +93,7 @@ def generate_c_docstrings():
         if not key.startswith('__') and type(key) in string_types]
     keys.sort()
     for key in keys:
-        docstrings[key] = docstrings[key].encode('utf8').lstrip()
+        docstrings[key] = docstrings[key].encode('utf8').lstrip() + '\0'
 
     h_file = StringIO()
     h_file.write("""/*
