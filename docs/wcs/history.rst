@@ -17,8 +17,9 @@ pywcs Version 1.11
 - Long-running process will now release the Python GIL to better
   support Python multithreading.
 
-- The dimensions of the `cd` and `pc` matrices were always returned as
-  2x2.  They now are sized according to naxis.
+- The dimensions of the `~astropy.wcs.Wcsprm.cd` and
+  `~astropy.wcs.Wcsprm.pc` matrices were always returned as 2x2.  They
+  now are sized according to naxis.
 
 - Supports Python 3.x
 
@@ -29,8 +30,8 @@ pywcs Version 1.11
 - `pywcs` will now run without `pyfits`, though the SIP and distortion
   lookup table functionality is unavailable.
 
-- Setting `wcs.wcs.cunit` will now verify that the values are valid
-  unit strings.
+- Setting `~astropy.wcs.Wcsprm.cunit` will now verify that the values
+  are valid unit strings.
 
 pywcs Version 1.10
 ------------------
@@ -62,8 +63,8 @@ pywcs Version 1.9
 Bugs
 ````
 
-- The `pc` member is now available with a default raw `Wcsprm`
-  object.
+- The `~astropy.wcs.Wcsprm.pc` member is now available with a default
+  raw `~astropy.wcs.Wcsprm` object.
 
 - Make properties that return arrays read-only, since modifying a
   (mutable) array could result in secondary values not being

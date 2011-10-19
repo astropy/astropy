@@ -207,8 +207,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 cdelt = """
@@ -329,8 +329,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 crpix = """
@@ -796,7 +796,7 @@ co-exist with ``CDELTia`` and ``CROTAia`` which are to be ignored.
 
 See also
 --------
-cd : Get the raw ``CDi_ja`` values.
+astropy.wcs.Wcsprm.cd : Get the raw ``CDi_ja`` values.
 """
 
 has_cdi_ja = """
@@ -1329,8 +1329,8 @@ translated immediately to ``PCi_ja`` by `~astropy.wcs.Wcsprm.set` and
 are nowhere visible to the lower-level routines.  In particular,
 `~astropy.wcs.Wcsprm.set` resets `~astropy.wcs.Wcsprm.cdelt` to unity
 if ``CDi_ja`` is present (and no ``PCi_ja``).  If no ``CROTAia`` is
-associated with the latitude axis, `set` reverts to a unity ``PCi_ja``
-matrix.
+associated with the latitude axis, `~astropy.wcs.Wcsprm.set` reverts
+to a unity ``PCi_ja`` matrix.
 """
 
 phi0 = """
