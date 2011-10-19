@@ -465,9 +465,9 @@ dateavg = """
 Representative mid-point of the date of observation in ISO format,
 ``yyyy-mm-ddThh:mm:ss``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.dateobs`
+See also
+--------
+astropy.wcs.Wcsprm.dateobs
 """
 
 dateobs = """
@@ -476,9 +476,9 @@ dateobs = """
 Start of the date of observation in ISO format,
 ``yyyy-mm-ddThh:mm:ss``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.dateavg`
+See also
+--------
+astropy.wcs.Wcsprm.dateavg
 """
 
 datfix = """
@@ -1115,9 +1115,9 @@ corresponding to ``DATE-AVG``.
 
 An undefined value is represented by NaN.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.mjdobs`
+See also
+--------
+astropy.wcs.Wcsprm.mjdobs
 """
 
 mjdobs = """
@@ -1128,9 +1128,9 @@ corresponding to ``DATE-OBS``.
 
 An undefined value is represented by NaN.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.mjdavg`
+See also
+--------
+astropy.wcs.Wcsprm.mjdavg
 """
 
 name = """
@@ -1341,9 +1341,9 @@ celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
 the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
 to a projection-specific default.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.theta0`
+See also
+--------
+astropy.wcs.Wcsprm.theta0
 """
 
 pix2foc = """
@@ -1743,9 +1743,9 @@ specsys = """
 
 Spectral reference frame (standard of rest), ``SPECSYSa``.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.ssysobs`, `~astropy.wcs.Wcsprm.velosys`.
+See also
+--------
+astropy.wcs.Wcsprm.ssysobs, astropy.wcs.Wcsprm.velosys
 """
 
 sptr = """
@@ -1931,9 +1931,9 @@ celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
 the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
 to a projection-specific default.
 
-.. seealso::
-
-   `~astropy.wcs.Wcsprm.phi0`
+See also
+--------
+astropy.wcs.Wcsprm.phi0
 """
 
 to_header = """
