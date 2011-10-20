@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from __future__ import division, print_function
+from __future__ import division
+from distutils import log
 
 """
 Utilities for generating the version string for AstroPy and the version.py
@@ -137,7 +138,8 @@ def _generate_version_py(version, release):
     version_py = os.path.join('astropy', 'version.py')
 
     if current_version != version:
-        print('Freezing version number to {0}'.format(version_py))
+        log.set_threshold(log.INFO)
+        log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:  # This overwrites the actual version.py
             f.write(_get_version_py_str(version, release))
