@@ -297,22 +297,22 @@ def test_equinox():
 def test_fix():
     w = _wcs._Wcsprm()
     assert w.fix() == {
-        'cylfix': b('No change'),
-        'datfix': b('No change'),
-        'spcfix': b('No change'),
-        'unitfix': b('No change'),
-        'celfix': b('No change')}
+        'cylfix': 'No change',
+        'datfix': 'No change',
+        'spcfix': 'No change',
+        'unitfix': 'No change',
+        'celfix': 'No change'}
 
 
 def test_fix2():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/99')
     assert w.fix() == {
-        'cylfix': b('No change'),
-        'datfix': b('Success'),
-        'spcfix': b('No change'),
-        'unitfix': b('No change'),
-        'celfix': b('No change')}
+        'cylfix': 'No change',
+        'datfix': 'Success',
+        'spcfix': 'No change',
+        'unitfix': 'No change',
+        'celfix': 'No change'}
     assert w.dateobs == b('1999-12-31')
     assert w.mjdobs == 51543.0
 
@@ -321,11 +321,11 @@ def test_fix3():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/F9')
     assert w.fix() == {
-        'cylfix': b('No change'),
-        'datfix': b("Invalid parameter value: invalid date '31/12/F9'"),
-        'spcfix': b('No change'),
-        'unitfix': b('No change'),
-        'celfix': b('No change')}
+        'cylfix': 'No change',
+        'datfix': "Invalid parameter value: invalid date '31/12/F9'",
+        'spcfix': 'No change',
+        'unitfix': 'No change',
+        'celfix': 'No change'}
     assert w.dateobs == b('31/12/F9')
     assert np.isnan(w.mjdobs)
 
