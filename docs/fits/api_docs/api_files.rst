@@ -1,4 +1,4 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 *****
 Files
