@@ -17,6 +17,7 @@ developed.  For more information, see the `github wiki
    install
    configs
    wcs/index
+   fits/index
    vo/index
    tools
    utils/index
