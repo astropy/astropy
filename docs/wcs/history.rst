@@ -1,4 +1,4 @@
-astropy.wcs history
+astropy.wcs History
 ===================
 
 `astropy.wcs` began life as `pywcs`.  Earlier version numbers refer to

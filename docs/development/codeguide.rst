@@ -132,7 +132,7 @@ Coding Style/Conventions
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
 
-Including C code
+Including C Code
 ----------------
 
 * C extensions are only allowed when they provide a significant performance
@@ -156,7 +156,7 @@ Including C code
   Style Guide for C Code <http://www.python.org/dev/peps/pep-0007/>`_ is
   recommended.
 
-Requirements specific to Affiliated Packages
+Requirements Specific to Affiliated Packages
 --------------------------------------------
 
 * Affiliated packages must be registered on the `Python Package Index
@@ -204,7 +204,7 @@ a get/set method. For lengthy or complex calculations, however, use a method::
     >>> print s.compute_color(5800, age=5e9)
     0.4
 
-super() vs. direct calling
+super() vs. Direct Calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example shows why the use of :func:`super` leads to a more consistent
