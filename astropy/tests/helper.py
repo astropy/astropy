@@ -94,7 +94,7 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
     if pastebin is not None:
         if pastebin in ['failed', 'all']:
             all_args += " --pastebin={0}".format(pastebin)
-        elif pastebin:
+        elif pastebin is True:
             all_args += " --pastebin=failed"
         else:
             raise ValueError("pastebin should be 'failed' or 'all'")
