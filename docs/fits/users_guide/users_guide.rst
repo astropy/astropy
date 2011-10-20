@@ -1,6 +1,6 @@
-##################
-PyFITS Users Guide
-##################
+##################################
+Working with FITS Files in AstroPy
+##################################
 
 .. toctree::
    :maxdepth: 3

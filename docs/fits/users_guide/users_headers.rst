@@ -1,4 +1,4 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 ************
 FITS Headers
@@ -12,7 +12,7 @@ respectively.
 Header of an HDU
 ================
 
-Every HDU normally has two components: header and data. In PyFITS these two
+Every HDU normally has two components: header and data. In AstroPy these two
 components are accessed through the two attributes of the HDU, ``.header`` and
 ``.data``.
 
@@ -23,14 +23,14 @@ an existing HDU's header and the data value from  a numpy array. If the
 defaults (``None``) are used, the new HDU will have the minimal require
 keyword:
 
-    >>> hdu = pyfits.PrimaryHDU()
+    >>> hdu = astropy.io.fits.PrimaryHDU()
     >>> print hdu.header.ascardlist() # show the keywords
     SIMPLE = T / conforms to FITS standard
     BITPIX = 8 / array data type
     NAXIS  = 0 / number of array dimensions
     EXTEND = T
 
-A user can use any header and any data to construct a new HDU. PyFITS will
+A user can use any header and any data to construct a new HDU. AstroPy will
 strip the required keywords from the input header first and then add back the
 required keywords compatible to the new HDU. So, a user can use a table HDU's
 header to construct an image HDU and vice versa. The constructor will also
@@ -48,7 +48,7 @@ Value Access and Updating
 As shown in the Quick Tutorial, keyword values can be accessed via keyword name
 or index of an HDU's header attribute. Here is a quick summary:
 
-    >>> hdulist = pyfits.open('input.fits') # open a FITS file
+    >>> hdulist = astropy.io.fits.open('input.fits') # open a FITS file
     >>> prihdr = hdulist[0].header # the primary HDU header
     >>> print prihdr[3] # get the 4th keyword's value
     10
@@ -99,7 +99,7 @@ to as commentary cards), which commonly appear in FITS headers more than once.
 They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Again, to get their
 values (except for the first one), a user must use indexing.
 
-The following header methods are provided in PyFITS to add new commentary
+The following header methods are provided in AstroPy to add new commentary
 cards: `Header.add_history()`, `Header.add_comment()`, and
 `Header.add_blank()`. They are provided because the `Header.update()` method
 will not work - it will replace the first card of the same keyword.
@@ -139,7 +139,7 @@ A FITS header consists of card images.
 
 A card images in a FITS header consists of a keyword name, a value, and
 optionally a comment. Physically, it takes 80 columns (bytes) - without
-carriage return - in a FITS file's storage form. In PyFITS, each card image is
+carriage return - in a FITS file's storage form. In AstroPy, each card image is
 manifested by a Card object. There are also special kinds of cards: commentary
 cards (see above) and card images taking more than one 80-column card image.
 The latter will be discussed later.
@@ -147,11 +147,11 @@ The latter will be discussed later.
 Most of the time, a new Card object is created with the Card constructor:
 ``Card(key, value, comment)``. For example:
 
-    >>> c1 = pyfits.Card('temp', 80.0, 'temperature, floating value')
-    >>> c2 = pyfits.Card('detector', 1) # comment is optional
-    >>> c3 = pyfits.Card('mir_revr', True, 'mirror reversed? Boolean value)
-    >>> c4 = pyfits.Card('abc', 2+3j, 'complex value')
-    >>> c5 = pyfits.Card('observer', 'Hubble', 'string value')
+    >>> c1 = astropy.io.fits.Card('temp', 80.0, 'temperature, floating value')
+    >>> c2 = astropy.io.fits.Card('detector', 1) # comment is optional
+    >>> c3 = astropy.io.fits.Card('mir_revr', True, 'mirror reversed? Boolean value)
+    >>> c4 = astropy.io.fits.Card('abc', 2+3j, 'complex value')
+    >>> c5 = astropy.io.fits.Card('observer', 'Hubble', 'string value')
 
     >>> print c1; print c2; print c3; print c4; print c5 # show the card images
     TEMP = 80.0 / temperature, floating value
@@ -170,11 +170,11 @@ to the FITS standard (e.g. for testing purposes), the `Card.fromstring()`
 method can be used.
 
 Cards can be verified with `Card.verify()`. The non-standard card ``c2`` in the
-example below, is flagged by such verification. More about verification in
-PyFITS will be discussed in a later chapter.
+example below, is flagged by such verification. More about FITS verification in
+AstroPy will be discussed in a later chapter.
 
-    >>> c1 = pyfits.Card().fromstring('ABC = 3.456D023')
-    >>> c2 = pyfits.Card().fromstring("P.I. ='Hubble'")
+    >>> c1 = astropy.io.fits.Card().fromstring('ABC = 3.456D023')
+    >>> c2 = astropy.io.fits.Card().fromstring("P.I. ='Hubble'")
     >>> print c1; print c2
     ABC = 3.456D023
     P.I. ='Hubble'
@@ -190,7 +190,7 @@ The Header itself only has limited functionality. Many lower level operations
 can only be achieved by going through its `CardList` object.
 
 The header is basically a list of `Card` objects. This list can be manifested
-as a `CardList` object in PyFITS. It is accessed via the `Header.ascardlist()`
+as a `CardList` object in AstroPy. It is accessed via the `Header.ascardlist()`
 method (or the ``.ascard`` attribute, for short). Since the header attribute
 only refers to a card value, so when a user needs to access a card's other
 properties (e.g. the comment) in a header, it has to go through the `CardList`.
@@ -215,11 +215,11 @@ a proposal was made in:
     http://legacy.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
 
 by using the CONTINUE keyword after the regular 80-column containing the
-keyword. PyFITS does support this convention, even though it is not a FITS
+keyword. AstroPy does support this convention, even though it is not a FITS
 standard. The examples below show the use of CONTINUE is automatic for long
 string values.
 
-    >>> c = pyfits.Card('abc', 'abcdefg'*20)
+    >>> c = astropy.io.fits.Card('abc', 'abcdefg'*20)
     >>> print c
     ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
     CONTINUE 'efgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga&'
@@ -228,7 +228,7 @@ string values.
     'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgab
     cdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg'
     # both value and comments are long
-    >>> c = pyfits.Card('abc', 'abcdefg'*10, 'abcdefg'*10)
+    >>> c = astropy.io.fits.Card('abc', 'abcdefg'*10, 'abcdefg'*10)
     >>> print c
     ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
     CONTINUE 'efg&'
@@ -249,7 +249,7 @@ HIERARCH Cards
 
 For keywords longer than 8 characters, there is a convention originated at ESO
 to facilitate such use. It uses a special keyword HIERARCH with the actual long
-keyword following. PyFITS supports this convention as well.
+keyword following. AstroPy supports this convention as well.
 
 When creating or updating using the `Header.update()` method, it is necessary
 to prepend 'hierarch' (case insensitive). But if the keyword is already in the
@@ -260,13 +260,13 @@ is case insensitive.
 
 Examples follow:
 
-    >>> c = pyfits.Card('abcdefghi', 10)
+    >>> c = astropy.io.fits.Card('abcdefghi', 10)
     ...
     ValueError: keyword name abcdefghi is too long (> 8), use HIERARCH.
-    >>> c = pyfits.Card('hierarch abcdefghi', 10)
+    >>> c = astropy.io.fits.Card('hierarch abcdefghi', 10)
     >>> print c
     HIERARCH abcdefghi = 10
-    >>> h = pyfits.PrimaryHDU()
+    >>> h = astropy.io.fits.PrimaryHDU()
     >>> h.header.update('hierarch abcdefghi', 99)
     >>> h.header.update('hierarch abcdefghi', 99)
     >>> h.header['abcdefghi']

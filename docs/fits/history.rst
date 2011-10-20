@@ -1,5 +1,15 @@
-Changelog
-===========
+astropy.io.fits history
+=======================
+
+Prior to its inclusion in astropy, the `astropy.io.fits` package was a stand-
+alone package called `PyFITS`_.  Though for the time being active development
+is continuing on PyFITS, that development is also being merged into AstroPy.
+This page documents the release history of PyFITS prior to its merge into
+AstroPy.
+
+.. contents:: PyFITS Changelog
+   :depth: 1
+
 
 3.1.0 (unreleased)
 --------------------
@@ -1943,3 +1953,4 @@ Things not yet supported but are part of future development:
 - Support for tables with TNULL values. This awaits an enhancement to numarray
   to support mask arrays (planned).  (At least a couple of months off).
 
+.. _PyFITS: http://www.stsci.edu/resources/software_hardware/pyfits
