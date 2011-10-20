@@ -5,7 +5,6 @@ import functools
 
 from .. import __path__ as astropy_path
 
-
 try:
     import pytest
 
@@ -45,8 +44,14 @@ def pytest_runtest_setup(item):
     if 'big_data' in item.keywords and not item.config.getvalue("runbigdata"):
         pytest.skip("need --runbigdata option to run")
         
+<<<<<<< HEAD
         
 def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
+=======
+
+def run_tests(module=None, args=None, plugins=None, verbose=False,
+              pastebin=None, big_data=False):
+>>>>>>> Added py.test plugins to tests/helper.py that add the --runbigdata command line option and for tests marked with @big_data (defined in helper.py) to be skipped unless the --runbigdata option is used. Updated run_tests to work with this new setup.
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
@@ -61,16 +66,23 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
         Additional arguments to be passed to `pytest.main` in the `args`
         keyword argument.
 
-    plugins : str, optional
-        Arguments to passed to `pytest.main` in the `plugins` keyword argument.
-
+    plugins : list, optional
+        Plugins to be passed to `pytest.main` in the `plugins` keyword argument.
+        
     verbose : bool, optional
         Convenience option to turn on verbose output from py.test. Passing True
         is the same as specifying `-v` in `args`.
-
-    pastebin : {'failed','all',True,None}, optional
->>>>>>> Updated run_tests docstring with better explanation of the pastebin keyword.
-
+        
+    pastebin : {'failed','all',None}, optional
+        Convenience option for turning on py.test pastebin output. Set to
+        'failed' to upload info for failed tests, or 'all' to upload info for
+        all tests.
+        
+    big_data : bool, optional
+        Controls whether to run tests marked with @helper.big_data. These
+        tests use online data and are not run by default. Set to True to
+        run these tests.
+        
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -86,19 +98,29 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
         if not os.path.isdir(module_path):
             raise ValueError('Module not found: {0}'.format(module))
 
-    all_args = module_path
+    # '-p astropy.tests.helper' tells py.test to use this module as a plugin
+    # so that the hooks defined above are actually used.
+    all_args = module_path + ' -p astropy.tests.helper'
+    
+    # add any additional args entered by the user
     if args is not None:
-        all_args += " {0}".format(args)
+        all_args += ' {0}'.format(args)
+    
+    # add verbosity flag
     if verbose:
-        all_args += " -v"
+        all_args += ' -v'
+    
+    # turn on pastebin output
     if pastebin is not None:
         if pastebin in ['failed', 'all']:
-            all_args += " --pastebin={0}".format(pastebin)
-        elif pastebin is True:
-            all_args += " --pastebin=failed"
+            all_args += ' --pastebin={0}'.format(pastebin)
         else:
             raise ValueError("pastebin should be 'failed' or 'all'")
-
+    
+    # run @big_data tests
+    if big_data:
+        all_args += ' --runbigdata'
+    
     pytest.main(args=all_args, plugins=plugins)
 
 
