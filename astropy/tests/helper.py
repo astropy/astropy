@@ -69,7 +69,7 @@ def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None
         is the same as specifying `-v` in `args`.
 
     pastebin : {'failed','all',True,None}, optional
-        Convenience option for turning on py.test pastebin output.
+>>>>>>> Updated run_tests docstring with better explanation of the pastebin keyword.
 
     See Also
     --------
