@@ -1,6 +1,6 @@
 .. include:: references.txt
 
-API documentation
+API Documentation
 =================
 
 :mod:`astropy.wcs`
