@@ -30,8 +30,22 @@ except ImportError:
     sys.meta_path.append(importer)
 
     pytest = importer.load_module('pytest')
+    
 
+# pytest marker to mark tests which get data from the web
+big_data = pytest.mark.big_data
 
+# these pytest hooks allow us to mark tests and run the marked tests with
+# specific command line options.
+def pytest_addoption(parser):
+    parser.addoption("--runbigdata", action="store_true",
+        help="run tests with online data")
+
+def pytest_runtest_setup(item):
+    if 'big_data' in item.keywords and not item.config.getvalue("runbigdata"):
+        pytest.skip("need --runbigdata option to run")
+        
+        
 def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
