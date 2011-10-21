@@ -5,12 +5,12 @@ Documentation Guidelines (Draft 2)
 .. warning::
     This document is currently in Draft form and is subject to change.
 
-AstroPy Documentation Rules and Recommendations
+Astropy Documentation Rules and Recommendations
 -----------------------------------------------
 
 This section describes the standards for documentation format affiliated
 packages that must follow for consideration of integration into the core
-module, as well as the standard AstroPy docstring format.
+module, as well as the standard Astropy docstring format.
 
 * Documentation shall use the Sphinx documentation tool.
 
@@ -20,7 +20,7 @@ module, as well as the standard AstroPy docstring format.
 * Docstrings must be provided for all public classes, methods, and functions.
 
 * Docstrings will be incorporated into the documentation using a version of
-  numpydoc included with AstroPy, and should follow the NumPy_/SciPy_
+  numpydoc included with Astropy, and should follow the NumPy_/SciPy_
   docstring standards, included below.
 
 * Examples and/or tutorials are strongly encouraged for typical use-cases of a
@@ -39,7 +39,7 @@ The original source for these docstring standards is the NumPy_ project, and
 the associated numpydoc_ tools. The most up-to-date version of these standards
 can be found at `numpy's github site
 <http://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_. The
-guidelines below have been adapted to the AstroPy pacakge.
+guidelines below have been adapted to the Astropy pacakge.
 
 .. _NumPy: http://numpy.scipy.org/
 .. _numpydoc: http://pypi.python.org/pypi/numpydoc/0.3.1
@@ -65,7 +65,7 @@ Use a code checker:
  * `pyflakes <http://pypi.python.org/pypi/pyflakes>`_
  * `pep8.py <https://github.com/jcrocholl/pep8>`_
 
-The following import conventions are used throughout the AstroPy source
+The following import conventions are used throughout the Astropy source
 and documentation::
 
    import numpy as np
@@ -102,7 +102,7 @@ triple double quotes, i.e.::
 
 NumPy_ and SciPy_ have defined a common convention for docstrings that
 provides for consistency, while also allowing our toolchain to produce
-well-formatted reference guides. This format should be used for AstroPy
+well-formatted reference guides. This format should be used for Astropy
 docstrings.
 
 This docstring standard uses `re-structured text (reST)
@@ -154,7 +154,7 @@ The sections of the docstring are:
    A section (use if applicable) to warn users that the object is deprecated.
    Section contents should include:
 
-   * In what AstroPy version the object was deprecated, and when it will
+   * In what Astropy version the object was deprecated, and when it will
      be removed.
 
    * Reason for deprecation if this is useful information (e.g., object
@@ -167,8 +167,8 @@ The sections of the docstring are:
 
    ::
 
-     .. note:: Deprecated in AstroPy 1.2
-               `ndobj_old` will be removed in AstroPy 2.0, it is replaced by
+     .. note:: Deprecated in Astropy 1.2
+               `ndobj_old` will be removed in Astropy 2.0, it is replaced by
                `ndobj_new` because the latter works also with array subclasses.
 
 3. **Extended summary**
@@ -478,7 +478,7 @@ put brief summary and See Also sections in the method docstring.
 Documenting class instances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instances of classes that are part of the AstroPy API may require some care.
+Instances of classes that are part of the Astropy API may require some care.
 To give these instances a useful docstring, we do the following:
 
 * Single instance: If only a single instance of a class is exposed, document

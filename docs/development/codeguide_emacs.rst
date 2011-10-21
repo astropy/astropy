@@ -6,7 +6,7 @@
 .. _pyflakes: http://pypi.python.org/pypi/pyflakes
 .. _pep8: http://pypi.python.org/pypi/pep8
 
-The AstroPy coding guidelines are listed in :doc:`codeguide`. This
+The Astropy coding guidelines are listed in :doc:`codeguide`. This
 document will describe some configuration options for Emacs, that will
 help in ensuring that Python code satisfies the guidelines. Emacs can
 be configured in several different ways. So instead of providing a drop

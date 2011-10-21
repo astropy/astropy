@@ -4,7 +4,7 @@
 Development Workflow (Advanced)
 ===============================
 
-In the present document, we refer to the AstroPy ``master`` branch, as the
+In the present document, we refer to the Astropy ``master`` branch, as the
 *trunk*.
 
 .. _forking:
