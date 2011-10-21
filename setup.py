@@ -143,7 +143,7 @@ except ImportError:  # Sphinx not present
 
 
 
-setup(name='AstroPy',
+setup(name='astropy',
       version=VERSION,
       description='Community-developed python astronomy tools',
       packages=packages,
