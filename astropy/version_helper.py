@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from __future__ import division, print_function
+from __future__ import division
+from distutils import log
 
 """
 Utilities for generating the version string for AstroPy and the version.py
@@ -128,7 +129,8 @@ def _generate_version_py(version, release):
     """Regenerate the version.py module if necessary."""
 
     import os
-
+    import sys
+    
     try:
         from astropy.version import version as current_version
     except ImportError:
@@ -137,7 +139,9 @@ def _generate_version_py(version, release):
     version_py = os.path.join('astropy', 'version.py')
 
     if current_version != version:
-        print('Freezing version number to {0}'.format(version_py))
+        if '-q' not in sys.argv and '--quiet' not in sys.argv:
+            log.set_threshold(log.INFO)
+        log.info('Freezing version number to {0},{1}'.format(version_py,sys.argv))
 
         with open(version_py, 'w') as f:  # This overwrites the actual version.py
             f.write(_get_version_py_str(version, release))
