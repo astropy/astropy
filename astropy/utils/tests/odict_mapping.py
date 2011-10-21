@@ -1,5 +1,10 @@
 import unittest
-import UserDict
+
+try:
+    import UserDict
+except ImportError:
+    from collections import UserDict
+
 from . import odict_support as test_support
 
 

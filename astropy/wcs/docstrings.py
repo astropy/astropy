@@ -9,7 +9,7 @@ del division
 # which are then converted by setup.py into docstrings.h, which is
 # included by pywcs.c
 
-import _docutil as __
+from . import _docutil as __
 
 a = """
 ``double array[a_order+1][a_order+1]``

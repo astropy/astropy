@@ -5,4 +5,4 @@ from __future__ import division
 
 """
 
-import helper
+from . import helper
