@@ -3,6 +3,8 @@ import base64
 import zlib
 import functools
 
+import os.path
+
 from .. import __path__ as astropy_path
 
 try:
@@ -32,26 +34,21 @@ except ImportError:
     
 
 # pytest marker to mark tests which get data from the web
-big_data = pytest.mark.big_data
+remote_data = pytest.mark.remote_data
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
 def pytest_addoption(parser):
-    parser.addoption("--runbigdata", action="store_true",
+    parser.addoption("--remotedata", action="store_true",
         help="run tests with online data")
 
 def pytest_runtest_setup(item):
-    if 'big_data' in item.keywords and not item.config.getvalue("runbigdata"):
-        pytest.skip("need --runbigdata option to run")
+    if 'remote_data' in item.keywords and not item.config.getvalue("remotedata"):
+        pytest.skip("need --remotedata option to run")
         
-<<<<<<< HEAD
-        
-def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
-=======
 
 def run_tests(module=None, args=None, plugins=None, verbose=False,
-              pastebin=None, big_data=False):
->>>>>>> Added py.test plugins to tests/helper.py that add the --runbigdata command line option and for tests marked with @big_data (defined in helper.py) to be skipped unless the --runbigdata option is used. Updated run_tests to work with this new setup.
+              pastebin=None, remote_data=False):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
@@ -78,8 +75,8 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
         'failed' to upload info for failed tests, or 'all' to upload info for
         all tests.
         
-    big_data : bool, optional
-        Controls whether to run tests marked with @helper.big_data. These
+    remote_data : bool, optional
+        Controls whether to run tests marked with @remote_data. These
         tests use online data and are not run by default. Set to True to
         run these tests.
         
@@ -88,8 +85,6 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     pytest.main : py.test function wrapped by `run_tests`.
 
     """
-    import os.path
-
     if module is None:
         module_path = astropy_path[0]
     else:
@@ -117,9 +112,9 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
         else:
             raise ValueError("pastebin should be 'failed' or 'all'")
     
-    # run @big_data tests
-    if big_data:
-        all_args += ' --runbigdata'
+    # run @remote_data tests
+    if remote_data:
+        all_args += ' --remotedata'
     
     pytest.main(args=all_args, plugins=plugins)
 
