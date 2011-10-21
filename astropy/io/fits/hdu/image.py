@@ -561,6 +561,8 @@ class Section(object):
             if not dims:
                 dims = [1]
 
+            dims = tuple(dims)
+
             _bitpix = self.hdu._bitpix
             code = _ImageBaseHDU.NumCode[_bitpix]
             offset = self.hdu._datLoc + (offset * abs(_bitpix) // 8)
@@ -668,10 +670,10 @@ class PrimaryHDU(_ImageBaseHDU):
 
         # insert the keywords EXTEND
         if header is None:
-            dim = repr(self._header['NAXIS'])
-            if dim == '0':
+            dim = self._header['NAXIS']
+            if dim == 0:
                 dim = ''
-            self._header.update('EXTEND', True, after='NAXIS' + dim)
+            self._header.update('EXTEND', True, after='NAXIS' + str(dim))
 
     @classmethod
     def match_header(cls, header):

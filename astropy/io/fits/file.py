@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import with_statement
 
 import gzip
 import os
@@ -18,7 +19,11 @@ from .util import (isreadable, iswritable, isfile, fileobj_name,
 
 PYTHON_MODES = {'readonly': 'rb', 'copyonwrite': 'rb', 'update': 'rb+',
                 'append': 'ab+', 'ostream': 'w'}  # open modes
-MEMMAP_MODES = {'readonly': 'r', 'copyonwrite': 'c', 'update': 'r+'}
+MEMMAP_MODES = {'readonly': 'r', 'copyonwrite': 'c', 'update': 'r+',
+                'append': 'c'}
+
+GZIP_MAGIC = u'\x1f\x8b\x08'.encode('raw-unicode-escape')
+PKZIP_MAGIC = u'\x50\x4b\x03\x04'.encode('raw-unicode-escape')
 
 
 class _File(object):
@@ -62,21 +67,10 @@ class _File(object):
         # Underlying fileobj is a file-like object, but an actual file object
         self.file_like = False
 
+        # More defaults to be adjusted below as necessary
         self.compression = None
-        if isinstance(fileobj, gzip.GzipFile):
-            self.compression = 'gzip'
-        elif isinstance(fileobj, zipfile.ZipFile):
-            # Reading from zip files is supported but not writing (yet)
-            self.compression = 'zip'
-
         self.readonly = False
         self.writeonly = False
-        if (mode in ('readonly', 'copyonwrite') or
-                (self.compression and mode == 'update')):
-            self.readonly = True
-        elif (mode == 'ostream' or
-                (self.compression and mode == 'append')):
-            self.writeonly = True
 
         # Initialize the internal self.__file object
         if isfile(fileobj) or isinstance(fileobj, gzip.GzipFile):
@@ -102,7 +96,13 @@ class _File(object):
             else:
                 self.__file = gzip.open(self.name, PYTHON_MODES[mode])
         elif isinstance(fileobj, basestring):
-            if os.path.splitext(self.name)[1] == '.gz':
+            if os.path.exists(self.name):
+                with open(self.name, 'rb') as f:
+                    magic = f.read(4)
+            else:
+                magic = ''.encode('raw-unicode-escape')
+            ext = os.path.splitext(self.name)[1]
+            if ext == '.gz' or magic.startswith(GZIP_MAGIC):
                 # Handle gzip files
                 if mode in ['update', 'append']:
                     raise IOError(
@@ -110,7 +110,7 @@ class _File(object):
                           "supported")
                 self.__file = gzip.open(self.name)
                 self.compression = 'gzip'
-            elif os.path.splitext(self.name)[1] == '.zip':
+            elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
                 # Handle zip files
                 if mode in ['update', 'append']:
                     raise IOError(
@@ -151,6 +151,19 @@ class _File(object):
                 raise IOError("File-like object does not have a 'read' "
                               "method, required for mode 'readonly'."
                               % self.mode)
+
+        if isinstance(fileobj, gzip.GzipFile):
+            self.compression = 'gzip'
+        elif isinstance(fileobj, zipfile.ZipFile):
+            # Reading from zip files is supported but not writing (yet)
+            self.compression = 'zip'
+
+        if (mode in ('readonly', 'copyonwrite') or
+                (self.compression and mode == 'update')):
+            self.readonly = True
+        elif (mode == 'ostream' or
+                (self.compression and mode == 'append')):
+            self.writeonly = True
 
         # For 'ab+' mode, the pointer is at the end after the open in
         # Linux, but is at the beginning in Solaris.

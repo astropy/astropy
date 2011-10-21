@@ -7,9 +7,9 @@ from .file import PYTHON_MODES, _File
 from .hdu.base import _BaseHDU
 from .hdu.hdulist import fitsopen
 from .hdu.image import PrimaryHDU, ImageHDU
-from .hdu.table import BinTableHDU, _TableBaseHDU
+from .hdu.table import BinTableHDU
 from .header import Header
-from .util import deprecated, fileobj_closed, fileobj_name, isfile
+from .util import deprecated, fileobj_closed, fileobj_name, isfile, _is_int
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -19,7 +19,7 @@ __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
 """Convenience functions"""
 
 
-def getheader(filename, *ext, **extkeys):
+def getheader(filename, *args, **kwargs):
     """
     Get the header from an extension of a FITS file.
 
@@ -29,9 +29,12 @@ def getheader(filename, *ext, **extkeys):
         File to get header from.  If an opened file object, its mode
         must be one of the following rb, rb+, or ab+).
 
-    ext
-        The rest of the arguments are for extension specification.
-        `getdata` for explanations/examples.
+    ext, extname, extver
+        The rest of the arguments are for extension specification.  See the
+        `getdata` documentation for explanations/examples.
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
 
     Returns
     -------
@@ -39,15 +42,14 @@ def getheader(filename, *ext, **extkeys):
     """
 
     mode, closed = _get_file_mode(filename)
-    hdulist, _ext = _getext(filename, mode, *ext, **extkeys)
-    hdu = hdulist[_ext]
+    hdulist, extidx = _getext(filename, mode, *args, **kwargs)
+    hdu = hdulist[extidx]
     header = hdu.header
-
     hdulist.close(closed=closed)
     return header
 
 
-def getdata(filename, *ext, **extkeys):
+def getdata(filename, *args, **kwargs):
     """
     Get the data from an extension of a FITS file (and optionally the
     header).
@@ -90,16 +92,23 @@ def getdata(filename, *ext, **extkeys):
 
             >>> getdata('in.fits', ext=('sci',1), extname='err', extver=2)
 
-    lower, upper : bool, optional
+    header : bool (optional)
+        If `True`, return the data and the header of the specified HDU as a
+        tuple.
+
+    lower, upper : bool (optional)
         If `lower` or `upper` are `True`, the field names in the
         returned data object will be converted to lower or upper case,
         respectively.
 
-    view : ndarray view class, optional
-        When given, the data will be turned wrapped in the given view
-        class, by calling::
+    view : ndarray (optional)
+        When given, the data will be turned wrapped in the given ndarray
+        subclass by calling::
 
            data.view(view)
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
 
     Returns
     -------
@@ -110,31 +119,16 @@ def getdata(filename, *ext, **extkeys):
         function will return a (`data`, `header`) tuple.
     """
 
-    if 'header' in extkeys:
-        gethdr = extkeys['header']
-        del extkeys['header']
-    else:
-        gethdr = False
-
-    # Code further down rejects unknown keys
-    lower = False
-    if 'lower' in extkeys:
-        lower = extkeys['lower']
-        del extkeys['lower']
-    upper = False
-    if 'upper' in extkeys:
-        upper = extkeys['upper']
-        del extkeys['upper']
-    view = None
-    if 'view' in extkeys:
-        view = extkeys['view']
-        del extkeys['view']
-
     mode, closed = _get_file_mode(filename)
-    hdulist, _ext = _getext(filename, mode, *ext, **extkeys)
-    hdu = hdulist[_ext]
+    header = kwargs.pop('header', None)
+    lower = kwargs.pop('lower', None)
+    upper = kwargs.pop('upper', None)
+    view = kwargs.pop('view', None)
+
+    hdulist, extidx = _getext(filename, mode, *args, **kwargs)
+    hdu = hdulist[extidx]
     data = hdu.data
-    if data is None and _ext == 0:
+    if data is None and extidx == 0:
         try:
             hdu = hdulist[1]
             data = hdu.data
@@ -142,7 +136,7 @@ def getdata(filename, *ext, **extkeys):
             raise IndexError('No data in this HDU.')
     if data is None:
         raise IndexError('No data in this HDU.')
-    if gethdr:
+    if header:
         hdr = hdu.header
     hdulist.close(closed=closed)
 
@@ -163,16 +157,16 @@ def getdata(filename, *ext, **extkeys):
 
     # allow different views into the underlying ndarray.  Keep the original
     # view just in case there is a problem
-    if view is not None:
+    if isinstance(view, type) and issubclass(view, np.ndarray):
         data = data.view(view)
 
-    if gethdr:
+    if header:
         return data, hdr
     else:
         return data
 
 
-def getval(filename, key, *ext, **extkeys):
+def getval(filename, keyword, *args, **kwargs):
     """
     Get a keyword's value from a header in a FITS file.
 
@@ -182,24 +176,32 @@ def getval(filename, key, *ext, **extkeys):
         Name of the FITS file, or file object (if opened, mode must be
         one of the following rb, rb+, or ab+).
 
-    key : str
-        keyword name
+    keyword : str
+        Keyword name
 
-    ext
+    ext, extname, extver
         The rest of the arguments are for extension specification.
         See `getdata` for explanations/examples.
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
+        *Note:* This function automatically specifies ``do_not_scale_image_data
+        = True`` when opening the file so that values can be retrieved from the
+        unmodified header.
 
     Returns
     -------
     keyword value : string, integer, or float
     """
 
-    hdr = getheader(filename, *ext, **extkeys)
-    return hdr[key]
+    if 'do_not_scale_image_data' not in kwargs:
+        kwargs['do_not_scale_image_data'] = True
+
+    hdr = getheader(filename, *args, **kwargs)
+    return hdr[keyword]
 
 
-def setval(filename, key, value="", comment=None, before=None, after=None,
-           savecomment=False, *ext, **extkeys):
+def setval(filename, keyword, *args, **kwargs):
     """
     Set a keyword's value from a header in a FITS file.
 
@@ -219,45 +221,57 @@ def setval(filename, key, value="", comment=None, before=None, after=None,
         update (rb+).  An opened file object or `GzipFile` object will
         be closed upon return.
 
-    key : str
-        keyword name
+    keyword : str
+        Keyword name
 
-    value : str, int, float
-        Keyword value, default = ""
+    value : str, int, float (optional)
+        Keyword value (default: `None`, meaning don't modify)
 
-    comment : str
-        Keyword comment, default = None
+    comment : str (optional)
+        Keyword comment, (default: `None`, meaning don't modify)
 
-    before : str, int
-        name of the keyword, or index of the `Card` before which
-        the new card will be placed.  The argument `before` takes
-        precedence over `after` if both specified. default=`None`.
+    before : str, int (optional)
+        Name of the keyword, or index of the card before which the new card
+        will be placed.  The argument `before` takes precedence over `after` if
+        both are specified (default: `None`).
 
-    after : str, int
-        name of the keyword, or index of the `Card` after which the
-        new card will be placed. default=`None`.
+    after : str, int (optional)
+        Name of the keyword, or index of the card after which the new card will
+        be placed. (default: `None`).
 
-    savecomment : bool
-        when `True`, preserve the current comment for an existing
-        keyword.  The argument `savecomment` takes precedence over
-        `comment` if both specified.  If `comment` is not specified
-        then the current comment will automatically be preserved.
-        default=`False`
+    savecomment : bool (optional)
+        When `True`, preserve the current comment for an existing keyword.  The
+        argument `savecomment` takes precedence over `comment` if both
+        specified.  If `comment` is not specified then the current comment will
+        automatically be preserved  (default: `False`).
 
-    ext
+    ext, extname, extver
         The rest of the arguments are for extension specification.
         See `getdata` for explanations/examples.
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
+        *Note:* This function automatically specifies ``do_not_scale_image_data
+        = True`` when opening the file so that values can be retrieved from the
+        unmodified header.
     """
 
-    if 'do_not_scale_image_data' not in extkeys:
-        extkeys['do_not_scale_image_data'] = True
+    if 'do_not_scale_image_data' not in kwargs:
+        kwargs['do_not_scale_image_data'] = True
 
-    hdulist, ext = _getext(filename, mode='update', *ext, **extkeys)
-    hdulist[ext].header.update(key, value, comment, before, after, savecomment)
+    value = kwargs.pop('value', None)
+    comment = kwargs.pop('comment', None)
+    before = kwargs.pop('before', None)
+    after = kwargs.pop('after', None)
+    savecomment = kwargs.pop('savecomment', False)
+
+    hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
+    hdulist[extidx].header.update(keyword, value, comment, before, after,
+                                  savecomment)
     hdulist.close()
 
 
-def delval(filename, key, *ext, **extkeys):
+def delval(filename, keyword, *args, **kwargs):
     """
     Delete all instances of keyword from a header in a FITS file.
 
@@ -269,23 +283,30 @@ def delval(filename, key, *ext, **extkeys):
         update (rb+).  An opened file object or `GzipFile` object will
         be closed upon return.
 
-    key : str, int
+    keyword : str, int
         Keyword name or index
 
-    ext
+    ext, extname, extver
         The rest of the arguments are for extension specification.
         See `getdata` for explanations/examples.
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
+        *Note:* This function automatically specifies ``do_not_scale_image_data
+        = True`` when opening the file so that values can be retrieved from the
+        unmodified header.
     """
 
-    if 'do_not_scale_image_data' not in extkeys:
-        extkeys['do_not_scale_image_data'] = True
+    if 'do_not_scale_image_data' not in kwargs:
+        kwargs['do_not_scale_image_data'] = True
 
-    hdulist, ext = _getext(filename, mode='update', *ext, **extkeys)
-    del hdulist[ext].header[key]
+    hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
+    del hdulist[extidx].header[keyword]
     hdulist.close()
 
 
-def writeto(filename, data, header=None, **keys):
+def writeto(filename, data, header=None, output_verify='exception',
+            clobber=False, checksum=False):
     """
     Create a new FITS file using the supplied data/header.
 
@@ -297,37 +318,33 @@ def writeto(filename, data, header=None, **keys):
     data : array, record array, or groups data object
         data to write to the new file
 
-    header : Header object, optional
+    header : `Header` object (optional)
         the header associated with `data`. If `None`, a header
         of the appropriate type is created for the supplied data. This
         argument is optional.
 
-    clobber : bool, optional
+    output_verify : str
+        Output verification option.  Must be one of ``"fix"``,
+        ``"silentfix"``, ``"ignore"``, ``"warn"``, or
+        ``"exception"``.  See :ref:`verify` for more info.
+
+    clobber : bool (optional)
         If `True`, and if filename already exists, it will overwrite
         the file.  Default is `False`.
 
-    checksum : bool, optional
+    checksum : bool (optional)
         If `True`, adds both ``DATASUM`` and ``CHECKSUM`` cards to the
         headers of all HDU's written to the file.
     """
 
-    if header is None:
-        if 'header' in keys:
-            header = keys['header']
-
-    clobber = keys.get('clobber', False)
-    output_verify = keys.get('output_verify', 'exception')
-
     hdu = _makehdu(data, header)
-    if not isinstance(hdu, PrimaryHDU) and not isinstance(hdu, _TableBaseHDU):
+    if hdu.is_image and not isinstance(hdu, PrimaryHDU):
         hdu = PrimaryHDU(data, header=header)
-    checksum = keys.get('checksum', False)
     hdu.writeto(filename, clobber=clobber, output_verify=output_verify,
                 checksum=checksum)
 
 
-def append(filename, data, header=None, classExtensions={}, checksum=False,
-           verify=True, **keys):
+def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
     """
     Append the header/data to FITS file if filename exists, create if not.
 
@@ -344,19 +361,22 @@ def append(filename, data, header=None, classExtensions={}, checksum=False,
     data : array, table, or group data object
         the new data used for appending
 
-    header : Header object, optional
+    header : `Header` object (optional)
         The header associated with `data`.  If `None`, an appropriate
         header will be created for the data object supplied.
 
-    checksum : bool, optional
+    checksum : bool (optional)
         When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to
         the header of the HDU when written to the file.
 
-    verify: bool, optional (True)
+    verify: bool (optional)
         When `True`, the existing FITS file will be read in to verify
         it for correctness before appending.  When `False`, content is
         simply appended to the end of the file.  Setting *verify* to
         `False` can be much faster.
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
     """
 
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
@@ -367,7 +387,7 @@ def append(filename, data, header=None, classExtensions={}, checksum=False,
         # empty.  Use the writeto convenience function to write the
         # output to the empty object.
         #
-        writeto(filename, data, header, checksum=checksum, **keys)
+        writeto(filename, data, header, checksum=checksum, **kwargs)
     else:
         hdu = _makehdu(data, header)
 
@@ -391,7 +411,7 @@ def append(filename, data, header=None, classExtensions={}, checksum=False,
             f.close()
 
 
-def update(filename, data, *ext, **extkeys):
+def update(filename, data, *args, **kwargs):
     """
     Update the specified extension with the input data/header.
 
@@ -405,7 +425,11 @@ def update(filename, data, *ext, **extkeys):
     data : array, table, or group data object
         the new data used for updating
 
-    ext
+    header : `Header` object (optional)
+        The header associated with `data`.  If `None`, an appropriate
+        header will be created for the data object supplied.
+
+    ext, extname, extver
         The rest of the arguments are flexible: the 3rd argument can
         be the header associated with the data.  If the 3rd argument
         is not a `Header`, it (and other positional arguments) are
@@ -417,33 +441,35 @@ def update(filename, data, *ext, **extkeys):
             >>> update(file, dat, hdr, 3)  # update the 3rd extension
             >>> update(file, dat, 'sci', 2)  # update the 2nd SCI extension
             >>> update(file, dat, 3, header=hdr)  # update the 3rd extension
-            >>> update(file, dat, header=hdr, ext=5)  # update the 5th extension
+            >>> update(file, dat, header=hdr, ext=5) # update the 5th extension
+
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
     """
 
-    # parse the arguments
-    header = None
-    if len(ext) > 0:
-        if isinstance(ext[0], Header):
-            header = ext[0]
-            ext = ext[1:]
-        elif not isinstance(ext[0], (int, long, np.integer, str, tuple)):
-            raise KeyError('Input argument has wrong data type.')
-
-    if 'header' in extkeys:
-        header = extkeys['header']
-        del extkeys['header']
+    # The arguments to this function are a bit tricker to deal with than others
+    # in this module, since the documentation has promised that the header
+    # argument can be an optional positional argument.
+    if args and isinstance(args[0], Header):
+        header = args[0]
+        args = args[1:]
+    else:
+        header = None
+    # The header can also be a keyword argument--if both are provided the
+    # keyword takes precedence
+    header = kwargs.pop('header', header)
 
     new_hdu = _makehdu(data, header)
 
     closed = fileobj_closed(filename)
 
-    hdulist, _ext = _getext(filename, 'update', *ext, **extkeys)
+    hdulist, _ext = _getext(filename, 'update', *args, **kwargs)
     hdulist[_ext] = new_hdu
 
     hdulist.close(closed=closed)
 
 
-def info(filename, classExtensions={}, output=None, **kwargs):
+def info(filename, output=None, **kwargs):
     """
     Print the summary information on a FITS file.
 
@@ -456,28 +482,13 @@ def info(filename, classExtensions={}, output=None, **kwargs):
         FITS file to obtain info from.  If opened, mode must be one of
         the following: rb, rb+, or ab+.
 
-    output : file, optional
+    output : file (optional)
         File-like object to output the HDU info to.  Outputs to stdout by
         default.
 
-    kwargs : optional keyword arguments
-
-        - **uint** : bool
-
-            Interpret signed integer data where ``BZERO`` is the
-            central value and ``BSCALE == 1`` as unsigned integer
-            data.  For example, `int16` data with ``BZERO = 32768``
-            and ``BSCALE = 1`` would be treated as `uint16` data.
-
-            Note, for backward compatibility, the kwarg **uint16** may
-            be used instead.  The kwarg was renamed when support was
-            added for integers of any size.
-
-        - **ignore_missing_end** : bool
-
-            Do not issue an exception when opening a file that is
-            missing an ``END`` card in the last header.  Default is
-            `True`.
+    kwargs
+        Any additional keyword arguments to be passed to `pyfits.open`.
+        *Note:* This function sets ``ignore_missing_end=True`` by default.
     """
 
     mode, closed = _get_file_mode(filename, default='copyonwrite')
@@ -495,7 +506,7 @@ def info(filename, classExtensions={}, output=None, **kwargs):
 
 
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
-              clobber=False, classExtensions={}):
+              clobber=False):
     """
     Dump a table HDU to a file in ASCII format.  The table may be
     dumped in three separate files, one containing column definitions,
@@ -506,16 +517,16 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
     filename : file path, file object or file-like object
         Input fits file.
 
-    datafile : file path, file object or file-like object, optional
+    datafile : file path, file object or file-like object (optional)
         Output data file.  The default is the root name of the input
         fits file appended with an underscore, followed by the
         extension number (ext), followed by the extension ``.txt``.
 
-    cdfile : file path, file object or file-like object, optional
+    cdfile : file path, file object or file-like object (optional)
         Output column definitions file.  The default is `None`,
         no column definitions output is produced.
 
-    hfile : file path, file object or file-like object, optional
+    hfile : file path, file object or file-like object (optional)
         Output header parameters file.  The default is `None`,
         no header parameters output is produced.
 
@@ -575,7 +586,7 @@ def tableload(datafile, cdfile, hfile=None):
         dimensions, undefined values, scale factors, and offsets
         associated with the columns in the table.
 
-    hfile : file path, file object or file-like object, optional
+    hfile : file path, file object or file-like object (optional)
         Input parameter definition file containing the header
         parameter definitions to be associated with the table.
         If `None`, a minimal header is constructed.
@@ -593,73 +604,94 @@ tableload.__doc__ += BinTableHDU.tdump_file_format.replace('\n', '\n    ')
 tcreate = deprecated(name='tcreate')(tableload)
 
 
-def _getext(filename, mode, *ext1, **ext2):
-    """Open the input file, return the `HDUList` and the extension."""
+def _getext(filename, mode, *args, **kwargs):
+    """
+    Open the input file, return the `HDUList` and the extension.
 
-    hdulist = fitsopen(filename, mode=mode, **ext2)
+    This supports several different styles of extension selection.  See the
+    `getdata()` documentation for the different possibilities.
+    """
 
-    # delete these from the variable keyword argument list so the extension
-    # will properly validate
-    for key in ['classExtensions', 'ignore_missing_end', 'uint16', 'uint']:
-        if key in ext2:
-            del ext2[key]
+    ext = kwargs.pop('ext', None)
+    extname = kwargs.pop('extname', None)
+    extver = kwargs.pop('extver', None)
 
-    n_ext1 = len(ext1)
-    n_ext2 = len(ext2)
+    err_msg = ('Redundant/conflicting extension arguments(s): %s' %
+               ({'args': args, 'ext': ext,  'extname': extname,
+                 'extver': extver},))
 
-    err_msg = 'Redundant/conflicting keyword arguments(s): %s' % ext2
-
-    # parse the extension spec
-    if n_ext1 > 2:
-        raise ValueError('too many positional arguments')
-    elif n_ext1 == 1:
-        if n_ext2 == 0:
-            ext = ext1[0]
+    # This code would be much simpler if just one way of specifying an
+    # extension were picked.  But now we need to support all possible ways for
+    # the time being.
+    if len(args) == 1:
+        # Must be either an extension number, an extension name, or an
+        # (extname, extver) tuple
+        if _is_int(args[0]) or (isinstance(ext, tuple) and len(ext) == 2):
+            if ext is not None or extname is not None or extver is not None:
+                raise TypeError(err_msg)
+            ext = args[0]
+        elif isinstance(args[0], basestring):
+            # The first arg is an extension name; it could still be valid
+            # to provide an extver kwarg
+            if ext is not None or extname is not None:
+                raise TypeError(err_msg)
+            extname = args[0]
         else:
-            if isinstance(ext1[0], (int, np.integer, tuple)):
-                raise KeyError(err_msg)
-            if isinstance(ext1[0], basestring):
-                if n_ext2 == 1 and 'extver' in ext2:
-                    ext = ext1[0], ext2['extver']
-                raise KeyError(err_msg)
-    elif n_ext1 == 2:
-        if n_ext2 == 0:
-            ext = ext1
+            # Take whatever we have as the ext argument; we'll validate it
+            # below
+            ext = args[0]
+    elif len(args) == 2:
+        # Must be an extname and extver
+        if ext is not None or extname is not None or extver is not None:
+            raise TypeError(err_msg)
+        extname = args[0]
+        extver = args[1]
+    elif len(args) > 2:
+        raise TypeError('Too many positional arguments.')
+
+    if (ext is not None and
+        not (_is_int(ext) or
+             (isinstance(ext, tuple) and len(ext) == 2 and
+              isinstance(ext[0], basestring) and _is_int(ext[1])))):
+            raise ValueError(
+                'The ext keyword must be either an extension number '
+                '(zero-indexed) or a (extname, extver) tuple.')
+    if extname is not None and not isinstance(extname, basestring):
+        raise ValueError('The extname argument must be a string.')
+    if extver is not None and not _is_int(extver):
+        raise ValueError('The extver argument must be an integer.')
+
+    if ext is None and extname is None and extver is None:
+        ext = 0
+    elif ext is not None and (extname is not None or extver is not None):
+        raise TypeError(err_msg)
+    elif extname:
+        if extver:
+            ext = (extname, extver)
         else:
-            raise KeyError(err_msg)
-    elif n_ext1 == 0:
-        if n_ext2 == 0:
-            ext = 0
-        elif 'ext' in ext2:
-            if n_ext2 == 1:
-                ext = ext2['ext']
-            elif n_ext2 == 2 and 'extver' in ext2:
-                ext = ext2['ext'], ext2['extver']
-            else:
-                raise KeyError(err_msg)
-        else:
-            if 'extname' in ext2:
-                if 'extver' in ext2:
-                    ext = ext2['extname'], ext2['extver']
-                else:
-                    ext = ext2['extname']
-            else:
-                raise KeyError('Insufficient keyword arguments: %s' % ext2)
+            ext = (extname, 0)
+    elif extver and extname is None:
+        raise TypeError('extver alone cannot specify an extension.')
+
+    hdulist = fitsopen(filename, mode=mode, **kwargs)
 
     return hdulist, ext
 
 
-def _makehdu(data, header, classExtensions={}):
+def _makehdu(data, header):
     if header is None:
+        header = Header()
+    hdu = _BaseHDU(data, header)
+    if hdu.__class__ is _BaseHDU:
+        # The HDU type was unrecognized, possibly due to a
+        # nonexistent/incomplete header
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None)
             or isinstance(data, np.recarray)):
             hdu = BinTableHDU(data)
         elif isinstance(data, np.ndarray):
             hdu = ImageHDU(data)
         else:
-            raise KeyError('Data must be numarray or table data.')
-    else:
-        hdu = _BaseHDU(data, header)
+            raise KeyError('Data must be a numpy array.')
     return hdu
 
 
@@ -672,15 +704,16 @@ def _stat_filename_or_fileobj(filename):
     except AttributeError:
         loc = 0
 
-    noexist_or_empty = \
-        (name and ((not os.path.exists(name)) or (os.path.getsize(name)==0))) \
-         or (not name and loc==0)
+    noexist_or_empty = ((name and
+                         (not os.path.exists(name) or
+                          (os.path.getsize(name) == 0)))
+                         or (not name and loc == 0))
 
     return name, closed, noexist_or_empty
 
 
 # TODO: Replace this with fileobj_mode
-def _get_file_mode(filename, default='readonly'):
+def _get_file_mode(filename, default='copyonwrite'):
     """
     Allow file object to already be opened in any of the valid modes and
     and leave the file in the same state (opened or closed) as when

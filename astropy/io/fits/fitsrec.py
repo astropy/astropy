@@ -256,7 +256,7 @@ class FITS_rec(np.recarray):
                 #
                 # Store the new arrays for the _coldefs object
                 #
-                arrays.append( self._coldefs._arrays[idx][key])
+                arrays.append(self._coldefs._arrays[idx][key])
 
                 # touch all fields to expand the original ._convert list
                 # so the sliced FITS_rec will view the same scaled columns as

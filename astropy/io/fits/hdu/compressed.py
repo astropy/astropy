@@ -21,7 +21,7 @@ except ImportError:
 
 DEFAULT_COMPRESSION_TYPE = 'RICE_1'
 DEFAULT_QUANTIZE_LEVEL = 16.
-DEFAULT_HCOMP_SCALE = 0.
+DEFAULT_HCOMP_SCALE = 0
 DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
@@ -683,23 +683,23 @@ class CompImageHDU(BinTableHDU):
                 break
             zval = 'ZVAL' + str(idx)
             if self._header[zname] == 'NOISEBIT':
-                if quantizeLevel == None:
+                if quantizeLevel is None:
                     quantizeLevel = self._header[zval]
             if self._header[zname] == 'SCALE   ':
-                if hcompScale == None:
+                if hcompScale is None:
                     hcompScale = self._header[zval]
             if self._header[zname] == 'SMOOTH  ':
-                if hcompSmooth == None:
+                if hcompSmooth is None:
                     hcompSmooth = self._header[zval]
             idx += 1
 
-        if quantizeLevel == None:
+        if quantizeLevel is None:
             quantizeLevel = DEFAULT_QUANTIZE_LEVEL
 
-        if hcompScale == None:
+        if hcompScale is None:
             hcompScale = DEFAULT_HCOMP_SCALE
 
-        if hcompSmooth == None:
+        if hcompSmooth is None:
             hcompSmooth = DEFAULT_HCOMP_SCALE
 
         # Next, strip the table header of all the ZNAMEn and ZVALn keywords

@@ -1680,6 +1680,24 @@ class TestTableFunctions(FitsTestCase):
         assert (s2 == s3).all()
         assert (s3 == s4).all()
 
+    def test_array_slicing_readonly(self):
+        """
+        Like test_array_slicing but with the file opened in 'readonly' mode.
+        Regression test for a crash when slicing readonly memmap'd tables.
+        """
+
+        f = fits.open(self.data('table.fits'), mode='readonly')
+        data = f[1].data
+        s1 = data[data['target'] == 'NGC1001']
+        s2 = data[np.where(data['target'] == 'NGC1001')]
+        s3 = data[[0]]
+        s4 = data[:1]
+        for s in [s1, s2, s3, s4]:
+            assert_true(isinstance(s, fits.FITS_rec))
+        assert_true((s1 == s2).all())
+        assert_true((s2 == s3).all())
+        assert_true((s3 == s4).all())
+
     def test_dump_load_round_trip(self):
         """
         A simple test of the dump/load methods; dump the data, column, and

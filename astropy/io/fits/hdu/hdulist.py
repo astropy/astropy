@@ -512,7 +512,7 @@ class HDUList(list, _Verify):
             if hdu.data is not None:
                 continue
 
-    def flush(self, output_verify='exception', verbose=False):
+    def flush(self, output_verify='fix', verbose=False):
         """
         Force a write of the `HDUList` back to the file (for append and
         update modes only).
@@ -528,7 +528,8 @@ class HDUList(list, _Verify):
             When `True`, print verbose messages
         """
 
-        # Get the name of the current thread and determine if this is a single treaded application
+        # Get the name of the current thread and determine if this is a single
+        # treaded application
         curr_thread = threading.currentThread()
         single_thread = (threading.activeCount() == 1) and \
                         (curr_thread.getName() == 'MainThread')

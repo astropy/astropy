@@ -310,6 +310,8 @@ class ColDefs(object):
 
         if isinstance(input, ColDefs):
             self.columns = [col.copy() for col in input.columns]
+            # Prevent duplicating any additional work in the __init__
+            return
 
         # if the input is a list of Columns
         elif isinstance(input, (list, tuple)):
