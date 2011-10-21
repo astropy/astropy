@@ -19,4 +19,3 @@ def test_skip_remote_data(pytestconfig):
     # astropy.test() has remote_data=True, so pass
     elif getattr(pytestconfig.option, 'remotedata'):
         assert True
-    
