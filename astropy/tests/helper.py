@@ -33,14 +33,14 @@ except ImportError:
 
 def run_tests(module=None, args=None, plugins=None, verbose=False, pastebin=None):
     """
-    Run AstroPy tests using py.test. A proper set of arguments is constructed
+    Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
     
     Parameters
     ----------
     module : str, optional
         The name of a specific module to test, e.g. 'io.fits' or 'utils'.
-        If nothing is specified all default AstroPy tests are run.
+        If nothing is specified all default Astropy tests are run.
         
     args : str, optional
         Additional arguments to be passed to `pytest.main` in the `args`

@@ -3,7 +3,7 @@ from __future__ import division
 from distutils import log
 
 """
-Utilities for generating the version string for AstroPy and the version.py
+Utilities for generating the version string for Astropy and the version.py
 module, which contains version info for the package.
 
 Within the generated astropy.version module, the `major`, `minor`, and `bugfix`
@@ -99,7 +99,7 @@ release = {rel}
 
 
 if pkg_resources:
-    dist = pkg_resources.get_distribution('AstroPy')
+    dist = pkg_resources.get_distribution('astropy')
     if dist.precedence == pkg_resources.DEVELOP_DIST:
         from astropy.version_helper import _get_git_devstr
         if '-r' in version:
