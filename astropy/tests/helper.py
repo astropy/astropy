@@ -3,6 +3,7 @@ import base64
 import zlib
 import functools
 import os.path
+import subprocess
 
 from distutils.core import Command
 
@@ -89,7 +90,8 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     if module is None:
         module_path = astropy_path[0]
     else:
-        module_path = os.path.join(astropy_path[0],module.replace('.',os.path.sep))
+        module_path = os.path.join(astropy_path[0],
+                                   module.replace('.', os.path.sep))
 
         if not os.path.isdir(module_path):
             raise ValueError('Module not found: {0}'.format(module))
@@ -149,10 +151,15 @@ class astropy_test(Command):
         pass
 
     def run(self):
-        errno = run_tests(self.module, self.args, self.plugins,
-                          self.verbose_results, self.pastebin)
-        raise SystemExit(errno)
->>>>>>> Adds a 'test' command to the setup.py (distribute comes with a test command but it doesn't work with py.test, so this replaces it outright).  This also supports all the existing options to astropy.test() such as module and verbose.
+        self.reinitialize_command('build_ext', inplace=True)
+        self.run_command('build_ext')
+        # Run the tests in a subprocess--this is necessary since new extension
+        # modules may have appeared, and this is the easiest way to set up a
+        # new environment
+        cmd = 'import astropy; astropy.test({0!r}, {0!r}, {0!r}, {0!r}, {0!r})'
+        cmd = cmd.format(self.module, self.args, self.plugins,
+                         self.verbose_results, self.pastebin)
+        raise SystemExit(subprocess.call([sys.executable, '-c', cmd]))
 
 
 class raises:
