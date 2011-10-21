@@ -405,8 +405,8 @@ The sections of the docstring are:
 Documenting classes
 ^^^^^^^^^^^^^^^^^^^
 
-Class docstring
-```````````````
+Class docstrings
+````````````````
 
 Use the same sections as outlined above (all except ``Returns`` are
 applicable). The constructor (``__init__``) should also be documented here,

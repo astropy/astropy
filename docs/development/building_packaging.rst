@@ -1,5 +1,5 @@
 ==========================================
-Building, packaging and distribution guide
+Building, Packaging and Distribution Guide
 ==========================================
 
 There is a central `setup.py`.  It defines which Python packages to
