@@ -62,7 +62,7 @@ def test_maps():
             "test_maps has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
                 len(hdr_file_list), n_data_files, ROOT_DIR))
-        # b.t.w.  If this assert happens, nose reports one more test
+        # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
 
 
@@ -107,5 +107,5 @@ def test_spectra():
             "test_spectra has wrong number data files: found %d, expected "
             " %d, looking in %s" % (
                 len(hdr_file_list), n_data_files, ROOT_DIR))
-        # b.t.w.  If this assert happens, nose reports one more test
+        # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
