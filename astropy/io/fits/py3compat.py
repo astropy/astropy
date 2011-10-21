@@ -145,7 +145,7 @@ if sys.version_info[0] >= 3:
     # #1766 bug
     old_File = file._File
     class _File(old_File):
-        def readarray(self, size=None, offset=None, dtype=numpy.uint8,
+        def readarray(self, size=None, offset=0, dtype=numpy.uint8,
                       shape=None):
             if isinstance(dtype, numpy.dtype):
                 dtype = _fix_dtype(dtype)

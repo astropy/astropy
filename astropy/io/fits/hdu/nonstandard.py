@@ -23,8 +23,7 @@ class FitsHDU(NonstandardExtHDU):
 
     @lazyproperty
     def data(self):
-        self._file.seek(self._datLoc)
-        return self._file.readarray(self.size)
+        return self._file.readarray(self.size, offset=self._datLoc)
 
     @lazyproperty
     def hdulist(self):

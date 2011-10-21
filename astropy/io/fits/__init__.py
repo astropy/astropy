@@ -54,9 +54,9 @@ if not __ASTROPY_SETUP__:
 
 # TODO: Hook these options into the config system
 try:
-    USE_MEMMAP = bool(int(os.environ.get('ASTROPY_FITS_USE_MEMMAP', 0)))
+    USE_MEMMAP = bool(int(os.environ.get('ASTROPY_FITS_USE_MEMMAP', 1)))
 except ValueError:
-    USE_MEMMAP = False
+    USE_MEMMAP = True
 
 # Support case sensitive values for the value of a EXTNAME card in an extension
 # header.  By default, Astropy converts the value of EXTNAME cards to upper
