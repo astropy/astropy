@@ -11,7 +11,7 @@ import unittest
 import inspect
 import pickle
 import copy
-import pytest
+from ...tests.helper import pytest
 from random import shuffle
 
 import astropy.utils.tests.odict_mapping as mapping_tests
