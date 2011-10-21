@@ -156,7 +156,7 @@ class astropy_test(Command):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = 'import astropy; astropy.test({0!r}, {0!r}, {0!r}, {0!r}, {0!r})'
+        cmd = 'import astropy; astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r})'
         cmd = cmd.format(self.module, self.args, self.plugins,
                          self.verbose_results, self.pastebin)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd]))
