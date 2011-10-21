@@ -37,7 +37,16 @@ Astropy.
   column definition file (#14)
 
 
-3.0.3 (unreleased)
+3.0.4 (unreleased)
+------------------
+
+- Fixed a crash when writing HCOMPRESS compressed images that could happen on
+  Python 2.5 and 2.6.
+
+- GZIP/ZIP-compressed FITS files can be detected and opened regardless of
+  their filename extension (#99)
+
+3.0.3 (2011-10-05)
 ------------------
 
 - Fixed several small bugs involving corner cases in record-valued keyword

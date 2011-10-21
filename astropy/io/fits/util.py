@@ -195,7 +195,7 @@ def deprecated(message='', name='', alternative='', pending=False):
                     _message += '  Use %(alternative)s instead.'
 
             if pending:
-                category = DeprecationPendingWarning
+                category = PendingDeprecationWarning
             else:
                 category = DeprecationWarning
 

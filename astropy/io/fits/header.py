@@ -565,19 +565,40 @@ class Header(collections.MutableMapping):
         card (or blank card), append at the end.
         """
 
-        new_card = Card(key, value)
+        # The maximum value in each card can be the maximum card length minus
+        # the key length minus a space (or just minus one if the key is blank)
+        maxlen = Card.length - len(key.strip()) - 1
+
+        if len(value) <= maxlen:
+            # The value can fit in a single card
+            new_cards = [Card(key, value)]
+        else:
+            # The value must be split across multiple consecutive commentary
+            # cards
+            idx = 0
+            new_cards = []
+            while idx < len(value):
+                new_cards.append(Card(key, value[idx:idx + maxlen]))
+                idx += maxlen
+
         if before is not None or after is not None:
-            self.ascard._pos_insert(new_card, before=before, after=after)
+            if after:
+                new_cards = reversed(new_cards)
+            for card in new_cards:
+                self.ascard._pos_insert(card, before=before, after=after)
         else:
             if key[0] == ' ':
-                useblanks = new_card.cardimage != ' '*80
-                self.ascard.append(new_card, useblanks=useblanks, bottom=1)
+                for card in new_cards:
+                    useblanks = card.cardimage != (' ' * 80)
+                    self.ascard.append(card, useblanks=useblanks, bottom=True)
             else:
                 try:
-                    _last = self.ascard.index_of(key, backward=1)
-                    self.ascard.insert(_last+1, new_card)
+                    last = self.ascard.index_of(key, backward=True)
+                    for card in reversed(new_cards):
+                        self.ascard.insert(last + 1, card)
                 except:
-                    self.ascard.append(new_card, bottom=1)
+                    for card in new_cards:
+                        self.ascard.append(card, bottom=True)
 
         self._mod = True
 
