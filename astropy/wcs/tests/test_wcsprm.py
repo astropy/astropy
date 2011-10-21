@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import sys
 
-from nose.tools import raises
+from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
 import numpy as np
 
