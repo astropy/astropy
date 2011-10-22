@@ -141,7 +141,7 @@ def _generate_version_py(version, release):
     if current_version != version:
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
-        log.info('Freezing version number to {0},{1}'.format(version_py,sys.argv))
+        log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:  # This overwrites the actual version.py
             f.write(_get_version_py_str(version, release))
