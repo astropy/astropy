@@ -215,12 +215,12 @@ def dict_soft_update(d, u):
 stc_reference_frames = set([
     'FK4', 'FK5', 'ECLIPTIC', 'ICRS', 'GALACTIC', 'GALACTIC_I', 'GALACTIC_II',
     'SUPER_GALACTIC', 'AZ_EL', 'BODY', 'GEO_C', 'GEO_D', 'MAG', 'GSE', 'GSM',
-    'SM', 'HGC', 'HGS', 'HEEQ', 'HRTN', 'HPC', 'HPR', 'HCC', 'HGI', 'MERCURY_C',
-    'VENUS_C', 'LUNA_C', 'MARS_C', 'JUPITER_C_III', 'SATURN_C_III',
-    'URANUS_C_III', 'NEPTUNE_C_III', 'PLUTO_C', 'MERCURY_G', 'VENUS_G',
-    'LUNA_G', 'MARS_G', 'JUPITER_G_III', 'SATURN_G_III', 'URANUS_G_III',
-    'NEPTUNE_G_III', 'PLUTO_G', 'UNKNOWNFrame'
-    ])
+    'SM', 'HGC', 'HGS', 'HEEQ', 'HRTN', 'HPC', 'HPR', 'HCC', 'HGI',
+    'MERCURY_C', 'VENUS_C', 'LUNA_C', 'MARS_C', 'JUPITER_C_III',
+    'SATURN_C_III', 'URANUS_C_III', 'NEPTUNE_C_III', 'PLUTO_C', 'MERCURY_G',
+    'VENUS_G', 'LUNA_G', 'MARS_G', 'JUPITER_G_III', 'SATURN_G_III',
+    'URANUS_G_III', 'NEPTUNE_G_III', 'PLUTO_G', 'UNKNOWNFrame'])
+
 
 def coerce_range_list_param(p, frames=None, numeric=True):
     """
@@ -282,7 +282,8 @@ def coerce_range_list_param(p, frames=None, numeric=True):
         length = len(points)
         if has_frame_of_reference:
             if frames is not None and p[-1] not in frames:
-                raise ValueError("'%s' is not a valid frame of reference" % p[-1])
+                raise ValueError(
+                    "'%s' is not a valid frame of reference" % p[-1])
             out += ';' + p[-1]
             length += 1
 
@@ -352,8 +353,7 @@ def color_print(color, s, bold=False, italic=False, stream=sys.stdout,
         'lightblue': '1;34',
         'lightmagenta': '1;35',
         'lightcyan': '1;36',
-        'white': '1;37'
-        }
+        'white': '1;37'}
 
     color_code = color_mapping.get(color, '0;39')
 

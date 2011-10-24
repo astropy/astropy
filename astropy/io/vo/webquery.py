@@ -44,6 +44,7 @@ import urllib2
 
 URLLIB2_HAS_TIMEOUT = (sys.hexversion >= 0x02060000)
 
+
 def webquery_open(args=(), **kw):
     """
     Return a read-only file descriptor to read the results of a web
@@ -61,7 +62,7 @@ def webquery_open(args=(), **kw):
 
     args = list(args)
     for key, value in kw.iteritems():
-        args.append((key,value))
+        args.append((key, value))
     port = 80
     method = "POST"
     url = ""
@@ -81,7 +82,7 @@ def webquery_open(args=(), **kw):
             timeout = value
         elif value is None:
             query.append(urllib.quote(key))
-        elif isinstance(value,list):
+        elif isinstance(value, list):
             qkey = urllib.quote(key)
             for v in value:
                 query.append('%s=%s' % (qkey, urllib.quote_plus(str(v))))

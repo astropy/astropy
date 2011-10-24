@@ -41,8 +41,8 @@ _doc_snippets = {
     information.""",
 
     'catalog_db' :
-    """*catalog_db* may be one of the following, in order from easiest to
-    use to most control:
+    """*catalog_db* may be one of the following, in order from easiest
+    to use to most control:
 
       - `None`: A database of conesearch catalogs is downloaded from
         STScI.  The first catalog in the database to successfully
@@ -60,8 +60,8 @@ _doc_snippets = {
         APIs in the :mod:`vos_catalog` module.
 
       - Any of the above 3 options combined in a list, in which case
-        they are tried in order."""
-}
+        they are tried in order."""}
+
 
 class VOSCatalog:
     def __init__(self, tree):
@@ -69,6 +69,7 @@ class VOSCatalog:
 
     def get_url(self):
         return self._tree['url']
+
 
 class VOSDatabase:
     def __init__(self, tree):
@@ -93,6 +94,7 @@ class VOSDatabase:
     def list_catalogs(self):
         return self._catalogs.keys()
 
+
 def get_remote_catalog_db(dbname, cache_instance=db_cache):
     """
     Get a database of VO services (which is a JSON file) from a remote
@@ -109,6 +111,7 @@ def get_remote_catalog_db(dbname, cache_instance=db_cache):
         fd.close()
 
     return VOSDatabase(tree)
+
 
 def _vo_service_request(url, pedantic, kwargs):
     req = webquery.webget_open(url, **kwargs)
@@ -139,6 +142,7 @@ def _vo_service_request(url, pedantic, kwargs):
         break
 
     return tab.get_first_table()
+
 
 def call_vo_service(service_type, catalog_db=None, pedantic=False,
                     verbose=True, kwargs={}):
@@ -171,7 +175,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=False,
         catalogs = catalog_db.get_catalogs()
     else:
         raise TypeError(
-            "catalog_db must be a catalog database, a list of catalogs, or a catalog")
+            "catalog_db must be a catalog database, a list of catalogs, "
+            "or a catalog")
 
     # # Perform a random ordering of the catalogs -- this is just a dumb
     # # heuristic for now.
@@ -198,6 +203,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=False,
 
     raise IOError("None of the available catalogs returned valid results.")
 call_vo_service.__doc__ = call_vo_service.__doc__ % _doc_snippets
+
 
 def list_catalogs(service_type):
     """

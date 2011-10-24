@@ -8,6 +8,7 @@ from __future__ import with_statement, absolute_import
 import os
 import re
 
+
 class UCDWords:
     """
     A class to manage the list of acceptable UCD words.  Works by
@@ -119,16 +120,16 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
                 if not _ucd_singleton.is_primary(word):
                     if _ucd_singleton.is_secondary(word):
                         raise ValueError(
-                            "Secondary word '%s' is not valid as a primary word" %
-                            word)
+                            "Secondary word '%s' is not valid as a primary "
+                            "word" % word)
                     else:
                         raise ValueError("Unknown word '%s'" % word)
             else:
                 if not _ucd_singleton.is_secondary(word):
                     if _ucd_singleton.is_primary(word):
                         raise ValueError(
-                            "Primary word '%s' is not valid as a secondary word" %
-                            word)
+                            "Primary word '%s' is not valid as a secondary "
+                            "word" % word)
                     else:
                         raise ValueError("Unknown word '%s'" % word)
 
@@ -156,4 +157,3 @@ def check_ucd(ucd, check_controlled_vocabulary=False):
     except ValueError as e:
         return False
     return True
-

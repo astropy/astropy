@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Produced with vo.table version 0.7.2
-     http://www.stsci.edu/trac/ssb/astrolib
-     Author: Michael Droettboom <support@stsci.edu> -->
+<!-- Produced with astropy.io.vo version 0.0dev-r109
+     http://www.astropy.org/ -->
 <VOTABLE version="1.1" xmlns="http://www.ivoa.net/xml/VOTable/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.1">
  <DESCRIPTION>
   The VOTable format is an XML standard for the interchange of data

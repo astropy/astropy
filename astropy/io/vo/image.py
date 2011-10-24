@@ -20,6 +20,7 @@ from . import util
 from . import vos_catalog
 from . import webquery
 
+
 def query(catalog_db=None, pedantic=False, pos=None, size=None,
           intersect=None, naxis=None, cframe=None, equinox=None,
           crpix=None, crval=None, cdelt=None, rotang=None, proj=None,
@@ -286,8 +287,7 @@ def query(catalog_db=None, pedantic=False, pos=None, size=None,
             'ROTANG'    : rotang,
             'PROJ'      : proj,
             'FORMAT'    : format,
-            'VERB'      : verb
-            })
+            'VERB'      : verb})
 
     return vos_catalog.call_vo_service(
         'image', catalog_db=catalog_db, pedantic=pedantic, kwargs=args)

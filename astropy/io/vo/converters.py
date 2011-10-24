@@ -432,8 +432,10 @@ class NumericArray(Array):
             value, mask = base_parse(x, config, pos)
             result.append(value)
             result_mask.append(mask)
-        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
-        result_mask = np.array(result_mask, dtype='bool').reshape(self._arraysize)
+        result = np.array(result, dtype=self._base.format).reshape(
+            self._arraysize)
+        result_mask = np.array(result_mask, dtype='bool').reshape(
+            self._arraysize)
         return result, result_mask
 
     def output(self, value, mask):
@@ -691,7 +693,7 @@ class ComplexArrayVarArray(VarArray):
         result = []
         result_mask = []
         for i in xrange(0, len(parts), items):
-            value, mask = parse_parts(parts[i:i+items], config, pos)
+            value, mask = parse_parts(parts[i:i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
         return np.array(result), np.array(result_mask, dtype='bool')
@@ -713,7 +715,7 @@ class ComplexVarArray(VarArray):
         result = []
         result_mask = []
         for i in xrange(0, len(parts), 2):
-            value, mask = parse_parts(parts[i:i+1], config, pos)
+            value, mask = parse_parts(parts[i:i + 1], config, pos)
             result.append(value)
             result_mask.append(mask)
         return (np.array(result, dtype=self._base.format),
@@ -743,7 +745,7 @@ class ComplexArray(NumericArray):
         result = []
         result_mask = []
         for i in xrange(0, self._items, 2):
-            value, mask = base_parse(parts[i:i+1], config, pos)
+            value, mask = base_parse(parts[i:i + 1], config, pos)
             result.append(value)
             result_mask.append(mask)
         result = np.array(
@@ -945,8 +947,10 @@ class BooleanArray(NumericArray):
             value, mask = binparse(char)
             result.append(value)
             result_mask.append(mask)
-        result = np.array(result, dtype='b1').reshape(self._arraysize)
-        result_mask = np.array(result_mask, dtype='b1').reshape(self._arraysize)
+        result = np.array(result, dtype='b1').reshape(
+            self._arraysize)
+        result_mask = np.array(result_mask, dtype='b1').reshape(
+            self._arraysize)
         return result, result_mask
 
     def binoutput(self, value, mask):
@@ -976,16 +980,16 @@ class Boolean(Converter):
     def parse(self, value, config={}, pos=None):
         if value is False:
             return False, True
-        mapping = {'TRUE' : (True, False),
-                   'FALSE': (False, False),
-                   '1'    : (True, False),
-                   '0'    : (False, False),
-                   'T'    : (True, False),
-                   'F'    : (False, False),
-                   '\0'   : (False, True),
-                   ' '    : (False, True),
-                   '?'    : (False, True),
-                   ''     : (False, True)}
+        mapping = {'TRUE'  : (True, False),
+                   'FALSE' : (False, False),
+                   '1'     : (True, False),
+                   '0'     : (False, False),
+                   'T'     : (True, False),
+                   'F'     : (False, False),
+                   '\0'    : (False, True),
+                   ' '     : (False, True),
+                   '?'     : (False, True),
+                   ''      : (False, True)}
         try:
             return mapping[value.upper()]
         except KeyError:
@@ -1003,15 +1007,16 @@ class Boolean(Converter):
         return self.binparse_value(value)
 
     _binparse_mapping = {
-        ord('T'): (True, False),
-        ord('t'): (True, False),
-        ord('1'): (True, False),
-        ord('F'): (False, False),
-        ord('f'): (False, False),
-        ord('0'): (False, False),
-        ord('\0'): (False, True),
-        ord(' '): (False, True),
-        ord('?'): (False, True)}
+        ord('T')  : (True, False),
+        ord('t')  : (True, False),
+        ord('1')  : (True, False),
+        ord('F')  : (False, False),
+        ord('f')  : (False, False),
+        ord('0')  : (False, False),
+        ord('\0') : (False, True),
+        ord(' ')  : (False, True),
+        ord('?')  : (False, True)}
+
     def binparse_value(self, value):
         try:
             return self._binparse_mapping[value]

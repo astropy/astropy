@@ -29,8 +29,10 @@ from . import voexceptions
 from .voexceptions import vo_warn, W23
 from . import webquery
 
+
 def parse_http_date(date):
     pass
+
 
 class Cache:
     def __init__(self, local_root, remote_root, cache_delta=None,
@@ -122,7 +124,8 @@ class Cache:
                 os.removedirs(lock_dir)
             else:
                 raise RuntimeError(
-                    "Error releasing lock. '%s' either does not exist or is not a directory." %
+                    ("Error releasing lock. '%s' either does not exist or is " +
+                     "not a directory.") %
                     lock_dir)
 
     def get_cache_file_path(self, filename):
@@ -168,7 +171,8 @@ class Cache:
         cache_file = self.get_cache_file_path(filename)
         dirname, fname = os.path.split(cache_file)
         candidate_files = []
-        regex = re.compile(u"^" + fname + ur"~\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d$")
+        regex = re.compile(
+            u"^" + fname + ur"~\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d$")
         for existing_file in os.listdir(dirname):
             if regex.match(existing_file):
                 existing_file_path = os.path.join(dirname, existing_file)
@@ -197,7 +201,8 @@ class Cache:
 
             if os.path.exists(cache_file):
                 # Create the new backup
-                date = datetime.datetime.fromtimestamp(os.stat(cache_file).st_ctime)
+                date = datetime.datetime.fromtimestamp(
+                    os.stat(cache_file).st_ctime)
                 backup_file = cache_file + "~" + date.isoformat()
                 os.rename(cache_file, backup_file)
         finally:
@@ -301,4 +306,3 @@ class Cache:
                     raise e
 
         return self.get_cache_content(filename)
-

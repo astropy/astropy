@@ -22,6 +22,7 @@ from . import webquery
 
 # TODO: Support verification of named bands
 
+
 def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
                band=None, **kwargs):
     """
@@ -121,11 +122,10 @@ def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
     util.dict_soft_update(args, kwargs)
     util.dict_soft_update(
         args, {
-            'POS': pos,
-            'SIZE': size,
-            'TIME': time,
-            'BAND': band
-            })
+            'POS'  : pos,
+            'SIZE' : size,
+            'TIME' : time,
+            'BAND' : band})
 
     return vos_catalog.call_vo_service(
         'ssa', catalog_db=catalog_db, pedantic=pedantic, kwargs=args)

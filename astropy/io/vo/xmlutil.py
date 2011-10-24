@@ -35,7 +35,7 @@ def xml_escape(s):
     return s
 
 
-def fast_iterparse(fd, buffersize = 2 ** 10):
+def fast_iterparse(fd, buffersize=2 ** 10):
     """
     Based on :class:`cElementTree.iterparse`, but doesn't ever build a
     tree at all.  This makes things much faster and more memory
@@ -68,6 +68,7 @@ def fast_iterparse(fd, buffersize = 2 ** 10):
 
     queue = []
     text = []
+
     def start(name, attr):
         queue.append((True, name, attr,
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
@@ -150,7 +151,8 @@ def check_id(ID, name='ID', config={}, pos=None):
     valid XML ID_.  *name* is the name of the attribute being checked
     (used only for error messages).
     """
-    if ID is not None and re.match(r"^[A-Za-z_][A-Za-z0-9_\.\-]*$", ID) is None:
+    if (ID is not None and
+        re.match(r"^[A-Za-z_][A-Za-z0-9_\.\-]*$", ID) is None):
         warn_or_raise(W02, W02, (name, ID), config, pos)
         return False
     return True
@@ -178,6 +180,8 @@ def fix_id(ID, config={}, pos=None):
 
 
 _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
+
+
 def check_token(token, attr_name, config={}, pos=None):
     """
     Raises a :exc:`ValueError` if *token* is not a valid XML token, as
@@ -234,7 +238,7 @@ class XMLWriter:
         self.write = file.write
         if hasattr(file, "flush"):
             self.flush = file.flush
-        self._open = 0 # true if start tag is open
+        self._open = 0  # true if start tag is open
         self._tags = []
         self._data = []
         self._indentation = u" " * 64
@@ -382,7 +386,7 @@ class XMLWriter:
         self.end(indent=False, wrap=wrap)
 
     def flush(self):
-        pass # replaced by the constructor
+        pass  # replaced by the constructor
 
     def get_indentation(self):
         """
@@ -396,7 +400,7 @@ class XMLWriter:
         Returns a string of spaces that matches the current
         indentation level.
         """
-        return self._indentation[:len(self._tags)+offset]
+        return self._indentation[:len(self._tags) + offset]
 
 
 def validate_schema(filename, version='1.2'):

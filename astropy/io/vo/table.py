@@ -10,6 +10,7 @@ from . import tree
 from . import util
 from . import xmlutil
 
+
 def parse(source, columns=None, invalid='exception', pedantic=True,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
           filename=None,
@@ -55,13 +56,12 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
     assert invalid in ('exception', 'mask')
 
     config = {
-        'columns':      columns,
-        'invalid':      invalid,
-        'pedantic':     pedantic,
-        'chunk_size':   chunk_size,
-        'table_number': table_number,
-        'filename':     filename
-        }
+        'columns'      :      columns,
+        'invalid'      :      invalid,
+        'pedantic'     :     pedantic,
+        'chunk_size'   :   chunk_size,
+        'table_number' : table_number,
+        'filename'     :     filename}
 
     if filename is None and isinstance(source, basestring):
         config['filename'] = source

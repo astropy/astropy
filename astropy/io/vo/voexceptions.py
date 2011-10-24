@@ -15,11 +15,13 @@ from .util import IS_PY3K
 
 MAX_WARNINGS = 10
 
+
 def _format_message(message, name, config={}, pos=None):
     if pos is None:
         pos = ('?', '?')
     filename = config.get('filename', '?')
     return '%s:%s:%s: %s: %s' % (filename, pos[0], pos[1], name, message)
+
 
 def _suppressed_warning(warning, config):
     warning_class = type(warning)
@@ -28,10 +30,13 @@ def _suppressed_warning(warning, config):
     message_count = config['_warning_counts'][warning_class]
     if message_count <= MAX_WARNINGS:
         if message_count == MAX_WARNINGS:
-            warning.formatted_message += ' (suppressing further warnings of this type...)'
+            warning.formatted_message += \
+                ' (suppressing further warnings of this type...)'
         warn(str(warning))
 
-def warn_or_raise(warning_class, exception_class=None, args=(), config={}, pos=None):
+
+def warn_or_raise(warning_class, exception_class=None, args=(), config={},
+                  pos=None):
     """
     Warn or raise an exception, depending on the pedantic setting.
     """
@@ -42,11 +47,13 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config={}, pos=N
     else:
         vo_warn(warning_class, args, config, pos)
 
+
 def vo_raise(exception_class, args=(), config={}, pos=None):
     """
     Raise an exception, with proper position information if available.
     """
     raise exception_class(args, config, pos)
+
 
 def vo_reraise(exc, config={}, pos=None, additional=''):
     """
@@ -61,7 +68,8 @@ def vo_reraise(exc, config={}, pos=None, additional=''):
     if len(additional):
         message += ' ' + additional
     exc.args = (message,)
-    raise exc, None, sys.exc_info()[2]
+    raise exc.with_traceback(sys.exc_info()[2])
+
 
 def vo_warn(warning_class, args=(), config={}, pos=None):
     """
@@ -70,13 +78,15 @@ def vo_warn(warning_class, args=(), config={}, pos=None):
     warning = warning_class(args, config, pos)
     _suppressed_warning(warning, config)
 
+
 def warn_unknown_attrs(element, attrs, config, pos, good_attr=[]):
     for attr in attrs:
         if attr not in good_attr:
             vo_warn(W48, (attr, element), config, pos)
 
+
 warning_pat = re.compile(
-        r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): ((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
+    r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): ((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
 def parse_vowarning(line):
     """
     Parses the vo warning string back into its parts.
@@ -112,6 +122,7 @@ def parse_vowarning(line):
 
     return result
 
+
 class VOWarning(object):
     """
     The base class of all VO warnings and exceptions.  Handles the
@@ -134,11 +145,13 @@ class VOWarning(object):
             return cls.message % cls.default_args
         return cls.message
 
+
 class VOTableChangeWarning(VOWarning, SyntaxWarning):
     """
     Warning emitted when a change has been made to the input XML file.
     """
     pass
+
 
 class VOTableSpecWarning(VOWarning, SyntaxWarning):
     """
@@ -147,11 +160,13 @@ class VOTableSpecWarning(VOWarning, SyntaxWarning):
     """
     pass
 
+
 class UnimplementedWarning(VOWarning, SyntaxWarning):
     """
     Warning emitted when the a feature of VOTABLE is not implemented.
     """
     pass
+
 
 class IOWarning(VOWarning, RuntimeWarning):
     """
@@ -161,12 +176,14 @@ class IOWarning(VOWarning, RuntimeWarning):
     """
     pass
 
+
 class VOTableSpecError(VOWarning, ValueError):
     """
     Error raised when the input XML file violates the spec and there
     is no good workaround.
     """
     pass
+
 
 class W01(VOTableSpecWarning):
     """
@@ -189,6 +206,7 @@ class W01(VOTableSpecWarning):
     """
 
     message = "Array uses commas rather than whitespace"
+
 
 class W02(VOTableSpecWarning):
     """
@@ -217,6 +235,7 @@ class W02(VOTableSpecWarning):
 
     message = "%s attribute '%s' is invalid.  Must be a standard XML id"
     default_args = ('x', 'y')
+
 
 class W03(VOTableChangeWarning):
     """
@@ -270,6 +289,7 @@ class W03(VOTableChangeWarning):
     message = "Implictly generating an ID from a name '%s' -> '%s'"
     default_args = ('x', 'y')
 
+
 class W04(VOTableSpecWarning):
     """
     The ``content-type`` attribute must use MIME content-type syntax as
@@ -286,6 +306,7 @@ class W04(VOTableSpecWarning):
     message = "content-type '%s' must be a valid MIME content type"
     default_args = ('x',)
 
+
 class W05(VOTableSpecWarning):
     """
     The attribute must be a valid URI as defined in `RFC 2396
@@ -294,6 +315,7 @@ class W05(VOTableSpecWarning):
 
     message = "'%s' is not a valid URI"
     default_args = ('x',)
+
 
 class W06(VOTableSpecWarning):
     """
@@ -314,6 +336,7 @@ class W06(VOTableSpecWarning):
     message = "Invalid UCD '%s': %s"
     default_args = ('x', 'explanation')
 
+
 class W07(VOTableSpecWarning):
     """
     As astro year field is a Besselian or Julian year matching the
@@ -333,6 +356,7 @@ class W07(VOTableSpecWarning):
     message = "Invalid astroYear in %s: '%s'"
     default_args = ('x', 'y')
 
+
 class W08(VOTableSpecWarning):
     """
     To avoid local-dependent number parsing differences, ``vo.table``
@@ -345,6 +369,7 @@ class W08(VOTableSpecWarning):
     else:
         message = "'%s' must be a str or unicode object"
     default_args = ('x',)
+
 
 class W09(VOTableSpecWarning):
     """
@@ -361,6 +386,7 @@ class W09(VOTableSpecWarning):
     """
 
     message = "ID attribute not capitalized"
+
 
 class W10(VOTableSpecWarning):
     """
@@ -379,6 +405,7 @@ class W10(VOTableSpecWarning):
 
     message = "Unknown tag '%s'.  Ignoring"
     default_args = ('x',)
+
 
 class W11(VOTableSpecWarning):
     """
@@ -399,6 +426,7 @@ class W11(VOTableSpecWarning):
 
     message = "The gref attribute on LINK is deprecated in VOTable 1.1"
 
+
 class W12(VOTableChangeWarning):
     """
     In order to name the columns of the Numpy record array, each
@@ -416,6 +444,7 @@ class W12(VOTableChangeWarning):
 
     message = "'%s' element must have at least one of 'ID' or 'name' attributes"
     default_args = ('x',)
+
 
 class W13(VOTableSpecWarning):
     """
@@ -439,7 +468,9 @@ class W13(VOTableSpecWarning):
     message = "'%s' is not a valid VOTable datatype, should be '%s'"
     default_args = ('x', 'y')
 
+
 # W14: Deprecated
+
 
 class W15(VOTableSpecWarning):
     """
@@ -460,6 +491,7 @@ class W15(VOTableSpecWarning):
 
 # W16: Deprecated
 
+
 class W17(VOTableSpecWarning):
     """
     A ``DESCRIPTION`` element can only appear once within its parent
@@ -478,6 +510,7 @@ class W17(VOTableSpecWarning):
     message = "%s element contains more than one DESCRIPTION element"
     default_args = ('x',)
 
+
 class W18(VOTableSpecWarning):
     """
     The number of rows explicitly specified in the ``nrows`` attribute
@@ -495,6 +528,7 @@ class W18(VOTableSpecWarning):
     message = 'TABLE specified nrows=%s, but table contains %s rows'
     default_args = ('x', 'y')
 
+
 class W19(VOTableSpecWarning):
     """
     The column fields as defined using ``FIELD`` elements do not match
@@ -503,6 +537,7 @@ class W19(VOTableSpecWarning):
     """
 
     message = 'The fields defined in the VOTable do not match those in the embedded FITS file'
+
 
 class W20(VOTableSpecWarning):
     """
@@ -513,6 +548,7 @@ class W20(VOTableSpecWarning):
     message = 'No version number specified in file.  Assuming %s'
     default_args = ('1.1',)
 
+
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``vo.table`` with VOTable files
@@ -521,6 +557,7 @@ class W21(UnimplementedWarning):
 
     message = 'vo.table is designed for VOTable version 1.1 and 1.2, but this file is %s'
     default_args = ('x',)
+
 
 class W22(VOTableSpecWarning):
     """
@@ -536,6 +573,7 @@ class W22(VOTableSpecWarning):
 
     message = 'The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring'
 
+
 class W23(IOWarning):
     """
     Raised when the VO service database can not be updated (possibly
@@ -547,6 +585,7 @@ class W23(IOWarning):
     message = "Unable to update service information for '%s'"
     default_args = ('x',)
 
+
 class W24(VOWarning, FutureWarning):
     """
     The VO catalog database retrieved from the www is designed for a
@@ -556,6 +595,7 @@ class W24(VOWarning, FutureWarning):
     """
 
     message = "The VO catalog database is for a later version of vo.table"
+
 
 class W25(IOWarning):
     """
@@ -567,6 +607,7 @@ class W25(IOWarning):
     message = "'%s' failed with: %s"
     default_args = ('service', '...')
 
+
 class W26(VOTableSpecWarning):
     """
     The given element was not supported inside of the given element
@@ -577,6 +618,7 @@ class W26(VOTableSpecWarning):
 
     message = "'%s' inside '%s' added in VOTable %s"
     default_args = ('child', 'parent', 'X.X')
+
 
 class W27(VOTableSpecWarning):
     """
@@ -590,6 +632,7 @@ class W27(VOTableSpecWarning):
 
     message = "COOSYS deprecated in VOTable 1.2"
 
+
 class W28(VOTableSpecWarning):
     """
     The given attribute was not supported on the given element until the
@@ -600,6 +643,7 @@ class W28(VOTableSpecWarning):
 
     message = "'%s' on '%s' added in VOTable %s"
     default_args = ('attribute', 'element', 'X.X')
+
 
 class W29(VOTableSpecWarning):
     """
@@ -614,6 +658,7 @@ class W29(VOTableSpecWarning):
 
     message = "Version specified in non-standard form '%s'"
     default_args = ('v1.0',)
+
 
 class W30(VOTableSpecWarning):
     """
@@ -630,6 +675,7 @@ class W30(VOTableSpecWarning):
     message = "Invalid literal for float '%s'.  Treating as empty."
     default_args = ('x',)
 
+
 class W31(VOTableSpecWarning):
     """
     Since NaN's can not be represented in integer fields directly, a null
@@ -643,6 +689,7 @@ class W31(VOTableSpecWarning):
     """
 
     message = "NaN given in an integral field without a specified null value"
+
 
 class W32(VOTableSpecWarning):
     """
@@ -668,6 +715,7 @@ class W32(VOTableSpecWarning):
     message = "Duplicate ID '%s' renamed to '%s' to ensure uniqueness"
     default_args = ('x', 'x_2')
 
+
 class W33(VOTableChangeWarning):
     """
     Each field in a table must have a unique name.  If two or more
@@ -683,6 +731,7 @@ class W33(VOTableChangeWarning):
     message = "Column name '%s' renamed to '%s' to ensure uniqueness"
     default_args = ('x', 'x_2')
 
+
 class W34(VOTableSpecWarning):
     """
     The attribute requires the value to be a valid XML token, as
@@ -692,6 +741,7 @@ class W34(VOTableSpecWarning):
 
     message = "'%s' is an invalid token for attribute '%s'"
     default_args = ('x', 'y')
+
 
 class W35(VOTableSpecWarning):
     """
@@ -707,6 +757,7 @@ class W35(VOTableSpecWarning):
     message = "'%s' attribute required for INFO elements"
     default_args = ('x',)
 
+
 class W36(VOTableSpecWarning):
     """
     If the field specifies a ``null`` value, that value must conform
@@ -720,6 +771,7 @@ class W36(VOTableSpecWarning):
 
     message = "null value '%s' does not match field datatype, setting to 0"
     default_args = ('x',)
+
 
 class W37(UnimplementedWarning):
     """
@@ -735,6 +787,7 @@ class W37(UnimplementedWarning):
     message = "Unsupported data format '%s'"
     default_args = ('x',)
 
+
 class W38(VOTableSpecWarning):
     """
     The only encoding for local binary data supported by the VOTable
@@ -743,6 +796,7 @@ class W38(VOTableSpecWarning):
 
     message = "Inline binary data must be base64 encoded, got '%s'"
     default_args = ('x',)
+
 
 class W39(VOTableSpecWarning):
     """
@@ -757,6 +811,7 @@ class W39(VOTableSpecWarning):
 
     message = "Bit values can not be masked"
 
+
 class W40(VOTableSpecWarning):
     """
     This is a terrible hack to support Simple Image Access Protocol
@@ -768,6 +823,7 @@ class W40(VOTableSpecWarning):
     """
 
     message = "'cprojection' datatype repaired"
+
 
 class W41(VOTableSpecWarning):
     """
@@ -788,6 +844,7 @@ class W41(VOTableSpecWarning):
     message = "An XML namespace is specified, but is incorrect.  Expected '%s', got '%s'"
     default_args = ('x', 'y')
 
+
 class W42(VOTableSpecWarning):
     """
     The root element should specify a namespace.
@@ -801,6 +858,7 @@ class W42(VOTableSpecWarning):
 
     message = "No XML namespace specified"
 
+
 class W43(VOTableSpecWarning):
     """
     Referenced elements should be defined before referees.  From the
@@ -812,6 +870,7 @@ class W43(VOTableSpecWarning):
 
     message = "%s ref='%s' which has not already been defined"
     default_args = ('element', 'x',)
+
 
 class W44(VOTableSpecWarning):
     """
@@ -831,6 +890,7 @@ class W44(VOTableSpecWarning):
     message = "VALUES element with ref attribute has content ('%s')"
     default_args = ('element',)
 
+
 class W45(VOWarning, ValueError):
     """
     The ``content-role`` attribute on the ``LINK`` element must be one of
@@ -847,6 +907,7 @@ class W45(VOWarning, ValueError):
     message = "content-role attribute '%s' invalid"
     default_args = ('x',)
 
+
 class W46(VOTableSpecWarning):
     """
     The given char or unicode string is too long for the specified
@@ -856,6 +917,7 @@ class W46(VOTableSpecWarning):
     message = "%s value is too long for specified length of %s"
     default_args = ('char or unicode', 'x')
 
+
 class W47(VOTableSpecWarning):
     """
     If no arraysize is specified on a char field, the default of '1'
@@ -864,6 +926,7 @@ class W47(VOTableSpecWarning):
 
     message = "Missing arraysize indicates length 1"
 
+
 class W48(VOTableSpecWarning):
     """
     The attribute is not defined in the specification.
@@ -871,6 +934,7 @@ class W48(VOTableSpecWarning):
 
     message = "Unknown attribute '%s' on %s"
     default_args = ('attribute', 'element')
+
 
 class W49(VOTableSpecWarning):
     """
@@ -881,6 +945,7 @@ class W49(VOTableSpecWarning):
     """
 
     message = "Empty cell illegal for integer fields."
+
 
 class E01(VOWarning, ValueError):
     """
@@ -904,6 +969,7 @@ class E01(VOWarning, ValueError):
     message = "Invalid size specifier '%s' for a %s field (in field '%s')"
     default_args = ('x', 'char/unicode', 'y')
 
+
 class E02(VOWarning, ValueError):
     """
     The number of array elements in the data does not match that specified
@@ -912,6 +978,7 @@ class E02(VOWarning, ValueError):
 
     message = "Incorrect number of elements in array.  Expected multiple of %s, got %s"
     default_args = ('x', 'y')
+
 
 class E03(VOWarning, ValueError):
     """
@@ -926,6 +993,7 @@ class E03(VOWarning, ValueError):
     message = "'%s' does not parse as a complex number"
     default_args = ('x',)
 
+
 class E04(VOWarning, ValueError):
     """
     A ``bit`` array should be a string of '0's and '1's.
@@ -938,6 +1006,7 @@ class E04(VOWarning, ValueError):
 
     message = "Invalid bit value '%s'"
     default_args = ('x',)
+
 
 class E05(VOWarning, ValueError):
     """
@@ -958,6 +1027,7 @@ class E05(VOWarning, ValueError):
 
     message = "Invalid boolean value '%s'"
     default_args = ('x',)
+
 
 class E06(VOWarning, ValueError):
     """
@@ -988,6 +1058,7 @@ class E06(VOWarning, ValueError):
 
 # E07: Deprecated
 
+
 class E08(VOWarning, ValueError):
     """
     The ``type`` attribute on the ``VALUES`` element must be either
@@ -1001,6 +1072,7 @@ class E08(VOWarning, ValueError):
 
     message = "type must be 'legal' or 'actual', but is '%s'"
     default_args = ('x',)
+
 
 class E09(VOWarning, ValueError):
     """
@@ -1016,6 +1088,7 @@ class E09(VOWarning, ValueError):
     message = "'%s' must have a value attribute"
     default_args = ('x',)
 
+
 class E10(VOWarning, ValueError):
     """
     From VOTable 1.1 and later, ``FIELD`` and ``PARAM`` elements must have
@@ -1029,6 +1102,7 @@ class E10(VOWarning, ValueError):
 
     message = "'datatype' attribute required on all '%s' elements"
     default_args = ('FIELD',)
+
 
 class E11(VOWarning, ValueError):
     """
@@ -1051,6 +1125,7 @@ class E11(VOWarning, ValueError):
     message = "precision '%s' is invalid"
     default_args = ('x',)
 
+
 class E12(VOWarning, ValueError):
     """
     The width attribute is meant to indicate to the application the
@@ -1065,6 +1140,7 @@ class E12(VOWarning, ValueError):
 
     message = "width must be a positive integer, got '%s'"
     default_args = ('x',)
+
 
 class E13(VOWarning, ValueError):
     u"""
@@ -1107,6 +1183,7 @@ class E13(VOWarning, ValueError):
     message = "Invalid arraysize attribute '%s'"
     default_args = ('x',)
 
+
 class E14(VOWarning, ValueError):
     """
     All ``PARAM`` elements must have a ``value`` attribute.
@@ -1119,6 +1196,7 @@ class E14(VOWarning, ValueError):
 
     message = "value attribute is required for all PARAM elements"
 
+
 class E15(VOWarning, ValueError):
     """
     All ``COOSYS`` elements must have an ``ID`` attribute.
@@ -1130,6 +1208,7 @@ class E15(VOWarning, ValueError):
     """
 
     message = "ID attribute is required for all COOSYS elements"
+
 
 class E16(VOTableSpecWarning):
     """
@@ -1146,6 +1225,7 @@ class E16(VOTableSpecWarning):
     message = "Invalid system attribute '%s'"
     default_args = ('x',)
 
+
 class E17(VOWarning, ValueError):
     """
     ``extnum`` attribute must be a positive integer.
@@ -1157,6 +1237,7 @@ class E17(VOWarning, ValueError):
     """
 
     message = "extnum must be a positive integer"
+
 
 class E18(VOWarning, ValueError):
     """
@@ -1172,6 +1253,7 @@ class E18(VOWarning, ValueError):
     message = "type must be 'results' or 'meta', not '%s'"
     default_args = ('x',)
 
+
 class E19(VOWarning, ValueError):
     """
     Raised either when the file doesn't appear to be XML, or the root
@@ -1179,6 +1261,7 @@ class E19(VOWarning, ValueError):
     """
 
     message = "File does not appear to be a VOTABLE"
+
 
 class E20(VOTableSpecError):
     """
@@ -1188,6 +1271,7 @@ class E20(VOTableSpecError):
 
     message = "Data has more columns than are defined in the header (%s)"
     default_args = ('x',)
+
 
 class E21(VOWarning, ValueError):
     """

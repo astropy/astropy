@@ -51,15 +51,16 @@ except ImportError:
 
 # LOCAL
 from . import converters
-from .voexceptions import warn_or_raise, vo_warn, vo_raise, vo_reraise, \
-    warn_unknown_attrs, UnimplementedWarning, VOTableChangeWarning, W06, W07, \
-    W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20, W21, W22, W26, W27, \
-    W28, W29, W32, W33, W35, W36, W37, W38, W40, W41, W42, W43, W44, W45, W48, \
-    E08, E09, E10, E11, E12, E13, E14, E15, E16, E17, E18, E19, E20, E21
+from .voexceptions import warn_or_raise, vo_warn, vo_raise, \
+    vo_reraise, warn_unknown_attrs, UnimplementedWarning, \
+    VOTableChangeWarning, W06, W07, W08, W09, W10, W11, W12, W13, \
+    W15, W17, W18, W19, W20, W21, W22, W26, W27, W28, W29, W32, W33, \
+    W35, W36, W37, W38, W40, W41, W42, W43, W44, W45, W48, E08, E09, \
+    E10, E11, E12, E13, E14, E15, E16, E17, E18, E19, E20, E21
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
-from . import __version__ as vo_table_version
+from astropy import __version__ as astropy_version
 
 try:
     from . import iterparser
@@ -74,6 +75,8 @@ RESIZE_AMOUNT = 1.5
 
 ######################################################################
 # FACTORY FUNCTIONS
+
+
 def _lookup_by_id_factory(iterator, element_name, doc):
     """
     Creates a function useful for looking up an element by ID.
@@ -109,6 +112,7 @@ def _lookup_by_id_factory(iterator, element_name, doc):
 
     lookup_by_id.__doc__ = doc
     return lookup_by_id
+
 
 def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     """
@@ -160,6 +164,7 @@ def check_astroyear(year, field, config={}, pos=None):
         return False
     return True
 
+
 def check_string(string, attr_name, config={}, pos=None):
     """
     Raises a :exc:`~vo.voexceptions.VOTableSpecError` if *string* is
@@ -170,11 +175,13 @@ def check_string(string, attr_name, config={}, pos=None):
         return False
     return True
 
+
 def resolve_id(ID, id, config={}, pos=None):
     if ID is None and id is not None:
         warn_or_raise(W09, W09, (), config, pos)
         return id
     return ID
+
 
 def check_ucd(ucd, config={}, pos=None):
     """
@@ -186,7 +193,8 @@ def check_ucd(ucd, config={}, pos=None):
         try:
             ucd_mod.parse_ucd(
                 ucd,
-                check_controlled_vocabulary=config.get('version_1_2_or_later', False),
+                check_controlled_vocabulary=config.get(
+                    'version_1_2_or_later', False),
                 has_colon=config.get('version_1_2_or_later', False))
         except ValueError as e:
             # This weird construction is for Python 3 compatibility
@@ -196,6 +204,7 @@ def check_ucd(ucd, config={}, pos=None):
                 vo_warn(W06, (ucd, unicode(e)), config, pos)
                 return False
     return True
+
 
 ######################################################################
 # ELEMENT CLASSES
@@ -255,7 +264,8 @@ class SimpleElementWithContent(SimpleElement):
     def _set_content(self, content):
         check_string(content, 'content', self._config, self._pos)
         self._content = content
-    def _del_content(self): self._content = None
+    def _del_content(self):
+        self._content = None
     content = property(
         attrgetter('_content'), _set_content, _del_content,
         """
@@ -304,7 +314,8 @@ class Link(SimpleElement):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -315,7 +326,8 @@ class Link(SimpleElement):
         if content_role not in (None, 'query', 'hints', 'doc', 'location'):
             vo_warn(W45, (content_role,), self._config, self._pos)
         self._content_role = content_role
-    def _del_content_role(self): self._content_role = None
+    def _del_content_role(self):
+        self._content_role = None
     content_role = property(
         attrgetter('_content_role'), _set_content_role, _del_content_role,
         """
@@ -327,7 +339,8 @@ class Link(SimpleElement):
     def _set_content_type(self, content_type):
         xmlutil.check_mime_content_type(content_type, self._config, self._pos)
         self._content_type = content_type
-    def _del_content_type(self): self._content_type = None
+    def _del_content_type(self):
+        self._content_type = None
     content_type = property(
         attrgetter('_content_type'), _set_content_type, _del_content_type,
         """
@@ -337,7 +350,8 @@ class Link(SimpleElement):
     def _set_href(self, href):
         xmlutil.check_anyuri(href, self._config, self._pos)
         self._href = href
-    def _del_href(self): self._href = None
+    def _del_href(self):
+        self._href = None
     href = property(
         attrgetter('_href'), _set_href, _del_href,
         """
@@ -396,7 +410,8 @@ class Info(SimpleElementWithContent):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -429,7 +444,8 @@ class Info(SimpleElementWithContent):
     def _set_content(self, content):
         check_string(content, 'content', self._config, self._pos)
         self._content = content
-    def _del_content(self): self._content = None
+    def _del_content(self):
+        self._content = None
     content = property(
         attrgetter('_content'), _set_content, _del_content,
         """
@@ -441,7 +457,8 @@ class Info(SimpleElementWithContent):
             warn_or_raise(W28, W28, ('xtype', 'INFO', '1.2'), config, pos)
         check_string(xtype, 'xtype', self._config, self._pos)
         self._xtype = xtype
-    def _del_xtype(self): self._xtype = None
+    def _del_xtype(self):
+        self._xtype = None
     xtype = property(
         attrgetter('_xtype'), _set_xtype, _del_xtype,
         """
@@ -468,7 +485,8 @@ class Info(SimpleElementWithContent):
         #     self.max_inclusive = other.max_inclusive
         #     self._options[:] = other.options
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -482,7 +500,8 @@ class Info(SimpleElementWithContent):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'), config, pos)
         xmlutil.check_token(unit, 'unit', self._config, self._pos)
         self._unit = unit
-    def _del_unit(self): self._unit = None
+    def _del_unit(self):
+        self._unit = None
     unit = property(
         attrgetter('_unit'), _set_unit, _del_unit,
         """
@@ -494,7 +513,8 @@ class Info(SimpleElementWithContent):
             warn_or_raise(W28, W28, ('utype', 'INFO', '1.2'), config, pos)
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -529,11 +549,12 @@ class Values(Element):
         self.max           = None
         self.min_inclusive = True
         self.max_inclusive = True
-        self._options       = []
+        self._options      = []
 
         warn_unknown_attrs('VALUES', extras.iterkeys(), config, pos)
 
-    def _get_null(self): return self._null
+    def _get_null(self):
+        return self._null
     def _set_null(self, null):
         if null is not None and isinstance(null, basestring):
             try:
@@ -546,7 +567,8 @@ class Values(Element):
         else:
             null_val = null
         self._null = null_val
-    def _del_null(self): self._null = None
+    def _del_null(self):
+        self._null = None
     null = property(
         _get_null, _set_null, _del_null,
         """
@@ -557,7 +579,8 @@ class Values(Element):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -589,7 +612,8 @@ class Values(Element):
             try:
                 other = self._votable.get_values_by_id(ref, before=self)
             except KeyError:
-                warn_or_raise(W43, W43, ('VALUES', self.ref), self._config, self._pos)
+                warn_or_raise(W43, W43, ('VALUES', self.ref), self._config,
+                              self._pos)
                 ref = None
             else:
                 self.null = other.null
@@ -600,7 +624,8 @@ class Values(Element):
                 self.max_inclusive = other.max_inclusive
                 self._options[:] = other.options
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -613,7 +638,8 @@ class Values(Element):
             self._min = self._field.converter.parse(min)[0]
         else:
             self._min = min
-    def _del_min(self): self._min = None
+    def _del_min(self):
+        self._min = None
     min = property(
         attrgetter('_min'), _set_min, _del_min,
         """
@@ -627,7 +653,8 @@ class Values(Element):
             self._min_inclusive = False
         else:
             self._min_inclusive = bool(inclusive)
-    def _del_min_inclusive(self): self._min_inclusive = True
+    def _del_min_inclusive(self):
+        self._min_inclusive = True
     min_inclusive = property(
         attrgetter('_min_inclusive'), _set_min_inclusive, _del_min_inclusive,
         """
@@ -639,7 +666,8 @@ class Values(Element):
             self._max = self._field.converter.parse(max)[0]
         else:
             self._max = max
-    def _del_max(self): self._max = None
+    def _del_max(self):
+        self._max = None
     max = property(
         attrgetter('_max'), _set_max, _del_max,
         """
@@ -653,7 +681,8 @@ class Values(Element):
             self._max_inclusive = False
         else:
             self._max_inclusive = bool(inclusive)
-    def _del_max_inclusive(self): self._max_inclusive = True
+    def _del_max_inclusive(self):
+        self._max_inclusive = True
     max_inclusive = property(
         attrgetter('_max_inclusive'), _set_max_inclusive, _del_max_inclusive,
         """
@@ -699,7 +728,8 @@ class Values(Element):
                     elif tag == 'OPTION':
                         if 'value' not in data:
                             vo_raise(E09, 'OPTION', config, pos)
-                        xmlutil.check_token(data.get('name'), 'name', config, pos)
+                        xmlutil.check_token(
+                            data.get('name'), 'name', config, pos)
                         self.options.append(
                             (data.get('name'), data.get('value')))
                         warn_unknown_attrs(
@@ -729,7 +759,8 @@ class Values(Element):
             w.element('VALUES', attrib=xmlutil.object_attrs(self, ['ref']))
         else:
             with w.tag('VALUES',
-                       attrib=xmlutil.object_attrs(self, ['ID', 'null', 'ref'])):
+                       attrib=xmlutil.object_attrs(
+                           self, ['ID', 'null', 'ref'])):
                 if self.min is not None:
                     w.element(
                         'MIN',
@@ -815,14 +846,13 @@ class Field(SimpleElement):
             vo_raise(W12, self._element_name, config, pos)
 
         datatype_mapping = {
-            'string': 'char',
-            'unicodeString': 'unicodeChar',
-            'int16': 'short',
-            'int32': 'int',
-            'int64': 'long',
-            'float32': 'float',
-            'float64': 'double'
-            }
+            'string'        : 'char',
+            'unicodeString' : 'unicodeChar',
+            'int16'         : 'short',
+            'int32'         : 'int',
+            'int64'         : 'long',
+            'float32'       : 'float',
+            'float64'       : 'double'}
 
         if datatype in datatype_mapping:
             warn_or_raise(W13, W13, (datatype, datatype_mapping[datatype]),
@@ -877,7 +907,9 @@ class Field(SimpleElement):
             while new_name in unique:
                 new_name = field.name + " %d" % i
                 i += 1
-            if field.name is not None and not implicit and new_name != field.name:
+            if (field.name is not None and
+                not implicit and
+                new_name != field.name):
                 vo_warn(W33, (field.name, new_name), field._config, field._pos)
             field._unique_name = new_name
             unique[new_name] = field.name
@@ -890,7 +922,8 @@ class Field(SimpleElement):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -901,7 +934,8 @@ class Field(SimpleElement):
     def _set_name(self, name):
         xmlutil.check_token(name, 'name', self._config, self._pos)
         self._name = name
-    def _del_name(self): self._name = None
+    def _del_name(self):
+        self._name = None
     name = property(
         attrgetter('_name'), _set_name, _del_name,
         """
@@ -936,7 +970,8 @@ class Field(SimpleElement):
         if precision is not None and not re.match("^[FE]?[0-9]+$", precision):
             vo_raise(E11, precision, self._config, self._pos)
         self._precision = precision
-    def _del_precision(self): self._precision = None
+    def _del_precision(self):
+        self._precision = None
     precision = property(
         attrgetter('_precision'), _set_precision, _del_precision,
         """
@@ -954,7 +989,8 @@ class Field(SimpleElement):
             if width <= 0:
                 vo_raise(E12, width, self._config, self._pos)
         self._width = width
-    def _del_width(self): self._width = None
+    def _del_width(self):
+        self._width = None
     width = property(
         attrgetter('_width'), _set_width, _del_width,
         """
@@ -972,7 +1008,8 @@ class Field(SimpleElement):
     def _set_ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -987,7 +1024,8 @@ class Field(SimpleElement):
         if ucd is not None:
             check_ucd(ucd, self._config, self._pos)
         self._ucd = ucd
-    def _del_ucd(self): self._ucd = None
+    def _del_ucd(self):
+        self._ucd = None
     ucd = property(
         attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
@@ -998,7 +1036,8 @@ class Field(SimpleElement):
     def _set_utype(self, utype):
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -1010,7 +1049,8 @@ class Field(SimpleElement):
         # TODO: Validate unit more accurately
         xmlutil.check_token(unit, 'unit', self._config, self._pos)
         self._unit = unit
-    def _del_unit(self): self._unit = None
+    def _del_unit(self):
+        self._unit = None
     unit = property(
         attrgetter('_unit'), _set_unit, _del_unit,
         """
@@ -1022,7 +1062,8 @@ class Field(SimpleElement):
             not re.match("^([0-9]+x)*[0-9]*[*]?(s\W)?$", arraysize)):
             vo_raise(E13, arraysize, self._config, self._pos)
         self._arraysize = arraysize
-    def _del_arraysize(self): self._arraysize = None
+    def _del_arraysize(self):
+        self._arraysize = None
     arraysize = property(
         attrgetter('_arraysize'), _set_arraysize, _del_arraysize,
         """
@@ -1034,7 +1075,8 @@ class Field(SimpleElement):
 
     def _set_type(self, type):
         self._type = type
-    def _del_type(self): self._type = None
+    def _del_type(self):
+        self._type = None
     type = property(
         attrgetter('_type'), _set_type, _del_type,
         """
@@ -1047,7 +1089,8 @@ class Field(SimpleElement):
             warn_or_raise(W28, W28, ('xtype', 'FIELD', '1.2'), config, pos)
         check_string(xtype, 'xtype', self._config, self._pos)
         self._xtype = xtype
-    def _del_xtype(self): self._xtype = None
+    def _del_xtype(self):
+        self._xtype = None
     xtype = property(
         attrgetter('_xtype'), _set_xtype, _del_xtype,
         """
@@ -1057,7 +1100,8 @@ class Field(SimpleElement):
     def _set_values(self, values):
         assert values is None or isinstance(values, Values)
         self._values = values
-    def _del_values(self): self._values = None
+    def _del_values(self):
+        self._values = None
     values = property(
         attrgetter('_values'), _set_values, _del_values,
         """
@@ -1085,13 +1129,15 @@ class Field(SimpleElement):
                     self.links.append(link)
                     link.parse(iterator, config)
                 elif tag == 'DESCRIPTION':
-                    warn_unknown_attrs('DESCRIPTION', data.iterkeys(), config, pos)
+                    warn_unknown_attrs(
+                        'DESCRIPTION', data.iterkeys(), config, pos)
                 elif tag != self._element_name:
                     self._add_unknown_tag(iterator, tag, data, config, pos)
             else:
                 if tag == 'DESCRIPTION':
                     if self.description is not None:
-                        warn_or_raise(W17, W17, self._element_name, config, pos)
+                        warn_or_raise(
+                            W17, W17, self._element_name, config, pos)
                     self.description = data or None
                 elif tag == self._element_name:
                     break
@@ -1143,7 +1189,8 @@ class Param(Field):
         if value is None:
             vo_raise(E14, (), self._config, self._pos)
         if isinstance(value, basestring):
-            self._value = self.converter.parse(value, self._config, self._pos)[0]
+            self._value = self.converter.parse(
+                value, self._config, self._pos)[0]
         else:
             self._value = value
     value = property(
@@ -1215,7 +1262,8 @@ class CooSys(SimpleElement):
                           'geo_app'):
             warn_or_raise(E16, E16, system, self._config, self._pos)
         self._system = system
-    def _del_system(self): self._system = None
+    def _del_system(self):
+        self._system = None
     system = property(
         attrgetter('_system'), _set_system, _del_system,
         """
@@ -1228,7 +1276,8 @@ class CooSys(SimpleElement):
     def _set_equinox(self, equinox):
         check_astroyear(equinox, 'equinox', self._config, self._pos)
         self._equinox = equinox
-    def _del_equinox(self): self._equinox = None
+    def _del_equinox(self):
+        self._equinox = None
     equinox = property(
         attrgetter('_equinox'), _set_equinox, _del_equinox,
         """
@@ -1240,7 +1289,8 @@ class CooSys(SimpleElement):
     def _set_epoch(self, epoch):
         check_astroyear(epoch, 'epoch', self._config, self._pos)
         self._epoch = epoch
-    def _del_epoch(self): self._epoch = None
+    def _del_epoch(self):
+        self._epoch = None
     epoch = property(
         attrgetter('_epoch'), _set_epoch, _del_epoch,
         """
@@ -1288,7 +1338,8 @@ class FieldRef(SimpleElement):
     def _set_ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -1300,10 +1351,12 @@ class FieldRef(SimpleElement):
             ucd = None
         if ucd is not None:
             if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(W28, W28, ('ucd', 'FIELDref', '1.2'), config, pos)
+                warn_or_raise(
+                    W28, W28, ('ucd', 'FIELDref', '1.2'), config, pos)
             check_ucd(ucd, self._config, self._pos)
         self._ucd = ucd
-    def _del_ucd(self): self._ucd = None
+    def _del_ucd(self):
+        self._ucd = None
     ucd = property(
         attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
@@ -1316,7 +1369,8 @@ class FieldRef(SimpleElement):
             warn_or_raise(W28, W28, ('utype', 'FIELDref', '1.2'), config, pos)
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -1375,7 +1429,8 @@ class ParamRef(SimpleElement):
     def _set_ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -1388,10 +1443,12 @@ class ParamRef(SimpleElement):
             ucd = None
         if ucd is not None:
             if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(W28, W28, ('ucd', 'PARAMref', '1.2'), config, pos)
+                warn_or_raise(
+                    W28, W28, ('ucd', 'PARAMref', '1.2'), config, pos)
             check_ucd(ucd, self._config, self._pos)
         self._ucd = ucd
-    def _del_ucd(self): self._ucd = None
+    def _del_ucd(self):
+        self._ucd = None
     ucd = property(
         attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
@@ -1404,7 +1461,8 @@ class ParamRef(SimpleElement):
             warn_or_raise(W28, W28, ('utype', 'PARAMref', '1.2'), config, pos)
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -1455,14 +1513,16 @@ class Group(Element):
         self.utype       = utype
         self.description = None
 
-        self._entries = util.HomogeneousList((FieldRef, ParamRef, Group, Param))
+        self._entries = util.HomogeneousList(
+            (FieldRef, ParamRef, Group, Param))
 
         warn_unknown_attrs('GROUP', extra.iterkeys(), config, pos)
 
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -1473,7 +1533,8 @@ class Group(Element):
     def _set_name(self, name):
         xmlutil.check_token(name, 'name', self._config, self._pos)
         self._name = name
-    def _del_name(self): self._name = None
+    def _del_name(self):
+        self._name = None
     name = property(
         attrgetter('_name'), _set_name, _del_name,
         """
@@ -1483,7 +1544,8 @@ class Group(Element):
     def _set_ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -1497,7 +1559,8 @@ class Group(Element):
         if ucd is not None:
             check_ucd(ucd, self._config)
         self._ucd = ucd
-    def _del_ucd(self): self._ucd = None
+    def _del_ucd(self):
+        self._ucd = None
     ucd = property(
         attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
@@ -1507,7 +1570,8 @@ class Group(Element):
     def _set_utype(self, utype):
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -1516,7 +1580,8 @@ class Group(Element):
 
     def _set_description(self, description):
         self._description = description
-    def _del_description(self): self._description = None
+    def _del_description(self):
+        self._description = None
     description = property(
         attrgetter('_description'), _set_description, _del_description,
         """
@@ -1556,12 +1621,11 @@ class Group(Element):
 
     def parse(self, iterator, config):
         tag_mapping = {
-            'FIELDref': self._add_fieldref,
-            'PARAMref': self._add_paramref,
-            'PARAM': self._add_param,
-            'GROUP': self._add_group,
-            'DESCRIPTION': self._ignore_add
-            }
+            'FIELDref'    : self._add_fieldref,
+            'PARAMref'    : self._add_paramref,
+            'PARAM'       : self._add_param,
+            'GROUP'       : self._add_group,
+            'DESCRIPTION' : self._ignore_add}
 
         for start, tag, data, pos in iterator:
             if start:
@@ -1579,7 +1643,8 @@ class Group(Element):
     def to_xml(self, w, **kwargs):
         with w.tag(
             'GROUP',
-            attrib=xmlutil.object_attrs(self, ['ID', 'name', 'ref', 'ucd', 'utype'])):
+            attrib=xmlutil.object_attrs(
+                self, ['ID', 'name', 'ref', 'ucd', 'utype'])):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
             for entry in self.entries:
@@ -1637,7 +1702,8 @@ class Table(Element):
     name, documented below.
     """
     def __init__(self, votable, ID=None, name=None, ref=None, ucd=None,
-                 utype=None, nrows=None, id=None, config={}, pos=None, **extra):
+                 utype=None, nrows=None, id=None, config={}, pos=None,
+                 **extra):
         self._config = config
         self._pos = pos
         self._empty = False
@@ -1673,7 +1739,8 @@ class Table(Element):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -1684,7 +1751,8 @@ class Table(Element):
     def _set_name(self, name):
         xmlutil.check_token(name, 'name', self._config, self._pos)
         self._name = name
-    def _del_name(self): self._name = None
+    def _del_name(self):
+        self._name = None
     name = property(
         attrgetter('_name'), _set_name, _del_name,
         """
@@ -1701,7 +1769,8 @@ class Table(Element):
             try:
                 table = self._votable.get_table_by_id(ref, before=self)
             except KeyError:
-                warn_or_raise(W43, W43, ('TABLE', self.ref), self._config, self._pos)
+                warn_or_raise(
+                    W43, W43, ('TABLE', self.ref), self._config, self._pos)
                 ref = None
             else:
                 self._fields = table.fields
@@ -1714,7 +1783,8 @@ class Table(Element):
             del self._groups[:]
             del self._links[:]
         self._ref = ref
-    def _del_ref(self): self._ref = None
+    def _del_ref(self):
+        self._ref = None
     ref = property(
         attrgetter('_ref'), _set_ref, _del_ref,
         """
@@ -1728,7 +1798,8 @@ class Table(Element):
         if ucd is not None:
             check_ucd(ucd, self._config)
         self._ucd = ucd
-    def _del_ucd(self): self._ucd = None
+    def _del_ucd(self):
+        self._ucd = None
     ucd = property(
         attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
@@ -1767,7 +1838,8 @@ class Table(Element):
 
     def _set_description(self, description):
         self._description = description
-    def _del_description(self): self._description = None
+    def _del_description(self):
+        self._description = None
     description = property(
         attrgetter('_description'), _set_description, _del_description,
         """
@@ -1915,7 +1987,8 @@ class Table(Element):
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == 'DATA':
-                        warn_unknown_attrs('DATA', data.iterkeys(), config, pos)
+                        warn_unknown_attrs(
+                            'DATA', data.iterkeys(), config, pos)
                         break
                 else:
                     if tag == 'TABLE':
@@ -1930,13 +2003,13 @@ class Table(Element):
                 'PARAM'       : self._add_param,
                 'GROUP'       : self._add_group,
                 'LINK'        : self._add_link,
-                'DESCRIPTION' : self._ignore_add
-                }
+                'DESCRIPTION' : self._ignore_add}
 
             for start, tag, data, pos in iterator:
                 if start:
                     if tag == 'DATA':
-                        warn_unknown_attrs('DATA', data.iterkeys(), config, pos)
+                        warn_unknown_attrs(
+                            'DATA', data.iterkeys(), config, pos)
                         break
 
                     tag_mapping.get(tag, self._add_unknown_tag)(
@@ -1963,14 +2036,15 @@ class Table(Element):
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
                 if np.any(columns < 0) or np.any(columns > len(fields)):
-                    raise ValueError("Some specified column numbers out of range")
+                    raise ValueError(
+                        "Some specified column numbers out of range")
                 colnumbers = columns
             elif issubclass(columns.dtype.type, np.character):
                 try:
                     colnumbers = [names.index(x) for x in columns]
                 except ValueError:
-                    raise ValueError("Columns '%s' not found in fields list" %
-                                     columns)
+                    raise ValueError(
+                        "Columns '%s' not found in fields list" % columns)
             else:
                 raise TypeError("Invalid columns list")
 
@@ -1989,7 +2063,7 @@ class Table(Element):
                         self.array, self.mask = self._parse_binary(
                             iterator, colnumbers, fields, config)
                         break
-                    elif tag == 'FITS' :
+                    elif tag == 'FITS':
                         warn_unknown_attrs(
                             'FITS', data.iterkeys(), config, pos, ['extnum'])
                         try:
@@ -2013,7 +2087,8 @@ class Table(Element):
             if tag == 'INFO':
                 if start:
                     if not config.get('version_1_2_or_later'):
-                        warn_or_raise(W26, W26, ('INFO', 'TABLE', '1.2'), config, pos)
+                        warn_or_raise(
+                            W26, W26, ('INFO', 'TABLE', '1.2'), config, pos)
                     info = Info(config=config, pos=pos, **data)
                     self.infos.append(info)
                     info.parse(iterator, config)
@@ -2058,7 +2133,8 @@ class Table(Element):
                 for start, tag, data, pos in iterator:
                     if start:
                         binary = (data.get('encoding', None) == 'base64')
-                        warn_unknown_attrs(tag, data.iterkeys(), config, pos, ['encoding'])
+                        warn_unknown_attrs(
+                            tag, data.iterkeys(), config, pos, ['encoding'])
                     else:
                         if tag == 'TD':
                             if i >= len(fields):
@@ -2075,11 +2151,13 @@ class Table(Element):
                                         buf = io.BytesIO(rawdata)
                                         buf.seek(0)
                                         try:
-                                            value, mask_value = binparsers[i](buf.read)
+                                            value, mask_value = binparsers[i](
+                                                buf.read)
                                         except Exception as e:
                                             vo_reraise(e, config, pos,
                                                        "(in row %d, col '%s')" %
-                                                       (len(array_chunk), fields[i].ID))
+                                                       (len(array_chunk),
+                                                        fields[i].ID))
                                     else:
                                         try:
                                             value, mask_value = parsers[i](
@@ -2087,7 +2165,8 @@ class Table(Element):
                                         except Exception as e:
                                             vo_reraise(e, config, pos,
                                                        "(in row %d, col '%s')" %
-                                                       (len(array_chunk), fields[i].ID))
+                                                       (len(array_chunk),
+                                                        fields[i].ID))
                                 except Exception as e:
                                     if invalid == 'exception':
                                         vo_reraise(e, config, pos)
@@ -2097,7 +2176,8 @@ class Table(Element):
                         elif tag == 'TR':
                             break
                         else:
-                            self._add_unknown_tag(iterator, tag, data, config, pos)
+                            self._add_unknown_tag(
+                                iterator, tag, data, config, pos)
                         i += 1
 
                 if i < len(fields):
@@ -2112,8 +2192,8 @@ class Table(Element):
                     if alloc_rows != len(array):
                         array.resize((alloc_rows,))
                         mask.resize((alloc_rows,))
-                    array[numrows:numrows+chunk_size] = array_chunk
-                    mask[numrows:numrows+chunk_size] = mask_chunk
+                    array[numrows:numrows + chunk_size] = array_chunk
+                    mask[numrows:numrows + chunk_size] = mask_chunk
                     numrows += chunk_size
                     array_chunk = []
                     mask_chunk = []
@@ -2131,7 +2211,9 @@ class Table(Element):
             mask[numrows:] = mask_chunk
             numrows += len(array_chunk)
 
-        if self.nrows is not None and self.nrows >= 0 and self.nrows != numrows:
+        if (self.nrows is not None and
+            self.nrows >= 0 and
+            self.nrows != numrows):
             warn_or_raise(W18, W18, (self.nrows, numrows), config, pos)
         self._nrows = numrows
 
@@ -2146,7 +2228,8 @@ class Table(Element):
                 if start:
                     warn_unknown_attrs(
                         'STREAM', data.iterkeys(), config, pos,
-                        ['type', 'href', 'actuate', 'encoding', 'expires', 'rights'])
+                        ['type', 'href', 'actuate', 'encoding', 'expires',
+                         'rights'])
                     if 'href' not in data:
                         have_local_stream = True
                         if data.get('encoding', None) != 'base64':
@@ -2171,7 +2254,8 @@ class Table(Element):
                     href.startswith('ftp') or
                     href.startswith('file')):
                 vo_raise(
-                    "The vo package only supports remote data through http, ftp or file",
+                    "The vo package only supports remote data through http, " +
+                    "ftp or file",
                     self._config, self._pos, NotImplementedError)
             fd = urllib2.urlopen(href)
             if encoding is not None:
@@ -2253,7 +2337,8 @@ class Table(Element):
                 if start:
                     warn_unknown_attrs(
                         'STREAM', data.iterkeys(), config, pos,
-                        ['type', 'href', 'actuate', 'encoding', 'expires', 'rights'])
+                        ['type', 'href', 'actuate', 'encoding', 'expires',
+                         'rights'])
                     href = data['href']
                     encoding = data.get('encoding', None)
                 else:
@@ -2263,7 +2348,8 @@ class Table(Element):
                 href.startswith('ftp') or
                 href.startswith('file')):
             vo_raise(
-                "The vo package only supports remote data through http, ftp or file",
+                "The vo package only supports remote data through http, "
+                "ftp or file",
                 self._config, self._pos, NotImplementedError)
 
         fd = urllib2.urlopen(href)
@@ -2468,7 +2554,8 @@ class Resource(Element):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -2480,7 +2567,8 @@ class Resource(Element):
     def _set_name(self, name):
         xmlutil.check_token(name, 'name', self._config, self._pos)
         self._name = name
-    def _del_name(self): self._name = None
+    def _del_name(self):
+        self._name = None
     name = property(
         attrgetter('_name'), _set_name, _del_name,
         """
@@ -2506,7 +2594,8 @@ class Resource(Element):
     def _set_utype(self, utype):
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
-    def _del_utype(self): self._utype = None
+    def _del_utype(self):
+        self._utype = None
     utype = property(
         attrgetter('_utype'), _set_utype, _del_utype,
         """
@@ -2525,7 +2614,8 @@ class Resource(Element):
 
     def _set_description(self, description):
         self._description = description
-    def _del_description(self): self._description = None
+    def _del_description(self):
+        self._description = None
     description = property(
         attrgetter('_description'), _set_description, _del_description,
         """
@@ -2622,7 +2712,8 @@ class Resource(Element):
 
         for start, tag, data, pos in iterator:
             if start:
-                tag_mapping.get(tag, self._add_unknown_tag)(iterator, tag, data, config, pos)
+                tag_mapping.get(tag, self._add_unknown_tag)(
+                    iterator, tag, data, config, pos)
             elif tag == 'DESCRIPTION':
                 if self.description is not None:
                     warn_or_raise(W17, W17, 'RESOURCE', config, pos)
@@ -2640,8 +2731,9 @@ class Resource(Element):
         with w.tag('RESOURCE', attrib=attrs):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
-            for element_set in (self.coordinate_systems, self.params, self.infos,
-                                self.links, self.tables, self.resources):
+            for element_set in (self.coordinate_systems, self.params,
+                                self.infos, self.links, self.tables,
+                                self.resources):
                 for element in element_set:
                     element.to_xml(w, **kwargs)
 
@@ -2712,7 +2804,8 @@ class VOTableFile(Element):
     def _set_ID(self, ID):
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    def _del_ID(self): self._ID = None
+    def _del_ID(self):
+        self._ID = None
     ID = property(
         attrgetter('_ID'), _set_ID, _del_ID,
         """
@@ -2731,7 +2824,8 @@ class VOTableFile(Element):
 
     def _set_description(self, description):
         self._description = description
-    def _del_description(self): self._description = None
+    def _del_description(self):
+        self._description = None
     description = property(
         attrgetter('_description'), _set_description, _del_description,
         """
@@ -2814,23 +2908,29 @@ class VOTableFile(Element):
                     else:
                         config['version'] = self._version = data['version']
                         if config['version'].lower().startswith('v'):
-                            warn_or_raise(W29, W29, config['version'], config, pos)
-                            self._version = config['version'] = config['version'][1:]
+                            warn_or_raise(
+                                W29, W29, config['version'], config, pos)
+                            self._version = config['version'] = \
+                                            config['version'][1:]
                         if config['version'] not in ('1.1', '1.2'):
                             vo_warn(W21, config['version'], config, pos)
 
                     if 'xmlns' in data:
-                        correct_ns = 'http://www.ivoa.net/xml/VOTable/v%s' % config['version']
+                        correct_ns = ('http://www.ivoa.net/xml/VOTable/v%s' %
+                                      config['version'])
                         if data['xmlns'] != correct_ns:
-                            vo_warn(W41, (correct_ns, data['xmlns']), config, pos)
+                            vo_warn(
+                                W41, (correct_ns, data['xmlns']), config, pos)
                     else:
                         vo_warn(W42, (), config, pos)
 
                     break
                 else:
                     vo_raise(E19, (), config, pos)
-        config['version_1_1_or_later'] = util.version_compare(config['version'], '1.1') >= 0
-        config['version_1_2_or_later'] = util.version_compare(config['version'], '1.2') >= 0
+        config['version_1_1_or_later'] = \
+            util.version_compare(config['version'], '1.1') >= 0
+        config['version_1_2_or_later'] = \
+            util.version_compare(config['version'], '1.2') >= 0
 
         tag_mapping = {
             'PARAM'       : self._add_param,
@@ -2839,8 +2939,7 @@ class VOTableFile(Element):
             'INFO'        : self._add_info,
             'DEFINITIONS' : self._add_definitions,
             'DESCRIPTION' : self._ignore_add,
-            'GROUP'       : self._add_group
-            }
+            'GROUP'       : self._add_group}
 
         for start, tag, data, pos in iterator:
             if start:
@@ -2869,21 +2968,21 @@ class VOTableFile(Element):
         kwargs = {
             'write_null_values': write_null_values,
             'version': self.version,
-            'version_1_1_or_later': util.version_compare(self.version, '1.1') >= 0,
-            'version_1_2_or_later': util.version_compare(self.version, '1.2') >= 0,
-            '_debug_python_based_parser': _debug_python_based_parser
-            }
+            'version_1_1_or_later':
+                util.version_compare(self.version, '1.1') >= 0,
+            'version_1_2_or_later':
+                util.version_compare(self.version, '1.2') >= 0,
+            '_debug_python_based_parser': _debug_python_based_parser}
 
         fd = util.convert_to_writable_filelike(fd)
         w = xmlutil.XMLWriter(fd)
         version = self.version
-        lib_version = vo_table_version
+        lib_version = astropy_version
 
         xml_header = """
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Produced with vo.table version %(lib_version)s
-     http://www.stsci.edu/trac/ssb/astrolib
-     Author: Michael Droettboom <support@stsci.edu> -->\n"""
+<!-- Produced with astropy.io.vo version %(lib_version)s
+     http://www.astropy.org/ -->\n"""
         w.write(xml_header.lstrip() % locals())
 
         with w.tag('VOTABLE',
@@ -2892,8 +2991,7 @@ class VOTableFile(Element):
                     'xsi:noNamespaceSchemaLocation':
                         "http://www.ivoa.net/xml/VOTable/v%s" % version,
                     'xmlns':
-                        "http://www.ivoa.net/xml/VOTable/v%s" % version
-                    }):
+                        "http://www.ivoa.net/xml/VOTable/v%s" % version}):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
             element_sets = [self.coordinate_systems, self.params,
