@@ -24,8 +24,8 @@ if not IS_PY3K:
     def bytes(s, encoding):
         return str(s)
 
-array_splitter = re.compile(r"\s+|(?:\s*,\s*)")
 pedantic_array_splitter = re.compile(r" +")
+array_splitter = re.compile(r"\s+|(?:\s*,\s*)")
 """
 A regex to handle splitting values on either whitespace or commas.
 
@@ -45,8 +45,17 @@ class Converter(object):
     """
     def __init__(self, field, config={}, pos=None):
         """
-        *field* is a :class:`vo.table.Field` object describing the
-         datatype.
+        Parameters
+        ----------
+        field : `~astropy.io.vo.table.Field`
+            object describing the datatype
+
+        config : dict
+            The parser configuration dictionary
+
+        pos : tuple
+            The position in the XML file where the FIELD object was
+            found.  Used for error messages.
         """
         pass
 
@@ -61,8 +70,18 @@ class Converter(object):
     def parse(self, value, config={}, pos=None):
         """
         Convert the string *value* from the TABLEDATA_ format into an
-        object with the correct native in-memory datatype.  The result
-        is returned as a tuple (value, mask).
+        object with the correct native in-memory datatype and mask flag.
+
+        Parameters
+        ----------
+        value : str
+            value in TABLEDATA format
+
+        Returns
+        -------
+        native : tuple (value, mask)
+            The value as a Numpy array or scalar, and *mask* is True
+            if the value is missing.
         """
         raise NotImplementedError(
             "This datatype must implement a 'parse' method.")
@@ -71,18 +90,39 @@ class Converter(object):
         """
         Parse a single scalar of the underlying type of the converter.
         For non-array converters, this is equivalent to parse.  For
-        array converters, this is equivalent to parsing a single
-        element of the array.  The result is returned as a tuple
-        (value, mask).
+        array converters, this is used to parse a single
+        element of the array.
+
+        Parameters
+        ----------
+        value : str
+            value in TABLEDATA format
+
+        Returns
+        -------
+        native : tuple (value, mask)
+            The value as a Numpy array or scalar, and *mask* is True
+            if the value is missing.
         """
         return self.parse(value, config, pos)
 
     def output(self, value, mask):
         """
-        Convert the object *value* in the native in-memory datatype to
-        a string suitable for serializing in the TABLEDATA_ format.
-        If *mask* is True, will return the string representation of a
-        masked value.
+        Convert the object *value* (in the native in-memory datatype)
+        to a string suitable for serializing in the TABLEDATA_ format.
+
+        Parmeters
+        ---------
+        value : native type corresponding to this converter
+            The value
+
+        mask : bool
+            If `True`, will return the string representation of a
+            masked value.
+
+        Returns
+        -------
+        tabledata_repr : str
         """
         raise NotImplementedError(
             "This datatype must implement a 'output' method.")

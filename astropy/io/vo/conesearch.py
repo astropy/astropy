@@ -23,39 +23,51 @@ def conesearch(catalog_db=None, pedantic=False, ra=None, dec=None, sr=None,
     """
     Do a conesearch on the given catalog.
 
+    Parameters
+    ----------
+
     %(catalog_db)s
 
     %(pedantic)s
 
-    *ra*: a right-ascension in the ICRS coordinate system for the
-    position of the center of the cone to search, given in decimal
-    degrees.
+    ra : float
+        a right-ascension in the ICRS coordinate system for the
+        position of the center of the cone to search, given in decimal
+        degrees.
 
-    *dec*: a declination in the ICRS coordinate system for the
-    position of the center of the cone to search, given in decimal
-    degrees.
+    dec : float
+        a declination in the ICRS coordinate system for the position
+        of the center of the cone to search, given in decimal degrees.
 
-    *sr*: the radius of the cone to search, given in decimal degrees.
+    sr : float
+        the radius of the cone to search, given in decimal degrees.
 
-    *verb*: verbosity, 1, 2, or 3, indicating how many columns are to
-    be returned in the resulting table.  Support for this parameter by
-    a Cone Search service implementation is optional. If the service
-    supports the parameter, then when the value is 1, the response
-    should include the bare minimum of columns that the provider
-    considers useful in describing the returned objects. When the
-    value is 3, the service should return all of the columns that are
-    available for describing the objects. A value of 2 is intended for
-    requesting a medium number of columns between the minimum and
-    maximum (inclusive) that are considered by the provider to most
-    typically useful to the user. When the *verb* parameter is not
-    provided, the server should respond as if *verb* = 2. If the *verb*
-    parameter is not supported by the service, the service should
-    ignore the parameter and should always return the same columns for
-    every request.
+    verb : int
+        verbosity, 1, 2, or 3, indicating how many columns are to be
+        returned in the resulting table.  Support for this parameter
+        by a Cone Search service implementation is optional. If the
+        service supports the parameter, then when the value is 1, the
+        response should include the bare minimum of columns that the
+        provider considers useful in describing the returned
+        objects. When the value is 3, the service should return all of
+        the columns that are available for describing the objects. A
+        value of 2 is intended for requesting a medium number of
+        columns between the minimum and maximum (inclusive) that are
+        considered by the provider to most typically useful to the
+        user. When the *verb* parameter is not provided, the server
+        should respond as if *verb* = 2. If the *verb* parameter is
+        not supported by the service, the service should ignore the
+        parameter and should always return the same columns for every
+        request.
 
-    Additional kwargs may be provided to pass along to the server.
-    These arguments are specific to the particular catalog being
-    queried.
+    **kwargs :
+        Additional kwargs may be provided to pass along to the server.
+        These arguments are specific to the particular catalog being
+        queried.
+
+    Returns
+    -------
+    vo_table : `~astropy.io.vo.tree.VOTable` instance
     """
     # Validate arguments
     ra = float(ra)
@@ -83,6 +95,6 @@ def list_catalogs():
     """
     Return the available conesearch catalogs as a list of strings.
     These can be used for the *catalog_db* argument to
-    :func:`conesearch`.
+    `~astropy.io.vo.conesearch.conesearch`.
     """
     return vos_catalog.list_catalogs('conesearch')

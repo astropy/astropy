@@ -41,17 +41,21 @@ class Cache:
         A cache repository to request static resources from a web
         directory and a locally-cached mirror directory.
 
-        *local_root* is the location of the cache directory on the
-        local filesystem.
+        Parameters
+        ----------
 
-        *remote_root* is the URL to the root of the remote databases.
+        local_root : string path
+            Location of the cache directory on the local filesystem.
 
-        *cache_delta* is the minimum age of the local file before
-        making a remote query to attempt to update the database.  It
-        must by a `datetime.timedelta` object.
+        remote_root : string URL
+            URL to the root of the remote databases.
 
-        *keep_backup_copies* is the number of backup copies of each
-        local file to keep.
+        cache_delta : datetime.timedelta
+            Minimum age of the local file before making a remote query
+            to attempt to update the database.
+
+        keep_backup_copies : int
+            Number of backup copies of each local file to keep.
         """
         self._local_root = local_root
         self._remote_root = remote_root
@@ -95,8 +99,8 @@ class Cache:
         done before any action that will update/modify the cache.  May
         be called recursively.
 
-        (This is a single lock for the whole cache -- in the future, it may
-        be sufficient to lock on a per-file basis.)
+        (This is a single lock for the whole cache -- in the future,
+        it may be sufficient to lock on a per-file basis.)
         """
         self._lock += 1
         if self._lock == 1:
@@ -131,6 +135,16 @@ class Cache:
     def get_cache_file_path(self, filename):
         """
         Get the path to a file from the local cache.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
+
+        Returns
+        -------
+        path : str
+            The full path to the file.
         """
         cache_dir = self.get_cache_dir()
         cache_file = os.path.abspath(os.path.join(cache_dir, filename))
@@ -142,7 +156,16 @@ class Cache:
     def get_cache_date(self, filename):
         """
         Return the date of last modification of the file in the cache.
-        Returns 0 if the file doesn't exist.
+        Returns `0` if the file doesn't exist.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
+
+        Returns
+        -------
+        timestamp : datetime.datetime object
         """
         cache_file = self.get_cache_file_path(filename)
         if not os.path.exists(cache_file):
@@ -151,15 +174,29 @@ class Cache:
 
     def has_cached_copy(self, filename):
         """
-        Returns True if a cached copy of the resource exists.
+        Returns `True` if a cached copy of the resource exists.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
         """
         cache_file = self.get_cache_file_path(filename)
         return os.path.exists(cache_file) and os.path.isfile(cache_file)
 
     def get_cache_content(self, filename):
         """
-        Return a read-only file descriptor to read content from the
+        Returns a read-only file-like object to read content from the
         file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
+
+        Returns
+        -------
+        input_file : read-only file-like object
         """
         cache_file = self.get_cache_file_path(filename)
         return open(cache_file, 'rb')
@@ -167,6 +204,15 @@ class Cache:
     def get_cache_backups(self, filename):
         """
         Returns a list of the backup cached files for the given file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
+
+        Returns
+        -------
+        paths : list of paths
         """
         cache_file = self.get_cache_file_path(filename)
         dirname, fname = os.path.split(cache_file)
@@ -188,6 +234,11 @@ class Cache:
         """
         Backup the cached file, leaving at most
         *self.keep_backup_copies* around on disk.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
         """
         cache_file = self.get_cache_file_path(filename)
 
@@ -214,6 +265,14 @@ class Cache:
 
         If the cache file already exists, it will be backed up to a
         file with the same name + '~'.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
+
+        in_fd : readable file-like object
+            Object to read the file content from.
         """
         self._acquire_lock()
         try:
@@ -236,6 +295,11 @@ class Cache:
         """
         Update the timestamp on the cached content with the last time
         the remote file was compared.
+
+        Parameters
+        ----------
+        filename : str
+            The name of a file in the local cache.
         """
         # Not certain the lock is required here since worst case here
         # you may occasionally have to hit the webserver more than
@@ -262,6 +326,14 @@ class Cache:
         """
         Return the modification time from an HTTP Response as a
         datetime object.
+
+        Parameters
+        ----------
+        response : HTTPResponse
+
+        Returns
+        -------
+        last_modified : datetime.datetime
         """
         date_string = response.info()['Last-Modified']
         date = datetime.datetime(*email.utils.parsedate(date_string)[:6])
@@ -271,6 +343,14 @@ class Cache:
         """
         Get a file from the cache.  If the cache is too old, it will
         be fetched remotely and the cache updated.
+
+        Parameters
+        ----------
+        filename : str filename
+
+        Returns
+        -------
+        input_file : read-only file-like object
         """
         # TODO: Implement HTTP cache control per the spec.  Currently,
         # we only use the 'Last-Modified' HTTP header and have our own

@@ -33,34 +33,40 @@ __dbversion__ = 1
 
 _doc_snippets = {
     'pedantic' :
-    """*pedantic* has the same meaning as :func:`~vo.table.parse`.
-    When *pedantic* is True, raise an error when the returned VOTable
-    file violates the spec, otherwise issue a warning.  Warnings may
-    be controlled using the standard Python mechanisms.  See the
-    :mod:`warnings` module in the Python standard library for more
-    information.""",
+    """
+    pedantic : bool
+        pedantic has the same meaning as `~vo.table.parse`.
+        When pedantic is `True`, raise an error when the returned VOTable
+        file violates the spec, otherwise issue a warning.  Warnings may
+        be controlled using the standard Python mechanisms.  See the
+        :mod:`warnings` module in the Python standard library for more
+        information.""",
 
     'catalog_db' :
-    """*catalog_db* may be one of the following, in order from easiest
-    to use to most control:
+    """
+    catalog_db : None, str, ~vos_catalog.VOSCatalog, list
 
-      - `None`: A database of conesearch catalogs is downloaded from
-        STScI.  The first catalog in the database to successfully
-        return a result is used.
+        catalog_db may be one of the following, in order from easiest
+        to use to most control:
 
-      - *catalog name*: A name in the database of conesearch catalogs
-        at STScI is used.  For a list of acceptable names, see
-        :func:`list_catalogs`.
+            - `None`: A database of conesearch catalogs is downloaded
+              from STScI.  The first catalog in the database to
+              successfully return a result is used.
 
-      - *url*: The prefix of a *url* to a IVOA Cone Search Service.
-        Must end in either `?` or `&`.
+            - **catalog name**: A name in the database of conesearch
+              catalogs at STScI is used.  For a list of acceptable
+              names, see `~astropy.io.vo.vos_catalog.list_catalogs`.
 
-      - A `~vos_catalog.VOSCatalog` instance: A specific catalog
-        manually downloaded and selected from the database using the
-        APIs in the :mod:`vos_catalog` module.
+            - **url**: The prefix of a url to a IVOA Cone Search
+              Service.  Must end in either `?` or `&`.
 
-      - Any of the above 3 options combined in a list, in which case
-        they are tried in order."""}
+            - A `~astropy.io.vo.vos_catalog.VOSCatalog` instance: A
+              specific catalog manually downloaded and selected from
+              the database using the APIs in the
+              `~astropy.io.vo.vos_catalog` module.
+
+            - Any of the above 3 options combined in a list, in which case
+              they are tried in order."""}
 
 
 class VOSCatalog:
