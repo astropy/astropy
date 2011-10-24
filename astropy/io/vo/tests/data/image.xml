@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="v1.0">
+    <RESOURCE type="results">
+      <INFO name="QUERY_STATUS" value="OK"/>
+      <TABLE>
+        <FIELD ID="Object" name="Object" ucd="VOX:Image_Title" datatype="char" arraysize="*"/>
+        <FIELD ID="Survey" name="Survey" ucd="ID_SURVEY" datatype="char" arraysize="*"/>
+        <FIELD ID="instrument" name="instrument" ucd="INST_ID" datatype="char" arraysize="*"/>
+        <FIELD ID="mjd-obs" name="mjd-obs" ucd="VOX:Image_MJDateObs" datatype="double"/>
+        <FIELD ID="RA" name="RA" ucd="POS_EQ_RA_MAIN" datatype="double"/>
+        <FIELD ID="DEC" name="DEC" ucd="POS_EQ_DEC_MAIN" datatype="double"/>
+        <FIELD ID="naxes" name="naxes" ucd="VOX:Image_Naxes" datatype="int"/>
+        <FIELD ID="naxis" name="naxis" ucd="VOX:Image_Naxis" datatype="int" arraysize="*"/>
+        <FIELD ID="scale" name="scale" ucd="VOX:Image_Scale" datatype="double" arraysize="*"/>
+        <FIELD ID="format" name="format" ucd="VOX:Image_Format" datatype="char" arraysize="*"/>
+        <FIELD ID="accessreference" name="accessreference" ucd="VOX:Image_AccessReference" datatype="char" arraysize="*"/>
+        <FIELD ID="referenceframe" name="referenceframe" ucd="VOX:STC_CoordRefFrame" datatype="char" arraysize="*"/>
+        <FIELD ID="equinox" name="equinox" ucd="VOX:STC_CoordEquinox" datatype="double"/>
+        <FIELD ID="cprojection" name="cprojection" ucd="VOX:WCS_CoordProjection" datatype="char" arraysize="*"/>
+        <FIELD ID="crefpixel" name="crefpixel" ucd="VOX:WCS_CoordRefPixel" datatype="double" arraysize="*"/>
+        <FIELD ID="crefvalue" name="crefvalue" ucd="VOX:WCS_CoordRefValue" datatype="double" arraysize="*"/>
+        <FIELD ID="cdmatrix" name="cdmatrix" ucd="VOX:WCS_CDMatrix" datatype="double" arraysize="*"/>
+        <FIELD ID="filesize" name="filesize" ucd="VOX:Image_FileSize" datatype="int"/>
+        <FIELD ID="pixflags" name="pixflags" ucd="VOX:Image_PixFlags" datatype="char"/>
+        <DATA> <TABLEDATA>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_SIGM</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_sigm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_sigma]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_RMS</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_rms&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_rms]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_NREJ</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_nrej&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_nrej]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_NCOM</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_ncom&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_ncomb]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_EXP</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_exp&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_exp]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03_BPM</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03_bpm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03_bpm]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes R-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_R_03</TD>
+	    <TD>0</TD>
+	    <TD>217.227</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1034</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_R_03&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_R_03]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15842</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3553920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_SIG</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_sig&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_sig]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_RMS</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_rms&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_rms]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_NCOM</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_ncom&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_ncomb]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_FLAG</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_flag&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_flag]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_EXP</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_exp&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_exp]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01_BPM</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01_bpm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01_bpm]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes K-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_K_01</TD>
+	    <TD>0</TD>
+	    <TD>217.219</TD>
+	    <TD>35.5089</TD>
+	    <TD>2</TD>
+	    <TD>652,789</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_K_01&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_K_01]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-4585,-11542</TD>
+	    <TD>-9.44444e-05,9.44444e-05</TD>
+	    <TD>-9.44444e-05 0 0 9.44444e-05</TD>
+	    <TD>2067840</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_SIGM</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_sigm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_sigma]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_RMS</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_rms&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_rms]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_NREJ</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_nrej&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_nrej]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_NCOM</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_ncom&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_ncomb]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_EXP</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_exp&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_exp]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03_BPM</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03_bpm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03_bpm]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes I-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_I_03</TD>
+	    <TD>0</TD>
+	    <TD>217.208</TD>
+	    <TD>35.5365</TD>
+	    <TD>2</TD>
+	    <TD>857,1044</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_I_03&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_I_03]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15029</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 -5.411e-12 -5.411e-12 7.16667e-05</TD>
+	    <TD>3588480</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_SIG</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_sig&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_sigma]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_RMS</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_rms&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_rms]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_NRE</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_nre&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_nrej]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_NCO</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_nco&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_ncomb]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_EXP</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_exp&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_exp]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03_BPM</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03_bpm&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03_bpm]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>NDWFS J1428+3531 Bootes Bw-band</TD>
+	    <TD>NOAO Deep Wide Field</TD>
+	    <TD>NOAO.NDWFSJ1428P3531_BW_03</TD>
+	    <TD>0</TD>
+	    <TD>217.222</TD>
+	    <TD>35.5267</TD>
+	    <TD>2</TD>
+	    <TD>859,1046</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=NDWFSJ1428p3531_Bw_03&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=NDWFSJ1428p3531_Bw_03]]></TD>
+	    <TD>ICRS</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-6041,-15097</TD>
+	    <TD>-7.16667e-05,7.16667e-05</TD>
+	    <TD>-7.16667e-05 0 0 7.16667e-05</TD>
+	    <TD>3602880</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>zBootes b4-4 weightmap</TD>
+	    <TD/>
+	    <TD>NOAO.BOK2.</TD>
+	    <TD/>
+	    <TD>217.142</TD>
+	    <TD>35.5828</TD>
+	    <TD>2</TD>
+	    <TD>153121,35317</TD>
+	    <TD>1.4089e-06,-2.2649e-06</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=Bok2.3m.b4-4-weight.fits&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=b4-4-weight]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>155391.1,2259.3</TD>
+	    <TD>1.4089e-06,-2.2649e-06</TD>
+	    <TD>1.4089e-06 0.000125387 0.000125406 -2.2649e-06</TD>
+	    <TD>156270400</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>zBootes b4-4</TD>
+	    <TD/>
+	    <TD>NOAO.BOK2.</TD>
+	    <TD/>
+	    <TD>217.142</TD>
+	    <TD>35.5828</TD>
+	    <TD>2</TD>
+	    <TD>153121,35317</TD>
+	    <TD>1.4089e-06,-2.2649e-06</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=Bok2.3m.b4-4.fits&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=b4-4]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>155391.1,2259.3</TD>
+	    <TD>1.4089e-06,-2.2649e-06</TD>
+	    <TD>1.4089e-06 0.000125387 0.000125406 -2.2649e-06</TD>
+	    <TD>156270400</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>SDWFS_BOOTES</TD>
+	    <TD/>
+	    <TD>NOAO.I4_B.OOTES</TD>
+	    <TD/>
+	    <TD>217.901</TD>
+	    <TD>34.1172</TD>
+	    <TD>2</TD>
+	    <TD>218,347</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=I4_BOOTES&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=I4_bootes.v32]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-1127,-376.5</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>-0.000239631 0 0 0.000239631</TD>
+	    <TD>313920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>SDWFS_BOOTES</TD>
+	    <TD/>
+	    <TD>NOAO.I1_B.OOTES</TD>
+	    <TD/>
+	    <TD>217.901</TD>
+	    <TD>34.1172</TD>
+	    <TD>2</TD>
+	    <TD>218,347</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=I1_BOOTES&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=I1_bootes.v32]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-1127,-376.5</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>-0.000239631 0 0 0.000239631</TD>
+	    <TD>313920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>SDWFS_BOOTES</TD>
+	    <TD/>
+	    <TD>NOAO.I3_B.OOTES</TD>
+	    <TD/>
+	    <TD>217.901</TD>
+	    <TD>34.1172</TD>
+	    <TD>2</TD>
+	    <TD>218,347</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=I3_BOOTES&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=I3_bootes.v32]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-1127,-376.5</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>-0.000239631 0 0 0.000239631</TD>
+	    <TD>313920</TD>
+	    <TD>C</TD>
+	  </TR>
+	  <TR>
+	    <TD>SDWFS_BOOTES</TD>
+	    <TD/>
+	    <TD>NOAO.I2_B.OOTES</TD>
+	    <TD/>
+	    <TD>217.901</TD>
+	    <TD>34.1172</TD>
+	    <TD>2</TD>
+	    <TD>218,347</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>image/fits</TD>
+	    <TD><![CDATA[http://xarchive.tuc.noao.edu/nvo/sim/cutout.php?recid=I2_BOOTES&ra=217.45417&dec=35.57194&rawidth=0.08&decwidth=0.08&prefix=I2_bootes.v32]]></TD>
+	    <TD>FK5</TD>
+	    <TD>2000</TD>
+	    <TD>TAN</TD>
+	    <TD>-1127,-376.5</TD>
+	    <TD>-0.000239631,0.000239631</TD>
+	    <TD>-0.000239631 0 0 0.000239631</TD>
+	    <TD>313920</TD>
+	    <TD>C</TD>
+	  </TR>
+        </TABLEDATA> </DATA>
+      </TABLE>
+    </RESOURCE>
+</VOTABLE>

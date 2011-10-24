@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE version="v1.0">
+<INFO name="ERROR"> "Either wrong or missing coordinate/object name." </INFO>
+</VOTABLE>

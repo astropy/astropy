@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Produced with vo.table version 0.7
+     http://www.stsci.edu/trac/ssb/astrolib
+     Author: Michael Droettboom <support@stsci.edu> -->
+<VOTABLE version="1.1" xmlns="http://www.ivoa.net/xml/VOTable/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.1">
+ <DESCRIPTION>
+  The VOTable format is an XML standard for the interchange of data
+  represented as a set of tables. In this context, a table is an
+  unordered set of rows, each of a uniform format, as specified in the
+  table metadata. Each row in a table is a sequence of table cells,
+  and each of these contains either a primitive data type, or an array
+  of such primitives. VOTable is derived from the Astrores format [1],
+  itself modeled on the FITS Table format [2]; VOTable was designed to
+  be closer to the FITS Binary Table format.
+ </DESCRIPTION>
+ <COOSYS ID="J2000" equinox="J2000" system="eq_FK5"/>
+ <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=" "/>
+ <PARAM ID="INPUT" arraysize="*" datatype="float" name="INPUT" ucd="phys.size;instr.tel" unit="deg" value="0 0">
+  <DESCRIPTION>
+   This is the most interesting parameter in the world, and it drinks
+   Dos Equis
+  </DESCRIPTION>
+ </PARAM>
+ <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK"/>
+ <RESOURCE type="results">
+  <DESCRIPTION>
+   This is a resource description
+  </DESCRIPTION>
+  <PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="0 0"/>
+  <LINK href="http://www.foo.com/"/>
+  <TABLE ID="main_table" nrows="5">
+   <DESCRIPTION>
+    This describes the table.
+   </DESCRIPTION>
+   <FIELD ID="string_test" arraysize="*" datatype="char" name="string test"/>
+   <FIELD ID="string_test_2" arraysize="10" datatype="char" name="fixed string test"/>
+   <FIELD ID="unicode_test" arraysize="*" datatype="unicodeChar" name="unicode_test"/>
+   <FIELD ID="fixed_unicode_test" arraysize="10" datatype="unicodeChar" name="unicode test"/>
+   <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
+   <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
+   <FIELD ID="short" datatype="short" name="short"/>
+   <FIELD ID="int" datatype="int" name="int">
+    <VALUES ID="int_nulls" null="123456789">
+     <MIN inclusive="no" value="-1000"/>
+     <MAX inclusive="yes" value="1000"/>
+     <OPTION name="bogus" value="whatever"/>
+    </VALUES>
+   </FIELD>
+   <FIELD ID="long" datatype="long" name="long">
+    <VALUES ref="int_nulls"/>
+    <LINK href="http://www.long-integers.com/"/>
+   </FIELD>
+   <FIELD ID="double" datatype="double" name="double"/>
+   <FIELD ID="float" datatype="float" name="float"/>
+   <FIELD ID="array" arraysize="2x2*" datatype="long" name="array">
+    <VALUES null="-1"/>
+   </FIELD>
+   <FIELD ID="bit" datatype="bit" name="bit"/>
+   <FIELD ID="bitarray" arraysize="2x3" datatype="bit" name="bitarray"/>
+   <FIELD ID="bitvararray" arraysize="*" datatype="bit" name="bitvararray"/>
+   <FIELD ID="bitvararray2" arraysize="2x3x*" datatype="bit" name="bitvararray2"/>
+   <FIELD ID="floatComplex" datatype="floatComplex" name="floatComplex"/>
+   <FIELD ID="doubleComplex" datatype="doubleComplex" name="doubleComplex"/>
+   <FIELD ID="doubleComplexArray" arraysize="*" datatype="doubleComplex" name="doubleComplexArray"/>
+   <FIELD ID="doubleComplexArrayFixed" arraysize="2" datatype="doubleComplex" name="doubleComplexArrayFixed"/>
+   <FIELD ID="boolean" datatype="boolean" name="boolean"/>
+   <FIELD ID="booleanArray" arraysize="4" datatype="boolean" name="booleanArray"/>
+   <FIELD ID="nulls" datatype="int" name="nulls">
+    <VALUES null="-9"/>
+   </FIELD>
+   <FIELD ID="nulls_array" arraysize="2x2" datatype="int" name="nulls_array">
+    <VALUES null="-9"/>
+   </FIELD>
+   <FIELD ID="precision1" datatype="double" name="precision1" precision="E3" width="10"/>
+   <FIELD ID="precision2" datatype="double" name="precision2" precision="F3"/>
+   <FIELD ID="doublearray" arraysize="*" datatype="double" name="doublearray">
+    <VALUES null="-1.0"/>
+   </FIELD>
+   <FIELD ID="bitarray2" arraysize="16" datatype="bit" name="bitarray2"/>
+   <PARAM ID="INPUT2" arraysize="*" datatype="float" name="INPUT2" unit="deg" value="0 0">
+    <DESCRIPTION>
+     This is the most interesting parameter in the world, and it
+     drinks Dos Equis
+    </DESCRIPTION>
+   </PARAM>
+   <GROUP>
+    <PARAMref ref="awesome"/>
+   </GROUP>
+   <GROUP>
+    <DESCRIPTION>
+     This should warn of a second description.
+    </DESCRIPTION>
+    <FIELDref ref="boolean"/>
+    <GROUP>
+     <PARAMref ref="awesome"/>
+     <PARAM ID="OUTPUT" datatype="float" name="OUTPUT" value="42"/>
+    </GROUP>
+    <PARAM ID="INPUT3" arraysize="*" datatype="float" name="INPUT3" unit="deg" value="0 0">
+     <DESCRIPTION>
+      This is the most interesting parameter in the world, and it
+      drinks Dos Equis
+     </DESCRIPTION>
+    </PARAM>
+   </GROUP>
+   <LINK href="http://tabledata.org/"/>
+   <DATA>
+    <BINARY>
+     <STREAM encoding="base64">
+AAAADVN0cmluZyAmIHRlc3RGaXhlZCBzdHJpAAAAFgBDAGUA5wBpACAAbgAnAGUAcwB0ACAAcABh
+AHMAIAB1AG4AIABwAGkAcABlAEMAZQDnAGkAIABuACcAZQBzAHRhYiBjgBAAEAAAAAADRtxdY4hl
+P/AAAAAAAAA/gAAAAAAAAAi0AAAAAwgICAAAAAB/wAAAAAAAAH/4AAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABUVFRUVAAAAAD////3////9/////f////3
+P/VVVVVVVVU/9VVVVVVVVQAAAADw8AAAABFTdHJpbmcgJmFtcDsgdGVzdDAxMjM0NTY3ODkAAAAH
+C7ULowuVC80LlQuuC80LtQujC5ULzQuVC64LzQAAAAAAADAxMjMAAAB/////AAAAAAdbzRUAAAAA
+AAAAAAAAAAAAAAACAAAAAAAAACoAAAAAAAAAIAAAAAAAAAAMAAAAAAAAACAATAAAAAUAAAAAAAAA
+AAJIqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC/8AAAAAAAAAAAAAAAAAAARlRURlT////3AAAAAAAAAAEA
+AAACAAAAAz/wAAAAAAAAP/AAAAAAAAAAAAAHAAAAAAAAAAA/8AAAAAAAAH/wAAAAAAAA//AAAAAA
+AAB/+AAAAAAAAAAAAAAAAAAAv/AAAAAAAAAAAAAAAARYWFhYWFhYWAAAAAAAAAAAAAQAWABYAFgA
+WAAwADEAMgAzADQANQA2ADcAOAA5AAAAAOnwAPAAAADwAAAAAAAAAH/wAAAAAAAAf4AAAAAAAAQA
+AAAAAAAADAAAAAAAAAAiAAAAAAAAADgAAAAAAAAATgAAAAAAAABXAAAAAAAAAEEAAAAAAAAAKwAA
+AAAAAAAVCOAAAAAFCAAIAAgAAAAB/AAAAAC/gAAAAAAAAAAAAAC/8AAAAAAAAAAAAAIAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH/4AAAAAAAAAAAAAAAAAAB/+AAAAAAAAAAAAAAAAAAA
+VFRUP1QAAAAC////9wAAAAD////3AAAAAUb+0Jvq2HwDRv7Qm+rYfAMAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8P////D/////////9/+AAAAAAAAH+A
+AAAAAAAB//////////8AAAAAAAAAFwAAAAAAAAAAAAB/wAAAAAAAAH/4AAAAAAAAAAAAAAAAAAAA
+AAAAf/gAAAAAAAAAAAAAAAAAAH/4AAAAAAAAAAAAAAAAAABGPz8/P/////cAAAAA////9wAAAAH/
+///3f/gAAAAAAAB/+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAdbzRUAAAAAB1vNFf/wAAAAAAAAf8AAAAAAAAEAAAAAAAAAH///////////
+AAAAAAAAAAAAAH/AAAAAAAAAf/gAAAAAAAAAAAAAAAAAAAAAAAB/+AAAAAAAAAAAAAAAAAAAf/gA
+AAAAAAAAAAAAAAAAAD8/Pz8/////9/////f////3////9/////d/+AAAAAAAAH/4AAAAAAAAAAAA
+AAAA
+     </STREAM>
+    </BINARY>
+   </DATA>
+  </TABLE>
+  <RESOURCE type="results">
+   <TABLE nrows="1" ref="main_table">
+    <DESCRIPTION>
+     This is a referenced table
+    </DESCRIPTION>
+    <DATA>
+     <TABLEDATA>
+      <TR>
+       <TD>String &amp; test</TD>
+       <TD>Fixed stri</TD>
+       <TD>Ceçi n'est pas un pipe</TD>
+       <TD>Ceçi n'est</TD>
+       <TD>ab c</TD>
+       <TD>128</TD>
+       <TD>4096</TD>
+       <TD>268435456</TD>
+       <TD>922337203685477</TD>
+       <TD>1</TD>
+       <TD>1</TD>
+       <TD/>
+       <TD>1</TD>
+       <TD>1 0 1 1 0 1</TD>
+       <TD>1 1 1</TD>
+       <TD/>
+       <TD/>
+       <TD/>
+       <TD/>
+       <TD>0 0 0 0</TD>
+       <TD>T</TD>
+       <TD>T T T T</TD>
+       <TD>0</TD>
+       <TD/>
+       <TD>1.333E+00</TD>
+       <TD>1.33</TD>
+       <TD/>
+       <TD>1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0</TD>
+      </TR>
+     </TABLEDATA>
+    </DATA>
+   </TABLE>
+  </RESOURCE>
+ </RESOURCE>
+</VOTABLE>
