@@ -15,7 +15,7 @@ def get_extensions(build_type='release'):
         defines.append(('HAVE_UNISTD_H', None))
 
     return [Extension(
-        "vo.iterparser",
+        "astropy.io.vo.iterparser",
         [VO_DIR + "/iterparse.c",
          EXPAT_DIR + "/xmlparse.c",
          EXPAT_DIR + "/xmlrole.c",
