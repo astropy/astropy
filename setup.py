@@ -31,11 +31,6 @@ for root, dirs, files in os.walk('astropy'):
         module = setup_helpers.import_module(name)
         setup_packages.append(module)
 
-# TODO: The type of build should be specifiable from the command line
-# or a .cfg file.
-BUILD = 'release' # Should be 'release' or 'debug'
-assert BUILD in ('release', 'debug')
-
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
 packages = find_packages(exclude=['tests'])
@@ -67,7 +62,7 @@ data_files = []
 # that is needed to install them.
 for package in setup_packages:
     if hasattr(package, 'get_extensions'):
-        extensions.extend(package.get_extensions(BUILD))
+        extensions.extend(package.get_extensions())
     if hasattr(package, 'get_package_data'):
         package_data.update(package.get_package_data())
     if hasattr(package, 'get_data_files'):
