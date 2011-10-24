@@ -53,7 +53,6 @@ def run_server(port):
 
 
 class TestCache:
-    @classmethod
     def setup_class(self):
         port = None
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,7 +85,6 @@ class TestCache:
             self.cache_dir, self.server_url,
             cache_delta=datetime.timedelta(seconds=1))
 
-    @classmethod
     def teardown_class(self):
         # Kill the server process
         self.server.terminate()

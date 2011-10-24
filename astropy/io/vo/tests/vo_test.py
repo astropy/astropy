@@ -143,7 +143,6 @@ def test_regression():
 
 
 class TestFixups:
-    @classmethod
     def setup_class(self):
         self.table = parse(join(ROOT_DIR, "regression.xml"), pedantic=False).get_first_table()
         self.array = self.table.array
@@ -155,7 +154,6 @@ class TestFixups:
 
 
 class TestReferences:
-    @classmethod
     def setup_class(self):
         self.votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
         self.table = self.votable.get_first_table()
@@ -220,7 +218,6 @@ def test_select_columns_by_name():
 
 
 class TestParse:
-    @classmethod
     def setup_class(self):
         self.table = parse(join(ROOT_DIR, "regression.xml"),
                            pedantic=False).get_first_table()
@@ -523,7 +520,6 @@ class TestParse:
 
 
 class TestThroughTableData(TestParse):
-    @classmethod
     def setup_class(self):
         votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
         votable.to_xml(join(TMP_DIR, "test_through_tabledata.xml"))
@@ -537,7 +533,6 @@ class TestThroughTableData(TestParse):
 
 
 class TestThroughBinary(TestParse):
-    @classmethod
     def setup_class(self):
         votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
         votable.get_first_table().format = 'binary'
