@@ -54,6 +54,37 @@ def get_data_filename(dataname):
         else:
             return datafn
     
+def compute_hash(localfn):
+    """ Computes the MD5 hash for a file.
+    
+    The hash for a data file is used for looking up data files in a unique 
+    fashion. This is of particular use for tests; a test may require a 
+    particular version of a particular file, in which case it can be accessed 
+    via hash to get the appropriate version. 
+    
+    Typically, if you wish to write a test that requires a particular data file,
+    you will want to submit that file to the astropy data servers, and use
+    e.g. ``get_data_filename('hash/a725fa6ba642587436612c2df0451956')``, but 
+    with the hash for your file in place of the hash in the example.
+    
+    Parameters
+    ----------
+    localfn : str
+        The path to the file for which the hash should be generated.
+        
+    Returns
+    -------
+    md5hash : str
+        The hex digest of the MD5 hash for the contents of the `localfn` file.
+    
+    """
+    import hashlib
+    
+    with open(localfn) as f:
+        h = hashlib.md5(f.read())
+    
+    return h.hexdigest()
+    
 def _find_pkg_data_fn(dataname):
     """
     Look for data in the source-included data directory and return the filename
