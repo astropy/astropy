@@ -1,84 +1,124 @@
-# Numerical constants, in S.I. units
+# Numerical constants, in cgs units
 
 from numpy import pi
 
-from . import cgs
+from .constant import Constant
 
 # PHYSICAL CONSTANTS
 
-# Planck constant [CODATA]
-h = cgs.h * 1.e-7  # J.s
+# Planck constant
+h = Constant(6.62606957e-34, 0.00000029e-34,
+             "Planck constant",
+             'CODATA 2010', 'SI')   # J.s
 
 # Reduced Planck constant
-hbar = cgs.hbar * 1.e-7  # J.s
+hbar = Constant(h * 0.5 / pi, h.error * 0.5 / pi,
+                "Reduced Planck constant",
+                'CODATA 2010', 'SI')  # J.s
 
-# Boltzmann constant [CODATA]
-k_B = cgs.k_B * 1.e-7  # J/K
+# Boltzmann constant
+k_B = Constant(1.3806488e-23, 0.0000013e-23,
+               "Boltzmann constant",
+               'CODATA 2010', 'SI')  # J/K
 
-# Speed of light [CODATA]
-c = cgs.c * 1.e-2  # m/s
+# Speed of light
+c = Constant(2.99792458e8, 0.,
+             "Speed of light in vacuum",
+             'CODATA 2010', 'SI')  # m/s
 
-# Gravitional constant [CODATA]
-G = cgs.G * 1.e-3  # m^3/kg/s
+# Gravitional constant
+G = Constant(6.67384e-11, 0.00080e-11,
+             "Gravitational constant",
+             'CODATA 2010', 'SI')  # m^3/kg/s
 
-# Proton mass [CODATA]
-m_p = cgs.m_p * 1.e-3  # kg
+# Proton mass
+m_p = Constant(1.672621777e-27, 0.000000074e-27,
+               "Proton mass",
+               'CODATA 2010', 'SI')  # kg
 
-# Neutron mass [CODATA]
-m_n = cgs.m_n * 1.e-3  # kg
+# Neutron mass
+m_n = Constant(1.674927351e-27, 0.000000074e-27,
+               "Neutron mass",
+               'CODATA 2010', 'SI')  # kg
 
-# Electron mass [CODATA]
-m_e = cgs.m_e * 1.e-3  # kg
+# Electron mass
+m_e = Constant(9.10938291e-31, 0.00000040e-31,
+               "Electron mass",
+               'CODATA 2010', 'SI')  # kg
 
 # Stefan-Boltzmann constant
-stef_boltz = 2. * pi ** 5 * k_B ** 4 / 15. / h ** 3. / c ** 2.
+stef_boltz = Constant(5.670373e-8, 0.000021e-8,
+                     "Stefan-Boltzmann constant",
+                     'CODATA 2010', 'SI')  # W/m^2/K^4
 
 # Electron charge
-e = cgs.e / 2997924580.  # C
+e = Constant(1.602176565e-19, 0.000000035e-19,
+             "Electron charge",
+             'CODATA 2010', 'SI')  # C
 
 # Avogadro's number
-N_A = cgs.N_A
+N_A = Constant(6.02214129e23, 0.00000027e23,
+               "Avogadro's number",
+               'CODATA 2010', 'SI')  # /mol
 
 # Gas constant
-R = N_A * k_B
+R = Constant(8.3144621, 0.0000075,
+             "Gas constant",
+             'CODATA 2010', 'SI')  # J/mol/K
 
 # DISTANCE
 
 # Astronomical Unit
-au = cgs.au * 1.e-2  # m
+au = Constant(1.4959787066e11, 0.,
+              "Astronomical Unit",
+              "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m
 
 # Parsec
-pc = 3600. * 180. / pi * au  # m
+pc = Constant(3.0856776e16, 0.,
+              "Parsec",
+              "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m
 
 # Kiloparsec
-kpc = 1000. * pc  # m
-
-# TIME
-
-# Year
-year = cgs.year
+kpc = Constant(3.0856776e19, 0.,
+              "Kiloparsec",
+              "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m
 
 # SOLAR QUANTITIES
 
 # Solar luminosity
-L_sun = cgs.L_sun * 1.e-7  # W
+L_sun = Constant(3.846e26, 0.,
+                 "Solar luminosity",
+                 "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # J/s
 
 # Solar mass
-M_sun = cgs.M_sun * 1.e-3  # kg
+M_sun = Constant(1.9891e30, 0.,
+                 "Solar mass",
+                 "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # kg
 
 # Solar radius
-R_sun = cgs.R_sun * 1.e-2  # m
+R_sun = Constant(6.95508e8, 0.00026e8,
+                 "Solar radius",
+                 "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m
+
 
 # OTHER SOLAR SYSTEM QUANTITIES
 
 # Jupiter mass
-M_jup = cgs.M_jup * 1.e-3  # kg
+M_jup = Constant(1.8987e27, 0.,
+                 "Jupiter mass",
+                 "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # kg
 
-# Jupiter radius
-R_jup = cgs.R_jup * 1.e-2  # m
+# Jupiter equatorial radius
+R_jup = Constant(7.1492e4, 0.,
+                 "Jupiter equatorial radius",
+                 "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m
 
 # Earth mass
-M_earth = cgs.M_earth * 1.e-3  # kg
+M_earth = Constant(5.9742e24, 0.,
+                  "Earth mass",
+                  "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # kg
 
-# Earth radius
-R_earth = cgs.R_earth * 1.e-2  # m
+# Earth equatorial radius
+R_earth = Constant(6.378136e3, 0.,
+                   "Earth equatorial radius",
+                   "Allen's Astrophysical Quantities 4th Ed.", 'SI')  # m

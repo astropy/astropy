@@ -2,81 +2,102 @@
 
 from numpy import pi
 
+from .constant import Constant
+from . import si
+
 # PHYSICAL CONSTANTS
 
-# Planck constant [CODATA]
-h = 6.62606957e-27  # erg.s
+# Planck constant
+h = Constant(si.h * 1.e7, si.h.error * 1.e7,
+             si.h.name, si.h.origin, 'cgs')  # erg.s
 
 # Reduced Planck constant
-hbar = h * 0.5 / pi  # erg.s
+hbar = Constant(si.hbar * 1.e7, si.hbar.error * 1.e7,
+                si.hbar.name, si.hbar.origin, 'cgs')  # erg.s
 
 # Boltzmann constant [CODATA]
-k_B = 1.3806488e-16  # erg/K
+k_B = Constant(si.k_B * 1.e7, si.k_B.error * 1.e7,
+               si.k_B.name, si.k_B.origin, 'cgs')  # erg.s
 
 # Speed of light [CODATA]
-c = 2.99792458e10  # cm/s
+c = Constant(si.c * 1.e2, si.c.error * 1.e2,
+             si.c.name, si.c.origin, 'cgs')  # cm/s
 
 # Gravitional constant [CODATA]
-G = 6.67384e-8  # cm^3/g/s
+G = Constant(si.G * 1.e3, si.G.error * 1.e3,
+             si.G.name, si.G.origin, 'cgs')  # cm^3/g/s
 
 # Proton mass [CODATA]
-m_p = 1.672621777e-24  # g
+m_p = Constant(si.m_p * 1.e3, si.m_p.error * 1.e3,
+               si.m_p.name, si.m_p.origin, 'cgs')  # g
 
 # Neutron mass [CODATA]
-m_n = 1.674927351e-24  # g
+m_n = Constant(si.m_n * 1.e3, si.m_n.error * 1.e3,
+               si.m_n.name, si.m_n.origin, 'cgs')  # g
 
 # Electron mass [CODATA]
-m_e = 9.10938291e-28  # g
+m_e = Constant(si.m_e * 1.e3, si.m_e.error * 1.e3,
+               si.m_e.name, si.m_e.origin, 'cgs')  # g
 
 # Stefan-Boltzmann constant
-stef_boltz = 2. * pi ** 5 * k_B ** 4 / 15. / h ** 3. / c ** 2.
+stef_boltz = Constant(si.stef_boltz * 1.e5, si.stef_boltz.error * 1.e5,
+                      si.stef_boltz.name, si.stef_boltz.origin,
+                      'cgs')  # erg/cm^2/K^4/s
 
 # Electron charge
-e = 4.8032068e-10  # statcoulombs
+e = Constant(si.e * si.c * 10., si.e.error * si.c * 10.,
+             si.e.name, si.e.origin, 'cgs')  # statC
 
 # Avogadro's number
-N_A = 6.0221367e23
+N_A = Constant(si.N_A, si.N_A.error,
+               si.N_A.name, si.N_A.origin, 'cgs')
 
 # Gas constant
-R = N_A * k_B
+R = Constant(si.R * 1.e7, si.R.error * 1.e7,
+             si.R.name, si.R.origin, 'cgs')  # erg/K/mol
 
 # DISTANCE
 
 # Astronomical Unit
-au = 1.49598e13  # cm
+au = Constant(si.au * 1.e2, si.au.error * 1.e2,
+              si.au.name, si.au.origin, 'cgs')  # cm
 
 # Parsec
-pc = 3600. * 180. / pi * au  # cm
+pc = Constant(si.pc * 1.e2, si.pc.error * 1.e2,
+              si.pc.name, si.pc.origin, 'cgs')  # cm
 
 # Kiloparsec
-kpc = 1000. * pc  # cm
-
-# TIME
-
-# Year
-year = 31556925.9936
+kpc = Constant(si.kpc * 1.e2, si.kpc.error * 1.e2,
+               si.kpc.name, si.kpc.origin, 'cgs')  # cm
 
 # SOLAR QUANTITIES
 
 # Solar luminosity
-L_sun = 3.846e33  # erg/s
+L_sun = Constant(si.L_sun * 1.e7, si.L_sun.error * 1.e7,
+                 si.L_sun.name, si.L_sun.origin, 'cgs')  # erg/s
 
 # Solar mass
-M_sun = 1.989e33  # g
+M_sun = Constant(si.M_sun * 1.e3, si.M_sun.error * 1.e3,
+                 si.M_sun.name, si.M_sun.origin, 'cgs')  # g
 
 # Solar radius
-R_sun = 6.95508e10  # cm
+R_sun = Constant(si.R_sun * 1.e2, si.R_sun.error * 1.e2,
+                 si.R_sun.name, si.R_sun.origin, 'cgs')  # cm
 
 # OTHER SOLAR SYSTEM QUANTITIES
 
 # Jupiter mass
-M_jup = 1.8986e30  # g
+M_jup = Constant(si.M_jup * 1.e3, si.M_jup.error * 1.e3,
+                 si.M_jup.name, si.M_jup.origin, 'cgs')  # g
 
-# Jupiter radius
-R_jup = 6.9911e9  # cm
+# Jupiter equatorial radius
+R_jup = Constant(si.R_jup * 1.e2, si.R_jup.error * 1.e2,
+                 si.R_jup.name, si.R_jup.origin, 'cgs')  # cm
 
 # Earth mass
-M_earth = 5.9722e27  # g
+M_earth = Constant(si.M_earth * 1.e3, si.M_earth.error * 1.e3,
+                 si.M_earth.name, si.M_earth.origin, 'cgs')  # g
 
-# Earth radius
-R_earth = 6.371e8  # cm
+# Earth equatorial radius
+R_earth = Constant(si.R_earth * 1.e2, si.R_earth.error * 1.e2,
+                 si.R_earth.name, si.R_earth.origin, 'cgs')  # cm
