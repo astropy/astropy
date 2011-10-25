@@ -29,74 +29,88 @@ def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
     Perform a Simple Spectral Access data query on a specified
     catalog.  To get the data itself, use `get_data`.
 
+    Parameters
+    ----------
+
     %(catalog_db)s
 
     %(pedantic)s
 
-    *pos*: The center of the region of interest.  The coordinate
-    values may be specified either as a string or a 2-item sequence.
-    If a string it is passed along to the service verbatim, and must
-    be two numbers in list format (comma separated) with no embedded
-    white space.
+    pos : 2-tuple of floats or str, optional
+        The center of the region of interest.  If a string, it is
+        passed along to the service verbatim, and must be two numbers
+        in list format (comma separated) with no embedded white space.
 
-    *pos* defaults to right-ascension and declination in decimal
-    degrees in the ICRS coordinate system. A coordinate system
-    reference frame may optionally be specified to specify a
-    coordinate system other than ICRS.  This may be the third element
-    of a sequence, or if a string, separated from the two numbers by a
-    semicolon.
+        *pos* defaults to right-ascension and declination in decimal
+        degrees in the ICRS coordinate system. A coordinate system
+        reference frame may optionally be specified to specify a
+        coordinate system other than ICRS.  This may be the third
+        element of a sequence, or if a string, separated from the two
+        numbers by a semicolon.
 
-    *size*: The diameter of the search region specified in decimal
-    degrees.
+    size : float
+        The diameter of the search region specified in decimal
+        degrees.
 
-    *band*: The spectral bandpass is given in `range-list-format`_,
-    with each list element specified either numerically as a
-    wavelength value or range, or textually as a spectral bandpass
-    identifier, e.g., a filter or instrumental bandpass name.  May be
-    either a single value or (for numerical ranges) an open or closed
-    range.  Multiple element range-lists are supported by some
-    services.  If a single numerical value is specified as a range
-    element it matches any spectrum for which the spectral coverage
-    includes the specified value.  If a two valued range is given, a
-    dataset matches if any portion of it overlaps the given spectral
-    region.
+    band : str
 
-    For a numerical bandpass, the units are wavelength in vacuum in
-    units of meters.  The spectral rest frame may be qualified as
-    either ``source`` or ``observer``, using either the last element
-    of the sequence or separated by a semi-colon if given as a
-    string::
+        The spectral bandpass is given in `range-list-format`_, with
+        each list element specified either numerically as a wavelength
+        value or range, or textually as a spectral bandpass
+        identifier, e.g., a filter or instrumental bandpass name.  May
+        be either a single value or (for numerical ranges) an open or
+        closed range.  Multiple element range-lists are supported by
+        some services.  If a single numerical value is specified as a
+        range element it matches any spectrum for which the spectral
+        coverage includes the specified value.  If a two valued range
+        is given, a dataset matches if any portion of it overlaps the
+        given spectral region.
 
-       band='1E-7/2E-6;source'
+        For a numerical bandpass, the units are wavelength in vacuum
+        in units of meters.  The spectral rest frame may be qualified
+        as either ``source`` or ``observer``, using either the last
+        element of the sequence or separated by a semi-colon if given
+        as a string::
 
-    For most queries the precision with which the spectral bandpass is
-    specified in the query probably does not matter very much. A rough
-    bandpass broad enough to find all the interesting data will
-    generally suffice; the more precise spectral bandpass specified in
-    the query response for each spectrum can then be used to refine
-    the query. In some cases, for example a cutout service operating
-    upon high resolution spectra, support at the service level for
-    specifying the spectral rest frame could be important. If the
-    service does not support specification of the spectral frame the
-    syntax should be permitted but may be ignored.
+            band='1E-7/2E-6;source'
 
-    *time*: The time coverage (epoch) specified in
-    `range-list-format`_, in `ISO 8601
-    <http://www.iso.org/iso/date_and_time_format>`_.  If the time
-    system used is not specified, UTC is assumed.  The value may be a
-    single value or an open or closed range.  If a single value is
-    specified, it matches any spectrum for which the time coverage
-    includes the specified value.  If a two-valued range is given, a
-    dataset matches if any portion of it overlaps the given temporal
-    region.
+        For most queries the precision with which the spectral
+        bandpass is specified in the query probably does not matter
+        very much. A rough bandpass broad enough to find all the
+        interesting data will generally suffice; the more precise
+        spectral bandpass specified in the query response for each
+        spectrum can then be used to refine the query. In some cases,
+        for example a cutout service operating upon high resolution
+        spectra, support at the service level for specifying the
+        spectral rest frame could be important. If the service does
+        not support specification of the spectral frame the syntax
+        should be permitted but may be ignored.
 
+    time : str
+
+        The time coverage (epoch) specified in `range-list-format`_,
+        in `ISO 8601 <http://www.iso.org/iso/date_and_time_format>`_.
+        If the time system used is not specified, UTC is assumed.  The
+        value may be a single value or an open or closed range.  If a
+        single value is specified, it matches any spectrum for which
+        the time coverage includes the specified value.  If a
+        two-valued range is given, a dataset matches if any portion of
+        it overlaps the given temporal region.
+
+    Returns
+    -------
+    TODO
+
+    Extra parameters
+    ----------------
     Additional kwargs may be provided to pass along to the server.
     These arguments are specific to the particular catalog being
-    queried.  The standard set of optional arguments for SSA includes:
+    queried.  The standard set of optional arguments for SSA
+    includes::
 
-       APERTURE, SPECRP, SPATRES, TIMERES, SNR, REDSHIFT, VARAMPL,
-       TARGETNAME, TARGETCLASS, FLUXCALIB, WAVECALIB, PUBDID,
-       CREATORID, COLLECTION, TOP, MAXREC, MTIME, COMPRESS, RUNID
+        APERTURE, SPECRP, SPATRES, TIMERES, SNR, REDSHIFT, VARAMPL,
+        TARGETNAME, TARGETCLASS, FLUXCALIB, WAVECALIB, PUBDID,
+        CREATORID, COLLECTION, TOP, MAXREC, MTIME, COMPRESS, RUNID
     """
     # Type-check and coerce arguments
     pos, pos_len = util.coerce_range_list_param(
@@ -138,26 +152,33 @@ def get_data(url, pedantic=False, mimetype=None):
     Retrieve a set of spectral data defined in the results of a
     `query_data` call.
 
-    *url* may either be a string containing a URL or a row from the
-    `vo.table` array returned by `query_data`.  If the latter, the
-    actual URL used is grabbed from the column named 'AcRef'.  If such
-    a column does not exist, a `ValueError` is raised.
+    Parameters
+    ----------
+    url : str or row of structured ndarray
+        May either be a string containing a URL or a row from the
+        `vo.table` array returned by `query`.  If the latter, the
+        actual URL used is grabbed from the column named 'AcRef'.  If
+        such a column does not exist, a `ValueError` is raised.
 
     %(pedantic)s
 
-    *mimetype*, if provided, will override the type returned from the
-    server.  Only use if you know what type of file you expect to be
-    returned.
+    mimetype : str, optional
+        If provided, will override the type returned from the server.
+        Only use if you know what type of file you expect to be
+        returned.
 
-    If the resulting file is:
+    Returns
+    -------
+    file : context-dependent
+        If the resulting file is:
 
-      - a fits file, a `pyfits.hdulist` object is returned
+            - a fits file, a `pyfits.hdulist` object is returned
 
-      - a VOTABLE file, a :class:`~vo.tree.VOTableFile` object is
-        returned
+            - a VOTABLE file, a :class:`~vo.tree.VOTableFile` object
+              is returned
 
-      - otherwise, a read-only file-like object to the raw data is
-        returned
+            - otherwise, a read-only file-like object to the raw data
+              is returned
     """
     if isinstance(url, np.flexible):
         url = url['AcRef']

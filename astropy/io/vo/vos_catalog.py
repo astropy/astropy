@@ -34,7 +34,7 @@ __dbversion__ = 1
 _doc_snippets = {
     'pedantic' :
     """
-    pedantic : bool
+    pedantic : bool, optional
         pedantic has the same meaning as `~vo.table.parse`.
         When pedantic is `True`, raise an error when the returned VOTable
         file violates the spec, otherwise issue a warning.  Warnings may
@@ -44,7 +44,7 @@ _doc_snippets = {
 
     'catalog_db' :
     """
-    catalog_db : None, str, ~vos_catalog.VOSCatalog, list
+    catalog_db : None or str or `~vos_catalog.VOSCatalog` or list, optional
 
         catalog_db may be one of the following, in order from easiest
         to use to most control:

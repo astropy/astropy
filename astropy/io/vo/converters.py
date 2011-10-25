@@ -111,8 +111,8 @@ class Converter(object):
         Convert the object *value* (in the native in-memory datatype)
         to a string suitable for serializing in the TABLEDATA_ format.
 
-        Parmeters
-        ---------
+        Parameters
+        ----------
         value : native type corresponding to this converter
             The value
 
@@ -132,8 +132,19 @@ class Converter(object):
         Reads some number of bytes from the BINARY_ format
         representation by calling the function *read*, and returns the
         native in-memory object representation for the datatype
-        handled by *self*.  The result is returned as a tuple (value,
-        mask).
+        handled by *self*.
+
+        Parameters
+        ----------
+        read : function
+            A function that given a number of bytes, returns a byte
+            string.
+
+        Returns
+        -------
+        native : tuple (value, mask)
+            The value as a Numpy array or scalar, and *mask* is True
+            if the value is missing.
         """
         raise NotImplementedError(
             "This datatype must implement a 'binparse' method.")
@@ -143,6 +154,21 @@ class Converter(object):
         Convert the object *value* in the native in-memory datatype to
         a string of bytes suitable for serialization in the BINARY_
         format.
+
+        Parameters
+        ----------
+        value : native type corresponding to this converter
+            The value
+
+        mask : bool
+            If `True`, will return the string representation of a
+            masked value.
+
+        Returns
+        -------
+        bytes : byte string
+            The binary representation of the value, suitable for
+            serialization in the BINARY_ format.
         """
         raise NotImplementedError(
             "This datatype must implement a 'binoutput' method.")
@@ -314,7 +340,7 @@ class UnicodeChar(Converter):
 
 class Array(Converter):
     """
-    Handles both fixed and variable-lengths arrays
+    Handles both fixed and variable-lengths arrays.
     """
     def __init__(self, field, config={}, pos=None):
         Converter.__init__(self, field, config, pos)
@@ -1086,10 +1112,24 @@ converter_mapping = {
     'unicodeChar'   : UnicodeChar }
 
 
-def get_converter(field, config, pos):
+def get_converter(field, config={}, pos=None):
     """
-    Given a :class:`~vo.tree.Field` object *field*, return an
-    appropriate converter class to handle the specified datatype.
+    Factory function to get an appropriate converter instance for a
+    given field.
+
+    Parameters
+    ----------
+    field : astropy.io.vo.tree.Field
+
+    config : dict, optional
+        Parser configuration dictionary
+
+    pos : tuple
+        Position in the input XML file.  Used for error messages.
+
+    Returns
+    -------
+    converter : astropy.io.vo.converters.Converter
     """
     if field.datatype not in converter_mapping:
         vo_raise(E06, (field.datatype, field.ID), config)
