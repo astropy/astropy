@@ -65,20 +65,35 @@ _ucd_singleton = None
 
 def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     """
-    Parse the UCD into its component parts.  The result is a list of
-    tuples of the form:
+    Parse the UCD into its component parts.
 
-      (*namespace*, *word*)
+    Parameters
+    ----------
+    ucd : str
+        The UCD string
 
-    If no namespace was explicitly specified, *namespace* will be
-    returned as ``'ivoa'`` (i.e., the default namespace).
+    check_controlled_vocabulary : bool, optional
+        If `True`, then each word in the UCD will be verified against
+        the UCD1+ controlled vocabulary, (as required by the VOTable
+        specification version 1.2), otherwise not.
 
-    If *check_controlled_vocabulary* is ``True``, then each word in
-    the UCD will be verified against the UCD1+ controlled vocabulary,
-    (as required by the VOTable specification version 1.2), otherwise
-    not.
+    has_colon : bool, optional
+        If `True`, the UCD may contain a colon (as defined in earlier
+        versions of the standard).
 
-    Will raise `ValueError` if *ucd* is invalid.
+    Returns
+    -------
+    parts : list
+        The result is a list of tuples of the form:
+
+            (*namespace*, *word*)
+
+        If no namespace was explicitly specified, *namespace* will be
+        returned as ``'ivoa'`` (i.e., the default namespace).
+
+    Raises
+    ------
+    ValueError : *ucd* is invalid
     """
     global _ucd_singleton
     if _ucd_singleton is None:
@@ -147,10 +162,19 @@ def check_ucd(ucd, check_controlled_vocabulary=False):
     Returns False if *ucd* is not a valid `unified content
     descriptor`_.
 
-    If *check_controlled_vocabulary* is ``True``, then each word in
-    the UCD will be verified against the UCD1+ controlled vocabulary,
-    (as required by the VOTable specification version 1.2), otherwise
-    not.
+    Parameters
+    ----------
+    ucd : str
+        The UCD string
+
+    check_controlled_vocabulary : bool, optional
+        If `True`, then each word in the UCD will be verified against
+        the UCD1+ controlled vocabulary, (as required by the VOTable
+        specification version 1.2), otherwise not.
+
+    Returns
+    -------
+    valid : bool
     """
     try:
         parse_ucd(ucd, check_controlled_vocabulary=check_controlled_vocabulary)

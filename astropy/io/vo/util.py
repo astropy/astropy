@@ -22,9 +22,13 @@ class HomogeneousList(list):
     """
     def __init__(self, types, values=[]):
         """
-        *types* is a sequence of acceptable types.
+        Parameters
+        ----------
+        types : sequence of types
+            The types to accept.
 
-        *values* (optional) is an initial set of values.
+        values : sequence, optional
+            An initial set of values.
         """
         self._types = types
         list.__init__(self, values)
@@ -57,13 +61,20 @@ def convert_to_writable_filelike(fd):
     """
     Returns a writable file-like object suitable for streaming output.
 
-    *fd* may be:
+    Parameters
+    ----------
+    fd : file path string or writable file-like object
+        May be:
 
-      - a file path, in which case it is opened, and the :meth:`write`
-        method on the file object is returned.
+            - a file path, in which case it is opened, and the :meth:`write`
+              method on the file object is returned.
 
-      - an object with a :meth:`write` method, in which case that
-        method is returned.
+            - an object with a :meth:`write` method, in which case that
+              method is returned.
+
+    Returns
+    -------
+    fd : writable file-like object
     """
     if isinstance(fd, basestring):
         if IS_PY3K:
@@ -93,20 +104,28 @@ def convert_to_fd_or_read_function(fd):
     """
     Returns a function suitable for streaming input, or a file object.
 
-    *fd* may be:
+    Parameters
+    ----------
+    fd : object
+        May be:
 
-      - a file object, in which case it is returned verbatim.
+            - a file object, in which case it is returned verbatim.
 
-      - a function that reads from a stream, in which case it is
-        returned verbatim.
+            - a function that reads from a stream, in which case it is
+              returned verbatim.
 
-      - a file path, in which case it is opened.  If it ends in `.gz`,
-        it is assumed to be a gzipped file, and the :meth:`read`
-        method on the file object is returned.  Otherwise, the raw
-        file object is returned.
+            - a file path, in which case it is opened.  If it ends in
+              `.gz`, it is assumed to be a gzipped file, and the
+              :meth:`read` method on the file object is returned.
+              Otherwise, the raw file object is returned.
 
-      - an object with a :meth:`read` method, in which case that
-        method is returned.
+           - an object with a :meth:`read` method, in which case that
+             method is returned.
+
+    Returns
+    -------
+    fd : context-dependent
+        See above.
     """
     if IS_PY3K:
         if isinstance(fd, io.IOBase):
@@ -229,28 +248,39 @@ def coerce_range_list_param(p, frames=None, numeric=True):
     Spectral Access Protocol
     <http://www.ivoa.net/Documents/REC/DAL/SSA-20080201.html>`_.
 
-    *p* may be a string as passed verbatim to the service expecting a
-    range-list, or a sequence.  If a sequence, each item must be
-    either:
+    Parameters
+    ----------
+    p : str or sequence
+        May be a string as passed verbatim to the service expecting a
+        range-list, or a sequence.  If a sequence, each item must be
+        either:
 
-      - a numeric value
+            - a numeric value
 
-      - a named value, such as, for example, 'J' for named spectrum
-        (if the *numeric* kwarg is False)
+            - a named value, such as, for example, 'J' for named
+              spectrum (if the *numeric* kwarg is False)
 
-      - a 2-tuple indicating a range
+            - a 2-tuple indicating a range
 
-      - the last item my be a string indicating the frame of reference
+            - the last item my be a string indicating the frame of
+              reference
 
-    The result is a tuple:
+    frames : sequence of str, optional
+        A sequence of acceptable frame of reference keywords.  If not
+        provided, the default set in `set_reference_frames` will be
+        used.
 
-      - a string suitable for passing to a service as a range-list
-        argument
+    numeric : bool, optional
+        TODO
 
-      - an integer counting the number of elements
+    Returns
+    -------
+    parts : tuple
+        The result is a tuple:
+            - a string suitable for passing to a service as a range-list
+              argument
 
-    *frames*, if provided, should be a sequence of acceptable frame of
-    reference keywords.
+            - an integer counting the number of elements
     """
     def str_or_none(x):
         if x is None:
@@ -315,7 +345,7 @@ def coerce_range_list_param(p, frames=None, numeric=True):
 
 def version_compare(a, b):
     """
-    Compare two version identifiers.
+    Compare two VOTable version identifiers.
     """
     def version_to_tuple(v):
         if v[0].lower() == 'v':
@@ -327,12 +357,35 @@ def version_compare(a, b):
     return (av > bv) - (av < bv)
 
 
-def color_print(color, s, bold=False, italic=False, stream=sys.stdout,
+def color_print(s, color='default', bold=False, italic=False, stream=sys.stdout,
                 newline=True):
     """
-    Prints the string *s* in the given *color* where *color* is an
-    ANSI terminal color name.  *stream* may be any writable file-like
-    object.
+    Prints colors and styles to the terminal uses ANSI escape
+    sequences.
+
+    Parameters
+    ----------
+    s : str
+        The message to print
+
+    color : str, optional
+        An ANSI terminal color name.  Must be one of: black, red,
+        green, brown, blue, magenta, cyan, lightgrey, default,
+        darkgrey, lightred, lightgreen, yellow, lightblue,
+        lightmagenta, lightcyan, white.
+
+    bold : bool, optional
+        When `True` use boldface font.
+
+    italic : bool, optional
+        When `True`, use italic font.
+
+    stream : writeable file-like object, optional
+        Stream to write to.  Defaults to `sys.stdout`.
+
+    newline : bool, optional
+        When `True` (default) append a newline to the end of the
+        message.
 
     TODO: Be smart about when to use and not use color.
     """
@@ -388,15 +441,28 @@ class ProgressBar:
     """
     A class to display a progress bar in the terminal.
 
-    It is designed for use with the `with` statement::
+    It is designed to be used with the `with` statement:
 
-       with ProgressBar(len(items)) as bar:
-           for i, item in enumerate(items):
-               bar.update(i)
+        with ProgressBar(len(items)) as bar:
+            for item in enumerate(items):
+                bar.update()
     """
     def __init__(self, total, stream=sys.stdout):
         """
-        *total* is the number of steps in the process.
+        Parameters
+        ----------
+        items : int
+            The number of increments in the process being tracked.
+
+        stream : writable file-like object
+            The stream to write the progress bar to.  Defaults to
+            `sys.stdout`.
+
+        See also
+        --------
+        map_with_progress_bar
+
+        iterate_with_progress_bar
         """
         self._total = total
         self._stream = stream
@@ -425,23 +491,27 @@ class ProgressBar:
         self._stream.write('\n')
         self._stream.flush()
 
-    def update(self, value):
+    def update(self, value=None):
         """
         Update the progress bar to the given value (out of the total
         given to the constructor.
         """
+        if value is None:
+            value = self._current_value = self._current_value + 1
+        else:
+            self._current_value = value
         if self._total == 0:
             frac = 1.0
         else:
             frac = float(value) / float(self._total)
         bar_fill = int(float(self._bar_length) * frac)
         self._stream.write('|')
-        color_print('blue', '=' * bar_fill,
+        color_print('=' * bar_fill, color='blue',
                     stream=self._stream, newline=False)
         if bar_fill < self._bar_length:
-            color_print('green', '>',
+            color_print('>', color='green',
                         stream=self._stream, newline=False)
-            color_print('default', '-' * (self._bar_length - bar_fill - 1),
+            color_print('-' * (self._bar_length - bar_fill - 1),
                         stream=self._stream, newline=False)
         if value >= self._total:
             t = time.time() - self._start_time
@@ -458,10 +528,28 @@ class ProgressBar:
         self._stream.flush()
 
 
-def map_with_progress(function, items, multiprocess=False, stream=sys.stdout):
+def map_with_progress_bar(
+        function, items, multiprocess=False, stream=sys.stdout):
     """
     Does a *map* while displaying a progress bar with percentage
     complete.
+
+    Parameters
+    ----------
+    function : function
+        Function to call for each step
+
+    items : sequence
+        Sequence where each element is a tuple of arguments to pass to
+        *function*.
+
+    multiprocess : bool, optional
+        If `True`, use the `multiprocessing` module to distribute each
+        task to a different processor core.
+
+    stream : writeable file-like object
+        The stream to write the progress bar to.  Defaults to
+        `sys.stdout`.
     """
     with ProgressBar(len(items), stream=stream) as bar:
         step_size = max(200, bar._bar_length)
@@ -476,3 +564,28 @@ def map_with_progress(function, items, multiprocess=False, stream=sys.stdout):
             p = multiprocessing.Pool()
             for i, _ in enumerate(p.imap_unordered(function, items, steps)):
                 bar.update(i)
+
+
+def iterate_with_progress_bar(items, stream=sys.stdout):
+    """
+    Iterate over a sequence while indicating progress with a progress
+    bar in the terminal.
+
+    Use as follows::
+
+        for item in iterate_with_progress_bar(items):
+            pass
+
+    Parameters
+    ----------
+    items : sequence
+        A sequence of items to iterate over
+
+    stream : writeable file-like object
+        The stream to write the progress bar to.  Defaults to
+        `sys.stdout`.
+    """
+    with ProgressBar(len(items), stream=stream) as bar:
+        for item in items:
+            yield item
+            bar.update()

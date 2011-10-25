@@ -45,7 +45,6 @@ _doc_snippets = {
     'catalog_db' :
     """
     catalog_db : None or str or `~vos_catalog.VOSCatalog` or list, optional
-
         catalog_db may be one of the following, in order from easiest
         to use to most control:
 
@@ -155,17 +154,25 @@ def call_vo_service(service_type, catalog_db=None, pedantic=False,
     """
     Makes a generic VO service call.
 
-    *service_type* is the name of the type of service,
-    eg. 'conesearch'.  Used in error messages and to select a catalog
-    database if one is not provided.
+    Parameters
+    ----------
+    service_type : str
+        The name of the type of service, eg. 'conesearch'.  Used in
+        error messages and to select a catalog database if one is not
+        provided.
 
     %(catalog_db)s
 
     %(pedantic)s
 
-    *kwargs* is a dictionary of arguments to pass to the catalog
-    service.  No checking is done that the arguments are accepted by
-    the service etc.
+    verbose : bool, optional
+        When `True` (default) display messages about progress to the
+        terminal.
+
+    kwargs : dict, optional
+        A dictionary of arguments to pass to the catalog service.  No
+        checking is done that the arguments are accepted by the
+        service etc.
     """
     if catalog_db is None:
         catalog_db = get_remote_catalog_db(service_type)
@@ -200,7 +207,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=False,
             url = catalog.get_url()
 
         if verbose:
-            util.color_print('green', "Trying %s" % url, bold=True)
+            util.color_print("Trying %s" % url, color='green', bold=True)
 
         try:
             return _vo_service_request(url, pedantic, kwargs)

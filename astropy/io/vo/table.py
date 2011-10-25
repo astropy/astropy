@@ -16,41 +16,54 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
           filename=None,
           _debug_python_based_parser=False):
     """
-    Parses a VOTABLE xml file (or file-like object), and returns a
-    :class:`~vo.tree.VOTable` object, with a nested list of
-    :class:`~vo.tree.Resource` instances and :class:`~vo.tree.Table`
-    instances.
+    Parses a VOTABLE_ xml file (or file-like object), and returns a
+    `~astropy.io.vo.tree.VOTable` object, with nested
+    `~astropy.io.vo.tree.Resource` instances and
+    `~astropy.io.vo.tree.Table` instances.
 
-    *source* may be a filename or a readable file-like object.
+    Parameters
+    ----------
+    source : str or readable file-like object
+        Path or file object containing a VOTABLE_ xml file.
 
-    If the *columns* parameter is specified, it should be a list of
-    field names to include in the output.  The default is to include
-    all fields.
+    columns : sequence of str, optional
+        List of field names to include in the output.  The default is
+        to include all fields.
 
-    The *invalid* parameter may be one of the following values:
+    invalid : str
+        One of the following values:
 
-      - 'exception': throw an exception when an invalid value is
-        encountered (default)
+            - 'exception': throw an exception when an invalid value is
+              encountered (default)
 
-      - 'mask': mask out invalid values
+            - 'mask': mask out invalid values
 
-    When *pedantic* is True, raise an error when the file violates the
-    spec, otherwise issue a warning.  Warnings may be controlled using
-    the standard Python mechanisms.  See the :mod:`warnings` module in
-    the Python standard library for more information.
+    pedantic : bool
+        When `True`, raise an error when the file violates the spec,
+        otherwise issue a warning.  Warnings may be controlled using
+        the standard Python mechanisms.  See the `warnings`
+        module in the Python standard library for more information.
 
-    *chunk_size* is the number of rows to read before converting to an
-    array.  Higher numbers are likely to be faster, but will consume
-    more memory.
+    chunk_size : int
+        The number of rows to read before converting to an array.
+        Higher numbers are likely to be faster, but will consume more
+        memory.
 
-    *table_number* is the number of table in the file to read in.  If
-    `None`, all tables will be read.  If a number, 0 refers to the
-    first table in the file.
+    table_number : int
+        The number of table in the file to read in.  If `None`, all
+        tables will be read.  If a number, 0 refers to the first table
+        in the file.
 
-    *filename* is a filename, URL or other identifier to use in error
-    messages.  If *filename* is None and *source* is a string (i.e. a
-    path), then *source* will be used as a filename for error
-    messages.
+    filename : str
+        A filename, URL or other identifier to use in error messages.
+        If *filename* is None and *source* is a string (i.e. a path),
+        then *source* will be used as a filename for error messages.
+        Therefore, *filename* is only required when source is a
+        file-like object.
+
+    Returns
+    -------
+    votable : astropy.io.vo.tree.VOTable object
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
@@ -76,11 +89,15 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
 
 def parse_single_table(source, **kwargs):
     """
-    Parses a VOTABLE xml file (or file-like object), assuming it only
-    contains a single TABLE element, and returns a
-    :class:`~vo.tree.Table` instance.
+    Parses a VOTABLE_ xml file (or file-like object), reads only the
+    first TABLE_ element, and returns a `~astropy.io.vo.tree.Table`
+    instance.
 
-    See :func:`parse` for a description of the keyword arguments.
+    See `parse` for a description of the keyword arguments.
+
+    Returns
+    -------
+    votable : astropy.io.vo.tree.Table object
     """
     if kwargs.get('table_number') is None:
         kwargs['table_number'] = 0

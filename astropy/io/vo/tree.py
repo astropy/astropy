@@ -40,6 +40,8 @@ from operator import attrgetter
 import re
 import sys
 import urllib2
+if IS_PY3K:
+    basestring = (str, bytes)
 
 # THIRD-PARTY
 import numpy as np
@@ -81,13 +83,22 @@ def _lookup_by_id_factory(iterator, element_name, doc):
     """
     Creates a function useful for looking up an element by ID.
 
-    *iterator* is a generator that iterates over some arbitrary set of
-    elements,
+    Parameters
+    ----------
+    iterator : generator
+        A generator that iterates over some arbitrary set of elements
 
-    *element_name* should be the XML element name of the elements
-    being iterated over (used for error messages only).
+    element_name : str
+        The XML element name of the elements being iterated over (used
+        for error messages only).
 
-    *doc* is a docstring to apply to the generated function.
+    doc : str
+        A docstring to apply to the generated function.
+
+    Returns
+    -------
+    factory : function
+        A function that looks up an element by ID
     """
     def lookup_by_id(self, ref, before=None):
         """
@@ -116,15 +127,7 @@ def _lookup_by_id_factory(iterator, element_name, doc):
 
 def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     """
-    Creates a function useful for looking up an element by ID or name.
-
-    *iterator* is a generator that iterates over some arbitrary set of
-    elements,
-
-    *element_name* should be the XML element name of the elements
-    being iterated over (used for error messages only).
-
-    *doc* is a docstring to apply to the generated function.
+    Like `_lookup_by_id_factory`, but also looks in the "name" attribute.
     """
     def lookup_by_id(self, ref, before=None):
         """
@@ -155,8 +158,20 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
 # ATTRIBUTE CHECKERS
 def check_astroyear(year, field, config={}, pos=None):
     """
-    Raises a :exc:`~vo.voexceptions.VOTableSpecError` if *year* is not
-    a valid astronomical year as defined by the VOTABLE standard.
+    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *year* is
+    not a valid astronomical year as defined by the VOTABLE standard.
+
+    Parameters
+    ----------
+    year : str
+        An astronomical year string
+
+    field : str
+        The name of the field this year was found in (used for error
+        message)
+
+    config, pos : optional
+        Information about the source of the value
     """
     if (year is not None and
         re.match(r"^[JB]?[0-9]+([.][0-9]*)?$", year) is None):
@@ -167,8 +182,20 @@ def check_astroyear(year, field, config={}, pos=None):
 
 def check_string(string, attr_name, config={}, pos=None):
     """
-    Raises a :exc:`~vo.voexceptions.VOTableSpecError` if *string* is
-    not a string or Unicode string.
+    Raises a `~astropy.io.vo.voexceptions.VOTableSpecError` if
+    *string* is not a string or Unicode string.
+
+    Parameters
+    ----------
+    string : str
+        An astronomical year string
+
+    field : str
+        The name of the field this year was found in (used for error
+        message)
+
+    config, pos : optional
+        Information about the source of the value
     """
     if string is not None and not isinstance(string, basestring):
         warn_or_raise(W08, W08, attr_name, config, pos)
@@ -185,9 +212,17 @@ def resolve_id(ID, id, config={}, pos=None):
 
 def check_ucd(ucd, config={}, pos=None):
     """
-    Warns or raises a :exc:`~vo.voexceptions.VOTableSpecError` if
-    *ucd* is not a valid `unified content descriptor`_ string as
+    Warns or raises a `~astropy.io.vo.voexceptions.VOTableSpecError`
+    if *ucd* is not a valid `unified content descriptor`_ string as
     defined by the VOTABLE standard.
+
+    Parameters
+    ----------
+    ucd : str
+        A UCD string.
+
+    config, pos : optional
+        Information about the source of the value
     """
     if config.get('version_1_1_or_later'):
         try:
@@ -1681,22 +1716,22 @@ class Table(Element):
     It contains the following publicly-accessible members, all of
     which are mutable:
 
-      *array*: A Numpy recarray of the data itself, where each row is
-      a row of votable data, and columns are named and typed based on
-      the <FIELD> elements of the table.
+        *array*: A Numpy recarray of the data itself, where each row
+        is a row of votable data, and columns are named and typed
+        based on the <FIELD> elements of the table.
 
-      *mask*: A Numpy recarray of only boolean values, set to *True*
-      wherever a value is undefined.
+        *mask*: A Numpy recarray of only boolean values, set to *True*
+        wherever a value is undefined.
 
     If the Table contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
     and *mask* will be zero-length arrays.
 
     .. note::
-      In a future version of the vo package, the *array* and *mask*
-      elements will likely be combined into a single Numpy masked
-      record array.  However, there are a number of deficiencies the
-      current implementation of Numpy that prevent this.
+        In a future version of the vo package, the *array* and *mask*
+        elements will likely be combined into a single Numpy masked
+        record array.  However, there are a number of deficiencies the
+        current implementation of Numpy that prevent this.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -2958,10 +2993,13 @@ class VOTableFile(Element):
         """
         Write to an XML file.
 
-        *fd* may be a path to a file, or a Python file-like object.
+        Parameters
+        ----------
+        fd : str path or writable file-like object
+           Where to write the file.
 
-        *write_null_values*:
-           When True, write the 'null' value (specified in the null
+        write_null_values : bool
+           When `True`, write the 'null' value (specified in the null
            attribute of the VALUES element for each FIELD) for empty
            values.  When False (default), simply write no value.
         """

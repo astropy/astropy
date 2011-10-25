@@ -20,6 +20,9 @@ from .voexceptions import warn_or_raise, vo_warn, vo_raise, \
 
 
 def xml_escape_cdata(s):
+    """
+    Escapes &, < and > in an XML CDATA string.
+    """
     s = s.replace(u"&", u"&amp;")
     s = s.replace(u"<", u"&lt;")
     s = s.replace(u">", u"&gt;")
@@ -27,6 +30,9 @@ def xml_escape_cdata(s):
 
 
 def xml_escape(s):
+    """
+    Escapes &, ', ", < and > in an XML attribute value.
+    """
     s = s.replace(u"&", u"&amp;")
     s = s.replace(u"'", u"&apos;")
     s = s.replace(u"\"", u"&quot;")
@@ -41,19 +47,28 @@ def fast_iterparse(fd, buffersize=2 ** 10):
     tree at all.  This makes things much faster and more memory
     efficient.
 
-    The iterator returns 3-tuples (*event*, *tag*, *data*):
+    Parameters
+    ----------
+    fd : readable file-like object, read function or str path
 
-    - *event*: may be either 'start' (when an element begins) or 'end'
-      (when an element is completed).
+    Returns
+    -------
+    parts : iterator
 
-    - *tag*: The name of the element
+        The iterator returns 3-tuples (*event*, *tag*, *data*):
 
-    - *data*: Depends on the value of *event*:
+            - *event*: may be either 'start' (when an element begins) or 'end'
+              (when an element is completed).
 
-      - if *event* == 'start', data is a dictionary of attributes
+            - *tag*: The name of the element
 
-      - if *event* == 'end', data is a list of strings, that when
-        joined is the text content of the element
+            - *data*: Depends on the value of *event*:
+
+                - if *event* == 'start', data is a dictionary of
+                  attributes
+
+                - if *event* == 'end', data is a list of strings, that
+                  when joined is the text content of the element
     """
     from xml.parsers import expat
 
@@ -129,14 +144,22 @@ def get_xml_iterator(source, _debug_python_based_parser=False):
 def object_attrs(obj, attrs):
     """
     Converts an object with a bunch of attributes on an object into a
-    dictionary for use by the XMLWriter.
+    dictionary for use by the `XMLWriter`.
 
-    *obj* is any Python object
+    Parameters
+    ----------
+    obj : object
+        Any Python object
 
-    *attrs* is a sequence of attribute names to pull from the object
+    attrs : sequence of str
+        Attribute names to pull from the object
 
-    If any of the attributes is ``None``, it will not appear in the
-    output dictionary.
+    Returns
+    -------
+    attrs : dict
+        Maps attribute names to the values retrieved from `obj.attr`.
+        If any of the attributes is `None`, it will not appear in the
+        output dictionary.
     """
     d = {}
     for attr in attrs:
@@ -147,7 +170,7 @@ def object_attrs(obj, attrs):
 
 def check_id(ID, name='ID', config={}, pos=None):
     """
-    Raises a :exc:`~vo.voexceptions.VOTableSpecError` if *ID* is not a
+    Raises a `astropy.io.vo.voexceptions.VOTableSpecError` if *ID* is not a
     valid XML ID_.  *name* is the name of the attribute being checked
     (used only for error messages).
     """
@@ -184,7 +207,7 @@ _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 
 def check_token(token, attr_name, config={}, pos=None):
     """
-    Raises a :exc:`ValueError` if *token* is not a valid XML token, as
+    Raises a `ValueError` if *token* is not a valid XML token, as
     defined by XML Schema Part 2.
     """
     if (token is not None and
@@ -197,7 +220,7 @@ def check_token(token, attr_name, config={}, pos=None):
 
 def check_mime_content_type(content_type, config={}, pos=None):
     """
-    Raises a :exc:`ValueError` if *content_type* is not a valid MIME
+    Raises a `ValueError` if *content_type* is not a valid MIME
     content type (syntactically at least), as defined by RFC 2045.
     """
     ctrls = ''.join(chr(x) for x in xrange(0, 0x20))
@@ -213,7 +236,7 @@ def check_mime_content_type(content_type, config={}, pos=None):
 
 def check_anyuri(uri, config={}, pos=None):
     """
-    Raises a :exc:`ValueError` if *uri* is not a valid URI as defined in RFC
+    Raises a `ValueError` if *uri* is not a valid URI as defined in RFC
     2396.
     """
     if uri is not None:
@@ -231,9 +254,15 @@ def check_anyuri(uri, config={}, pos=None):
 
 
 class XMLWriter:
+    """
+    A class to write well-formed and nicely indented XML.
+    """
+
     def __init__(self, file):
         """
-        *file* is a writable file-like object.
+        Parameters
+        ----------
+        file : writable file-like object.
         """
         self.write = file.write
         if hasattr(file, "flush"):
@@ -272,17 +301,24 @@ class XMLWriter:
     def start(self, tag, attrib={}, **extra):
         """
         Opens a new element.  Attributes can be given as keyword
-        arguments, or as a string/string dictionary. The method
+        arguments, or as a string/string dictionary.  The method
         returns an opaque identifier that can be passed to the
         :meth:`close` method, to close all open elements up to and
         including this one.
 
-        *tag*: Element tag.
+        Parameters
+        ----------
+        tag : str
+            The element name
 
-        *attrib*: Attribute dictionary.  Alternatively, attributes can
-        be given as keyword arguments.
+        attrib : dict of str -> str
+            Attribute dictionary.  Alternatively, attributes can
+            be given as keyword arguments.
 
-        Returns an element identifier.
+        Returns
+        -------
+        id : int
+            Returns an element identifier.
         """
         self._flush()
         # This is just busy work -- we know our tag names are clean
@@ -325,7 +361,10 @@ class XMLWriter:
         """
         Adds a comment to the output stream.
 
-        *comment*: Comment text, as a Unicode string.
+        Parameters
+        ----------
+        comment : str
+            Comment text, as a Unicode string.
         """
         self._flush()
         self.write(self.get_indentation_spaces())
@@ -335,7 +374,10 @@ class XMLWriter:
         """
         Adds character data to the output stream.
 
-        *text*: Character data, as a Unicode string.
+        Parameters
+        ----------
+        text : str
+            Character data, as a Unicode string.
         """
         self._data.append(text)
 
@@ -344,8 +386,11 @@ class XMLWriter:
         Closes the current element (opened by the most recent call to
         `start`).
 
-        *tag*: Element tag.  If given, the tag must match the start
-        tag.  If omitted, the current element is closed.
+        Parameters
+        ----------
+        tag : str
+            Element name.  If given, the tag must match the start tag.
+            If omitted, the current element is closed.
         """
         if tag:
             assert self._tags, "unbalanced end(%s)" % tag
@@ -369,7 +414,10 @@ class XMLWriter:
         Closes open elements, up to (and including) the element identified
         by the given identifier.
 
-        *id*: Element identifier, as returned by the `start` method.
+        Parameters
+        ----------
+        id : int
+            Element identifier, as returned by the `start` method.
         """
         while len(self._tags) > id:
             self.end()
@@ -432,5 +480,9 @@ def validate_schema(filename, version='1.2'):
         (schema_part, filename),
         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
+
+    # TODO: Catch returncode that means "xmllint is not installed" and
+    # raise a friendlier error message
+
     return p.returncode, stdout, stderr
 
