@@ -165,7 +165,7 @@ MSVC, do not support string literals greater than 256 characters.
 
 
 def get_extensions():
-    from astropy.version import release
+    from astropy.version import debug
 
     write_wcsconfig_h()
     generate_c_docstrings()
@@ -228,7 +228,7 @@ def get_extensions():
     extra_compile_args = []
     extra_link_args = []
 
-    if not release:
+    if debug:
         define_macros.append(('DEBUG', None))
         undef_macros.append('NDEBUG')
         if not sys.platform.startswith('sun') and \

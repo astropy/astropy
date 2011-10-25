@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 from __future__ import division
+
+import imp
+
 from distutils import log
 
 """
@@ -134,11 +137,12 @@ minor = {minor}
 bugfix = {bugfix}
 
 release = {rel}
+debug = {debug}
 
 """[1:]
 
 
-def _get_version_py_str(version, release):
+def _get_version_py_str(version, release, debug):
 
     import datetime
 
@@ -149,28 +153,41 @@ def _get_version_py_str(version, release):
                                               major=major,
                                               minor=minor,
                                               bugfix=bugfix,
-                                              rel=release)
+                                              rel=release, debug=debug)
 
 
-def _generate_version_py(version, release):
+def _generate_version_py(version, release, debug=None):
     """Regenerate the version.py module if necessary."""
 
     import os
     import sys
 
     try:
-        from astropy.version import version as current_version
+        from astropy import version as astropy_version
+        from astropy.version import (version as current_version,
+                                     release as current_release,
+                                     debug as current_debug)
     except ImportError:
+        astropy_version = None
         current_version = None
+        current_release = None
+        current_debug = None
+
+    if debug is None:
+        # Keep whatever the current value is, if it exists
+        debug = bool(current_debug)
 
     version_py = os.path.join('astropy', 'version.py')
 
-    if current_version != version:
+    if (current_version != version or current_release != release or
+        current_debug != debug):
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
         log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:
             # This overwrites the actual version.py
-            f.write(_get_version_py_str(version, release))
+            f.write(_get_version_py_str(version, release, debug))
 
+        if astropy_version:
+            imp.reload(astropy_version)
