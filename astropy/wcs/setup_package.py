@@ -23,6 +23,7 @@ if sys.version_info[0] >= 3:
     def string_escape(s):
         s = s.decode('ascii').encode('ascii', 'backslashreplace')
         s = s.replace(b('\n'), b('\\n'))
+        s = s.replace(b('\0'), b('\\0'))
         return s.decode('ascii')
 
     from io import StringIO
