@@ -42,43 +42,25 @@ class Column(object):
         self.format = format
         self.description = description
         self.meta = OrderedDict()
+        self._dtype = dtype
 
         if meta is not None:
-            for key in meta:
-                self.meta[key] = meta[key]
+            self.meta.update(meta)
 
-        object.__setattr__(self, 'dtype', dtype)
-
-    def __setattr__(self, attribute, value):
-        if attribute == 'dtype':
-            raise Exception("Cannot change dtype through Column")
-        else:
-            object.__setattr__(self, attribute, value)
+    @property
+    def dtype(self):
+        """Read-only data type attribute"""
+        return self._dtype
 
     def __repr__(self):
-        s = "<Column "
-        s += "name='{0}' ".format(self.name)
-        s += "units='{0}' ".format(self.units)
-        s += "format='{0}' ".format(self.format)
-        s += "description='{0}'>".format(self.description)
+        s = "<Column name='{0} units='{1}' format='{2}' description='{3}'>".format(
+            self.name, self.units, self.format, self.description)
         return s
 
     def __eq__(self, c):
-        if self.name != c.name:
-            return False
-        if self.units != c.units:
-            return False
-        if self.dtype != c.dtype:
-            return False
-        if self.format != c.format:
-            return False
-        if self.description != c.description:
-            return False
-        if self.meta.keys != c.meta.keys:
-            return False
-        if self.meta.values != c.meta.values:
-            return False
-        return True
+        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
+        equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
+        return equal
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -88,7 +70,6 @@ class Table(object):
     '''A class to represent tables of data'''
 
     def __init__(self, name=None, length=None):
-
         self.name = name
         self._length = length
         self._data = None
@@ -102,16 +83,26 @@ class Table(object):
         return s
 
     def __getitem__(self, item):
-        if self._data is None or item not in self.columns:
-            raise KeyError("Column {0} does not exist".format(item))
-        else:
+        try:
             return self._data[item]
+        except (ValueError, KeyError, TypeError):
+            raise KeyError("Column {0} does not exist".format(item))
+        except:
+            # Bad index raises "IndexError: index out of bounds", but also
+            # re-raise any other exception
+            raise
 
     def __setitem__(self, item, value):
-        if self._data is None or item not in self.columns:
-            raise KeyError("Column {0} does not exist".format(item))
-        else:
+        try:
             self._data[item] = value
+        except (ValueError, KeyError, TypeError):
+            raise KeyError("Column {0} does not exist".format(item))
+        except:
+            raise
+
+    @property
+    def colnames(self):
+        return self.columns.keys()
 
     def keys(self):
         return self.columns.keys()
@@ -121,6 +112,27 @@ class Table(object):
             return 0
         else:
             return len(self._data)
+
+    def index_column(self, name):
+        """
+        Return the index of column ``name``.
+        """
+        try:
+            return self.colnames.index(name)
+        except ValueError:
+            raise ValueError("Column {0} does not exist".format(name))
+
+    def insert_column(self, index, column):
+        """
+        Insert a new Column object ``column`` at given ``index`` position.
+        """
+        pass
+
+    def append_column(self, column):
+        """
+        Add a new Column object ``column`` after the last existing column.
+        """
+        self.insert_column(len(self.columns), column)
 
     def add_column(self, name, data=None, dtype=None, shape=None,
                    units=None, format=None, description=None, meta=None,
@@ -171,7 +183,9 @@ class Table(object):
                     else:
                         data = np.zeros(length, dtype=dtype)
                 else:
-                    raise ArgumentError("If you want to add an empty column to an empty table, you need to specify the length of the table when initializing the Table instance.")
+                    raise ArgumentError("If you want to add an empty column to an empty table, "
+                                        "you need to specify the length of the table when "
+                                        "initializing the Table instance.")
         else:
             if self._length is not None and len(data) != self._length:
                 raise ValueError("data length does not match length specified when initializing Table")
@@ -222,6 +236,18 @@ class Table(object):
         else:
             self.columns[name] = column
 
+    def remove_column(self, name):
+        """
+        Remove a column from the table
+
+        Parameters
+        ----------
+        name : str
+            Name of column to remove
+        """
+
+        self.remove_columns([name])
+
     def remove_columns(self, names):
         '''
         Remove several columns from the table
@@ -232,9 +258,6 @@ class Table(object):
             A list containing the names of the columns to remove
         '''
 
-        if isinstance(names, basestring):
-            names = [names]
-
         for name in names:
             if name not in self.columns:
                 raise KeyError("Column {0} does not exist".format(name))
@@ -242,7 +265,7 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-        self._data = _drop_fields(self._data, names)
+        self._data = _drop_fields(self._data, names)  # XXX Doesn't set mask kwarg 
 
     def keep_columns(self, names):
         '''
