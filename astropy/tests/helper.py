@@ -59,7 +59,7 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     ----------
     module : str, optional
         The name of a specific module to test, e.g. 'io.fits' or 'utils'.
-        If nothing is specified all default AstroPy tests are run.
+        If nothing is specified all default Astropy tests are run.
 
     args : str, optional
         Additional arguments to be passed to `pytest.main` in the `args`
@@ -126,7 +126,7 @@ class astropy_test(Command):
     user_options = [
         ('module=', 'm',
          "The name of a specific module to test, e.g. 'io.fits' or 'utils'.  "
-         "If nothing is specified all default AstroPy tests are run."),
+         "If nothing is specified all default Astropy tests are run."),
         ('verbose-results', 'V',
          'Turn on verbose output from pytest. Same as specifying `-v` in '
          '`args`.'),
