@@ -51,7 +51,7 @@ def get_debug_option():
     try:
         from astropy.version import debug as current_debug
     except ImportError:
-        current_debug is None
+        current_debug = None
 
     if current_debug is not None and current_debug != debug:
         # Force rebuild of extension modules
