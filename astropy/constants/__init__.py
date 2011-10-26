@@ -14,3 +14,19 @@ case might be::
 
 from . import cgs
 from . import si
+from .constant import Constant
+
+
+
+#update the docstring to include a list of units from the si module 
+__doc__ += """
+The following constants are defined in `~astropy.constants.cgs` and 
+`~astropy.constants.si` .
+
+"""
+
+for nm,val in si.__dict__.iteritems():
+    if isinstance(val,Constant):
+        __doc__ += '    * '+nm+'\n        '+val.name+'\n' 
+del nm,val
+__doc__ += '\n'
