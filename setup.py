@@ -10,6 +10,7 @@ from setuptools import setup, find_packages
 
 import astropy
 from astropy import setup_helpers
+from astropy.tests.helper import astropy_test
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
 
@@ -36,7 +37,7 @@ scripts.remove('scripts/README.rst')
 setup_helpers.check_numpy()
 
 # This dictionary stores the command classes used in setup below
-cmdclassd = {}
+cmdclassd = {'test': astropy_test}
 
 # A dictionary to keep track of all package data to install
 package_data = {'astropy': ['data/*']}
