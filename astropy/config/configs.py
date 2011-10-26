@@ -11,6 +11,11 @@ def get_config_dir(create=True):
     """
     Determines the Astropy configuration directory name.
     
+    If a $HOME environment variable is defined, this is used as the base. If
+    not, this function goes through various convoluted methods to try to
+    identify the user's home directory (inspired by ipython's scheme for finding
+    these).
+    
     Parameters
     ----------
     create : bool
@@ -20,6 +25,13 @@ def get_config_dir(create=True):
     -------
     configdir : str
         The absolute path to the configuration directory.
+        
+    Raises
+    ------
+    OSError
+        If the home directory cannot be located - usually means you are running
+        Astropy on some obscure platform that doesn't have standard home 
+        directories.
     """
     import os,sys
     from os import environ as env
