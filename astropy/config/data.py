@@ -61,7 +61,7 @@ def get_data_fileobj(dataname,cache=True):
         url = urlparse(dataname)
         if url.scheme!='':
             #it's actually a url for a net location
-            return urlopen(datafn)
+            return urlopen(dataname)
         else:
             datafn = _find_pkg_data_fn(dataname)
             if datafn is None:
@@ -112,12 +112,12 @@ def get_data_filename(dataname,cachename=None):
     url = urlparse(dataname)
     if url.scheme!='':
         #it's actually a url for a net location
-        return _cache_remote(datafn)
+        return _cache_remote(dataname,cachename)
     else:
         datafn = _find_pkg_data_fn(dataname)
         if datafn is None:
             #no local - need to get remote data
-            return _cache_remote(DATAURL+datafn)
+            return _cache_remote(DATAURL+datafn,cachename)
         else:
             return datafn
     
@@ -192,11 +192,14 @@ def _cache_remote(remoteurl,localname=None):
         mkdir(dldir)   
     
     #use a special mapping file to determine if this url is already downloaded
-    with closing(shelve.open(join(split(dldir)[0],'datacache_urlmap'))) as url2fn:
+    urlmapfn = join(split(dldir)[0],'datacache_urlmap')
+    with closing(shelve.open(urlmapfn)) as url2fn:
         if remoteurl in url2fn:
             localpath =  url2fn[remoteurl]
             if localname is not None and join(dldir,localname)!=localpath:
-                raise ValueError('Requested localname does not match cached data file name.')
+                msgstr = 'Requested localname {0} does not match cached data '+\
+                         'file name {1}'
+                raise ValueError(msgstr.format(localname,localpath))
         else:
             #if not in the mapping file, download the file to the cache
             with closing(urlopen(remoteurl)) as remote:
@@ -204,13 +207,14 @@ def _cache_remote(remoteurl,localname=None):
                     #determine the proper local name for the file from the 
                     #headers if possible
                     #TODO: make use of actual hash file name for hash/... - need data server info for this
+                    rinfo = remote.info()
                     if 'Content-Disposition' in rinfo:
-                        #often URLs that redirect to a download provide the fielname
-                        #in the header info
+                        #often URLs that redirect to a download provide the 
+                        #fielname in the header info
                         localname = rinfo['Content-Disposition'].split('filename=')[1]
                     else:
                         #otherwise fallback on the url filename
-                        localname = urlsplit(dataurl)[2].split('/')[-1]
+                        localname = urlsplit(remoteurl)[2].split('/')[-1]
                     
                 localpath = join(dldir,localname)
                 
@@ -238,20 +242,21 @@ def clear_data_cache(filename=None):
     """
     import shelve
     from os import unlink
-    from os.path import join,exists
+    from os.path import join,split,exists
     from shutil import rmtree
     from contextlib import closing
     
     dldir = get_data_cache_dir()
-    urlmap = join(split(dldir)[0],'datacache_urlmap')
+    urlmapfn = join(split(dldir)[0],'datacache_urlmap')
     if filename is None:
         if exists(dldir):
             rmtree(dldir)
-        if exists(urlmap):
-            unlink(urlmap)
+        if exists(urlmapfn):
+            unlink(urlmapfn)
     else:
         filepath = join(dldir,filename)
-        with closing(shelve.open(join(split(dldir)[0],'datacache_urlmap'))) as url2fn:
+        urlmapfn = join(split(dldir)[0],'datacache_urlmap')
+        with closing(shelve.open(urlmapfn)) as url2fn:
             for k,v in url2fn.items():
                 if v==filepath:
                     del url2fn[k]
@@ -266,6 +271,7 @@ def get_data_cache_dir():
         The path to the data cache directory.
     """
     from .configs import get_config_dir
+    from os.path import join
     
     return join(get_config_dir(),'datacache')
     
