@@ -5,7 +5,8 @@ from __future__ import division
 caching data files.
 """
 
-__all__ = []
+__all__ = ['get_data_fileobj','get_data_filename','compute_hash',
+           'clear_data_cache']
 
 #TODO: replace this with configobj config setting
 DATAURL = 'http://data.astropy.org/'
@@ -151,29 +152,77 @@ def _find_pkg_data_fn(dataname):
     
 def _cache_remote(remoteurl):
     """
-    Accepts a URL, downloads and caches the result.
+    Accepts a URL, downloads and caches the result returning the resulting 
+    filename. If present in the cache, just returns the filename.
     """
-    import urlli
-    from os import sep
+    import urllib
+    import shelve
+    from os import mkdir
+    from os.path import join,exists
     from urllib2 import urlopen
     from urlparse import urlsplit
     from contextlib import closing
     from .configs import get_config_dir
     
-    dldir = get_config_dir()+sep+'datacache'
-    #TODO: make use of actual hash file name for hash/... - need data server info for this
+    cfgdir = get_config_dir()
+    dldir = join(cfgdir,'datacache')
+    if not exists(dldir):
+        mkdir(dldir)
     
-    with closing(urlopen(remoteurl)) as remote:
-        #determine the proper local name for the file from the headers if possible
-        if 'Content-Disposition' in rinfo:
-            #often URLs that redirect to a download provide the fielname in the header info
-            localfn = rinfo['Content-Disposition'].split('filename=')[1]
+   
+    
+    #use a special mapping file to determine if this url is already downloaded
+    with closing(shelve.open(join(cfgdir,'datacache_urlmap'))) as url2fn:
+        if remoteurl in url2fn:
+            localpath =  url2fn[remoteurl]
         else:
-            #otherwise fallback on the url filename
-            localfn = urlsplit(dataurl)[2].split('/')[-1]
+            #if not in the mapping file, download the file to the cache
+            with closing(urlopen(remoteurl)) as remote:
+                #determine the proper local name for the file from the 
+                #headers if possible
+                #TODO: make use of actual hash file name for hash/... - need data server info for this
+                if 'Content-Disposition' in rinfo:
+                    #often URLs that redirect to a download provide the fielname
+                    #in the header info
+                    localfn = rinfo['Content-Disposition'].split('filename=')[1]
+                else:
+                    #otherwise fallback on the url filename
+                    localfn = urlsplit(dataurl)[2].split('/')[-1]
+                
+                    
+                localpath = join(dldir,localfn)
+                
+                with open(localpath,'w') as f:
+                    #TODO: add in download reporter that sends a message to the
+                    # log when the log is implemented
+                    f.write(remote.read())
+            url2fn[remoteurl] = localpath
             
-        localpath = dldir + sep + localfn
-        with open(localpath,'w') as f:
-            #TODO: add in download reporter that sends a message to the log
-            #when the log is implemented
-            f.write(remote.read())
+    return localpath
+
+def clear_data_cache(filename=None):
+    """ Clears the data file cache by deleting the local version.
+    
+    Parameters
+    ----------
+    filename : str or None
+        If a specific file or URL, the associated file will be deleted.  
+        If None, all cached data files will be removed.
+        
+    Raises
+    ------
+    OSEerror
+        If the requested filename is not present in the data directory.
+    """
+    from os import unlink
+    from os.path import join,exists
+    from shutil import rmtree
+    from .configs import get_config_dir
+    
+    dldir = join(get_config_dir(),'datacache')
+    if filename is None:
+        if exists(dldir):
+            rmtree(dldir)
+    else:
+        unlink(join(dldir,filename))
+    
