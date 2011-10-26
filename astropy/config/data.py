@@ -29,22 +29,34 @@ def get_data_fileobj(dataname,cache=True):
               data server, e.g. 'hash/395dd6493cc584df1e78b474fb150840'
             * A URL to some other file.
             
-    cache : bool
+    cache : bool or str
         If True, the file will be downloaded and saved locally.  If False, the 
         file-like object will directly access the resource (e.g. if a remote URL
         is accessed, an objectect like that from `urllib2.urlopen` is returned).
+        If a string, that string will be used as the local file name in the 
+        cache directory.
     
     Returns
     -------
     fileobj : file-like
         An object with the contents of the data file available via :func:`read`.
-        
+    
+    Raises
+    ------
+    ValueError
+        If `cache` is specified, but the name does not match an already 
+        present local cached version of the file.
+    urllib2.URLError
+        If a remote file cannot be found.
+    IOError
+        If problems occur writing or reading a local file.
+    
     """
     from urlparse import urlparse
     from urllib2 import urlopen
     
     if cache:
-        return open(get_data_filename(dataname),'r')
+        return open(get_data_filename(dataname,cache),'r')
     else:
         url = urlparse(dataname)
         if url.scheme!='':
@@ -58,7 +70,7 @@ def get_data_fileobj(dataname,cache=True):
             else:
                 return open(datafn,'r')
 
-def get_data_filename(dataname):
+def get_data_filename(dataname,cachename=None):
     """
     Retrieves a data file from the standard locations and provides the local 
     name of the file.
@@ -79,6 +91,15 @@ def get_data_filename(dataname):
             * A hash referencing a particular version of a file on the Astropy
               data server, e.g. 'hash/395dd6493cc584df1e78b474fb150840'
             * A URL to some other file.
+    cachename : str of None
+        Specifies the local name to be used for the cached file.  If None, the
+        name will be automatically determined from the requested file's name.
+        
+    Raises
+    ------
+    ValueError
+        If `cachename` is specified, but the name does not match an already 
+        present local cached version of the file.
     
     Returns
     -------
@@ -150,47 +171,48 @@ def _find_pkg_data_fn(dataname):
     else:
         return None
     
-def _cache_remote(remoteurl):
+def _cache_remote(remoteurl,localname=None):
     """
     Accepts a URL, downloads and caches the result returning the resulting 
     filename. If present in the cache, just returns the filename.
+    
+    If `localname` is given, it specifies the name to be used for the cached
+    version of the file.
     """
     import urllib
     import shelve
     from os import mkdir
-    from os.path import join,exists
+    from os.path import join,split,exists
     from urllib2 import urlopen
     from urlparse import urlsplit
     from contextlib import closing
-    from .configs import get_config_dir
     
-    cfgdir = get_config_dir()
-    dldir = join(cfgdir,'datacache')
+    dldir = get_data_cache_dir()
     if not exists(dldir):
-        mkdir(dldir)
-    
-   
+        mkdir(dldir)   
     
     #use a special mapping file to determine if this url is already downloaded
-    with closing(shelve.open(join(cfgdir,'datacache_urlmap'))) as url2fn:
+    with closing(shelve.open(join(split(dldir)[0],'datacache_urlmap'))) as url2fn:
         if remoteurl in url2fn:
             localpath =  url2fn[remoteurl]
+            if localname is not None and join(dldir,localname)!=localpath:
+                raise ValueError('Requested localname does not match cached data file name.')
         else:
             #if not in the mapping file, download the file to the cache
             with closing(urlopen(remoteurl)) as remote:
-                #determine the proper local name for the file from the 
-                #headers if possible
-                #TODO: make use of actual hash file name for hash/... - need data server info for this
-                if 'Content-Disposition' in rinfo:
-                    #often URLs that redirect to a download provide the fielname
-                    #in the header info
-                    localfn = rinfo['Content-Disposition'].split('filename=')[1]
-                else:
-                    #otherwise fallback on the url filename
-                    localfn = urlsplit(dataurl)[2].split('/')[-1]
-                
+                if localname is None:
+                    #determine the proper local name for the file from the 
+                    #headers if possible
+                    #TODO: make use of actual hash file name for hash/... - need data server info for this
+                    if 'Content-Disposition' in rinfo:
+                        #often URLs that redirect to a download provide the fielname
+                        #in the header info
+                        localname = rinfo['Content-Disposition'].split('filename=')[1]
+                    else:
+                        #otherwise fallback on the url filename
+                        localname = urlsplit(dataurl)[2].split('/')[-1]
                     
-                localpath = join(dldir,localfn)
+                localpath = join(dldir,localname)
                 
                 with open(localpath,'w') as f:
                     #TODO: add in download reporter that sends a message to the
@@ -214,15 +236,36 @@ def clear_data_cache(filename=None):
     OSEerror
         If the requested filename is not present in the data directory.
     """
+    import shelve
     from os import unlink
     from os.path import join,exists
     from shutil import rmtree
-    from .configs import get_config_dir
+    from contextlib import closing
     
-    dldir = join(get_config_dir(),'datacache')
+    dldir = get_data_cache_dir()
+    urlmap = join(split(dldir)[0],'datacache_urlmap')
     if filename is None:
         if exists(dldir):
             rmtree(dldir)
+        if exists(urlmap):
+            unlink(urlmap)
     else:
-        unlink(join(dldir,filename))
+        filepath = join(dldir,filename)
+        with closing(shelve.open(join(split(dldir)[0],'datacache_urlmap'))) as url2fn:
+            for k,v in url2fn.items():
+                if v==filepath:
+                    del url2fn[k]
+        unlink(filepath)
+        
+def get_data_cache_dir():
+    """ Finds the path to the data cache directory.
+    
+    Returns
+    -------
+    datadir : str
+        The path to the data cache directory.
+    """
+    from .configs import get_config_dir
+    
+    return join(get_config_dir(),'datacache')
     
