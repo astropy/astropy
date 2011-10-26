@@ -1,9 +1,9 @@
 class Constant(float):
     """A physical or astronomical constant.
-    
-    Objects of this class behave just like `float` values when used in 
+
+    Objects of this class behave just like `float` values when used in
     expressions, but they contain additional information
-    
+
     Attributes
     ----------
     name : str
@@ -14,11 +14,11 @@ class Constant(float):
         The source used for the value of this constant.
     units : str
         A string describing the units
-        
-    .. warning :: 
-        The `units` attribute will be replaced when the Astropy units package is
-        implemented.  Don't count on it being a simple string in the future. 
-        
+
+    .. warning ::
+        The `units` attribute will be replaced when the Astropy units package
+        is implemented. Don't count on it being a simple string in the future.
+
     """
 
     def __init__(self, value, error, name, origin, units):
