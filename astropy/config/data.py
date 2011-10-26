@@ -151,7 +151,29 @@ def _find_pkg_data_fn(dataname):
     
 def _cache_remote(remoteurl):
     """
-    Accepts a URL and downlaods and caches the result
+    Accepts a URL, downloads and caches the result.
     """
+    import urlli
+    from os import sep
+    from urllib2 import urlopen
+    from urlparse import urlsplit
+    from contextlib import closing
     from .configs import get_config_dir
-    raise NotImplementedError
+    
+    dldir = get_config_dir()+sep+'datacache'
+    #TODO: make use of actual hash file name for hash/... - need data server info for this
+    
+    with closing(urlopen(remoteurl)) as remote:
+        #determine the proper local name for the file from the headers if possible
+        if 'Content-Disposition' in rinfo:
+            #often URLs that redirect to a download provide the fielname in the header info
+            localfn = rinfo['Content-Disposition'].split('filename=')[1]
+        else:
+            #otherwise fallback on the url filename
+            localfn = urlsplit(dataurl)[2].split('/')[-1]
+            
+        localpath = dldir + sep + localfn
+        with open(localpath,'w') as f:
+            #TODO: add in download reporter that sends a message to the log
+            #when the log is implemented
+            f.write(remote.read())
