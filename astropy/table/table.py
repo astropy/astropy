@@ -32,25 +32,36 @@ def rename_odict(d_old, before, after):
 
 
 class Column(object):
-    '''A class to contain information about columns'''
+    """A class to contain information about columns"""
 
-    def __init__(self, name=None, dtype=None, units=None, format=None,
-                 description=None, meta=None):
+    def __init__(self, name=None, data=None, datatype=None, shape=tuple(),
+                 units=None, format=None, description=None, length=0, meta=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
-        self.meta = OrderedDict()
-        self._dtype = dtype
 
+        self.meta = OrderedDict()
         if meta is not None:
             self.meta.update(meta)
 
+        if data is None:
+            self.data = np.zeros(length, dtype=[(name, datatype or np.float, shape)])
+        else:
+            try:
+                dtype = [(name, datatype or data.dtype, data.shape[1:])]
+            except AttributeError:
+                data = np.array(data)
+                dtype = [(name, data.dtype, data.shape[1:])]
+            print dtype, type(dtype)
+            self.data = np.ndarray(len(data), dtype=dtype)
+            self.data[name] = data
+
     @property
     def dtype(self):
-        """Read-only data type attribute"""
-        return self._dtype
+        """Data type attribute"""
+        return self.data.dtype
 
     def __repr__(self):
         s = "<Column name='{0} units='{1}' format='{2}' description='{3}'>".format(
@@ -71,9 +82,14 @@ class Table(object):
 
     def __init__(self, name=None, length=None):
         self.name = name
-        self._length = length
+        # self._length = length
         self._data = None
         self.columns = OrderedDict()
+
+        # ??? Maybe make masking read-only, need to understand scenarios when a
+        # table can convert from normal to masked etc.  This is TBD.
+        self.masked = False  
+
 
     def __repr__(self):
         s = "<Table "
@@ -122,119 +138,30 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def insert_column(self, index, column):
-        """
-        Insert a new Column object ``column`` at given ``index`` position.
-        """
-        pass
-
     def append_column(self, column):
         """
         Add a new Column object ``column`` after the last existing column.
         """
         self.insert_column(len(self.columns), column)
 
-    def add_column(self, name, data=None, dtype=None, shape=None,
-                   units=None, format=None, description=None, meta=None,
-                   before=None, after=None, position=None):
-        '''
-        Add a column to the table
-
-        Parameters
-        ----------
-        name : string
-            The name of the column to add.
-        data : ~numpy.array
-            The column data.
-        dtype : type or np.dtype
-            Type to convert the data to. This is the equivalent to the `dtype`
-            argument in numpy.array.
-        shape : tuple, optional
-            Shape for the cells
-        units : str, optional
-            The units of the values in the column.
-        format : str, optional
-            The format to use for ASCII printing.
-        description : str, optional
-            A description of the content of the column.
-        meta : dict or OrderedDict, optional
-            A dictionary of metadata for the column.
-        before : str, optional
-            Column before which the new column should be inserted.
-        after : str, optional
-            Column after which the new column should be inserted.
-        position : int, optional
-            Position at which the new column should be inserted.
-        '''
-
-        # Convert data to requested type
-        if data is None:
-            if dtype is None:
-                raise ArgumentError("dtype is required if data is not specified")
-            else:
-                if self.__len__() > 0:
-                    length = self.__len__()
-                else:
-                    length = self._length
-
-                if length is not None:
-                    if shape:
-                        data = np.zeros((length, ) + shape, dtype=dtype)
-                    else:
-                        data = np.zeros(length, dtype=dtype)
-                else:
-                    raise ArgumentError("If you want to add an empty column to an empty table, "
-                                        "you need to specify the length of the table when "
-                                        "initializing the Table instance.")
-        else:
-            if self._length is not None and len(data) != self._length:
-                raise ValueError("data length does not match length specified when initializing Table")
-            if self._data is not None and len(data) != self.__len__():
-                raise ValueError("data length does not match table length")
-            data = np.array(data, dtype=dtype)
-
-        # Create Column instance to describe the column
-        column = Column(name=name, dtype=data.dtype, units=units,
-                        format=format, description=description, meta=meta)
-
-        if (before, after, position).count(None) < 2:
-            raise ArgumentError("Only one of before/after/position can be specified")
-
-        if before is not None:
-            if before in self.keys():
-                position = self.keys().index(before)
-            else:
-                raise KeyError("Column {0} does not exist".format(before))
-
-        if after is not None:
-            if after in self.keys():
-                position = self.keys().index(after) + 1
-            else:
-                raise KeyError("Column {0} does not exist".format(after))
-
-        if position is not None:
-            if position > len(self.columns):
-                raise ValueError("position cannot be larger than the number of columns")
-            if position < 0:
-                raise ValueError("position cannot be negative")
-
-        if data.ndim > 1:
-            dtype_new = (name, data.dtype, data.shape[1:])
-        else:
-            dtype_new = (name, data.dtype)
-
-        # Add the column to the structured array
+    def insert_column(self, index, column):
+        """
+        Insert a new Column object ``column`` at given ``index`` position.
+        """
         if self._data is None:
-            self._data = np.array(zip(data), dtype=[dtype_new])
+            # Table has no existing data so use a copy of the column data,
+            # which is guaranteed to be a structured array.  This might have
+            # zero length.  ??? Should use copy() or just take the ref or init
+            # with np.array()?  Copy might be safer.
+            self._data = column.data.copy()
         else:
-            self._data = _append_field(self._data, data, dtype=dtype_new,
-                                       position=position)
+            if len(column.data) != len(self._data):
+                raise ValueError("Column data length does not match table length")
+            
+            self._data = _append_field(self._data, column.data,
+                                       dtype=column.data.dtype.descr[0], position=index)
 
-        # Add the metadata to the columns attribute
-        if not np.equal(position, None):
-            self.columns = insert_odict(self.columns, position, name, column)
-        else:
-            self.columns[name] = column
+        self.columns = insert_odict(self.columns, index, column.name, column)
 
     def remove_column(self, name):
         """
