@@ -15,7 +15,47 @@ def get_data_fileobj(dataname,cache=True):
     Retrieves a data file from the standard locations and provides the file as
     a file-like object.
     
+    Parameters
+    ----------
+    dataname : str
+        The locator for the data file.  One of the following:
+        
+            * The name of a data file included in the source distribution.  This
+              can be in a directory, in which case the directory is expected to
+              be inside the source code 'data' directory.
+            * The name of a data file stored on the astropy data server.
+            * A hash referencing a particular version of a file on the Astropy
+              data server, e.g. 'hash/395dd6493cc584df1e78b474fb150840'
+            * A URL to some other file.
+            
+    cache : bool
+        If True, the file will be downloaded and saved locally.  If False, the 
+        file-like object will directly access the resource (e.g. if a remote URL
+        is accessed, an objectect like that from `urllib2.urlopen` is returned).
+    
+    Returns
+    -------
+    fileobj : file-like
+        An object with the contents of the data file available via :func:`read`.
+        
     """
+    from urlparse import urlparse
+    from urllib2 import urlopen
+    
+    if cache:
+        return open(get_data_filename(dataname),'r')
+    else:
+        url = urlparse(dataname)
+        if url.scheme!='':
+            #it's actually a url for a net location
+            return urlopen(datafn)
+        else:
+            datafn = _find_pkg_data_fn(dataname)
+            if datafn is None:
+                #not local file - need to get remote data
+                return urlopen(DATAURL+datafn)
+            else:
+                return open(datafn,'r')
 
 def get_data_filename(dataname):
     """
@@ -29,9 +69,15 @@ def get_data_filename(dataname):
     Parameters
     ----------
     dataname : str
-        The name 
-       
-    
+        The locator for the data file.  One of the following:
+        
+            * The name of a data file included in the source distribution.  This
+              can be in a directory, in which case the directory is expected to
+              be inside the source code 'data' directory.
+            * The name of a data file stored on the astropy data server.
+            * A hash referencing a particular version of a file on the Astropy
+              data server, e.g. 'hash/395dd6493cc584df1e78b474fb150840'
+            * A URL to some other file.
     
     Returns
     -------
@@ -40,17 +86,16 @@ def get_data_filename(dataname):
         in `dataname`.
     """
     from urlparse import urlparse
-    from .configs import get_config_dir
     
     url = urlparse(dataname)
     if url.scheme!='':
         #it's actually a url for a net location
-        raise NotImplementedError
+        return _cache_remote(datafn)
     else:
         datafn = _find_pkg_data_fn(dataname)
         if datafn is None:
             #no local - need to get remote data
-            return _cache_remote_fn(DATAURL+datafn)
+            return _cache_remote(DATAURL+datafn)
         else:
             return datafn
     
@@ -104,5 +149,9 @@ def _find_pkg_data_fn(dataname):
     else:
         return None
     
-def _cache_remote_fn(remoteurl):
+def _cache_remote(remoteurl):
+    """
+    Accepts a URL and downlaods and caches the result
+    """
+    from .configs import get_config_dir
     raise NotImplementedError
