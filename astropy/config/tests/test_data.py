@@ -22,3 +22,4 @@ def test_url_nocache():
     from ..data import get_data_fileobj
     
     googledata = get_data_fileobj(TESTURL,cache=False)
+    assert googledata.read().find('oogle</title>')>-1
