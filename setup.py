@@ -6,10 +6,10 @@ use_setuptools()
 
 import os
 import glob
-from setuptools import setup, find_packages, Extension
-from warnings import warn
+from setuptools import setup, find_packages
 
 import astropy
+from astropy import setup_helpers
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
 
@@ -18,23 +18,7 @@ RELEASE = not VERSION.endswith('dev')
 
 if not RELEASE:
     VERSION += _get_git_devstr(False)
-_generate_version_py(VERSION, RELEASE)
-
-from astropy import setup_helpers
-
-# Find all of the setup_package.py modules, import them, and add them
-# to the setup_packages list.
-setup_packages = []
-for root, dirs, files in os.walk('astropy'):
-    if 'setup_package.py' in files:
-        name = root.replace(os.path.sep, '.') + '.setup_package'
-        module = setup_helpers.import_module(name)
-        setup_packages.append(module)
-
-# TODO: The type of build should be specifiable from the command line
-# or a .cfg file.
-BUILD = 'release' # Should be 'release' or 'debug'
-assert BUILD in ('release', 'debug')
+_generate_version_py(VERSION, RELEASE, setup_helpers.get_debug_option())
 
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
@@ -57,7 +41,7 @@ cmdclassd = {}
 # A dictionary to keep track of all package data to install
 package_data = {'astropy': ['data/*']}
 
-# C extensions that are not Cython-based should be added here.
+# Additional C extensions that are not Cython-based should be added here.
 extensions = []
 
 # Extra data files
@@ -65,53 +49,19 @@ data_files = []
 
 # For each of the setup_package.py modules, extract any information
 # that is needed to install them.
-for package in setup_packages:
+for package in setup_helpers.iter_setup_packages():
     if hasattr(package, 'get_extensions'):
-        extensions.extend(package.get_extensions(BUILD))
+        extensions.extend(package.get_extensions())
     if hasattr(package, 'get_package_data'):
         package_data.update(package.get_package_data())
     if hasattr(package, 'get_data_files'):
         data_files.extend(package.get_data_files())
 
-# Look for Cython files - compile with Cython if it is not a release
-# and Cython is installed. Otherwise, use the .c files that live next
-# to the Cython files.
+extensions.extend(setup_helpers.get_cython_extensions())
 
-try:
-    import Cython
-    have_cython = True
-except ImportError:
-    have_cython = False
-
-pyxfiles = []
-for  dirpath, dirnames, filenames in os.walk('astropy'):
-    modbase = dirpath.replace(os.sep, '.')
-    for fn in filenames:
-        if fn.endswith('.pyx'):
-            fullfn = os.path.join(dirpath, fn)
-            extmod = modbase + '.' + fn[:-4]  # Package must match file name
-            pyxfiles.append((extmod, fullfn))
-
-if not RELEASE and have_cython:
-
-    from Cython.Distutils import build_ext as cython_build_ext
-    cmdclassd['build_ext'] = cython_build_ext
-
-    # Add .pyx files
-    for extmod, pyxfn in pyxfiles:
-        extensions.append(Extension(extmod, [pyxfn]))
-
-else:
-
-    # Add .c files
-    for extmod, pyxfn in pyxfiles:
-        cfn = pyxfn[:-4] + '.c'
-        if os.path.exists(cfn):
-            extensions.append(Extension(extmod, [cfn]))
-        else:
-            warnstr = 'Could not find Cython-generated C extension ' + \
-                 '{0} - The {1} module will be skipped.'.format(cfn, extmod)
-            warn(warnstr)
+if setup_helpers.HAVE_CYTHON and not RELEASE:
+    from Cython.Distutils import build_ext
+    cmdclassd['build_ext'] = build_ext
 
 # Implement a version of build_sphinx that automatically creates the
 # docs/_build dir - this is needed because github won't create the _build dir
@@ -139,8 +89,6 @@ try:
 
 except ImportError:  # Sphinx not present
     pass
-
-
 
 
 setup(name='astropy',
