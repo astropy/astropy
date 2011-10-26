@@ -153,7 +153,7 @@ PyTabprm_print_contents(
 
   ignored = tabprt(self->x);
 
-  printf(wcsprintf_buf());
+  printf("%s", wcsprintf_buf());
 
   Py_INCREF(Py_None);
   return Py_None;
