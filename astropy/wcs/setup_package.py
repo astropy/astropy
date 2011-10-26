@@ -165,7 +165,9 @@ MSVC, do not support string literals greater than 256 characters.
         join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue().encode('utf-8'))
 
 
-def get_extensions(build_type='release'):
+def get_extensions():
+    from astropy.version import debug
+
     write_wcsconfig_h()
     generate_c_docstrings()
 
@@ -227,13 +229,13 @@ def get_extensions(build_type='release'):
     extra_compile_args = []
     extra_link_args = []
 
-    if build_type == 'debug':
+    if debug:
         define_macros.append(('DEBUG', None))
         undef_macros.append('NDEBUG')
         if not sys.platform.startswith('sun') and \
            not sys.platform == 'win32':
             extra_compile_args.extend(["-fno-inline", "-O0", "-g"])
-    elif build_type == 'release':
+    else:
         # Define ECHO as nothing to prevent spurious newlines from
         # printing within the libwcs parser
         define_macros.append(('NDEBUG', None))
