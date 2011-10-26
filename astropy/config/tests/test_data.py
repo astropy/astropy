@@ -28,3 +28,22 @@ def test_url_nocache():
     
     googledata = get_data_fileobj(TESTURL,cache=False)
     assert googledata.read().find('oogle</title>')>-1
+    
+def test_compute_hash():
+    import string
+    import random
+    import tempfile
+    import hashlib
+    from ..data import compute_hash
+    
+    #generate a random string of 25 characters
+    rands = ''.join(random.choice(string.ascii_letters) for x in range(25))
+    
+    with tempfile.NamedTemporaryFile('w+') as ntf:
+        ntf.write(rands)
+        ntf.flush()
+        
+        chhash = compute_hash(ntf.name)
+        shash = hashlib.md5(rands).hexdigest()
+        
+        assert chhash==shash
