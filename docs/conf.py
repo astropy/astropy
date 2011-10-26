@@ -105,6 +105,5 @@ man_pages = [
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-rst_epilog = """
-.. _Astropy: http://astropy.org
+rst_epilog += """
 """
