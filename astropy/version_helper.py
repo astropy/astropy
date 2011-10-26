@@ -117,7 +117,7 @@ def _get_git_devstr(sha=False, show_warning=True):
         return ''
 
     if sha:
-        return '-git-' + stdout[:40]
+        return '-git-' + stdout.decode('utf-8')[:40]
     else:
         nrev = stdout.decode('utf-8').count('\n')
         return  '-r%i' % nrev
