@@ -124,6 +124,7 @@ def get_data_filename(dataname, cachename=None):
         else:
             return datafn
 
+_COMPUTE_HASH_BLOCK_SIZE = 1024 #TBD: replace with a configuration option?
 
 def compute_hash(localfn):
     """ Computes the MD5 hash for a file.
@@ -151,8 +152,14 @@ def compute_hash(localfn):
     """
     import hashlib
     
+    
+    
     with open(localfn) as f:
-        h = hashlib.md5(f.read())
+        h = hashlib.md5()
+        block = f.read(_COMPUTE_HASH_BLOCK_SIZE)
+        while block!='':
+            h.update(block)
+            block = f.read(_COMPUTE_HASH_BLOCK_SIZE)
     
     return h.hexdigest()
 
@@ -164,11 +171,11 @@ def _find_pkg_data_fn(dataname):
     """
     
     from .. import __file__ as rootfile
-    from os import sep, path
+    from os.path import dirname, join
     
     #TBD: should this look through all possible data dirs, or just the 
     
-    path = path.dirname(rootfile) + sep + 'data' + sep + dataname
+    path = join(dirname(rootfile),'data',dataname)
     if path.isdir(path):
         raise IOError("Tried to access a data file that's actually a package data directory")
     elif path.isfile(path):
