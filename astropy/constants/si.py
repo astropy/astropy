@@ -29,7 +29,7 @@ c = Constant(2.99792458e8, 0.,
 # Gravitional constant
 G = Constant(6.67384e-11, 0.00080e-11,
              "Gravitational constant",
-             'CODATA 2010', 'm^3/kg/s')
+             'CODATA 2010', 'm^3/kg/s^2')
 
 # Proton mass
 m_p = Constant(1.672621777e-27, 0.000000074e-27,
@@ -47,9 +47,9 @@ m_e = Constant(9.10938291e-31, 0.00000040e-31,
                'CODATA 2010', 'kg')
 
 # Stefan-Boltzmann constant
-stef_boltz = Constant(5.670373e-8, 0.000021e-8,
-                     "Stefan-Boltzmann constant",
-                     'CODATA 2010', 'W/m^2/K^4')
+sigma_sb = Constant(5.670373e-8, 0.000021e-8,
+                    "Stefan-Boltzmann constant",
+                    'CODATA 2010', 'W/m^2/K^4')
 
 # Electron charge
 e = Constant(1.602176565e-19, 0.000000035e-19,

@@ -23,7 +23,7 @@ c = Constant(si.c * 1.e2, si.c.error * 1.e2,
 
 # Gravitional constant [CODATA]
 G = Constant(si.G * 1.e3, si.G.error * 1.e3,
-             si.G.name, si.G.origin, 'cm^3/g/s')
+             si.G.name, si.G.origin, 'cm^3/g/s^2')
 
 # Proton mass [CODATA]
 m_p = Constant(si.m_p * 1.e3, si.m_p.error * 1.e3,
@@ -38,9 +38,9 @@ m_e = Constant(si.m_e * 1.e3, si.m_e.error * 1.e3,
                si.m_e.name, si.m_e.origin, 'g')
 
 # Stefan-Boltzmann constant
-stef_boltz = Constant(si.stef_boltz * 1.e5, si.stef_boltz.error * 1.e5,
-                      si.stef_boltz.name, si.stef_boltz.origin,
-                      'erg/cm^2/K^4/s')
+sigma_sb = Constant(si.sigma_sb * 1.e3, si.sigma_sb.error * 1.e3,
+                    si.sigma_sb.name, si.sigma_sb.origin,
+                    'erg/cm^2/K^4/s')
 
 # Electron charge
 e = Constant(si.e * si.c * 10., si.e.error * si.c * 10.,
