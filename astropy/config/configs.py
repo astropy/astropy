@@ -5,7 +5,7 @@ from __future__ import division
 for astropy and affiliated modules.
 """
 
-__all__ = ['get_config_dir']
+__all__ = ['get_config_dir','get_config']
 
 def get_config_dir(create=True):
     """
@@ -84,3 +84,60 @@ def get_config_dir(create=True):
         #try to create it
         os.mkdir(configdir)
     return configdir
+
+
+def get_config(subpackage,mainpackage='astropy'):
+    """ Retrieves the object associated with a configuration file for a 
+    subpackage.
+    
+    This function takes care of locating and opening the configuration file for
+    an astropy subclass.  The file itself is stored as a simple text-based
+    format like that used in the standard library `ConfigParser`.  However, the
+    interface is more fully featured, making use of the `configobj` package, 
+    for which documentation can be found at 
+    `http://www.voidspace.org.uk/python/configobj.html`_ . See these docs for 
+    further information regarding the definition of the `ConfigObj` class or 
+    similar.
+    
+    .. note::
+        There is no automatic mechanism for writing `ConfigObj` objects, so if
+        you want any configuration changes to be updated in the file, you *must* 
+        call the `ConfigObj.write` method after you have made your changes.
+    
+    
+    Parameters
+    ----------
+    subpackage : str
+        The name of the subpackage that the configuration file is desired for.
+    
+    Returns
+    -------
+    cfgobj : ConfigObj
+        A ConfigObj object for the file storing the requested subpackage's 
+        configuration info.
+    
+    Raises
+    ------
+    IOError
+        If the config directory is a file, or some other problem occurs when 
+        accessing the configuration file.
+    """
+    
+    from ..extern.configobj import configobj
+    from os import mkdir
+    from os.path import join,exists,isfile
+    
+    cfgdir = join(get_config_dir(True),mainpackage)
+    if exists(cfgdir):
+        if isfile(cfgdir):
+            msg = 'Tried to generate configuration directory {0} but a file ' +\
+                  'exists with the same name'
+            raise IOError(msg.format(cfgdir))
+    else:
+        mkdir(cfgdir)
+        
+    cfgpath = join(cfgdir,subpackage+'.cfg')
+    return configobj.ConfigObj(cfgpath)
+        
+    
+    
