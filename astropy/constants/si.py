@@ -69,29 +69,29 @@ R = Constant(8.3144621, 0.0000075,
 # DISTANCE
 
 # Astronomical Unit
-au = Constant(1.4959787066e11, 0.,
+au = Constant(1.4959787066e11, 0.00000000005e11,
               "Astronomical Unit",
               "Allen's Astrophysical Quantities 4th Ed.", 'm')
 
 # Parsec
-pc = Constant(3.0856776e16, 0.,
+pc = Constant(3.0856776e16, 0.00000005e16,
               "Parsec",
               "Allen's Astrophysical Quantities 4th Ed.", 'm')
 
 # Kiloparsec
-kpc = Constant(3.0856776e19, 0.,
+kpc = Constant(3.0856776e19, 0.00000005e19,
               "Kiloparsec",
               "Allen's Astrophysical Quantities 4th Ed.", 'm')
 
 # SOLAR QUANTITIES
 
 # Solar luminosity
-L_sun = Constant(3.846e26, 0.,
+L_sun = Constant(3.846e26, 0.0005e26,
                  "Solar luminosity",
                  "Allen's Astrophysical Quantities 4th Ed.", 'W')
 
 # Solar mass
-M_sun = Constant(1.9891e30, 0.,
+M_sun = Constant(1.9891e30, 0.00005e30,
                  "Solar mass",
                  "Allen's Astrophysical Quantities 4th Ed.", 'kg')
 
@@ -104,21 +104,21 @@ R_sun = Constant(6.95508e8, 0.00026e8,
 # OTHER SOLAR SYSTEM QUANTITIES
 
 # Jupiter mass
-M_jup = Constant(1.8987e27, 0.,
+M_jup = Constant(1.8987e27, 0.00005e27,
                  "Jupiter mass",
                  "Allen's Astrophysical Quantities 4th Ed.", 'kg')
 
 # Jupiter equatorial radius
-R_jup = Constant(7.1492e4, 0.,
+R_jup = Constant(7.1492e7, 0.00005e7,
                  "Jupiter equatorial radius",
                  "Allen's Astrophysical Quantities 4th Ed.", 'm')
 
 # Earth mass
-M_earth = Constant(5.9742e24, 0.,
+M_earth = Constant(5.9742e24, 0.00005e24,
                   "Earth mass",
                   "Allen's Astrophysical Quantities 4th Ed.", 'kg')
 
 # Earth equatorial radius
-R_earth = Constant(6.378136e3, 0.,
+R_earth = Constant(6.378136e6, 0.0000005e6,
                    "Earth equatorial radius",
                    "Allen's Astrophysical Quantities 4th Ed.", 'm')
