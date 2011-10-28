@@ -41,6 +41,11 @@ To run a specific test within a file use the ``-k`` option::
 
     py.test test_file.py -k "test_function"
     
+You may also use the ``-k`` option to not run tests py putting a ``-`` in front
+of the matching string::
+
+    py.test test_file.py -k "-test_function"
+
 py.test has a number of `command line usage options. 
 <http://pytest.org/latest/usage.html>`_
 
@@ -203,6 +208,12 @@ Tests that may retrieve remote data should be marked with the ``@remote_data``
 decorator. Tests marked with this decorator will be skipped by default by
 ``astropy.test()`` to prevent test runs from taking too long. These tests can
 be run by ``astropy.test()`` by adding the ``remote_data=True`` flag.
+
+When running ``py.test`` from the command line it won't automatically skip
+``@remote_data`` tests because it won't have the plugins defined in
+``tests.helper``. Skip the tests using the ``-k`` option::
+
+    py.test -k "-remote_data"
 
 Examples
 ^^^^^^^^
