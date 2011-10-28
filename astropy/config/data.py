@@ -10,7 +10,7 @@ __all__ = ['get_data_fileobj', 'get_data_filename', 'compute_hash',
 
 #TODO: replace this with configobj config setting
 DATAURL = 'http://data.astropy.org/'
-
+REMOTE_TIMEOUT = 3.  
 
 def get_data_fileobj(dataname, cache=True):
     """
@@ -63,12 +63,12 @@ def get_data_fileobj(dataname, cache=True):
         url = urlparse(dataname)
         if url.scheme != '':
             #it's actually a url for a net location
-            return urlopen(dataname)
+            return urlopen(dataname,timeout=REMOTE_TIMEOUT)
         else:
             datafn = _find_pkg_data_fn(dataname)
             if datafn is None:
                 #not local file - need to get remote data
-                return urlopen(DATAURL + datafn)
+                return urlopen(DATAURL + datafn,timeout=REMOTE_TIMEOUT)
             else:
                 return open(datafn, 'r')
 
@@ -215,7 +215,7 @@ def _cache_remote(remoteurl, localname=None):
                 raise ValueError(msgstr.format(localname, localpath))
         else:
             #if not in the mapping file, download the file to the cache
-            with closing(urlopen(remoteurl)) as remote:
+            with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT)) as remote:
                 if localname is None:
                     #determine the proper local name for the file from the 
                     #headers if possible
