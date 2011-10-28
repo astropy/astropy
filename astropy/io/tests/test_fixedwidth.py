@@ -3,8 +3,8 @@ import glob
 
 try:
     from .. import ascii as asciitable
-except ImportError:
-    from .. import asciitable
+except ValueError:
+    import asciitable
 io = asciitable.core.io
 
 if asciitable.has_numpy:

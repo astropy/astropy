@@ -7,8 +7,8 @@ except ImportError:
 
 try:
     from .. import ascii as asciitable
-except ImportError:
-    from .. import asciitable
+except ValueError:
+    import asciitable
 
 from .common import *
 

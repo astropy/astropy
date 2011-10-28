@@ -10,8 +10,8 @@ except ImportError:
 
 try:
     from .. import ascii as asciitable
-except ImportError:
-    from .. import asciitable
+except ValueError:
+    import asciitable
 
 if asciitable.has_numpy:
     import numpy as np
