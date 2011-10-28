@@ -30,8 +30,8 @@ ipac.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import asciitable.core as core
-import asciitable.fixedwidth as fixedwidth
+from . import core
+from . import fixedwidth
 
 class Ipac(core.BaseReader):
     """Read an IPAC format table:

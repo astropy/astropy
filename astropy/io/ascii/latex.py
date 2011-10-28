@@ -31,7 +31,7 @@ latex.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-import asciitable.core as core
+from . import core
 
 latexdicts ={'AA':  {'tabletype': 'table',
                  'header_start': r'\hline \hline', 'header_end': r'\hline',

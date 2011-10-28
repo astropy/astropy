@@ -31,9 +31,9 @@ memory.py:
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import asciitable.core as core
-import asciitable.basic as basic
-from asciitable.core import io, next, izip, any
+from . import core
+from . import basic
+from .core import io, next, izip, any
 if core.has_numpy:
     import numpy
 

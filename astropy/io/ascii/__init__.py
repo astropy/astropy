@@ -26,7 +26,7 @@
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from asciitable.core import (has_numpy,
+from .core import (has_numpy,
                              InconsistentTableError,
                              NoType, StrType, NumType, FloatType, IntType, AllType,
                              Column, Keyword,
@@ -38,19 +38,19 @@ from asciitable.core import (has_numpy,
                              BaseSplitter, DefaultSplitter, WhitespaceSplitter,
                              convert_list, convert_numpy,
                              )
-from asciitable.basic import (Basic, BasicReader,
+from .basic import (Basic, BasicReader,
                               Rdb, RdbReader,
                               Tab, TabReader,
                               NoHeader, NoHeaderReader,
                               CommentedHeader, CommentedHeaderReader)
-from asciitable.cds import Cds, CdsReader
-from asciitable.latex import Latex, LatexReader, AASTex, AASTexReader, latexdicts
-from asciitable.ipac import Ipac, IpacReader
-from asciitable.daophot import Daophot, DaophotReader
-from asciitable.memory import Memory, MemoryReader
-from asciitable.fixedwidth import (FixedWidth, FixedWidthNoHeader,
+from .cds import Cds, CdsReader
+from .latex import Latex, LatexReader, AASTex, AASTexReader, latexdicts
+from .ipac import Ipac, IpacReader
+from .daophot import Daophot, DaophotReader
+from .memory import Memory, MemoryReader
+from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                                    FixedWidthTwoLine, FixedWidthSplitter,
                                    FixedWidthHeader, FixedWidthData)
-from asciitable.ui import (set_guess, get_reader, read, get_writer, write)
+from .ui import (set_guess, get_reader, read, get_writer, write)
 
-from asciitable.version import version as __version__
+from .version import version as __version__

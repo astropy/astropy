@@ -31,8 +31,8 @@ daophot.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-import asciitable.core as core
-import asciitable.basic as basic
+from . import core
+from . import basic
 
 class Daophot(core.BaseReader):
     """Read a DAOphot file.

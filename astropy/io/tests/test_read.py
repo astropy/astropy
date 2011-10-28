@@ -1,13 +1,16 @@
 import re
 import glob
 import math
-from nose.tools import *
 
-import asciitable
+try:
+    from .. import ascii as asciitable
+except ImportError:
+    from .. import asciitable
+
 if asciitable.has_numpy:
     import numpy as np
 
-from test.common import has_numpy_and_not_has_numpy, has_numpy
+from .common import *
 
 try:
     from math import isnan

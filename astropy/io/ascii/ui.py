@@ -36,14 +36,14 @@ import re
 import os
 import sys
 
-import asciitable.core as core
-import asciitable.basic as basic
-import asciitable.cds as cds
-import asciitable.daophot as daophot
-import asciitable.ipac as ipac
-import asciitable.memory as memory
-from asciitable.core import next, izip, any
-import asciitable.latex as latex
+from . import core
+from . import basic
+from . import cds
+from . import daophot
+from . import ipac
+from . import memory
+from .core import next, izip, any
+from . import latex
 
 # Default setting for guess parameter in read()
 _GUESS = True

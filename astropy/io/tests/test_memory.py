@@ -1,11 +1,15 @@
 import re
 import glob
-from nose.tools import *
 
-import asciitable
+try:
+    from .. import ascii as asciitable
+except ImportError:
+    from .. import asciitable
+
 if asciitable.has_numpy:
     import numpy as np
-from test.common import has_numpy_and_not_has_numpy
+
+from .common import *
 
 def _test_values_equal(data, mem_data, numpy):
     for colname in data.dtype.names:

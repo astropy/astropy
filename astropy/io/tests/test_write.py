@@ -1,11 +1,16 @@
 import sys
-from nose.tools import *
-import asciitable
 
 try:
     import StringIO as io
 except ImportError:
     import io
+
+try:
+    from .. import ascii as asciitable
+except ImportError:
+    from .. import asciitable
+
+from .common import *
 
 test_defs = [
     dict(kwargs=dict(),
@@ -111,6 +116,7 @@ preamble
 \\begin{tabular}{col_align}
 header_start
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+  &   &   &   &   &   &   &   &   &   &   \\\\
 header_end
 data_start
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
@@ -129,7 +135,7 @@ def check_write_table(test_def, table):
     asciitable.write(table, out, **test_def['kwargs'])
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
-    assert(out.getvalue().splitlines() == test_def['out'].splitlines())
+    assert out.getvalue().splitlines() == test_def['out'].splitlines()
 
 def test_write_table():
     table = asciitable.get_reader(Reader=asciitable.Daophot)

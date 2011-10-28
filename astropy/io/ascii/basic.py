@@ -32,8 +32,8 @@ basic.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-import asciitable.core as core
-from asciitable.core import io, next, izip, any
+from . import core
+from .core import io, next, izip, any
 
 class Basic(core.BaseReader):
     """Read a character-delimited table with a single header line at the top
