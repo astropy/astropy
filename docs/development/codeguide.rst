@@ -87,6 +87,12 @@ Coding Style/Conventions
 
           See :doc:`codeguide_emacs` for some configuration options for
           Emacs that helps in ensuring conformance to PEP8.
+      
+* Astropy source code should contain a comment at the beginning of the file (or
+  imppediately after the ``#!/usr/bin env python`` command, if relevant) 
+  pointing to the license for the Astropy source code.  This line should say::
+  
+      # Licensed under a 3-clause BSD style license - see LICENSE.rst  
 
 * The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
   matplotlib.pyplot as plt`` naming conventions should be used wherever
