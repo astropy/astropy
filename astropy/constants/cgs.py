@@ -1,4 +1,6 @@
-# Numerical constants, in cgs units
+"""
+Astronomical and physics constants in cgs units.
+"""
 
 from .constant import Constant
 from . import si

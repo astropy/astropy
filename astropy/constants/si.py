@@ -1,6 +1,8 @@
-# Numerical constants, in cgs units
+"""
+Astronomical and physics constants in SI units.
+"""
 
-import numpy
+import numpy as np
 
 from .constant import Constant
 
@@ -12,7 +14,7 @@ h = Constant(6.62606957e-34, 0.00000029e-34,
              'CODATA 2010', 'J.s')
 
 # Reduced Planck constant
-hbar = Constant(h * 0.5 / numpy.pi, h.error * 0.5 / numpy.pi,
+hbar = Constant(h * 0.5 / np.pi, h.error * 0.5 / np.pi,
                 "Reduced Planck constant",
                 'CODATA 2010', 'J.s')
 
