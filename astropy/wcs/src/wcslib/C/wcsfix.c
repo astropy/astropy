@@ -61,7 +61,9 @@ const char *wcsfix_errmsg[] = {
   "Ill-conditioned coordinate transformation parameters",
   "All of the corner pixel coordinates are invalid",
   "Could not determine reference pixel coordinate",
-  "Could not determine reference pixel value"};
+  "Could not determine reference pixel value",
+  "Applied unit alias",
+};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define WCSFIX_ERRMSG(status) WCSERR_SET(status), wcsfix_errmsg[status]
@@ -379,12 +381,23 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 
 {
   int  i, status = FIXERR_NO_CHANGE;
+  char orig_unit[80];
+  const char *function = "unitfix";
+  struct wcserr **err;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
+  err = &(wcs->err);
 
   for (i = 0; i < wcs->naxis; i++) {
+    strncpy(orig_unit, wcs->cunit[i], 80);
     if (wcsutrne(ctrl, wcs->cunit[i], &(wcs->err)) == 0) {
-      status = FIXERR_SUCCESS;
+      if (strncmp(orig_unit, wcs->cunit[i], 80) != 0) {
+        status = wcserr_set(WCSERR_SET(FIXERR_APPLIED_UNIT_ALIAS),
+          "Applied unit alias '%s' -> '%s'",
+          orig_unit, wcs->cunit[i]);
+      } else {
+        status = FIXERR_SUCCESS;
+      }
     }
   }
 

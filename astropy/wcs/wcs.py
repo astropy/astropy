@@ -31,6 +31,7 @@ from __future__ import division  # confidence high
 # stdlib
 import copy
 import sys
+import warnings
 
 # third-party
 import numpy as np
@@ -94,6 +95,10 @@ def _parse_keysel(keysel):
     return keysel_flags
 
 
+class FITSFixedWarning(Warning):
+    pass
+
+
 class WCS(WCSBase):
     """
     WCS objects perform standard WCS transformations, and correct for
@@ -102,11 +107,12 @@ class WCS(WCSBase):
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
-                 relax=False, naxis=None, keysel=None, colsel=None):
+                 relax=False, naxis=None, keysel=None, colsel=None,
+                 fix=True):
         """
         Parameters
         ----------
-        header : PyFITS header object, string or None
+        header : PyFITS header object, string or None, optional
             If *header* is not provided or None, the object will be
             initialized to default values.
 
@@ -126,7 +132,7 @@ class WCS(WCSBase):
             smaller than *minerr*, the corresponding distortion is not
             applied.
 
-        relax : bool or int
+        relax : bool or int, optional
             Degree of permissiveness:
 
             - `False`: Recognize only FITS keywords defined by the
@@ -168,11 +174,17 @@ class WCS(WCSBase):
             ``WCSNna`` and ``TWCSna``) are selected by both 'binary'
             and 'pixel'.
 
-        colsel : sequence of int
+        colsel : sequence of int, optional
             A sequence of table column numbers used to restrict the
             WCS transformations considered to only those pertaining to
             the specified columns.  If `None`, there is no
             restriction.
+
+        fix : bool, optional
+            When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix`
+            on the resulting object to fix any non-standard uses in
+            the header.  `FITSFixedWarning` Warnings will be emitted
+            if any changes were made.
 
         Raises
         ------
@@ -255,6 +267,17 @@ To use core WCS in conjunction with Paper IV lookup tables or SIP
 distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
 """.format(wcsprm.naxis))
+
+        if fix:
+            fixes = wcsprm.fix()
+            for key, val in fixes.items():
+                if val != "No change":
+                    warnings.warn(
+                        ("'{0}' made the change '{1}'. "
+                         "This FITS header contains non-standard content.").
+                        format(key, val),
+                        FITSFixedWarning)
+
         self.get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
