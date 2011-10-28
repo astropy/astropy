@@ -1,6 +1,6 @@
 # test helper.run_tests function
 
-from astropy.tests import helper
+from .. import helper
 
 # run_tests should raise ValueError when asked to run on a module it can't find
 def test_module_not_found():
