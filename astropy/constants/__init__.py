@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains astronomical and physical constants for use in Astropy or other
 places.

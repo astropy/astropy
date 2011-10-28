@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
 
 """This packages contains python packages that are bundled with Astropy but

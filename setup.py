@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # Use "distribute" - the setuptools fork that supports python 3.
 from distribute_setup import use_setuptools

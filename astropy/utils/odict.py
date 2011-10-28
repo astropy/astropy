@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Backport of the Python 2.7 collections.OrderedDict class to Python 2.6.
 

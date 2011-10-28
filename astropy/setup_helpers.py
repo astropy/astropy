@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module contains a number of utilities for use during
 setup/build/packaging that are useful to astropy as a whole.

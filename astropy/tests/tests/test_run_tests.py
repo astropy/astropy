@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 # test helper.run_tests function
 
 from .. import helper
