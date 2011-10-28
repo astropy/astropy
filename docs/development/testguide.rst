@@ -41,6 +41,11 @@ To run a specific test within a file use the ``-k`` option::
 
     py.test test_file.py -k "test_function"
     
+You may also use the ``-k`` option to not run tests py putting a ``-`` in front
+of the matching string::
+
+    py.test test_file.py -k "-test_function"
+
 py.test has a number of `command line usage options. 
 <http://pytest.org/latest/usage.html>`_
 
@@ -60,6 +65,11 @@ Tests for a specific module can be run by specifying the module in the call
 to the ``test()`` function::
 
     astropy.test('io.fits')
+    
+By default ``astropy.test()`` will skip tests which retrieve data from the
+internet. To turn these tests on use the ``remote_data`` flag::
+
+    astropy.test('io.fits',remote_data=True)
     
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
@@ -102,6 +112,9 @@ each sub-module, either in a `tests` directory, or in a test.py file, e.g::
 or::
 
     astropy/io/fits/test.py
+    
+``tests`` directories should contain an ``__init__.py`` file so that the tests
+can be imported and so that they can use relative imports.
 
 Interoperability tests
 ----------------------
@@ -191,17 +204,30 @@ file.  This hash can be obtained prior to submitting a file to the astropy
 data server by using the `~astropy.config.data.compute_hash` function on a 
 local copy of the file.
 
+Tests that may retrieve remote data should be marked with the ``@remote_data``
+decorator. Tests marked with this decorator will be skipped by default by
+``astropy.test()`` to prevent test runs from taking too long. These tests can
+be run by ``astropy.test()`` by adding the ``remote_data=True`` flag.
+
+When running ``py.test`` from the command line it won't automatically skip
+``@remote_data`` tests because it won't have the plugins defined in
+``tests.helper``. Skip the tests using the ``-k`` option::
+
+    py.test -k "-remote_data"
+
 Examples
 ^^^^^^^^
 ::
 
-    from astropy.config import get_data_filename
+    from ...config import get_data_filename
+    from ...tests.helper import remote_data
 
     def test_1():
         #if filename.fits is a local file in the source distribution
         datafile = get_data_filename('filename.fits') 
         # do the test
 
+    @remote_data
     def test_2():
         #this is the hash for a particular version of a file stored on the 
         #astropy data server.
