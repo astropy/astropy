@@ -187,7 +187,9 @@ def adjust_compiler():
         }
 
     c = ccompiler.new_compiler()
-    output = subprocess.check_output(c.compiler + ['--version'])
+    process = subprocess.Popen(
+        c.compiler + ['--version'], stdout=subprocess.PIPE)
+    output = process.communicate()[0].strip()
     version = output.split()[0]
     if version in compiler_mapping:
         os.environ['CC'] = compiler_mapping[version]
