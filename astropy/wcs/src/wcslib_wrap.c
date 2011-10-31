@@ -663,7 +663,7 @@ PyWcsprm_fix(
 
   for (i = 0; i < 5; ++i) {
     msg_index = stat[message_map[i].index];
-    if (msg_index > 0 && msg_index < 11) {
+    if (msg_index > 0 && msg_index < 12) {
       message = err[message_map[i].index].msg;
     } else if (msg_index == 0) {
       message = "Success";
