@@ -18,12 +18,21 @@ except ImportError:
     HAVE_CYTHON = False
 
 
-def get_debug_option():
+def get_distutils_option(option, commands):
+    """
+    Returns the value of the given distutils option.  If the option is not
+    set, returns None.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    commands : list of str
+        The list of commands on which this option is available
+    """
     # Pre-parse the Distutils command-line options and config files to
-    # determine whether or not the --debug option was set.
-    # Normally the only options that allow the debug option are build,
-    # build_ext, and build_clib.  So for the sake of generality it's best to
-    # just use the build command.
+    # if the option is set.
     dist = Distribution()
     try:
         dist.parse_config_files()
@@ -32,22 +41,23 @@ def get_debug_option():
         # Let distutils handle this itself
         return None
 
-    debug_build_cmds = ['build', 'build_ext', 'build_clib']
-
-    # First ensure that one of the commands that accepts --debug is being run
-    for cmd in debug_build_cmds:
+    for cmd in commands:
         if cmd in dist.commands:
             break
     else:
         return None
 
-    for cmd in debug_build_cmds:
+    for cmd in commands:
         cmd_opts = dist.get_option_dict(cmd)
-        if 'debug' in cmd_opts:
-            debug = bool(cmd_opts['debug'][1])
-            break
+        if option in cmd_opts:
+            return cmd_opts[option][1]
     else:
-        debug = False
+        return None
+
+
+def get_debug_option():
+    debug = bool(get_distutils_option(
+        'debug', ['build', 'build_ext', 'build_clib']))
 
     try:
         from astropy.version import debug as current_debug
@@ -147,6 +157,40 @@ def get_numpy_include_path():
         numpy_include = numpy.get_numpy_include()
     return numpy_include
 
+
+def adjust_compiler():
+    """
+    This function detects broken compilers and switches to another.  If
+    the environment variable CC is explicitly set, or a compiler is
+    specified on the commandline, no override is performed -- the purpose
+    here is to only override a default compiler.
+
+    The specific compilers with problems are:
+        - The default compiler in XCode-4.2, llvm-gcc-4.2,
+          segfaults when compiling wcslib.
+
+    The set of broken compilers can be updated by changing the
+    compiler_mapping variable.
+    """
+    if 'CC' in os.environ:
+        return
+
+    if get_distutils_option(
+        'compiler', ['build', 'build_ext', 'build_clib']) is not None:
+        return
+
+    from distutils import ccompiler
+    import subprocess
+
+    compiler_mapping = {
+        'i686-apple-darwin11-llvm-gcc-4.2': 'clang'
+        }
+
+    c = ccompiler.new_compiler()
+    output = subprocess.check_output(c.compiler + ['--version'])
+    version = output.split()[0]
+    if version in compiler_mapping:
+        os.environ['CC'] = compiler_mapping[version]
 
 
 ################################################################################
