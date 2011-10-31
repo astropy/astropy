@@ -58,8 +58,14 @@ for package in setup_helpers.iter_setup_packages():
         package_data.update(package.get_package_data())
     if hasattr(package, 'get_data_files'):
         data_files.extend(package.get_data_files())
+    if setup_helpers.HAVE_CYTHON and not RELEASE:
+        if hasattr(package, 'get_cython_pyx_extensions'):
+            extensions.extend(package.get_cython_pyx_extensions())
+    else:
+        if hasattr(package, 'get_cython_extensions'):
+            extensions.extend(package.get_cython_extensions())
 
-extensions.extend(setup_helpers.get_cython_extensions())
+#extensions.extend(setup_helpers.get_cython_extensions())
 
 if setup_helpers.HAVE_CYTHON and not RELEASE:
     from Cython.Distutils import build_ext
