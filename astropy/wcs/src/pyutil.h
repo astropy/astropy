@@ -272,7 +272,7 @@ set_double(
 get_double_array(
     /*@unused@*/ const char* propname,
     double* value,
-    npy_intp ndims,
+    int ndims,
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
@@ -283,7 +283,7 @@ get_double_array(
 get_double_array_readonly(
     /*@unused@*/ const char* propname,
     double* value,
-    npy_intp ndims,
+    int ndims,
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
@@ -294,7 +294,7 @@ int
 set_double_array(
     const char* propname,
     PyObject* value,
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     double* dest);
 
@@ -302,7 +302,7 @@ set_double_array(
 get_int_array(
     /*@unused@*/ const char* propname,
     int* value,
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
@@ -313,7 +313,7 @@ int
 set_int_array(
     const char* propname,
     PyObject* value,
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     int* dest);
 

@@ -29,10 +29,10 @@ note_change(PyTabprm* self) {
 }
 
 static int
-make_fancy_dims(PyTabprm* self, npy_intp* ndims, npy_intp* dims) {
-  npy_intp i, M;
+make_fancy_dims(PyTabprm* self, int* ndims, npy_intp* dims) {
+  int i, M;
 
-  M = (npy_intp)self->x->M;
+  M = self->x->M;
   if (M + 1 > NPY_MAXDIMS) {
     PyErr_SetString(PyExc_ValueError, "Too many dimensions");
     return -1;
@@ -191,7 +191,7 @@ PyTabprm_get_coord(
     PyTabprm* self,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {
@@ -211,7 +211,7 @@ PyTabprm_set_coord(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {
@@ -281,7 +281,7 @@ PyTabprm_get_extrema(
     PyTabprm* self,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {

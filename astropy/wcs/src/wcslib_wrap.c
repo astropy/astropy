@@ -196,9 +196,9 @@ PyWcsprm_init(
       relax = WCSHDR_none;
     } else {
       #if PY3K
-      relax = PyLong_AsLong(relax_obj);
+      relax = (int)PyLong_AsLong(relax_obj);
       #else
-      relax = PyInt_AsLong(relax_obj);
+      relax = (int)PyInt_AsLong(relax_obj);
       #endif
       if (relax == -1) {
         PyErr_SetString(
@@ -243,7 +243,7 @@ PyWcsprm_init(
         return -1;
       }
 
-      colsel_ints[0] = PyArray_DIM(colsel_array, 0);
+      colsel_ints[0] = (int)PyArray_DIM(colsel_array, 0);
       for (i = 0; i < colsel_ints[0]; ++i) {
         colsel_ints[i+1] = colsel_array->data[i];
       }
@@ -402,9 +402,9 @@ PyWcsprm_find_all_wcs(
     relax = WCSHDR_none;
   } else {
     #if PY3K
-    relax = PyLong_AsLong(relax_obj);
+    relax = (int)PyLong_AsLong(relax_obj);
     #else
-    relax = PyInt_AsLong(relax_obj);
+    relax = (int)PyInt_AsLong(relax_obj);
     #endif
     if (relax == -1) {
       PyErr_SetString(
@@ -1614,9 +1614,9 @@ PyWcsprm_to_header(
     relax = WCSHDO_none;
   } else {
     #if PY3K
-    relax = PyLong_AsLong(relax_obj);
+    relax = (int)PyLong_AsLong(relax_obj);
     #else
-    relax = PyInt_AsLong(relax_obj);
+    relax = (int)PyInt_AsLong(relax_obj);
     #endif
     if (relax == -1) {
       PyErr_SetString(

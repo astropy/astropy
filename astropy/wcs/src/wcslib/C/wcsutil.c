@@ -41,7 +41,7 @@
 void wcsutil_blank_fill(int n, char c[])
 
 {
-  int k;
+  size_t k;
 
   for (k = strlen(c); k < n; k++) {
     c[k] = ' ';

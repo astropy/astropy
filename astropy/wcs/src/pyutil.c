@@ -329,7 +329,7 @@ wcserr_units_to_python_exc(const struct wcserr *err) {
    string, eg. 2x2 */
 static void
 shape_to_string(
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     char* str /* [SHAPE_STR_LEN] */) {
 
@@ -467,7 +467,7 @@ int
 set_double_array(
     const char* propname,
     PyObject* value,
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     double* dest) {
 
@@ -511,7 +511,7 @@ int
 set_int_array(
     const char* propname,
     PyObject* value,
-    npy_int ndims,
+    int ndims,
     const npy_intp* dims,
     int* dest) {
   PyArrayObject* value_array = NULL;
@@ -743,6 +743,7 @@ set_pscards(
     return -1;
   size = PySequence_Size(value);
   if (size > 0x7fffffff) {
+    /* Must be a 32-bit size */
     return -1;
   }
 
@@ -786,7 +787,7 @@ set_pscards(
     (*ps)[i].m = mval;
     strncpy((*ps)[i].value, strvalue, 72);
     (*ps)[i].value[71] = '\0';
-    (*nps) = i + 1;
+    (*nps) = (int)(i + 1);
   }
 
   return 0;
