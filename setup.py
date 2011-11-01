@@ -21,21 +21,20 @@ release = 'dev' not in version
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
-
+print 'here'
 if not release:
     version += _get_git_devstr(False)
 _generate_version_py(version, release, setup_helpers.get_debug_option())
 
-# Use the find_packages tool to locate all packages and modules other than
-# those that are in tests/
-packages = find_packages(exclude=['tests'])
+# Use the find_packages tool to locate all packages and modules
+packagenames = find_packages()
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = glob.glob('scripts/*')
 scripts.remove('scripts/README.rst')
 
 # Check that Numpy is installed.
-# NOTE: We can not use setuptools/distribute/packaging to handle this
+# NOTE: We cannot use setuptools/distribute/packaging to handle this
 # dependency for us, since some of the subpackages need to be able to
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
@@ -55,13 +54,15 @@ data_files = []
 
 # For each of the setup_package.py modules, extract any information
 # that is needed to install them.
-for package in setup_helpers.iter_setup_packages():
-    if hasattr(package, 'get_extensions'):
-        extensions.extend(package.get_extensions())
-    if hasattr(package, 'get_package_data'):
-        package_data.update(package.get_package_data())
-    if hasattr(package, 'get_data_files'):
-        data_files.extend(package.get_data_files())
+for setuppkg in setup_helpers.iter_setup_packages():
+    if hasattr(setuppkg, 'get_extensions'):
+        extensions.extend(setuppkg.get_extensions())
+    
+    if hasattr(setuppkg, 'get_package_data'):
+        #TBD: decide if this should be removed in favor of the data loading mechanism in config.data
+        package_data.update(setuppkg.get_package_data())
+    if hasattr(setuppkg, 'get_data_files'):
+        data_files.extend(setuppkg.get_data_files())
 
 extensions.extend(setup_helpers.get_cython_extensions())
 
@@ -77,10 +78,11 @@ try:
 
     from sphinx.setup_command import BuildDoc
 
-    class astropy_build_sphinx(BuildDoc):
-
+    class AstropyBuildSphinx(BuildDoc):
+        """
+        This class 
+        """
         def finalize_options(self):
-
             from distutils.cmd import DistutilsOptionError
 
             if self.build_dir is not None:
@@ -91,7 +93,7 @@ try:
 
             return BuildDoc.finalize_options(self)
 
-    cmdclassd['build_sphinx'] = astropy_build_sphinx
+    cmdclassd['build_sphinx'] = AstropyBuildSphinx
 
 except ImportError:  # Sphinx not present
     pass
@@ -100,19 +102,19 @@ except ImportError:  # Sphinx not present
 setup(name='astropy',
       version=version,
       description='Community-developed python astronomy tools',
-      packages=packages,
+      packages=packagenames,
       package_data=package_data,
+      data_files=data_files,
       ext_modules=extensions,
       scripts=scripts,
-      requires=['numpy', 'scipy'],
+      requires=['numpy'], #scipy not required, but strongly recommended
       install_requires=['numpy'],
       provides=['astropy'],
       author='The Astropy Team',
       author_email='astropy.team@gmail.com',
-      #license = '', #TODO: decide on a license
+      license = 'BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
-      zip_safe=False,
-      data_files=data_files
+      zip_safe=False
       )
