@@ -10,6 +10,7 @@ from warnings import warn
 
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError
+from distutils.core import Extension
 
 try:
     import Cython
@@ -81,37 +82,50 @@ def iter_setup_packages():
             yield module
 
 
-def iter_pyx_files():
-    for dirpath, dirnames, filenames in os.walk('astropy'):
+def iter_pyx_files(srcdir):
+    for dirpath, dirnames, filenames in os.walk(srcdir):
         modbase = dirpath.replace(os.sep, '.')
         for fn in filenames:
             if fn.endswith('.pyx'):
                 fullfn = os.path.join(dirpath, fn)
-                # Package must match file nam
+                # Package must match file name
                 extmod = modbase + '.' + fn[:-4]
                 yield (extmod, fullfn)
 
 
-def get_cython_extensions():
-    # Look for Cython files - compile with Cython if it is not a release
-    # and Cython is installed. Otherwise, use the .c files that live next
-    # to the Cython files.
-    from astropy.version import release
-
+def get_cython_extensions(srcdir,prevextensions=tuple(),extincludedirs=None):
+    """ Looks for Cython files and generates Extensions if needed.
+    
+    Parameters
+    ----------
+    srcdir : str
+        Path to the root of the source directory to search.
+    prevextensions: list of `~distutils.core.Extension` objects
+        The extensions that are already defined.  Any .pyx files already here 
+        will be ignored.
+    extincludedirs : list of str or None
+        Directories to include as the `include_dirs` argument to the generated
+        `~distutils.core.Extension` objects.
+    
+    Returns
+    -------
+    exts : list of `~distutils.core.Extension` objects
+        The new extensions that are needed to compile all .pyx files (does not
+        include any already in `prevextensions`).
+    """
+    
+    prevpyxpaths = []
+    for ext in prevextensions:
+        for s in ext.sources:
+            if s.endswith('.pyx'):
+                prevpyxpaths.append(os.path.realpath(s))
+    
     ext_modules = []
-    if not release and HAVE_CYTHON:
-        # Add .pyx files
-        for extmod, pyxfn in iter_pyx_files():
-            ext_modules.append(Extension(extmod, [pyxfn]))
-    else:
-        # Add .c files
-        for extmod, pyxfn in iter_pyx_files():
-            cfn = pyxfn[:-4] + '.c'
-            if os.path.exists(cfn):
-                ext_modules.append(Extension(extmod, [cfn]))
-            else:
-                warn('Could not find Cython-generated C extension {0} - '
-                     'The {1} module will be skipped.'.format(cfn, extmod))
+    for extmod, pyxfn in iter_pyx_files(srcdir):
+            if os.path.realpath(pyxfn) not in prevpyxpaths:
+                ext_modules.append(Extension(extmod, [pyxfn],
+                                             include_dirs=extincludedirs))
+                
     return ext_modules
 
 

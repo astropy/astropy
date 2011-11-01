@@ -21,7 +21,7 @@ release = 'dev' not in version
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
-print 'here'
+
 if not release:
     version += _get_git_devstr(False)
 _generate_version_py(version, release, setup_helpers.get_debug_option())
@@ -39,22 +39,30 @@ scripts.remove('scripts/README.rst')
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
 setup_helpers.check_numpy()
+from numpy import get_include as get_numpy_include
+numpy_includes = get_numpy_include()
+
 
 # This dictionary stores the command classes used in setup below
 cmdclassd = {'test': astropy_test}
 
-# A dictionary to keep track of all package data to install
-package_data = {'astropy': ['data/*']}
+
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
 
-# Extra data files
+# A dictionary to keep track of all package data to install
+package_data = {'astropy': ['data/*']}
+
+# Extra files to install - distutils calls them "data_files", but this shouldn't
+# be used for data files - rather any other files that should be installed in a
+# special place
 data_files = []
 
 # For each of the setup_package.py modules, extract any information
 # that is needed to install them.
 for setuppkg in setup_helpers.iter_setup_packages():
+    #get_extensions must include any Cython extensions by their .pyx filename.
     if hasattr(setuppkg, 'get_extensions'):
         extensions.extend(setuppkg.get_extensions())
     
@@ -64,7 +72,10 @@ for setuppkg in setup_helpers.iter_setup_packages():
     if hasattr(setuppkg, 'get_data_files'):
         data_files.extend(setuppkg.get_data_files())
 
-extensions.extend(setup_helpers.get_cython_extensions())
+#locate any .pyx files not already specified, and add their extensions in. 
+#The default include dirs include numpy to facilitate numerical work.
+exts = setup_helpers.get_cython_extensions('astropy',extensions,numpy_includes)
+extensions.extend(exts)
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
