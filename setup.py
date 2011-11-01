@@ -14,17 +14,17 @@ from astropy import setup_helpers
 from astropy.tests.helper import astropy_test
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
-
-VERSION = '0.0dev'
-RELEASE = not VERSION.endswith('dev')
+version = '0.0dev'
+#indicates if this version is a release version
+release = 'dev' not in version
 
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
 
-if not RELEASE:
-    VERSION += _get_git_devstr(False)
-_generate_version_py(VERSION, RELEASE, setup_helpers.get_debug_option())
+if not release:
+    version += _get_git_devstr(False)
+_generate_version_py(version, release, setup_helpers.get_debug_option())
 
 # Use the find_packages tool to locate all packages and modules other than
 # those that are in tests/
@@ -65,7 +65,7 @@ for package in setup_helpers.iter_setup_packages():
 
 extensions.extend(setup_helpers.get_cython_extensions())
 
-if setup_helpers.HAVE_CYTHON and not RELEASE:
+if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
     cmdclassd['build_ext'] = build_ext
 
@@ -98,7 +98,7 @@ except ImportError:  # Sphinx not present
 
 
 setup(name='astropy',
-      version=VERSION,
+      version=version,
       description='Community-developed python astronomy tools',
       packages=packages,
       package_data=package_data,
