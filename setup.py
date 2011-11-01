@@ -8,6 +8,7 @@ use_setuptools()
 import os
 import glob
 from setuptools import setup, find_packages
+from distutils import log
 
 import astropy
 from astropy import setup_helpers
@@ -47,7 +48,6 @@ numpy_includes = get_numpy_include()
 cmdclassd = {'test': astropy_test}
 
 
-
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
 
@@ -74,12 +74,31 @@ for setuppkg in setup_helpers.iter_setup_packages():
 
 #locate any .pyx files not already specified, and add their extensions in. 
 #The default include dirs include numpy to facilitate numerical work.
-exts = setup_helpers.get_cython_extensions('astropy',extensions,numpy_includes)
-extensions.extend(exts)
+extensions.extend(setup_helpers.get_cython_extensions('astropy',extensions,
+                                                      [numpy_includes]))
+
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
+    #builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = build_ext
+else:
+    
+    #otherwise, replace .pyx with C-equivalents, unless c files are missing
+    todel = []
+    for i,ext in enumerate(extensions):
+        for j,s in enumerate(ext.sources):
+            if i not in todel and s.endswith('.pyx'):
+                cfn = s[:-4]+'.c'
+                if os.path.isfile(cfn):
+                    ext.sources[j] = cfn
+                else:
+                    msg = 'Could not find c-file {0} for {1}, skipping extension {2}'
+                    log.warn(msg.format(cfn,s,ext.name))
+                    todel.append(i)
+    for i in reversed(todel):
+        del extensions[i]
+        
 
 # Implement a version of build_sphinx that automatically creates the
 # docs/_build dir - this is needed because github won't create the _build dir
