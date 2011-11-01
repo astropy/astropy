@@ -95,7 +95,7 @@ def get_config(subpackage, mainpackage='astropy'):
     subpackage.
     
     This function takes care of locating and opening the configuration file for
-    an astropy subclass.  The file itself is stored as a simple text-based
+    an astropy subpackage.  The file itself is stored as a simple text-based
     format like that used in the standard library `ConfigParser`.  However, the
     interface is more fully featured, making use of the `configobj` package, 
     for which documentation can be found at 
