@@ -3,14 +3,13 @@ import os
 
 import numpy as np
 
-from pyfits.file import PYTHON_MODES, _File
-from pyfits.hdu.base import _BaseHDU
-from pyfits.hdu.hdulist import fitsopen
-from pyfits.hdu.image import PrimaryHDU, ImageHDU
-from pyfits.hdu.table import BinTableHDU, _TableBaseHDU
-from pyfits.header import Header
-from pyfits.util import (_with_extensions, deprecated, fileobj_closed,
-                         fileobj_name, isfile)
+from .file import PYTHON_MODES, _File
+from .hdu.base import _BaseHDU
+from .hdu.hdulist import fitsopen
+from .hdu.image import PrimaryHDU, ImageHDU
+from .hdu.table import BinTableHDU, _TableBaseHDU
+from .header import Header
+from .util import deprecated, fileobj_closed, fileobj_name, isfile
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
@@ -173,7 +172,6 @@ def getdata(filename, *ext, **extkeys):
         return data
 
 
-@_with_extensions
 def getval(filename, key, *ext, **extkeys):
     """
     Get a keyword's value from a header in a FITS file.
@@ -186,11 +184,6 @@ def getval(filename, key, *ext, **extkeys):
 
     key : str
         keyword name
-
-    classExtensions : (optional) **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     ext
         The rest of the arguments are for extension specification.
@@ -264,7 +257,6 @@ def setval(filename, key, value="", comment=None, before=None, after=None,
     hdulist.close()
 
 
-@_with_extensions
 def delval(filename, key, *ext, **extkeys):
     """
     Delete all instances of keyword from a header in a FITS file.
@@ -280,11 +272,6 @@ def delval(filename, key, *ext, **extkeys):
     key : str, int
         Keyword name or index
 
-    classExtensions : optional **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
-
     ext
         The rest of the arguments are for extension specification.
         See `getdata` for explanations/examples.
@@ -298,7 +285,6 @@ def delval(filename, key, *ext, **extkeys):
     hdulist.close()
 
 
-@_with_extensions
 def writeto(filename, data, header=None, **keys):
     """
     Create a new FITS file using the supplied data/header.
@@ -315,11 +301,6 @@ def writeto(filename, data, header=None, **keys):
         the header associated with `data`. If `None`, a header
         of the appropriate type is created for the supplied data. This
         argument is optional.
-
-    classExtensions : dict, optional **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     clobber : bool, optional
         If `True`, and if filename already exists, it will overwrite
@@ -345,7 +326,6 @@ def writeto(filename, data, header=None, **keys):
                 checksum=checksum)
 
 
-@_with_extensions
 def append(filename, data, header=None, classExtensions={}, checksum=False,
            verify=True, **keys):
     """
@@ -367,11 +347,6 @@ def append(filename, data, header=None, classExtensions={}, checksum=False,
     header : Header object, optional
         The header associated with `data`.  If `None`, an appropriate
         header will be created for the data object supplied.
-
-    classExtensions : dictionary, optional **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     checksum : bool, optional
         When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards to
@@ -416,7 +391,6 @@ def append(filename, data, header=None, classExtensions={}, checksum=False,
             f.close()
 
 
-@_with_extensions
 def update(filename, data, *ext, **extkeys):
     """
     Update the specified extension with the input data/header.
@@ -430,11 +404,6 @@ def update(filename, data, *ext, **extkeys):
 
     data : array, table, or group data object
         the new data used for updating
-
-    classExtensions : dict, optional **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     ext
         The rest of the arguments are flexible: the 3rd argument can
@@ -474,7 +443,6 @@ def update(filename, data, *ext, **extkeys):
     hdulist.close(closed=closed)
 
 
-@_with_extensions
 def info(filename, classExtensions={}, output=None, **kwargs):
     """
     Print the summary information on a FITS file.
@@ -487,11 +455,6 @@ def info(filename, classExtensions={}, output=None, **kwargs):
     filename : file path, file object, or file like object
         FITS file to obtain info from.  If opened, mode must be one of
         the following: rb, rb+, or ab+.
-
-    classExtensions : dict, optional **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     output : file, optional
         File-like object to output the HDU info to.  Outputs to stdout by
@@ -531,7 +494,6 @@ def info(filename, classExtensions={}, output=None, **kwargs):
     return ret
 
 
-@_with_extensions
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
               clobber=False, classExtensions={}):
     """
@@ -563,11 +525,6 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     clobber : bool
         Overwrite the output files if they exist.
-
-    classExtensions : dict **(Deprecated)**
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     Notes
     -----
@@ -692,7 +649,6 @@ def _getext(filename, mode, *ext1, **ext2):
     return hdulist, ext
 
 
-@_with_extensions
 def _makehdu(data, header, classExtensions={}):
     if header is None:
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None)

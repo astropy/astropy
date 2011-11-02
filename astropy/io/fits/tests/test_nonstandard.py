@@ -1,11 +1,8 @@
-import pyfits
-
-from pyfits.tests import PyfitsTestCase
-
-from nose.tools import assert_equal, assert_true
+from ...io import fits
+from . import FitsTestCase
 
 
-class TestNonstandardHdus(PyfitsTestCase):
+class TestNonstandardHdus(FitsTestCase):
     def test_create_fitshdu(self):
         """
         A round trip test of creating a FitsHDU, adding a FITS file to it,
@@ -21,24 +18,24 @@ class TestNonstandardHdus(PyfitsTestCase):
         self._test_create_fitshdu(compression=True)
 
     def _test_create_fitshdu(self, compression=False):
-        hdul_orig = pyfits.open(self.data('test0.fits'),
-                                do_not_scale_image_data=True)
+        hdul_orig = fits.open(self.data('test0.fits'),
+                              do_not_scale_image_data=True)
 
-        fitshdu = pyfits.FitsHDU.fromhdulist(hdul_orig, compress=compression)
+        fitshdu = fits.FitsHDU.fromhdulist(hdul_orig, compress=compression)
         # Just to be meta, let's append to the same hdulist that the fitshdu
         # encapuslates
         hdul_orig.append(fitshdu)
         hdul_orig.writeto(self.temp('tmp.fits'), clobber=True)
         del hdul_orig[-1]
 
-        hdul = pyfits.open(self.temp('tmp.fits'))
-        assert_true(isinstance(hdul[-1], pyfits.FitsHDU))
+        hdul = fits.open(self.temp('tmp.fits'))
+        assert isinstance(hdul[-1], fits.FitsHDU)
 
         wrapped = hdul[-1].hdulist
-        assert_true(isinstance(wrapped, pyfits.HDUList))
+        assert isinstance(wrapped, fits.HDUList)
 
-        assert_equal(hdul_orig.info(output=False), wrapped.info(output=False))
-        assert_true((hdul[1].data == wrapped[1].data).all())
-        assert_true((hdul[2].data == wrapped[2].data).all())
-        assert_true((hdul[3].data == wrapped[3].data).all())
-        assert_true((hdul[4].data == wrapped[4].data).all())
+        assert hdul_orig.info(output=False) == wrapped.info(output=False)
+        assert (hdul[1].data == wrapped[1].data).all()
+        assert (hdul[2].data == wrapped[2].data).all()
+        assert (hdul[3].data == wrapped[3].data).all()
+        assert (hdul[4].data == wrapped[4].data).all()

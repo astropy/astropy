@@ -11,10 +11,9 @@ import zipfile
 import numpy as np
 from numpy import memmap as Memmap
 
-from pyfits.util import (Extendable, isreadable, iswritable, isfile,
-                         fileobj_name, fileobj_closed, fileobj_mode,
-                         _array_from_file, _array_to_file, _write_string,
-                         deprecated)
+from .util import (isreadable, iswritable, isfile, fileobj_name,
+                   fileobj_closed, fileobj_mode, _array_from_file,
+                   _array_to_file, _write_string, deprecated)
 
 
 PYTHON_MODES = {'readonly': 'rb', 'copyonwrite': 'rb', 'update': 'rb+',
@@ -26,8 +25,6 @@ class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
     """
-
-    __metaclass__ = Extendable
 
     def __init__(self, fileobj=None, mode='copyonwrite', memmap=False):
         if fileobj is None:
