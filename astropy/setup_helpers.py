@@ -6,7 +6,6 @@ setup/build/packaging that are useful to astropy as a whole.
 
 import os
 import sys
-from warnings import warn
 
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError
@@ -57,6 +56,15 @@ def get_distutils_option(option, commands):
 
 
 def get_debug_option():
+    """ Determines if the build is in debug mode.
+    
+    Returns
+    -------
+    debug : bool
+        True if the current build was started with the debug option, False 
+        otherwise.
+    
+    """
     debug = bool(get_distutils_option(
         'debug', ['build', 'build_ext', 'build_clib']))
 
@@ -73,16 +81,36 @@ def get_debug_option():
 
 
 def iter_setup_packages():
-    # Find all of the setup_package.py modules, import them, and add them
-    # to the setup_packages list.
+    """ A generator that finds and imports all of the ``setup_package.py`` 
+    modules in the source packages.
+    
+    Returns
+    -------
+    modgen : generator
+        A generator that yields (modname, mod), where `mod` is the module and 
+        `modname` is the module name for the ``setup_package.py`` modules.
+        
+    """
+    
     for root, dirs, files in os.walk('astropy'):
         if 'setup_package.py' in files:
             name = root.replace(os.path.sep, '.') + '.setup_package'
             module = import_module(name)
-            yield module
+            yield name, module
 
 
 def iter_pyx_files(srcdir):
+    """ A generator that yields Cython source files (ending in '.pyx') in the
+    source packages.
+    
+    Returns
+    -------
+    pyxgen : generator
+        A generator that yields (extmod, fullfn) where `extmod` is the full name
+        of the module that the .pyx file would live in based on the source 
+        directory structure, and `fullfn` is the path to the .pyx file.
+    
+    """
     for dirpath, dirnames, filenames in os.walk(srcdir):
         modbase = dirpath.replace(os.sep, '.')
         for fn in filenames:
@@ -93,7 +121,7 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
-def get_cython_extensions(srcdir,prevextensions=tuple(),extincludedirs=None):
+def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
     """ Looks for Cython files and generates Extensions if needed.
     
     Parameters
@@ -156,7 +184,8 @@ def check_numpy():
 
     major, minor, rest = numpy.__version__.split(".", 2)
     if (int(major), int(minor)) < (1, 3):
-        raise ImportError("numpy version 1.3 or later must be installed to build astropy")
+        msg = "numpy version 1.3 or later must be installed to build astropy"
+        raise ImportError(msg)
 
 
 def get_numpy_include_path():

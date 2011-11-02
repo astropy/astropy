@@ -61,7 +61,7 @@ data_files = []
 
 # For each of the setup_package.py modules, extract any information
 # that is needed to install them.
-for setuppkg in setup_helpers.iter_setup_packages():
+for pkgnm,setuppkg in setup_helpers.iter_setup_packages():
     #get_extensions must include any Cython extensions by their .pyx filename.
     if hasattr(setuppkg, 'get_extensions'):
         extensions.extend(setuppkg.get_extensions())
