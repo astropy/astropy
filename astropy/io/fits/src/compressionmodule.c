@@ -6,7 +6,7 @@
 /*****************************************************************************/
 /*                                                                           */
 /* The compression software is a python module implemented in C that, when    */
-/* accessed through the pyfits module, supports the storage of compressed    */
+/* accessed through the astropy module, supports the storage of compressed    */
 /* images in FITS binary tables.  An n-dimensional image is divided into a   */
 /* rectabgular grid of subimages or 'tiles'.  Each tile is then compressed   */
 /* as a continuous block of data, and the resulting compressed byte stream   */
@@ -391,7 +391,7 @@ void processStatusErr(int status)
          exceptType = PyExc_RuntimeError;
    }
 
-   if (_pyfits_ffgmsg(errMsg))
+   if (_astropy_ffgmsg(errMsg))
    {
       PyErr_SetString(exceptType,errMsg);
    }
@@ -405,7 +405,7 @@ void processStatusErr(int status)
    }
 }
 
-/* Wrapper for the _pyfits_fits_write_img() function */
+/* Wrapper for the _astropy_fits_write_img() function */
 
 PyObject* compression_compressData(PyObject* self, PyObject* args)
 {
@@ -604,7 +604,7 @@ PyObject* compression_compressData(PyObject* self, PyObject* args)
          ntiles *= (naxes[ii] - 1) / tileSize[ii] + 1;
       }
 
-      (theFile.Fptr)->maxelem = _pyfits_imcomp_calc_max_elem(
+      (theFile.Fptr)->maxelem = _astropy_imcomp_calc_max_elem(
                                  (theFile.Fptr)->compress_type,
                                  (theFile.Fptr)->maxtilelen,
                                  (theFile.Fptr)->zbitpix,
@@ -663,7 +663,7 @@ PyObject* compression_compressData(PyObject* self, PyObject* args)
          (theFile.Fptr)->data[i] = 0;
       }
 
-      status = _pyfits_fits_write_img(&theFile, datatype, firstelem,
+      status = _astropy_fits_write_img(&theFile, datatype, firstelem,
                                       nelem, (void*)array->data, &status);
 
       if (status == 0)
@@ -742,7 +742,7 @@ PyObject* compression_compressData(PyObject* self, PyObject* args)
    }
 }
 
-/* Wrapper for the _pyfits_fits_read_img() function */
+/* Wrapper for the _astropy_fits_read_img() function */
 
 PyObject* compression_decompressData(PyObject* self, PyObject* args)
 {
@@ -1079,7 +1079,7 @@ PyObject* compression_decompressData(PyObject* self, PyObject* args)
    /* Call the C function */
 
    status = 0;
-   status = _pyfits_fits_read_img(&theFile, datatype, firstelem,
+   status = _astropy_fits_read_img(&theFile, datatype, firstelem,
                                   nelem, &nulval, decompDataArray->data,
                                   &anynul, &status);
 
@@ -1144,7 +1144,7 @@ static PyMethodDef compression_methods[] =
 static struct PyModuleDef compressionmodule = {
     PyModuleDef_HEAD_INIT,
     "compression",
-    "pyfits.compression module",
+    "astropy.compression module",
     -1, /* No global state */
     compression_methods
 };

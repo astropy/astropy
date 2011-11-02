@@ -217,13 +217,13 @@ struct static_tree_desc_s {int dummy;}; /* for buggy compilers */
     zmemzero((Bytef *)s->head, (unsigned)(s->hash_size-1)*sizeof(*s->head));
 
 /* ========================================================================= */
-int ZEXPORT _pyfits_deflateInit_(strm, level, version, stream_size)
+int ZEXPORT _astropy_deflateInit_(strm, level, version, stream_size)
     z_streamp strm;
     int level;
     const char *version;
     int stream_size;
 {
-    return _pyfits_deflateInit2_(strm, level, Z_DEFLATED, MAX_WBITS,
+    return _astropy_deflateInit2_(strm, level, Z_DEFLATED, MAX_WBITS,
                          DEF_MEM_LEVEL,
                          Z_DEFAULT_STRATEGY, version, stream_size);
     /* To do: ignore strm->next_in if we use it as window */
@@ -232,7 +232,7 @@ int ZEXPORT _pyfits_deflateInit_(strm, level, version, stream_size)
 static int ZEXPORT deflateReset (z_streamp strm);
 
 /* ========================================================================= */
-int ZEXPORT _pyfits_deflateInit2_(strm, level, method, windowBits,
+int ZEXPORT _astropy_deflateInit2_(strm, level, method, windowBits,
                                  memLevel,
                                  strategy, version, stream_size)
     z_streamp strm;
@@ -318,7 +318,7 @@ int ZEXPORT _pyfits_deflateInit2_(strm, level, method, windowBits,
         s->pending_buf == Z_NULL) {
         s->status = FINISH_STATE;
         strm->msg = (char*)ERR_MSG(Z_MEM_ERROR);
-        _pyfits_deflateEnd (strm);
+        _astropy_deflateEnd (strm);
         return Z_MEM_ERROR;
     }
     s->d_buf = overlay + s->lit_bufsize/sizeof(ush);
@@ -404,7 +404,7 @@ local void flush_pending(strm)
 }
 
 /* ========================================================================= */
-int ZEXPORT _pyfits_deflate (strm, flush)
+int ZEXPORT _astropy_deflate (strm, flush)
     z_streamp strm;
     int flush;
 {
@@ -711,7 +711,7 @@ int ZEXPORT _pyfits_deflate (strm, flush)
 }
 
 /* ========================================================================= */
-int ZEXPORT _pyfits_deflateEnd (strm)
+int ZEXPORT _astropy_deflateEnd (strm)
     z_streamp strm;
 {
     int status;
@@ -1669,7 +1669,7 @@ int windowBits;
     return inflateReset(strm);
 }
 
-int ZEXPORT _pyfits_inflateInit2_(strm, windowBits, version, stream_size)
+int ZEXPORT _astropy_inflateInit2_(strm, windowBits, version, stream_size)
 z_streamp strm;
 int windowBits;
 const char *version;
@@ -1702,12 +1702,12 @@ int stream_size;
     return ret;
 }
 
-int ZEXPORT _pyfits_inflateInit_(strm, version, stream_size)
+int ZEXPORT _astropy_inflateInit_(strm, version, stream_size)
 z_streamp strm;
 const char *version;
 int stream_size;
 {
-    return _pyfits_inflateInit2_(strm, DEF_WBITS, version, stream_size);
+    return _astropy_inflateInit2_(strm, DEF_WBITS, version, stream_size);
 }
 
 local void fixedtables(state)
@@ -1876,7 +1876,7 @@ unsigned out;
     ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
      (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 
-int ZEXPORT _pyfits_inflate(strm, flush)
+int ZEXPORT _astropy_inflate(strm, flush)
 z_streamp strm;
 int flush;
 {
@@ -2515,7 +2515,7 @@ int flush;
     return ret;
 }
 
-int ZEXPORT _pyfits_inflateEnd(strm)
+int ZEXPORT _astropy_inflateEnd(strm)
 z_streamp strm;
 {
     struct inflate_state FAR *state;

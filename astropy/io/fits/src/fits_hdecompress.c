@@ -153,7 +153,7 @@ static void read_bdirect64(unsigned char *infile, LONGLONG a[], int n, int nqx, 
 static int  input_huffman(unsigned char *infile);
 
 /* ---------------------------------------------------------------------- */
-int _pyfits_fits_hdecompress(unsigned char *input, int smooth, int *a,
+int _astropy_fits_hdecompress(unsigned char *input, int smooth, int *a,
                      int *ny, int *nx, int *scale, int *status)
 {
   /* 
@@ -193,7 +193,7 @@ int stat;
   return(*status);
 }
 /* ---------------------------------------------------------------------- */
-int _pyfits_fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a,
+int _astropy_fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a,
                      int *ny, int *nx, int *scale, int *status)
 {
   /* 
@@ -283,7 +283,7 @@ int *tmp;
 	 */  
 	tmp = (int *) malloc(((nmax+1)/2)*sizeof(int));
 	if (tmp == (int *) NULL) {
-		_pyfits_ffpmsg("hinv: insufficient memory");
+		_astropy_ffpmsg("hinv: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -475,7 +475,7 @@ LONGLONG *tmp;
 	 */  
 	tmp = (LONGLONG *) malloc(((nmax+1)/2)*sizeof(LONGLONG));
 	if (tmp == (LONGLONG *) NULL) {
-		_pyfits_ffpmsg("hinv64: insufficient memory");
+		_astropy_ffpmsg("hinv64: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -1132,7 +1132,7 @@ char tmagic[2];
 	 * check for correct magic code value
 	 */
 	if (memcmp(tmagic,code_magic,sizeof(code_magic)) != 0) {
-		_pyfits_ffpmsg("bad file format");
+		_astropy_ffpmsg("bad file format");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	*nx =readint(infile);				/* x size of image			*/
@@ -1180,7 +1180,7 @@ char tmagic[2];
 	 * check for correct magic code value
 	 */
 	if (memcmp(tmagic,code_magic,sizeof(code_magic)) != 0) {
-		_pyfits_ffpmsg("bad file format");
+		_astropy_ffpmsg("bad file format");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	*nx =readint(infile);				/* x size of image			*/
@@ -1260,7 +1260,7 @@ int i, nel, nx2, ny2, stat;
 	 * make sure there is an EOF symbol (nybble=0) at end
 	 */
 	if (input_nybble(infile) != 0) {
-		_pyfits_ffpmsg("dodecode: bad bit plane values");
+		_astropy_ffpmsg("dodecode: bad bit plane values");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -1319,7 +1319,7 @@ int i, nel, nx2, ny2, stat;
 	 * make sure there is an EOF symbol (nybble=0) at end
 	 */
 	if (input_nybble(infile) != 0) {
-		_pyfits_ffpmsg("dodecode64: bad bit plane values");
+		_astropy_ffpmsg("dodecode64: bad bit plane values");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -1380,7 +1380,7 @@ unsigned char *scratch;
 	nqy2=(nqy+1)/2;
 	scratch = (unsigned char *) malloc(nqx2*nqy2);
 	if (scratch == (unsigned char *) NULL) {
-		_pyfits_ffpmsg("qtree_decode: insufficient memory");
+		_astropy_ffpmsg("qtree_decode: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -1399,7 +1399,7 @@ unsigned char *scratch;
 			 */
 			read_bdirect(infile,a,n,nqx,nqy,scratch,bit);
 		} else if (b != 0xf) {
-			_pyfits_ffpmsg("qtree_decode: bad format code");
+			_astropy_ffpmsg("qtree_decode: bad format code");
 			return(DATA_DECOMPRESSION_ERR);
 		} else {
 			/*
@@ -1470,7 +1470,7 @@ unsigned char *scratch;
 	nqy2=(nqy+1)/2;
 	scratch = (unsigned char *) malloc(nqx2*nqy2);
 	if (scratch == (unsigned char *) NULL) {
-		_pyfits_ffpmsg("qtree_decode64: insufficient memory");
+		_astropy_ffpmsg("qtree_decode64: insufficient memory");
 		return(DATA_DECOMPRESSION_ERR);
 	}
 	/*
@@ -1489,7 +1489,7 @@ unsigned char *scratch;
 			 */
 			read_bdirect64(infile,a,n,nqx,nqy,scratch,bit);
 		} else if (b != 0xf) {
-			_pyfits_ffpmsg("qtree_decode64: bad format code");
+			_astropy_ffpmsg("qtree_decode64: bad format code");
 			return(DATA_DECOMPRESSION_ERR);
 		} else {
 			/*
