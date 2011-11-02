@@ -69,8 +69,7 @@ static void
 PyWcsprm_dealloc(
     PyWcsprm* self) {
 
-  int ignored;
-  ignored = wcsfree(&self->x);
+  wcsfree(&self->x);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -118,8 +117,6 @@ PyWcsprm_init(
   int            i             = 0;
   const char*    keywords[]    = {"header", "key", "relax", "naxis", "keysel",
                                   "colsel", NULL};
-  PyObject*      ignored       = NULL;
-  int            ignored_int;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|OsOiiO:WCSBase.__init__",
@@ -297,8 +294,8 @@ PyWcsprm_init(
     }
 
     if (i >= nwcs) {
-      ignored_int = wcsvfree(&nwcs, &wcs);
-      ignored = PyErr_Format(
+      wcsvfree(&nwcs, &wcs);
+      PyErr_Format(
           PyExc_KeyError,
           "No WCS with key '%s' was found in the given header",
           key);
@@ -306,7 +303,7 @@ PyWcsprm_init(
     }
 
     if (wcscopy(1, wcs + i, &self->x) != 0) {
-      ignored_int = wcsvfree(&nwcs, &wcs);
+      wcsvfree(&nwcs, &wcs);
       PyErr_SetString(
           PyExc_MemoryError,
           self->x.err->msg);
@@ -315,7 +312,7 @@ PyWcsprm_init(
 
     note_change(self);
     wcsprm_c2python(&self->x);
-    ignored_int = wcsvfree(&nwcs, &wcs);
+    wcsvfree(&nwcs, &wcs);
     return 0;
   }
 }
@@ -370,7 +367,6 @@ PyWcsprm_find_all_wcs(
   PyObject*      result        = NULL;
   PyWcsprm*      subresult     = NULL;
   int            i             = 0;
-  int            ignored       = 0;
   const char*    keywords[]    = {"header", "relax", "keysel", NULL};
   int            status        = -1;
 
@@ -447,7 +443,7 @@ PyWcsprm_find_all_wcs(
 
   result = PyList_New(nwcs);
   if (result == NULL) {
-    ignored = wcsvfree(&nwcs, &wcs);
+    wcsvfree(&nwcs, &wcs);
     return NULL;
   }
 
@@ -455,7 +451,7 @@ PyWcsprm_find_all_wcs(
     subresult = PyWcsprm_cnew();
     if (wcscopy(1, wcs + i, &subresult->x) != 0) {
       Py_DECREF(result);
-      ignored = wcsvfree(&nwcs, &wcs);
+      wcsvfree(&nwcs, &wcs);
       PyErr_SetString(
           PyExc_MemoryError,
           "Could not initialize wcsprm object");
@@ -465,7 +461,7 @@ PyWcsprm_find_all_wcs(
     if (PyList_SetItem(result, i, (PyObject *)subresult) == -1) {
       Py_DECREF(subresult);
       Py_DECREF(result);
-      ignored = wcsvfree(&nwcs, &wcs);
+      wcsvfree(&nwcs, &wcs);
       return NULL;
     }
 
@@ -473,13 +469,13 @@ PyWcsprm_find_all_wcs(
     if (PyWcsprm_cset(subresult, 0)) {
       Py_DECREF(subresult);
       Py_DECREF(result);
-      ignored = wcsvfree(&nwcs, &wcs);
+      wcsvfree(&nwcs, &wcs);
       return NULL;
     }
     wcsprm_c2python(&subresult->x);
   }
 
-  ignored = wcsvfree(&nwcs, &wcs);
+  wcsvfree(&nwcs, &wcs);
   return result;
 }
 
@@ -516,7 +512,6 @@ PyWcsprm_cylfix(
   int*           naxis       = NULL;
   int            status      = 0;
   const char*    keywords[]  = {"naxis", NULL};
-  PyObject*      ignored     = NULL;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|O:cylfix", (char **)keywords,
@@ -531,7 +526,7 @@ PyWcsprm_cylfix(
       return NULL;
     }
     if (PyArray_DIM(naxis_array, 0) != self->x.naxis) {
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_ValueError,
           "naxis must be same length as the number of axes of "
           "the Wcsprm object (%d).",
@@ -595,13 +590,11 @@ PyWcsprm_fix(
   int*           naxis           = NULL;
   int            stat[NWCSFIX];
   struct wcserr  err[NWCSFIX];
-  int            status          = 0;
   PyObject*      subresult;
   PyObject*      result;
   int            i               = 0;
   int            msg_index       = 0;
   const char*    message;
-  PyObject*      ignored         = NULL;
 
   struct message_map_entry {
     const char* name;
@@ -636,7 +629,7 @@ PyWcsprm_fix(
       return NULL;
     }
     if (PyArray_DIM(naxis_array, 0) != self->x.naxis) {
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_ValueError,
           "naxis must be same length as the number of axes of "
           "the Wcprm object (%d).",
@@ -649,7 +642,7 @@ PyWcsprm_fix(
 
   /* TODO: Use wcsfixi */
   wcsprm_python2c(&self->x);
-  status = wcsfixi(ctrl, naxis, &self->x, stat, err);
+  wcsfixi(ctrl, naxis, &self->x, stat, err);
   wcsprm_c2python(&self->x);
 
   /* We're done with this already, so deref now so we don't have to remember
@@ -828,7 +821,6 @@ PyWcsprm_mix(
   PyArrayObject* pixcrd     = NULL;
   int            status     = -1;
   PyObject*      result     = NULL;
-  PyObject*      ignored    = NULL;
   const char*    keywords[] = {
     "mixpix", "mixcel", "vspan", "vstep", "viter", "world", "pixcrd", "origin", NULL };
 
@@ -855,7 +847,7 @@ PyWcsprm_mix(
     goto exit;
   }
   if ((int)PyArray_DIM(world, 0) != self->x.naxis) {
-    ignored = PyErr_Format(
+    PyErr_Format(
         PyExc_TypeError,
         "Argument 6 (world) must be the same length as the number "
         "of axes (%d)",
@@ -872,7 +864,7 @@ PyWcsprm_mix(
     goto exit;
   }
   if ((int)PyArray_DIM(pixcrd, 0) != self->x.naxis) {
-    ignored = PyErr_Format(
+    PyErr_Format(
         PyExc_TypeError,
         "Argument 7 (pixcrd) must be the same length as the "
         "number of axes (%d)",
@@ -1310,8 +1302,6 @@ PyWcsprm_set_pv(
 PyWcsprm_print_contents(
     PyWcsprm* self) {
 
-  int ignored;
-
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
@@ -1321,7 +1311,7 @@ PyWcsprm_print_contents(
     wcsprm_c2python(&self->x);
     return NULL;
   }
-  ignored = wcsprt(&self->x);
+  wcsprt(&self->x);
   wcsprm_c2python(&self->x);
 
   printf("%s", wcsprintf_buf());

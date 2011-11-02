@@ -193,10 +193,8 @@ check_delete(
     const char* propname,
     PyObject* value) {
 
-  PyObject* ignored;
-
   if (value == NULL) {
-    ignored = PyErr_Format(PyExc_TypeError, "'%s' can not be deleted", propname);
+    PyErr_Format(PyExc_TypeError, "'%s' can not be deleted", propname);
     return -1;
   }
 

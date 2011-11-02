@@ -473,7 +473,6 @@ set_double_array(
 
   PyArrayObject* value_array = NULL;
   npy_int        i           = 0;
-  PyObject*      ignored     = NULL;
   char           shape_str[SHAPE_STR_LEN];
 
   if (check_delete(propname, value)) {
@@ -490,7 +489,7 @@ set_double_array(
     for (i = 0; i < ndims; ++i) {
       if (PyArray_DIM(value_array, i) != dims[i]) {
         shape_to_string(ndims, dims, shape_str);
-        ignored = PyErr_Format(
+        PyErr_Format(
             PyExc_ValueError,
             "'%s' array is the wrong shape, must be %s",
             propname, shape_str);
@@ -516,7 +515,6 @@ set_int_array(
     int* dest) {
   PyArrayObject* value_array = NULL;
   npy_int        i           = 0;
-  PyObject*      ignored     = NULL;
   char           shape_str[SHAPE_STR_LEN];
 
   if (check_delete(propname, value)) {
@@ -533,7 +531,7 @@ set_int_array(
     for (i = 0; i < ndims; ++i) {
       if (PyArray_DIM(value_array, i) != dims[i]) {
         shape_to_string(ndims, dims, shape_str);
-        ignored = PyErr_Format(
+        PyErr_Format(
             PyExc_ValueError,
             "'%s' array is the wrong shape, must be %s",
             propname, shape_str);
@@ -567,7 +565,6 @@ set_str_list_verified(
   char*      str_char = NULL;
   Py_ssize_t str_len  = 0;
   Py_ssize_t i        = 0;
-  PyObject*  ignored  = NULL;
 
   if (check_delete(propname, value)) {
     return -1;
@@ -578,7 +575,7 @@ set_str_list_verified(
   }
 
   if (!PySequence_Check(value)) {
-    ignored = PyErr_Format(
+    PyErr_Format(
         PyExc_TypeError,
         "'%s' must be a sequence of strings",
         propname);
@@ -586,7 +583,7 @@ set_str_list_verified(
   }
 
   if (PySequence_Size(value) != len) {
-    ignored = PyErr_Format(
+    PyErr_Format(
         PyExc_ValueError,
         "len(%s) must be %u",
         propname,
@@ -609,7 +606,7 @@ set_str_list_verified(
     #else
     if (!PyString_CheckExact(str)) {
     #endif
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_TypeError,
           #if PY3K
           "'%s' must be a sequence of bytes",
@@ -626,7 +623,7 @@ set_str_list_verified(
     #else
     if (PyString_Size(str) > maxlen) {
     #endif
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_TypeError,
           #if PY3K
           "Each bytes in '%s' must be less than %u characters",
@@ -658,7 +655,7 @@ set_str_list_verified(
     if (str == NULL) {
       /* Theoretically, something has gone really wrong here, since
          we've already verified the list. */
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_RuntimeError,
           "Input values have changed underneath us.  Something is seriously wrong.");
       return -1;
@@ -672,7 +669,7 @@ set_str_list_verified(
     #endif
       /* Theoretically, something has gone really wrong here, since
          we've already verified the list. */
-      ignored = PyErr_Format(
+      PyErr_Format(
           PyExc_RuntimeError,
           "Input values have changed underneath us.  Something is seriously wrong.");
       Py_DECREF(str);

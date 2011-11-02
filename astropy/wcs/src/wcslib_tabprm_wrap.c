@@ -141,8 +141,6 @@ PyTabprm_set(
 PyTabprm_print_contents(
     PyTabprm* self) {
 
-  int ignored;
-
   if (PyTabprm_cset(self)) {
     return NULL;
   }
@@ -151,7 +149,7 @@ PyTabprm_print_contents(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  ignored = tabprt(self->x);
+  tabprt(self->x);
 
   printf("%s", wcsprintf_buf());
 
@@ -163,8 +161,6 @@ PyTabprm_print_contents(
 PyTabprm___str__(
     PyTabprm* self) {
 
-  int ignored;
-
   if (PyTabprm_cset(self)) {
     return NULL;
   }
@@ -173,7 +169,7 @@ PyTabprm___str__(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  ignored = tabprt(self->x);
+  tabprt(self->x);
 
   #if PY3K
   return PyUnicode_FromString(wcsprintf_buf());
