@@ -147,7 +147,7 @@ static void output_nnybble(char *outfile, int n, unsigned char array[]);
 #define output_huffman(outfile,c)	output_nbits(outfile,code[c],ncode[c])
 
 /* ---------------------------------------------------------------------- */
-int _pyfits_fits_hcompress(int *a, int ny, int nx, int scale, char *output, 
+int _astropy_fits_hcompress(int *a, int ny, int nx, int scale, char *output, 
                            long *nbytes, int *status)
 {
   /* 
@@ -193,7 +193,7 @@ int _pyfits_fits_hcompress(int *a, int ny, int nx, int scale, char *output,
   return(*status);
 }
 /* ---------------------------------------------------------------------- */
-int _pyfits_fits_hcompress64(LONGLONG *a, int ny, int nx, int scale,
+int _astropy_fits_hcompress64(LONGLONG *a, int ny, int nx, int scale,
                   char *output, long *nbytes, int *status)
 {
   /* 
@@ -269,7 +269,7 @@ int *tmp;
 	 */
 	tmp = (int *) malloc(((nmax+1)/2)*sizeof(int));
 	if(tmp == (int *) NULL) {
-	        _pyfits_ffpmsg("htrans: insufficient memory");
+	        _astropy_ffpmsg("htrans: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	/*
@@ -405,7 +405,7 @@ LONGLONG *tmp;
 	 */
 	tmp = (LONGLONG *) malloc(((nmax+1)/2)*sizeof(LONGLONG));
 	if(tmp == (LONGLONG *) NULL) {
-	        _pyfits_ffpmsg("htrans64: insufficient memory");
+	        _astropy_ffpmsg("htrans64: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	/*
@@ -699,7 +699,7 @@ int stat;
 	 */
 	signbits = (unsigned char *) malloc((nel+7)/8);
 	if (signbits == (unsigned char *) NULL) {
-		_pyfits_ffpmsg("encode: insufficient memory");
+		_astropy_ffpmsg("encode: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	nsign = 0;
@@ -790,7 +790,7 @@ int stat;
 	 */
 	if (0 == qwrite(outfile, (char *) nbitplanes, sizeof(nbitplanes))) {
 	        *nlength = noutchar;
-		_pyfits_ffpmsg("encode: output buffer too small");
+		_astropy_ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }
 	 
@@ -807,7 +807,7 @@ int stat;
 	   if ( 0 == qwrite(outfile, (char *) signbits, nsign)) {
 	        free(signbits);
 	        *nlength = noutchar;
-		_pyfits_ffpmsg("encode: output buffer too small");
+		_astropy_ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
           }
 	} 
@@ -816,7 +816,7 @@ int stat;
 	*nlength = noutchar;
 
         if (noutchar >= noutmax) {
-		_pyfits_ffpmsg("encode: output buffer too small");
+		_astropy_ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }  
 	
@@ -860,7 +860,7 @@ int stat;
 	 */
 	signbits = (unsigned char *) malloc((nel+7)/8);
 	if (signbits == (unsigned char *) NULL) {
-		_pyfits_ffpmsg("encode64: insufficient memory");
+		_astropy_ffpmsg("encode64: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	nsign = 0;
@@ -952,7 +952,7 @@ int stat;
 
 	if (0 == qwrite(outfile, (char *) nbitplanes, sizeof(nbitplanes))) {
 	        *nlength = noutchar;
-		_pyfits_ffpmsg("encode: output buffer too small");
+		_astropy_ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }
 	 
@@ -969,7 +969,7 @@ int stat;
 	   if ( 0 == qwrite(outfile, (char *) signbits, nsign)) {
 	        free(signbits);
 	        *nlength = noutchar;
-		_pyfits_ffpmsg("encode: output buffer too small");
+		_astropy_ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
           }
 	} 
@@ -978,7 +978,7 @@ int stat;
 	*nlength = noutchar;
 
         if (noutchar >= noutmax) {
-		_pyfits_ffpmsg("encode64: output buffer too small");
+		_astropy_ffpmsg("encode64: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }
 		
@@ -1381,7 +1381,7 @@ unsigned char *scratch, *buffer;
 	buffer = (unsigned char *) malloc(bmax);
 	if ((scratch == (unsigned char *) NULL) ||
 		(buffer  == (unsigned char *) NULL)) {
-		_pyfits_ffpmsg("qtree_encode: insufficient memory");
+		_astropy_ffpmsg("qtree_encode: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	/*
@@ -1500,7 +1500,7 @@ unsigned char *scratch, *buffer;
 	buffer = (unsigned char *) malloc(bmax);
 	if ((scratch == (unsigned char *) NULL) ||
 		(buffer  == (unsigned char *) NULL)) {
-		_pyfits_ffpmsg("qtree_encode64: insufficient memory");
+		_astropy_ffpmsg("qtree_encode64: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
 	/*

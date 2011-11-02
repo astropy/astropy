@@ -129,7 +129,7 @@ static short quick_select_short(short arr[], int n);
 static int quick_select_int(int arr[], int n);
 static double quick_select_double(double arr[], int n);
 /*---------------------------------------------------------------------------*/
-int _pyfits_fits_quantize_float (float fdata[], long nxpix, long nypix,
+int _astropy_fits_quantize_float (float fdata[], long nxpix, long nypix,
         int nullcheck, 
 	float in_null_value, float qlevel, int idata[], double *bscale,
 	double *bzero, int *iminval, int *imaxval) {
@@ -324,7 +324,7 @@ If the function value is zero, the data were not copied to idata.
 	return (1);			/* yes, data have been quantized */
 }
 /*---------------------------------------------------------------------------*/
-int _pyfits_fits_quantize_double (double fdata[], long nxpix, long nypix,
+int _astropy_fits_quantize_double (double fdata[], long nxpix, long nypix,
         int nullcheck, 
 	double in_null_value, float qlevel, int idata[], double *bscale,
 	double *bzero, int *iminval, int *imaxval) {
@@ -577,7 +577,7 @@ static int fits_img_stats_short(
 	return(*status);
 }
 /*--------------------------------------------------------------------------*/
-int _pyfits_fits_img_stats_int(
+int _astropy_fits_img_stats_int(
         int *array, /*  2 dimensional array of image pixels */
         long nx,            /* number of pixels in each row of the image */
 	long ny,            /* number of rows in the image */

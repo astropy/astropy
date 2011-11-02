@@ -77,8 +77,8 @@
    performing conversion between pixel arrays and line lists.  The
    compression technique is used in IRAF.
 */
-int _pyfits_pl_p2li (int *pxsrc, int xs, short *lldst, int npix);
-int _pyfits_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
+int _astropy_pl_p2li (int *pxsrc, int xs, short *lldst, int npix);
+int _astropy_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
 
 
 /*
@@ -95,7 +95,7 @@ int _pyfits_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
 #define max(a,b)        (((a)>(b))?(a):(b))
 #endif
 
-int _pyfits_pl_p2li (int *pxsrc, int xs, short *lldst, int npix)
+int _astropy_pl_p2li (int *pxsrc, int xs, short *lldst, int npix)
 /* int *pxsrc;                      input pixel array */
 /* int xs;                          starting index in pxsrc (?) */
 /* short *lldst;                    encoded line list */
@@ -252,7 +252,7 @@ L100:
  * Translated from the SPP version using xc -f, f2c.  8Sep99 DCT.
  */
 
-int _pyfits_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix)
+int _astropy_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix)
 /* short *ll_src;                   encoded line list */
 /* int xs;                          starting index in ll_src */
 /* int *px_dst;                    output pixel array */

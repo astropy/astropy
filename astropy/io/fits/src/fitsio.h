@@ -6,15 +6,15 @@
 /* This file, fitsio.h, contains the header information for the core of a    */
 /* set of FITSIO routines that are used to compress and uncompress image     */
 /* data in FITS binary tables.  The code was copied and modified from the    */
-/* FITSIO software written at HEASRC.  The goal for the pyfitsComp module    */
+/* FITSIO software written at HEASRC.  The goal for the astropyComp module    */
 /* was to take this code nearly intact.  In FITSIO, interaction with the     */
 /* FITS file is accomplished directly within the FITSIO code.  With          */
-/* pyfitsComp, interaction with the FITS file is accomplished from within    */
-/* pyfits.  This may make some of the constructs within the FISTIO code seem */
-/* confusing when viewed from the perspective of pyfitsComp.  It should be   */
+/* astropyComp, interaction with the FITS file is accomplished from within    */
+/* astropy.  This may make some of the constructs within the FISTIO code seem */
+/* confusing when viewed from the perspective of astropyComp.  It should be   */
 /* noted that the FITSfile structure acts as the interface to the file in    */
 /* both cases.  In FITSIO it contains the file handle in order to access the */
-/* file, and in pyfitsComp it holds the file data, either compressed or      */
+/* file, and in astropyComp it holds the file data, either compressed or      */
 /* uncompressed.                                                             */
 /*                                                                           */
 /* Copyright (C) 2004 Association of Universities for Research in Astronomy  */
@@ -428,60 +428,60 @@ typedef struct         /* structure used to store basic HDU information */
 
 /*---------------- utility routines -------------*/
 
-void _pyfits_ffpmsg(const char *err_message);
-int  _pyfits_ffgmsg(char *err_message);
-int  _pyfits_ffgpv(fitsfile *fptr, int  datatype, LONGLONG firstelem,
+void _astropy_ffpmsg(const char *err_message);
+int  _astropy_ffgmsg(char *err_message);
+int  _astropy_ffgpv(fitsfile *fptr, int  datatype, LONGLONG firstelem,
           LONGLONG nelem, void *nulval, void *array, int *anynul, int  *status);
-int  _pyfits_ffppr(fitsfile *fptr, int datatype, LONGLONG  firstelem,
+int  _astropy_ffppr(fitsfile *fptr, int datatype, LONGLONG  firstelem,
           LONGLONG nelem, void *array, int *status);
 
 /*--------------------- group template parser routines ------------------*/
 
-int _pyfits_fits_img_stats_int(int *array,long nx, long ny, int nullcheck,
+int _astropy_fits_img_stats_int(int *array,long nx, long ny, int nullcheck,
     int nullvalue,long *ngoodpix, int *minvalue, int *maxvalue, double *mean,
     double *sigma, double *noise1, double *noise3, int *status);
 
 /* H-compress routines */
-int _pyfits_fits_hcompress(int *a, int nx, int ny, int scale, char *output, 
+int _astropy_fits_hcompress(int *a, int nx, int ny, int scale, char *output, 
     long *nbytes, int *status);
-int _pyfits_fits_hcompress64(LONGLONG *a, int nx, int ny, int scale,
+int _astropy_fits_hcompress64(LONGLONG *a, int nx, int ny, int scale,
     char *output, long *nbytes, int *status);
-int _pyfits_fits_hdecompress(unsigned char *input, int smooth, int *a, int *nx, 
+int _astropy_fits_hdecompress(unsigned char *input, int smooth, int *a, int *nx, 
     int *ny, int *scale, int *status);
-int _pyfits_fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a,
+int _astropy_fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a,
     int *nx, int *ny, int *scale, int *status);
 
 
 /*  image compression routines */
 
-int _pyfits_imcomp_calc_max_elem (int comptype, int nx, int zbitpix,
+int _astropy_imcomp_calc_max_elem (int comptype, int nx, int zbitpix,
                                   int blocksize);
 
 
 /*  image decompression routines */
-int _pyfits_fits_quantize_float (float fdata[], long nx, long ny, int nullcheck,
+int _astropy_fits_quantize_float (float fdata[], long nx, long ny, int nullcheck,
          float in_null_value,
          float quantize_level, int idata[], double *bscale, double *bzero,
          int *iminval, int *imaxval);
-int _pyfits_fits_quantize_double (double fdata[], long nx, long ny,
+int _astropy_fits_quantize_double (double fdata[], long nx, long ny,
          int nullcheck, double in_null_value,
          float quantize_level, int idata[], double *bscale, double *bzero,
          int *iminval, int *imaxval);
-int _pyfits_fits_rcomp(int a[], int nx, unsigned char *c, int clen,int nblock);
-int _pyfits_fits_rcomp_short(short a[], int nx, unsigned char *c, int clen,
+int _astropy_fits_rcomp(int a[], int nx, unsigned char *c, int clen,int nblock);
+int _astropy_fits_rcomp_short(short a[], int nx, unsigned char *c, int clen,
                              int nblock);
-int _pyfits_fits_rcomp_byte(signed char a[], int nx, unsigned char *c, int clen,
+int _astropy_fits_rcomp_byte(signed char a[], int nx, unsigned char *c, int clen,
                             int nblock);
-int _pyfits_fits_rdecomp (unsigned char *c, int clen, unsigned int array[],
+int _astropy_fits_rdecomp (unsigned char *c, int clen, unsigned int array[],
                           int nx, int nblock);
-int _pyfits_fits_rdecomp_short (unsigned char *c, int clen,
+int _astropy_fits_rdecomp_short (unsigned char *c, int clen,
                                 unsigned short array[], int nx, int nblock);
-int _pyfits_fits_rdecomp_byte (unsigned char *c, int clen,
+int _astropy_fits_rdecomp_byte (unsigned char *c, int clen,
                                unsigned char array[], int nx, int nblock);
-int _pyfits_pl_p2li (int *pxsrc, int xs, short *lldst, int npix);
-int _pyfits_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
+int _astropy_pl_p2li (int *pxsrc, int xs, short *lldst, int npix);
+int _astropy_pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
 
-int _pyfits_uncompress2mem_from_mem(
+int _astropy_uncompress2mem_from_mem(
              char *inmemptr,
              size_t inmemsize,
              char **buffptr,
@@ -490,7 +490,7 @@ int _pyfits_uncompress2mem_from_mem(
              size_t *filesize,
              int *status);
 
-int _pyfits_compress2mem_from_mem(
+int _astropy_compress2mem_from_mem(
              char *inmemptr,
              size_t inmemsize,
              char **buffptr,
@@ -501,8 +501,8 @@ int _pyfits_compress2mem_from_mem(
 
 /* Translate the long names for some routines to their actual short names */
 
-#define _pyfits_fits_read_img  _pyfits_ffgpv
-#define _pyfits_fits_write_img _pyfits_ffppr
+#define _astropy_fits_read_img  _astropy_ffgpv
+#define _astropy_fits_write_img _astropy_ffppr
 #define fits_write_img_usht    ffpprui
 
 #endif
