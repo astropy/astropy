@@ -8,10 +8,10 @@ except ImportError:
     class __HEADERBASE(DictMixin, object): # object to make a newstyle class
         pass
 
-from pyfits.card import (Card, CardList, RecordValuedKeywordCard,
-                         _ContinueCard, _HierarchCard, create_card,
-                         create_card_from_string, upper_key, _pad)
-from pyfits.util import BLOCK_SIZE, deprecated, _pad_length
+from .card import (Card, CardList, RecordValuedKeywordCard, _ContinueCard,
+                   _HierarchCard, create_card, create_card_from_string,
+                   upper_key, _pad)
+from .util import BLOCK_SIZE, deprecated, _pad_length
 
 
 class Header(__HEADERBASE):

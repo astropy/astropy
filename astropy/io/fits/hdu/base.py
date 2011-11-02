@@ -9,13 +9,13 @@ import warnings
 
 import numpy as np
 
-from pyfits.card import Card
-from pyfits.file import _File
-from pyfits.header import Header
-from pyfits.util import (Extendable, _with_extensions, lazyproperty, _is_int,
-                        _is_pseudo_unsigned, _unsigned_zero, _pad_length,
-                        itersubclasses, decode_ascii, BLOCK_SIZE, deprecated)
-from pyfits.verify import _Verify, _ErrList
+from ..card import Card
+from ..file import _File
+from ..header import Header
+from ..util import (lazyproperty, _is_int, _is_pseudo_unsigned, _unsigned_zero,
+                    _pad_length, itersubclasses, decode_ascii, BLOCK_SIZE,
+                    deprecated)
+from ..verify import _Verify, _ErrList
 
 
 HEADER_END_RE = re.compile('END {77}')
@@ -43,9 +43,9 @@ def _hdu_class_from_header(cls, header):
     if header:
         for c in reversed(list(itersubclasses(cls))):
             try:
-                # HDU classes built into pyfits are always considered, but
-                # extension HDUs must be explicitly registered
-                if not (c.__module__.startswith('pyfits.') or
+                # HDU classes built into astropy.io.fits are always considered,
+                # but extension HDUs must be explicitly registered
+                if not (c.__module__.startswith('astropy.io.fits.') or
                         c in cls._hdu_registry):
                     continue
                 if c.match_header(header):
@@ -70,8 +70,6 @@ class _BaseHDU(object):
     """
     Base class for all HDU (header data unit) classes.
     """
-
-    __metaclass__ = Extendable
 
     _hdu_registry = set()
 
@@ -407,9 +405,8 @@ class _BaseHDU(object):
         return (self._writeheader(fileobj, checksum)[0],) + \
                self._writedata(fileobj)
 
-    @_with_extensions
     def writeto(self, name, output_verify='exception', clobber=False,
-                classExtensions={}, checksum=False):
+                checksum=False):
         """
         Write the HDU to a new file.  This is a convenience method to
         provide a user easier output interface if only one HDU needs
@@ -429,18 +426,12 @@ class _BaseHDU(object):
         clobber : bool
             Overwrite the output file if exists.
 
-        classExtensions : dict
-            A dictionary that maps pyfits classes to extensions of
-            those classes.  When present in the dictionary, the
-            extension class will be constructed in place of the pyfits
-            class.
-
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
             to the header of the HDU when written to the file.
         """
 
-        from pyfits.hdu.hdulist import HDUList
+        from .hdulist import HDUList
 
         hdulist = HDUList([self])
         hdulist.writeto(name, output_verify, clobber=clobber,
@@ -1317,7 +1308,7 @@ class ExtensionHDU(_ValidHDU):
         Set an HDU attribute.
         """
 
-        from pyfits.core import EXTENSION_NAME_CASE_SENSITIVE
+        from .. import EXTENSION_NAME_CASE_SENSITIVE
 
         if attr == 'name' and value:
             if not isinstance(value, basestring):
@@ -1342,17 +1333,16 @@ class ExtensionHDU(_ValidHDU):
 
         raise NotImplementedError
 
-    @_with_extensions
     def writeto(self, name, output_verify='exception', clobber=False,
-                classExtensions={}, checksum=False):
+                checksum=False):
         """
         Works similarly to the normal writeto(), but prepends a default
         `PrimaryHDU` are required by extension HDUs (which cannot stand on
         their own).
         """
 
-        from pyfits.hdu.hdulist import HDUList
-        from pyfits.hdu.image import PrimaryHDU
+        from .hdulist import HDUList
+        from .image import PrimaryHDU
 
         hdulist = HDUList([PrimaryHDU(), self])
         hdulist.writeto(name, output_verify, clobber=clobber,
@@ -1379,7 +1369,7 @@ class NonstandardExtHDU(ExtensionHDU):
     A Non-standard Extension HDU class.
 
     This class is used for an Extension HDU when the ``XTENSION``
-    `Card` has a non-standard value.  In this case, pyfits can figure
+    `Card` has a non-standard value.  In this case, Astropy can figure
     out how big the data is but not what it is.  The data for this HDU
     is read from the file as a byte stream that begins at the first
     byte after the header ``END`` card and continues until the

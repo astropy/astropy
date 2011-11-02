@@ -1,11 +1,11 @@
-from pyfits.hdu.base import register_hdu, unregister_hdu, DELAYED
-from pyfits.hdu.compressed import CompImageHDU
-from pyfits.hdu.groups import GroupsHDU
-from pyfits.hdu.hdulist import HDUList
-from pyfits.hdu.image import PrimaryHDU, ImageHDU
-from pyfits.hdu.nonstandard import FitsHDU
-from pyfits.hdu.streaming import StreamingHDU
-from pyfits.hdu.table import TableHDU, BinTableHDU
+from .base import register_hdu, unregister_hdu, DELAYED
+from .compressed import CompImageHDU
+from .groups import GroupsHDU
+from .hdulist import HDUList
+from .image import PrimaryHDU, ImageHDU
+from .nonstandard import FitsHDU
+from .streaming import StreamingHDU
+from .table import TableHDU, BinTableHDU
 
 __all__ = ['HDUList', 'PrimaryHDU', 'ImageHDU', 'TableHDU', 'BinTableHDU',
            'GroupsHDU', 'CompImageHDU', 'FitsHDU', 'StreamingHDU',

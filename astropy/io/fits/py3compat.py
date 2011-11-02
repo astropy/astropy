@@ -10,7 +10,7 @@ if sys.version_info[0] >= 3:
 
 
     # Make the decode_ascii utility function actually work
-    import pyfits.util
+    from . import util
     import numpy
 
     def encode_ascii(s):
@@ -23,7 +23,7 @@ if sys.version_info[0] >= 3:
                 ns = ns.astype((numpy.bytes_, s.dtype.itemsize / 4))
             return ns
         return s
-    pyfits.util.encode_ascii = encode_ascii
+    util.encode_ascii = encode_ascii
 
     def decode_ascii(s):
         if isinstance(s, bytes):
@@ -39,22 +39,22 @@ if sys.version_info[0] >= 3:
                 ns = ns.astype((numpy.str_, s.dtype.itemsize))
             return ns
         return s
-    pyfits.util.decode_ascii = decode_ascii
+    util.decode_ascii = decode_ascii
 
     # Support the io.IOBase.readable/writable methods
-    from pyfits.util import isreadable as _isreadable
+    from .util import isreadable as _isreadable
     def isreadable(f):
         if hasattr(f, 'readable'):
             return f.readable()
         return _isreadable(f)
-    pyfits.util.isreadable = isreadable
+    util.isreadable = isreadable
 
-    from pyfits.util import iswritable as _iswritable
+    from .util import iswritable as _iswritable
     def iswritable(f):
         if hasattr(f, 'writable'):
             return f.writable()
         return _iswritable(f)
-    pyfits.util.iswritable = iswritable
+    util.iswritable = iswritable
 
     # isfile needs to support the higher-level wrappers around FileIO
     def isfile(f):
@@ -65,7 +65,7 @@ if sys.version_info[0] >= 3:
         elif hasattr(f, 'raw'):
             return isfile(f.raw)
         return False
-    pyfits.util.isfile = isfile
+    util.isfile = isfile
 
     # Here we monkey patch (yes, I know) numpy to fix a few numpy Python 3
     # bugs.  The only behavior that's modified is that bugs are fixed, so that
@@ -77,7 +77,7 @@ if sys.version_info[0] >= 3:
     # TODO: Maybe do a version check on numpy for this?  (Note: the fix for
     # this hasn't been accepted in Numpy yet, so a version number check would
     # not be helpful yet...)
-    import pyfits.file
+    from . import file
 
     _chararray = numpy.char.chararray
     class chararray(_chararray):
@@ -143,7 +143,7 @@ if sys.version_info[0] >= 3:
 
     # We also need to patch pyfits.file._File which can also be affected by the
     # #1766 bug
-    old_File = pyfits.file._File
+    old_File = file._File
     class _File(old_File):
         def readarray(self, size=None, offset=None, dtype=numpy.uint8,
                       shape=None):
@@ -151,12 +151,12 @@ if sys.version_info[0] >= 3:
                 dtype = _fix_dtype(dtype)
             return old_File.readarray(self, size, offset, dtype, shape)
         readarray.__doc__ = old_File.readarray.__doc__
-    pyfits.file._File = _File
+    file._File = _File
 
 
     # Replace pyfits.util.maketrans and translate with versions that work
     # with Python 3 unicode strings
-    pyfits.util.maketrans = str.maketrans
+    util.maketrans = str.maketrans
 
     def translate(s, table, deletechars):
         if deletechars:
@@ -164,7 +164,7 @@ if sys.version_info[0] >= 3:
             for c in deletechars:
                 table[ord(c)] = None
         return s.translate(table)
-    pyfits.util.translate = translate
+    util.translate = translate
 else:
     # Stuff to do if not Python 3
 
@@ -175,5 +175,5 @@ else:
         __builtin__.bytes = str
 
     import string
-    import pyfits.util
-    pyfits.util.maketrans = string.maketrans
+    from . import util
+    util.maketrans = string.maketrans

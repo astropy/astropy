@@ -1,12 +1,11 @@
 import sys
 import numpy as np
 
-from pyfits.column import Column, ColDefs, FITS2NUMPY
-from pyfits.fitsrec import FITS_rec, FITS_record
-from pyfits.hdu.image import _ImageBaseHDU, PrimaryHDU
-from pyfits.hdu.table import _TableLikeHDU
-from pyfits.util import lazyproperty, _is_int, _pad_length, \
-                        _is_pseudo_unsigned
+from .image import _ImageBaseHDU, PrimaryHDU
+from .table import _TableLikeHDU
+from ..column import Column, ColDefs, FITS2NUMPY
+from ..fitsrec import FITS_rec, FITS_record
+from ..util import lazyproperty, _is_int, _pad_length, _is_pseudo_unsigned
 
 
 class GroupsHDU(PrimaryHDU, _TableLikeHDU):

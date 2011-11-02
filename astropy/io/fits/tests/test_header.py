@@ -1,11 +1,12 @@
-import pyfits
+from ...io import fits
+from . import FitsTestCase
 
-from pyfits.tests import PyfitsTestCase
+from ...test.helper import pytest
 
 from nose.tools import assert_equal, assert_false, assert_raises, assert_true
 
 
-class TestRecordValuedKeywordCards(PyfitsTestCase):
+class TestRecordValuedKeywordCards(FitsTestCase):
     """Tests for handling of record-valued keyword cards as used by the FITS
     WCS Paper IV proposal.
 
@@ -15,7 +16,7 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
 
     def setup(self):
         super(TestRecordValuedKeywordCards, self).setup()
-        self._test_header = pyfits.Header()
+        self._test_header = fits.Header()
         self._test_header.update('DP1', 'NAXIS: 2')
         self._test_header.update('DP1', 'AXIS.1: 1')
         self._test_header.update('DP1', 'AXIS.2: 2')
@@ -30,38 +31,38 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         the the field-specifier portion should be case-sensitive.
         """
 
-        header = pyfits.Header()
+        header = fits.Header()
         header.update('abc.def', 1)
         header.update('abc.DEF', 2)
-        assert_equal(header['abc.def'], 1)
-        assert_equal(header['ABC.def'], 1)
-        assert_equal(header['aBc.def'], 1)
-        assert_equal(header['ABC.DEF'], 2)
-        assert_false('ABC.dEf' in header)
+        assert header['abc.def'] == 1
+        assert header['ABC.def'] == 1
+        assert header['aBc.def'] == 1
+        assert header['ABC.DEF'] == 2
+        assert 'ABC.dEf' not in header
 
     def test_get_rvkc_by_index(self):
         """Returning a RVKC from a header via index lookup should return the
         entire string value of the card, including the field-specifier.
         """
 
-        assert_equal(self._test_header[0], 'NAXIS: 2')
-        assert_equal(self._test_header[1], 'AXIS.1: 1')
+        assert self._test_header[0] == 'NAXIS: 2'
+        assert self._test_header[1] == 'AXIS.1: 1'
 
     def test_get_rvkc_by_keyword(self):
         """Returning a RVKC just via the keyword name should return the entire
         string value of the first card with that keyword.
         """
 
-        assert_equal(self._test_header['DP1'], 'NAXIS: 2')
+        assert self._test_header['DP1'] == 'NAXIS: 2'
 
     def test_get_rvkc_by_keyword_and_field_specifier(self):
         """Returning a RVKC via the full keyword/field-specifier combination
         should return the floating point value associated with the RVKC.
         """
 
-        assert_equal(self._test_header['DP1.NAXIS'], 2.0)
-        assert_true(isinstance(self._test_header['DP1.NAXIS'], float))
-        assert_equal(self._test_header['DP1.AUX.1.COEFF.1'], 0.00048828125)
+        assert self._test_header['DP1.NAXIS'] == 2.0
+        assert isinstance(self._test_header['DP1.NAXIS'], float)
+        assert self._test_header['DP1.AUX.1.COEFF.1'] == 0.00048828125
 
     def test_access_nonexistent_rvkc(self):
         """Accessing a nonexistent RVKC should raise an IndexError for
@@ -76,13 +77,13 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """A RVKC can be updated either via index or keyword access."""
 
         self._test_header[0] = 3
-        assert_equal(self._test_header['DP1.NAXIS'], 3.0)
-        assert_true(isinstance(self._test_header['DP1.NAXIS'], float))
-        assert_equal(self._test_header[0], 'NAXIS: 3')
+        assert self._test_header['DP1.NAXIS'] == 3.0
+        assert isinstance(self._test_header['DP1.NAXIS'], float)
+        assert self._test_header[0] == 'NAXIS: 3'
 
         self._test_header['DP1.AXIS.1'] = 1.1
-        assert_equal(self._test_header['DP1.AXIS.1'], 1.1)
-        assert_equal(self._test_header[1], 'AXIS.1: 1.1')
+        assert self._test_header['DP1.AXIS.1'] == 1.1
+        assert self._test_header[1] == 'AXIS.1: 1.1'
 
     def test_rvkc_insert_after(self):
         """It should be possible to insert a new RVKC after an existing one
@@ -90,8 +91,8 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
 
         self._test_header.update('DP1', 'AXIS.3: 1', 'a comment',
                                  after='DP1.AXIS.2')
-        assert_equal(self._test_header[3], 'AXIS.3: 1')
-        assert_equal(self._test_header['DP1.AXIS.3'], 1)
+        assert self._test_header[3] == 'AXIS.3: 1'
+        assert self._test_header['DP1.AXIS.3'] == 1
 
     def test_rvkc_delete(self):
         """Deleting a RVKC should work as with a normal card by using the full
@@ -99,15 +100,15 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """
 
         del self._test_header['DP1.AXIS.1']
-        assert_equal(len(self._test_header), 7)
-        assert_equal(self._test_header[0], 'NAXIS: 2')
-        assert_equal(self._test_header[1], 'AXIS.2: 2')
+        assert len(self._test_header) == 7
+        assert self._test_header[0] == 'NAXIS: 2'
+        assert self._test_header[1] == 'AXIS.2: 2'
 
     def test_pattern_matching_keys(self):
         """Test the keyword filter strings with RVKCs."""
 
         cl = self._test_header['DP1.AXIS.*']
-        assert_true(isinstance(cl, pyfits.CardList))
+        assert isinstance(cl, fits.CardList)
         assert_equal(
             [l.strip() for l in str(cl).splitlines()],
             ["DP1     = 'AXIS.1: 1'",
@@ -142,9 +143,9 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """Deletion by filter strings should work."""
 
         del self._test_header['DP1.A*...']
-        assert_equal(len(self._test_header), 2)
-        assert_equal(self._test_header[0], 'NAXIS: 2')
-        assert_equal(self._test_header[1], 'NAUX: 2')
+        assert len(self._test_header) == 2
+        assert self._test_header[0] == 'NAXIS: 2'
+        assert self._test_header[1] == 'NAUX: 2'
 
     def test_successive_pattern_matching(self):
         """A card list returned via a filter string should be further
@@ -174,7 +175,7 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert_equal(cl.keys(), ['DP1.AXIS.1', 'DP1.AXIS.2'])
+        assert cl.keys() == ['DP1.AXIS.1', 'DP1.AXIS.2']
 
     def test_rvkc_in_cardlist_values(self):
         """The CardList.values() method should return the values of all RVKCs
@@ -182,7 +183,7 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert_equal(cl.values(), [1.0, 2.0])
+        assert cl.values() == [1.0, 2.0]
 
     def test_rvkc_cardlist_indexing(self):
         """RVKC should be retrievable from CardLists using standard index or
@@ -190,8 +191,8 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert_equal(str(cl[0]).strip(), "DP1     = 'AXIS.1: 1'")
-        assert_equal(str(cl['DP1.AXIS.2']).strip(), "DP1     = 'AXIS.2: 2'")
+        assert str(cl[0]).strip() == "DP1     = 'AXIS.1: 1'"
+        assert str(cl['DP1.AXIS.2']).strip() == "DP1     = 'AXIS.2: 2'"
 
     def test_rvkc_value_attribute(self):
         """Individual card values should be accessible by the .value attribute
@@ -199,8 +200,8 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         """
 
         cl = self._test_header['DP1.AXIS.*']
-        assert_equal(cl[0].value, 1.0)
-        assert_true(isinstance(cl[0].value, float))
+        assert cl[0].value == 1.0
+        assert isinstance(cl[0].value, float)
 
     def test_rvkc_cardlist_deletion(self):
         """Modifying RVKCs in a CardList should be reflected in any Header that
@@ -210,26 +211,27 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
 
         cl = self._test_header['DP1.AXIS.*']
         cl[0].value = 4.0
-        assert_equal(self._test_header['DP1.AXIS.1'], 4.0)
+        assert self._test_header['DP1.AXIS.1'] == 4.0
         del cl[0]
-        assert_raises(KeyError, lambda k: cl[k], 'DP1.AXIS.1')
-        assert_equal(self._test_header['DP1.AXIS.1'], 4.0)
+        with pytest.raises(KeyError):
+            cl['DP1.AXIS.1']
+        assert self._test_header['DP1.AXIS.1'] == 4.0
 
     def test_rvkc_constructor(self):
         """Test direct creation of RVKC objects."""
 
-        c1 = pyfits.RecordValuedKeywordCard('DP1', 'NAXIS: 2',
-                                            'Number of variables')
-        c2 = pyfits.RecordValuedKeywordCard('DP1.AXIS.1', 1.0, 'Axis number')
+        c1 = fits.RecordValuedKeywordCard('DP1', 'NAXIS: 2',
+                                          'Number of variables')
+        c2 = fits.RecordValuedKeywordCard('DP1.AXIS.1', 1.0, 'Axis number')
 
-        assert_equal(c1.key, 'DP1.NAXIS')
-        assert_equal(c1.value, 2.0)
-        assert_equal(c1.comment, 'Number of variables')
-        assert_equal(c1.field_specifier, 'NAXIS')
-        assert_equal(c2.key, 'DP1.AXIS.1')
-        assert_equal(c2.value, 1.0)
-        assert_equal(c2.comment, 'Axis number')
-        assert_equal(c2.field_specifier, 'AXIS.1')
+        assert c1.key == 'DP1.NAXIS'
+        assert c1.value == 2.0
+        assert c1.comment == 'Number of variables'
+        assert c1.field_specifier == 'NAXIS'
+        assert c2.key == 'DP1.AXIS.1'
+        assert c2.value == 1.0
+        assert c2.comment == 'Axis number'
+        assert c2.field_specifier == 'AXIS.1'
 
         # RVKCs created with this constructor should verify without any
         # problems
@@ -239,9 +241,9 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
     def test_rvkc_fromstring(self):
         """Test creation of RVKC from their string representation."""
 
-        c1 = pyfits.RecordValuedKeywordCard().fromstring(
+        c1 = fits.RecordValuedKeywordCard().fromstring(
             "DP1     = 'NAXIS: 2' / Number of independent variables")
-        c2 = pyfits.RecordValuedKeywordCard().fromstring(
+        c2 = fits.RecordValuedKeywordCard().fromstring(
             "DP1     = 'AXIS.1: X' / Axis number")
 
         assert_equal(str(c1).strip(),
@@ -249,4 +251,4 @@ class TestRecordValuedKeywordCards(PyfitsTestCase):
         assert_equal(str(c2).strip(),
                      "DP1     = 'AXIS.1: X' / Axis number")
         # Since c2's value is wrong for a RVKC it should be a normal card
-        assert_false(isinstance(c2, pyfits.RecordValuedKeywordCard))
+        assert not isinstance(c2, fits.RecordValuedKeywordCard)

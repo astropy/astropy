@@ -2,16 +2,16 @@ import warnings
 
 import numpy as np
 
-from pyfits.column import Column, ColDefs, _FormatP, _makep
-from pyfits.fitsrec import FITS_rec
-from pyfits.hdu.base import DELAYED, ExtensionHDU
-from pyfits.hdu.image import _ImageBaseHDU, ImageHDU
-from pyfits.hdu.table import BinTableHDU
-from pyfits.header import Header
-from pyfits.util import lazyproperty, _pad_length
+from .base import DELAYED, ExtensionHDU
+from .image import _ImageBaseHDU, ImageHDU
+from .table import BinTableHDU
+from ..column import Column, ColDefs, _FormatP, _makep
+from ..fitsrec import FITS_rec
+from ..header import Header
+from ..util import lazyproperty, _pad_length
 
 try:
-    from pyfits import compression
+    from .. import compression
     COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = True
 except ImportError:
     COMPRESSION_SUPPORTED = COMPRESSION_ENABLED = False
@@ -117,14 +117,14 @@ class CompImageHDU(BinTableHDU):
 
         Notes
         -----
-        The pyfits module supports 2 methods of image compression.
+        The astropy.io.fits package supports 2 methods of image compression:
 
             1) The entire FITS file may be externally compressed with the gzip
                or pkzip utility programs, producing a ``*.gz`` or ``*.zip``
                file, respectively.  When reading compressed files of this type,
-               pyfits first uncompresses the entire file into a temporary file
+               Astropy first uncompresses the entire file into a temporary file
                before performing the requested read operations.
-               The pyfits module does not support writing to these
+               The astropy.io.fits package does not support writing to these
                types of compressed files.  This type of compression is
                supported in the `_File` class, not in the `CompImageHDU` class.
                The file compression type is recognized by the ``.gz`` or
@@ -139,17 +139,17 @@ class CompImageHDU(BinTableHDU):
                <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
                variable length arrray column in a FITS binary table.  The
-               pyfits module recognizes that this binary table extension
+               astropy.io.fits recognizes that this binary table extension
                contains an image and treats it as if it were an image
                extension.  Under this tile-compression format, FITS header
-               keywords remain uncompressed.  At this time, pyfits does not
+               keywords remain uncompressed.  At this time, Astropy does not
                support the ability to extract and uncompress sections of the
                image without having to uncompress the entire image.
 
-        The `pyfits` module supports 3 general-purpose compression algorithms
-        plus one other special-purpose compression technique that is designed
-        for data masks with positive integer pixel values.  The 3 general
-        purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
+        The astropy.io.fits package supports 3 general-purpose compression
+        algorithms plus one other special-purpose compression technique that is
+        designed for data masks with positive integer pixel values.  The 3
+        general purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
         special-purpose technique is the IRAF pixel list compression technique
         (PLIO).  The `compressionType` parameter defines the compression
         algorithm to be used.
@@ -237,8 +237,10 @@ class CompImageHDU(BinTableHDU):
         """
 
         if not COMPRESSION_SUPPORTED:
-            raise Exception('The pyfits.compression module is not available.  '
-                            'Creation of compressed image HDUs is disabled.')
+            # TODO: Raise a more specific Exception type
+            raise Exception('The astropy.io.fits.compression module is not '
+                            'available.  Creation of compressed image HDUs is '
+                            'disabled.')
 
         if data is DELAYED:
             # Reading the HDU from a file

@@ -10,20 +10,15 @@ import warnings
 import numpy as np
 from numpy import char as chararray
 
-from pyfits.card import Card, CardList
-# This module may have many dependencies on pyfits.column, but pyfits.column
-# has fewer dependencies overall, so it's easier to keep table/column-related
-# utilities in pyfits.column
-from pyfits.column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES,
-                           TDEF_RE, Delayed, Column, ColDefs, _ASCIIColDefs,
-                           _FormatX, _FormatP, _wrapx, _makep, _VLF,
-                           _parse_tformat, _scalar_to_format, _convert_format,
-                           _cmp_recformats)
-from pyfits.fitsrec import FITS_rec
-from pyfits.hdu.base import DELAYED, _ValidHDU, ExtensionHDU
-from pyfits.header import Header
-from pyfits.util import (lazyproperty, _is_int, _str_to_num, _pad_length,
-                         deprecated)
+from .base import DELAYED, _ValidHDU, ExtensionHDU
+from ..card import Card, CardList
+from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
+                      Delayed, Column, ColDefs, _ASCIIColDefs, _FormatX,
+                      _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
+                      _scalar_to_format, _convert_format, _cmp_recformats)
+from ..fitsrec import FITS_rec
+from ..header import Header
+from ..util import lazyproperty, _is_int, _str_to_num, _pad_length, deprecated
 
 
 class FITSTableDumpDialect(csv.excel):

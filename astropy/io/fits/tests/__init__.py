@@ -1,14 +1,12 @@
-from __future__ import division # confidence high
-
 import os
 import shutil
 import tempfile
 
 
-class PyfitsTestCase(object):
+class FitsTestCase(object):
     def setup(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
-        self.temp_dir = tempfile.mkdtemp(prefix='pyfits-test-')
+        self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
