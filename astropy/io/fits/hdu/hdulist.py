@@ -8,25 +8,21 @@ import warnings
 import numpy as np
 from numpy import memmap as Memmap
 
-import pyfits
-from pyfits.card import Card
-from pyfits.column import _FormatP
-from pyfits.file import PYTHON_MODES, _File
-from pyfits.hdu import compressed
-from pyfits.hdu.base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
-from pyfits.hdu.compressed import CompImageHDU
-from pyfits.hdu.groups import GroupsHDU
-from pyfits.hdu.image import PrimaryHDU, ImageHDU
-from pyfits.hdu.table import _TableBaseHDU
-from pyfits.util import (Extendable, _is_int, _tmp_name, _with_extensions,
-                         _pad_length, BLOCK_SIZE, isfile, fileobj_name,
-                         fileobj_closed, fileobj_mode)
-from pyfits.verify import _Verify, _ErrList
+from . import compressed
+from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
+from .compressed import CompImageHDU
+from .groups import GroupsHDU
+from .image import PrimaryHDU, ImageHDU
+from .table import _TableBaseHDU
+from ..card import Card
+from ..column import _FormatP
+from ..file import PYTHON_MODES, _File
+from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
+                    fileobj_name, fileobj_closed, fileobj_mode)
+from ..verify import _Verify, _ErrList
 
 
-@_with_extensions
-def fitsopen(name, mode="copyonwrite", memmap=None, classExtensions={},
-             **kwargs):
+def fitsopen(name, mode="copyonwrite", memmap=None, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -44,11 +40,6 @@ def fitsopen(name, mode="copyonwrite", memmap=None, classExtensions={},
 
     memmap : bool
         Is memory mapping to be used?
-
-    classExtensions : dict (''Deprecated'')
-        A dictionary that maps pyfits classes to extensions of those
-        classes.  When present in the dictionary, the extension class
-        will be constructed in place of the pyfits class.
 
     kwargs : dict
         optional keyword arguments, possible values are:
@@ -94,7 +85,7 @@ def fitsopen(name, mode="copyonwrite", memmap=None, classExtensions={},
     """
 
     if memmap is None:
-        from pyfits.core import USE_MEMMAP
+        from ... import USE_MEMMAP
         memmap = USE_MEMMAP
 
     if 'uint16' in kwargs and 'uint' not in kwargs:
@@ -112,8 +103,6 @@ class HDUList(list, _Verify):
     HDU list class.  This is the top-level FITS object.  When a FITS
     file is opened, a `HDUList` object is returned.
     """
-
-    __metaclass__ = Extendable
 
     def __init__(self, hdus=[], file=None):
         """
@@ -149,8 +138,7 @@ class HDUList(list, _Verify):
         for idx in range(len(self)):
             yield self[idx]
 
-    @_with_extensions
-    def __getitem__(self, key, classExtensions={}):
+    def __getitem__(self, key):
         """
         Get an HDU from the `HDUList`, indexed by number or name.
         """
@@ -354,8 +342,7 @@ class HDUList(list, _Verify):
 
         return output
 
-    @_with_extensions
-    def insert(self, index, hdu, classExtensions={}):
+    def insert(self, index, hdu):
         """
         Insert an HDU into the `HDUList` at the given `index`.
 
@@ -366,11 +353,6 @@ class HDUList(list, _Verify):
 
         hdu : _BaseHDU instance
             The HDU object to insert
-
-        classExtensions : dict
-            A dictionary that maps pyfits classes to extensions of those
-            classes.  When present in the dictionary, the extension class
-            will be constructed in place of the pyfits class.
         """
 
         if not isinstance(hdu, _BaseHDU):
@@ -426,8 +408,7 @@ class HDUList(list, _Verify):
         if len(self) > 1:
             self.update_extend()
 
-    @_with_extensions
-    def append(self, hdu, classExtensions={}):
+    def append(self, hdu):
         """
         Append a new HDU to the `HDUList`.
 
@@ -435,11 +416,6 @@ class HDUList(list, _Verify):
         ----------
         hdu : instance of _BaseHDU
             HDU to add to the `HDUList`.
-
-        classExtensions : dict
-            A dictionary that maps pyfits classes to extensions of those
-            classes.  When present in the dictionary, the extension class
-            will be constructed in place of the pyfits class.
         """
 
         if not isinstance(hdu, _BaseHDU):
@@ -536,9 +512,7 @@ class HDUList(list, _Verify):
             if hdu.data is not None:
                 continue
 
-    @_with_extensions
-    def flush(self, output_verify='exception', verbose=False,
-              classExtensions={}):
+    def flush(self, output_verify='exception', verbose=False):
         """
         Force a write of the `HDUList` back to the file (for append and
         update modes only).
@@ -552,12 +526,6 @@ class HDUList(list, _Verify):
 
         verbose : bool
             When `True`, print verbose messages
-
-        classExtensions : dict
-            A dictionary that maps pyfits classes to extensions of
-            those classes.  When present in the dictionary, the
-            extension class will be constructed in place of the pyfits
-            class.
         """
 
         # Get the name of the current thread and determine if this is a single treaded application
@@ -772,9 +740,8 @@ class HDUList(list, _Verify):
                 n = hdr['naxis']
                 hdr.update('extend', True, after='naxis' + str(n))
 
-    @_with_extensions
     def writeto(self, fileobj, output_verify='exception', clobber=False,
-                classExtensions={}, checksum=False):
+                checksum=False):
         """
         Write the `HDUList` to a new file.
 
@@ -791,12 +758,6 @@ class HDUList(list, _Verify):
 
         clobber : bool
             When `True`, overwrite the output file if exists.
-
-        classExtensions : dict
-            A dictionary that maps pyfits classes to extensions of
-            those classes.  When present in the dictionary, the
-            extension class will be constructed in place of the pyfits
-            class.
 
         checksum : bool
             When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards

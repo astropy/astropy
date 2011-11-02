@@ -4,10 +4,10 @@ import warnings
 
 import numpy as np
 
-from pyfits.column import ASCIITNULL, FITS2NUMPY, TDIM_RE, Column, ColDefs, \
-                          _FormatX, _FormatP, _VLF, _get_index, _wrapx, \
-                          _unwrapx, _convert_format, _convert_ascii_format
-from pyfits.util import _array_from_file, decode_ascii, lazyproperty
+from .column import (ASCIITNULL, FITS2NUMPY, TDIM_RE, Column, ColDefs,
+                     _FormatX, _FormatP, _VLF, _get_index, _wrapx, _unwrapx,
+                     _convert_format, _convert_ascii_format)
+from .util import _array_from_file, decode_ascii, lazyproperty
 
 
 class FITS_record(object):
@@ -471,7 +471,7 @@ class FITS_rec(np.recarray):
         Overload this to make mask array indexing work properly.
         """
 
-        from pyfits.hdu.table import new_table
+        from .hdu.table import new_table
 
         hdu = new_table(self._coldefs, nrows=shape[0])
         return hdu.data

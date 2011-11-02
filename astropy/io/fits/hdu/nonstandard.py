@@ -1,11 +1,11 @@
 import gzip
 
-from pyfits.card import Card, CardList
-from pyfits.file import _File
-from pyfits.hdu.base import NonstandardExtHDU
-from pyfits.hdu.hdulist import HDUList
-from pyfits.header import Header
-from pyfits.util import lazyproperty, BytesIO, fileobj_name
+from ..card import Card, CardList
+from ..file import _File
+from .base import NonstandardExtHDU
+from .hdulist import HDUList
+from ..header import Header
+from ..util import lazyproperty, BytesIO, fileobj_name
 
 
 class FitsHDU(NonstandardExtHDU):
@@ -108,14 +108,6 @@ class FitsHDU(NonstandardExtHDU):
 
     @classmethod
     def match_header(cls, header):
-        """
-        This is a class method used in the pyfits refactoring branch to
-        recognize whether or not this class should be used for instantiating
-        an HDU object based on values in the header.
-
-        It is included here for forward-compatibility.
-        """
-
         card = header.ascard[0]
         if card.key != 'XTENSION':
             return False

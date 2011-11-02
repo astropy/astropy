@@ -1,11 +1,11 @@
 import sys
 import numpy as np
 
-from pyfits.card import Card, CardList
-from pyfits.hdu.base import DELAYED, _ValidHDU, ExtensionHDU
-from pyfits.header import Header
-from pyfits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int, \
-                        _pad_length, _normalize_slice, lazyproperty
+from ..card import Card, CardList
+from .base import DELAYED, _ValidHDU, ExtensionHDU
+from ..header import Header
+from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int, _pad_length,
+                    _normalize_slice, lazyproperty)
 
 class _ImageBaseHDU(_ValidHDU):
     """FITS image HDU base class.
@@ -36,7 +36,7 @@ class _ImageBaseHDU(_ValidHDU):
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
                  uint=False, **kwargs):
-        from pyfits.hdu.groups import GroupsHDU
+        from .groups import GroupsHDU
 
         super(_ImageBaseHDU, self).__init__(data=data, header=header)
 
@@ -423,7 +423,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         Summarize the HDU: name, dimensions, and formats.
         """
-        from pyfits.hdu.groups import GroupsHDU
+        from .groups import GroupsHDU
 
         class_name  = self.__class__.__name__
 

@@ -6,9 +6,9 @@ import weakref
 import numpy as np
 from numpy import char as chararray
 
-from pyfits.card import Card
-from pyfits.util import lazyproperty, pairwise, _is_int, _convert_array, \
-                        encode_ascii, deprecated
+from .card import Card
+from .util import (lazyproperty, pairwise, _is_int, _convert_array,
+                   encode_ascii, deprecated)
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
@@ -274,7 +274,7 @@ class ColDefs(object):
     _padding_byte = '\x00'
 
     def __new__(cls, input, tbtype='BinTableHDU'):
-        from pyfits.hdu.table import TableHDU
+        from .hdu.table import TableHDU
 
         if tbtype == 'BinTableHDU':
             klass = cls
@@ -304,7 +304,7 @@ class ColDefs(object):
             (namely, when creating an ASCII table).
         """
 
-        from pyfits.hdu.table import _TableBaseHDU
+        from .hdu.table import _TableBaseHDU
 
         self._tbtype = tbtype
 
@@ -489,13 +489,6 @@ class ColDefs(object):
     def add_col(self, column):
         """
         Append one `Column` to the column definition.
-
-        .. warning::
-
-            *New in pyfits 2.3*: This function appends the new column
-            to the `ColDefs` object in place.  Prior to pyfits 2.3,
-            this function returned a new `ColDefs` with the new column
-            at the end.
         """
 
         assert isinstance(column, Column)

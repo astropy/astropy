@@ -1,11 +1,9 @@
-from __future__ import division # confidence high
-
 import sys
 
 import numpy as np
 
-import pyfits
-from pyfits.tests import PyfitsTestCase
+from ...io import fits
+from . import FitsTestCase
 
 
 def compare_arrays(arr1in, arr2in, verbose=False):
@@ -71,45 +69,32 @@ def get_test_data(verbose=False):
     return st
 
 
-class TestStructured(PyfitsTestCase):
+class TestStructured(FitsTestCase):
     def test_structured(self):
         fname = self.data('stddata.fits')
 
-        print 'Reading from ', fname
-        data1, h1 = pyfits.getdata(fname, ext=1, header=True)
-        data2, h2 = pyfits.getdata(fname, ext=2, header=True)
+        data1, h1 = fits.getdata(fname, ext=1, header=True)
+        data2, h2 = fits.getdata(fname, ext=2, header=True)
 
         st = get_test_data()
 
         outfile = self.temp('test.fits')
-        print 'Writing to file data1:', outfile
-        pyfits.writeto(outfile, data1, clobber=True)
-        print 'Appending to file: data2', outfile
-        pyfits.append(outfile, data2)
+        fits.writeto(outfile, data1, clobber=True)
+        fits.append(outfile, data2)
 
-        print 'Appending to file: st', outfile
-        pyfits.append(outfile, st)
-        print st.dtype.descr
-        print st
+        fits.append(outfile, st)
         assert st.dtype.isnative
         assert np.all(st['f1'] == [1,3,5])
 
-        print 'Reading data back'
-        data1check, h1check = pyfits.getdata(outfile, ext=1, header=True)
-        data2check, h2check = pyfits.getdata(outfile, ext=2, header=True)
-        stcheck, sthcheck = pyfits.getdata(outfile, ext=3, header=True)
+        data1check, h1check = fits.getdata(outfile, ext=1, header=True)
+        data2check, h2check = fits.getdata(outfile, ext=2, header=True)
+        stcheck, sthcheck = fits.getdata(outfile, ext=3, header=True)
 
-        if not compare_arrays(data1, data1check, verbose=True):
-            raise ValueError('Fail')
-        if not compare_arrays(data2, data2check, verbose=True):
-            raise ValueError('Fail')
-        print st, stcheck
-        if not compare_arrays(st, stcheck, verbose=True):
-            raise ValueError('Fail')
+        assert compare_arrays(data1, data1check, verbose=True)
+        assert compare_arrays(data2, data2check, verbose=True)
+        assert compare_arrays(st, stcheck, verbose=True)
 
         # try reading with view
-        print 'Reading with ndarray view'
-        dataviewcheck, hviewcheck = pyfits.getdata(outfile, ext=2, header=True,
-                                                   view=np.ndarray)
-        if not compare_arrays(data2, dataviewcheck, verbose=True):
-            raise ValueError('Fail')
+        dataviewcheck, hviewcheck = fits.getdata(outfile, ext=2, header=True,
+                                                 view=np.ndarray)
+        assert compare_arrays(data2, dataviewcheck, verbose=True)

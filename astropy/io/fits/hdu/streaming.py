@@ -1,11 +1,11 @@
 import gzip
 import os
 
-from pyfits.file import _File
-from pyfits.hdu.base import _BaseHDU
-from pyfits.hdu.hdulist import HDUList
-from pyfits.hdu.image import PrimaryHDU, _ImageBaseHDU
-from pyfits.util import _pad_length, fileobj_name
+from ..file import _File
+from .base import _BaseHDU
+from .hdulist import HDUList
+from .image import PrimaryHDU, _ImageBaseHDU
+from ..util import _pad_length, fileobj_name
 
 class StreamingHDU(object):
     """
@@ -14,12 +14,12 @@ class StreamingHDU(object):
 
     The following pseudocode illustrates its use::
 
-        header = pyfits.Header()
+        header = astropy.io.fits.Header()
 
         for all the cards you need in the header:
             header.update(key, value, comment)
 
-        shdu = pyfits.StreamingHDU('filename.fits',header)
+        shdu = astropy.io.fits.StreamingHDU('filename.fits', header)
 
         for each piece of data:
             shdu.write(data)

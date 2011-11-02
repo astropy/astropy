@@ -1,6 +1,6 @@
 /* This script verifies .fits checksums using CFITSIO to demonstrate
 compatibility with PyFITS.   Since running it requires compiling and
-linking against cfitsio,  the script is included as a maintenance 
+linking against cfitsio,  the script is included as a maintenance
 asset but not automatically compiled and run.
 
 After installing cfitsio to ~/include and ~/lib,  I built cfitsio_verify
@@ -11,6 +11,9 @@ like this:
 Run cfitsio_verify like this:
 
 % cfitsio_verify tmp.fits
+
+TODO: Compile this as an optional extension module and write unit tests that
+use it; if compilation fails any such tests should be skipped.
 
 */
 
