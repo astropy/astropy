@@ -29,10 +29,10 @@ note_change(PyTabprm* self) {
 }
 
 static int
-make_fancy_dims(PyTabprm* self, npy_intp* ndims, npy_intp* dims) {
-  npy_intp i, M;
+make_fancy_dims(PyTabprm* self, int* ndims, npy_intp* dims) {
+  int i, M;
 
-  M = (npy_intp)self->x->M;
+  M = self->x->M;
   if (M + 1 > NPY_MAXDIMS) {
     PyErr_SetString(PyExc_ValueError, "Too many dimensions");
     return -1;
@@ -141,8 +141,6 @@ PyTabprm_set(
 PyTabprm_print_contents(
     PyTabprm* self) {
 
-  int ignored;
-
   if (PyTabprm_cset(self)) {
     return NULL;
   }
@@ -151,7 +149,7 @@ PyTabprm_print_contents(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  ignored = tabprt(self->x);
+  tabprt(self->x);
 
   printf("%s", wcsprintf_buf());
 
@@ -163,8 +161,6 @@ PyTabprm_print_contents(
 PyTabprm___str__(
     PyTabprm* self) {
 
-  int ignored;
-
   if (PyTabprm_cset(self)) {
     return NULL;
   }
@@ -173,7 +169,7 @@ PyTabprm___str__(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  ignored = tabprt(self->x);
+  tabprt(self->x);
 
   #if PY3K
   return PyUnicode_FromString(wcsprintf_buf());
@@ -191,7 +187,7 @@ PyTabprm_get_coord(
     PyTabprm* self,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {
@@ -211,7 +207,7 @@ PyTabprm_set_coord(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {
@@ -281,7 +277,7 @@ PyTabprm_get_extrema(
     PyTabprm* self,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
 
   if (is_null(self->x->coord)) {
