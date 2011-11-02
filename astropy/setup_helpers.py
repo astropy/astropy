@@ -122,9 +122,9 @@ def get_cython_extensions(srcdir,prevextensions=tuple(),extincludedirs=None):
     
     ext_modules = []
     for extmod, pyxfn in iter_pyx_files(srcdir):
-            if os.path.realpath(pyxfn) not in prevpyxpaths:
-                ext_modules.append(Extension(extmod, [pyxfn],
-                                             include_dirs=extincludedirs))
+        if os.path.realpath(pyxfn) not in prevpyxpaths:
+            ext_modules.append(Extension(extmod, [pyxfn],
+                                         include_dirs=extincludedirs))
                 
     return ext_modules
 
