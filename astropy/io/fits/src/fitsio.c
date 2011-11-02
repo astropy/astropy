@@ -6,14 +6,14 @@
 /* This file, fitsio.c, contains the core of a set of FITSIO routines that   */
 /* are used to compress and uncompress image data in FITS binary tables.     */
 /* The code was copied and modified from the FITSIO software written at      */
-/* HEASRC.  The goal for the pyfitsComp module was to take this code nearly  */
+/* HEASRC.  The goal for the astropyComp module was to take this code nearly  */
 /* intact.  In FITSIO, interaction with the FITS file is accomplished        */
-/* directly within the FITSIO code.  With pyfitsComp, interaction with the   */
-/* FITS file is accomplished from within pyfits.  This may make some of the  */
+/* directly within the FITSIO code.  With astropyComp, interaction with the   */
+/* FITS file is accomplished from within astropy.  This may make some of the  */
 /* constructs within the FISTIO code seem confusing when viewed from the     */
-/* perspective of pyfitsComp.  It should be noted that the FITSfile          */
+/* perspective of astropyComp.  It should be noted that the FITSfile          */
 /* structure acts as the interface to the file in both cases.  In FITSIO it  */
-/* contains the file handle in order to access the file, and in pyfitsComp   */
+/* contains the file handle in order to access the file, and in astropyComp   */
 /* it holds the file data, either compressed or uncompressed.                */
 /*                                                                           */
 /* Copyright (C) 2004 Association of Universities for Research in Astronomy  */
@@ -169,7 +169,7 @@ static void ffxmsg( int action,
     return;
 }
 /*--------------------------------------------------------------------------*/
-void _pyfits_ffpmsg(const char *err_message)
+void _astropy_ffpmsg(const char *err_message)
 /*
   put message in error buffer
 */
@@ -178,7 +178,7 @@ void _pyfits_ffpmsg(const char *err_message)
     return;
 }
 /*--------------------------------------------------------------------------*/
-int _pyfits_ffgmsg(char *err_message)
+int _astropy_ffgmsg(char *err_message)
 /*
   get the error message from the error buffer
 */
@@ -2473,7 +2473,7 @@ static int ffgpvjj(
 /*****************************************************************************/
 
 /*---------------------------------------------------------------------------*/
-int _pyfits_ffgpv(
+int _astropy_ffgpv(
             fitsfile *fptr,   /* I - FITS file pointer                       */
             int  datatype,    /* I - datatype of the value                   */
             LONGLONG firstelem,   /* I - first vector element to read        */
@@ -2821,7 +2821,7 @@ static int ffpprjj(
       and the second column contains the image itself.
     */
 
-    _pyfits_ffpmsg("writing to compressed image is not supported");
+    _astropy_ffpmsg("writing to compressed image is not supported");
 
     return(*status = DATA_COMPRESSION_ERR);
 }
@@ -2834,7 +2834,7 @@ static int ffpprjj(
 /*****************************************************************************/
 
 /*--------------------------------------------------------------------------*/
-int _pyfits_ffppr(
+int _astropy_ffppr(
             fitsfile *fptr,  /* I - FITS file pointer                       */
             int  datatype,   /* I - datatype of the value                   */
             LONGLONG  firstelem, /* I - first vector element to write       */
@@ -2912,7 +2912,7 @@ int _pyfits_ffppr(
 /* ######################################################################## */
 
 /*--------------------------------------------------------------------------*/
-int _pyfits_imcomp_calc_max_elem (int comptype, int nx, int zbitpix,
+int _astropy_imcomp_calc_max_elem (int comptype, int nx, int zbitpix,
                                   int blocksize)
 
 /* This function returns the maximum number of bytes in a compressed
@@ -3061,7 +3061,7 @@ static int imcomp_compress_tile (
           BSCALE = 1.  */
 
        if (zbitpix != SHORT_IMG || scale != 1.0 || zero != 0.0) {
-           _pyfits_ffpmsg("Datatype conversion/scaling is not supported when writing to compressed images");
+           _astropy_ffpmsg("Datatype conversion/scaling is not supported when writing to compressed images");
            return(*status = DATA_COMPRESSION_ERR);
        }
 
@@ -3109,7 +3109,7 @@ static int imcomp_compress_tile (
        */
 
        if (zbitpix != LONG_IMG || scale != 1.0 || zero != 0.) {
-           _pyfits_ffpmsg("Implicit datatype conversion is not supported when writing to compressed images");
+           _astropy_ffpmsg("Implicit datatype conversion is not supported when writing to compressed images");
            return(*status = DATA_COMPRESSION_ERR);
        }
 
@@ -3136,7 +3136,7 @@ static int imcomp_compress_tile (
           BSCALE = 1.  */
 
        if (zbitpix != BYTE_IMG || scale != 1.0 || zero != 0.) {
-           _pyfits_ffpmsg("Implicit datatype conversion is not supported when writing to compressed images");
+           _astropy_ffpmsg("Implicit datatype conversion is not supported when writing to compressed images");
            return(*status = DATA_COMPRESSION_ERR);
        }
 
@@ -3181,7 +3181,7 @@ static int imcomp_compress_tile (
     }
     else if (datatype == TLONG && sizeof(long) == 8)
     {
-           _pyfits_ffpmsg("Integer*8 Long datatype is not supported when writing to compressed images");
+           _astropy_ffpmsg("Integer*8 Long datatype is not supported when writing to compressed images");
            return(*status = DATA_COMPRESSION_ERR);
     }
     else if (datatype == TFLOAT)
@@ -3284,7 +3284,7 @@ static int imcomp_compress_tile (
             } else {
                 /* quantize level is positive, so we have to calculate the */
                 /* noise quantize the float values into integers */
-                flag = _pyfits_fits_quantize_float ((float *) tiledata, tilenx,
+                flag = _astropy_fits_quantize_float ((float *) tiledata, tilenx,
                    tileny, nullcheck, floatnull,
                    (outfptr->Fptr)->quantize_level, idata,
                    bscale, bzero, &iminval, &imaxval);
@@ -3318,7 +3318,7 @@ static int imcomp_compress_tile (
               doublenull = DOUBLENULLVALUE;
 
             /* quantize the double values into integers */
-            flag = _pyfits_fits_quantize_double ((double *) tiledata, tilenx,
+            flag = _astropy_fits_quantize_double ((double *) tiledata, tilenx,
                tileny, nullcheck, doublenull, (outfptr->Fptr)->quantize_level,
                idata, bscale, bzero, &iminval, &imaxval);
           }
@@ -3336,7 +3336,7 @@ static int imcomp_compress_tile (
     }
     else
     {
-          _pyfits_ffpmsg("unsupported datatype (imcomp_compress_tile)");
+          _astropy_ffpmsg("unsupported datatype (imcomp_compress_tile)");
           return(*status = BAD_DATATYPE);
     }
 
@@ -3350,7 +3350,7 @@ static int imcomp_compress_tile (
 
         if (cbuf == NULL)
         {
-            _pyfits_ffpmsg("Out of memory. (imcomp_compress_tile)");
+            _astropy_ffpmsg("Out of memory. (imcomp_compress_tile)");
             return (*status = MEMORY_ALLOCATION);
         }
 
@@ -3360,15 +3360,15 @@ static int imcomp_compress_tile (
         if ( (outfptr->Fptr)->compress_type == RICE_1)
         {
             if (intlength == 2) {
-                nelem = _pyfits_fits_rcomp_short ((short *)idata, tilelen,
+                nelem = _astropy_fits_rcomp_short ((short *)idata, tilelen,
                        (unsigned char *) cbuf,
                        clen, (outfptr->Fptr)->rice_blocksize);
             } else if (intlength == 1) {
-                nelem = _pyfits_fits_rcomp_byte ((signed char *)idata, tilelen,
+                nelem = _astropy_fits_rcomp_byte ((signed char *)idata, tilelen,
                        (unsigned char *) cbuf,
                        clen, (outfptr->Fptr)->rice_blocksize);
             } else {
-                nelem = _pyfits_fits_rcomp (idata, tilelen,
+                nelem = _astropy_fits_rcomp (idata, tilelen,
                        (unsigned char *) cbuf,
                        clen, (outfptr->Fptr)->rice_blocksize);
             }
@@ -3385,12 +3385,12 @@ static int imcomp_compress_tile (
                 if (idata[ii] < 0 || idata[ii] > 16777215)
                 {
                    /* plio algorithn only supports positive 24 bit ints */
-                   _pyfits_ffpmsg("data out of range for PLIO compression (0 - 2**24)");
+                   _astropy_ffpmsg("data out of range for PLIO compression (0 - 2**24)");
                    return(*status = DATA_COMPRESSION_ERR);
                 }
               }
 
-                nelem = _pyfits_pl_p2li (idata, 1, cbuf, tilelen);
+                nelem = _astropy_pl_p2li (idata, 1, cbuf, tilelen);
 
                 /* Write the compressed byte stream. */
 
@@ -3409,17 +3409,17 @@ static int imcomp_compress_tile (
 
            gzip_clen = clen;
            if (intlength == 2) {
-                 _pyfits_compress2mem_from_mem(
+                 _astropy_compress2mem_from_mem(
                  (char *) idata, tilelen * sizeof(short),
                  (char **) &cbuf, (size_t *) &gzip_clen, realloc,
                  &gzip_nelem, status);
            } else if (intlength == 1) {
-                _pyfits_compress2mem_from_mem((char *) idata, 
+                _astropy_compress2mem_from_mem((char *) idata, 
                  tilelen * sizeof(unsigned char),
                  (char **) &cbuf, (size_t *) &gzip_clen, realloc,
                  &gzip_nelem, status);
            } else {
-                _pyfits_compress2mem_from_mem(
+                _astropy_compress2mem_from_mem(
                  (char *) idata, tilelen * sizeof(int),
                  (char **) &cbuf, (size_t *) &gzip_clen, realloc,
                  &gzip_nelem, status);
@@ -3441,7 +3441,7 @@ static int imcomp_compress_tile (
             hcompscale = (outfptr->Fptr)->hcomp_scale;
 
             if (hcompscale > 0.) {
-               _pyfits_fits_img_stats_int(idata, tilenx, tileny, nullcheck,
+               _astropy_fits_img_stats_int(idata, tilenx, tileny, nullcheck,
                         nullval, 0,0,0,0,0,0,&noise3,status);
 
                 hcompscale = hcompscale * noise3;
@@ -3456,7 +3456,7 @@ static int imcomp_compress_tile (
             hcomp_len = clen;  /* allocated size of the buffer */
 
             if (zbitpix == BYTE_IMG || zbitpix == SHORT_IMG) {
-                _pyfits_fits_hcompress(idata, tilenx, tileny,
+                _astropy_fits_hcompress(idata, tilenx, tileny,
                   ihcompscale, (char *) cbuf, &hcomp_len, status);
 
             } else {
@@ -3468,7 +3468,7 @@ static int imcomp_compress_tile (
                     lldata[ii] = idata[ii];;
                 }
 
-                _pyfits_fits_hcompress64(lldata, tilenx, tileny,
+                _astropy_fits_hcompress64(lldata, tilenx, tileny,
                   ihcompscale, (char *) cbuf, &hcomp_len, status);
             }
 
@@ -3481,7 +3481,7 @@ static int imcomp_compress_tile (
         if (nelem < 0)  /* error condition */
         {
             free (cbuf); cbuf = 0;
-            _pyfits_ffpmsg
+            _astropy_ffpmsg
                 ("error compressing row of the image (imcomp_compress_tile)");
             return (*status = DATA_COMPRESSION_ERR);
         }
@@ -3522,7 +3522,7 @@ static int imcomp_compress_tile (
          }
          else
          {
-             _pyfits_ffpmsg("There is no UNCOMPRESSED_DATA column in the table.");
+             _astropy_ffpmsg("There is no UNCOMPRESSED_DATA column in the table.");
              return(*status = BAD_COL_NUM);
          }
 
@@ -3996,7 +3996,7 @@ static int fits_write_compressed_img(
     }
     else
     {
-        _pyfits_ffpmsg("unsupported datatype for compressing image");
+        _astropy_ffpmsg("unsupported datatype for compressing image");
         return(*status = BAD_DATATYPE);
     }
 
@@ -4027,7 +4027,7 @@ static int fits_write_compressed_img(
     }
     else
     {
-        _pyfits_ffpmsg("unsupported image compression algorithm");
+        _astropy_ffpmsg("unsupported image compression algorithm");
         return(*status = BAD_DATATYPE);
     }
 
@@ -4036,7 +4036,7 @@ static int fits_write_compressed_img(
 
     if (buffer == NULL)
     {
-            _pyfits_ffpmsg("Out of memory (fits_write_compress_img)");
+            _astropy_ffpmsg("Out of memory (fits_write_compress_img)");
             return (*status = MEMORY_ALLOCATION);
     }
 
@@ -4291,7 +4291,7 @@ static int fits_write_compressed_pixels(
     }
     else
     {
-        _pyfits_ffpmsg("only 1D, 2D, or 3D images are currently supported");
+        _astropy_ffpmsg("only 1D, 2D, or 3D images are currently supported");
         return(*status = DATA_COMPRESSION_ERR);
     }
 
@@ -4515,7 +4515,7 @@ static int fits_read_compressed_img(
     }
     else
     {
-        _pyfits_ffpmsg("unsupported datatype for uncompressing image");
+        _astropy_ffpmsg("unsupported datatype for uncompressing image");
         return(*status = BAD_DATATYPE);
     }
 
@@ -4526,7 +4526,7 @@ static int fits_read_compressed_img(
 
     if (buffer == NULL)
     {
-        _pyfits_ffpmsg("Out of memory (fits_read_compress_img)");
+        _astropy_ffpmsg("Out of memory (fits_read_compress_img)");
         return (*status = MEMORY_ALLOCATION);
     }
 
@@ -4537,7 +4537,7 @@ static int fits_read_compressed_img(
 
         if (bnullarray == NULL)
         {
-            _pyfits_ffpmsg("Out of memory (fits_read_compress_img)");
+            _astropy_ffpmsg("Out of memory (fits_read_compress_img)");
             free(buffer); buffer = 0;
             return (*status = MEMORY_ALLOCATION);
         }
@@ -4827,7 +4827,7 @@ static int fits_read_compressed_pixels(
     }
     else
     {
-        _pyfits_ffpmsg("only 1D, 2D, or 3D images are currently supported");
+        _astropy_ffpmsg("only 1D, 2D, or 3D images are currently supported");
         return(*status = DATA_DECOMPRESSION_ERR);
     }
 
@@ -5139,7 +5139,7 @@ static int imcomp_decompress_tile (
 
     if (idata == NULL)
     {
-            _pyfits_ffpmsg("Out of memory for idata. (imcomp_decompress_tile)");
+            _astropy_ffpmsg("Out of memory for idata. (imcomp_decompress_tile)");
             return (*status = MEMORY_ALLOCATION);
     }
 
@@ -5156,7 +5156,7 @@ static int imcomp_decompress_tile (
         blocksize = (infptr->Fptr)->rice_blocksize;
 
          if ((infptr->Fptr)->rice_bytepix == 1 ) {
-            if ((*status = _pyfits_fits_rdecomp_byte (
+            if ((*status = _astropy_fits_rdecomp_byte (
                 ((infptr->Fptr)->data)[nrow-1],
                 ((infptr->Fptr)->dataLen)[nrow-1],
                 (unsigned char *)idata,
@@ -5167,7 +5167,7 @@ static int imcomp_decompress_tile (
             }
             tiledatatype = TBYTE;
         } else if ((infptr->Fptr)->rice_bytepix == 2 ) {
-            if ((*status = _pyfits_fits_rdecomp_short (
+            if ((*status = _astropy_fits_rdecomp_short (
                 ((infptr->Fptr)->data)[nrow-1],
                 ((infptr->Fptr)->dataLen)[nrow-1],
                 (unsigned short *)idata,
@@ -5178,7 +5178,7 @@ static int imcomp_decompress_tile (
             }
             tiledatatype = TSHORT;
         } else {
-            if ((*status = _pyfits_fits_rdecomp (
+            if ((*status = _astropy_fits_rdecomp (
                 ((infptr->Fptr)->data)[nrow-1],
                 ((infptr->Fptr)->dataLen)[nrow-1],
                 (unsigned int *)idata,
@@ -5202,7 +5202,7 @@ static int imcomp_decompress_tile (
         if ( ((infptr->Fptr)->zbitpix == BYTE_IMG ||
                (infptr->Fptr)->zbitpix == SHORT_IMG) )  {
 
-            if ((*status = _pyfits_fits_hdecompress(
+            if ((*status = _astropy_fits_hdecompress(
                                           ((infptr->Fptr)->data)[nrow-1],
                                             smooth, idata, &nx, &ny,
                                             &scale, status)))
@@ -5214,7 +5214,7 @@ static int imcomp_decompress_tile (
         } else {
 
             /* idata must have been allocated twice as large for this to work */
-            if ((*status = _pyfits_fits_hdecompress64(
+            if ((*status = _astropy_fits_hdecompress64(
                                             ((infptr->Fptr)->data)[nrow-1],
                                               smooth, lldata, &nx, &ny,
                 &scale, status)))
@@ -5239,7 +5239,7 @@ static int imcomp_decompress_tile (
         ffswap2(sbuf, nelem); /* reverse order of bytes */
 #endif
 
-        _pyfits_pl_l2pi (sbuf, 1, idata, tilelen);  /* uncompress the data */
+        _astropy_pl_l2pi (sbuf, 1, idata, tilelen);  /* uncompress the data */
 
     }
 
@@ -5249,12 +5249,12 @@ static int imcomp_decompress_tile (
     {
         /* uncompress the data */
 
-        if (_pyfits_uncompress2mem_from_mem
+        if (_astropy_uncompress2mem_from_mem
                                     ((char *)((infptr->Fptr)->data)[nrow-1],
                                      ((infptr->Fptr)->dataLen)[nrow-1],
              (char **) &idata, &idatalen, realloc, &tilebytesize, status))
         {
-            _pyfits_ffpmsg("_pyfits_uncompress2mem_from_mem returned with an error");
+            _astropy_ffpmsg("_astropy_uncompress2mem_from_mem returned with an error");
             free(idata); idata = 0;
             return (*status);
         }
@@ -5281,7 +5281,7 @@ static int imcomp_decompress_tile (
             tiledatatype = TBYTE;
 
         } else {
-            _pyfits_ffpmsg("error: uncompressed tile has wrong size");
+            _astropy_ffpmsg("error: uncompressed tile has wrong size");
             free(idata);
             return (*status = DATA_DECOMPRESSION_ERR);
         }
@@ -5290,7 +5290,7 @@ static int imcomp_decompress_tile (
     /* ************************************************************* */
     else
     {
-        _pyfits_ffpmsg("unknown compression algorithm");
+        _astropy_ffpmsg("unknown compression algorithm");
         free(idata); idata = 0;
         return (*status = DATA_DECOMPRESSION_ERR);
     }
