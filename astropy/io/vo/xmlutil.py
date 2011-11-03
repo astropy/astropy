@@ -481,8 +481,9 @@ def validate_schema(filename, version='1.2'):
         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
-    # TODO: Catch returncode that means "xmllint is not installed" and
-    # raise a friendlier error message
+    if p.returncode == 127:
+        raise OSError(
+            "xmllint not found, so can not validate schema")
 
     return p.returncode, stdout, stderr
 
