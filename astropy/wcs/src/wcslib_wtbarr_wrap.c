@@ -77,15 +77,15 @@ PyWtbarr_get_data(
     PyWtbarr* self,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
-  npy_intp i;
+  int i;
 
   if (is_null(self->x->arrayp)) {
     return NULL;
   }
 
-  ndims = (Py_ssize_t)self->x->ndim;
+  ndims = self->x->ndim;
   for (i = 0; i < ndims; ++i) {
     dims[i] = self->x->dimlen[i];
   }
@@ -99,15 +99,15 @@ PyWtbarr_set_data(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  npy_intp ndims;
+  int ndims;
   npy_intp dims[NPY_MAXDIMS];
-  npy_intp i;
+  int i;
 
   if (is_null(self->x->arrayp)) {
     return -1;
   }
 
-  ndims = (Py_ssize_t)self->x->ndim;
+  ndims = self->x->ndim;
   for (i = 0; i < ndims; ++i) {
     dims[i] = self->x->dimlen[i];
   }
