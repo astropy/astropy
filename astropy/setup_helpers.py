@@ -246,11 +246,11 @@ def adjust_compiler():
 
 
 def is_in_build_mode():
-    return hasattr(__builtin__, '_build_mode')
+    return __builtins__.get('_build_mode')
 
 
 def set_build_mode():
-    __builtin__._build_mode = True
+    __builtins__['_build_mode'] = True
 
 
 ################################################################################
