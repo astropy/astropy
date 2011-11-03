@@ -1,4 +1,4 @@
-astropy.io.fits history
+astropy.io.fits History
 =======================
 
 Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
@@ -8,7 +8,8 @@ This page documents the release history of PyFITS prior to its merge into
 Astropy.
 
 .. contents:: PyFITS Changelog
-   :depth: 1
+   :depth: 2
+   :local:
 
 
 3.1.0 (unreleased)
