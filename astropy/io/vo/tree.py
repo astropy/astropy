@@ -2989,7 +2989,8 @@ class VOTableFile(Element):
         return self
 
     def to_xml(self, fd, write_null_values=False,
-               _debug_python_based_parser=False):
+               _debug_python_based_parser=False,
+               _astropy_version=None):
         """
         Write to an XML file.
 
@@ -3015,7 +3016,10 @@ class VOTableFile(Element):
         fd = util.convert_to_writable_filelike(fd)
         w = xmlutil.XMLWriter(fd)
         version = self.version
-        lib_version = astropy_version
+        if _astropy_version is None:
+            lib_version = astropy_version
+        else:
+            lib_version = _astropy_version
 
         xml_header = """
 <?xml version="1.0" encoding="utf-8"?>

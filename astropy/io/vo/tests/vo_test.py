@@ -117,7 +117,8 @@ def test_regression():
     assert_validate_schema(join(TMP_DIR, "regression.binary.xml"))
     votable2 = parse(join(TMP_DIR, "regression.binary.xml"), pedantic=False)
     votable2.get_first_table().format = 'tabledata'
-    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"))
+    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"),
+                    _astropy_version="testing")
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
     truth = open(join(ROOT_DIR, "regression.bin.tabledata.truth.xml")).readlines()
@@ -134,7 +135,8 @@ def test_regression():
     assert truth == output
 
     # Test implicit gzip saving
-    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml.gz"))
+    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
+                    _astropy_version = "testing")
     truth = gzip.GzipFile(join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'r').readlines()
     if IS_PY3K:
         truth = [x.decode('utf8') for x in truth]
