@@ -68,8 +68,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         card).
         """
 
-        assert_raises(IndexError, lambda x: self._test_header[x], 8)
-        assert_raises(KeyError, lambda k: self._test_header[k], 'DP1.AXIS.3')
+        pytest.raises(IndexError, lambda x: self._test_header[x], 8)
+        pytest.raises(KeyError, lambda k: self._test_header[k], 'DP1.AXIS.3')
 
     def test_update_rvkc(self):
         """A RVKC can be updated either via index or keyword access."""
@@ -107,33 +107,33 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         cl = self._test_header['DP1.AXIS.*']
         assert isinstance(cl, fits.CardList)
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'AXIS.1: 1'",
              "DP1     = 'AXIS.2: 2'"])
 
         cl = self._test_header['DP1.N*']
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'NAXIS: 2'",
              "DP1     = 'NAUX: 2'"])
 
         cl = self._test_header['DP1.AUX...']
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'AUX.1.COEFF.0: 0'",
              "DP1     = 'AUX.1.POWER.0: 1'",
              "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
              "DP1     = 'AUX.1.POWER.1: 1'"])
 
         cl = self._test_header['DP?.NAXIS']
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'NAXIS: 2'"])
 
         cl = self._test_header['DP1.A*S.*']
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'AXIS.1: 1'",
              "DP1     = 'AXIS.2: 2'"])
 
@@ -150,8 +150,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         filterable."""
 
         cl = self._test_header['DP1.A*...']
-        assert_equal(
-            [l.strip() for l in str(cl).splitlines()],
+        assert (
+            [l.strip() for l in str(cl).splitlines()] ==
             ["DP1     = 'AXIS.1: 1'",
              "DP1     = 'AXIS.2: 2'",
              "DP1     = 'AUX.1.COEFF.0: 0'",
@@ -160,8 +160,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
              "DP1     = 'AUX.1.POWER.1: 1'"])
 
         cl2 = cl['*.*AUX...']
-        assert_equal(
-            [l.strip() for l in str(cl2).splitlines()],
+        assert (
+            [l.strip() for l in str(cl2).splitlines()] ==
             ["DP1     = 'AUX.1.COEFF.0: 0'",
              "DP1     = 'AUX.1.POWER.0: 1'",
              "DP1     = 'AUX.1.COEFF.1: 0.00048828125'",
@@ -244,9 +244,9 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         c2 = fits.RecordValuedKeywordCard().fromstring(
             "DP1     = 'AXIS.1: X' / Axis number")
 
-        assert_equal(str(c1).strip(),
-                     "DP1     = 'NAXIS: 2' / Number of independent variables")
-        assert_equal(str(c2).strip(),
-                     "DP1     = 'AXIS.1: X' / Axis number")
+        assert (str(c1).strip() ==
+                "DP1     = 'NAXIS: 2' / Number of independent variables")
+        assert (str(c2).strip() ==
+                "DP1     = 'AXIS.1: X' / Axis number")
         # Since c2's value is wrong for a RVKC it should be a normal card
         assert not isinstance(c2, fits.RecordValuedKeywordCard)

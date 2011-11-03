@@ -251,7 +251,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.GroupsHDU()
 
         with pytest.raises(ValueError):
-            hdul.insert(hdul, 1, hdu)
+            hdul.insert(1, hdu)
 
         info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), 'uint8',
                  '   1 Groups  0 Parameters'),
@@ -275,7 +275,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.HDUList()
         hdu = fits.GroupsHDU()
         hdul.insert(0, hdu)
-        hdul.insert(hdul, 0, hdu)
+        hdul.insert(0, hdu)
 
     def test_insert_extension_to_primary_in_non_empty_list(self):
         # Tests inserting a Simple ExtensionHDU to a non-empty HDUList.
@@ -371,7 +371,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert hdul[1].header['EXTNAME'] == 'SCI'
         assert hdul[1].header['EXTVER'] == 1
-        assert hdul.index_of(('SCI' == 1), 1)
+        assert hdul.index_of(('SCI', 1)) == 1
 
     def test_update_filelike(self):
         """Test opening a file-like object in update mode and resizing the
@@ -404,7 +404,7 @@ class TestHDUListFunctions(FitsTestCase):
             hdul.flush()
             assert len(w) == 1
             assert 'mode is not supported' in str(w[0].message)
-        assert oldmtime == os.stat(self.data('test0.fits').st_mtime)
+        assert oldmtime == os.stat(self.data('test0.fits')).st_mtime
 
     def test_fix_extend_keyword(self):
         hdul = fits.HDUList()
