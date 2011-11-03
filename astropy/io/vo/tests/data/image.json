@@ -1,8 +1,0 @@
-{
-    "__version__": 1,
-
-    "catalogs": {
-        "MAST":
-            { "url": "http://archive.stsci.edu/siap/search.php?" }
-    }
-}

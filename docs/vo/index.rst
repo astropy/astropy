@@ -13,9 +13,3 @@ Contents:
 
    intro_table.rst
    api.rst
-   intro_conesearch.rst
-   api_conesearch.rst
-   intro_ssa.rst
-   api_ssa.rst
-   intro_image.rst
-   api_image.rst
