@@ -19,5 +19,3 @@ Contents:
    api_ssa.rst
    intro_image.rst
    api_image.rst
-   warnings.rst
-   exceptions.rst
