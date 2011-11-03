@@ -32,3 +32,7 @@ def get_package_data():
             'data/ucd1p-words.txt', 'data/*.xsd', 'data/*.dtd'],
         'astropy.io.vo.tests': [
             'data/*.xml', 'data/*.gz', 'data/*.json', 'data/*.fits']}
+
+def get_data_files():
+    # Installs the vo.py wrapper module
+    return [('', ['astropy/io/vo/vo.py'])]
