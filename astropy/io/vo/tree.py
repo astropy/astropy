@@ -53,7 +53,7 @@ except ImportError:
 
 # LOCAL
 from . import converters
-from .voexceptions import warn_or_raise, vo_warn, vo_raise, \
+from .exceptions import warn_or_raise, vo_warn, vo_raise, \
     vo_reraise, warn_unknown_attrs, UnimplementedWarning, \
     VOTableChangeWarning, W06, W07, W08, W09, W10, W11, W12, W13, \
     W15, W17, W18, W19, W20, W21, W22, W26, W27, W28, W29, W32, W33, \
@@ -182,7 +182,7 @@ def check_astroyear(year, field, config={}, pos=None):
 
 def check_string(string, attr_name, config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.voexceptions.VOTableSpecError` if
+    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if
     *string* is not a string or Unicode string.
 
     Parameters
@@ -212,7 +212,7 @@ def resolve_id(ID, id, config={}, pos=None):
 
 def check_ucd(ucd, config={}, pos=None):
     """
-    Warns or raises a `~astropy.io.vo.voexceptions.VOTableSpecError`
+    Warns or raises a `~astropy.io.vo.exceptions.VOTableSpecError`
     if *ucd* is not a valid `unified content descriptor`_ string as
     defined by the VOTABLE standard.
 

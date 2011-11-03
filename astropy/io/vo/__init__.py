@@ -7,4 +7,4 @@ if setup_helpers.is_in_build_mode():
     pass
 else:
     del setup_helpers
-    from .voexceptions import *
+    from .exceptions import *

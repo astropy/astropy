@@ -55,7 +55,7 @@ import numpy as np
 from astropy.io.vo.table import parse, parse_single_table
 from astropy.io.vo import tree
 from astropy.io.vo.util import IS_PY3K
-from astropy.io.vo.voexceptions import VOTableSpecError
+from astropy.io.vo.exceptions import VOTableSpecError
 from astropy.io.vo.xmlutil import validate_schema
 
 numpy_has_complex_bug = (np.__version__[:3] < '1.5')

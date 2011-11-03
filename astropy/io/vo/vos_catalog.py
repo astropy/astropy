@@ -24,7 +24,7 @@ from . import table
 from . import util
 from .util import IS_PY3K
 from . import webquery
-from .voexceptions import vo_warn, W24, W25
+from .exceptions import vo_warn, W24, W25
 
 BASEURL = 'http://stsdas.stsci.edu/astrolib/vo_databases/'
 db_cache = cache.Cache('~/.vodb', BASEURL)

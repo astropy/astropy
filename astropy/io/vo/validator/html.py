@@ -8,7 +8,7 @@ import os
 import re
 
 # VO
-from .. import voexceptions
+from .. import exceptions
 from .. import xmlutil
 from ..xmlutil import xml_escape
 
@@ -82,7 +82,7 @@ def write_source_line(w, line, nchar=0):
     w.write(u'\n\n')
 
 def write_warning(w, line, xml_lines):
-    warning = voexceptions.parse_vowarning(line)
+    warning = exceptions.parse_vowarning(line)
     if not warning['is_something']:
         w.data(line)
     else:

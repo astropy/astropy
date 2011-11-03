@@ -13,7 +13,7 @@ import warnings
 
 # VO
 from .. import table
-from .. import voexceptions
+from .. import exceptions
 from .. import xmlutil
 from ..util import IS_PY3K
 
@@ -170,7 +170,7 @@ class Result:
 
         warning_types = set()
         for line in lines:
-            w = voexceptions.parse_vowarning(line)
+            w = exceptions.parse_vowarning(line)
             if w['is_warning']:
                 nwarnings += 1
             if w['is_exception']:
@@ -283,7 +283,7 @@ def get_result_subsets(results, root):
         ('version_unknown', 'Version unknown', version_unknown),
         ('warnings', 'Warnings', has_warnings)]
     for warning_code, warnings in warning_set:
-        warning_class = getattr(voexceptions, warning_code, None)
+        warning_class = getattr(exceptions, warning_code, None)
         if warning_class:
             warning_descr = warning_class.get_short_name()
             tables.append(
@@ -291,7 +291,7 @@ def get_result_subsets(results, root):
     tables.append(
         ('exceptions', 'Exceptions', has_exceptions))
     for exception_code, exceptions in exception_set:
-        exception_class = getattr(voexceptions, exception_code, None)
+        exception_class = getattr(exceptions, exception_code, None)
         if exception_class:
             exception_descr = exception_class.get_short_name()
             tables.append(

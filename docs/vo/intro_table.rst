@@ -133,7 +133,7 @@ file into compliance with the specification.
 
 Even with ``pedantic`` turned off, many warnings may still be omitted.
 These warnings are all of the type
-`~astropy.io.vo.voexceptions.VOTableSpecWarning` and can be turned off
+`~astropy.io.vo.exceptions.VOTableSpecWarning` and can be turned off
 using the standard Python `warnings` module.
 
 Building a new table from scratch

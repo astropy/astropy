@@ -16,7 +16,7 @@ import numpy as np
 
 # LOCAL
 from .xmlutil import xml_escape_cdata
-from .voexceptions import vo_raise, vo_warn, warn_or_raise, W01, W26, W30, \
+from .exceptions import vo_raise, vo_warn, warn_or_raise, W01, W26, W30, \
      W31, W32, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06
 from .util import IS_PY3K
 

@@ -25,8 +25,8 @@ import urllib2
 import warnings
 
 # LOCAL
-from . import voexceptions
-from .voexceptions import vo_warn, W23
+from . import exceptions
+from .exceptions import vo_warn, W23
 from . import webquery
 
 

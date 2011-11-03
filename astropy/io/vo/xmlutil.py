@@ -15,7 +15,7 @@ import urlparse
 # LOCAL
 from . import util
 from .util import IS_PY3K
-from .voexceptions import warn_or_raise, vo_warn, vo_raise, \
+from .exceptions import warn_or_raise, vo_warn, vo_raise, \
      VOTableChangeWarning, W02, W03, W04, W05, W34
 
 
@@ -170,7 +170,7 @@ def object_attrs(obj, attrs):
 
 def check_id(ID, name='ID', config={}, pos=None):
     """
-    Raises a `astropy.io.vo.voexceptions.VOTableSpecError` if *ID* is not a
+    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if *ID* is not a
     valid XML ID_.  *name* is the name of the attribute being checked
     (used only for error messages).
     """

@@ -64,11 +64,11 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
 
     Returns
     -------
-    votable : astropy.io.vo.tree.VOTable object
+    votable : `astropy.io.vo.tree.VOTable` object
 
     Raises
     ------
-    `astropy.io.vo.voexceptions.VOTableSpecError` : The table violates the specification.
+    `astropy.io.vo.exceptions.VOTableSpecError` : The table violates the specification.
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
@@ -102,7 +102,7 @@ def parse_single_table(source, **kwargs):
 
     Returns
     -------
-    votable : astropy.io.vo.tree.Table object
+    votable : `astropy.io.vo.tree.Table` object
     """
     if kwargs.get('table_number') is None:
         kwargs['table_number'] = 0
