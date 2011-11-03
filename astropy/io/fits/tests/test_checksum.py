@@ -158,7 +158,19 @@ class TestChecksumFunctions(FitsTestCase):
         hdu = fits.ImageHDU(n)
         hdu.writeto(self.temp('tmp.fits'), clobber=True, checksum='datasum')
         hdul = fits.open(self.temp('tmp.fits'), checksum=True)
-        self._check_checksums(hdul[0])
+        if not (hasattr(hdul[0], '_datasum') and hdul[0]._datasum):
+            pytest.fail(msg='Missing DATASUM keyword')
+
+        if not (hasattr(hdul[0], '_checksum') and not hdul[0]._checksum):
+            pytest.fail(msg='Non-empty CHECKSUM keyword')
+
+        if not (hasattr(hdul[0], '_datasum_comment') and
+                hdul[0]._datasum_comment):
+            pytest.fail(msg='Missing DATASUM Card comment')
+
+        if not (hasattr(hdul[0], '_checksum_comment') and
+                not hdul[0]._checksum_comment):
+            pytest.fail(msg='Non-empty CHECKSUM Card comment')
         hdul.close()
 
     def _check_checksums(self, hdu):

@@ -204,7 +204,7 @@ class TestTableFunctions(FitsTestCase):
         assert str(np.rec.recarray.field(t[1].data,'c4')) == '[84 84]'
 
         # look at data column-wise
-        assert (t[1].data.field(0) == np.array([1, 2]).all()
+        assert (t[1].data.field(0) == np.array([1, 2])).all()
 
         # When there are scaled columns, the raw data are in data._parent
 
