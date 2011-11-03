@@ -135,7 +135,7 @@ class TestTableFunctions(FitsTestCase):
             (1, 'abc', 3.7000002861022949, 0),
             (2, 'xy ', 6.6999998092651367, 1)], names='c1, c2, c3, c4')
 
-        assert comparerecords(t2.data == ra, True)
+        assert comparerecords(t2.data, ra)
 
         # the table HDU's data is a subclass of a record array, so we can access
         # one row like this:
@@ -163,8 +163,8 @@ class TestTableFunctions(FitsTestCase):
 
         f2 = fits.open(self.temp('tableout1.fits'))
         temp = f2[1].data.field(7)
-        assert_true((temp[0] == [True, True, False, True, False, True, True,
-                                 True, False, False, True]).all())
+        assert (temp[0] == [True, True, False, True, False, True, True,
+                            True, False, False, True]).all()
         f2.close()
 
         # An alternative way to create an output table FITS file:
@@ -196,7 +196,7 @@ class TestTableFunctions(FitsTestCase):
             (1, 'abc', 3.7000002861022949, 0),
             (2, 'xy ', 6.6999998092651367, 1)], names='c1, c2, c3, c4')
 
-        assert comparerecords(t[1].data == ra[:2], True)
+        assert comparerecords(t[1].data, ra[:2])
 
         # Change scaled field and scale back to the original array
         t[1].data.field('c4')[0] = 1
@@ -204,7 +204,7 @@ class TestTableFunctions(FitsTestCase):
         assert str(np.rec.recarray.field(t[1].data,'c4')) == '[84 84]'
 
         # look at data column-wise
-        assert t[1].data.field(0).all() == np.array([1, 2].all())
+        assert (t[1].data.field(0) == np.array([1, 2]).all()
 
         # When there are scaled columns, the raw data are in data._parent
 
@@ -219,13 +219,13 @@ class TestTableFunctions(FitsTestCase):
             (15.609999656677246, 17),
             (0.0, 0),
             (345.0, 345)], names='c1, c2')
-        assert comparerecords(a[1].data == ra1, True)
+        assert comparerecords(a[1].data, ra1)
 
         # Test slicing
         a2 = a[1].data[2:][2:]
         ra2 = np.rec.array([(345.0,345)],names='c1, c2')
 
-        assert comparerecords(a2 == ra2, True)
+        assert comparerecords(a2, ra2)
 
         assert a2.field(1).all() == np.array([345]).all()
 
@@ -235,7 +235,7 @@ class TestTableFunctions(FitsTestCase):
             (345.0, 345)
             ], names='c1, c2')
 
-        assert comparerecords(a[1].data[::2] == ra3, True)
+        assert comparerecords(a[1].data[::2], ra3)
 
         # Test Start Column
 
@@ -335,7 +335,7 @@ class TestTableFunctions(FitsTestCase):
                             formats='int16,a20,float32,a10',\
                             names='order,name,mag,Sp')
         hdu=fits.BinTableHDU(bright)
-        assert comparerecords(hdu.data == bright, True)
+        assert comparerecords(hdu.data, bright)
         hdu.writeto(self.temp('toto.fits'), clobber=True)
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
@@ -349,8 +349,7 @@ class TestTableFunctions(FitsTestCase):
                       (2,'Canopys',-0.73,'F0Ib'),
                       (3,'Rigil Kent',-0.1,'G2V')], dtype=desc)
         hdu=fits.BinTableHDU(a)
-        assert comparerecords(hdu.data == a.view(fits.FITS_rec),
-                              True)
+        assert comparerecords(hdu.data, a.view(fits.FITS_rec))
         hdu.writeto(self.temp('toto.fits'), clobber=True)
         hdul = fits.open(self.temp('toto.fits'))
         assert comparerecords(hdu.data, hdul[1].data)
@@ -1047,8 +1046,7 @@ class TestTableFunctions(FitsTestCase):
         assert id(coldefs.columns[0]) != id(tbhdu.columns.data[0])
 
         # Verify new HDU has independent ndarray objects.
-        assert_not_equal(id(coldefs.columns[0].array),
-                         id(tbhdu.columns.data[0].array))
+        assert id(coldefs.columns[0].array) != id(tbhdu.columns.data[0].array)
 
         # Verify that both ColDefs objects in the HDU reference the same
         # Coldefs object.
@@ -1540,7 +1538,7 @@ class TestTableFunctions(FitsTestCase):
     def test_fits_rec_column_access(self):
         t=fits.open(self.data('table.fits'))
         tbdata = t[1].data
-        assert tbdata.V_mag.all() == tbdata.field('V_mag'.all())
+        assert tbdata.V_mag.all() == tbdata.field('V_mag').all()
         assert tbdata.V_mag.all() == tbdata['V_mag'].all()
 
         t.close()
@@ -1554,10 +1552,10 @@ class TestTableFunctions(FitsTestCase):
         assert 'ORBPARM' not in tbhdu.data.names
         # Verify that some of the data columns are still correctly accessible
         # by name
-        assert_true(comparefloats(
+        assert comparefloats(
             tbhdu.data[0]['STABXYZ'],
             np.array([499.85566663, -1317.99231554, -735.18866164],
-                     dtype=np.float64)))
+                     dtype=np.float64))
         assert tbhdu.data[0]['NOSTA'] == 1
         assert tbhdu.data[0]['MNTSTA'] == 0
         hdul.writeto(self.temp('newtable.fits'))
@@ -1567,10 +1565,10 @@ class TestTableFunctions(FitsTestCase):
         # Verify that the previous tests still hold after writing
         assert 'ORBPARM' in tbhdu.columns.names
         assert 'ORBPARM' not in tbhdu.data.names
-        assert_true(comparefloats(
+        assert comparefloats(
             tbhdu.data[0]['STABXYZ'],
             np.array([499.85566663, -1317.99231554, -735.18866164],
-                     dtype=np.float64)))
+                     dtype=np.float64))
         assert tbhdu.data[0]['NOSTA'] == 1
         assert tbhdu.data[0]['MNTSTA'] == 0
         hdul.close()
@@ -1619,12 +1617,12 @@ class TestTableFunctions(FitsTestCase):
 
         assert c1.shape == (3, 3, 2)
         assert c2.shape == (3, 2)
-        assert_true((c1 == np.array([[[0, 1], [2, 3], [4, 5]],
-                                     [[6, 7], [8, 9], [0, 1]],
-                                     [[2, 3], [4, 5], [6, 7]]])).all())
-        assert_true((c2 == np.array([['row1', 'row1'],
-                                     ['row2', 'row2'],
-                                     ['row3', 'row3']])).all())
+        assert (c1 == np.array([[[0, 1], [2, 3], [4, 5]],
+                                [[6, 7], [8, 9], [0, 1]],
+                                [[2, 3], [4, 5], [6, 7]]])).all()
+        assert (c2 == np.array([['row1', 'row1'],
+                                ['row2', 'row2'],
+                                ['row3', 'row3']])).all()
 
         # Test setting the TDIMn header based on the column data
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', 4)])
