@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 `astropy.io.vo.table`: Loading entire VOTable files
 ===================================================
 

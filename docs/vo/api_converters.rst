@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 `astropy.io.vo.converters`: Conversions between XML and Numpy datatypes
 =======================================================================
 

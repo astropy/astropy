@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 `astropy.io.vo.tree`: Accessing and modifying the individual parts of VOTable files
 ===================================================================================
 

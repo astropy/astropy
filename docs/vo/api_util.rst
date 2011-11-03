@@ -1,3 +1,5 @@
+.. include:: references.txt
+
 `astropy.io.vo.util`: Low-level utilities used by the library
 =============================================================
 
