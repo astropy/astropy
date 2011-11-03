@@ -454,11 +454,11 @@ class XMLWriter:
 def validate_schema(filename, version='1.2'):
     """
     Validates the given file against the appropriate VOTable schema
-    corresponding to the given *version*, which must be a string "1.0",
-    "1.1", or "1.2".
+    corresponding to the given *version*, which must be a string
+    "1.0", "1.1", or "1.2".
 
-    For version "1.0", it is checked against a DTD, since that version did
-    not have an XML Schema.
+    For version "1.0", it is checked against a DTD, since that version
+    did not have an XML Schema.
     """
     import subprocess
 

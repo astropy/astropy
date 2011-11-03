@@ -99,10 +99,10 @@ def query(catalog_db=None, pedantic=False, pos=None, size=None,
         If this parameter is not present, ``intersect == 'OVERLAPS'``
         is assumed.
 
-    Extra parameters
+    Other parameters
     ----------------
 
-    naxis, cframe, equinox, crpix, crval, cdelt, rotang, proj :
+    naxis, cframe, equinox, crpix, crval, cdelt, rotang, proj : optional
 
         The default size and extent of the desired output image are
         determined from these parameters (*naxis*, *cframe*,

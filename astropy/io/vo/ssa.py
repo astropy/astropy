@@ -54,7 +54,7 @@ def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
 
     band : str
 
-        The spectral bandpass is given in `range-list-format`_, with
+        The spectral bandpass is given in "range list format", with
         each list element specified either numerically as a wavelength
         value or range, or textually as a spectral bandpass
         identifier, e.g., a filter or instrumental bandpass name.  May
@@ -88,7 +88,7 @@ def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
 
     time : str
 
-        The time coverage (epoch) specified in `range-list-format`_,
+        The time coverage (epoch) specified in "range list format",
         in `ISO 8601 <http://www.iso.org/iso/date_and_time_format>`_.
         If the time system used is not specified, UTC is assumed.  The
         value may be a single value or an open or closed range.  If a
@@ -101,7 +101,7 @@ def query_data(catalog_db=None, pedantic=False, pos=None, size=None, time=None,
     -------
     TODO
 
-    Extra parameters
+    Other parameters
     ----------------
     Additional kwargs may be provided to pass along to the server.
     These arguments are specific to the particular catalog being

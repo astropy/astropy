@@ -30,7 +30,7 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
         List of field names to include in the output.  The default is
         to include all fields.
 
-    invalid : str
+    invalid : str, optional
         One of the following values:
 
             - 'exception': throw an exception when an invalid value is
@@ -38,23 +38,24 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
 
             - 'mask': mask out invalid values
 
-    pedantic : bool
+    pedantic : bool, optional
         When `True`, raise an error when the file violates the spec,
         otherwise issue a warning.  Warnings may be controlled using
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
 
-    chunk_size : int
+    chunk_size : int, optional
         The number of rows to read before converting to an array.
         Higher numbers are likely to be faster, but will consume more
         memory.
 
-    table_number : int
+    table_number : int, optional
         The number of table in the file to read in.  If `None`, all
         tables will be read.  If a number, 0 refers to the first table
-        in the file.
+        in the file, and only that numbered table will be parsed and
+        read in.
 
-    filename : str
+    filename : str, optional
         A filename, URL or other identifier to use in error messages.
         If *filename* is None and *source* is a string (i.e. a path),
         then *source* will be used as a filename for error messages.
@@ -64,6 +65,10 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
     Returns
     -------
     votable : astropy.io.vo.tree.VOTable object
+
+    Raises
+    ------
+    `astropy.io.vo.voexceptions.VOTableSpecError` : The table violates the specification.
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
