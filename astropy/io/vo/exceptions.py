@@ -200,9 +200,9 @@ class W01(VOTableSpecWarning):
     how they were input.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#toc-header-35>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#toc-header-35>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:TABLEDATA>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:TABLEDATA>`__
     """
 
     message = "Array uses commas rather than whitespace"
@@ -229,8 +229,8 @@ class W02(VOTableSpecWarning):
     VOTable 1.2 corrects this error in the specification.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
-    `XML Names <http://www.w3.org/TR/REC-xml/#NT-Name>`_
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
+    `XML Names <http://www.w3.org/TR/REC-xml/#NT-Name>`__
     """
 
     message = "%s attribute '%s' is invalid.  Must be a standard XML id"
@@ -281,9 +281,9 @@ class W03(VOTableChangeWarning):
         ``name`` attributes specified in the file.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "Implictly generating an ID from a name '%s' -> '%s'"
@@ -293,14 +293,14 @@ class W03(VOTableChangeWarning):
 class W04(VOTableSpecWarning):
     """
     The ``content-type`` attribute must use MIME content-type syntax as
-    defined in `RFC 2046 <http://tools.ietf.org/html/rfc2046>`_.
+    defined in `RFC 2046 <http://tools.ietf.org/html/rfc2046>`__.
 
     The current check for validity is somewhat over-permissive.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:link>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:link>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:link>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:link>`__
     """
 
     message = "content-type '%s' must be a valid MIME content type"
@@ -321,16 +321,16 @@ class W06(VOTableSpecWarning):
     """
     This warning is emitted when a ``ucd`` attribute does not match
     the syntax of a `unified content descriptor
-    <http://vizier.u-strasbg.fr/doc/UCD.htx>`_.
+    <http://vizier.u-strasbg.fr/doc/UCD.htx>`__.
 
     If the VOTable version is 1.2 or later, the UCD will also be
     checked to ensure it conforms to the controlled vocabulary defined
     by UCD1+.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:ucd>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:ucd>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:ucd>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:ucd>`__
     """
 
     message = "Invalid UCD '%s': %s"
@@ -380,9 +380,9 @@ class W09(VOTableSpecWarning):
     not in ``pedantic`` mode.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "ID attribute not capitalized"
@@ -393,14 +393,14 @@ class W10(VOTableSpecWarning):
     The parser has encountered an element that does not exist in the
     specification, or appears in an invalid context.  Check the file
     against the VOTable schema (with a tool such as `xmllint
-    <http://xmlsoft.org/xmllint.html>`_.  If the file validates
+    <http://xmlsoft.org/xmllint.html>`__.  If the file validates
     against the schema, and you still receive this warning, this may
     indicate a bug in ``vo.table``.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
     message = "Unknown tag '%s'.  Ignoring"
@@ -411,7 +411,7 @@ class W11(VOTableSpecWarning):
     """
     Earlier versions of the VOTable specification used a ``gref``
     attribute on the ``LINK`` element to specify a `GLU reference
-    <http://simbad3.u-strasbg.fr/glu/glu.htx>`_.  New files should
+    <http://simbad3.u-strasbg.fr/glu/glu.htx>`__.  New files should
     specify a ``glu:`` protocol using the ``href`` attribute.
 
     Since ``vo.table`` does not currently support GLU references, it
@@ -419,9 +419,9 @@ class W11(VOTableSpecWarning):
     the new form.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:link>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:link>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:link>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:link>`__
     """
 
     message = "The gref attribute on LINK is deprecated in VOTable 1.1"
@@ -437,9 +437,9 @@ class W12(VOTableChangeWarning):
     ``vo.table`` will continue without a ``name`` defined.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "'%s' element must have at least one of 'ID' or 'name' attributes"
@@ -460,9 +460,9 @@ class W13(VOTableSpecWarning):
        float64       -> double
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "'%s' is not a valid VOTable datatype, should be '%s'"
@@ -481,9 +481,9 @@ class W15(VOTableSpecWarning):
     attribute.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "%s element missing required 'name' attribute"
@@ -498,12 +498,12 @@ class W17(VOTableSpecWarning):
     element.
 
     According to the schema, it may only occur once (`1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_)
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__)
 
     However, it is a `proposed extension
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:addesc>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:addesc>`__
     to VOTable 1.2.
     """
 
@@ -520,9 +520,9 @@ class W18(VOTableSpecWarning):
     is off, parsing will proceed, with the loss of some performance.
 
     **References:** `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC10>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC10>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC10>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC10>`__
     """
 
     message = 'TABLE specified nrows=%s, but table contains %s rows'
@@ -566,9 +566,9 @@ class W22(VOTableSpecWarning):
     ``COOSYS`` elements throughout the document.
 
     **References:** `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:definitions>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:definitions>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:definitions>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:definitions>`__
     """
 
     message = 'The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring'
@@ -625,9 +625,9 @@ class W27(VOTableSpecWarning):
     The ``COOSYS`` element was deprecated in VOTABLE version 1.2 in
     favor of a reference to the Space-Time Coordinate (STC) data
     model (see `utype
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:utype>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:utype>`__
     and the IVOA note `referencing STC in VOTable
-    <http://ivoa.net/Documents/latest/VOTableSTC.html>`_.
+    <http://ivoa.net/Documents/latest/VOTableSTC.html>`__.
     """
 
     message = "COOSYS deprecated in VOTable 1.2"
@@ -651,9 +651,9 @@ class W29(VOTableSpecWarning):
     when the only supported forms in the spec are "1.0".
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
     message = "Version specified in non-standard form '%s'"
@@ -667,9 +667,9 @@ class W30(VOTableSpecWarning):
     floating-point literals are treated as missing values.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "Invalid literal for float '%s'.  Treating as empty."
@@ -683,9 +683,9 @@ class W31(VOTableSpecWarning):
     NaN's from the tabledata.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "NaN given in an integral field without a specified null value"
@@ -707,9 +707,9 @@ class W32(VOTableSpecWarning):
         which must exist in the VOTable document.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "Duplicate ID '%s' renamed to '%s' to ensure uniqueness"
@@ -723,9 +723,9 @@ class W33(VOTableChangeWarning):
     names are unique.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:name>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
     message = "Column name '%s' renamed to '%s' to ensure uniqueness"
@@ -736,7 +736,7 @@ class W34(VOTableSpecWarning):
     """
     The attribute requires the value to be a valid XML token, as
     defined by `XML 1.0
-    <http://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Nmtoken>`_.
+    <http://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Nmtoken>`__.
     """
 
     message = "'%s' is an invalid token for attribute '%s'"
@@ -749,7 +749,7 @@ class W35(VOTableSpecWarning):
     elements.
 
     **References:** `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC32>`
     """
@@ -764,7 +764,7 @@ class W36(VOTableSpecWarning):
     to the given ``datatype``.
 
     **References:** `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`__,
     `1.2
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`
     """
@@ -779,7 +779,7 @@ class W37(UnimplementedWarning):
     vo.table are ``TABLEDATA``, ``BINARY`` and ``FITS``.
 
     **References:** `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:data>`__,
     `1.2
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:data>`
     """
@@ -804,9 +804,9 @@ class W39(VOTableSpecWarning):
     setting masked data in a bit column.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "Bit values can not be masked"
@@ -815,7 +815,7 @@ class W39(VOTableSpecWarning):
 class W40(VOTableSpecWarning):
     """
     This is a terrible hack to support Simple Image Access Protocol
-    results from `<archive.noao.edu>`_.  It creates a field for the
+    results from `<archive.noao.edu>`__.  It creates a field for the
     coordinate projection type of type "double", which
     actually contains character data.  We have to hack the field
     to store character data, or we can't read it in.  A warning
@@ -899,9 +899,9 @@ class W45(VOWarning, ValueError):
         query, hints, doc, location
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
     message = "content-role attribute '%s' invalid"
@@ -985,9 +985,9 @@ class E03(VOWarning, ValueError):
     Complex numbers should be two values separated by whitespace.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "'%s' does not parse as a complex number"
@@ -999,9 +999,9 @@ class E04(VOWarning, ValueError):
     A ``bit`` array should be a string of '0's and '1's.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "Invalid bit value '%s'"
@@ -1020,9 +1020,9 @@ class E05(VOWarning, ValueError):
         'T', 'F', '1', '0', '\\0', ' ', '?'
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "Invalid boolean value '%s'"
@@ -1048,9 +1048,9 @@ class E06(VOWarning, ValueError):
         float64       -> double
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:datatypes>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:datatypes>`__
     """
 
     message = "Unknown datatype '%s' on field '%s'"
@@ -1065,9 +1065,9 @@ class E08(VOWarning, ValueError):
     ``legal`` or ``actual``.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
     message = "type must be 'legal' or 'actual', but is '%s'"
@@ -1080,9 +1080,9 @@ class E09(VOWarning, ValueError):
     ``value`` attribute.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:values>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:values>`__
     """
 
     message = "'%s' must have a value attribute"
@@ -1095,9 +1095,9 @@ class E10(VOWarning, ValueError):
     a ``datatype`` field.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:FIELD>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:FIELD>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#elem:FIELD>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#elem:FIELD>`__
     """
 
     message = "'datatype' attribute required on all '%s' elements"
@@ -1117,9 +1117,9 @@ class E11(VOWarning, ValueError):
         [EF]?[1-9][0-9]*
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:form>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:form>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`__
     """
 
     message = "precision '%s' is invalid"
@@ -1133,9 +1133,9 @@ class E12(VOWarning, ValueError):
     quantity.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:form>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:form>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:form>`__
     """
 
     message = "width must be a positive integer, got '%s'"
@@ -1175,9 +1175,9 @@ class E13(VOWarning, ValueError):
             <FIELD ID="thumbs" datatype="unsignedByte" arraysize="64×64×10*"/>
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:dim>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#sec:dim>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:dim>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:dim>`__
     """
 
     message = "Invalid arraysize attribute '%s'"
@@ -1189,9 +1189,9 @@ class E14(VOWarning, ValueError):
     All ``PARAM`` elements must have a ``value`` attribute.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:FIELD>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:FIELD>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#elem:FIELD>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#elem:FIELD>`__
     """
 
     message = "value attribute is required for all PARAM elements"
@@ -1219,7 +1219,7 @@ class E16(VOTableSpecWarning):
       'supergalactic', 'xy', 'barycentric', 'geo_app'
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:COOSYS>`_
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#elem:COOSYS>`__
     """
 
     message = "Invalid system attribute '%s'"
@@ -1231,9 +1231,9 @@ class E17(VOWarning, ValueError):
     ``extnum`` attribute must be a positive integer.
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
     message = "extnum must be a positive integer"
@@ -1245,9 +1245,9 @@ class E18(VOWarning, ValueError):
     "results" or "meta".
 
     **References**: `1.1
-    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`_,
+    <http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC54>`__,
     `1.2
-    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`_
+    <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#ToC58>`__
     """
 
     message = "type must be 'results' or 'meta', not '%s'"

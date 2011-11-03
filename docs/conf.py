@@ -17,6 +17,8 @@ import sys, os, warnings
 # Load all of the global Astropy configuration
 from astropy.sphinx.conf import *
 
+extensions += ['astropy.io.vo.sphinx.generate_warnings']
+
 # The intersphinx_mapping in astropy.sphinx.conf refers to astropy for
 # the benefit of affiliated packages who want to refer to objeects in
 # the astropy core.  However, we don't want to cyclically reference
