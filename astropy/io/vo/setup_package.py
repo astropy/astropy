@@ -1,4 +1,5 @@
 from distutils.core import setup, Extension
+from os.path import join
 import sys
 
 
@@ -16,11 +17,11 @@ def get_extensions(build_type='release'):
 
     return [Extension(
         "astropy.io.vo.iterparser",
-        [VO_DIR + "/iterparse.c",
-         EXPAT_DIR + "/xmlparse.c",
-         EXPAT_DIR + "/xmlrole.c",
-         EXPAT_DIR + "/xmltok.c",
-         EXPAT_DIR + "/xmltok_impl.c"],
+        [join(VO_DIR, "iterparse.c"),
+         join(EXPAT_DIR, "xmlparse.c"),
+         join(EXPAT_DIR, "xmlrole.c"),
+         join(EXPAT_DIR, "xmltok.c"),
+         join(EXPAT_DIR, "xmltok_impl.c")],
         define_macros=defines,
         include_dirs=[VO_DIR, EXPAT_DIR])]
 
