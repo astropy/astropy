@@ -7,7 +7,6 @@ from astropy.io import fits
 from astropy.tests.helper import pytest, raises
 
 from . import FitsTestCase
-from .util import CaptureStdout
 
 
 class TestImageFunctions(FitsTestCase):
@@ -47,25 +46,25 @@ class TestImageFunctions(FitsTestCase):
 
         # test set attribute and  ascardimage() using the most updated attributes
         c.value = 200
-        assert_equal(c.ascardimage(),
-                     "XYZ     =                  200                                                  ")
+        assert (c.ascardimage() ==
+                "XYZ     =                  200                                                  ")
 
     def test_string(self):
         """Test string value"""
 
         c = fits.Card('abc', '<8 ch')
-        assert_equal(str(c),
-                     "ABC     = '<8 ch   '                                                            ")
+        assert (str(c) ==
+                "ABC     = '<8 ch   '                                                            ")
         c = fits.Card('nullstr', '')
-        assert_equal(str(c),
-                     "NULLSTR = ''                                                                    ")
+        assert(str(c) ==
+               "NULLSTR = ''                                                                    ")
 
     def test_boolean_value_card(self):
         """Boolean value card"""
 
         c = fits.Card("abc", True)
-        assert_equal(str(c),
-                     "ABC     =                    T                                                  ")
+        assert (str(c) ==
+                "ABC     =                    T                                                  ")
 
         c = fits.Card.fromstring('abc     = F')
         assert c.value == False
@@ -74,8 +73,8 @@ class TestImageFunctions(FitsTestCase):
         """long integer number"""
 
         c = fits.Card('long_int', -467374636747637647347374734737437)
-        assert_equal(str(c),
-                     "LONG_INT= -467374636747637647347374734737437                                    ")
+        assert (str(c) ==
+                "LONG_INT= -467374636747637647347374734737437                                    ")
 
     def test_floating_point_number(self):
         """ floating point number"""
@@ -84,8 +83,8 @@ class TestImageFunctions(FitsTestCase):
 
         if (str(c) != "FLOATNUM= -4.6737463674763E+32                                                  " and
             str(c) != "FLOATNUM= -4.6737463674763E+032                                                 "):
-            assert_equal(str(c),
-                         "FLOATNUM= -4.6737463674763E+32                                                  ")
+            assert (str(c) ==
+                    "FLOATNUM= -4.6737463674763E+32                                                  ")
 
     def test_complex_value(self):
         """complex value"""
@@ -95,19 +94,18 @@ class TestImageFunctions(FitsTestCase):
 
         if (str(c) != "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          " and
             str(c) != "ABC     = (1.2345377437887E+088, 6.3247673647637E-015)                          "):
-            assert_equal(str(c),
-                         "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          ")
+            assert (str(c),
+                    "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          ")
 
     def test_card_image_constructed_too_long(self):
-        with CaptureStdout():
-            # card image constructed from key/value/comment is too long
-            # (non-string value)
-            c = fits.Card('abc', 9, 'abcde'*20)
-            assert_equal(str(c),
-                         "ABC     =                    9 / abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
-            c = fits.Card('abc', 'a'*68, 'abcdefg')
-            assert_equal(str(c),
-                         "ABC     = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'")
+        # card image constructed from key/value/comment is too long (non-string
+        # value)
+        c = fits.Card('abc', 9, 'abcde'*20)
+        assert (str(c) ==
+                "ABC     =                    9 / abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
+        c = fits.Card('abc', 'a'*68, 'abcdefg')
+        assert (str(c) ==
+                "ABC     = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'")
 
     def test_constructor_filter_illegal_data_structures(self):
         # the constrctor will filter out illegal data structures...
@@ -126,120 +124,119 @@ class TestImageFunctions(FitsTestCase):
 
     # TODO: What sort of exception should this raise?
     @raises(Exception)
-    def test_ascardiage_verifies_the_comment_string_to_be_ascii_text(self):
+    def test_ascardimage_verifies_the_comment_string_to_be_ascii_text(self):
         # the ascardimage() verifies the comment string to be ASCII text
         c = fits.Card.fromstring('abc     = +  2.1   e + 12 / abcde\0')
-        c.ascardimage
+        c.ascardimage()
 
     def test_commentary_cards(self):
         # commentary cards
         c = fits.Card("history",
                         "A commentary card's value has no quotes around it.")
-        assert_equal(str(c),
-                     "HISTORY A commentary card's value has no quotes around it.                      ")
+        assert (str(c) ==
+                "HISTORY A commentary card's value has no quotes around it.                      ")
         c = fits.Card("comment",
                         "A commentary card has no comment.", "comment")
-        assert_equal(str(c),
-                     "COMMENT A commentary card has no comment.                                       ")
+        assert (str(c) ==
+                "COMMENT A commentary card has no comment.                                       ")
 
     def test_commentary_card_created_by_fromstring(self):
         # commentary card created by fromstring()
         c = fits.Card.fromstring("COMMENT card has no comments. / text after slash is still part of the value.")
-        assert_equal(c.value,
-                     'card has no comments. / text after slash is still part of the value.')
+        assert (c.value ==
+                'card has no comments. / text after slash is still part of the value.')
         assert c.comment == ''
 
     def test_commentary_card_will_not_parse_numerical_value(self):
         # commentary card will not parse the numerical value
         c = fits.Card.fromstring("history  (1, 2)")
-        assert_equal(str(c.ascardimage()),
-                     "HISTORY  (1, 2)                                                                 ")
+        assert (str(c.ascardimage()) ==
+                "HISTORY  (1, 2)                                                                 ")
 
     def test_equal_sign_after_column8(self):
         # equal sign after column 8 of a commentary card will be part ofthe string value
         c = fits.Card.fromstring("history =   (1, 2)")
-        assert_equal(str(c.ascardimage()),
-                     "HISTORY =   (1, 2)                                                              ")
+        assert (str(c.ascardimage()) ==
+                "HISTORY =   (1, 2)                                                              ")
 
     def test_specify_undefined_value(self):
         # this is how to specify an undefined value
         c = fits.Card("undef", fits.card.UNDEFINED)
-        assert_equal(str(c),
+        assert (str(c) ==
                      "UNDEF   =                                                                       ")
 
     def test_complex_number_using_string_input(self):
         # complex number using string input
         c = fits.Card.fromstring('abc     = (8, 9)')
-        assert_equal(str(c.ascardimage()),
-                     "ABC     =               (8, 9)                                                  ")
+        assert (str(c.ascardimage()) ==
+                "ABC     =               (8, 9)                                                  ")
 
     def test_fixable_non_standard_fits_card(self):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring('abc     = +  2.1   e + 12')
-        assert_equal(c.value,2100000000000.0)
-        assert_equal(str(c.ascardimage()),
-                     "ABC     =             +2.1E+12                                                  ")
+        assert c.value == 2100000000000.0
+        assert (str(c.ascardimage()) ==
+                "ABC     =             +2.1E+12                                                  ")
 
     def test_fixable_non_fsc(self):
         # fixable non-FSC: if the card is not parsable, it's value will be
         # assumed
         # to be a string and everything after the first slash will be comment
         c = fits.Card.fromstring("no_quote=  this card's value has no quotes / let's also try the comment")
-        assert_equal(str(c.ascardimage()),
-                     "NO_QUOTE= 'this card''s value has no quotes' / let's also try the comment       ")
+        assert (str(c.ascardimage()) ==
+                "NO_QUOTE= 'this card''s value has no quotes' / let's also try the comment       ")
 
     def test_undefined_value_using_string_input(self):
         # undefined value using string input
         c = fits.Card.fromstring('abc     =    ')
-        assert_equal(str(c.ascardimage()),
-                     "ABC     =                                                                       ")
+        assert (str(c.ascardimage()) ==
+                "ABC     =                                                                       ")
 
     def test_misalocated_equal_sign(self):
         # test mislocated "=" sign
         c = fits.Card.fromstring('xyz= 100')
         assert c.key == 'XYZ'
         assert c.value == 100
-        assert_equal(str(c.ascardimage()),
-                     "XYZ     =                  100                                                  ")
+        assert (str(c.ascardimage()) ==
+                "XYZ     =                  100                                                  ")
 
     def test_equal_only_up_to_column_10(self):
         # the test of "=" location is only up to column 10
         c = fits.Card.fromstring("histo       =   (1, 2)")
-        assert_equal(str(c.ascardimage()),
-                     "HISTO   = '=   (1, 2)'                                                          ")
+        assert (str(c.ascardimage()) ==
+                "HISTO   = '=   (1, 2)'                                                          ")
         c = fits.Card.fromstring("   history          (1, 2)")
-        assert_equal(str(c.ascardimage()),
-                     "HISTO   = 'ry          (1, 2)'                                                  ")
+        assert (str(c.ascardimage()) ==
+                "HISTO   = 'ry          (1, 2)'                                                  ")
 
-    def test_verification(self):
+    def test_verification(self, capsys):
         # verification
         c = fits.Card.fromstring('abc= a6')
-        with CaptureStdout() as f:
-            c.verify()
-            assert_true(
-                'Card image is not FITS standard (equal sign not at column 8).'
-                in f.getvalue())
-        assert_equal(str(c),
-                     "abc= a6                                                                         ")
+        c.verify()
+        out, err = capsys.readouterr()
+        assert ('Card image is not FITS standard (equal sign not at column 8).'
+                in err)
+        assert (str(c) ==
+                "abc= a6                                                                         ")
 
-    def test_fix(self):
+    def test_fix(self, capsys):
         c = fits.Card.fromstring('abc= a6')
-        with CaptureStdout() as f:
-            c.verify('fix')
-            assert 'Fixed card to be FITS standard.: ABC' in f.getvalue()
-        assert_equal(str(c),
-                     "ABC     = 'a6      '                                                            ")
+        c.verify('fix')
+        out, err = capsys.readouterr()
+        assert 'Fixed card to be FITS standard.: ABC' in err
+        assert (str(c) ==
+                "ABC     = 'a6      '                                                            ")
 
     def test_long_string_value(self):
         # test long string value
         c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
-        assert_equal(str(c),
-            "ABC     = 'long string value long string value long string value long string &' "
-            "CONTINUE  'value long string value long string value long string value long &'  "
-            "CONTINUE  'string value long string value long string value &'                  "
-            "CONTINUE  '&' / long comment long comment long comment long comment long        "
-            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '&' / long comment                                                    ")
+        assert (str(c) ==
+                "ABC     = 'long string value long string value long string value long string &' "
+                "CONTINUE  'value long string value long string value long string value long &'  "
+                "CONTINUE  'string value long string value long string value &'                  "
+                "CONTINUE  '&' / long comment long comment long comment long comment long        "
+                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+                "CONTINUE  '&' / long comment                                                    ")
 
     def test_long_string_from_file(self):
         c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
@@ -250,24 +247,24 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test_new.fits'))
         c = hdul[0].header.ascard['abc']
         hdul.close()
-        assert_equal(str(c),
-            "ABC     = 'long string value long string value long string value long string &' "
-            "CONTINUE  'value long string value long string value long string value long &'  "
-            "CONTINUE  'string value long string value long string value &'                  "
-            "CONTINUE  '&' / long comment long comment long comment long comment long        "
-            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '&' / long comment                                                    ")
+        assert (str(c),
+                "ABC     = 'long string value long string value long string value long string &' "
+                "CONTINUE  'value long string value long string value long string value long &'  "
+                "CONTINUE  'string value long string value long string value &'                  "
+                "CONTINUE  '&' / long comment long comment long comment long comment long        "
+                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+                "CONTINUE  '&' / long comment                                                    ")
 
 
     def test_word_in_long_string_too_long(self):
         # if a word in a long string is too long, it will be cut in the middle
         c = fits.Card('abc', 'longstringvalue'*10, 'longcomment'*10)
-        assert_equal(str(c),
-            "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
-            "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
-            "CONTINUE  'elongstringvalue&'                                                   "
-            "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
-            "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
+        assert (str(c) ==
+                "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
+                "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
+                "CONTINUE  'elongstringvalue&'                                                   "
+                "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
+                "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
 
     def test_long_string_value_via_fromstring(self):
         # long string value via fromstring() method
@@ -275,18 +272,18 @@ class TestImageFunctions(FitsTestCase):
             fits.card._pad("abc     = 'longstring''s testing  &  ' / comments in line 1") +
             fits.card._pad("continue  'continue with long string but without the ampersand at the end' /") +
             fits.card._pad("continue  'continue must have string value (with quotes)' / comments with ''. "))
-        assert_equal(str(c.ascardimage()),
-            "ABC     = 'longstring''s testing  continue with long string but without the &'  "
-            "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
-            "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
+        assert (str(c.ascardimage()) ==
+                "ABC     = 'longstring''s testing  continue with long string but without the &'  "
+                "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
+                "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
 
     def test_hierarch_card(self):
         c = fits.Card('hierarch abcdefghi', 10)
-        assert_equal(str(c.ascardimage()),
-            "HIERARCH abcdefghi = 10                                                         ")
+        assert (str(c.ascardimage()) ==
+                "HIERARCH abcdefghi = 10                                                         ")
         c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML', 'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
-        assert_equal(str(c.ascardimage()),
-            "HIERARCH ESO INS SLIT2 Y1FRML= 'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+        assert (str(c.ascardimage()) ==
+                "HIERARCH ESO INS SLIT2 Y1FRML= 'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
 
     # TODO: What sort of exception should this raise?
@@ -327,7 +324,7 @@ class TestImageFunctions(FitsTestCase):
         # If there are more than one extension with the same EXTNAME value, the
         # EXTVER can be used (as the second argument) to distinguish the
         # extension.
-        assert_equal(r['sci',1].header['detector'], 1)
+        assert r['sci',1].header['detector'] == 1
 
         # append (using "update()") a new card
         r[0].header.update('xxx', 1.234e56)
@@ -340,10 +337,10 @@ class TestImageFunctions(FitsTestCase):
            "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n" \
            "FILENAME= 'vtest3.fits'        / File name                                      \n" \
            "XXX     =           1.234E+056                                                  ":
-            assert_equal(str(r[0].header.ascard[-3:]),
-                "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
-                "FILENAME= 'vtest3.fits'        / File name                                      \n"
-                "XXX     =            1.234E+56                                                  ")
+            assert (str(r[0].header.ascard[-3:]) ==
+                    "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n"
+                    "FILENAME= 'vtest3.fits'        / File name                                      \n"
+                    "XXX     =            1.234E+56                                                  ")
 
         # rename a keyword
         r[0].header.rename_key('filename', 'fname')
@@ -353,10 +350,10 @@ class TestImageFunctions(FitsTestCase):
         r[0].header.rename_key('fname', 'filename')
 
         # get a subsection of data
-        assert_equal(r[2].data[:3,:3].all(),
-                         np.array([[349, 349, 348],
-                                   [348, 348, 348],
-                                   [349, 349, 350]], dtype=np.int16).all())
+        assert (r[2].data[:3,:3] ==
+                np.array([[349, 349, 348],
+                          [349, 349, 347],
+                          [347, 350, 349]], dtype=np.int16)).all()
 
         # We can create a new FITS file by opening a new file with "append"
         # mode.
@@ -370,7 +367,7 @@ class TestImageFunctions(FitsTestCase):
         # newly created file on disk.  The HDUList is still open and can be
         # further operated.
         n.flush()
-        assert_equal(n[1].data[1,1], 349)
+        assert n[1].data[1,1] == 349
 
         #modify a data point
         n[1].data[1,1] = 99
@@ -389,7 +386,7 @@ class TestImageFunctions(FitsTestCase):
 
         # The above change did not take effect since this was made after the
         # flush().
-        assert_equal(a[1].data[1,1], 349)
+        assert a[1].data[1,1] == 349
 
         a.append(r[1])
         a.close()
@@ -405,7 +402,7 @@ class TestImageFunctions(FitsTestCase):
         # since last flush) HDUList, the changes are written back "in place".
         assert u[0].header['rootname'] == 'U2EQ0201T'
         u[0].header['rootname'] = 'abc'
-        assert_equal(u[1].data[1,1], 349)
+        assert u[1].data[1,1] == 349
         u[1].data[1,1] = 99
         u.flush()
 
@@ -436,16 +433,15 @@ class TestImageFunctions(FitsTestCase):
         r = fits.open(self.data('test0.fits'))
         r.readall()
         r.close()
-        assert_equal(r[1].data[1,1], 315)
+        assert r[1].data[1,1] == 315
 
         # create an HDU with data only
         data = np.ones((3,5), dtype=np.float32)
         hdu = fits.ImageHDU(data=data, name='SCI')
-        assert_equal(hdu.data.all(),
-                     np.array([[ 1.,  1.,  1.,  1.,  1.],
-                               [ 1.,  1.,  1.,  1.,  1.],
-                               [ 1.,  1.,  1.,  1.,  1.]],
-                               dtype=np.float32).all())
+        assert (hdu.data ==
+                np.array([[ 1.,  1.,  1.,  1.,  1.],
+                          [ 1.,  1.,  1.,  1.,  1.],
+                          [ 1.,  1.,  1.,  1.,  1.]], dtype=np.float32)).all()
 
 
         # create an HDU with header and data
@@ -454,86 +450,84 @@ class TestImageFunctions(FitsTestCase):
         hdu2 = fits.ImageHDU(header=r[1].header, data=np.array([1,2],
                                dtype='int32'))
 
-        assert_equal(str(hdu2.header.ascard[1:5]),
-            "BITPIX  =                   32 / array data type                                \n"
-            "NAXIS   =                    1 / number of array dimensions                     \n"
-            "NAXIS1  =                    2                                                  \n"
-            "PCOUNT  =                    0 / number of parameters                           ")
+        assert (str(hdu2.header.ascard[1:5]) ==
+                "BITPIX  =                   32 / array data type                                \n"
+                "NAXIS   =                    1 / number of array dimensions                     \n"
+                "NAXIS1  =                    2                                                  \n"
+               "PCOUNT  =                    0 / number of parameters                           ")
 
     def test_memory_mapping(self):
         # memory mapping
         f1 = fits.open(self.data('test0.fits'), memmap=1)
         f1.close()
 
-    def test_verification_on_output(self):
+    def test_verification_on_output(self, capsys):
         # verification on output
         # make a defect HDUList first
-        with CaptureStdout() as f:
-            x = fits.ImageHDU()
-            hdu = fits.HDUList(x) # HDUList can take a list or one single HDU
-            hdu.verify()
-            assert_true(
-                "HDUList's 0th element is not a primary HDU." in f.getvalue())
+        x = fits.ImageHDU()
+        hdu = fits.HDUList(x) # HDUList can take a list or one single HDU
+        hdu.verify()
+        out, err = capsys.readouterr()
+        assert "HDUList's 0th element is not a primary HDU." in err
 
-        with CaptureStdout() as f:
-            hdu.writeto(self.temp('test_new2.fits'), 'fix')
-            assert_true(
-                "HDUList's 0th element is not a primary HDU.  "
-                "Fixed by inserting one as 0th HDU." in f.getvalue())
+        hdu.writeto(self.temp('test_new2.fits'), 'fix')
+        out, err = capsys.readouterr()
+        assert ("HDUList's 0th element is not a primary HDU.  "
+                "Fixed by inserting one as 0th HDU." in err)
 
     def test_section(self):
         # section testing
         fs = fits.open(self.data('arange.fits'))
-        assert_equal(fs[0].section[3,2,5], np.array([357]))
-        assert_equal(fs[0].section[3,2,:].all(),
-                     np.array([352, 353, 354, 355, 356, 357, 358, 359, 360,
-                               361, 362]).all())
-        assert_equal(fs[0].section[3,2,4:].all(),
-                     np.array([356, 357, 358, 359, 360, 361, 362]).all())
-        assert_equal(fs[0].section[3,2,:8].all(),
-                     np.array([352, 353, 354, 355, 356, 357, 358, 359]).all())
-        assert_equal(fs[0].section[3,2,-8:8].all(),
-                     np.array([355, 356, 357, 358, 359]).all())
-        assert_equal(fs[0].section[3,2:5,:].all(),
-                     np.array([[352, 353, 354, 355, 356, 357, 358, 359,
-                                360, 361, 362],
-                               [363, 364, 365, 366, 367, 368, 369, 370,
-                                371, 372, 373],
-                               [374, 375, 376, 377, 378, 379, 380, 381,
-                                382, 383, 384]]).all())
+        assert fs[0].section[3,2,5] == np.array([357])
+        assert (fs[0].section[3,2,:] ==
+                np.array([352, 353, 354, 355, 356, 357, 358, 359, 360, 361,
+                          362])).all()
+        assert (fs[0].section[3,2,4:] ==
+                np.array([356, 357, 358, 359, 360, 361, 362])).all()
+        assert (fs[0].section[3,2,:8] ==
+                np.array([352, 353, 354, 355, 356, 357, 358, 359])).all()
+        assert (fs[0].section[3,2,-8:8] ==
+                np.array([355, 356, 357, 358, 359])).all()
+        assert (fs[0].section[3,2:5,:] ==
+                np.array([[352, 353, 354, 355, 356, 357, 358, 359, 360, 361,
+                           362],
+                          [363, 364, 365, 366, 367, 368, 369, 370, 371, 372,
+                           373],
+                          [374, 375, 376, 377, 378, 379, 380, 381, 382, 383,
+                           384]])).all()
 
-        assert_equal(fs[0].section[3,:,:][:3,:3].all(),
-                     np.array([[330, 331, 332],
-                               [341, 342, 343],
-                               [352, 353, 354]]).all())
+        assert (fs[0].section[3,:,:][:3,:3] ==
+                np.array([[330, 331, 332],
+                          [341, 342, 343],
+                          [352, 353, 354]])).all()
 
         dat = fs[0].data
-        assert_equal(fs[0].section[3,2:5,:8].all(), dat[3,2:5,:8].all())
-        assert_equal(fs[0].section[3,2:5,3].all(), dat[3,2:5,3].all())
+        assert (fs[0].section[3,2:5,:8] == dat[3,2:5,:8]).all()
+        assert (fs[0].section[3,2:5,3] == dat[3,2:5,3]).all()
 
-        assert_equal(fs[0].section[3:6,:,:][:3,:3,:3].all(),
-                     np.array([[[330, 331, 332],
-                                [341, 342, 343],
-                                [352, 353, 354]],
-                               [[440, 441, 442],
-                                [451, 452, 453],
-                                [462, 463, 464]],
-                               [[550, 551, 552],
-                                [561, 562, 563],
-                                [572, 573, 574]]]).all())
+        assert (fs[0].section[3:6,:,:][:3,:3,:3] ==
+                np.array([[[330, 331, 332],
+                           [341, 342, 343],
+                           [352, 353, 354]],
+                          [[440, 441, 442],
+                           [451, 452, 453],
+                           [462, 463, 464]],
+                          [[550, 551, 552],
+                           [561, 562, 563],
+                           [572, 573, 574]]])).all()
 
-        assert_equal(fs[0].section[:,:,:][:3,:2,:2].all(),
-                     np.array([[[  0,   1],
-                                [ 11,  12]],
-                               [[110, 111],
-                                [121, 122]],
-                               [[220, 221],
-                                [231, 232]]]).all())
+        assert (fs[0].section[:,:,:][:3,:2,:2] ==
+                np.array([[[  0,   1],
+                           [ 11,  12]],
+                          [[110, 111],
+                           [121, 122]],
+                          [[220, 221],
+                           [231, 232]]])).all()
 
-        assert_equal(fs[0].section[:,2,:].all(), dat[:,2,:].all())
-        assert_equal(fs[0].section[:,2:5,:].all(), dat[:,2:5,:].all())
-        assert_equal(fs[0].section[3:6,3,:].all(), dat[3:6,3,:].all())
-        assert_equal(fs[0].section[3:6,3:7,:].all(), dat[3:6,3:7,:].all())
+        assert (fs[0].section[:,2,:] == dat[:,2,:]).all()
+        assert (fs[0].section[:,2:5,:] == dat[:,2:5,:]).all()
+        assert (fs[0].section[3:6,3,:] == dat[3:6,3,:]).all()
+        assert (fs[0].section[3:6,3:7,:] == dat[3:6,3:7,:]).all()
 
     def test_section_data_square(self):
         a = np.arange(4).reshape((2, 2))
@@ -543,19 +537,19 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test_new.fits'))
         d = hdul[0]
         dat = hdul[0].data
-        assert_equal(d.section[:,:].all(), dat[:,:].all())
-        assert_equal(d.section[0,:].all(), dat[0,:].all())
-        assert_equal(d.section[1,:].all(), dat[1,:].all())
-        assert_equal(d.section[:,0].all(), dat[:,0].all())
-        assert_equal(d.section[:,1].all(), dat[:,1].all())
-        assert_equal(d.section[0,0].all(), dat[0,0].all())
-        assert_equal(d.section[0,1].all(), dat[0,1].all())
-        assert_equal(d.section[1,0].all(), dat[1,0].all())
-        assert_equal(d.section[1,1].all(), dat[1,1].all())
-        assert_equal(d.section[0:1,0:1].all(), dat[0:1,0:1].all())
-        assert_equal(d.section[0:2,0:1].all(), dat[0:2,0:1].all())
-        assert_equal(d.section[0:1,0:2].all(), dat[0:1,0:2].all())
-        assert_equal(d.section[0:2,0:2].all(), dat[0:2,0:2].all())
+        assert (d.section[:,:] == dat[:,:]).all()
+        assert (d.section[0,:] == dat[0,:]).all()
+        assert (d.section[1,:] == dat[1,:]).all()
+        assert (d.section[:,0] == dat[:,0]).all()
+        assert (d.section[:,1] == dat[:,1]).all()
+        assert (d.section[0,0] == dat[0,0]).all()
+        assert (d.section[0,1] == dat[0,1]).all()
+        assert (d.section[1,0] == dat[1,0]).all()
+        assert (d.section[1,1] == dat[1,1]).all()
+        assert (d.section[0:1,0:1] == dat[0:1,0:1]).all()
+        assert (d.section[0:2,0:1] == dat[0:2,0:1]).all()
+        assert (d.section[0:1,0:2] == dat[0:1,0:2]).all()
+        assert (d.section[0:2,0:2] == dat[0:2,0:2]).all()
 
     def test_section_data_cube(self):
         a=np.arange(18).reshape((2,3,3))
@@ -565,123 +559,123 @@ class TestImageFunctions(FitsTestCase):
         hdul=fits.open(self.temp('test_new.fits'))
         d = hdul[0]
         dat = hdul[0].data
-        assert_equal(d.section[:,:,:].all(), dat[:,:,:].all())
-        assert_equal(d.section[:,:].all(), dat[:,:].all())
+        assert (d.section[:,:,:] == dat[:,:,:]).all()
+        assert (d.section[:,:] == dat[:,:]).all()
         assert d.section[:].all() == dat[:].all()
-        assert_equal(d.section[0,:,:].all(), dat[0,:,:].all())
-        assert_equal(d.section[1,:,:].all(), dat[1,:,:].all())
-        assert_equal(d.section[0,0,:].all(), dat[0,0,:].all())
-        assert_equal(d.section[0,1,:].all(), dat[0,1,:].all())
-        assert_equal(d.section[0,2,:].all(), dat[0,2,:].all())
-        assert_equal(d.section[1,0,:].all(), dat[1,0,:].all())
-        assert_equal(d.section[1,1,:].all(), dat[1,1,:].all())
-        assert_equal(d.section[1,2,:].all(), dat[1,2,:].all())
-        assert_equal(d.section[0,0,0].all(), dat[0,0,0].all())
-        assert_equal(d.section[0,0,1].all(), dat[0,0,1].all())
-        assert_equal(d.section[0,0,2].all(), dat[0,0,2].all())
-        assert_equal(d.section[0,1,0].all(), dat[0,1,0].all())
-        assert_equal(d.section[0,1,1].all(), dat[0,1,1].all())
-        assert_equal(d.section[0,1,2].all(), dat[0,1,2].all())
-        assert_equal(d.section[0,2,0].all(), dat[0,2,0].all())
-        assert_equal(d.section[0,2,1].all(), dat[0,2,1].all())
-        assert_equal(d.section[0,2,2].all(), dat[0,2,2].all())
-        assert_equal(d.section[1,0,0].all(), dat[1,0,0].all())
-        assert_equal(d.section[1,0,1].all(), dat[1,0,1].all())
-        assert_equal(d.section[1,0,2].all(), dat[1,0,2].all())
-        assert_equal(d.section[1,1,0].all(), dat[1,1,0].all())
-        assert_equal(d.section[1,1,1].all(), dat[1,1,1].all())
-        assert_equal(d.section[1,1,2].all(), dat[1,1,2].all())
-        assert_equal(d.section[1,2,0].all(), dat[1,2,0].all())
-        assert_equal(d.section[1,2,1].all(), dat[1,2,1].all())
-        assert_equal(d.section[1,2,2].all(), dat[1,2,2].all())
-        assert_equal(d.section[:,0,0].all(), dat[:,0,0].all())
-        assert_equal(d.section[:,0,1].all(), dat[:,0,1].all())
-        assert_equal(d.section[:,0,2].all(), dat[:,0,2].all())
-        assert_equal(d.section[:,1,0].all(), dat[:,1,0].all())
-        assert_equal(d.section[:,1,1].all(), dat[:,1,1].all())
-        assert_equal(d.section[:,1,2].all(), dat[:,1,2].all())
-        assert_equal(d.section[:,2,0].all(), dat[:,2,0].all())
-        assert_equal(d.section[:,2,1].all(), dat[:,2,1].all())
-        assert_equal(d.section[:,2,2].all(), dat[:,2,2].all())
-        assert_equal(d.section[0,:,0].all(), dat[0,:,0].all())
-        assert_equal(d.section[0,:,1].all(), dat[0,:,1].all())
-        assert_equal(d.section[0,:,2].all(), dat[0,:,2].all())
-        assert_equal(d.section[1,:,0].all(), dat[1,:,0].all())
-        assert_equal(d.section[1,:,1].all(), dat[1,:,1].all())
-        assert_equal(d.section[1,:,2].all(), dat[1,:,2].all())
-        assert_equal(d.section[:,:,0].all(), dat[:,:,0].all())
-        assert_equal(d.section[:,:,1].all(), dat[:,:,1].all())
-        assert_equal(d.section[:,:,2].all(), dat[:,:,2].all())
-        assert_equal(d.section[:,0,:].all(), dat[:,0,:].all())
-        assert_equal(d.section[:,1,:].all(), dat[:,1,:].all())
-        assert_equal(d.section[:,2,:].all(), dat[:,2,:].all())
+        assert (d.section[0,:,:] == dat[0,:,:]).all()
+        assert (d.section[1,:,:] == dat[1,:,:]).all()
+        assert (d.section[0,0,:] == dat[0,0,:]).all()
+        assert (d.section[0,1,:] == dat[0,1,:]).all()
+        assert (d.section[0,2,:] == dat[0,2,:]).all()
+        assert (d.section[1,0,:] == dat[1,0,:]).all()
+        assert (d.section[1,1,:] == dat[1,1,:]).all()
+        assert (d.section[1,2,:] == dat[1,2,:]).all()
+        assert (d.section[0,0,0] == dat[0,0,0]).all()
+        assert (d.section[0,0,1] == dat[0,0,1]).all()
+        assert (d.section[0,0,2] == dat[0,0,2]).all()
+        assert (d.section[0,1,0] == dat[0,1,0]).all()
+        assert (d.section[0,1,1] == dat[0,1,1]).all()
+        assert (d.section[0,1,2] == dat[0,1,2]).all()
+        assert (d.section[0,2,0] == dat[0,2,0]).all()
+        assert (d.section[0,2,1] == dat[0,2,1]).all()
+        assert (d.section[0,2,2] == dat[0,2,2]).all()
+        assert (d.section[1,0,0] == dat[1,0,0]).all()
+        assert (d.section[1,0,1] == dat[1,0,1]).all()
+        assert (d.section[1,0,2] == dat[1,0,2]).all()
+        assert (d.section[1,1,0] == dat[1,1,0]).all()
+        assert (d.section[1,1,1] == dat[1,1,1]).all()
+        assert (d.section[1,1,2] == dat[1,1,2]).all()
+        assert (d.section[1,2,0] == dat[1,2,0]).all()
+        assert (d.section[1,2,1] == dat[1,2,1]).all()
+        assert (d.section[1,2,2] == dat[1,2,2]).all()
+        assert (d.section[:,0,0] == dat[:,0,0]).all()
+        assert (d.section[:,0,1] == dat[:,0,1]).all()
+        assert (d.section[:,0,2] == dat[:,0,2]).all()
+        assert (d.section[:,1,0] == dat[:,1,0]).all()
+        assert (d.section[:,1,1] == dat[:,1,1]).all()
+        assert (d.section[:,1,2] == dat[:,1,2]).all()
+        assert (d.section[:,2,0] == dat[:,2,0]).all()
+        assert (d.section[:,2,1] == dat[:,2,1]).all()
+        assert (d.section[:,2,2] == dat[:,2,2]).all()
+        assert (d.section[0,:,0] == dat[0,:,0]).all()
+        assert (d.section[0,:,1] == dat[0,:,1]).all()
+        assert (d.section[0,:,2] == dat[0,:,2]).all()
+        assert (d.section[1,:,0] == dat[1,:,0]).all()
+        assert (d.section[1,:,1] == dat[1,:,1]).all()
+        assert (d.section[1,:,2] == dat[1,:,2]).all()
+        assert (d.section[:,:,0] == dat[:,:,0]).all()
+        assert (d.section[:,:,1] == dat[:,:,1]).all()
+        assert (d.section[:,:,2] == dat[:,:,2]).all()
+        assert (d.section[:,0,:] == dat[:,0,:]).all()
+        assert (d.section[:,1,:] == dat[:,1,:]).all()
+        assert (d.section[:,2,:] == dat[:,2,:]).all()
 
-        assert_equal(d.section[:,:,0:1].all(), dat[:,:,0:1].all())
-        assert_equal(d.section[:,:,0:2].all(), dat[:,:,0:2].all())
-        assert_equal(d.section[:,:,0:3].all(), dat[:,:,0:3].all())
-        assert_equal(d.section[:,:,1:2].all(), dat[:,:,1:2].all())
-        assert_equal(d.section[:,:,1:3].all(), dat[:,:,1:3].all())
-        assert_equal(d.section[:,:,2:3].all(), dat[:,:,2:3].all())
-        assert_equal(d.section[0:1,0:1,0:1].all(), dat[0:1,0:1,0:1].all())
-        assert_equal(d.section[0:1,0:1,0:2].all(), dat[0:1,0:1,0:2].all())
-        assert_equal(d.section[0:1,0:1,0:3].all(), dat[0:1,0:1,0:3].all())
-        assert_equal(d.section[0:1,0:1,1:2].all(), dat[0:1,0:1,1:2].all())
-        assert_equal(d.section[0:1,0:1,1:3].all(), dat[0:1,0:1,1:3].all())
-        assert_equal(d.section[0:1,0:1,2:3].all(), dat[0:1,0:1,2:3].all())
-        assert_equal(d.section[0:1,0:2,0:1].all(), dat[0:1,0:2,0:1].all())
-        assert_equal(d.section[0:1,0:2,0:2].all(), dat[0:1,0:2,0:2].all())
-        assert_equal(d.section[0:1,0:2,0:3].all(), dat[0:1,0:2,0:3].all())
-        assert_equal(d.section[0:1,0:2,1:2].all(), dat[0:1,0:2,1:2].all())
-        assert_equal(d.section[0:1,0:2,1:3].all(), dat[0:1,0:2,1:3].all())
-        assert_equal(d.section[0:1,0:2,2:3].all(), dat[0:1,0:2,2:3].all())
-        assert_equal(d.section[0:1,0:3,0:1].all(), dat[0:1,0:3,0:1].all())
-        assert_equal(d.section[0:1,0:3,0:2].all(), dat[0:1,0:3,0:2].all())
-        assert_equal(d.section[0:1,0:3,0:3].all(), dat[0:1,0:3,0:3].all())
-        assert_equal(d.section[0:1,0:3,1:2].all(), dat[0:1,0:3,1:2].all())
-        assert_equal(d.section[0:1,0:3,1:3].all(), dat[0:1,0:3,1:3].all())
-        assert_equal(d.section[0:1,0:3,2:3].all(), dat[0:1,0:3,2:3].all())
-        assert_equal(d.section[0:1,1:2,0:1].all(), dat[0:1,1:2,0:1].all())
-        assert_equal(d.section[0:1,1:2,0:2].all(), dat[0:1,1:2,0:2].all())
-        assert_equal(d.section[0:1,1:2,0:3].all(), dat[0:1,1:2,0:3].all())
-        assert_equal(d.section[0:1,1:2,1:2].all(), dat[0:1,1:2,1:2].all())
-        assert_equal(d.section[0:1,1:2,1:3].all(), dat[0:1,1:2,1:3].all())
-        assert_equal(d.section[0:1,1:2,2:3].all(), dat[0:1,1:2,2:3].all())
-        assert_equal(d.section[0:1,1:3,0:1].all(), dat[0:1,1:3,0:1].all())
-        assert_equal(d.section[0:1,1:3,0:2].all(), dat[0:1,1:3,0:2].all())
-        assert_equal(d.section[0:1,1:3,0:3].all(), dat[0:1,1:3,0:3].all())
-        assert_equal(d.section[0:1,1:3,1:2].all(), dat[0:1,1:3,1:2].all())
-        assert_equal(d.section[0:1,1:3,1:3].all(), dat[0:1,1:3,1:3].all())
-        assert_equal(d.section[0:1,1:3,2:3].all(), dat[0:1,1:3,2:3].all())
-        assert_equal(d.section[1:2,0:1,0:1].all(), dat[1:2,0:1,0:1].all())
-        assert_equal(d.section[1:2,0:1,0:2].all(), dat[1:2,0:1,0:2].all())
-        assert_equal(d.section[1:2,0:1,0:3].all(), dat[1:2,0:1,0:3].all())
-        assert_equal(d.section[1:2,0:1,1:2].all(), dat[1:2,0:1,1:2].all())
-        assert_equal(d.section[1:2,0:1,1:3].all(), dat[1:2,0:1,1:3].all())
-        assert_equal(d.section[1:2,0:1,2:3].all(), dat[1:2,0:1,2:3].all())
-        assert_equal(d.section[1:2,0:2,0:1].all(), dat[1:2,0:2,0:1].all())
-        assert_equal(d.section[1:2,0:2,0:2].all(), dat[1:2,0:2,0:2].all())
-        assert_equal(d.section[1:2,0:2,0:3].all(), dat[1:2,0:2,0:3].all())
-        assert_equal(d.section[1:2,0:2,1:2].all(), dat[1:2,0:2,1:2].all())
-        assert_equal(d.section[1:2,0:2,1:3].all(), dat[1:2,0:2,1:3].all())
-        assert_equal(d.section[1:2,0:2,2:3].all(), dat[1:2,0:2,2:3].all())
-        assert_equal(d.section[1:2,0:3,0:1].all(), dat[1:2,0:3,0:1].all())
-        assert_equal(d.section[1:2,0:3,0:2].all(), dat[1:2,0:3,0:2].all())
-        assert_equal(d.section[1:2,0:3,0:3].all(), dat[1:2,0:3,0:3].all())
-        assert_equal(d.section[1:2,0:3,1:2].all(), dat[1:2,0:3,1:2].all())
-        assert_equal(d.section[1:2,0:3,1:3].all(), dat[1:2,0:3,1:3].all())
-        assert_equal(d.section[1:2,0:3,2:3].all(), dat[1:2,0:3,2:3].all())
-        assert_equal(d.section[1:2,1:2,0:1].all(), dat[1:2,1:2,0:1].all())
-        assert_equal(d.section[1:2,1:2,0:2].all(), dat[1:2,1:2,0:2].all())
-        assert_equal(d.section[1:2,1:2,0:3].all(), dat[1:2,1:2,0:3].all())
-        assert_equal(d.section[1:2,1:2,1:2].all(), dat[1:2,1:2,1:2].all())
-        assert_equal(d.section[1:2,1:2,1:3].all(), dat[1:2,1:2,1:3].all())
-        assert_equal(d.section[1:2,1:2,2:3].all(), dat[1:2,1:2,2:3].all())
-        assert_equal(d.section[1:2,1:3,0:1].all(), dat[1:2,1:3,0:1].all())
-        assert_equal(d.section[1:2,1:3,0:2].all(), dat[1:2,1:3,0:2].all())
-        assert_equal(d.section[1:2,1:3,0:3].all(), dat[1:2,1:3,0:3].all())
-        assert_equal(d.section[1:2,1:3,1:2].all(), dat[1:2,1:3,1:2].all())
-        assert_equal(d.section[1:2,1:3,1:3].all(), dat[1:2,1:3,1:3].all())
-        assert_equal(d.section[1:2,1:3,2:3].all(), dat[1:2,1:3,2:3].all())
+        assert (d.section[:,:,0:1] == dat[:,:,0:1]).all()
+        assert (d.section[:,:,0:2] == dat[:,:,0:2]).all()
+        assert (d.section[:,:,0:3] == dat[:,:,0:3]).all()
+        assert (d.section[:,:,1:2] == dat[:,:,1:2]).all()
+        assert (d.section[:,:,1:3] == dat[:,:,1:3]).all()
+        assert (d.section[:,:,2:3] == dat[:,:,2:3]).all()
+        assert (d.section[0:1,0:1,0:1] == dat[0:1,0:1,0:1]).all()
+        assert (d.section[0:1,0:1,0:2] == dat[0:1,0:1,0:2]).all()
+        assert (d.section[0:1,0:1,0:3] == dat[0:1,0:1,0:3]).all()
+        assert (d.section[0:1,0:1,1:2] == dat[0:1,0:1,1:2]).all()
+        assert (d.section[0:1,0:1,1:3] == dat[0:1,0:1,1:3]).all()
+        assert (d.section[0:1,0:1,2:3] == dat[0:1,0:1,2:3]).all()
+        assert (d.section[0:1,0:2,0:1] == dat[0:1,0:2,0:1]).all()
+        assert (d.section[0:1,0:2,0:2] == dat[0:1,0:2,0:2]).all()
+        assert (d.section[0:1,0:2,0:3] == dat[0:1,0:2,0:3]).all()
+        assert (d.section[0:1,0:2,1:2] == dat[0:1,0:2,1:2]).all()
+        assert (d.section[0:1,0:2,1:3] == dat[0:1,0:2,1:3]).all()
+        assert (d.section[0:1,0:2,2:3] == dat[0:1,0:2,2:3]).all()
+        assert (d.section[0:1,0:3,0:1] == dat[0:1,0:3,0:1]).all()
+        assert (d.section[0:1,0:3,0:2] == dat[0:1,0:3,0:2]).all()
+        assert (d.section[0:1,0:3,0:3] == dat[0:1,0:3,0:3]).all()
+        assert (d.section[0:1,0:3,1:2] == dat[0:1,0:3,1:2]).all()
+        assert (d.section[0:1,0:3,1:3] == dat[0:1,0:3,1:3]).all()
+        assert (d.section[0:1,0:3,2:3] == dat[0:1,0:3,2:3]).all()
+        assert (d.section[0:1,1:2,0:1] == dat[0:1,1:2,0:1]).all()
+        assert (d.section[0:1,1:2,0:2] == dat[0:1,1:2,0:2]).all()
+        assert (d.section[0:1,1:2,0:3] == dat[0:1,1:2,0:3]).all()
+        assert (d.section[0:1,1:2,1:2] == dat[0:1,1:2,1:2]).all()
+        assert (d.section[0:1,1:2,1:3] == dat[0:1,1:2,1:3]).all()
+        assert (d.section[0:1,1:2,2:3] == dat[0:1,1:2,2:3]).all()
+        assert (d.section[0:1,1:3,0:1] == dat[0:1,1:3,0:1]).all()
+        assert (d.section[0:1,1:3,0:2] == dat[0:1,1:3,0:2]).all()
+        assert (d.section[0:1,1:3,0:3] == dat[0:1,1:3,0:3]).all()
+        assert (d.section[0:1,1:3,1:2] == dat[0:1,1:3,1:2]).all()
+        assert (d.section[0:1,1:3,1:3] == dat[0:1,1:3,1:3]).all()
+        assert (d.section[0:1,1:3,2:3] == dat[0:1,1:3,2:3]).all()
+        assert (d.section[1:2,0:1,0:1] == dat[1:2,0:1,0:1]).all()
+        assert (d.section[1:2,0:1,0:2] == dat[1:2,0:1,0:2]).all()
+        assert (d.section[1:2,0:1,0:3] == dat[1:2,0:1,0:3]).all()
+        assert (d.section[1:2,0:1,1:2] == dat[1:2,0:1,1:2]).all()
+        assert (d.section[1:2,0:1,1:3] == dat[1:2,0:1,1:3]).all()
+        assert (d.section[1:2,0:1,2:3] == dat[1:2,0:1,2:3]).all()
+        assert (d.section[1:2,0:2,0:1] == dat[1:2,0:2,0:1]).all()
+        assert (d.section[1:2,0:2,0:2] == dat[1:2,0:2,0:2]).all()
+        assert (d.section[1:2,0:2,0:3] == dat[1:2,0:2,0:3]).all()
+        assert (d.section[1:2,0:2,1:2] == dat[1:2,0:2,1:2]).all()
+        assert (d.section[1:2,0:2,1:3] == dat[1:2,0:2,1:3]).all()
+        assert (d.section[1:2,0:2,2:3] == dat[1:2,0:2,2:3]).all()
+        assert (d.section[1:2,0:3,0:1] == dat[1:2,0:3,0:1]).all()
+        assert (d.section[1:2,0:3,0:2] == dat[1:2,0:3,0:2]).all()
+        assert (d.section[1:2,0:3,0:3] == dat[1:2,0:3,0:3]).all()
+        assert (d.section[1:2,0:3,1:2] == dat[1:2,0:3,1:2]).all()
+        assert (d.section[1:2,0:3,1:3] == dat[1:2,0:3,1:3]).all()
+        assert (d.section[1:2,0:3,2:3] == dat[1:2,0:3,2:3]).all()
+        assert (d.section[1:2,1:2,0:1] == dat[1:2,1:2,0:1]).all()
+        assert (d.section[1:2,1:2,0:2] == dat[1:2,1:2,0:2]).all()
+        assert (d.section[1:2,1:2,0:3] == dat[1:2,1:2,0:3]).all()
+        assert (d.section[1:2,1:2,1:2] == dat[1:2,1:2,1:2]).all()
+        assert (d.section[1:2,1:2,1:3] == dat[1:2,1:2,1:3]).all()
+        assert (d.section[1:2,1:2,2:3] == dat[1:2,1:2,2:3]).all()
+        assert (d.section[1:2,1:3,0:1] == dat[1:2,1:3,0:1]).all()
+        assert (d.section[1:2,1:3,0:2] == dat[1:2,1:3,0:2]).all()
+        assert (d.section[1:2,1:3,0:3] == dat[1:2,1:3,0:3]).all()
+        assert (d.section[1:2,1:3,1:2] == dat[1:2,1:3,1:2]).all()
+        assert (d.section[1:2,1:3,1:3] == dat[1:2,1:3,1:3]).all()
+        assert (d.section[1:2,1:3,2:3] == dat[1:2,1:3,2:3]).all()
 
     def test_section_data_four(self):
         a = np.arange(256).reshape((4, 4, 4, 4))
@@ -691,15 +685,15 @@ class TestImageFunctions(FitsTestCase):
         hdul=fits.open(self.temp('test_new.fits'))
         d=hdul[0]
         dat = hdul[0].data
-        assert_equal(d.section[:,:,:,:].all(), dat[:,:,:,:].all())
-        assert_equal(d.section[:,:,:].all(), dat[:,:,:].all())
-        assert_equal(d.section[:,:].all(), dat[:,:].all())
+        assert (d.section[:,:,:,:] == dat[:,:,:,:]).all()
+        assert (d.section[:,:,:] == dat[:,:,:]).all()
+        assert (d.section[:,:] == dat[:,:]).all()
         assert d.section[:].all() == dat[:].all()
-        assert_equal(d.section[0,:,:,:].all(), dat[0,:,:,:].all())
-        assert_equal(d.section[0,:,0,:].all(), dat[0,:,0,:].all())
-        assert_equal(d.section[:,:,0,:].all(), dat[:,:,0,:].all())
-        assert_equal(d.section[:,1,0,:].all(), dat[:,1,0,:].all())
-        assert_equal(d.section[:,:,:,1].all(), dat[:,:,:,1].all())
+        assert (d.section[0,:,:,:] == dat[0,:,:,:]).all()
+        assert (d.section[0,:,0,:] == dat[0,:,0,:]).all()
+        assert (d.section[:,:,0,:] == dat[:,:,0,:]).all()
+        assert (d.section[:,1,0,:] == dat[:,1,0,:]).all()
+        assert (d.section[:,:,:,1] == dat[:,:,:,1]).all()
 
     def _test_comp_image(self, data, compression_type, quantize_level):
         primary_hdu = fits.PrimaryHDU()

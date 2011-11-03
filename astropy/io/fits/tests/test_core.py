@@ -281,7 +281,7 @@ class TestFileFunctions(FitsTestCase):
         hdul.flush()
         hdul.close()
 
-        assert old_mode == os.stat(filename.st_mode)
+        assert old_mode == os.stat(filename).st_mode
 
     def _make_gzip_file(self):
         gzfile = self.temp('test0.fits.gz')
