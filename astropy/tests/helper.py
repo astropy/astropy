@@ -179,5 +179,5 @@ class raises:
     def __call__(self, func):
         @functools.wraps(func)
         def run_raises_test(*args, **kwargs):
-            pytest.raises(self._exc, func)
+            pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
