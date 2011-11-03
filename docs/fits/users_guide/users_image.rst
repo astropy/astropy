@@ -1,4 +1,4 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 **********
 Image Data
@@ -11,7 +11,7 @@ Image Data as an Array
 ======================
 
 A FITS primary HDU or an image extension HDU may contain image data. The
-following discussions apply to both of these HDU classes. In PyFITS, for most
+following discussions apply to both of these HDU classes. In Astropy, for most
 cases, it is just a simple numpy array, having the shape specified by the NAXIS
 keywords and the data type specified by the BITPIX keyword - unless the data is
 scaled, see next section. Here is a quick cross reference between allowed
@@ -32,7 +32,7 @@ the numpy array of its data will have the shape of (400, 300).
 
 Here is a summary of reading and updating image data values:
 
-    >>> f = pyfits.open('image.fits') # open a FITS file
+    >>> f = astropy.io.fits.open('image.fits') # open a FITS file
     >>> scidata = f[1].data # assume the first extension is an image
     >>> print scidata[1,4] # get the pixel value at x=5, y=2
     >>> scidata[30:40, 10:20] # get values of the subsection
@@ -76,7 +76,7 @@ Images are scaled only when either of the BSCALE/BZERO keywords are present in
 the header and either of their values is not the default value (BSCALE=1,
 BZERO=0).
 
-For unscaled data, the data attribute of an HDU in PyFITS is a numpy array of
+For unscaled data, the data attribute of an HDU in Astropy is a numpy array of
 the same data type as specified by the BITPIX keyword. For scaled image, the
 .data attribute will be the physical data, i.e. already transformed from the
 storage data and may not be the same data type as prescribed in BITPIX. This
@@ -89,7 +89,7 @@ For integer data type, the scaled data will always be single precision floating
 point (numpy.float32). Here is an example of what happens to such a file,
 before and after the data is touched
 
-    >>> f = pyfits.open('scaled_uint16.fits')
+    >>> f = astropy.io.fits.open('scaled_uint16.fits')
     >>> hdu = f[1]
     >>> print hdu.header['bitpix'], hdu.header['bzero']
     16 32768
@@ -108,7 +108,7 @@ Writing Scaled Image Data
 -------------------------
 
 With the extra processing and memory requirement, we discourage users to use
-scaled data as much as possible. However, PyFITS does provide ways to write
+scaled data as much as possible. However, Astropy does provide ways to write
 scaled data with the scale(type, option, bscale, bzero) method. Here are a few
 examples:
 
@@ -130,7 +130,7 @@ before writing out to FITS files, i.e. calls of ``writeto()``, ``flush()``, or
 ``close()``. No further use of the data should be exercised. Here is an example
 of what happens to the ``.data`` attribute after the ``scale()`` call:
 
-    >>> hdu = pyfits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
+    >>> hdu = astropy.io.fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
     >>> print hdu.data
     [ 0. 1. 2. 3.]
     >>> hdu.scale('int16', '', bzero=32768)
@@ -155,9 +155,9 @@ to alleviate such memory problems.
 Here is an example of getting the median image from 3 input images of the size
 5000x5000:
 
-    >>> f1 = pyfits.open('file1.fits')
-    >>> f2 = pyfits.open('file2.fits')
-    >>> f3 = pyfits.open('file3.fits')
+    >>> f1 = astropy.io.fits.open('file1.fits')
+    >>> f2 = astropy.io.fits.open('file2.fits')
+    >>> f3 = astropy.io.fits.open('file3.fits')
     >>> output = numpy.zeros(5000 * 5000)
     >>> for i in range(50):
     ... j = i * 100

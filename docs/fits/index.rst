@@ -18,4 +18,4 @@ astropy.io.fits documentation
 
    users_guide/users_guide.rst
    api_docs/api_docs.rst
-
+   history.rst

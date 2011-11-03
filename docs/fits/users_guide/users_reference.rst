@@ -9,29 +9,29 @@ Converting a 3-color image (JPG) to separate FITS images
 ========================================================
 
 
-.. figure:: ../_static/Hs-2009-14-a-web.jpg
+.. figure:: ../../_static/images/fits/Hs-2009-14-a-web.jpg
    :scale: 100 %
    :align: center
    :alt: Starting image
 
 .. container:: figures
 
-    .. figure:: ../_static/Red.jpg
-       :target: ../_static/Red.jpg
+    .. figure:: ../../_static/images/fits/Red.jpg
+       :target: ../../_static/images/fits/Red.jpg
        :scale: 50
        :alt: Red color information
 
        Red color information
 
-    .. figure:: ../_static/Green.jpg
-       :target: ../_static/Green.jpg
+    .. figure:: ../../_static/images/fits/Green.jpg
+       :target: ../../_static/images/fits/Green.jpg
        :scale: 50
        :alt: Green color information
 
        Green color information
 
-    .. figure:: ../_static/Blue.jpg
-       :target: ../_static/Blue.jpg
+    .. figure:: ../../_static/images/fits/Blue.jpg
+       :target: ../../_static/images/fits/Blue.jpg
        :scale: 50
        :alt: Blue color information
 
@@ -40,7 +40,7 @@ Converting a 3-color image (JPG) to separate FITS images
 ::
 
     #!/usr/bin/env python
-    import pyfits
+    import astropy.io.fits
     import numpy 
     import Image
 
@@ -60,17 +60,17 @@ Converting a 3-color image (JPG) to separate FITS images
 
     # write out the fits images, the data numbers are still JUST the RGB
     # scalings; don't use for science
-    red = pyfits.PrimaryHDU()
+    red = astropy.io.fits.PrimaryHDU()
     red.header.update('LATOBS', "32:11:56") # add spurious header info
     red.header.update('LONGOBS', "110:56")
     red.data = npr
     red.writeto('red.fits')
-    green = pyfits.PrimaryHDU()
+    green = astropy.io.fits.PrimaryHDU()
     green.header.update('LATOBS', "32:11:56")
     green.header.update('LONGOBS', "110:56")
     green.data = npg
     green.writeto('green.fits')
-    blue = pyfits.PrimaryHDU()
+    blue = astropy.io.fits.PrimaryHDU()
     blue.header.update('LATOBS', "32:11:56")
     blue.header.update('LONGOBS', "110:56")
     blue.data = npb

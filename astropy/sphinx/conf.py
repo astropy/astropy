@@ -32,7 +32,7 @@ extensions = [
     'astropy.sphinx.ext.numpydoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.inheritance_diagram'
-    ]
+]
 
 # Don't show summaries of the members in each class along with the
 # class' docstring

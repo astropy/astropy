@@ -21,7 +21,7 @@ Exceptions
 Utility Classes
 ===============
 
-.. inheritance-diagram:: Delayed Undefined ErrorURLopener
+.. inheritance-diagram:: Delayed Undefined
    :parts: 2
 
 :class:`Delayed`
@@ -36,14 +36,6 @@ Utility Classes
 ------------------
 
 .. autoclass:: Undefined
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:class:`ErrorURLopener`
------------------------
-
-.. autoclass:: ErrorURLopener
    :members:
    :undoc-members:
    :show-inheritance:
