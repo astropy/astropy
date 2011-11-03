@@ -1,11 +1,11 @@
 astropy.io.fits history
 =======================
 
-Prior to its inclusion in astropy, the `astropy.io.fits` package was a stand-
+Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
 alone package called `PyFITS`_.  Though for the time being active development
-is continuing on PyFITS, that development is also being merged into AstroPy.
+is continuing on PyFITS, that development is also being merged into Astropy.
 This page documents the release history of PyFITS prior to its merge into
-AstroPy.
+Astropy.
 
 .. contents:: PyFITS Changelog
    :depth: 1

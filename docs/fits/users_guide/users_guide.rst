@@ -1,5 +1,5 @@
 ##################################
-Working with FITS Files in AstroPy
+Working with FITS Files in Astropy
 ##################################
 
 .. toctree::
@@ -12,5 +12,4 @@ Working with FITS Files in AstroPy
    users_table.rst
    users_verification.rst
    users_unfamiliar.rst
-   users_misc.rst
    users_reference.rst
