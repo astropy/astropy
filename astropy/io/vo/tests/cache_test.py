@@ -18,8 +18,8 @@ from numpy.testing.decorators import knownfailureif
 import numpy as np
 
 # LOCAL
-from astropy.io.vo import cache, conesearch, image, ssa, vos_catalog
-from astropy.io.vo.util import IS_PY3K
+from .. import cache, conesearch, image, ssa, vos_catalog
+from ..util import IS_PY3K
 
 """
 To test this stuff, a local webserver is started up in another process
