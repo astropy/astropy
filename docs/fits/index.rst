@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-astropy.io.fits documentation
+astropy.io.fits Documentation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 .. automodule:: astropy.io.fits
