@@ -1,0 +1,28 @@
+@import "stsci_sphinx.css";
+
+/* TODO: I'd like to put some of the fixes in here into stsci_sphinxext proper
+ * at which point this file might be able to go away */
+
+
+
+.figure.align-center {
+    clear: none;
+}
+
+/* This is a div for containing multiple figures side-by-side, for use with
+ * .. container:: figures */
+div.figures {
+    border: 1px solid #CCCCCC;
+    background-color: #F8F8F8;
+    margin: 1em;
+    text-align: center;
+}
+
+div.figures .figure {
+    clear: none;
+    float: none;
+    display: inline-block;
+    border: none;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
