@@ -1,11 +1,11 @@
 import numpy as np
 from numpy import char as chararray
 
-from ...io import fits
+from astropy.io import fits
+from astropy.tests.helper import pytest
+
 from ..util import decode_ascii
 from . import FitsTestCase
-
-from ...test.helper import pytest
 
 
 def comparefloats(a, b):
@@ -512,7 +512,7 @@ class TestTableFunctions(FitsTestCase):
                 (1, '', 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
                  '')]
 
-        assert fits.info(self.temp('newtable.fits') == output=False, info)
+        assert fits.info(self.temp('newtable.fits'), output=False) == info
 
         array = np.rec.array(
             [('NGC1', 312, '0.0', np.array([ 0.,  0.,  0.,  0.,  0.], dtype=np.float32), True),
@@ -716,14 +716,14 @@ class TestTableFunctions(FitsTestCase):
                 (1, '', 'BinTableHDU', 30, '4R x 10C',
                  '[10A, J, 10A, 5E, L, 10A, J, 10A, 5E, L]', '')]
 
-        assert fits.info(self.temp('newtable.fits') == output=False, info)
+        assert fits.info(self.temp('newtable.fits'), output=False) == info
 
         hdul = fits.open(self.temp('newtable.fits'))
         hdu = hdul[1]
 
         assert hdu.columns.names == ['target', 'counts', 'notes', 'spectrum',
                                      'flag', 'target1', 'counts1', 'notes1',
-                                     'spectrum1', 'flag1'])
+                                     'spectrum1', 'flag1']
 
         array = np.rec.array(
             [('NGC1', 312, '0.0', np.array([ 0.,  0.,  0.,  0.,  0.], dtype=np.float32), True, 'NGC5', 412, '0.0', np.array([ 0.,  0.,  0.,  0.,  0.], dtype=np.float32), False),

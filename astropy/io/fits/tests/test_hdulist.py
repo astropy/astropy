@@ -3,11 +3,11 @@ import warnings
 
 import numpy as np
 
-from ...io import fits
-from . import FitsTestCase
-from .util import BytesIO
+from astropy.io import fits
+from astropy.tests.helper import pytest, raises
 
-from ...test.helper import pytest
+from . import FitsTestCase
+from ..util import BytesIO
 
 
 class TestHDUListFunctions(FitsTestCase):
@@ -15,7 +15,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('o4sp040b0_raw.fits'))
         hdul[4].update_ext_name('Jim', "added by Jim")
         hdul[4].update_ext_version(9, "added by Jim")
-        assert hdul[('JIM' == 9].header['extname'], 'JIM')
+        assert hdul[('JIM', 9)].header['extname'] == 'JIM'
 
     def test_hdu_file_bytes(self):
         hdul = fits.open(self.data('checksum.fits'))
@@ -61,8 +61,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_extension_to_empty_list(self):
         """Tests appending a Simple ImageHDU to an empty HDUList."""
@@ -75,8 +74,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) ==info
 
     def test_append_table_extension_to_empty_list(self):
         """Tests appending a Simple Table ExtensionHDU to a empty HDUList."""
@@ -91,8 +89,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_groupshdu_to_empty_list(self):
         """Tests appending a Simple GroupsHDU to an empty HDUList."""
@@ -108,8 +105,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_primary_to_non_empty_list(self):
         """Tests appending a Simple PrimaryHDU to a non-empty HDUList."""
@@ -125,8 +121,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_extension_to_non_empty_list(self):
         """Tests appending a Simple ExtensionHDU to a non-empty HDUList."""
@@ -142,10 +137,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_append_groupshdu_to_non_empty_list(self):
         """Tests appending a Simple GroupsHDU to an empty HDUList."""
 
@@ -167,8 +161,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_extension_to_empty_list(self):
         """Tests inserting a Simple ImageHDU to an empty HDUList."""
@@ -183,8 +176,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_table_extension_to_empty_list(self):
         """Tests inserting a Simple Table ExtensionHDU to a empty HDUList."""
@@ -200,8 +192,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_groupshdu_to_empty_list(self):
         """Tests inserting a Simple GroupsHDU to an empty HDUList."""
@@ -217,8 +208,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_primary_to_non_empty_list(self):
         """Tests inserting a Simple PrimaryHDU to a non-empty HDUList."""
@@ -234,8 +224,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_extension_to_non_empty_list(self):
         """Tests inserting a Simple ExtensionHDU to a non-empty HDUList."""
@@ -251,8 +240,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_groupshdu_to_non_empty_list(self):
         """Tests inserting a Simple GroupsHDU to an empty HDUList."""
@@ -275,10 +263,9 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_insert_groupshdu_to_begin_of_hdulist_with_groupshdu(self):
         """
         Tests inserting a Simple GroupsHDU to the beginning of an HDUList
@@ -304,8 +291,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_insert_image_extension_to_primary_in_non_empty_list(self):
         """
@@ -325,8 +311,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-insert.fits'))
 
-        assert fits.info(self.temp('test-insert.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('test-insert.fits'), output=False) == info
 
     def test_filename(self):
         """Tests the HDUList filename method."""
@@ -350,8 +335,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
 
-        assert fits.info(self.temp('tmpfile.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_file_like_2(self):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
@@ -371,8 +355,7 @@ class TestHDUListFunctions(FitsTestCase):
         fits.writeto(tmpfile, np.arange(100, dtype=np.int32))
         tmpfile.close()
         info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
-        assert fits.info(self.temp('tmpfile.fits') == output=False,
-                     info)
+        assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_new_hdu_extname(self):
         """

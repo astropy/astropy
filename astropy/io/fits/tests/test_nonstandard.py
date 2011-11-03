@@ -1,4 +1,4 @@
-from ...io import fits
+from astropy.io import fits
 from . import FitsTestCase
 
 
