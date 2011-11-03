@@ -5,11 +5,11 @@ import zipfile
 
 import numpy as np
 
-from ...io import fits
-from .util import BytesIO
-from . import FitsTestCase
+from astropy.io import fits
+from astropy.tests.helper import pytest, raises
 
-from ...tests.helpers import pytest
+from . import FitsTestCase
+from ..util import BytesIO
 
 
 class TestCore(FitsTestCase):
@@ -155,7 +155,7 @@ class TestCore(FitsTestCase):
                       [])
         assert hdu.header['TESTKW'] == 'bar'
 
-    @pytest.raises(fits.VerifyError)
+    @raises(fits.VerifyError)
     def test_unfixable_missing_card(self):
         class TestHDU(fits.hdu.base.NonstandardExtHDU):
             def _verify(self, option='warn'):
@@ -166,7 +166,7 @@ class TestCore(FitsTestCase):
         hdu = TestHDU(header=fits.Header())
         hdu.verify('fix')
 
-    @pytest.raises(fits.VerifyError)
+    @raises(fits.VerifyError)
     def test_exception_on_verification_error(self):
         hdu = fits.ImageHDU()
         del hdu.header['NAXIS']
@@ -187,7 +187,7 @@ class TestCore(FitsTestCase):
         # Make sure the error wasn't fixed either, silently or otherwise
         assert 'NAXIS' not in hdu.header
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_unrecognized_verify_option(self):
         hdu = fits.ImageHDU()
         hdu.verify('foobarbaz')
@@ -218,7 +218,7 @@ class TestFileFunctions(FitsTestCase):
         pytest.raises(IOError, fits.open, zf, 'update')
         pytest.raises(IOError, fits.open, zf, 'append')
 
-    @pytest.raises(IOError)
+    @raises(IOError)
     def test_open_multipe_member_zipfile(self):
         """Opening zip files containing more than one member files should fail
         as there's no obvious way to specify which file is the FITS file to
@@ -308,7 +308,7 @@ class TestStreamingFunctions(FitsTestCase):
         assert isinstance(shdu.size, int)
         assert shdu.size == 100
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_streaming_hdu_file_wrong_mode(self):
         """Test that streaming an HDU to a file opened in the wrong mode
         fails as expected.

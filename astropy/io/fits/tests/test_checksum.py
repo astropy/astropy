@@ -2,10 +2,10 @@ import warnings
 
 import numpy as np
 
-from ...io import fits
-from . import FitsTestCase
+from astropy.io import fits
+from astropy.tests.helper import pytest
 
-from ...test.helper import pytest
+from . import FitsTestCase
 
 
 class TestChecksumFunctions(FitsTestCase):

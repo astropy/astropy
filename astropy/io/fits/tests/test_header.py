@@ -1,9 +1,7 @@
-from ...io import fits
+from astropy.io import fits
+from astropy.tests.helper import pytest
+
 from . import FitsTestCase
-
-from ...test.helper import pytest
-
-from nose.tools import assert_equal, assert_false, assert_raises, assert_true
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):

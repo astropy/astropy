@@ -3,11 +3,11 @@ import warnings
 
 import numpy as np
 
-from ...io import fits
+from astropy.io import fits
+from astropy.tests.helper import pytest, raises
+
 from . import FitsTestCase
 from .util import CaptureStdout
-
-from ...test.helper import pytest
 
 
 class TestImageFunctions(FitsTestCase):
@@ -114,18 +114,18 @@ class TestImageFunctions(FitsTestCase):
         pytest.raises(ValueError, fits.Card, ('abc',), {'value': (2, 3)})
         pytest.raises(ValueError, fits.Card, 'key', [], 'comment')
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_keyword_too_long(self):
         #keywords too long
         fits.Card('abcdefghi', 'long')
 
-    @pytest.raises(ValueError)
+    @raises(ValueError)
     def test_illegal_characters_in_key(self):
         # will not allow illegal characters in key when using constructor
         fits.Card('abc+', 9)
 
     # TODO: What sort of exception should this raise?
-    @pytest.raises(Exception)
+    @raises(Exception)
     def test_ascardiage_verifies_the_comment_string_to_be_ascii_text(self):
         # the ascardimage() verifies the comment string to be ASCII text
         c = fits.Card.fromstring('abc     = +  2.1   e + 12 / abcde\0')
@@ -290,7 +290,7 @@ class TestImageFunctions(FitsTestCase):
 
 
     # TODO: What sort of exception should this raise?
-    @pytest.raises(Exception)
+    @raises(Exception)
     def test_open(self):
         # The function "open" reads a FITS file into an HDUList object.  There
         # are three modes to open: "readonly" (the default), "append", and
