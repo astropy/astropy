@@ -1,19 +1,13 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 **************
 Quick Tutorial
 **************
 
-This chapter provides a quick introduction of using PyFITS. The goal is to
-demonstrate PyFITS's basic features without getting into too much detail. If
-you are a first time user or an occasional PyFITS user, using only the most
-basic functionality, this is where you should start. Otherwise, it is safe to
-skip this chapter.
-
-After installing numpy and PyFITS, start Python and load the PyFITS library.
-Note that the module name is all lower case.
-
-    >>> import pyfits
+This chapter provides a quick introduction of using `astropy.io.fits`. The goal
+is to demonstrate the package's basic features without getting into too much
+detail. If you are a first time user or have never used PyFITS , this is where
+you should start. Otherwise, it is safe to skip this chapter.
 
 
 Reading and Updating Existing FITS Files
@@ -23,17 +17,24 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 -------------------
 
-Once the PyFITS module is loaded, we can open an existing FITS file:
+Once the `astropy.io.fits` package is loaded, we can open an existing FITS
+file:
 
-    >>> hdulist = pyfits.open('input.fits')
+    >>> import astropy.io.fits
+    >>> hdulist = astropy.io.fits.open('input.fits')
 
-The open() function has several optional arguments which will be discussed in a
-later chapter. The default mode, as in the above example, is "readonly".  The
-open method returns a PyFITS object called an `HDUList` which is a Python-like
-list, consisting of HDU objects. An HDU (Header Data Unit) is the highest level
-component of the FITS file structure. So, after the above open call,
-``hdulist[0]`` is the primary HDU, ``hdulist[1]``, if any, is the first
-extension HDU, etc.  It should be noted that PyFITS is using zero-based
+For the sake of brevity, one may also use `astropy.io.fits` like so:
+
+    >>> from astropy.io import fits
+    >>> hdulist = fits.open('input.fits')
+
+The :func:`open` function has several optional arguments which will be
+discussed in a later chapter. The default mode, as in the above example, is
+"readonly".  The open function returns an object called an `HDUList` which is a
+Python list-like collection of HDU objects. An HDU (Header Data Unit) is the
+highest level component of the FITS file structure. So, after the above open
+call, ``hdulist[0]`` is the primary HDU, ``hdulist[1]``, if any, is the first
+extension HDU, etc.  It should be noted that Astropy is using zero-based
 indexing when referring to HDUs and header cards, though the FITS standard
 (which was designed with FORTRAN in mind) uses one-based indexing.
 
@@ -54,17 +55,17 @@ method:
 
     >>> hdulist.close()
 
-The headers will still be accessible after the HDUlist is closed. The data may
+The headers will still be accessible after the HDUList is closed. The data may
 or may not be accessible depending on whether the data are touched and if they
 are memory-mapped, see later chapters for detail.
 
 Working with large files
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `pyfits.open()` function supports a ``memmap=True`` argument that cause
-the array data of each HDU to be accessed with mmap, rather than being read
-into memory all at once.  This is particularly useful for working with very
-large arrays that cannot fit entirely into physical memory.
+The :func:`open` function supports a ``memmap=True`` argument that cause the
+array data of each HDU to be accessed with mmap, rather than being read into
+memory all at once.  This is particularly useful for working with very large
+arrays that cannot fit entirely into physical memory.
 
 This has minimal impact on smaller files as well, though some operations, such
 as reading the array data sequentially, may incur some additional overhead.  On
@@ -80,8 +81,8 @@ As mentioned earlier, each element of an HDUList is an HDU object with
 attributes of header and data, which can be used to access the header keywords
 and the data.
 
-The header attribute is a Header instance, another PyFITS object. To get the
-value of a header keyword, simply do (a la Python dictionaries):
+The header attribute is an instance of the `Header` class. To get the value of
+a header keyword, simply do (a la Python `dict` objects):
 
     >>> hdulist[0].header['targname']
     'NGC121'
@@ -89,7 +90,7 @@ value of a header keyword, simply do (a la Python dictionaries):
 to get the value of the keyword targname, which is a string 'NGC121'.
 
 Although keyword names are always in upper case inside the FITS file,
-specifying a keyword name with PyFITS is case-insensitive, for user's
+specifying a keyword name in Astropy is case-insensitive, for the user's
 convenience. If the specified keyword name does not exist, it will raise a
 KeyError exception.
 
@@ -101,7 +102,7 @@ We can also get the keyword value by indexing (a la Python lists):
 This example returns the 28th (like Python lists, it is 0-indexed) keyword's
 value, an integer, 96.
 
-Similarly, it is easy to update a keyword's value in PyFITS, either through
+Similarly, it is easy to update a keyword's value in Astropy, either through
 keyword name or index:
 
     >>> prihdr = hdulist[0].header
@@ -211,7 +212,7 @@ with record arrays is not a prerequisite for this Guide.
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute:
 
-    >>> hdulist = pyfits.open('table.fits')
+    >>> hdulist = astropy.io.fits.open('table.fits')
     >>> tbdata = hdulist[1].data # assuming the first extension is a table
 
 To see the first row of the table:
@@ -297,7 +298,7 @@ also be used to write all the changes made since ``open()``, back to the
 original file. The ``close()`` method will do the same for a FITS file opened
 with update mode.
 
-    >>> f = pyfits.open('original.fits', mode='update')
+    >>> f = astropy.io.fits.open('original.fits', mode='update')
     ... # making changes in data and/or header
     >>> f.flush() # changes are written back to original.fits
 
@@ -310,8 +311,8 @@ Creating a New Image File
 -------------------------
 
 So far we have demonstrated how to read and update an existing FITS file. But
-how about creating a new FITS file from scratch? Such task is very easy in
-PyFITS for an image HDU. We'll first demonstrate how to create a FITS file
+how about creating a new FITS file from scratch? Such tasks are very easy in
+Astropy for an image HDU. We'll first demonstrate how to create a FITS file
 consisting only the primary HDU with image data.
 
 First, we create a numpy object for the data part:
@@ -321,15 +322,15 @@ First, we create a numpy object for the data part:
 
 Next, we create a `PrimaryHDU` object to encapsulate the data:
 
-    >>> hdu = pyfits.PrimaryHDU(n)
+    >>> hdu = astropy.io.fits.PrimaryHDU(n)
 
 We then create a HDUList to contain the newly created primary HDU, and write to
 a new file:
 
-    >>> hdulist = pyfits.HDUList([hdu])
+    >>> hdulist = astropy.io.fits.HDUList([hdu])
     >>> hdulist.writeto('new.fits')
 
-That's it! In fact, PyFITS even provides a short cut for the last two lines to
+That's it! In fact, Astropy even provides a shortcut for the last two lines to
 accomplish the same behavior:
 
     >>> hdu.writeto('new.fits')
@@ -347,46 +348,42 @@ To create a table from scratch, we need to define columns first, by
 constructing the `Column` objects and their data. Suppose we have two columns,
 the first containing strings, and the second containing floating point numbers:
 
-    >>> import pyfits
+    >>> import astropy.io.fits
     >>> import numpy as np
     >>> a1 = np.array(['NGC1001', 'NGC1002', 'NGC1003'])
     >>> a2 = np.array([11.1, 12.3, 15.2])
-    >>> col1 = pyfits.Column(name='target', format='20A', array=a1)
-    >>> col2 = pyfits.Column(name='V_mag', format='E', array=a2)
+    >>> col1 = astropy.io.fits.Column(name='target', format='20A', array=a1)
+    >>> col2 = astropy.io.fits.Column(name='V_mag', format='E', array=a2)
 
 Next, create a `ColDefs` (column-definitions) object for all columns:
 
-    >>> cols = pyfits.ColDefs([col1, col2])
+    >>> cols = astropy.io.fits.ColDefs([col1, col2])
 
-Now, create a new binary table HDU object by using the PyFITS function
-`new_table()`:
+Now, create a new binary table HDU object by using the `new_table()` function:
 
-    >>> tbhdu = pyfits.new_table(cols)
+    >>> tbhdu = astropy.io.fits.new_table(cols)
 
 This function returns (in this case) a `BinTableHDU`.
 
 Of course, you can do this more concisely:
 
-    >>> tbhdu = pyfits.new_table(pyfits.ColDefs([pyfits.Column(name='target',
-    ...                                                        format='20A',
-    ...                                                        array=a1),
-    ...                                          pyfits.Column(name='V_mag',
-    ...                                                        format='E',
-    ...                                                        array=a2)]
-    ...                                        ))
+    >>> from astropy.io import fits
+    >>> tbhdu = fits.new_table(
+    ...     fits.ColDefs([fits.Column(name='target', format='20A', array=a1),
+    ...                   fits.Column(name='V_mag', format='E', array=a2)]))
 
 As before, we create a `PrimaryHDU` object to encapsulate the data:
 
-    >>> hdu = pyfits.PrimaryHDU(n)
+    >>> hdu = astropy.io.fits.PrimaryHDU(n)
 
 We then create a HDUList containing both the primary HDU and the newly created
 table extension, and write to a new file:
 
-    >>> thdulist = pyfits.HDUList([hdu, tbhdu])
+    >>> thdulist = astropy.io.fits.HDUList([hdu, tbhdu])
     >>> thdulist.writeto('table.fits')
 
 If this will be the only extension of the new FITS file and you only have a
-minimal primary HDU with no data, PyFITS again provides a short cut:
+minimal primary HDU with no data, Astropy again provides a shortcut:
 
     >>> tbhdu.writeto('table.fits')
 
@@ -395,17 +392,17 @@ the image file section:
 
     >>> hdulist.append(tbhdu)
 
-So far, we have covered the most basic features of PyFITS. In the following
-chapters we'll show more advanced examples and explain options in each class
-and method.
+So far, we have covered the most basic features of `astropy.io.fits`. In the
+following chapters we'll show more advanced examples and explain options in
+each class and method.
 
 
 Convenience Functions
 =====================
 
-PyFITS also provides several high level ("convenience") functions. Such a
-convenience function is a "canned" operation to achieve one simple task. By
-using these "convenience" functions, a user does not have to worry about
+`astropy.io.fits` also provides several high level ("convenience") functions.
+Such a convenience function is a "canned" operation to achieve one simple task.
+By using these "convenience" functions, a user does not have to worry about
 opening or closing a file, all the housekeeping is done implicitly.
 
 The first of these functions is `getheader()`, to get the header of an HDU.
@@ -413,7 +410,7 @@ Here are several examples of getting the header. Only the file name is required
 for this function. The rest of the arguments are optional and flexible to
 specify which HDU the user wants to get:
 
-    >>> from pyfits import getheader
+    >>> from astropy.io.fits import getheader
     >>> getheader('in.fits') # get default HDU (=0), i.e. primary HDU's header
     >>> getheader('in.fits', 0) # get primary HDU's header
     >>> getheader('in.fits', 2) # the second extension
@@ -433,7 +430,7 @@ specify which HDU the user wants to get:
 After you get the header, you can access the information in it, such as getting
 and modifying a keyword value:
 
-    >>> from pyfits import getheader
+    >>> from astropy.io.fits import getheader
     >>> hdr = getheader('in.fits', 1) # get first extension's header
     >>> filter = hdr['filter'] # get the value of the keyword "filter'
     >>> val = hdr[10] # get the 11th keyword's value
@@ -446,7 +443,7 @@ explained earlier in this chapter.
 If a user only needs to read one keyword, the `getval()` function can further
 simplify to just one call, instead of two as shown in the above examples:
 
-    >>> from pyfits import getval
+    >>> from astropy.io.fits import getval
     >>> flt = getval('in.fits', 'filter', 1) # get 1st extension's keyword
                                              # FILTER's value
     >>> val = getval('in.fits', 10, 'sci', 2) # get the 2nd sci extension's
@@ -458,7 +455,7 @@ the optional arguments. It does have one extra optional argument header. If
 header is set to True, this function will return both data and header,
 otherwise only data is returned.
 
-    >>> from pyfits import getdata
+    >>> from astropy.io.fits import getdata
     >>> dat = getdata('in.fits', 'sci', 3) # get 3rd sci extension's data
     # get 1st extension's data and header
     >>> data, hdr = getdata('in.fits', 1, header=True)
@@ -466,18 +463,18 @@ otherwise only data is returned.
 The functions introduced above are for reading. The next few functions
 demonstrate convenience functions for writing:
 
-    >>> pyfits.writeto('out.fits', data, header)
+    >>> astropy.io.fits.writeto('out.fits', data, header)
 
 The `writeto()` function uses the provided data and an optional header to write
 to an output FITS file.
 
-    >>> pyfits.append('out.fits', data, header)
+    >>> astropy.io.fits.append('out.fits', data, header)
 
 The `append()` function will use the provided data and the optional header to
 append to an existing FITS file. If the specified output file does not exist,
 it will create one.
 
-    >>> from pyfits import update
+    >>> from astropy.io.fits import update
     >>> update(file, dat, hdr, 'sci') # update the 'sci' extension
     >>> update(file, dat, 3) # update the 3rd extension
     >>> update(file, dat, hdr, 3) # update the 3rd extension
@@ -494,7 +491,7 @@ also be keyword arguments.
 Finally, the `info()` function will print out information of the specified FITS
 file:
 
-    >>> pyfits.info('test0.fits')
+    >>> astropy.io.fits.info('test0.fits')
     Filename: test0.fits
     No. Name Type Cards Dimensions Format
     0 PRIMARY PrimaryHDU 138 () Int16
