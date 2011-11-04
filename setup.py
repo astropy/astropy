@@ -77,6 +77,11 @@ for pkgnm,setuppkg in setup_helpers.iter_setup_packages():
 extensions.extend(setup_helpers.get_cython_extensions('astropy',extensions,
                                                       [numpy_includes]))
 
+#now remove extensions that have the special name 'skip_cython', as they exist
+#only to indicate that the cython extensions shouldn't be built
+for i, ext in reversed(list(enumerate(extensions))):
+        if ext.name=='skip_cython':
+            del extensions[i]
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
@@ -96,10 +101,8 @@ else:
                     msg = 'Could not find c-file {0} for {1}, skipping extension {2}'
                     log.warn(msg.format(cfn,s,ext.name))
                     todel.append(i)
-    for i in reversed(todel):
-        del extensions[i]
-        
-
+                    
+    
 # Implement a version of build_sphinx that automatically creates the
 # docs/_build dir - this is needed because github won't create the _build dir
 # because it has no tracked files
