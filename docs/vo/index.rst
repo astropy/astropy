@@ -1,11 +1,6 @@
 vo.table documentation
 ======================
 
-.. note::
-
-   The network functionality in the `conesearch`, `ssa` and `image`
-   modules is experimental and subject to change.
-
 Contents:
 
 .. toctree::
