@@ -1,11 +1,12 @@
 import gzip
+import io
 
 from ..card import Card, CardList
 from ..file import _File
 from .base import NonstandardExtHDU
 from .hdulist import HDUList
 from ..header import Header
-from ..util import lazyproperty, BytesIO, fileobj_name
+from ..util import lazyproperty, fileobj_name
 
 
 class FitsHDU(NonstandardExtHDU):
@@ -28,7 +29,7 @@ class FitsHDU(NonstandardExtHDU):
     @lazyproperty
     def hdulist(self):
         self._file.seek(self._datLoc)
-        fileobj = BytesIO()
+        fileobj = io.BytesIO()
         # Read the data into a BytesIO--reading directly from the file
         # won't work (at least for gzipped files) due to problems deep
         # within the gzip module that make it difficult to read gzip files
@@ -68,7 +69,7 @@ class FitsHDU(NonstandardExtHDU):
             Gzip compress the FITS file
         """
 
-        fileobj = bs = BytesIO()
+        fileobj = bs = io.BytesIO()
         if compress:
             if hasattr(hdulist, '_file'):
                 name = fileobj_name(hdulist._file)

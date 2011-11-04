@@ -1,4 +1,5 @@
 import gzip
+import io
 import os
 import warnings
 import zipfile
@@ -9,7 +10,6 @@ from astropy.io import fits
 from astropy.tests.helper import pytest, raises
 
 from . import FitsTestCase
-from ..util import BytesIO
 
 
 class TestCore(FitsTestCase):
@@ -257,7 +257,7 @@ class TestFileFunctions(FitsTestCase):
     def test_read_file_like_object(self):
         """Test reading a FITS file from a file-like object."""
 
-        filelike = BytesIO()
+        filelike = io.BytesIO()
         with open(self.data('test0.fits'), 'rb') as f:
             filelike.write(f.read())
         filelike.seek(0)
@@ -336,7 +336,7 @@ class TestStreamingFunctions(FitsTestCase):
 
         arr = np.zeros((5, 5), dtype=np.int32)
         # The file-like object underlying a StreamingHDU must be in binary mode
-        sf = BytesIO()
+        sf = io.BytesIO()
         shdu = self._make_streaming_hdu(sf)
         shdu.write(arr)
         assert shdu.writecomplete

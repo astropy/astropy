@@ -1,3 +1,4 @@
+import io
 import os
 import warnings
 
@@ -7,7 +8,6 @@ from astropy.io import fits
 from astropy.tests.helper import pytest, raises
 
 from . import FitsTestCase
-from ..util import BytesIO
 
 
 class TestHDUListFunctions(FitsTestCase):
@@ -378,7 +378,7 @@ class TestHDUListFunctions(FitsTestCase):
         HDU.
         """
 
-        sf = BytesIO()
+        sf = io.BytesIO()
         arr = np.zeros((100, 100))
         hdu = fits.PrimaryHDU(data=arr)
         hdu.writeto(sf)
