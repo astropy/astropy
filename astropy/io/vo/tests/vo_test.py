@@ -1,7 +1,5 @@
 """
 This is a set of regression tests for vo.
-
-To run, install "nose", and run "nosetests vo.tests".
 """
 
 from __future__ import absolute_import, print_function
@@ -18,8 +16,7 @@ import sys
 import tempfile
 
 # THIRD-PARTY
-from numpy.testing import assert_array_equal, assert_raises
-from numpy.testing.decorators import knownfailureif
+from numpy.testing import assert_array_equal
 import numpy as np
 
 # LOCAL
@@ -28,6 +25,7 @@ from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
+from astropy.tests.helper import pytest, raises
 
 numpy_has_complex_bug = (np.__version__[:3] < '1.5')
 
@@ -73,11 +71,10 @@ def test_parse_single_table2():
     assert len(table2.array.dtype.names) == 28
 
 
+@raises(IndexError)
 def test_parse_single_table3():
-    def raises():
-        table2 = parse_single_table(join(ROOT_DIR, "regression.xml"),
-                                    table_number=2, pedantic=False)
-    assert_raises(IndexError, raises)
+    table2 = parse_single_table(join(ROOT_DIR, "regression.xml"),
+                                table_number=2, pedantic=False)
 
 
 def test_regression():
@@ -392,7 +389,7 @@ class TestParse:
                 assert issubclass(a0.dtype.type, np.bool_)
                 assert_array_equal(a0, b0)
 
-    @knownfailureif(numpy_has_complex_bug)
+    @pytest.mark.skipif('numpy_has_complex_bug')
     def test_floatComplex(self):
         assert issubclass(self.array['floatComplex'].dtype.type,
                           np.complex64)
@@ -401,7 +398,7 @@ class TestParse:
         assert_array_equal(self.mask['floatComplex'],
                            [True, False, False, True, True])
 
-    @knownfailureif(numpy_has_complex_bug)
+    @pytest.mark.skipif('numpy_has_complex_bug')
     def test_doubleComplex(self):
         assert issubclass(self.array['doubleComplex'].dtype.type,
                           np.complex128)
@@ -410,7 +407,7 @@ class TestParse:
         assert_array_equal(self.mask['doubleComplex'],
                            [True, False, False, True, True])
 
-    @knownfailureif(numpy_has_complex_bug)
+    @pytest.mark.skipif('numpy_has_complex_bug')
     def test_doubleComplexArray(self):
         assert issubclass(self.array['doubleComplexArray'].dtype.type,
                           np.object_)
@@ -572,11 +569,10 @@ def test_open_files():
         yield test_file, filename
 
 
+@raises(VOTableSpecError)
 def test_too_many_columns():
-    def raises():
-        votable = parse(join(ROOT_DIR, "too_many_columns.xml.gz"),
-                        pedantic=False)
-    assert_raises(VOTableSpecError, raises)
+    votable = parse(join(ROOT_DIR, "too_many_columns.xml.gz"),
+                    pedantic=False)
 
 
 def test_build_from_scratch():
