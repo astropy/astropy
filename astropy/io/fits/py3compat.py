@@ -167,13 +167,6 @@ if sys.version_info[0] >= 3:
     util.translate = translate
 else:
     # Stuff to do if not Python 3
-
-    # We want a bytes stand-in so we can do stuff like isinstance(..., bytes)
-    # and have it work correctly
-    import __builtin__
-    if not hasattr(__builtin__, 'bytes'):
-        __builtin__.bytes = str
-
     import string
     from . import util
     util.maketrans = string.maketrans
