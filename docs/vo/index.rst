@@ -1,5 +1,5 @@
-vo.table documentation
-======================
+astropy.io.vo Documentation
+===========================
 
 Contents:
 

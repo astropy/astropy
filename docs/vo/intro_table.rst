@@ -120,11 +120,11 @@ Pedantic mode
 
 Many VOTABLE files in the wild do not conform to the VOTABLE
 specification.  If reading one of these files causes exceptions, you
-may turn off pedantic mode in `vo.table` by passing ``pedantic=False``
-to the `~astropy.io.vo.table.parse` or
+may turn off pedantic mode in `astropy.io.vo` by passing
+``pedantic=False`` to the `~astropy.io.vo.table.parse` or
 `~astropy.io.vo.table.parse_single_table` functions::
 
-  from vo.table import parse
+  from astropy.io.vo.table import parse
   votable = parse("votable.xml", pedantic=False)
 
 Note, however, that it is good practice to report these errors to the
@@ -249,7 +249,7 @@ example::
 .. note::
    Field descriptors should not be mutated -- they will have no effect
    on the record arrays storing the data.  This shortcoming will be
-   addressed in a future version of ``vo.table``.
+   addressed in a future version of `astropy.io.vo`.
 
 Outputting a VOTable file
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,10 +261,10 @@ string or unicode path, or a Python file-like object::
   votable.to_xml('output.xml')
 
 There are currently two data storage formats supported by
-`astropy.io.vo.table`.  The ``TABLEDATA`` format is XML-based and
-stores values as strings representing numbers.  The ``BINARY`` format
-is more compact, and stores numbers in base64-encoded binary.  The
-storage format can be set on a per-table basis using the
+`astropy.io.vo`.  The ``TABLEDATA`` format is XML-based and stores
+values as strings representing numbers.  The ``BINARY`` format is more
+compact, and stores numbers in base64-encoded binary.  The storage
+format can be set on a per-table basis using the
 `~astropy.io.vo.tree.Table.format` attribute, or globally using the
 `~astropy.io.vo.tree.VOTableFile.set_all_tables_format` method::
 
