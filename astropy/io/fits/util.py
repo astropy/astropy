@@ -1,20 +1,9 @@
-import __builtin__
 import functools
 import itertools
 import os
 import sys
 import tempfile
 import warnings
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
-try:
-    from io import BytesIO
-except ImportError:
-    BytesIO = StringIO
 
 import numpy as np
 
@@ -551,36 +540,3 @@ def _tmp_name(input):
     f, fn = tempfile.mkstemp(dir=input)
     os.close(f)
     return fn
-
-
-if sys.version_info[:2] < (2, 6):
-    # Replace the builtin property to add support for the getter/setter/deleter
-    # mechanism as introduced in Python 2.6 (this can go away if we ever drop
-    # 2.5 support)
-    class property(property):
-        def __init__(self, fget, *args, **kwargs):
-            self.__doc__ = fget.__doc__
-            super(property, self).__init__(fget, *args, **kwargs)
-
-        def getter(self, fget):
-            return self.__ter(fget, 0)
-
-        def setter(self, fset):
-            return self.__ter(fset, 1)
-
-        def deleter(self, fdel):
-            return self.__ter(fdel, 2)
-
-        def __ter(self, f, arg):
-            args = [self.fget, self.fset, self.fdel, self.__doc__]
-            args[arg] = f
-            cls_ns = sys._getframe(1).f_locals
-            for k, v in cls_ns.iteritems():
-                if v is self:
-                    property_name = k
-                    break
-
-            cls_ns[property_name] = property(*args)
-
-            return cls_ns[property_name]
-    __builtin__.property = property

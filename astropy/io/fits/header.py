@@ -1,12 +1,6 @@
+import collections
 import os
 import warnings
-
-try:
-    from collections import MutableMapping as __HEADERBASE
-except ImportError:
-    from UserDict import DictMixin
-    class __HEADERBASE(DictMixin, object): # object to make a newstyle class
-        pass
 
 from .card import (Card, CardList, RecordValuedKeywordCard, _ContinueCard,
                    _HierarchCard, create_card, create_card_from_string,
@@ -14,7 +8,7 @@ from .card import (Card, CardList, RecordValuedKeywordCard, _ContinueCard,
 from .util import BLOCK_SIZE, deprecated, _pad_length
 
 
-class Header(__HEADERBASE):
+class Header(collections.MutableMapping):
     """
     FITS header class.
 
