@@ -4,9 +4,13 @@
 from .. import Constant,si,cgs
 
 def test_c():    
-    #no one is going to be updating c to be *too* much off from 3e8...
-    assert abs(si.c - 3e8)<1e7
-    assert abs(cgs.c - 3e10)<1e9
+    #c is an exactly defined constant, so it shouldn't be changing
+    assert si.c == 2.99792458e8
+    assert cgs.c == 2.99792458e10
+    
+    #check that the float-translation stuff works as expected
+    assert si.c.real == si.c*1
+    assert cgs.c.real == cgs.c-0
     
     #make sure it has the necessary attributes and they're not blank
     assert si.c.error==0 #c is a *defined* quantity
@@ -19,9 +23,10 @@ def test_c():
     assert cgs.c.units
     
 def test_h():    
-    #check that the float-translation stuff works as expected
-    assert si.h.real == si.h*1
-    assert cgs.h.real == cgs.h-0
+    #check that the value is fairly close to what it should be (not exactly
+    #checking because this might get updated in the future)
+    assert abs(si.h-6.626e-34) < 1e-38
+    assert abs(cgs.h-6.626e-27) < 1e-31
     
     #make sure it has the necessary attributes and they're not blank
     assert si.h.error
