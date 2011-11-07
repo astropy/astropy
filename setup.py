@@ -135,13 +135,6 @@ except ImportError:  # Sphinx not present
     pass
 
 
-try:
-    from distutils.command.build_py import build_py_2to3 as build_py
-except ImportError:
-    from distutils.command.build_py import build_py
-cmdclassd['build_py'] = build_py
-
-
 setup(name='astropy',
       version=version,
       description='Community-developed python astronomy tools',
