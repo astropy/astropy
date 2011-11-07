@@ -149,5 +149,6 @@ setup(name='astropy',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
-      zip_safe=False
+      zip_safe=False,
+      use_2to3=True
       )
