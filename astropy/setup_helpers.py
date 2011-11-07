@@ -19,9 +19,7 @@ except ImportError:
 
 
 def get_distutils_option(option, commands):
-    """
-    Returns the value of the given distutils option.  If the option is not
-    set, returns None.
+    """ Returns the value of the given distutils option.  
 
     Parameters
     ----------
@@ -30,6 +28,12 @@ def get_distutils_option(option, commands):
 
     commands : list of str
         The list of commands on which this option is available
+        
+    Returns
+    -------
+    val : str or None
+        the value of the given distutils option. If the option is not set,
+        returns None.
     """
     # Pre-parse the Distutils command-line options and config files to
     # if the option is set.
@@ -40,7 +44,10 @@ def get_distutils_option(option, commands):
     except DistutilsError:
         # Let distutils handle this itself
         return None
-
+    except AttributeError:
+        # This seems to get thrown for ./setup.py --help
+        return None
+    
     for cmd in commands:
         if cmd in dist.commands:
             break
