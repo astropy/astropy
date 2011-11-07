@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 
 #LOCAL
 from .. import util
-from astropy.tests.helper import raises
+from ....tests.helper import raises
 
 
 def test_range_list():

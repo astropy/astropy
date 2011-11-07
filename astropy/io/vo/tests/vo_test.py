@@ -25,7 +25,7 @@ from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
-from astropy.tests.helper import pytest, raises
+from ....tests.helper import pytest, raises
 
 numpy_has_complex_bug = (np.__version__[:3] < '1.5')
 
