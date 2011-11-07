@@ -509,8 +509,8 @@ class TestThroughBinary(TestParse):
     def setup_class(self):
         votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
         votable.get_first_table().format = 'binary'
-        votable.to_xml(join(ROOT_DIR, "test_through_binary.xml"))
-        self.table = parse(join(ROOT_DIR, "test_through_binary.xml"),
+        votable.to_xml(join(TMP_DIR, "test_through_binary.xml"))
+        self.table = parse(join(TMP_DIR, "test_through_binary.xml"),
                            pedantic=False).get_first_table()
         self.array = self.table.array
         self.mask = self.table.mask
