@@ -1,12 +1,6 @@
 from datetime import datetime
 import numpy as np
 
-
-    
-    
-    
-
-
 class AstroTime(object):
     """Class to store a time variable.
     The internal format uses the January 1, 4713 BC Greenwich noon as the zeropoint (Julian Day)
@@ -14,27 +8,35 @@ class AstroTime(object):
     
     @classmethod
     def from_jd(cls, jd_time):
-        """Instantiate an AstroTime-object with Julian Date"""
+        """
+        Instantiate an AstroTime-object with Julian Date
+        
+        :param jd_time:
+            A float object
+        """
         days = np.int64(jd_time)
         fraction_of_day = np.fmod(jd_time, 1.0)
         return cls(days, fraction_of_day)
         
     @classmethod
-    def from_gregorian_date(cls, gregorian_datetime):
-        #def calendar_to_jd(caltime,tz=None,gregorian=True,mjd=False):
+    def from_date_gregorian(cls, gregorian_datetime):
         """
-        Convert a calendar date and time to julian date.
+        Convert a gregorian calendar date and time (using `datetime.datetime`) to julian date.
         
         :param gregorian_datetime: 
-            A :class:`datetime.datetime` object                    
-        
-        
-        
+            A :class:`datetime.datetime` object
         
         **Examples**
         
         >>> from astropy import astrotime
-        >>> astrotime.AstroTime.from_jd(2455872.3907755)
+        >>> import datetime
+        >>> mytime = astrotime.AstroTime.from_date_gregorian(datetime.datetime(1546, 12, 14, 12, 0, 0))
+        >>> mytime.to_jd()
+        2286072.0
+        
+        **References**
+        http://asa.usno.navy.mil/SecM/Glossary.html
+        http://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
         """
         
         # Reference: http://asa.usno.navy.mil/SecM/Glossary.html
@@ -66,23 +68,14 @@ class AstroTime(object):
         """return the date as JD in a float64"""
         return np.float64(self.days+self.fraction_of_day)
     
-    def to_gregorian_date(self):
+    def to_date_gregorian(self):
+        """
+        returns the gregorian date in a `datetime.datetime` object
+        
+        **Reference**
+        http://www.usno.navy.mil/USNO/astronomical-applications/astronomical-information-center/julian-date-form
         """
         
-        **Examples**
-        
-        >>> jd_to_calendar(2451545)
-        datetime.datetime(2000, 1, 1, 12, 0, tzinfo=tzutc())
-        >>> jd_to_calendar(2305812.5)
-        datetime.datetime(1600, 12, 31, 0, 0, tzinfo=tzutc())
-        >>> jd_to_calendar([2415020.5,2305447.5],output='array')
-        array([[1900,    1,    1,    0,    0,    0,    0],
-               [1600,    1,    1,    0,    0,    0,    0]])
-        >>> jd_to_calendar(0.0,output='fracarray')
-        array([[ -4.71200000e+03,   1.00000000e+00,   1.50000000e+00]])
-            
-        """
-        # Reference: http://www.usno.navy.mil/USNO/astronomical-applications/astronomical-information-center/julian-date-form
         
         jd_fraction_of_days = self.fraction_of_day + 0.5    
         jd_days = np.int64(self.days + jd_fraction_of_days // 1.0)
