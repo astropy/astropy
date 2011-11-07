@@ -22,3 +22,5 @@ develop-eggs
 
 # other
 .*.swp
+
+*.komodoproject
