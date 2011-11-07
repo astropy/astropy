@@ -45,9 +45,9 @@ def setup_module():
     global TMP_DIR
     TMP_DIR = tempfile.mkdtemp()
 
-# def teardown_module():
-#     shutil.rmtree(TMP_DIR)
-#     pass
+def teardown_module():
+    shutil.rmtree(TMP_DIR)
+    pass
 
 def assert_validate_schema(filename):
     try:
