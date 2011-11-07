@@ -227,8 +227,9 @@ def test_fixes():
     From github issue #36
     """
     def run():
-        header = open(os.path.join(ROOT_DIR, 'data', 'nonstandard_units.hdr'),
-                      'rb').read()
+        with open(os.path.join(ROOT_DIR, 'data', 'nonstandard_units.hdr'),
+                  'rb') as fd:
+            header = fd.read()
         w = wcs.WCS(header)
 
     import warnings
