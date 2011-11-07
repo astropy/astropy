@@ -1,10 +1,18 @@
-#compiled files
+# Compiled files
 *.py[co]
 *.a
 *.o
 *.so
+__pycache__
 
-#sphinx
+# Ignore .c files by default to avoid including generated code. If you want to
+# add a non-generated .c extension, use `git add -f filename.c`.
+*.c
+
+# Other generated files
+astropy/version.py
+
+# Sphinx
 _build
 
 # Packages/installer info
@@ -19,8 +27,8 @@ var
 sdist
 develop-eggs
 .installed.cfg
+distribute-*.tar.gz
 
-# other
+# Other
 .*.swp
-
-*.komodoproject
+*~

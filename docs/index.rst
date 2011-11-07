@@ -3,20 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Astropy's documentation!
+Welcome to Astropy's Documentation!
 ===================================
 
-The current AstroPy documentation is limited, as no code has yet been developed.  
-For more information, see the `github wiki <http://github.com/astropy/astropy/wiki>`_ page of the project.
+The current Astropy documentation is limited, as not much code has yet been
+developed.  For more information, see the `github wiki
+<http://github.com/astropy/astropy/wiki>`_ page of the project.
 
 .. toctree::
    :maxdepth: 2
-   
+
    overview
    development/index
+   wcs/index
 
-
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

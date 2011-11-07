@@ -29,6 +29,11 @@ Interface and Dependencies
   and Matplotlib_ (versions for these packages will be specified in the
   Astropy ``setup.py`` file and on PyPI_).
 
+* The package should be importable from the source tree at build time.
+  This means that, for example, if the package relies on C extensions
+  that have yet to be built, the Python code is still importable, even
+  if none of its functionality will work.
+
 * Additional dependencies are allowed for sub-modules or in function calls,
   but they must be noted in the package documentation and should only affect
   the relevant component.
@@ -82,6 +87,12 @@ Coding Style/Conventions
 
           See :doc:`codeguide_emacs` for some configuration options for
           Emacs that helps in ensuring conformance to PEP8.
+      
+* Astropy source code should contain a comment at the beginning of the file (or
+  imppediately after the ``#!/usr/bin env python`` command, if relevant) 
+  pointing to the license for the Astropy source code.  This line should say::
+  
+      # Licensed under a 3-clause BSD style license - see LICENSE.rst  
 
 * The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
   matplotlib.pyplot as plt`` naming conventions should be used wherever
@@ -117,10 +128,17 @@ Coding Style/Conventions
   method resolution order.  However, trivial multiple inheritance using
   orthogonal base classes, known as the 'mixin' pattern, may be used.
 
+* ``__init__.py`` files for modules should not contain any significant 
+  implementation code. ``__init__.py`` can contain docstrings and code for 
+  organizing the module layout, however (e.g. ``from submodule import *``
+  in accord with the guideline above). If a module is small enough that 
+  it fits in one file, it should simple be a single file, rather than a 
+  directory with an ``__init__.py`` file. 
+
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
 
-Including C code
+Including C Code
 ----------------
 
 * C extensions are only allowed when they provide a significant performance
@@ -144,7 +162,7 @@ Including C code
   Style Guide for C Code <http://www.python.org/dev/peps/pep-0007/>`_ is
   recommended.
 
-Requirements specific to Affiliated Packages
+Requirements Specific to Affiliated Packages
 --------------------------------------------
 
 * Affiliated packages must be registered on the `Python Package Index
@@ -192,7 +210,7 @@ a get/set method. For lengthy or complex calculations, however, use a method::
     >>> print s.compute_color(5800, age=5e9)
     0.4
 
-super() vs. direct calling
+super() vs. Direct Calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example shows why the use of :func:`super` leads to a more consistent

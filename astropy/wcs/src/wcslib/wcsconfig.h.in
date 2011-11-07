@@ -1,0 +1,18 @@
+/*============================================================================
+*
+*   wcsconfig.h is generated from wcsconfig.h.in by 'configure'.  It contains
+*   C preprocessor macro definitions for compiling WCSLIB 4.8
+*
+*   Author: Mark Calabretta, Australia Telescope National Facility
+*   http://www.atnf.csiro.au/~mcalabre/index.html
+*   $Id: wcsconfig.h.in,v 4.8.1.1 2011/08/15 08:07:07 cal103 Exp cal103 $
+*===========================================================================*/
+
+/* WCSLIB library version number. */
+#undef WCSLIB_VERSION
+
+/* Define to 1 if sincos() is available. */
+#undef HAVE_SINCOS
+
+/* 64-bit integer data type. */
+#undef WCSLIB_INT64
