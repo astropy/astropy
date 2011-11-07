@@ -14,7 +14,9 @@ import re
 import sys
 import urllib2
 if IS_PY3K:
-    basestring = (str, bytes)
+    string_types = (str, bytes)
+else:
+    string_types = (str, unicode)
 
 # THIRD-PARTY
 import numpy as np
@@ -170,7 +172,7 @@ def check_string(string, attr_name, config={}, pos=None):
     config, pos : optional
         Information about the source of the value
     """
-    if string is not None and not isinstance(string, basestring):
+    if string is not None and not isinstance(string, string_types):
         warn_or_raise(W08, W08, attr_name, config, pos)
         return False
     return True
@@ -564,7 +566,7 @@ class Values(Element):
     def _get_null(self):
         return self._null
     def _set_null(self, null):
-        if null is not None and isinstance(null, basestring):
+        if null is not None and isinstance(null, string_types):
             try:
                 null_val = self._field.converter.parse_scalar(
                     null, self._config, self._pos)[0]
@@ -1196,7 +1198,7 @@ class Param(Field):
     def _set_value(self, value):
         if value is None:
             vo_raise(E14, (), self._config, self._pos)
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:
@@ -2039,7 +2041,7 @@ class Table(Element):
         if not columns:
             colnumbers = range(len(fields))
         else:
-            if isinstance(columns, basestring):
+            if isinstance(columns, string_types):
                 columns = [columns]
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
@@ -2805,6 +2807,7 @@ class VOTableFile(Element):
         self._infos              = util.HomogeneousList(Info)
         self._resources          = util.HomogeneousList(Resource)
         self._groups             = util.HomogeneousList(Group)
+        print(str)
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
         self._version            = version
