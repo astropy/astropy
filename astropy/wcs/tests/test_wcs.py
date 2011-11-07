@@ -239,5 +239,5 @@ def test_fixes():
         assert len(w) == 3
         for item in w:
             assert issubclass(item.category, wcs.FITSFixedWarning)
-            if 'unitfix' in item.message:
-                assert 'Hz' in item.message
+            if 'unitfix' in str(item.message):
+                assert 'Hz' in str(item.message)
