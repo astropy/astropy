@@ -44,11 +44,12 @@ class AstroTime(object):
             self._secprec = secprecision
             
             if time is None:
-                self._set_from_jd(self._datetime_to_jd(None))
+                self._val = self._jd_to_val(self._datetime_to_jd(None))
             elif isinstance(time,datetime):
-                self._set_from_jd(self._datetime_to_jd(time))
+                self._val = self._jd_to_val(self._datetime_to_jd(time))
             elif isinstance(time,basestring):
-                self._set_from_jd(self._epoch_to_jd(float(time[1:]), time[0]))
+                self._val = self._jd_to_val(self._epoch_to_jd(float(time[1:]), 
+                                                              time[0]))
             else:
                 self._val = long(time)
     
@@ -122,87 +123,31 @@ class AstroTime(object):
         from datetime import datetime,date,tzinfo
         
         if caltime is None:
-            from dateutil.tz import tzlocal
-            datetimes = [datetime.now(tzlocal())]
-        elif isinstance(caltime,datetime) or isinstance(caltime,date):
-            datetimes = [caltime]
-        elif all([isinstance(ct,datetime) or isinstance(ct,date) for ct in caltime]):
-            datetimes = caltime
+            dt = datetime.now()
         else:
-            datetimes = None
-            caltime = list(caltime)
-            if not (3 <= len(caltime) < 8):
-                raise ValueError('caltime input sequence is invalid size')
-            while len(caltime) < 7:
-                if len(caltime) == 3:
-                    #make hours 12
-                    caltime.append(12*np.ones_like(caltime[-1]))
-                else:
-                    caltime.append(np.zeros_like(caltime[-1]))
-            yr,month,day,hr,min,sec,msec = caltime
-            
-        #if input objects are datetime objects, generate arrays
-        if datetimes is not None:
-            yr,month,day,hr,min,sec,msec = [],[],[],[],[],[],[]
-            for dt in datetimes:
-                if not hasattr(dt,'hour'):
-                    dt = datetime(dt.year,dt.month,dt.day,12)
+            dt = caltime
                 
-                if tz is None:
-                    off = dt.utcoffset()
-                    if off is not None:
-                        dt = dt - off
-                    
-                yr.append(dt.year)
-                month.append(dt.month)
-                day.append(dt.day)
-                hr.append(dt.hour)
-                min.append(dt.minute)
-                sec.append(dt.second)
-                msec.append(dt.microsecond)
-                    
-                    
-        
-        yr = np.array(yr,dtype='int64',copy=False).ravel()
-        month = np.array(month,dtype='int64',copy=False).ravel()
-        day = np.array(day,dtype='int64',copy=False).ravel()
-        hr = np.array(hr,dtype=float,copy=False).ravel()
-        min = np.array(min,dtype=float,copy=False).ravel()
-        sec = np.array(sec,dtype=float,copy=False).ravel()
-        msec = np.array(msec,dtype=float,copy=False).ravel()
-        
-        #do tz conversion if tz is provided  
-        if isinstance(tz,basestring) or isinstance(tz,tzinfo):
-            if isinstance(tz,basestring):
-                from dateutil import tz
-                tzi = tz.gettz(tz)
-            else:
-                tzi = tz
-            
-            utcoffset = []
-            for t in zip(yr,month,day,hr,min,sec,msec):
-                #microsecond from float component of seconds
-                
-                dt = datetime(*[int(ti) for ti in t],**dict(tzinfo=tzi))
-                utcdt = dt.utcoffset()
-                if utcdt is None:
-                    utcoffset.append(0)
-                else:
-                    utcoffset.append(utcdt.days*24 + (utcdt.seconds + utcdt.microseconds*1e-6)/3600)
+        if tz is None:
+            off = dt.utcoffset()
         else:
-            utcoffset = tz
+            off = tz.utcoffset()
+        if off is not None:
+            dt = dt - off
                 
-    #    ly = ((month-14)/12).astype(int) #In leap years, -1 for Jan, Feb, else 0
-    #    jdn = day - 32075l + 1461l*(yr+4800l+ly)//4
-        
-    #    jdn += 367l*(month - 2-ly*12)//12 - 3*((yr+4900l+ly)//100)//4
-        
-    #    res = jdn + (hr/24.0) + min/1440.0 + sec/86400.0 - 0.5
-
+        yr = dt.year
+        month = dt.month
+        day = dt.day
+        hr = dt.hour
+        min = dt.minute
+        sec = dt.second
+        msec = dt.microsecond
+                    
+             
+                
         #this algorithm from meeus 2ed
-        m3 = month < 3
-        yr[m3] -= 1
-        month[m3] += 12
+        if month < 3:
+            yr -= 1
+            month += 12
             
         cen = yr//100
         
@@ -218,15 +163,10 @@ class AstroTime(object):
             gregoffset[~gmask] = 0
         
             
-        jdn = (365.25*(yr+4716)).astype(int) + \
-              (30.6001*(month + 1)).astype(int) + \
+        jdn = (365.25*(yr+4716)) + \
+              (30.6001*(month + 1)) + \
                    day + gregoffset - 1524.5
-        res = jdn + hr/24.0 + min/1440.0 + sec/86400.0
-        
-        if np.any(utcoffset):
-            res -= np.array(utcoffset)/24.0
-        
-        return res
+        return jdn + hr/24.0 + min/1440.0 + sec/86400.0
             
     def __add__(self,other):
         #bypass if they precision and jd0 match

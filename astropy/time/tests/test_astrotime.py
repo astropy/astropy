@@ -30,5 +30,5 @@ def test_addsub_astrotime():
     a = AstroTime(0,1,0)
     b = AstroTime(0,1,1) #jd 1 later
     #uses the jd0 of the first one
-    assert (a+b)._val == 86400
-    assert (b+a)._val == -86400
+    assert (a+b)._val == -86400
+    assert (b+a)._val == 86400
