@@ -29,7 +29,7 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
               'D': 'f8', 'C': 'c8', 'M': 'c16', 'A': 'a'}
 
 # the inverse dictionary of the above
-NUMPY2FITS = dict([(val, key) for key, val in FITS2NUMPY.iteritems()])
+NUMPY2FITS = dict([(val, key) for key, val in FITS2NUMPY.items()])
 
 # This is the order in which values are converted to FITS types
 # Note that only double precision floating point/complex are supported
