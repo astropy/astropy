@@ -1,10 +1,39 @@
 `astropy.io.vo.exceptions`
 ==========================
 
-Exception handling utilities
-----------------------------
+.. contents::
 
 .. automodule:: astropy.io.vo.exceptions
-   :members: warn_or_raise, vo_raise, vo_reraise, vo_warn, parse_vowarning, VOWarning
-   :undoc-members:
+
+Exception utilities
+-------------------
+
+.. currentmodule:: astropy.io.vo.exceptions
+
+.. autofunction:: warn_or_raise
+
+.. autofunction:: vo_raise
+
+.. autofunction:: vo_reraise
+
+.. autofunction:: vo_warn
+
+.. autofunction:: parse_vowarning
+
+.. autoclass:: VOWarning
+   :show-inheritance:
+
+.. autoclass:: VOTableChangeWarning
+   :show-inheritance:
+
+.. autoclass:: VOTableSpecWarning
+   :show-inheritance:
+
+.. autoclass:: UnimplementedWarning
+   :show-inheritance:
+
+.. autoclass:: IOWarning
+   :show-inheritance:
+
+.. autoclass:: VOTableSpecError
    :show-inheritance:

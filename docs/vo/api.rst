@@ -16,15 +16,6 @@ Public API
    api_util.rst
    api_xmlutil.rst
 
-Warnings and Exceptions
------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   warnings.rst
-   exceptions.rst
-
 Private API
 -----------
 

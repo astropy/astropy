@@ -1,11 +1,39 @@
 # -*- coding: utf-8 -*-
-"""
-Exceptions and warnings used by the vo package.
+u"""
+.. _warnings:
+
+Warnings
+--------
+
+.. note::
+    Most of the following warnings indicate violations of the VOTable
+    specification.  They should be reported to the authors of the
+    tools that produced the VOTable file.
+
+    To control the warnings emitted, use the standard Python
+    :mod:`warnings` module.  Most of these are of the type
+    `VOTableSpecWarning`.
+
+{warnings}
+
+.. _exceptions:
+
+Exceptions
+----------
+
+.. note::
+
+    This is a list of many of the fatal exceptions emitted by vo.table
+    when the file does not conform to spec.  Other exceptions may be
+    raised due to unforeseen cases or bugs in vo.table itself.
+
+{exceptions}
 """
 
 from __future__ import division, absolute_import
 
 # STDLIB
+import io
 import re
 import sys
 from warnings import warn
@@ -14,7 +42,6 @@ from warnings import warn
 from .util import IS_PY3K
 
 MAX_WARNINGS = 10
-
 
 def _format_message(message, name, config={}, pos=None):
     if pos is None:
@@ -1281,3 +1308,38 @@ class E21(VOWarning, ValueError):
 
     message = "Data has fewer columns (%s) than are defined in the header (%s)"
     default_args = ('x', 'y')
+
+
+def _build_doc_string():
+    from .util import dedent
+
+    def generate_set(prefix):
+        classes = []
+        for key, val in globals().items():
+            if re.match(prefix + "[0-9]{2}", key):
+                classes.append((key, val))
+        classes.sort()
+
+        out = io.StringIO()
+
+        for name, cls in classes:
+            out.write(u".. _%s:\n\n" % name)
+            msg = "%s: %s" % (cls.__name__, cls.get_short_name())
+            if not isinstance(msg, unicode):
+                msg = msg.decode('utf-8')
+            out.write(msg)
+            out.write(u'\n')
+            out.write(u'~' * len(msg))
+            out.write(u'\n\n')
+            out.write(dedent(cls.__doc__))
+            out.write(u'\n\n')
+
+        return out.getvalue()
+
+    warnings = generate_set(u'W')
+    exceptions = generate_set(u'E')
+
+    return {u'warnings': warnings,
+            u'exceptions': exceptions}
+
+__doc__ = __doc__.format(**_build_doc_string())
