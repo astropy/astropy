@@ -2038,7 +2038,7 @@ have : string
     closing bracket is ignored.
 
 want : string
-    ref:`fits-unit` to convert to, with or without surrounding square
+    :ref:`fits-unit` to convert to, with or without surrounding square
     brackets (for inline specifications); text following the closing
     bracket is ignored.
 
