@@ -1311,7 +1311,7 @@ class E21(VOWarning, ValueError):
 
 
 def _build_doc_string():
-    from .util import dedent
+    from textwrap import dedent
 
     def generate_set(prefix):
         classes = []
@@ -1331,7 +1331,10 @@ def _build_doc_string():
             out.write(u'\n')
             out.write(u'~' * len(msg))
             out.write(u'\n\n')
-            out.write(dedent(cls.__doc__))
+            doc = cls.__doc__
+            if not isinstance(doc, unicode):
+                doc = doc.decode('utf-8')
+            out.write(dedent(doc))
             out.write(u'\n\n')
 
         return out.getvalue()

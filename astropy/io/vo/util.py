@@ -589,29 +589,3 @@ def iterate_with_progress_bar(items, stream=sys.stdout):
         for item in items:
             yield item
             bar.update()
-
-
-_find_dedent_regex = re.compile("(?:(?:\n\r?)|^)( *)\S")
-_dedent_regex = {}
-def dedent(s):
-    if not s:      # includes case of s is None
-        return u''
-
-    if not isinstance(s, unicode):
-        s = s.decode('utf-8')
-
-    match = _find_dedent_regex.match(s)
-    if match is None:
-        return s
-
-    nshift = match.end(1) - match.start(1)
-    if nshift == 0:
-        return s
-
-    unindent = _dedent_regex.get(nshift, None)
-    if unindent is None:
-        unindent = re.compile("\n\r? {0,%d}" % nshift)
-        _dedent_regex[nshift] = unindent
-
-    result = unindent.sub("\n", s).strip()
-    return result
