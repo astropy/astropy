@@ -285,7 +285,7 @@ def get_data_cache_dir():
     datadir : str
         The path to the data cache directory.
     """
-    from .configs import get_config_dir
+    from .configs import get_cache_dir
     from os.path import join
     
-    return join(get_config_dir(), 'datacache')
+    return join(get_cache_dir(), 'data')

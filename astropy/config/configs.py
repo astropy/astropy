@@ -7,26 +7,10 @@ for astropy and affiliated modules.
 
 __all__ = ['get_config_dir', 'get_config']
 
-
-def get_config_dir(create=True):
-    """
-    Determines the Astropy configuration directory name.
+def _find_home():
+    """ Locates and return the home directory (or best approximation) on this 
+    system.
     
-    If a $HOME environment variable is defined, this is used as the base. If
-    not, this function goes through various convoluted methods to try to
-    identify the user's home directory (inspired by ipython's scheme for
-    finding these).
-    
-    Parameters
-    ----------
-    create : bool
-        If True, the directory will be created if it doesn't exist.
-    
-    Returns
-    -------
-    configdir : str
-        The absolute path to the configuration directory.
-        
     Raises
     ------
     OSError
@@ -46,7 +30,7 @@ def get_config_dir(create=True):
             homedir = env['HOME'].decode(sys.getfilesystemencoding())
         else:
             raise OSError('Could not find unix home directory to search for' +\
-                          ' astropysics config dir')
+                          ' astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         #Try for a network home first
         if 'HOMESHARE' in env: 
@@ -73,22 +57,57 @@ def get_config_dir(create=True):
                     homedir = env['HOME'].decode(sys.getfilesystemencoding())
                 else:
                     raise OSError('Could not find windows home directory to' +\
-                                  ' search for astropysics config dir')
+                                  ' search for astropy config dir')
     else:
         #for other platforms, try HOME, although it probably isn't there
         if 'HOME' in env:
             homedir = env['HOME'].decode(sys.getfilesystemencoding())
         else:
             raise OSError('Could not find a home directory to search for ' +\
-                 'astropysics config dir - are you on an unspported platform?')
+                 'astropy config dir - are you on an unspported platform?')
+    return homedir
+
+def get_config_dir(create=True):
+    """
+    Determines the Astropy configuration directory name.
+    
+    Parameters
+    ----------
+    create : bool
+        If True, the directory will be created if it doesn't exist.
+    
+    Returns
+    -------
+    configdir : str
+        The absolute path to the configuration directory.
         
-    configdir = os.path.realpath(os.path.join(homedir, '.astropy'))
+    """
+    raise NotImplementedError
         
     if create and not os.path.isdir(configdir):
         #try to create it
         os.mkdir(configdir)
     return configdir
 
+def get_cache_dir(create=True):
+    """
+    Determines the Astropy cache directory name.
+    
+    Parameters
+    ----------
+    create : bool
+        If True, the directory will be created if it doesn't exist.
+    
+    Returns
+    -------
+    cachedir : str
+        The absolute path to the cache directory.
+    """
+    
+    if create and not os.path.isdir(cachedir):
+        #try to create it
+        os.mkdir(cachedir)
+    return cachedir
 
 def get_config(subpackage, mainpackage='astropy'):
     """ Retrieves the object associated with a configuration file for a 
