@@ -8,7 +8,7 @@ if setup_helpers.is_in_build_mode():
 else:
     del setup_helpers
     from .table import parse, parse_single_table
-    from .exceptions import VOWarning, VOTableChangeWarning, \
-         VOTableSpecWarning, UnimplementedWarning, IOWarning, \
-         VOTableSpecError
+    from .exceptions import (VOWarning, VOTableChangeWarning,
+        VOTableSpecWarning, UnimplementedWarning, IOWarning,
+        VOTableSpecError)
 
