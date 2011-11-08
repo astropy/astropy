@@ -17,6 +17,8 @@ class AstroTime(object):
         A representation of the time to use to generate this `AstroTime` object.
         Can be in any of the following forms:
         
+            * None
+                Takes the current time when the object is created.
             * An `AstroTime` object
             * A `datetime.datetime` object
             * A string of the form 'J2000' or 'B1950'
@@ -37,12 +39,13 @@ class AstroTime(object):
             self._jd0 = time._jd0
             self._secprec = time._secprec
             self._val = time._val
-            
         else:
             self._jd0 = jd0
             self._secprec = secprecision
             
-            if isinstance(time,datetime):
+            if time is None:
+                self._set_from_jd(self._datetime_to_jd(None))
+            elif isinstance(time,datetime):
                 self._set_from_jd(self._datetime_to_jd(time))
             elif isinstance(time,basestring):
                 self._set_from_jd(self._epoch_to_jd(float(time[1:]), time[0]))
@@ -105,6 +108,125 @@ class AstroTime(object):
             return (epoch - 1900) * 365.242198781 + 2415020.31352
         else:
             raise ValueError('Invalid epoch string - must start with J or B')
+            
+    def _datetime_to_jd(self, caltime,tz=None,gregorian=True):
+        """Converts a datetime object into a julian date 
+        
+        `caltime` is a datetime.datetime or None to do the current instant.
+        `tz` can be used to override the timezone
+        `gregorian` determines which type of date scheme to use. If True, the
+        will be interpreted as in the Gregorian calendar. Otherwise, it will be
+        Julian. If None, it will be assumed to switch over on October 4/15,
+        1582.
+        """
+        from datetime import datetime,date,tzinfo
+        
+        if caltime is None:
+            from dateutil.tz import tzlocal
+            datetimes = [datetime.now(tzlocal())]
+        elif isinstance(caltime,datetime) or isinstance(caltime,date):
+            datetimes = [caltime]
+        elif all([isinstance(ct,datetime) or isinstance(ct,date) for ct in caltime]):
+            datetimes = caltime
+        else:
+            datetimes = None
+            caltime = list(caltime)
+            if not (3 <= len(caltime) < 8):
+                raise ValueError('caltime input sequence is invalid size')
+            while len(caltime) < 7:
+                if len(caltime) == 3:
+                    #make hours 12
+                    caltime.append(12*np.ones_like(caltime[-1]))
+                else:
+                    caltime.append(np.zeros_like(caltime[-1]))
+            yr,month,day,hr,min,sec,msec = caltime
+            
+        #if input objects are datetime objects, generate arrays
+        if datetimes is not None:
+            yr,month,day,hr,min,sec,msec = [],[],[],[],[],[],[]
+            for dt in datetimes:
+                if not hasattr(dt,'hour'):
+                    dt = datetime(dt.year,dt.month,dt.day,12)
+                
+                if tz is None:
+                    off = dt.utcoffset()
+                    if off is not None:
+                        dt = dt - off
+                    
+                yr.append(dt.year)
+                month.append(dt.month)
+                day.append(dt.day)
+                hr.append(dt.hour)
+                min.append(dt.minute)
+                sec.append(dt.second)
+                msec.append(dt.microsecond)
+                    
+                    
+        
+        yr = np.array(yr,dtype='int64',copy=False).ravel()
+        month = np.array(month,dtype='int64',copy=False).ravel()
+        day = np.array(day,dtype='int64',copy=False).ravel()
+        hr = np.array(hr,dtype=float,copy=False).ravel()
+        min = np.array(min,dtype=float,copy=False).ravel()
+        sec = np.array(sec,dtype=float,copy=False).ravel()
+        msec = np.array(msec,dtype=float,copy=False).ravel()
+        
+        #do tz conversion if tz is provided  
+        if isinstance(tz,basestring) or isinstance(tz,tzinfo):
+            if isinstance(tz,basestring):
+                from dateutil import tz
+                tzi = tz.gettz(tz)
+            else:
+                tzi = tz
+            
+            utcoffset = []
+            for t in zip(yr,month,day,hr,min,sec,msec):
+                #microsecond from float component of seconds
+                
+                dt = datetime(*[int(ti) for ti in t],**dict(tzinfo=tzi))
+                utcdt = dt.utcoffset()
+                if utcdt is None:
+                    utcoffset.append(0)
+                else:
+                    utcoffset.append(utcdt.days*24 + (utcdt.seconds + utcdt.microseconds*1e-6)/3600)
+        else:
+            utcoffset = tz
+                
+    #    ly = ((month-14)/12).astype(int) #In leap years, -1 for Jan, Feb, else 0
+    #    jdn = day - 32075l + 1461l*(yr+4800l+ly)//4
+        
+    #    jdn += 367l*(month - 2-ly*12)//12 - 3*((yr+4900l+ly)//100)//4
+        
+    #    res = jdn + (hr/24.0) + min/1440.0 + sec/86400.0 - 0.5
+
+        #this algorithm from meeus 2ed
+        m3 = month < 3
+        yr[m3] -= 1
+        month[m3] += 12
+            
+        cen = yr//100
+        
+        if gregorian is None:
+            gregorian = (1582,10,4)
+        if gregorian is True:
+            gregoffset = 2 - cen + cen//4
+        elif gregorian is False:
+            gregoffset = 0
+        else:
+            gregoffset = 2 - cen + cen//4
+            gmask = (yr>gregorian[0])&(month>gregorian[1])&(day>gregorian[2])
+            gregoffset[~gmask] = 0
+        
+            
+        jdn = (365.25*(yr+4716)).astype(int) + \
+              (30.6001*(month + 1)).astype(int) + \
+                   day + gregoffset - 1524.5
+        res = jdn + hr/24.0 + min/1440.0 + sec/86400.0
+        
+        if np.any(utcoffset):
+            res -= np.array(utcoffset)/24.0
+        
+        return res
             
     def __add__(self,other):
         #bypass if they precision and jd0 match
@@ -225,3 +347,102 @@ class AstroTime(object):
         else:
             
             return 'B{0qf}'.format(be)
+    
+    @property
+    def datetime(self):
+        """
+        A `datetime.datetime` object representing this time, rounded to the 
+        nearest second. Timezone is UTC.
+        """        
+        jd = self.jd
+        
+        rounding = 1000000
+        #If non-0, Performs a fix for floating-point errors. It specifies the
+        #number of milliseconds by which to round the result to the nearest
+        #second. If 1000000 (one second), no milliseconds are recorded. If
+        #larger, a ValueError is raised.
+        gregorian = None
+        #If True, the input will be interpreted as in the Gregorian calendar.
+        #Otherwise, it will be Julian. If None, it will be assumed to switch over
+        #on October 4/15, 1582.
+    
+        
+        if rounding > 1000000:
+            raise ValueError('rounding cannot exceed a second')
+        elif rounding <= 0:
+            jd += .5 
+        else:
+            rounding = int(rounding)
+            roundingfrac = rounding/86400000000
+            jd += .5 + roundingfrac 
+            
+        z = np.floor(jd).astype(int) 
+        dec = jd - z #fractional piece
+        
+        #fix slight floating-point errors if they hapepn TOOD:check
+        dgtr1 = dec>=1.0
+        dec[dgtr1] -= 1.0
+        z[dgtr1] += 1
+        
+        
+        if gregorian is None:
+            gregorian = 2299161
+            
+        if gregorian is True:
+            alpha = ((z-1867216.25)/36524.25).astype(int)
+            z += 1 + alpha - alpha//4
+        elif gregorian is False:
+            pass
+        else:
+            gmask = z >= gregorian
+            alpha = ((z[gmask]-1867216.25)/36524.25).astype(int)
+            z[gmask] += 1 + alpha - alpha//4
+        
+        b = z + 1524
+        c = ((b-122.1)/365.25).astype(int)
+        d = (365.25*c).astype(int)
+        e = ((b-d)/30.6001).astype(int)
+        
+        day = b - d - (30.6001*e).astype(int)
+        
+        mmask = e<14
+        month = e
+        month[mmask] -= 1
+        month[~mmask] -= 13
+        year = c
+        year[month>2] -= 4716
+        year[month<=2] -= 4715
+        
+        
+        if rounding == 1000000:
+            secdec = dec*86400
+            sec = secdec.astype(int)
+            min = sec//60
+            sec -= 60*min
+            hr = min//60
+            min -= 60*hr
+            #sec[sec==secdec] -= 1
+            msec = None
+        else:
+            msec = (dec*86400000000.).astype('int64') 
+            if rounding > 0:
+                div = (msec//1000000)*1000000
+                toround = (msec - div)<(2*rounding)
+                msec[toround] = div + rounding
+                msec  -= rounding
+
+            sec = msec//1000000
+            msec -= 1000000*sec
+            
+            min = sec//60
+            sec -= 60*min
+            hr = min//60
+            min -= 60*hr
+            
+        
+        if msec is None:
+            return datetime.datetime(year,month,day,hr%24,min%60,sec%60)
+        else:
+            return datetime.datetime(year,month,day,hr%24,min%60,sec%60,msec%1000000)
+        
+        
