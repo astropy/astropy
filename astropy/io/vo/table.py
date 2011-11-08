@@ -66,9 +66,9 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
     -------
     votable : `astropy.io.vo.tree.VOTable` object
 
-    Raises
-    ------
-    `astropy.io.vo.exceptions.VOTableSpecError` : The table violates the specification.
+    See also
+    --------
+    astropy.io.vo.exceptions : The exceptions this function may raise.
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
