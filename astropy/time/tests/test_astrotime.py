@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .time import AstroTime
+from ..astrotime import AstroTime
 import datetime
 
 def test_jd2gregorian():

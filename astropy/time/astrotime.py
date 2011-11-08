@@ -33,7 +33,7 @@ class AstroTime(object):
     
     """
     
-    def __init__(self,time,secprecision=1e-9,jd0=_jd2000):
+    def __init__(self,time,secprecision=1e-9,jd0=2451545.):
         
         if isinstance(time,AstroTime):
             self._jd0 = time._jd0
@@ -53,7 +53,7 @@ class AstroTime(object):
                 self._val = long(time)
     
     @classmethod
-    def from_jd(cls,jd,secprecision=1e-9,jd0=_jd2000):
+    def from_jd(cls,jd,secprecision=1e-9,jd0=2451545.):
         """
         Creates a new `AstroTime` object from a given Julian Date.
         
@@ -76,7 +76,7 @@ class AstroTime(object):
         return res
         
     @classmethod
-    def from_mjd(cls,mjd,secprecision=1e-9,jd0=_jd2000):
+    def from_mjd(cls,mjd,secprecision=1e-9,jd0=2451545.):
         """
         Creates a new `AstroTime` object from a given Modified Julian Date.
         
