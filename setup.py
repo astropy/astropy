@@ -5,6 +5,11 @@
 from distribute_setup import use_setuptools
 use_setuptools()
 
+try:
+    import __builtin__ as builtins
+except ImportError:
+    import builtins
+
 import os
 import glob
 from setuptools import setup, find_packages
@@ -15,9 +20,12 @@ from astropy import setup_helpers
 from astropy.tests.helper import astropy_test
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
+
 version = '0.0dev'
 #indicates if this version is a release version
 release = 'dev' not in version
+
+builtins.__ASTROPY_SETUP__ = True
 
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
@@ -65,14 +73,14 @@ for pkgnm,setuppkg in setup_helpers.iter_setup_packages():
     #get_extensions must include any Cython extensions by their .pyx filename.
     if hasattr(setuppkg, 'get_extensions'):
         extensions.extend(setuppkg.get_extensions())
-    
+
     if hasattr(setuppkg, 'get_package_data'):
         #TBD: decide if this should be removed in favor of the data loading mechanism in config.data
         package_data.update(setuppkg.get_package_data())
     if hasattr(setuppkg, 'get_data_files'):
         data_files.extend(setuppkg.get_data_files())
 
-#locate any .pyx files not already specified, and add their extensions in. 
+#locate any .pyx files not already specified, and add their extensions in.
 #The default include dirs include numpy to facilitate numerical work.
 extensions.extend(setup_helpers.get_cython_extensions('astropy',extensions,
                                                       [numpy_includes]))
@@ -88,7 +96,7 @@ if setup_helpers.HAVE_CYTHON and not release:
     #builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = build_ext
 else:
-    
+
     #otherwise, replace .pyx with C-equivalents, unless c files are missing
     todel = []
     for i,ext in enumerate(extensions):
@@ -101,8 +109,8 @@ else:
                     msg = 'Could not find c-file {0} for {1}, skipping extension {2}'
                     log.warn(msg.format(cfn,s,ext.name))
                     todel.append(i)
-                    
-    
+
+
 # Implement a version of build_sphinx that automatically creates the
 # docs/_build dir - this is needed because github won't create the _build dir
 # because it has no tracked files
@@ -113,7 +121,7 @@ try:
 
     class AstropyBuildSphinx(BuildDoc):
         """
-        This class 
+        This class
         """
         def finalize_options(self):
             from distutils.cmd import DistutilsOptionError
