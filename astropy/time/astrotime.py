@@ -48,9 +48,55 @@ class AstroTime(object):
                 self._set_from_jd(self._epoch_to_jd(float(time[1:]), time[0]))
             else:
                 self._val = long(time)
+    
+    @classmethod
+    def from_jd(cls,jd,secprecision=1e-9,jd0=_jd2000):
+        """
+        Creates a new `AstroTime` object from a given Julian Date.
         
-    def _set_from_jd(self,jd):
-        self._val = long((jd - self._jd0) * 86400 / self._secprec)
+        Parameters
+        ----------
+        jd : float
+            Julian date to use for the new `AstroTime` object.
+        secprecision : float
+            See `AstroTime` docstrings.
+        jd0 : float
+            See `AstroTime` docstrings.
+            
+        Returns
+        -------
+        astrotime : `AstroTime`
+        
+        """
+        res = cls(0,secprecision,jd0)
+        res._val = res._jd_to_val(jd)
+        return res
+        
+    @classmethod
+    def from_mjd(cls,mjd,secprecision=1e-9,jd0=_jd2000):
+        """
+        Creates a new `AstroTime` object from a given Modified Julian Date.
+        
+        Parameters
+        ----------
+        mjd : float
+            Modified Julian Date to use for the new `AstroTime` object.
+        secprecision : float
+            See `AstroTime` docstrings.
+        jd0 : float
+            See `AstroTime` docstrings.
+            
+        Returns
+        -------
+        astrotime : `AstroTime`
+        
+        """
+        res = cls(0,secprecision,jd0)
+        res._val = res._jd_to_val(mjd + _mjdoffset)
+        return res
+        
+    def _jd_to_val(self,jd):
+        return long((jd - self._jd0) * 86400 / self._secprec)
         
     def _epoch_to_jd(self,epoch,epochtype='J'):
         if epochtype=='J':
@@ -59,6 +105,52 @@ class AstroTime(object):
             return (epoch - 1900) * 365.242198781 + 2415020.31352
         else:
             raise ValueError('Invalid epoch string - must start with J or B')
+            
+    def __add__(self,other):
+        #bypass if they precision and jd0 match
+        if self._secprec == other._secprec and self._jd0 == other._jd0:
+            return self.__class__(self._val + other._val,
+                                  self._secprec, self._jd0)
+        
+        # use self's jd0 for the new object
+        jdoffset = self._jd0 - other._jd0
+        oval = other._val + jdoffset*86400/other._secprec
+        
+        #use best precision
+        secprec = min(self._secprec,other._secprec)
+        
+        if secprec == self._secprec:
+            newval = self._val + oval * other._secprec / secprec
+        else:
+            newval = self._val * self._secprec / secprec + oval
+        
+        return self.__class__(newval, secprec, self._jd0)
+        
+    def __sub__(self,other):
+        #bypass if they precision and jd0 match
+        if self._secprec == other._secprec and self._jd0 == other._jd0:
+            return self.__class__(self._val - other._val,
+                                  self._secprec, self._jd0)
+        
+        # use self's jd0 for the new object
+        jdoffset = self._jd0 - other._jd0
+        oval = other._val + jdoffset*86400/other._secprec
+        
+        #use best precision
+        secprec = min(self._secprec,other._secprec)
+        
+        if secprec == self._secprec:
+            newval = self._val - oval * other._secprec / secprec
+        else:
+            newval = self._val * self._secprec / secprec - oval
+        
+        return self.__class__(newval, secprec, self._jd0)
+            
+    def __eq__(self,other):
+        if self._secprec == other._secprec and self._jd0 == other._jd0:
+            return self._val == other._val
+        
+        return (self - other)._val == 0
             
     @property
     def bit_length(self):
