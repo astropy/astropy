@@ -38,20 +38,20 @@ class AstroTime(object):
         if isinstance(time,AstroTime):
             self._jd0 = time._jd0
             self._secprec = time._secprec
-            self._val = time._val
+            self.longval = time.longval
         else:
             self._jd0 = jd0
             self._secprec = secprecision
             
             if time is None:
-                self._val = self._jd_to_val(self._datetime_to_jd(None))
+                self.longval = self._jd_to_val(self._datetime_to_jd(None))
             elif isinstance(time,datetime):
-                self._val = self._jd_to_val(self._datetime_to_jd(time))
+                self.longval = self._jd_to_val(self._datetime_to_jd(time))
             elif isinstance(time,basestring):
-                self._val = self._jd_to_val(self._epoch_to_jd(float(time[1:]), 
+                self.longval = self._jd_to_val(self._epoch_to_jd(float(time[1:]), 
                                                               time[0]))
             else:
-                self._val = long(time/secprecision)
+                self.longval = long(time/secprecision)
     
     @classmethod
     def from_jd(cls,jd,secprecision=1e-9,jd0=2451545.):
@@ -73,7 +73,7 @@ class AstroTime(object):
         
         """
         res = cls(0,secprecision,jd0)
-        res._val = res._jd_to_val(jd)
+        res.longval = res._jd_to_val(jd)
         return res
         
     @classmethod
@@ -96,7 +96,7 @@ class AstroTime(object):
         
         """
         res = cls(0,secprecision,jd0)
-        res._val = res._jd_to_val(mjd + _mjdoffset)
+        res.longval = res._jd_to_val(mjd + _mjdoffset)
         return res
         
     def _jd_to_val(self,jd):
@@ -132,7 +132,7 @@ class AstroTime(object):
         #bypass precision tweak if the precision and jd0 match
         if self._secprec == other._secprec and self._jd0 == other._jd0:
             res = DeltaAstroTime(0,self._secprec)
-            res._val = self._val - other._val
+            res.longval = self.longval - other.longval
             return res
         
         if isinstance(other,DeltaAstroTime):
@@ -141,37 +141,37 @@ class AstroTime(object):
         else:
             # use self's jd0 for the new object
             jdoffset = self._jd0 - other._jd0
-            oval = other._val + jdoffset*86400/other._secprec
+            oval = other.longval + jdoffset*86400/other._secprec
         
         #use best precision
         secprec = min(self._secprec,other._secprec)
         
         if secprec == self._secprec:
-            newval = self._val - oval * other._secprec / secprec
+            newval = self.longval - oval * other._secprec / secprec
         else:
-            newval = self._val * self._secprec / secprec - oval
+            newval = self.longval * self._secprec / secprec - oval
         
         return DeltaAstroTime(newval, secprec, self._jd0)
             
     def __eq__(self,other):
         if self._secprec == other._secprec and self._jd0 == other._jd0:
-            return self._val == other._val
+            return self.longval == other.longval
         
-        return (self - other)._val == 0
+        return (self - other).longval == 0
             
     @property
     def bit_length(self):
         """
         The number of bits this `AstroTime` object uses to store the time.
         """
-        return self._val.bit_length()
+        return self.longval.bit_length()
         
     @property
     def jd(self):
         """
         Julian Date of this `AstroTime` object.
         """
-        return self._val * self._secprec / 86400 + self._jd0
+        return self.longval * self._secprec / 86400 + self._jd0
     
     @property
     def mjd(self):
@@ -264,12 +264,12 @@ class DeltaAstroTime(AstroTime):
         if isinstance(other,AstroTime):
             bestprec = min(self._secprec,other._secprec)
             if bestprec == self._secprec:
-                newval = self._val + other._val * other._secprec / bestprec
+                newval = self.longval + other.longval * other._secprec / bestprec
             else:
-                newval = other._val + self._val * self._secprec / bestprec
+                newval = other.longval + self.longval * self._secprec / bestprec
                 
             res = other.__class__(0)
-            res._val = long(newval)
+            res.longval = long(newval)
             res._secprec = bestprec
             res._jd0 = other._jd0
             

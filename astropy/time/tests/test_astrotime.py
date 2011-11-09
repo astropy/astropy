@@ -17,5 +17,5 @@ def test_deltaastrotime():
     b = AstroTime(-5)
     
     d = a - b
-    assert d._val == 15000000000L
-    assert (d+b)._val == 10000000000L
+    assert d.longval == 15000000000L
+    assert (d+b).longval == 10000000000L
