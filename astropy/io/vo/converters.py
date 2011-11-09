@@ -781,7 +781,8 @@ class ComplexVarArray(VarArray):
         result = []
         result_mask = []
         for i in xrange(0, len(parts), 2):
-            value, mask = parse_parts(parts[i:i + 1], config, pos)
+            value = [float(x) for x in parts[i:i + 2]]
+            value, mask = parse_parts(value, config, pos)
             result.append(value)
             result_mask.append(mask)
         return (np.array(result, dtype=self._base.format),
@@ -811,7 +812,8 @@ class ComplexArray(NumericArray):
         result = []
         result_mask = []
         for i in xrange(0, self._items, 2):
-            value, mask = base_parse(parts[i:i + 1], config, pos)
+            value = [float(x) for x in parts[i:i + 2]]
+            value, mask = base_parse(value, config, pos)
             result.append(value)
             result_mask.append(mask)
         result = np.array(

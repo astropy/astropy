@@ -99,9 +99,6 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     if _ucd_singleton is None:
         _ucd_singleton = UCDWords()
 
-    if ucd is None:
-        return True
-
     if has_colon:
         m = re.search('[^A-Za-z0-9_.:;\-]', ucd)
     else:
@@ -157,7 +154,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     return words
 
 
-def check_ucd(ucd, check_controlled_vocabulary=False):
+def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     """
     Returns False if *ucd* is not a valid `unified content
     descriptor`_.
@@ -176,8 +173,13 @@ def check_ucd(ucd, check_controlled_vocabulary=False):
     -------
     valid : bool
     """
+    if ucd is None:
+        return True
+
     try:
-        parse_ucd(ucd, check_controlled_vocabulary=check_controlled_vocabulary)
+        parse_ucd(ucd,
+                  check_controlled_vocabulary=check_controlled_vocabulary,
+                  has_colon=has_colon)
     except ValueError as e:
         return False
     return True

@@ -59,7 +59,7 @@ def _suppressed_warning(warning, config):
         if message_count == MAX_WARNINGS:
             warning.formatted_message += \
                 ' (suppressing further warnings of this type...)'
-        warn(str(warning))
+        warn(warning)
 
 
 def warn_or_raise(warning_class, exception_class=None, args=(), config={},
@@ -95,7 +95,7 @@ def vo_reraise(exc, config={}, pos=None, additional=''):
     if len(additional):
         message += ' ' + additional
     exc.args = (message,)
-    raise exc.with_traceback(sys.exc_info()[2])
+    raise exc
 
 
 def vo_warn(warning_class, args=(), config={}, pos=None):
@@ -150,7 +150,7 @@ def parse_vowarning(line):
     return result
 
 
-class VOWarning(object):
+class VOWarning(Warning):
     """
     The base class of all VO warnings and exceptions.  Handles the
     formatting of the message with a warning or exception code,

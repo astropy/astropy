@@ -77,19 +77,24 @@ def test_parse_single_table3():
                                 table_number=2, pedantic=False)
 
 
-def test_regression():
+def _test_regression(_python_based=False):
     # Read the VOTABLE
-    votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
+    votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False,
+                    _debug_python_based_parser=_python_based)
     table = votable.get_first_table()
-    votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"))
+    votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"),
+                   _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.tabledata.xml"))
     votable.get_first_table().format = 'binary'
-    votable.to_xml(join(TMP_DIR, "regression.binary.xml"))
+    votable.to_xml(join(TMP_DIR, "regression.binary.xml"),
+                   _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.binary.xml"))
-    votable2 = parse(join(TMP_DIR, "regression.binary.xml"), pedantic=False)
+    votable2 = parse(join(TMP_DIR, "regression.binary.xml"), pedantic=False,
+                     _debug_python_based_parser=_python_based)
     votable2.get_first_table().format = 'tabledata'
     votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"),
-                    _astropy_version="testing")
+                    _astropy_version="testing",
+                    _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
     truth = open(join(ROOT_DIR, "regression.bin.tabledata.truth.xml")).readlines()
@@ -107,12 +112,21 @@ def test_regression():
 
     # Test implicit gzip saving
     votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
-                    _astropy_version = "testing")
+                    _astropy_version = "testing",
+                    _debug_python_based_parser=_python_based)
     truth = gzip.GzipFile(join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'r').readlines()
     if IS_PY3K:
         truth = [x.decode('utf8') for x in truth]
 
     assert truth == output
+
+
+def test_regression():
+    _test_regression(False)
+
+
+def test_regression_python_based_parser():
+    _test_regression(True)
 
 
 class TestFixups:
