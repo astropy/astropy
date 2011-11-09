@@ -120,53 +120,7 @@ class AstroTime(object):
         Julian. If None, it will be assumed to switch over on October 4/15,
         1582.
         """
-        from datetime import datetime,date,tzinfo
-        
-        if caltime is None:
-            dt = datetime.now()
-        else:
-            dt = caltime
-                
-        if tz is None:
-            off = dt.utcoffset()
-        else:
-            off = tz.utcoffset()
-        if off is not None:
-            dt = dt - off
-                
-        yr = dt.year
-        month = dt.month
-        day = dt.day
-        hr = dt.hour
-        min = dt.minute
-        sec = dt.second
-        msec = dt.microsecond
-                    
-             
-                
-        #this algorithm from meeus 2ed
-        if month < 3:
-            yr -= 1
-            month += 12
-            
-        cen = yr//100
-        
-        if gregorian is None:
-            gregorian = (1582,10,4)
-        if gregorian is True:
-            gregoffset = 2 - cen + cen//4
-        elif gregorian is False:
-            gregoffset = 0
-        else:
-            gregoffset = 2 - cen + cen//4
-            gmask = (yr>gregorian[0])&(month>gregorian[1])&(day>gregorian[2])
-            gregoffset[~gmask] = 0
-        
-            
-        jdn = (365.25*(yr+4716)) + \
-              (30.6001*(month + 1)) + \
-                   day + gregoffset - 1524.5
-        return jdn + hr/24.0 + min/1440.0 + sec/86400.0
+        raise NotImplementedError
             
     def __add__(self,other):
         if isinstance(other,DeltaAstroTime):
@@ -283,101 +237,10 @@ class AstroTime(object):
     def datetime(self):
         """
         A `datetime.datetime` object representing this time, rounded to the 
-        nearest second. Timezone is UTC.
+        nearest second. Timezone is UTC. For dates before October 4/15, 1582,
+        this is given in the Julian calendar, while after, it is Gregorian.
         """       
-        from math import floor 
-        jd = self.jd
-        
-        rounding = 1000000
-        #If non-0, Performs a fix for floating-point errors. It specifies the
-        #number of milliseconds by which to round the result to the nearest
-        #second. If 1000000 (one second), no milliseconds are recorded. If
-        #larger, a ValueError is raised.
-        gregorian = None
-        #If True, the input will be interpreted as in the Gregorian calendar.
-        #Otherwise, it will be Julian. If None, it will be assumed to switch over
-        #on October 4/15, 1582.
-    
-        
-        if rounding > 1000000:
-            raise ValueError('rounding cannot exceed a second')
-        elif rounding <= 0:
-            jd += .5 
-        else:
-            rounding = int(rounding)
-            roundingfrac = rounding/86400000000
-            jd += .5 + roundingfrac 
-            
-        z = int(floor(jd)) 
-        dec = jd - z #fractional piece
-        
-        #fix slight floating-point errors if they hapepn TOOD:check
-        if dec>=1.0:
-            dec = 1.0
-            z += 1
-        
-        if gregorian is None:
-            gregorian = 2299161
-            
-        if gregorian is True:
-            alpha = int((z-1867216.25)/36524.25)
-            z += 1 + alpha - alpha//4
-        elif gregorian is False:
-            pass
-        else:
-            if z >= gregorian:
-                alpha = int((z-1867216.25)/36524.25)
-                z += 1 + alpha - alpha//4
-        
-        b = z + 1524
-        c = int((b-122.1)/365.25)
-        d = int(365.25*c)
-        e = int((b-d)/30.6001)
-        
-        day = b - d - int(30.6001*e)
-        
-        month = e
-        if e<14:
-            month -= 1
-        else:
-            month -= 13
-            
-        year = c
-        if month<2:
-            year -= 4716
-        else:
-            year -= 4715
-        
-        
-        if rounding == 1000000:
-            secdec = dec*86400
-            sec = int(secdec)
-            min = sec//60
-            sec -= 60*min
-            hr = min//60
-            min -= 60*hr
-            msec = None
-        else:
-            msec = long(dec*86400000000.) 
-            if rounding > 0:
-                div = (msec//1000000)*1000000
-                if (msec - div)<(2*rounding):
-                    msec = div + rounding
-                msec  -= rounding
-
-            sec = msec//1000000
-            msec -= 1000000*sec
-            
-            min = sec//60
-            sec -= 60*min
-            hr = min//60
-            min -= 60*hr
-            
-        
-        if msec is None:
-            return datetime(year,month,day,hr%24,min%60,sec%60)
-        else:
-            return datetime(year,month,day,hr%24,min%60,sec%60,msec%1000000)
+        raise NotImplementedError
         
         
 class DeltaAstroTime(AstroTime):
