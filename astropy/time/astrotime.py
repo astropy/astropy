@@ -51,7 +51,7 @@ class AstroTime(object):
                 self._val = self._jd_to_val(self._epoch_to_jd(float(time[1:]), 
                                                               time[0]))
             else:
-                self._val = long(time)
+                self._val = long(time/secprecision)
     
     @classmethod
     def from_jd(cls,jd,secprecision=1e-9,jd0=2451545.):
@@ -175,11 +175,10 @@ class AstroTime(object):
             raise TypeError('An AstroTime object can only be added to a DeltaAstroTime')
         
     def __sub__(self,other):
-        #bypass if they precision and jd0 match
+        #bypass precision tweak if the precision and jd0 match
         if self._secprec == other._secprec and self._jd0 == other._jd0:
-            res = self.__class__(self._val - other._val)
-            res._jd0 = self._jd0
-            res._secprec = self._secprec
+            res = DeltaAstroTime(0,self._secprec)
+            res._val = self._val - other._val
             return res
         
         if isinstance(other,DeltaAstroTime):
@@ -285,7 +284,8 @@ class AstroTime(object):
         """
         A `datetime.datetime` object representing this time, rounded to the 
         nearest second. Timezone is UTC.
-        """        
+        """       
+        from math import floor 
         jd = self.jd
         
         rounding = 1000000
@@ -308,59 +308,61 @@ class AstroTime(object):
             roundingfrac = rounding/86400000000
             jd += .5 + roundingfrac 
             
-        z = np.floor(jd).astype(int) 
+        z = int(floor(jd)) 
         dec = jd - z #fractional piece
         
         #fix slight floating-point errors if they hapepn TOOD:check
-        dgtr1 = dec>=1.0
-        dec[dgtr1] -= 1.0
-        z[dgtr1] += 1
-        
+        if dec>=1.0:
+            dec = 1.0
+            z += 1
         
         if gregorian is None:
             gregorian = 2299161
             
         if gregorian is True:
-            alpha = ((z-1867216.25)/36524.25).astype(int)
+            alpha = int((z-1867216.25)/36524.25)
             z += 1 + alpha - alpha//4
         elif gregorian is False:
             pass
         else:
-            gmask = z >= gregorian
-            alpha = ((z[gmask]-1867216.25)/36524.25).astype(int)
-            z[gmask] += 1 + alpha - alpha//4
+            if z >= gregorian:
+                alpha = int((z-1867216.25)/36524.25)
+                z += 1 + alpha - alpha//4
         
         b = z + 1524
-        c = ((b-122.1)/365.25).astype(int)
-        d = (365.25*c).astype(int)
-        e = ((b-d)/30.6001).astype(int)
+        c = int((b-122.1)/365.25)
+        d = int(365.25*c)
+        e = int((b-d)/30.6001)
         
-        day = b - d - (30.6001*e).astype(int)
+        day = b - d - int(30.6001*e)
         
-        mmask = e<14
         month = e
-        month[mmask] -= 1
-        month[~mmask] -= 13
+        if e<14:
+            month -= 1
+        else:
+            month -= 13
+            
         year = c
-        year[month>2] -= 4716
-        year[month<=2] -= 4715
+        if month<2:
+            year -= 4716
+        else:
+            year -= 4715
         
         
         if rounding == 1000000:
             secdec = dec*86400
-            sec = secdec.astype(int)
+            sec = int(secdec)
             min = sec//60
             sec -= 60*min
             hr = min//60
             min -= 60*hr
-            #sec[sec==secdec] -= 1
             msec = None
         else:
-            msec = (dec*86400000000.).astype('int64') 
+            msec = long(dec*86400000000.) 
             if rounding > 0:
                 div = (msec//1000000)*1000000
-                toround = (msec - div)<(2*rounding)
-                msec[toround] = div + rounding
+                if (msec - div)<(2*rounding):
+                    msec = div + rounding
                 msec  -= rounding
 
             sec = msec//1000000
@@ -373,9 +375,9 @@ class AstroTime(object):
             
         
         if msec is None:
-            return datetime.datetime(year,month,day,hr%24,min%60,sec%60)
+            return datetime(year,month,day,hr%24,min%60,sec%60)
         else:
-            return datetime.datetime(year,month,day,hr%24,min%60,sec%60,msec%1000000)
+            return datetime(year,month,day,hr%24,min%60,sec%60,msec%1000000)
         
         
 class DeltaAstroTime(AstroTime):
@@ -392,7 +394,7 @@ class DeltaAstroTime(AstroTime):
         The precision for this time in fractions of a second.
     """
     
-    def __init__(self,timediff,secprecision):
+    def __init__(self,timediff,secprecision=1e-9):
         super(DeltaAstroTime,self).__init__(timediff,secprecision,0)
         
     def __add__(self,other):
@@ -403,7 +405,8 @@ class DeltaAstroTime(AstroTime):
             else:
                 newval = other._val + self._val * self._secprec / bestprec
                 
-            res = other.__class__(newval)
+            res = other.__class__(0)
+            res._val = long(newval)
             res._secprec = bestprec
             res._jd0 = other._jd0
             
