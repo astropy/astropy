@@ -5,3 +5,4 @@ The time package takes care of astronomical timekeeping and conversions.
 """
 
 from .astrotime import *
+from .arrayastrotime import *
