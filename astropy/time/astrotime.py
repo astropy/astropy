@@ -231,7 +231,7 @@ class AstroTime(object):
             return 'B{0.0f}'.format(be)
         else:
             
-            return 'B{0qf}'.format(be)
+            return 'B{0f}'.format(be)
     
     @property
     def datetime(self):
