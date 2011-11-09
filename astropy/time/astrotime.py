@@ -169,34 +169,26 @@ class AstroTime(object):
         return jdn + hr/24.0 + min/1440.0 + sec/86400.0
             
     def __add__(self,other):
-        #bypass if they precision and jd0 match
-        if self._secprec == other._secprec and self._jd0 == other._jd0:
-            return self.__class__(self._val + other._val,
-                                  self._secprec, self._jd0)
-        
-        # use self's jd0 for the new object
-        jdoffset = self._jd0 - other._jd0
-        oval = other._val + jdoffset*86400/other._secprec
-        
-        #use best precision
-        secprec = min(self._secprec,other._secprec)
-        
-        if secprec == self._secprec:
-            newval = self._val + oval * other._secprec / secprec
+        if isinstance(other,DeltaAstroTime):
+            return other + self #delegate to DeltaAstroTime.__add__
         else:
-            newval = self._val * self._secprec / secprec + oval
-        
-        return self.__class__(newval, secprec, self._jd0)
+            raise TypeError('An AstroTime object can only be added to a DeltaAstroTime')
         
     def __sub__(self,other):
         #bypass if they precision and jd0 match
         if self._secprec == other._secprec and self._jd0 == other._jd0:
-            return self.__class__(self._val - other._val,
-                                  self._secprec, self._jd0)
+            res = self.__class__(self._val - other._val)
+            res._jd0 = self._jd0
+            res._secprec = self._secprec
+            return res
         
-        # use self's jd0 for the new object
-        jdoffset = self._jd0 - other._jd0
-        oval = other._val + jdoffset*86400/other._secprec
+        if isinstance(other,DeltaAstroTime):
+            #DeltaAstroTime objects are not fixed to a jd0
+            oval = 0
+        else:
+            # use self's jd0 for the new object
+            jdoffset = self._jd0 - other._jd0
+            oval = other._val + jdoffset*86400/other._secprec
         
         #use best precision
         secprec = min(self._secprec,other._secprec)
@@ -206,7 +198,7 @@ class AstroTime(object):
         else:
             newval = self._val * self._secprec / secprec - oval
         
-        return self.__class__(newval, secprec, self._jd0)
+        return DeltaAstroTime(newval, secprec, self._jd0)
             
     def __eq__(self,other):
         if self._secprec == other._secprec and self._jd0 == other._jd0:
@@ -386,3 +378,37 @@ class AstroTime(object):
             return datetime.datetime(year,month,day,hr%24,min%60,sec%60,msec%1000000)
         
         
+class DeltaAstroTime(AstroTime):
+    """
+    This class represents a difference between two times that were represented
+    as `AstroTime` objects.
+    
+    Parameters
+    ----------
+    timediff : long
+        The time difference in units set be `secprecision` - that is, one unit 
+        of difference in this input is `secprecision` seconds.
+    secprecision : float
+        The precision for this time in fractions of a second.
+    """
+    
+    def __init__(self,timediff,secprecision):
+        super(DeltaAstroTime,self).__init__(timediff,secprecision,0)
+        
+    def __add__(self,other):
+        if isinstance(other,AstroTime):
+            bestprec = min(self._secprec,other._secprec)
+            if bestprec == self._secprec:
+                newval = self._val + other._val * other._secprec / bestprec
+            else:
+                newval = other._val + self._val * self._secprec / bestprec
+                
+            res = other.__class__(newval)
+            res._secprec = bestprec
+            res._jd0 = other._jd0
+            
+        else:
+            msg = 'DeltaAstroTime cannot be added to {0} object'
+            raise TypeError(msg.format(other.__class__))
+            
+        return res
