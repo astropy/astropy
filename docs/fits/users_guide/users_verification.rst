@@ -1,15 +1,15 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 ************
 Verification
 ************
 
-PyFITS has built in a flexible scheme to verify FITS data being conforming to
-the FITS standard. The basic verification philosophy in PyFITS is to be
+Astropy has built in a flexible scheme to verify FITS data being conforming to
+the FITS standard. The basic verification philosophy in Astropy is to be
 tolerant in input and strict in output.
 
-When PyFITS reads a FITS file which is not conforming to FITS standard, it will
-not raise an error and exit. It will try to make the best educated
+When Astropy reads a FITS file which is not conforming to FITS standard, it
+will not raise an error and exit. It will try to make the best educated
 interpretation and only gives up when the offending data is accessed and no
 unambiguous interpretation can be reached.
 
@@ -31,8 +31,8 @@ standards. Examples include the long string value and the use of the CONTINUE
 card.
 
 The violation of the standard can happen at different levels of the data
-structure. PyFITS's verification scheme is developed on these hierarchical
-levels. Here are the 3 PyFITS verification levels:
+structure. Astropy's verification scheme is developed on these hierarchical
+levels. Here are the 3 Astropy verification levels:
 
 1. The HDU List
 
@@ -40,14 +40,14 @@ levels. Here are the 3 PyFITS verification levels:
 
 3. Each Card in the HDU Header
 
-These three levels correspond to the three categories of PyFITS objects:
+These three levels correspond to the three categories of Astropy objects:
 `HDUList`, any HDU (e.g. `PrimaryHDU`, `ImageHDU`, etc.), and `Card`. They are
 the only objects having the ``verify()`` method. All other objects (e.g.
 `CardList`) do not have any ``verify()`` method.
 
 If ``verify()`` is called at the HDU List level, it verifies standard
 compliance at all three levels, but a call of ``verify()`` at the Card level
-will only check the compliance of that Card. Since PyFITS is tolerant when
+will only check the compliance of that Card. Since Astropy is tolerant when
 reading a FITS file, no ``verify()`` is called on input. On output,
 ``verify()`` is called with the most restrictive option as the default.
 
@@ -55,7 +55,7 @@ reading a FITS file, no ``verify()`` is called on input. On output,
 Verification Options
 ====================
 
-There are 5 options for all verify(option) calls in PyFITS. In addition, they
+There are 5 options for all verify(option) calls in Astropy. In addition, they
 available for the ``output_verify`` argument of the following methods:
 ``close()``, ``writeto()``, and ``flush()``. In these cases, they are passed to
 a ``verify()`` call within these methods. The 5 options are:
@@ -98,10 +98,10 @@ is fixable, this option will print out a message noting it is fixed. If it is
 not fixable, it will throw an exception.
 
 The principle behind fixing is to do no harm. For example, it is plausible to
-'fix' a Card with a keyword name like 'P.I.' by deleting it, but PyFITS will
+'fix' a Card with a keyword name like 'P.I.' by deleting it, but Astropy will
 not take such action to hurt the integrity of the data.
 
-Not all fixes may be the "correct" fix, but at least PyFITS will try to make
+Not all fixes may be the "correct" fix, but at least Astropy will try to make
 the fix in such a way that it will not throw off other FITS readers.
 
 **silentfix**
@@ -119,7 +119,7 @@ will not try to fix any FITS standard violations whether fixable or not.
 Verifications at Different Data Object Levels
 =============================================
 
-We'll examine what PyFITS's verification does at the three different levels:
+We'll examine what Astropy's verification does at the three different levels:
 
 
 Verification at HDUList
@@ -216,7 +216,7 @@ Unfixable Cards:
 
 We'll summarize the verification with a "life-cycle" example:
 
-    >>> h = pyfits.PrimaryHDU() # create a PrimaryHDU
+    >>> h = astropy.io.fits.PrimaryHDU() # create a PrimaryHDU
     # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow '.'
     # in the keyword), if using the update() method - doesn't work!
     >>> h.update('P.I.', 'Hubble')
@@ -224,7 +224,7 @@ We'll summarize the verification with a "life-cycle" example:
     # Have to do it the hard way (so a user will not do this by accident)
     # First, create a card image and give verbatim card content (including
     # the proper spacing, but no need to add the trailing blanks)
-    >>> c = pyfits.Card().fromstring("P.I. = 'Hubble'")
+    >>> c = astropy.io.fits.Card().fromstring("P.I. = 'Hubble'")
     # then append it to the header (must go through the CardList)
     >>> h.header.ascardlist().append(c)
     # Now if we try to write to a FITS file, the default output verification
@@ -241,8 +241,8 @@ We'll summarize the verification with a "life-cycle" example:
     # non-standard FITS file
     >>> h.writeto('pi.fits', output_verify='ignore')
     # Now reading a non-standard FITS file
-    # pyfits is magnanimous in reading non-standard FITS file
-    >>> hdus = pyfits.open('pi.fits')
+    # astropy.io.fits is magnanimous in reading non-standard FITS files
+    >>> hdus = astropy.io.fits.open('pi.fits')
     >>> print hdus[0].header.ascardlist()
     SIMPLE =            T / conforms to FITS standard
     BITPIX =            8 / array data type
@@ -278,7 +278,7 @@ way to determine that the HDU has not been modified by subsequent data
 processing operations or corrupted while copying or storing the file on
 physical media.
 
-In order to avoid any impact on performance, by default PyFITS will not verify
+In order to avoid any impact on performance, by default Astropy will not verify
 HDU checksums when a file is opened or generate checksum values when a file is
 written.  In fact, CHECKSUM and DATASUM cards are automatically removed from
 HDU headers when a file is opened, and any CHECKSUM or DATASUM cards are
@@ -298,16 +298,16 @@ Here are some examples:
 
      >>>
      # Open the file pix.fits verifying the checksum values for all HDUs
-     >>> hdul = pyfits.open('pix.fits', checksum=True)
+     >>> hdul = astropy.io.fits.open('pix.fits', checksum=True)
      >>>
      # Open the file in.fits where checksum verification fails for the
      # primary HDU
-     >>> hdul = pyfits.open('in.fits', checksum=True)
+     >>> hdul = astropy.io.fits.open('in.fits', checksum=True)
      Warning:  Checksum verification failed for HDU #0.
      >>>
      # Create file out.fits containing an HDU constructed from data and header
      # containing both CHECKSUM and DATASUM cards.
-     >>> pyfits.writeto('out.fits', data, header, checksum=True)
+     >>> astropy.io.fits.writeto('out.fits', data, header, checksum=True)
      >>>
      # Create file out.fits containing all the HDUs in the HDULIST
      # hdul with each HDU header containing only the DATASUM card
@@ -320,4 +320,4 @@ Here are some examples:
      # Append a new HDU constructed from array data to the end of
      # the file existingfile.fits with only the appended HDU
      # containing both CHECKSUM and DATASUM cards.
-     >>> pyfits.append('existingfile.fits', data, checksum=True)
+     >>> astropy.io.fits.append('existingfile.fits', data, checksum=True)
