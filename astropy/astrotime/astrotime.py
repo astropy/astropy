@@ -6,13 +6,25 @@ import numpy as np
 class AstroTime(object):
     """Class to store a time variable.
     The internal format uses the January 1, 4713 BC Greenwich noon as the zeropoint (Julian Day)
-    and stores the date as days to this zeropoint in ~numpy.int64 and the fraction of a day in ~numpy.float64."""
+    and stores the date as days to this zeropoint in ~numpy.int64 and the fraction of a day in ~numpy.float64.
+    
+    Initialize an AstroTime-object with the days and fraction of days from the January 1, 4713 BC Greenwich noon
+    Parameters
+    ----------
+    days : int
+        The number of Julian Days
+    fraction_of_day : float
+        the fraction of a day for the time"""
     
     @classmethod
     def from_jd(cls, jd_time):
         """
         Instantiate an AstroTime-object with Julian Date
-        
+
+        Parameters
+        ----------
+        jd_time : float
+        A Julian date 
         :param jd_time:
             A float object
         """
@@ -20,15 +32,29 @@ class AstroTime(object):
         fraction_of_day = np.fmod(jd_time, 1.0)
         return cls(days, fraction_of_day)
         
+    def from_mjd(cls, mjd_time):
+        """
+        Instantiate an AstroTime-object with Modified Julian Date
+
+        Parameters
+        ----------
+        mjd_time : float
+            A Modified Julian date 
+        
+        """
+        return cls.from_jd(mjd_time + 2400000.5)
+        
     @classmethod
     def from_date_gregorian(cls, gregorian_datetime):
         """
         Convert a gregorian calendar date and time (using `datetime.datetime`) to julian date.
         
-        :param gregorian_datetime: 
-            A :class:`datetime.datetime` object
+        Parameters
+        ----------
+        gregorian_datetime : `datetime.datetime` object
         
-        **Examples**
+        Examples
+        --------
         
         >>> from astropy import astrotime
         >>> import datetime
@@ -71,11 +97,6 @@ class AstroTime(object):
         
     
     def __init__(self, days, fraction_of_day):
-        """Initialize an AstroTime-object with the days and fraction of days from the January 1, 4713 BC Greenwich noon
-        
-        :param days:
-        :param fraction_days:
-        """
         self.days = np.int64(days)
         self.fraction_of_day = np.float64(fraction_of_day)
     
@@ -83,12 +104,14 @@ class AstroTime(object):
     def to_jd(self):
         """return the date as JD in a float64"""
         return np.float64(self.days+self.fraction_of_day)
+    jd = property(to_jd)
     
     def to_date_gregorian(self):
         """
         returns the gregorian date in a `datetime.datetime` object
         
-        **Reference**
+        References
+        ----------
         http://www.usno.navy.mil/USNO/astronomical-applications/astronomical-information-center/julian-date-form
         """
         
@@ -120,3 +143,4 @@ class AstroTime(object):
         microseconds = np.int64(fraction)
         
         return np.vectorize(datetime)(years, months, days, hours, minutes, seconds, microseconds)
+    date_gregorian = property(to_date_gregorian)
