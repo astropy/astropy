@@ -36,22 +36,36 @@ class AstroTime(object):
         >>> mytime.to_jd()
         2286072.0
         
-        **References**
+        References
+        ----------
         http://asa.usno.navy.mil/SecM/Glossary.html
         http://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
         """
         
-        # Reference: http://asa.usno.navy.mil/SecM/Glossary.html
-        # Reference: http://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
+        year_vector = np.vectorize(lambda item: item.year)
+        month_vector = np.vectorize(lambda item: item.month)
+        day_vector = np.vectorize(lambda item: item.day)
+        hour_vector = np.vectorize(lambda item: item.hour)
+        minute_vector = np.vectorize(lambda item: item.minute)
+        second_vector = np.vectorize(lambda item: item.second)
+        microsecond_vector = np.vectorize(lambda item: item.microsecond)
         
-        a = (14 - gregorian_datetime.month) / 12
-        y = gregorian_datetime.year + 4800 - a
-        m = gregorian_datetime.month + 12*a - 3
-        jdn = gregorian_datetime.day + ((153*m + 2) / 5) + 365*y + y/4 - y/100 + y/400 - 32045
-        jd = jdn + (gregorian_datetime.hour - 12) / 24. + \
-            gregorian_datetime.minute / 1440. + \
-            gregorian_datetime.second / 86400. + \
-            gregorian_datetime.microsecond / (86400.*1e6) 
+        year = year_vector(gregorian_datetime)
+        month = month_vector(gregorian_datetime)
+        day = day_vector(gregorian_datetime)
+        hour = hour_vector(gregorian_datetime)
+        minute = minute_vector(gregorian_datetime)
+        second = second_vector(gregorian_datetime)
+        microsecond = microsecond_vector(gregorian_datetime)
+        
+        a = (14 - month) / 12
+        y = year + 4800 - a
+        m = month + 12*a - 3
+        jdn = day + ((153 * m + 2) / 5) + 365 * y + y / 4 - y / 100 + y / 400 - 32045
+        jd = jdn + (hour - 12) / 24. + \
+            minute / 1440. + \
+            second / 86400. + \
+            microsecond / (86400.*1e6) 
         
         return cls.from_jd(jd)
         
@@ -98,11 +112,11 @@ class AstroTime(object):
         
         fraction = 24*jd_fraction_of_days
         hours = np.int64(fraction)
-        fraction = np.fmod(fraction, 1.0)*60
+        fraction = np.fmod(fraction, 1.0) * 60
         minutes = np.int64(fraction)
-        fraction = np.fmod(fraction, 1.0)*60
+        fraction = np.fmod(fraction, 1.0) * 60
         seconds = np.int64(fraction)
-        fraction = np.fmod(fraction, 1.0)*1e6
+        fraction = np.fmod(fraction, 1.0) * 1e6
         microseconds = np.int64(fraction)
         
-        return datetime(years, months, days, hours, minutes, seconds, microseconds)
+        return np.vectorize(datetime)(years, months, days, hours, minutes, seconds, microseconds)
