@@ -1,4 +1,4 @@
-.. currentmodule:: pyfits.core
+.. currentmodule:: astropy.io.fits
 
 *********************
 Less Familiar Objects
@@ -16,12 +16,12 @@ FITS standard supports both binary and ASCII tables. In ASCII tables, all the
 data are stored in a human readable text form, so it takes up more space and
 extra processing to parse the text for numeric data.
 
-In PyFITS, the interface for ASCII tables and binary tables is basically the
+In Astropy, the interface for ASCII tables and binary tables is basically the
 same, i.e. the data is in the ``.data`` attribute and the ``field()`` method
 is used to refer to the columns and returns a numpy array. When reading the
-table, PyFITS will automatically detect what kind of table it is.
+table, Astropy will automatically detect what kind of table it is.
 
-    >>> hdus = pyfits.open('ascii_table.fits')
+    >>> hdus = astropy.io.fits.open('ascii_table.fits')
     >>> hdus[1].data[:1]
     FITS_rec(
     ... [(10.123000144958496, 37)],
@@ -71,18 +71,18 @@ The default value for tbtype is `BinTableHDU`.
      >>>
      # Define the columns
      >>> import numpy as np
-     >>> import pyfits
+     >>> import astropy.io.fits
      >>> a1 = np.array(['abcd', 'def'])
      >>> r1 = np.array([11., 12.])
-     >>> c1 = pyfits.Column(name='abc', format='A3', array=a1)
-     >>> c2 = pyfits.Column(name='def', format='E', array=r1, bscale=2.3,
-     ...                    bzero=0.6)
-     >>> c3 = pyfits.Column(name='t1', format='I', array=[91, 92, 93])
+     >>> c1 = astropy.io.fits.Column(name='abc', format='A3', array=a1)
+     >>> c2 = astropy.io.fits.Column(name='def', format='E', array=r1,
+     ...                             bscale=2.3, bzero=0.6)
+     >>> c3 = astropy.io.fits.Column(name='t1', format='I', array=[91, 92, 93])
      # Create the table
-     >>> x = pyfits.ColDefs([c1, c2, c3], tbtype='TableHDU')
-     >>> hdu = pyfits.new_table(x, tbtype='TableHDU')
+     >>> x = astropy.io.fits.ColDefs([c1, c2, c3], tbtype='TableHDU')
+     >>> hdu = astropy.io.fits.new_table(x, tbtype='TableHDU')
      # Or, simply,
-     >>> hdu = pyfits.new_table([c1, c2, c3], tbtype='TableHDU')
+     >>> hdu = astropy.io.fits.new_table([c1, c2, c3], tbtype='TableHDU')
      >>> hdu.writeto('ascii.fits')
      >>> hdu.data
      FITS_rec([('abcd', 11.0, 91), ('def', 12.0, 92), ('', 0.0, 93)],
@@ -100,11 +100,11 @@ save storage space if there is a large dynamic range of data lengths in
 different cells.
 
 A variable length array table can have one or more fields (columns) which are
-variable length. The rest of the fields (columns) in the same table can still be
-regular, fixed-length ones. PyFITS will automatically detect what kind of field
-it is during reading; no special action is needed from the user. The data type
-specification (i.e. the value of the TFORM keyword) uses an extra letter 'P' and
-the format is
+variable length. The rest of the fields (columns) in the same table can still
+be regular, fixed-length ones. Astropy will automatically detect what kind of
+field it is during reading; no special action is needed from the user. The data
+type specification (i.e. the value of the TFORM keyword) uses an extra letter
+'P' and the format is
 
 .. parsed-literal::
 
@@ -112,11 +112,11 @@ the format is
 
 where r is 0, 1, or absent, t is one of the letter code for regular table data
 type (L, B, X, I, J, etc. currently, the X format is not supported for variable
-length array field in PyFITS), and max is the maximum number of elements. So,
+length array field in Astropy), and max is the maximum number of elements. So,
 for a variable length field of int32, The corresponding format spec is,
 e.g. 'PJ(100)'.
 
-    >>> f = pyfits.open('variable_length_table.fits')
+    >>> f = astropy.io.fits.open('variable_length_table.fits')
     >>> print f[1].header['tform5']
     1PI(20)
     >>> print f[1].data.field(4)[:3]
@@ -140,23 +140,23 @@ letter, and secondly, the field data must be an objects array (as included in
 the numpy module). Here is an example of creating a table with two fields,  one
 is regular and the other variable length array.
 
-    >>> import pyfits
+    >>> from astropy.io import fits
     >>> import numpy as np
-    >>> c1 = pyfits.Column(name='var', format='PJ()',
-    ...                    array=np.array([[45., 56]
-                                           [11, 12, 13]],
-    ...                                   dtype=np.object))
-    >>> c2 = pyfits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
+    >>> c1 = fits.Column(name='var', format='PJ()',
+    ...                  array=np.array([[45., 56]
+                                         [11, 12, 13]],
+    ...                                 dtype=np.object))
+    >>> c2 = fits.Column(name='xyz', format='2I', array=[[11, 3], [12, 4]])
     # the rest is the same as a regular table.
     # Create the table HDU
-    >>> tbhdu = pyfits.new_table([c1, c2])
+    >>> tbhdu = fits.new_table([c1, c2])
     >>> print tbhdu.data
     FITS_rec([(array([45, 56]), array([11,  3], dtype=int16)),
-           (array([11, 12, 13]), array([12,  4], dtype=int16))], 
-          dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
+              (array([11, 12, 13]), array([12,  4], dtype=int16))], 
+             dtype=[('var', '<i4', 2), ('xyz', '<i2', 2)])
     # write to a FITS file
     >>> tbhdu.writeto('var_table.fits')
-    >>> hdu = pyfits.open('var_table.fits')
+    >>> hdu = fits.open('var_table.fits')
     # Note that heap info is taken care of (PCOUNT) when written to FITS file.
     >>> print hdu[1].header.ascardlist()
     XTENSION= 'BINTABLE'       / binary table extension
@@ -207,7 +207,7 @@ other HDU. Just use the .header attribute.
 The content of the HDU can similarly be summarized by using the
 `HDUList.info()` method:
 
-    >>> f = pyfits.open('random_group.fits')
+    >>> f = astropy.io.fits.open('random_group.fits')
     >>> print f[0].header['groups']
     True
     >>> print f[0].header['gcount']
@@ -337,10 +337,10 @@ create the HDU itself:
     # in lists assigned to their corresponding arguments.
     # If the data type (bitpix) is not specified, the data type of the image
     # will be used.
-    >>> x = pyfits.GroupData(imdata, parnames=['abc', 'xyz'],
-    ...                      pardata=[pdata1, pdata2], bitpix=-32)
+    >>> x = astropy.io.fits.GroupData(imdata, parnames=['abc', 'xyz'],
+             ...                      pardata=[pdata1, pdata2], bitpix=-32)
     # Now, create the GroupsHDU and write to a FITS file.
-    >>> hdu = pyfits.GroupsHDU(x)
+    >>> hdu = astropy.io.fits.GroupsHDU(x)
     >>> hdu.writeto('test_group.fits')
     >>> print hdu.header.ascardlist()[:]
     SIMPLE =            T / conforms to FITS standard
@@ -386,19 +386,20 @@ and "Registered FITS Convention, Tiled Image Compression Convention":
 
     http://fits.gsfc.nasa.gov/registry/tilecompression.html
 
-Compressed image data is accessed, in PyFITS, using the optional
-"pyfits.compression" module contained in a C shared library (compression.so).
-If an attempt is made to access an HDU containing compressed image data when
-the pyfitsComp module is not available, the user is notified of the  problem
-and the HDU is treated like a standard binary table HDU.  This  notification
-will only be made the first time compressed image data is encountered.  In this
-way, the pyfitsComp module is not required in order for PyFITS to work.
+Compressed image data is accessed, in Astropy, using the optional
+"astropy.io.fits.compression" module contained in a C shared library
+(compression.so).  If an attempt is made to access an HDU containing compressed
+image data when the compression module is not available, the user is notified
+of the  problem and the HDU is treated like a standard binary table HDU.  This
+notification will only be made the first time compressed image data is
+encountered.  In this way, the compression module is not required in order for
+Astropy to work.
 
 
 Header and Summary
 ------------------
 
-In PyFITS, the header of a compressed image HDU appears to the user like any
+In Astropy, the header of a compressed image HDU appears to the user like any
 image header.  The actual header stored in the FITS file is that of a  binary
 table HDU with a set of special keywords, defined by the convention, to
 describe the structure of the compressed image.  The conversion between binary
@@ -408,7 +409,7 @@ a FITS file.
 
 The content of the HDU header may be accessed using the ``.header`` attribute:
 
-    >>> f = pyfits.open('compressed_image.fits')
+    >>> f = astropy.io.fits.open('compressed_image.fits')
     >>> print f[1].header
     XTENSION= 'IMAGE   '           / extension type
     BITPIX  =                   16 / array data type
@@ -423,7 +424,7 @@ The contents of the corresponding binary table HDU may be accessed using the
 hidden ``._header`` attribute.  However, all user interface with the HDU header
 should be accomplished through the image header (the ``.header`` attribute).
 
-    >>> f = pyfits.open('compressed_image.fits')
+    >>> f = astropy.io.fits.open('compressed_image.fits')
     >>> print f[1]._header
     XTENSION= 'BINTABLE'           / binary table extension
     BITPIX  =                    8 / 8-bit bytes
@@ -450,13 +451,13 @@ should be accomplished through the image header (the ``.header`` attribute).
 The contents of the HDU can be summarized by using either the `info()`
 convenience function or method:
 
-    >>> pyfits.info('compressed_image.fits')
+    >>> astropy.io.fits.info('compressed_image.fits')
     Filename: compressed_image.fits
     No.    Name         Type      Cards   Dimensions   Format
     0    PRIMARY     PrimaryHDU       6  ()            int16
     1    COMPRESSED  CompImageHDU    52  (512, 512)    int16
     >>>
-    >>> f = pyfits.open('compressed_image.fits')
+    >>> f = astropy.io.fits.open('compressed_image.fits')
     >>> f.info()
     Filename: compressed_image.fits
     No.    Name         Type      Cards   Dimensions   Format
@@ -482,7 +483,7 @@ any) in the image.
 
 The content of the HDU data may be accessed using the ``.data`` attribute:
 
-    >>> f = pyfits.open('compressed_image.fits')
+    >>> f = astropy.io.fits.open('compressed_image.fits')
     >>> f[1].data
     array([[38, 43, 35, ..., 45, 43, 41],
            [36, 41, 37, ..., 42, 41, 39],
@@ -501,7 +502,7 @@ To create a compressed image HDU from scratch, simply construct a
 image header.  From there, the HDU can be treated just like any other image
 HDU.
 
-    >>> hdu = pyfits.CompImageHDU(imageData, imageHeader)
+    >>> hdu = astropy.io.fits.CompImageHDU(imageData, imageHeader)
     >>> hdu.writeto('compressed_image.fits')
     >>>
 
