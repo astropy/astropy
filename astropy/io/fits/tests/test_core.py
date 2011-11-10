@@ -200,48 +200,48 @@ class TestCore(FitsTestCase):
         """
 
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 1)
-        assert_equal(ext, 1)
-        assert_raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        assert ext == 1
+        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
                       1, 2)
-        assert_raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
                       (1, 2))
-        assert_raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(ValueError, _getext, self.data('test0.fits'), 'readonly',
                       'sci', 'sci')
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       1, 2, 3)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', ext=1)
-        assert_equal(ext, 1)
+        assert ext == 1
         hl, ext = _getext(self.data('test0.fits'), 'readonly', ext=('sci', 2))
-        assert_equal(ext, ('sci', 2))
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        assert ext == ('sci', 2)
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       1, ext=('sci', 2), extver=3)
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       ext=('sci', 2), extver=3)
 
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci')
-        assert_equal(ext, ('sci', 0))
+        assert ext == ('sci', 0)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci', 1)
-        assert_equal(ext, ('sci', 1))
+        assert ext == ('sci', 1)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', ('sci', 1))
-        assert_equal(ext, ('sci', 1))
+        assert ext == ('sci', 1)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci',
                           extver=1, do_not_scale_image_data=True)
-        assert_equal(ext, ('sci', 1))
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        assert ext == ('sci', 1)
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       'sci', ext=1)
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       'sci', 1, extver=2)
 
         hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci')
-        assert_equal(ext, ('sci', 0))
+        assert ext == ('sci', 0)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci',
                           extver=1)
-        assert_equal(ext, ('sci', 1))
-        assert_raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
+        assert ext == ('sci', 1)
+        pytest.raises(TypeError, _getext, self.data('test0.fits'), 'readonly',
                       extver=1)
 
 
-class TestConvenienceFunctions(PyfitsTestCase):
+class TestConvenienceFunctions(FitsTestCase):
     def test_writeto(self):
         """
         Simple test for writing a trivial header and some data to a file
@@ -249,12 +249,12 @@ class TestConvenienceFunctions(PyfitsTestCase):
         """
 
         data = np.zeros((100,100))
-        header = pyfits.Header()
-        pyfits.writeto(self.temp('array.fits'), data, header=header,
-                       clobber=True)
-        hdul = pyfits.open(self.temp('array.fits'))
-        assert_equal(len(hdul), 1)
-        assert_true((data == hdul[0].data).all())
+        header = fits.Header()
+        fits.writeto(self.temp('array.fits'), data, header=header,
+                     clobber=True)
+        hdul = fits.open(self.temp('array.fits'))
+        assert len(hdul) == 1
+        assert (data == hdul[0].data).all()
 
 
 class TestFileFunctions(FitsTestCase):
@@ -269,7 +269,7 @@ class TestFileFunctions(FitsTestCase):
     def test_detect_gzipped(self):
         """Test detection of a gzip file when the extension is not .gz."""
 
-        assert_equal(len(pyfits.open(self._make_gzip_file('test0.fz'))), 5)
+        assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
 
     def test_open_gzipped_writeable(self):
         """Opening gzipped files in a writeable mode should fail."""
@@ -285,7 +285,7 @@ class TestFileFunctions(FitsTestCase):
         """Test detection of a zip file when the extension is not .zip."""
 
         zf = self._make_zip_file(filename='test0.fz')
-        assert_equal(len(pyfits.open(zf)), 5)
+        assert len(fits.open(zf)) == 5
 
     def test_open_zipped_writeable(self):
         """Opening zipped files in a writeable mode should fail."""
