@@ -51,7 +51,7 @@ def pytest_runtest_setup(item):
 
 
 def run_tests(module=None, args=None, plugins=None, verbose=False,
-              pastebin=None, remote_data=False):
+              pastebin=None, remote_data=False, pep8=False):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
@@ -82,6 +82,10 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
         Controls whether to run tests marked with @remote_data. These
         tests use online data and are not run by default. Set to True to
         run these tests.
+        
+    pep8 : bool, optional
+        Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+        tests. Same as specifying `--pep8 -k pep8` in `args`.
 
     See Also
     --------
@@ -119,6 +123,16 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     # run @remote_data tests
     if remote_data:
         all_args += ' --remotedata'
+    
+    if pep8:
+        try:
+            import pytest_pep8
+        except ImportError:
+            raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
+                              'http://pypi.python.org/pypi/pytest-pep8')
+        else:
+            all_args += ' --pep8 -k pep8'
+    
     return pytest.main(args=all_args, plugins=plugins)
 
 
@@ -135,7 +149,11 @@ class astropy_test(Command):
          '`args`.'),
         ('pastebin=', 'b',
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
-        ('args=', 'a', 'Additional arguments to be passed to pytest')
+        ('args=', 'a', 'Additional arguments to be passed to pytest'),
+        ('remote-data', 'R', 'Run tests that download remote data'),
+        ('pep8', 'P', 'Enable PEP8 checking and disable regular tests. '
+         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
+         'pytest-pep8 plugin.')
     ]
 
     def initialize_options(self):
@@ -144,6 +162,8 @@ class astropy_test(Command):
         self.plugins = None
         self.pastebin = None
         self.args = None
+        self.remote_data = False
+        self.pep8 = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -164,9 +184,11 @@ class astropy_test(Command):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r}))'
+        cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, '
+        cmd += '{3!r}, {4!r}, {5!r}, {6!r}))'
         cmd = cmd.format(self.module, self.args, self.plugins,
-                         self.verbose_results, self.pastebin)
+                         self.verbose_results, self.pastebin,
+                         self.remote_data, self.pep8)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path))
 
