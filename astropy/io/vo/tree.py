@@ -29,6 +29,7 @@ except ImportError:
 # LOCAL
 from ... import __version__ as astropy_version
 from ...utils.collections import HomogeneousList
+from ...utils.xml.writer import XMLWriter
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -381,7 +382,7 @@ class SimpleElement(Element):
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name,
-                  attrib=xmlutil.object_attrs(self, self._attr_list))
+                  attrib=w.object_attrs(self, self._attr_list))
 
 
 class SimpleElementWithContent(SimpleElement):
@@ -396,7 +397,7 @@ class SimpleElementWithContent(SimpleElement):
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name, self._content,
-                  attrib=xmlutil.object_attrs(self, self._attr_list))
+                  attrib=w.object_attrs(self, self._attr_list))
 
     @property
     def content(self):
@@ -893,10 +894,10 @@ class Values(Element, _IDProperty):
             return
 
         if self.ref is not None:
-            w.element('VALUES', attrib=xmlutil.object_attrs(self, ['ref']))
+            w.element('VALUES', attrib=w.object_attrs(self, ['ref']))
         else:
             with w.tag('VALUES',
-                       attrib=xmlutil.object_attrs(
+                       attrib=w.object_attrs(
                            self, ['ID', 'null', 'ref'])):
                 if self.min is not None:
                     w.element(
@@ -1265,7 +1266,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     def to_xml(self, w, **kwargs):
         with w.tag(self._element_name,
-                   attrib=xmlutil.object_attrs(self, self._attr_list)):
+                   attrib=w.object_attrs(self, self._attr_list)):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
             if not self.values.is_defaults():
@@ -1668,7 +1669,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
     def to_xml(self, w, **kwargs):
         with w.tag(
             'GROUP',
-            attrib=xmlutil.object_attrs(
+            attrib=w.object_attrs(
                 self, ['ID', 'name', 'ref', 'ucd', 'utype'])):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
@@ -2372,7 +2373,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     def to_xml(self, w, **kwargs):
         with w.tag(
             'TABLE',
-             attrib=xmlutil.object_attrs(
+             attrib=w.object_attrs(
                        self,
                        ('ID', 'name', 'ref', 'ucd', 'utype', 'nrows'))):
 
@@ -2686,7 +2687,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self
 
     def to_xml(self, w, **kwargs):
-        attrs = xmlutil.object_attrs(self, ('ID', 'type', 'utype'))
+        attrs = w.object_attrs(self, ('ID', 'type', 'utype'))
         attrs.update(self.extra_attributes)
         with w.tag('RESOURCE', attrib=attrs):
             if self.description is not None:
@@ -2921,7 +2922,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             '_debug_python_based_parser': _debug_python_based_parser}
 
         fd = util.convert_to_writable_filelike(fd)
-        w = xmlutil.XMLWriter(fd)
+        w = XMLWriter(fd)
         version = self.version
         if _astropy_version is None:
             lib_version = astropy_version
