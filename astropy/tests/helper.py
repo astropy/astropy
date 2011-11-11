@@ -50,7 +50,7 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remotedata option to run")
 
 
-def run_tests(module=None, args=None, plugins=None, verbose=False,
+def run_tests(package=None, args=None, plugins=None, verbose=False,
               pastebin=None, remote_data=False, pep8=False):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
@@ -58,8 +58,8 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
 
     Parameters
     ----------
-    module : str, optional
-        The name of a specific module to test, e.g. 'io.fits' or 'utils'.
+    package : str, optional
+        The name of a specific package to test, e.g. 'io.fits' or 'utils'.
         If nothing is specified all default Astropy tests are run.
 
     args : str, optional
@@ -92,18 +92,18 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     pytest.main : py.test function wrapped by `run_tests`.
 
     """
-    if module is None:
-        module_path = astropy_path[0]
+    if package is None:
+        package_path = astropy_path[0]
     else:
-        module_path = os.path.join(astropy_path[0],
-                                   module.replace('.', os.path.sep))
+        package_path = os.path.join(astropy_path[0],
+                                   package.replace('.', os.path.sep))
 
-        if not os.path.isdir(module_path):
-            raise ValueError('Module not found: {0}'.format(module))
+        if not os.path.isdir(package_path):
+            raise ValueError('Package not found: {0}'.format(package))
 
     # '-p astropy.tests.helper' tells py.test to use this module as a plugin
     # so that the hooks defined above are actually used.
-    all_args = module_path + ' -p astropy.tests.helper'
+    all_args = package_path + ' -p astropy.tests.helper'
 
     # add any additional args entered by the user
     if args is not None:
@@ -138,8 +138,8 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
 
 class astropy_test(Command):
     user_options = [
-        ('module=', 'm',
-         "The name of a specific module to test, e.g. 'io.fits' or 'utils'.  "
+        ('package=', 'P',
+         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
          "If nothing is specified all default Astropy tests are run."),
         ('verbose-results', 'V',
          'Turn on verbose output from pytest. Same as specifying `-v` in '
@@ -151,13 +151,13 @@ class astropy_test(Command):
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
         ('args=', 'a', 'Additional arguments to be passed to pytest'),
         ('remote-data', 'R', 'Run tests that download remote data'),
-        ('pep8', 'P', 'Enable PEP8 checking and disable regular tests. '
+        ('pep8', '8', 'Enable PEP8 checking and disable regular tests. '
          'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
          'pytest-pep8 plugin.')
     ]
 
     def initialize_options(self):
-        self.module = None
+        self.package = None
         self.verbose_results = False
         self.plugins = None
         self.pastebin = None
@@ -186,7 +186,7 @@ class astropy_test(Command):
         # new environment
         cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, '
         cmd += '{3!r}, {4!r}, {5!r}, {6!r}))'
-        cmd = cmd.format(self.module, self.args, self.plugins,
+        cmd = cmd.format(self.package, self.args, self.plugins,
                          self.verbose_results, self.pastebin,
                          self.remote_data, self.pep8)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
