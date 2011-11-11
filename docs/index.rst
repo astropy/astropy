@@ -17,6 +17,7 @@ developed.  For more information, see the `github wiki
    configs
    wcs/index
    vo/index
+   utils/index
    development/index
 
 Indices and Tables
