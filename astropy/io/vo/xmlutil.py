@@ -5,12 +5,10 @@ Various XML-related utilities
 from __future__ import division, absolute_import
 
 # STDLIB
-import contextlib
 import os
-import re
-import sys
-import textwrap
-import urlparse
+
+# ASTROPY
+from ...utils.xml import check as xml_check
 
 # LOCAL
 from . import util
@@ -123,8 +121,7 @@ def check_id(ID, name='ID', config={}, pos=None):
     valid XML ID_.  *name* is the name of the attribute being checked
     (used only for error messages).
     """
-    if (ID is not None and
-        re.match(r"^[A-Za-z_][A-Za-z0-9_\.\-]*$", ID) is None):
+    if (ID is not None and not xml_check.check_id(ID)):
         warn_or_raise(W02, W02, (name, ID), config, pos)
         return False
     return True
@@ -138,17 +135,10 @@ def fix_id(ID, config={}, pos=None):
     """
     if ID is None:
         return None
-    if re.match(r"^[A-Za-z_][A-Za-z0-9_\.\-]*$", ID):
-        return ID
-    if len(ID):
-        corrected = ID
-        if not len(corrected) or re.match('^[^A-Za-z_]$', corrected[0]):
-            corrected = '_' + corrected
-        corrected = (re.sub(r"[^A-Za-z_]", '_', corrected[0]) +
-                     re.sub(r"[^A-Za-z0-9_\.\-]", "_", corrected[1:]))
+    corrected = xml_check.fix_id(ID)
+    if corrected != ID:
         vo_warn(W03, (ID, corrected), config, pos)
-        return corrected
-    return ''
+    return corrected
 
 
 _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
@@ -159,11 +149,8 @@ def check_token(token, attr_name, config={}, pos=None):
     Raises a `ValueError` if *token* is not a valid XML token, as
     defined by XML Schema Part 2.
     """
-    if (token is not None and
-        not (token == '' or
-             re.match(
-                "[^\r\n\t ]?([^\r\n\t ]| [^\r\n\t ])*[^\r\n\t ]?$", token))):
-        warn_or_raise(W34, W34, (token, attr_name), config, pos)
+    if (token is not None and not xml_check.check_token(token)):
+        return False
     return True
 
 
@@ -172,12 +159,8 @@ def check_mime_content_type(content_type, config={}, pos=None):
     Raises a `ValueError` if *content_type* is not a valid MIME
     content type (syntactically at least), as defined by RFC 2045.
     """
-    ctrls = ''.join(chr(x) for x in xrange(0, 0x20))
-    token_regex = '[^()<>@,;:\\\"/[\]?= %s\x7f]+' % ctrls
     if (content_type is not None and
-        re.match(
-            r'(?P<type>%s)/(?P<subtype>%s)$' % (token_regex, token_regex),
-            content_type) is None):
+        not xml_check.check_mime_content_type(content_type)):
         warn_or_raise(W04, W04, content_type, config, pos)
         return False
     return True
@@ -188,19 +171,9 @@ def check_anyuri(uri, config={}, pos=None):
     Raises a `ValueError` if *uri* is not a valid URI as defined in RFC
     2396.
     """
-    if uri is not None:
-        if (re.match(
-            r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}" +
-            r"[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?" +
-            r"(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?",
-            uri) is None):
-            warn_or_raise(W05, W05, uri, config, pos)
-            return False
-        try:
-            urlparse.urlparse(uri)
-        except:
-            warn_or_raise(W05, W05, uri, config, pos)
-            return False
+    if (uri is not None and not xml_check.check_anyuri(uri)):
+        warn_or_raise(W05, W05, uri, config, pos)
+        return False
     return True
 
 
