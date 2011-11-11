@@ -9,6 +9,7 @@ import os
 
 # ASTROPY
 from ...utils.xml import check as xml_check
+from ...utils.xml import validate
 
 # LOCAL
 from . import util
@@ -179,12 +180,25 @@ def check_anyuri(uri, config={}, pos=None):
 
 def validate_schema(filename, version='1.2'):
     """
-    Validates the given file against the appropriate VOTable schema
-    corresponding to the given *version*, which must be a string
-    "1.0", "1.1", or "1.2".
+    Validates the given file against the appropriate VOTable schema.
 
-    For version "1.0", it is checked against a DTD, since that version
-    did not have an XML Schema.
+    Parameters
+    ----------
+    filename : str
+        The path to the XML file to validate
+
+    version : str
+        The VOTABLE version to check, which must be a string \"1.0\",
+        \"1.1\", or \"1.2\".
+
+        For version \"1.0\", it is checked against a DTD, since that
+        version did not have an XML Schema.
+
+    Returns
+    -------
+    returncode, stdout, stderr : int, str, str
+        Returns the returncode from xmllint and the stdout and stderr
+        as strings
     """
     import subprocess
 
@@ -194,22 +208,9 @@ def validate_schema(filename, version='1.2'):
         schema_path = os.path.join(
             os.path.dirname(__file__),
             "data", "VOTable.v%s.xsd" % version)
-        schema_part = '--schema %s' % schema_path
     else:
-        dtd_path = os.path.join(
+        schema_path = os.path.join(
             os.path.dirname(__file__),
             "data", "VOTable.dtd")
-        schema_part = '--dtdvalid %s' % dtd_path
 
-    p = subprocess.Popen(
-        "xmllint --noout --nonet %s %s" %
-        (schema_part, filename),
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-
-    if p.returncode == 127:
-        raise OSError(
-            "xmllint not found, so can not validate schema")
-
-    return p.returncode, stdout, stderr
-
+    return validate.validate_schema(filename, schema_path)
