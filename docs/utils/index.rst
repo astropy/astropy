@@ -6,3 +6,4 @@
    :maxdepth: 2
 
    api_collections
+   api_console
