@@ -27,6 +27,9 @@ except ImportError:
     _has_pyfits = False
 
 # LOCAL
+from ... import __version__ as astropy_version
+from ...utils.collections import HomogeneousList
+
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     warn_unknown_attrs, UnimplementedWarning, VOTableChangeWarning,
@@ -37,7 +40,6 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
-from astropy import __version__ as astropy_version
 
 try:
     from . import iterparser
@@ -1004,7 +1006,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         self.precision  = precision
         self.utype      = utype
         self.type       = type
-        self._links     = util.HomogeneousList(Link)
+        self._links     = HomogeneousList(Link)
         self.title      = self.name
         self.values     = Values(self._votable, self)
         self.xtype      = xtype
@@ -1589,7 +1591,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.utype       = utype
         self.description = None
 
-        self._entries = util.HomogeneousList(
+        self._entries = HomogeneousList(
             (FieldRef, ParamRef, Group, Param))
 
         warn_unknown_attrs('GROUP', extra.iterkeys(), config, pos)
@@ -1749,11 +1751,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.description = None
         self.format = 'tabledata'
 
-        self._fields = util.HomogeneousList(Field)
-        self._params = util.HomogeneousList(Param)
-        self._groups = util.HomogeneousList(Group)
-        self._links  = util.HomogeneousList(Link)
-        self._infos  = util.HomogeneousList(Info)
+        self._fields = HomogeneousList(Field)
+        self._params = HomogeneousList(Param)
+        self._groups = HomogeneousList(Group)
+        self._links  = HomogeneousList(Link)
+        self._infos  = HomogeneousList(Info)
 
         self.array = np.array([])
         self.mask  = np.array([])
@@ -2538,12 +2540,12 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self._extra_attributes = kwargs
         self.description       = None
 
-        self._coordinate_systems = util.HomogeneousList(CooSys)
-        self._params             = util.HomogeneousList(Param)
-        self._infos              = util.HomogeneousList(Info)
-        self._links              = util.HomogeneousList(Link)
-        self._tables             = util.HomogeneousList(Table)
-        self._resources          = util.HomogeneousList(Resource)
+        self._coordinate_systems = HomogeneousList(CooSys)
+        self._params             = HomogeneousList(Param)
+        self._infos              = HomogeneousList(Info)
+        self._links              = HomogeneousList(Link)
+        self._tables             = HomogeneousList(Table)
+        self._resources          = HomogeneousList(Resource)
 
         warn_unknown_attrs('RESOURCE', kwargs.iterkeys(), config, pos)
 
@@ -2750,11 +2752,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Element.__init__(self)
         self.ID                  = resolve_id(ID, id, config, pos)
         self.description         = None
-        self._coordinate_systems = util.HomogeneousList(CooSys)
-        self._params             = util.HomogeneousList(Param)
-        self._infos              = util.HomogeneousList(Info)
-        self._resources          = util.HomogeneousList(Resource)
-        self._groups             = util.HomogeneousList(Group)
+
+        self._coordinate_systems = HomogeneousList(CooSys)
+        self._params             = HomogeneousList(Param)
+        self._infos              = HomogeneousList(Info)
+        self._resources          = HomogeneousList(Resource)
+        self._groups             = HomogeneousList(Group)
 
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
