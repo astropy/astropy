@@ -245,6 +245,14 @@ def adjust_compiler():
         os.environ['CC'] = compiler_mapping[version]
 
 
+def is_in_build_mode():
+    return __builtins__.get('_build_mode')
+
+
+def set_build_mode():
+    __builtins__['_build_mode'] = True
+
+
 ################################################################################
 # Backport of importlib.import_module from 3.x.  This backport was provided by
 # Brett Cannon and downloaded from here:

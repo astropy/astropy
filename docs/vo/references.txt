@@ -1,0 +1,22 @@
+.. _BINARY: http://www.ivoa.net/Documents/PR/VOTable/VOTable-20040322.html#ToC27
+.. _COOSYS: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC19
+.. _DESCRIPTION: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC19
+.. _FIELD: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC24
+.. _FIELDref: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC31
+.. _FITS: http://fits.gsfc.nasa.gov/fits_documentation.html
+.. _GROUP: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC31
+.. _ID: http://www.w3.org/TR/REC-xml/#id
+.. _INFO: http://www.ivoa.net/Documents/VOTable/20040811/REC-VOTable-1.1-20040811.html#ToC19
+.. _LINK: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC22
+.. _multidimensional arrays: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC12
+.. _numerical accuracy: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC26
+.. _PARAM: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC24
+.. _PARAMref: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC31
+.. _RESOURCE: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC21
+.. _TABLE: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC23
+.. _TABLEDATA: http://www.ivoa.net/Documents/PR/VOTable/VOTable-20040322.html#ToC25
+.. _unified content descriptor: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC28
+.. _unique type: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC29
+.. _units: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC27
+.. _VALUES: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC30
+.. _VOTABLE: http://www.ivoa.net/Documents/PR/VOTable/VOTable-20040322.html#ToC9
