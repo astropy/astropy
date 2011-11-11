@@ -5,7 +5,7 @@ from __future__ import division
 for astropy and affiliated modules.
 """
 
-__all__ = ['get_config_dir', 'get_config']
+__all__ = ['get_config_dir', 'get_cache_dir']
 
 def _find_home():
     """ Locates and return the home directory (or best approximation) on this 
@@ -69,12 +69,14 @@ def _find_home():
 
 def get_config_dir(create=True):
     """
-    Determines the Astropy configuration directory name.
+    Determines the Astropy configuration directory name and creates the 
+    directory if it doesn't exist.
     
-    Parameters
-    ----------
-    create : bool
-        If True, the directory will be created if it doesn't exist.
+    This directory is typically ``$HOME/.astropy/config``, but if the 
+    XDG_CONFIG_HOME environment variable is set and the  
+    ``$XDG_CONFIG_HOME/astropy`` directory exists, it will be that directory.
+    If it neither exists, the former will be created and symlinked to the 
+    latter.
     
     Returns
     -------
@@ -82,32 +84,81 @@ def get_config_dir(create=True):
         The absolute path to the configuration directory.
         
     """
-    raise NotImplementedError
-        
-    if create and not os.path.isdir(configdir):
-        #try to create it
-        os.mkdir(configdir)
-    return configdir
+    from os import path,environ
+    
+    #symlink will be set to this if the directory is created
+    linkto = None 
+    #first look for XDG_CONFIG_HOME
+    xch = environ.get('XDG_CONFIG_HOME')
 
+    if xch is not None:
+        xchpth =  path.join(xch,'astropy')
+        if not path.islink(xchpth):
+            if path.exists(xchpth):
+                return xchpth
+            else:
+                linkto = xchpth
+                
+    return _find_or_create_astropy_dir('config',linkto)
+    
 def get_cache_dir(create=True):
     """
-    Determines the Astropy cache directory name.
+    Determines the Astropy cache directory name and creates the directory if it
+    doesn't exist.
     
-    Parameters
-    ----------
-    create : bool
-        If True, the directory will be created if it doesn't exist.
+    This directory is typically ``$HOME/.astropy/cache``, but if the 
+    XDG_CACHE_HOME environment variable is set and the  
+    ``$XDG_CACHE_HOME/astropy`` directory exists, it will be that directory.
+    If it neither exists, the former will be created and symlinked to the 
+    latter.
     
     Returns
     -------
     cachedir : str
         The absolute path to the cache directory.
+        
     """
+    from os import path,environ
     
-    if create and not os.path.isdir(cachedir):
-        #try to create it
-        os.mkdir(cachedir)
-    return cachedir
+    #symlink will be set to this if the directory is created
+    linkto = None 
+    #first look for XDG_CACHE_HOME
+    xch = environ.get('XDG_CACHE_HOME')
+    
+    if xch is not None:
+        xchpth =  path.join(xch,'astropy')
+        if not path.islink(xchpth):
+            if path.exists(xchpth):
+                return xchpth
+            else:
+                linkto = xchpth
+                
+    return _find_or_create_astropy_dir('cache',linkto)
+    
+def _find_or_create_astropy_dir(dirnm,linkto):
+    from os import path,mkdir,symlink
+    
+    innerdir = path.join(_find_home(),'.astropy')
+    dir = path.join(_find_home(),'.astropy',dirnm)
+    
+    if not path.exists(dir):
+        #first create .astropy dir if needed
+        if not path.exists(innerdir):
+            mkdir(innerdir)
+        elif not path.isdir(innerdir):
+            msg = 'Intended Astropy directory {0} is actually a file.'
+            raise IOError(msg.format(innerdir))
+            
+        mkdir(dir)
+
+        if linkto is not None and not path.exists(linkto):
+            symlink(dir,linkto)
+    elif not path.isdir(dir):
+        msg = 'Intended Astropy {0} directory {1} is actually a file.'
+        raise IOError(msg.format(dirnm,dir))
+    
+    return path.abspath(dir)
+
 
 def get_config(subpackage, mainpackage='astropy'):
     """ Retrieves the object associated with a configuration file for a 
