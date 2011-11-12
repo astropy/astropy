@@ -50,8 +50,8 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remotedata option to run")
 
 
-def run_tests(package=None, args=None, plugins=None, verbose=False,
-              pastebin=None, remote_data=False, pep8=False):
+def run_tests(package=None, test_path=None, args=None, plugins=None,
+              verbose=False, pastebin=None, remote_data=False, pep8=False):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
@@ -61,6 +61,10 @@ def run_tests(package=None, args=None, plugins=None, verbose=False,
     package : str, optional
         The name of a specific package to test, e.g. 'io.fits' or 'utils'.
         If nothing is specified all default Astropy tests are run.
+        
+    test_path : str, optional
+        Specify location to test by path. May be a single file or directory. 
+        Must be specified absolutely or relative to the calling directory.
 
     args : str, optional
         Additional arguments to be passed to `pytest.main` in the `args`
@@ -100,6 +104,9 @@ def run_tests(package=None, args=None, plugins=None, verbose=False,
 
         if not os.path.isdir(package_path):
             raise ValueError('Package not found: {0}'.format(package))
+            
+    if test_path:
+        package_path = os.path.join(package_path,os.path.abspath(test_path))
 
     # '-p astropy.tests.helper' tells py.test to use this module as a plugin
     # so that the hooks defined above are actually used.
@@ -141,6 +148,9 @@ class astropy_test(Command):
         ('package=', 'P',
          "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
          "If nothing is specified all default Astropy tests are run."),
+        ('test-path=', 't', 'Specify a test location by path. Must be '
+         'specified absolutely or relative to the current directory. '
+         'May be a single file or directory.'),
         ('verbose-results', 'V',
          'Turn on verbose output from pytest. Same as specifying `-v` in '
          '`args`.'),
@@ -158,6 +168,7 @@ class astropy_test(Command):
 
     def initialize_options(self):
         self.package = None
+        self.test_path = None
         self.verbose_results = False
         self.plugins = None
         self.pastebin = None
@@ -185,9 +196,9 @@ class astropy_test(Command):
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
         cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, '
-        cmd += '{3!r}, {4!r}, {5!r}, {6!r}))'
-        cmd = cmd.format(self.package, self.args, self.plugins,
-                         self.verbose_results, self.pastebin,
+        cmd += '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}))'
+        cmd = cmd.format(self.package, self.test_path, self.args,
+                         self.plugins, self.verbose_results, self.pastebin,
                          self.remote_data, self.pep8)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path))
