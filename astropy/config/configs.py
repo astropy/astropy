@@ -101,7 +101,7 @@ def get_config_dir(create=True):
                 
     return _find_or_create_astropy_dir('config',linkto)
     
-def get_cache_dir(create=True):
+def get_cache_dir():
     """
     Determines the Astropy cache directory name and creates the directory if it
     doesn't exist.
