@@ -19,7 +19,7 @@ CACHE_DL_BLOCK_SIZE = 2**16
 #used for supporting with statements in get_data_fileobj
 def _fake_enter(self):
     return self
-def _fake_exit(self):
+def _fake_exit(self, type, value, traceback):
     self.close()
 
 def get_data_fileobj(dataname, cache=True):
@@ -98,23 +98,25 @@ def get_data_fileobj(dataname, cache=True):
     from types import MethodType
     
     if cache:
-        return open(get_data_filename(dataname, cache), 'r')
+        return open(get_data_filename(dataname), 'r')
     else:
         url = urlparse(dataname)
         if url.scheme != '':
             #it's actually a url for a net location
-            res = urlopen(dataname,timeout=REMOTE_TIMEOUT)
+            urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT)
         else:
             datafn = _find_pkg_data_fn(dataname)
             if datafn is None:
                 #not local file - need to get remote data
-                res = urlopen(DATAURL + datafn,timeout=REMOTE_TIMEOUT)
+                urlres = urlopen(DATAURL + datafn,timeout=REMOTE_TIMEOUT)
             else:
                 return open(datafn, 'r')
         
         #need to add in context managers to support with urlopen
-        res.__enter__ = MethodType(_fake_enter, res)
-        res.__exit__ = MethodType(_fake_exit, res)
+        urlres.__enter__ = MethodType(_fake_enter, urlres)
+        urlres.__exit__ = MethodType(_fake_exit, urlres)
+        
+        return urlres
 
 def get_data_filename(dataname):
     """
@@ -181,18 +183,18 @@ def get_data_filename(dataname):
     if url.scheme != '':
         #it's actually a url for a net location
         return _cache_remote(dataname)
+    elif dataname.startswith('hash/'):
+            #first try looking for a local version if a hash is specified
+            hashfn = _find_hash_fn(dataname[5:])
+            if hashfn is None:
+                return _cache_remote(DATAURL + dataname)
+            else:
+                return hashfn
     else:
         datafn = _find_pkg_data_fn(dataname)
         if datafn is None:
-            #no local source file
-            
-            if datafn.startswith('hash/'):
-                #first try looking for a local version if a hash is specified
-                hashfn = _search_for_hash(datafn[5:])
-                if hashfn is not None:
-                    return hashfn
-                #if hash lookup failed, look for the hash on the server
-            return _cache_remote(DATAURL + datafn)
+            #look for the file on the data server
+            return _cache_remote(DATAURL + dataname)
         else:
             return datafn
 
@@ -252,7 +254,7 @@ def _find_pkg_data_fn(dataname):
     
     #now try to locate the module/package until one is found
     while find_loader(pkgloc) is None:
-        pkgloc = split(dataname)[0]
+        pkgloc = split(pkgloc)[0]
         
     #if it's a file, go back one more because it means there was something like
     #/data.py present in the same place as a /data/ dir
@@ -268,6 +270,20 @@ def _find_pkg_data_fn(dataname):
     else:
         return None
 
+def _find_hash_fn(hash):
+    """
+    Looks for a local file by hash - returns file name if found, otherwise
+    returns None.
+    """
+    from os.path import exists,join
+    
+    dldir,urlmapfn = _get_data_cache_locs()
+    hashfn = join(dldir,hash)
+    if exists(hashfn):
+        return hashfn
+    else:
+        return None
+
 def _cache_remote(remoteurl):
     """
     Accepts a URL, downloads and caches the result returning the filename, with
@@ -277,13 +293,15 @@ def _cache_remote(remoteurl):
     from contextlib import closing
     from os.path import join
     from shutil import move
+    from urllib2 import urlopen
     import hashlib
+    import shelve
     
     dldir,urlmapfn = _get_data_cache_locs()
     
     with closing(shelve.open(urlmapfn)) as url2hash:
-        if remoteurl in url2hash:
-            localpath = url2fn[remoteurl]
+        if str(remoteurl) in url2hash:
+            localpath = url2hash[str(remoteurl)]
         else:
             with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT)) as remote:
                 #save the file to a temporary file
@@ -302,6 +320,10 @@ def _cache_remote(remoteurl):
                 
                 localpath = join(dldir,hash.hexdigest())
                 move(tmpfn,localpath)
+                url2hash[str(remoteurl)] = localpath
+                
+                
+                
             
     return localpath
 
@@ -329,24 +351,26 @@ def clear_data_cache(hashorurl=None):
     from contextlib import closing
     
     dldir,urlmapfn = _get_data_cache_locs()
-    if filename is None:
+    if hashorurl is None:
         if exists(dldir):
             rmtree(dldir)
         if exists(urlmapfn):
             unlink(urlmapfn)
     else:
-        filepath = join(dldir, hashorurl)
-        with closing(shelve.open(urlmapfn)) as url2fn:
+        with closing(shelve.open(urlmapfn)) as url2hash:
+            filepath = join(dldir, hashorurl)
+            
             if exists(filepath):
-                for k,v in url2fn.items():
+                for k,v in url2hash.items():
                     if v==filepath:
-                        del url2fn[k]
+                        del url2hash[k]
                 unlink(filepath)
-            elif filepath in url2fn:
-                url = filepath
-                filepath = url2fn[url]
-                del url2fn[url]
+                
+            elif hashorurl in url2hash:
+                filepath = url2hash[hashorurl]
+                del url2hash[hashorurl]
                 unlink(filepath)
+                
             else:
                 msg = 'Could not find file or url {0}'
                 raise OSError(msg.format(hashorurl))
@@ -361,8 +385,9 @@ def _get_data_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
+    import shelve
     from .configs import get_cache_dir
-    from os.path import exists,isdir
+    from os.path import exists,isdir,join
     from os import mkdir
     
     datadir = join(get_cache_dir(), 'data')

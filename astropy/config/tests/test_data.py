@@ -10,25 +10,31 @@ def test_url_cache():
     
     fnout = get_data_filename(TESTURL)
     assert isfile(fnout)
-    clear_data_cache(fnout)
+    clear_data_cache(TESTURL)
     assert not isfile(fnout)
-
-@remote_data
-def test_url_cache_custom_fn():
-    from ..data import get_data_filename,clear_data_cache
-    from os.path import isfile
-    
-    fnout = get_data_filename(TESTURL,cachename='tester_custom_filename.html')
-    assert fnout[-27:] == 'tester_custom_filename.html'
-    clear_data_cache(fnout)
-    assert not isfile(fnout)    
 
 @remote_data
 def test_url_nocache():
     from ..data import get_data_fileobj
     
-    googledata = get_data_fileobj(TESTURL,cache=False)
-    assert googledata.read().find('oogle</title>')>-1
+    with get_data_fileobj(TESTURL,cache=False) as googlepage:
+        assert googlepage.read().find('oogle</title>')>-1
+    
+@remote_data    
+def test_find_by_hash():
+    from ..data import get_data_fileobj,get_data_filename,clear_data_cache
+    from os.path import isfile
+    import hashlib
+    
+    with get_data_fileobj(TESTURL) as googlepage:
+        hash = hashlib.md5(googlepage.read())
+        
+    hashstr = 'hash/'+hash.hexdigest()
+    
+    fnout = get_data_filename(hashstr)
+    assert isfile(fnout)
+    clear_data_cache(hashstr[5:])
+    assert not isfile(fnout)
     
 def test_compute_hash():
     import string
