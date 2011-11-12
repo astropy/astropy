@@ -13,8 +13,9 @@ DATAURL = 'http://data.astropy.org/'
 REMOTE_TIMEOUT = 3.  
 
 COMPUTE_HASH_BLOCK_SIZE = 2**16 #64K 
-CACHE_DL_BLOCK_SIZE = 2**16
+DATA_CACHE_DL_BLOCK_SIZE = 2**16
 
+DATA_CACHE_LOCK_TIMEOUT = 3 #seconds
 
 #used for supporting with statements in get_data_fileobj
 def _fake_enter(self):
@@ -298,33 +299,33 @@ def _cache_remote(remoteurl):
     import shelve
     
     dldir,urlmapfn = _get_data_cache_locs()
+    _acquire_data_cache_lock()
+    try:
+        with closing(shelve.open(urlmapfn)) as url2hash:
+            if str(remoteurl) in url2hash:
+                localpath = url2hash[str(remoteurl)]
+            else:
+                with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT)) as remote:
+                    #save the file to a temporary file
+                    tmpfn = join(dldir,'cachedl.tmp')
+                    hash = hashlib.md5()
+                    
+                    with open(tmpfn,'w') as f:
+                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE)
+                        while block!='':
+                            #TODO: add in something to update a progress bar 
+                            #when the download occurs.  Or use the log. either
+                            #requires stuff that isn't yet in master
+                            f.write(block)
+                            hash.update(block)
+                            block = remote.read(DATA_CACHE_DL_BLOCK_SIZE)
+                    
+                    localpath = join(dldir,hash.hexdigest())
+                    move(tmpfn,localpath)
+                    url2hash[str(remoteurl)] = localpath
+    finally:
+        _release_data_cache_lock()
     
-    with closing(shelve.open(urlmapfn)) as url2hash:
-        if str(remoteurl) in url2hash:
-            localpath = url2hash[str(remoteurl)]
-        else:
-            with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT)) as remote:
-                #save the file to a temporary file
-                tmpfn = join(dldir,'cachedl.tmp')
-                hash = hashlib.md5()
-                
-                with open(tmpfn,'w') as f:
-                    block = remote.read(CACHE_DL_BLOCK_SIZE)
-                    while block!='':
-                        #TODO: add in something to update a progress bar 
-                        #when the download occurs.  Or use the log. either one
-                        #requires stuff that isn't yet in master
-                        f.write(block)
-                        hash.update(block)
-                        block = remote.read(CACHE_DL_BLOCK_SIZE)
-                
-                localpath = join(dldir,hash.hexdigest())
-                move(tmpfn,localpath)
-                url2hash[str(remoteurl)] = localpath
-                
-                
-                
-            
     return localpath
 
 
@@ -351,29 +352,33 @@ def clear_data_cache(hashorurl=None):
     from contextlib import closing
     
     dldir,urlmapfn = _get_data_cache_locs()
-    if hashorurl is None:
-        if exists(dldir):
-            rmtree(dldir)
-        if exists(urlmapfn):
-            unlink(urlmapfn)
-    else:
-        with closing(shelve.open(urlmapfn)) as url2hash:
-            filepath = join(dldir, hashorurl)
-            
-            if exists(filepath):
-                for k,v in url2hash.items():
-                    if v==filepath:
-                        del url2hash[k]
-                unlink(filepath)
+    _acquire_data_cache_lock()
+    try:
+        if hashorurl is None:
+            if exists(dldir):
+                rmtree(dldir)
+            if exists(urlmapfn):
+                unlink(urlmapfn)
+        else:
+            with closing(shelve.open(urlmapfn)) as url2hash:
+                filepath = join(dldir, hashorurl)
                 
-            elif hashorurl in url2hash:
-                filepath = url2hash[hashorurl]
-                del url2hash[hashorurl]
-                unlink(filepath)
-                
-            else:
-                msg = 'Could not find file or url {0}'
-                raise OSError(msg.format(hashorurl))
+                if exists(filepath):
+                    for k,v in url2hash.items():
+                        if v==filepath:
+                            del url2hash[k]
+                    unlink(filepath)
+                    
+                elif hashorurl in url2hash:
+                    filepath = url2hash[hashorurl]
+                    del url2hash[hashorurl]
+                    unlink(filepath)
+                    
+                else:
+                    msg = 'Could not find file or url {0}'
+                    raise OSError(msg.format(hashorurl))
+    finally:
+        _release_data_cache_lock()
 
 def _get_data_cache_locs():
     """ Finds the path to the data cache directory.
@@ -403,3 +408,34 @@ def _get_data_cache_locs():
         raise IOError(msg.format(shelveloc))
     
     return datadir,shelveloc
+
+#the cache directory must be locked before any writes are performed.  Same for
+#the hash shelve, so this should be used for both.  Note
+def _acquire_data_cache_lock():
+    from os.path import join
+    from os import mkdir
+    from time import sleep
+    
+    lockdir = join(_get_data_cache_locs()[0],'lock')
+    for i in range(DATA_CACHE_LOCK_TIMEOUT):
+        try:
+            mkdir(lockdir)
+        except OSError:
+            sleep(1)
+        else:
+            return
+    msg = 'Unable to acquire lock for cache directory ({0} exists)'
+    raise RuntimeError(msg.format(lockdir))
+
+def _release_data_cache_lock():
+    from os.path import join,exists,isdir
+    from os import removedirs
+    
+    lockdir = join(_get_data_cache_locs()[0],'lock')
+    
+    if exists(lockdir) and isdir(lockdir):
+        removedirs(lockdir)
+    else:
+        msg = 'Error releasing lock. "{0}" either does not exist or is not '+\
+              'a directory.'
+        raise RuntimeError(msg.format(lockdir))
