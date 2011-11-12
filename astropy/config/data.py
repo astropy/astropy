@@ -354,6 +354,7 @@ def clear_data_cache(hashorurl=None):
     dldir,urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
     try:
+        
         if hashorurl is None:
             if exists(dldir):
                 rmtree(dldir)
@@ -429,12 +430,12 @@ def _acquire_data_cache_lock():
 
 def _release_data_cache_lock():
     from os.path import join,exists,isdir
-    from os import removedirs
+    from os import rmdir
     
     lockdir = join(_get_data_cache_locs()[0],'lock')
     
     if exists(lockdir) and isdir(lockdir):
-        removedirs(lockdir)
+        rmdir(lockdir)
     else:
         msg = 'Error releasing lock. "{0}" either does not exist or is not '+\
               'a directory.'
