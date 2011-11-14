@@ -19,10 +19,19 @@ framework.
 Running Tests
 =============
 
+Using setup.py test
+-------------------
+
+The safest way to run the astropy test suite is via the setup command ``test``.
+This is invoked by running ``python setup.py test`` while in the astropy source
+code directory.
+
+
 Using py.test
 -------------
 
-The simplest way to run tests from the command line is to simply type::
+An alternative way to run tests from the command line is to switch to the source
+code directory of astropy simply type::
 
     py.test
     
@@ -32,6 +41,15 @@ in the currect directory and all recursive directories then run all the code tha
 `looks like tests 
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
+
+.. note::
+    To test any compiled C/Cython extensions, you must either have run 
+    ``python setup.py test`` or ``python setup.py develop`` prior to running 
+    the py.test command-line script.  Otherwise, any tests that make use of 
+    these extensions will not succeed.  Similarly, in python 3, these tests
+    will not run correctly in the source code, because they need the ``2to3``
+    tool to be run on them.
+
 
 You may specify a specific test file or directory at the command line::
 
