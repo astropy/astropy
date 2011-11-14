@@ -220,3 +220,24 @@ def test_unit_prefixes():
     for unit in add_sub_units:
         for prefix in sub_prefixes:
             yield test_self, unit, prefix
+
+
+def test_fixes():
+    """
+    From github issue #36
+    """
+    def run():
+        with open(os.path.join(ROOT_DIR, 'data', 'nonstandard_units.hdr'),
+                  'rb') as fd:
+            header = fd.read()
+        w = wcs.WCS(header)
+
+    import warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        run()
+        assert len(w) == 3
+        for item in w:
+            assert issubclass(item.category, wcs.FITSFixedWarning)
+            if 'unitfix' in str(item.message):
+                assert 'Hz' in str(item.message)

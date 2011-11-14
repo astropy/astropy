@@ -7,7 +7,7 @@ Testing Guidelines (Draft 2)
     described functionality may be implemented.
 
 This section describes the testing framework and format standards for tests in
-AstroPy core modules (this also serves as recommendations for affiliated
+Astropy core modules (this also serves as recommendations for affiliated
 packages).
 
 Testing Framework
@@ -19,10 +19,19 @@ framework.
 Running Tests
 =============
 
+Using setup.py test
+-------------------
+
+The safest way to run the astropy test suite is via the setup command ``test``.
+This is invoked by running ``python setup.py test`` while in the astropy source
+code directory.
+
+
 Using py.test
 -------------
 
-The simplest way to run tests from the command line is to simply type::
+An alternative way to run tests from the command line is to switch to the source
+code directory of astropy simply type::
 
     py.test
     
@@ -32,6 +41,15 @@ in the currect directory and all recursive directories then run all the code tha
 `looks like tests 
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
+
+.. note::
+    To test any compiled C/Cython extensions, you must either have run 
+    ``python setup.py test`` or ``python setup.py develop`` prior to running 
+    the py.test command-line script.  Otherwise, any tests that make use of 
+    these extensions will not succeed.  Similarly, in python 3, these tests
+    will not run correctly in the source code, because they need the ``2to3``
+    tool to be run on them.
+
 
 You may specify a specific test file or directory at the command line::
 
@@ -75,27 +93,12 @@ In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
 and convenience options ``verbose=`` and ``pastebin=``.
 
-Using data in tests
-===================
+Regression tests
+================
 
-Tests can include very small datafiles, but any files significantly larger
-than the source code should be placed on a remote server. The base URL for the
-test files will be::
-
-    http://data.astropy.org/
-
-and files will be accessed by their MD5 hash, for example::
-
-    http://data.astropy.org/94935ac31d585f68041c08f87d1a19d4
-
-Tests then retrieve data via this URL. This implicitly allows versioning,
-since different versions of data files will have different hashes. Old data
-files should not be removed, so that tests can be run in any version of
-AstroPy.
-
-The details of the server implementation have yet to be decided, but using
-these static hash-based URLs ensures that even if we change the backend, the
-URL will remain the same.
+Any time a bug is fixed, and wherever possible, one or more regression tests
+should be added to ensure that the bug is not introduced in future. Regression
+tests should include the ticket URL where the bug was reported.
 
 Where to put tests
 ==================
@@ -132,12 +135,6 @@ sub-modules. This functionality is especially important for people who install
 packages through bundles and package managers, where the original source code 
 for the tests is not immediately available.
 
-Regression tests
-================
-
-Any time a bug is fixed, and wherever possible, one or more regression tests
-should be added to ensure that the bug is not introduced in future. Regression
-tests should include the ticket URL where the bug was reported.
 
 Writing tests
 =============
@@ -375,3 +372,25 @@ You may need to adjust the relative import to work for the depth of your module.
 if the user does not have py.test installed. This is so that users need not 
 install py.test to run AstroPy's tests.
     
+    
+Using data in tests
+===================
+
+Tests can include very small datafiles, but any files significantly larger
+than the source code should be placed on a remote server. The base URL for the
+test files will be::
+
+    http://data.astropy.org/
+
+and files will be accessed by their MD5 hash, for example::
+
+    http://data.astropy.org/94935ac31d585f68041c08f87d1a19d4
+
+Tests then retrieve data via this URL. This implicitly allows versioning,
+since different versions of data files will have different hashes. Old data
+files should not be removed, so that tests can be run in any version of
+AstroPy.
+
+The details of the server implementation have yet to be decided, but using
+these static hash-based URLs ensures that even if we change the backend, the
+URL will remain the same.

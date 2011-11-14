@@ -366,8 +366,9 @@ enum wcsfix_errmsg_enum {
 				   invalid. */
   FIXERR_NO_REF_PIX_COORD =  9,	/* Could not determine reference pixel
 				   coordinate. */
-  FIXERR_NO_REF_PIX_VAL   = 10	/* Could not determine reference pixel
+  FIXERR_NO_REF_PIX_VAL   = 10,	/* Could not determine reference pixel
 				   value. */
+  FIXERR_APPLIED_UNIT_ALIAS = 11 /* Applied a unit alias. */
 };
 
 int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[]);

@@ -3,7 +3,7 @@ import sys
 import base64
 import zlib
 import functools
-import os.path
+import os
 import subprocess
 
 from distutils.core import Command
@@ -119,7 +119,6 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     # run @remote_data tests
     if remote_data:
         all_args += ' --remotedata'
-
     return pytest.main(args=all_args, plugins=plugins)
 
 
@@ -152,15 +151,24 @@ class astropy_test(Command):
         pass
 
     def run(self):
+        self.reinitialize_command('build_py', inplace=False)
+        self.run_command('build_py')
+        if sys.version_info[0] >= 3:
+            build_py_cmd = self.get_finalized_command('build_py')
+            new_path = os.path.abspath(build_py_cmd.build_lib)
+        else:
+            new_path = os.getcwd()
+
         self.reinitialize_command('build_ext', inplace=True)
         self.run_command('build_ext')
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = 'import astropy; astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r})'
+        cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r}))'
         cmd = cmd.format(self.module, self.args, self.plugins,
                          self.verbose_results, self.pastebin)
-        raise SystemExit(subprocess.call([sys.executable, '-c', cmd]))
+        raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
+                                         cwd=new_path))
 
 
 class raises:
@@ -178,6 +186,6 @@ class raises:
 
     def __call__(self, func):
         @functools.wraps(func)
-        def run_raises_test():
-            pytest.raises(self._exc, func)
+        def run_raises_test(*args, **kwargs):
+            pytest.raises(self._exc, func, *args, **kwargs)
         return run_raises_test
