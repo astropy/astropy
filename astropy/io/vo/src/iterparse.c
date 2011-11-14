@@ -273,7 +273,7 @@ make_pos(const IterParser *self)
     PyObject* tuple;
     PyObject* line_obj;
     PyObject* col_obj;
-
+    
     line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
     col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
 
@@ -282,8 +282,8 @@ make_pos(const IterParser *self)
     line_obj = PyInt_FromSize_t((size_t)line);
     col_obj = PyInt_FromSize_t((size_t)col);
 
-    PyTuple_SET_ITEM(tuple, 0, line_obj);
-    PyTuple_SET_ITEM(tuple, 1, col_obj);
+    PyTuple_SetItem(tuple, 0, line_obj);
+    PyTuple_SetItem(tuple, 1, col_obj);
 
     return tuple;
 }
@@ -358,7 +358,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
            singleton string for "TD" */
         if ((*(int*)name & TD_AS_INT_MASK) == TD_AS_INT) {
             Py_INCREF(self->td_singleton);
-            PyTuple_SET_ITEM(tuple, 1, self->td_singleton);
+            PyTuple_SetItem(tuple, 1, self->td_singleton);
         } else {
             name_start = remove_namespace(name);
 
@@ -368,7 +368,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
                 XML_StopParser(self->parser, 0);
                 return;
             }
-            PyTuple_SET_ITEM(tuple, 1, pyname);
+            PyTuple_SetItem(tuple, 1, pyname);
         }
 
         if (*att_ptr) {
@@ -411,9 +411,9 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
             pyatts = self->dict_singleton;
         }
 
-        PyTuple_SET_ITEM(tuple, 2, pyatts);
+        PyTuple_SetItem(tuple, 2, pyatts);
 
-        PyTuple_SET_ITEM(tuple, 3, make_pos(self));
+        PyTuple_SetItem(tuple, 3, make_pos(self));
 
         text_clear(self);
 
@@ -465,7 +465,7 @@ endElement(IterParser *self, const XML_Char *name)
            singleton string for "TD" */
         if ((*(int*)name & TD_AS_INT_MASK) == TD_AS_INT) {
             Py_INCREF(self->td_singleton);
-            PyTuple_SET_ITEM(tuple, 1, self->td_singleton);
+            PyTuple_SetItem(tuple, 1, self->td_singleton);
         } else {
             name_start = remove_namespace(name);
 
@@ -475,7 +475,7 @@ endElement(IterParser *self, const XML_Char *name)
                 XML_StopParser(self->parser, 0);
                 return;
             }
-            PyTuple_SET_ITEM(tuple, 1, pyname);
+            PyTuple_SetItem(tuple, 1, pyname);
         }
 
         /* Cut whitespace off the end of the string */
@@ -490,9 +490,9 @@ endElement(IterParser *self, const XML_Char *name)
             XML_StopParser(self->parser, 0);
             return;
         }
-        PyTuple_SET_ITEM(tuple, 2, pytext);
+        PyTuple_SetItem(tuple, 2, pytext);
 
-        PyTuple_SET_ITEM(tuple, 3, make_pos(self));
+        PyTuple_SetItem(tuple, 3, make_pos(self));
 
         self->keep_text = 0;
 
@@ -1498,13 +1498,6 @@ static PyMethodDef module_methods[] =
 struct module_state {
     void* none;
 };
-
-#ifdef IS_PY3K
-#  define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-#else
-#  define GETSTATE(m) (&_state)
- /*@unused@*/ static struct module_state _state;
-#endif
 
 #ifdef IS_PY3K
 static int module_traverse(PyObject* m, visitproc visit, void* arg)
