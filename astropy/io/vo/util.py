@@ -79,14 +79,14 @@ def convert_to_writable_filelike(fd):
     if isinstance(fd, basestring):
         if IS_PY3K:
             if fd.endswith('.gz'):
-                import gzip
+                from ...utils import gzip
                 fd = gzip.GzipFile(fd, 'wb')
                 fd = io.TextIOWrapper(fd, encoding='utf8')
             else:
                 fd = io.open(fd, 'w', encoding='utf8')
         else:
             if fd.endswith('.gz'):
-                import gzip
+                from ...utils import gzip
                 fd = gzip.GzipFile(fd, 'wb')
             else:
                 fd = open(fd, 'wb')
@@ -137,7 +137,7 @@ def convert_to_fd_or_read_function(fd):
         return fd
     elif isinstance(fd, basestring):
         if fd.endswith('.gz'):
-            import gzip
+            from ...utils import gzip
             fd = gzip.GzipFile(fd, 'rb')
             return fd.read
         else:

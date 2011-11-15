@@ -8,7 +8,6 @@ from __future__ import absolute_import, print_function
 import io
 import difflib
 import glob
-import gzip
 import os
 import shutil
 import subprocess
@@ -26,6 +25,7 @@ from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
 from ....tests.helper import pytest, raises
+from ....utils import gzip
 
 numpy_has_complex_bug = (np.__version__[:3] < '1.5')
 
