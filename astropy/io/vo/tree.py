@@ -217,6 +217,130 @@ def check_ucd(ucd, config={}, pos=None):
 
 
 ######################################################################
+# PROPERTY MIXINS
+class _IDProperty(object):
+    @property
+    def ID(self):
+        """
+        The XML ID_ of the element.  May be ``None`` or a string
+        conforming to XML ID_ syntax.
+        """
+        return self._ID
+
+    @ID.setter
+    def ID(self, ID):
+        xmlutil.check_id(ID, 'ID', self._config, self._pos)
+        self._ID = ID
+
+    @ID.deleter
+    def ID(self):
+        self._ID = None
+
+class _NameProperty(object):
+    @property
+    def name(self):
+        """An optional name for the element."""
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        xmlutil.check_token(name, 'name', self._config, self._pos)
+        self._name = name
+
+    @name.deleter
+    def name(self):
+        self._name = None
+
+
+class _XtypeProperty(object):
+    @property
+    def xtype(self):
+        """Extended data type information."""
+        return self._xtype
+
+    @xtype.setter
+    def xtype(self, xtype):
+        if xtype is not None and not self._config.get('version_1_2_or_later'):
+            warn_or_raise(
+                W28, W28, ('xtype', self._element_name, '1.2'),
+                config, pos)
+        check_string(xtype, 'xtype', self._config, self._pos)
+        self._xtype = xtype
+
+    @xtype.deleter
+    def xtype(self):
+        self._xtype = None
+
+
+class _UtypeProperty(object):
+    _utype_in_v1_2 = False
+
+    @property
+    def utype(self):
+        """The usage-specific or `unique type`_ of the element."""
+        return self._utype
+
+    @utype.setter
+    def utype(self, utype):
+        if (self._utype_in_v1_2 and
+            utype is not None and
+            not self._config.get('version_1_2_or_later')):
+            warn_or_raise(
+                W28, W28, ('utype', self._element_name, '1.2'),
+                config, pos)
+        check_string(utype, 'utype', self._config, self._pos)
+        self._utype = utype
+
+    @utype.deleter
+    def utype(self):
+        self._utype = None
+
+
+class _UcdProperty(object):
+    _ucd_in_v1_2 = False
+
+    @property
+    def ucd(self):
+        """The `unified content descriptor`_ for the element."""
+        return self._ucd
+
+    @ucd.setter
+    def ucd(self, ucd):
+        if ucd is not None and ucd.strip() == '':
+            ucd = None
+        if ucd is not None:
+            if (self._ucd_in_v1_2 and
+                not self._config.get('version_1_2_or_later')):
+                warn_or_raise(
+                    W28, W28, ('ucd', self._element_name, '1.2'),
+                    config, pos)
+            check_ucd(ucd, self._config, self._pos)
+        self._ucd = ucd
+
+    @ucd.deleter
+    def ucd(self):
+        self._ucd = None
+
+
+class _DescriptionProperty(object):
+    @property
+    def description(self):
+        """
+        An optional string describing the element.  Corresponds to the
+        DESCRIPTION_ element.
+        """
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        self._description = description
+
+    @description.deleter
+    def description(self):
+        self._description = None
+
+
+######################################################################
 # ELEMENT CLASSES
 class Element(object):
     """
@@ -286,7 +410,7 @@ class SimpleElementWithContent(SimpleElement):
         self._content = None
 
 
-class Link(SimpleElement):
+class Link(SimpleElement, _IDProperty):
     """
     A class for storing LINK_ elements, which are used to reference
     external documents and servers through a URI.
@@ -323,20 +447,6 @@ class Link(SimpleElement):
             'LINK', kwargs.iterkeys(), config, pos,
             ['content-role', 'content_role', 'content-type', 'content_type',
              'gref'])
-
-    @property
-    def ID(self):
-        """The XML ID_ of the LINK_ element."""
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
 
     @property
     def content_role(self):
@@ -389,7 +499,8 @@ class Link(SimpleElement):
         self._href = None
 
 
-class Info(SimpleElementWithContent):
+class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
+           _UtypeProperty):
     """
     A class for storing INFO elements, which contain arbitrary
     key-value pairs for extensions to the standard.
@@ -400,6 +511,7 @@ class Info(SimpleElementWithContent):
     _element_name = 'INFO'
     _attr_list_11 = ['ID', 'name', 'value']
     _attr_list_12 = _attr_list_11 + ['xtype', 'ref', 'unit', 'ucd', 'utype']
+    _utype_in_v1_2 = True
 
     def __init__(self, ID=None, name=None, value=None, id=None, xtype=None,
                  ref=None, unit=None, ucd=None, utype=None,
@@ -435,20 +547,6 @@ class Info(SimpleElementWithContent):
                 warn_unknown_attrs('INFO', ['utype'], config, pos)
 
         warn_unknown_attrs('INFO', extra.iterkeys(), config, pos)
-
-    @property
-    def ID(self):
-        """The XML ID_ of the INFO element.  Used for cross-referencing."""
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
 
     @property
     def name(self):
@@ -490,22 +588,6 @@ class Info(SimpleElementWithContent):
     @content.deleter
     def content(self):
         self._content = None
-
-    @property
-    def xtype(self):
-        """Extended data type information."""
-        return self._xtype
-
-    @xtype.setter
-    def xtype(self, xtype):
-        if xtype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('xtype', 'INFO', '1.2'), config, pos)
-        check_string(xtype, 'xtype', self._config, self._pos)
-        self._xtype = xtype
-
-    @xtype.deleter
-    def xtype(self):
-        self._xtype = None
 
     @property
     def ref(self):
@@ -558,24 +640,8 @@ class Info(SimpleElementWithContent):
     def unit(self):
         self._unit = None
 
-    @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the INFO_."""
-        return self._utype
 
-    @utype.setter
-    def utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'INFO', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
-
-class Values(Element):
+class Values(Element, _IDProperty):
     """
     A class to represent the VALUES_ element, used within FIELD_ and
     PARAM_ elements to define the domain of values.
@@ -630,23 +696,6 @@ class Values(Element):
     @null.deleter
     def null(self):
         self._null = None
-
-    @property
-    def ID(self):
-        """
-        The XML ID of the VALUES_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
 
     @property
     def type(self):
@@ -863,7 +912,8 @@ class Values(Element):
                         value=value)
 
 
-class Field(SimpleElement):
+class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
+            _UtypeProperty, _UcdProperty):
     """
     A class that represents the FIELD_ element, which describes the
     datatype of a particular column of data.
@@ -1005,37 +1055,6 @@ class Field(SimpleElement):
         self.converter = converters.get_converter(self, config, pos)
 
     @property
-    def ID(self):
-        """
-        The XML ID of the FIELD_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
-
-    @property
-    def name(self):
-        """An optional name for the FIELD_."""
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-
-    @name.deleter
-    def name(self):
-        self._name = None
-
-    @property
     def datatype(self):
         """
         [*required*] The datatype of the column.  Valid values (as
@@ -1129,37 +1148,6 @@ class Field(SimpleElement):
         self._ref = None
 
     @property
-    def ucd(self):
-        """The `unified content descriptor`_ for the FIELD_."""
-        return self._ucd
-
-    @ucd.setter
-    def ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-
-    @ucd.deleter
-    def ucd(self):
-        self._ucd = None
-
-    @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the FIELD_."""
-        return self._utype
-
-    @utype.setter
-    def utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
-    @property
     def unit(self):
         """A string specifying the units_ for the FIELD_."""
         return self._unit
@@ -1210,22 +1198,6 @@ class Field(SimpleElement):
     @type.deleter
     def type(self):
         self._type = None
-
-    @property
-    def xtype(self):
-        """Extended data type information."""
-        return self._xtype
-
-    @xtype.setter
-    def xtype(self, xtype):
-        if xtype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('xtype', 'FIELD', '1.2'), config, pos)
-        check_string(xtype, 'xtype', self._config, self._pos)
-        self._xtype = xtype
-
-    @xtype.deleter
-    def xtype(self):
-        self._xtype = None
 
     @property
     def values(self):
@@ -1456,7 +1428,7 @@ class CooSys(SimpleElement):
         self._epoch = None
 
 
-class FieldRef(SimpleElement):
+class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
     A class representing the FIELDref_ element, which is used inside
     of GROUP_ elements to refer to FIELD_ elements defined elsewhere.
@@ -1464,6 +1436,8 @@ class FieldRef(SimpleElement):
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
     _element_name = "FIELDref"
+    _utype_in_v1_2 = True
+    _ucd_in_v1_2 = True
 
     def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None,
                  **extra):
@@ -1506,42 +1480,6 @@ class FieldRef(SimpleElement):
     def ref(self):
         self._ref = None
 
-    @property
-    def ucd(self):
-        """The `unified content descriptor`_ for the FIELDref_."""
-        return self._ucd
-
-    @ucd.setter
-    def ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(
-                    W28, W28, ('ucd', 'FIELDref', '1.2'), config, pos)
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-
-    @ucd.deleter
-    def ucd(self):
-        self._ucd = None
-
-    @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the FIELDref_."""
-        return self._utype
-
-    @utype.setter
-    def utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'FIELDref', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
     def get_ref(self):
         """
         Lookup the :class:`Field` instance that this :class:`FieldRef`
@@ -1555,7 +1493,7 @@ class FieldRef(SimpleElement):
             self._config, self._pos, KeyError)
 
 
-class ParamRef(SimpleElement):
+class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
     A class representing the PARAMref_ element, which is used inside
     of GROUP_ elements to refer to PARAM_ elements defined elsewhere.
@@ -1570,6 +1508,8 @@ class ParamRef(SimpleElement):
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
     _element_name = "PARAMref"
+    _utype_in_v1_2 = True
+    _ucd_in_v1_2 = True
 
     def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None):
         self._config = config
@@ -1604,42 +1544,6 @@ class ParamRef(SimpleElement):
     def ref(self):
         self._ref = None
 
-    @property
-    def ucd(self):
-        """The `unified content descriptor`_ for the PARAMref_."""
-        return self._ucd
-
-    @ucd.setter
-    def ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(
-                    W28, W28, ('ucd', 'PARAMref', '1.2'), config, pos)
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-
-    @ucd.deleter
-    def ucd(self):
-        self._ucd = None
-
-    @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the PARAMref_."""
-        return self._utype
-
-    @utype.setter
-    def utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'PARAMref', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
     def get_ref(self):
         """
         Lookup the :class:`Param` instance that this :class:`PARAMref`
@@ -1653,7 +1557,8 @@ class ParamRef(SimpleElement):
             self._config, self._pos, KeyError)
 
 
-class Group(Element):
+class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
+            _UcdProperty, _DescriptionProperty):
     """
     Stores information about the grouping of FIELD_ and PARAM_
     elements.
@@ -1689,39 +1594,6 @@ class Group(Element):
         warn_unknown_attrs('GROUP', extra.iterkeys(), config, pos)
 
     @property
-    def ID(self):
-        """
-        The XML ID of the GROUP_ element.  May be ``None`` or a string
-        conforming to XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
-
-    @property
-    def name(self):
-        """
-        An optional name for the grouping.
-        """
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-
-    @name.deleter
-    def name(self):
-        self._name = None
-
-    @property
     def ref(self):
         """
         Currently ignored, as it's not clear from the spec how this is
@@ -1737,53 +1609,6 @@ class Group(Element):
     @ref.deleter
     def ref(self):
         self._ref = None
-
-    @property
-    def ucd(self):
-        """The `unified content descriptor`_ for the GROUP_."""
-        return self._ucd
-
-    @ucd.setter
-    def ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config)
-        self._ucd = ucd
-
-    @ucd.deleter
-    def ucd(self):
-        self._ucd = None
-
-    @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the GROUP_."""
-        return self._utype
-
-    @utype.setter
-    def utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
-    @property
-    def description(self):
-        """
-        An optional string describing the GROUP_.  Corresponds to the
-        DESCRIPTION_ element.
-        """
-        return self._description
-
-    @description.setter
-    def description(self, description):
-        self._description = description
-
-    @description.deleter
-    def description(self):
-        self._description = None
 
     @property
     def entries(self):
@@ -1871,7 +1696,8 @@ class Group(Element):
                     yield group
 
 
-class Table(Element):
+class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
+            _DescriptionProperty):
     """
     A class to store a TABLE_ element, which optionally contains data.
 
@@ -1934,37 +1760,6 @@ class Table(Element):
         warn_unknown_attrs('TABLE', extra.iterkeys(), config, pos)
 
     @property
-    def ID(self):
-        """
-        The XML ID of the TABLE_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
-
-    @property
-    def name(self):
-        """An optional name for the table."""
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-
-    @name.deleter
-    def name(self):
-        self._name = None
-
-    @property
     def ref(self):
         return self._ref
 
@@ -2003,23 +1798,6 @@ class Table(Element):
         self._ref = None
 
     @property
-    def ucd(self):
-        """The `unified content descriptor`_ for the TABLE_."""
-        return self._ucd
-
-    @ucd.setter
-    def ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config)
-        self._ucd = ucd
-
-    @ucd.deleter
-    def ucd(self):
-        self._ucd = None
-
-    @property
     def format(self):
         """
         [*required*] The serialization format of the table.  Must be
@@ -2051,22 +1829,6 @@ class Table(Element):
         the XML file.
         """
         return self._nrows
-
-    @property
-    def description(self):
-        """
-        An optional string describing the TABLE_.  Corresponds to the
-        DESCRIPTION_ element.
-        """
-        return self._description
-
-    @description.setter
-    def description(self, description):
-        self._description = description
-
-    @description.deleter
-    def description(self):
-        self._description = None
 
     @property
     def fields(self):
@@ -2389,10 +2151,11 @@ class Table(Element):
                                             value, mask_value = parsers[i](
                                                 data, config, pos)
                                         except Exception as e:
-                                            vo_reraise(e, config, pos,
-                                                       "(in row %d, col '%s')" %
-                                                       (len(array_chunk),
-                                                        fields[i].ID))
+                                            vo_reraise(
+                                                e, config, pos,
+                                                "(in row %d, col '%s')" %
+                                                (len(array_chunk),
+                                                 fields[i].ID))
                                 except Exception as e:
                                     if invalid == 'exception':
                                         vo_reraise(e, config, pos)
@@ -2746,7 +2509,8 @@ class Table(Element):
         """)
 
 
-class Resource(Element):
+class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
+               _DescriptionProperty):
     """
     A class to store the information in a RESOURCE_ element.  Each
     resource may contain zero-or-more TABLE_ elements and zero-or-more
@@ -2778,38 +2542,6 @@ class Resource(Element):
         warn_unknown_attrs('RESOURCE', kwargs.iterkeys(), config, pos)
 
     @property
-    def ID(self):
-        """
-        The XML ID of the RESOURCE_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
-        XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
-
-    @property
-    def name(self):
-        """An optional name for the RESOURCE_."""
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-
-    @name.deleter
-    def name(self):
-        self._name = None
-
-    @property
     def type(self):
         """
         [*required*] The type of the resource.  Must be either:
@@ -2829,20 +2561,6 @@ class Resource(Element):
         self._type = type
 
     @property
-    def utype(self):
-        """The usage-specific or `unique type`_ of the FIELD_."""
-        return self._utype
-
-    @utype.setter
-    def utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-
-    @utype.deleter
-    def utype(self):
-        self._utype = None
-
-    @property
     def extra_attributes(self):
         """
         A dictionary of string keys to string values containing any
@@ -2851,22 +2569,6 @@ class Resource(Element):
         for extra attributes here, but nowhere else.)
         """
         return self._extra_attributes
-
-    @property
-    def description(self):
-        """
-        An optional string describing the RESOURCE_.  Corresponds to
-        the DESCRIPTION_ element.
-        """
-        return self._description
-
-    @description.setter
-    def description(self, description):
-        self._description = description
-
-    @description.deleter
-    def description(self):
-        self._description = None
 
     @property
     def coordinate_systems(self):
@@ -3024,7 +2726,7 @@ class Resource(Element):
                 yield coosys
 
 
-class VOTableFile(Element):
+class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
     A class to represent the top-level VOTABLE_ element.
 
@@ -3053,45 +2755,11 @@ class VOTableFile(Element):
         self._version            = version
 
     @property
-    def ID(self):
-        """
-        The XML ID of the VOTABLE_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
-        XML ID_ syntax.
-        """
-        return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-
-    @ID.deleter
-    def ID(self):
-        self._ID = None
-
-    @property
     def version(self):
         """
         The version of the VOTable specification that the file uses.
         """
         return self._version
-
-    @property
-    def description(self):
-        """
-        An optional string describing the VOTABLE_.  Corresponds to
-        the DESCRIPTION_ element.
-        """
-        return self._description
-
-    @description.setter
-    def description(self, description):
-        self._description = description
-
-    @description.deleter
-    def description(self):
-        self._description = None
 
     @property
     def coordinate_systems(self):
