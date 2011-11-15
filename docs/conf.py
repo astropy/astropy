@@ -12,7 +12,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, warnings
+import os
+import sys
+
+import astropy
 
 # Load all of the global Astropy configuration
 from astropy.sphinx.conf import *
@@ -39,9 +42,9 @@ copyright = u'2011, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perr
 # built documents.
 #
 # The short X.Y version.
-version = '0.0.0'
+version = astropy.__version__.split('-', 1)[0]
 # The full version, including alpha/beta/rc tags.
-release = '0.0.0'
+release = astropy.__version__
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
