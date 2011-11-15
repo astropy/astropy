@@ -17,6 +17,7 @@ from .. import exceptions
 from .. import xmlutil
 from ..util import IS_PY3K
 
+
 class Result:
     def __init__(self, url, root='results'):
         self.url = url
@@ -210,6 +211,7 @@ class Result:
             self['votlint'] = True
         self['votlint_content'] = stdout
 
+
 def get_result_subsets(results, root):
     all_results      = []
     not_expected     = []
@@ -234,11 +236,15 @@ def get_result_subsets(results, root):
             not_expected.append(x)
         if x['xmllint'] is False:
             fail_schema.append(x)
-        if x['xmllint'] is False and x['nwarnings'] == 0 and x['nexceptions'] == 0:
+        if (x['xmllint'] is False and
+            x['nwarnings'] == 0 and
+            x['nexceptions'] == 0):
             schema_mismatch.append(x)
         if 'votlint' in x and x['votlint'] is False:
             fail_votlint.append(x)
-            if x['nwarnings'] == 0 and x['nexceptions'] == 0 and x['network_error'] is None:
+            if (x['nwarnings'] == 0 and
+                x['nexceptions'] == 0 and
+                x['network_error'] is None):
                 votlint_mismatch.append(x)
         if x['network_error'] is not None:
             network_failures.append(x)
@@ -254,7 +260,9 @@ def get_result_subsets(results, root):
         if x['nwarnings'] > 0:
             has_warnings.append(x)
             for warning in x['warning_types']:
-                if warning is not None and len(warning) == 3 and warning.startswith('W'):
+                if (warning is not None and
+                    len(warning) == 3 and
+                    warning.startswith('W')):
                     warning_set.setdefault(warning, [])
                     warning_set[warning].append(x)
         if x['nexceptions'] > 0:
@@ -273,9 +281,11 @@ def get_result_subsets(results, root):
         ('all', u'All tests', all_results),
         ('unexpected', u'Unexpected', not_expected),
         ('schema', u'Invalid against schema', fail_schema),
-        ('schema_mismatch', u'Invalid against schema/Passed vo.table', schema_mismatch, ['ul']),
+        ('schema_mismatch', u'Invalid against schema/Passed vo.table',
+         schema_mismatch, ['ul']),
         ('fail_votlint', u'Failed votlint', fail_votlint),
-        ('votlint_mismatch', u'Failed votlint/Passed vo.table', votlint_mismatch, ['ul']),
+        ('votlint_mismatch', u'Failed votlint/Passed vo.table',
+         votlint_mismatch, ['ul']),
         ('network_failures', u'Network failures', network_failures),
         ('version1.0', 'Version 1.0', version_10),
         ('version1.1', 'Version 1.1', version_11),
@@ -287,7 +297,9 @@ def get_result_subsets(results, root):
         if warning_class:
             warning_descr = warning_class.get_short_name()
             tables.append(
-                (warning_code, '%s: %s' % (warning_code, warning_descr), warnings, ['ul', 'li']))
+                (warning_code,
+                 '%s: %s' % (warning_code, warning_descr),
+                 warnings, ['ul', 'li']))
     tables.append(
         ('exceptions', 'Exceptions', has_exceptions))
     for exception_code, exceptions in exception_set:
@@ -295,6 +307,8 @@ def get_result_subsets(results, root):
         if exception_class:
             exception_descr = exception_class.get_short_name()
             tables.append(
-                (exception_code, '%s: %s' % (exception_code, exception_descr), exceptions, ['ul', 'li']))
+                (exception_code,
+                 '%s: %s' % (exception_code, exception_descr),
+                 exceptions, ['ul', 'li']))
 
     return tables

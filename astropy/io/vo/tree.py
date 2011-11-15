@@ -236,6 +236,7 @@ class _IDProperty(object):
     def ID(self):
         self._ID = None
 
+
 class _NameProperty(object):
     @property
     def name(self):
@@ -2142,10 +2143,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                             value, mask_value = binparsers[i](
                                                 buf.read)
                                         except Exception as e:
-                                            vo_reraise(e, config, pos,
-                                                       "(in row %d, col '%s')" %
-                                                       (len(array_chunk),
-                                                        fields[i].ID))
+                                            vo_reraise(
+                                                e, config, pos,
+                                                "(in row %d, col '%s')" %
+                                                (len(array_chunk),
+                                                 fields[i].ID))
                                     else:
                                         try:
                                             value, mask_value = parsers[i](

@@ -324,7 +324,8 @@ def coerce_range_list_param(p, frames=None, numeric=True):
         if not numeric:
             number = r'(' + number + ')|([A-Z_]+)'
         match = re.match(
-            '^' + number + r'([,/]' + number + r')+(;(?P<frame>[<A-Za-z_0-9]+))?$',
+            '^' + number + r'([,/]' + number +
+            r')+(;(?P<frame>[<A-Za-z_0-9]+))?$',
             p)
 
         if match is None:
@@ -357,8 +358,8 @@ def version_compare(a, b):
     return (av > bv) - (av < bv)
 
 
-def color_print(s, color='default', bold=False, italic=False, stream=sys.stdout,
-                newline=True):
+def color_print(s, color='default', bold=False, italic=False,
+                stream=sys.stdout, newline=True):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
