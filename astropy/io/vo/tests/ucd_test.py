@@ -3,6 +3,7 @@ from ....tests.helper import raises
 # LOCAL
 from .. import ucd
 
+
 def test_none():
     assert ucd.check_ucd(None)
 
@@ -25,10 +26,12 @@ examples = {
     'stat.error;phot.mag':
         [('ivoa', 'stat.error'), ('ivoa', 'phot.mag')],
     'phys.temperature;instr;stat.max':
-        [('ivoa', 'phys.temperature'), ('ivoa', 'instr'), ('ivoa', 'stat.max')],
+        [('ivoa', 'phys.temperature'), ('ivoa', 'instr'),
+         ('ivoa', 'stat.max')],
     'stat.error;phot.mag;em.opt.V':
         [('ivoa', 'stat.error'), ('ivoa', 'phot.mag'), ('ivoa', 'em.opt.V')],
 }
+
 
 def test_check():
     for s, p in examples.items():

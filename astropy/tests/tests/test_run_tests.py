@@ -4,6 +4,7 @@
 
 from .. import helper
 
+
 # run_tests should raise ValueError when asked to run on a module it can't find
 def test_module_not_found():
     with helper.pytest.raises(ValueError):
@@ -14,6 +15,7 @@ def test_module_not_found():
 def test_pastebin_keyword():
     with helper.pytest.raises(ValueError):
         helper.run_tests(pastebin='not_an_option')
+
 
 # tests that tests are only run in Python 3 out of the 2to3'd build (otherwise
 # a syntax error would occur)

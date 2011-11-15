@@ -217,6 +217,131 @@ def check_ucd(ucd, config={}, pos=None):
 
 
 ######################################################################
+# PROPERTY MIXINS
+class _IDProperty(object):
+    @property
+    def ID(self):
+        """
+        The XML ID_ of the element.  May be ``None`` or a string
+        conforming to XML ID_ syntax.
+        """
+        return self._ID
+
+    @ID.setter
+    def ID(self, ID):
+        xmlutil.check_id(ID, 'ID', self._config, self._pos)
+        self._ID = ID
+
+    @ID.deleter
+    def ID(self):
+        self._ID = None
+
+
+class _NameProperty(object):
+    @property
+    def name(self):
+        """An optional name for the element."""
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        xmlutil.check_token(name, 'name', self._config, self._pos)
+        self._name = name
+
+    @name.deleter
+    def name(self):
+        self._name = None
+
+
+class _XtypeProperty(object):
+    @property
+    def xtype(self):
+        """Extended data type information."""
+        return self._xtype
+
+    @xtype.setter
+    def xtype(self, xtype):
+        if xtype is not None and not self._config.get('version_1_2_or_later'):
+            warn_or_raise(
+                W28, W28, ('xtype', self._element_name, '1.2'),
+                config, pos)
+        check_string(xtype, 'xtype', self._config, self._pos)
+        self._xtype = xtype
+
+    @xtype.deleter
+    def xtype(self):
+        self._xtype = None
+
+
+class _UtypeProperty(object):
+    _utype_in_v1_2 = False
+
+    @property
+    def utype(self):
+        """The usage-specific or `unique type`_ of the element."""
+        return self._utype
+
+    @utype.setter
+    def utype(self, utype):
+        if (self._utype_in_v1_2 and
+            utype is not None and
+            not self._config.get('version_1_2_or_later')):
+            warn_or_raise(
+                W28, W28, ('utype', self._element_name, '1.2'),
+                config, pos)
+        check_string(utype, 'utype', self._config, self._pos)
+        self._utype = utype
+
+    @utype.deleter
+    def utype(self):
+        self._utype = None
+
+
+class _UcdProperty(object):
+    _ucd_in_v1_2 = False
+
+    @property
+    def ucd(self):
+        """The `unified content descriptor`_ for the element."""
+        return self._ucd
+
+    @ucd.setter
+    def ucd(self, ucd):
+        if ucd is not None and ucd.strip() == '':
+            ucd = None
+        if ucd is not None:
+            if (self._ucd_in_v1_2 and
+                not self._config.get('version_1_2_or_later')):
+                warn_or_raise(
+                    W28, W28, ('ucd', self._element_name, '1.2'),
+                    config, pos)
+            check_ucd(ucd, self._config, self._pos)
+        self._ucd = ucd
+
+    @ucd.deleter
+    def ucd(self):
+        self._ucd = None
+
+
+class _DescriptionProperty(object):
+    @property
+    def description(self):
+        """
+        An optional string describing the element.  Corresponds to the
+        DESCRIPTION_ element.
+        """
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        self._description = description
+
+    @description.deleter
+    def description(self):
+        self._description = None
+
+
+######################################################################
 # ELEMENT CLASSES
 class Element(object):
     """
@@ -271,19 +396,22 @@ class SimpleElementWithContent(SimpleElement):
         w.element(self._element_name, self._content,
                   attrib=xmlutil.object_attrs(self, self._attr_list))
 
-    def _set_content(self, content):
+    @property
+    def content(self):
+        """The content of the element."""
+        return self._content
+
+    @content.setter
+    def content(self, content):
         check_string(content, 'content', self._config, self._pos)
         self._content = content
-    def _del_content(self):
+
+    @content.deleter
+    def content(self):
         self._content = None
-    content = property(
-        attrgetter('_content'), _set_content, _del_content,
-        """
-        The content of the element.
-        """)
 
 
-class Link(SimpleElement):
+class Link(SimpleElement, _IDProperty):
     """
     A class for storing LINK_ elements, which are used to reference
     external documents and servers through a URI.
@@ -321,56 +449,59 @@ class Link(SimpleElement):
             ['content-role', 'content_role', 'content-type', 'content_type',
              'gref'])
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID_ of the LINK_ element.
-        """)
-
-    def _set_content_role(self, content_role):
-        if content_role not in (None, 'query', 'hints', 'doc', 'location'):
-            vo_warn(W45, (content_role,), self._config, self._pos)
-        self._content_role = content_role
-    def _del_content_role(self):
-        self._content_role = None
-    content_role = property(
-        attrgetter('_content_role'), _set_content_role, _del_content_role,
+    @property
+    def content_role(self):
         """
         Defines the MIME role of the referenced object.  Must be one of:
 
           None, 'query', 'hints', 'doc' or 'location'
-        """)
+        """
+        return self._content_role
 
-    def _set_content_type(self, content_type):
+    @content_role.setter
+    def content_role(self, content_role):
+        if content_role not in (None, 'query', 'hints', 'doc', 'location'):
+            vo_warn(W45, (content_role,), self._config, self._pos)
+        self._content_role = content_role
+
+    @content_role.deleter
+    def content_role(self):
+        self._content_role = None
+
+    @property
+    def content_type(self):
+        """Defines the MIME content type of the referenced object."""
+        return self._content_type
+
+    @content_type.setter
+    def content_type(self, content_type):
         xmlutil.check_mime_content_type(content_type, self._config, self._pos)
         self._content_type = content_type
-    def _del_content_type(self):
-        self._content_type = None
-    content_type = property(
-        attrgetter('_content_type'), _set_content_type, _del_content_type,
-        """
-        Defines the MIME content type of the referenced object.
-        """)
 
-    def _set_href(self, href):
+    @content_type.deleter
+    def content_type(self):
+        self._content_type = None
+
+    @property
+    def href(self):
+        """
+        A URI to an arbitrary protocol.  The vo package only supports
+        http and anonymous ftp.
+        """
+        return self._href
+
+    @href.setter
+    def href(self, href):
         xmlutil.check_anyuri(href, self._config, self._pos)
         self._href = href
-    def _del_href(self):
+
+    @href.deleter
+    def href(self):
         self._href = None
-    href = property(
-        attrgetter('_href'), _set_href, _del_href,
-        """
-        A URI to an arbitrary protocol.  The vo package only
-        supports http and anonymous ftp.
-        """)
 
 
-class Info(SimpleElementWithContent):
+class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
+           _UtypeProperty):
     """
     A class for storing INFO elements, which contain arbitrary
     key-value pairs for extensions to the standard.
@@ -381,6 +512,7 @@ class Info(SimpleElementWithContent):
     _element_name = 'INFO'
     _attr_list_11 = ['ID', 'name', 'value']
     _attr_list_12 = _attr_list_11 + ['xtype', 'ref', 'unit', 'ucd', 'utype']
+    _utype_in_v1_2 = True
 
     def __init__(self, ID=None, name=None, value=None, id=None, xtype=None,
                  ref=None, unit=None, ucd=None, utype=None,
@@ -417,65 +549,57 @@ class Info(SimpleElementWithContent):
 
         warn_unknown_attrs('INFO', extra.iterkeys(), config, pos)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID_ of the INFO element.  Used for cross-referencing.
-        """)
+    @property
+    def name(self):
+        """[*required*] The key of the key-value pair."""
+        return self._name
 
-    def _set_name(self, name):
+    @name.setter
+    def name(self, name):
         if name is None:
             warn_or_raise(W35, W35, ('name'), self._config, self._pos)
         xmlutil.check_token(name, 'name', self._config, self._pos)
         self._name = name
-    name = property(
-        attrgetter('_name'), _set_name, None,
-        """
-        [*required*] The key of the key-value pair.
-        """)
 
-    def _set_value(self, value):
+    @property
+    def value(self):
+        """
+        [*required*] The value of the key-value pair.  (Always stored
+        as a string or unicode string).
+        """
+        return self._value
+
+    @value.setter
+    def value(self, value):
         if value is None:
             warn_or_raise(W35, W35, ('value'), self._config, self._pos)
         check_string(value, 'value', self._config, self._pos)
         self._value = value
-    value = property(
-        attrgetter('_value'), _set_value, None,
-        """
-        The value of the key-value pair.  (Always stored as a
-        string or unicode string).
-        """)
 
-    def _set_content(self, content):
+    @property
+    def content(self):
+        """The content inside the INFO element."""
+        return self._content
+
+    @content.setter
+    def content(self, content):
         check_string(content, 'content', self._config, self._pos)
         self._content = content
-    def _del_content(self):
+
+    @content.deleter
+    def content(self):
         self._content = None
-    content = property(
-        attrgetter('_content'), _set_content, _del_content,
-        """
-        The content inside the INFO element.
-        """)
 
-    def _set_xtype(self, xtype):
-        if xtype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('xtype', 'INFO', '1.2'), config, pos)
-        check_string(xtype, 'xtype', self._config, self._pos)
-        self._xtype = xtype
-    def _del_xtype(self):
-        self._xtype = None
-    xtype = property(
-        attrgetter('_xtype'), _set_xtype, _del_xtype,
+    @property
+    def ref(self):
         """
-        Extended data type information.
-        """)
+        Refer to another INFO_ element by ID_, defined previously in
+        the document.
+        """
+        return self._ref
 
-    def _set_ref(self, ref):
+    @ref.setter
+    def ref(self, ref):
         if ref is not None and not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('ref', 'INFO', '1.2'), config, pos)
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
@@ -495,45 +619,30 @@ class Info(SimpleElementWithContent):
         #     self.max_inclusive = other.max_inclusive
         #     self._options[:] = other.options
         self._ref = ref
-    def _del_ref(self):
-        self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
-        """
-        Refer to another INFO_ element by ID_, defined previously in
-        the document.
-        """)
 
-    def _set_unit(self, unit):
+    @ref.deleter
+    def ref(self):
+        self._ref = None
+
+    @property
+    def unit(self):
+        """A string specifying the units_ for the INFO_."""
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
         # TODO: Validate unit more accurately
         if unit is not None and not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'), config, pos)
         xmlutil.check_token(unit, 'unit', self._config, self._pos)
         self._unit = unit
-    def _del_unit(self):
+
+    @unit.deleter
+    def unit(self):
         self._unit = None
-    unit = property(
-        attrgetter('_unit'), _set_unit, _del_unit,
-        """
-        A string specifying the units_ for the INFO_.
-        """)
-
-    def _set_utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'INFO', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
-        """
-        The usage-specific or `unique type`_ of the INFO_.
-        """
-        )
 
 
-class Values(Element):
+class Values(Element, _IDProperty):
     """
     A class to represent the VALUES_ element, used within FIELD_ and
     PARAM_ elements to define the domain of values.
@@ -563,9 +672,16 @@ class Values(Element):
 
         warn_unknown_attrs('VALUES', extras.iterkeys(), config, pos)
 
-    def _get_null(self):
+    @property
+    def null(self):
+        """
+        For integral datatypes, *null* is used to define the value
+        used for missing values.
+        """
         return self._null
-    def _set_null(self, null):
+
+    @null.setter
+    def null(self, null):
         if null is not None and isinstance(null, string_types):
             try:
                 null_val = self._field.converter.parse_scalar(
@@ -577,33 +693,13 @@ class Values(Element):
         else:
             null_val = null
         self._null = null_val
-    def _del_null(self):
+
+    @null.deleter
+    def null(self):
         self._null = None
-    null = property(
-        _get_null, _set_null, _del_null,
-        """
-        For integral datatypes, *null* is used to define the value
-        used for missing values.
-        """)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the VALUES_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """)
-
-    def _set_type(self, type):
-        if type not in ('legal', 'actual'):
-            vo_raise(E08, type, self._config, self._pos)
-        self._type = type
-    type = property(
-        attrgetter('_type'), _set_type, None,
+    @property
+    def type(self):
         """
         [*required*] Defines the applicability of the domain defined
         by this VALUES_ element.  Must be one of the following
@@ -614,9 +710,25 @@ class Values(Element):
 
           - 'actual': The domain of this column applies only to the
             data enclosed in the parent table.
-        """)
+        """
+        return self._type
 
-    def _set_ref(self, ref):
+    @type.setter
+    def type(self, type):
+        if type not in ('legal', 'actual'):
+            vo_raise(E08, type, self._config, self._pos)
+        self._type = type
+
+    @property
+    def ref(self):
+        """
+        Refer to another VALUES_ element by ID_, defined previously in
+        the document, for MIN/MAX/OPTION information.
+        """
+        return self._ref
+
+    @ref.setter
+    def ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         if ref is not None:
             try:
@@ -634,78 +746,91 @@ class Values(Element):
                 self.max_inclusive = other.max_inclusive
                 self._options[:] = other.options
         self._ref = ref
-    def _del_ref(self):
-        self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
-        """
-        Refer to another VALUES_ element by ID_, defined previously in
-        the document, for MIN/MAX/OPTION information.
-        """)
 
-    def _set_min(self, min):
+    @ref.deleter
+    def ref(self):
+        self._ref = None
+
+    @property
+    def min(self):
+        """
+        The minimum value of the domain.  See :attr:`min_inclusive`.
+        """
+        return self._min
+
+    @min.setter
+    def min(self, min):
         if hasattr(self._field, 'converter') and min is not None:
             self._min = self._field.converter.parse(min)[0]
         else:
             self._min = min
-    def _del_min(self):
-        self._min = None
-    min = property(
-        attrgetter('_min'), _set_min, _del_min,
-        """
-        The minimum value of the domain.  See :attr:`min_inclusive`.
-        """)
 
-    def _set_min_inclusive(self, inclusive):
+    @min.deleter
+    def min(self):
+        self._min = None
+
+    @property
+    def min_inclusive(self):
+        """When `True`, the domain includes the minimum value."""
+        return self._min_inclusive
+
+    @min_inclusive.setter
+    def min_inclusive(self, inclusive):
         if inclusive == 'yes':
             self._min_inclusive = True
         elif inclusive == 'no':
             self._min_inclusive = False
         else:
             self._min_inclusive = bool(inclusive)
-    def _del_min_inclusive(self):
-        self._min_inclusive = True
-    min_inclusive = property(
-        attrgetter('_min_inclusive'), _set_min_inclusive, _del_min_inclusive,
-        """
-        When True, the domain includes the minimum value.
-        """)
 
-    def _set_max(self, max):
+    @min_inclusive.deleter
+    def min_inclusive(self):
+        self._min_inclusive = True
+
+    @property
+    def max(self):
+        """
+        The maximum value of the domain.  See :attr:`max_inclusive`.
+        """
+        return self._max
+
+    @max.setter
+    def max(self, max):
         if hasattr(self._field, 'converter') and max is not None:
             self._max = self._field.converter.parse(max)[0]
         else:
             self._max = max
-    def _del_max(self):
-        self._max = None
-    max = property(
-        attrgetter('_max'), _set_max, _del_max,
-        """
-        The maximum value of the domain.  See :attr:`max_inclusive`.
-        """)
 
-    def _set_max_inclusive(self, inclusive):
+    @max.deleter
+    def max(self):
+        self._max = None
+
+    @property
+    def max_inclusive(self):
+        """When `True`, the domain includes the maximum value."""
+        return self._max_inclusive
+
+    @max_inclusive.setter
+    def max_inclusive(self, inclusive):
         if inclusive == 'yes':
             self._max_inclusive = True
         elif inclusive == 'no':
             self._max_inclusive = False
         else:
             self._max_inclusive = bool(inclusive)
-    def _del_max_inclusive(self):
-        self._max_inclusive = True
-    max_inclusive = property(
-        attrgetter('_max_inclusive'), _set_max_inclusive, _del_max_inclusive,
-        """
-        When True, the domain includes the maximum value.
-        """)
 
-    options = property(
-        attrgetter('_options'), None, None,
+    @max_inclusive.deleter
+    def max_inclusive(self):
+        self._max_inclusive = True
+
+    @property
+    def options(self):
         """
         A list of string key-value tuples defining other OPTION
         elements for the domain.  All options are ignored -- they are
         stored for round-tripping purposes only.
-        """)
+        """
+        return self._options
 
     def parse(self, iterator, config):
         if self.ref is not None:
@@ -788,7 +913,8 @@ class Values(Element):
                         value=value)
 
 
-class Field(SimpleElement):
+class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
+            _UtypeProperty, _UcdProperty):
     """
     A class that represents the FIELD_ element, which describes the
     datatype of a particular column of data.
@@ -929,40 +1055,8 @@ class Field(SimpleElement):
             self.values.ref = self.values._ref
         self.converter = converters.get_converter(self, config, pos)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the FIELD_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """)
-
-    def _set_name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-    def _del_name(self):
-        self._name = None
-    name = property(
-        attrgetter('_name'), _set_name, _del_name,
-        """
-        An optional name for the FIELD_.
-        """)
-
-    def _set_datatype(self, datatype):
-        if datatype is None:
-            if self._config.get('version_1_1_or_later'):
-                vo_raise(E10, self._element_name, self._config, self._pos)
-            else:
-                datatype = 'char'
-        if datatype not in converters.converter_mapping:
-            vo_raise(E06, (datatype, self.ID), self._config, self._pos)
-        self._datatype = datatype
-    datatype = property(
-        attrgetter('_datatype'), _set_datatype, None,
+    @property
+    def datatype(self):
         """
         [*required*] The datatype of the column.  Valid values (as
         defined by the spec) are:
@@ -974,16 +1068,22 @@ class Field(SimpleElement):
         Many VOTABLE files in the wild use 'string' instead of 'char',
         so that is also a valid option, though 'string' will always be
         converted to 'char' when writing the file back out.
-        """)
+        """
+        return self._datatype
 
-    def _set_precision(self, precision):
-        if precision is not None and not re.match("^[FE]?[0-9]+$", precision):
-            vo_raise(E11, precision, self._config, self._pos)
-        self._precision = precision
-    def _del_precision(self):
-        self._precision = None
-    precision = property(
-        attrgetter('_precision'), _set_precision, _del_precision,
+    @datatype.setter
+    def datatype(self, datatype):
+        if datatype is None:
+            if self._config.get('version_1_1_or_later'):
+                vo_raise(E10, self._element_name, self._config, self._pos)
+            else:
+                datatype = 'char'
+        if datatype not in converters.converter_mapping:
+            vo_raise(E06, (datatype, self.ID), self._config, self._pos)
+        self._datatype = datatype
+
+    @property
+    def precision(self):
         """
         Along with :attr:`width`, defines the `numerical accuracy`_
         associated with the data.  These values are used to limit the
@@ -991,18 +1091,21 @@ class Field(SimpleElement):
         file.  Otherwise, it is purely informational -- the Numpy
         recarray containing the data itself does not use this
         information.
-        """)
+        """
+        return self._precision
 
-    def _set_width(self, width):
-        if width is not None:
-            width = int(width)
-            if width <= 0:
-                vo_raise(E12, width, self._config, self._pos)
-        self._width = width
-    def _del_width(self):
-        self._width = None
-    width = property(
-        attrgetter('_width'), _set_width, _del_width,
+    @precision.setter
+    def precision(self, precision):
+        if precision is not None and not re.match("^[FE]?[0-9]+$", precision):
+            vo_raise(E11, precision, self._config, self._pos)
+        self._precision = precision
+
+    @precision.deleter
+    def precision(self):
+        self._precision = None
+
+    @property
+    def width(self):
         """
         Along with :attr:`precision`, defines the `numerical
         accuracy`_ associated with the data.  These values are used to
@@ -1010,122 +1113,118 @@ class Field(SimpleElement):
         the XML file.  Otherwise, it is purely informational -- the
         Numpy recarray containing the data itself does not use this
         information.
-        """)
+        """
+        return self._width
+
+    @width.setter
+    def width(self, width):
+        if width is not None:
+            width = int(width)
+            if width <= 0:
+                vo_raise(E12, width, self._config, self._pos)
+        self._width = width
+
+    @width.deleter
+    def width(self):
+        self._width = None
 
     # ref on FIELD and PARAM behave differently than elsewhere -- here
     # they're just informational, such as to refer to a coordinate
     # system.
-    def _set_ref(self, ref):
-        xmlutil.check_id(ref, 'ref', self._config, self._pos)
-        self._ref = ref
-    def _del_ref(self):
-        self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
+    @property
+    def ref(self):
         """
         On FIELD_ elements, ref is used only for informational
         purposes, for example to refer to a COOSYS_ element.
         """
-        )
+        return self._ref
 
-    def _set_ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-    def _del_ucd(self):
-        self._ucd = None
-    ucd = property(
-        attrgetter('_ucd'), _set_ucd, _del_ucd,
-        """
-        The `unified content descriptor`_ for the FIELD_.
-        """
-        )
+    @ref.setter
+    def ref(self, ref):
+        xmlutil.check_id(ref, 'ref', self._config, self._pos)
+        self._ref = ref
 
-    def _set_utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
-        """
-        The usage-specific or `unique type`_ of the FIELD_.
-        """
-        )
+    @ref.deleter
+    def ref(self):
+        self._ref = None
 
-    def _set_unit(self, unit):
+    @property
+    def unit(self):
+        """A string specifying the units_ for the FIELD_."""
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
         # TODO: Validate unit more accurately
         xmlutil.check_token(unit, 'unit', self._config, self._pos)
         self._unit = unit
-    def _del_unit(self):
-        self._unit = None
-    unit = property(
-        attrgetter('_unit'), _set_unit, _del_unit,
-        """
-        A string specifying the units_ for the FIELD_.
-        """)
 
-    def _set_arraysize(self, arraysize):
-        if (arraysize is not None and
-            not re.match("^([0-9]+x)*[0-9]*[*]?(s\W)?$", arraysize)):
-            vo_raise(E13, arraysize, self._config, self._pos)
-        self._arraysize = arraysize
-    def _del_arraysize(self):
-        self._arraysize = None
-    arraysize = property(
-        attrgetter('_arraysize'), _set_arraysize, _del_arraysize,
+    @unit.deleter
+    def unit(self):
+        self._unit = None
+
+    @property
+    def arraysize(self):
         """
         Specifies the size of the multidimensional array if this
         FIELD_ contains more than a single value.
 
         See `multidimensional arrays`_.
-        """)
+        """
+        return self._arraysize
 
-    def _set_type(self, type):
-        self._type = type
-    def _del_type(self):
-        self._type = None
-    type = property(
-        attrgetter('_type'), _set_type, _del_type,
+    @arraysize.setter
+    def arraysize(self, arraysize):
+        if (arraysize is not None and
+            not re.match("^([0-9]+x)*[0-9]*[*]?(s\W)?$", arraysize)):
+            vo_raise(E13, arraysize, self._config, self._pos)
+        self._arraysize = arraysize
+
+    @arraysize.deleter
+    def arraysize(self):
+        self._arraysize = None
+
+    @property
+    def type(self):
         """
         The type attribute on FIELD_ elements is reserved for future
         extensions.
-        """)
-
-    def _set_xtype(self, xtype):
-        if xtype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('xtype', 'FIELD', '1.2'), config, pos)
-        check_string(xtype, 'xtype', self._config, self._pos)
-        self._xtype = xtype
-    def _del_xtype(self):
-        self._xtype = None
-    xtype = property(
-        attrgetter('_xtype'), _set_xtype, _del_xtype,
         """
-        Extended data type information.
-        """)
+        return self._type
 
-    def _set_values(self, values):
+    @type.setter
+    def type(self, type):
+        self._type = type
+
+    @type.deleter
+    def type(self):
+        self._type = None
+
+    @property
+    def values(self):
+        """
+        A :class:`Values` instance (or ``None``) defining the domain
+        of the column.
+        """
+        return self._values
+
+    @values.setter
+    def values(self, values):
         assert values is None or isinstance(values, Values)
         self._values = values
-    def _del_values(self):
-        self._values = None
-    values = property(
-        attrgetter('_values'), _set_values, _del_values,
-        """
-        A :class:`Values` instance (or ``None``) defining the domain of the
-        column.
-        """)
 
-    links = property(
-        attrgetter('_links'), None, None,
+    @values.deleter
+    def values(self):
+        self._values = None
+
+    @property
+    def links(self):
         """
-        A list of :class:`Link` instances used to reference more details
-        about the meaning of the FIELD_.  This is purely informational
-        and is not used by the vo package.
-        """)
+        A list of :class:`Link` instances used to reference more
+        details about the meaning of the FIELD_.  This is purely
+        informational and is not used by the `astropy.io.vo` package.
+        """
+        return self._links
 
     def parse(self, iterator, config):
         for start, tag, data, pos in iterator:
@@ -1195,7 +1294,16 @@ class Param(Field):
                        precision=precision, utype=utype, type=type,
                        id=id, config=config, pos=pos, **extra)
 
-    def _set_value(self, value):
+    @property
+    def value(self):
+        """
+        [*required*] The constant value of the parameter.  Its type is
+        determined by the :attr:`~Field.datatype` member.
+        """
+        return self._value
+
+    @value.setter
+    def value(self, value):
         if value is None:
             vo_raise(E14, (), self._config, self._pos)
         if isinstance(value, string_types):
@@ -1203,12 +1311,6 @@ class Param(Field):
                 value, self._config, self._pos)[0]
         else:
             self._value = value
-    value = property(
-        attrgetter('_value'), _set_value, None,
-        """
-        [*required*] The constant value of the parameter.  Its type is
-        determined by the :attr:`~Field.datatype` member.
-        """)
 
     def _setup(self, config, pos):
         Field._setup(self, config, pos)
@@ -1252,64 +1354,82 @@ class CooSys(SimpleElement):
 
         warn_unknown_attrs('COOSYS', extra.iterkeys(), config, pos)
 
-    def _set_ID(self, ID):
+    @property
+    def ID(self):
+        """
+        [*required*] The XML ID of the COOSYS_ element, used for
+        cross-referencing.  May be ``None`` or a string conforming to
+        XML ID_ syntax.
+        """
+        return self._ID
+
+    @ID.setter
+    def ID(self, ID):
         if self._config.get('version_1_1_or_later'):
             if ID is None:
                 vo_raise(E15, (), self._config, self._pos)
         xmlutil.check_id(ID, 'ID', self._config, self._pos)
         self._ID = ID
-    ID = property(
-        attrgetter('_ID'), _set_ID, None,
-        """
-        [*required*] The XML ID of the COOSYS_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
-        XML ID_ syntax.
-        """)
 
-    def _set_system(self, system):
-        if system not in ('eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5',
-                          'galactic', 'supergalactic', 'xy', 'barycentric',
-                          'geo_app'):
-            warn_or_raise(E16, E16, system, self._config, self._pos)
-        self._system = system
-    def _del_system(self):
-        self._system = None
-    system = property(
-        attrgetter('_system'), _set_system, _del_system,
+    @property
+    def system(self):
         """
         Specifies the type of coordinate system.  Valid choices are:
 
           'eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5', 'galactic',
           'supergalactic', 'xy', 'barycentric', or 'geo_app'
-        """)
+        """
+        return self._system
 
-    def _set_equinox(self, equinox):
-        check_astroyear(equinox, 'equinox', self._config, self._pos)
-        self._equinox = equinox
-    def _del_equinox(self):
-        self._equinox = None
-    equinox = property(
-        attrgetter('_equinox'), _set_equinox, _del_equinox,
+    @system.setter
+    def system(self, system):
+        if system not in ('eq_FK4', 'eq_FK5', 'ICRS', 'ecl_FK4', 'ecl_FK5',
+                          'galactic', 'supergalactic', 'xy', 'barycentric',
+                          'geo_app'):
+            warn_or_raise(E16, E16, system, self._config, self._pos)
+        self._system = system
+
+    @system.deleter
+    def system(self):
+        self._system = None
+
+    @property
+    def equinox(self):
         """
         A parameter required to fix the equatorial or ecliptic systems
         (as e.g. "J2000" as the default "eq_FK5" or "B1950" as the
         default "eq_FK4").
-        """)
+        """
+        return self._equinox
 
-    def _set_epoch(self, epoch):
-        check_astroyear(epoch, 'epoch', self._config, self._pos)
-        self._epoch = epoch
-    def _del_epoch(self):
-        self._epoch = None
-    epoch = property(
-        attrgetter('_epoch'), _set_epoch, _del_epoch,
+    @equinox.setter
+    def equinox(self, equinox):
+        check_astroyear(equinox, 'equinox', self._config, self._pos)
+        self._equinox = equinox
+
+    @equinox.deleter
+    def equinox(self):
+        self._equinox = None
+
+    @property
+    def epoch(self):
         """
         Specifies the epoch of the positions.  It must be a string
         specifying an astronomical year.
-        """)
+        """
+        return self._epoch
+
+    @epoch.setter
+    def epoch(self, epoch):
+        check_astroyear(epoch, 'epoch', self._config, self._pos)
+        self._epoch = epoch
+
+    @epoch.deleter
+    def epoch(self):
+        self._epoch = None
 
 
-class FieldRef(SimpleElement):
+class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
     A class representing the FIELDref_ element, which is used inside
     of GROUP_ elements to refer to FIELD_ elements defined elsewhere.
@@ -1317,6 +1437,8 @@ class FieldRef(SimpleElement):
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
     _element_name = "FIELDref"
+    _utype_in_v1_2 = True
+    _ucd_in_v1_2 = True
 
     def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None,
                  **extra):
@@ -1345,48 +1467,19 @@ class FieldRef(SimpleElement):
             if utype is not None:
                 warn_unknown_attrs(self._element_name, ['utype'], config, pos)
 
-    def _set_ref(self, ref):
+    @property
+    def ref(self):
+        """The ID_ of the FIELD_ that this FIELDref_ references."""
+        return self._ref
+
+    @ref.setter
+    def ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self):
+
+    @ref.deleter
+    def ref(self):
         self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
-        """
-        The ID_ of the FIELD_ that this FIELDref_ references.
-        """)
-
-    def _set_ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(
-                    W28, W28, ('ucd', 'FIELDref', '1.2'), config, pos)
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-    def _del_ucd(self):
-        self._ucd = None
-    ucd = property(
-        attrgetter('_ucd'), _set_ucd, _del_ucd,
-        """
-        The `unified content descriptor`_ for the FIELDref_.
-        """
-        )
-
-    def _set_utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'FIELDref', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
-        """
-        The usage-specific or `unique type`_ of the FIELDref_.
-        """
-        )
 
     def get_ref(self):
         """
@@ -1401,7 +1494,7 @@ class FieldRef(SimpleElement):
             self._config, self._pos, KeyError)
 
 
-class ParamRef(SimpleElement):
+class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
     A class representing the PARAMref_ element, which is used inside
     of GROUP_ elements to refer to PARAM_ elements defined elsewhere.
@@ -1416,6 +1509,8 @@ class ParamRef(SimpleElement):
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
     _element_name = "PARAMref"
+    _utype_in_v1_2 = True
+    _ucd_in_v1_2 = True
 
     def __init__(self, table, ref, ucd=None, utype=None, config={}, pos=None):
         self._config = config
@@ -1436,49 +1531,19 @@ class ParamRef(SimpleElement):
             if utype is not None:
                 warn_unknown_attrs(self._element_name, ['utype'], config, pos)
 
-    def _set_ref(self, ref):
+    @property
+    def ref(self):
+        """The ID_ of the PARAM_ that this PARAMref_ references."""
+        return self._ref
+
+    @ref.setter
+    def ref(self, ref):
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         self._ref = ref
-    def _del_ref(self):
+
+    @ref.deleter
+    def ref(self):
         self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
-        """
-        The ID_ of the PARAM_ that this PARAMref_ references.
-        """
-        )
-
-    def _set_ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            if not self._config.get('version_1_2_or_later'):
-                warn_or_raise(
-                    W28, W28, ('ucd', 'PARAMref', '1.2'), config, pos)
-            check_ucd(ucd, self._config, self._pos)
-        self._ucd = ucd
-    def _del_ucd(self):
-        self._ucd = None
-    ucd = property(
-        attrgetter('_ucd'), _set_ucd, _del_ucd,
-        """
-        The `unified content descriptor`_ for the PARAMref_.
-        """
-        )
-
-    def _set_utype(self, utype):
-        if utype is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('utype', 'PARAMref', '1.2'), config, pos)
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
-        """
-        The usage-specific or `unique type`_ of the PARAMref_.
-        """
-        )
 
     def get_ref(self):
         """
@@ -1493,7 +1558,8 @@ class ParamRef(SimpleElement):
             self._config, self._pos, KeyError)
 
 
-class Group(Element):
+class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
+            _UcdProperty, _DescriptionProperty):
     """
     Stores information about the grouping of FIELD_ and PARAM_
     elements.
@@ -1528,84 +1594,31 @@ class Group(Element):
 
         warn_unknown_attrs('GROUP', extra.iterkeys(), config, pos)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the GROUP_ element.  May be ``None`` or a string
-        conforming to XML ID_ syntax.
-        """)
-
-    def _set_name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-    def _del_name(self):
-        self._name = None
-    name = property(
-        attrgetter('_name'), _set_name, _del_name,
-        """
-        An optional name for the grouping.
-        """)
-
-    def _set_ref(self, ref):
-        xmlutil.check_id(ref, 'ref', self._config, self._pos)
-        self._ref = ref
-    def _del_ref(self):
-        self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
+    @property
+    def ref(self):
         """
         Currently ignored, as it's not clear from the spec how this is
         meant to work.
-        """)
-
-    def _set_ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config)
-        self._ucd = ucd
-    def _del_ucd(self):
-        self._ucd = None
-    ucd = property(
-        attrgetter('_ucd'), _set_ucd, _del_ucd,
         """
-        The `unified content descriptor`_ for the GROUP_.
-        """)
+        return self._ref
 
-    def _set_utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
-        """
-        The usage-specific or `unique type`_ of the GROUP_.
-        """)
+    @ref.setter
+    def ref(self, ref):
+        xmlutil.check_id(ref, 'ref', self._config, self._pos)
+        self._ref = ref
 
-    def _set_description(self, description):
-        self._description = description
-    def _del_description(self):
-        self._description = None
-    description = property(
-        attrgetter('_description'), _set_description, _del_description,
-        """
-        An optional string describing the GROUP_.  Corresponds to the
-        DESCRIPTION_ element.
-        """)
+    @ref.deleter
+    def ref(self):
+        self._ref = None
 
-    entries = property(
-        attrgetter('_entries'), None, None,
+    @property
+    def entries(self):
         """
-        A list of members of the GROUP_.  This list may only contain
-        objects of type :class:`Param`, :class:`Group`,
+        [read-only] A list of members of the GROUP_.  This list may
+        only contain objects of type :class:`Param`, :class:`Group`,
         :class:`ParamRef` and :class:`FieldRef`.
-        """)
+        """
+        return self._entries
 
     def _add_fieldref(self, iterator, tag, data, config, pos):
         fieldref = FieldRef(self._table, config=config, pos=pos, **data)
@@ -1684,7 +1697,8 @@ class Group(Element):
                     yield group
 
 
-class Table(Element):
+class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
+            _DescriptionProperty):
     """
     A class to store a TABLE_ element, which optionally contains data.
 
@@ -1746,30 +1760,16 @@ class Table(Element):
 
         warn_unknown_attrs('TABLE', extra.iterkeys(), config, pos)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the TABLE_ element, used for cross-referencing.
-        May be ``None`` or a string conforming to XML ID_ syntax.
-        """)
+    @property
+    def ref(self):
+        return self._ref
 
-    def _set_name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-    def _del_name(self):
-        self._name = None
-    name = property(
-        attrgetter('_name'), _set_name, _del_name,
+    @ref.setter
+    def ref(self, ref):
         """
-        An optional name for the table.
-        """)
-
-    def _set_ref(self, ref):
+        Refer to another TABLE, previously defined, by the *ref* ID_
+        for all metadata (FIELD_, PARAM_ etc.) information.
+        """
         # When the ref changes, we want to verify that it will work
         # by actually going and looking for the referenced table.
         # If found, set a bunch of properties in this table based
@@ -1793,41 +1793,13 @@ class Table(Element):
             del self._groups[:]
             del self._links[:]
         self._ref = ref
-    def _del_ref(self):
+
+    @ref.deleter
+    def ref(self):
         self._ref = None
-    ref = property(
-        attrgetter('_ref'), _set_ref, _del_ref,
-        """
-        Refer to another TABLE, previously defined, by the *ref* ID_
-        for all metadata (FIELD_, PARAM_ etc.) information.
-        """)
 
-    def _set_ucd(self, ucd):
-        if ucd is not None and ucd.strip() == '':
-            ucd = None
-        if ucd is not None:
-            check_ucd(ucd, self._config)
-        self._ucd = ucd
-    def _del_ucd(self):
-        self._ucd = None
-    ucd = property(
-        attrgetter('_ucd'), _set_ucd, _del_ucd,
-        """
-        The `unified content descriptor`_ for the TABLE_.
-        """
-        )
-
-    def _set_format(self, format):
-        format = format.lower()
-        if format == 'fits':
-            vo_raise("fits format can not be written out, only read.",
-                     self._config, self._pos, NotImplementedError)
-        if format not in ('tabledata', 'binary'):
-            vo_raise("Invalid format '%s'" % format,
-                     self._config, self._pos)
-        self._format = format
-    format = property(
-        attrgetter('_format'), _set_format, None,
+    @property
+    def format(self):
         """
         [*required*] The serialization format of the table.  Must be
         one of:
@@ -1837,62 +1809,69 @@ class Table(Element):
         Note that the 'fits' format, since it requires an external
         file, can not be written out.  Any file read in with 'fits'
         format will be read out, by default, in 'tabledata' format.
-        """)
+        """
+        return self._format
 
-    nrows = property(
-        attrgetter('_nrows'), None, None,
+    @format.setter
+    def format(self, format):
+        format = format.lower()
+        if format == 'fits':
+            vo_raise("fits format can not be written out, only read.",
+                     self._config, self._pos, NotImplementedError)
+        if format not in ('tabledata', 'binary'):
+            vo_raise("Invalid format '%s'" % format,
+                     self._config, self._pos)
+        self._format = format
+
+    @property
+    def nrows(self):
         """
         [*immutable*] The number of rows in the table, as specified in
         the XML file.
-        """)
-
-    def _set_description(self, description):
-        self._description = description
-    def _del_description(self):
-        self._description = None
-    description = property(
-        attrgetter('_description'), _set_description, _del_description,
         """
-        An optional string describing the TABLE_.  Corresponds to the
-        DESCRIPTION_ element.
-        """)
+        return self._nrows
 
-    fields = property(
-        attrgetter('_fields'), None, None,
+    @property
+    def fields(self):
         """
         A list of :class:`Field` objects describing the types of each
         of the data columns.
-        """)
+        """
+        return self._fields
 
-    params = property(
-        attrgetter('_params'), None, None,
+    @property
+    def params(self):
         """
         A list of parameters (constant-valued columns) for the
         table.  Must contain only :class:`Param` objects.
-        """)
+        """
+        return self._params
 
-    groups = property(
-        attrgetter('_groups'), None, None,
+    @property
+    def groups(self):
         """
         A list of :class:`Group` objects describing how the columns
         and parameters are grouped.  Currently this information is
         only kept around for round-tripping and informational
         purposes.
-        """)
+        """
+        return self._groups
 
-    links = property(
-        attrgetter('_links'), None, None,
+    @property
+    def links(self):
         """
         A list of :class:`Link` objects (pointers to other documents
         or servers through a URI) for the table.
-        """)
+        """
+        return self._links
 
-    infos = property(
-        attrgetter('_infos'), None, None,
+    @property
+    def infos(self):
         """
         A list of :class:`Info` objects for the table.  Allows for
         post-operational diagnostics.
-        """)
+        """
+        return self._infos
 
     def is_empty(self):
         """
@@ -2164,19 +2143,21 @@ class Table(Element):
                                             value, mask_value = binparsers[i](
                                                 buf.read)
                                         except Exception as e:
-                                            vo_reraise(e, config, pos,
-                                                       "(in row %d, col '%s')" %
-                                                       (len(array_chunk),
-                                                        fields[i].ID))
+                                            vo_reraise(
+                                                e, config, pos,
+                                                "(in row %d, col '%s')" %
+                                                (len(array_chunk),
+                                                 fields[i].ID))
                                     else:
                                         try:
                                             value, mask_value = parsers[i](
                                                 data, config, pos)
                                         except Exception as e:
-                                            vo_reraise(e, config, pos,
-                                                       "(in row %d, col '%s')" %
-                                                       (len(array_chunk),
-                                                        fields[i].ID))
+                                            vo_reraise(
+                                                e, config, pos,
+                                                "(in row %d, col '%s')" %
+                                                (len(array_chunk),
+                                                 fields[i].ID))
                                 except Exception as e:
                                     if invalid == 'exception':
                                         vo_reraise(e, config, pos)
@@ -2530,7 +2511,8 @@ class Table(Element):
         """)
 
 
-class Resource(Element):
+class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
+               _DescriptionProperty):
     """
     A class to store the information in a RESOURCE_ element.  Each
     resource may contain zero-or-more TABLE_ elements and zero-or-more
@@ -2561,36 +2543,8 @@ class Resource(Element):
 
         warn_unknown_attrs('RESOURCE', kwargs.iterkeys(), config, pos)
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the RESOURCE_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
-        XML ID_ syntax.
-        """)
-
-    def _set_name(self, name):
-        xmlutil.check_token(name, 'name', self._config, self._pos)
-        self._name = name
-    def _del_name(self):
-        self._name = None
-    name = property(
-        attrgetter('_name'), _set_name, _del_name,
-        """
-        An optional name for the RESOURCE_.
-        """)
-
-    def _set_type(self, type):
-        if type not in ('results', 'meta'):
-            vo_raise(E18, type, self._config, self._pos)
-        self._type = type
-    type = property(
-        attrgetter('_type'), _set_type, None,
+    @property
+    def type(self):
         """
         [*required*] The type of the resource.  Must be either:
 
@@ -2599,83 +2553,73 @@ class Resource(Element):
 
           - 'meta': This resource contains only datatype descriptions
             (FIELD_ elements), but no actual data.
-        """)
-
-    def _set_utype(self, utype):
-        check_string(utype, 'utype', self._config, self._pos)
-        self._utype = utype
-    def _del_utype(self):
-        self._utype = None
-    utype = property(
-        attrgetter('_utype'), _set_utype, _del_utype,
         """
-        The usage-specific or `unique type`_ of the FIELD_.
-        """
-        )
+        return self._type
 
-    extra_attributes = property(
-        attrgetter('_extra_attributes'), None, None,
+    @type.setter
+    def type(self, type):
+        if type not in ('results', 'meta'):
+            vo_raise(E18, type, self._config, self._pos)
+        self._type = type
+
+    @property
+    def extra_attributes(self):
         """
         A dictionary of string keys to string values containing any
         extra attributes of the RESOURCE_ element that are not defined
         in the specification.  (The specification explicitly allows
         for extra attributes here, but nowhere else.)
-        """)
-
-    def _set_description(self, description):
-        self._description = description
-    def _del_description(self):
-        self._description = None
-    description = property(
-        attrgetter('_description'), _set_description, _del_description,
         """
-        An optional string describing the RESOURCE_.  Corresponds to the
-        DESCRIPTION_ element.
-        """
-        )
+        return self._extra_attributes
 
-    coordinate_systems = property(
-        attrgetter('_coordinate_systems'), None, None,
+    @property
+    def coordinate_systems(self):
         """
         A list of coordinate system definitions (COOSYS_ elements) for
-        the RESOURCE_.  Must contain only :class:`CooSys` objects.
-        """)
+        the RESOURCE_.  Must contain only `CooSys` objects.
+        """
+        return self._coordinate_systems
 
-    infos = property(
-        attrgetter('_infos'), None, None,
+    @property
+    def infos(self):
         """
         A list of informational parameters (key-value pairs) for the
-        resource.  Must only contain :class:`Info` objects.
-        """)
+        resource.  Must only contain `Info` objects.
+        """
+        return self._infos
 
-    params = property(
-        attrgetter('_params'), None, None,
+    @property
+    def params(self):
         """
         A list of parameters (constant-valued columns) for the
-        resource.  Must contain only :class:`Param` objects.
-        """)
+        resource.  Must contain only `Param` objects.
+        """
+        return self._params
 
-    links = property(
-        attrgetter('_links'), None, None,
+    @property
+    def links(self):
         """
         A list of links (pointers to other documents or servers
-        through a URI) for the resource.  Must contain only
-        :class:`Link` objects.
-        """)
+        through a URI) for the resource.  Must contain only `Link`
+        objects.
+        """
+        return self._links
 
-    tables = property(
-        attrgetter('_tables'), None, None,
+    @property
+    def tables(self):
         """
         A list of tables in the resource.  Must contain only
-        :class:`Table` objects.
-        """)
+        `Table` objects.
+        """
+        return self._tables
 
-    resources = property(
-        attrgetter('_resources'), None, None,
+    @property
+    def resources(self):
         """
         A list of nested resources inside this resource.  Must contain
-        only :class:`Resource` objects.
-        """)
+        only `Resource` objects.
+        """
+        return self._resources
 
     def _add_table(self, iterator, tag, data, config, pos):
         table = Table(self._votable, config=config, pos=pos, **data)
@@ -2784,7 +2728,7 @@ class Resource(Element):
                 yield coosys
 
 
-class VOTableFile(Element):
+class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
     A class to represent the top-level VOTABLE_ element.
 
@@ -2812,73 +2756,53 @@ class VOTableFile(Element):
         assert version in ("1.0", "1.1", "1.2")
         self._version            = version
 
-    def _set_ID(self, ID):
-        xmlutil.check_id(ID, 'ID', self._config, self._pos)
-        self._ID = ID
-    def _del_ID(self):
-        self._ID = None
-    ID = property(
-        attrgetter('_ID'), _set_ID, _del_ID,
-        """
-        The XML ID of the VOTABLE_ element, used for
-        cross-referencing.  May be ``None`` or a string conforming to
-        XML ID_ syntax.
-        """)
-
-    def _get_version(self):
-        return self._version
-    version = property(
-        _get_version, None, None,
+    @property
+    def version(self):
         """
         The version of the VOTable specification that the file uses.
-        """)
-
-    def _set_description(self, description):
-        self._description = description
-    def _del_description(self):
-        self._description = None
-    description = property(
-        attrgetter('_description'), _set_description, _del_description,
         """
-        An optional string describing the VOTABLE_.  Corresponds to
-        the DESCRIPTION_ element.
-        """)
+        return self._version
 
-    coordinate_systems = property(
-        attrgetter('_coordinate_systems'), None, None,
+    @property
+    def coordinate_systems(self):
         """
         A list of coordinate system descriptions for the file.  Must
-        contain only :class:`CooSys` objects.
-        """)
+        contain only `CooSys` objects.
+        """
+        return self._coordinate_systems
 
-    params = property(
-        attrgetter('_params'), None, None,
+    @property
+    def params(self):
         """
         A list of parameters (constant-valued columns) that apply to
-        the entire file.  Must contain only :class:`Param` objects.
-        """)
+        the entire file.  Must contain only `Param` objects.
+        """
+        return self._params
 
-    infos = property(
-        attrgetter('_infos'), None, None,
+    @property
+    def infos(self):
         """
         A list of informational parameters (key-value pairs) for the
-        entire file.  Must only contain :class:`Info` objects.
-        """)
+        entire file.  Must only contain `Info` objects.
+        """
+        return self._infos
 
-    resources = property(
-        attrgetter('_resources'), None, None,
+    @property
+    def resources(self):
         """
         A list of resources, in the order they appear in the file.
-        Must only contain :class:`Resource` objects.
-        """)
+        Must only contain `Resource` objects.
+        """
+        return self._resources
 
-    groups = property(
-        attrgetter('_groups'), None, None,
+    @property
+    def groups(self):
         """
         A list of groups, in the order they appear in the file.  Only
         supported as a child of the VOTABLE element in VOTable 1.2 or
         later.
-        """)
+        """
+        return self._groups
 
     def _add_param(self, iterator, tag, data, config, pos):
         param = Param(self, config=config, pos=pos, **data)

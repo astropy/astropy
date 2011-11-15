@@ -59,6 +59,7 @@ table td {
 }
 """
 
+
 @contextlib.contextmanager
 def make_html_header(w):
     w.write(html_header)
@@ -70,6 +71,7 @@ def make_html_header(w):
             with w.tag(u'body'):
                 yield
 
+
 def write_source_line(w, line, nchar=0):
     part1 = xml_escape(line[:nchar].decode('utf-8'))
     char = xml_escape(line[nchar:nchar+1].decode('utf-8'))
@@ -80,6 +82,7 @@ def write_source_line(w, line, nchar=0):
     w.write(u'<span class="highlight">%s</span>' % char)
     w.write(part2)
     w.write(u'\n\n')
+
 
 def write_warning(w, line, xml_lines):
     warning = exceptions.parse_vowarning(line)
@@ -97,6 +100,7 @@ def write_warning(w, line, xml_lines):
         w.write(u'\n')
         write_source_line(w, xml_lines[warning['nline'] - 1], warning['nchar'])
 
+
 def write_votlint_warning(w, line, xml_lines):
     match = re.search("(WARNING|ERROR|INFO) \(l.(?P<line>[0-9]+), c.(?P<column>[0-9]+)\): (?P<rest>.*)", line)
     if match:
@@ -108,6 +112,7 @@ def write_votlint_warning(w, line, xml_lines):
     else:
         w.data(line)
         w.data('\n')
+
 
 def write_result(result):
     if result['network_error'] is not None:
@@ -228,7 +233,9 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                 if i == j:
                     w.data(unicode(i+1))
                 else:
-                    w.element(u'a', unicode(i+1), href=u'%s_%02d.html' % (basename, i))
+                    w.element(
+                        u'a', unicode(i+1),
+                        href=u'%s_%02d.html' % (basename, i))
                 w.data(' ')
             if j < npages - 1:
                 w.element(u'a', u'>>', href=u'%s_%02d.html' % (basename, j+1))
@@ -259,6 +266,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
 
                 write_page_links(i)
 
+
 def add_subset(w, basename, name, subresults, inside=['p'], total=None):
     with w.tag('tr'):
         subresults = list(subresults)
@@ -275,6 +283,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
         with w.tag('td'):
             w.data(numbers)
 
+
 def write_index(subsets, results, root='results'):
     path = os.path.join(root, 'index.html')
     with io.open(path, 'w', encoding='utf-8') as fd:
@@ -286,8 +295,9 @@ def write_index(subsets, results, root='results'):
                 for subset in subsets:
                     add_subset(w, *subset, total=len(results))
 
-def write_index_table(root, basename, name, subresults, inside=None, total=None,
-                      chunk_size=500):
+
+def write_index_table(root, basename, name, subresults, inside=None,
+                      total=None, chunk_size=500):
     if total is None:
         total = len(subresults)
     percentage = (float(len(subresults)) / total)

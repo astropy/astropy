@@ -95,7 +95,6 @@ def _get_git_devstr(sha=False, show_warning=True):
     from subprocess import Popen, PIPE
     from warnings import warn
 
-
     currdir = os.path.abspath(os.path.split(__file__)[0])
 
     if sha:

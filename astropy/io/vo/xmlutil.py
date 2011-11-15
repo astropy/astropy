@@ -241,7 +241,9 @@ def check_anyuri(uri, config={}, pos=None):
     """
     if uri is not None:
         if (re.match(
-            r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?",
+            r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}" +
+            r"[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?" +
+            r"(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?",
             uri) is None):
             warn_or_raise(W05, W05, uri, config, pos)
             return False

@@ -22,13 +22,15 @@ except ImportError:
 
         import pickle
         unpacked_sources = extern_pytest.sources.encode("ascii") # ensure bytes
-        unpacked_sources = pickle.loads(zlib.decompress(base64.decodebytes(unpacked_sources)))
+        unpacked_sources = pickle.loads(
+            zlib.decompress(base64.decodebytes(unpacked_sources)))
     else:
         exec("def do_exec_def(co, loc): exec co in loc\n")
         extern_pytest.do_exec = do_exec_def
 
         import cPickle as pickle
-        unpacked_sources = pickle.loads(zlib.decompress(base64.decodestring(extern_pytest.sources)))
+        unpacked_sources = pickle.loads(
+            zlib.decompress(base64.decodestring(extern_pytest.sources)))
 
     importer = extern_pytest.DictImporter(unpacked_sources)
     sys.meta_path.append(importer)
@@ -39,14 +41,17 @@ except ImportError:
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
 
+
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
 def pytest_addoption(parser):
     parser.addoption("--remotedata", action="store_true",
         help="run tests with online data")
 
+
 def pytest_runtest_setup(item):
-    if 'remote_data' in item.keywords and not item.config.getvalue("remotedata"):
+    if ('remote_data' in item.keywords and
+        not item.config.getvalue("remotedata")):
         pytest.skip("need --remotedata option to run")
 
 
@@ -67,7 +72,8 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
         keyword argument.
 
     plugins : list, optional
-        Plugins to be passed to `pytest.main` in the `plugins` keyword argument.
+        Plugins to be passed to `pytest.main` in the `plugins` keyword
+        argument.
 
     verbose : bool, optional
         Convenience option to turn on verbose output from py.test. Passing True
@@ -164,7 +170,8 @@ class astropy_test(Command):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = 'import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r}))'
+        cmd = ('import astropy, sys; ' +
+               'sys.exit(astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r}))')
         cmd = cmd.format(self.module, self.args, self.plugins,
                          self.verbose_results, self.pastebin)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
