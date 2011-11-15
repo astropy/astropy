@@ -7,7 +7,7 @@ Testing Guidelines (Draft 2)
     described functionality may be implemented.
 
 This section describes the testing framework and format standards for tests in
-Astropy core modules (this also serves as recommendations for affiliated
+Astropy core packages (this also serves as recommendations for affiliated
 packages).
 
 Testing Framework
@@ -98,13 +98,14 @@ AstroPy with::
     
 This will run all the default tests for AstroPy.
 
-Tests for a specific package can be run by specifying the module in the call
+Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
 
     astropy.test('io.fits')
     
-Alternatively, a specific directory or file can be targeted with the
-``test_path`` option::
+This method works only with package names that can be mapped to Astropy
+directories. As an alternative you can test a specific directory or file
+with the ``test_path`` option::
 
   astropy.test(test_path='wcs/tests/test_wcs.py')
   
@@ -133,12 +134,12 @@ tests should include the ticket URL where the bug was reported.
 Where to put tests
 ==================
 
-Module-specific tests
+Package-specific tests
 ---------------------
 
-Each module should include a suite of unit tests, covering as many of the
+Each package should include a suite of unit tests, covering as many of the
 public methods/functions as possible. These tests should be included inside
-each sub-module, either in a `tests` directory, or in a test.py file, e.g::
+each sub-package, either in a `tests` directory, or in a test.py file, e.g::
 
     astropy/io/fits/tests/
 
@@ -152,7 +153,7 @@ can be imported and so that they can use relative imports.
 Interoperability tests
 ----------------------
 
-Tests involving two or more sub-modules should be included in::
+Tests involving two or more sub-packages should be included in::
 
     astropy/tests/
 
@@ -161,7 +162,7 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-modules. This functionality is especially important for people who install 
+sub-packages. This functionality is especially important for people who install 
 packages through bundles and package managers, where the original source code 
 for the tests is not immediately available.
 
