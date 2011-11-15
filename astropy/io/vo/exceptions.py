@@ -43,6 +43,7 @@ from .util import IS_PY3K
 
 MAX_WARNINGS = 10
 
+
 def _format_message(message, name, config={}, pos=None):
     if pos is None:
         pos = ('?', '?')
@@ -113,7 +114,10 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[]):
 
 
 warning_pat = re.compile(
-    r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): ((?P<warning>[WE]\d+): )?(?P<rest>.*)$")
+    (r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
+     r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"))
+
+
 def parse_vowarning(line):
     """
     Parses the vo warning string back into its parts.
@@ -469,7 +473,8 @@ class W12(VOTableChangeWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message = "'%s' element must have at least one of 'ID' or 'name' attributes"
+    message = (
+        "'%s' element must have at least one of 'ID' or 'name' attributes")
     default_args = ('x',)
 
 
@@ -563,7 +568,9 @@ class W19(VOTableSpecWarning):
     mode* is off, the embedded FITS file will take precedence.
     """
 
-    message = 'The fields defined in the VOTable do not match those in the embedded FITS file'
+    message = (
+        'The fields defined in the VOTable do not match those in the ' +
+        'embedded FITS file')
 
 
 class W20(VOTableSpecWarning):
@@ -582,7 +589,9 @@ class W21(UnimplementedWarning):
     from a version other than 1.1 or 1.2.
     """
 
-    message = 'vo.table is designed for VOTable version 1.1 and 1.2, but this file is %s'
+    message = (
+        'vo.table is designed for VOTable version 1.1 and 1.2, but ' +
+        'this file is %s')
     default_args = ('x',)
 
 
@@ -868,7 +877,9 @@ class W41(VOTableSpecWarning):
     validating parsers.
     """
 
-    message = "An XML namespace is specified, but is incorrect.  Expected '%s', got '%s'"
+    message = (
+        "An XML namespace is specified, but is incorrect.  Expected " +
+        "'%s', got '%s'")
     default_args = ('x', 'y')
 
 
@@ -967,8 +978,8 @@ class W49(VOTableSpecWarning):
     """
     Empty cell illegal for integer fields.
 
-    If a "null" value was specified for the cell, it will be used for the value,
-    otherwise, 0 will be used.
+    If a \"null\" value was specified for the cell, it will be used
+    for the value, otherwise, 0 will be used.
     """
 
     message = "Empty cell illegal for integer fields."
@@ -1003,7 +1014,9 @@ class E02(VOWarning, ValueError):
     in the FIELD specifier.
     """
 
-    message = "Incorrect number of elements in array.  Expected multiple of %s, got %s"
+    message = (
+        "Incorrect number of elements in array. " +
+        "Expected multiple of %s, got %s")
     default_args = ('x', 'y')
 
 

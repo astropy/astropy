@@ -38,6 +38,7 @@ else:
     def b(s):
         return str(s)
 
+
 def setup_module():
     global ROOT_DIR
     ROOT_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -45,9 +46,11 @@ def setup_module():
     global TMP_DIR
     TMP_DIR = tempfile.mkdtemp()
 
+
 def teardown_module():
     shutil.rmtree(TMP_DIR)
     pass
+
 
 def assert_validate_schema(filename):
     try:
@@ -57,8 +60,10 @@ def assert_validate_schema(filename):
         return
     assert rc == 0, 'File did not validate against VOTable schema'
 
+
 def test_parse_single_table():
-    table = parse_single_table(join(ROOT_DIR, "regression.xml"), pedantic=False)
+    table = parse_single_table(
+        join(ROOT_DIR, "regression.xml"), pedantic=False)
     assert isinstance(table, tree.Table)
     assert len(table.array) == 5
 
@@ -97,24 +102,33 @@ def _test_regression(_python_based=False):
                     _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
-    truth = open(join(ROOT_DIR, "regression.bin.tabledata.truth.xml")).readlines()
-    output = open(join(TMP_DIR, "regression.bin.tabledata.xml")).readlines()
+    truth = open(
+        join(ROOT_DIR, "regression.bin.tabledata.truth.xml")).readlines()
+    output = open(
+        join(TMP_DIR, "regression.bin.tabledata.xml")).readlines()
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
     for line in difflib.unified_diff(truth, output):
         if IS_PY3K:
-            sys.stdout.write(line.decode('utf-8').encode('string_escape').replace('\\n', '\n'))
+            sys.stdout.write(
+                line.decode('utf-8').
+                encode('string_escape').
+                replace('\\n', '\n'))
         else:
-            sys.stdout.write(line.encode('string_escape').replace('\\n', '\n'))
+            sys.stdout.write(
+                line.encode('string_escape').
+                replace('\\n', '\n'))
 
     assert truth == output
 
     # Test implicit gzip saving
-    votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
-                    _astropy_version = "testing",
-                    _debug_python_based_parser=_python_based)
-    truth = gzip.GzipFile(join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'r').readlines()
+    votable2.to_xml(
+        join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
+        _astropy_version="testing",
+        _debug_python_based_parser=_python_based)
+    truth = gzip.GzipFile(
+        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'r').readlines()
     if IS_PY3K:
         truth = [x.decode('utf8') for x in truth]
 
@@ -131,7 +145,8 @@ def test_regression_python_based_parser():
 
 class TestFixups:
     def setup_class(self):
-        self.table = parse(join(ROOT_DIR, "regression.xml"), pedantic=False).get_first_table()
+        self.table = parse(
+            join(ROOT_DIR, "regression.xml"), pedantic=False).get_first_table()
         self.array = self.table.array
         self.mask = self.table.mask
 
@@ -216,7 +231,8 @@ class TestParse:
                           np.object_)
         assert_array_equal(
             self.array['string_test'],
-            [b('String & test'), b('String &amp; test'), b('XXXX'), b(''), b('')])
+            [b('String & test'), b('String &amp; test'), b('XXXX'),
+             b(''), b('')])
 
     def test_fixed_string_test(self):
         assert issubclass(self.array['string_test_2'].dtype.type,
@@ -258,17 +274,19 @@ class TestParse:
     def test_int(self):
         assert issubclass(self.array['int'].dtype.type,
                           np.int32)
-        assert_array_equal(self.array['int'],
-                           [268435456, 2147483647, -268435456, 268435455, 123456789])
+        assert_array_equal(
+            self.array['int'],
+            [268435456, 2147483647, -268435456, 268435455, 123456789])
         assert_array_equal(self.mask['int'],
                            [False, False, False, False, True])
 
     def test_long(self):
         assert issubclass(self.array['long'].dtype.type,
                           np.int64)
-        assert_array_equal(self.array['long'],
-                           [922337203685477, 123456789, -1152921504606846976,
-                            1152921504606846975, 123456789])
+        assert_array_equal(
+            self.array['long'],
+            [922337203685477, 123456789, -1152921504606846976,
+             1152921504606846975, 123456789])
         assert_array_equal(self.mask['long'],
                            [False, True, False, False, True])
 
@@ -416,8 +434,9 @@ class TestParse:
     def test_doubleComplex(self):
         assert issubclass(self.array['doubleComplex'].dtype.type,
                           np.complex128)
-        assert_array_equal(self.array['doubleComplex'],
-                           [np.nan+0j, 0+0j, 0+-1j, np.nan+(np.inf*1j), np.nan+0j])
+        assert_array_equal(
+            self.array['doubleComplex'],
+            [np.nan+0j, 0+0j, 0+-1j, np.nan+(np.inf*1j), np.nan+0j])
         assert_array_equal(self.mask['doubleComplex'],
                            [True, False, False, True, True])
 

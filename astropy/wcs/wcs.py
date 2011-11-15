@@ -659,7 +659,8 @@ naxis kwarg.
                 sky = self._normalize_sky_output(sky)
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
-        raise TypeError("Expected 2 or 3 arguments, {0} given".format(len(args)))
+        raise TypeError(
+            "Expected 2 or 3 arguments, {0} given".format(len(args)))
 
     def all_pix2sky(self, *args, **kwargs):
         return self._array_converter(
@@ -1150,9 +1151,9 @@ naxis kwarg.
         print('WCS Keywords\n')
         if hasattr(self.wcs, 'cd'):
             print('CD_11  CD_12: {!r} {!r}'.format(
-                self.wcs.cd[0, 0],  self.wcs.cd[0, 1]))
+                self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
             print('CD_21  CD_22: {!r} {!r}'.format(
-                self.wcs.cd[1, 0],  self.wcs.cd[1, 1]))
+                self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
         print('CRVAL    : {!r} {!r}'.format(
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(

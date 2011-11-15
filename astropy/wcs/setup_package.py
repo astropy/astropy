@@ -118,7 +118,8 @@ void fill_docstrings(void);
     h_file.write("\n#endif\n\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'docstrings.h'), h_file.getvalue().encode('utf-8'))
+        join(WCSROOT, 'src', 'docstrings.h'),
+        h_file.getvalue().encode('utf-8'))
 
     c_file = StringIO()
     c_file.write("""/*
@@ -162,7 +163,8 @@ MSVC, do not support string literals greater than 256 characters.
     c_file.write("#endif\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'docstrings.c'), c_file.getvalue().encode('utf-8'))
+        join(WCSROOT, 'src', 'docstrings.c'),
+        c_file.getvalue().encode('utf-8'))
 
 
 def get_extensions():

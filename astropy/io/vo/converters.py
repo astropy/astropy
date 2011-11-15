@@ -37,6 +37,7 @@ _zero_int = bytes('\0\0\0\0', 'ascii')
 _empty_bytes = bytes('', 'ascii')
 _zero_byte = bytes('\0', 'ascii')
 
+
 class Converter(object):
     """
     The base class for all converters.  Each subclass handles

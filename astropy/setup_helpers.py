@@ -19,7 +19,7 @@ except ImportError:
 
 
 def get_distutils_option(option, commands):
-    """ Returns the value of the given distutils option.  
+    """ Returns the value of the given distutils option.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ def get_distutils_option(option, commands):
 
     commands : list of str
         The list of commands on which this option is available
-        
+
     Returns
     -------
     val : str or None
@@ -47,7 +47,7 @@ def get_distutils_option(option, commands):
     except AttributeError:
         # This seems to get thrown for ./setup.py --help
         return None
-    
+
     for cmd in commands:
         if cmd in dist.commands:
             break
@@ -64,13 +64,13 @@ def get_distutils_option(option, commands):
 
 def get_debug_option():
     """ Determines if the build is in debug mode.
-    
+
     Returns
     -------
     debug : bool
-        True if the current build was started with the debug option, False 
+        True if the current build was started with the debug option, False
         otherwise.
-    
+
     """
     debug = bool(get_distutils_option(
         'debug', ['build', 'build_ext', 'build_clib']))
@@ -88,17 +88,17 @@ def get_debug_option():
 
 
 def iter_setup_packages():
-    """ A generator that finds and imports all of the ``setup_package.py`` 
+    """ A generator that finds and imports all of the ``setup_package.py``
     modules in the source packages.
-    
+
     Returns
     -------
     modgen : generator
-        A generator that yields (modname, mod), where `mod` is the module and 
+        A generator that yields (modname, mod), where `mod` is the module and
         `modname` is the module name for the ``setup_package.py`` modules.
-        
+
     """
-    
+
     for root, dirs, files in os.walk('astropy'):
         if 'setup_package.py' in files:
             name = root.replace(os.path.sep, '.') + '.setup_package'
@@ -109,14 +109,15 @@ def iter_setup_packages():
 def iter_pyx_files(srcdir):
     """ A generator that yields Cython source files (ending in '.pyx') in the
     source packages.
-    
+
     Returns
     -------
     pyxgen : generator
-        A generator that yields (extmod, fullfn) where `extmod` is the full name
-        of the module that the .pyx file would live in based on the source 
-        directory structure, and `fullfn` is the path to the .pyx file.
-    
+        A generator that yields (extmod, fullfn) where `extmod` is the
+        full name of the module that the .pyx file would live in based
+        on the source directory structure, and `fullfn` is the path to
+        the .pyx file.
+
     """
     for dirpath, dirnames, filenames in os.walk(srcdir):
         modbase = dirpath.replace(os.sep, '.')
@@ -130,37 +131,37 @@ def iter_pyx_files(srcdir):
 
 def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
     """ Looks for Cython files and generates Extensions if needed.
-    
+
     Parameters
     ----------
     srcdir : str
         Path to the root of the source directory to search.
     prevextensions: list of `~distutils.core.Extension` objects
-        The extensions that are already defined.  Any .pyx files already here 
+        The extensions that are already defined.  Any .pyx files already here
         will be ignored.
     extincludedirs : list of str or None
         Directories to include as the `include_dirs` argument to the generated
         `~distutils.core.Extension` objects.
-    
+
     Returns
     -------
     exts : list of `~distutils.core.Extension` objects
         The new extensions that are needed to compile all .pyx files (does not
         include any already in `prevextensions`).
     """
-    
+
     prevpyxpaths = []
     for ext in prevextensions:
         for s in ext.sources:
             if s.endswith('.pyx'):
                 prevpyxpaths.append(os.path.realpath(s))
-    
+
     ext_modules = []
     for extmod, pyxfn in iter_pyx_files(srcdir):
         if os.path.realpath(pyxfn) not in prevpyxpaths:
             ext_modules.append(Extension(extmod, [pyxfn],
                                          include_dirs=extincludedirs))
-                
+
     return ext_modules
 
 
@@ -253,12 +254,10 @@ def set_build_mode():
     __builtins__['_build_mode'] = True
 
 
-################################################################################
+###############################################################################
 # Backport of importlib.import_module from 3.x.  This backport was provided by
 # Brett Cannon and downloaded from here:
 #    http://pypi.python.org/pypi/importlib/1.0.1
-# While not critical (and in no way guaranteed!), it would be nice to keep this
-# code compatible with Python 2.3.
 
 try:
     from importlib import import_module
@@ -276,7 +275,6 @@ except ImportError:
                 raise ValueError("attempted relative import beyond top-level "
                                   "package")
         return "%s.%s" % (package[:dot], name)
-
 
     def import_module(name, package=None):
         """Import a module.
