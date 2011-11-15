@@ -55,17 +55,21 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remotedata option to run")
 
 
-def run_tests(module=None, args=None, plugins=None, verbose=False,
-              pastebin=None, remote_data=False):
+def run_tests(package=None, test_path=None, args=None, plugins=None,
+              verbose=False, pastebin=None, remote_data=False, pep8=False):
     """
     Run Astropy tests using py.test. A proper set of arguments is constructed
     and passed to `pytest.main`.
 
     Parameters
     ----------
-    module : str, optional
-        The name of a specific module to test, e.g. 'io.fits' or 'utils'.
+    package : str, optional
+        The name of a specific package to test, e.g. 'io.fits' or 'utils'.
         If nothing is specified all default Astropy tests are run.
+        
+    test_path : str, optional
+        Specify location to test by path. May be a single file or directory. 
+        Must be specified absolutely or relative to the calling directory.
 
     args : str, optional
         Additional arguments to be passed to `pytest.main` in the `args`
@@ -88,24 +92,31 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
         Controls whether to run tests marked with @remote_data. These
         tests use online data and are not run by default. Set to True to
         run these tests.
+        
+    pep8 : bool, optional
+        Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
+        tests. Same as specifying `--pep8 -k pep8` in `args`.
 
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
 
     """
-    if module is None:
-        module_path = astropy_path[0]
+    if package is None:
+        package_path = astropy_path[0]
     else:
-        module_path = os.path.join(astropy_path[0],
-                                   module.replace('.', os.path.sep))
+        package_path = os.path.join(astropy_path[0],
+                                   package.replace('.', os.path.sep))
 
-        if not os.path.isdir(module_path):
-            raise ValueError('Module not found: {0}'.format(module))
+        if not os.path.isdir(package_path):
+            raise ValueError('Package not found: {0}'.format(package))
+            
+    if test_path:
+        package_path = os.path.join(package_path,os.path.abspath(test_path))
 
     # '-p astropy.tests.helper' tells py.test to use this module as a plugin
     # so that the hooks defined above are actually used.
-    all_args = module_path + ' -p astropy.tests.helper'
+    all_args = package_path + ' -p astropy.tests.helper'
 
     # add any additional args entered by the user
     if args is not None:
@@ -125,14 +136,27 @@ def run_tests(module=None, args=None, plugins=None, verbose=False,
     # run @remote_data tests
     if remote_data:
         all_args += ' --remotedata'
+    
+    if pep8:
+        try:
+            import pytest_pep8
+        except ImportError:
+            raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
+                              'http://pypi.python.org/pypi/pytest-pep8')
+        else:
+            all_args += ' --pep8 -k pep8'
+    
     return pytest.main(args=all_args, plugins=plugins)
 
 
 class astropy_test(Command):
     user_options = [
-        ('module=', 'm',
-         "The name of a specific module to test, e.g. 'io.fits' or 'utils'.  "
+        ('package=', 'P',
+         "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
          "If nothing is specified all default Astropy tests are run."),
+        ('test-path=', 't', 'Specify a test location by path. Must be '
+         'specified absolutely or relative to the current directory. '
+         'May be a single file or directory.'),
         ('verbose-results', 'V',
          'Turn on verbose output from pytest. Same as specifying `-v` in '
          '`args`.'),
@@ -141,15 +165,22 @@ class astropy_test(Command):
          '`args`.'),
         ('pastebin=', 'b',
          "Enable pytest pastebin output. Either 'all' or 'failed'."),
-        ('args=', 'a', 'Additional arguments to be passed to pytest')
+        ('args=', 'a', 'Additional arguments to be passed to pytest'),
+        ('remote-data', 'R', 'Run tests that download remote data'),
+        ('pep8', '8', 'Enable PEP8 checking and disable regular tests. '
+         'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
+         'pytest-pep8 plugin.')
     ]
 
     def initialize_options(self):
-        self.module = None
+        self.package = None
+        self.test_path = None
         self.verbose_results = False
         self.plugins = None
         self.pastebin = None
         self.args = None
+        self.remote_data = False
+        self.pep8 = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -170,10 +201,11 @@ class astropy_test(Command):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = ('import astropy, sys; ' +
-               'sys.exit(astropy.test({0!r}, {1!r}, {2!r}, {3!r}, {4!r}))')
-        cmd = cmd.format(self.module, self.args, self.plugins,
-                         self.verbose_results, self.pastebin)
+        cmd = ('import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, ' +
+              '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}))')
+        cmd = cmd.format(self.package, self.test_path, self.args,
+                         self.plugins, self.verbose_results, self.pastebin,
+                         self.remote_data, self.pep8)
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path))
 

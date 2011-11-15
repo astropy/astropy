@@ -7,28 +7,41 @@ Testing Guidelines (Draft 2)
     described functionality may be implemented.
 
 This section describes the testing framework and format standards for tests in
-Astropy core modules (this also serves as recommendations for affiliated
+Astropy core packages (this also serves as recommendations for affiliated
 packages).
 
 Testing Framework
 =================
 
-The testing framework used by AstroPy is the `py.test <http://pytest.org/latest/>`_
+The testing framework used by Astropy is the `py.test <http://pytest.org/latest/>`_
 framework.
 
 Running Tests
 =============
 
-Using setup.py test
--------------------
+There are currently three different ways to invoke Astropy tests. Each method
+invokes py.test to run the tests but offers different options when calling.
+
+In addition to running the Astropy tests, these methods can also be called so
+that they check Python source code for
+`PEP8 compliance <http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8
+testing options require the 
+`pytest-pep8 plugin <http://pypi.python.org/pypi/pytest-pep8>`_, which must be
+installed separately.
+
+setup.py test
+-------------
 
 The safest way to run the astropy test suite is via the setup command ``test``.
 This is invoked by running ``python setup.py test`` while in the astropy source
-code directory.
+code directory. Run ``python setup.py test --help`` to see the options to the
+test command.
 
+Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
+turn off regular testing and enable PEP8 testing.
 
-Using py.test
--------------
+py.test
+-------
 
 An alternative way to run tests from the command line is to switch to the source
 code directory of astropy simply type::
@@ -67,8 +80,14 @@ of the matching string::
 py.test has a number of `command line usage options. 
 <http://pytest.org/latest/usage.html>`_
 
-Using astropy.test()
---------------------
+Turn on PEP8 testing by adding the ``--pep8`` flag to the ``py.test`` call. By
+default regular tests will also be run but these can be turned off by adding
+``-k pep8``::
+
+  py.test some_dir --pep8 -k pep8
+
+astropy.test()
+--------------
 
 AstroPy includes a standalone version of py.test that allows to tests
 to be run even if py.test is not installed. Tests can be run from within 
@@ -79,10 +98,19 @@ AstroPy with::
     
 This will run all the default tests for AstroPy.
 
-Tests for a specific module can be run by specifying the module in the call
+Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
 
     astropy.test('io.fits')
+    
+This method works only with package names that can be mapped to Astropy
+directories. As an alternative you can test a specific directory or file
+with the ``test_path`` option::
+
+  astropy.test(test_path='wcs/tests/test_wcs.py')
+  
+The ``test_path`` must be specified either relative to the working directory
+or absolutely.
     
 By default ``astropy.test()`` will skip tests which retrieve data from the
 internet. To turn these tests on use the ``remote_data`` flag::
@@ -92,6 +120,9 @@ internet. To turn these tests on use the ``remote_data`` flag::
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
 and convenience options ``verbose=`` and ``pastebin=``.
+
+Enable PEP8 compliance testing with ``pep8=True`` in the call to
+``astropy.test``. This will enable PEP8 checking and disable regular tests.
 
 Regression tests
 ================
@@ -103,12 +134,12 @@ tests should include the ticket URL where the bug was reported.
 Where to put tests
 ==================
 
-Module-specific tests
+Package-specific tests
 ---------------------
 
-Each module should include a suite of unit tests, covering as many of the
+Each package should include a suite of unit tests, covering as many of the
 public methods/functions as possible. These tests should be included inside
-each sub-module, either in a `tests` directory, or in a test.py file, e.g::
+each sub-package, either in a `tests` directory, or in a test.py file, e.g::
 
     astropy/io/fits/tests/
 
@@ -122,7 +153,7 @@ can be imported and so that they can use relative imports.
 Interoperability tests
 ----------------------
 
-Tests involving two or more sub-modules should be included in::
+Tests involving two or more sub-packages should be included in::
 
     astropy/tests/
 
@@ -131,7 +162,7 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-modules. This functionality is especially important for people who install 
+sub-packages. This functionality is especially important for people who install 
 packages through bundles and package managers, where the original source code 
 for the tests is not immediately available.
 

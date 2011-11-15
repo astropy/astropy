@@ -82,8 +82,8 @@ Coding Style/Conventions
   syntax. This is primarily due to improved relative import support since PEP8
   was developed, and to simplify the process of moving modules.
 
-.. note:: A pep8.py checker script is available at
-          http://pypi.python.org/pypi/pep8.
+.. note:: There are multiple options for testing PEP8 compliance of code,
+          see :doc:`testguide` for more information.
 
           See :doc:`codeguide_emacs` for some configuration options for
           Emacs that helps in ensuring conformance to PEP8.
