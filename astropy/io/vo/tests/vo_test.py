@@ -103,9 +103,9 @@ def _test_regression(_python_based=False):
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
     truth = open(
-        join(ROOT_DIR, "regression.bin.tabledata.truth.xml")).readlines()
+        join(ROOT_DIR, "regression.bin.tabledata.truth.xml"), 'rb').readlines()
     output = open(
-        join(TMP_DIR, "regression.bin.tabledata.xml")).readlines()
+        join(TMP_DIR, "regression.bin.tabledata.xml"), 'rb').readlines()
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
@@ -128,9 +128,7 @@ def _test_regression(_python_based=False):
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
     truth = gzip.GzipFile(
-        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'r').readlines()
-    if IS_PY3K:
-        truth = [x.decode('utf8') for x in truth]
+        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'rb').readlines()
 
     assert truth == output
 
