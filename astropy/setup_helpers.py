@@ -191,8 +191,8 @@ def check_numpy():
     import numpy
 
     major, minor, rest = numpy.__version__.split(".", 2)
-    if (int(major), int(minor)) < (1, 3):
-        msg = "numpy version 1.3 or later must be installed to build astropy"
+    if (int(major), int(minor)) < (1, 4):
+        msg = "numpy version 1.4 or later must be installed to build astropy"
         raise ImportError(msg)
 
 
