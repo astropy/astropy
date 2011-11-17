@@ -1142,6 +1142,8 @@ int tabs2x(
   /* This is used a lot. */
   M = tab->M;
 
+  tabcoord = 0x0;
+  nv = 0;
   if (M > 1) {
     nv = 1 << M;
     tabcoord = calloc(nv, sizeof(double *));

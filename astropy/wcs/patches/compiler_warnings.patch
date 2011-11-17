@@ -1,0 +1,99 @@
+Index: C/prj.c
+===================================================================
+--- C/prj.c
++++ C/prj.c
+@@ -279,9 +279,9 @@ const struct prjprm *prj;
+   wcsprintf("          m: %d\n", prj->m);
+   wcsprintf("          n: %d\n", prj->n);
+   wcsprintf("     prjx2s: %s\n",
+-    wcsutil_fptr2str((int (*)())prj->prjx2s, hext));
++    wcsutil_fptr2str((int (*)(void))prj->prjx2s, hext));
+   wcsprintf("     prjs2x: %s\n",
+-    wcsutil_fptr2str((int (*)())prj->prjs2x, hext));
++    wcsutil_fptr2str((int (*)(void))prj->prjs2x, hext));
+
+   return 0;
+ }
+@@ -3829,7 +3829,7 @@ int stat[];
+ {
+   int mx, my, rowlen, rowoff, status;
+   double s, t, yj;
+-  register int istat, ix, iy, *statp;
++  register int ix, iy, *statp;
+   register const double *xp, *yp;
+   register double *phip, *thetap;
+
+@@ -3876,9 +3876,7 @@ int stat[];
+     yj = *yp + prj->y0;
+     s = cos(yj/prj->r0);
+
+-    istat = 0;
+     if (s == 0.0) {
+-      istat  = 1;
+       if (!status) status = PRJERR_BAD_PIX_SET("sflx2s");
+     } else {
+       s = 1.0/s;
+
+Index: C/spc.c
+===================================================================
+--- C/spc.c
++++ C/spc.c
+@@ -199,13 +199,13 @@ int spcprt(const struct spcprm *spc)
+   }
+
+   wcsprintf("     spxX2P: %s\n",
+-    wcsutil_fptr2str((int (*)())spc->spxX2P, hext));
++    wcsutil_fptr2str((int (*)(void))spc->spxX2P, hext));
+   wcsprintf("     spxP2S: %s\n",
+-    wcsutil_fptr2str((int (*)())spc->spxP2S, hext));
++    wcsutil_fptr2str((int (*)(void))spc->spxP2S, hext));
+   wcsprintf("     spxS2P: %s\n",
+-    wcsutil_fptr2str((int (*)())spc->spxS2P, hext));
++    wcsutil_fptr2str((int (*)(void))spc->spxS2P, hext));
+   wcsprintf("     spxP2X: %s\n",
+-    wcsutil_fptr2str((int (*)())spc->spxP2X, hext));
++    wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
+
+   return 0;
+ }
+
+Index: C/tab.c
+===================================================================
+--- C/tab.c
++++ C/tab.c
+@@ -1142,6 +1142,8 @@ int tabs2x(
+   /* This is used a lot. */
+   M = tab->M;
+
++  tabcoord = 0x0;
++  nv = 0;
+   if (M > 1) {
+     nv = 1 << M;
+     tabcoord = calloc(nv, sizeof(double *));
+
+Index: C/wcsutil.c
+===================================================================
+--- C/wcsutil.c
++++ C/wcsutil.c
+@@ -151,7 +151,7 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
+
+ /*--------------------------------------------------------------------------*/
+
+-char *wcsutil_fptr2str(int (*func)(), char hext[])
++char *wcsutil_fptr2str(int (*func)(void), char hext[])
+
+ {
+   unsigned char *p = (unsigned char *)(&func);
+
+Index: C/wcsutil.h
+===================================================================
+--- C/wcsutil.h
++++ C/wcsutil.h
+@@ -224,6 +224,6 @@ int  wcsutil_allEq (int nvec, int nelem, const double *first);
+ void wcsutil_setAll(int nvec, int nelem, double *first);
+ void wcsutil_setAli(int nvec, int nelem, int *first);
+ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
+-char *wcsutil_fptr2str(int (*func)(), char hext[]);
++char *wcsutil_fptr2str(int (*func)(void), char hext[]);
+
+ #endif /* WCSLIB_WCSUTIL */

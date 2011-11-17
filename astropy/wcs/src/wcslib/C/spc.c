@@ -199,13 +199,13 @@ int spcprt(const struct spcprm *spc)
   }
 
   wcsprintf("     spxX2P: %s\n",
-    wcsutil_fptr2str((int (*)())spc->spxX2P, hext));
+    wcsutil_fptr2str((int (*)(void))spc->spxX2P, hext));
   wcsprintf("     spxP2S: %s\n",
-    wcsutil_fptr2str((int (*)())spc->spxP2S, hext));
+    wcsutil_fptr2str((int (*)(void))spc->spxP2S, hext));
   wcsprintf("     spxS2P: %s\n",
-    wcsutil_fptr2str((int (*)())spc->spxS2P, hext));
+    wcsutil_fptr2str((int (*)(void))spc->spxS2P, hext));
   wcsprintf("     spxP2X: %s\n",
-    wcsutil_fptr2str((int (*)())spc->spxP2X, hext));
+    wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
 
   return 0;
 }

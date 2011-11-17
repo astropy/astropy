@@ -279,9 +279,9 @@ const struct prjprm *prj;
   wcsprintf("          m: %d\n", prj->m);
   wcsprintf("          n: %d\n", prj->n);
   wcsprintf("     prjx2s: %s\n",
-    wcsutil_fptr2str((int (*)())prj->prjx2s, hext));
+    wcsutil_fptr2str((int (*)(void))prj->prjx2s, hext));
   wcsprintf("     prjs2x: %s\n",
-    wcsutil_fptr2str((int (*)())prj->prjs2x, hext));
+    wcsutil_fptr2str((int (*)(void))prj->prjs2x, hext));
 
   return 0;
 }
@@ -3829,7 +3829,7 @@ int stat[];
 {
   int mx, my, rowlen, rowoff, status;
   double s, t, yj;
-  register int istat, ix, iy, *statp;
+  register int ix, iy, *statp;
   register const double *xp, *yp;
   register double *phip, *thetap;
 
@@ -3876,9 +3876,7 @@ int stat[];
     yj = *yp + prj->y0;
     s = cos(yj/prj->r0);
 
-    istat = 0;
     if (s == 0.0) {
-      istat  = 1;
       if (!status) status = PRJERR_BAD_PIX_SET("sflx2s");
     } else {
       s = 1.0/s;

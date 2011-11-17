@@ -224,6 +224,6 @@ int  wcsutil_allEq (int nvec, int nelem, const double *first);
 void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
-char *wcsutil_fptr2str(int (*func)(), char hext[]);
+char *wcsutil_fptr2str(int (*func)(void), char hext[]);
 
 #endif /* WCSLIB_WCSUTIL */

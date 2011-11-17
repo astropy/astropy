@@ -151,7 +151,7 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
 /*--------------------------------------------------------------------------*/
 
-char *wcsutil_fptr2str(int (*func)(), char hext[])
+char *wcsutil_fptr2str(int (*func)(void), char hext[])
 
 {
   unsigned char *p = (unsigned char *)(&func);
