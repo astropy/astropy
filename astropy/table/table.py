@@ -34,33 +34,26 @@ def rename_odict(d_old, before, after):
 class Column(object):
     """A class to contain information about columns"""
 
-    def __init__(self, name=None, data=None, datatype=None, shape=tuple(),
+    def __init__(self, name=None, datatype=None, shape=tuple(),
                  units=None, format=None, description=None, length=0, meta=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
+        self.datatype = datatype
+        self.data = None        # User can set directly to reference column data
 
         self.meta = OrderedDict()
         if meta is not None:
             self.meta.update(meta)
 
-        if data is None:
-            self.data = np.zeros(length, dtype=[(name, datatype or np.float, shape)])
-        else:
-            try:
-                dtype = [(name, datatype or data.dtype, data.shape[1:])]
-            except AttributeError:
-                data = np.array(data)
-                dtype = [(name, data.dtype, data.shape[1:])]
-            print dtype, type(dtype)
-            self.data = np.ndarray(len(data), dtype=dtype)
-            self.data[name] = data
-
     @property
     def dtype(self):
-        """Data type attribute"""
+        """Data type attribute.  This checks that column data reference has 
+        been made."""
+        if self.data is None:
+            raise ValueError('No column data reference available so dtype is undefined')
         return self.data.dtype
 
     def __repr__(self):
@@ -69,7 +62,7 @@ class Column(object):
         return s
 
     def __eq__(self, c):
-        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
+        attrs = ('name', 'units', 'datatype', 'format', 'description', 'meta')
         equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
         return equal
 
@@ -89,7 +82,6 @@ class Table(object):
         # ??? Maybe make masking read-only, need to understand scenarios when a
         # table can convert from normal to masked etc.  This is TBD.
         self.masked = False  
-
 
     def __repr__(self):
         s = "<Table "
@@ -138,29 +130,57 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def append_column(self, column):
+    def add_column(self, *args, **kwargs):
+        self.append_column(*args, **kwargs)
+
+    def append_column(self, name=None, data=None, datatype=None, shape=tuple(),
+                 units=None, format=None, description=None, length=0, meta=None):
         """
         Add a new Column object ``column`` after the last existing column.
         """
-        self.insert_column(len(self.columns), column)
+        self.insert_column(len(self.columns),
+                           name=name, data=data, datatype=datatype, shape=shape,
+                           units=units, format=format, description=description,
+                           length=length, meta=meta)
 
-    def insert_column(self, index, column):
+    def insert_column(self, index, name=None, data=None, datatype=None, shape=tuple(),
+                 units=None, format=None, description=None, length=0, meta=None):
         """
         Insert a new Column object ``column`` at given ``index`` position.
         """
+        # Once self._data table is defined then length is set by table length
+        if self._data is not None:
+            length = len(self._data)
+
+        column = Column(name=name, datatype=datatype, shape=shape,
+                        units=units, format=format, description=description,
+                        length=length, meta=meta)
+
+        if data is None:
+            col_data = np.zeros(length, dtype=[(name, datatype or np.float, shape)])
+        else:
+            try:
+                dtype = [(name, datatype or data.dtype, data.shape[1:])]
+            except AttributeError:
+                data = np.array(data)
+                dtype = [(name, data.dtype, data.shape[1:])]
+            print dtype, type(dtype)
+            col_data = np.ndarray(len(data), dtype=dtype)
+            col_data[name] = data
+
         if self._data is None:
             # Table has no existing data so use a copy of the column data,
             # which is guaranteed to be a structured array.  This might have
-            # zero length.  ??? Should use copy() or just take the ref or init
-            # with np.array()?  Copy might be safer.
-            self._data = column.data.copy()
+            # zero length.
+            self._data = col_data
         else:
-            if len(column.data) != len(self._data):
+            if len(col_data) != len(self._data):
                 raise ValueError("Column data length does not match table length")
             
-            self._data = _append_field(self._data, column.data,
-                                       dtype=column.data.dtype.descr[0], position=index)
+            self._data = _append_field(self._data, col_data[name],
+                                       dtype=col_data.dtype.descr[0], position=index)
 
+        column.data = self._data[name]
         self.columns = insert_odict(self.columns, index, column.name, column)
 
     def remove_column(self, name):

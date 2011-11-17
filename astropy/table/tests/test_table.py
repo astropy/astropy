@@ -8,27 +8,23 @@ class TestEmptyData():
 
     def test_1(self):
         t = Table(length=100)
-        t.add_column('a', dtype=int)
+        t.add_column('a', datatype=int)
 
     def test_2(self):
         t = Table(length=100)
-        t.add_column('a', dtype=int, shape=(3, ))
+        t.add_column('a', datatype=int, shape=(3, ))
 
     def test_3(self):
         t = Table()  # length is not given
-        with pytest.raises(ArgumentError):
-            t.add_column('a', dtype=int)
+        t.add_column('a', datatype=int)
 
     def test_4(self):
         t = Table()  # length is not given
-        with pytest.raises(ArgumentError):
-            t.add_column('a', dtype=int, shape=(3, 4))
+        t.add_column('a', datatype=int, shape=(3, 4))
 
     def test_5(self):
         t = Table()
-        with pytest.raises(ArgumentError):
-            t.add_column('a')  # dtype is not specified
-
+        t.add_column('a')  # dtype is not specified
 
 class TestColumnAccess():
 
@@ -69,27 +65,20 @@ class TestAddPosition():
 
     def test_1(self):
         t = Table()
-        t.add_column('a', [1, 2, 3], position=0)
+        t.insert_column(0, 'a', [1, 2, 3])
 
     def test_2(self):
         t = Table()
-        with pytest.raises(ValueError):
-            t.add_column('a', [1, 2, 3], position=1)  # invalid position
+        t.insert_column(1, 'a', [1, 2, 3])
 
     def test_3(self):
         t = Table()
-        with pytest.raises(ValueError):
-            t.add_column('a', [1, 2, 3], position=-1)  # invalid position
-
-    def test_4(self):
-        t = Table()
-        with pytest.raises(KeyError):
-            t.add_column('a', [1, 2, 3], before='b')  # 'b' does not exist
+        t.insert_column(-1, 'a', [1, 2, 3]) 
 
     def test_5(self):
         t = Table()
-        with pytest.raises(KeyError):
-            t.add_column('a', [1, 2, 3], after='b')  # 'b' does not exist
+        with pytest.raises(ValueError):
+            idxa = t.index_column('b')
 
     def test_6(self):
         t = Table()
@@ -100,27 +89,28 @@ class TestAddPosition():
     def test_7(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', [4, 5, 6], before='a')
+        t.insert_column(t.index_column('a'), 'b', [4, 5, 6])
         assert t.columns.keys() == ['b', 'a']
 
     def test_8(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', [4, 5, 6], after='a')
+        t.insert_column(t.index_column('a') + 1, 'b', [4, 5, 6])
         assert t.columns.keys() == ['a', 'b']
 
     def test_9(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', [4, 5, 6], after='a')
-        t.add_column('c', [7, 8, 9], before='b')
+        t.insert_column(t.index_column('a') + 1, 'b', [4, 5, 6])
+        t.insert_column(t.index_column('b'), 'c', [7, 8, 9])
         assert t.columns.keys() == ['a', 'c', 'b']
 
     def test_10(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', [4, 5, 6], after='a')
-        t.add_column('c', [7, 8, 9], before='a')
+        idxa = t.index_column('a')
+        t.insert_column(idxa + 1, 'b', [4, 5, 6])
+        t.insert_column(idxa, 'c', [7, 8, 9])
         assert t.columns.keys() == ['c', 'a', 'b']
 
 
@@ -129,21 +119,21 @@ class TestArrayColumns():
     def test_1d(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', dtype=int, shape=(2, ))
+        t.add_column('b', datatype=int, shape=(2, ))
         assert t['b'].shape == (3, 2)
         assert t['b'][0].shape == (2, )
 
     def test_2d(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', dtype=int, shape=(2, 4))
+        t.add_column('b', datatype=int, shape=(2, 4))
         assert t['b'].shape == (3, 2, 4)
         assert t['b'][0].shape == (2, 4)
 
     def test_3d(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t.add_column('b', dtype=int, shape=(2, 4, 6))
+        t.add_column('b', datatype=int, shape=(2, 4, 6))
         assert t['b'].shape == (3, 2, 4, 6)
         assert t['b'][0].shape == (2, 4, 6)
 
