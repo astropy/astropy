@@ -16,7 +16,8 @@ from astropy.tests.helper import astropy_test
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
 version = '0.0dev'
-#indicates if this version is a release version
+
+# Indicates if this version is a release version
 release = 'dev' not in version
 
 # Adjust the compiler in case the default on this platform is to use a
@@ -57,52 +58,54 @@ extensions = []
 # A dictionary to keep track of all package data to install
 package_data = {'astropy': ['data/*']}
 
-# Extra files to install - distutils calls them "data_files", but this shouldn't
-# be used for data files - rather any other files that should be installed in a
-# special place
+# Extra files to install - distutils calls them "data_files", but this
+# shouldn't be used for data files - rather any other files that should be
+# installed in a special place
 data_files = []
 
 # For each of the setup_package.py modules, extract any information
 # that is needed to install them.
-for pkgnm,setuppkg in setup_helpers.iter_setup_packages():
-    #get_extensions must include any Cython extensions by their .pyx filename.
+for pkgnm, setuppkg in setup_helpers.iter_setup_packages():
+    # get_extensions must include any Cython extensions by their .pyx filename.
     if hasattr(setuppkg, 'get_extensions'):
         extensions.extend(setuppkg.get_extensions())
 
     if hasattr(setuppkg, 'get_package_data'):
-        #TBD: decide if this should be removed in favor of the data loading mechanism in config.data
+        # TBD: decide if this should be removed in favor of the data loading
+        # mechanism in config.data
         package_data.update(setuppkg.get_package_data())
     if hasattr(setuppkg, 'get_data_files'):
         data_files.extend(setuppkg.get_data_files())
 
-#locate any .pyx files not already specified, and add their extensions in.
-#The default include dirs include numpy to facilitate numerical work.
-extensions.extend(setup_helpers.get_cython_extensions('astropy',extensions,
+# Locate any .pyx files not already specified, and add their extensions in.
+# The default include dirs include numpy to facilitate numerical work.
+extensions.extend(setup_helpers.get_cython_extensions('astropy', extensions,
                                                       [numpy_includes]))
 
-#now remove extensions that have the special name 'skip_cython', as they exist
-#only to indicate that the cython extensions shouldn't be built
+# Now remove extensions that have the special name 'skip_cython', as they exist
+# Only to indicate that the cython extensions shouldn't be built
 for i, ext in reversed(list(enumerate(extensions))):
-        if ext.name=='skip_cython':
-            del extensions[i]
+    if ext.name == 'skip_cython':
+        del extensions[i]
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
-    #builds Cython->C if in dev mode and Cython is present
+    # Builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = build_ext
 else:
 
-    #otherwise, replace .pyx with C-equivalents, unless c files are missing
+    # Otherwise, replace .pyx with C-equivalents, unless c files are missing
     todel = []
-    for i,ext in enumerate(extensions):
-        for j,s in enumerate(ext.sources):
+    for i, ext in enumerate(extensions):
+        for j, s in enumerate(ext.sources):
             if i not in todel and s.endswith('.pyx'):
-                cfn = s[:-4]+'.c'
+                cfn = s[:-4] + '.c'
                 if os.path.isfile(cfn):
                     ext.sources[j] = cfn
                 else:
-                    msg = 'Could not find c-file {0} for {1}, skipping extension {2}'
-                    log.warn(msg.format(cfn,s,ext.name))
+                    msg = 'Could not find c-file {0} for {1}, ' + \
+                          'skipping extension {2}'
+                    log.warn(msg.format(cfn, s, ext.name))
                     todel.append(i)
 
 
@@ -143,12 +146,12 @@ setup(name='astropy',
       data_files=data_files,
       ext_modules=extensions,
       scripts=scripts,
-      requires=['numpy'], #scipy not required, but strongly recommended
+      requires=['numpy'],  # scipy not required, but strongly recommended
       install_requires=['numpy'],
       provides=['astropy'],
       author='The Astropy Team',
       author_email='astropy.team@gmail.com',
-      license = 'BSD',
+      license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
