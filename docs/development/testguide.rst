@@ -25,7 +25,7 @@ invokes py.test to run the tests but offers different options when calling.
 In addition to running the Astropy tests, these methods can also be called so
 that they check Python source code for
 `PEP8 compliance <http://www.python.org/dev/peps/pep-0008/>`_. All of the PEP8
-testing options require the 
+testing options require the
 `pytest-pep8 plugin <http://pypi.python.org/pypi/pytest-pep8>`_, which must be
 installed separately.
 
@@ -47,18 +47,18 @@ An alternative way to run tests from the command line is to switch to the source
 code directory of astropy simply type::
 
     py.test
-    
-``py.test`` will look for files that `look like tests 
-<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_ 
+
+``py.test`` will look for files that `look like tests
+<http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 in the currect directory and all recursive directories then run all the code that
-`looks like tests 
+`looks like tests
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
 within those files.
 
 .. note::
-    To test any compiled C/Cython extensions, you must either have run 
-    ``python setup.py test`` or ``python setup.py develop`` prior to running 
-    the py.test command-line script.  Otherwise, any tests that make use of 
+    To test any compiled C/Cython extensions, you must either have run
+    ``python setup.py test`` or ``python setup.py develop`` prior to running
+    the py.test command-line script.  Otherwise, any tests that make use of
     these extensions will not succeed.  Similarly, in python 3, these tests
     will not run correctly in the source code, because they need the ``2to3``
     tool to be run on them.
@@ -67,17 +67,17 @@ within those files.
 You may specify a specific test file or directory at the command line::
 
     py.test test_file.py
-    
+
 To run a specific test within a file use the ``-k`` option::
 
     py.test test_file.py -k "test_function"
-    
+
 You may also use the ``-k`` option to not run tests py putting a ``-`` in front
 of the matching string::
 
     py.test test_file.py -k "-test_function"
 
-py.test has a number of `command line usage options. 
+py.test has a number of `command line usage options.
 <http://pytest.org/latest/usage.html>`_
 
 Turn on PEP8 testing by adding the ``--pep8`` flag to the ``py.test`` call. By
@@ -90,33 +90,33 @@ astropy.test()
 --------------
 
 AstroPy includes a standalone version of py.test that allows to tests
-to be run even if py.test is not installed. Tests can be run from within 
+to be run even if py.test is not installed. Tests can be run from within
 AstroPy with::
 
     import astropy
     astropy.test()
-    
+
 This will run all the default tests for AstroPy.
 
 Tests for a specific package can be run by specifying the package in the call
 to the ``test()`` function::
 
     astropy.test('io.fits')
-    
+
 This method works only with package names that can be mapped to Astropy
 directories. As an alternative you can test a specific directory or file
 with the ``test_path`` option::
 
   astropy.test(test_path='wcs/tests/test_wcs.py')
-  
+
 The ``test_path`` must be specified either relative to the working directory
 or absolutely.
-    
+
 By default ``astropy.test()`` will skip tests which retrieve data from the
 internet. To turn these tests on use the ``remote_data`` flag::
 
     astropy.test('io.fits',remote_data=True)
-    
+
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
 and convenience options ``verbose=`` and ``pastebin=``.
@@ -135,7 +135,7 @@ Where to put tests
 ==================
 
 Package-specific tests
----------------------
+----------------------
 
 Each package should include a suite of unit tests, covering as many of the
 public methods/functions as possible. These tests should be included inside
@@ -146,7 +146,7 @@ each sub-package, either in a `tests` directory, or in a test.py file, e.g::
 or::
 
     astropy/io/fits/test.py
-    
+
 ``tests`` directories should contain an ``__init__.py`` file so that the tests
 can be imported and so that they can use relative imports.
 
@@ -162,8 +162,8 @@ and using::
     astropy.test()
 
 then runs both these interoperability tests, and all the unit tests in the
-sub-packages. This functionality is especially important for people who install 
-packages through bundles and package managers, where the original source code 
+sub-packages. This functionality is especially important for people who install
+packages through bundles and package managers, where the original source code
 for the tests is not immediately available.
 
 
@@ -178,7 +178,7 @@ Writing tests
 
 Consult the `test discovery rules
 <http://pytest.org/latest/goodpractises.html#conventions-for-python-test-discovery>`_
-for detailed information on how to name files and tests so that they are 
+for detailed information on how to name files and tests so that they are
 automatically discovered by ``py.test``.
 
 Simple example
@@ -219,17 +219,17 @@ The result is::
 Working with data files
 -----------------------
 
-Tests that need to make use of a data file should use the 
-`~astropy.config.data.get_data_fileobj` or 
-`~astropy.config.data.get_data_filename` functions.  These functions search 
-locally first, and then on the astropy data server or an arbitrary URL, and 
+Tests that need to make use of a data file should use the
+`~astropy.config.data.get_data_fileobj` or
+`~astropy.config.data.get_data_filename` functions.  These functions search
+locally first, and then on the astropy data server or an arbitrary URL, and
 return a file-like object or a local filename, respectively.  They automatically
-cache the data locally if remote data is obtained, and from then on the local 
+cache the data locally if remote data is obtained, and from then on the local
 copy will be used transparently.
 
 They also support the use of an MD5 hash to get a specific version of a data
 file.  This hash can be obtained prior to submitting a file to the astropy
-data server by using the `~astropy.config.data.compute_hash` function on a 
+data server by using the `~astropy.config.data.compute_hash` function on a
 local copy of the file.
 
 Tests that may retrieve remote data should be marked with the ``@remote_data``
@@ -252,12 +252,12 @@ Examples
 
     def test_1():
         #if filename.fits is a local file in the source distribution
-        datafile = get_data_filename('filename.fits') 
+        datafile = get_data_filename('filename.fits')
         # do the test
 
     @remote_data
     def test_2():
-        #this is the hash for a particular version of a file stored on the 
+        #this is the hash for a particular version of a file stored on the
         #astropy data server.
         datafile = get_data_filename('hash/94935ac31d585f68041c08f87d1a19d4')
         # do the test
@@ -274,7 +274,7 @@ Tests may often be run from directories where users do not have write permission
 so tests which create files should always do so in temporary directories. This
 can be done with the `py.test tmpdir function argument
 <http://pytest.org/latest/tmpdir.html>`_
-or with Python's built-in `tempfile module 
+or with Python's built-in `tempfile module
 <http://docs.python.org/library/tempfile.html#module-tempfile>`_.
 
 Setting up/Tearing down tests
@@ -388,22 +388,22 @@ These take one argument, which is the function being tested::
 
     def teardown_method(function):
         pass
-        
+
 Using py.test helper functions
 ------------------------------
 
-If your tests need to use `py.test helper functions 
+If your tests need to use `py.test helper functions
 <http://pytest.org/latest/builtin.html#pytest-helpers>`_, such as ``pytest.raises``,
 import ``pytest`` into your test module like so::
 
     from ...tests.helper import pytest
-    
+
 You may need to adjust the relative import to work for the depth of your module.
 ``tests.helper`` imports ``pytest`` either from the user's system or ``extern.pytest``
-if the user does not have py.test installed. This is so that users need not 
+if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
-    
-    
+
+
 Using data in tests
 ===================
 
