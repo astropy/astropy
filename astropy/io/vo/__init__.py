@@ -1,3 +1,9 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This package reads and writes data formats used by the Virtual Observatory (VO)
+initiative, particularly the VOTable format.
+"""
+
 from __future__ import division, absolute_import
 
 # If we're in the source directory, don't import anything, since that
