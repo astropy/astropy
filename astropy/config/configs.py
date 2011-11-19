@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst  
-from __future__ import division
-
 """This module contains functions to standardize access to configuration files
 for astropy and affiliated modules.
 """
+
+from __future__ import division
+from ..extern.configobj import configobj
 
 __all__ = ['get_config_dir', 'get_cache_dir']
 
@@ -198,7 +199,6 @@ def get_config(subpackage, mainpackage='astropy'):
         accessing the configuration file.
     """
     
-    from ..extern.configobj import configobj
     from os import mkdir
     from os.path import join, exists, isfile
     

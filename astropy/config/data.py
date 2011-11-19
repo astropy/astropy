@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst  
-from __future__ import division
-
 """ This module contains helper functions for accessing, downloading, and
 caching data files.
 """
+
+from __future__ import division
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'compute_hash',
            'clear_data_cache']
