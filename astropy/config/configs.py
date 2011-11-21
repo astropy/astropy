@@ -6,7 +6,7 @@ configuration files for Astropy and affiliated packages.
     The configuration system makes use of the 'configobj' pacakge, which stores
     configuration in a text format like that used in the standard library
     `ConfigParser`. More information and documentation for confobj can be found
-    at `http://www.voidspace.org.uk/python/configobj.html`_.
+    at http://www.voidspace.org.uk/python/configobj.html.
 """
 
 from __future__ import division
@@ -284,6 +284,7 @@ class ConfigurationItem(object):
             comments.append(self.description)
         if self.cfgtype is not None:
             comments.append(self.cfgtype)
+        comments.append('') #adds a blank line after every entry
         return comments
         
 # this dictionary stores the master copy of the ConfigObj's for each 

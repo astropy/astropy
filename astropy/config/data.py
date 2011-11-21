@@ -77,7 +77,7 @@ def get_data_fileobj(dataname, cache=True):
     --------
     
     This will retrieve a data file and its contents for the `astropy.wcs` 
-    tests:
+    tests::
     
         from astropy.config import get_data_fileobj
         
@@ -90,14 +90,14 @@ def get_data_fileobj(dataname, cache=True):
             
             
     This downloads a data file and its contents from a specified URL, and does
-    *not* cache it remotely:
+    *not* cache it remotely::
     
         from astropy.config import get_data_fileobj
         
         vegaurl = 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/vega.fits'
         with get_data_fileobj(vegaurl,False) as fobj:
             fcontents = fobj.read()
-            
+    
     """
     from urlparse import urlparse
     from urllib2 import urlopen
@@ -165,7 +165,7 @@ def get_data_filename(dataname):
     --------
     
     This will retrieve the contents of the data file for the `astropy.wcs` 
-    tests:
+    tests::
     
         from astropy.config import get_data_filename
         
@@ -175,7 +175,7 @@ def get_data_filename(dataname):
             
             
     This retrieves a data file by hash either locally or from the astropy data
-    server:
+    server::
     
         from astropy.config import get_data_filename
         
