@@ -7,16 +7,20 @@ def test_paths():
     assert 'astropy' in get_cache_dir()
     
 def test_config_file():
-    from ..configs import get_config
+    from ..configs import get_config,reload_config,save_config
     
+    apycfg = get_config('astropy')
+    assert apycfg.filename.endswith('astropy.cfg')
     
-    cfg1 = get_config('astropy')
-    assert cfg1.filename.endswith('astropy.cfg')
+    cfgsec = get_config('astropy.config')
+    assert cfgsec.depth==1
+    assert cfgsec.name=='config'
+    assert cfgsec.parent.filename.endswith('astropy.cfg')
     
-    
-    cfg2 = get_config('astropy.config')
-    assert cg2.depth==1
-    assert cfg2.name=='config'
+    reload_config('astropy')
+    #saving shouldn't change the file, because reload should have made sure it
+    #is based on the current file
+    save_config('astropy')
     
 def test_pkg_finder():
     from ..configs import _find_current_module
