@@ -208,8 +208,9 @@ class ConfigurationItem(object):
         #given value and type/description
         newobj = configobj.ConfigObj(cobj.filename)
         if secname is not None:
+            if secname not in newobj:
+                newobj[secname] = {}
             newsec = newobj[secname]
-        
         
         newsec[self.name] = value
         newsec.comments[self.name] = self._generate_comments()
