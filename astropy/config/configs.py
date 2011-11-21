@@ -87,6 +87,7 @@ class ConfigurationItem(object):
     
     def __init__(self,name,defaultvalue='',description=None,cfgtype=None,
                       module=None):
+        from warnings import warn
         
         if module is None:
             module = _find_current_module(2)
@@ -96,11 +97,49 @@ class ConfigurationItem(object):
                 raise RuntimeError(msg1+msg2)
             else:
                 module = module.__name__
+                
+        self.name = name
         self.module = module
-        raise NotImplementedError
+        self.description = description
+        
+        #now determine cfgtype if it is not given
+        if cfgtype is None:
+            if isinstance(defaultvalue,list):
+                #it is an options list
+                dvstr = [str(v) for v in defaultvalue]
+                cfgtype = 'option(' + ', '.join(dvstr) + ')'
+                defaultvalue = dvstr[0]
+            elif isinstance(defaultvalue,int):
+                cfgtype = 'integer'
+            elif isinstance(defaultvalue,float):
+                cfgtype = 'float'
+            elif isinstance(defaultvalue,bool):
+                cfgtype = 'bool'
+            else:
+                cfgtype = 'string'
+                defaultvalue = str(defaultvalue)
+                
+        self.cfgtype = cfgtype
+        
+        self._validate_val(defaultvalue)
+        self.defaultvalue = defaultvalue
+        
+        #note that the actual value is stored in the ConfigObj file for this 
+        #package
+        
+        #this checks the current value to make sure it's valid for the type
+        #as well as updating the ConfigObj with the default value, if it's not
+        #actually in the ConfigObj
+        try:
+            self()
+        except TypeError,e:
+            warn(InvalidConfigurationItemWarning(*e.args))
 
     def set(self,value):
         """ Sets the current value of this `ConfigurationItem`.
+        
+        This also updates the comments that give the description and type 
+        information.
         
         .. note::
             This does *not* save the value of this `ConfigurationItem` to the
@@ -110,18 +149,30 @@ class ConfigurationItem(object):
         Parameter
         ---------
         value : 
-            The value this item should be set to. If 
+            The value this item should be set to.
             
         Raises
         ------
         TypeError
             If the provided `value` is not valid for this `ConfigurationItem`.
         """
-        raise NotImplementedError
+        try:
+            value = self._validate_val(value)
+        except validate.ValidateError,e:
+            msg = 'Provided value for configuration item {0} not valid: {1}'
+            raise TypeError(msg.format(self.name,e.args[0]))
+        
+        sec = get_config(self.module)
+        
+        sec[self.name] = value
+        sec.comments[self.name] = self._generate_comments()
     
     def save(self,value=None):
         """ Writes a value for this `ConfigurationItem` to the relevant
         configuration file.
+        
+        This also writes updated versions of the comments that give the 
+        description and type information.
         
         .. note::
             This only saves the value of this *particular* `ConfigurationItem`.
@@ -133,8 +184,36 @@ class ConfigurationItem(object):
         value : 
             Save this value to the configuration file. If None, the current
             value of this `ConfigurationItem` will be saved.
+            
+        Raises
+        ------
+        TypeError
+            If the provided `value` is not valid for this `ConfigurationItem`.
         """
-        raise NotImplementedError
+        try:
+            value = self() if value is None else self._validate_val(value)
+        except validate.ValidateError,e:
+            msg = 'Provided value for configuration item {0} not valid: {1}'
+            raise TypeError(msg.format(self.name,e.args[0]))
+        
+        #Now find the  ConfigObj that this is based on
+        baseobj = get_config(self.module)
+        secname = baseobj.name
+        cobj = baseobj
+        #a ConfigObj's parent is itself, so we look for the parent with that
+        while cobj.parent is not cobj:
+            cobj = cobj.parent  
+        
+        #use the current on disk version, which will be modified with the 
+        #given value and type/description
+        newobj = configobj.ConfigObj(cobj.filename)
+        if secname is not None:
+            newsec = newobj[secname]
+        
+        
+        newsec[self.name] = value
+        newsec.comments[self.name] = self._generate_comments()
+        newobj.write()
     
     def reload(self):
         """ Reloads the value of this `ConfigurationItem` from the relevant 
@@ -145,33 +224,66 @@ class ConfigurationItem(object):
         val :
             The new value loaded from the configuration file.
         """
-        raise NotImplementedError
+        baseobj = get_config(self.module)
+        secname = baseobj.name
+        
+        cobj = baseobj
+        #a ConfigObj's parent is itself, so we look for the parent with that
+        while cobj.parent is not cobj:
+            cobj = cobj.parent  
+        
+        newobj = configobj.ConfigObj(cobj.filename)
+        if secname is not None:
+            newobj = newobj[secname]
+        
+        baseobj[self.name] = newobj[self.name]
+            
     
     def __call__(self):
         """ Returns the value of this `ConfigurationItem`
         
         Returns
+        -------
         val : 
             This item's value, with a type determined by the `cfgtype` 
             attribute.
+            
+        Raises
+        ------
+        TypeError
+            If the configuration value as stored is not this item's type.
         """
-        return self._validate_val(self._retrieve_val())
-    
-    def _retrieve_val(self):
-        """ Gets and returns the value from the `configobj.ConfigObj` object
-        for this item
-        """
-        raise NotImplementedError
+        
+        #get the value from the relevant `configobj.ConfigObj` object
+        sec = get_config(self.module)
+        if self.name not in sec:
+            self.set(self.defaultval)
+        val = sec[self.name]
+        
+        try:
+            return self._validate_val(val)
+        except validate.ValidateError,e:
+            raise TypeError('Configuration value not valid:'+e.args[0])
+            
         
     def _validate_val(self,val):
         """ Validates the provided value based on cfgtype and returns the 
         type-cast value
+        
+        throws the underlying configobj exception if it fails
         """
         #note that this will normally use the *class* attribute `_validator`,
         #but if some arcane reason is needed for making a special one for an
         #instance or sub-class, it will be used
         return self._validator.check(self.cfgtype,val)
         
+    def _generate_comments(self):
+        comments = []
+        if self.description is not None:
+            comments.append(self.description)
+        if self.cfgtype is not None:
+            comments.append(self.cfgtype)
+        return comments
         
 # this dictionary stores the master copy of the ConfigObj's for each 
 # root package
