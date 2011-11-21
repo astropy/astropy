@@ -35,14 +35,14 @@ class Column(object):
     """A class to contain information about columns"""
 
     def __init__(self, name=None, datatype=None, shape=tuple(),
-                 units=None, format=None, description=None, length=0, meta=None):
+                 units=None, format=None, description=None, length=0,
+                 meta=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
         self.datatype = datatype
-        self.data = None        # User can set directly to reference column data
 
         self.meta = OrderedDict()
         if meta is not None:
@@ -53,7 +53,8 @@ class Column(object):
         """Data type attribute.  This checks that column data reference has 
         been made."""
         if self.data is None:
-            raise ValueError('No column data reference available so dtype is undefined')
+            raise ValueError('No column data reference available '
+                             'so dtype is undefined')
         return self.data.dtype
 
     def __repr__(self):
@@ -81,7 +82,7 @@ class Table(object):
 
         # ??? Maybe make masking read-only, need to understand scenarios when a
         # table can convert from normal to masked etc.  This is TBD.
-        self.masked = False  
+        self.masked = False
 
     def __repr__(self):
         s = "<Table "
