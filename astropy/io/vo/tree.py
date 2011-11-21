@@ -2751,7 +2751,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._infos              = util.HomogeneousList(Info)
         self._resources          = util.HomogeneousList(Resource)
         self._groups             = util.HomogeneousList(Group)
-        print(str)
+
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
         self._version            = version
