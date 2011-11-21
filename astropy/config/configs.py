@@ -361,7 +361,11 @@ def save_config(packageormod=None):
     packageormod : str or None
         The package or module name - see `get_config` for details. 
     """
-    get_config(packageormod).write()
+    sec = get_config(packageormod)
+    #look for the section that is its own parent - that's the base object
+    while sec.parent is not sec:
+        sec = sec.parent
+    sec.write()
     
 def reload_config(packageormod=None):
     """ Reloads configuration settings from a configuration file for the root
@@ -377,7 +381,11 @@ def reload_config(packageormod=None):
     packageormod : str or None
         The package or module name - see `get_config` for details. 
     """
-    get_config(packageormod).reload()
+    sec = get_config(packageormod)
+    #look for the section that is its own parent - that's the base object
+    while sec.parent is not sec:
+        sec = sec.parent
+    sec.reload()
     
 def _find_current_module(depth=1):
     """ Determines the module this function is called from.  `depth` specifies
