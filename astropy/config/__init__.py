@@ -6,6 +6,7 @@ This module contains configuration and setup utilities for the
 affiliated package index.
 """
 
+from .paths import *
 from .configs import *
 from .data import *
 from .affiliated import *
