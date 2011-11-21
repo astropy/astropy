@@ -172,7 +172,10 @@ class ConfigurationItem(object):
         #instance or sub-class, it will be used
         return self._validator.check(self.cfgtype,val)
         
- 
+        
+# this dictionary stores the master copy of the ConfigObj's for each 
+# root package
+_cfgobjs = {}
 def get_config(packageormod=None,reload=False):
     """ Gets the configuration object or section associated with a particular
     package or module.
@@ -198,13 +201,33 @@ def get_config(packageormod=None,reload=False):
         be determined.
     
     """
+    from os.path import join
+    from .paths import get_config_dir
+    
     if packageormod is None:
         packageormod = _find_current_module(2)
         if packageormod is None:
             msg1 = 'Cannot automatically determine get_config module, '
             msg2 = 'because it is not called from inside a valid module'
             raise RuntimeError(msg1 + msg2)
-    raise NotImplementedError
+        else:
+            packageormod = packageormod.__name__
+    
+    packageormodspl = packageormod.split('.')
+    rootname = packageormodspl[0]
+    secname = '.'.join(packageormodspl[1:])
+    
+    cobj = _cfgobjs.get(rootname,None)
+    if cobj is None:
+        cfgfn = join(get_config_dir(),rootname+'.cfg')
+        _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+    
+    if secname: #not the root package
+        if secname not in cobj:
+            cobj[secname] = {}
+        return cobj[secname]
+    else:
+        return cobj
 
 def save_config(packageormod=None):
     """ Saves all configuration settings to the configuration file for the
@@ -261,10 +284,23 @@ def _find_current_module(depth=1):
             return None
     return inspect.getmodule(frm)
     
-def _generate_all_config_items(package=None):
+def _generate_all_config_items(package=None,reset_to_default=False):
+    """ Given a root package or package name, this function simple walks through
+    all the subpackages and modules, which should populate any ConfigurationItem
+    objects defined at the module level. IF `reset_to_Default` is True, it also
+    sets all of the items to their default values, regardless of what the file's
+    value currently is. It then saves the `ConfigObj`.
     """
-    Given a starting package, this function looks for all `ConfigurationItems`
-    in it and it's subpackage/modules, and saves them out to the relevant file
-    with default values.  Note that this *will* overwrite any existing values.
-    """
-    raise NotImplementedError
+    import pkgutil
+    
+    if isinstance(package,basestring):
+        package = pkgutil.find_module(package).load_module(package) 
+    
+    for imper,nm,ispkg in pkgutil.walk_packages(package.__path__,package.__name__+'.'):
+        mod = imper.load_module(nm)
+        if reset_to_default:
+            for v in mod.__dict__.values():
+                if isinstance(v,ConfigurationItem):
+                    v.set(v.defaultvalue)
+    save_config(package.__name__)
+        
