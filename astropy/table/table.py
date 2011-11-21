@@ -51,15 +51,15 @@ class Column(object):
 
         if data is None:
             self._data = np.zeros(length,
-                                  dtype=[(name, datatype or np.float, shape)])
+                                  dtype=(datatype or np.float, shape))
         else:
             try:
-                dtype = [(name, datatype or data.dtype, data.shape[1:])]
+                dtype = (datatype or data.dtype, data.shape[1:])
             except AttributeError:
                 data = np.array(data)
-                dtype = [(name, data.dtype, data.shape[1:])]
+                dtype = (data.dtype, data.shape[1:])
             self._data = np.ndarray(len(data), dtype=dtype)
-            self._data[name] = data
+            self._data[:] = data
 
     def _get_parent_table(self):
         return self._parent_table
@@ -190,19 +190,26 @@ class Table(object):
                      units=units, format=format, description=description,
                      length=length, meta=meta, data=data)
 
+        dtype = (col.name, col.data.dtype, col.data.shape[1:])
+
         if self._data is None:
-            # Table has no existing data so use a copy of the column data,
-            # which is guaranteed to be a structured array.  This might have
-            # zero length.
-            self._data = col.data
+            # Table has no existing data so make a new structured array
+            # with a single column and then copy the column data.
+            self._data = np.ndarray(len(col.data), dtype=[dtype])
+            self._data[col.name] = col.data
         else:
             if len(col.data) != len(self._data):
                 raise ValueError(
                     "Column data length does not match table length")
 
-            self._data = _append_field(self._data, col.data[name],
-                                       dtype=col.data.dtype.descr[0],
+            self._data = _append_field(self._data, col.data, dtype=dtype,
                                        position=index)
+
+        # Now that column data are copied into the Table _data table set
+        # the column parent_table to self.  This causes the column to
+        # drop its reference to data and makes col.data return
+        # col.parent_table[col.name].
+        col.parent_table = self
 
         self.columns = insert_odict(self.columns, index, col.name, col)
 
