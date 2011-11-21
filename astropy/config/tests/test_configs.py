@@ -33,6 +33,7 @@ def test_pkg_finder():
 
 def test_configitem(tmpdir):
     from ..configs import ConfigurationItem,get_config
+    from shutil import copy
     
     ci = ConfigurationItem('tstnm',34,'this is a Description')
 
@@ -59,6 +60,40 @@ def test_configitem(tmpdir):
     lns = f.read().split('\n')
     assert 'tstnm = 32' in lns
     assert '# updated Descr' in lns
+    
+    oldfn = apycfg.filename
+    try:
+        tmpdir.join('astropy.cfg').copy(tmpdir.join('astropy.cfg2'))
+        apycfg.filename = str(tmpdir.join('astropy.cfg2').realpath())
+        
+        ci.set(30)
+        ci.save()
+        
+        with open(str(apycfg.filename)) as f:
+            lns = f.readlines()
+            assert '[config.tests.test_configs]\n' in lns
+            assert 'tstnm = 30\n' in lns
+        
+        ci.save(31)
+        
+        with open(str(apycfg.filename)) as f:
+            lns = f.readlines()
+            assert '[config.tests.test_configs]\n' in lns
+            assert 'tstnm = 31\n' in lns
+            
+        #also try to save one that doesn't yet exist
+        apycfg.filename = str(tmpdir.join('astropy.cfg3').realpath())
+        ci.save()
+        
+        with open(str(apycfg.filename)) as f:
+            lns = f.readlines()
+            assert '[config.tests.test_configs]\n' in lns
+            assert 'tstnm = 30\n' in lns
+            
+    finally:
+        apycfg.filename = oldfn
+        
+    #also try to save one that doesn't yet exist
     
 def test_configitem_types():
     from ..configs import ConfigurationItem
