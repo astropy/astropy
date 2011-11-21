@@ -2,8 +2,8 @@ import warnings
 
 import numpy as np
 
-from astropy.io import fits
-from astropy.tests.helper import pytest
+from ....io import fits
+from ....tests.helper import pytest
 
 from . import FitsTestCase
 

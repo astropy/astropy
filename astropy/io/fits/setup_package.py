@@ -3,7 +3,7 @@ import os
 from distutils.core import Extension
 from glob import glob
 
-from astropy import setup_helpers
+from ... import setup_helpers
 
 def get_extensions():
     return [
