@@ -1,5 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst  
-
+    
+def test_paths():
+    from ..paths import get_config_dir, get_cache_dir
+    
+    assert 'astropy' in get_config_dir()
+    assert 'astropy' in get_cache_dir()
+    
 def test_config_file():
     from ..configs import get_config
     
