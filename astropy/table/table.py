@@ -36,17 +36,39 @@ class Column(object):
 
     def __init__(self, name=None, datatype=None, shape=tuple(),
                  units=None, format=None, description=None, length=0,
-                 meta=None):
+                 meta=None, data=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
         self.datatype = datatype
+        self._parent_table = None
 
         self.meta = OrderedDict()
         if meta is not None:
             self.meta.update(meta)
+
+        if data is None:
+            self._data = np.zeros(length,
+                                  dtype=[(name, datatype or np.float, shape)])
+        else:
+            try:
+                dtype = [(name, datatype or data.dtype, data.shape[1:])]
+            except AttributeError:
+                data = np.array(data)
+                dtype = [(name, data.dtype, data.shape[1:])]
+            self._data = np.ndarray(len(data), dtype=dtype)
+            self._data[name] = data
+
+    def _get_parent_table(self):
+        return self._parent_table
+
+    def _set_parent_table(self, val):
+        self._parent_table = val
+        self._data = None
+
+    parent_table = property(_get_parent_table, _set_parent_table)
 
     @property
     def dtype(self):
@@ -56,6 +78,14 @@ class Column(object):
             raise ValueError('No column data reference available '
                              'so dtype is undefined')
         return self.data.dtype
+
+    @property
+    def data(self):
+        """Column data attribute.  Only available if parent data exist"""
+        if self._parent_table is not None:
+            return self._parent_table[self.name]
+        else:
+            return self._data
 
     def __repr__(self):
         s = "<Column name='{0} units='{1}' format='{2}' description='{3}'>".format(
@@ -135,17 +165,20 @@ class Table(object):
         self.append_column(*args, **kwargs)
 
     def append_column(self, name=None, data=None, datatype=None, shape=tuple(),
-                 units=None, format=None, description=None, length=0, meta=None):
+                      units=None, format=None, description=None, length=0,
+                      meta=None):
         """
         Add a new Column object ``column`` after the last existing column.
         """
         self.insert_column(len(self.columns),
-                           name=name, data=data, datatype=datatype, shape=shape,
-                           units=units, format=format, description=description,
+                           name=name, data=data, datatype=datatype,
+                           shape=shape, units=units, format=format,
+                           description=description,
                            length=length, meta=meta)
 
-    def insert_column(self, index, name=None, data=None, datatype=None, shape=tuple(),
-                 units=None, format=None, description=None, length=0, meta=None):
+    def insert_column(self, index, name=None, data=None, datatype=None,
+                      shape=tuple(), units=None, format=None, description=None,
+                      length=0, meta=None):
         """
         Insert a new Column object ``column`` at given ``index`` position.
         """
@@ -153,36 +186,25 @@ class Table(object):
         if self._data is not None:
             length = len(self._data)
 
-        column = Column(name=name, datatype=datatype, shape=shape,
-                        units=units, format=format, description=description,
-                        length=length, meta=meta)
-
-        if data is None:
-            col_data = np.zeros(length, dtype=[(name, datatype or np.float, shape)])
-        else:
-            try:
-                dtype = [(name, datatype or data.dtype, data.shape[1:])]
-            except AttributeError:
-                data = np.array(data)
-                dtype = [(name, data.dtype, data.shape[1:])]
-            print dtype, type(dtype)
-            col_data = np.ndarray(len(data), dtype=dtype)
-            col_data[name] = data
+        col = Column(name=name, datatype=datatype, shape=shape,
+                     units=units, format=format, description=description,
+                     length=length, meta=meta, data=data)
 
         if self._data is None:
             # Table has no existing data so use a copy of the column data,
             # which is guaranteed to be a structured array.  This might have
             # zero length.
-            self._data = col_data
+            self._data = col.data
         else:
-            if len(col_data) != len(self._data):
-                raise ValueError("Column data length does not match table length")
-            
-            self._data = _append_field(self._data, col_data[name],
-                                       dtype=col_data.dtype.descr[0], position=index)
+            if len(col.data) != len(self._data):
+                raise ValueError(
+                    "Column data length does not match table length")
 
-        column.data = self._data[name]
-        self.columns = insert_odict(self.columns, index, column.name, column)
+            self._data = _append_field(self._data, col.data[name],
+                                       dtype=col.data.dtype.descr[0],
+                                       position=index)
+
+        self.columns = insert_odict(self.columns, index, col.name, col)
 
     def remove_column(self, name):
         """
