@@ -109,12 +109,12 @@ class ConfigurationItem(object):
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
+            elif isinstance(defaultvalue,bool):
+                cfgtype = 'boolean'
             elif isinstance(defaultvalue,int):
                 cfgtype = 'integer'
             elif isinstance(defaultvalue,float):
                 cfgtype = 'float'
-            elif isinstance(defaultvalue,bool):
-                cfgtype = 'bool'
             else:
                 cfgtype = 'string'
                 defaultvalue = str(defaultvalue)
@@ -257,7 +257,7 @@ class ConfigurationItem(object):
         #get the value from the relevant `configobj.ConfigObj` object
         sec = get_config(self.module)
         if self.name not in sec:
-            self.set(self.defaultval)
+            self.set(self.defaultvalue)
         val = sec[self.name]
         
         try:
