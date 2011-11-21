@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst  
-    
+
 def test_paths():
     from ..paths import get_config_dir, get_cache_dir
     
@@ -8,6 +8,7 @@ def test_paths():
     
 def test_config_file():
     from ..configs import get_config,reload_config,save_config
+    from os.path import exists
     
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -18,11 +19,19 @@ def test_config_file():
     assert cfgsec.parent.filename.endswith('astropy.cfg')
     
     reload_config('astropy')
-    #saving shouldn't change the file, because reload should have made sure it
-    #is based on the current file
-    save_config('astropy')
     
-def test_configitem():
+    #saving shouldn't change the file, because reload should have made sure it
+    #is based on the current file.  But don't do it if there's no file
+    if exists(apycfg.filename):
+        save_config('astropy')
+
+def test_pkg_finder():
+    from ..configs import _find_current_module
+    
+    assert _find_current_module(0).__name__ == 'astropy.config.configs'
+    assert _find_current_module(1).__name__ == 'astropy.config.tests.test_configs'
+
+def test_configitem(tmpdir):
     from ..configs import ConfigurationItem,get_config
     
     ci = ConfigurationItem('tstnm',34,'this is a Description')
@@ -40,6 +49,16 @@ def test_configitem():
     ci.set(32)
     assert ci()==32
     assert sec.comments['tstnm'][0] == 'updated Descr'
+    
+    #now try saving
+    apycfg = sec
+    while apycfg.parent is not apycfg:
+        apycfg = apycfg.parent
+    f = tmpdir.join('astropy.cfg')
+    apycfg.write(f)
+    lns = f.read().split('\n')
+    assert 'tstnm = 32' in lns
+    assert '# updated Descr' in lns
     
 def test_configitem_types():
     from ..configs import ConfigurationItem
@@ -66,7 +85,7 @@ def test_configitem_types():
         ci4.set(546.245)
     
     
-def test_configitem_options():
+def test_configitem_options(tmpdir):
     from ..configs import ConfigurationItem,get_config
     from pytest import raises
     
@@ -83,8 +102,15 @@ def test_configitem_options():
         cio.set('op5')
     assert sec['tstnmo'] == 'op2'
     
-def test_pkg_finder():
-    from ..configs import _find_current_module
+    #now try saving
+    apycfg = sec
+    while apycfg.parent is not apycfg:
+        apycfg = apycfg.parent
+    f = tmpdir.join('astropy.cfg')
+    apycfg.write(f)
+    lns = f.read().split('\n')
     
-    assert _find_current_module(0).__name__ == 'astropy.config.configs'
-    assert _find_current_module(1).__name__ == 'astropy.config.tests.test_configs'
+    assert '# option(op1, op2, op3)' in lns
+    assert 'tstnmo = op2' in lns
+
+    
