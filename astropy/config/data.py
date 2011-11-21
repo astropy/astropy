@@ -4,18 +4,23 @@ caching data files.
 """
 
 from __future__ import division
+from .configs import ConfigurationItem,save_config
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'compute_hash',
            'clear_data_cache']
 
-#TODO: replace this with configobj config setting!
-DATAURL = 'http://data.astropy.org/'
-REMOTE_TIMEOUT = 3.  
+DATAURL = ConfigurationItem('dataurl','http://data.astropy.org/',
+                            'URL for astropy remote data site.')
+REMOTE_TIMEOUT = ConfigurationItem('remote_timeout',3.,
+                  'Time to wait for remote data query (in seconds).')  
+COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem('hash_block_size',2**16, #64K
+                            'Block size for computing MD5 file hashes.')  
+DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem('data_dl_block_size',2**16, #64K
+                        'Number of bytes of remote data to download per step.')
 
-COMPUTE_HASH_BLOCK_SIZE = 2**16 #64K 
-DATA_CACHE_DL_BLOCK_SIZE = 2**16
-
-DATA_CACHE_LOCK_TIMEOUT = 3 #seconds
+DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem('data_cache_lock_attempts',3,
+                            'Number of times to try to get the lock while ' + 
+                            'accessing the data cache before giving up.')
 
 #used for supporting with statements in get_data_fileobj
 def _fake_enter(self):
@@ -104,12 +109,12 @@ def get_data_fileobj(dataname, cache=True):
         url = urlparse(dataname)
         if url.scheme != '':
             #it's actually a url for a net location
-            urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT)
+            urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT())
         else:
             datafn = _find_pkg_data_fn(dataname)
             if datafn is None:
                 #not local file - need to get remote data
-                urlres = urlopen(DATAURL + datafn,timeout=REMOTE_TIMEOUT)
+                urlres = urlopen(DATAURL() + datafn,timeout=REMOTE_TIMEOUT())
             else:
                 return open(datafn, 'r')
         
@@ -188,14 +193,14 @@ def get_data_filename(dataname):
             #first try looking for a local version if a hash is specified
             hashfn = _find_hash_fn(dataname[5:])
             if hashfn is None:
-                return _cache_remote(DATAURL + dataname)
+                return _cache_remote(DATAURL() + dataname)
             else:
                 return hashfn
     else:
         datafn = _find_pkg_data_fn(dataname)
         if datafn is None:
             #look for the file on the data server
-            return _cache_remote(DATAURL + dataname)
+            return _cache_remote(DATAURL() + dataname)
         else:
             return datafn
 
@@ -231,10 +236,10 @@ def compute_hash(localfn):
     
     with open(localfn) as f:
         h = hashlib.md5()
-        block = f.read(COMPUTE_HASH_BLOCK_SIZE)
+        block = f.read(COMPUTE_HASH_BLOCK_SIZE())
         while block!='':
             h.update(block)
-            block = f.read(COMPUTE_HASH_BLOCK_SIZE)
+            block = f.read(COMPUTE_HASH_BLOCK_SIZE())
     
     return h.hexdigest()
 
@@ -305,20 +310,20 @@ def _cache_remote(remoteurl):
             if str(remoteurl) in url2hash:
                 localpath = url2hash[str(remoteurl)]
             else:
-                with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT)) as remote:
+                with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT())) as remote:
                     #save the file to a temporary file
                     tmpfn = join(dldir,'cachedl.tmp')
                     hash = hashlib.md5()
                     
                     with open(tmpfn,'w') as f:
-                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE)
+                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
                         while block!='':
                             #TODO: add in something to update a progress bar 
                             #when the download occurs.  Or use the log. either
                             #requires stuff that isn't yet in master
                             f.write(block)
                             hash.update(block)
-                            block = remote.read(DATA_CACHE_DL_BLOCK_SIZE)
+                            block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
                     
                     localpath = join(dldir,hash.hexdigest())
                     move(tmpfn,localpath)
@@ -418,7 +423,7 @@ def _acquire_data_cache_lock():
     from time import sleep
     
     lockdir = join(_get_data_cache_locs()[0],'lock')
-    for i in range(DATA_CACHE_LOCK_TIMEOUT):
+    for i in range(DATA_CACHE_LOCK_ATTEMPTS()):
         try:
             mkdir(lockdir)
         except OSError:
