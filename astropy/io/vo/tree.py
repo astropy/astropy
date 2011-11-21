@@ -1033,18 +1033,18 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
         for field in fields:
             i = 2
-            if field.name is None or field.ID == xmlutil.fix_id(
-                field.name, field._config, field._pos):
-                new_name = '_%s' % field.ID
+            if field.name is None:
+                new_name = field.ID
                 implicit = True
             else:
                 new_name = field.name
                 implicit = False
-            while new_name in unique:
-                new_name = field.name + " %d" % i
-                i += 1
-            if (field.name is not None and
-                not implicit and
+            if new_name != field.ID:
+                while new_name in unique:
+                    new_name = field.name + " %d" % i
+                    i += 1
+
+            if (not implicit and
                 new_name != field.name):
                 vo_warn(W33, (field.name, new_name), field._config, field._pos)
             field._unique_name = new_name
@@ -1900,14 +1900,18 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         else:
             # for field in fields: field._setup(config)
             Field.uniqify_names(fields)
-            ids = [x.ID for x in fields]
-            names = [x._unique_name for x in fields]
-            formats = [x.converter.format for x in fields]
 
-            descr = np.format_parser(formats, ids, names).dtype
-            array = np.recarray((nrows,), dtype=descr)
+            dtype = []
+            for x in fields:
+                if x._unique_name == x.ID:
+                    id = x.ID
+                else:
+                    id = (x._unique_name, x.ID)
+                dtype.append((id, x.converter.format))
+
+            array = np.recarray((nrows,), dtype=dtype)
             descr_mask = []
-            for d in descr.descr:
+            for d in array.dtype.descr:
                 new_type = (d[1][1] == 'O' and 'O') or 'bool'
                 if len(d) == 2:
                     descr_mask.append((d[0], new_type))
