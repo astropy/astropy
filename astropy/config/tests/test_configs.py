@@ -22,6 +22,67 @@ def test_config_file():
     #is based on the current file
     save_config('astropy')
     
+def test_configitem():
+    from ..configs import ConfigurationItem,get_config
+    
+    ci = ConfigurationItem('tstnm',34,'this is a Description')
+
+    assert ci.module=='astropy.config.tests.test_configs'
+    assert ci()==34
+    assert ci.description=='this is a Description'
+    
+    sec = get_config(ci.module)
+    assert sec['tstnm'] == 34
+    assert sec.comments['tstnm'][0] == 'this is a Description'
+    assert sec.comments['tstnm'][1] == 'integer'
+    
+    ci.description = 'updated Descr'
+    ci.set(32)
+    assert ci()==32
+    assert sec.comments['tstnm'][0] == 'updated Descr'
+    
+def test_configitem_types():
+    from ..configs import ConfigurationItem
+    from pytest import raises
+    
+    ci1 = ConfigurationItem('tstnm1',34)
+    assert isinstance(ci1(),int)
+    
+    ci2 = ConfigurationItem('tstnm2',34.3)
+    assert isinstance(ci2(),float)
+    
+    ci3 = ConfigurationItem('tstnm3',True)
+    assert isinstance(ci3(),bool)
+    
+    ci4 = ConfigurationItem('tstnm4','astring')
+    assert isinstance(ci4(),str)
+    
+    with raises(TypeError):
+        ci1.set(34.3)
+    ci2.set(12) #this would should succeed as up-casting
+    with raises(TypeError):
+        ci3.set('fasd')
+    with raises(TypeError):
+        ci4.set(546.245)
+    
+    
+def test_configitem_options():
+    from ..configs import ConfigurationItem,get_config
+    from pytest import raises
+    
+    cio = ConfigurationItem('tstnmo',['op1','op2','op3'])
+    sec = get_config(cio.module)
+    
+    assert isinstance(cio(),str)
+    assert cio() == 'op1'
+    assert sec['tstnmo'] == 'op1'
+    
+    
+    cio.set('op2')
+    with raises(TypeError):
+        cio.set('op5')
+    assert sec['tstnmo'] == 'op2'
+    
 def test_pkg_finder():
     from ..configs import _find_current_module
     
