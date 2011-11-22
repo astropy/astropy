@@ -5,6 +5,9 @@ cimport numpy as np
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
+cdef inline int int_max(int a, int b): return a if a >= b else b
+cdef inline int int_min(int a, int b): return a if a <= b else b
+
 cdef extern from "math.h":
     bint isnan(double x)
 
@@ -12,9 +15,8 @@ cimport cython
 
 
 @cython.boundscheck(False)  # turn of bounds-checking for entire function
-def convolve2d_edge_fill(np.ndarray[DTYPE_t, ndim=2] f,
-                         np.ndarray[DTYPE_t, ndim=2] g,
-                         float fill_value):
+def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
+                               np.ndarray[DTYPE_t, ndim=2] g):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Only odd dimensions on filter supported")
@@ -49,15 +51,15 @@ def convolve2d_edge_fill(np.ndarray[DTYPE_t, ndim=2] f,
                 jjmax = j + wky + 1
                 for ii in range(iimin, iimax):
                     for jj in range(jjmin, jjmax):
-                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
-                            val = fill_value
-                        else:
-                            val = f[ii, jj]
+                        iii = int_min(int_max(ii, 0), nx - 1)
+                        jjj = int_min(int_max(jj, 0), ny - 1)
+                        val = f[iii, jjj]
                         if not isnan(val):
                             ker = g[<unsigned int>(wkx + ii - i),
                                     <unsigned int>(wky + jj - j)]
                             top += val * ker
                             bot += ker
+
                 if bot > 0.:
                     fixed[i, j] = top / bot
                 else:
@@ -77,10 +79,9 @@ def convolve2d_edge_fill(np.ndarray[DTYPE_t, ndim=2] f,
                 jjmax = j + wky + 1
                 for ii in range(iimin, iimax):
                     for jj in range(jjmin, jjmax):
-                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
-                            val = fill_value
-                        else:
-                            val = fixed[ii, jj]
+                        iii = int_min(int_max(ii, 0), nx - 1)
+                        jjj = int_min(int_max(jj, 0), ny - 1)
+                        val = fixed[iii, jjj]
                         ker = g[<unsigned int>(wkx + ii - i),
                                 <unsigned int>(wky + jj - j)]
                         top += val * ker

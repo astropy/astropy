@@ -12,8 +12,9 @@ cimport cython
 
 
 @cython.boundscheck(False)  # turn of bounds-checking for entire function
-def convolve2d_edge_default(np.ndarray[DTYPE_t, ndim=2] f,
-                            np.ndarray[DTYPE_t, ndim=2] g):
+def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
+                             np.ndarray[DTYPE_t, ndim=2] g,
+                             float fill_value):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
         raise ValueError("Only odd dimensions on filter supported")
@@ -28,7 +29,8 @@ def convolve2d_edge_default(np.ndarray[DTYPE_t, ndim=2] f,
     cdef int wky = nky // 2
     cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.zeros([nx, ny], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=2] conv = np.zeros([nx, ny], dtype=DTYPE)
-    cdef unsigned int i, j, ii, jj
+    cdef unsigned int i, j, iii, jjj
+    cdef int ii, jj
 
     cdef int iimin, iimax, jjmin, jjmax
 
@@ -36,14 +38,21 @@ def convolve2d_edge_default(np.ndarray[DTYPE_t, ndim=2] f,
 
     # Need a first pass to replace NaN values with value convolved from
     # neighboring values
-    for i in range(wkx, nx - wkx):
-        for j in range(wky, ny - wky):
+    for i in range(nx):
+        for j in range(ny):
             if isnan(f[i, j]):
                 top = 0.
                 bot = 0.
-                for ii in range(i - wkx, i + wkx + 1):
-                    for jj in range(j - wky, j + wky + 1):
-                        val = f[ii, jj]
+                iimin = i - wkx
+                iimax = i + wkx + 1
+                jjmin = j - wky
+                jjmax = j + wky + 1
+                for ii in range(iimin, iimax):
+                    for jj in range(jjmin, jjmax):
+                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
+                            val = fill_value
+                        else:
+                            val = f[ii, jj]
                         if not isnan(val):
                             ker = g[<unsigned int>(wkx + ii - i),
                                     <unsigned int>(wky + jj - j)]
@@ -57,19 +66,29 @@ def convolve2d_edge_default(np.ndarray[DTYPE_t, ndim=2] f,
                 fixed[i, j] = f[i, j]
 
     # Now run the proper convolution
-    for i in range(wkx, nx - wkx):
-        for j in range(wky, ny - wky):
+    for i in range(nx):
+        for j in range(ny):
             if not isnan(fixed[i, j]):
                 top = 0.
                 bot = 0.
-                for ii in range(i - wkx, i + wkx + 1):
-                    for jj in range(j - wky, j + wky + 1):
-                        val = fixed[ii, jj]
+                iimin = i - wkx
+                iimax = i + wkx + 1
+                jjmin = j - wky
+                jjmax = j + wky + 1
+                for ii in range(iimin, iimax):
+                    for jj in range(jjmin, jjmax):
+                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
+                            val = fill_value
+                        else:
+                            val = fixed[ii, jj]
                         ker = g[<unsigned int>(wkx + ii - i),
                                 <unsigned int>(wky + jj - j)]
                         top += val * ker
                         bot += ker
-                conv[i, j] = top / bot
+                if bot > 0:
+                    conv[i, j] = top / bot
+                else:
+                    conv[i, j] = fixed[i, j]
             else:
                 conv[i, j] = fixed[i, j]
 

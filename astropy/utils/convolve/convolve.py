@@ -1,13 +1,12 @@
 import numpy as np
 
-# from .core import convolve1d_core, convolve2d_core, convolve3d_core
-from .edge_default import convolve2d_edge_default
-from .edge_truncate import convolve2d_edge_truncate
-from .edge_fill import convolve2d_edge_fill
-from .edge_wrap import convolve2d_edge_wrap
+from .boundary_none import convolve2d_boundary_none
+from .boundary_extend import convolve2d_boundary_extend
+from .boundary_fill import convolve2d_boundary_fill
+from .boundary_wrap import convolve2d_boundary_wrap
 
 
-def convolve(array, kernel, edge=None, fill_value=0.):
+def convolve(array, kernel, boundary=None, fill_value=0.):
     '''
     Convolve an array with a Kernel
 
@@ -18,18 +17,28 @@ def convolve(array, kernel, edge=None, fill_value=0.):
 
     Parameters
     ----------
-    array, np.ndarray
+    array: np.ndarray
         The array to convolve. This should be a 2-dimensional array.
-    kernel, np.ndarray
+    kernel: np.ndarray
         The convolution kernel. The number of dimensions should match those
         for the array, and the number of dimensions should be odd in all
         directions.
+    boundary: str, optional
+        A flag indicating how to handle boundaries:
+            * None : set the ``result`` values to zero where the kernel
+                     extends eyond the edge of the array (default)
+            * 'fill' : set values outside the array boundary to fill_value
+            * 'wrap' : periodic boundary
+            * 'extend' : set values outside the array to the nearest array
+                         value
+    fill_value: float, optional
+        The value to use outside the array when using boundary='fill'
 
     Returns
     -------
     result, np.ndarray
-        An array with the same dimensions as the input array, convolved with
-        kernel.
+        An array with the same dimensions and type as the input array,
+        convolved with kernel.
 
     Notes
     -----
@@ -61,19 +70,19 @@ def convolve(array, kernel, edge=None, fill_value=0.):
     if array.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
     elif array.ndim == 2:
-        if edge == 'truncate':
-            result = convolve2d_edge_truncate(array.astype(np.float),
+        if boundary == 'extend':
+            result = convolve2d_boundary_extend(array.astype(np.float),
+                                                kernel.astype(np.float))
+        elif boundary == 'fill':
+            result = convolve2d_boundary_fill(array.astype(np.float),
+                                              kernel.astype(np.float),
+                                              float(fill_value))
+        elif boundary == 'wrap':
+            result = convolve2d_boundary_wrap(array.astype(np.float),
                                               kernel.astype(np.float))
-        elif edge == 'fill':
-            result = convolve2d_edge_fill(array.astype(np.float),
-                                          kernel.astype(np.float),
-                                          float(fill_value))
-        elif edge == 'wrap':
-            result = convolve2d_edge_wrap(array.astype(np.float),
-                                          kernel.astype(np.float))
         else:
-            result = convolve2d_edge_default(array.astype(np.float),
-                                             kernel.astype(np.float))
+            result = convolve2d_boundary_none(array.astype(np.float),
+                                              kernel.astype(np.float))
     else:
         raise NotImplemented("convolve only supports 2-dimensional arrays at this time")
 
