@@ -87,6 +87,38 @@ def _test_regression(_python_based=False):
     votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False,
                     _debug_python_based_parser=_python_based)
     table = votable.get_first_table()
+
+    assert table.array.dtype == [
+        (('string test', 'string_test'), '|O8'),
+        (('fixed string test', 'string_test_2'), '|S10'),
+        ('unicode_test', '|O8'),
+        (('unicode test', 'fixed_unicode_test'), '<U10'),
+        (('string array test', 'string_array_test'), '|S4'),
+        ('unsignedByte', '|u1'),
+        ('short', '<i2'),
+        ('int', '<i4'),
+        ('long', '<i8'),
+        ('double', '<f8'),
+        ('float', '<f4'),
+        ('array', '|O8'),
+        ('bit', '|b1'),
+        ('bitarray', '|b1', (3, 2)),
+        ('bitvararray', '|O8'),
+        ('bitvararray2', '|O8'),
+        ('floatComplex', '<c8'),
+        ('doubleComplex', '<c16'),
+        ('doubleComplexArray', '|O8'),
+        ('doubleComplexArrayFixed', '<c16', (2,)),
+        ('boolean', '|b1'),
+        ('booleanArray', '|b1', (4,)),
+        ('nulls', '<i4'),
+        ('nulls_array', '<i4', (2, 2)),
+        ('precision1', '<f8'),
+        ('precision2', '<f8'),
+        ('doublearray', '|O8'),
+        ('bitarray2', '|b1', (16,))
+        ]
+
     votable.to_xml(join(TMP_DIR, "regression.tabledata.xml"),
                    _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.tabledata.xml"))
@@ -641,5 +673,5 @@ def test_build_from_scratch():
     assert_array_equal(
         table.mask, np.array([(False, [[False, False], [False, False]]),
                               (False, [[False, False], [False, False]])],
-                             dtype=[(('_filename', 'filename'), '?'),
-                                    (('_matrix', 'matrix'), '?', (2, 2))]))
+                             dtype=[('filename', '?'),
+                                    ('matrix', '?', (2, 2))]))
