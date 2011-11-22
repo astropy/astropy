@@ -16,6 +16,14 @@ from distutils.core import Command
 try:
     import pytest
 
+    # Check that a recent py.test version is being used
+    from distutils import version
+    if version.LooseVersion(pytest.__version__) < \
+       version.LooseVersion('2.2.0'):
+        class VersionError(Exception):
+            pass
+        raise VersionError("py.test 2.2.0 or later is required")
+
 except ImportError:
     from ..extern import pytest as extern_pytest
 
