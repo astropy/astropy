@@ -34,9 +34,9 @@ def rename_odict(d_old, before, after):
 class Column(object):
     """A class to contain information about columns"""
 
-    def __init__(self, name=None, datatype=None, shape=tuple(),
+    def __init__(self, name, data=None, datatype=None, shape=tuple(),
                  units=None, format=None, description=None, length=0,
-                 meta=None, data=None):
+                 meta=None):
 
         self.name = name
         self.units = units
@@ -104,15 +104,26 @@ class Column(object):
 class Table(object):
     '''A class to represent tables of data'''
 
-    def __init__(self, name=None, length=None):
+    def __init__(self, cols=None, name=None):
         self.name = name
-        # self._length = length
         self._data = None
         self.columns = OrderedDict()
+        if cols is not None:
+            self.new_from_cols(cols)
 
-        # ??? Maybe make masking read-only, need to understand scenarios when a
-        # table can convert from normal to masked etc.  This is TBD.
-        self.masked = False
+    def new_from_cols(self, cols):
+        dtype = [(col.name, col.data.dtype, col.data.shape[1:])
+                 for col in cols]
+
+        lengths = set(len(col.data) for col in cols)
+        if len(lengths) != 1:
+            raise ValueError(
+                'Inconsistent data column lengths: {0}'.format(lengths))
+
+        self._data = np.ndarray(lengths.pop(), dtype=dtype)
+        for col in cols:
+            self._data[col.name] = col.data
+            col.parent_table = self  # see same in insert_column()
 
     def __repr__(self):
         s = "<Table "

@@ -1,30 +1,46 @@
 import pytest
 import numpy as np
 
-from .. import Table, ArgumentError
+from .. import Table, ArgumentError, Column
 
 
 class TestEmptyData():
 
     def test_1(self):
-        t = Table(length=100)
-        t.add_column('a', datatype=int)
+        t = Table()
+        t.add_column('a', datatype=int, length=100)
+        assert len(t['a']) == 100
 
     def test_2(self):
-        t = Table(length=100)
-        t.add_column('a', datatype=int, shape=(3, ))
+        t = Table()
+        t.add_column('a', datatype=int, shape=(3, ), length=100)
+        assert len(t['a']) == 100
 
     def test_3(self):
         t = Table()  # length is not given
         t.add_column('a', datatype=int)
+        assert len(t['a']) == 0
 
     def test_4(self):
         t = Table()  # length is not given
         t.add_column('a', datatype=int, shape=(3, 4))
+        assert len(t['a']) == 0
 
     def test_5(self):
         t = Table()
         t.add_column('a')  # dtype is not specified
+        assert len(t['a']) == 0
+
+
+class TestNewFromColumns():
+
+    def test_1(self):
+        cols = [Column('a', [1, 2, 3]),
+                Column('b', [4, 5, 6])]
+        t = Table(cols)
+        assert np.all(t['a'] == np.array([1, 2, 3]))
+        assert np.all(t['b'] == np.array([4, 5, 6]))
+
 
 class TestColumnAccess():
 
@@ -36,7 +52,7 @@ class TestColumnAccess():
     def test_2(self):
         t = Table()
         t.add_column('a', [1, 2, 3])
-        t['a']
+        assert np.all(t['a'] == np.array([1, 2, 3]))
         with pytest.raises(KeyError):
             t['b']  # column does not exist
 
@@ -73,12 +89,12 @@ class TestAddPosition():
 
     def test_3(self):
         t = Table()
-        t.insert_column(-1, 'a', [1, 2, 3]) 
+        t.insert_column(-1, 'a', [1, 2, 3])
 
     def test_5(self):
         t = Table()
         with pytest.raises(ValueError):
-            idxa = t.index_column('b')
+            t.index_column('b')
 
     def test_6(self):
         t = Table()
