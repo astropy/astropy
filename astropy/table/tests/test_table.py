@@ -34,12 +34,19 @@ class TestEmptyData():
 
 class TestNewFromColumns():
 
-    def test_1(self):
+    def test_simple(self):
         cols = [Column('a', [1, 2, 3]),
-                Column('b', [4, 5, 6])]
+                Column('b', [4, 5, 6], datatype=np.float32)]
         t = Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3]))
-        assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
+        assert type(t['b'][1]) == np.float32
+
+    def test_size_mismatch(self):
+        cols = [Column('a', [1, 2, 3]),
+                Column('b', [4, 5, 6, 7])]
+        with pytest.raises(ValueError):
+            Table(cols)
 
 
 class TestColumnAccess():

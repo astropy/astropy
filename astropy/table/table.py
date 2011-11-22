@@ -32,11 +32,67 @@ def rename_odict(d_old, before, after):
 
 
 class Column(object):
-    """A class to contain information about columns"""
+    """Define a data column for use in a Table object.
 
-    def __init__(self, name, data=None, datatype=None, shape=tuple(),
-                 units=None, format=None, description=None, length=0,
-                 meta=None):
+    Parameters
+    ----------
+    name : str
+        Column name and key for reference within Table
+    data : list, ndarray or None
+        Column data values
+    datatype : see examples for type
+        Data type for column
+    shape : tuple or ()
+        Dimensions of a single row element in the column data
+    length : int or 0
+        Number of row elements in column data
+    description : str or None
+        Full description of column
+    units : str or None
+        Physical units
+    format : str or None
+        Sprintf-style format string for outputting column values
+    meta : dict or None
+        Meta-data associated with the column
+
+    Examples
+    --------
+    A Column can be created in two different ways:
+
+    *Provide a `data` value and optionally a `datatype` value*
+    ::
+
+      col = Column('name', data=[1, 2, 3])         # shape=(3,)
+      col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
+      col = Column('name', data=[1, 2, 3], datatype=float)  # float type
+      col = Column('name', np.array([1, 2, 3]))
+      col = Column('name', ['hello', 'world'])
+
+    The `datatype` value can be one of the following (see
+    `http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html`_):
+
+    - Python non-string type (float, int, bool)
+    - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+    - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+
+    If no `datatype` value is provide then the type is inferred using
+    `np.array(data)`.  When `data` is provided then the `shape` and `length`
+    args are ignored.
+
+    *Provide zero or more of `datatype`, `shape`, `length`*
+    ::
+
+      col = Column('name')
+      col = Column('name', datatype=int, length=10, shape=(3,4))
+
+    The default `datatype` is `np.float` and the default `length` is zero.
+    The `shape` argument is the array shape of a single cell in the column.
+    The default `shape` is () which means a single value in each element.
+    """
+
+    def __init__(self, name, data=None,
+                 datatype=None, shape=(), length=0,
+                 description=None, units=None, format=None, meta=None):
 
         self.name = name
         self.units = units
@@ -57,7 +113,7 @@ class Column(object):
                 dtype = (datatype or data.dtype, data.shape[1:])
             except AttributeError:
                 data = np.array(data)
-                dtype = (data.dtype, data.shape[1:])
+                dtype = (datatype or data.dtype, data.shape[1:])
             self._data = np.ndarray(len(data), dtype=dtype)
             self._data[:] = data
 
