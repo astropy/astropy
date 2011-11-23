@@ -342,29 +342,29 @@ class Table(object):
 
         self.remove_columns(remove)
 
-    def rename_column(self, before, after):
+    def rename_column(self, name, new_name):
         '''
         Rename a column
 
         Parameters
         ----------
-        before : str
+        name : str
             The current name of the column.
-        after : str
+        new_name : str
             The new name for the column
         '''
 
-        if before not in self.keys():
-            raise KeyError("Column {0} does not exist".format(before))
+        if name not in self.keys():
+            raise KeyError("Column {0} does not exist".format(name))
 
-        if after in self.keys():
-            raise KeyError("Column {0} already exists".format(after))
+        if new_name in self.keys():
+            raise KeyError("Column {0} already exists".format(new_name))
 
-        pos = self.columns.keys().index(before)
-        self._data.dtype.names = (self.keys()[:pos] + [after, ]
+        pos = self.columns.keys().index(name)
+        self._data.dtype.names = (self.keys()[:pos] + [new_name, ]
                                   + self.keys()[pos + 1:])
 
-        self.columns = rename_odict(self.columns, before, after)
+        self.columns = rename_odict(self.columns, name, new_name)
 
     def sort(self, keys):
         '''
