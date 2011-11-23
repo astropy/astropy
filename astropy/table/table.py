@@ -165,9 +165,9 @@ class Table(object):
         self._data = None
         self.columns = OrderedDict()
         if cols is not None:
-            self.new_from_cols(cols)
+            self._new_from_cols(cols)
 
-    def new_from_cols(self, cols):
+    def _new_from_cols(self, cols):
         dtype = [(col.name, col.data.dtype, col.data.shape[1:])
                  for col in cols]
 
@@ -231,23 +231,71 @@ class Table(object):
     def add_column(self, *args, **kwargs):
         self.append_column(*args, **kwargs)
 
-    def append_column(self, name=None, data=None, datatype=None, shape=tuple(),
-                      units=None, format=None, description=None, length=0,
-                      meta=None):
-        """
-        Add a new Column object ``column`` after the last existing column.
+    def append_column(self, name=None, data=None, datatype=None,
+                      shape=tuple(), length=0, description=None,
+                      units=None, format=None, meta=None):
+        """Add a new column after the last existing column.
+
+        Parameters
+        ----------
+        name : str
+            Column name and key for reference within Table
+        data : list, ndarray or None
+            Column data values
+        datatype : see examples for type
+            Data type for column
+        shape : tuple or ()
+            Dimensions of a single row element in the column data
+        length : int or 0
+            Number of row elements in column data
+        description : str or None
+            Full description of column
+        units : str or None
+            Physical units
+        format : str or None
+            Sprintf-style format string for outputting column values
+        meta : dict or None
+            Meta-data associated with the column
+
+        Examples
+        --------
+        See the Column class documentation.
         """
         self.insert_column(len(self.columns),
                            name=name, data=data, datatype=datatype,
-                           shape=shape, units=units, format=format,
-                           description=description,
-                           length=length, meta=meta)
+                           shape=shape, length=length, description=description,
+                           units=units, format=format, meta=meta)
 
     def insert_column(self, index, name=None, data=None, datatype=None,
-                      shape=tuple(), units=None, format=None, description=None,
-                      length=0, meta=None):
+                      shape=tuple(), length=0, description=None,
+                      units=None, format=None, meta=None):
         """
         Insert a new Column object ``column`` at given ``index`` position.
+
+        Parameters
+        ----------
+        name : str
+            Column name and key for reference within Table
+        data : list, ndarray or None
+            Column data values
+        datatype : see examples for type
+            Data type for column
+        shape : tuple or ()
+            Dimensions of a single row element in the column data
+        length : int or 0
+            Number of row elements in column data
+        description : str or None
+            Full description of column
+        units : str or None
+            Physical units
+        format : str or None
+            Sprintf-style format string for outputting column values
+        meta : dict or None
+            Meta-data associated with the column
+
+        Examples
+        --------
+        See the Column class documentation.
         """
         # Once self._data table is defined then length is set by table length
         if self._data is not None:
@@ -309,7 +357,7 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-        self._data = _drop_fields(self._data, names)  # XXX Doesn't set mask kwarg 
+        self._data = _drop_fields(self._data, names)
 
     def keep_columns(self, names):
         '''
