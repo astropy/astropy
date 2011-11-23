@@ -141,6 +141,15 @@ class Column(object):
         return newcol
 
     @property
+    def descr(self):
+        """Array-interface compliant full description of the column.
+
+        This returns a 3-tuple (name, type, shape) that can always be
+        used in a structured array dtype definition.
+        """
+        return (self.name, self.data.dtype.str, self.data.shape[1:])
+
+    @property
     def dtype(self):
         """Data type attribute.  This checks that column data reference has
         been made."""
@@ -183,15 +192,14 @@ class Table(object):
             self._new_from_cols(cols)
 
     def _new_from_cols(self, cols):
-        dtype = [(col.name, col.data.dtype, col.data.shape[1:])
-                 for col in cols]
+        dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
         if len(lengths) != 1:
             raise ValueError(
                 'Inconsistent data column lengths: {0}'.format(lengths))
 
-        self._data = np.ndarray(lengths.pop(), dtype=dtype)
+        self._data = np.ndarray(lengths.pop(), dtype=dtypes)
         for col in cols:
             self._data[col.name] = col.data
             if col.parent_table is not None:
@@ -263,32 +271,62 @@ class Table(object):
         """
         if index is None:
             index = len(self.columns)
+        self.add_columns([col], [index])
 
-        dtype = (col.name, col.data.dtype, col.data.shape[1:])
+    def add_columns(self, cols, indexes=None):
+        """
+        Add a list of new Column objects ``col`s` to the table.
+        If a list of ``indexes`` is supplied then insert column before
+        each ``index`` position in the list of columns, otherwise append
+        columns to the end of the list.
+
+        Parameters
+        ----------
+        cols : list of Columns
+            Column objects to add.
+        indexes : list of ints or None
+            Insert column before this position or at end (default)
+        """
+        if indexes is None:
+            indexes = [len(self.columns)] * len(cols)
 
         if self._data is None:
             # Table has no existing data so make a new structured array
-            # with a single column and then copy the column data.
-            self._data = np.ndarray(len(col.data), dtype=[dtype])
-            self._data[col.name] = col.data
+            # from the cols
+            self._new_from_cols(cols)
         else:
-            if len(col.data) != len(self._data):
-                raise ValueError(
-                    "Column data length does not match table length")
+            for col in cols:
+                if len(col.data) != len(self._data):
+                    raise ValueError(
+                        "Column data length does not match table length")
 
-            self._data = _append_field(self._data, col.data, dtype=dtype,
-                                       position=index)
+            self._add_cols(cols, indexes)
 
-        # If the user-supplied col is already part of a table then copy.
-        if col.parent_table is not None:
-            col = col.copy()
+    def _add_cols(self, cols, indexes):
+        dtypes = self._data.dtype.descr
+        for col, index in reversed(zip(cols, indexes)):
+            dtypes.insert(index, col.descr)
 
-        # Now that column data are copied into the Table _data table set
-        # the column parent_table to self and clear the data reference.
-        col.parent_table = self
-        col.clear_data()
+        new_table = np.empty(len(self._data), dtype=dtypes)
 
-        self.columns = insert_odict(self.columns, index, col.name, col)
+        for name in self.colnames:
+            new_table[name] = self._data[name]
+
+        for col in cols:
+            new_table[col.name] = col.data
+
+            # If the user-supplied col is already part of a table then copy.
+            if col.parent_table is not None:
+                col = col.copy()
+
+            # Now that column data are copied into the Table _data table set
+            # the column parent_table to self and clear the data reference.
+            col.parent_table = self
+            col.clear_data()
+
+            self.columns = insert_odict(self.columns, index, col.name, col)
+
+        self._data = new_table
 
     def remove_column(self, name):
         """
