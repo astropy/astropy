@@ -180,6 +180,7 @@ class Table(object):
         for col in cols:
             self._data[col.name] = col.data
             col.parent_table = self  # see same in insert_column()
+            self.columns[col.name] = col
 
     def __repr__(self):
         s = "<Table "
@@ -228,83 +229,29 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, *args, **kwargs):
-        self.append_column(*args, **kwargs)
-
-    def append_column(self, name=None, data=None, datatype=None,
-                      shape=tuple(), length=0, description=None,
-                      units=None, format=None, meta=None):
-        """Add a new column after the last existing column.
+    def append_column(self, col):
+        """Add a new ``col`` after the last existing column, similar
+        to the ``list.append()`` method.
 
         Parameters
         ----------
-        name : str
-            Column name and key for reference within Table
-        data : list, ndarray or None
-            Column data values
-        datatype : see examples for type
-            Data type for column
-        shape : tuple or ()
-            Dimensions of a single row element in the column data
-        length : int or 0
-            Number of row elements in column data
-        description : str or None
-            Full description of column
-        units : str or None
-            Physical units
-        format : str or None
-            Sprintf-style format string for outputting column values
-        meta : dict or None
-            Meta-data associated with the column
-
-        Examples
-        --------
-        See the Column class documentation.
+        col: Column
+            Column object to append
         """
-        self.insert_column(len(self.columns),
-                           name=name, data=data, datatype=datatype,
-                           shape=shape, length=length, description=description,
-                           units=units, format=format, meta=meta)
+        self.insert_column(len(self.columns), col)
 
-    def insert_column(self, index, name=None, data=None, datatype=None,
-                      shape=tuple(), length=0, description=None,
-                      units=None, format=None, meta=None):
+    def insert_column(self, index, col):
         """
-        Insert a new Column object ``column`` at given ``index`` position.
+        Insert a new Column object ``col`` before ``index`` position,
+        similar to the ``list.insert()`` method.
 
         Parameters
         ----------
-        name : str
-            Column name and key for reference within Table
-        data : list, ndarray or None
-            Column data values
-        datatype : see examples for type
-            Data type for column
-        shape : tuple or ()
-            Dimensions of a single row element in the column data
-        length : int or 0
-            Number of row elements in column data
-        description : str or None
-            Full description of column
-        units : str or None
-            Physical units
-        format : str or None
-            Sprintf-style format string for outputting column values
-        meta : dict or None
-            Meta-data associated with the column
-
-        Examples
-        --------
-        See the Column class documentation.
+        index : int
+            Insert column before this position.
+        col : Column
+            Column object to insert.
         """
-        # Once self._data table is defined then length is set by table length
-        if self._data is not None:
-            length = len(self._data)
-
-        col = Column(name=name, datatype=datatype, shape=shape,
-                     units=units, format=format, description=description,
-                     length=length, meta=meta, data=data)
-
         dtype = (col.name, col.data.dtype, col.data.shape[1:])
 
         if self._data is None:
@@ -400,7 +347,8 @@ class Table(object):
             raise KeyError("Column {0} already exists".format(after))
 
         pos = self.columns.keys().index(before)
-        self._data.dtype.names = self.keys()[:pos] + [after, ] + self.keys()[pos + 1:]
+        self._data.dtype.names = (self.keys()[:pos] + [after, ]
+                                  + self.keys()[pos + 1:])
 
         self.columns = rename_odict(self.columns, before, after)
 
