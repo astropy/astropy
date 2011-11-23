@@ -35,7 +35,7 @@ class ConfigurationItem(object):
     name : str
         The (case-sensitive) name of this parameter, as shown in the 
         configuration file.
-    defaultvalue : 
+    defaultvalue
         The default value for this item. If this is a list of strings, this item
         will be interpreted as an 'options' value - this item must be one of
         those values, and the first in the list will be taken as the default
@@ -148,7 +148,7 @@ class ConfigurationItem(object):
         
         Parameter
         ---------
-        value : 
+        value
             The value this item should be set to.
             
         Raises
@@ -181,7 +181,7 @@ class ConfigurationItem(object):
         
         Parameters
         ----------
-        value : 
+        value
             Save this value to the configuration file. If None, the current
             value of this `ConfigurationItem` will be saved.
             
@@ -222,7 +222,7 @@ class ConfigurationItem(object):
         
         Returns
         -------
-        val :
+        val
             The new value loaded from the configuration file.
         """
         baseobj = get_config(self.module)
@@ -245,7 +245,7 @@ class ConfigurationItem(object):
         
         Returns
         -------
-        val : 
+        val
             This item's value, with a type determined by the `cfgtype` 
             attribute.
             
