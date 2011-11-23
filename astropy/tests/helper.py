@@ -42,19 +42,6 @@ except ImportError:
 remote_data = pytest.mark.remote_data
 
 
-# these pytest hooks allow us to mark tests and run the marked tests with
-# specific command line options.
-def pytest_addoption(parser):
-    parser.addoption("--remotedata", action="store_true",
-        help="run tests with online data")
-
-
-def pytest_runtest_setup(item):
-    if ('remote_data' in item.keywords and
-        not item.config.getvalue("remotedata")):
-        pytest.skip("need --remotedata option to run")
-
-
 def run_tests(package=None, test_path=None, args=None, plugins=None,
               verbose=False, pastebin=None, remote_data=False, pep8=False):
     """
@@ -116,7 +103,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
 
     # '-p astropy.tests.helper' tells py.test to use this module as a plugin
     # so that the hooks defined above are actually used.
-    all_args = package_path + ' -p astropy.tests.helper'
+    all_args = package_path
 
     # add any additional args entered by the user
     if args is not None:
