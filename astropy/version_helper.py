@@ -68,7 +68,7 @@ def _update_git_devstr(version):
     return version_base + devstr
 
 
-def _get_git_devstr(sha=False, show_warning=True):
+def _get_git_devstr(sha=False, show_warning=True, dir=None):
     """
     Determines the number of revisions in this repository.
 
@@ -83,6 +83,11 @@ def _get_git_devstr(sha=False, show_warning=True):
     show_warning : bool
         If True, issue a warning if git returns an error code, otherwise errors
         pass silently.
+    
+    dir : str or None
+        If a string, specifies the directory to look in to find the git 
+        repository.  If None, the location of the file this function is in
+        is used to infer the git repository location.
 
     Returns
     -------
@@ -94,15 +99,16 @@ def _get_git_devstr(sha=False, show_warning=True):
     import os
     from subprocess import Popen, PIPE
     from warnings import warn
-
-    currdir = os.path.abspath(os.path.split(__file__)[0])
+    
+    if dir is None:
+        dir = os.path.abspath(os.path.split(__file__)[0])
 
     if sha:
         cmd = 'rev-parse' # Faster for getting just the hash of HEAD
     else:
         cmd = 'rev-list'
 
-    p = Popen(['git', cmd, 'HEAD'], cwd=currdir,
+    p = Popen(['git', cmd, 'HEAD'], cwd=dir,
               stdout=PIPE, stderr=PIPE, stdin=PIPE)
     stdout, stderr = p.communicate()
 
