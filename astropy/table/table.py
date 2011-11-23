@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+import collections
 
 from astropy.utils import OrderedDict
 from structhelper import _append_field, _drop_fields
@@ -262,7 +263,7 @@ class Table(object):
         """
         if index is None:
             index = len(self.columns)
-            
+
         dtype = (col.name, col.data.dtype, col.data.shape[1:])
 
         if self._data is None:
@@ -365,6 +366,45 @@ class Table(object):
                                   + self.keys()[pos + 1:])
 
         self.columns = rename_odict(self.columns, name, new_name)
+
+    def add_row(self, vals=None):
+        """Add a new row to the end of the table.
+
+        The ``vals`` argument can be:
+
+        sequence (e.g. tuple or list)
+            Column values in the same order as table columns.
+        mapping (e.g. dict)
+            Keys corresponding to column names.  Missing values will be
+            filled with np.zeros for the column dtype.
+        None
+            All values filled with np.zeros for the column dtype.
+
+        Parameters
+        ----------
+        vals : tuple, list, dict or None
+            Use the specified values in the new row
+        """
+        newlen = len(self._data) + 1
+        self._data.resize((newlen,), refcheck=False)
+
+        if isinstance(vals, collections.Mapping):
+            row = self._data[-1]
+            for name, val in vals.items():
+                try:
+                    row[name] = val
+                except IndexError:
+                    raise ValueError("No column {0} in table".format(name))
+
+        elif isinstance(vals, collections.Iterable):
+            if len(self.columns) != len(vals):
+                raise ValueError('Mismatch between number of vals and columns')
+            if not isinstance(vals, tuple):
+                vals = tuple(vals)
+            self._data[-1] = vals
+
+        elif vals is not None:
+            raise TypeError('Vals must be an iterable or mapping or None')
 
     def sort(self, keys):
         '''

@@ -178,6 +178,62 @@ class TestInitFromTable():
             assert t2.columns['a'].meta['a'][3] == 10
 
 
+class TestAddRow():
+
+    def setup_method(self, method):
+        self.a = Column('a', [1, 2, 3])
+        self.b = Column('b', [4.0, 5.1, 6.2])
+        self.c = Column('c', ['7', '8', '9'], datatype='S2')
+        self.t = Table([self.a, self.b, self.c])
+
+    def test_add_with_tuple(self):
+        t = self.t
+        t.add_row((4, 7.2, '10'))
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 4]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '10']))
+
+    def test_add_with_list(self):
+        t = self.t
+        t.add_row([4, 7.2, '10'])
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 4]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '10']))
+
+    def test_add_with_dict(self):
+        t = self.t
+        t.add_row({'a': 4, 'b': 7.2})
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 4]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '']))
+
+    def test_add_with_none(self):
+        t = self.t
+        t.add_row()
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 0]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '']))
+
+    def test_add_missing_column(self):
+        t = self.t
+        with pytest.raises(ValueError):
+            t.add_row({'bad_column': 1})
+
+    def test_wrong_size_tuple(self):
+        t = self.t
+        with pytest.raises(ValueError):
+            t.add_row((1, 2))
+
+    def test_wrong_vals_type(self):
+        t = self.t
+        with pytest.raises(TypeError):
+            t.add_row(1)
+
+
 class TestArrayColumns():
 
     def setup_method(self, method):
