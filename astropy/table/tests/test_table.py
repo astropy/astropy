@@ -139,6 +139,45 @@ class TestAddPosition():
         assert t.columns.keys() == ['c', 'a', 'b']
 
 
+class TestInitFromTable():
+
+    def setup_method(self, method):
+        self.a = Column('a', [1, 2, 3], meta={'a': np.arange(5)})
+        self.b = Column('b', [4, 5, 6])
+        self.c = Column('c', [7, 8, 9])
+        self.t = Table([self.a, self.b])
+
+    def test_from_table_cols(self):
+        """Ensure that using cols from an existing table gives
+        a clean copy.
+        """
+        t = self.t
+        cols = t.columns
+        # Construct Table with cols via Table._new_from_cols
+        t2a = Table([cols['a'], cols['b'], self.c])
+
+        # Construct with append_column
+        t2b = Table()
+        t2b.append_column(cols['a'])
+        t2b.append_column(cols['b'])
+        t2b.append_column(self.c)
+
+        t['a'][1] = 20
+        t['b'][1] = 21
+        for t2 in [t2a, t2b]:
+            t2['a'][2] = 10
+            t2['b'][2] = 11
+            t2['c'][2] = 12
+            t2.columns['a'].meta['a'][3] = 10
+            assert np.all(t['a'] == np.array([1, 20, 3]))
+            assert np.all(t['b'] == np.array([4, 21, 6]))
+            assert np.all(t2['a'] == np.array([1, 2, 10]))
+            assert np.all(t2['b'] == np.array([4, 5, 11]))
+            assert np.all(t2['c'] == np.array([7, 8, 12]))
+            assert t.columns['a'].meta['a'][3] == 3
+            assert t2.columns['a'].meta['a'][3] == 10
+
+
 class TestArrayColumns():
 
     def setup_method(self, method):

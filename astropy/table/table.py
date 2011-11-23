@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 from astropy.utils import OrderedDict
@@ -99,7 +100,7 @@ class Column(object):
         self.format = format
         self.description = description
         self.datatype = datatype
-        self._parent_table = None
+        self.parent_table = None
 
         self.meta = OrderedDict()
         if meta is not None:
@@ -117,18 +118,30 @@ class Column(object):
             self._data = np.ndarray(len(data), dtype=dtype)
             self._data[:] = data
 
-    def _get_parent_table(self):
-        return self._parent_table
-
-    def _set_parent_table(self, val):
-        self._parent_table = val
+    def clear_data(self):
+        """Set the internal column data attribute to None in order
+        to release the reference.  This should typically be done
+        in combination with setting the parent_table attribute so
+        that self.data returns the desired column data.
+        """
         self._data = None
 
-    parent_table = property(_get_parent_table, _set_parent_table)
+    def copy(self):
+        """Return a copy of the current Column instance.
+        """
+        # Use a minimal constructor then manually copy attributes
+        newcol = Column(self.name)
+        for attr in ('units', 'format', 'description', 'datatype',
+                     'parent_table', '_data'):
+            val = getattr(self, attr)
+            setattr(newcol, attr, val)
+        newcol.meta = copy.deepcopy(self.meta)
+
+        return newcol
 
     @property
     def dtype(self):
-        """Data type attribute.  This checks that column data reference has 
+        """Data type attribute.  This checks that column data reference has
         been made."""
         if self.data is None:
             raise ValueError('No column data reference available '
@@ -138,13 +151,14 @@ class Column(object):
     @property
     def data(self):
         """Column data attribute.  Only available if parent data exist"""
-        if self._parent_table is not None:
-            return self._parent_table[self.name]
+        if self.parent_table is not None:
+            return self.parent_table[self.name]
         else:
             return self._data
 
     def __repr__(self):
-        s = "<Column name='{0} units='{1}' format='{2}' description='{3}'>".format(
+        s = "<Column name='{0} units='{1}' " \
+            "format='{2}' description='{3}'>".format(
             self.name, self.units, self.format, self.description)
         return s
 
@@ -179,7 +193,10 @@ class Table(object):
         self._data = np.ndarray(lengths.pop(), dtype=dtype)
         for col in cols:
             self._data[col.name] = col.data
+            if col.parent_table is not None:
+                col = col.copy()
             col.parent_table = self  # see same in insert_column()
+            col.clear_data()
             self.columns[col.name] = col
 
     def __repr__(self):
@@ -267,11 +284,14 @@ class Table(object):
             self._data = _append_field(self._data, col.data, dtype=dtype,
                                        position=index)
 
+        # If the user-supplied col is already part of a table then copy.
+        if col.parent_table is not None:
+            col = col.copy()
+
         # Now that column data are copied into the Table _data table set
-        # the column parent_table to self.  This causes the column to
-        # drop its reference to data and makes col.data return
-        # col.parent_table[col.name].
+        # the column parent_table to self and clear the data reference.
         col.parent_table = self
+        col.clear_data()
 
         self.columns = insert_odict(self.columns, index, col.name, col)
 
