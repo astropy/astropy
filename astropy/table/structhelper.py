@@ -1,51 +1,36 @@
 import numpy as np
-import numpy.ma as ma
 
 
-def _append_field(sta, data, dtype=None, position=None, masked=False):
+def _append_field(table, data, dtype=None, position=None):
 
-    newdtype = sta.dtype.descr
-    if np.equal(position, None):
-        newdtype.append(dtype)
-    else:
-        newdtype.insert(position, dtype)
-    newdtype = np.dtype(newdtype)
+    newdtype = table.dtype.descr
+    if position is None:
+        position = len(newdtype)
 
-    if masked:
-        newsta = ma.empty(sta.shape, dtype=newdtype)
-    else:
-        newsta = np.empty(sta.shape, dtype=newdtype)
+    newdtype.insert(position, dtype)
+    newtable = np.empty(table.shape, dtype=newdtype)
 
-    for field in sta.dtype.fields:
-        newsta[field] = sta[field]
-        if masked:
-            newsta[field].set_fill_value(sta[field].fill_value)
+    for field in table.dtype.fields:
+        newtable[field] = table[field]
 
-    newsta[dtype[0]] = data
-    if masked:
-        newsta[dtype[0]].set_fill_value(data.fill_value)
+    newtable[dtype[0]] = data
 
-    return newsta
+    return newtable
 
 
-def _drop_fields(sta, names, masked=False):
+def _drop_fields(table, names):
 
     names = set(names)
-
-    newdtype = np.dtype([(name, sta.dtype[name]) for name in sta.dtype.names
-                       if name not in names])
+    newdtype = [(name, table.dtype[name]) for name in table.dtype.names
+                if name not in names]
+    newdtype = np.dtype(newdtype)
 
     if newdtype:
-        if masked:
-            newsta = ma.empty(sta.shape, dtype=newdtype)
-        else:
-            newsta = np.empty(sta.shape, dtype=newdtype)
+        newtable = np.empty(table.shape, dtype=newdtype)
     else:
         return None
 
     for field in newdtype.fields:
-        newsta[field] = sta[field]
-        if masked:
-            newsta[field].set_fill_value(sta[field].fill_value)
+        newtable[field] = table[field]
 
-    return newsta
+    return newtable
