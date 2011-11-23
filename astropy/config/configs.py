@@ -3,10 +3,10 @@
 configuration files for Astropy and affiliated packages.
 
 .. note::
-    The configuration system makes use of the 'configobj' pacakge, which stores
+    The configuration system makes use of the 'configobj' package, which stores
     configuration in a text format like that used in the standard library
-    `ConfigParser`. More information and documentation for confobj can be found
-    at http://www.voidspace.org.uk/python/configobj.html.
+    `ConfigParser`. More information and documentation for confoigbj can be 
+    found at http://www.voidspace.org.uk/python/configobj.html.
 """
 
 from __future__ import division
@@ -397,28 +397,35 @@ def _find_current_module(depth=1):
     of the module is available as the ``__name__`` attribute of the returned
     object (if it isn't None)
     """
-    import inspect
+    from inspect import currentframe,getmodule
     
-    frm = inspect.currentframe()
+    frm = currentframe()
     for i in range(depth):
         frm = frm.f_back
         if frm is None:
             return None
-    return inspect.getmodule(frm)
+    return getmodule(frm)
     
 def _generate_all_config_items(package=None,reset_to_default=False):
-    """ Given a root package or package name, this function simple walks through
+    """ Given a root package or package name, this function simply walks through
     all the subpackages and modules, which should populate any ConfigurationItem
-    objects defined at the module level. IF `reset_to_Default` is True, it also
+    objects defined at the module level. If `reset_to_default` is True, it also
     sets all of the items to their default values, regardless of what the file's
-    value currently is. It then saves the `ConfigObj`.
+    value currently is. It then saves the `ConfigObj`. 
+    
+    If `package` is None, it determines the package based on the root package of
+    the function where this function is called. Be a bit cautious about this,
+    though - this might not always be what you want.
     """
-    import pkgutil
+    from pkgutil import find_module,walk_packages
+    
+    if package is None:
+        package = _find_current_module(1).__name__.split('.')[0]
     
     if isinstance(package,basestring):
-        package = pkgutil.find_module(package).load_module(package) 
+        package = find_module(package).load_module(package) 
     
-    for imper,nm,ispkg in pkgutil.walk_packages(package.__path__,package.__name__+'.'):
+    for imper,nm,ispkg in walk_packages(package.__path__,package.__name__+'.'):
         mod = imper.load_module(nm)
         if reset_to_default:
             for v in mod.__dict__.values():

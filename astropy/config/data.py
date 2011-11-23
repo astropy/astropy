@@ -5,28 +5,30 @@ caching data files.
 
 from __future__ import division
 from .configs import ConfigurationItem,save_config
+from sys import version_info
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'compute_hash',
            'clear_data_cache']
 
-DATAURL = ConfigurationItem('dataurl','http://data.astropy.org/',
-                            'URL for astropy remote data site.')
-REMOTE_TIMEOUT = ConfigurationItem('remote_timeout',3.,
-                  'Time to wait for remote data query (in seconds).')  
-COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem('hash_block_size',2**16, #64K
-                            'Block size for computing MD5 file hashes.')  
-DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem('data_dl_block_size',2**16, #64K
-                        'Number of bytes of remote data to download per step.')
+DATAURL = ConfigurationItem(
+    'dataurl','http://data.astropy.org/','URL for astropy remote data site.')
+REMOTE_TIMEOUT = ConfigurationItem(
+    'remote_timeout',3.,'Time to wait for remote data query (in seconds).')  
+COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem(
+    'hash_block_size', 2**16, 'Block size for computing MD5 file hashes.') #64K
+DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem(
+    'data_dl_block_size', 2**16, #64K
+    'Number of bytes of remote data to download per step.')
+DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
+    'data_cache_lock_attempts',3,'Number of times to try to get the lock ' + 
+    'while accessing the data cache before giving up.')
 
-DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem('data_cache_lock_attempts',3,
-                            'Number of times to try to get the lock while ' + 
-                            'accessing the data cache before giving up.')
-
-#used for supporting with statements in get_data_fileobj
-def _fake_enter(self):
-    return self
-def _fake_exit(self, type, value, traceback):
-    self.close()
+if version_info.major<3:
+    #used for supporting with statements in get_data_fileobj
+    def _fake_enter(self):
+        return self
+    def _fake_exit(self, type, value, traceback):
+        self.close()
 
 def get_data_fileobj(dataname, cache=True):
     """
@@ -81,12 +83,8 @@ def get_data_fileobj(dataname, cache=True):
     
         from astropy.config import get_data_fileobj
         
-        fobj = get_data_fileobj('astropy/wcs/tests/data/3d_cd.hdr')
-        
-        try:
+        with get_data_fileobj('astropy/wcs/tests/data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
-        finally:
-            fobj.close()
             
             
     This downloads a data file and its contents from a specified URL, and does
@@ -104,7 +102,7 @@ def get_data_fileobj(dataname, cache=True):
     from types import MethodType
     
     if cache:
-        return open(get_data_filename(dataname), 'r')
+        return open(get_data_filename(dataname), 'rb')
     else:
         url = urlparse(dataname)
         if url.scheme != '':
@@ -116,11 +114,12 @@ def get_data_fileobj(dataname, cache=True):
                 #not local file - need to get remote data
                 urlres = urlopen(DATAURL() + datafn,timeout=REMOTE_TIMEOUT())
             else:
-                return open(datafn, 'r')
+                return open(datafn, 'rb')
         
-        #need to add in context managers to support with urlopen
-        urlres.__enter__ = MethodType(_fake_enter, urlres)
-        urlres.__exit__ = MethodType(_fake_exit, urlres)
+        if version_info.major<3:
+            #need to add in context managers to support with urlopen
+            urlres.__enter__ = MethodType(_fake_enter, urlres)
+            urlres.__exit__ = MethodType(_fake_exit, urlres)
         
         return urlres
 
@@ -234,7 +233,7 @@ def compute_hash(localfn):
     
     
     
-    with open(localfn) as f:
+    with open(localfn,'rb') as f:
         h = hashlib.md5()
         block = f.read(COMPUTE_HASH_BLOCK_SIZE())
         while block!='':
@@ -278,14 +277,14 @@ def _find_pkg_data_fn(dataname):
 
 def _find_hash_fn(hash):
     """
-    Looks for a local file by hash - returns file name if found, otherwise
-    returns None.
+    Looks for a local file by hash - returns file name if found and a valid 
+    file, otherwise returns None.
     """
-    from os.path import exists,join
+    from os.path import isfile,join
     
     dldir,urlmapfn = _get_data_cache_locs()
     hashfn = join(dldir,hash)
-    if exists(hashfn):
+    if isfile(hashfn):
         return hashfn
     else:
         return None
@@ -315,7 +314,7 @@ def _cache_remote(remoteurl):
                     tmpfn = join(dldir,'cachedl.tmp')
                     hash = hashlib.md5()
                     
-                    with open(tmpfn,'w') as f:
+                    with open(tmpfn,'wb') as f:
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
                         while block!='':
                             #TODO: add in something to update a progress bar 
@@ -352,7 +351,7 @@ def clear_data_cache(hashorurl=None):
     """
     import shelve
     from os import unlink
-    from os.path import join, split, exists
+    from os.path import join, split, exists, abspath
     from shutil import rmtree
     from contextlib import closing
     
@@ -368,6 +367,9 @@ def clear_data_cache(hashorurl=None):
         else:
             with closing(shelve.open(urlmapfn)) as url2hash:
                 filepath = join(dldir, hashorurl)
+                assert abspath(filepath).startswith(abspath(dldir)), \
+                       ("attempted to use clear_data_cache on a location" +
+                        " that's not inside the data cache directory")
                 
                 if exists(filepath):
                     for k,v in url2hash.items():
