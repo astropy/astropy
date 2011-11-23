@@ -246,29 +246,23 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def append_column(self, col):
-        """Add a new ``col`` after the last existing column, similar
-        to the ``list.append()`` method.
+    def add_column(self, col, index=None):
+        """
+        Add a new Column object ``col`` to the table.  If ``index``
+        is supplied then insert column before ``index`` position
+        in the list of columns, otherwise append column to the end
+        of the list.
 
         Parameters
         ----------
-        col: Column
-            Column object to append
-        """
-        self.insert_column(len(self.columns), col)
-
-    def insert_column(self, index, col):
-        """
-        Insert a new Column object ``col`` before ``index`` position,
-        similar to the ``list.insert()`` method.
-
-        Parameters
-        ----------
-        index : int
-            Insert column before this position.
         col : Column
-            Column object to insert.
+            Column object to add.
+        index : int or None
+            Insert column before this position or at end (default)
         """
+        if index is None:
+            index = len(self.columns)
+            
         dtype = (col.name, col.data.dtype, col.data.shape[1:])
 
         if self._data is None:
