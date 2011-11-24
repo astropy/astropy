@@ -114,8 +114,6 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     if test_path:
         package_path = os.path.join(package_path,os.path.abspath(test_path))
 
-    # '-p astropy.tests.helper' tells py.test to use this module as a plugin
-    # so that the hooks defined above are actually used.
     all_args = package_path
 
     # add any additional args entered by the user
