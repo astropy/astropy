@@ -1,15 +1,5 @@
-# this contains plugins that configure py.test for astropy tests
+# this contains imports plugins that configure py.test for astropy tests.
+# by importing them here in conftest.py they are discoverable by py.test
+# no matter how it is invoked within the astropy tree.
 
-from .tests.helper import pytest
-
-# these pytest hooks allow us to mark tests and run the marked tests with
-# specific command line options.
-def pytest_addoption(parser):
-    parser.addoption("--remotedata", action="store_true",
-        help="run tests with online data")
-
-
-def pytest_runtest_setup(item):
-    if ('remote_data' in item.keywords and
-        not item.config.getvalue("remotedata")):
-        pytest.skip("need --remotedata option to run")
+from .tests.helper import pytest_addoption, pytest_runtest_setup
