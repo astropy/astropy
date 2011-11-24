@@ -31,8 +31,8 @@ class Constant(float):
         self.units = units
         return float.__init__(self, value)
 
-    def __new__(self, value, error, name, origin, units):
-        return float.__new__(self, value)
+    def __new__(cls, value, error, name, origin, units):
+        return float.__new__(cls, value)
 
     def __repr__(self):
         s = "<Constant: "
