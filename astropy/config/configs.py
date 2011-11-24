@@ -146,8 +146,8 @@ class ConfigurationItem(object):
             configuration file.  To do that, use `ConfigurationItem.save` or
             `save_config`.
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         value
             The value this item should be set to.
             
