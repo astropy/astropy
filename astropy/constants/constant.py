@@ -25,7 +25,7 @@ class Constant(float):
     """
 
     def __init__(self, value, error, name, origin, units):
-        float.__init__(self, value)
+        float.__init__(self)
         self.error = error
         self.name = name
         self.origin = origin
