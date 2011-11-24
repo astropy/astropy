@@ -25,11 +25,11 @@ class Constant(float):
     """
 
     def __init__(self, value, error, name, origin, units):
+        float.__init__(self, value)
         self.error = error
         self.name = name
         self.origin = origin
         self.units = units
-        return float.__init__(self, value)
 
     def __new__(cls, value, error, name, origin, units):
         return float.__new__(cls, value)
