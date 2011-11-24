@@ -35,7 +35,7 @@ class Constant(float):
         return float.__new__(cls, value)
 
     def __repr__(self):
-        s = "<Constant: "
+        s = "<{0}: ".format(self.__class__.__name__)
         s += "name='{0}' ".format(self.name)
         s += "value={0} ".format(float.__repr__(self))
         s += "error={0} ".format(self.error)
