@@ -44,7 +44,7 @@ py.test
 -------
 
 An alternative way to run tests from the command line is to switch to the source
-code directory of astropy simply type::
+code directory of astropy and simply type::
 
     py.test
 
@@ -236,12 +236,8 @@ Tests that may retrieve remote data should be marked with the ``@remote_data``
 decorator. Tests marked with this decorator will be skipped by default by
 ``astropy.test()`` to prevent test runs from taking too long. These tests can
 be run by ``astropy.test()`` by adding the ``remote_data=True`` flag.
-
-When running ``py.test`` from the command line it won't automatically skip
-``@remote_data`` tests because it won't have the plugins defined in
-``tests.helper``. Skip the tests using the ``-k`` option::
-
-    py.test -k "-remote_data"
+Turn on the remote data tests at the command line with
+``py.test --remote-data``.
 
 Examples
 ^^^^^^^^
