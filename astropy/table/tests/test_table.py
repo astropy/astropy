@@ -42,6 +42,16 @@ class TestNewFromColumns():
         assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
         assert type(t['b'][1]) == np.float32
 
+    def test_from_np_array(self):
+        cols = [Column('a', np.array([1, 2, 3], dtype=np.int64),
+                       datatype=np.float64),
+                Column('b', np.array([4, 5, 6], dtype=np.float32))]
+        t = Table(cols)
+        assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
+        assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
+        assert type(t['a'][1]) == np.float64
+        assert type(t['b'][1]) == np.float32
+
     def test_size_mismatch(self):
         cols = [Column('a', [1, 2, 3]),
                 Column('b', [4, 5, 6, 7])]

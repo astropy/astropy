@@ -100,15 +100,17 @@ class Column(object):
 
         if data is None:
             self._data = np.zeros(length,
-                                  dtype=(datatype or np.float, shape))
+                                  dtype=(np.dtype(datatype).str, shape))
         else:
-            try:
-                dtype = (datatype or data.dtype, data.shape[1:])
-            except AttributeError:
+            if not isinstance(data, np.ndarray):
                 data = np.array(data)
-                dtype = (datatype or data.dtype, data.shape[1:])
-            self._data = np.ndarray(len(data), dtype=dtype)
-            self._data[:] = data
+
+            if datatype is None:
+                dtype = (data.dtype.str, data.shape[1:])
+            else:
+                dtype = (np.dtype(datatype).str, data.shape[1:])
+
+            self._data = np.array(data, dtype=dtype)
 
     def clear_data(self):
         """Set the internal column data attribute to None in order
