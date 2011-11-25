@@ -60,10 +60,10 @@ loaded in separate extensions if they are not in :func:`get_extensions`. For
 Cython extensions located in this way, headers for numpy C functions are
 included in the build, but no other external headers are included. ``.pyx``
 files present in the extensions returned by :func:`get_extensions` are not
-included in the list of extensions automatically generated extensions. Note that
-this allows disabling a Cython file by poroviding an extension that includes the
-Cython file, but giving at the special `name` 'cython_skip'. Any extension with
-this package name will not be built by ``setup.py``.
+included in the list of extensions automatically generated extensions. Note
+that this allows disabling a Cython file by providing an extension that
+includes the Cython file, but giving it the special `name` 'cython_skip'. Any
+extension with this package name will not be built by ``setup.py``.
 
 .. note::
 
