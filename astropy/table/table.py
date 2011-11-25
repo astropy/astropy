@@ -33,8 +33,8 @@ class Column(object):
         Column name and key for reference within Table
     data : list, ndarray or None
         Column data values
-    datatype : see examples for type
-        Data type for column
+    dtype : numpy.dtype compatible value
+        Data type for column 
     shape : tuple or ()
         Dimensions of a single row element in the column data
     length : int or 0
@@ -52,46 +52,49 @@ class Column(object):
     --------
     A Column can be created in two different ways:
 
-    *Provide a `data` value and optionally a `datatype` value*
-    ::
+    - Provide a ``data`` value and optionally a ``dtype`` value
+      
+      Examples::
 
-      col = Column('name', data=[1, 2, 3])         # shape=(3,)
-      col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-      col = Column('name', data=[1, 2, 3], datatype=float)  # float type
-      col = Column('name', np.array([1, 2, 3]))
-      col = Column('name', ['hello', 'world'])
+        col = Column('name', data=[1, 2, 3])         # shape=(3,)
+        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
+        col = Column('name', data=[1, 2, 3], dtype=float) 
+        col = Column('name', np.array([1, 2, 3]))
+        col = Column('name', ['hello', 'world'])
 
-    The `datatype` value can be one of the following (see
-    `http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html`_):
+      The ``dtype`` argument can be any value which is an acceptable
+      fixed-size data-type initializer for the numpy.dtype() method.  See
+      `http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html`_.
+      Examples include:
 
-    - Python non-string type (float, int, bool)
-    - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
-    - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+      - Python non-string type (float, int, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
-    If no `datatype` value is provide then the type is inferred using
-    `np.array(data)`.  When `data` is provided then the `shape` and `length`
-    args are ignored.
+      If no ``dtype`` value is provide then the type is inferred using
+      ``np.array(data)``.  When ``data`` is provided then the ``shape``
+      and ``length`` arguments are ignored.
+      
+    - Provide zero or more of ``dtype``, ``shape``, ``length``
+      
+      Examples::
 
-    *Provide zero or more of `datatype`, `shape`, `length`*
-    ::
+        col = Column('name')
+        col = Column('name', dtype=int, length=10, shape=(3,4))
 
-      col = Column('name')
-      col = Column('name', datatype=int, length=10, shape=(3,4))
-
-    The default `datatype` is `np.float` and the default `length` is zero.
-    The `shape` argument is the array shape of a single cell in the column.
-    The default `shape` is () which means a single value in each element.
+      The default ``dtype`` is ``np.float64`` and the default ``length`` is zero.
+      The ``shape`` argument is the array shape of a single cell in the column.
+      The default ``shape`` is () which means a single value in each element.
     """
 
     def __init__(self, name, data=None,
-                 datatype=None, shape=(), length=0,
+                 dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
         self.name = name
         self.units = units
         self.format = format
         self.description = description
-        self.datatype = datatype
         self.parent_table = None
 
         self.meta = OrderedDict()
@@ -100,17 +103,14 @@ class Column(object):
 
         if data is None:
             self._data = np.zeros(length,
-                                  dtype=(np.dtype(datatype).str, shape))
+                                  dtype=(np.dtype(dtype).str, shape))
         else:
             if not isinstance(data, np.ndarray):
                 data = np.array(data)
 
-            if datatype is None:
-                dtype = (data.dtype.str, data.shape[1:])
-            else:
-                dtype = (np.dtype(datatype).str, data.shape[1:])
-
-            self._data = np.array(data, dtype=dtype)
+            np_dtype = data.dtype if (dtype is None) else np.dtype(dtype)
+            shape = data.shape[1:]
+            self._data = np.array(data, dtype=(np_dtype.str, shape))
 
     def clear_data(self):
         """Set the internal column data attribute to None in order
@@ -125,7 +125,7 @@ class Column(object):
         """
         # Use a minimal constructor then manually copy attributes
         newcol = Column(self.name)
-        for attr in ('units', 'format', 'description', 'datatype',
+        for attr in ('units', 'format', 'description',
                      'parent_table', '_data'):
             val = getattr(self, attr)
             setattr(newcol, attr, val)
@@ -166,7 +166,7 @@ class Column(object):
         return s
 
     def __eq__(self, c):
-        attrs = ('name', 'units', 'datatype', 'format', 'description', 'meta')
+        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
         equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
         return equal
 
@@ -175,7 +175,7 @@ class Column(object):
 
 
 class Table(object):
-    '''A class to represent tables of data'''
+    """A class to represent tables of data"""
 
     def __init__(self, cols=None, name=None):
         self.name = name

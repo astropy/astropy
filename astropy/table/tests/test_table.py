@@ -8,22 +8,22 @@ class TestEmptyData():
 
     def test_1(self):
         t = Table()
-        t.add_column(Column('a', datatype=int, length=100))
+        t.add_column(Column('a', dtype=int, length=100))
         assert len(t['a']) == 100
 
     def test_2(self):
         t = Table()
-        t.add_column(Column('a', datatype=int, shape=(3, ), length=100))
+        t.add_column(Column('a', dtype=int, shape=(3, ), length=100))
         assert len(t['a']) == 100
 
     def test_3(self):
         t = Table()  # length is not given
-        t.add_column(Column('a', datatype=int))
+        t.add_column(Column('a', dtype=int))
         assert len(t['a']) == 0
 
     def test_4(self):
         t = Table()  # length is not given
-        t.add_column(Column('a', datatype=int, shape=(3, 4)))
+        t.add_column(Column('a', dtype=int, shape=(3, 4)))
         assert len(t['a']) == 0
 
     def test_5(self):
@@ -36,7 +36,7 @@ class TestNewFromColumns():
 
     def test_simple(self):
         cols = [Column('a', [1, 2, 3]),
-                Column('b', [4, 5, 6], datatype=np.float32)]
+                Column('b', [4, 5, 6], dtype=np.float32)]
         t = Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
@@ -44,7 +44,7 @@ class TestNewFromColumns():
 
     def test_from_np_array(self):
         cols = [Column('a', np.array([1, 2, 3], dtype=np.int64),
-                       datatype=np.float64),
+                       dtype=np.float64),
                 Column('b', np.array([4, 5, 6], dtype=np.float32))]
         t = Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
@@ -228,7 +228,7 @@ class TestAddRow():
     def setup_method(self, method):
         self.a = Column('a', [1, 2, 3])
         self.b = Column('b', [4.0, 5.1, 6.2])
-        self.c = Column('c', ['7', '8', '9'], datatype='S2')
+        self.c = Column('c', ['7', '8', '9'], dtype='S2')
         self.t = Table([self.a, self.b, self.c])
 
     def test_add_with_tuple(self):
@@ -285,14 +285,14 @@ class TestArrayColumns():
         self.a = Column('a', [1, 2, 3])
 
     def test_1d(self):
-        b = Column('b', datatype=int, shape=(2, ), length=3)
+        b = Column('b', dtype=int, shape=(2, ), length=3)
         t = Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2)
         assert t['b'][0].shape == (2, )
 
     def test_2d(self):
-        b = Column('b', datatype=int, shape=(2, 4), length=3)
+        b = Column('b', dtype=int, shape=(2, 4), length=3)
         t = Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4)
@@ -300,7 +300,7 @@ class TestArrayColumns():
 
     def test_3d(self):
         t = Table([self.a])
-        b = Column('b', datatype=int, shape=(2, 4, 6), length=3)
+        b = Column('b', dtype=int, shape=(2, 4, 6), length=3)
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4, 6)
         assert t['b'][0].shape == (2, 4, 6)
