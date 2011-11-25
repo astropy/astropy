@@ -7,15 +7,46 @@ setup/build/packaging that are useful to astropy as a whole.
 import os
 import sys
 
+from distutils import log
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError
 from distutils.core import Extension
+
 
 try:
     import Cython
     HAVE_CYTHON = True
 except ImportError:
     HAVE_CYTHON = False
+
+try:
+    from numpy import get_include as get_numpy_include
+    numpy_includes = get_numpy_include()
+except ImportError:
+    numpy_includes = []
+
+try:
+    from sphinx.setup_command import BuildDoc
+
+    class AstropyBuildSphinx(BuildDoc):
+        """ A version of build_sphinx that automatically creates the
+        docs/_build directory - this is needed because github won't create the
+        _build dir because it has no tracked files.
+        """
+        def finalize_options(self):
+            from distutils.cmd import DistutilsOptionError
+
+            if self.build_dir is not None:
+                if os.path.isfile(self.build_dir):
+                    raise DistutilsOptionError('Attempted to build_sphinx '
+                                               'into a file ' + self.build_dir)
+                self.mkpath(self.build_dir)
+
+            return BuildDoc.finalize_options(self)
+
+    cmdclassd['build_sphinx'] = AstropyBuildSphinx
+except ImportError:  # Sphinx not present
+    AstropyBuildSphinx = None
 
 
 def get_distutils_option(option, commands):
@@ -87,7 +118,75 @@ def get_debug_option():
     return debug
 
 
-def iter_setup_packages():
+def update_package_files(srcdir, extensions, package_data, data_files):
+    """ Extends existing extensions and data_files lists, and updates an
+    existing package_data dict by iterating through all packages in ``srcdir``
+    and locating a ``setup_package.py`` module.  This module can contain any of
+    three functions: ``get_extensions()``, ``get_package_data()``, and
+    ``get_data_files()``.
+
+    Each of those functions take no arguments.  ``get_extensions`` returns a
+    list of `distutils.extension.Extension` objects.  ``get_package_data()``
+    returns a dict formatted as required by the ``package_data`` argument to
+    ``setup()``, and likewise ``get_data_files()`` returns a list of data files
+    to be passed to to the ``data_files`` argument.
+
+    The purpose of this function is to allow subpackages to update the
+    arguments to the package's ``setup()`` function in its setup.py script,
+    rather than having to specify all extensions/package data directly in the
+    setup.py.  It updates existing lists in the setup.py rather than returning
+    new ones.  See Astropy's own setup.py for example usage and the Astropy
+    development docs for more details.
+
+    """
+
+    from astropy.version import release
+
+    # For each of the setup_package.py modules, extract any information that is
+    # needed to install them.
+    for pkgnm, setuppkg in iter_setup_packages(srcdir):
+        # get_extensions must include any Cython extensions by their .pyx
+        # filename.
+        if hasattr(setuppkg, 'get_extensions'):
+            extensions.extend(setuppkg.get_extensions())
+
+        if hasattr(setuppkg, 'get_package_data'):
+            package_data.update(setuppkg.get_package_data())
+        if hasattr(setuppkg, 'get_data_files'):
+            data_files.extend(setuppkg.get_data_files())
+
+    # Locate any .pyx files not already specified, and add their extensions in.
+    # The default include dirs include numpy to facilitate numerical work.
+    extensions.extend(get_cython_extensions(srcdir, extensions,
+                                            [numpy_includes]))
+
+    # Now remove extensions that have the special name 'skip_cython', as they
+    # exist Only to indicate that the cython extensions shouldn't be built
+    for i, ext in reversed(list(enumerate(extensions))):
+        if ext.name == 'skip_cython':
+            del extensions[i]
+
+    if not HAVE_CYTHON:
+        # Replace .pyx with C-equivalents, unless c files are missing
+        for idx, ext in reversed(list(enumerate(extensions))):
+            for jdx, src in enumerate(ext.sources):
+                if src.endswith('.pyx'):
+                    pyxfn = src
+                    cfn = src[:-4] + '.c'
+                elif src.endswith('.c'):
+                    pyxfn = src[:-2] + '.pyx'
+                    cfn = src
+                if os.path.isfile(pyxfn):
+                    if os.path.isfile(cfn):
+                        ext.sources[jdx] = cfn
+                    else:
+                        log.warn('Could not find c file {0} for {1}; skipping '
+                                 'extension {2}.'.format(cfn, pyxfn, ext.name))
+                        del extensions[idx]
+                        break
+
+
+def iter_setup_packages(srcdir):
     """ A generator that finds and imports all of the ``setup_package.py``
     modules in the source packages.
 
@@ -99,7 +198,7 @@ def iter_setup_packages():
 
     """
 
-    for root, dirs, files in os.walk('astropy'):
+    for root, dirs, files in os.walk(srcdir):
         if 'setup_package.py' in files:
             name = root.replace(os.path.sep, '.') + '.setup_package'
             module = import_module(name)
