@@ -8,7 +8,6 @@ use_setuptools()
 import os
 import glob
 from setuptools import setup, find_packages
-from distutils import log
 
 import astropy
 from astropy import setup_helpers
