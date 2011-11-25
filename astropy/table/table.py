@@ -12,25 +12,16 @@ class ArgumentError(Exception):
 
 def insert_odict(d_old, position, key, value):
     '''Convenience function to insert values into an OrderedDict'''
-    d_new = OrderedDict()
-    for i, k in enumerate(d_old):
-        if position == i:
-            d_new[key] = value
-        d_new[k] = d_old[k]
-    if position == len(d_old):
-        d_new[key] = value
-    return d_new
+    items = d_old.items()
+    items.insert(position, (key, value))
+    return OrderedDict(items)
 
 
 def rename_odict(d_old, before, after):
     '''Convenience function to rename keys in an OrderedDict'''
-    d_new = OrderedDict()
-    for k in d_old:
-        if k == before:
-            d_new[after] = d_old[k]
-        else:
-            d_new[k] = d_old[k]
-    return d_new
+    keys = [(after if key == before else key) for key in d_old.keys()]
+    values = d_old.values()
+    return OrderedDict(zip(keys, values))
 
 
 class Column(object):
