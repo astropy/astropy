@@ -178,6 +178,41 @@ class TestInitFromTable():
             assert t2.columns['a'].meta['a'][3] == 10
 
 
+class TestAddColumns():
+
+    def setup_method(self, method):
+        self.a = Column('a', [1, 2, 3])
+        self.b = Column('b', [4, 5, 6])
+        self.c = Column('c', [7, 8, 9])
+        self.d = Column('d', [7, 8, 7])
+
+    def test_add_columns1(self):
+        t = Table()
+        t.add_columns([self.a, self.b, self.c])
+        assert t.colnames == ['a', 'b', 'c']
+
+    def test_add_columns2(self):
+        t = Table([self.a, self.b])
+        t.add_columns([self.c, self.d])
+        assert t.colnames == ['a', 'b', 'c', 'd']
+        assert np.all(t['c'] == np.array([7, 8, 9]))
+
+    def test_add_columns3(self):
+        t = Table([self.a, self.b])
+        t.add_columns([self.c, self.d], indexes=[1, 0])
+        assert t.colnames == ['d', 'a', 'c', 'b']
+
+    def test_add_columns4(self):
+        t = Table([self.a, self.b])
+        t.add_columns([self.c, self.d], indexes=[0, 0])
+        assert t.colnames == ['c', 'd', 'a', 'b']
+
+    def test_add_columns5(self):
+        t = Table([self.a, self.b])
+        t.add_columns([self.c, self.d], indexes=[2, 2])
+        assert t.colnames == ['a', 'b', 'c', 'd']
+
+
 class TestAddRow():
 
     def setup_method(self, method):

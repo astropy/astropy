@@ -3,7 +3,7 @@ import numpy as np
 import collections
 
 from astropy.utils import OrderedDict
-from structhelper import _append_field, _drop_fields
+from structhelper import _drop_fields
 
 
 class ArgumentError(Exception):
@@ -275,10 +275,10 @@ class Table(object):
 
     def add_columns(self, cols, indexes=None):
         """
-        Add a list of new Column objects ``col`s` to the table.
-        If a list of ``indexes`` is supplied then insert column before
-        each ``index`` position in the list of columns, otherwise append
-        columns to the end of the list.
+        Add a list of new Column objects ``cols`` to the table.  If a
+        corresponding list of ``indexes`` is supplied then insert column before
+        each ``index`` position in the *original* list of columns, otherwise
+        append columns to the end of the list.
 
         Parameters
         ----------
@@ -289,6 +289,8 @@ class Table(object):
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
+        elif len(indexes) != len(cols):
+            raise ValueError('Number of indexes must match number of cols')
 
         if self._data is None:
             # Table has no existing data so make a new structured array
@@ -303,17 +305,27 @@ class Table(object):
             self._add_cols(cols, indexes)
 
     def _add_cols(self, cols, indexes):
+        # Make a new dtypes starting from the original list of (name, type,
+        # shape) tuples returned by dtype.descr.  In order to insert multiple
+        # values at a position relative to the *original* list, maintain a
+        # parallel list new_indexes which has None inserted just as dtypes has
+        # the new col.descr inserted.
         dtypes = self._data.dtype.descr
-        for col, index in reversed(zip(cols, indexes)):
-            dtypes.insert(index, col.descr)
+        new_indexes = range(len(self.colnames) + 1)
+        insert_index = {}
+        for col, index in zip(cols, indexes):
+            i = insert_index[col.name] = new_indexes.index(index)
+            new_indexes.insert(i, None)
+            dtypes.insert(i, col.descr)
 
-        new_table = np.empty(len(self._data), dtype=dtypes)
-
+        # Make the new data table and copy original columns
+        new_data = np.empty(len(self._data), dtype=dtypes)
         for name in self.colnames:
-            new_table[name] = self._data[name]
+            new_data[name] = self._data[name]
 
-        for col in cols:
-            new_table[col.name] = col.data
+        # Insert and copy new columns
+        for col, index in zip(cols, indexes):
+            new_data[col.name] = col.data
 
             # If the user-supplied col is already part of a table then copy.
             if col.parent_table is not None:
@@ -324,9 +336,11 @@ class Table(object):
             col.parent_table = self
             col.clear_data()
 
-            self.columns = insert_odict(self.columns, index, col.name, col)
+            # Insert new column in the same position as for dtypes above
+            self.columns = insert_odict(self.columns, insert_index[col.name],
+                                        col.name, col)
 
-        self._data = new_table
+        self._data = new_data
 
     def remove_column(self, name):
         """
