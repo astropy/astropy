@@ -21,27 +21,34 @@ def _find_home():
     import os
     import sys
     from os import environ as env
+    
+    # this is used below to make fix up encoding issues that sometimes crop up
+    # in py2.x but not in py3.x
+    if sys.version_info[0]<3:
+        decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
+    else:
+        decodepath = lambda pth: pth
 
     #First find the home directory - this is inspired by the scheme ipython
     #uses to identify "home"
     if os.name == 'posix':
         # Linux, Unix, AIX, OS X
         if 'HOME' in env:
-            homedir = env['HOME'].decode(sys.getfilesystemencoding())
+            homedir = decodepath(env['HOME'])
         else:
             raise OSError('Could not find unix home directory to search for' +\
                           ' astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         #Try for a network home first
         if 'HOMESHARE' in env: 
-            homedir = env['HOMESHARE'].decode(sys.getfilesystemencoding())
+            homedir = decodepath(env['HOMESHARE'])
         #See if there's a local home
         elif 'HOMEDRIVE' in env and 'HOMEPATH' in env: 
             homedir = os.path.join(env['HOMEDRIVE'], env['HOMEPATH'])
-            homedir = homedir.decode(sys.getfilesystemencoding())
+            homedir = decodepath(homedir)
         #Maybe a user profile?
         elif 'USERPROFILE' in env:
-            homedir = os.path.join(env['USERPROFILE']).decode(sys.getfilesystemencoding())
+            homedir = decodepath(os.path.join(env['USERPROFILE']))
         else:            
             try:
                 import _winreg as wreg
@@ -49,19 +56,19 @@ def _find_home():
             'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
                 
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
-                homedir = homedir.decode(sys.getfilesystemencoding())
+                homedir = decodepath(homedir)
                 key.Close()
             except:
                 #As a final possible resort, see if HOME is present for some reason
                 if 'HOME' in env:
-                    homedir = env['HOME'].decode(sys.getfilesystemencoding())
+                    homedir = decodepath(env['HOME'])
                 else:
                     raise OSError('Could not find windows home directory to' +\
                                   ' search for astropy config dir')
     else:
         #for other platforms, try HOME, although it probably isn't there
         if 'HOME' in env:
-            homedir = env['HOME'].decode(sys.getfilesystemencoding())
+            homedir = decodepath(env['HOME'])
         else:
             raise OSError('Could not find a home directory to search for ' +\
                  'astropy config dir - are you on an unspported platform?')
