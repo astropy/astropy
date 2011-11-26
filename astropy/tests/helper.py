@@ -26,9 +26,11 @@ try:
     from distutils import version
     if version.LooseVersion(pytest.__version__) < \
        version.LooseVersion('2.2.0'):
-        class VersionError(Exception):
-            pass
-        raise VersionError("py.test 2.2.0 or later is required")
+       
+        msg = ("py.test 2.2.0 or later is required, but version {0} found." +
+               " Falling back on py.test budled with astropy.")
+        warn(VersionWarning(msg.format(pytest.__version__)))
+        raise ImportError(msg.format(pytest.__version__))
 
 except ImportError:
     from ..extern import pytest as extern_pytest
