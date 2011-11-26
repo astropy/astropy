@@ -60,6 +60,22 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remote-data option to run")
 
 
+def pytest_report_header(config):
+    from .. import __version__
+    s = "\nTesting Astropy version {0}.\n".format(__version__)
+    s += "Running tests in {0}.\n".format(" ".join(config.args))
+
+    special_opts = ["remote_data", "pep8"]
+    opts = []
+    for op in special_opts:
+        if getattr(config.option, op, None):
+            opts.append(op)
+    if opts:
+        s += "Using Astropy options: {0}.\n".format(" ".join(opts))
+
+    return s
+
+
 def run_tests(package=None, test_path=None, args=None, plugins=None,
               verbose=False, pastebin=None, remote_data=False, pep8=False):
     """
@@ -71,9 +87,9 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     package : str, optional
         The name of a specific package to test, e.g. 'io.fits' or 'utils'.
         If nothing is specified all default Astropy tests are run.
-        
+
     test_path : str, optional
-        Specify location to test by path. May be a single file or directory. 
+        Specify location to test by path. May be a single file or directory.
         Must be specified absolutely or relative to the calling directory.
 
     args : str, optional
@@ -97,7 +113,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
         Controls whether to run tests marked with @remote_data. These
         tests use online data and are not run by default. Set to True to
         run these tests.
-        
+
     pep8 : bool, optional
         Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
         tests. Same as specifying `--pep8 -k pep8` in `args`.
@@ -115,7 +131,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
 
         if not os.path.isdir(package_path):
             raise ValueError('Package not found: {0}'.format(package))
-            
+
     if test_path:
         package_path = os.path.join(package_path,os.path.abspath(test_path))
 
@@ -139,7 +155,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     # run @remote_data tests
     if remote_data:
         all_args += ' --remotedata'
-    
+
     if pep8:
         try:
             import pytest_pep8
@@ -148,7 +164,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
                               'http://pypi.python.org/pypi/pytest-pep8')
         else:
             all_args += ' --pep8 -k pep8'
-    
+
     return pytest.main(args=all_args, plugins=plugins)
 
 
