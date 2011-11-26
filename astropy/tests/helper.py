@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This module prvoides the tools used to internally run the astropy test suite
+from the installed astropy.  It makes use of the `pytest` testing framework.
+"""
+
 import sys
 import base64
 import zlib
@@ -45,14 +50,14 @@ remote_data = pytest.mark.remote_data
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
 def pytest_addoption(parser):
-    parser.addoption("--remotedata", action="store_true",
+    parser.addoption("--remote-data", action="store_true",
         help="run tests with online data")
 
 
 def pytest_runtest_setup(item):
     if ('remote_data' in item.keywords and
-        not item.config.getvalue("remotedata")):
-        pytest.skip("need --remotedata option to run")
+        not item.config.getvalue("remote_data")):
+        pytest.skip("need --remote-data option to run")
 
 
 def run_tests(package=None, test_path=None, args=None, plugins=None,
@@ -114,8 +119,6 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     if test_path:
         package_path = os.path.join(package_path,os.path.abspath(test_path))
 
-    # '-p astropy.tests.helper' tells py.test to use this module as a plugin
-    # so that the hooks defined above are actually used.
     all_args = package_path
 
     # add any additional args entered by the user

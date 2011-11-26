@@ -1,6 +1,4 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-from __future__ import division
+# Licensed under a 3-clause BSD style license - see LICENSE.rst  
 
 """
 This module contains configuration and setup utilities for the
@@ -8,3 +6,7 @@ This module contains configuration and setup utilities for the
 affiliated package index.
 """
 
+from .paths import *
+from .configs import *
+from .data import *
+from .affiliated import *
