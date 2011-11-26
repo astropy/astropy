@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This module prvoides the tools used to internally run the astropy test suite
+from the installed astropy.  It makes use of the `pytest` testing framework.
+"""
+
 import sys
 import base64
 import zlib
