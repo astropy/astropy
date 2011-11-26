@@ -71,8 +71,6 @@ for pkgnm, setuppkg in setup_helpers.iter_setup_packages():
         extensions.extend(setuppkg.get_extensions())
 
     if hasattr(setuppkg, 'get_package_data'):
-        # TBD: decide if this should be removed in favor of the data loading
-        # mechanism in config.data
         package_data.update(setuppkg.get_package_data())
     if hasattr(setuppkg, 'get_data_files'):
         data_files.extend(setuppkg.get_data_files())

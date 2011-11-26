@@ -24,8 +24,14 @@ process:
     (possibly including wildcards) relative to the path of the package's source
     code.  e.g. if the source distribution has a needed data file
     ``astropy/wcs/tests/data/3d_cd.hdr``, this function should return 
-    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data`` 
+    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data``  
     option of the  :func:`distutils.core.setup` function.
+    
+    It is recommended that all such data be in a directory named "data" inside
+    the package within which it is supposed to be used, and package data should 
+    be accessed via the `astropy.config.data.get_data_filename` and 
+    `astropy.config.data.get_data_fileobj` functions.
+   
 * :func:`get_data_files`
     This function, if defined, should return a list of tuples (`loc`,`files`)
     where `files` is a list of file paths (now relative to the root of the 
