@@ -23,7 +23,7 @@ DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
     'data_cache_lock_attempts',3,'Number of times to try to get the lock ' + 
     'while accessing the data cache before giving up.')
 
-if version_info.major<3:
+if version_info[0]<3:
     #used for supporting with statements in get_data_fileobj
     def _fake_enter(self):
         return self
@@ -116,7 +116,7 @@ def get_data_fileobj(dataname, cache=True):
             else:
                 return open(datafn, 'rb')
         
-        if version_info.major<3:
+        if version_info[0]<3:
             #need to add in context managers to support with urlopen
             urlres.__enter__ = MethodType(_fake_enter, urlres)
             urlres.__exit__ = MethodType(_fake_exit, urlres)
