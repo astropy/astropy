@@ -139,9 +139,9 @@ def _find_or_create_astropy_dir(dirnm,linkto):
     from os import path,mkdir,symlink
     
     innerdir = path.join(_find_home(),'.astropy')
-    dir = path.join(_find_home(),'.astropy',dirnm)
+    maindir = path.join(_find_home(),'.astropy',dirnm)
     
-    if not path.exists(dir):
+    if not path.exists(maindir):
         #first create .astropy dir if needed
         if not path.exists(innerdir):
             mkdir(innerdir)
@@ -149,13 +149,13 @@ def _find_or_create_astropy_dir(dirnm,linkto):
             msg = 'Intended Astropy directory {0} is actually a file.'
             raise IOError(msg.format(innerdir))
             
-        mkdir(dir)
+        mkdir(maindir)
 
         if linkto is not None and not path.exists(linkto):
-            symlink(dir,linkto)
-    elif not path.isdir(dir):
+            symlink(maindir,linkto)
+    elif not path.isdir(maindir):
         msg = 'Intended Astropy {0} directory {1} is actually a file.'
-        raise IOError(msg.format(dirnm,dir))
+        raise IOError(msg.format(dirnm,maindir))
     
-    return path.abspath(dir)
+    return path.abspath(maindir)
 
