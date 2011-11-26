@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module prvoides the tools used to internally run the astropy test suite
-from the installed astropy.  It makes use of the `pytest` testing framework.
+This module contains functions and classes used by the astropy testing suite.
+They are also used by affiliated packages that use the astropy test system.
 """
 
 import sys
@@ -12,6 +12,12 @@ import os
 import subprocess
 
 from distutils.core import Command
+from warnings import warn
+
+from .. import __path__ as astropy_path
+
+
+class VersionWarning(Warning): pass
 
 try:
     import pytest
