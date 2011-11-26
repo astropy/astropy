@@ -71,9 +71,9 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     package : str, optional
         The name of a specific package to test, e.g. 'io.fits' or 'utils'.
         If nothing is specified all default Astropy tests are run.
-        
+
     test_path : str, optional
-        Specify location to test by path. May be a single file or directory. 
+        Specify location to test by path. May be a single file or directory.
         Must be specified absolutely or relative to the calling directory.
 
     args : str, optional
@@ -97,7 +97,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
         Controls whether to run tests marked with @remote_data. These
         tests use online data and are not run by default. Set to True to
         run these tests.
-        
+
     pep8 : bool, optional
         Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
         tests. Same as specifying `--pep8 -k pep8` in `args`.
@@ -115,7 +115,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
 
         if not os.path.isdir(package_path):
             raise ValueError('Package not found: {0}'.format(package))
-            
+
     if test_path:
         package_path = os.path.join(package_path,os.path.abspath(test_path))
 
@@ -139,7 +139,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
     # run @remote_data tests
     if remote_data:
         all_args += ' --remotedata'
-    
+
     if pep8:
         try:
             import pytest_pep8
@@ -148,7 +148,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
                               'http://pypi.python.org/pypi/pytest-pep8')
         else:
             all_args += ' --pep8 -k pep8'
-    
+
     return pytest.main(args=all_args, plugins=plugins)
 
 
@@ -204,8 +204,8 @@ class astropy_test(Command):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = ('import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, ' +
-              '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}))')
+        cmd = ('import astropy, sys; sys.exit(astropy.test({0!r}, {1!r}, '
+               '{2!r}, {3!r}, {4!r}, {5!r}, {6!r}, {7!r}))')
         cmd = cmd.format(self.package, self.test_path, self.args,
                          self.plugins, self.verbose_results, self.pastebin,
                          self.remote_data, self.pep8)
@@ -222,6 +222,7 @@ class raises:
         def test_foo():
             x = 1/0
     """
+
     # pep-8 naming exception -- this is a decorator class
     def __init__(self, exc):
         self._exc = exc

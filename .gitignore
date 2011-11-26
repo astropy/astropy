@@ -32,3 +32,5 @@ distribute-*.tar.gz
 # Other
 .*.swp
 *~
+.coverage
+cover

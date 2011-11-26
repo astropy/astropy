@@ -5,6 +5,11 @@
 from distribute_setup import use_setuptools
 use_setuptools()
 
+try:
+    import __builtin__ as builtins
+except ImportError:
+    import builtins
+
 import os
 import glob
 from setuptools import setup, find_packages
@@ -15,10 +20,13 @@ from astropy import setup_helpers
 from astropy.tests.helper import astropy_test
 from astropy.version_helper import _get_git_devstr, _generate_version_py
 
+
 version = '0.0dev'
 
 # Indicates if this version is a release version
 release = 'dev' not in version
+
+builtins.__ASTROPY_SETUP__ = True
 
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.

@@ -16,6 +16,7 @@ developed.  For more information, see the `github wiki
    overview
    configs
    wcs/index
+   fits/index
    vo/index
    development/index
 
