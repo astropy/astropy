@@ -18,7 +18,7 @@ def test_url_nocache():
     from ..data import get_data_fileobj
     
     with get_data_fileobj(TESTURL,cache=False) as googlepage:
-        assert googlepage.read().find('oogle</title>')>-1
+        assert googlepage.read().decode().find('oogle</title>')>-1
     
 @remote_data    
 def test_find_by_hash():
