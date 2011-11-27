@@ -138,7 +138,7 @@ def run_tests(package=None, test_path=None, args=None, plugins=None,
 
     # run @remote_data tests
     if remote_data:
-        all_args += ' --remotedata'
+        all_args += ' --remote-data'
     
     if pep8:
         try:
