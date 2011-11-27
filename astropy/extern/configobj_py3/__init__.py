@@ -1,5 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst  
 
+"""
+This is a copy of the main portions of the  `configobj 
+<http://www.voidspace.org.uk/python/configobj.html>`_ package. This is used
+internally in the Astropy configuration system. The license for configobj is
+available  in the ``licenses/CONFIGOBJ_LICENSE.rst`` file in the Astropy
+source distribution.
+
+This is a version of configobj that has been modified by Zubin Mithra to be
+compatible with python 3.x.  This version is not official, but has been
+"blessed" by configobj's original author. This version of the code was
+obtained from https://bitbucket.org/zubin71/configobj-py3
+
+For a python 2.x version, see the ``astropy/extern/configobj`` directory.
+""" 
+
 #this holds the contents of the setup.py file used by configobj
 _configobj_setup_dot_py="""
 # setup.py

@@ -105,7 +105,7 @@ def get_data_fileobj(dataname, cache=True):
         return open(get_data_filename(dataname), 'rb')
     else:
         url = urlparse(dataname)
-        if url.scheme != '':
+        if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
             #it's actually a url for a net location
             urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT())
         else:
@@ -185,7 +185,7 @@ def get_data_filename(dataname):
     from urlparse import urlparse
     
     url = urlparse(dataname)
-    if url.scheme != '':
+    if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
         #it's actually a url for a net location
         return _cache_remote(dataname)
     elif dataname.startswith('hash/'):
@@ -236,7 +236,7 @@ def compute_hash(localfn):
     with open(localfn,'rb') as f:
         h = hashlib.md5()
         block = f.read(COMPUTE_HASH_BLOCK_SIZE())
-        while block!='':
+        while block:
             h.update(block)
             block = f.read(COMPUTE_HASH_BLOCK_SIZE())
     
@@ -295,17 +295,16 @@ def _cache_remote(remoteurl):
     a name determined by the file's MD5 hash. If present in the cache, just
     returns the filename.
     """
+    import hashlib
     from contextlib import closing
     from os.path import join
     from shutil import move
     from urllib2 import urlopen
-    import hashlib
-    import shelve
     
     dldir,urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
     try:
-        with closing(shelve.open(urlmapfn)) as url2hash:
+        with _open_shelve(urlmapfn,True) as url2hash:
             if str(remoteurl) in url2hash:
                 localpath = url2hash[str(remoteurl)]
             else:
@@ -316,7 +315,7 @@ def _cache_remote(remoteurl):
                     
                     with open(tmpfn,'wb') as f:
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-                        while block!='':
+                        while block:
                             #TODO: add in something to update a progress bar 
                             #when the download occurs.  Or use the log. either
                             #requires stuff that isn't yet in master
@@ -349,11 +348,9 @@ def clear_data_cache(hashorurl=None):
         If the requested filename is not present in the data directory.
         
     """
-    import shelve
     from os import unlink
     from os.path import join, split, exists, abspath
     from shutil import rmtree
-    from contextlib import closing
     
     dldir,urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
@@ -365,7 +362,7 @@ def clear_data_cache(hashorurl=None):
             if exists(urlmapfn):
                 unlink(urlmapfn)
         else:
-            with closing(shelve.open(urlmapfn)) as url2hash:
+            with _open_shelve(urlmapfn,True) as url2hash:
                 filepath = join(dldir, hashorurl)
                 assert abspath(filepath).startswith(abspath(dldir)), \
                        ("attempted to use clear_data_cache on a location" +
@@ -398,7 +395,6 @@ def _get_data_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
-    import shelve
     from .paths import get_cache_dir
     from os.path import exists,isdir,join
     from os import mkdir
@@ -416,6 +412,28 @@ def _get_data_cache_locs():
         raise IOError(msg.format(shelveloc))
     
     return datadir,shelveloc
+
+def _open_shelve(shelffn,withclosing=False):
+    """
+    opens a shelf in a way that is py3.x and py2.x compatible.  If 
+    `withclosing` is  True, it will be opened with closing, allowing use like:
+    
+        with _open_shelve('somefile',True) as s:
+            ...
+    """
+    import shelve
+    from contextlib import closing
+    from sys import version_info
+    
+    if version_info[0]>2:
+        shelf = shelve.open(shelffn,protocol=2)
+    else:
+        shelf = shelve.open(shelffn+'.db',protocol=2)
+    
+    if withclosing:
+        return closing(shelf)
+    else:
+        return shelf
 
 #the cache directory must be locked before any writes are performed.  Same for
 #the hash shelve, so this should be used for both.  Note
