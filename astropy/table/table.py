@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import collections
+from itertools import count
 
 from astropy.utils import OrderedDict
 from structhelper import _drop_fields
@@ -34,7 +35,7 @@ class Column(object):
     data : list, ndarray or None
         Column data values
     dtype : numpy.dtype compatible value
-        Data type for column 
+        Data type for column
     shape : tuple or ()
         Dimensions of a single row element in the column data
     length : int or 0
@@ -175,16 +176,101 @@ class Column(object):
 
 
 class Table(object):
-    """A class to represent tables of data"""
+    """A class to represent tables of data.
 
-    def __init__(self, cols=None, name=None):
-        self.name = name
+    Parameters
+    ----------
+    data : numpy ndarray, dict, list, or Table
+        Data to initialize table.
+    names : list
+        Specify column names (behavior depends on data type)
+    dtypes : list
+        Specify column data types (behavior depends on data type)
+
+    Initialization
+    --------------
+
+    The Table object can be initialized with several different forms
+    for the ``data`` argument. 
+
+    numpy ndarray (structured array)
+        
+        The base column names are the field names of the ``data`` structured
+        array.  The ``names`` list (optional) can be used to select
+        particular fields and/or reorder the base names.  The ``dtypes`` list
+        (optional) must match the length of ``names`` and is used to
+        override the existing ``data`` types.
+
+    numpy ndarray (homogeneous)
+        
+        The ``data`` ndarray must be at least 2-dimensional, with the first
+        (left-most) index corresponding to row number (table length) and the
+        second index corresponding to column number (table width).  Higher
+        dimensions get absorbed in the shape of each table cell.
+        
+        If provided the ``names`` list must match the "width" of the ``data``
+        argument.  The default for ``names`` is to auto-generate column names
+        in the form "col<N>".  If provided the ``dtypes`` list overrides the
+        base column types and must match the length of ``names``.
+
+    dict-like
+
+        The keys of the ``data`` object define the base column names.  The
+        corresponding values can be Column objects, numpy arrays, or list-like
+        objects.  The ``names`` list (optional) can be used to select
+        particular fields and/or reorder the base names.  The ``dtypes`` list
+        (optional) must match the length of ``names`` and is used to override
+        the existing or default data types.
+
+    list-like
+
+        Each item in the ``data`` list provides a column of data values and can
+        can be a Column object, numpy array, or list-like object.  The
+        ``names`` list defines the name of each column.  The names will be
+        auto-generated if not provided (either from the ``names`` argument or
+        by Column objects).  If provided the ``names`` argument must match the
+        number of items in the ``data`` list.  The optional ``dtypes`` list
+        will override the existing or default data types and must match
+        ``names`` in length.
+    """
+
+    def __init__(self, data=None, names=None, dtypes=None):
         self._data = None
         self.columns = OrderedDict()
-        if cols is not None:
-            self._new_from_cols(cols)
+        if isinstance(data, (list, tuple)):
+            self._init_from_list(data, names, dtypes)
 
-    def _new_from_cols(self, cols):
+    def _init_from_list(self, data, names, dtypes):
+        """Initialize table from a list of columns"""
+
+        # Validate inputs and provide defaults
+        n_cols = len(data)
+        if names is None:
+            names = [None] * n_cols
+        if dtypes is None:
+            dtypes = [None] * n_cols
+        for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
+            if not isinstance(inp_list, collections.Iterable):
+                raise ValueError('{0} must be a list or None'.format(inp_str))
+            if len(inp_list) != n_cols:
+                raise ValueError(
+                    'Number of {0} must match number of data columns'.format(
+                        inp_str))
+
+        # Convert everything to a Column
+        cols = []
+        for i_col, col, name, dtype in zip(count(), data, names, dtypes):
+            def_name = 'col{0}'.format(i_col)
+            if isinstance(col, Column):
+                if name is not None:
+                    col.name = name
+            elif isinstance(col, (np.ndarray, collections.Iterable)):
+                col = Column(col, name=(name or def_name), dtype=dtype)
+            cols.append(col)
+
+        self._init_from_cols(cols)
+
+    def _init_from_cols(self, cols):
         dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
@@ -288,7 +374,7 @@ class Table(object):
         if self._data is None:
             # Table has no existing data so make a new structured array
             # from the cols
-            self._new_from_cols(cols)
+            self._init_from_cols(cols)
         else:
             for col in cols:
                 if len(col.data) != len(self._data):
