@@ -236,7 +236,7 @@ def compute_hash(localfn):
     with open(localfn,'rb') as f:
         h = hashlib.md5()
         block = f.read(COMPUTE_HASH_BLOCK_SIZE())
-        while block!='':
+        while block:
             h.update(block)
             block = f.read(COMPUTE_HASH_BLOCK_SIZE())
     

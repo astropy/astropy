@@ -51,6 +51,7 @@ def test_compute_hash():
         ntf.flush()
         
         chhash = compute_hash(ntf.name)
-        shash = hashlib.md5(rands).hexdigest()
+        # the encode() call is necessary for py3.x compatibility
+        shash = hashlib.md5(rands.encode()).hexdigest()
         
         assert chhash==shash
