@@ -15,6 +15,7 @@ developed.  For more information, see the `github wiki
 
    overview
    configs
+   logger
    wcs/index
    vo/index
    development/index
