@@ -20,9 +20,7 @@ w.wcs.crval = [0, -90]
 w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
 w.wcs.set_pv([(2, 1, 45.0)])
 
-# Print out the "name" of the WCS, as defined in the FITS header
-print w.wcs.name
-
+# Print out all of the contents of the WCS object
 w.wcs.print_contents()
 
 # Some pixel coordinates of interest.
