@@ -489,11 +489,11 @@ def add_legacy_alias(pkgfrom, pkgto):
     shim_dir = os.path.join(get_legacy_alias_dir(), pkgto)
 
     if found_legacy_module:
-        print '-' * 60
-        print "The legacy module '{0}' was found.".format(pkgto)
-        print "To install astropy's compatibility layer for this instead,"
-        print "uninstall '{0}' and then reinstall astropy.".format(pkgto)
-        print '-' * 60
+        print('-' * 60)
+        print("The legacy module '{0}' was found.".format(pkgto))
+        print("To install astropy's compatibility layer for this instead,")
+        print("uninstall '{0}' and then reinstall astropy.".format(pkgto))
+        print('-' * 60)
 
         if os.path.isdir(shim_dir):
             os.removedirs(shim_dir)
@@ -501,7 +501,7 @@ def add_legacy_alias(pkgfrom, pkgto):
 
     if not os.path.isdir(shim_dir):
         os.makedirs(shim_dir)
-    content = legacy_shim_template.format(**locals())
+    content = legacy_shim_template.format(**locals()).encode('utf-8')
     write_if_different(
         os.path.join(shim_dir, '__init__.py'), content)
 
