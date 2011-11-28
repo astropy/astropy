@@ -4,4 +4,4 @@ This package contains utilities of general use in the `astropy` package and
 affiliated packages.
 """
 
-from .odict import OrderedDict
+from .compat.odict import OrderedDict

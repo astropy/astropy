@@ -2258,7 +2258,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             fd = urllib2.urlopen(href)
             if encoding is not None:
                 if encoding == 'gzip':
-                    from ...utils import gzip
+                    from ...utils.compat import gzip
                     fd = gzip.GzipFile(href, 'rb', fileobj=fd)
                 elif encoding == 'base64':
                     fd = codecs.EncodedFile(fd, 'base64')
@@ -2353,7 +2353,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         fd = urllib2.urlopen(href)
         if encoding is not None:
             if encoding == 'gzip':
-                from ...utils import gzip
+                from ...utils.compat import gzip
                 fd = gzip.GzipFile(href, 'r', fileobj=fd)
             elif encoding == 'base64':
                 fd = codecs.EncodedFile(fd, 'base64')
