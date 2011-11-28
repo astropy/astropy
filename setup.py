@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 import astropy
 from astropy import setup_helpers
 from astropy.tests.helper import astropy_test
-from astropy.version_helper import _get_git_devstr, _generate_version_py
+from astropy.version_helper import get_git_devstr, generate_version_py
 
 version = '0.0dev'
 
@@ -27,8 +27,9 @@ setup_helpers.adjust_compiler()
 setup_helpers.set_build_mode()
 
 if not release:
-    version += _get_git_devstr(False)
-_generate_version_py(version, release, setup_helpers.get_debug_option())
+    version += get_git_devstr(False)
+generate_version_py('astropy', version, release,
+                    setup_helpers.get_debug_option())
 
 # Use the find_packages tool to locate all packages and modules
 packagenames = find_packages()
