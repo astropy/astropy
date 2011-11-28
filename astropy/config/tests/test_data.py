@@ -18,7 +18,7 @@ def test_url_nocache():
     from ..data import get_data_fileobj
     
     with get_data_fileobj(TESTURL,cache=False) as googlepage:
-        assert googlepage.read().find('oogle</title>')>-1
+        assert googlepage.read().decode().find('oogle</title>')>-1
     
 @remote_data    
 def test_find_by_hash():
@@ -51,6 +51,7 @@ def test_compute_hash():
         ntf.flush()
         
         chhash = compute_hash(ntf.name)
-        shash = hashlib.md5(rands).hexdigest()
+        # the encode() call is necessary for py3.x compatibility
+        shash = hashlib.md5(rands.encode()).hexdigest()
         
         assert chhash==shash
