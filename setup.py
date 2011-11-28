@@ -8,7 +8,6 @@ use_setuptools()
 import os
 import glob
 from setuptools import setup, find_packages
-from distutils import log
 
 import astropy
 from astropy import setup_helpers
@@ -44,13 +43,9 @@ scripts.remove('scripts/README.rst')
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
 setup_helpers.check_numpy()
-from numpy import get_include as get_numpy_include
-numpy_includes = get_numpy_include()
-
 
 # This dictionary stores the command classes used in setup below
 cmdclassd = {'test': astropy_test}
-
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
@@ -63,77 +58,19 @@ package_data = {'astropy': ['data/*']}
 # installed in a special place
 data_files = []
 
-# For each of the setup_package.py modules, extract any information
-# that is needed to install them.
-for pkgnm, setuppkg in setup_helpers.iter_setup_packages():
-    # get_extensions must include any Cython extensions by their .pyx filename.
-    if hasattr(setuppkg, 'get_extensions'):
-        extensions.extend(setuppkg.get_extensions())
-
-    if hasattr(setuppkg, 'get_package_data'):
-        package_data.update(setuppkg.get_package_data())
-    if hasattr(setuppkg, 'get_data_files'):
-        data_files.extend(setuppkg.get_data_files())
-
-# Locate any .pyx files not already specified, and add their extensions in.
-# The default include dirs include numpy to facilitate numerical work.
-extensions.extend(setup_helpers.get_cython_extensions('astropy', extensions,
-                                                      [numpy_includes]))
-
-# Now remove extensions that have the special name 'skip_cython', as they exist
-# Only to indicate that the cython extensions shouldn't be built
-for i, ext in reversed(list(enumerate(extensions))):
-    if ext.name == 'skip_cython':
-        del extensions[i]
+# Update extensions, package_data, and data_files from any sub-packages that
+# define their own extension modules and package data.  See the docstring for
+# setup_helpers.update_package_files for more details.
+setup_helpers.update_package_files('astropy', extensions, package_data,
+                                   data_files)
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
     # Builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = build_ext
-else:
 
-    # Otherwise, replace .pyx with C-equivalents, unless c files are missing
-    todel = []
-    for i, ext in enumerate(extensions):
-        for j, s in enumerate(ext.sources):
-            if i not in todel and s.endswith('.pyx'):
-                cfn = s[:-4] + '.c'
-                if os.path.isfile(cfn):
-                    ext.sources[j] = cfn
-                else:
-                    msg = 'Could not find c-file {0} for {1}, ' + \
-                          'skipping extension {2}'
-                    log.warn(msg.format(cfn, s, ext.name))
-                    todel.append(i)
-
-
-# Implement a version of build_sphinx that automatically creates the
-# docs/_build dir - this is needed because github won't create the _build dir
-# because it has no tracked files
-
-try:
-
-    from sphinx.setup_command import BuildDoc
-
-    class AstropyBuildSphinx(BuildDoc):
-        """
-        This class
-        """
-        def finalize_options(self):
-            from distutils.cmd import DistutilsOptionError
-
-            if self.build_dir is not None:
-                if os.path.isfile(self.build_dir):
-                    raise DistutilsOptionError('Attempted to build_sphinx ' + \
-                                               'into a file ' + self.build_dir)
-                self.mkpath(self.build_dir)
-
-            return BuildDoc.finalize_options(self)
-
-    cmdclassd['build_sphinx'] = AstropyBuildSphinx
-
-except ImportError:  # Sphinx not present
-    pass
+if setup_helpers.AstropyBuildSphinx is not None:
+    cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
 
 
 setup(name='astropy',
