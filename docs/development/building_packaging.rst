@@ -2,11 +2,11 @@
 Building, Cython/C Extensions, and Distribution
 ===============================================
 
-The build process currently uses the 
-`Distribute <http://packages.python.org/distribute/>`_ package to build and 
+The build process currently uses the
+`Distribute <http://packages.python.org/distribute/>`_ package to build and
 install the astropy core (and any affiliated packages that use the template).
-The user doesn't necessarily need to have `distribute` installed, as it will 
-automatically bootstrap itself using the ``distribute_setup.py`` file in the 
+The user doesn't necessarily need to have `distribute` installed, as it will
+automatically bootstrap itself using the ``distribute_setup.py`` file in the
 source distribution if it isn't installed for the user.
 
 Customizing setup/build for subpackages
@@ -19,36 +19,45 @@ the setup process will look for the following functions to customize the build
 process:
 
 * :func:`get_package_data`
-    This function, if defined, should return a dictionary mapping the name of 
+    This function, if defined, should return a dictionary mapping the name of
     the subpackage(s) that need package data to a list of data file paths
     (possibly including wildcards) relative to the path of the package's source
     code.  e.g. if the source distribution has a needed data file
-    ``astropy/wcs/tests/data/3d_cd.hdr``, this function should return 
-    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data``  
+    ``astropy/wcs/tests/data/3d_cd.hdr``, this function should return
+    ``{'astropy.wcs.tests:'['data/3d_cd.hdr']}``. See the ``package_data``
     option of the  :func:`distutils.core.setup` function.
-    
+
     It is recommended that all such data be in a directory named "data" inside
-    the package within which it is supposed to be used, and package data should 
-    be accessed via the `astropy.config.data.get_data_filename` and 
+    the package within which it is supposed to be used, and package data should
+    be accessed via the `astropy.config.data.get_data_filename` and
     `astropy.config.data.get_data_fileobj` functions.
-   
+
 * :func:`get_data_files`
     This function, if defined, should return a list of tuples (`loc`,`files`)
-    where `files` is a list of file paths (now relative to the root of the 
+    where `files` is a list of file paths (now relative to the root of the
     source distribution), and `loc` is a location for the files to be installed
-    (relative to the installation prefix for python). See the ``data_files`` 
+    (relative to the installation prefix for python). See the ``data_files``
     option of the  :func:`distutils.core.setup` function.
+
 * :func:`get_extensions`
     This provides information for building C or Cython extensions. If defined,
     it should return a list of `distutils.core.Extension` objects controlling
     the Cython/C build process (see below for more detail).
+
+* :func:`get_legacy_alias`
+    This function allows for the creation of `shims` that allow a
+    subpackage to be imported under another name.  For example,
+    `astropy.io.fits` used to be available under the namespace
+    `pyfits`.  For backward compatibility, it is helpful to have it
+    still importable under the old name.  Under most circumstances,
+    this function should call `astropy.setup_helpers.add_legacy_alias`
+    to generate a legacy module and then return what it returns.
 
 The `astropy.setup_helpers` modules includes a :func:`update_package_files`
 function which automatically searches the given source path for
 ``setup_package.py`` modules and calls each of the above functions, if they
 exist.  This makes it easy for affiliated packages to use this machinery in
 their own ``setup.py``.
-
 
 C or Cython Extensions
 ----------------------
@@ -109,8 +118,8 @@ building C extensions (e.g. finding the Numpy headers and library) in
 Future directions
 -----------------
 
-We plan to switch to a newer packaging scheme when it's more stable, the 
-upcoming standard library `packaging` module, derived from the 
-`distutils2 <http://packages.python.org/Distutils2/library/distutils2.html>`_ 
+We plan to switch to a newer packaging scheme when it's more stable, the
+upcoming standard library `packaging` module, derived from the
+`distutils2 <http://packages.python.org/Distutils2/library/distutils2.html>`_
 project.  Until it's working right, however, we will be using `distribute` and
 `distutils`.

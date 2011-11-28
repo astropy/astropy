@@ -273,6 +273,9 @@ def get_package_data():
 
 
 def get_data_files():
-    # Installs the pywcs.py wrapper module and the header files
-    return [('', ['astropy/wcs/pywcs.py']),
-            ('astropy/wcs/include', glob.glob('astropy/wcs/src/*.h'))]
+    # Installs the header files
+    return [('astropy/wcs/include', glob.glob('astropy/wcs/src/*.h'))]
+
+
+def get_legacy_alias():
+    return setup_helpers.add_legacy_alias('astropy.wcs', 'pywcs')

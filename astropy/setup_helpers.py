@@ -131,7 +131,8 @@ def get_debug_option():
     return debug
 
 
-def update_package_files(srcdir, extensions, package_data, data_files):
+def update_package_files(srcdir, extensions, package_data, data_files,
+                         packagenames, package_dirs):
     """ Extends existing extensions and data_files lists, and updates an
     existing package_data dict by iterating through all packages in ``srcdir``
     and locating a ``setup_package.py`` module.  This module can contain any of
@@ -167,6 +168,11 @@ def update_package_files(srcdir, extensions, package_data, data_files):
             package_data.update(setuppkg.get_package_data())
         if hasattr(setuppkg, 'get_data_files'):
             data_files.extend(setuppkg.get_data_files())
+        if hasattr(setuppkg, 'get_legacy_alias'):
+            pkg, dir = setuppkg.get_legacy_alias()
+            if pkg is not None:
+                packagenames.append(pkg)
+                package_dirs[pkg] = dir
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
@@ -414,3 +420,89 @@ except ImportError:
             name = _resolve_name(name[level:], package, level)
         __import__(name)
         return sys.modules[name]
+
+
+def get_legacy_alias_dir():
+    return os.path.join('build', 'legacy-aliases')
+
+
+legacy_shim_template = """
+# This is generated code.  DO NOT EDIT!
+
+import warnings
+warnings.warn(
+    \"{pkgto} is deprecated.  Use {pkgfrom} instead.",
+    DeprecationWarning)
+
+import pkgutil
+__path__ = pkgutil.extend_path(__path__, \"{pkgfrom}\")
+
+from {pkgfrom} import *
+from astropy import __version__
+
+_is_astropy_legacy_alias = True
+"""
+
+
+def add_legacy_alias(pkgfrom, pkgto):
+    """
+    Adds a legacy alias that makes *pkgfrom* also importable as
+    *pkgto*.
+
+    For example::
+
+       add_legacy_alias('astropy.io.vo', 'vo')
+
+    If the legacy package is importable and it is not merely the
+    compatibility shim, a warning is printed to the user, and the
+    shim is not installed.
+
+    Parameters
+    ----------
+    pkgfrom : str
+        The real subpackage, specified using `.` as a delimiter
+
+    pkgto : str
+        The package to alias to.  Must be a single name (i.e. not have `.`).
+
+    Returns
+    -------
+    pkgto, shim_dir : (str, str)
+        The name of the alias package and its source directory in the
+        file system (useful for adding to distutils' `package_dir` kwarg.
+    """
+    import imp
+
+    found_legacy_module = False
+    try:
+        location = imp.find_module(pkgto)
+    except ImportError:
+        pass
+    else:
+        # We want ImportError to raise here, because that means it was
+        # found, but something else went wrong.
+        module = imp.load_module(pkgto, *location)
+
+        if not hasattr(module, '_is_astropy_legacy_alias'):
+            found_legacy_module = True
+
+    shim_dir = os.path.join(get_legacy_alias_dir(), pkgto)
+
+    if found_legacy_module:
+        print '-' * 60
+        print "The legacy module '{0}' was found.".format(pkgto)
+        print "To install astropy's compatibility layer for this instead,"
+        print "uninstall '{0}' and then reinstall astropy.".format(pkgto)
+        print '-' * 60
+
+        if os.path.isdir(shim_dir):
+            os.removedirs(shim_dir)
+        return (None, None)
+
+    if not os.path.isdir(shim_dir):
+        os.makedirs(shim_dir)
+    content = legacy_shim_template.format(**locals())
+    write_if_different(
+        os.path.join(shim_dir, '__init__.py'), content)
+
+    return (pkgto, shim_dir)
