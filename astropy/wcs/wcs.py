@@ -1137,7 +1137,7 @@ naxis kwarg.
             self.naxis2 = header.get('NAXIS2', 0.0)
 
     def rotateCD(self, theta):
-        _theta = DEGTORAD(theta)
+        _theta = np.deg2rad(theta)
         _mrot = np.zeros(shape=(2, 2), dtype=np.double)
         _mrot[0] = (np.cos(_theta), np.sin(_theta))
         _mrot[1] = (-np.sin(_theta), np.cos(_theta))
@@ -1257,14 +1257,6 @@ naxis kwarg.
             result.append(subresult)
 
         return result
-
-
-def DEGTORAD(deg):
-    return (deg * np.pi / 180.)
-
-
-def RADTODEG(rad):
-    return (rad * 180. / np.pi)
 
 
 def find_all_wcs(header, relax=False, keysel=None):
