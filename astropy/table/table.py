@@ -111,7 +111,7 @@ class Column(object):
 
             np_dtype = data.dtype if (dtype is None) else np.dtype(dtype)
             shape = data.shape[1:]
-            self._data = np.array(data, dtype=(np_dtype.str, shape))
+            self._data = np.asarray(data, dtype=(np_dtype.str, shape))
 
     def clear_data(self):
         """Set the internal column data attribute to None in order
@@ -232,32 +232,96 @@ class Table(object):
         number of items in the ``data`` list.  The optional ``dtypes`` list
         will override the existing or default data types and must match
         ``names`` in length.
+
+    None
+
+        Initialize a zero-length table.  If ``names`` and optionally ``dtypes``
+        are provided then the corresponding columns are created.
     """
 
     def __init__(self, data=None, names=None, dtypes=None):
         self._data = None
         self.columns = OrderedDict()
+
         if isinstance(data, (list, tuple)):
-            self._init_from_list(data, names, dtypes)
+            init_func = self._init_from_list
+            n_cols = len(data)
 
-    def _init_from_list(self, data, names, dtypes):
-        """Initialize table from a list of columns"""
+        elif isinstance(data, np.ndarray):
+            if data.dtype.names:
+                init_func = self._init_from_ndarray_struct
+                n_cols = len(data.dtype.names)
+                if names is None:
+                    names = data.dtype.names
+                if dtypes is None:
+                    dtypes = [None] * len(names)
+            else:
+                init_func = self._init_from_ndarray_homog
+                n_cols = data.shape[1]
 
-        # Validate inputs and provide defaults
-        n_cols = len(data)
+        elif isinstance(data, dict):
+            init_func = self._init_from_dict
+            n_cols = len(data)
+            if names is None:
+                names = data.keys()
+            if dtypes is None:
+                dtypes = [None] * len(names)
+
+        elif isinstance(data, Table):
+            init_func = self._init_from_Table
+            n_cols = len(data.columns)
+            if names is None:
+                names = data.colnames
+            if dtypes is None:
+                dtypes = [None] * len(names)
+
+        elif data is None:
+            if names is None:
+                return
+            else:
+                init_func = self._init_from_list
+                n_cols = len(names)
+                data = [] * n_cols
+
+        else:
+            raise ValueError('Data type {0} not allowed to init Table'
+                             .format(type(data)))
+
         if names is None:
             names = [None] * n_cols
         if dtypes is None:
             dtypes = [None] * n_cols
+
         for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
             if not isinstance(inp_list, collections.Iterable):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
-            if len(inp_list) != n_cols:
-                raise ValueError(
-                    'Number of {0} must match number of data columns'.format(
-                        inp_str))
 
-        # Convert everything to a Column
+        if len(names) != len(dtypes):
+            raise ValueError(
+                'Arguments "names" and "dtypes" must match in length'
+                .format(inp_str))
+
+        init_func(data, names, dtypes)
+
+    def _init_from_ndarray_struct(self, data, names, dtypes):
+        """Initialize table from an ndarray structured array"""
+        cols = []
+        for name, dtype in zip(names, dtypes):
+            col = Column(name, data[name], dtype=dtype)
+            cols.append(col)
+        self._init_from_cols(cols)
+
+    def _init_from_ndarray_homog(self, data, names, dtypes):
+        """Initialize table from an ndarray homogeneous array"""
+        cols = []
+        for i_col, name, dtype in zip(count(), names, dtypes):
+            def_name = 'col{0}'.format(i_col)
+            col = Column((name or def_name), data[:, i_col], dtype=dtype)
+            cols.append(col)
+        self._init_from_cols(cols)
+
+    def _init_from_list(self, data, names, dtypes):
+        """Initialize table from a list of columns"""
         cols = []
         for i_col, col, name, dtype in zip(count(), data, names, dtypes):
             def_name = 'col{0}'.format(i_col)
@@ -265,7 +329,7 @@ class Table(object):
                 if name is not None:
                     col.name = name
             elif isinstance(col, (np.ndarray, collections.Iterable)):
-                col = Column(col, name=(name or def_name), dtype=dtype)
+                col = Column((name or def_name), col, dtype=dtype)
             cols.append(col)
 
         self._init_from_cols(cols)

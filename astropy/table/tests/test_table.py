@@ -397,3 +397,65 @@ class TestSort():
         t.sort(['b', 'a'])
         assert np.all(t['a'] == np.array([2, 1, 3, 1, 3, 2]))
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
+
+
+class TestInitFromNdarrayStruct():
+
+    def setup_method(self, method):
+        self.arr = np.array([(1, 2, 3.0),
+                             (3, 4, 5.0)],
+                            dtype=[('a', 'i8'), ('b', 'i8'), ('c', 'f8')])
+
+    def test_basic_init(self):
+        t = Table(self.arr)
+        assert t.colnames == ['a', 'b', 'c']
+        assert np.all(t['a'] == np.array([1, 3]))
+        assert np.all(t['b'] == np.array([2, 4]))
+        assert np.allclose(t['c'], np.array([3.0, 5.0]))
+
+    def test_select_names(self):
+        t = Table(self.arr, names=('b', 'a'))
+        assert t.colnames == ['b', 'a']
+        assert np.all(t['a'] == np.array([1, 3]))
+        assert np.all(t['b'] == np.array([2, 4]))
+
+    def test_set_dtypes(self):
+        t = Table(self.arr, names=('b', 'a'), dtypes=('i4', 'f4'))
+        assert t.colnames == ['b', 'a']
+        assert np.all(t['a'] == np.array([1, 3], dtype='f4'))
+        assert np.all(t['b'] == np.array([2, 4], dtype='i4'))
+        assert t['a'].dtype.type == np.float32
+        assert t['b'].dtype.type == np.int32
+
+    def test_names_dtypes_mismatch(self):
+        with pytest.raises(ValueError):
+            Table(self.arr, names=('a'), dtypes=('i4', 'f4'))
+
+
+class TestInitFromNdarrayHomo():
+
+    def setup_method(self, method):
+        self.arr = np.array([(1, 2, 3),
+                             (3, 4, 5)],
+                            dtype='i4')
+
+    def test_basic_init(self):
+        t = Table(self.arr)
+        assert t.colnames == ['col0', 'col1', 'col2']
+        assert np.all(t['col0'] == np.array([1, 3]))
+        assert np.all(t['col1'] == np.array([2, 4]))
+        assert np.all(t['col2'] == np.array([3, 5]))
+
+    def test_set_dtypes(self):
+        t = Table(self.arr, names=('a', 'b', 'c'), dtypes=('i4', 'f4', 'f8'))
+        assert t.colnames == ['a', 'b', 'c']
+        assert np.all(t['a'] == np.array([1, 3], dtype='i4'))
+        assert np.all(t['b'] == np.array([2, 4], dtype='f4'))
+        assert np.all(t['c'] == np.array([3, 5], dtype='f8'))
+        assert t['a'].dtype.type == np.int32
+        assert t['b'].dtype.type == np.float32
+        assert t['c'].dtype.type == np.float64
+
+    def test_names_cols_mismatch(self):
+        with pytest.raises(ValueError):
+            Table(self.arr, names=('a'))
