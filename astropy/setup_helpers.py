@@ -265,9 +265,14 @@ def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
 
 
 def write_if_different(filename, data):
-    """
-    Write *data* to *filename*, if the content of the file is
-    different.
+    """ Write `data` to `filename`, if the content of the file is different.
+    
+    Parameters
+    ----------
+    filename : str
+        The file name to be written to.
+    data : bytes
+        The data to be written to `filename`.
     """
     assert isinstance(data, bytes)
 
@@ -297,7 +302,7 @@ def check_numpy():
 
 def get_numpy_include_path():
     """
-    Gets the path to the numpy headers
+    Gets the path to the numpy headers.
     """
     import numpy
 
@@ -316,7 +321,8 @@ def adjust_compiler():
     here is to only override a default compiler.
 
     The specific compilers with problems are:
-        - The default compiler in XCode-4.2, llvm-gcc-4.2,
+        
+        * The default compiler in XCode-4.2, llvm-gcc-4.2,
           segfaults when compiling wcslib.
 
     The set of broken compilers can be updated by changing the
