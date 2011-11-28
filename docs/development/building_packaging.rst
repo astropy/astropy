@@ -43,6 +43,13 @@ process:
     it should return a list of `distutils.core.Extension` objects controlling
     the Cython/C build process (see below for more detail).
 
+The `astropy.setup_helpers` modules includes a :func:`update_package_files`
+function which automatically searches the given source path for
+``setup_package.py`` modules and calls each of the above functions, if they
+exist.  This makes it easy for affiliated packages to use this machinery in
+their own ``setup.py``.
+
+
 C or Cython Extensions
 ----------------------
 

@@ -58,6 +58,9 @@ package_data = {'astropy': ['data/*']}
 # installed in a special place
 data_files = []
 
+# Update extensions, package_data, and data_files from any sub-packages that
+# define their own extension modules and package data.  See the docstring for
+# setup_helpers.update_package_files for more details.
 setup_helpers.update_package_files('astropy', extensions, package_data,
                                    data_files)
 
