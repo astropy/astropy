@@ -7,6 +7,9 @@ from math import ceil
 import os
 import re
 
+# ASTROPY
+from ....utils.xml.writer import XMLWriter
+
 # VO
 from .. import exceptions
 from .. import xmlutil
@@ -124,7 +127,7 @@ def write_result(result):
     path = os.path.join(result.get_dirpath(), 'index.html')
 
     with io.open(path, 'w', encoding='utf-8') as fd:
-        w = xmlutil.XMLWriter(fd)
+        w = XMLWriter(fd)
         with make_html_header(w):
             with w.tag(u'p'):
                 with w.tag(u'a', href=u'vo.xml'):
@@ -246,7 +249,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
         subresults = results[j:j+chunk_size]
         path = os.path.join(root, '%s_%02d.html' % (basename, i))
         with io.open(path, 'w', encoding='utf-8') as fd:
-            w = xmlutil.XMLWriter(fd)
+            w = XMLWriter(fd)
             with make_html_header(w):
                 write_page_links(i)
 
@@ -287,7 +290,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
 def write_index(subsets, results, root='results'):
     path = os.path.join(root, 'index.html')
     with io.open(path, 'w', encoding='utf-8') as fd:
-        w = xmlutil.XMLWriter(fd)
+        w = XMLWriter(fd)
         with make_html_header(w):
             w.element(u'h1', u'VO Validation results')
 

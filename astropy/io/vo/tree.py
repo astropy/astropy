@@ -27,6 +27,10 @@ except ImportError:
     _has_pyfits = False
 
 # LOCAL
+from ... import __version__ as astropy_version
+from ...utils.collections import HomogeneousList
+from ...utils.xml.writer import XMLWriter
+
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     warn_unknown_attrs, UnimplementedWarning, VOTableChangeWarning,
@@ -37,7 +41,6 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
 from . import ucd as ucd_mod
 from . import util
 from . import xmlutil
-from astropy import __version__ as astropy_version
 
 try:
     from . import iterparser
@@ -379,7 +382,7 @@ class SimpleElement(Element):
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name,
-                  attrib=xmlutil.object_attrs(self, self._attr_list))
+                  attrib=w.object_attrs(self, self._attr_list))
 
 
 class SimpleElementWithContent(SimpleElement):
@@ -394,7 +397,7 @@ class SimpleElementWithContent(SimpleElement):
 
     def to_xml(self, w, **kwargs):
         w.element(self._element_name, self._content,
-                  attrib=xmlutil.object_attrs(self, self._attr_list))
+                  attrib=w.object_attrs(self, self._attr_list))
 
     @property
     def content(self):
@@ -891,10 +894,10 @@ class Values(Element, _IDProperty):
             return
 
         if self.ref is not None:
-            w.element('VALUES', attrib=xmlutil.object_attrs(self, ['ref']))
+            w.element('VALUES', attrib=w.object_attrs(self, ['ref']))
         else:
             with w.tag('VALUES',
-                       attrib=xmlutil.object_attrs(
+                       attrib=w.object_attrs(
                            self, ['ID', 'null', 'ref'])):
                 if self.min is not None:
                     w.element(
@@ -1004,7 +1007,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         self.precision  = precision
         self.utype      = utype
         self.type       = type
-        self._links     = util.HomogeneousList(Link)
+        self._links     = HomogeneousList(Link)
         self.title      = self.name
         self.values     = Values(self._votable, self)
         self.xtype      = xtype
@@ -1263,7 +1266,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     def to_xml(self, w, **kwargs):
         with w.tag(self._element_name,
-                   attrib=xmlutil.object_attrs(self, self._attr_list)):
+                   attrib=w.object_attrs(self, self._attr_list)):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
             if not self.values.is_defaults():
@@ -1589,7 +1592,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self.utype       = utype
         self.description = None
 
-        self._entries = util.HomogeneousList(
+        self._entries = HomogeneousList(
             (FieldRef, ParamRef, Group, Param))
 
         warn_unknown_attrs('GROUP', extra.iterkeys(), config, pos)
@@ -1666,7 +1669,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
     def to_xml(self, w, **kwargs):
         with w.tag(
             'GROUP',
-            attrib=xmlutil.object_attrs(
+            attrib=w.object_attrs(
                 self, ['ID', 'name', 'ref', 'ucd', 'utype'])):
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
@@ -1749,11 +1752,11 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self.description = None
         self.format = 'tabledata'
 
-        self._fields = util.HomogeneousList(Field)
-        self._params = util.HomogeneousList(Param)
-        self._groups = util.HomogeneousList(Group)
-        self._links  = util.HomogeneousList(Link)
-        self._infos  = util.HomogeneousList(Info)
+        self._fields = HomogeneousList(Field)
+        self._params = HomogeneousList(Param)
+        self._groups = HomogeneousList(Group)
+        self._links  = HomogeneousList(Link)
+        self._infos  = HomogeneousList(Info)
 
         self.array = np.array([])
         self.mask  = np.array([])
@@ -2255,7 +2258,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             fd = urllib2.urlopen(href)
             if encoding is not None:
                 if encoding == 'gzip':
-                    from ...utils import gzip
+                    from ...utils.compat import gzip
                     fd = gzip.GzipFile(href, 'rb', fileobj=fd)
                 elif encoding == 'base64':
                     fd = codecs.EncodedFile(fd, 'base64')
@@ -2350,7 +2353,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         fd = urllib2.urlopen(href)
         if encoding is not None:
             if encoding == 'gzip':
-                from ...utils import gzip
+                from ...utils.compat import gzip
                 fd = gzip.GzipFile(href, 'r', fileobj=fd)
             elif encoding == 'base64':
                 fd = codecs.EncodedFile(fd, 'base64')
@@ -2370,7 +2373,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     def to_xml(self, w, **kwargs):
         with w.tag(
             'TABLE',
-             attrib=xmlutil.object_attrs(
+             attrib=w.object_attrs(
                        self,
                        ('ID', 'name', 'ref', 'ucd', 'utype', 'nrows'))):
 
@@ -2538,12 +2541,12 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self._extra_attributes = kwargs
         self.description       = None
 
-        self._coordinate_systems = util.HomogeneousList(CooSys)
-        self._params             = util.HomogeneousList(Param)
-        self._infos              = util.HomogeneousList(Info)
-        self._links              = util.HomogeneousList(Link)
-        self._tables             = util.HomogeneousList(Table)
-        self._resources          = util.HomogeneousList(Resource)
+        self._coordinate_systems = HomogeneousList(CooSys)
+        self._params             = HomogeneousList(Param)
+        self._infos              = HomogeneousList(Info)
+        self._links              = HomogeneousList(Link)
+        self._tables             = HomogeneousList(Table)
+        self._resources          = HomogeneousList(Resource)
 
         warn_unknown_attrs('RESOURCE', kwargs.iterkeys(), config, pos)
 
@@ -2684,7 +2687,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self
 
     def to_xml(self, w, **kwargs):
-        attrs = xmlutil.object_attrs(self, ('ID', 'type', 'utype'))
+        attrs = w.object_attrs(self, ('ID', 'type', 'utype'))
         attrs.update(self.extra_attributes)
         with w.tag('RESOURCE', attrib=attrs):
             if self.description is not None:
@@ -2750,11 +2753,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Element.__init__(self)
         self.ID                  = resolve_id(ID, id, config, pos)
         self.description         = None
-        self._coordinate_systems = util.HomogeneousList(CooSys)
-        self._params             = util.HomogeneousList(Param)
-        self._infos              = util.HomogeneousList(Info)
-        self._resources          = util.HomogeneousList(Resource)
-        self._groups             = util.HomogeneousList(Group)
+
+        self._coordinate_systems = HomogeneousList(CooSys)
+        self._params             = HomogeneousList(Param)
+        self._infos              = HomogeneousList(Info)
+        self._resources          = HomogeneousList(Resource)
+        self._groups             = HomogeneousList(Group)
 
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
@@ -2918,7 +2922,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             '_debug_python_based_parser': _debug_python_based_parser}
 
         fd = util.convert_to_writable_filelike(fd)
-        w = xmlutil.XMLWriter(fd)
+        w = XMLWriter(fd)
         version = self.version
         if _astropy_version is None:
             lib_version = astropy_version

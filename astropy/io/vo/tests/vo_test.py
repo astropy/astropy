@@ -25,7 +25,7 @@ from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
 from ....tests.helper import pytest, raises
-from ....utils import gzip
+from ....utils.compat import gzip
 
 numpy_has_complex_bug = (np.__version__[:3] < '1.5')
 

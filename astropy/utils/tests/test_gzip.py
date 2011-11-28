@@ -2,7 +2,7 @@ import io
 import os
 
 from ...tests.helper import pytest
-from .. import gzip
+from ..compat import gzip
 
 pytestmark = pytest.mark.skipif("sys.version_info < (3,0)")
 
