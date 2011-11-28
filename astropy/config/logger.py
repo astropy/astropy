@@ -8,7 +8,7 @@ import logging
 from . import ConfigurationItem
 
 LEVEL = ConfigurationItem('log_level', logging.INFO,
-                          'Threshold for the logging messages. Logging messages which are less severe than this level will be ignored. The default levels are 20 (INFO), 30 (WARNING), 40 (ERROR), and 50 (CRITICAL)')
+                          'Threshold for the logging messages. Logging messages which are less severe than this level will be ignored. The levels are 10 (DEBUG), 20 (INFO), 30 (WARNING), 40 (ERROR), and 50 (CRITICAL)')
 
 COLOR = ConfigurationItem('log_color', True,
                           'Whether to color-code the logging messages according to severity.')
