@@ -186,15 +186,17 @@ class Table(object):
         Specify column names (behavior depends on data type)
     dtypes : list
         Specify column data types (behavior depends on data type)
+    meta : dict
+        Metadata associated with the table
 
     Initialization
     --------------
 
     The Table object can be initialized with several different forms
-    for the ``data`` argument. 
+    for the ``data`` argument.
 
     numpy ndarray (structured array)
-        
+
         The base column names are the field names of the ``data`` structured
         array.  The ``names`` list (optional) can be used to select
         particular fields and/or reorder the base names.  The ``dtypes`` list
@@ -202,12 +204,12 @@ class Table(object):
         override the existing ``data`` types.
 
     numpy ndarray (homogeneous)
-        
+
         The ``data`` ndarray must be at least 2-dimensional, with the first
         (left-most) index corresponding to row number (table length) and the
         second index corresponding to column number (table width).  Higher
         dimensions get absorbed in the shape of each table cell.
-        
+
         If provided the ``names`` list must match the "width" of the ``data``
         argument.  The default for ``names`` is to auto-generate column names
         in the form "col<N>".  If provided the ``dtypes`` list overrides the
@@ -239,59 +241,42 @@ class Table(object):
         are provided then the corresponding columns are created.
     """
 
-    def __init__(self, data=None, names=None, dtypes=None):
+    def __init__(self, data=None, names=None, dtypes=None, meta={}):
         self._data = None
         self.columns = OrderedDict()
+        self.meta = copy.deepcopy(meta)
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
-            n_cols = len(data)
 
         elif isinstance(data, np.ndarray):
             if data.dtype.names:
                 init_func = self._init_from_ndarray_struct
-                n_cols = len(data.dtype.names)
-                if names is None:
-                    names = data.dtype.names
-                if dtypes is None:
-                    dtypes = [None] * len(names)
             else:
                 init_func = self._init_from_ndarray_homog
-                n_cols = data.shape[1]
 
         elif isinstance(data, dict):
             init_func = self._init_from_dict
-            n_cols = len(data)
-            if names is None:
-                names = data.keys()
-            if dtypes is None:
-                dtypes = [None] * len(names)
 
         elif isinstance(data, Table):
-            init_func = self._init_from_Table
-            n_cols = len(data.columns)
-            if names is None:
-                names = data.colnames
-            if dtypes is None:
-                dtypes = [None] * len(names)
+            init_func = self._init_from_table
 
         elif data is None:
             if names is None:
                 return
             else:
                 init_func = self._init_from_list
-                n_cols = len(names)
-                data = [] * n_cols
-
+                data = [] * len(names)
         else:
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
 
-        if names is None:
-            names = [None] * n_cols
-        if dtypes is None:
-            dtypes = [None] * n_cols
+        init_func(data, names, dtypes)
 
+    def _check_names_dtypes(self, names, dtypes):
+        """Make sure that names and dtypes are boths iterable and have
+        the same length.
+        """
         for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
             if not isinstance(inp_list, collections.Iterable):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
@@ -301,38 +286,69 @@ class Table(object):
                 'Arguments "names" and "dtypes" must match in length'
                 .format(inp_str))
 
-        init_func(data, names, dtypes)
-
-    def _init_from_ndarray_struct(self, data, names, dtypes):
-        """Initialize table from an ndarray structured array"""
-        cols = []
-        for name, dtype in zip(names, dtypes):
-            col = Column(name, data[name], dtype=dtype)
-            cols.append(col)
-        self._init_from_cols(cols)
-
-    def _init_from_ndarray_homog(self, data, names, dtypes):
-        """Initialize table from an ndarray homogeneous array"""
-        cols = []
-        for i_col, name, dtype in zip(count(), names, dtypes):
-            def_name = 'col{0}'.format(i_col)
-            col = Column((name or def_name), data[:, i_col], dtype=dtype)
-            cols.append(col)
-        self._init_from_cols(cols)
-
     def _init_from_list(self, data, names, dtypes):
         """Initialize table from a list of columns"""
+        n_cols = len(data)
+        if names is None:
+            names = [None] * n_cols
+        if dtypes is None:
+            dtypes = [None] * n_cols
+        self._check_names_dtypes(names, dtypes)
+
         cols = []
         for i_col, col, name, dtype in zip(count(), data, names, dtypes):
             def_name = 'col{0}'.format(i_col)
             if isinstance(col, Column):
-                if name is not None:
-                    col.name = name
+                col = Column((name or col.name), col.data, dtype=dtype)
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
+            else:
+                raise ValueError(
+                    '')
             cols.append(col)
 
         self._init_from_cols(cols)
+
+    def _init_from_ndarray_struct(self, data, names, dtypes):
+        """Initialize table from an ndarray structured array"""
+        if names is None:
+            names = data.dtype.names
+        if dtypes is None:
+            dtypes = [None] * len(names)
+
+        cols = [data[name] for name in names]
+        self._init_from_list(cols, names, dtypes)
+
+    def _init_from_ndarray_homog(self, data, names, dtypes):
+        """Initialize table from an ndarray homogeneous array"""
+        n_cols = data.shape[1]
+        if names is None:
+            names = [None] * n_cols
+        if dtypes is None:
+            dtypes = [None] * n_cols
+        # self._check_names_dtypes(names, dtypes)
+
+        cols = [data[:, i] for i in range(n_cols)]
+        self._init_from_list(cols, names, dtypes)
+
+    def _init_from_dict(self, data, names, dtypes):
+        if names is None:
+            names = data.keys()
+        if dtypes is None:
+            dtypes = [None] * len(names)
+
+        data_list = [data[name] for name in names]
+        self._init_from_list(data_list, names, dtypes)
+
+    def _init_from_table(self, data, names, dtypes):
+        if names is None:
+            names = data.colnames
+        if dtypes is None:
+            dtypes = [None] * len(names)
+
+        cols = [data.columns[name] for name in names]
+        self._init_from_list(cols, names, dtypes)
+        self.meta = copy.deepcopy(data.meta)
 
     def _init_from_cols(self, cols):
         dtypes = [col.descr for col in cols]
