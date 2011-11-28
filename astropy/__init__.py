@@ -8,7 +8,7 @@ managing them.
 
 
 try:
-    from astropy.version import version as __version__
+    from .version import version as __version__
 except ImportError:
     # TODO: Issue a warning...
     __version__ = ''
