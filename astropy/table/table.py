@@ -54,12 +54,12 @@ class Column(object):
     A Column can be created in two different ways:
 
     - Provide a ``data`` value and optionally a ``dtype`` value
-      
+
       Examples::
 
         col = Column('name', data=[1, 2, 3])         # shape=(3,)
         col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-        col = Column('name', data=[1, 2, 3], dtype=float) 
+        col = Column('name', data=[1, 2, 3], dtype=float)
         col = Column('name', np.array([1, 2, 3]))
         col = Column('name', ['hello', 'world'])
 
@@ -75,9 +75,9 @@ class Column(object):
       If no ``dtype`` value is provide then the type is inferred using
       ``np.array(data)``.  When ``data`` is provided then the ``shape``
       and ``length`` arguments are ignored.
-      
+
     - Provide zero or more of ``dtype``, ``shape``, ``length``
-      
+
       Examples::
 
         col = Column('name')
@@ -326,7 +326,6 @@ class Table(object):
             names = [None] * n_cols
         if dtypes is None:
             dtypes = [None] * n_cols
-        # self._check_names_dtypes(names, dtypes)
 
         cols = [data[:, i] for i in range(n_cols)]
         self._init_from_list(cols, names, dtypes)
