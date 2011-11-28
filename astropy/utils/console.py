@@ -1,12 +1,13 @@
 """
 Utilities for prettifying output to the console.
 """
+import io
 import sys
 import time
 
 
 def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
-                end='\n'):
+                end=u'\n'):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -59,14 +60,45 @@ def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
     color_code = color_mapping.get(color, '0;39')
 
     if bold:
-        file.write('\033[1m')
+        file.write(u'\033[1m')
     if italic:
-        file.write('\033[3m')
-    file.write('\033[%sm' % color_code)
+        file.write(u'\033[3m')
+    file.write(u'\033[%sm' % color_code)
+    if isinstance(s, bytes):
+        s = s.decode('ascii')
     file.write(s)
-    file.write('\033[0m')
+    file.write(u'\033[0m')
     if end is not None:
+        if isinstance(end, bytes):
+            end = end.decode('ascii')
         file.write(end)
+
+
+def color_string(s, color='default', bold=False, italic=False):
+    """
+    Returns a string containing ANSI color codes in the given
+    color.
+
+    Parameters
+    ----------
+    s : str
+        The message to color
+
+    color : str, optional
+        An ANSI terminal color name.  Must be one of: black, red,
+        green, brown, blue, magenta, cyan, lightgrey, default,
+        darkgrey, lightred, lightgreen, yellow, lightblue,
+        lightmagenta, lightcyan, white.
+
+    bold : bool, optional
+        When `True` use boldface font.
+
+    italic : bool, optional
+        When `True`, use italic font.
+    """
+    stream = io.StringIO()
+    color_print(s, color, bold, italic, stream, end=u'')
+    return stream.getvalue()
 
 
 class ProgressBar:

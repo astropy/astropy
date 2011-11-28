@@ -14,12 +14,9 @@ def test_color_print():
 
 
 def test_color_print2():
-    if sys.version_info[0] >= 3:
-        stream = io.StringIO()
-    else:
-        stream = io.BytesIO()
+    stream = io.StringIO()
     console.color_print("foo", "green", file=stream)
-    assert stream.getvalue() == '\x1b[0;32mfoo\x1b[0m\n'
+    assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\n'
 
 
 def test_color_print_unicode():
@@ -47,3 +44,8 @@ def test_progress_bar3():
         pass
 
     console.map_with_progress_bar(do_nothing, range(50))
+
+
+def test_color_string():
+    value = console.color_string("foo", "green")
+    assert value == u'\x1b[0;32mfoo\x1b[0m'
