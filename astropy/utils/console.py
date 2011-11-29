@@ -182,7 +182,7 @@ class ProgressBar:
                 stdout=subprocess.PIPE)
             stdout, stderr = p.communicate()
             parts = stdout.split()
-            if parts == 2:
+            if len(parts) == 2:
                 rows, cols = parts
                 terminal_width = int(cols)
         self._bar_length = terminal_width - 29 - (num_length * 2)
