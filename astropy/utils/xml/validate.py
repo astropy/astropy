@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Functions to do XML schema and DTD validation.  At the moment, this
 makes a subprocess call to xmllint.  This could use a Python-based

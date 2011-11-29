@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A collection of functions for checking various XML-related strings for
 standards compliance.

@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains a class that makes it simple to stream out well-formed and
 nicely-indented XML.
