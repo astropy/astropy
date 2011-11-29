@@ -37,4 +37,4 @@ def get_package_data():
 
 
 def get_legacy_alias():
-    return setup_helpers.add_legacy_alias('astropy.io.vo', 'vo')
+    return setup_helpers.add_legacy_alias('vo', 'astropy.io.vo')

@@ -278,4 +278,4 @@ def get_data_files():
 
 
 def get_legacy_alias():
-    return setup_helpers.add_legacy_alias('astropy.wcs', 'pywcs')
+    return setup_helpers.add_legacy_alias('pywcs', 'astropy.wcs')

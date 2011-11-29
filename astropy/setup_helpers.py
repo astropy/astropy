@@ -7,12 +7,14 @@ setup/build/packaging that are useful to astropy as a whole.
 from __future__ import absolute_import
 
 import os
+import shutil
 import sys
 
 from distutils import log
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError
 from distutils.core import Extension
+from distutils.log import warn
 
 
 try:
@@ -431,20 +433,20 @@ legacy_shim_template = """
 
 import warnings
 warnings.warn(
-    \"{pkgto} is deprecated.  Use {pkgfrom} instead.",
+    "{old_package} is deprecated.  Use {new_package} instead.",
     DeprecationWarning)
 
 import pkgutil
-__path__ = pkgutil.extend_path(__path__, \"{pkgfrom}\")
+__path__ = pkgutil.extend_path(__path__, "{new_package}")
 
-from {pkgfrom} import *
+from {new_package} import *
 from astropy import __version__
 
 _is_astropy_legacy_alias = True
 """
 
 
-def add_legacy_alias(pkgfrom, pkgto):
+def add_legacy_alias(old_package, new_package):
     """
     Adds a legacy alias that makes *pkgfrom* also importable as
     *pkgto*.
@@ -459,15 +461,15 @@ def add_legacy_alias(pkgfrom, pkgto):
 
     Parameters
     ----------
-    pkgfrom : str
-        The real subpackage, specified using `.` as a delimiter
+    old_package : str
+        The old namespace.  Must be a single name (i.e. not have `.`).
 
-    pkgto : str
-        The package to alias to.  Must be a single name (i.e. not have `.`).
+    new_package : str
+        The new namespace, specified using `.` as a delimiter
 
     Returns
     -------
-    pkgto, shim_dir : (str, str)
+    old_package, shim_dir : (str, str)
         The name of the alias package and its source directory in the
         file system (useful for adding to distutils' `package_dir` kwarg.
     """
@@ -475,28 +477,28 @@ def add_legacy_alias(pkgfrom, pkgto):
 
     found_legacy_module = False
     try:
-        location = imp.find_module(pkgto)
+        location = imp.find_module(old_package)
     except ImportError:
         pass
     else:
         # We want ImportError to raise here, because that means it was
         # found, but something else went wrong.
-        module = imp.load_module(pkgto, *location)
+        module = imp.load_module(old_package, *location)
 
         if not hasattr(module, '_is_astropy_legacy_alias'):
             found_legacy_module = True
 
-    shim_dir = os.path.join(get_legacy_alias_dir(), pkgto)
+    shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
     if found_legacy_module:
-        print('-' * 60)
-        print("The legacy module '{0}' was found.".format(pkgto))
-        print("To install astropy's compatibility layer for this instead,")
-        print("uninstall '{0}' and then reinstall astropy.".format(pkgto))
-        print('-' * 60)
+        warn('-' * 60)
+        warn("The legacy package '{0}' was found.".format(old_package))
+        warn("To install astropy's compatibility layer instead, uninstall")
+        warn("'{0}' and then reinstall astropy.".format(old_package))
+        warn('-' * 60)
 
         if os.path.isdir(shim_dir):
-            os.removedirs(shim_dir)
+            shutil.rmtree(shim_dir)
         return (None, None)
 
     if not os.path.isdir(shim_dir):
@@ -505,4 +507,4 @@ def add_legacy_alias(pkgfrom, pkgto):
     write_if_different(
         os.path.join(shim_dir, '__init__.py'), content)
 
-    return (pkgto, shim_dir)
+    return (old_package, shim_dir)
