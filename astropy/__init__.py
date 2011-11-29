@@ -14,6 +14,12 @@ except ImportError:
     __version__ = ''
 # The version number can be found in the "version" variable of version.py
 
+# set up the test command
+from . import __path__ as base_path
+from .tests import helper
+test_runner = helper.TestRunner(base_path[0])
+test = test_runner.run_tests
 
-
-from .tests.helper import run_tests as test
+# make the setup.py test command
+class setup_test_command(helper.astropy_test):
+    package_name = 'astropy'
