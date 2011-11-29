@@ -8,3 +8,5 @@ This package is intended to contain functionality that is of use to users, in
 contrast to the `astropy.utils` module, which is focused more on developer
 tools or python-specific utilities.
 """
+
+from .misc import *
