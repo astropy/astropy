@@ -294,6 +294,11 @@ def iterate_with_progress_bar(items, file=sys.stdout):
     file : writeable file-like object
         The file to write the progress bar to.  Defaults to
         `sys.stdout`.
+
+    Returns
+    -------
+    generator :
+        A generator over `items`
     """
     with ProgressBar(len(items), file=file) as bar:
         for item in items:
