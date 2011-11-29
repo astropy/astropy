@@ -9,7 +9,7 @@ import urlparse
 
 def check_id(ID):
     """
-    Returns `True` if *ID* is a valid XML ID_.
+    Returns `True` if *ID* is a valid XML ID.
     """
     return re.match(r"^[A-Za-z_][A-Za-z0-9_\.\-]*$", ID) is not None
 
