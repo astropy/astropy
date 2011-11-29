@@ -133,26 +133,27 @@ def get_debug_option():
     return debug
 
 
-def update_package_files(srcdir, extensions, package_data, data_files,
-                         packagenames, package_dirs):
-    """ Extends existing extensions and data_files lists, and updates an
-    existing package_data dict by iterating through all packages in ``srcdir``
-    and locating a ``setup_package.py`` module.  This module can contain any of
-    three functions: ``get_extensions()``, ``get_package_data()``, and
-    ``get_data_files()``.
+def update_package_files(srcdir, extensions, package_data, packagenames,
+                         package_dirs):
+    """ Extends existing extensions, package_data, packagenames and
+    package_dirs collections by iterating through all packages in
+    ``srcdir`` and locating a ``setup_package.py`` module.  This
+    module can contain any of three functions: ``get_extensions()``,
+    ``get_package_data()``, and ``get_legacy_alias()``.
 
-    Each of those functions take no arguments.  ``get_extensions`` returns a
-    list of `distutils.extension.Extension` objects.  ``get_package_data()``
-    returns a dict formatted as required by the ``package_data`` argument to
-    ``setup()``, and likewise ``get_data_files()`` returns a list of data files
-    to be passed to to the ``data_files`` argument.
+    Each of those functions take no arguments.  ``get_extensions``
+    returns a list of `distutils.extension.Extension` objects.
+    ``get_package_data()`` returns a dict formatted as required by the
+    ``package_data`` argument to ``setup()``.  ``get_legacy_alias()``
+    should call `add_legacy_alias` and return its result.
 
     The purpose of this function is to allow subpackages to update the
-    arguments to the package's ``setup()`` function in its setup.py script,
-    rather than having to specify all extensions/package data directly in the
-    setup.py.  It updates existing lists in the setup.py rather than returning
-    new ones.  See Astropy's own setup.py for example usage and the Astropy
-    development docs for more details.
+    arguments to the package's ``setup()`` function in its setup.py
+    script, rather than having to specify all extensions/package data
+    directly in the setup.py.  It updates existing lists in the
+    setup.py rather than returning new ones.  See Astropy's own
+    ``setup.py`` for example usage and the Astropy development docs
+    for more details.
 
     """
 
@@ -168,8 +169,6 @@ def update_package_files(srcdir, extensions, package_data, data_files,
 
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
-        if hasattr(setuppkg, 'get_data_files'):
-            data_files.extend(setuppkg.get_data_files())
         if hasattr(setuppkg, 'get_legacy_alias'):
             pkg, dir = setuppkg.get_legacy_alias()
             if pkg is not None:

@@ -32,13 +32,6 @@ process:
     be accessed via the `astropy.config.data.get_data_filename` and
     `astropy.config.data.get_data_fileobj` functions.
 
-* :func:`get_data_files`
-    This function, if defined, should return a list of tuples (`loc`,`files`)
-    where `files` is a list of file paths (now relative to the root of the
-    source distribution), and `loc` is a location for the files to be installed
-    (relative to the installation prefix for python). See the ``data_files``
-    option of the  :func:`distutils.core.setup` function.
-
 * :func:`get_extensions`
     This provides information for building C or Cython extensions. If defined,
     it should return a list of `distutils.core.Extension` objects controlling
