@@ -79,7 +79,7 @@ def write_wcsconfig_h():
     #define WCSLIB_INT64 {1}
     """.format(WCSVERSION, determine_64_bit_int()))
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'wcsconfig.h'),
+        join(WCSROOT, 'include', 'wcsconfig.h'),
         h_file.getvalue().encode('ascii'))
 
 ######################################################################
