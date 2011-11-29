@@ -11,3 +11,4 @@ other subpackage), see the `astropy.tools` package.
 """
 
 from .compat.odict import OrderedDict
+from .misc import *

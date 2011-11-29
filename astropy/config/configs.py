@@ -88,9 +88,10 @@ class ConfigurationItem(object):
     def __init__(self,name,defaultvalue='',description=None,cfgtype=None,
                       module=None):
         from warnings import warn
+        from ..utils import find_current_module
         
         if module is None:
-            module = _find_current_module(2)
+            module = find_current_module(2)
             if module is None:
                 msg1 = 'Cannot automatically determine get_config module, '
                 msg2 = 'because it is not called from inside a valid module'
@@ -321,9 +322,10 @@ def get_config(packageormod=None,reload=False):
     """
     from os.path import join
     from .paths import get_config_dir
+    from ..utils import find_current_module
     
     if packageormod is None:
-        packageormod = _find_current_module(2)
+        packageormod = find_current_module(2)
         if packageormod is None:
             msg1 = 'Cannot automatically determine get_config module, '
             msg2 = 'because it is not called from inside a valid module'
@@ -391,89 +393,7 @@ def reload_config(packageormod=None):
     while sec.parent is not sec:
         sec = sec.parent
     sec.reload()
-    
-#TODO: move this to utils
-def _find_current_module(depth=1):
-    """ Determines the module this function is called from.  `depth` specifies
-    how far back to go in the call stack - e.g. 1 indicates the package of this 
-    function's caller, 2 retreives the caller's caller, etc.
-    
-    Returns the module object or None if the package cannot be found.  The name
-    of the module is available as the ``__name__`` attribute of the returned
-    object (if it isn't None)
-    """
-    from inspect import currentframe,getmodule
-    from sys import version_info
-    
-    # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
-    # is broken if the list of modules changes during import
-    # TODO: start using the builtin again if this is fixed in 3.?
-    if version_info[0]>2:
-        getmodule =_patched_getmodule
-    
-    frm = currentframe()
-    for i in range(depth):
-        frm = frm.f_back
-        if frm is None:
-            return None
-    return getmodule(frm)
-    
-# This is a copy of the stdlib inspect.getmodule with a small change due to a 
-# bug in Python 3.1 and 3.2astropy/config/configs.py
 
-# TODO: move this to utils along with _find_current_module
-def _patched_getmodule(object, _filename=None):
-    """Return the module an object was defined in, or None if not found."""
-    #this imports mock up what would otherwise have been in inspect
-    import sys
-    import os
-    from inspect import modulesbyfile,_filesbymodname,getabsfile,ismodule
-    
-    if ismodule(object):
-        return object
-    if hasattr(object, '__module__'):
-        return sys.modules.get(object.__module__)
-    # Try the filename to modulename cache
-    if _filename is not None and _filename in modulesbyfile:
-        return sys.modules.get(modulesbyfile[_filename])
-    # Try the cache again with the absolute file name
-    try:
-        file = getabsfile(object, _filename)
-    except TypeError:
-        return None
-    if file in modulesbyfile:
-        return sys.modules.get(modulesbyfile[file])
-    # Update the filename to module name cache and check yet again
-    # Copy sys.modules in order to cope with changes while iterating
-    # This is where the fix is made - the adding of the "list" call:
-    for modname, module in list(sys.modules.items()):
-        if ismodule(module) and hasattr(module, '__file__'):
-            f = module.__file__
-            if f == _filesbymodname.get(modname, None):
-                # Have already mapped this module, so skip it
-                continue
-            _filesbymodname[modname] = f
-            f = getabsfile(module)
-            # Always map to the name the module knows itself by
-            modulesbyfile[f] = modulesbyfile[
-                os.path.realpath(f)] = module.__name__
-    if file in modulesbyfile:
-        return sys.modules.get(modulesbyfile[file])
-    # Check the main module
-    main = sys.modules['__main__']
-    if not hasattr(object, '__name__'):
-        return None
-    if hasattr(main, object.__name__):
-        mainobject = getattr(main, object.__name__)
-        if mainobject is object:
-            return main
-    # Check builtins
-    builtin = sys.modules['builtins']
-    if hasattr(builtin, object.__name__):
-        builtinobject = getattr(builtin, object.__name__)
-        if builtinobject is object:
-            return builtin
-    
 def _generate_all_config_items(pkgornm=None,reset_to_default=False):
     """ Given a root package name or package, this function simply walks through
     all the subpackages and modules, which should populate any ConfigurationItem
@@ -488,8 +408,10 @@ def _generate_all_config_items(pkgornm=None,reset_to_default=False):
     from pkgutil import find_module,walk_packages
     from types import ModuleType
     
+    from ..utils import find_current_module
+    
     if pkgornm is None:
-        pkgornm = _find_current_module(1).__name__.split('.')[0]
+        pkgornm = find_current_module(1).__name__.split('.')[0]
     
     if isinstance(pkgornm,basestring):
         package = find_module(pkgornm).load_module(pkgornm)
