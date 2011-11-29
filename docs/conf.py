@@ -111,3 +111,8 @@ man_pages = [
 # be used globally.
 rst_epilog += """
 """
+
+# -- Options for linkcheck --------------------------------------------
+
+# A timeout value, in seconds, for the linkcheck builder
+linkcheck_timeout = 60
