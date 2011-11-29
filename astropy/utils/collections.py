@@ -3,6 +3,7 @@
 A number of specialized collection classes.
 """
 
+
 class HomogeneousList(list):
     """
     A subclass of list that contains only elements of a given type or
@@ -49,4 +50,3 @@ class HomogeneousList(list):
         for item in x:
             self._assert(item)
         return list.extend(self, x)
-

@@ -277,7 +277,3 @@ class XMLWriter:
             if getattr(obj, attr) is not None:
                 d[attr.replace('_', '-')] = str(getattr(obj, attr))
         return d
-
-
-
-

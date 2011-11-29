@@ -8,6 +8,7 @@ found.
 
 import os
 
+
 def validate_schema(filename, schema_file):
     """
     Validates an XML file against a schema or DTD.
@@ -46,4 +47,3 @@ def validate_schema(filename, schema_file):
             "xmllint not found, so can not validate schema")
 
     return p.returncode, stdout, stderr
-

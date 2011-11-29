@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Simple utility functions and bug fixes for compatibility with all supported
-versions of Python.  This module should generally not be used directly, as 
+versions of Python.  This module should generally not be used directly, as
 everything in `__all__` will be imported into `astropy.utils.compat` and can
 be accessed from there.
 
@@ -9,7 +9,7 @@ Includes the following fixes:
 
 * The `inspect.getmodule` function does not always work in Python 3.1 and 3.2.
   This package includes a function `inspect_getmodule` that will simply be an
-  alias to `inspect.getmodule` if the stdlib version is correct, but for 
+  alias to `inspect.getmodule` if the stdlib version is correct, but for
   versions of python with the bug, it uses an internal patched version.
 
 """
@@ -20,17 +20,18 @@ from sys import version_info
 
 __all__ = ['inspect_getmodule']
 
+
 def _patched_getmodule(object, _filename=None):
     """Return the module an object was defined in, or None if not found.
-    
-    This replicates the functionality of the stdlib `inspect.getmodule` 
+
+    This replicates the functionality of the stdlib `inspect.getmodule`
     function but includes a fix for a bug present in Python 3.1 and 3.2.
-    """    
+    """
     #these imports mock up what would otherwise have been in inspect
     import sys
     import os
-    from inspect import modulesbyfile,_filesbymodname,getabsfile,ismodule
-    
+    from inspect import modulesbyfile, _filesbymodname, getabsfile, ismodule
+
     if ismodule(object):
         return object
     if hasattr(object, '__module__'):
@@ -81,11 +82,11 @@ inspect_getmodule = None
 An alias to `inspect.getmodule`, or a patched version that replicates the
 functionality with a bugfix for Python 3.1 and 3.2.
 """
-#This assigns the stdlib inspect.getmodule to the variable name 
+
+#This assigns the stdlib inspect.getmodule to the variable name
 #`inspect_getmodule` if it's not buggy, and uses the matched version if it is.
 if version_info[0]<3 or version_info[1]>2:
     #in 2.x everythig is fine, as well as >=3.3
     from inspect import getmodule as inspect_getmodule
 else:
     inspect_getmodule = _patched_getmodule
-    
