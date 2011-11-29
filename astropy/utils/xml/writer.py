@@ -30,14 +30,6 @@ def xml_escape(s):
     return s
 
 
-try:
-    from astropy.io.vo import iterparser
-    xml_escape_cdata = iterparser.escape_xml_cdata
-    xml_escape = iterparser.escape_xml
-except ImportError:
-    pass
-
-
 class XMLWriter:
     """
     A class to write well-formed and nicely indented XML.
@@ -72,6 +64,14 @@ class XMLWriter:
         self._data = []
         self._indentation = u" " * 64
 
+        try:
+            from astropy.io.vo import iterparser
+            self.xml_escape_cdata = iterparser.escape_xml_cdata
+            self.xml_escape = iterparser.escape_xml
+        except ImportError:
+            self.xml_escape_cdata = xml_escape_cdata
+            self.xml_escape = xml_escape
+
     def _flush(self, indent=True, wrap=False):
         """
         Flush internal buffers.
@@ -91,11 +91,11 @@ class XMLWriter:
                     initial_indent=indent,
                     subsequent_indent=indent)
                 self.write('\n')
-                self.write(xml_escape_cdata(data))
+                self.write(self.xml_escape_cdata(data))
                 self.write('\n')
                 self.write(self.get_indentation_spaces())
             else:
-                self.write(xml_escape_cdata(data))
+                self.write(self.xml_escape_cdata(data))
             self._data = []
 
     def start(self, tag, attrib={}, **extra):
@@ -136,7 +136,7 @@ class XMLWriter:
                 if not v == '' and v is not None:
                     # This is just busy work -- we know our keys are clean
                     # k = xml_escape_cdata(k)
-                    v = xml_escape(v)
+                    v = self.xml_escape(v)
                     self.write(u" %s=\"%s\"" % (k, v))
         self._open = 1
 
@@ -168,7 +168,7 @@ class XMLWriter:
         """
         self._flush()
         self.write(self.get_indentation_spaces())
-        self.write(u"<!-- %s -->\n" % xml_escape_cdata(comment))
+        self.write(u"<!-- %s -->\n" % self.xml_escape_cdata(comment))
 
     def data(self, text):
         """
