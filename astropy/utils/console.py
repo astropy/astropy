@@ -101,6 +101,47 @@ def color_string(s, color='default', bold=False, italic=False):
     return stream.getvalue()
 
 
+def human_time(seconds):
+    """
+    Returns a human-friendly time string that is always exactly 6
+    characters long.
+
+    Depending on the number of seconds given, can be one of::
+
+        1w 3d
+        2d 4h
+        1h 5m
+        1m 4s
+          15s
+
+    Parameters
+    ----------
+    seconds : int
+        The number of seconds to represent
+
+    Returns
+    -------
+    time : str
+        A human-friendly representation of the given number of seconds
+        that is always exactly 6 characters.
+    """
+    minute = 60
+    hour = minute * 60
+    day = hour * 24
+    week = day * 7
+
+    if seconds > week:
+        return '%02dw%02dd' % (seconds // week, (seconds % week) // day)
+    elif seconds > day:
+        return '%02dd%02dh' % (seconds // day, (seconds % day) // hour)
+    elif seconds > hour:
+        return '%02dh%02dm' % (seconds // hour, (seconds % hour) // minute)
+    elif seconds > minute:
+        return '%02dm%02ds' % (seconds // minute, seconds % minute)
+    else:
+        return '   %02ds' % (seconds)
+
+
 class ProgressBar:
     """
     A class to display a progress bar in the terminal.
@@ -181,15 +222,18 @@ class ProgressBar:
                         file=self._file, end='')
         if value >= self._total:
             t = time.time() - self._start_time
-            eta = '    %02d:%02d' % (t / 60, t % 60)
+            prefix = '    '
         elif value <= 0:
-            eta = ''
+            t = None
+            prefix = ''
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
-            eta = 'ETA %02d:%02d' % (t / 60, t % 60)
+            prefix = 'ETA '
         self._file.write(self._num_format % (value, self._total))
         self._file.write('(%6s%%) ' % ('%.2f' % (frac * 100.0)))
-        self._file.write(eta)
+        self._file.write(prefix)
+        if t is not None:
+            self._file.write(human_time(t))
         self._file.write('\r')
         self._file.flush()
 
