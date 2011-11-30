@@ -20,6 +20,9 @@ import astropy
 # Load all of the global Astropy configuration
 from astropy.sphinx.conf import *
 
+#some of the docs require the autodoc special-members option, in 1.1
+needs_sphinx = '1.1'
+
 # The intersphinx_mapping in astropy.sphinx.conf refers to astropy for
 # the benefit of affiliated packages who want to refer to objeects in
 # the astropy core.  However, we don't want to cyclically reference
