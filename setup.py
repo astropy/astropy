@@ -11,7 +11,6 @@ from setuptools import setup, find_packages
 
 import astropy
 from astropy import setup_helpers
-from astropy import setup_test_command
 from astropy.version_helper import get_git_devstr, generate_version_py
 
 version = '0.0dev'
@@ -46,7 +45,7 @@ scripts.remove('scripts/README.rst')
 setup_helpers.check_numpy()
 
 # This dictionary stores the command classes used in setup below
-cmdclassd = {'test': setup_test_command}
+cmdclassd = {'test': setup_helpers.setup_test_command('astropy')}
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []

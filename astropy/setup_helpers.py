@@ -12,6 +12,8 @@ from distutils.dist import Distribution
 from distutils.errors import DistutilsError
 from distutils.core import Extension
 
+from .tests.helper import astropy_test
+
 
 try:
     import Cython
@@ -357,6 +359,11 @@ def is_in_build_mode():
 
 def set_build_mode():
     __builtins__['_build_mode'] = True
+
+
+def setup_test_command(package_name):
+    return type(package_name + '_test_command', (astropy_test,),
+                {'package_name': package_name}) 
 
 
 ###############################################################################

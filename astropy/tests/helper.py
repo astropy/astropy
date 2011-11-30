@@ -13,8 +13,6 @@ import subprocess
 
 from distutils.core import Command
 
-from .. import __path__ as astropy_path
-
 try:
     import pytest
 
@@ -174,7 +172,7 @@ class TestRunner(object):
         return pytest.main(args=all_args, plugins=plugins)
 
 
-class astropy_test(Command):
+class astropy_test(Command, object):
     user_options = [
         ('package=', 'P',
          "The name of a specific package to test, e.g. 'io.fits' or 'utils'.  "
