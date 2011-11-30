@@ -16,7 +16,7 @@ except ImportError:
 
 # set up the test command
 from . import __path__
-from .tests import helper as _test_helper
-_test_runner = _test_helper.TestRunner(__path__[0])
-del _test_helper
+from .tests.helper import TestRunner
+_test_runner = TestRunner(__path__[0])
+del TestRunner
 test = _test_runner.run_tests
