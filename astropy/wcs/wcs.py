@@ -80,7 +80,9 @@ if _wcs is not None:
 else:
     WCSBase = object
     Wcsprm = object
-
+    DistortionLookupTable = object
+    Sip = object
+    UnitConverter = object
 
 
 def _parse_keysel(keysel):
