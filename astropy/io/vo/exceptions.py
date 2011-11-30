@@ -41,6 +41,14 @@ from warnings import warn
 # LOCAL
 from .util import IS_PY3K
 
+
+__all__ = [
+    'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
+    'warn_unknown_attrs', 'parse_vowarning', 'VOWarning'
+    'VOTableChangeWarning', 'VOTableSpecWarning',
+    'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
+
+
 MAX_WARNINGS = 10
 
 
@@ -113,7 +121,7 @@ def warn_unknown_attrs(element, attrs, config, pos, good_attr=[]):
             vo_warn(W48, (attr, element), config, pos)
 
 
-warning_pat = re.compile(
+_warning_pat = re.compile(
     (r":?(?P<nline>[0-9?]+):(?P<nchar>[0-9?]+): " +
      r"((?P<warning>[WE]\d+): )?(?P<rest>.*)$"))
 
@@ -123,7 +131,7 @@ def parse_vowarning(line):
     Parses the vo warning string back into its parts.
     """
     result = {}
-    match = warning_pat.search(line)
+    match = _warning_pat.search(line)
     if match:
         result['warning'] = warning = match.group('warning')
         if warning is not None:
@@ -1323,15 +1331,20 @@ class E21(VOWarning, ValueError):
     default_args = ('x', 'y')
 
 
+def _get_warning_and_exception_classes(prefix):
+    classes = []
+    for key, val in globals().items():
+        if re.match(prefix + "[0-9]{2}", key):
+            classes.append((key, val))
+    classes.sort()
+    return classes
+
+
 def _build_doc_string():
     from textwrap import dedent
 
     def generate_set(prefix):
-        classes = []
-        for key, val in globals().items():
-            if re.match(prefix + "[0-9]{2}", key):
-                classes.append((key, val))
-        classes.sort()
+        classes = _get_warning_and_exception_classes(prefix)
 
         out = io.StringIO()
 
@@ -1359,3 +1372,6 @@ def _build_doc_string():
             u'exceptions': exceptions}
 
 __doc__ = __doc__.format(**_build_doc_string())
+
+__all__.extend([x[0] for x in _get_warning_and_exception_classes(u'W')])
+__all__.extend([x[0] for x in _get_warning_and_exception_classes(u'E')])

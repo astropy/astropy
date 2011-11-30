@@ -26,6 +26,10 @@ if not IS_PY3K:
     def bytes(s, encoding):
         return str(s)
 
+
+__all__ = ['get_converter']
+
+
 pedantic_array_splitter = re.compile(r" +")
 array_splitter = re.compile(r"\s+|(?:\s*,\s*)")
 """

@@ -18,6 +18,13 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise,
      VOTableChangeWarning, W02, W03, W04, W05, W34)
 
 
+__all__ = [
+    'fast_iterparse', 'slow_iterparse', 'get_xml_iterator',
+    'check_id', 'fix_id', 'check_token', 'check_mime_content_type',
+    'check_anyuri', 'validate_schema'
+    ]
+
+
 def fast_iterparse(fd, buffersize=2 ** 10):
     """
     Based on :class:`cElementTree.iterparse`, but doesn't ever build a

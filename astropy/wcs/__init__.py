@@ -48,7 +48,6 @@ The basic workflow is as follows:
 
 from __future__ import division  # confidence high
 
-import sys
 from .wcs import *
 
 

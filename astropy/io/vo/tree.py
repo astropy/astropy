@@ -48,6 +48,14 @@ try:
 except ImportError:
     _has_c_tabledata_writer = False
 
+
+__all__ = [
+    'Link', 'Info', 'Values', 'Field', 'Param', 'CooSys',
+    'FieldRef', 'ParamRef', 'Group', 'Table', 'Resource',
+    'VOTableFile'
+    ]
+
+
 # The default number of rows to read in each chunk before converting
 # to an array.
 DEFAULT_CHUNK_SIZE = 256

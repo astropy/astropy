@@ -28,12 +28,12 @@ together in a pipeline:
 
 from __future__ import division  # confidence high
 
-# stdlib
+# STDLIB
 import copy
 import sys
 import warnings
 
-# third-party
+# THIRD-PARTY
 import numpy as np
 try:
     import pyfits
@@ -41,7 +41,7 @@ try:
 except ImportError:
     HAS_PYFITS = False
 
-# local
+# LOCAL
 from . import _docutil as __
 try:
     from . import _wcs
@@ -58,6 +58,12 @@ if sys.version_info[0] >= 3:
 else:
     string_types = (str, unicode)
 
+
+__all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
+           'WCSBase', 'DistortionLookupTable', 'Sip',
+           'UnitConverter', 'Wcsprm']
+
+
 if _wcs is not None:
     WCSBase = _wcs._Wcs
     DistortionLookupTable = _wcs.DistortionLookupTable
@@ -70,9 +76,11 @@ if _wcs is not None:
             key.startswith('WCSHDR') or
             key.startswith('WCSHDO')):
             locals()[key] = val
+            __all__.append(key)
 else:
     WCSBase = object
     Wcsprm = object
+
 
 
 def _parse_keysel(keysel):

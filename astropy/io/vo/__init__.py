@@ -18,3 +18,8 @@ else:
         VOTableSpecWarning, UnimplementedWarning, IOWarning,
         VOTableSpecError)
 
+__all__ = [
+    'parse', 'parse_single_table', 'VOWarning', 'VOTableChangeWarning',
+    'VOTableSpecWarning', 'UnimplementedWarning', 'IOWarning',
+    'VOTableSpecError'
+    ]

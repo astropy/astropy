@@ -11,6 +11,9 @@ from . import util
 from . import xmlutil
 
 
+__all__ = ['parse', 'parse_single_table']
+
+
 def parse(source, columns=None, invalid='exception', pedantic=True,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
           filename=None,

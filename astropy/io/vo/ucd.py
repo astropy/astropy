@@ -9,6 +9,9 @@ import os
 import re
 
 
+__all__ = ['parse_ucd', 'check_ucd']
+
+
 class UCDWords:
     """
     A class to manage the list of acceptable UCD words.  Works by
