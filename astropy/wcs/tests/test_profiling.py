@@ -30,7 +30,7 @@ def test_maps():
         fd.close()
         wcsobj = wcs.WCS(header)
 
-        x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
+        x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2sky(x, 1)
         pix = wcsobj.wcs_sky2pix(x, 1)
 
