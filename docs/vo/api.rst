@@ -13,6 +13,7 @@ Public API
    api_converters.rst
    api_exceptions.rst
    api_ucd.rst
+   api_unit.rst
    api_util.rst
    api_validator.rst
    api_xmlutil.rst

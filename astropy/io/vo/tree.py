@@ -39,6 +39,7 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     W41, W42, W43, W44, W45, W48, E06, E08, E09, E10, E11, E12, E13,
     E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
+from .unit import check_unit
 from . import util
 from . import xmlutil
 
@@ -642,10 +643,9 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        # TODO: Validate unit more accurately
         if unit is not None and not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'), config, pos)
-        xmlutil.check_token(unit, 'unit', self._config, self._pos)
+        check_unit(unit, 'unit', self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
@@ -1166,8 +1166,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        # TODO: Validate unit more accurately
-        xmlutil.check_token(unit, 'unit', self._config, self._pos)
+        check_unit(unit, 'unit', self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
