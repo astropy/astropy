@@ -164,8 +164,9 @@ def check_token(token, attr_name, config={}, pos=None):
 
 def check_mime_content_type(content_type, config={}, pos=None):
     """
-    Raises a `ValueError` if *content_type* is not a valid MIME
-    content type (syntactically at least), as defined by RFC 2045.
+    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if
+    *content_type* is not a valid MIME content type (syntactically at
+    least), as defined by RFC 2045.
     """
     if (content_type is not None and
         not xml_check.check_mime_content_type(content_type)):
@@ -176,8 +177,8 @@ def check_mime_content_type(content_type, config={}, pos=None):
 
 def check_anyuri(uri, config={}, pos=None):
     """
-    Raises a `ValueError` if *uri* is not a valid URI as defined in RFC
-    2396.
+    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if *uri* is
+    not a valid URI as defined in RFC 2396.
     """
     if (uri is not None and not xml_check.check_anyuri(uri)):
         warn_or_raise(W05, W05, uri, config, pos)
