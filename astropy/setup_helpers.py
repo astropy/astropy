@@ -32,12 +32,12 @@ try:
 
     class AstropyBuildSphinx(BuildDoc):
         """ A version of build_sphinx that automatically creates the
-        docs/_static directories - this is needed because 
+        docs/_static directories - this is needed because
         github won't create the _static dir because it has no tracked files.
         """
         def finalize_options(self):
             from os.path import split,join
-            
+
             from distutils.cmd import DistutilsOptionError
 
             if self.build_dir is not None:
@@ -55,7 +55,7 @@ try:
 
             return BuildDoc.finalize_options(self)
 
-except ImportError,e:  
+except ImportError as e:
     if 'sphinx' in e.args[0]: # Sphinx not present
         AstropyBuildSphinx = None
     else:
@@ -279,7 +279,7 @@ def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
 
 def write_if_different(filename, data):
     """ Write `data` to `filename`, if the content of the file is different.
-    
+
     Parameters
     ----------
     filename : str
@@ -334,7 +334,7 @@ def adjust_compiler():
     here is to only override a default compiler.
 
     The specific compilers with problems are:
-        
+
         * The default compiler in XCode-4.2, llvm-gcc-4.2,
           segfaults when compiling wcslib.
 
