@@ -33,7 +33,10 @@ def get_package_data():
         'astropy.io.vo': [
             'data/ucd1p-words.txt', 'data/*.xsd', 'data/*.dtd'],
         'astropy.io.vo.tests': [
-            'data/*.xml', 'data/*.gz', 'data/*.json', 'data/*.fits']}
+            'data/*.xml', 'data/*.gz', 'data/*.json', 'data/*.fits',
+            'data/*.txt'],
+        'astropy.io.vo.validator': [
+            'urls/*.dat.gz']}
 
 
 def get_legacy_alias():

@@ -1,3 +1,8 @@
+"""
+Contains a class to handle a validation result for a single VOTable
+file.
+"""
+
 from __future__ import absolute_import
 
 # STDLIB
@@ -6,6 +11,7 @@ import httplib
 import os
 import cPickle as pickle
 import shutil
+import socket
 import subprocess
 import sys
 import urllib2
@@ -111,6 +117,9 @@ class Result:
         except httplib.HTTPException as e:
             fail("HTTPException: %s" % str(e))
             return
+        except socket.timeout as e:
+            fail("Timeout")
+            return
 
         if r is None:
             fail("Invalid URL")
@@ -212,7 +221,7 @@ class Result:
         self['votlint_content'] = stdout
 
 
-def get_result_subsets(results, root):
+def get_result_subsets(results, root, s=None):
     all_results      = []
     not_expected     = []
     fail_schema      = []
@@ -230,6 +239,9 @@ def get_result_subsets(results, root):
     exception_set    = {}
 
     for url in results:
+        if s:
+            s.next()
+
         x = Result(url, root=root)
         all_results.append(x)
         if not x.match_expectations():
@@ -293,6 +305,9 @@ def get_result_subsets(results, root):
         ('version_unknown', 'Version unknown', version_unknown),
         ('warnings', 'Warnings', has_warnings)]
     for warning_code, warnings in warning_set:
+        if s:
+            s.next()
+
         warning_class = getattr(exceptions, warning_code, None)
         if warning_class:
             warning_descr = warning_class.get_short_name()
@@ -302,13 +317,16 @@ def get_result_subsets(results, root):
                  warnings, ['ul', 'li']))
     tables.append(
         ('exceptions', 'Exceptions', has_exceptions))
-    for exception_code, exceptions in exception_set:
+    for exception_code, exc in exception_set:
+        if s:
+            s.next()
+
         exception_class = getattr(exceptions, exception_code, None)
         if exception_class:
             exception_descr = exception_class.get_short_name()
             tables.append(
                 (exception_code,
                  '%s: %s' % (exception_code, exception_descr),
-                 exceptions, ['ul', 'li']))
+                 exc, ['ul', 'li']))
 
     return tables

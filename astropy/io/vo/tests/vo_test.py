@@ -19,7 +19,7 @@ from numpy.testing import assert_array_equal
 import numpy as np
 
 # LOCAL
-from ..table import parse, parse_single_table
+from ..table import parse, parse_single_table, validate
 from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
@@ -675,3 +675,36 @@ def test_build_from_scratch():
                               (False, [[False, False], [False, False]])],
                              dtype=[('filename', '?'),
                                     ('matrix', '?', (2, 2))]))
+
+
+def test_validate():
+    output = io.StringIO()
+
+    # We can't test xmllint, because we can't rely on it being on the
+    # user's machine.
+    result = validate(os.path.join(ROOT_DIR, 'regression.xml'),
+                      output, xmllint=False)
+
+    assert result == False
+
+    output.seek(0)
+    output = output.readlines()
+
+    with io.open(
+        os.path.join(ROOT_DIR, 'validation.txt'),
+        'rt', encoding='utf-8') as fd:
+        truth = fd.readlines()
+
+    for line in difflib.unified_diff(truth, output):
+        if IS_PY3K:
+            sys.stdout.write(
+                line.decode('utf-8').
+                encode('string_escape').
+                replace('\\n', '\n'))
+        else:
+            sys.stdout.write(
+                line.encode('string_escape').
+                replace('\\n', '\n'))
+
+    assert truth == output
+

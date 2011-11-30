@@ -8,12 +8,11 @@ import os
 import re
 
 # ASTROPY
-from ....utils.xml.writer import XMLWriter
+from ....utils.xml.writer import XMLWriter, xml_escape
 
 # VO
 from .. import exceptions
 from .. import xmlutil
-from ..xmlutil import xml_escape
 
 DOC_ROOT = u"../../../doc/"
 

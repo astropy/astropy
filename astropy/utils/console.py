@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Utilities for prettifying output to the console.
@@ -60,11 +61,13 @@ def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
 
     color_code = color_mapping.get(color, '0;39')
 
+    styles = []
     if bold:
-        file.write(u'\033[1m')
+        styles.append(';1')
     if italic:
-        file.write(u'\033[3m')
-    file.write(u'\033[%sm' % color_code)
+        styles.append(';3')
+    styles = ''.join(styles)
+    file.write(u'\033[%s%sm' % (color_code, styles))
     if isinstance(s, bytes):
         s = s.decode('ascii')
     file.write(s)
@@ -305,3 +308,80 @@ def iterate_with_progress_bar(items, file=sys.stdout):
         for item in items:
             yield item
             bar.update()
+
+
+class Spinner():
+    """
+    A class to display a spinner in the terminal.
+
+    It is designed to be used with the `with` statement::
+
+        with Spinner("Reticulating splines", "green") as s:
+            for item in enumerate(items):
+                s.next()
+    """
+    _default_chars = ur"◓◑◒◐"
+
+    def __init__(self, s, color='default', bold=False, italic=False,
+                 file=sys.stdout, step=1, chars=None):
+        """
+        Parameters
+        ----------
+        s : str
+            The message to print
+
+        color : str, optional
+            An ANSI terminal color name.  Must be one of: black, red,
+            green, brown, blue, magenta, cyan, lightgrey, default,
+            darkgrey, lightred, lightgreen, yellow, lightblue,
+            lightmagenta, lightcyan, white.
+
+        bold : bool, optional
+            When `True` use boldface font.
+
+        italic : bool, optional
+            When `True`, use italic font.
+
+        file : writeable file-like object, optional
+            Where to write to.  Defaults to `sys.stdout`.
+
+        step : int, optional
+            Only update the spinner every *step* steps
+
+        chars : str, optional
+            The character sequence to use for the spinner
+        """
+        self._colorized = color_string(s, color, bold, italic)
+        self._file = file
+        self._step = step
+        if chars is None:
+            chars = self._default_chars
+        self._chars = chars
+
+    def _iterator(self):
+        chars = self._chars
+        index = 0
+
+        while True:
+            self._file.write(self._colorized)
+            color_print(' ' + chars[index], file=self._file, end=u'\r')
+            self._file.flush()
+            yield
+
+            for i in xrange(self._step):
+                yield
+
+            index += 1
+            if index == len(chars):
+                index = 0
+
+    def __enter__(self):
+        return self._iterator()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._file.write(self._colorized)
+        if exc_type is None:
+            color_print(' Done', 'green', bold=True, file=self._file)
+        else:
+            color_print(' Failed', 'red', bold=True, file=self._file)
+        self._file.flush()

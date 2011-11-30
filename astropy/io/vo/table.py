@@ -5,13 +5,19 @@ VOTable file.
 
 from __future__ import division, absolute_import
 
+# STDLIB
+import io
+import sys
+import warnings
+
 # LOCAL
+from . import exceptions
 from . import tree
 from . import util
 from . import xmlutil
 
 
-__all__ = ['parse', 'parse_single_table']
+__all__ = ['parse', 'parse_single_table', 'validate']
 
 
 def parse(source, columns=None, invalid='exception', pedantic=True,
@@ -67,7 +73,7 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
 
     Returns
     -------
-    votable : `astropy.io.vo.tree.VOTable` object
+    votable : `astropy.io.vo.tree.VOTableFile` object
 
     See also
     --------
@@ -113,3 +119,109 @@ def parse_single_table(source, **kwargs):
     votable = parse(source, **kwargs)
 
     return votable.get_first_table()
+
+
+def validate(source, output=sys.stdout, xmllint=False, filename=None):
+    """
+    Prints a validation report for the given file.
+
+    Parameters
+    ----------
+    source : str or readable file-like object
+        Path or file object containing a VOTABLE_ xml file.
+
+    output : writable file-like object, optional
+        Where to output the report.  Defaults to `sys.stdout`.
+
+    xmllint : bool, optional
+        When `True`, also send the file to `xmllint` for schema and
+        DTD validation.  Requires that `xmllint` is installed.  The
+        default is `False`.
+
+    filename : str, optional
+        A filename, URL or other identifier to use in error messages.
+        If *filename* is None and *source* is a string (i.e. a path),
+        then *source* will be used as a filename for error messages.
+        Therefore, *filename* is only required when source is a
+        file-like object.
+
+    Returns
+    -------
+    is_valid : bool
+        Returns `True` if no warnings were found.
+    """
+    # TODO: text wrapping
+
+    if filename is None and isinstance(source, basestring):
+        filename = source
+
+    lines = []
+    votable = None
+
+    # This is a special variable used by the Python warnings
+    # infrastructure to keep track of warnings that have already been
+    # seen.  Since we want to get every single warning out of this, we
+    # have to delete it first.
+    del exceptions.__warningregistry__
+
+    with io.open(source, 'rb') as input:
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", append=True)
+            try:
+                votable = parse(input, pedantic=False, filename=filename)
+            except ValueError as e:
+                lines.append(str(e))
+    lines = [str(x.message) for x in warning_lines] + lines
+
+    output.write(u"Validation report for {0}\n\n".format(filename))
+
+    if len(lines):
+        with io.open(source, 'rt') as input:
+            xml_lines = input.readlines()
+
+        for warning in lines:
+            w = exceptions.parse_vowarning(warning)
+
+            if not w['is_something']:
+                output.write(warning)
+                output.write(u'\n\n')
+            else:
+                line = xml_lines[w['nline'] - 1]
+                output.write(u'{nline}: {warning}: {message}\n'.format(**w))
+                output.write(line)
+                nchar = w['nchar']
+                ntabs = line[:nchar].count(u'\t')
+                nchar += ntabs * 7
+                output.write(u' ' * nchar)
+                output.write(u'^\n')
+            output.write(u'\n')
+    else:
+        output.write(u'astropy.io.vo found no violations.\n\n')
+
+    success = 0
+    if xmllint:
+        import tempfile
+
+        if votable is None:
+            version = "1.1"
+        else:
+            version = votable.version
+        with tempfile.NamedTemporaryFile() as tmp:
+            with open(source, 'rb') as input:
+                tmp.write(input.read())
+            tmp.flush()
+            success, stdout, stderr = xmlutil.validate_schema(
+                tmp.name, version)
+
+        if success != 0:
+            output.write(
+                u'xmllint schema violations:\n\n')
+            stderr = stderr.replace(tmp.name + u':', u'')
+            stderr = stderr.replace(tmp.name, u'')
+            output.write(stderr)
+        else:
+            output.write(u'xmllint passed\n')
+
+    return len(lines) == 0 and success == 0
+
