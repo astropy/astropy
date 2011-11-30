@@ -1,3 +1,9 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+These plugins modify the behavior of py.test and are meant to be imported
+into conftest.py in the root directory.
+"""
+
 from .helper import pytest
 
 # these pytest hooks allow us to mark tests and run the marked tests with
