@@ -4,6 +4,8 @@ This module contains a number of utilities for use during
 setup/build/packaging that are useful to astropy as a whole.
 """
 
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -30,23 +32,34 @@ try:
 
     class AstropyBuildSphinx(BuildDoc):
         """ A version of build_sphinx that automatically creates the
-        docs/_build directory - this is needed because github won't create the
-        _build dir because it has no tracked files.
+        docs/_static directories - this is needed because 
+        github won't create the _static dir because it has no tracked files.
         """
         def finalize_options(self):
+            from os.path import split,join
+            
             from distutils.cmd import DistutilsOptionError
 
             if self.build_dir is not None:
-                if os.path.isfile(self.build_dir):
-                    raise DistutilsOptionError('Attempted to build_sphinx '
-                                               'into a file ' + self.build_dir)
-                self.mkpath(self.build_dir)
+                # the _static dir should be in the same place as the _build dir
+                # for Astropy
+                basedir,subdir = split(self.build_dir)
+                if subdir=='': #the path has a trailing /...
+                    basedir,subdir = split(basedir)
+                staticdir = join(basedir,'_static')
+                if os.path.isfile(staticdir):
+                    raise DistutilsOptionError(
+                        'Attempted to build_sphinx such in a location where' +
+                        staticdir + 'is a file.  Must be a directory.')
+                self.mkpath(staticdir)
 
             return BuildDoc.finalize_options(self)
 
-    cmdclassd['build_sphinx'] = AstropyBuildSphinx
-except ImportError:  # Sphinx not present
-    AstropyBuildSphinx = None
+except ImportError,e:  
+    if 'sphinx' in e.args[0]: # Sphinx not present
+        AstropyBuildSphinx = None
+    else:
+        raise
 
 
 def get_distutils_option(option, commands):
