@@ -356,7 +356,7 @@ def adjust_compiler():
     import re
 
     compiler_mapping = [
-        ('i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
+        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', b'clang')
         ]
 
     c = ccompiler.new_compiler()
