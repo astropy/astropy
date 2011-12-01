@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from __future__ import division # confidence high
+from __future__ import division  # confidence high
 
 import csv
 import os
@@ -13,7 +13,6 @@ import numpy as np
 from numpy import char as chararray
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
-from ..card import Card, CardList
 from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
                       Delayed, Column, ColDefs, _ASCIIColDefs, _FormatX,
                       _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
@@ -135,22 +134,21 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self._header = header
         else:
             # construct a list of cards of minimal header
-            cards = CardList([
-                Card('XTENSION',      '', ''),
-                Card('BITPIX',         8, 'array data type'),
-                Card('NAXIS',          2, 'number of array dimensions'),
-                Card('NAXIS1',         0, 'length of dimension 1'),
-                Card('NAXIS2',         0, 'length of dimension 2'),
-                Card('PCOUNT',         0, 'number of group parameters'),
-                Card('GCOUNT',         1, 'number of groups'),
-                Card('TFIELDS',        0, 'number of table fields')
-                ])
+            cards = [
+                ('XTENSION',      '', ''),
+                ('BITPIX',         8, 'array data type'),
+                ('NAXIS',          2, 'number of array dimensions'),
+                ('NAXIS1',         0, 'length of dimension 1'),
+                ('NAXIS2',         0, 'length of dimension 2'),
+                ('PCOUNT',         0, 'number of group parameters'),
+                ('GCOUNT',         1, 'number of groups'),
+                ('TFIELDS',        0, 'number of table fields')]
 
             if header is not None:
                 # Make a "copy" (not just a view) of the input header, since it
                 # may get modified.  the data is still a "view" (for now)
                 hcopy = header.copy(strip=True)
-                cards.extend(hcopy.ascard)
+                cards.extend(hcopy.cards)
 
             self._header = Header(cards)
 
@@ -186,9 +184,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             else:
                 raise TypeError('Table data has incorrect type.')
 
-        if self._header[0].rstrip() != self._extension:
-            self._header[0] = self._extension
-            self._header.ascard[0].comment = self._ext_comment
+        if not (isinstance(self._header[0], basestring) and
+                self._header[0].rstrip() == self._extension):
+            self._header[0] = (self._extension, self._ext_comment)
 
         # Ensure that the correct EXTNAME is set on the new header if one was
         # created, or that it overrides the existing EXTNAME if different
@@ -226,10 +224,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         size = self._header['NAXIS1'] * self._header['NAXIS2']
         return self._header.get('THEAP', size)
 
-    @deprecated(alternative='the .columns attribute')
+    @deprecated('3.0', alternative='the `.columns` attribute')
     def get_coldefs(self):
         """
-        **[Deprecated]** Returns the table's column definitions.
+        Returns the table's column definitions.
         """
 
         return self.columns
@@ -239,10 +237,9 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         Update header keywords to reflect recent changes of columns.
         """
 
-        update = self._header.update
-        update('naxis1', self.data.itemsize, after='naxis')
-        update('naxis2', self.data.shape[0], after='naxis1')
-        update('tfields', len(self.columns), after='gcount')
+        self._header.set('naxis1', self.data.itemsize, after='naxis')
+        self._header.set('naxis2', self.data.shape[0], after='naxis1')
+        self._header.set('tfields', len(self.columns), after='gcount')
 
         self._clear_table_keywords()
         self._populate_table_keywords()
@@ -275,12 +272,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
             # update TFORM for variable length columns
             for idx in range(self.data._nfields):
-                if isinstance(self.data._coldefs.formats[idx], _FormatP):
-                    key = 'TFORM' + str(idx + 1)
-                    val = self._header[key]
-                    val = val[:val.find('(') + 1] + \
-                          repr(self.data.field(idx)._max) + ')'
-                    self._header[key] = val
+                format = self.data._coldefs.formats[idx]
+                if isinstance(format, _FormatP):
+                    max = self.data.field(idx).max
+                    format = _FormatP(format, repeat=format.repeat, max=max)
+                    self._header['TFORM' + str(idx + 1)] = format.tform
         return super(_TableBaseHDU, self)._writeheader(fileobj, checksum)
 
     def _writeto(self, fileobj, checksum=False):
@@ -330,7 +326,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                                 for j in range(ncols)])
             format = '[%s]' % format
         dims = "%dR x %dC" % (nrows, ncols)
-        ncards = len(self._header.ascard)
+        ncards = len(self._header)
 
         return (self.name, class_name, ncards, dims, format)
 
@@ -338,27 +334,27 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         """Wipe out any existing table definition keywords from the header."""
 
         # Go in reverse so as to not confusing indexing while deleting.
-        for idx, card in enumerate(reversed(self._header.ascard)):
-            key = TDEF_RE.match(card.key)
+        for idx, keyword in enumerate(reversed(self._header.keys())):
+            keyword = TDEF_RE.match(keyword)
             try:
-                keyword = key.group('label')
+                keyword = keyword.group('label')
             except:
                 continue                # skip if there is no match
             if (keyword in KEYWORD_NAMES):
-                del self._header.ascard[idx]
+                del self._header[idx]
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
 
         cols = self.columns
-        append = self._header.ascard.append
+        append = self._header.append
 
         for idx, col in enumerate(cols):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
                 val = getattr(cols, attr + 's')[idx]
                 if val:
                     keyword = keyword + str(idx + 1)
-                    append(Card(keyword, val))
+                    append((keyword, val))
 
 
 class TableHDU(_TableBaseHDU):
@@ -382,7 +378,7 @@ class TableHDU(_TableBaseHDU):
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
+        card = header.cards[0]
         xtension = card.value
         if isinstance(xtension, basestring):
             xtension = xtension.rstrip()
@@ -468,7 +464,7 @@ class BinTableHDU(_TableBaseHDU):
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
+        card = header.cards[0]
         xtension = card.value
         if isinstance(xtension, basestring):
             xtension = xtension.rstrip()
@@ -601,7 +597,7 @@ class BinTableHDU(_TableBaseHDU):
         """Populate the new table definition keywords from the header."""
 
         cols = self.columns
-        append = self._header.ascard.append
+        append = self._header.append
 
         for idx, col in enumerate(cols):
             for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
@@ -613,18 +609,12 @@ class BinTableHDU(_TableBaseHDU):
                         if isinstance(val, _FormatX):
                             val = repr(val._nx) + 'X'
                         elif isinstance(val, _FormatP):
-                            VLdata = self.data.field(idx)
-                            VLdata._max = max(map(len, VLdata))
-                            if val._dtype == 'a':
-                                fmt = 'A'
-                            else:
-                                fmt = _convert_format(val._dtype, reverse=True)
-                            val = 'P%s(%d)' % (fmt, VLdata._max)
+                            val = val.tform
                         else:
                             val = _convert_format(val, reverse=True)
-                    append(Card(keyword, val))
+                    append((keyword, val))
 
-    tdump_file_format = textwrap.dedent("""
+    _tdump_file_format = textwrap.dedent("""
 
         - **datafile:** Each line of the data file represents one row of table
           data.  The data is output one column at a time in column order.  If
@@ -730,10 +720,13 @@ class BinTableHDU(_TableBaseHDU):
 
         # Process the header parameters
         if hfile:
-            self._header.toTxtFile(hfile)
+            self._header.tofile(hfile, sep='\n', endcard=False, padding=False)
 
-    dump.__doc__ += tdump_file_format.replace('\n', '\n        ')
-    tdump = deprecated(name='tdump')(dump)
+    dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
+
+    @deprecated('3.1', alternative=':meth:`dump`')
+    def tdump(self, datafile=None, cdfile=None, hfile=None, clobber=False):
+        self.dump(datafile, cdfile, hfile, clobber)
 
     def load(cls, datafile, cdfile=None, hfile=None, replace=False,
              header=None):
@@ -793,7 +786,11 @@ class BinTableHDU(_TableBaseHDU):
             header = Header()
 
         if hfile:
-            header.fromTxtFile(hfile, replace)
+            if replace:
+                header = Header.fromtextfile(hfile)
+            else:
+                header.extend(Header.fromtextfile(hfile), update=True,
+                              update_first=True)
 
         coldefs = None
         # Process the column definitions file
@@ -809,11 +806,16 @@ class BinTableHDU(_TableBaseHDU):
         hdu = cls(data=data, header=header)
         hdu.columns = coldefs
         return hdu
-    load.__doc__ += tdump_file_format.replace('\n', '\n        ')
+    load.__doc__ += _tdump_file_format.replace('\n', '\n        ')
     load = classmethod(load)
     # Have to create a classmethod from this here instead of as a decorator;
     # otherwise we can't update __doc__
-    tcreate = deprecated(name='tcreate')(load)
+
+    @deprecated('3.1', alternative=':meth:`load`')
+    @classmethod
+    def tcreate(cls, datafile, cdfile=None, hfile=None, replace=False,
+                header=None):
+        return cls.load(datafile, cdfile, hfile, replace, header)
 
     def _dump_data(self, fileobj):
         """
@@ -972,12 +974,7 @@ class BinTableHDU(_TableBaseHDU):
         # Update the recformats for any VLAs
         for idx, length in enumerate(vla_lengths):
             if length is not None:
-                recformat = _FormatP(str(length) + recformats[idx])
-                # TODO: I shouldn't have to set this magic attribute, but
-                # _convert_fits2record does it and apparently _makep requires
-                # this.  This spaghetti code needs fixing
-                recformat._dtype = recformats[idx]
-                recformats[idx] = recformat
+                recformats[idx] = str(length) + recformats[idx]
 
         dtype = np.rec.format_parser(recformats, names, None).dtype
 
@@ -988,16 +985,13 @@ class BinTableHDU(_TableBaseHDU):
         hdu = new_table(np.recarray(shape=1, dtype=dtype), nrows=nrows,
                         fill=True)
         data = hdu.data
-        # Unfortunately, the fact that some columns are VLAs is not preserved
-        # through the call to new_table(), so we need to fix that up after the
-        # fact.
-        # TODO: new_table really needs to be fixed so that this mess is
-        # unnecessary
-        for idx, recformat in enumerate(recformats):
-            if not isinstance(recformat, _FormatP):
-                continue
-            arr = data.columns._arrays[idx]
-            hdu.data._convert[idx] = _makep(arr, arr, recformat._dtype)
+        for idx, length in enumerate(vla_lengths):
+            if length is not None:
+                arr = data.columns._arrays[idx]
+                dt = recformats[idx][len(str(length)):]
+                recformats[idx] = _FormatP(dt, max=length)
+                data.columns._recformats[idx] = recformats[idx]
+                data._convert[idx] = _makep(arr, arr, recformats[idx])
 
         # Jump back to the start of the data and create a new line reader
         fileobj.seek(initialpos)
@@ -1199,8 +1193,8 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                 else: # from a table parent data, just pass it
                     field[:n] = arr[:n]
             elif isinstance(recformat, _FormatP):
-                hdu.data._convert[idx] = _makep(arr[:n], field,
-                                                recformat._dtype, nrows=nrows)
+                hdu.data._convert[idx] = _makep(arr[:n], field, recformat,
+                                                nrows=nrows)
             elif recformat[-2:] == FITS2NUMPY['L'] and arr.dtype == bool:
                 # column is boolean
                 field[:n] = np.where(arr == False, ord('F'), ord('T'))

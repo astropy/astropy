@@ -26,13 +26,13 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         if self._header['NAXIS'] <= 0:
             self._header['NAXIS'] = 1
-        self._header.update('NAXIS1', 0, after='NAXIS')
+        self._header.set('NAXIS1', 0, after='NAXIS')
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
-        return card.key == 'SIMPLE' and 'GROUPS' in header and \
-               header['GROUPS'] == True
+        keyword = header.cards[0].keyword
+        return (keyword == 'SIMPLE' and 'GROUPS' in header and
+                header['GROUPS'] == True)
 
     @lazyproperty
     def data(self):

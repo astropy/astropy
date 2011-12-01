@@ -12,12 +12,6 @@ from . import FitsTestCase
 
 
 class TestImageFunctions(FitsTestCase):
-    def test_card_constructor_default_args(self):
-        """Test the constructor with default argument values."""
-
-        c = fits.Card()
-        assert '' == c.key
-
     def test_constructor_name_arg(self):
         """Like the test of the same name in test_table.py"""
 
@@ -35,261 +29,12 @@ class TestImageFunctions(FitsTestCase):
 
         # And overriding a header with a different extname
         hdr = fits.Header()
-        hdr.update('EXTNAME', 'EVENTS')
+        hdr['EXTNAME'] = 'EVENTS'
         hdu = fits.ImageHDU(header=hdr, name='FOO')
         assert hdu.name == 'FOO'
         assert hdu.header['EXTNAME'] == 'FOO'
 
-    def test_fromstring_set_attribute_ascardimage(self):
-        """Test fromstring() which will return a new card."""
-
-        c = fits.Card('abc', 99).fromstring('xyz     = 100')
-        assert 100 == c.value
-
-        # test set attribute and  ascardimage() using the most updated attributes
-        c.value = 200
-        assert (c.ascardimage() ==
-                "XYZ     =                  200                                                  ")
-
-    def test_string(self):
-        """Test string value"""
-
-        c = fits.Card('abc', '<8 ch')
-        assert (str(c) ==
-                "ABC     = '<8 ch   '                                                            ")
-        c = fits.Card('nullstr', '')
-        assert(str(c) ==
-               "NULLSTR = ''                                                                    ")
-
-    def test_boolean_value_card(self):
-        """Boolean value card"""
-
-        c = fits.Card("abc", True)
-        assert (str(c) ==
-                "ABC     =                    T                                                  ")
-
-        c = fits.Card.fromstring('abc     = F')
-        assert c.value == False
-
-    def test_long_integer_number(self):
-        """long integer number"""
-
-        c = fits.Card('long_int', -467374636747637647347374734737437)
-        assert (str(c) ==
-                "LONG_INT= -467374636747637647347374734737437                                    ")
-
-    def test_floating_point_number(self):
-        """ floating point number"""
-
-        c = fits.Card('floatnum', -467374636747637647347374734737437.)
-
-        if (str(c) != "FLOATNUM= -4.6737463674763E+32                                                  " and
-            str(c) != "FLOATNUM= -4.6737463674763E+032                                                 "):
-            assert (str(c) ==
-                    "FLOATNUM= -4.6737463674763E+32                                                  ")
-
-    def test_complex_value(self):
-        """complex value"""
-
-        c = fits.Card('abc',
-                        1.2345377437887837487e88+6324767364763746367e-33j)
-
-        if (str(c) != "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          " and
-            str(c) != "ABC     = (1.2345377437887E+088, 6.3247673647637E-015)                          "):
-            assert (str(c),
-                    "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          ")
-
-    def test_card_image_constructed_too_long(self):
-        # card image constructed from key/value/comment is too long (non-string
-        # value)
-        c = fits.Card('abc', 9, 'abcde'*20)
-        assert (str(c) ==
-                "ABC     =                    9 / abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
-        c = fits.Card('abc', 'a'*68, 'abcdefg')
-        assert (str(c) ==
-                "ABC     = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'")
-
-    def test_constructor_filter_illegal_data_structures(self):
-        # the constrctor will filter out illegal data structures...
-        pytest.raises(ValueError, fits.Card, ('abc',), {'value': (2, 3)})
-        pytest.raises(ValueError, fits.Card, 'key', [], 'comment')
-
     @raises(ValueError)
-    def test_keyword_too_long(self):
-        #keywords too long
-        fits.Card('abcdefghi', 'long')
-
-    @raises(ValueError)
-    def test_illegal_characters_in_key(self):
-        # will not allow illegal characters in key when using constructor
-        fits.Card('abc+', 9)
-
-    # TODO: What sort of exception should this raise?
-    @raises(Exception)
-    def test_ascardimage_verifies_the_comment_string_to_be_ascii_text(self):
-        # the ascardimage() verifies the comment string to be ASCII text
-        c = fits.Card.fromstring('abc     = +  2.1   e + 12 / abcde\0')
-        c.ascardimage()
-
-    def test_commentary_cards(self):
-        # commentary cards
-        c = fits.Card("history",
-                        "A commentary card's value has no quotes around it.")
-        assert (str(c) ==
-                "HISTORY A commentary card's value has no quotes around it.                      ")
-        c = fits.Card("comment",
-                        "A commentary card has no comment.", "comment")
-        assert (str(c) ==
-                "COMMENT A commentary card has no comment.                                       ")
-
-    def test_commentary_card_created_by_fromstring(self):
-        # commentary card created by fromstring()
-        c = fits.Card.fromstring("COMMENT card has no comments. / text after slash is still part of the value.")
-        assert (c.value ==
-                'card has no comments. / text after slash is still part of the value.')
-        assert c.comment == ''
-
-    def test_commentary_card_will_not_parse_numerical_value(self):
-        # commentary card will not parse the numerical value
-        c = fits.Card.fromstring("history  (1, 2)")
-        assert (str(c.ascardimage()) ==
-                "HISTORY  (1, 2)                                                                 ")
-
-    def test_equal_sign_after_column8(self):
-        # equal sign after column 8 of a commentary card will be part ofthe string value
-        c = fits.Card.fromstring("history =   (1, 2)")
-        assert (str(c.ascardimage()) ==
-                "HISTORY =   (1, 2)                                                              ")
-
-    def test_specify_undefined_value(self):
-        # this is how to specify an undefined value
-        c = fits.Card("undef", fits.card.UNDEFINED)
-        assert (str(c) ==
-                     "UNDEF   =                                                                       ")
-
-    def test_complex_number_using_string_input(self):
-        # complex number using string input
-        c = fits.Card.fromstring('abc     = (8, 9)')
-        assert (str(c.ascardimage()) ==
-                "ABC     =               (8, 9)                                                  ")
-
-    def test_fixable_non_standard_fits_card(self):
-        # fixable non-standard FITS card will keep the original format
-        c = fits.Card.fromstring('abc     = +  2.1   e + 12')
-        assert c.value == 2100000000000.0
-        assert (str(c.ascardimage()) ==
-                "ABC     =             +2.1E+12                                                  ")
-
-    def test_fixable_non_fsc(self):
-        # fixable non-FSC: if the card is not parsable, it's value will be
-        # assumed
-        # to be a string and everything after the first slash will be comment
-        c = fits.Card.fromstring("no_quote=  this card's value has no quotes / let's also try the comment")
-        assert (str(c.ascardimage()) ==
-                "NO_QUOTE= 'this card''s value has no quotes' / let's also try the comment       ")
-
-    def test_undefined_value_using_string_input(self):
-        # undefined value using string input
-        c = fits.Card.fromstring('abc     =    ')
-        assert (str(c.ascardimage()) ==
-                "ABC     =                                                                       ")
-
-    def test_misalocated_equal_sign(self):
-        # test mislocated "=" sign
-        c = fits.Card.fromstring('xyz= 100')
-        assert c.key == 'XYZ'
-        assert c.value == 100
-        assert (str(c.ascardimage()) ==
-                "XYZ     =                  100                                                  ")
-
-    def test_equal_only_up_to_column_10(self):
-        # the test of "=" location is only up to column 10
-        c = fits.Card.fromstring("histo       =   (1, 2)")
-        assert (str(c.ascardimage()) ==
-                "HISTO   = '=   (1, 2)'                                                          ")
-        c = fits.Card.fromstring("   history          (1, 2)")
-        assert (str(c.ascardimage()) ==
-                "HISTO   = 'ry          (1, 2)'                                                  ")
-
-    def test_verification(self, capsys):
-        # verification
-        c = fits.Card.fromstring('abc= a6')
-        c.verify()
-        out, err = capsys.readouterr()
-        assert ('Card image is not FITS standard (equal sign not at column 8).'
-                in err)
-        assert (str(c) ==
-                "abc= a6                                                                         ")
-
-    def test_fix(self, capsys):
-        c = fits.Card.fromstring('abc= a6')
-        c.verify('fix')
-        out, err = capsys.readouterr()
-        assert 'Fixed card to be FITS standard.: ABC' in err
-        assert (str(c) ==
-                "ABC     = 'a6      '                                                            ")
-
-    def test_long_string_value(self):
-        # test long string value
-        c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
-        assert (str(c) ==
-                "ABC     = 'long string value long string value long string value long string &' "
-                "CONTINUE  'value long string value long string value long string value long &'  "
-                "CONTINUE  'string value long string value long string value &'                  "
-                "CONTINUE  '&' / long comment long comment long comment long comment long        "
-                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-                "CONTINUE  '&' / long comment                                                    ")
-
-    def test_long_string_from_file(self):
-        c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
-        hdu = fits.PrimaryHDU()
-        hdu.header.ascard.append(c)
-        hdu.writeto(self.temp('test_new.fits'))
-
-        hdul = fits.open(self.temp('test_new.fits'))
-        c = hdul[0].header.ascard['abc']
-        hdul.close()
-        assert (str(c),
-                "ABC     = 'long string value long string value long string value long string &' "
-                "CONTINUE  'value long string value long string value long string value long &'  "
-                "CONTINUE  'string value long string value long string value &'                  "
-                "CONTINUE  '&' / long comment long comment long comment long comment long        "
-                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-                "CONTINUE  '&' / long comment                                                    ")
-
-
-    def test_word_in_long_string_too_long(self):
-        # if a word in a long string is too long, it will be cut in the middle
-        c = fits.Card('abc', 'longstringvalue'*10, 'longcomment'*10)
-        assert (str(c) ==
-                "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
-                "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
-                "CONTINUE  'elongstringvalue&'                                                   "
-                "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
-                "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
-
-    def test_long_string_value_via_fromstring(self):
-        # long string value via fromstring() method
-        c = fits.Card.fromstring(
-            fits.card._pad("abc     = 'longstring''s testing  &  ' / comments in line 1") +
-            fits.card._pad("continue  'continue with long string but without the ampersand at the end' /") +
-            fits.card._pad("continue  'continue must have string value (with quotes)' / comments with ''. "))
-        assert (str(c.ascardimage()) ==
-                "ABC     = 'longstring''s testing  continue with long string but without the &'  "
-                "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
-                "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
-
-    def test_hierarch_card(self):
-        c = fits.Card('hierarch abcdefghi', 10)
-        assert (str(c.ascardimage()) ==
-                "HIERARCH abcdefghi = 10                                                         ")
-        c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML', 'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
-        assert (str(c.ascardimage()) ==
-                "HIERARCH ESO INS SLIT2 Y1FRML= 'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
-
-
-    # TODO: What sort of exception should this raise?
-    @raises(Exception)
     def test_open(self):
         # The function "open" reads a FITS file into an HDUList object.  There
         # are three modes to open: "readonly" (the default), "append", and
@@ -329,7 +74,7 @@ class TestImageFunctions(FitsTestCase):
         assert r['sci',1].header['detector'] == 1
 
         # append (using "update()") a new card
-        r[0].header.update('xxx', 1.234e56)
+        r[0].header['xxx'] = 1.234e56
 
         if str(r[0].header.ascard[-3:]) != \
            "EXPFLAG = 'NORMAL            ' / Exposure interruption indicator                \n" \
@@ -697,46 +442,49 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[:,1,0,:] == dat[:,1,0,:]).all()
         assert (d.section[:,:,:,1] == dat[:,:,:,1]).all()
 
-    def _test_comp_image(self, data, compression_type, quantize_level):
-        primary_hdu = fits.PrimaryHDU()
-        ofd = fits.HDUList(primary_hdu)
-        chdu = fits.CompImageHDU(data, name='SCI',
-                                   compressionType=compression_type,
-                                   quantizeLevel=quantize_level)
-        ofd.append(chdu)
-        ofd.writeto(self.temp('test_new.fits'))
-        ofd.close()
-        fd = fits.open(self.temp('test_new.fits'))
-        assert fd[1].data.all() == data.all()
-        assert fd[1].header['NAXIS'] == chdu.header['NAXIS']
-        assert fd[1].header['NAXIS1'] == chdu.header['NAXIS1']
-        assert fd[1].header['NAXIS2'] == chdu.header['NAXIS2']
-        assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
-        fd.close()
+    def test_comp_image(self):
+        def _test_comp_image(self, data, compression_type, quantize_level,
+                             byte_order):
+            self.setup()
+            try:
+                data = data.newbyteorder(byte_order)
+                primary_hdu = fits.PrimaryHDU()
+                ofd = fits.HDUList(primary_hdu)
+                chdu = fits.CompImageHDU(data, name='SCI',
+                                         compressionType=compression_type,
+                                         quantizeLevel=quantize_level)
+                ofd.append(chdu)
+                ofd.writeto(self.temp('test_new.fits'), clobber=True)
+                ofd.close()
+                fd = fits.open(self.temp('test_new.fits'))
+                assert fd[1].data.all() == data.all()
+                assert fd[1].header['NAXIS'] == chdu.header['NAXIS']
+                assert fd[1].header['NAXIS1'] == chdu.header['NAXIS1']
+                assert fd[1].header['NAXIS2'] == chdu.header['NAXIS2']
+                assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
+                fd.close()
+            finally:
+                self.teardown()
 
-    def test_comp_image_rice_1(self):
-        """Tests image compression with the RICE_1 algorithm."""
+        argslist = [
+            (np.zeros((2, 10, 10), dtype=np.float32), 'RICE_1', 16),
+            (np.zeros((2, 10, 10), dtype=np.float32), 'GZIP_1', -0.01),
+            (np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16)
+        ]
 
-        self._test_comp_image(np.zeros((2, 10, 10), dtype=np.float32),
-                              'RICE_1', 16)
+        for byte_order in ('<', '>'):
+            for args in argslist:
+                yield (_test_comp_image, self) + args + (byte_order,)
 
-    def test_comp_image_gzip_1(self):
-        """Tests image compression with the GZIP_1 algorithm."""
-
-        self._test_comp_image(np.zeros((2, 10, 10), dtype=np.float32),
-                              'GZIP_1', -0.01)
-
-    def test_comp_image_hcompression_1(self):
-        """Tests image compression with the HCOMPRESS_1 algorithm.
-
-        This is not a comprehensive test--just a simple round-trip test to make
-        sure the code for handling HCOMPRESS_1 at least gets exercised.
+    def test_comp_image_hcompression_1_invalid_data(self):
+        """
+        Tests compression with the HCOMPRESS_1 algorithm with data that is
+        not 2D (and thus should not work).
         """
 
-        pytest.raises(ValueError, self._test_comp_image,
-                      np.zeros((2, 10, 10), dtype=np.float32), 'HCOMPRESS_1',
-                      16)
-        self._test_comp_image(np.zeros((100, 100)) + 1, 'HCOMPRESS_1', 16)
+        pytest.raises(ValueError, fits.CompImageHDU,
+                      np.zeros((2, 10, 10), dtype=np.float32), name='SCI',
+                      compressionType='HCOMPRESS_1', quantizeLevel=16)
 
     def test_disable_image_compression(self):
         with warnings.catch_warnings():
@@ -777,7 +525,7 @@ class TestImageFunctions(FitsTestCase):
         # One row will be blanks
         arr[1] = 999
         hdu = fits.ImageHDU(data=arr)
-        hdu.header.update('BLANK', 999)
+        hdu.header['BLANK'] = 999
         hdu.writeto(self.temp('test_new.fits'))
 
         hdul = fits.open(self.temp('test_new.fits'))
@@ -790,7 +538,7 @@ class TestImageFunctions(FitsTestCase):
 
         arr = np.zeros((10, 10)) - 1
         hdu = fits.ImageHDU(data=arr)
-        hdu.header.update('BZERO', 1.0)
+        hdu.header['BZERO'] = 1.0
         hdu.writeto(self.temp('test_new.fits'))
 
         hdul = fits.open(self.temp('test_new.fits'))
@@ -815,4 +563,20 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
+        hdul.close()
+
+        # Test opening/closing/reopening a scaled file in update mode
+        hdul = fits.open(self.data('fixed-1890.fits'),
+                           do_not_scale_image_data=True)
+        hdul.writeto(self.temp('test_new.fits'), clobber=True,
+                     output_verify='silentfix')
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        orig_data = hdul[0].data
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'), mode='update')
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (hdul[0].data == orig_data).all()
+        hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()

@@ -5,6 +5,7 @@ import itertools
 import os
 import sys
 import tempfile
+import textwrap
 import warnings
 
 import numpy as np
@@ -119,17 +120,19 @@ class lazyproperty(object):
         return cls_ns[property_name]
 
 
-def deprecated(message='', name='', alternative='', pending=False):
+# TODO: Provide a class deprecation marker as well.
+def deprecated(since, message='', name='', alternative='', pending=False):
     """
     Used to mark a function as deprecated.
-
-    TODO: Provide a class deprecation marker as well.
 
     To mark an attribute as deprecated, replace that attribute with a
     depcrecated property.
 
     Parameters
     ------------
+    since : str
+        The release at which this API became deprecated.  This is required.
+
     message : str, optional
         Override the default deprecation message.  The format specifier
         %(func)s may be used for the name of the function, and %(alternative)s
@@ -156,7 +159,8 @@ def deprecated(message='', name='', alternative='', pending=False):
 
     """
 
-    def deprecate(func):
+    def deprecate(func, message=message, name=name, alternative=alternative,
+                  pending=pending):
         if isinstance(func, classmethod):
             try:
                 func = func.__func__
@@ -176,36 +180,52 @@ def deprecated(message='', name='', alternative='', pending=False):
         else:
             is_classmethod = False
 
+        if not name:
+            name = func.__name__
+
+        altmessage = ''
+        if not message or type(message) == type(deprecate):
+            if pending:
+                message = ('The %(func)s function will be deprecated in a '
+                           'future version.')
+            else:
+                message = ('The %(func)s function is deprecated and may '
+                           'be removed in a future version.')
+            if alternative:
+                altmessage = '\n        Use %s instead.' % alternative
+
+        message = ((message % {'func': name, 'alternative': alternative}) +
+                   altmessage)
+
+
         @functools.wraps(func)
         def deprecated_func(*args, **kwargs):
-            # _message and _name are necessary; otherwise assignments to name
-            # and message will cause the interpreter to treat them as local
-            # variables, instead of encapuslated variables
-            _message = message
-            _name = name
-            if not _name:
-                _name = func.__name__
-
-            if not _message or type(_message) == type(deprecate):
-                if pending:
-                    _message = 'The %(func)s function will be deprecated in' \
-                               'a future version.'
-                else:
-                    _message = 'The %(func)s function is deprecated and may ' \
-                               'be removed in a future version.'
-                if alternative:
-                    _message += '  Use %(alternative)s instead.'
-
             if pending:
                 category = PendingDeprecationWarning
             else:
                 category = DeprecationWarning
 
-            warnings.warn(
-                _message % {'func': _name, 'alternative': alternative},
-                category, stacklevel=2)
+            warnings.warn(message, category, stacklevel=2)
 
             return func(*args, **kwargs)
+
+        old_doc = deprecated_func.__doc__
+        if not old_doc:
+            old_doc = ''
+        old_doc = textwrap.dedent(old_doc).strip('\n')
+        altmessage = altmessage.strip()
+        if not altmessage:
+            altmessage = message.strip()
+        new_doc = (('\n.. deprecated:: %(since)s'
+                    '\n    %(message)s\n\n' %
+                    {'since': since, 'message': altmessage.strip()}) + old_doc)
+        if not old_doc:
+            # This is to prevent a spurious 'unexected unindent' warning from
+            # docutils when the original docstring was blank.
+            new_doc += r'\ '
+
+        deprecated_func.__doc__ = new_doc
+
         if is_classmethod:
             deprecated_func = classmethod(deprecated_func)
         return deprecated_func
@@ -229,6 +249,24 @@ def pairwise(iterable):
         break
     return itertools.izip(a, b)
 
+
+def isiterable(obj):
+    """Returns true of the given object is iterable."""
+
+    # In Python2.6 and up this is simply a matter of checking isinstance
+    # collections.Iterable, but this unavailable in Python 2.5 and below
+    try:
+        from collections import Iterable
+        if isinstance(obj, Iterable):
+            return True
+    except ImportError:
+        pass
+
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False
 
 def encode_ascii(s):
     """
@@ -529,6 +567,45 @@ def _normalize_slice(input, naxis):
         raise IndexError('Illegal slice %s; step must be integer.' % input)
 
     return slice(_start, _stop, _step)
+
+
+def _words_group(input, strlen):
+    """
+    Split a long string into parts where each part is no longer
+    than `strlen` and no word is cut into two pieces.  But if
+    there is one single word which is longer than `strlen`, then
+    it will be split in the middle of the word.
+    """
+
+    words = []
+    nblanks = input.count(' ')
+    nmax = max(nblanks, len(input) // strlen + 1)
+    arr = np.fromstring((input + ' '), dtype=(np.bytes_, 1))
+
+    # locations of the blanks
+    blank_loc = np.nonzero(arr == np.bytes_(' '))[0]
+    offset = 0
+    xoffset = 0
+    for idx in range(nmax):
+        try:
+            loc = np.nonzero(blank_loc >= strlen + offset)[0][0]
+            offset = blank_loc[loc-1] + 1
+            if loc == 0:
+                offset = -1
+        except:
+            offset = len(input)
+
+        # check for one word longer than strlen, break in the middle
+        if offset <= xoffset:
+            offset = xoffset + strlen
+
+        # collect the pieces in a list
+        words.append(input[xoffset:offset])
+        if len(input) == offset:
+            break
+        xoffset = offset
+
+    return words
 
 
 def _tmp_name(input):

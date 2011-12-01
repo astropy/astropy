@@ -24,7 +24,7 @@ from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
 from ..verify import _Verify, _ErrList
 
 
-def fitsopen(name, mode="copyonwrite", memmap=None, **kwargs):
+def fitsopen(name, mode='readonly', memmap=None, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -33,12 +33,13 @@ def fitsopen(name, mode="copyonwrite", memmap=None, **kwargs):
         File to be opened.
 
     mode : str
-        Open mode, 'copyonwrite' (default), 'readonly', 'update',
-        'append', or 'ostream'.
+        Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
+        'ostream'.
 
         If `name` is a file object that is already opened, `mode` must
         match the mode the file was opened with, copyonwrite (rb),
-        readonly (rb), update (rb+), append (ab+), ostream (w)).
+        readonly (rb), update (rb+), append (ab+), ostream (w),
+        denywrite (rb)).
 
     memmap : bool
         Is memory mapping to be used?
@@ -262,13 +263,10 @@ class HDUList(list, _Verify):
 
             # If we're trying to read only and no header units were found,
             # raise and exception
-            if mode == 'readonly' and len(hdulist) == 0:
+            if mode in ('readonly', 'denywrite') and len(hdulist) == 0:
                 raise IOError('Empty FITS file')
 
             # initialize/reset attributes to be used in "update/append" mode
-            # CardList needs its own _mod attribute since it has methods to change
-            # the content of header without being able to pass it to the header
-            # object
             hdulist._resize = False
             hdulist._truncate = False
 
@@ -305,7 +303,7 @@ class HDUList(list, _Verify):
             file       File object associated with the HDU
             filename   Name of associated file object
             filemode   Mode in which the file was opened (readonly, copyonwrite,
-                       update, append, ostream)
+                       update, append, denywrite, ostream)
             resized    Flag that when `True` indicates that the data has been
                        resized since the last read/write so the returned values
                        may not be valid.
@@ -673,8 +671,7 @@ class HDUList(list, _Verify):
                 self._resize = False
                 self._truncate = False
                 for hdu in self:
-                    hdu.header._mod = False
-                    hdu.header.ascard._mod = False
+                    hdu.header._modified = False
                     hdu._new = False
                     hdu._file = ffo
 
@@ -687,7 +684,7 @@ class HDUList(list, _Verify):
                         except KeyError:
                             extver = ''
 
-                    if hdu.header._mod or hdu.header.ascard._mod:
+                    if hdu.header._modified:
                         # only output the checksum if flagged to do so
                         if hasattr(hdu, '_output_checksum'):
                             checksum = hdu._output_checksum
@@ -702,11 +699,25 @@ class HDUList(list, _Verify):
                                   hdu.name, extver
                     if hdu._data_loaded:
                         if hdu.data is not None:
-                            if isinstance(hdu.data, Memmap):
-                                hdu.data.flush()
+                            memmap_array = None
+                            # Seek through the array's bases for an memmap'd
+                            # array; we can't rely on the _File object to give
+                            # us this info since the user may have replaced the
+                            # previous mmap'd array
+                            base = hdu.data
+                            while (hasattr(base, 'base') and
+                                   base.base is not None):
+                                if isinstance(base.base, Memmap):
+                                    memmap_array = base.base
+                                    break
+                                base = base.base
+
+                            if memmap_array is not None:
+                                memmap_array.flush()
                             else:
                                 hdu._file.seek(hdu._datLoc)
-                                # TODO: Fix this once new HDU writing API is settled on
+                                # TODO: Fix this once new HDU writing API is
+                                # settled on
                                 hdu._writedata(self.__file)
 
                             if verbose:
@@ -715,8 +726,7 @@ class HDUList(list, _Verify):
 
                 # reset the modification attributes after updating
                 for hdu in self:
-                    hdu.header._mod = False
-                    hdu.header.ascard._mod = False
+                    hdu.header._modified = False
 
         if single_thread:
             if keyboard_interrupt_sent:
@@ -738,10 +748,10 @@ class HDUList(list, _Verify):
                 hdr['extend'] = True
         else:
             if hdr['naxis'] == 0:
-                hdr.update('extend', True, after='naxis')
+                hdr.set('extend', True, after='naxis')
             else:
                 n = hdr['naxis']
-                hdr.update('extend', True, after='naxis' + str(n))
+                hdr.set('extend', True, after='naxis' + str(n))
 
     def writeto(self, fileobj, output_verify='exception', clobber=False,
                 checksum=False):
@@ -931,7 +941,7 @@ class HDUList(list, _Verify):
                     after = 'NAXIS'
                 else:
                     after = 'NAXIS' + str(naxis)
-                header.update('EXTEND', value=True, after=after)
+                header.set('EXTEND', value=True, after=after)
 
             errs.append(self.run_option(option, err_text=err_text,
                                         fix_text=fix_text, fix=fix))
@@ -962,13 +972,15 @@ class HDUList(list, _Verify):
 
             # determine if any of the HDU is resized
             for hdu in self:
+                # A shortcut to let an HDU tell us for itself whether or not it
+                # will be resized
+                if hasattr(hdu, '_resize') and hdu._resize:
+                    self._resize = True
+                    break
 
                 # Header:
-                # Add 1 to .ascard to include the END card
-                _nch80 = sum([card._ncards() for card in hdu.header.ascard])
-                _bytes = (_nch80+1) * Card.length
-                _bytes = _bytes + _pad_length(_bytes)
-                if _bytes != (hdu._datLoc-hdu._hdrLoc):
+                nbytes = len(str(hdu.header))
+                if nbytes != (hdu._datLoc - hdu._hdrLoc):
                     self._resize = True
                     self._truncate = False
                     if verbose:
@@ -978,9 +990,10 @@ class HDUList(list, _Verify):
                 # Data:
                 if not hdu._data_loaded or hdu.data is None:
                     continue
-                _bytes = hdu.data.nbytes
-                _bytes = _bytes + _pad_length(_bytes)
-                if _bytes != hdu._datSpan:
+
+                nbytes = hdu.data.nbytes
+                nbytes = nbytes + _pad_length(nbytes)
+                if nbytes != hdu._datSpan:
                     self._resize = True
                     self._truncate = False
                     if verbose:

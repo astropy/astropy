@@ -42,8 +42,8 @@ levels. Here are the 3 Astropy verification levels:
 
 These three levels correspond to the three categories of Astropy objects:
 `HDUList`, any HDU (e.g. `PrimaryHDU`, `ImageHDU`, etc.), and `Card`. They are
-the only objects having the ``verify()`` method. All other objects (e.g.
-`CardList`) do not have any ``verify()`` method.
+the only objects having the ``verify()`` method. Most other classes in Astropy
+do not have a ``verify()`` method.
 
 If ``verify()`` is called at the HDU List level, it verifies standard
 compliance at all three levels, but a call of ``verify()`` at the Card level
@@ -151,7 +151,7 @@ following keywords:
 If any of the mandatory keywords are missing or in the wrong order, the fix
 option will fix them:
 
-    >>> print hdu.header           # has a 'bad' header
+    >>> hdu.header                 # has a 'bad' header
     SIMPLE =                     T /
     NAXIS  =                     0
     BITPIX =                     8 /
@@ -159,7 +159,7 @@ option will fix them:
     Output verification result:
     'BITPIX' card at the wrong place (card 2). Fixed by moving it to the right
     place (card 1).
-    >>> print h.header             # voila!
+    >>> h.header                   # voila!
     SIMPLE =                     T / conforms to FITS standard
     BITPIX =                     8 / array data type
     NAXIS  =                     0
@@ -187,7 +187,7 @@ Fixable Cards:
 
 Here are some examples of fixable cards:
 
-    >>> print hdu.header.ascardlist()[4:] # has a bunch of fixable cards
+    >>> hdu.header[4:] # has a bunch of fixable cards
     FIX1 = 2.1e23
     FIX2= 2
     FIX3 = string value without quotes
@@ -202,7 +202,7 @@ Here are some examples of fixable cards:
     >>> hdu.header['fix5']
     2400.0
     >>> hdu.verify('silentfix')
-    >>> print hdu.header.ascard[4:]
+    >>> hdu.header[4:]
     FIX1 = 2.1E23
     FIX2 = 2
     FIX3 = 'string value without quotes'
@@ -219,14 +219,14 @@ We'll summarize the verification with a "life-cycle" example:
     >>> h = astropy.io.fits.PrimaryHDU() # create a PrimaryHDU
     # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow '.'
     # in the keyword), if using the update() method - doesn't work!
-    >>> h.update('P.I.', 'Hubble')
+    >>> h['P.I.'] = 'Hubble'
     ValueError: Illegal keyword name 'P.I.'
     # Have to do it the hard way (so a user will not do this by accident)
     # First, create a card image and give verbatim card content (including
     # the proper spacing, but no need to add the trailing blanks)
-    >>> c = astropy.io.fits.Card().fromstring("P.I. = 'Hubble'")
-    # then append it to the header (must go through the CardList)
-    >>> h.header.ascardlist().append(c)
+    >>> c = astropy.io.fits.Card.fromstring("P.I. = 'Hubble'")
+    # then append it to the header
+    >>> h.header.append(c)
     # Now if we try to write to a FITS file, the default output verification
     # will not take it.
     >>> h.writeto('pi.fits')
@@ -243,7 +243,7 @@ We'll summarize the verification with a "life-cycle" example:
     # Now reading a non-standard FITS file
     # astropy.io.fits is magnanimous in reading non-standard FITS files
     >>> hdus = astropy.io.fits.open('pi.fits')
-    >>> print hdus[0].header.ascardlist()
+    >>> hdus[0].header
     SIMPLE =            T / conforms to FITS standard
     BITPIX =            8 / array data type
     NAXIS  =            0 / number of array dimensions
@@ -296,28 +296,27 @@ header by supplying the checksum keyword argument with a value of 'datasum'.
 
 Here are some examples:
 
-     >>>
-     # Open the file pix.fits verifying the checksum values for all HDUs
+     >>> # Open the file pix.fits verifying the checksum values for all HDUs
      >>> hdul = astropy.io.fits.open('pix.fits', checksum=True)
      >>>
-     # Open the file in.fits where checksum verification fails for the
-     # primary HDU
+     >>> # Open the file in.fits where checksum verification fails for the
+     >>> # primary HDU
      >>> hdul = astropy.io.fits.open('in.fits', checksum=True)
      Warning:  Checksum verification failed for HDU #0.
      >>>
-     # Create file out.fits containing an HDU constructed from data and header
-     # containing both CHECKSUM and DATASUM cards.
+     >>> # Create file out.fits containing an HDU constructed from data and
+     >>> # header containing both CHECKSUM and DATASUM cards.
      >>> astropy.io.fits.writeto('out.fits', data, header, checksum=True)
      >>>
-     # Create file out.fits containing all the HDUs in the HDULIST
-     # hdul with each HDU header containing only the DATASUM card
+     >>> # Create file out.fits containing all the HDUs in the HDULIST
+     >>> # hdul with each HDU header containing only the DATASUM card
      >>> hdul.writeto('out.fits', checksum='datasum')
      >>>
-     # Create file out.fits containing the HDU hdu with both CHECKSUM
-     # and DATASUM cards in the header
+     >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
+     >>> # and DATASUM cards in the header
      >>> hdu.writeto('out.fits', checksum=True)
      >>>
-     # Append a new HDU constructed from array data to the end of
-     # the file existingfile.fits with only the appended HDU
-     # containing both CHECKSUM and DATASUM cards.
+     >>> # Append a new HDU constructed from array data to the end of
+     >>> # the file existingfile.fits with only the appended HDU
+     >>> # containing both CHECKSUM and DATASUM cards.
      >>> astropy.io.fits.append('existingfile.fits', data, checksum=True)

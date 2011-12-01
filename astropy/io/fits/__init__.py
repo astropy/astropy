@@ -48,26 +48,25 @@ if not __ASTROPY_SETUP__:
     from .verify import VerifyError
 
 
-    __all__ = (card.__all__ + column.__all__ + convenience.__all__ +
-               hdu.__all__ +
-               ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-                'new_table', 'Header', 'VerifyError', 'USE_MEMMAP',
-                'EXTENSION_NAME_CASE_SENSITIVE'])
+# Set module-global boolean variables--these variables can also get their
+# values from environment variables
+GLOBALS = [
+     # Variable name                       # Default
+    ('EXTENSION_NAME_CASE_SENSITIVE',      False),
+    ('USE_MEMMAP',                         True),
+    ('ENABLE_RECORD_VALUED_KEYWORD_CARDS', True)
+]
 
-# TODO: Hook these options into the config system
-try:
-    USE_MEMMAP = bool(int(os.environ.get('ASTROPY_FITS_USE_MEMMAP', 1)))
-except ValueError:
-    USE_MEMMAP = True
 
-# Support case sensitive values for the value of a EXTNAME card in an extension
-# header.  By default, Astropy converts the value of EXTNAME cards to upper
-# case when reading from a file.  By setting EXTENSION_NAME_CASE_SENSITIVE to
-# True the user may circumvent this process so that the EXTNAME value remains
-# in the same case as it is in the file.
-try:
-    EXTENSION_NAME_CASE_SENSITIVE = \
-        bool(int(os.environ.get('ASTROPY_FITS_EXTENSION_NAME_CASE_SENSITIVE',
-                                0)))
-except ValueError:
-    EXTENSION_NAME_CASE_SENSITIVE = False
+for varname, default in GLOBALS:
+    try:
+        locals()[varname] = bool(int(os.environ.get('ASTROPY_FITS_' + varname,
+                                                    default)))
+    except ValueError:
+        locals()[varname] = default
+
+
+__all__ = (card.__all__ + column.__all__ + convenience.__all__ + hdu.__all__ +
+          ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
+           'new_table', 'Header', 'VerifyError',
+           'setExtensionNameCaseSensitive'] + [g[0] for g in GLOBALS])

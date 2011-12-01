@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import sys
 import warnings
 
 import numpy as np
@@ -42,24 +43,24 @@ class CompImageHeader(Header):
     def __init__(self, table_header, image_header=None):
         if image_header is None:
             image_header = Header()
-        self.ascard = image_header.ascard
-        self._mod = image_header._mod
+        self._cards = image_header._cards
+        self._keyword_indices = image_header._keyword_indices
+        self._modified = image_header._modified
         self._table_header = table_header
 
-    def update(self, key, value, comment=None, before=None, after=None,
-               savecomment=False):
-        super(CompImageHeader, self).update(key, value, comment, before,
-                                            after, savecomment)
+    def set(self, keyword, value=None, comment=None, before=None, after=None):
+        super(CompImageHeader, self).set(keyword, value, comment, before,
+                                         after)
 
         # update the underlying header (_table_header) unless the update
         # was made to a card that describes the data.
 
-        if (key not in ('XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
-                        'TFIELDS', 'ZIMAGE', 'ZBITPIX', 'ZCMPTYPE') and
-            key[:4] not in ('ZVAL') and
-            key[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
-            and key[:6] not in ('ZNAXIS')):
-            self._table_header.update(key, value, comment, before, after)
+        if (keyword not in ('XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
+                            'TFIELDS', 'ZIMAGE', 'ZBITPIX', 'ZCMPTYPE') and
+            keyword[:4] not in ('ZVAL') and
+            keyword[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
+            and keyword [:6] not in ('ZNAXIS')):
+            self._table_header.set(keyword, value, comment, before, after)
 
     def add_history(self, value, before=None, after=None):
         super(CompImageHeader, self).add_history(value, before, after)
@@ -271,8 +272,8 @@ class CompImageHDU(BinTableHDU):
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
-        if card.key != 'XTENSION':
+        card = header.cards[0]
+        if card.keyword != 'XTENSION':
             return False
 
         xtension = card.value
@@ -358,9 +359,9 @@ class CompImageHDU(BinTableHDU):
             name = 'COMPRESSED_IMAGE'
 
         if name:
-            self._header.update('EXTNAME', name,
-                                'name of this binary table extension',
-                                after='TFIELDS')
+            self._header.set('EXTNAME', name,
+                             'name of this binary table extension',
+                             after='TFIELDS')
             self.name = name
         else:
             self.name = self._header['EXTNAME']
@@ -375,9 +376,8 @@ class CompImageHDU(BinTableHDU):
                               DEFAULT_COMPRESSION_TYPE)
                 compressionType = DEFAULT_COMPRESSION_TYPE
 
-            self._header.update('ZCMPTYPE', compressionType,
-                                'compression algorithm',
-                                after='TFIELDS')
+            self._header.set('ZCMPTYPE', compressionType,
+                             'compression algorithm', after='TFIELDS')
         else:
             compressionType = self._header.get('ZCMPTYPE', 'RICE_1')
 
@@ -390,22 +390,22 @@ class CompImageHDU(BinTableHDU):
             afterCard = 'EXTNAME'
 
             if bscale != 1.0:
-                self._header.update('BSCALE', bscale, after=afterCard)
+                self._header.set('BSCALE', bscale, after=afterCard)
                 afterCard = 'BSCALE'
 
             if bzero != 0.0:
-                self._header.update('BZERO', bzero, after=afterCard)
+                self._header.set('BZERO', bzero, after=afterCard)
 
-            bitpix_comment = image_header.ascard['BITPIX'].comment
-            naxis_comment =  image_header.ascard['NAXIS'].comment
+            bitpix_comment = image_header.comments['BITPIX']
+            naxis_comment =  image_header.comments['NAXIS']
         else:
             bitpix_comment = 'data type of original image'
             naxis_comment = 'dimension of original image'
 
         # Set the label for the first column in the table
 
-        self._header.update('TTYPE1', 'COMPRESSED_DATA',
-                            'label for field 1', after='TFIELDS')
+        self._header.set('TTYPE1', 'COMPRESSED_DATA', 'label for field 1',
+                         after='TFIELDS')
 
         # Set the data format for the first column.  It is dependent
         # on the requested compression type.
@@ -415,9 +415,9 @@ class CompImageHDU(BinTableHDU):
         else:
             tform1 = '1PB'
 
-        self._header.update('TFORM1', tform1,
-                            'data format of field: variable length array',
-                            after='TTYPE1')
+        self._header.set('TFORM1', tform1,
+                         'data format of field: variable length array',
+                         after='TTYPE1')
 
         # Create the first column for the table.  This column holds the
         # compressed data.
@@ -433,36 +433,36 @@ class CompImageHDU(BinTableHDU):
 
             # Set up the second column for the table that will hold
             # any uncompressable data.
-            self._header.update('TTYPE2', 'UNCOMPRESSED_DATA',
-                                'label for field 2', after='TFORM1')
+            self._header.set('TTYPE2', 'UNCOMPRESSED_DATA',
+                             'label for field 2', after='TFORM1')
 
             if self._image_header['BITPIX'] == -32:
                 tform2 = '1PE'
             else:
                 tform2 = '1PD'
 
-            self._header.update('TFORM2', tform2,
-                                'data format of field: variable length array',
-                                after='TTYPE2')
+            self._header.set('TFORM2', tform2,
+                             'data format of field: variable length array',
+                             after='TTYPE2')
             col2 = Column(name=self._header['TTYPE2'],format=tform2)
 
             # Set up the third column for the table that will hold
             # the scale values for quantized data.
-            self._header.update('TTYPE3', 'ZSCALE',
-                                'label for field 3', after='TFORM2')
-            self._header.update('TFORM3', '1D',
-                                'data format of field: 8-byte DOUBLE',
-                                after='TTYPE3')
+            self._header.set('TTYPE3', 'ZSCALE', 'label for field 3',
+                             after='TFORM2')
+            self._header.set('TFORM3', '1D',
+                             'data format of field: 8-byte DOUBLE',
+                             after='TTYPE3')
             col3 = Column(name=self._header['TTYPE3'],
                           format=self._header['TFORM3'])
 
             # Set up the fourth column for the table that will hold
             # the zero values for the quantized data.
-            self._header.update('TTYPE4', 'ZZERO',
-                                'label for field 4', after='TFORM3')
-            self._header.update('TFORM4', '1D',
-                                'data format of field: 8-byte DOUBLE',
-                                after='TTYPE4')
+            self._header.set('TTYPE4', 'ZZERO', 'label for field 4',
+                             after='TFORM3')
+            self._header.set('TFORM4', '1D',
+                             'data format of field: 8-byte DOUBLE',
+                             after='TTYPE4')
             after = 'TFORM4'
             col4 = Column(name=self._header['TTYPE4'],
                           format=self._header['TFORM4'])
@@ -480,7 +480,10 @@ class CompImageHDU(BinTableHDU):
                        'TFORM4']
 
             for k in keyList:
-                del self._header[k]
+                try:
+                    del self._header[k]
+                except KeyError:
+                    pass
 
             # Create the ColDefs object for the table
             cols = ColDefs([col1])
@@ -489,18 +492,14 @@ class CompImageHDU(BinTableHDU):
         # number of fields in the table, the indicator for a compressed
         # image HDU, the data type of the image data and the number of
         # dimensions in the image data array.
-        self._header.update('NAXIS1', ncols*8, 'width of table in bytes')
-        self._header.update('TFIELDS', ncols,
-                            'number of fields in each row')
-        self._header.update('ZIMAGE', True,
-                            'extension contains compressed image',
-                            after = after)
-        self._header.update('ZBITPIX', self._image_header['BITPIX'],
-                            bitpix_comment,
-                            after = 'ZIMAGE')
-        self._header.update('ZNAXIS', self._image_header['NAXIS'],
-                            naxis_comment,
-                            after = 'ZBITPIX')
+        self._header.set('NAXIS1', ncols*8, 'width of table in bytes')
+        self._header.set('TFIELDS', ncols, 'number of fields in each row')
+        self._header.set('ZIMAGE', True, 'extension contains compressed image',
+                         after=after)
+        self._header.set('ZBITPIX', self._image_header['BITPIX'],
+                         bitpix_comment, after='ZIMAGE')
+        self._header.set('ZNAXIS', self._image_header['NAXIS'], naxis_comment,
+                         after='ZBITPIX')
 
         # Strip the table header of all the ZNAZISn and ZTILEn keywords
         # that may be left over from the previous data
@@ -508,8 +507,8 @@ class CompImageHDU(BinTableHDU):
         idx = 1
         while True:
             try:
-                del self._header.ascard['ZNAXIS' + str(idx)]
-                del self._header.ascard['ZTILE' + str(idx)]
+                del self._header['ZNAXIS' + str(idx)]
+                del self._header['ZTILE' + str(idx)]
                 idx += 1
             except KeyError:
                 break
@@ -631,23 +630,21 @@ class CompImageHDU(BinTableHDU):
             nrows = nrows * ((naxisn - 1) // ts + 1)
 
             if image_header and naxis in image_header:
-                self._header.update(
-                    znaxis, naxisn, image_header.ascard[naxis].comment,
-                    after=last_znaxis)
+                self._header.set(znaxis, naxisn, image_header.comments[naxis],
+                                 after=last_znaxis)
             else:
-                self._header.update(znaxis, naxisn,
-                                    'length of original image axis',
-                                    after=last_znaxis)
+                self._header.set(znaxis, naxisn,
+                                 'length of original image axis',
+                                 after=last_znaxis)
 
-            self._header.update(ztile, ts,
-                                'size of tiles to be compressed',
-                                after=after1)
+            self._header.set(ztile, ts, 'size of tiles to be compressed',
+                             after=after1)
             last_znaxis = znaxis
             after1 = ztile
 
         # Set the NAXIS2 header card in the table hdu to the number of
         # rows in the table.
-        self._header.update('NAXIS2', nrows, 'number of rows in table')
+        self._header.set('NAXIS2', nrows, 'number of rows in table')
 
         # Create the record array to be used for the table data.
         self.columns = cols
@@ -669,7 +666,7 @@ class CompImageHDU(BinTableHDU):
             self.compData._convert[idx] = \
                 _makep(self.columns._arrays[idx],
                        np.rec.recarray.field(self.compData, idx),
-                       self.columns._recformats[idx]._dtype)
+                       self.columns._recformats[idx])
 
         # Set the compression parameters in the table header.
 
@@ -714,8 +711,8 @@ class CompImageHDU(BinTableHDU):
             if zname not in self._header:
                 break
             zval = 'ZVAL' + str(idx)
-            del self._header.ascard[zname]
-            del self._header.ascard[zval]
+            del self._header[zname]
+            del self._header[zval]
             idx += 1
 
         # Finally, put the appropriate keywords back based on the
@@ -725,16 +722,13 @@ class CompImageHDU(BinTableHDU):
         idx = 1
 
         if compressionType == 'RICE_1':
-            self._header.update('ZNAME1', 'BLOCKSIZE',
-                                'compression block size',
-                                after=afterCard)
-            self._header.update('ZVAL1', DEFAULT_BLOCK_SIZE,
-                                'pixels per block',
-                                after='ZNAME1')
+            self._header.set('ZNAME1', 'BLOCKSIZE', 'compression block size',
+                             after=afterCard)
+            self._header.set('ZVAL1', DEFAULT_BLOCK_SIZE, 'pixels per block',
+                             after='ZNAME1')
 
-            self._header.update('ZNAME2', 'BYTEPIX',
-                                'bytes per pixel (1, 2, 4, or 8)',
-                                after='ZVAL1')
+            self._header.set('ZNAME2', 'BYTEPIX',
+                             'bytes per pixel (1, 2, 4, or 8)', after='ZVAL1')
 
             if self._header['ZBITPIX'] == 8:
                 bytepix = 1
@@ -743,60 +737,52 @@ class CompImageHDU(BinTableHDU):
             else:
                 bytepix = DEFAULT_BYTE_PIX
 
-            self._header.update('ZVAL2', bytepix,
-                                'bytes per pixel (1, 2, 4, or 8)',
-                                after='ZNAME2')
+            self._header.set('ZVAL2', bytepix,
+                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
         elif compressionType == 'HCOMPRESS_1':
-            self._header.update('ZNAME1', 'SCALE',
-                                'HCOMPRESS scale factor',
-                                after=afterCard)
-            self._header.update('ZVAL1', hcompScale,
-                                'HCOMPRESS scale factor',
-                                after='ZNAME1')
-            self._header.update('ZNAME2', 'SMOOTH',
-                                'HCOMPRESS smooth option',
-                                after='ZVAL1')
-            self._header.update('ZVAL2', hcompSmooth,
-                                'HCOMPRESS smooth option',
-                                after='ZNAME2')
+            self._header.set('ZNAME1', 'SCALE', 'HCOMPRESS scale factor',
+                             after=afterCard)
+            self._header.set('ZVAL1', hcompScale, 'HCOMPRESS scale factor',
+                             after='ZNAME1')
+            self._header.set('ZNAME2', 'SMOOTH', 'HCOMPRESS smooth option',
+                             after='ZVAL1')
+            self._header.set('ZVAL2', hcompSmooth, 'HCOMPRESS smooth option',
+                             after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
 
         if self._image_header['BITPIX'] < 0:   # floating point image
-            self._header.update('ZNAME' + str(idx), 'NOISEBIT',
-                                'floating point quantization level',
-                                after=afterCard)
-            self._header.update('ZVAL' + str(idx), quantizeLevel,
-                                'floating point quantization level',
-                                after='ZNAME' + str(idx))
+            self._header.set('ZNAME' + str(idx), 'NOISEBIT',
+                             'floating point quantization level',
+                             after=afterCard)
+            self._header.set('ZVAL' + str(idx), quantizeLevel,
+                             'floating point quantization level',
+                             after='ZNAME' + str(idx))
 
         if image_header:
             # Move SIMPLE card from the image header to the
             # table header as ZSIMPLE card.
 
             if 'SIMPLE' in image_header:
-                self._header.update('ZSIMPLE',
-                        image_header['SIMPLE'],
-                        image_header.ascard['SIMPLE'].comment,
-                        before='ZBITPIX')
+                self._header.set('ZSIMPLE', image_header['SIMPLE'],
+                                 image_header.comments['SIMPLE'],
+                                 before='ZBITPIX')
 
             # Move EXTEND card from the image header to the
             # table header as ZEXTEND card.
 
             if 'EXTEND' in image_header:
-                self._header.update('ZEXTEND',
-                        image_header['EXTEND'],
-                        image_header.ascard['EXTEND'].comment)
+                self._header.set('ZEXTEND', image_header['EXTEND'],
+                                 image_header.comments['EXTEND'])
 
             # Move BLOCKED card from the image header to the
             # table header as ZBLOCKED card.
 
             if 'BLOCKED' in image_header:
-                self._header.update('ZBLOCKED',
-                        image_header['BLOCKED'],
-                        image_header.ascard['BLOCKED'].comment)
+                self._header.set('ZBLOCKED', image_header['BLOCKED'],
+                                 image_header.comments['BLOCKED'])
 
             # Move XTENSION card from the image header to the
             # table header as ZTENSION card.
@@ -805,38 +791,33 @@ class CompImageHDU(BinTableHDU):
             # always be IMAGE, even if the caller has passed in a header
             # for some other type of extension.
             if 'XTENSION' in image_header:
-                self._header.update('ZTENSION',
-                        'IMAGE',
-                        image_header.ascard['XTENSION'].comment,
-                        before='ZBITPIX')
+                self._header.set('ZTENSION', 'IMAGE',
+                                 image_header.comments['XTENSION'],
+                                 before='ZBITPIX')
 
             # Move PCOUNT and GCOUNT cards from image header to the table
             # header as ZPCOUNT and ZGCOUNT cards.
 
             if 'PCOUNT' in image_header:
-                self._header.update('ZPCOUNT',
-                        image_header['PCOUNT'],
-                        image_header.ascard['PCOUNT'].comment,
-                        after=last_znaxis)
+                self._header.set('ZPCOUNT', image_header['PCOUNT'],
+                                 image_header.comments['PCOUNT'],
+                                 after=last_znaxis)
 
             if 'GCOUNT' in image_header:
-                self._header.update('ZGCOUNT',
-                        image_header['GCOUNT'],
-                        image_header.ascard['GCOUNT'].comment,
-                        after='ZPCOUNT')
+                self._header.set('ZGCOUNT', image_header['GCOUNT'],
+                                 image_header.comments['GCOUNT'],
+                                 after='ZPCOUNT')
 
             # Move CHECKSUM and DATASUM cards from the image header to the
             # table header as XHECKSUM and XDATASUM cards.
 
             if 'CHECKSUM' in image_header:
-                self._header.update('ZHECKSUM',
-                        image_header['CHECKSUM'],
-                        image_header.ascard['CHECKSUM'].comment)
+                self._header.set('ZHECKSUM', image_header['CHECKSUM'],
+                                 image_header.comments['CHECKSUM'])
 
             if 'DATASUM' in image_header:
-                self._header.update('ZDATASUM',
-                        image_header['DATASUM'],
-                        image_header.ascard['DATASUM'].comment)
+                self._header.set('ZDATASUM', image_header['DATASUM'],
+                                 image_header.comments['DATASUM'])
         else:
             # Move XTENSION card from the image header to the
             # table header as ZTENSION card.
@@ -845,25 +826,22 @@ class CompImageHDU(BinTableHDU):
             # always be IMAGE, even if the caller has passed in a header
             # for some other type of extension.
             if 'XTENSION' in self._image_header:
-                self._header.update('ZTENSION',
-                        'IMAGE',
-                        self._image_header.ascard['XTENSION'].comment,
-                        before='ZBITPIX')
+                self._header.set('ZTENSION', 'IMAGE',
+                                 self._image_header.comments['XTENSION'],
+                                 before='ZBITPIX')
 
             # Move PCOUNT and GCOUNT cards from image header to the table
             # header as ZPCOUNT and ZGCOUNT cards.
 
             if 'PCOUNT' in self._image_header:
-                self._header.update('ZPCOUNT',
-                        self._image_header['PCOUNT'],
-                        self._image_header.ascard['PCOUNT'].comment,
-                        after=last_znaxis)
+                self._header.set('ZPCOUNT', self._image_header['PCOUNT'],
+                                 self._image_header.comments['PCOUNT'],
+                                 after=last_znaxis)
 
             if 'GCOUNT' in self._image_header:
-                self._header.update('ZGCOUNT',
-                        self._image_header['GCOUNT'],
-                        self._image_header.ascard['GCOUNT'].comment,
-                        after='ZPCOUNT')
+                self._header.set('ZGCOUNT', self._image_header['GCOUNT'],
+                                 self._image_header.comments['GCOUNT'],
+                                 after='ZPCOUNT')
 
 
         # When we have an image checksum we need to ensure that the same
@@ -872,19 +850,16 @@ class CompImageHDU(BinTableHDU):
         # over to the image header when the hdu is uncompressed.
 
         if 'ZHECKSUM' in self._header:
-            image_header.ascard.count_blanks()
-            self._image_header.ascard.count_blanks()
-            self._header.ascard.count_blanks()
-            requiredBlankCount = image_header.ascard._blanks
-            imageBlankCount = self._image_header.ascard._blanks
-            tableBlankCount = self._header.ascard._blanks
+            required_blanks = image_header._countblanks()
+            image_blanks = self._image_header._countblanks()
+            table_blanks = self._header._countblanks()
 
-            for i in range(requiredBlankCount - imageBlankCount):
-                self._image_header.add_blank()
-                tableBlankCount = tableBlankCount + 1
+            for _ in range(required_blanks - image_blanks):
+                self._image_header.append()
+                table_blanks += 1
 
-            for i in range(requiredBlankCount - tableBlankCount):
-                self._header.add_blank()
+            for _ in range(required_blanks - table_blanks):
+                self._header.append()
 
     @lazyproperty
     def data(self):
@@ -921,11 +896,6 @@ class CompImageHDU(BinTableHDU):
                 nullDvals = np.array(0,dtype='int32')
         else:
             cn_zblank = 1  # null value supplied as a column
-
-            #if sys.byteorder == 'little':
-            #    nullDvals = self.compData.field('ZBLANK').byteswap()
-            #else:
-            #    nullDvals = self.compData.field('ZBLANK')
             nullDvals = self.compData.field('ZBLANK')
 
         # Set up an array holding the linear scale factor values
@@ -949,11 +919,6 @@ class CompImageHDU(BinTableHDU):
                 zScaleVals = np.array(1.0,dtype='float64')
         else:
             cn_zscale = 1 # scale value supplied as a column
-
-            #if sys.byteorder == 'little':
-            #    zScaleVals = self.compData.field('ZSCALE').byteswap()
-            #else:
-            #    zScaleVals = self.compData.field('ZSCALE')
             zScaleVals = self.compData.field('ZSCALE')
 
         # Set up an array holding the zero point offset values
@@ -977,11 +942,6 @@ class CompImageHDU(BinTableHDU):
                 zZeroVals = np.array(1.0,dtype='float64')
         else:
             cn_zzero = 1 # zero value supplied as a column
-
-            #if sys.byteorder == 'little':
-            #    zZeroVals = self.compData.field('ZZERO').byteswap()
-            #else:
-            #    zZeroVals = self.compData.field('ZZERO')
             zZeroVals = self.compData.field('ZZERO')
 
         # Is uncompressed data supplied in a column?
@@ -1161,124 +1121,110 @@ class CompImageHDU(BinTableHDU):
 
         # Start with a copy of the table header.
         self._image_header = CompImageHeader(self._header, self._header.copy())
-        cardlist = self._image_header.ascard
 
-        try:
-            # Set the extension type to IMAGE
-            cardlist['XTENSION'].value = 'IMAGE'
-            cardlist['XTENSION'].comment = 'extension type'
-        except KeyError:
-            pass
+        if 'XTENSION' in self._image_header:
+            self._image_header['XTENSION'] = ('IMAGE', 'extension type')
 
         # Delete cards that are related to the table.  And move
         # the values of those cards that relate to the image from
         # their corresponding table cards.  These include
         # ZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
         try:
-            del cardlist['ZIMAGE']
+            del self._image_header['ZIMAGE']
         except KeyError:
             pass
 
         try:
-            del cardlist['ZCMPTYPE']
+            del self._image_header['ZCMPTYPE']
         except KeyError:
             pass
 
         try:
-            del cardlist['ZBITPIX']
+            del self._image_header['ZBITPIX']
             _bitpix = self._header['ZBITPIX']
-            cardlist['BITPIX'].value = self._header['ZBITPIX']
+            self._image_header['BITPIX'] = (self._header['ZBITPIX'],
+                                            self._header.comments['ZBITPIX'])
 
             if (self._bzero != 0 or self._bscale != 1):
                 if _bitpix > 16:  # scale integers to Float64
-                    cardlist['BITPIX'].value = -64
+                    self._image_header['BITPIX'] = -64
                 elif _bitpix > 0:  # scale integers to Float32
-                    cardlist['BITPIX'].value = -32
-
-            cardlist['BITPIX'].comment = \
-                       self._header.ascard['ZBITPIX'].comment
+                    self._image_header['BITPIX'] = -32
         except KeyError:
             pass
 
         try:
-            del cardlist['ZNAXIS']
-            cardlist['NAXIS'].value = self._header['ZNAXIS']
-            cardlist['NAXIS'].comment = \
-                     self._header.ascard['ZNAXIS'].comment
+            del self._image_header['ZNAXIS']
+            self._image_header['NAXIS'] = (self._header['ZNAXIS'],
+                                           self._header.comments['ZNAXIS'])
 
             last_naxis = 'NAXIS'
-            for idx in range(cardlist['NAXIS'].value):
+            for idx in range(self._image_header['NAXIS']):
                 znaxis = 'ZNAXIS' + str(idx + 1)
                 naxis = znaxis[1:]
-                del cardlist[znaxis]
-                self._image_header.update(
-                  naxis,
-                  self._header[znaxis],
-                  self._header.ascard[znaxis].comment,
-                  after=last_naxis)
+                del self._image_header[znaxis]
+                self._image_header.set(naxis, self._header[znaxis],
+                                       self._header.comments[znaxis],
+                                       after=last_naxis)
                 last_naxis = naxis
 
             if last_naxis == 'NAXIS1':
                 # There is only one axis in the image data so we
                 # need to delete the extra NAXIS2 card.
-                del cardlist['NAXIS2']
+                del self._image_header['NAXIS2']
         except KeyError:
             pass
 
         try:
             for idx in range(self._header['ZNAXIS']):
-                del cardlist['ZTILE' + str(idx + 1)]
+                del self._image_header['ZTILE' + str(idx + 1)]
 
         except KeyError:
             pass
 
         try:
-            del cardlist['ZPCOUNT']
-            self._image_header.update('PCOUNT',
-                     self._header['ZPCOUNT'],
-                     self._header.ascard['ZPCOUNT'].comment)
+            del self._image_header['ZPCOUNT']
+            self._image_header.set('PCOUNT', self._header['ZPCOUNT'],
+                                   self._header.comments['ZPCOUNT'])
         except KeyError:
             try:
-                del cardlist['PCOUNT']
+                del self._image_header['PCOUNT']
             except KeyError:
                 pass
 
         try:
-            del cardlist['ZGCOUNT']
-            self._image_header.update('GCOUNT',
-                     self._header['ZGCOUNT'],
-                     self._header.ascard['ZGCOUNT'].comment)
+            del self._image_header['ZGCOUNT']
+            self._image_header.set('GCOUNT', self._header['ZGCOUNT'],
+                                   self._header.comments['ZGCOUNT'])
         except KeyError:
             try:
-                del cardlist['GCOUNT']
+                del self._image_header['GCOUNT']
             except KeyError:
                 pass
 
         try:
-            del cardlist['ZEXTEND']
-            self._image_header.update('EXTEND',
-                     self._header['ZEXTEND'],
-                     self._header.ascard['ZEXTEND'].comment,
-                     after=last_naxis)
+            del self._image_header['ZEXTEND']
+            self._image_header.set('EXTEND', self._header['ZEXTEND'],
+                                   self._header.comments['ZEXTEND'],
+                                   after=last_naxis)
         except KeyError:
             pass
 
         try:
-            del cardlist['ZBLOCKED']
-            self._image_header.update('BLOCKED',
-                     self._header['ZBLOCKED'],
-                     self._header.ascard['ZBLOCKED'].comment)
+            del self._image_header['ZBLOCKED']
+            self._image_header.set('BLOCKED', self._header['ZBLOCKED'],
+                                   self._header.comments['ZBLOCKED'])
         except KeyError:
             pass
 
         try:
-            del cardlist['TFIELDS']
+            del self._image_header['TFIELDS']
 
             for idx in range(self._header['TFIELDS']):
-                del cardlist['TFORM' + str(idx + 1)]
+                del self._image_header['TFORM' + str(idx + 1)]
                 ttype = 'TTYPE' + str(idx + 1)
                 if ttype in self._image_header:
-                    del cardlist[ttype]
+                    del self._image_header[ttype]
 
         except KeyError:
             pass
@@ -1287,8 +1233,8 @@ class CompImageHDU(BinTableHDU):
 
         while True:
             try:
-                del cardlist['ZNAME' + str(idx)]
-                del cardlist['ZVAL' + str(idx)]
+                del self._image_header['ZNAME' + str(idx)]
+                del self._image_header['ZVAL' + str(idx)]
                 idx += 1
             except KeyError:
                 break
@@ -1296,51 +1242,47 @@ class CompImageHDU(BinTableHDU):
         # delete the keywords BSCALE and BZERO
 
         try:
-            del cardlist['BSCALE']
+            del self._image_header['BSCALE']
         except KeyError:
             pass
 
         try:
-            del cardlist['BZERO']
+            del self._image_header['BZERO']
         except KeyError:
             pass
 
         # Move the ZHECKSUM and ZDATASUM cards to the image header
         # as CHECKSUM and DATASUM
         try:
-            del cardlist['ZHECKSUM']
-            self._image_header.update('CHECKSUM',
-                    self._header['ZHECKSUM'],
-                    self._header.ascard['ZHECKSUM'].comment)
+            del self._image_header['ZHECKSUM']
+            self._image_header.set('CHECKSUM', self._header['ZHECKSUM'],
+                                   self._header.comments['ZHECKSUM'])
         except KeyError:
             pass
 
         try:
-            del cardlist['ZDATASUM']
-            self._image_header.update('DATASUM',
-                    self._header['ZDATASUM'],
-                    self._header.ascard['ZDATASUM'].comment)
+            del self._image_header['ZDATASUM']
+            self._image_header.set('DATASUM', self._header['ZDATASUM'],
+                                   self._header.comments['ZDATASUM'])
         except KeyError:
             pass
 
         try:
-            del cardlist['ZSIMPLE']
-            self._image_header.update('SIMPLE',
-                    self._header['ZSIMPLE'],
-                    self._header.ascard['ZSIMPLE'].comment,
-                    before=1)
-            del cardlist['XTENSION']
+            del self._image_header['ZSIMPLE']
+            self._image_header.set('SIMPLE', self._header['ZSIMPLE'],
+                                   self._header.comments['ZSIMPLE'],
+                                   before=1)
+            del self._image_header['XTENSION']
         except KeyError:
             pass
 
         try:
-            del cardlist['ZTENSION']
+            del self._image_header['ZTENSION']
             if self._header['ZTENSION'] != 'IMAGE':
                 warnings.warn("ZTENSION keyword in compressed "
                               "extension != 'IMAGE'")
-            self._image_header.update('XTENSION',
-                    'IMAGE',
-                    self._header.ascard['ZTENSION'].comment)
+            self._image_header.set('XTENSION', 'IMAGE',
+                                   self._header.comments['ZTENSION'])
         except KeyError:
             pass
 
@@ -1349,19 +1291,17 @@ class CompImageHDU(BinTableHDU):
 
         if 'EXTNAME' in self._header and \
            self._header['EXTNAME'] == 'COMPRESSED_IMAGE':
-               del cardlist['EXTNAME']
+               del self._image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
         # header.  If there are, there should be the same number
         # of blank cards in the image header.  Add blank cards to
         # the image header to make it so.
-        self._header.ascard.count_blanks()
-        tableHeaderBlankCount = self._header.ascard._blanks
-        self._image_header.ascard.count_blanks()
-        image_headerBlankCount=self._image_header.ascard._blanks
+        table_blanks = self._header._countblanks()
+        image_blanks = self._image_header._countblanks()
 
-        for i in range(tableHeaderBlankCount-image_headerBlankCount):
-            self._image_header.add_blank()
+        for _ in range(table_blanks - image_blanks):
+            self._image_header.append()
 
         return self._image_header
 
@@ -1394,7 +1334,7 @@ class CompImageHDU(BinTableHDU):
 
             _format = _ImageBaseHDU.NumCode[self.header['BITPIX']]
 
-        return (self.name, class_name, len(self.header.ascard), _shape,
+        return (self.name, class_name, len(self.header), _shape,
                 _format)
 
     def updateCompressedData(self):
@@ -1628,27 +1568,22 @@ class CompImageHDU(BinTableHDU):
 
         # Update TFORM for variable length columns.
         for idx in range(self.compData._nfields):
-            if isinstance(self.compData._coldefs.formats[idx], _FormatP):
-                tform = 'TFORM' + str(idx + 1)
-                key = self._header[tform]
-                # TODO: This probably could be cleaned up, whatever it is
-                self._header[tform] = \
-                    key[:key.find('(')+1] + \
-                    repr(hdu.compData.field(idx)._max) + ')'
+            format = self.compData._coldefs.formats[idx]
+            if isinstance(format, _FormatP):
+                max = self.compData.field(idx).max
+                format = _FormatP(format, repeat=format.repeat, max=max)
+                self._header['TFORM' + str(idx + 1)] = format.tform
         # Insure that for RICE_1 that the BLOCKSIZE and BYTEPIX cards
         # are present and set to the hard coded values used by the
         # compression algorithm.
         if self._header['ZCMPTYPE'] == 'RICE_1':
-            self._header.update('ZNAME1', 'BLOCKSIZE',
-                                'compression block size',
-                                after='ZCMPTYPE')
-            self._header.update('ZVAL1', DEFAULT_BLOCK_SIZE,
-                                'pixels per block',
-                                after='ZNAME1')
+            self._header.set('ZNAME1', 'BLOCKSIZE', 'compression block size',
+                             after='ZCMPTYPE')
+            self._header.set('ZVAL1', DEFAULT_BLOCK_SIZE, 'pixels per block',
+                             after='ZNAME1')
 
-            self._header.update('ZNAME2', 'BYTEPIX',
-                                'bytes per pixel (1, 2, 4, or 8)',
-                                after='ZVAL1')
+            self._header.set('ZNAME2', 'BYTEPIX',
+                             'bytes per pixel (1, 2, 4, or 8)', after='ZVAL1')
 
             if self._header['ZBITPIX'] == 8:
                 bytepix = 1
@@ -1657,11 +1592,10 @@ class CompImageHDU(BinTableHDU):
             else:
                 bytepix = DEFAULT_BYTE_PIX
 
-            self._header.update('ZVAL2', bytepix,
-                                'bytes per pixel (1, 2, 4, or 8)',
-                                    after='ZNAME2')
+            self._header.set('ZVAL2', bytepix,
+                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
 
-    def scale(self, type=None, option="old", bscale=1, bzero=0):
+    def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
         Scale image data by using ``BSCALE`` and ``BZERO``.
 
@@ -1753,12 +1687,12 @@ class CompImageHDU(BinTableHDU):
         # Set the BSCALE/BZERO header cards
         #
         if _zero != 0:
-            self.header.update('BZERO', _zero)
+            self.header['BZERO'] = _zero
         else:
             del self.header['BZERO']
 
         if _scale != 1:
-            self.header.update('BSCALE', _scale)
+            self.header['BSCALE'] = _scale
         else:
             del self.header['BSCALE']
 

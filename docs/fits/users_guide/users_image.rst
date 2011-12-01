@@ -113,7 +113,7 @@ scaled data with the scale(type, option, bscale, bzero) method. Here are a few
 examples:
 
     # scale the data to Int16 with user specified bscale/bzero
-    >>> hdu.scale('int16', '', bzero=32768)
+    >>> hdu.scale('int16', bzero=32768)
 
     # scale the data to Int32 with the min/max of the data range
     >>> hdu.scale('int32', 'minmax')
@@ -133,19 +133,19 @@ of what happens to the ``.data`` attribute after the ``scale()`` call:
     >>> hdu = astropy.io.fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
     >>> print hdu.data
     [ 0. 1. 2. 3.]
-    >>> hdu.scale('int16', '', bzero=32768)
+    >>> hdu.scale('int16', bzero=32768)
     >>> print hdu.data # now the data has storage values
     [-32768 -32767 -32766 -32765]
     >>> hdu.writeto('new.fits')
 
 
-Data Section
-============
+Data Sections
+=============
 
 When a FITS image HDU's .data is accessed, either the whole data is copied into
 memory (in cases of NOT using memory mapping or if the data is scaled) or a
 virtual memory space equivalent to the data size is allocated (in the case of
-memory mapping of non-scaled data). If there are several very large image HDU's
+memory mapping of non-scaled data). If there are several very large image HDUs
 being accessed at the same time, the system may run out of memory.
 
 If a user does not need the entire image(s) at the same time, e.g. processing
@@ -172,12 +172,12 @@ Data in each ``.section`` must be contiguous. Therefore, if ``f1[1].data`` is a
 400x400 image, the first part of the following specifications will not work,
 while the second part will:
 
-    >>> # These will NOT work, since the data are not contiguous!
     >>> f1[1].section[:5,:5]
     >>> f1[1].section[:,:3]
     >>> f1[1].section[:,2]
 
-    >>> # but these will work:
+But these will work:
+
     >>> f1[1].section[5,:]
     >>> f1[1].section[5,:10]
     >>> f1[1].section[6,7]

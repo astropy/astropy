@@ -4,9 +4,6 @@
 Cards
 *****
 
-.. inheritance-diagram:: Card RecordValuedKeywordCard
-   :parts: 2
-
 `Card`
 ======
 
@@ -16,12 +13,11 @@ Cards
    :undoc-members:
    :show-inheritance:
 
-`RecordValuedKeywordCard`
-=========================
+`CardList`
+==========
 
-.. autoclass:: RecordValuedKeywordCard
+.. autoclass:: CardList
    :members:
-   :inherited-members:
    :undoc-members:
    :show-inheritance:
 

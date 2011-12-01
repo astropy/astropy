@@ -19,7 +19,7 @@ class StreamingHDU(object):
         header = astropy.io.fits.Header()
 
         for all the cards you need in the header:
-            header.update(key, value, comment)
+            header[key] = (value, comment)
 
         shdu = astropy.io.fits.StreamingHDU('filename.fits', header)
 
@@ -91,8 +91,8 @@ class StreamingHDU(object):
 #               extension header.
 #
             if 'SIMPLE' in self._header:
-                self._header.update('XTENSION', 'IMAGE', 'Image extension',
-                                    after='SIMPLE')
+                self._header.set('XTENSION', 'IMAGE', 'Image extension',
+                                 after='SIMPLE')
                 del self._header['SIMPLE']
 
                 if 'PCOUNT' not in self._header:
@@ -103,12 +103,12 @@ class StreamingHDU(object):
                     else:
                         dim = str(dim)
 
-                    self._header.update('PCOUNT', 0, 'number of parameters',
-                                        after='NAXIS' + dim)
+                    self._header.set('PCOUNT', 0, 'number of parameters',
+                                     after='NAXIS' + dim)
 
                 if 'GCOUNT' not in self._header:
-                    self._header.update('GCOUNT', 1, 'number of groups',
-                                        after='PCOUNT')
+                    self._header.set('GCOUNT', 1, 'number of groups',
+                                     after='PCOUNT')
 
         self._ffo = _File(name, 'append')
 

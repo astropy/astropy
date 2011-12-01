@@ -23,7 +23,7 @@ class TestCore(FitsTestCase):
     def test_naxisj_check(self):
         hdulist = fits.open(self.data('o4sp040b0_raw.fits'))
 
-        hdulist[1].header.update("NAXIS3", 500)
+        hdulist[1].header['NAXIS3'] = 500
 
         assert 'NAXIS3' in hdulist[1].header
         hdulist.verify('fix')
@@ -47,8 +47,8 @@ class TestCore(FitsTestCase):
 
         l.writeto(self.temp('test.fits'), clobber=True)
 
-        p = fits.open(self.temp('test.fits'))
-        assert p[1].data[1]['foo'] == 60000.0
+        with fits.open(self.temp('test.fits')) as p:
+            assert p[1].data[1]['foo'] == 60000.0
 
     def test_add_del_columns(self):
         p = fits.ColDefs([])
@@ -76,10 +76,10 @@ class TestCore(FitsTestCase):
         assert table.columns.names == ['c2', 'c4', 'foo']
 
         hdulist.writeto(self.temp('test.fits'), clobber=True)
-        hdulist = fits.open(self.temp('test.fits'))
-        table = hdulist[1]
-        assert table.data.dtype.names == ('c1', 'c2', 'c3')
-        assert table.columns.names == ['c1', 'c2', 'c3']
+        with fits.open(self.temp('test.fits')) as hdulist:
+            table = hdulist[1]
+            assert table.data.dtype.names == ('c1', 'c2', 'c3')
+            assert table.columns.names == ['c1', 'c2', 'c3']
 
     def test_update_header_card(self):
         """A very basic test for the Header.update method--I'd like to add a
@@ -88,19 +88,21 @@ class TestCore(FitsTestCase):
 
         header = fits.Header()
         comment = 'number of bits per data pixel'
-        header.update('BITPIX', 16, comment)
+        header['BITPIX'] = (16, comment)
         assert 'BITPIX' in header
         assert header['BITPIX'] == 16
         assert header.ascard['BITPIX'].comment == comment
 
+        # The new API doesn't support savecomment so leave this line here; at
+        # any rate good to have testing of the new API mixed with the old API
         header.update('BITPIX', 32, savecomment=True)
         # Make sure the value has been updated, but the comment was preserved
         assert header['BITPIX'] == 32
         assert header.ascard['BITPIX'].comment == comment
 
-        # The comment should still be preserved--savecomment only takes effect if
-        # a new comment is also specified
-        header.update('BITPIX', 16)
+        # The comment should still be preserved--savecomment only takes effect
+        # if a new comment is also specified
+        header['BITPIX'] = 16
         assert header.ascard['BITPIX'].comment == comment
         header.update('BITPIX', 16, 'foobarbaz', savecomment=True)
         assert header.ascard['BITPIX'].comment == comment
@@ -141,7 +143,7 @@ class TestCore(FitsTestCase):
 
     def test_fix_invalid_keyword_value(self):
         hdu = fits.ImageHDU()
-        hdu.header.update('TESTKW', 'foo')
+        hdu.header['TESTKW'] = 'foo'
         errs = hdu.req_cards('TESTKW', None,
                              lambda v: v == 'foo', 'foo', 'ignore', [])
         assert len(errs) == 0
@@ -221,7 +223,7 @@ class TestCore(FitsTestCase):
                       ext=('sci', 2), extver=3)
 
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci')
-        assert ext == ('sci', 0)
+        assert ext == ('sci', 1)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', 'sci', 1)
         assert ext == ('sci', 1)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', ('sci', 1))
@@ -235,7 +237,7 @@ class TestCore(FitsTestCase):
                       'sci', 1, extver=2)
 
         hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci')
-        assert ext == ('sci', 0)
+        assert ext == ('sci', 1)
         hl, ext = _getext(self.data('test0.fits'), 'readonly', extname='sci',
                           extver=1)
         assert ext == ('sci', 1)
@@ -439,10 +441,10 @@ class TestStreamingFunctions(FitsTestCase):
 
     def _make_streaming_hdu(self, fileobj):
         hd = fits.Header()
-        hd.update('SIMPLE', True, 'conforms to FITS standard')
-        hd.update('BITPIX', 32, 'array data type')
-        hd.update('NAXIS', 2, 'number of array dimensions')
-        hd.update('NAXIS1', 5)
-        hd.update('NAXIS2', 5)
-        hd.update('EXTEND', True)
+        hd['SIMPLE'] = (True, 'conforms to FITS standard')
+        hd['BITPIX'] = (32, 'array data type')
+        hd['NAXIS'] = (2, 'number of array dimensions')
+        hd['NAXIS1'] = 5
+        hd['NAXIS2'] = 5
+        hd['EXTEND'] = True
         return fits.StreamingHDU(fileobj, hd)

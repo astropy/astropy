@@ -12,7 +12,7 @@ respectively.
 Header of an HDU
 ================
 
-Every HDU normally has two components: header and data. In AstroPy these two
+Every HDU normally has two components: header and data. In Astropy these two
 components are accessed through the two attributes of the HDU, ``.header`` and
 ``.data``.
 
@@ -20,19 +20,19 @@ While an HDU may have empty data, i.e. the .data attribute is None, any HDU
 will always have a header. When an HDU is created with a constructor, e.g.
 ``hdu = PrimaryHDU(data, header)``, the user may supply the header value from
 an existing HDU's header and the data value from  a numpy array. If the
-defaults (``None``) are used, the new HDU will have the minimal require
-keyword:
+defaults (``None``) are used, the new HDU will have the minimal required
+keywords for an HDU of that type:
 
     >>> hdu = astropy.io.fits.PrimaryHDU()
-    >>> print hdu.header.ascardlist() # show the keywords
+    >>> hdu.header # show the all of the header cards
     SIMPLE = T / conforms to FITS standard
     BITPIX = 8 / array data type
     NAXIS  = 0 / number of array dimensions
     EXTEND = T
 
-A user can use any header and any data to construct a new HDU. AstroPy will
+A user can use any header and any data to construct a new HDU. Astropy will
 strip the required keywords from the input header first and then add back the
-required keywords compatible to the new HDU. So, a user can use a table HDU's
+required keywords compatible to the new HDU.  So, a user can use a table HDU's
 header to construct an image HDU and vice versa. The constructor will also
 ensure the data type and dimension information in the header agree with the
 data.
@@ -41,9 +41,8 @@ data.
 The Header Attribute
 ====================
 
-
-Value Access and Updating
--------------------------
+Value Access, Updating, and Creating
+------------------------------------
 
 As shown in the Quick Tutorial, keyword values can be accessed via keyword name
 or index of an HDU's header attribute. Here is a quick summary:
@@ -52,39 +51,95 @@ or index of an HDU's header attribute. Here is a quick summary:
     >>> prihdr = hdulist[0].header # the primary HDU header
     >>> print prihdr[3] # get the 4th keyword's value
     10
-    >>> prihdr[3] = 20 # change it's value
-    >>> print prihdr['darkcorr'] # get the value of the keyword 'darkcorr'
+    >>> prihdr[3] = 20 # change its value
+    >>> prihdr['DARKCORR']  # get the value of the keyword 'darkcorr'
     'OMIT'
-    >>> prihdr['darkcorr'] = 'PERFORM' # change darkcorr's value
+    >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
 
-When reference by the keyword name, it is case insensitive. Thus,
-prihdr['abc'], prihdr['ABC'], or prihdr['aBc'] are all equivalent.
+Keyword names are case-insenstive except in a few special cases (see the
+sections on HIERARCH card and record-valued cards). Thus, `prihdr['abc']`,
+`prihdr['ABC']`, or `prihdr['aBc']` are all equivalent.
 
-A keyword (and its corresponding Card) can be deleted using the same index/name
+Like with python ``dict``\s, new keywords can also be added to the header using
+assignment syntax:
+
+    >>> 'DARKCORR' in header  # Check for existence
+    False
+    >>> header['DARKCORR'] = 'OMIT'  # Add a new DARKCORR keyword
+
+You can also add a new value *and* comment by assigning them as a tuple:
+
+    >>> header['DARKCORR'] = ('OMIT', 'Dark Image Subtraction')
+
+.. note::
+
+    An important point to note when adding new keywords to a header is that by
+    default they are not appended *immediately* to the end of the file.
+    Rather, they are appended to the last non-commentary keyword.  This is in
+    order to support the common use case of always having all HISTORY keywords
+    grouped together at the end of a header.  A new non-commentary keyword will
+    be added at the end of the existing keywords, but before any
+    HISTORY/COMMENT keywords at the end of the header.
+
+    There are a couple of ways to override this functionality:
+    
+    * Use the :meth:`Header.append` method with the ``end=True`` argument:
+
+        >>> header.append(('DARKCORR', 'OMIT', 'Dark Image Subtraction'),
+                          end=True)
+
+      This forces the new keyword to be added at the actual end of the header.
+
+    * The :meth:`Header.insert` method will always insert a new keyword exactly
+      where you ask for it:
+
+        >>> header.insert(20, ('DARKCORR', 'OMIT', 'Dark Image Subtraction'))
+
+      This inserts the DARKCORR keyword before the 20th keyword in the header
+      no matter what it is.
+
+A keyword (and its corresponding card) can be deleted using the same index/name
 syntax:
 
     >>> del prihdr[3] # delete the 2nd keyword
     >>> del prihdr['abc'] # get the value of the keyword 'abc'
 
 Note that, like a regular Python list, the indexing updates after each delete,
-so if ``del prihdr[3]`` is done two times in a row, the 2nd and 3rd keywords
-are removed from the original header.
+so if ``del prihdr[3]`` is done two times in a row, the 4th and 5th keywords
+are removed from the original header.  Likewise, ``del prihdr[-1]`` will delete
+the last card in the header.
 
-Slices are not accepted by the header attribute, so it is not possible to do
-del ``prihdr[3:5]``, for example.
+It is also possible to delete an entire range of cards using the slice syntax:
 
-The method ``update(key, value, comment)`` is a more versatile way to update
-keywords. It has the flexibility to update an existing keyword and in case the
-keyword does not exist, add it to the header. It also allows the use to update
-both the value and its comment. If it is a new keyword, the user can also
-specify where to put it, using the before or after optional argument. The
-default is to append at the end of the header.
+    >>> del prihdr[3:5]
 
-    >>> prihdr.update('target', 'NGC1234', 'target name')
+The method ``Header.set`` is another way to update they value or comment
+associated with an existing keyword, or to create a new keyword.  Most of its
+functionality can be duplicated with the dict-like syntax shown above.  But in
+some cases it might be more clear.  It also has the advantage of allowing one
+to either move cards within the header, or specify the location of a new card
+relative to existing cards:
+
+    >>> prihdr.set('target', 'NGC1234', 'target name')
     >>> # place the next new keyword before the 'target' keyword
-    >>> prihdr.update('newkey', 666, before='target') # comment is optional
+    >>> prihdr.set('newkey', 666, before='target') # comment is optional
     >>> # place the next new keyword after the 21st keyword
-    >>> prihdr.update('newkey2', 42.0, 'another new key', after=20)
+    >>> prihdr.set('newkey2', 42.0, 'another new key', after=20)
+
+In FITS headers, each keyword may also have a comment associated with it
+explaining its purpose.  The comments associated with each keyword are accessed
+through the `.comments` attribute:
+
+    >>> header['NAXIS']
+    2
+    >>> header.comments['NAXIS']
+    the number of image axes
+    >>> header.comments['NAXIS'] = 'The number of image axes'  # Update
+
+Comments can be accessed in all the same ways that values are accessed, whether
+by keyword name or card index.  Slices are also possible.  The only difference
+is that you go through ``header.comments`` instead of just ``header`` by
+itself.
 
 
 COMMENT, HISTORY, and Blank Keywords
@@ -96,27 +151,30 @@ name. The duplicates can only be accessed by numeric indexing.
 
 There are three special keywords (their associated cards are sometimes referred
 to as commentary cards), which commonly appear in FITS headers more than once.
-They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Again, to get their
-values (except for the first one), a user must use indexing.
+They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Unlike other
+keywords, when accessing these keywords they are returned as a list:
 
-The following header methods are provided in AstroPy to add new commentary
-cards: `Header.add_history()`, `Header.add_comment()`, and
-`Header.add_blank()`. They are provided because the `Header.update()` method
-will not work - it will replace the first card of the same keyword.
+    >>> prihdr['history']
+    I updated this file on 02/03/2011
+    I updated this file on 02/04/2011
+    ....
 
-Users can control where in the header to add the new commentary card(s) by
-using the optional before and after arguments, similar to the ``update()``
-method used for regular cards. If no before or after is specified, the new card
-will be placed after the last one of the same kind (except  blank-key cards
-which will always be placed at the end). If no card of the same kind exists, it
-will be placed at the end. Here is an example:
+These lists can be sliced like any other list.  For example, to diplay just the
+last HISTORY entry, use `prihdr['history'][-1]`.  Existing commentary cards can
+also be updated by using the appropriate index number for that card.
 
-    >>> hdu.header.add_history('history 1')
-    >>> hdu.header.add_blank('blank 1')
-    >>> hdu.header.add_comment('comment 1')
-    >>> hdu.header.add_history('history 2')
-    >>> hdu.header.add_blank('blank 2')
-    >>> hdu.header.add_comment('comment 2'))
+New commentary cards can be added like any other card by using the dict-like
+keyword assignment syntax, or by using the ``Header.set`` method.  However,
+unlike with other keywords, a new commentary card is always added and appended
+to the last commentary card with the same keyword, rather than to the end of
+the header. Here is an example:
+
+    >>> hdu.header['history'] = 'history 1'
+    >>> hdu.header[''] = 'blank 1'
+    >>> hdu.header['comment'] = 'comment 1'
+    >>> hdu.header['history'] = 'history 2'
+    >>> hdu.header[''] = 'blank 2'
+    >>> hdu.header['comment'] = 'comment 2'
 
 and the part in the modified header becomes:
 
@@ -125,11 +183,18 @@ and the part in the modified header becomes:
     HISTORY history 1
     HISTORY history 2
             blank 1
+            blank 2
     COMMENT comment 1
     COMMENT comment 2
-            blank 2
 
-Ironically, there is no comment in a commentary card , only a string value.
+
+Users can also directly control exactly where in the header to add a new
+commentary card by using the :meth:`Header.insert` method.
+
+.. note::
+
+    Ironically, there is no comment in a commentary card, only a string
+    value.
 
 
 Card Images
@@ -137,19 +202,29 @@ Card Images
 
 A FITS header consists of card images.
 
-A card images in a FITS header consists of a keyword name, a value, and
-optionally a comment. Physically, it takes 80 columns (bytes) - without
-carriage return - in a FITS file's storage form. In AstroPy, each card image is
-manifested by a Card object. There are also special kinds of cards: commentary
-cards (see above) and card images taking more than one 80-column card image.
-The latter will be discussed later.
+A card image in a FITS header consists of a keyword name, a value, and
+optionally a comment. Physically, it takes 80 columns (bytes)--without carriage
+return--in a FITS file's storage format. In Astropy, each card image is
+manifested by a `Card` object. There are also special kinds of cards:
+commentary cards (see above) and card images taking more than one 80-column
+card image.  The latter will be discussed later.
 
-Most of the time, a new Card object is created with the Card constructor:
+Most of the time the details of dealing with cards are handled by the `Header`
+object, and it is not necessary to directly manipulate cards.  In fact, most
+`Header` methods that accept a (keyword, value) or (keyword, value, comment)
+tuple as an argument can also take a `Card` object as an argument.  `Card`
+objects are just wrappers around that header that provide the logic for parsing
+and formatting individual cards in a header.  But there's nothing gained by
+manually using a `Card` object, except to examine how a card might appear in a
+header before actually adding it to the header.
+
+A new Card object is created with the `Card` constructor:
 ``Card(key, value, comment)``. For example:
 
     >>> c1 = astropy.io.fits.Card('temp', 80.0, 'temperature, floating value')
     >>> c2 = astropy.io.fits.Card('detector', 1) # comment is optional
-    >>> c3 = astropy.io.fits.Card('mir_revr', True, 'mirror reversed? Boolean value)
+    >>> c3 = astropy.io.fits.Card('mir_revr', True,
+    ...                           'mirror reversed? Boolean value)
     >>> c4 = astropy.io.fits.Card('abc', 2+3j, 'complex value')
     >>> c5 = astropy.io.fits.Card('observer', 'Hubble', 'string value')
 
@@ -160,21 +235,21 @@ Most of the time, a new Card object is created with the Card constructor:
     ABC = (2.0, 3.0) / complex value
     OBSERVER= 'Hubble ' / string value
 
-Cards have the attributes ``.key``, ``.value``, and ``.comment``. Both
-``.value`` and ``.comment`` can be changed but not the ``.key`` attribute.
+Cards have the attributes ``.keyword``, ``.value``, and ``.comment``. Both
+``.value`` and ``.comment`` can be changed but not the ``.keyword`` attribute.
 
 The `Card()` constructor will check if the arguments given are conforming to
 the FITS standard and has a fixed card image format. If the user wants to
 create a card with a customized format or even a card which is not conforming
 to the FITS standard (e.g. for testing purposes), the `Card.fromstring()`
-method can be used.
+class method can be used.
 
 Cards can be verified with `Card.verify()`. The non-standard card ``c2`` in the
-example below, is flagged by such verification. More about FITS verification in
-AstroPy will be discussed in a later chapter.
+example below is flagged by such verification. More about verification in
+Astropy will be discussed in a later chapter.
 
-    >>> c1 = astropy.io.fits.Card().fromstring('ABC = 3.456D023')
-    >>> c2 = astropy.io.fits.Card().fromstring("P.I. ='Hubble'")
+    >>> c1 = astropy.io.fits.Card.fromstring('ABC = 3.456D023')
+    >>> c2 = astropy.io.fits.Card.fromstring("P.I. ='Hubble'")
     >>> print c1; print c2
     ABC = 3.456D023
     P.I. ='Hubble'
@@ -182,26 +257,11 @@ AstroPy will be discussed in a later chapter.
     Output verification result:
     Unfixable error: Illegal keyword name 'P.I.'
 
-
-Card List
-=========
-
-The Header itself only has limited functionality. Many lower level operations
-can only be achieved by going through its `CardList` object.
-
-The header is basically a list of `Card` objects. This list can be manifested
-as a `CardList` object in AstroPy. It is accessed via the `Header.ascardlist()`
-method (or the ``.ascard`` attribute, for short). Since the header attribute
-only refers to a card value, so when a user needs to access a card's other
-properties (e.g. the comment) in a header, it has to go through the `CardList`.
-
-Like the header's item, the `CardList`'s item can be accessed through either
-the keyword name or index.
-
-    >>> cards = prihdr.header.ascardlist()
-    >>> cards['abc'].comment = 'new comment' # update the keyword ABC's comment
-    >>> cards[3].key # see the keyword name of the 4th card
-    >>> cards[10:20].keys() # see keyword names from cards 11 to 20
+A list of the `Card` objects underlying a `Header` object can be accessed with
+the ``header.cards`` attribute.  This list is only meant for observing, and
+should not be directly manipulated.  In fact, it is only a copy--modifications
+to it will not affect the header it came from.  Use the methods provided by the
+`Header` class instead.
 
 
 CONTINUE Cards
@@ -215,33 +275,35 @@ a proposal was made in:
     http://legacy.gsfc.nasa.gov/docs/heasarc/ofwg/docs/ofwg_recomm/r13.html
 
 by using the CONTINUE keyword after the regular 80-column containing the
-keyword. AstroPy does support this convention, even though it is not a FITS
+keyword. Astropy does support this convention, even though it is not a FITS
 standard. The examples below show the use of CONTINUE is automatic for long
 string values.
 
-    >>> c = astropy.io.fits.Card('abc', 'abcdefg'*20)
-    >>> print c
+    >>> header = astropy.io.fits.Header()
+    >>> header['abc'] = 'abcdefg' * 20
+    >>> header
     ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
     CONTINUE 'efgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga&'
     CONTINUE 'bcdefg&'
-    >>> c.value
-    'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgab
-    cdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg'
-    # both value and comments are long
-    >>> c = astropy.io.fits.Card('abc', 'abcdefg'*10, 'abcdefg'*10)
-    >>> print c
+    >>> header['abc']
+    'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg'
+    >>> # both value and comments are long
+    >>> header['abc'] = ('abcdefg' * 10, 'abcdefg' * 10)
+    >>> header
     ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
     CONTINUE 'efg&'
     CONTINUE '&' / abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefga
     CONTINUE '&' / bcdefg
 
-Note that when CONTINUE card is used, at the end of each 80-characters card
+Note that when a CONTINUE card is used, at the end of each 80-characters card
 image, an ampersand is present. The ampersand is not part of the string value.
 Also, there is no "=" at the 9th column after CONTINUE. In the first example,
-the entire 240 characters is considered a Card. So, if it is the nth card in a
-header, the (n+1)th card refers to the next keyword, not the 80-characters
-containing CONTINUE. These keywords having long string values can be accessed
-and updated just like regular keywords.
+the entire 240 characters is treated by Astropy as a single card. So, if it is
+the nth card in a header, the (n+1)th card refers to the next keyword, not the
+next CONTINUE card.  As such, CONTINUE cards are transparently handled by
+Astropy as a single logical card, and it's generally not necessary to worry
+about the details of the format.  Keywords that resolve to a set of CONTINUE
+cards can be accessed and updated just like regular keywords.
 
 
 HIERARCH Cards
@@ -249,38 +311,62 @@ HIERARCH Cards
 
 For keywords longer than 8 characters, there is a convention originated at ESO
 to facilitate such use. It uses a special keyword HIERARCH with the actual long
-keyword following. AstroPy supports this convention as well.
+keyword following. Astropy supports this convention as well.
 
-When creating or updating using the `Header.update()` method, it is necessary
-to prepend 'hierarch' (case insensitive). But if the keyword is already in the
-header, it can be accessed or updated by assignment by using the keyword name
-diretly, with or without the 'hierarch' prepending.  The keyword name will
-preserve its cases from its constructor, but when referring to the keyword, it
-is case insensitive.
+If a keyword contains more than 8 characters Astropy will automatically use a
+HIERARCH card, but will also issue a warning in case this is in error.
+However, one may explicitly request a HIERARCH card by prepending the keyword
+with 'HIERARCH ' (just as it would appear in the header).  For example,
+``header['HIERARCH abcdefghi']`` will create the keyword ``abcdefghi`` without
+displaying a warning.  Once created, HIERARCH keywords can be accessed like any
+other: ``header['abcdefghi']``, without prepending 'HIERARCH' to the keyword.
+HIEARARCH keywords also differ from normal FITS keywords in that they are
+case-sensitive.
 
 Examples follow:
 
     >>> c = astropy.io.fits.Card('abcdefghi', 10)
-    ...
-    ValueError: keyword name abcdefghi is too long (> 8), use HIERARCH.
+    Keyword name 'abcdefghi' is greater than 8 characters; a HIERARCH card will
+    be created.
+    >>> print c
+    HIERARCH abcdefghi = 10
     >>> c = astropy.io.fits.Card('hierarch abcdefghi', 10)
     >>> print c
     HIERARCH abcdefghi = 10
     >>> h = astropy.io.fits.PrimaryHDU()
-    >>> h.header.update('hierarch abcdefghi', 99)
-    >>> h.header.update('hierarch abcdefghi', 99)
+    >>> h.header['hierarch abcdefghi'] =  99
     >>> h.header['abcdefghi']
     99
     >>> h.header['abcdefghi'] = 10
-    >>> h.header['hierarch abcdefghi']
+    >>> h.header['abcdefghi']
     10
-    # case insensitive
-    >>> h.header.update('hierarch ABCdefghi', 1000)
-    >>> print h.header
+    >>> h.header['ABCDEFGHI']
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "astropy/io/fits/header.py", line 121, in __getitem__
+        return self._cards[self._cardindex(key)].value
+      File "astropy/io/fits/header.py", line 1106, in _cardindex
+        raise KeyError("Keyword %r not found." % keyword)
+    KeyError: "Keyword 'ABCDEFGI.' not found."
+    >>> h.header
     SIMPLE = T / conforms to FITS standard
     BITPIX = 8 / array data type
     NAXIS = 0 / number of array dimensions
     EXTEND = T
-    HIERARCH ABCdefghi = 1000
-    >>> h.header['hierarch abcdefghi']
-    1000
+    HIERARCH abcdefghi = 1000
+
+.. note::
+
+    A final point to keep in mind about the :class:`Header` class is that much
+    of its design is intended to abstract away quirks about the FITS format.
+    This is why, for example, it will automatically created CONTINUE and
+    HIEARARCH cards.  The Header is just a data structure, and as user you
+    shouldn't have to worry about how it ultimately gets serialized to a header
+    in a FITS file.
+
+    Though there are some areas where it's almost impossible to hide away the
+    quirks of the FITS format, Astropy tries to make it so that you have to
+    think about it as little as possible.  If there are any areas where you
+    have concern yourself unncessarily about how the header is constructed,
+    then let help@stsci.edu know, as there are probably areas where this can be
+    improved on even more.
