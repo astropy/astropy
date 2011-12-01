@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 from .base import register_hdu, unregister_hdu, DELAYED
 from .compressed import CompImageHDU
 from .groups import GroupsHDU

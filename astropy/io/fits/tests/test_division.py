@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 import numpy as np
 
 from ....io import fits
