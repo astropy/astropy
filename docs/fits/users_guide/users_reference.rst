@@ -40,9 +40,10 @@ Converting a 3-color image (JPG) to separate FITS images
 ::
 
     #!/usr/bin/env python
-    import astropy.io.fits
     import numpy 
     import Image
+
+    from astropy.io import fits
 
     #get the image and color information
     image = Image.open('hs-2009-14-a-web.jpg')
@@ -60,18 +61,17 @@ Converting a 3-color image (JPG) to separate FITS images
 
     # write out the fits images, the data numbers are still JUST the RGB
     # scalings; don't use for science
-    red = astropy.io.fits.PrimaryHDU()
-    red.header.update('LATOBS', "32:11:56") # add spurious header info
-    red.header.update('LONGOBS', "110:56")
-    red.data = npr
+    red = fits.PrimaryHDU(data=npr)
+    red.header['LATOBS'] = "32:11:56" # add spurious header info
+    red.header['LONGOBS'] = "110:56"
     red.writeto('red.fits')
-    green = astropy.io.fits.PrimaryHDU()
-    green.header.update('LATOBS', "32:11:56")
-    green.header.update('LONGOBS', "110:56")
-    green.data = npg
+
+    green = fits.PrimaryHDU(data=npg)
+    green.header['LATOBS'] = "32:11:56"
+    green.header['LONGOBS'] = "110:56"
     green.writeto('green.fits')
-    blue = astropy.io.fits.PrimaryHDU()
-    blue.header.update('LATOBS', "32:11:56")
-    blue.header.update('LONGOBS', "110:56")
-    blue.data = npb
+
+    blue = fits.PrimaryHDU(data=npb)
+    blue.header['LATOBS'] = "32:11:56"
+    blue.header['LONGOBS'] = "110:56"
     blue.writeto('blue.fits')

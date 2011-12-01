@@ -17,13 +17,9 @@ class TestDivisionFunctions(FitsTestCase):
                 dtype=np.dtype([('c1', '>i4'), ('c2', '|S3'),
                                 ('c3', '>f4'), ('c4', '|i1')]))
 
-    def test_card_ncards(self):
-        c1 = fits.Card('temp', 80.0, 'temperature')
-        assert type(c1._ncards()) == type(1)
-
     def test_card_with_continue(self, capsys):
         h = fits.PrimaryHDU()
-        h.header.update('abc', 'abcdefg' * 20)
+        h.header['abc'] = 'abcdefg' * 20
         out, err = capsys.readouterr()
         assert err == ''
 

@@ -14,11 +14,3 @@ Headers
    :inherited-members:
    :undoc-members:
    :show-inheritance:
-
-`CardList`
-==========
-
-.. autoclass:: CardList
-   :members:
-   :undoc-members:
-   :show-inheritance:

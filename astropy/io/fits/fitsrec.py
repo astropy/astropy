@@ -342,7 +342,7 @@ class FITS_rec(np.recarray):
         # recursion
         field = np.recarray.field(base, indx)
 
-        if (self._convert[indx] is None):
+        if self._convert[indx] is None:
             # for X format
             if isinstance(recformat, _FormatX):
                 _nx = recformat._nx
@@ -356,21 +356,20 @@ class FITS_rec(np.recarray):
 
             # for P format
             if isinstance(recformat, _FormatP):
-                dummy = _VLF([None] * len(self))
-                dummy._dtype = recformat._dtype
+                dummy = _VLF([None] * len(self), dtype=recformat.dtype)
                 for i in range(len(self)):
                     _offset = field[i,1] + self._heapoffset
                     self._file.seek(_offset)
-                    if recformat._dtype == 'a':
+                    if recformat.dtype == 'a':
                         count = field[i,0]
-                        dt = recformat._dtype + str(1)
+                        dt = recformat.dtype + str(1)
                         da = _array_from_file(self._file, dtype=dt,
                                               count=count, sep='')
                         dummy[i] = np.char.array(da, itemsize=count)
                         dummy[i] = decode_ascii(dummy[i])
                     else:
                         count = field[i,0]
-                        dt = recformat._dtype
+                        dt = recformat.dtype
                         dummy[i] = _array_from_file(self._file, dtype=dt,
                                                     count=count, sep='')
                         dummy[i].dtype = dummy[i].dtype.newbyteorder('>')
@@ -381,7 +380,7 @@ class FITS_rec(np.recarray):
                         dummy[i][:] = dummy[i]*bscale+bzero
 
                 # Boolean (logical) column
-                if recformat._dtype is FITS2NUMPY['L']:
+                if recformat.dtype == FITS2NUMPY['L']:
                     for i in range(len(self)):
                         dummy[i] = np.equal(dummy[i], ord('T'))
 
@@ -552,7 +551,7 @@ class FITS_rec(np.recarray):
                 field[:] = 0 # reset
                 npts = map(len, self._convert[indx])
                 field[:len(npts),0] = npts
-                dtype = np.array([], dtype=recformat._dtype)
+                dtype = np.array([], dtype=recformat.dtype)
                 field[1:,1] = np.add.accumulate(field[:-1,0]) * dtype.itemsize
 
                 field[:,1][:] += self._heapsize

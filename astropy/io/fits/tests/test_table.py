@@ -326,9 +326,9 @@ class TestTableFunctions(FitsTestCase):
         # Double check that the array is converted to the correct byte-order
         # for FITS (big-endian).
         tbhdu.writeto(self.temp('testendian.fits'), clobber=True)
-        hdul = fits.open(self.temp('testendian.fits'))
-        assert (hdul[1].data['a'] == a2).all()
-        assert (hdul[1].data['b'] == a2).all()
+        with fits.open(self.temp('testendian.fits')) as hdul:
+            assert (hdul[1].data['a'] == a2).all()
+            assert (hdul[1].data['b'] == a2).all()
 
     def test_recarray_to_bintablehdu(self):
         bright=np.rec.array([(1,'Serius',-1.45,'A1V'),\
@@ -1458,7 +1458,7 @@ class TestTableFunctions(FitsTestCase):
 
             # And overriding a header with a different extname
             hdr = fits.Header()
-            hdr.update('EXTNAME', 'EVENTS')
+            hdr['EXTNAME'] = 'EVENTS'
             hdu = hducls(header=hdr, name='FOO')
             assert hdu.name == 'FOO'
             assert hdu.header['EXTNAME'] == 'FOO'
@@ -1604,8 +1604,8 @@ class TestTableFunctions(FitsTestCase):
 
         thdu = fits.new_table(data)
         # Modify the TDIM fields to my own specification
-        thdu.header.update('TDIM1', '(2,3)')
-        thdu.header.update('TDIM2', '(4,2)')
+        thdu.header['TDIM1'] = '(2,3)'
+        thdu.header['TDIM2'] = '(4,2)'
 
         thdu.writeto(self.temp('newtable.fits'))
 

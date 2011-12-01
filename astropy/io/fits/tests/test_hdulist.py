@@ -36,7 +36,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert res['filename'] == self.data('checksum.fits')
             assert res['datLoc'] == kwargs.get('datLoc', 8640)
             assert res['hdrLoc'] == kwargs.get('hdrLoc', 0)
-            assert res['filemode'] == 'copyonwrite'
+            assert res['filemode'] == 'readonly'
 
         res = hdul.fileinfo(1)
         test_fileinfo(datLoc=17280, hdrLoc=11520)
@@ -45,10 +45,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.insert(1, hdu)
 
         res = hdul.fileinfo(0)
-        test_fileinfo(resized=1)
+        test_fileinfo(resized=True)
 
         res = hdul.fileinfo(1)
-        test_fileinfo(datSpan=None, resized=1, datLoc=None, hdrLoc=None)
+        test_fileinfo(datSpan=None, resized=True, datLoc=None, hdrLoc=None)
 
         res = hdul.fileinfo(2)
         test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
@@ -346,10 +346,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.append(hdu)
         hdul.flush()
         tmpfile.close()
+        hdul.close()
 
-        hdul2 = fits.open(self.temp('tmpfile.fits'))
         info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
-        assert hdul2.info(output=False) == info
+        assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_file_like_3(self):
 
@@ -401,7 +401,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         oldmtime = os.stat(self.data('test0.fits')).st_mtime
         hdul = fits.open(self.data('test0.fits'))
-        hdul[0].header.update('FOO', 'BAR')
+        hdul[0].header['FOO'] = 'BAR'
         with warnings.catch_warnings(record=True) as w:
             hdul.flush()
             assert len(w) == 1
@@ -417,3 +417,15 @@ class TestHDUListFunctions(FitsTestCase):
 
         assert 'EXTEND' in hdul[0].header
         assert hdul[0].header['EXTEND'] == True
+
+    def test_replace_memmaped_array(self):
+        # Copy the original before we modify it
+        hdul = fits.open(self.data('test0.fits'))
+        hdul.writeto(self.temp('temp.fits'))
+
+        hdul = fits.open(self.temp('temp.fits'), mode='update', memmap=True)
+        old_data = hdul[1].data.copy()
+        hdul[1].data = hdul[1].data + 1
+        hdul.close()
+        hdul = fits.open(self.temp('temp.fits'), memmap=True)
+        assert ((old_data + 1) == hdul[1].data).all()

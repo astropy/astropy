@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import copy
 import re
 import string
 import sys
@@ -7,13 +8,14 @@ import warnings
 
 import numpy as np
 
-from .util import _str_to_num, _is_int, deprecated, maketrans, translate
+from .util import (_str_to_num, _is_int, deprecated, maketrans, translate,
+                   _words_group, lazyproperty)
 from .verify import _Verify, _ErrList
 
 
-__all__ = ['Card', 'CardList', 'RecordValuedKeywordCard', 'create_card',
-           'create_card_from_string', 'upper_key', 'createCard',
-           'createCardFromString', 'upperKey', 'Undefined']
+__all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
+           'upper_key', 'createCard', 'createCardFromString', 'upperKey',
+           'Undefined']
 
 
 FIX_FP_TABLE = maketrans('de', 'DE')
@@ -29,14 +31,273 @@ class Undefined:
 UNDEFINED = Undefined()
 
 
-class Card(_Verify):
+class CardList(list):
+    """
+    .. deprecated:: 3.1
+        `CardList` used to provide the list-like functionality for manipulating
+        a header as a list of cards.  This functionality is now subsumed into
+        the `Header` class itself, so it is no longer necessary to create or
+        use `CardList`\s.
+    """
 
-    # string length of a card
+    def __init__(self, cards=[], keylist=None):
+        """
+        Construct the `CardList` object from a list of `Card` objects.
+
+        `CardList` is now merely a thin wrapper around `Header` to provide
+        backwards compatibility for the old API.  This should not be used for
+        any new code.
+
+        Parameters
+        ----------
+        cards
+            A list of `Card` objects.
+        """
+
+        warnings.warn(
+                'The CardList class has been deprecated; all its former '
+                'functionality has been subsumed by the Header class, so '
+                'CardList objects should not be directly created.  See the '
+                'PyFITS 3.1.0 CHANGELOG for more details.',
+                DeprecationWarning)
+
+        # This is necessary for now to prevent a circular import
+        from .header import Header
+
+        # I'm not sure if they keylist argument here was ever really useful;
+        # I'm going to just say don't use it.
+        if keylist is not None:
+            raise ValueError(
+                'The keylist argument to CardList() is no longer supported.')
+
+        if isinstance(cards, Header):
+            self._header = cards
+        else:
+            self._header = Header(cards)
+
+        super(CardList, self).__init__(self._header.cards)
+
+    def __contains__(self, key):
+        return key in self._header
+
+    def __iter__(self):
+        return iter(self._header.cards)
+
+    def __getitem__(self, key):
+        """Get a `Card` by indexing or by the keyword name."""
+
+        if self._header._haswildcard(key):
+            return [copy.copy(self._header._cards[idx])
+                    for idx in self._header._wildcardmatch(key)]
+        elif isinstance(key, slice):
+            return CardList(self._header.cards[key])
+
+        idx = self._header._cardindex(key)
+        return self._header.cards[idx]
+
+    def __setitem__(self, key, value):
+        """Set a `Card` by indexing or by the keyword name."""
+
+        if isinstance(value, tuple) and (1 < len(value) <= 3):
+            value = Card(*value)
+
+        if isinstance(value, Card):
+            idx = self._header._cardindex(key)
+            card = self._header.cards[idx]
+            if str(card) != str(value):
+                # Replace the existing card at this index by delete/insert
+                del self._header[idx]
+                self._header.insert(idx, value)
+        else:
+            raise ValueError('%s is not a Card' % str(value))
+
+    def __delitem__(self, key):
+        """Delete a `Card` from the `CardList`."""
+
+        if key not in self._header._keyword_indices:
+            raise KeyError("Keyword '%s' not found." % key)
+        del self._header[key]
+
+    def __getslice__(self, start, end):
+        return CardList(self[slice(start, end)])
+
+    def __repr__(self):
+        """Format a list of cards into a string."""
+
+        return str(self._header)
+
+    def __str__(self):
+        """Format a list of cards into a printable string."""
+
+        return '\n'.join(str(card) for card in self)
+
+    @deprecated('3.1', alternative=':meth:`Header.copy`', pending=False)
+    def copy(self):
+        """Make a (deep)copy of the `CardList`."""
+
+        return CardList(self._header.copy())
+
+    @deprecated('3.1', alternative=':meth:`Header.keys`', pending=False)
+    def keys(self):
+        """
+        Return a list of all keywords from the `CardList`.
+        """
+
+        return self._header.keys()
+
+    @deprecated('3.1', alternative=':meth:`Header.values`', pending=False)
+    def values(self):
+        """
+        Return a list of the values of all cards in the `CardList`.
+
+        For `RecordValuedKeywordCard` objects, the value returned is
+        the floating point value, exclusive of the
+        ``field_specifier``.
+        """
+
+        return self._header.values()
+
+    @deprecated('3.1', alternative=':meth:`Header.append`', pending=False)
+    def append(self, card, useblanks=True, bottom=False):
+        """
+        Append a `Card` to the `CardList`.
+
+        Parameters
+        ----------
+        card : `Card` object
+            The `Card` to be appended.
+
+        useblanks : bool, optional
+            Use any *extra* blank cards?
+
+            If `useblanks` is `True`, and if there are blank cards
+            directly before ``END``, it will use this space first,
+            instead of appending after these blank cards, so the total
+            space will not increase.  When `useblanks` is `False`, the
+            card will be appended at the end, even if there are blank
+            cards in front of ``END``.
+
+        bottom : bool, optional
+           If `False` the card will be appended after the last
+           non-commentary card.  If `True` the card will be appended
+           after the last non-blank card.
+        """
+
+        self._header.append(card, useblanks=useblanks, bottom=bottom)
+
+    @deprecated('3.1', alternative=':meth:`Header.extend`', pending=False)
+    def extend(self, cards):
+        self._header.extend(cards)
+
+    @deprecated('3.1', alternative=':meth:`Header.insert`', pending=False)
+    def insert(self, idx, card, useblanks=True):
+        """
+        Insert a `Card` to the `CardList`.
+
+        Parameters
+        ----------
+        pos : int
+            The position (index, keyword name will not be allowed) to
+            insert. The new card will be inserted before it.
+
+        card : `Card` object
+            The card to be inserted.
+
+        useblanks : bool, optional
+            If `useblanks` is `True`, and if there are blank cards
+            directly before ``END``, it will use this space first,
+            instead of appending after these blank cards, so the total
+            space will not increase.  When `useblanks` is `False`, the
+            card will be appended at the end, even if there are blank
+            cards in front of ``END``.
+        """
+
+        self._header.insert(idx, card, useblanks=useblanks)
+
+    @deprecated('3.1', alternative=':meth:`Header.remove`')
+    def remove(self, card):
+        del self._header[self.index(card)]
+
+    @deprecated('3.1', alternative=':meth:`Header.pop`')
+    def pop(self, index=-1):
+        return self._header.pop(index)
+
+    @deprecated('3.1', alternative=':meth:`Header.index`')
+    def index(self, card):
+        return self._header.cards.index(card)
+
+    @deprecated('3.1', alternative=':meth:`Header.count`')
+    def count(self, card):
+        return self._header.cards.count(card)
+
+    @deprecated('3.1', alternative=':meth:`Header.index`', pending=False)
+    def index_of(self, key, backward=False):
+        """
+        Get the index of a keyword in the `CardList`.
+
+        Parameters
+        ----------
+        key : str or int
+            The keyword name (a string) or the index (an integer).
+
+        backward : bool, (optional)
+            When `True`, search the index from the ``END``, i.e.,
+            backward.
+
+        Returns
+        -------
+        index : int
+            The index of the `Card` with the given keyword.
+        """
+
+        # Backward is just ignored now, since the search is not linear anyways
+
+        if _is_int(key) or isinstance(key, basestring):
+            return self._header._cardindex(key)
+        else:
+            raise KeyError('Illegal key data type %s' % type(key))
+
+    @deprecated('3.1', alternative='`header[<wildcard_pattern>]`')
+    def filter_list(self, key):
+        """
+        Construct a `CardList` that contains references to all of the cards in
+        this `CardList` that match the input key value including any special
+        filter keys (``*``, ``?``, and ``...``).
+
+        Parameters
+        ----------
+        key : str
+            key value to filter the list with
+
+        Returns
+        -------
+        cardlist :
+            A `CardList` object containing references to all the
+            requested cards.
+        """
+
+        return CardList(self._header[key])
+
+    # For API backwards-compatibility
+    @deprecated('3.0', alternative=':meth:`filter_list`', pending=False)
+    def filterList(self, key):
+        return self.filter_list(key)
+
+    @deprecated('3.1', pending=False)
+    def count_blanks(self):
+        """
+        Returns how many blank cards are *directly* before the ``END``
+        card.
+        """
+
+        return self._header._countblanks()
+
+
+class Card(_Verify):
     length = 80
 
     # String for a FITS standard compliant (FSC) keyword.
-    _keywd_FSC = r'[A-Z0-9_-]* *$'
-    _keywd_FSC_RE = re.compile(_keywd_FSC)
+    _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,8}$')
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
@@ -110,286 +371,264 @@ class Card(_Verify):
             r'(?P<comm>(.|\n)*)'
         r')?$')
 
-    # keys of commentary cards
-    _commentary_keys = ['', 'COMMENT', 'HISTORY']
+    _rvkc_identifier = r'[a-zA-Z_]\w*'
+    _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
+    _rvkc_field_specifier_s = r'%s(\.%s)*' % ((_rvkc_field,) * 2)
+    _rvkc_field_specifier_val = (r'(?P<keyword>%s): (?P<val>%s\s*)' %
+                                 (_rvkc_field_specifier_s, _numr_FSC))
+    _rvkc_keyword_val = r'\'%s\'' % _rvkc_field_specifier_val
+    _rvkc_keyword_val_comm = (r' +%s *(/ *(?P<comm>[ -~]*))?$' %
+                              _rvkc_keyword_val)
 
-    def __new__(cls, key='', value='', comment=''):
-        """
-        Return the appropriate Card subclass depending on they key and/or
-        value.
-        """
 
-        klass = cls
-        val_str = _value_to_string(value)
-        if len(val_str) > (Card.length - 10):
-            klass = _ContinueCard
-        elif isinstance(key, basestring) and key.upper().strip() == 'HIERARCH':
-            klass = _HierarchCard
-        return super(Card, cls).__new__(klass)
+    _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val)
 
-    def __init__(self, key='', value='', comment=''):
-        """
-        Construct a card from `key`, `value`, and (optionally) `comment`.
-        Any specifed arguments, except defaults, must be compliant to FITS
-        standard.
+    # regular expression to extract the key and the field specifier from a
+    # string that is being used to index into a card list that contains
+    # record value keyword cards (ex. 'DP1.AXIS.1')
+    _rvkc_keyword_name_RE = (
+        re.compile(r'(?P<keyword>%s)\.(?P<field_specifier>%s)$' %
+                   (_rvkc_identifier, _rvkc_field_specifier_s)))
 
-        Parameters
-        ----------
-        key : str, optional
-            keyword name
+    # regular expression to extract the field specifier and value and comment
+    # from the string value of a record value keyword card
+    # (ex "'AXIS.1: 1' / a comment")
+    _rvkc_keyword_val_comm_RE = re.compile(_rvkc_keyword_val_comm)
 
-        value : str, optional
-            keyword value
+    _commentary_keywords = ['', 'COMMENT', 'HISTORY', 'END']
 
-        comment : str, optional
-            comment
-        """
+    def __init__(self, keyword=None, value=None, comment=None, **kwargs):
+        # For backwards compatibility, support the 'key' keyword argument:
+        if keyword is None and 'key' in kwargs:
+            keyword = kwargs['key']
 
-        if key != '' or value != '' or comment != '':
-            self.key = key
-            self._update_value(value)
-            self._update_comment(comment)
-            # for commentary cards, value can only be strings and there
-            # is no comment
-            if self.key in Card._commentary_keys:
-                if not isinstance(self.value, basestring):
-                    raise ValueError('Value in a commentary card must be a '
-                                     'string.')
-        else:
-            self._cardimage = ' ' * 80
+        self._keyword = None
+        self._value = None
+        self._comment = None
+        self._image = None
         self._modified = False
 
+        # This attribute is set to False when creating the card from a card
+        # image to ensure that the contents of the image get verified at some
+        # point
+        self._parsed = True
+
+        self._field_specifier = None
+        if not self._check_if_rvkc(keyword, value):
+            # If _check_if_rvkc passes, it will handle setting the keyword and
+            # value
+            if keyword is not None:
+                self.keyword = keyword
+            if value is not None:
+                self.value = value
+
+        if comment is not None:
+            self.comment = comment
+
+        self._modified = False
+        self._valuestring = None
+        self._valuemodified = False
+
+    def __repr__(self):
+        return repr((self.keyword, self.value, self.comment))
+
     def __str__(self):
-        return self.cardimage
+        return self.image
+        self._modified = True
+
+    def __len__(self):
+        return 3
+
+    def __getitem__(self, index):
+        return (self.keyword, self.value, self.comment)[index]
 
     @property
-    def key(self):
+    def keyword(self):
         """Returns the keyword name parsed from the card image."""
-
-        if not hasattr(self, '_key'):
-            head = self._get_key_string()
-            self._key = head.strip().upper()
-        return self._key
-
-    @key.setter
-    def key(self, val):
-        """Set the key attribute; once set it cannot be modified."""
-
-        if hasattr(self, '_key'):
-            raise AttributeError('Keyword name cannot be modified.')
-
-        if isinstance(val, basestring):
-            val = val.strip()
-            if len(val) <= 8:
-                val = val.upper()
-                if val == 'END':
-                    raise ValueError("Keyword 'END' not allowed.")
-                self._check_key(val)
-            else:
-                if val[:8].upper() == 'HIERARCH':
-                    val = val[8:].strip()
-                    self.__class__ = _HierarchCard
-                else:
-                    raise ValueError('Keyword name %s is too long (> 8), use HIERARCH.'
-                                     % val)
+        if self._keyword is not None:
+            return self._keyword
+        elif self._image:
+            self._keyword = self._parse_keyword()
+            return self._keyword
         else:
-            raise ValueError('Keyword name %s is not a string.' % repr(val))
-        self._key = val
-        self._modified = True
+            self.keyword = ''
+            return ''
+
+    @keyword.setter
+    def keyword(self, keyword):
+        """Set the key attribute; once set it cannot be modified."""
+        if self._keyword is not None:
+            raise AttributeError(
+                'Once set, the Card keyword may not be modified')
+        elif isinstance(keyword, basestring):
+            # Be nice and remove trailing whitespace--some FITS code always
+            # pads keywords out with spaces; leading whitespace, however,
+            # should be strictly disallowed.
+            keyword = keyword.rstrip()
+            if len(keyword) <= 8:
+                # For keywords with length > 8 they will be HIERARCH cards,
+                # and can have arbitrary case keywords
+                keyword = keyword.upper()
+                if not self._keywd_FSC_RE.match(keyword):
+                    raise ValueError('Illegal keyword name: %r.' % keyword)
+            else:
+                # In prior versions of PyFITS HIERARCH cards would only be
+                # created if the user-supplied keyword explicitly started with
+                # 'HIERARCH '.  Now we will create them automtically for long
+                # keywords, but we still want to support the old behavior too;
+                # the old behavior makes it possible to create HEIRARCH cards
+                # that would otherwise be recognized as RVKCs
+                if keyword[:9].upper() == 'HIERARCH ':
+                    # The user explicitly asked for a HIERARCH card, so don't
+                    # bug them about it...
+                    keyword = keyword[9:]
+                else:
+                    # We'll gladly create a HIERARCH card, but a warning is
+                    # also displayed
+                    warnings.warn(
+                        'Keyword name %r is greater than 8 characters; a '
+                        'HIERARCH card will be created.' % keyword)
+            self._keyword = keyword
+            self._modified = True
+        else:
+            raise ValueError('Keyword name %r is not a string.' % keyword)
+
+    @property
+    @deprecated('3.1', alternative='the `.keyword` attribute')
+    def key(self):
+        return self.keyword
 
     @property
     def value(self):
-        """Get the value attribute from the card image if not already set."""
-
-        if not hasattr(self, '_value'):
-            # self._value assigned directly to avoid the checks in
-            # _setvalue() (and to avoid setting _value_modified = True)
-            self._value = self._extract_value()
-        return self._value
+        if self.field_specifier:
+            return float(self._value)
+        if self._value is not None:
+            return self._value
+        elif self._valuestring is not None:
+            self.value = self._valuestring
+            return self._valuestring
+        elif self._image:
+            self._value = self._parse_value()
+            return self._value
+        else:
+            self.value = ''
+            return ''
 
     @value.setter
-    def value(self, val):
-        self._update_value(val)
-        if hasattr(self, '_cardimage'):
-            # Make sure these are saved from the old cardimage before deleting
-            # it
-            self.key
-            self.comment
-            del self._cardimage
-
-    def _update_value(self, val):
-        """Set the value attribute."""
-
-        if isinstance(val, (str, int, long, float, complex, bool, Undefined,
-                            np.floating, np.integer, np.complexfloating)):
-            if isinstance(val, str):
-                self._check_text(val)
-            if not hasattr(self, '_value') or self._value != val:
+    def value(self, value):
+        if value is None:
+            value = ''
+        oldvalue = self._value
+        if oldvalue is None:
+            oldvalue = ''
+        if isinstance(value, (basestring, int, long, float, complex, bool,
+                              Undefined, np.floating, np.integer,
+                              np.complexfloating)):
+            if value != oldvalue:
+                self._value = value
                 self._modified = True
-            self._value_modified = True
-            self._value = val
+                self._valuestring = None
+                self._valuemodified = True
+                if self.field_specifier:
+                    try:
+                        self._value = _int_or_float(self._value)
+                    except ValueError:
+                        raise ValueError('value %s is not a float' %
+                                         self._value)
         else:
-            raise ValueError('Illegal value %s.' % repr(val))
+            raise ValueError('Illegal value: %r.' % value)
+
+    @value.deleter
+    def value(self):
+        if not self.field_specifier:
+            self.value = ''
+        else:
+            raise AttributeError('Values cannot be deleted from record-valued '
+                                 'keyword cards')
 
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
-
-        if not hasattr(self, '_comment'):
-            self._comment = self._extract_comment()
-        return self._comment
+        if self._comment is not None:
+            return self._comment
+        elif self._image:
+            self._comment = self._parse_comment()
+            return self._comment
+        else:
+            self.comment = ''
+            return ''
 
     @comment.setter
-    def comment(self, val):
-        self._update_comment(val)
-        if hasattr(self, '_cardimage'):
-            # Make sure these are saved from the old cardimage before deleting
-            # it
-            self.key
-            self.value
-            del self._cardimage
-
-    def _update_comment(self, val):
-        """Set the comment attribute."""
-
-        if isinstance(val, basestring):
-            self._check_text(val)
-        else:
-            if val is not None:
-                raise ValueError('Comment %s is not a string.' % repr(val))
-        if not hasattr(self, '_comment') or self._comment != val:
+    def comment(self, comment):
+        if comment is None:
+            comment = ''
+        oldcomment = self._comment
+        if oldcomment is None:
+            oldcomment = ''
+        if comment != oldcomment:
+            self._comment = comment
             self._modified = True
-        self._comment = val
+
+    @comment.deleter
+    def comment(self):
+        self.comment = ''
 
     @property
+    def field_specifier(self):
+        """
+        The field-specifier of record-valued keyword cards; always `None` on
+        normal cards.
+        """
+
+        # Ensure that the keyword exists and has been parsed--the will set the
+        # internal _field_specifier attribute if this is a RVKC.
+        if self.keyword:
+            return self._field_specifier
+        else:
+            return None
+
+    @field_specifier.setter
+    def field_specifier(self, field_specifier):
+        if not field_specifier:
+            raise ValueError('The field-specifier may not be blank in '
+                             'record-valued keyword cards.')
+        elif not self.field_specifier:
+            raise AttributeError('Cannot coerce cards to be record-valued '
+                                 'keyword cards by setting the '
+                                 'field_specifier attribute')
+        elif field_specifier != self.field_specifier:
+            self._field_specifier = field_specifier
+            # The keyword need also be updated
+            keyword = self._keyword.split('.', 1)[0]
+            self._keyword = '.'.join([keyword, field_specifier])
+            self._modified = True
+
+    @field_specifier.deleter
+    def field_specifier(self):
+        raise AttributeError('The field_specifier attribute may not be '
+                             'deleted from record-valued keyword cards.')
+
+    @property
+    def image(self):
+        if self._image and not self._parsed:
+            self.verify('silentfix')
+        if self._image is None or self._modified:
+            self._image = self._format_image()
+        return self._image
+
+    @property
+    @deprecated('3.1', alternative='the `.image` attribute')
     def cardimage(self):
-        if not hasattr(self, '_cardimage'):
-            self._ascardimage()
-        return self._cardimage
+        return self.image
 
-    def _update_cardimage(self):
-        """This used to do what _generate_cardimage() does, plus setting te
-        value of self._cardimage.  Now it's kept mostly for symmetry.
-        """
-
-        self._cardimage = self._generate_cardimage()
-
-    def _generate_cardimage(self):
-        """Generate a (new) card image from the attributes: `key`, `value`,
-        and `comment`.  Core code for `ascardimage`.
-        """
-
-        key_str = self._format_key()
-        val_str = self._format_value()
-        is_commentary = key_str.strip() in Card._commentary_keys
-        if is_commentary:
-            comment_str = ''
-        else:
-            comment_str = self._format_comment()
-
-        # equal sign string
-        eq_str = '= '
-        if is_commentary:  # not using self.key
-            eq_str = ''
-            if hasattr(self, '_value'):
-                # Value must be a string in commentary cards
-                val_str = str(self.value)
-
-        # put all parts together
-        output = ''.join([key_str, eq_str, val_str, comment_str])
-
-        # need this in case card-with-continue's value is shortened
-        if not isinstance(self, _HierarchCard) and \
-           not isinstance(self, RecordValuedKeywordCard):
-            self.__class__ = Card
-        else:
-            key_val_len = len(key_str) + len(eq_str) + len(val_str)
-            if key_val_len > Card.length:
-                if isinstance(self, _HierarchCard) and \
-                   key_val_len == Card.length + 1 and \
-                   key_str[-1] == ' ':
-                    output = ''.join([key_str[:-1], eq_str, val_str,
-                                      comment_str])
-                else:
-                    raise ValueError('The keyword %s with its value is too '
-                                     'long.' % self.key)
-
-        if len(output) <= Card.length:
-            output = '%-80s' % output
-
-        # longstring case (CONTINUE card)
-        else:
-            # try not to use CONTINUE if the string value can fit in one line.
-            # Instead, just truncate the comment
-            if isinstance(self.value, str) and \
-               len(val_str) > (Card.length - 10):
-                self.__class__ = _ContinueCard
-                output = self._breakup_strings()
-            else:
-                warnings.warn('Card is too long, comment is truncated.')
-                output = output[:Card.length]
-
-        return output
-
-    def _format_key(self):
-        # keyword string (check both _key and _cardimage attributes to avoid an
-        # infinite loop
-        if hasattr(self, '_key') or hasattr(self, '_cardimage'):
-            return '%-8s' % self.key
-        else:
-            return ' ' * 8
-
-    def _format_value(self):
-        # value string
-        if not (hasattr(self, '_value') or hasattr(self, '_cardimage')):
-            return ''
-        elif (not hasattr(self, '_value_modified') or
-              not self._value_modified) and \
-             isinstance(self.value, (float, np.floating, complex,
-                                     np.complexfloating)):
-            # Keep the existing formatting for float/complex numbers
-            return '%20s' % self._valuestring
-        else:
-            return _value_to_string(self.value)
-
-    def _format_comment(self):
-        # comment string
-        if hasattr(self, '_comment') or hasattr(self, '_cardimage'):
-            if not self.comment:
-                return ''
-            else:
-                return ' / ' + self._comment
-        else:
-            return ''
-
-    # TODO: Wouldn't 'verification' be a better name for the 'option' keyword
-    # argument?  'option' is pretty vague.
-    @deprecated(alternative='the .cardimage attribute')
+    @deprecated('3.1', alternative='the `.image` attribute')
     def ascardimage(self, option='silentfix'):
-        return self._ascardimage(option)
-
-    def _ascardimage(self, option='silentfix'):
-        """
-        Generate a (new) card image from the attributes: `key`, `value`,
-        and `comment`, or from raw string.
-
-        Parameters
-        ----------
-        option : str
-            Output verification option.  Must be one of ``"fix"``,
-            ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
-        """
-
-        # Only if the card image already exist (to avoid infinite loop),
-        # fix it first.
-        if hasattr(self, '_cardimage'):
-            self._check(option)
-        self._update_cardimage()
-        return self._cardimage
+        if not self._parsed:
+            self.verify(option)
+        return self.image
 
     @classmethod
-    def fromstring(cls, cardimage):
+    def fromstring(cls, image):
         """
         Construct a `Card` object from a (raw) string. It will pad the
         string if it is not the length of a card image (80 columns).
@@ -397,497 +636,13 @@ class Card(_Verify):
         contains ``CONTINUE`` card(s).
         """
 
-        cardimage = _pad(cardimage)
-
-        if cardimage[:8].upper() == 'HIERARCH':
-            card = _HierarchCard()
-        # for card image longer than 80, assume it contains CONTINUE card(s).
-        elif len(cardimage) > Card.length:
-            card = _ContinueCard()
-        else:
-            card = cls()
-
-        card._cardimage = cardimage
+        card = cls()
+        card._image = _pad(image)
+        card._parsed = False
         return card
 
-    def _check_text(self, val):
-        """Verify `val` to be printable ASCII text."""
-
-        if Card._comment_FSC_RE.match(val) is None:
-            self._err_text = 'Unprintable string %s' % repr(val)
-            self._fixable = False
-            raise ValueError(self._err_text)
-
-    def _check_key(self, key):
-        """Verify the keyword `key` to be FITS standard."""
-
-        # use repr (not str) in case of control character
-        if not Card._keywd_FSC_RE.match(key):
-            self._err_text = 'Illegal keyword name %s' % repr(key)
-            self._fixable = False
-            raise ValueError(self._err_text)
-
-    def _extract_value(self):
-        """Extract the keyword value from the card image."""
-
-        # for commentary cards, no need to parse further
-        if self.key in Card._commentary_keys:
-            return self.cardimage[8:].rstrip()
-
-        valu = self._check(option='parse')
-
-        if valu is None:
-            raise ValueError("Unparsable card (%s), fix it first with "
-                             ".verify('fix')." % self.key)
-        if valu.group('bool') is not None:
-            _val = valu.group('bool') == 'T'
-        elif valu.group('strg') is not None:
-            _val = re.sub("''", "'", valu.group('strg'))
-        elif valu.group('numr') is not None:
-            #  Check for numbers with leading 0s.
-            numr = Card._number_NFSC_RE.match(valu.group('numr'))
-            _digt = translate(numr.group('digt'), FIX_FP_TABLE2, ' ')
-            if numr.group('sign') is None:
-                _sign = ''
-            else:
-                _sign = numr.group('sign')
-            _val = _str_to_num(_sign + _digt)
-
-        elif valu.group('cplx') is not None:
-            #  Check for numbers with leading 0s.
-            real = Card._number_NFSC_RE.match(valu.group('real'))
-            _rdigt = translate(real.group('digt'), FIX_FP_TABLE2, ' ')
-            if real.group('sign') is None:
-                _rsign = ''
-            else:
-                _rsign = real.group('sign')
-            _val = _str_to_num(_rsign + _rdigt)
-            imag  = Card._number_NFSC_RE.match(valu.group('imag'))
-            _idigt = translate(imag.group('digt'), FIX_FP_TABLE2, ' ')
-            if imag.group('sign') is None:
-                _isign = ''
-            else:
-                _isign = imag.group('sign')
-            _val += _str_to_num(_isign + _idigt)*1j
-        else:
-            _val = UNDEFINED
-
-        if not hasattr(self, '_valuestring'):
-            self._valuestring = valu.group('valu')
-        if not hasattr(self, '_value_modified'):
-            self._value_modified = False
-        return _val
-
-    def _extract_comment(self):
-        """Extract the keyword value from the card image."""
-
-        # for commentary cards, no need to parse further
-        if self.key in Card._commentary_keys:
-            return ''
-
-        valu = self._check(option='parse')
-        if valu is not None:
-            comm = valu.group('comm')
-            if isinstance(comm, str):
-                return  comm.rstrip()
-        return ''
-
-    def _fix_value(self, input):
-        """Fix the card image for fixable non-standard compliance."""
-
-        _val_str = None
-
-        # for the unparsable case
-        if input is None:
-            _tmp = self._get_value_comment_string()
-            try:
-                slash_loc = _tmp.index("/")
-                self._value = _tmp[:slash_loc].strip()
-                self._comment = _tmp[slash_loc + 1:].strip()
-            except:
-                self._value = _tmp.strip()
-
-        elif input.group('numr') is not None:
-            numr = Card._number_NFSC_RE.match(input.group('numr'))
-            _val_str = translate(numr.group('digt'), FIX_FP_TABLE, ' ')
-            if numr.group('sign') is not None:
-                _val_str = numr.group('sign')+_val_str
-
-        elif input.group('cplx') is not None:
-            real  = Card._number_NFSC_RE.match(input.group('real'))
-            _realStr = translate(real.group('digt'), FIX_FP_TABLE, ' ')
-            if real.group('sign') is not None:
-                _realStr = real.group('sign')+_realStr
-
-            imag  = Card._number_NFSC_RE.match(input.group('imag'))
-            _imagStr = translate(imag.group('digt'), FIX_FP_TABLE, ' ')
-            if imag.group('sign') is not None:
-                _imagStr = imag.group('sign') + _imagStr
-            _val_str = '(%s, %s)' % (_realStr, _imagStr)
-
-        self._valuestring = _val_str
-        self._update_cardimage()
-
-    def _locate_eq(self):
-        """
-        Locate the equal sign in the card image before column 10 and
-        return its location.  It returns `None` if equal sign is not
-        present, or it is a commentary card.
-        """
-
-        # no equal sign for commentary cards (i.e. part of the string value)
-        _key = self.cardimage[:8].strip().upper()
-        if _key in Card._commentary_keys:
-            eq_loc = None
-        else:
-            if _key == 'HIERARCH':
-                _limit = Card.length
-            else:
-                _limit = 10
-            try:
-                eq_loc = self.cardimage[:_limit].index("=")
-            except:
-                eq_loc = None
-        return eq_loc
-
-    def _get_key_string(self):
-        """
-        Locate the equal sign in the card image and return the string
-        before the equal sign.  If there is no equal sign, return the
-        string before column 9.
-        """
-
-        eq_loc = self._locate_eq()
-        if eq_loc is None:
-            eq_loc = 8
-        start = 0
-        if self.cardimage[:8].upper() == 'HIERARCH':
-            start = 8
-            self.__class__ = _HierarchCard
-        return self.cardimage[start:eq_loc]
-
-    def _get_value_comment_string(self):
-        """
-        Locate the equal sign in the card image and return the string
-        after the equal sign.  If there is no equal sign, return the
-        string after column 8.
-        """
-
-        eq_loc = self._locate_eq()
-        if eq_loc is None:
-            eq_loc = 7
-        return self.cardimage[eq_loc+1:]
-
-    def _check(self, option='ignore'):
-        """Verify the card image with the specified option."""
-
-        self._err_text = ''
-        self._fix_text = ''
-        self._fixable = True
-
-        if option == 'ignore':
-            return
-        elif option == 'parse':
-
-            # check the value only, no need to check key and comment for 'parse'
-            result = Card._value_NFSC_RE.match(self._get_value_comment_string())
-
-            # if not parsable (i.e. everything else) result = None
-            return result
-        else:
-
-            # verify the equal sign position
-            if self.key not in Card._commentary_keys and \
-               self.cardimage.find('=') != 8:
-                if option in ['exception', 'warn']:
-                    self._err_text = \
-                        'Card image is not FITS standard (equal sign not at ' \
-                        'column 8).'
-                    raise ValueError(self._err_text + '\n%s' % self.cardimage)
-                elif option in ['fix', 'silentfix']:
-                    result = self._check('parse')
-                    self._fix_value(result)
-                    if option == 'fix':
-                        self._fix_text = \
-                            'Fixed card to be FITS standard.: %s' % self.key
-
-            # verify the key, it is never fixable
-            # always fix silently the case where "=" is before column 9,
-            # since there is no way to communicate back to the _keys.
-            self._check_key(self.key)
-
-            # verify the value, it may be fixable
-            value = self._get_value_comment_string()
-            result = Card._value_FSC_RE.match(value)
-            if result is not None or self.key in Card._commentary_keys:
-                return result
-            else:
-                if option in ['fix', 'silentfix']:
-                    result = self._check('parse')
-                    self._fix_value(result)
-                    if option == 'fix':
-                        self._fix_text = \
-                            'Fixed card to be FITS standard.: %s' % self.key
-                else:
-                    self._err_text = \
-                        'Card image is not FITS standard (unparsable value ' \
-                        'string: %s).' % value
-                    raise ValueError(self._err_text + '\n%s' % self.cardimage)
-
-            # verify the comment (string), it is never fixable
-            if result is not None:
-                comm = result.group('comm')
-                if comm is not None:
-                    self._check_text(comm)
-
-    def _ncards(self):
-        return len(self.cardimage) // Card.length
-
-    def _verify(self, option='warn'):
-        """Card class verification method."""
-
-        err = _ErrList([])
-        try:
-            self._check(option)
-        except ValueError:
-            # Trapping the ValueError raised by _check method.  Want execution to continue while printing
-            # exception message.
-            pass
-        err.append(self.run_option(option, err_text=self._err_text,
-                   fix_text=self._fix_text, fixable=self._fixable))
-
-        return err
-
-
-class RecordValuedKeywordCard(Card):
-    """
-    Class to manage record-valued keyword cards as described in the
-    FITS WCS Paper IV proposal for representing a more general
-    distortion model.
-
-    Record-valued keyword cards are string-valued cards where the
-    string is interpreted as a definition giving a record field name,
-    and its floating point value.  In a FITS header they have the
-    following syntax::
-
-        keyword = 'field-specifier: float'
-
-    where `keyword` is a standard eight-character FITS keyword name,
-    `float` is the standard FITS ASCII representation of a floating
-    point number, and these are separated by a colon followed by a
-    single blank.  The grammar for field-specifier is::
-
-        field-specifier:
-            field
-            field-specifier.field
-
-        field:
-            identifier
-            identifier.index
-
-    where `identifier` is a sequence of letters (upper or lower case),
-    underscores, and digits of which the first character must not be a
-    digit, and `index` is a sequence of digits.  No blank characters
-    may occur in the field-specifier.  The `index` is provided
-    primarily for defining array elements though it need not be used
-    for that purpose.
-
-    Multiple record-valued keywords of the same name but differing
-    values may be present in a FITS header.  The field-specifier may
-    be viewed as part of the keyword name.
-
-    Some examples follow::
-
-        DP1     = 'NAXIS: 2'
-        DP1     = 'AXIS.1: 1'
-        DP1     = 'AXIS.2: 2'
-        DP1     = 'NAUX: 2'
-        DP1     = 'AUX.1.COEFF.0: 0'
-        DP1     = 'AUX.1.POWER.0: 1'
-        DP1     = 'AUX.1.COEFF.1: 0.00048828125'
-        DP1     = 'AUX.1.POWER.1: 1'
-    """
-
-    #
-    # A group of class level regular expression definitions that allow the
-    # extraction of the key, field-specifier, value, and comment from a
-    # card string.
-    #
-    identifier = r'[a-zA-Z_]\w*'
-    field = identifier + r'(\.\d+)?'
-    field_specifier_s = r'%s(\.%s)*' % (field, field)
-    field_specifier_val = r'(?P<keyword>%s): (?P<val>%s\s*)' \
-                          % (field_specifier_s, Card._numr_FSC)
-    field_specifier_NFSC_val = r'(?P<keyword>%s): (?P<val>%s\s*)' \
-                               % (field_specifier_s, Card._numr_NFSC)
-    keyword_val = r'\'%s\'' % field_specifier_val
-    keyword_NFSC_val = r'\'%s\'' % field_specifier_NFSC_val
-    keyword_val_comm = r' +%s *(/ *(?P<comm>[ -~]*))?$' % keyword_val
-    keyword_NFSC_val_comm = r' +%s *(/ *(?P<comm>[ -~]*))?$' % keyword_NFSC_val
-    #
-    # regular expression to extract the field specifier and value from
-    # a card image (ex. 'AXIS.1: 2'), the value may not be FITS Standard
-    # Compliant
-    #
-    field_specifier_NFSC_image_RE = re.compile(field_specifier_NFSC_val)
-    #
-    # regular expression to extract the field specifier and value from
-    # a card value; the value may not be FITS Standard Compliant
-    # (ex. 'AXIS.1: 2.0e5')
-    #
-    field_specifier_NFSC_val_RE = re.compile(field_specifier_NFSC_val + r'$')
-    #
-    # regular expression to extract the key and the field specifier from a
-    # string that is being used to index into a card list that contains
-    # record value keyword cards (ex. 'DP1.AXIS.1')
-    #
-    keyword_name_RE = re.compile(r'(?P<key>%s)\.(?P<field_spec>%s)$'
-                                 % (identifier, field_specifier_s))
-    #
-    # regular expression to extract the field specifier and value and comment
-    # from the string value of a record value keyword card
-    # (ex "'AXIS.1: 1' / a comment")
-    #
-    keyword_val_comm_RE = re.compile(keyword_val_comm)
-    #
-    # regular expression to extract the field specifier and value and comment
-    # from the string value of a record value keyword card  that is not FITS
-    # Standard Complient (ex "'AXIS.1: 1.0d12' / a comment")
-    #
-    keyword_NFSC_val_comm_RE = re.compile(keyword_NFSC_val_comm)
-
-    def __init__(self, key='', value='', comment=''):
-        """
-        Parameters
-        ----------
-        key : str, optional
-            The key, either the simple key or one that contains
-            a field-specifier
-
-        value : str, optional
-            The value, either a simple value or one that contains a
-            field-specifier
-
-        comment : str, optional
-            The comment
-        """
-
-        mo = self.keyword_name_RE.match(key)
-
-        if mo:
-            self._field_specifier = mo.group('field_spec')
-            key = mo.group('key')
-        else:
-            if isinstance(value, str):
-                if value:
-                    mo = self.field_specifier_NFSC_val_RE.match(value)
-
-                    if mo:
-                        self._field_specifier = mo.group('keyword')
-                        value = mo.group('val')
-                        # The value should be a float, though we don't coerce
-                        # ints into floats.  Anything else should be a value
-                        # error
-                        try:
-                            value = int(value)
-                        except ValueError:
-                            try:
-                                value = float(value)
-                            except ValueError:
-                                raise ValueError(
-                                    "Record-valued keyword card value must be "
-                                    "a floating point or integer value.")
-                    else:
-                        raise ValueError(
-                            "Value %s must be in the form "
-                            "field_specifier: value (ex. 'NAXIS: 2')" % value)
-            else:
-                raise ValueError('value %s is not a string' % value)
-
-        super(RecordValuedKeywordCard, self).__init__(key, value, comment)
-
-    @property
-    def field_specifier(self):
-       self._extract_value()
-       return self._field_specifier
-
-    @property
-    def raw(self):
-        """
-        Return this card as a normal Card object not parsed as a record-valued
-        keyword card.  Note that this returns a copy, so that modifications to
-        it do not update the original record-valued keyword card.
-        """
-
-        key = super(RecordValuedKeywordCard, self).key
-        return Card(key, self.strvalue(), self.comment)
-
-    @property
-    def key(self):
-        key = super(RecordValuedKeywordCard, self).key
-        if not hasattr(self, '_field_specifier'):
-            return key
-        return '%s.%s' % (key, self._field_specifier)
-
-    @key.setter
-    def key(self, value):
-        Card.key.fset(self, value)
-
-    @property
-    def value(self):
-        """The RVKC value should always be returned as a float."""
-
-        return float(super(RecordValuedKeywordCard, self).value)
-
-    @value.setter
-    def value(self, val):
-        if not isinstance(val, float):
-            try:
-                val = int(val)
-            except ValueError:
-                try:
-                    val = float(val)
-                except:
-                    raise ValueError('value %s is not a float' % val)
-        Card.value.fset(self, val)
-
-    #
-    # class method definitins
-    #
-
     @classmethod
-    def coerce(cls, card):
-        """
-        Coerces an input `Card` object to a `RecordValuedKeywordCard`
-        object if the value of the card meets the requirements of this
-        type of card.
-
-        Parameters
-        ----------
-        card : `Card` object
-            A `Card` object to coerce
-
-        Returns
-        -------
-        card
-            - If the input card is coercible:
-
-                a new `RecordValuedKeywordCard` constructed from the
-                `key`, `value`, and `comment` of the input card.
-
-            - If the input card is not coercible:
-
-                the input card
-        """
-
-        mo = cls.field_specifier_NFSC_val_RE.match(card.value)
-        if mo:
-            return cls(card.key, card.value, card.comment)
-        else:
-            return card
-
-    @classmethod
-    def upper_key(cls, key):
+    def normalize_keyword(cls, keyword):
         """
         `classmethod` to convert a keyword value that may contain a
         field-specifier to uppercase.  The effect is to raise the
@@ -896,808 +651,375 @@ class RecordValuedKeywordCard(Card):
 
         Parameters
         ----------
-        key : int or str
-            A keyword value that could be an integer, a key, or a
-            `key.field-specifier` value
+        key : or str
+            A keyword value or a ``keyword.field-specifier`` value
 
         Returns
         -------
-        Integer input
-            the original integer key
-
-        String input
-            the converted string
+            The converted string
         """
 
-        if _is_int(key):
-            return key
+        match = cls._rvkc_keyword_name_RE.match(keyword)
 
-        mo = cls.keyword_name_RE.match(key)
-
-        if mo:
-            return mo.group('key').strip().upper() + '.' + \
-                   mo.group('field_spec')
+        if match:
+            return '.'.join((match.group('keyword').strip().upper(),
+                             match.group('field_specifier')))
+        elif len(keyword) > 8:
+            return keyword.strip()
         else:
-            return key.strip().upper()
-    # For API backwards-compatibility
-    upperKey = \
-        deprecated(name='upperKey', alternative='upper_key()')(upper_key)
+            return keyword.strip().upper()
 
-    @classmethod
-    def valid_key_value(cls, key, value=0):
+    def _check_if_rvkc(self, *args):
         """
-        Determine if the input key and value can be used to form a
-        valid `RecordValuedKeywordCard` object.  The `key` parameter
-        may contain the key only or both the key and field-specifier.
-        The `value` may be the value only or the field-specifier and
-        the value together.  The `value` parameter is optional, in
-        which case the `key` parameter must contain both the key and
-        the field specifier.
+        Determine whether or not the card is a record-valued keyword card.
 
-        Parameters
-        ----------
-        key : str
-            The key to parse
+        If one argument is given, that argument is treated as a full card image
+        and parsed as such.  If two arguments are given, the first is treated
+        as the card keyword (including the field-specifier if the card is
+        intened as a RVKC), and the second as the card value OR the first value
+        can be the base keyword, and the second value the 'field-specifier:
+        value' string.
 
-        value : str or float-like, optional
-            The value to parse
-
-        Returns
-        -------
-        valid input : A list containing the key, field-specifier, value
-
-        invalid input : An empty list
+        If the check passes the ._keyword, ._value, and .field_specifier
+        keywords are set.
 
         Examples
         --------
 
-        >>> valid_key_value('DP1','AXIS.1: 2')
-        >>> valid_key_value('DP1.AXIS.1', 2)
-        >>> valid_key_value('DP1.AXIS.1')
+        >>> self._check_if_rvkc('DP1', 'AXIS.1: 2')
+        >>> self._check_if_rvkc('DP1.AXIS.1', 2)
+        >>> self._check_if_rvkc('DP1     = AXIS.1: 2')
         """
 
-        rtnKey = rtnFieldSpec = rtnValue = ''
-        myKey = cls.upper_key(key)
+        from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS
 
-        if isinstance(myKey, basestring):
-            validKey = cls.keyword_name_RE.match(myKey)
-
-            if validKey:
-               try:
-                   rtnValue = float(value)
-               except ValueError:
-                   pass
-               else:
-                   rtnKey = validKey.group('key')
-                   rtnFieldSpec = validKey.group('field_spec')
-            else:
-                if isinstance(value, str) and \
-                Card._keywd_FSC_RE.match(myKey) and len(myKey) < 9:
-                    validValue = cls.field_specifier_NFSC_val_RE.match(value)
-                    if validValue:
-                        rtnFieldSpec = validValue.group('keyword')
-                        rtnValue = validValue.group('val')
-                        rtnKey = myKey
-
-        if rtnFieldSpec:
-            return [rtnKey, rtnFieldSpec, rtnValue]
-        else:
-            return []
-    # For API backwards-compatibility
-    validKeyValue = \
-        deprecated(name='validKeyValue',
-                   alternative='valid_key_value()')(valid_key_value)
-
-    @classmethod
-    def create(cls, key='', value='', comment=''):
-        """
-        Create a card given the input `key`, `value`, and `comment`.
-        If the input key and value qualify for a
-        `RecordValuedKeywordCard` then that is the object created.
-        Otherwise, a standard `Card` object is created.
-
-        Parameters
-        ----------
-        key : str, optional
-            The key
-
-        value : str, optional
-            The value
-
-        comment : str, optional
-            The comment
-
-        Returns
-        -------
-        card
-            Either a `RecordValuedKeywordCard` or a `Card` object.
-        """
-
-        if not cls.valid_key_value(key, value):
-            # This should be just a normal card
-            cls = Card
-
-        return cls(key, value, comment)
-    # For API backwards-compatibility
-    createCard = deprecated(name='createCard', alternative='create()')(create)
-
-    @classmethod
-    def fromstring(cls, input):
-        """
-        Create a card given the `input` string.  If the `input` string
-        can be parsed into a key and value that qualify for a
-        `RecordValuedKeywordCard` then that is the object created.
-        Otherwise, a standard `Card` object is created.
-
-        Parameters
-        ----------
-        input : str
-            The string representing the card
-
-        Returns
-        -------
-        card
-            either a `RecordValuedKeywordCard` or a `Card` object
-        """
-
-        idx1 = input.find("'") + 1
-        idx2 = input.rfind("'")
-
-        if idx2 > idx1 and idx1 >= 0 and \
-           cls.valid_key_value('', value=input[idx1:idx2]):
-            # This calls Card.fromstring, but with the RecordValuedKeywordClass
-            # as the cls argument (causing an RVKC to be created)
-            return super(RecordValuedKeywordCard, cls).fromstring(input)
-        else:
-            # This calls Card.fromstring directly, creating a plain Card
-            # object.
-            return Card.fromstring(input)
-
-    # For API backwards-compatibility
-    createCardFromString = deprecated(name='createCardFromString',
-                                      alternative='fromstring()')(fromstring)
-
-    def _update_cardimage(self):
-        """
-        Generate a (new) card image from the attributes: `key`, `value`,
-        `field_specifier`, and `comment`.  Core code for `ascardimage`.
-        """
-
-        super(RecordValuedKeywordCard, self)._update_cardimage()
-        eqloc = self._cardimage.index('=')
-        slashloc = self._cardimage.find('/')
-
-        if hasattr(self, '_value_modified') and self._value_modified:
-            # Bypass the automatic coertion to float here, so that values like
-            # '2' will still be rendered as '2' instead of '2.0'
-            value = super(RecordValuedKeywordCard, self).value
-            val_str = _value_to_string(value).strip()
-        else:
-            val_str = self._valuestring
-
-        val_str = "'%s: %s'" % (self._field_specifier, val_str)
-        val_str = '%-20s' % val_str
-
-        output = self._cardimage[:eqloc+2] + val_str
-
-        if slashloc > 0:
-            output = output + self._cardimage[slashloc-1:]
-
-        if len(output) <= Card.length:
-            output = '%-80s' % output
-
-        self._cardimage = output
-
-
-    def _extract_value(self):
-        """Extract the keyword value from the card image."""
-
-        valu = self._check(option='parse')
-
-        if valu is None:
-            raise ValueError(
-                "Unparsable card, fix it first with .verify('fix').")
-
-        self._field_specifier = valu.group('keyword')
-
-        if not hasattr(self, '_valuestring'):
-            self._valuestring = valu.group('val')
-        if not hasattr(self, '_value_modified'):
-            self._value_modified = False
-
-        return _str_to_num(translate(valu.group('val'), FIX_FP_TABLE2, ' '))
-
-    def strvalue(self):
-        """
-        Method to extract the field specifier and value from the card
-        image.  This is what is reported to the user when requesting
-        the value of the `Card` using either an integer index or the
-        card key without any field specifier.
-        """
-
-        mo = self.field_specifier_NFSC_image_RE.search(self.cardimage)
-        return self.cardimage[mo.start():mo.end()]
-
-    def _fix_value(self, input):
-        """Fix the card image for fixable non-standard compliance."""
-
-        _val_str = None
-
-        if input is None:
-            tmp = self._get_value_comment_string()
-
-            try:
-                slash_loc = tmp.index("/")
-            except:
-                slash_loc = len(tmp)
-
-            self._err_text = 'Illegal value %s' % tmp[:slash_loc]
-            self._fixable = False
-            raise ValueError(self._err_text)
-        else:
-            self._valuestring = translate(input.group('val'), FIX_FP_TABLE,
-                                          ' ')
-            self._update_cardimage()
-
-    def _format_key(self):
-        if hasattr(self, '_key') or hasattr(self, '_cardimage'):
-            return '%-8s' % super(RecordValuedKeywordCard, self).key
-        else:
-            return ' ' * 8
-
-    def _check_key(self, key):
-        """
-        Verify the keyword to be FITS standard and that it matches the
-        standard for record-valued keyword cards.
-        """
-
-        if '.' in key:
-            keyword, field_specifier = key.split('.', 1)
-        else:
-            keyword, field_specifier = key, None
-
-        super(RecordValuedKeywordCard, self)._check_key(keyword)
-
-        if field_specifier:
-            if not re.match(self.field_specifier_s, key):
-                self._err_text = 'Illegal keyword name %s' % repr(key)
-                # TODO: Maybe fix by treating as normal card and not RVKC?
-                self._fixable = False
-                raise ValueError(self._err_text)
-
-
-    def _check(self, option='ignore'):
-        """Verify the card image with the specified `option`."""
-
-        self._err_text = ''
-        self._fix_text = ''
-        self._fixable = True
-
-        if option == 'ignore':
-            return
-        elif option == 'parse':
-            return self.keyword_NFSC_val_comm_RE.match(
-                    self._get_value_comment_string())
-        else:
-            # verify the equal sign position
-            if self.cardimage.find('=') != 8:
-                if option in ['exception', 'warn']:
-                    self._err_text = \
-                        'Card image is not FITS standard (equal sign not at ' \
-                        'column 8).'
-                    raise ValueError(self._err_text + '\n%s' % self.cardimage)
-                elif option in ['fix', 'silentfix']:
-                    result = self._check('parse')
-                    self._fix_value(result)
-
-                    if option == 'fix':
-                        self._fix_text = \
-                           'Fixed card to be FITS standard. : %s' % self.key
-
-            # verify the key
-            self._check_key(self.key)
-
-            # verify the value
-            result = \
-              self.keyword_val_comm_RE.match(self._get_value_comment_string())
-
-            if result is not None:
-                return result
-            else:
-                if option in ['fix', 'silentfix']:
-                    result = self._check('parse')
-                    self._fix_value(result)
-
-                    if option == 'fix':
-                        self._fix_text = \
-                              'Fixed card to be FITS standard.: %s' % self.key
-                else:
-                    self._err_text = \
-                        'Card image is not FITS standard (unparsable value ' \
-                        'string).'
-                    raise ValueError(self._err_text + '\n%s' % self.cardimage)
-
-            # verify the comment (string), it is never fixable
-            if result is not None:
-                _str = result.group('comm')
-                if _str is not None:
-                    self._check_text(_str)
-
-
-class CardList(list):
-    """FITS header card list class."""
-
-    def __init__(self, cards=[], keylist=None):
-        """
-        Construct the `CardList` object from a list of `Card` objects.
-
-        Parameters
-        ----------
-        cards
-            A list of `Card` objects.
-        """
-
-        super(CardList, self).__init__(cards)
-
-        # if the key list is not supplied (as in reading in the FITS file),
-        # it will be constructed from the card list.
-        if keylist is None:
-            self._keys = []
-            for c in self:
-                if isinstance(c, RecordValuedKeywordCard):
-                    self._keys.append(c.raw.key)
-                else:
-                    self._keys.append(c.key)
-        else:
-            self._keys = keylist
-
-        # find out how many blank cards are *directly* before the END card
-        self._blanks = 0
-        self.count_blanks()
-        self._mod = False
-
-    def __contains__(self, key):
-        return upper_key(key) in self._keys
-
-    def __getitem__(self, key):
-        """Get a `Card` by indexing or by the keyword name."""
-
-        if isinstance(key, slice):
-            return CardList(super(CardList, self).__getitem__(key),
-                            self._keys[key])
-        elif isinstance(key, basestring) and self._has_filter_char(key):
-            return self.filter_list(key)
-        else:
-            idx = self.index_of(key)
-            return super(CardList, self).__getitem__(idx)
-
-    def __setitem__(self, key, value):
-        """Set a `Card` by indexing or by the keyword name."""
-
-        if isinstance(value, Card):
-            idx = self.index_of(key)
-
-            # only set if the value is different from the old one
-            if str(self[idx]) != str(value):
-                super(CardList, self).__setitem__(idx, value)
-                if isinstance(value, RecordValuedKeywordCard):
-                    self._keys[idx] = value.raw.key.upper()
-                else:
-                    self._keys[idx] = value.key.upper()
-                self.count_blanks()
-                self._mod = True
-        else:
-            raise ValueError('%s is not a Card' % str(value))
-
-    def __delitem__(self, key):
-        """Delete a `Card` from the `CardList`."""
-
-        if self._has_filter_char(key):
-            cardlist = self.filter_list(key)
-
-            if len(cardlist) == 0:
-                raise KeyError("Keyword '%s' not found." % key)
-
-            for card in cardlist:
-                key = card.key
-                del self[key]
-        else:
-            idx = self.index_of(key)
-            super(CardList, self).__delitem__(idx)
-            del self._keys[idx]  # update the keylist
-            self.count_blanks()
-            self._mod = True
-
-    def __getslice__(self, start, end):
-        return self[slice(start, end)]
-
-    def __repr__(self):
-        """Format a list of cards into a string."""
-
-        return ''.join(map(str, self))
-
-    def __str__(self):
-        """Format a list of cards into a printable string."""
-        return '\n'.join(map(str, self))
-
-    @property
-    def _mod(self):
-        """Has this card list been modified since last write"""
-
-        mod = self.__dict__.get('_mod', False)
-        if not mod:
-            # See if any of the cards were directly modified
-            for card in self:
-                if card._modified:
-                    self.__dict__['_mod'] = True
-                    return True
-        return mod
-
-    @_mod.setter
-    def _mod(self, value):
-        self.__dict__['_mod'] = value
-        # If the card list is explicitly set as 'not modified' then make sure
-        # the same applies to its underlying cards
-        if not value:
-            for card in self:
-                card._modified = False
-
-    def copy(self):
-        """Make a (deep)copy of the `CardList`."""
-
-        return CardList([create_card_from_string(str(c)) for c in self])
-
-    def keys(self):
-        """
-        Return a list of all keywords from the `CardList`.
-
-        Keywords include ``field_specifier`` for
-        `RecordValuedKeywordCard` objects.
-        """
-
-        return [card.key for card in self]
-
-    def values(self):
-        """
-        Return a list of the values of all cards in the `CardList`.
-
-        For `RecordValuedKeywordCard` objects, the value returned is
-        the floating point value, exclusive of the
-        ``field_specifier``.
-        """
-
-        return [c.value for c in self]
-
-    def insert(self, pos, card, useblanks=True):
-        """
-        Insert a `Card` to the `CardList`.
-
-        Parameters
-        ----------
-        pos : int
-            The position (index, keyword name will not be allowed) to
-            insert. The new card will be inserted before it.
-
-        card : `Card` object
-            The card to be inserted.
-
-        useblanks : bool, optional
-            If `useblanks` is `True`, and if there are blank cards
-            directly before ``END``, it will use this space first,
-            instead of appending after these blank cards, so the total
-            space will not increase.  When `useblanks` is `False`, the
-            card will be appended at the end, even if there are blank
-            cards in front of ``END``.
-        """
-
-        if isinstance(card, Card):
-            super(CardList, self).insert(pos, card)
-            if isinstance(card, RecordValuedKeywordCard):
-                self._keys.insert(pos, card.raw.key.upper())
-            else:
-                self._keys.insert(pos, card.key.upper())  # update the keylist
-            self.count_blanks()
-            if useblanks:
-                self._use_blanks(card._ncards())
-
-            self.count_blanks()
-            self._mod = True
-        else:
-            raise ValueError('%s is not a Card' % str(card))
-
-    def append(self, card, useblanks=True, bottom=False):
-        """
-        Append a `Card` to the `CardList`.
-
-        Parameters
-        ----------
-        card : `Card` object
-            The `Card` to be appended.
-
-        useblanks : bool, optional
-            Use any *extra* blank cards?
-
-            If `useblanks` is `True`, and if there are blank cards
-            directly before ``END``, it will use this space first,
-            instead of appending after these blank cards, so the total
-            space will not increase.  When `useblanks` is `False`, the
-            card will be appended at the end, even if there are blank
-            cards in front of ``END``.
-
-        bottom : bool, optional
-           If `False` the card will be appended after the last
-           non-commentary card.  If `True` the card will be appended
-           after the last non-blank card.
-        """
-
-        if isinstance(card, Card):
-            nc = len(self) - self._blanks
-            idx = nc - 1
-            if not bottom:
-                # locate last non-commentary card
-                for idx in range(nc - 1, -1, -1):
-                    if self[idx].key not in Card._commentary_keys:
-                        break
-
-            super(CardList, self).insert(idx + 1, card)
-            if isinstance(card, RecordValuedKeywordCard):
-                self._keys.insert(idx + 1, card.raw.key.upper())
-            else:
-                self._keys.insert(idx + 1, card.key.upper())
-            if useblanks:
-                self._use_blanks(card._ncards())
-            self.count_blanks()
-            self._mod = True
-        else:
-            raise ValueError("%s is not a Card" % str(card))
-
-    def index_of(self, key, backward=False):
-        """
-        Get the index of a keyword in the `CardList`.
-
-        Parameters
-        ----------
-        key : str or int
-            The keyword name (a string) or the index (an integer).
-
-        backward : bool, optional
-            When `True`, search the index from the ``END``, i.e.,
-            backward.
-
-        Returns
-        -------
-        index : int
-            The index of the `Card` with the given keyword.
-        """
-
-        if _is_int(key):
-            return key
-        elif isinstance(key, basestring):
-            _key = key.strip().upper()
-            if _key[:8] == 'HIERARCH':
-                _key = _key[8:].strip()
-            keys = self._keys
-            if backward:
-                # We have to search backwards through they key list
-                keys = reversed(keys)
-            try:
-                idx = keys.index(_key)
-            except ValueError:
-                reqkey = RecordValuedKeywordCard.valid_key_value(key)
-                idx = 0
-
-                while reqkey:
-                    try:
-                        jdx = keys[idx:].index(reqkey[0].upper())
-                        idx += jdx
-                        card = self[idx]
-                        if isinstance(card, RecordValuedKeywordCard) and \
-                           reqkey[1] == card.field_specifier:
-                            break
-                    except ValueError:
-                        raise KeyError('Keyword %s not found.' % repr(key))
-
-                    idx += 1
-                else:
-                    raise KeyError('Keyword %s not found.' % repr(key))
-
-            if backward:
-                idx = len(keys) - idx - 1
-            return idx
-        else:
-            raise KeyError('Illegal key data type %s' % type(key))
-
-    def filter_list(self, key):
-        """
-        Construct a `CardList` that contains references to all of the cards in
-        this `CardList` that match the input key value including any special
-        filter keys (``*``, ``?``, and ``...``).
-
-        Parameters
-        ----------
-        key : str
-            key value to filter the list with
-
-        Returns
-        -------
-        cardlist :
-            A `CardList` object containing references to all the
-            requested cards.
-        """
-
-        out_cl = CardList()
-
-        mykey = upper_key(key)
-        re_str = mykey.replace('*', '\w*') + '$'
-        re_str = re_str.replace('?', '\w')
-        re_str = re_str.replace('...', '\S*')
-        match_RE = re.compile(re_str)
-
-        for card in self:
-            match_str = card.key
-
-            if match_RE.match(match_str):
-                out_cl.append(card)
-
-        return out_cl
-    filterList = filter_list # For API backwards-compatibility
-
-    def count_blanks(self):
-        """
-        Returns how many blank cards are *directly* before the ``END``
-        card.
-        """
-
-        blank = ' ' * Card.length
-        for idx in range(1, len(self)):
-            if str(self[-idx]) != blank:
-                self._blanks = idx - 1
-                break
-
-    def _has_filter_char(self, key):
-        """
-        Return `True` if the input key contains one of the special filtering
-        characters (``*``, ``?``, or ...).
-        """
-
-        if isinstance(key, basestring) and \
-           (key.endswith('...') or key.find('*') > 0 or key.find('?') > 0):
-            return True
-        else:
+        if not ENABLE_RECORD_VALUED_KEYWORD_CARDS:
             return False
 
-    def _pos_insert(self, card, before, after, useblanks=True):
+        if len(args) == 1:
+            image = args[0]
+            eq_idx = image.find('=')
+            if eq_idx < 0 or eq_idx > 9:
+                return False
+            keyword, rest = image.split('=', 1)
+            match = self._rvkc_keyword_val_comm_RE.match(rest)
+            if match:
+                field_specifier = match.group('keyword')
+                self._keyword = '.'.join((keyword.strip().upper(),
+                                          field_specifier))
+                self._field_specifier = field_specifier
+                self._value = _int_or_float(match.group('val'))
+                return True
+        elif len(args) == 2:
+            keyword, value = args
+            if not isinstance(keyword, basestring):
+                return False
+            match = self._rvkc_keyword_name_RE.match(keyword)
+            if match and isinstance(value, (int, float)):
+                field_specifier = match.group('field_specifier')
+                self._keyword = '.'.join((match.group('keyword').upper(),
+                                          field_specifier))
+                self._field_specifier = field_specifier
+                self._value = value
+                return True
+            if isinstance(value, basestring):
+                match = self._rvkc_field_specifier_val_RE.match(value)
+                if match and self._keywd_FSC_RE.match(keyword):
+                    field_specifier = match.group('keyword')
+                    self._keyword = '.'.join((keyword.upper(),
+                                              field_specifier))
+                    self._field_specifier = field_specifier
+                    self._value = _int_or_float(match.group('val'))
+                    return True
+
+    def _parse_keyword(self):
+        if self._value is not None and self._comment is not None:
+            self._parsed = False
+
+        if self._check_if_rvkc(self._image):
+            return self._keyword
+
+        keyword = self._image[:8].strip()
+        keyword_upper = keyword.upper()
+        if keyword_upper in self._commentary_keywords:
+            if keyword_upper != keyword:
+                self._modified = True
+            return keyword_upper
+        if '=' in self._image:
+            keyword = self._image.split('=', 1)[0].strip()
+        if len(keyword) > 8:
+            if keyword[:8].upper() == 'HIERARCH':
+                return keyword[9:].strip()
+            else:
+                raise ValueError(
+                    'Invalid keyword value in card image: %r; cards with '
+                    'keywords longer than 8 characters must use the HIERARCH '
+                    'keyword.' % self._image)
+        else:
+            keyword_upper = keyword.upper()
+            if keyword_upper != keyword:
+                self._modified = True
+            return keyword_upper
+
+    def _parse_value(self):
+        """Extract the keyword value from the card image."""
+
+        if self._keyword is not None and self._comment is not None:
+            self._parsed = False
+
+        # for commentary cards, no need to parse further
+        if self.keyword.upper() in self._commentary_keywords:
+            return self._image[8:].rstrip()
+
+        if self._check_if_rvkc(self._image):
+            return self._value
+
+        if len(self._image) > self.length:
+            values = []
+            for card in self._itersubcards():
+                value = card.value.rstrip().replace("''", "'")
+                if value and value[-1] == '&':
+                    value = value[:-1]
+                values.append(value)
+
+            value = ''.join(values).rstrip()
+            self._valuestring = value
+            return value
+
+        m = self._value_NFSC_RE.match(self._split()[1])
+
+        if m is None:
+            raise ValueError("Unparsable card (%s), fix it first with "
+                             ".verify('fix')." % self.key)
+
+        if m.group('bool') is not None:
+            value = m.group('bool') == 'T'
+        elif m.group('strg') is not None:
+            value = re.sub("''", "'", m.group('strg'))
+        elif m.group('numr') is not None:
+            #  Check for numbers with leading 0s.
+            numr = self._number_NFSC_RE.match(m.group('numr'))
+            digt = translate(numr.group('digt'), FIX_FP_TABLE2, ' ')
+            if numr.group('sign') is None:
+                sign = ''
+            else:
+                sign = numr.group('sign')
+            value = _str_to_num(sign + digt)
+
+        elif m.group('cplx') is not None:
+            #  Check for numbers with leading 0s.
+            real = self._number_NFSC_RE.match(m.group('real'))
+            rdigt = translate(real.group('digt'), FIX_FP_TABLE2, ' ')
+            if real.group('sign') is None:
+                rsign = ''
+            else:
+                rsign = real.group('sign')
+            value = _str_to_num(rsign + rdigt)
+            imag = self._number_NFSC_RE.match(m.group('imag'))
+            idigt = translate(imag.group('digt'), FIX_FP_TABLE2, ' ')
+            if imag.group('sign') is None:
+                isign = ''
+            else:
+                isign = imag.group('sign')
+            value += _str_to_num(isign + idigt) * 1j
+        else:
+            value = UNDEFINED
+
+        self._valuestring = m.group('valu')
+        return value
+
+    def _parse_comment(self):
+        """Extract the keyword value from the card image."""
+
+        if self._keyword is not None and self._value is not None:
+            self._parsed = False
+
+        # for commentary cards, no need to parse further
+        if self.keyword in Card._commentary_keywords:
+            return ''
+
+        if len(self._image) > self.length:
+            comments = []
+            for card in self._itersubcards():
+                if card.comment:
+                    comments.append(card.comment)
+            comment = '/ ' + ' '.join(comments).rstrip()
+            m = self._value_NFSC_RE.match(comment)
+        else:
+            m = self._value_NFSC_RE.match(self._split()[1])
+
+        if m is not None:
+            comment = m.group('comm')
+            if comment:
+                return comment.rstrip()
+        return ''
+
+    def _split(self):
         """
-        Insert a `Card` to the location specified by before or after.
-
-        The argument `before` takes precedence over `after` if both
-        specified.  They can be either a keyword name or index.
+        Split the card image between the keyword and the rest of the card.
         """
 
-        if before is not None:
-            loc = self.index_of(before)
-            self.insert(loc, card, useblanks=useblanks)
-        elif after is not None:
-            loc = self.index_of(after)
-            self.insert(loc + 1, card, useblanks=useblanks)
+        if self._image is not None:
+            # If we already have a card image, don't try to rebuild a new card
+            # image, which self.image would do
+            image = self._image
+        else:
+            image = self.image
 
-    def _use_blanks(self, how_many):
-        if self._blanks > 0:
-            for idx in range(min(self._blanks, how_many)):
-                del self[-1] # it also delete the keylist item
+        if self.keyword in self._commentary_keywords + ['CONTINUE']:
+            keyword, valuecomment = image.split(' ', 1)
+        else:
+            try:
+                delim_index = image.index('=')
+            except ValueError:
+                delim_index = None
 
+            # The equal sign may not be any higher than column 10; anything
+            # past that must be considered part of the card value
+            if delim_index is None:
+                keyword = image[:8]
+                valuecomment = image[8:]
+            elif delim_index > 10 and image[:9] != 'HIERARCH ':
+                keyword = image[:8]
+                valuecomment = image[10:]
+            else:
+                keyword, valuecomment = image.split('=', 1)
+        return keyword.strip(), valuecomment.strip()
 
-def create_card(key='', value='', comment=''):
-    return RecordValuedKeywordCard.create(key, value, comment)
-create_card.__doc__ = RecordValuedKeywordCard.create.__doc__
-# For API backwards-compatibility
-createCard = deprecated(name='createCard',
-                        alternative='create_card()')(create_card)
+    def _fix_keyword(self):
+        if self.field_specifier:
+            keyword, field_specifier = self._keyword.split('.', 1)
+            self._keyword = '.'.join([keyword.upper(), field_specifier])
+        else:
+            self._keyword = self._keyword.upper()
+        self._modified = True
 
+    def _fix_value(self):
+        """Fix the card image for fixable non-standard compliance."""
 
-def create_card_from_string(input):
-    return RecordValuedKeywordCard.fromstring(input)
-create_card_from_string.__doc__ = RecordValuedKeywordCard.fromstring.__doc__
-# For API backwards-compat
-createCardFromString = \
-        deprecated(name='createCardFromString',
-                   alternative='fromstring()')(create_card_from_string)
+        value = None
+        keyword, valuecomment = self._split()
+        m = self._value_NFSC_RE.match(valuecomment)
 
-def upper_key(key):
-    return RecordValuedKeywordCard.upper_key(key)
-upper_key.__doc__ = RecordValuedKeywordCard.upper_key.__doc__
-# For API backwards-compat
-upperKey = deprecated(name='upperKey', alternative='upper_key()')(upper_key)
+        # for the unparsable case
+        if m is None:
+            try:
+                value, comment = valuecomment.split('/', 1)
+                self.value = value.strip()
+                self.comment = comment.strip()
+            except (ValueError, IndexError):
+                self.value = valuecomment
+            self._valuestring = self._value
+            self._valuemodified = False
+            return
+        elif m.group('numr') is not None:
+            numr = self._number_NFSC_RE.match(m.group('numr'))
+            value = translate(numr.group('digt'), FIX_FP_TABLE, ' ')
+            if numr.group('sign') is not None:
+                value = numr.group('sign') + value
 
+        elif m.group('cplx') is not None:
+            real = self._number_NFSC_RE.match(m.group('real'))
+            rdigt = translate(real.group('digt'), FIX_FP_TABLE, ' ')
+            if real.group('sign') is not None:
+                rdigt = real.group('sign') + rdigt
 
-class _HierarchCard(Card):
-    """
-    Cards begins with ``HIERARCH`` which allows keyword name longer than 8
-    characters.
-    """
+            imag = self._number_NFSC_RE.match(m.group('imag'))
+            idigt = translate(imag.group('digt'), FIX_FP_TABLE, ' ')
+            if imag.group('sign') is not None:
+                idigt = imag.group('sign') + idigt
+            value = '(%s, %s)' % (rdigt, idigt)
+        self._valuestring = value
+        self._valuemodified = False
 
-    @property
-    def key(self):
-        """Returns the keyword name parsed from the card image."""
-
-        if not hasattr(self, '_key'):
-            head = self._get_key_string()
-            self._key = head.strip()
-        return self._key
-
-    @key.setter
-    def key(self, value):
-        Card.key.fset(self, value)
-
-    def _format_key(self):
-        if hasattr(self, '_key') or hasattr(self, '_cardimage'):
-            return 'HIERARCH %s ' % self.key
+    def _format_keyword(self):
+        if self.keyword:
+            if self.field_specifier:
+                return '%-8s' % self.keyword.split('.', 1)[0]
+            elif len(self.keyword) <= 8:
+                return '%-8s' % self.keyword
+            else:
+                return 'HIERARCH %s ' % self.keyword
         else:
             return ' ' * 8
 
     def _format_value(self):
-        val_str = super(_HierarchCard, self)._format_value()
-        # conserve space for HIERARCH cards
-        return val_str.strip()
+        # value string
+        float_types = (float, np.floating, complex, np.complexfloating)
+        value = self.value # Force the value to be parsed out first
+        if self.keyword in self._commentary_keywords:
+            # The value of a commentary card must be just a raw unprocessed
+            # string
+            value = str(value)
+        elif (self._valuestring and not self._valuemodified and
+                isinstance(self.value, float_types)):
+            # Keep the existing formatting for float/complex numbers
+            value = '%20s' % self._valuestring
+        elif self.field_specifier:
+            value = _format_value(self._value).strip()
+            value = "'%s: %s'" % (self.field_specifier, value)
+        else:
+            value = _format_value(value)
 
+        # For HIERARCH cards the value should be shortened to conserve space
+        if not self.field_specifier and len(self.keyword) > 8:
+            value = value.strip()
 
-    def _verify(self, option='warn'):
-        """No verification (for now)."""
+        return value
 
-        return _ErrList([])
+    def _format_comment(self):
+        if not self.comment:
+            return ''
+        else:
+            return ' / %s' % self._comment
 
+    def _format_image(self):
+        keyword = self._format_keyword()
 
-class _ContinueCard(Card):
-    """
-    Cards having more than one 80-char "physical" cards, the cards after
-    the first one must start with ``CONTINUE`` and the whole card must have
-    string value.
-    """
+        value = self._format_value()
+        is_commentary = keyword.strip() in self._commentary_keywords
+        if is_commentary:
+            comment = ''
+        else:
+            comment = self._format_comment()
 
-    def __repr__(self):
-        """Format a list of cards into a printable string."""
+        # equal sign string
+        delimiter = '= '
+        if is_commentary:
+            delimiter = ''
 
-        output = []
-        for idx in range(len(self.cardimage) // 80):
-            output.append(self.cardimage[idx*80:(idx+1)*80])
-        return '\n'.join(output)
+        # put all parts together
+        output = ''.join([keyword, delimiter, value, comment])
 
-    def _iter_cards(self):
-        ncards = self._ncards()
-        for idx in range(ncards):
-            # take each 80-char card as a regular card and use its methods.
-            card = Card.fromstring(self.cardimage[idx*80:(idx+1)*80])
-            if idx > 0 and card.key != 'CONTINUE':
-                raise ValueError('Long card image must have CONTINUE cards '
-                                 'after the first card.')
-            if not isinstance(card.value, str):
-                raise ValueError(
-                    'Cards with CONTINUE must have string value.')
-            yield card
+        # For HIERARCH cards we can save a bit of space if necessary by
+        # removing the space between the keyword and the equals sign; I'm
+        # guessing this is part of the HIEARCH card specification
+        keywordvalue_length = len(keyword) + len(delimiter) + len(value)
+        if (keywordvalue_length > self.length and
+                keyword.startswith('HIERARCH')):
+            if (keywordvalue_length == self.length + 1 and keyword[-1] == ' '):
+                output = ''.join([keyword[:-1], delimiter, value, comment])
+            else:
+                # I guess the HIERARCH card spec is incompatible with CONTINUE
+                # cards
+                raise ValueError('The keyword %s with its value is too long' %
+                                 self.keyword)
 
-    def _extract_value(self):
-        """Extract the keyword value from the card image."""
+        if len(output) <= self.length:
+            output = '%-80s' % output
+        else:
+            # longstring case (CONTINUE card)
+            # try not to use CONTINUE if the string value can fit in one line.
+            # Instead, just truncate the comment
+            if (isinstance(self.value, str) and
+                len(value) > (self.length - 10)):
+                output = self._format_long_image()
+            else:
+                warnings.warn('Card is too long, comment is truncated.')
+                output = output[:Card.length]
+        return output
 
-        output = []
-        for card in self._iter_cards():
-            val = card.value.rstrip().replace("''", "'")
-            # drop the ending "&"
-            if val and val[-1] == '&':
-                val = val[:-1]
-            output.append(val)
-        return ''.join(output).rstrip()
-
-    def _extract_comment(self):
-        """Extract the comment from the card image."""
-
-        output = []
-        for card in self._iter_cards():
-            comm = card.comment
-            if isinstance(comm, str) and comm != '':
-                output.append(comm.rstrip() + ' ')
-        return ''.join(output).rstrip()
-
-    def _breakup_strings(self):
+    def _format_long_image(self):
         """
         Break up long string value/comment into ``CONTINUE`` cards.
         This is a primitive implementation: it will put the value
@@ -1706,78 +1028,191 @@ class _ContinueCard(Card):
         not look pretty.
         """
 
-        val_len = 67
-        comm_len = 64
+        if self.keyword in Card._commentary_keywords:
+            return self._format_long_commentary_image()
+
+        value_length = 67
+        comment_length = 64
         output = []
 
         # do the value string
-        valfmt = "'%-s&'"
-        val = self.value.replace("'", "''")
-        val_list = self._words_group(val, val_len)
-        for idx in range(len(val_list)):
+        value_format = "'%-s&'"
+        value = self.value.replace("'", "''")
+        words = _words_group(value, value_length)
+        for idx, word in enumerate(words):
             if idx == 0:
-                headstr = "%-8s= " % self.key
+                headstr = '%-8s= ' % self.keyword
             else:
-                headstr = "CONTINUE  "
-            valstr = valfmt % val_list[idx]
-            output.append('%-80s' % (headstr + valstr))
+                headstr = 'CONTINUE  '
+            value = value_format % word
+            output.append('%-80s' % (headstr + value))
 
         # do the comment string
-        if self.comment is None:
-            comm = ''
-        else:
-            comm = self.comment
-        commfmt = "%-s"
-        if not comm == '':
-            comm_list = self._words_group(comm, comm_len)
-            for idx in comm_list:
-                commstr = "CONTINUE  '&' / " + commfmt % idx
-                output.append('%-80s' % commstr)
+        comment_format = "%-s"
+        if self.comment:
+            words = _words_group(self.comment, comment_length)
+            for word in words:
+                comment = "CONTINUE  '&' / " + comment_format % word
+                output.append('%-80s' % comment)
 
         return ''.join(output)
 
-    def _words_group(self, input, strlen):
+    def _format_long_commentary_image(self):
         """
-        Split a long string into parts where each part is no longer
-        than `strlen` and no word is cut into two pieces.  But if
-        there is one single word which is longer than `strlen`, then
-        it will be split in the middle of the word.
+        If a commentary card's value is too long to fit on a single card, this
+        will render the card as multiple consecutive commentary card of the
+        same type.
         """
 
-        lst = []
-        _nblanks = input.count(' ')
-        nmax = max(_nblanks, len(input)//strlen+1)
-        arr = np.fromstring((input + ' '), dtype=(np.bytes_, 1))
+        maxlen = Card.length - len(self.keyword) - 1
+        value = self._format_value()
+        output = []
+        idx = 0
+        while idx < len(value):
+            output.append(str(Card(self.keyword, value[idx:idx + maxlen])))
+            idx += maxlen
+        return ''.join(output)
 
-        # locations of the blanks
-        blank_loc = np.nonzero(arr == np.bytes_(' '))[0]
-        offset = 0
-        xoffset = 0
-        for idx in range(nmax):
-            try:
-                loc = np.nonzero(blank_loc >= strlen+offset)[0][0]
-                offset = blank_loc[loc-1] + 1
-                if loc == 0:
-                    offset = -1
-            except:
-                offset = len(input)
+    def _verify(self, option='warn'):
+        errs = _ErrList([])
+        fix_text = 'Fixed card to meet the FITS standard: %s' % self.keyword
+        # verify the equal sign position
+        if (self.keyword not in self._commentary_keywords and
+            (self._image and self._image[:8].upper() != 'HIERARCH' and
+             self._image.find('=') != 8)):
+            errs.append(self.run_option(
+                option,
+                err_text='Card image is not FITS standard (equal sign not '
+                         'at column 8).',
+                fix_text=fix_text,
+                fix=self._fix_value))
 
-            # check for one word longer than strlen, break in the middle
-            if offset <= xoffset:
-                offset = xoffset + strlen
+        # verify the key, it is never fixable
+        # always fix silently the case where "=" is before column 9,
+        # since there is no way to communicate back to the _keys.
+        if self._image and self._image[:8].upper() == 'HIERARCH':
+            pass
+        else:
+            keyword = self.keyword
+            if self.field_specifier:
+                keyword = keyword.split('.', 1)[0]
 
-            # collect the pieces in a list
-            tmp = input[xoffset:offset]
-            lst.append(tmp)
-            if len(input) == offset:
-                break
-            xoffset = offset
+            if keyword != keyword.upper():
+            # Keyword should be uppercase unless it's a HIERARCH card
+                errs.append(self.run_option(
+                    option,
+                    err_text='Card keyword is not upper case.',
+                    fix_text=fix_text,
+                    fix=self._fix_keyword))
+            elif not self._keywd_FSC_RE.match(keyword):
+                errs.append(self.run_option(
+                    option,
+                    err_text='Illegal keyword name %s' % repr(keyword),
+                    fixable=False))
 
-        return lst
+        # verify the value, it may be fixable
+        keyword, valuecomment = self._split()
+        m = self._value_FSC_RE.match(valuecomment)
+        if not (m or self.keyword in self._commentary_keywords):
+            errs.append(self.run_option(
+                option,
+                err_text='Card image is not FITS standard (unparsable value '
+                         'string: %s).' % valuecomment,
+                fix_text=fix_text,
+                fix=self._fix_value))
+
+        # verify the comment (string), it is never fixable
+        m = self._value_NFSC_RE.match(valuecomment)
+        if m is not None:
+            comment = m.group('comm')
+            if comment is not None:
+                if not self._comment_FSC_RE.match(comment):
+                    errs.append(self.run_option(
+                        option,
+                        err_text='Unprintable string %r' % comment,
+                        fixable=False))
+
+        return errs
+
+    def _itersubcards(self):
+        """
+        If the card image is greater than 80 characters, it should consist of a
+        normal card followed by one or more CONTINUE card.  This method returns
+        the subcards that make up this logical card.
+        """
+
+        ncards = len(self._image) // Card.length
+
+        for idx in xrange(0, Card.length * ncards, Card.length):
+            card = Card.fromstring(self._image[idx:idx + Card.length])
+            if idx > 0 and card.keyword.upper() != 'CONTINUE':
+                raise ValueError(
+                        'Long card images must have CONTINUE cards after '
+                        'the first card.')
+
+            if not isinstance(card.value, str):
+                raise ValueError('CONTINUE cards must have string values.')
+
+            yield card
 
 
-def _value_to_string(value):
-    """Converts a card value to its appropriate string representation as
+def create_card(key='', value='', comment=''):
+    return Card(key, value, comment)
+create_card.__doc__ = Card.__init__.__doc__
+# For API backwards-compatibility
+createCard = deprecated('3.0', name='createCard',
+                        alternative=':meth:`Card.__init__`')(create_card)
+create_card = deprecated('3.1', name='create_card',
+                         alternative=':meth:`Card.__init__`',
+                         pending=True)(create_card)
+
+
+def create_card_from_string(input):
+    return Card.fromstring(input)
+create_card_from_string.__doc__ = Card.fromstring.__doc__
+# For API backwards-compat
+createCardFromString = \
+    deprecated('3.0', name='createCardFromString',
+               alternative=':meth:`Card.fromstring`')(create_card_from_string)
+create_card_from_string = deprecated('3.1', name='create_card_from_string',
+                                     alternative=':meth:`Card.fromstring`',
+                                     pending=True)(create_card_from_string)
+
+
+def upper_key(key):
+    return Card.normalize_keyword(key)
+upper_key.__doc__ = Card.normalize_keyword.__doc__
+# For API backwards-compat
+upperKey = deprecated('3.0', name='upperKey',
+                      alternative=':meth:`Card.normalize_keyword`')(upper_key)
+upper_key = deprecated('3.1', name='upper_key',
+                       alternative=':meth:`Card.normalize_keyword`',
+                       pending=True)(upper_key)
+
+
+def _int_or_float(s):
+    """
+    Converts an a string to an int if possible, or to a float.
+
+    If the string is neither a string or a float a value error is raised.
+    """
+
+    if isinstance(s, float):
+        # Already a float so just pass through
+        return s
+
+    try:
+        return int(s)
+    except (ValueError, TypeError):
+        try:
+            return float(s)
+        except (ValueError, TypeError), e:
+            raise ValueError(str(e))
+
+
+def _format_value(value):
+    """
+    Converts a card value to its appropriate string representation as
     defined by the FITS format.
     """
 
@@ -1800,11 +1235,11 @@ def _value_to_string(value):
 
     # XXX need to consider platform dependence of the format (e.g. E-009 vs. E-09)
     elif isinstance(value, (float, np.floating)):
-        return '%20s' % _float_format(value)
+        return '%20s' % _format_float(value)
 
     elif isinstance(value, (complex, np.complexfloating)):
-        val_str = '(%s, %s)' % (_float_format(value.real),
-                                _float_format(value.imag))
+        val_str = '(%s, %s)' % (_format_float(value.real),
+                                _format_float(value.imag))
         return '%20s' % val_str
 
     elif isinstance(value, Undefined):
@@ -1813,12 +1248,23 @@ def _value_to_string(value):
         return ''
 
 
-def _float_format(value):
+def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
 
     value_str = '%.16G' % value
     if '.' not in value_str and 'E' not in value_str:
         value_str += '.0'
+    elif 'E' in value_str:
+        # On some Windows builds of Python (and possibly other platforms?) the
+        # exponent is zero-padded out to, it seems, three digits.  Normalize
+        # the format to pad only to two digits.
+        significand, exponent = value_str.split('E')
+        if exponent[0] in ('+', '-'):
+            sign = exponent[0]
+            exponent = exponent[1:]
+        else:
+            sign = ''
+        value_str = '%sE%s%02d' % (significand, sign, int(exponent))
 
     # Limit the value string to at most 20 characters.
     str_len = len(value_str)

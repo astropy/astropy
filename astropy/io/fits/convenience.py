@@ -268,8 +268,9 @@ def setval(filename, keyword, *args, **kwargs):
     savecomment = kwargs.pop('savecomment', False)
 
     hdulist, extidx = _getext(filename, 'update', *args, **kwargs)
-    hdulist[extidx].header.update(keyword, value, comment, before, after,
-                                  savecomment)
+    if keyword in hdulist[extidx].header and savecomment:
+        comment = None
+    hdulist[extidx].header.set(keyword, value, comment, before, after)
     hdulist.close()
 
 
@@ -565,8 +566,13 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     if closed:
         f.close()
-tabledump.__doc__ += BinTableHDU.tdump_file_format.replace('\n', '\n    ')
-tdump = deprecated(name='tdump')(tabledump)
+tabledump.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+
+
+@deprecated('3.1', alternative=':func:`tabledump`')
+def tdump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
+          clobber=False):
+    tabledump(filename, datafile, cdfile, hfile, ext, clobber)
 
 
 def tableload(datafile, cdfile, hfile=None):
@@ -602,8 +608,12 @@ def tableload(datafile, cdfile, hfile=None):
     """
 
     return BinTableHDU.load(datafile, cdfile, hfile, replace=True)
-tableload.__doc__ += BinTableHDU.tdump_file_format.replace('\n', '\n    ')
-tcreate = deprecated(name='tcreate')(tableload)
+tableload.__doc__ += BinTableHDU._tdump_file_format.replace('\n', '\n    ')
+
+
+@deprecated('3.1', alternative=':func:`tableload`')
+def tcreate(datafile, cdfile, hfile=None):
+    return tableload(datafile, cdfile, hfile)
 
 
 def _getext(filename, mode, *args, **kwargs):
@@ -611,7 +621,7 @@ def _getext(filename, mode, *args, **kwargs):
     Open the input file, return the `HDUList` and the extension.
 
     This supports several different styles of extension selection.  See the
-    `getdata()` documentation for the different possibilities.
+    :func:`getdata()` documentation for the different possibilities.
     """
 
     ext = kwargs.pop('ext', None)
@@ -671,7 +681,7 @@ def _getext(filename, mode, *args, **kwargs):
         if extver:
             ext = (extname, extver)
         else:
-            ext = (extname, 0)
+            ext = (extname, 1)
     elif extver and extname is None:
         raise TypeError('extver alone cannot specify an extension.')
 

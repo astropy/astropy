@@ -3,11 +3,11 @@
 import sys
 import numpy as np
 
-from ..card import Card, CardList
 from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..header import Header
 from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int, _pad_length,
                     _normalize_slice, lazyproperty)
+
 
 class _ImageBaseHDU(_ValidHDU):
     """FITS image HDU base class.
@@ -61,30 +61,31 @@ class _ImageBaseHDU(_ValidHDU):
             # PrimaryHDU and GroupsHDU subclasses
             # construct a list of cards of minimal header
             if isinstance(self, ExtensionHDU):
-                c0 = Card('XTENSION', 'IMAGE', 'Image extension')
+                c0 = ('XTENSION', 'IMAGE', 'Image extension')
             else:
-                c0 = Card('SIMPLE', True, 'conforms to FITS standard')
+                c0 = ('SIMPLE', True, 'conforms to FITS standard')
 
-            _list = CardList([
+            cards = [
                 c0,
-                Card('BITPIX',    8, 'array data type'),
-                Card('NAXIS',     0, 'number of array dimensions'),
-                ])
+                ('BITPIX',    8, 'array data type'),
+                ('NAXIS',     0, 'number of array dimensions')]
+
             if isinstance(self, GroupsHDU):
-                _list.append(Card('GROUPS', True, 'has groups'))
+                cards.append(('GROUPS', True, 'has groups'))
 
             if isinstance(self, (ExtensionHDU, GroupsHDU)):
-                _list.append(Card('PCOUNT',    0, 'number of parameters'))
-                _list.append(Card('GCOUNT',    1, 'number of groups'))
+                cards.append(('PCOUNT',    0, 'number of parameters'))
+                cards.append(('GCOUNT',    1, 'number of groups'))
 
             if header is not None:
                 hcopy = header.copy(strip=True)
-                _list.extend(hcopy.ascard)
+                cards.extend(hcopy.cards)
 
-            self._header = Header(_list)
+            self._header = Header(cards)
 
         self._do_not_scale_image_data = do_not_scale_image_data
         self._uint = uint
+        self._rescaled = False
 
         if do_not_scale_image_data:
             self._bzero = 0
@@ -92,9 +93,14 @@ class _ImageBaseHDU(_ValidHDU):
         else:
             self._bzero = self._header.get('BZERO', 0)
             self._bscale = self._header.get('BSCALE', 1)
+            if not (self._bzero == 0 and self._bscale == 1):
+                self._resize = True
 
         self._bitpix = self._header['BITPIX']
 
+        # Set the name attribute if it was provided (if this is an ImageHDU
+        # this will result in setting the EXTNAME keyword of the header as
+        # well)
         if 'name' in kwargs and kwargs['name']:
             self.name = kwargs['name']
 
@@ -201,34 +207,40 @@ class _ImageBaseHDU(_ValidHDU):
 
         # add NAXISi if it does not exist
         for idx, axis in enumerate(axes):
-            try:
-                self._header['NAXIS'+ str(idx + 1)] = axis
-            except KeyError:
+            naxisn = 'NAXIS' + str(idx + 1)
+            if naxisn in self._header:
+                self._header[naxisn] = axis
+            else:
                 if (idx == 0):
                     after = 'naxis'
                 else :
                     after = 'naxis' + str(idx)
-                self._header.update('naxis' + str(idx + 1), axis, after=after)
+                self._header.set(naxisn, axis, after=after)
 
         # delete extra NAXISi's
         for idx in range(len(axes)+1, old_naxis+1):
             try:
-                del self._header.ascard['NAXIS' + str(idx)]
+                del self._header['NAXIS' + str(idx)]
             except KeyError:
                 pass
 
     def _update_header_scale_info(self, dtype=None):
         if (not self._do_not_scale_image_data and
             not (self._bzero == 0 and self._bscale == 1)):
-            del self._header['BSCALE']
-            del self._header['BZERO']
+            for keyword in ['BSCALE', 'BZERO']:
+                try:
+                    del self._header[keyword]
+                except KeyError:
+                    pass
 
             if dtype is None:
                 dtype = self._dtype_for_bitpix()
             if dtype is not None:
                 self._header['BITPIX'] = _ImageBaseHDU.ImgCode[dtype.name]
 
-    def scale(self, type=None, option="old", bscale=1, bzero=0):
+            self._rescaled = True
+
+    def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
         Scale image data by using ``BSCALE``/``BZERO``.
 
@@ -294,15 +306,21 @@ class _ImageBaseHDU(_ValidHDU):
         # Do the scaling
         if _zero != 0:
             self.data += -_zero # 0.9.6.3 to avoid out of range error for BZERO = +32768
-            self._header.update('BZERO', _zero)
+            self._header['BZERO'] = _zero
         else:
-            del self._header['BZERO']
+            try:
+                del self._header['BZERO']
+            except KeyError:
+                pass
 
         if _scale and _scale != 1:
             self.data /= _scale
-            self._header.update('BSCALE', _scale)
+            self._header['BSCALE'] = _scale
         else:
-            del self._header['BSCALE']
+            try:
+                del self._header['BSCALE']
+            except KeyError:
+                pass
 
         if self.data.dtype.type != _type:
             self.data = np.array(np.around(self.data), dtype=_type) #0.7.7.1
@@ -360,6 +378,13 @@ class _ImageBaseHDU(_ValidHDU):
                     fileobj.writearray(output)
 
             size += output.size * output.itemsize
+
+        if self._rescaled:
+            # If the data was rescaled then the file written to was
+            # automatically resized on writing.  But now that the scaled data
+            # has been written we don't necessarily need to resize on
+            # subsequent writes
+            self._resize = False
 
         return size
 
@@ -462,7 +487,7 @@ class _ImageBaseHDU(_ValidHDU):
                       % (self._header['GCOUNT'], self._header['PCOUNT'])
         else:
             _gcount = ''
-        return (self.name, class_name, len(self._header.ascard), _shape,
+        return (self.name, class_name, len(self._header), _shape,
                 _format, _gcount)
 
     def _calculate_datasum(self, blocking):
@@ -675,14 +700,14 @@ class PrimaryHDU(_ImageBaseHDU):
             dim = self._header['NAXIS']
             if dim == 0:
                 dim = ''
-            self._header.update('EXTEND', True, after='NAXIS' + str(dim))
+            self._header.set('EXTEND', True, after='NAXIS' + str(dim))
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
-        return card.key == 'SIMPLE' and \
-               ('GROUPS' not in header or header['GROUPS'] != True) and \
-               card.value == True
+        card = header.cards[0]
+        return (card.keyword == 'SIMPLE' and
+                ('GROUPS' not in header or header['GROUPS'] != True) and
+                card.value == True)
 
     def _verify(self, option='warn'):
         errs = super(PrimaryHDU, self)._verify(option=option)
@@ -740,11 +765,11 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 
     @classmethod
     def match_header(cls, header):
-        card = header.ascard[0]
+        card = header.cards[0]
         xtension = card.value
         if isinstance(xtension, basestring):
             xtension = xtension.rstrip()
-        return card.key == 'XTENSION' and xtension == cls._extension
+        return card.keyword == 'XTENSION' and xtension == cls._extension
 
     def _verify(self, option='warn'):
         """

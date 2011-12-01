@@ -11,6 +11,7 @@ from numpy import char as chararray
 from .card import Card
 from .util import (lazyproperty, pairwise, _is_int, _convert_array,
                    encode_ascii, deprecated)
+from .verify import VerifyError
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']
@@ -81,10 +82,39 @@ class _FormatX(str):
     pass
 
 
+# TODO: Table column formats need to be verified upon first reading the file;
+# as it is, an invalid P format will raise a VerifyError from some deep,
+# unexpected place
 class _FormatP(str):
     """For P format in variable length table."""
 
-    pass
+    _formatp_re = re.compile(r'(?P<repeat>\d+)?P(?P<dtype>[A-Z])'
+                              '(?:\((?P<max>\d*)\))?')
+
+    def __new__(cls, dtype, repeat=None, max=None):
+        obj = super(_FormatP, cls).__new__(cls, '2i4')
+        obj.dtype = dtype
+        obj.repeat = repeat
+        obj.max = max
+        return obj
+
+    @classmethod
+    def from_tform(cls, format):
+        m = cls._formatp_re.match(format)
+        if not m or m.group('dtype') not in FITS2NUMPY:
+            raise VerifyError('Invalid column format: %s' % format)
+        repeat = m.group('repeat')
+        array_dtype = m.group('dtype')
+        max = m.group('max')
+        if not max:
+            max = None
+        return cls(FITS2NUMPY[array_dtype], repeat=repeat, max=max)
+
+    @property
+    def tform(self):
+        repeat = '' if self.repeat is None else self.repeat
+        max = '' if self.max is None else self.max
+        return '%sP%s(%s)' % (repeat, NUMPY2FITS[self.dtype], max)
 
 
 class Column(object):
@@ -184,19 +214,7 @@ class Column(object):
                     # then try variable length array
                     except:
                         if isinstance(recfmt, _FormatP):
-                            try:
-                                array = _VLF(array)
-                            except:
-                                try:
-                                    # this handles ['abc'] and [['a','b','c']]
-                                    # equally, beautiful!
-                                    _func = lambda x: \
-                                                chararray.array(x, itemsize=1)
-                                    array = _VLF(map(_func, array))
-                                except:
-                                    raise ValueError('Inconsistent input data '
-                                                     'array: %s' % array)
-                            array._dtype = recfmt._dtype
+                            array = _VLF(array, dtype=recfmt.dtype)
                         else:
                             raise ValueError('Data is inconsistent with the '
                                              'format `%s`.' % format)
@@ -361,8 +379,8 @@ class ColDefs(object):
             # go through header keywords to pick out column definition keywords
             # definition dictionaries for each field
             col_attributes = [{} for i in range(nfields)]
-            for card in hdr.ascard:
-                key = TDEF_RE.match(card.key)
+            for keyword, value in hdr.iteritems():
+                key = TDEF_RE.match(keyword)
                 try:
                     keyword = key.group('label')
                 except:
@@ -372,7 +390,7 @@ class ColDefs(object):
                     if col <= nfields and col > 0:
                         idx = KEYWORD_NAMES.index(keyword)
                         attr = KEYWORD_ATTRIBUTES[idx]
-                        col_attributes[col - 1][attr] = card.value
+                        col_attributes[col - 1][attr] = value
 
             # data reading will be delayed
             for col in range(nfields):
@@ -420,9 +438,9 @@ class ColDefs(object):
         raise AttributeError(name)
 
     @property
-    @deprecated(message='The %(func)s attribute is deprecated; use the '
-                        '%(alternative)s attribute instead.',
-                alternative='.columns')
+    @deprecated('3.0', message='The %(func)s attribute is deprecated; use the '
+                               '%(alternative)s attribute instead.',
+                alternative='`ColDefs.columns`')
     def data(self):
         """
         What was originally self.columns is now self.data; this provides some
@@ -708,24 +726,34 @@ class _ASCIIColDefs(ColDefs):
 class _VLF(np.ndarray):
     """Variable length field object."""
 
-    def __new__(cls, args):
+    def __new__(cls, input, dtype='a'):
         """
         Parameters
         ----------
-        args
+        input
             a sequence of variable-sized elements.
         """
 
-        a = np.array(args, dtype=np.object)
-        self = np.ndarray.__new__(cls, shape=(len(args)), buffer=a,
+        if dtype == 'a':
+            try:
+                # this handles ['abc'] and [['a','b','c']]
+                # equally, beautiful!
+                input = map(lambda x: chararray.array(x, itemsize=1), input)
+            except:
+                raise ValueError('Inconsistent input data array: %s' % input)
+
+        a = np.array(input, dtype=np.object)
+        self = np.ndarray.__new__(cls, shape=(len(input)), buffer=a,
                                   dtype=np.object)
-        self._max = 0
+        self.max = 0
+        self.element_dtype = dtype
         return self
 
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self._max = obj._max
+        self.max = obj.max
+        self.element_dtype = obj.element_dtype
 
     def __setitem__(self, key, value):
         """
@@ -737,12 +765,12 @@ class _VLF(np.ndarray):
             pass
         elif isinstance(value, chararray.chararray) and value.itemsize == 1:
             pass
-        elif self._dtype == 'a':
+        elif self.element_dtype == 'a':
             value = chararray.array(value, itemsize=1)
         else:
-            value = np.array(value, dtype=self._dtype)
+            value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
-        self._max = max(self._max, len(value))
+        self.max = max(self.max, len(value))
 
 
 def _get_index(names, key):
@@ -847,7 +875,7 @@ def _wrapx(input, output, nx):
     np.left_shift(output[...,i], unused, output[...,i])
 
 
-def _makep(input, desp_output, dtype, nrows=None):
+def _makep(input, desp_output, format, nrows=None):
     """
     Construct the P format column array, both the data descriptors and
     the data.  It returns the output "data" array of data type `dtype`.
@@ -865,8 +893,8 @@ def _makep(input, desp_output, dtype, nrows=None):
         output "descriptor" array of data type ``Int32``--must be nrows wide in
         its first dimension
 
-    dtype
-        data type of the variable array
+    format
+        the _FormatP object reperesenting the format of the variable array
 
     nrows : int, optional
         number of rows to create in the column; defaults to the number of rows
@@ -879,27 +907,26 @@ def _makep(input, desp_output, dtype, nrows=None):
         nrows = len(input)
     n = min(len(input), nrows)
 
-    data_output = _VLF([None] * nrows)
-    data_output._dtype = dtype
+    data_output = _VLF([None] * nrows, dtype=format.dtype)
 
-    if dtype == 'a':
+    if format.dtype == 'a':
         _nbytes = 1
     else:
-        _nbytes = np.array([], dtype=np.typeDict[dtype]).itemsize
+        _nbytes = np.array([], dtype=np.typeDict[format.dtype]).itemsize
 
     for idx in range(nrows):
         if idx < len(input):
             rowval = input[idx]
         else:
-            if dtype == 'a':
-                rowval = ' ' * data_output._max
+            if format.dtype == 'a':
+                rowval = ' ' * data_output.max
             else:
-                rowval = [0] * data_output._max
-        if dtype == 'a':
+                rowval = [0] * data_output.max
+        if format.dtype == 'a':
             data_output[idx] = chararray.array(encode_ascii(rowval),
                                                itemsize=1)
         else:
-            data_output[idx] = np.array(rowval, dtype=dtype)
+            data_output[idx] = np.array(rowval, dtype=format.dtype)
 
         desp_output[idx,0] = len(data_output[idx])
         desp_output[idx,1] = _offset
@@ -1001,8 +1028,7 @@ def _convert_fits2record(format):
         output_format._nx = repeat
 
     elif dtype == 'P':
-        output_format = _FormatP('2i4')
-        output_format._dtype = FITS2NUMPY[option[0]]
+        output_format = _FormatP.from_tform(format)
     elif dtype == 'F':
         output_format = 'f8'
     else:

@@ -266,7 +266,7 @@ or directly use the `new_table()` function:
 A look of the newly created HDU's header will show that relevant keywords are
 properly populated:
 
-    >>> print tbhdu.header.ascardlist()
+    >>> tbhdu.header
     XTENSION = 'BINTABLE'                      / binary table extension
     BITPIX   =                               8 / array data type
     NAXIS    =                               2 / number of array dimensions

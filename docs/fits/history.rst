@@ -37,14 +37,41 @@ Astropy.
   column definition file (#14)
 
 
-3.0.4 (unreleased)
+3.0.4 (2011-11-22)
 ------------------
 
 - Fixed a crash when writing HCOMPRESS compressed images that could happen on
   Python 2.5 and 2.6.
 
+- Fixed a bug where convenience functions such as getval() and getheader()
+  crashed when specifying just 'PRIMARY' as the extension to use.
+
+- Fixed a bug that prevented passing keyword arguments (beyond the standard
+  data and header arguments) as positional arguments to the constructors of
+  extension HDU classes.
+
+- Fixed some tests that were failing on Windows--in this case the tests
+  themselves failed to close some temp files and Windows refused to delete them
+  while there were still open handles on them. (r1295)
+
+- Fixed an issue with floating point formatting in header values on Python 2.5
+  for Windows (and possibly other platforms).  The exponent was zero-padded to
+  3 digits; although the FITS standard makes no specification on this, the
+  formatting is now normalized to always pad the exponent to two digits.
+  (r1295)
+
+- Fixed a bug where long commentary cards (such as HISTORY and COMMENT) were
+  broken into multiple CONTINUE cards.  However, commentary cards are not
+  expected to be found in CONTINUE cards.  Instead these long cards are broken
+  into multiple commentary cards (#97)
+
 - GZIP/ZIP-compressed FITS files can be detected and opened regardless of
   their filename extension (#99)
+
+- Fixed a serious bug where opening scaled images in 'update' mode and then
+  closing the file without touching the data would cause the file to be
+  corrupted (#101)
+
 
 3.0.3 (2011-10-05)
 ------------------
