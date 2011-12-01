@@ -38,5 +38,3 @@ def test_check_mime_content_type():
 
 def test_check_anyuri():
     assert check.check_anyuri("https://github.com/astropy/astropy")
-
-

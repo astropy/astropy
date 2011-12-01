@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A collection of functions for checking various XML-related strings for
 standards compliance.
@@ -62,7 +63,8 @@ def check_anyuri(uri):
     Returns `True` if *uri* is a valid URI as defined in RFC 2396.
     """
     if (re.match(
-        r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?",
+        (r"(([a-zA-Z][0-9a-zA-Z+\-\.]*:)?/{0,2}[0-9a-zA-Z;" +
+         r"/?:@&=+$\.\-_!~*'()%]+)?(#[0-9a-zA-Z;/?:@&=+$\.\-_!~*'()%]+)?"),
         uri) is None):
         return False
     try:

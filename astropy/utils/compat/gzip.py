@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A backport of Python 3.2's gzip.py for use in place of the broken one
 in Python 3.1.
