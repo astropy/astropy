@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 """
 A package for reading and writing FITS files and manipulating their
 contents.

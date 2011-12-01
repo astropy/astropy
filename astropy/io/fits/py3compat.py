@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 import sys
 
 if sys.version_info[0] >= 3:
