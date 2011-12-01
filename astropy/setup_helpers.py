@@ -339,7 +339,10 @@ def adjust_compiler():
           segfaults when compiling wcslib.
 
     The set of broken compilers can be updated by changing the
-    compiler_mapping variable.
+    compiler_mapping variable.  It is a list of 2-tuples where the
+    first in the pair is a regular expression matching the version 
+    of the broken compiler, and the second is the compiler to change
+    to.
     """
     if 'CC' in os.environ:
         return
@@ -350,18 +353,21 @@ def adjust_compiler():
 
     from distutils import ccompiler
     import subprocess
+    import re
 
-    compiler_mapping = {
-        'i686-apple-darwin11-llvm-gcc-4.2': 'clang'
-        }
+    compiler_mapping = [
+        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
+        ]
 
     c = ccompiler.new_compiler()
     process = subprocess.Popen(
         c.compiler + ['--version'], stdout=subprocess.PIPE)
     output = process.communicate()[0].strip()
     version = output.split()[0]
-    if version in compiler_mapping:
-        os.environ['CC'] = compiler_mapping[version]
+    for broken, fixed in compiler_mapping:
+        if re.match(broken, version):
+            os.environ['CC'] = fixed
+            break
 
 
 def is_in_build_mode():
