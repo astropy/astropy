@@ -84,10 +84,6 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>0123456789A</TD>
                  ^
 
-135: W46: unicodeChar value is too long for specified length of 10
-  <TD>வணக்கம்</TD>
-             ^
-
 136: W46: char value is too long for specified length of 4
   <TD>0123456789A</TD>
                  ^
@@ -184,7 +180,7 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>Ceçi n'est pas un pipe</TD>
                             ^
 
-266: W46: char value is too long for specified length of 4 (suppressing further warnings of this type...)
+266: W46: char value is too long for specified length of 4
   <TD>ab cd</TD>
            ^
 

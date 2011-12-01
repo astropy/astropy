@@ -306,9 +306,10 @@ class UnicodeChar(Converter):
             return value, False
     else:
         def parse(self, value, config={}, pos=None):
+            value = unicode(value, 'utf-8')
             if self.arraysize != '*' and len(value) > self.arraysize:
                 vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
-            return unicode(value, 'utf-8'), False
+            return value, False
 
     if IS_PY3K:
         def output(self, value, mask):

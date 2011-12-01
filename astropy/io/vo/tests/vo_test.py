@@ -695,15 +695,16 @@ def test_validate():
         'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
+    truth = truth[1:]
+    output = output[1:]
+
     for line in difflib.unified_diff(truth, output):
         if IS_PY3K:
             sys.stdout.write(
-                line.decode('utf-8').
-                encode('string_escape').
-                replace('\\n', '\n'))
+                line.replace('\\n', '\n'))
         else:
             sys.stdout.write(
-                line.encode('string_escape').
+                line.encode('unicode_escape').
                 replace('\\n', '\n'))
 
     assert truth == output
