@@ -121,14 +121,14 @@ def parse_single_table(source, **kwargs):
     return votable.get_first_table()
 
 
-def validate(source, output=sys.stdout, xmllint=False, filename=None):
+def validate(filename, output=sys.stdout, xmllint=False):
     """
     Prints a validation report for the given file.
 
     Parameters
     ----------
-    source : str or readable file-like object
-        Path or file object containing a VOTABLE_ xml file.
+    filename : str path
+        Path to a VOTABLE_ xml file.
 
     output : writable file-like object, optional
         Where to output the report.  Defaults to `sys.stdout`.
@@ -138,22 +138,12 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         DTD validation.  Requires that `xmllint` is installed.  The
         default is `False`.
 
-    filename : str, optional
-        A filename, URL or other identifier to use in error messages.
-        If *filename* is None and *source* is a string (i.e. a path),
-        then *source* will be used as a filename for error messages.
-        Therefore, *filename* is only required when source is a
-        file-like object.
-
     Returns
     -------
     is_valid : bool
         Returns `True` if no warnings were found.
     """
     # TODO: text wrapping
-
-    if filename is None and isinstance(source, basestring):
-        filename = source
 
     lines = []
     votable = None
@@ -164,7 +154,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     # have to delete it first.
     del exceptions.__warningregistry__
 
-    with io.open(source, 'rb') as input:
+    with io.open(filename, 'rb') as input:
         with warnings.catch_warnings(record=True) as warning_lines:
             warnings.resetwarnings()
             warnings.simplefilter("always", append=True)
@@ -177,8 +167,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     output.write(u"Validation report for {0}\n\n".format(filename))
 
     if len(lines):
-        with io.open(source, 'rt') as input:
-            xml_lines = input.readlines()
+        xml_lines = xmlutil.xml_readlines(filename)
 
         for warning in lines:
             w = exceptions.parse_vowarning(warning)
@@ -201,24 +190,16 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
 
     success = 0
     if xmllint:
-        import tempfile
-
         if votable is None:
             version = "1.1"
         else:
             version = votable.version
-        with tempfile.NamedTemporaryFile() as tmp:
-            with open(source, 'rb') as input:
-                tmp.write(input.read())
-            tmp.flush()
-            success, stdout, stderr = xmlutil.validate_schema(
-                tmp.name, version)
+        success, stdout, stderr = xmlutil.validate_schema(
+            filename, version)
 
         if success != 0:
             output.write(
                 u'xmllint schema violations:\n\n')
-            stderr = stderr.replace(tmp.name + u':', u'')
-            stderr = stderr.replace(tmp.name, u'')
             output.write(stderr)
         else:
             output.write(u'xmllint passed\n')

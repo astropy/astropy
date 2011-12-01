@@ -273,7 +273,7 @@ make_pos(const IterParser *self)
     PyObject* tuple;
     PyObject* line_obj;
     PyObject* col_obj;
-    
+
     line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
     col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
 
@@ -519,6 +519,54 @@ characterData(IterParser *self, const XML_Char *text, int len)
 
     if (self->keep_text) {
         (void)text_append(self, text, (Py_ssize_t)len);
+    }
+}
+
+/*
+ * Handle the XML declaration so that we can determine its encoding.
+ */
+static void
+xmlDecl(IterParser *self, const XML_Char *version,
+        const XML_Char *encoding, int standalone)
+{
+    PyObject* tuple        = NULL;
+    PyObject* xml_str      = NULL;
+    PyObject* attrs        = NULL;
+    PyObject* encoding_str = NULL;
+    PyObject* version_str = NULL;
+
+    if (self->queue_write_idx < self->queue_size) {
+        tuple = PyTuple_New(4);
+        if (tuple == NULL) {
+            XML_StopParser(self->parser, 0);
+            return;
+        }
+
+        Py_INCREF(Py_True);
+        PyTuple_SET_ITEM(tuple, 0, Py_True);
+
+        xml_str = PyString_FromString("xml");
+        PyTuple_SET_ITEM(tuple, 1, xml_str);
+
+        attrs = PyDict_New();
+
+        encoding_str = PyString_FromString(encoding);
+        PyDict_SetItemString(attrs, "encoding", encoding_str);
+        Py_DECREF(encoding_str);
+
+        version_str = PyString_FromString(version);
+        PyDict_SetItemString(attrs, "version", version_str);
+        Py_DECREF(version_str);
+
+        PyTuple_SET_ITEM(tuple, 2, attrs);
+
+        PyTuple_SET_ITEM(tuple, 3, make_pos(self));
+
+        self->queue[self->queue_write_idx++] = tuple;
+    } else {
+        PyErr_SetString(
+            PyExc_RuntimeError,
+            "XML queue overflow in xmlDecl.  This most likely indicates an internal bug.");
     }
 }
 
@@ -949,6 +997,9 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     XML_SetCharacterDataHandler(
         self->parser,
         (XML_CharacterDataHandler)characterData);
+    XML_SetXmlDeclHandler(
+        self->parser,
+        (XML_XmlDeclHandler)xmlDecl);
 
     return 0;
 
