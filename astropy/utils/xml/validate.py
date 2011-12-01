@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Functions to do XML schema and DTD validation.  At the moment, this
 makes a subprocess call to xmllint.  This could use a Python-based
@@ -6,6 +7,7 @@ found.
 """
 
 import os
+
 
 def validate_schema(filename, schema_file):
     """
@@ -45,4 +47,3 @@ def validate_schema(filename, schema_file):
             "xmllint not found, so can not validate schema")
 
     return p.returncode, stdout, stderr
-

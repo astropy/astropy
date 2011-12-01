@@ -1,6 +1,8 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 A number of specialized collection classes.
 """
+
 
 class HomogeneousList(list):
     """
@@ -48,4 +50,3 @@ class HomogeneousList(list):
         for item in x:
             self._assert(item)
         return list.extend(self, x)
-

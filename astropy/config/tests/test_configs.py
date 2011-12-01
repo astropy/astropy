@@ -25,12 +25,6 @@ def test_config_file():
     if exists(apycfg.filename):
         save_config('astropy')
 
-def test_pkg_finder():
-    from ..configs import _find_current_module
-    
-    assert _find_current_module(0).__name__ == 'astropy.config.configs'
-    assert _find_current_module(1).__name__ == 'astropy.config.tests.test_configs'
-
 def test_configitem(tmpdir):
     from ..configs import ConfigurationItem,get_config
     from shutil import copy
