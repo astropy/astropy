@@ -9,12 +9,11 @@ import re
 
 # ASTROPY
 from ....utils.xml.writer import XMLWriter, xml_escape
+from ....utils import online_docs_root
 
 # VO
 from .. import exceptions
 from .. import xmlutil
-
-DOC_ROOT = u"../../../doc/"
 
 html_header = u"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html
@@ -93,8 +92,8 @@ def write_warning(w, line, xml_lines):
     else:
         w.write(u'Line %d: ' % warning['nline'])
         if warning['warning']:
-            w.write(u'<a href="%s%s">%s</a>: ' % (
-                DOC_ROOT, warning['doc_url'], warning['warning']))
+            w.write(u'<a href="%s/%s">%s</a>: ' % (
+                online_docs_root, warning['doc_url'], warning['warning']))
         msg = warning['message']
         if not isinstance(warning['message'], unicode):
             msg = msg.decode('utf-8')
