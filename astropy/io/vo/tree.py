@@ -275,7 +275,7 @@ class _XtypeProperty(object):
         if xtype is not None and not self._config.get('version_1_2_or_later'):
             warn_or_raise(
                 W28, W28, ('xtype', self._element_name, '1.2'),
-                config, pos)
+                self._config, self._pos)
         check_string(xtype, 'xtype', self._config, self._pos)
         self._xtype = xtype
 
