@@ -550,11 +550,19 @@ xmlDecl(IterParser *self, const XML_Char *version,
 
         attrs = PyDict_New();
 
-        encoding_str = PyString_FromString(encoding);
+        if (encoding) {
+            encoding_str = PyString_FromString(encoding);
+        } else {
+            encoding_str = PyString_FromString("");
+        }
         PyDict_SetItemString(attrs, "encoding", encoding_str);
         Py_DECREF(encoding_str);
 
-        version_str = PyString_FromString(version);
+        if (version) {
+            version_str = PyString_FromString(version);
+        } else {
+            version_str = PyString_FromString("");
+        }
         PyDict_SetItemString(attrs, "version", version_str);
         Py_DECREF(version_str);
 
