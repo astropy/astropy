@@ -14,6 +14,8 @@ except ImportError:
     __version__ = ''
 # The version number can be found in the "version" variable of version.py
 
-
-
-from .tests.helper import run_tests as test
+# set up the test command
+from .tests.helper import TestRunner
+_test_runner = TestRunner(__path__[0])
+del TestRunner
+test = _test_runner.run_tests
