@@ -53,16 +53,15 @@ extensions = []
 # A dictionary to keep track of all package data to install
 package_data = {'astropy': ['data/*']}
 
-# Extra files to install - distutils calls them "data_files", but this
-# shouldn't be used for data files - rather any other files that should be
-# installed in a special place
-data_files = []
+# A dictionary to keep track of extra packagedir mappings
+package_dirs = {}
 
-# Update extensions, package_data, and data_files from any sub-packages that
-# define their own extension modules and package data.  See the docstring for
-# setup_helpers.update_package_files for more details.
+# Update extensions, package_data, packagenames and package_dirs from
+# any sub-packages that define their own extension modules and package
+# data.  See the docstring for setup_helpers.update_package_files for
+# more details.
 setup_helpers.update_package_files('astropy', extensions, package_data,
-                                   data_files)
+                                   packagenames, package_dirs)
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
@@ -78,7 +77,7 @@ setup(name='astropy',
       description='Community-developed python astronomy tools',
       packages=packagenames,
       package_data=package_data,
-      data_files=data_files,
+      package_dir=package_dirs,
       ext_modules=extensions,
       scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended

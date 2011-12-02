@@ -2,6 +2,8 @@ from distutils.core import setup, Extension
 from os.path import join
 import sys
 
+from astropy import setup_helpers
+
 
 def get_extensions(build_type='release'):
     EXPAT_DIR = 'cextern/expat/lib'
@@ -34,6 +36,5 @@ def get_package_data():
             'data/*.xml', 'data/*.gz', 'data/*.json', 'data/*.fits']}
 
 
-def get_data_files():
-    # Installs the vo.py wrapper module
-    return [('', ['astropy/io/vo/vo.py'])]
+def get_legacy_alias():
+    return setup_helpers.add_legacy_alias('vo', 'astropy.io.vo')

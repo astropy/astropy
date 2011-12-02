@@ -79,7 +79,7 @@ def write_wcsconfig_h():
     #define WCSLIB_INT64 {1}
     """.format(WCSVERSION, determine_64_bit_int()))
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'wcsconfig.h'),
+        join(WCSROOT, 'include', 'wcsconfig.h'),
         h_file.getvalue().encode('ascii'))
 
 ######################################################################
@@ -118,7 +118,7 @@ void fill_docstrings(void);
     h_file.write("\n#endif\n\n")
 
     setup_helpers.write_if_different(
-        join(WCSROOT, 'src', 'docstrings.h'),
+        join(WCSROOT, 'include', 'docstrings.h'),
         h_file.getvalue().encode('utf-8'))
 
     c_file = StringIO()
@@ -258,7 +258,7 @@ def get_extensions():
                   include_dirs=[
                       setup_helpers.get_numpy_include_path(),
                       wcslib_cpath,
-                      join(WCSROOT, "src")],
+                      join(WCSROOT, "include")],
                   define_macros=define_macros,
                   undef_macros=undef_macros,
                   extra_compile_args=extra_compile_args,
@@ -269,10 +269,9 @@ def get_extensions():
 def get_package_data():
     # Installs the testing data files
     return {
-        'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr']}
+        'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr'],
+        'astropy.wcs': ['include/*.h']}
 
 
-def get_data_files():
-    # Installs the pywcs.py wrapper module and the header files
-    return [('', ['astropy/wcs/pywcs.py']),
-            ('astropy/wcs/include', glob.glob('astropy/wcs/src/*.h'))]
+def get_legacy_alias():
+    return setup_helpers.add_legacy_alias('pywcs', 'astropy.wcs')

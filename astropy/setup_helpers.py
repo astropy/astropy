@@ -7,12 +7,14 @@ setup/build/packaging that are useful to astropy as a whole.
 from __future__ import absolute_import
 
 import os
+import shutil
 import sys
 
 from distutils import log
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError
 from distutils.core import Extension
+from distutils.log import warn
 
 from .tests.helper import astropy_test
 
@@ -133,25 +135,27 @@ def get_debug_option():
     return debug
 
 
-def update_package_files(srcdir, extensions, package_data, data_files):
-    """ Extends existing extensions and data_files lists, and updates an
-    existing package_data dict by iterating through all packages in ``srcdir``
-    and locating a ``setup_package.py`` module.  This module can contain any of
-    three functions: ``get_extensions()``, ``get_package_data()``, and
-    ``get_data_files()``.
+def update_package_files(srcdir, extensions, package_data, packagenames,
+                         package_dirs):
+    """ Extends existing extensions, package_data, packagenames and
+    package_dirs collections by iterating through all packages in
+    ``srcdir`` and locating a ``setup_package.py`` module.  This
+    module can contain any of three functions: ``get_extensions()``,
+    ``get_package_data()``, and ``get_legacy_alias()``.
 
-    Each of those functions take no arguments.  ``get_extensions`` returns a
-    list of `distutils.extension.Extension` objects.  ``get_package_data()``
-    returns a dict formatted as required by the ``package_data`` argument to
-    ``setup()``, and likewise ``get_data_files()`` returns a list of data files
-    to be passed to to the ``data_files`` argument.
+    Each of those functions take no arguments.  ``get_extensions``
+    returns a list of `distutils.extension.Extension` objects.
+    ``get_package_data()`` returns a dict formatted as required by the
+    ``package_data`` argument to ``setup()``.  ``get_legacy_alias()``
+    should call `add_legacy_alias` and return its result.
 
     The purpose of this function is to allow subpackages to update the
-    arguments to the package's ``setup()`` function in its setup.py script,
-    rather than having to specify all extensions/package data directly in the
-    setup.py.  It updates existing lists in the setup.py rather than returning
-    new ones.  See Astropy's own setup.py for example usage and the Astropy
-    development docs for more details.
+    arguments to the package's ``setup()`` function in its setup.py
+    script, rather than having to specify all extensions/package data
+    directly in the setup.py.  It updates existing lists in the
+    setup.py rather than returning new ones.  See Astropy's own
+    ``setup.py`` for example usage and the Astropy development docs
+    for more details.
 
     """
 
@@ -167,8 +171,11 @@ def update_package_files(srcdir, extensions, package_data, data_files):
 
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
-        if hasattr(setuppkg, 'get_data_files'):
-            data_files.extend(setuppkg.get_data_files())
+        if hasattr(setuppkg, 'get_legacy_alias'):
+            pkg, dir = setuppkg.get_legacy_alias()
+            if pkg is not None:
+                packagenames.append(pkg)
+                package_dirs[pkg] = dir
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
@@ -427,3 +434,89 @@ except ImportError:
             name = _resolve_name(name[level:], package, level)
         __import__(name)
         return sys.modules[name]
+
+
+def get_legacy_alias_dir():
+    return os.path.join('build', 'legacy-aliases')
+
+
+legacy_shim_template = """
+# This is generated code.  DO NOT EDIT!
+
+import warnings
+warnings.warn(
+    "{old_package} is deprecated.  Use {new_package} instead.",
+    DeprecationWarning)
+
+import pkgutil
+__path__ = pkgutil.extend_path(__path__, "{new_package}")
+
+from {new_package} import *
+from astropy import __version__
+
+_is_astropy_legacy_alias = True
+"""
+
+
+def add_legacy_alias(old_package, new_package):
+    """
+    Adds a legacy alias that makes *pkgfrom* also importable as
+    *pkgto*.
+
+    For example::
+
+       add_legacy_alias('astropy.io.vo', 'vo')
+
+    If the legacy package is importable and it is not merely the
+    compatibility shim, a warning is printed to the user, and the
+    shim is not installed.
+
+    Parameters
+    ----------
+    old_package : str
+        The old namespace.  Must be a single name (i.e. not have `.`).
+
+    new_package : str
+        The new namespace, specified using `.` as a delimiter
+
+    Returns
+    -------
+    old_package, shim_dir : (str, str)
+        The name of the alias package and its source directory in the
+        file system (useful for adding to distutils' `package_dir` kwarg.
+    """
+    import imp
+
+    found_legacy_module = False
+    try:
+        location = imp.find_module(old_package)
+    except ImportError:
+        pass
+    else:
+        # We want ImportError to raise here, because that means it was
+        # found, but something else went wrong.
+        module = imp.load_module(old_package, *location)
+
+        if not hasattr(module, '_is_astropy_legacy_alias'):
+            found_legacy_module = True
+
+    shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
+
+    if found_legacy_module:
+        warn('-' * 60)
+        warn("The legacy package '{0}' was found.".format(old_package))
+        warn("To install astropy's compatibility layer instead, uninstall")
+        warn("'{0}' and then reinstall astropy.".format(old_package))
+        warn('-' * 60)
+
+        if os.path.isdir(shim_dir):
+            shutil.rmtree(shim_dir)
+        return (None, None)
+
+    if not os.path.isdir(shim_dir):
+        os.makedirs(shim_dir)
+    content = legacy_shim_template.format(**locals()).encode('utf-8')
+    write_if_different(
+        os.path.join(shim_dir, '__init__.py'), content)
+
+    return (old_package, shim_dir)
