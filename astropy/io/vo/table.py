@@ -143,7 +143,8 @@ def validate(filename, output=sys.stdout, xmllint=False):
     is_valid : bool
         Returns `True` if no warnings were found.
     """
-    # TODO: text wrapping
+    import textwrap
+    from ...utils.console import print_code_line
 
     lines = []
     votable = None
@@ -178,13 +179,11 @@ def validate(filename, output=sys.stdout, xmllint=False):
                 output.write(u'\n\n')
             else:
                 line = xml_lines[w['nline'] - 1]
-                output.write(u'{nline}: {warning}: {message}\n'.format(**w))
-                output.write(line)
-                nchar = w['nchar']
-                ntabs = line[:nchar].count(u'\t')
-                nchar += ntabs * 7
-                output.write(u' ' * nchar)
-                output.write(u'^\n')
+                output.write(textwrap.fill(
+                    u'{nline}: {warning}: {message}\n'.format(**w),
+                    subsequent_indent=u'  '))
+                output.write(u'\n')
+                print_code_line(line, w['nchar'], file=output)
             output.write(u'\n')
     else:
         output.write(u'astropy.io.vo found no violations.\n\n')

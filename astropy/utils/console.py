@@ -389,3 +389,69 @@ class Spinner():
         else:
             color_print(u' Failed', 'red', bold=True, file=self._file)
         self._file.flush()
+
+
+def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
+    u"""
+    Prints a line of source code, highlighting a particular character
+    position in the line.  Useful for displaying the context of error
+    messages.
+
+    If the line is more than `width` characters, the line is truncated
+    accordingly and '…' characters are inserted at the front and/or
+    end.
+
+    It looks like this::
+
+        there_is_a_syntax_error_here :
+                                     ^
+
+    Parameters
+    ----------
+    line : unicode
+        The line of code to display
+
+    col : int, optional
+        The character in the line to highlight.  `col` must be less
+        than `len(line)`.
+
+    file : writeable file-like object, optional
+        Where to write to.  Defaults to `sys.stdout`.
+
+    tabwidth : int, optional
+        The number of spaces per tab (``'\t'``) character.  Default is
+        8.  All tabs will be converted to spaces to ensure that the
+        caret lines up with the correct column.
+
+    width : int, optional
+        The width of the display, beyond which the line will be
+        truncated.  Defaults to 70 (this matches the default in the
+        standard library's `textwrap` module).
+    """
+    if col is not None:
+        assert col < len(line)
+        ntabs = line[:col].count(u'\t')
+        col += ntabs * (tabwidth - 1)
+
+    line = line.rstrip(u'\n')
+    line = line.replace(u'\t', u' ' * tabwidth)
+
+    if col is not None and col > width:
+        new_col = min(width / 2, len(line) - col)
+        offset = col - new_col
+        line = line[offset + 1: ]
+        new_col = col
+        width = width - 3
+        file.write(u'…')
+
+    if len(line) > width:
+        file.write(line[:width-1])
+        file.write(u'…\n')
+    else:
+        file.write(line)
+        file.write(u'\n')
+
+    if col is not None:
+        file.write(u' ' * col)
+        file.write(u'^\n')
+

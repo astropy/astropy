@@ -1,19 +1,20 @@
-Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/regression.xml
+Validation report for astropy/io/vo/tests/data/regression.xml
 
 11: W01: Array uses commas rather than whitespace
-<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.000000" arraysize="0"/>
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
 ^
 
-11: E02: Incorrect number of elements in array. Expected multiple of 0, got 2
-<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.000000" arraysize="0"/>
+11: E02: Incorrect number of elements in array. Expected multiple of
+  0, got 2
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
 ^
 
 12: W01: Array uses commas rather than whitespace
-<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="deg" ucd="phys.size;instr.tel">
+<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arrays…
 ^
 
 20: W01: Array uses commas rather than whitespace
-<PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="deg"></PARAM>
+<PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.0…
 ^
 
 21: W11: The gref attribute on LINK is deprecated in VOTable 1.1
@@ -25,19 +26,20 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   ^
 
 31: W01: Array uses commas rather than whitespace
-<PARAM datatype="float" name="INPUT2" value="0.000000,0.000000" arraysize="*" unit="deg">
+<PARAM datatype="float" name="INPUT2" value="0.000000,0.000000" array…
 ^
 
 34: W09: ID attribute not capitalized
-<FIELD id="string_test" name="string test" datatype="char" arraysize="*"></FIELD>
+<FIELD id="string_test" name="string test" datatype="char" arraysize=…
 ^
 
-37: W13: 'unicodeString' is not a valid VOTable datatype, should be 'unicodeChar'
-<FIELD ID="fixed_unicode_test" name="unicode test" datatype="unicodeString" arraysize="10"/>
+37: W13: 'unicodeString' is not a valid VOTable datatype, should be
+  'unicodeChar'
+<FIELD ID="fixed_unicode_test" name="unicode test" datatype="unicodeS…
 ^
 
 39: W13: 'string' is not a valid VOTable datatype, should be 'char'
-<FIELD ID="string_array_test" name="string array test" datatype="string" arraysize="4*"/>
+<FIELD ID="string_array_test" name="string array test" datatype="stri…
 ^
 
 46: W48: Unknown attribute 'value' on OPTION
@@ -53,11 +55,12 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   ^
 
 95: W01: Array uses commas rather than whitespace
-  <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" arraysize="*" unit="deg">
+  <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" arr…
   ^
 
-35: W32: Duplicate ID 'string_test' renamed to 'string_test_2' to ensure uniqueness
-<FIELD ID="string_test" name="fixed string test" datatype="char" arraysize="10"/>
+35: W32: Duplicate ID 'string_test' renamed to 'string_test_2' to
+  ensure uniqueness
+<FIELD ID="string_test" name="fixed string test" datatype="char" arra…
 ^
 
 103: W46: char value is too long for specified length of 10
@@ -72,7 +75,8 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>ab cd</TD>
            ^
 
-125: E02: Incorrect number of elements in array. Expected multiple of 4, got 1
+125: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
   <TD/>
        ^
 
@@ -96,7 +100,8 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>42 32, 12 32</TD>
                   ^
 
-159: E02: Incorrect number of elements in array. Expected multiple of 16, got 0
+159: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
   <TD/>
        ^
 
@@ -128,7 +133,8 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD/>
        ^
 
-159: W49: Empty cell illegal for integer fields. (suppressing further warnings of this type...)
+159: W49: Empty cell illegal for integer fields. (suppressing further
+  warnings of this type...)
   <TD/>
        ^
 
@@ -136,7 +142,8 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>0123456789A</TD>
                  ^
 
-189: E02: Incorrect number of elements in array. Expected multiple of 16, got 0
+189: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
   <TD/>
        ^
 
@@ -144,15 +151,18 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>NaN, 23</TD>
              ^
 
-205: E02: Incorrect number of elements in array. Expected multiple of 6, got 0
+205: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
   <TD/>
        ^
 
-213: E02: Incorrect number of elements in array. Expected multiple of 4, got 1
+213: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
   <TD/>
        ^
 
-219: E02: Incorrect number of elements in array. Expected multiple of 16, got 0
+219: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
   <TD/>
        ^
 
@@ -160,15 +170,18 @@ Validation report for /home/mdboom/Work/builds/astropy/astropy/io/vo/tests/data/
   <TD>31, -1</TD>
             ^
 
-235: E02: Incorrect number of elements in array. Expected multiple of 6, got 0
+235: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
   <TD/>
        ^
 
-243: E02: Incorrect number of elements in array. Expected multiple of 4, got 1
+243: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
   <TD/>
        ^
 
-245: E02: Incorrect number of elements in array. Expected multiple of 4, got 1 (suppressing further warnings of this type...)
+245: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1 (suppressing further warnings of this type...)
   <TD/>
        ^
 

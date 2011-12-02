@@ -687,6 +687,8 @@ def test_validate():
 
     assert result == False
 
+    io.open("/home/mdroe/validation.txt", 'wt', encoding='utf-8').write(output.getvalue())
+
     output.seek(0)
     output = output.readlines()
 
