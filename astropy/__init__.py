@@ -9,6 +9,7 @@ managing them.
 
 try:
     from .version import version as __version__
+    from .version import githash as __githash__
 except ImportError:
     # TODO: Issue a warning...
     __version__ = ''
