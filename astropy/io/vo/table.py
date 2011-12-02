@@ -152,7 +152,8 @@ def validate(filename, output=sys.stdout, xmllint=False):
     # infrastructure to keep track of warnings that have already been
     # seen.  Since we want to get every single warning out of this, we
     # have to delete it first.
-    del exceptions.__warningregistry__
+    if hasattr(exceptions, '__warningregistry__'):
+        del exceptions.__warningregistry__
 
     with io.open(filename, 'rb') as input:
         with warnings.catch_warnings(record=True) as warning_lines:
