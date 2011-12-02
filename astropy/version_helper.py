@@ -6,8 +6,9 @@ import imp
 from distutils import log
 
 """
-Utilities for generating the version string for Astropy and the version.py
-module, which contains version info for the package.
+Utilities for generating the version string for Astropy (or an affiliated 
+package) and the version.py module, which contains version info for the
+package.
 
 Within the generated astropy.version module, the `major`, `minor`, and `bugfix`
 variables hold the respective parts of the version number (bugfix is '0' if
@@ -29,9 +30,7 @@ def _version_split(version):
     optional, defaulting to 0).
     """
 
-    if '-r' in version:
-        version = version.split('-r', 1)[0]
-    versplit = version.replace('dev', '').split('.')
+    versplit = version.split('.dev')[0].split('.')
     major = int(versplit[0])
     minor = int(versplit[1])
     bugfix = 0 if len(versplit) < 3 else int(versplit[2])
@@ -46,7 +45,7 @@ def _update_git_devstr(version, path=None):
     """
 
     try:
-        # Quick way to determine if we're in git or not
+        # Quick way to determine if we're in git or not - returns '' if not
         devstr = get_git_devstr(sha=True, show_warning=False, path=path)
     except OSError:
         return version
@@ -54,31 +53,27 @@ def _update_git_devstr(version, path=None):
     if not devstr:
         # Probably not in git so just pass silently
         return version
-
-    if '-git-' in version:
-        version_base = version.split('-git-', 1)[0]
+    
+    if 'dev' in version: #update to the current git revision
+        version_base = version.split('.dev', 1)[0]
+        devstr = get_git_devstr(sha=False,show_warning=False, path=path)
+        
+        return version_base + '.dev' + devstr 
     else:
-        # By default we prefer to use the revision count for now
-        if '-r' in version:
-            version_base = version.split('-r', 1)[0]
-        else:
-            version_base = version
-        devstr = get_git_devstr(show_warning=False, path=path)
-
-    return version_base + devstr
+        #otherwise it's already the true/release version
+        return version
 
 
 def get_git_devstr(sha=False, show_warning=True, path=None):
     """
     Determines the number of revisions in this repository.
 
-
     Parameters
     ----------
     sha : bool
-        If True, the full SHA1 hash will be at the end of the devstr.
-        Otherwise, the total count of commits in the repository will be
-        used as a "revision number".
+        If True, the full SHA1 hash will be returned. Otherwise, the total
+        count of commits in the repository will be used as a "revision
+        number".
 
     show_warning : bool
         If True, issue a warning if git returns an error code, otherwise errors
@@ -92,9 +87,10 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
 
     Returns
     -------
-    devstr : str
-        A string that begins with 'dev' to be appended to the astropy version
-        number string, or an empty string if git returns an error.
+    devversion : str
+        Either a string with the revsion number (if `sha` is False), the
+        SHA1 hash of the current commit (if `sha` is True), or an empty string
+        if git version info could not be identified.
 
     """
     import os
@@ -125,10 +121,10 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         return ''
 
     if sha:
-        return '-git-' + stdout.decode('utf-8')[:40]
+        return stdout.decode('utf-8')[:40]
     else:
         nrev = stdout.decode('utf-8').count('\n')
-        return  '-r%i' % nrev
+        return  str(nrev)
 
 
 # This is used by setup.py to create a new version.py - see that file for
