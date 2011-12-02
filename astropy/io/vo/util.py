@@ -6,6 +6,7 @@ from __future__ import division, with_statement, absolute_import
 
 # STDLIB
 import collections
+import contextlib
 from distutils import version
 import io
 import re
@@ -15,7 +16,6 @@ import time
 
 __all__ = [
     'convert_to_writable_filelike',
-    'convert_to_fd_or_read_function',
     'stc_reference_frames',
     'coerce_range_list_param',
     'is_callable'
@@ -25,6 +25,7 @@ __all__ = [
 IS_PY3K = sys.hexversion >= 0x03000000
 
 
+@contextlib.contextmanager
 def convert_to_writable_filelike(fd):
     """
     Returns a writable file-like object suitable for streaming output.
@@ -34,11 +35,11 @@ def convert_to_writable_filelike(fd):
     fd : file path string or writable file-like object
         May be:
 
-            - a file path, in which case it is opened, and the :meth:`write`
-              method on the file object is returned.
+            - a file path, in which case it is opened, and the file
+              object is returned.
 
             - an object with a :meth:`write` method, in which case that
-              method is returned.
+              object.
 
     Returns
     -------
@@ -48,74 +49,33 @@ def convert_to_writable_filelike(fd):
         if IS_PY3K:
             if fd.endswith('.gz'):
                 from ...utils.compat import gzip
-                fd = gzip.GzipFile(fd, 'wb')
-                fd = io.TextIOWrapper(fd, encoding='utf8')
+                with gzip.GzipFile(fd, 'wb') as real_fd:
+                    encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
+                    yield encoded_fd
+                    encoded_fd.flush()
+                    real_fd.flush()
+                    return
             else:
-                fd = io.open(fd, 'w', encoding='utf8')
+                with io.open(fd, 'w', encoding='utf8') as real_fd:
+                    yield real_fd
+                    return
         else:
             if fd.endswith('.gz'):
                 from ...utils.compat import gzip
-                fd = gzip.GzipFile(fd, 'wb')
+                with gzip.GzipFile(fd, 'wb') as real_fd:
+                    yield real_fd
+                    real_fd.flush()
+                    return
             else:
-                fd = open(fd, 'wb')
-        write = fd
+                with open(fd, 'wb') as real_fd:
+                    yield real_fd
+                    return
     elif hasattr(fd, 'write'):
-        write = fd
         assert is_callable(fd.write)
+        yield fd
+        return
     else:
         raise TypeError("Can not be coerced to writable file-like object")
-
-    return write
-
-
-def convert_to_fd_or_read_function(fd):
-    """
-    Returns a function suitable for streaming input, or a file object.
-
-    Parameters
-    ----------
-    fd : object
-        May be:
-
-            - a file object, in which case it is returned verbatim.
-
-            - a function that reads from a stream, in which case it is
-              returned verbatim.
-
-            - a file path, in which case it is opened.  If it ends in
-              `.gz`, it is assumed to be a gzipped file, and the
-              :meth:`read` method on the file object is returned.
-              Otherwise, the raw file object is returned.
-
-           - an object with a :meth:`read` method, in which case that
-             method is returned.
-
-    Returns
-    -------
-    fd : context-dependent
-        See above.
-    """
-    if IS_PY3K:
-        if isinstance(fd, io.IOBase):
-            return fd
-    else:
-        if isinstance(fd, file):
-            return fd
-    if is_callable(fd):
-        return fd
-    elif isinstance(fd, basestring):
-        if fd.endswith('.gz'):
-            from ...utils.compat import gzip
-            fd = gzip.GzipFile(fd, 'rb')
-            return fd.read
-        else:
-            fd = open(fd, 'rb')
-            return fd
-    elif hasattr(fd, 'read'):
-        assert is_callable(fd.read)
-        return fd.read
-    else:
-        raise TypeError("Can not be coerced to read function")
 
 
 # <http://www.ivoa.net/Documents/REC/DM/STC-20071030.html>

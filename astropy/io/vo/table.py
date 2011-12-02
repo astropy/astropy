@@ -14,7 +14,7 @@ import warnings
 from . import exceptions
 from . import tree
 from . import util
-from . import xmlutil
+from ...utils.xml import iterparser
 
 
 __all__ = ['parse', 'parse_single_table', 'validate']
@@ -93,12 +93,11 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
     if filename is None and isinstance(source, basestring):
         config['filename'] = source
 
-    source = util.convert_to_fd_or_read_function(source)
-
-    iterator = xmlutil.get_xml_iterator(
-        source, _debug_python_based_parser=_debug_python_based_parser)
-
-    return tree.VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
+    with iterparser.get_xml_iterator(
+        source,
+        _debug_python_based_parser=_debug_python_based_parser) as iterator:
+        return tree.VOTableFile(
+            config=config, pos=(1, 1)).parse(iterator, config)
 
 
 def parse_single_table(source, **kwargs):
@@ -175,7 +174,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
     output.write(u"Validation report for {0}\n\n".format(filename))
 
     if len(lines):
-        xml_lines = xmlutil.xml_readlines(filename)
+        xml_lines = iterparser.xml_readlines(filename)
 
         for warning in lines:
             w = exceptions.parse_vowarning(warning)
