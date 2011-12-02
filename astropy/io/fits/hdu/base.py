@@ -66,9 +66,7 @@ def _hdu_class_from_header(cls, header):
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
 class _BaseHDU(object):
-    """
-    Base class for all HDU (header data unit) classes.
-    """
+    """Base class for all HDU (header data unit) classes."""
 
     _hdu_registry = set()
 
@@ -122,8 +120,8 @@ class _BaseHDU(object):
 
     @property
     def _data_loaded(self):
-        return 'data' in self.__dict__ and self.data is not None and \
-               self.data is not DELAYED
+        return ('data' in self.__dict__ and self.data is not None and
+                self.data is not DELAYED)
 
     @classmethod
     def register_hdu(cls, hducls):
@@ -334,8 +332,8 @@ class _BaseHDU(object):
 
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
-        if self._data_loaded and self.data is not None and \
-           self._standard and _is_pseudo_unsigned(self.data.dtype):
+        if (self._data_loaded and self.data is not None and
+            self._standard and _is_pseudo_unsigned(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
                 try:
                     del self._header[keyword]

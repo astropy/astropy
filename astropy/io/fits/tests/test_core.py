@@ -12,6 +12,7 @@ from ....io import fits
 from ....tests.helper import pytest, raises
 
 from . import FitsTestCase
+from .util import ignore_warnings
 from ..convenience import _getext
 
 
@@ -26,7 +27,7 @@ class TestCore(FitsTestCase):
         hdulist[1].header['NAXIS3'] = 500
 
         assert 'NAXIS3' in hdulist[1].header
-        hdulist.verify('fix')
+        hdulist.verify('silentfix')
         assert 'NAXIS3' not in hdulist[1].header
 
     def test_byteswap(self):
@@ -174,7 +175,7 @@ class TestCore(FitsTestCase):
     @raises(fits.VerifyError)
     def test_exception_on_verification_error(self):
         hdu = fits.ImageHDU()
-        del hdu.header['NAXIS']
+        del hdu.header['XTENSION']
         hdu.verify('exception')
 
     def test_ignore_verification_error(self):
@@ -268,12 +269,14 @@ class TestFileFunctions(FitsTestCase):
     """
 
     def test_open_gzipped(self):
-        assert len(fits.open(self._make_gzip_file())) == 5
+        with ignore_warnings():
+            assert len(fits.open(self._make_gzip_file())) == 5
 
     def test_detect_gzipped(self):
         """Test detection of a gzip file when the extension is not .gz."""
 
-        assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
+        with ignore_warnings():
+            assert len(fits.open(self._make_gzip_file('test0.fz'))) == 5
 
     def test_open_gzipped_writeable(self):
         """Opening gzipped files in a writeable mode should fail."""
@@ -283,13 +286,15 @@ class TestFileFunctions(FitsTestCase):
         pytest.raises(IOError, fits.open, gf, 'append')
 
     def test_open_zipped(self):
-        assert len(fits.open(self._make_zip_file())) == 5
+        with ignore_warnings():
+            assert len(fits.open(self._make_zip_file())) == 5
 
     def test_detect_zipped(self):
         """Test detection of a zip file when the extension is not .zip."""
 
         zf = self._make_zip_file(filename='test0.fz')
-        assert len(fits.open(zf)) == 5
+        with ignore_warnings():
+            assert len(fits.open(zf)) == 5
 
     def test_open_zipped_writeable(self):
         """Opening zipped files in a writeable mode should fail."""
@@ -342,7 +347,8 @@ class TestFileFunctions(FitsTestCase):
         with open(self.data('test0.fits'), 'rb') as f:
             filelike.write(f.read())
         filelike.seek(0)
-        assert len(fits.open(filelike)) == 5
+        with ignore_warnings():
+            assert len(fits.open(filelike)) == 5
 
     def test_updated_file_permissions(self):
         """

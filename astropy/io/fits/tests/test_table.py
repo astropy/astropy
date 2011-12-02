@@ -8,6 +8,7 @@ from ....tests.helper import pytest
 
 from ..util import decode_ascii
 from . import FitsTestCase
+from .util import ignore_warnings
 
 
 def comparefloats(a, b):
@@ -371,7 +372,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(hdu.data._coldefs.columns[0].array) ==
                 id(hdu.data._coldefs._arrays[0]))
         assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns.data[0].array))
+                id(hdu.columns.columns[0].array))
         assert (id(hdu.data._coldefs.columns[0].array) ==
                 id(hdu.columns._arrays[0]))
 
@@ -383,7 +384,7 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[0][0] == 213
         assert hdu.data._coldefs.columns[0].array[0] == 213
         assert hdu.columns._arrays[0][0] == 213
-        assert hdu.columns.data[0].array[0] == 213
+        assert hdu.columns.columns[0].array[0] == 213
 
         hdu.data._coldefs._arrays[0][0] = 100
 
@@ -391,28 +392,28 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[0][0] == 100
         assert hdu.data._coldefs.columns[0].array[0] == 100
         assert hdu.columns._arrays[0][0] == 100
-        assert hdu.columns.data[0].array[0] == 100
+        assert hdu.columns.columns[0].array[0] == 100
 
         hdu.data._coldefs.columns[0].array[0] = 500
         assert hdu.data[0][0] == 500
         assert hdu.data._coldefs._arrays[0][0] == 500
         assert hdu.data._coldefs.columns[0].array[0] == 500
         assert hdu.columns._arrays[0][0] == 500
-        assert hdu.columns.data[0].array[0] == 500
+        assert hdu.columns.columns[0].array[0] == 500
 
         hdu.columns._arrays[0][0] = 600
         assert hdu.data[0][0] == 600
         assert hdu.data._coldefs._arrays[0][0] == 600
         assert hdu.data._coldefs.columns[0].array[0] == 600
         assert hdu.columns._arrays[0][0] == 600
-        assert hdu.columns.data[0].array[0] == 600
+        assert hdu.columns.columns[0].array[0] == 600
 
-        hdu.columns.data[0].array[0] = 800
+        hdu.columns.columns[0].array[0] = 800
         assert hdu.data[0][0] == 800
         assert hdu.data._coldefs._arrays[0][0] == 800
         assert hdu.data._coldefs.columns[0].array[0] == 800
         assert hdu.columns._arrays[0][0] == 800
-        assert hdu.columns.data[0].array[0] == 800
+        assert hdu.columns.columns[0].array[0] == 800
 
         assert (hdu.data.field(0).all() ==
                 np.array([1, 2], dtype=np.int16).all())
@@ -422,7 +423,8 @@ class TestTableFunctions(FitsTestCase):
                 np.array([-1.45, -0.73], dtype=np.float32).all())
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
-        hdu.writeto(self.temp('toto.fits'), clobber=True)
+        with ignore_warnings():
+            hdu.writeto(self.temp('toto.fits'), clobber=True)
         hdul = fits.open(self.temp('toto.fits'))
         assert (hdul[1].data.field(0).all() ==
                 np.array([1, 2], dtype=np.int16).all())
@@ -536,35 +538,35 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 300
         assert hdu.data._coldefs.columns[1].array[0] == 300
         assert hdu.columns._arrays[1][0] == 300
-        assert hdu.columns.data[1].array[0] == 300
+        assert hdu.columns.columns[1].array[0] == 300
         assert hdu.data[0][1] == 300
 
         hdu.data._coldefs._arrays[1][0] = 200
         assert hdu.data._coldefs._arrays[1][0] == 200
         assert hdu.data._coldefs.columns[1].array[0] == 200
         assert hdu.columns._arrays[1][0] == 200
-        assert hdu.columns.data[1].array[0] == 200
+        assert hdu.columns.columns[1].array[0] == 200
         assert hdu.data[0][1] == 200
 
         hdu.data._coldefs.columns[1].array[0] = 100
         assert hdu.data._coldefs._arrays[1][0] == 100
         assert hdu.data._coldefs.columns[1].array[0] == 100
         assert hdu.columns._arrays[1][0] == 100
-        assert hdu.columns.data[1].array[0] == 100
+        assert hdu.columns.columns[1].array[0] == 100
         assert hdu.data[0][1] == 100
 
         hdu.columns._arrays[1][0] = 90
         assert hdu.data._coldefs._arrays[1][0] == 90
         assert hdu.data._coldefs.columns[1].array[0] == 90
         assert hdu.columns._arrays[1][0] == 90
-        assert hdu.columns.data[1].array[0] == 90
+        assert hdu.columns.columns[1].array[0] == 90
         assert hdu.data[0][1] == 90
 
-        hdu.columns.data[1].array[0] = 80
+        hdu.columns.columns[1].array[0] = 80
         assert hdu.data._coldefs._arrays[1][0] == 80
         assert hdu.data._coldefs.columns[1].array[0] == 80
         assert hdu.columns._arrays[1][0] == 80
-        assert hdu.columns.data[1].array[0] == 80
+        assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
         # Same verification from the file
@@ -574,35 +576,35 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 300
         assert hdu.data._coldefs.columns[1].array[0] == 300
         assert hdu.columns._arrays[1][0] == 300
-        assert hdu.columns.data[1].array[0] == 300
+        assert hdu.columns.columns[1].array[0] == 300
         assert hdu.data[0][1] == 300
 
         hdu.data._coldefs._arrays[1][0] = 200
         assert hdu.data._coldefs._arrays[1][0] == 200
         assert hdu.data._coldefs.columns[1].array[0] == 200
         assert hdu.columns._arrays[1][0] == 200
-        assert hdu.columns.data[1].array[0] == 200
+        assert hdu.columns.columns[1].array[0] == 200
         assert hdu.data[0][1] == 200
 
         hdu.data._coldefs.columns[1].array[0] = 100
         assert hdu.data._coldefs._arrays[1][0] == 100
         assert hdu.data._coldefs.columns[1].array[0] == 100
         assert hdu.columns._arrays[1][0] == 100
-        assert hdu.columns.data[1].array[0] == 100
+        assert hdu.columns.columns[1].array[0] == 100
         assert hdu.data[0][1] == 100
 
         hdu.columns._arrays[1][0] = 90
         assert hdu.data._coldefs._arrays[1][0] == 90
         assert hdu.data._coldefs.columns[1].array[0] == 90
         assert hdu.columns._arrays[1][0] == 90
-        assert hdu.columns.data[1].array[0] == 90
+        assert hdu.columns.columns[1].array[0] == 90
         assert hdu.data[0][1] == 90
 
-        hdu.columns.data[1].array[0] = 80
+        hdu.columns.columns[1].array[0] = 80
         assert hdu.data._coldefs._arrays[1][0] == 80
         assert hdu.data._coldefs.columns[1].array[0] == 80
         assert hdu.columns._arrays[1][0] == 80
-        assert hdu.columns.data[1].array[0] == 80
+        assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
         t1.close()
@@ -686,35 +688,35 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 300
         assert hdu.data._coldefs.columns[1].array[0] == 300
         assert hdu.columns._arrays[1][0] == 300
-        assert hdu.columns.data[1].array[0] == 300
+        assert hdu.columns.columns[1].array[0] == 300
         assert hdu.data[0][1] == 300
 
         hdu.data._coldefs._arrays[1][0] = 200
         assert hdu.data._coldefs._arrays[1][0] == 200
         assert hdu.data._coldefs.columns[1].array[0] == 200
         assert hdu.columns._arrays[1][0] == 200
-        assert hdu.columns.data[1].array[0] == 200
+        assert hdu.columns.columns[1].array[0] == 200
         assert hdu.data[0][1] == 200
 
         hdu.data._coldefs.columns[1].array[0] = 100
         assert hdu.data._coldefs._arrays[1][0] == 100
         assert hdu.data._coldefs.columns[1].array[0] == 100
         assert hdu.columns._arrays[1][0] == 100
-        assert hdu.columns.data[1].array[0] == 100
+        assert hdu.columns.columns[1].array[0] == 100
         assert hdu.data[0][1] == 100
 
         hdu.columns._arrays[1][0] = 90
         assert hdu.data._coldefs._arrays[1][0] == 90
         assert hdu.data._coldefs.columns[1].array[0] == 90
         assert hdu.columns._arrays[1][0] == 90
-        assert hdu.columns.data[1].array[0] == 90
+        assert hdu.columns.columns[1].array[0] == 90
         assert hdu.data[0][1] == 90
 
-        hdu.columns.data[1].array[0] = 80
+        hdu.columns.columns[1].array[0] = 80
         assert hdu.data._coldefs._arrays[1][0] == 80
         assert hdu.data._coldefs.columns[1].array[0] == 80
         assert hdu.columns._arrays[1][0] == 80
-        assert hdu.columns.data[1].array[0] == 80
+        assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
         info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (), 'uint8', ''),
@@ -744,35 +746,35 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 300
         assert hdu.data._coldefs.columns[1].array[0] == 300
         assert hdu.columns._arrays[1][0] == 300
-        assert hdu.columns.data[1].array[0] == 300
+        assert hdu.columns.columns[1].array[0] == 300
         assert hdu.data[0][1] == 300
 
         hdu.data._coldefs._arrays[1][0] = 200
         assert hdu.data._coldefs._arrays[1][0] == 200
         assert hdu.data._coldefs.columns[1].array[0] == 200
         assert hdu.columns._arrays[1][0] == 200
-        assert hdu.columns.data[1].array[0] == 200
+        assert hdu.columns.columns[1].array[0] == 200
         assert hdu.data[0][1] == 200
 
         hdu.data._coldefs.columns[1].array[0] = 100
         assert hdu.data._coldefs._arrays[1][0] == 100
         assert hdu.data._coldefs.columns[1].array[0] == 100
         assert hdu.columns._arrays[1][0] == 100
-        assert hdu.columns.data[1].array[0] == 100
+        assert hdu.columns.columns[1].array[0] == 100
         assert hdu.data[0][1] == 100
 
         hdu.columns._arrays[1][0] = 90
         assert hdu.data._coldefs._arrays[1][0] == 90
         assert hdu.data._coldefs.columns[1].array[0] == 90
         assert hdu.columns._arrays[1][0] == 90
-        assert hdu.columns.data[1].array[0] == 90
+        assert hdu.columns.columns[1].array[0] == 90
         assert hdu.data[0][1] == 90
 
-        hdu.columns.data[1].array[0] = 80
+        hdu.columns.columns[1].array[0] = 80
         assert hdu.data._coldefs._arrays[1][0] == 80
         assert hdu.data._coldefs.columns[1].array[0] == 80
         assert hdu.columns._arrays[1][0] == 80
-        assert hdu.columns.data[1].array[0] == 80
+        assert hdu.columns.columns[1].array[0] == 80
         assert hdu.data[0][1] == 80
 
         t1.close()
@@ -855,7 +857,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][2] == 500
         assert t1[1].data._coldefs.columns[1].array[2] == 500
         assert t1[1].columns._arrays[1][2] == 500
-        assert t1[1].columns.data[1].array[2] == 500
+        assert t1[1].columns.columns[1].array[2] == 500
         assert t1[1].data[2][1] == 500
 
         t1.close()
@@ -926,7 +928,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
                 id(tbhdu.data._coldefs._arrays[0]))
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns.data[0].array))
+                id(tbhdu.columns.columns[0].array))
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
                 id(tbhdu.columns._arrays[0]))
 
@@ -934,23 +936,23 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data._coldefs._arrays[1][0] == 312
         assert tbhdu.data._coldefs.columns[1].array[0] == 312
         assert tbhdu.columns._arrays[1][0] == 312
-        assert tbhdu.columns.data[1].array[0] == 312
-        assert tbhdu.columns.data[0].array[0] == 'NGC1'
-        assert tbhdu.columns.data[2].array[0] == '0.0'
-        assert (tbhdu.columns.data[3].array[0] ==
+        assert tbhdu.columns.columns[1].array[0] == 312
+        assert tbhdu.columns.columns[0].array[0] == 'NGC1'
+        assert tbhdu.columns.columns[2].array[0] == '0.0'
+        assert (tbhdu.columns.columns[3].array[0] ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
-        assert tbhdu.columns.data[4].array[0] == True
+        assert tbhdu.columns.columns[4].array[0] == True
 
         assert tbhdu.data[3][1] == 33
         assert tbhdu.data._coldefs._arrays[1][3] == 33
         assert tbhdu.data._coldefs.columns[1].array[3] == 33
         assert tbhdu.columns._arrays[1][3] == 33
-        assert tbhdu.columns.data[1].array[3] == 33
-        assert tbhdu.columns.data[0].array[3] == 'JIM1'
-        assert tbhdu.columns.data[2].array[3] == 'A Note'
-        assert (tbhdu.columns.data[3].array[3] ==
+        assert tbhdu.columns.columns[1].array[3] == 33
+        assert tbhdu.columns.columns[0].array[3] == 'JIM1'
+        assert tbhdu.columns.columns[2].array[3] == 'A Note'
+        assert (tbhdu.columns.columns[3].array[3] ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
-        assert tbhdu.columns.data[4].array[3] == True
+        assert tbhdu.columns.columns[4].array[3] == True
 
     def test_assign_multiple_rows_to_table(self):
         counts = np.array([312, 334, 308, 317])
@@ -988,7 +990,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(tbhdu2.data._coldefs.columns[0].array) ==
                 id(tbhdu2.data._coldefs._arrays[0]))
         assert (id(tbhdu2.data._coldefs.columns[0].array) ==
-                id(tbhdu2.columns.data[0].array))
+                id(tbhdu2.columns.columns[0].array))
         assert (id(tbhdu2.data._coldefs.columns[0].array) ==
                 id(tbhdu2.columns._arrays[0]))
 
@@ -996,30 +998,30 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.data._coldefs._arrays[1][0] == 312
         assert tbhdu2.data._coldefs.columns[1].array[0] == 312
         assert tbhdu2.columns._arrays[1][0] == 312
-        assert tbhdu2.columns.data[1].array[0] == 312
-        assert tbhdu2.columns.data[0].array[0] == 'NGC1'
-        assert tbhdu2.columns.data[2].array[0] == '0.0'
-        assert (tbhdu2.columns.data[3].array[0].all() ==
+        assert tbhdu2.columns.columns[1].array[0] == 312
+        assert tbhdu2.columns.columns[0].array[0] == 'NGC1'
+        assert tbhdu2.columns.columns[2].array[0] == '0.0'
+        assert (tbhdu2.columns.columns[3].array[0].all() ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32).all())
-        assert tbhdu2.columns.data[4].array[0] == True
+        assert tbhdu2.columns.columns[4].array[0] == True
 
         assert tbhdu2.data[4][1] == 112
         assert tbhdu2.data._coldefs._arrays[1][4] == 112
         assert tbhdu2.data._coldefs.columns[1].array[4] == 112
         assert tbhdu2.columns._arrays[1][4] == 112
-        assert tbhdu2.columns.data[1].array[4] == 112
-        assert tbhdu2.columns.data[0].array[4] == 'NGC5'
-        assert tbhdu2.columns.data[2].array[4] == '0.0'
-        assert (tbhdu2.columns.data[3].array[4].all() ==
+        assert tbhdu2.columns.columns[1].array[4] == 112
+        assert tbhdu2.columns.columns[0].array[4] == 'NGC5'
+        assert tbhdu2.columns.columns[2].array[4] == '0.0'
+        assert (tbhdu2.columns.columns[3].array[4].all() ==
                 np.array([1., 2., 3., 4., 5.], dtype=np.float32).all())
-        assert tbhdu2.columns.data[4].array[4] == False
+        assert tbhdu2.columns.columns[4].array[4] == False
 
-        assert tbhdu2.columns.data[1].array[8] == 0
-        assert tbhdu2.columns.data[0].array[8] == '0.0'
-        assert tbhdu2.columns.data[2].array[8] == '0.0'
-        assert (tbhdu2.columns.data[3].array[8].all() ==
+        assert tbhdu2.columns.columns[1].array[8] == 0
+        assert tbhdu2.columns.columns[0].array[8] == '0.0'
+        assert tbhdu2.columns.columns[2].array[8] == '0.0'
+        assert (tbhdu2.columns.columns[3].array[8].all() ==
                 np.array([0., 0., 0., 0., 0.], dtype=np.float32).all())
-        assert tbhdu2.columns.data[4].array[8] == False
+        assert tbhdu2.columns.columns[4].array[8] == False
 
     def test_verify_data_references(self):
         counts = np.array([312, 334, 308, 317])
@@ -1050,10 +1052,11 @@ class TestTableFunctions(FitsTestCase):
         assert id(coldefs) != id(tbhdu.columns)
 
         # Verify new HDU has independent Column objects.
-        assert id(coldefs.columns[0]) != id(tbhdu.columns.data[0])
+        assert id(coldefs.columns[0]) != id(tbhdu.columns.columns[0])
 
         # Verify new HDU has independent ndarray objects.
-        assert id(coldefs.columns[0].array) != id(tbhdu.columns.data[0].array)
+        assert (id(coldefs.columns[0].array) !=
+                id(tbhdu.columns.columns[0].array))
 
         # Verify that both ColDefs objects in the HDU reference the same
         # Coldefs object.
@@ -1064,7 +1067,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
                 id(tbhdu.data._coldefs._arrays[0]))
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
-                id(tbhdu.columns.data[0].array))
+                id(tbhdu.columns.columns[0].array))
         assert (id(tbhdu.data._coldefs.columns[0].array) ==
                 id(tbhdu.columns._arrays[0]))
 
@@ -1078,7 +1081,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 213
         assert t1[1].data._coldefs.columns[1].array[0] == 213
         assert t1[1].columns._arrays[1][0] == 213
-        assert t1[1].columns.data[1].array[0] == 213
+        assert t1[1].columns.columns[1].array[0] == 213
 
         t1[1].data._coldefs._arrays[1][0] = 100
 
@@ -1086,28 +1089,28 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 100
         assert t1[1].data._coldefs.columns[1].array[0] == 100
         assert t1[1].columns._arrays[1][0] == 100
-        assert t1[1].columns.data[1].array[0] == 100
+        assert t1[1].columns.columns[1].array[0] == 100
 
         t1[1].data._coldefs.columns[1].array[0] = 500
         assert t1[1].data[0][1] == 500
         assert t1[1].data._coldefs._arrays[1][0] == 500
         assert t1[1].data._coldefs.columns[1].array[0] == 500
         assert t1[1].columns._arrays[1][0] == 500
-        assert t1[1].columns.data[1].array[0] == 500
+        assert t1[1].columns.columns[1].array[0] == 500
 
         t1[1].columns._arrays[1][0] = 600
         assert t1[1].data[0][1] == 600
         assert t1[1].data._coldefs._arrays[1][0] == 600
         assert t1[1].data._coldefs.columns[1].array[0] == 600
         assert t1[1].columns._arrays[1][0] == 600
-        assert t1[1].columns.data[1].array[0] == 600
+        assert t1[1].columns.columns[1].array[0] == 600
 
-        t1[1].columns.data[1].array[0] = 800
+        t1[1].columns.columns[1].array[0] = 800
         assert t1[1].data[0][1] == 800
         assert t1[1].data._coldefs._arrays[1][0] == 800
         assert t1[1].data._coldefs.columns[1].array[0] == 800
         assert t1[1].columns._arrays[1][0] == 800
-        assert t1[1].columns.data[1].array[0] == 800
+        assert t1[1].columns.columns[1].array[0] == 800
 
         t1.close()
 
@@ -1130,7 +1133,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(tbhdu1.data._coldefs.columns[0].array) ==
                 id(tbhdu1.data._coldefs._arrays[0]))
         assert (id(tbhdu1.data._coldefs.columns[0].array) ==
-                id(tbhdu1.columns.data[0].array))
+                id(tbhdu1.columns.columns[0].array))
         assert (id(tbhdu1.data._coldefs.columns[0].array) ==
                 id(tbhdu1.columns._arrays[0]))
 
@@ -1142,7 +1145,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.data._coldefs._arrays[1][0] == 213
         assert tbhdu1.data._coldefs.columns[1].array[0] == 213
         assert tbhdu1.columns._arrays[1][0] == 213
-        assert tbhdu1.columns.data[1].array[0] == 213
+        assert tbhdu1.columns.columns[1].array[0] == 213
 
         tbhdu1.data._coldefs._arrays[1][0] = 100
 
@@ -1150,28 +1153,28 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.data._coldefs._arrays[1][0] == 100
         assert tbhdu1.data._coldefs.columns[1].array[0] == 100
         assert tbhdu1.columns._arrays[1][0] == 100
-        assert tbhdu1.columns.data[1].array[0] == 100
+        assert tbhdu1.columns.columns[1].array[0] == 100
 
         tbhdu1.data._coldefs.columns[1].array[0] = 500
         assert tbhdu1.data[0][1] == 500
         assert tbhdu1.data._coldefs._arrays[1][0] == 500
         assert tbhdu1.data._coldefs.columns[1].array[0] == 500
         assert tbhdu1.columns._arrays[1][0] == 500
-        assert tbhdu1.columns.data[1].array[0] == 500
+        assert tbhdu1.columns.columns[1].array[0] == 500
 
         tbhdu1.columns._arrays[1][0] = 600
         assert tbhdu1.data[0][1] == 600
         assert tbhdu1.data._coldefs._arrays[1][0] == 600
         assert tbhdu1.data._coldefs.columns[1].array[0] == 600
         assert tbhdu1.columns._arrays[1][0] == 600
-        assert tbhdu1.columns.data[1].array[0] == 600
+        assert tbhdu1.columns.columns[1].array[0] == 600
 
-        tbhdu1.columns.data[1].array[0] = 800
+        tbhdu1.columns.columns[1].array[0] = 800
         assert tbhdu1.data[0][1] == 800
         assert tbhdu1.data._coldefs._arrays[1][0] == 800
         assert tbhdu1.data._coldefs.columns[1].array[0] == 800
         assert tbhdu1.columns._arrays[1][0] == 800
-        assert tbhdu1.columns.data[1].array[0] == 800
+        assert tbhdu1.columns.columns[1].array[0] == 800
 
         tbhdu1.writeto(self.temp('table1.fits'))
 
@@ -1183,7 +1186,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 213
         assert t1[1].data._coldefs.columns[1].array[0] == 213
         assert t1[1].columns._arrays[1][0] == 213
-        assert t1[1].columns.data[1].array[0] == 213
+        assert t1[1].columns.columns[1].array[0] == 213
 
         t1[1].data._coldefs._arrays[1][0] = 100
 
@@ -1191,28 +1194,28 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 100
         assert t1[1].data._coldefs.columns[1].array[0] == 100
         assert t1[1].columns._arrays[1][0] == 100
-        assert t1[1].columns.data[1].array[0] == 100
+        assert t1[1].columns.columns[1].array[0] == 100
 
         t1[1].data._coldefs.columns[1].array[0] = 500
         assert t1[1].data[0][1] == 500
         assert t1[1].data._coldefs._arrays[1][0] == 500
         assert t1[1].data._coldefs.columns[1].array[0] == 500
         assert t1[1].columns._arrays[1][0] == 500
-        assert t1[1].columns.data[1].array[0] == 500
+        assert t1[1].columns.columns[1].array[0] == 500
 
         t1[1].columns._arrays[1][0] = 600
         assert t1[1].data[0][1] == 600
         assert t1[1].data._coldefs._arrays[1][0] == 600
         assert t1[1].data._coldefs.columns[1].array[0] == 600
         assert t1[1].columns._arrays[1][0] == 600
-        assert t1[1].columns.data[1].array[0] == 600
+        assert t1[1].columns.columns[1].array[0] == 600
 
-        t1[1].columns.data[1].array[0] = 800
+        t1[1].columns.columns[1].array[0] = 800
         assert t1[1].data[0][1] == 800
         assert t1[1].data._coldefs._arrays[1][0] == 800
         assert t1[1].data._coldefs.columns[1].array[0] == 800
         assert t1[1].columns._arrays[1][0] == 800
-        assert t1[1].columns.data[1].array[0] == 800
+        assert t1[1].columns.columns[1].array[0] == 800
 
         t1.close()
 
@@ -1234,7 +1237,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data._coldefs._arrays[1][0] == 213
         assert tbhdu.data._coldefs.columns[1].array[0] == 213
         assert tbhdu.columns._arrays[1][0] == 213
-        assert tbhdu.columns.data[1].array[0] == 213
+        assert tbhdu.columns.columns[1].array[0] == 213
 
         tbhdu.data._coldefs._arrays[1][0] = 100
 
@@ -1242,30 +1245,30 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu.data._coldefs._arrays[1][0] == 100
         assert tbhdu.data._coldefs.columns[1].array[0] == 100
         assert tbhdu.columns._arrays[1][0] == 100
-        assert tbhdu.columns.data[1].array[0] == 100
+        assert tbhdu.columns.columns[1].array[0] == 100
 
         tbhdu.data._coldefs.columns[1].array[0] = 500
         assert tbhdu.data[0][1] == 500
         assert tbhdu.data._coldefs._arrays[1][0] == 500
         assert tbhdu.data._coldefs.columns[1].array[0] == 500
         assert tbhdu.columns._arrays[1][0] == 500
-        assert tbhdu.columns.data[1].array[0] == 500
+        assert tbhdu.columns.columns[1].array[0] == 500
 
         tbhdu.columns._arrays[1][0] = 600
         assert tbhdu.data[0][1] == 600
         assert tbhdu.data._coldefs._arrays[1][0] == 600
         assert tbhdu.data._coldefs.columns[1].array[0] == 600
         assert tbhdu.columns._arrays[1][0] == 600
-        assert tbhdu.columns.data[1].array[0] == 600
+        assert tbhdu.columns.columns[1].array[0] == 600
 
-        tbhdu.columns.data[1].array[0] = 800
+        tbhdu.columns.columns[1].array[0] = 800
         assert tbhdu.data[0][1] == 800
         assert tbhdu.data._coldefs._arrays[1][0] == 800
         assert tbhdu.data._coldefs.columns[1].array[0] == 800
         assert tbhdu.columns._arrays[1][0] == 800
-        assert tbhdu.columns.data[1].array[0] == 800
+        assert tbhdu.columns.columns[1].array[0] == 800
 
-        tbhdu.columns.data[1].array[0] = 312
+        tbhdu.columns.columns[1].array[0] = 312
 
         tbhdu.writeto(self.temp('table1.fits'))
 
@@ -1277,7 +1280,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 1
         assert t1[1].data._coldefs.columns[1].array[0] == 1
         assert t1[1].columns._arrays[1][0] == 1
-        assert t1[1].columns.data[1].array[0] == 1
+        assert t1[1].columns.columns[1].array[0] == 1
         assert fr[0][1] == 1
         assert fr._coldefs._arrays[1][0] == 1
         assert fr._coldefs.columns[1].array[0] == 1
@@ -1301,7 +1304,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 312
         assert t1[1].data._coldefs.columns[1].array[0] == 312
         assert t1[1].columns._arrays[1][0] == 312
-        assert t1[1].columns.data[1].array[0] == 312
+        assert t1[1].columns.columns[1].array[0] == 312
         assert fr[0][1] == 312
         assert fr._coldefs._arrays[1][0] == 312
         assert fr._coldefs.columns[1].array[0] == 312
@@ -1309,7 +1312,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.data._coldefs._arrays[1][0] == 213
         assert tbhdu1.data._coldefs.columns[1].array[0] == 213
         assert tbhdu1.columns._arrays[1][0] == 213
-        assert tbhdu1.columns.data[1].array[0] == 213
+        assert tbhdu1.columns.columns[1].array[0] == 213
 
         t1[1].data[0][1] = 10
 
@@ -1317,7 +1320,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 10
         assert t1[1].data._coldefs.columns[1].array[0] == 10
         assert t1[1].columns._arrays[1][0] == 10
-        assert t1[1].columns.data[1].array[0] == 10
+        assert t1[1].columns.columns[1].array[0] == 10
         assert fr[0][1] == 10
         assert fr._coldefs._arrays[1][0] == 10
         assert fr._coldefs.columns[1].array[0] == 10
@@ -1325,7 +1328,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.data._coldefs._arrays[1][0] == 213
         assert tbhdu1.data._coldefs.columns[1].array[0] == 213
         assert tbhdu1.columns._arrays[1][0] == 213
-        assert tbhdu1.columns.data[1].array[0] == 213
+        assert tbhdu1.columns.columns[1].array[0] == 213
 
         tbhdu1.data._coldefs._arrays[1][0] = 666
 
@@ -1333,7 +1336,7 @@ class TestTableFunctions(FitsTestCase):
         assert t1[1].data._coldefs._arrays[1][0] == 10
         assert t1[1].data._coldefs.columns[1].array[0] == 10
         assert t1[1].columns._arrays[1][0] == 10
-        assert t1[1].columns.data[1].array[0] == 10
+        assert t1[1].columns.columns[1].array[0] == 10
         assert fr[0][1] == 10
         assert fr._coldefs._arrays[1][0] == 10
         assert fr._coldefs.columns[1].array[0] == 10
@@ -1341,7 +1344,7 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu1.data._coldefs._arrays[1][0] == 666
         assert tbhdu1.data._coldefs.columns[1].array[0] == 666
         assert tbhdu1.columns._arrays[1][0] == 666
-        assert tbhdu1.columns.data[1].array[0] == 666
+        assert tbhdu1.columns.columns[1].array[0] == 666
 
         t1.close()
 
@@ -1364,7 +1367,7 @@ class TestTableFunctions(FitsTestCase):
         assert (id(hdu.data._coldefs.columns[0].array) ==
                 id(hdu.data._coldefs._arrays[0]))
         assert (id(hdu.data._coldefs.columns[0].array) ==
-                id(hdu.columns.data[0].array))
+                id(hdu.columns.columns[0].array))
         assert (id(hdu.data._coldefs.columns[0].array) ==
                 id(hdu.columns._arrays[0]))
 
@@ -1382,12 +1385,12 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 213
         assert hdu.data._coldefs.columns[1].array[0] == 213
         assert hdu.columns._arrays[1][0] == 213
-        assert hdu.columns.data[1].array[0] == 213
+        assert hdu.columns.columns[1].array[0] == 213
         assert tbhdu1.data[0][1] == 213
         assert tbhdu1.data._coldefs._arrays[1][0] == 213
         assert tbhdu1.data._coldefs.columns[1].array[0] == 213
         assert tbhdu1.columns._arrays[1][0] == 213
-        assert tbhdu1.columns.data[1].array[0] == 213
+        assert tbhdu1.columns.columns[1].array[0] == 213
 
         hdu.data._coldefs._arrays[1][0] = 100
 
@@ -1395,48 +1398,48 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data._coldefs._arrays[1][0] == 100
         assert hdu.data._coldefs.columns[1].array[0] == 100
         assert hdu.columns._arrays[1][0] == 100
-        assert hdu.columns.data[1].array[0] == 100
+        assert hdu.columns.columns[1].array[0] == 100
         assert tbhdu1.data[0][1] == 100
         assert tbhdu1.data._coldefs._arrays[1][0] == 100
         assert tbhdu1.data._coldefs.columns[1].array[0] == 100
         assert tbhdu1.columns._arrays[1][0] == 100
-        assert tbhdu1.columns.data[1].array[0] == 100
+        assert tbhdu1.columns.columns[1].array[0] == 100
 
         hdu.data._coldefs.columns[1].array[0] = 500
         assert hdu.data[0][1] == 500
         assert hdu.data._coldefs._arrays[1][0] == 500
         assert hdu.data._coldefs.columns[1].array[0] == 500
         assert hdu.columns._arrays[1][0] == 500
-        assert hdu.columns.data[1].array[0] == 500
+        assert hdu.columns.columns[1].array[0] == 500
         assert tbhdu1.data[0][1] == 500
         assert tbhdu1.data._coldefs._arrays[1][0] == 500
         assert tbhdu1.data._coldefs.columns[1].array[0] == 500
         assert tbhdu1.columns._arrays[1][0] == 500
-        assert tbhdu1.columns.data[1].array[0] == 500
+        assert tbhdu1.columns.columns[1].array[0] == 500
 
         hdu.columns._arrays[1][0] = 600
         assert hdu.data[0][1] == 600
         assert hdu.data._coldefs._arrays[1][0] == 600
         assert hdu.data._coldefs.columns[1].array[0] == 600
         assert hdu.columns._arrays[1][0] == 600
-        assert hdu.columns.data[1].array[0] == 600
+        assert hdu.columns.columns[1].array[0] == 600
         assert tbhdu1.data[0][1] == 600
         assert tbhdu1.data._coldefs._arrays[1][0] == 600
         assert tbhdu1.data._coldefs.columns[1].array[0] == 600
         assert tbhdu1.columns._arrays[1][0] == 600
-        assert tbhdu1.columns.data[1].array[0] == 600
+        assert tbhdu1.columns.columns[1].array[0] == 600
 
-        hdu.columns.data[1].array[0] = 800
+        hdu.columns.columns[1].array[0] = 800
         assert hdu.data[0][1] == 800
         assert hdu.data._coldefs._arrays[1][0] == 800
         assert hdu.data._coldefs.columns[1].array[0] == 800
         assert hdu.columns._arrays[1][0] == 800
-        assert hdu.columns.data[1].array[0] == 800
+        assert hdu.columns.columns[1].array[0] == 800
         assert tbhdu1.data[0][1] == 800
         assert tbhdu1.data._coldefs._arrays[1][0] == 800
         assert tbhdu1.data._coldefs.columns[1].array[0] == 800
         assert tbhdu1.columns._arrays[1][0] == 800
-        assert tbhdu1.columns.data[1].array[0] == 800
+        assert tbhdu1.columns.columns[1].array[0] == 800
 
     def test_constructor_name_arg(self):
         """testConstructorNameArg
@@ -1633,7 +1636,8 @@ class TestTableFunctions(FitsTestCase):
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', 4)])
         data['x'] = 1, 2, 3
         data['s'] = 'ok'
-        fits.writeto(self.temp('newtable.fits'), data, clobber=True)
+        with ignore_warnings():
+            fits.writeto(self.temp('newtable.fits'), data, clobber=True)
 
         t = fits.getdata(self.temp('newtable.fits'))
 
@@ -1645,7 +1649,8 @@ class TestTableFunctions(FitsTestCase):
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', (4, 3))])
         data['x'] = 1, 2, 3
         data['s'] = 'ok'
-        fits.writeto(self.temp('newtable.fits'), data, clobber=True)
+        with ignore_warnings():
+            fits.writeto(self.temp('newtable.fits'), data, clobber=True)
 
         t = fits.getdata(self.temp('newtable.fits'))
 

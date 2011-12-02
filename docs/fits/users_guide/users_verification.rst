@@ -151,15 +151,15 @@ following keywords:
 If any of the mandatory keywords are missing or in the wrong order, the fix
 option will fix them:
 
-    >>> hdu.header                 # has a 'bad' header
+    >>> hdu.header               # has a 'bad' header
     SIMPLE =                     T /
     NAXIS  =                     0
     BITPIX =                     8 /
-    >>> hdu.verify('fix')          # fix it
+    >>> hdu.verify('fix')        # fix it
     Output verification result:
     'BITPIX' card at the wrong place (card 2). Fixed by moving it to the right
     place (card 1).
-    >>> h.header                   # voila!
+    >>> h.header                 # voila!
     SIMPLE =                     T / conforms to FITS standard
     BITPIX =                     8 / array data type
     NAXIS  =                     0

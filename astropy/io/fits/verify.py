@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import sys
 import warnings
 
 
@@ -63,9 +64,12 @@ class _Verify(object):
         if opt in ['fix', 'silentfix'] and 'Unfixable' in x:
             raise VerifyError('\n' + x)
         if opt not in ['silentfix', 'exception'] and x:
-            warnings.warn('Output verification result:')
-            warnings.warn(x)
-            warnings.warn('Note: PyFITS uses zero-based indexing.')
+            sys.stderr.write(u'Output verification result:\n')
+            for line in x.splitlines():
+                # Each line contains a single issue that was fixed--issue a
+                # separate warning for each of those issues
+                warnings.warn(line)
+            sys.stderr.write(u'Note: PyFITS uses zero-based indexing.\n')
         if opt == 'exception' and x:
             raise VerifyError('\n' + x)
 

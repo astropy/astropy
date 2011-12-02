@@ -24,9 +24,11 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         super(GroupsHDU, self).__init__(data=data, header=header)
 
-        if self._header['NAXIS'] <= 0:
+        # Update the axes; GROUPS HDUs should always have at least one axis
+        if len(self._axes) <= 0:
+            self._axes = [0]
             self._header['NAXIS'] = 1
-        self._header.set('NAXIS1', 0, after='NAXIS')
+            self._header.set('NAXIS1', 0, after='NAXIS')
 
     @classmethod
     def match_header(cls, header):
@@ -68,7 +70,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             cols.append(Column(name='c' + str(idx + 1), format=format,
                                bscale=bscale, bzero=bzero))
 
-        data_shape = self._dimShape()[:-1]
+        data_shape = self.shape[:-1]
         dat_format = str(int(np.array(data_shape).sum())) + format
 
         bscale = self._header.get('BSCALE', 1)
@@ -109,22 +111,23 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     def update_header(self):
         old_naxis = self._header.get('NAXIS', 0)
 
-        if isinstance(self.data, GroupData):
-            first_field = self.data.dtype.names[0]
-            first_field_code = self.data.dtype.fields[first_field][0].name
-            self._header['BITPIX'] = _ImageBaseHDU.ImgCode[first_field_code]
-            axes = list(self.data.data.shape)[1:]
-            axes.reverse()
-            axes = [0] + axes
-        elif self.data is None:
-            axes = []
-        else:
-            raise ValueError('incorrect array type')
+        if self._data_loaded:
+            if isinstance(self.data, GroupData):
+                field0 = self.data.dtype.names[0]
+                field0_code = self.data.dtype.fields[field0][0].name
+                self._header['BITPIX'] = _ImageBaseHDU.ImgCode[field0_code]
+                self._axes = list(self.data.data.shape)[1:]
+                self._axes.reverse()
+                self._axes = [0] + self._axes
+            elif self.data is None:
+                self._axes = []
+            else:
+                raise ValueError('incorrect array type')
 
-        self._header['NAXIS'] = len(axes)
+        self._header['NAXIS'] = len(self._axes)
 
         # add NAXISi if it does not exist
-        for idx, axis in enumerate(axes):
+        for idx, axis in enumerate(self._axes):
             try:
                 self._header['NAXIS' + str(idx + 1)] = axis
             except KeyError:
@@ -135,14 +138,15 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 self._header.update('NAXIS' + str(idx + 1), axis, after=after)
 
         # delete extra NAXISi's
-        for idx in range(len(axes) + 1, old_naxis + 1):
+        for idx in range(len(self._axes) + 1, old_naxis + 1):
             try:
                 del self._header['NAXIS' + str(idx)]
             except KeyError:
                 pass
 
         if isinstance(self.data, GroupData):
-            self._header.update('GROUPS', True, after='NAXIS' + str(len(axes)))
+            self._header.update('GROUPS', True,
+                                after='NAXIS' + str(len(self._axes)))
             self._header.update('PCOUNT', len(self.data.parnames),
                                 after='GROUPS')
             self._header.update('GCOUNT', len(self.data), after='PCOUNT')
@@ -164,11 +168,19 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                     self._header.update('PZERO' + str(idx + 1),
                                         self.data._coldefs.bzeros[idx])
 
+        # Update the position of the EXTEND keyword if it already exists
+        if 'EXTEND' in self._header:
+            if len(self._axes):
+                after = 'NAXIS' + str(len(self._axes))
+            else:
+                after = 'NAXIS'
+            self._header.set('EXTEND', after=after)
+
     def _get_tbdata(self):
         # get the right shape for the data part of the random group,
         # since binary table does not support ND yet
-        self.columns._recformats[-1] = repr(self._dimShape()[:-1]) + \
-                                       self.columns._dat_format
+        self.columns._recformats[-1] = (repr(self.shape[:-1]) +
+                                        self.columns._dat_format)
 
         return super(GroupsHDU, self)._get_tbdata()
 
@@ -273,6 +285,23 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a gereric manner.
             return super(GroupsHDU, self)._calculate_datasum(blocking=blocking)
+
+    def _summary(self):
+        summary = super(GroupsHDU, self)._summary()
+        name, classname, length, shape, format, gcount = summary
+
+        # Drop the first axis from the shape
+        if shape:
+            shape = shape[1:]
+
+        if self._data_loaded:
+            # Update the format
+            format = self.data.dtype.fields[self.data.dtype.names[0]][0].name
+            format = format[format.rfind('.') + 1:]
+
+        # Update the GCOUNT report
+        gcount = '   %d Groups  %d Parameters' % (self._gcount, self._pcount)
+        return (name, classname, length, shape, format, gcount)
 
 
 class GroupData(FITS_rec):

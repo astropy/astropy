@@ -22,7 +22,7 @@ class TestUintFunctions(FitsTestCase):
         hdul.writeto(self.temp('tempfile1.fits'))
         hdul1 = fits.open(self.temp('tempfile1.fits'), uint16=True)
         assert np.all(hdul[0].data == hdul1[0].data) == True
-        assert hdul[0].section[:1].dtype == np.dtype('uint16')
+        assert hdul[0].section[:1].dtype.name == 'uint16'
         hdul.close()
         hdul1.close()
 
@@ -39,7 +39,7 @@ class TestUintFunctions(FitsTestCase):
         hdul.writeto(self.temp('tempfile1.fits'))
         hdul1 = fits.open(self.temp('tempfile1.fits'), uint=True)
         assert np.all(hdul[0].data == hdul1[0].data) == True
-        assert hdul[0].section[:1].dtype == np.dtype('uint32')
+        assert hdul[0].section[:1].dtype.name == 'uint32'
         hdul.close()
         hdul1.close()
 
@@ -57,6 +57,6 @@ class TestUintFunctions(FitsTestCase):
             hdul.writeto(self.temp('tempfile1.fits'))
             hdul1 = fits.open(self.temp('tempfile1.fits'), uint=True)
             assert np.all(hdul[0].data == hdul1[0].data) == True
-            assert hdul[0].section[:1].dtype == np.dtype('uint64')
+            assert hdul[0].section[:1].dtype.name == 'uint64'
             hdul.close()
             hdul1.close()

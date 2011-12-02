@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import shutil
 import os
 import warnings
 
@@ -9,6 +10,7 @@ from ....io import fits
 from ....tests.helper import pytest, raises
 
 from . import FitsTestCase
+from .util import ignore_warnings
 
 
 class TestImageFunctions(FitsTestCase):
@@ -554,7 +556,8 @@ class TestImageFunctions(FitsTestCase):
 
         hdul = fits.open(self.data('fixed-1890.fits'))
         orig_data = hdul[0].data
-        hdul.writeto(self.temp('test_new.fits'), clobber=True)
+        with ignore_warnings():
+            hdul.writeto(self.temp('test_new.fits'), clobber=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
@@ -563,7 +566,8 @@ class TestImageFunctions(FitsTestCase):
         # Just as before, but this time don't touch hdul[0].data before writing
         # back out--this is the case that failed in #84
         hdul = fits.open(self.data('fixed-1890.fits'))
-        hdul.writeto(self.temp('test_new.fits'), clobber=True)
+        with ignore_warnings():
+            hdul.writeto(self.temp('test_new.fits'), clobber=True)
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
@@ -584,3 +588,22 @@ class TestImageFunctions(FitsTestCase):
         assert (hdul[0].data == orig_data).all()
         hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()
+
+    def test_image_update_header(self):
+        """
+        Regression test for #105.  Replacing the original header to an image
+        HDU and saving should update the NAXISn keywords appropriately and save
+        the image data correctly.
+        """
+
+        # Copy the original file before saving to it
+        shutil.copy(self.data('test0.fits'), self.temp('test_new.fits'))
+        hdul = fits.open(self.temp('test_new.fits'), mode='update')
+        orig_data = hdul[1].data.copy()
+        hdr_copy = hdul[1].header.copy()
+        del hdr_copy['NAXIS*']
+        hdul[1].header = hdr_copy
+        hdul.close()
+
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (orig_data == hdul[1].data).all()

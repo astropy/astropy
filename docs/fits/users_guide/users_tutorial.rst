@@ -214,22 +214,23 @@ information about the array, e. g.:
 Since image data is a numpy object, we can slice it, view it, and perform
 mathematical operations on it. To see the pixel value at x=5, y=2:
 
-    >>> print scidata[1,4]
+    >>> print scidata[1, 4]
 
 Note that, like C (and unlike FORTRAN), Python is 0-indexed and the indices
 have the slowest axis first and fast axis last, i.e. for a 2-D image, the fast
 axis (X-axis) which corresponds to the FITS NAXIS1 keyword, is the second
-index. Similarly, the sub-section of x=11 to 20 (inclusive) and y=31 to 40
-(inclusive) is:
+index. Similarly, the 1-indexed sub-section of x=11 to 20 (inclusive) and y=31
+to 40 (inclusive) would be given in Python as:
 
     >>> scidata[30:40, 10:20]
 
 To update the value of a pixel or a sub-section:
 
-    >>> scidata[30:40,10:20] = scidata[1,4] = 999
+    >>> scidata[30:40, 10:20] = scidata[1, 4] = 999
 
-This example changes the values of both the pixel \[1,4] and the sub-section
-\[30:40,10:20] to the new value of 999.
+This example changes the values of both the pixel \[1, 4] and the sub-section
+\[30:40, 10:20] to the new value of 999.  See the `Numpy documentation`_ for
+more details on Python-style array indexing and slicing.
 
 The next example of array manipulation is to convert the image data from counts
 to flux:
@@ -243,6 +244,8 @@ memory usage to a minimum.
 
 If at this point you want to preserve all the changes you made and write it to
 a new file, you can use the `HDUList.writeto()` method (see below).
+
+.. _Numpy documentation: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
 
 
 Working With Table Data

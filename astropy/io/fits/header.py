@@ -20,7 +20,7 @@ from .util import (BLOCK_SIZE, deprecated, isiterable, decode_ascii,
 PY3K = sys.version_info[:2] >= (3, 0)
 
 
-HEADER_END_RE = re.compile('END {77}')
+HEADER_END_RE = re.compile('END {77} *$')
 
 
 class Header(collections.MutableMapping):
@@ -355,6 +355,8 @@ class Header(collections.MutableMapping):
         try:
             # Read the first header block.
             block = decode_ascii(fileobj.read(actual_block_size))
+            # Strip any zero-padding (see ticket #106)
+            block = block.strip('\0')
             if block == '':
                 raise EOFError()
 
@@ -1696,7 +1698,10 @@ class Header(collections.MutableMapping):
         Get all history cards as a list of string texts.
         """
 
-        return self['HISTORY']
+        if 'HISTORY' in self:
+            return self['HISTORY']
+        else:
+            return []
 
     @deprecated('3.1', alternative="``header['COMMENT']``", pending=True)
     def get_comment(self):
@@ -1704,7 +1709,10 @@ class Header(collections.MutableMapping):
         Get all comment cards as a list of string texts.
         """
 
-        return self['COMMENT']
+        if 'COMMENT' in self:
+            return self['COMMENT']
+        else:
+            return []
 
     @deprecated('3.1', alternative=':meth:`Header.totextfile`')
     def toTxtFile(self, fileobj, clobber=False):

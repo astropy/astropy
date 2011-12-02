@@ -7,16 +7,13 @@ import sys
 import threading
 import warnings
 
-import numpy as np
 from numpy import memmap as Memmap
 
 from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
-from .compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from .table import _TableBaseHDU
-from ..card import Card
 from ..column import _FormatP
 from ..file import PYTHON_MODES, _File
 from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,

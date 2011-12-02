@@ -382,7 +382,7 @@ class TableHDU(_TableBaseHDU):
         xtension = card.value
         if isinstance(xtension, basestring):
             xtension = xtension.rstrip()
-        return card.key == 'XTENSION' and xtension == cls._extension
+        return card.keyword == 'XTENSION' and xtension == cls._extension
 
     def _get_tbdata(self):
         columns = self.columns
@@ -468,8 +468,8 @@ class BinTableHDU(_TableBaseHDU):
         xtension = card.value
         if isinstance(xtension, basestring):
             xtension = xtension.rstrip()
-        return card.key == 'XTENSION' and \
-               xtension in (cls._extension, 'A3DTABLE')
+        return (card.keyword == 'XTENSION' and
+                xtension in (cls._extension, 'A3DTABLE'))
 
     def _calculate_datasum_from_data(self, data, blocking):
         """

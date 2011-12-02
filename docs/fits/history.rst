@@ -28,6 +28,10 @@ Astropy.
     compatible with data dumps from previous versions of PyFITS, but not
     vice-versa due to a parsing bug in older versions.
 
+  * The old ``classExtensions`` extension mechanism (which was deprecated in
+    PyFITS 3.0) is removed outright.  To our knowledge it was no longer used
+    anywhere.
+
 - Added a new .is_image attribute on HDU objects, which is True if the HDU
   data is an 'image' as opposed to a table or something else.  Here the
   meaning of 'image' is fairly loose, and mostly just means a Primary or Image

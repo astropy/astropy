@@ -7,6 +7,7 @@ from ....io import fits
 from ....tests.helper import pytest
 
 from . import FitsTestCase
+from .util import ignore_warnings
 from ..card import _pad
 
 
@@ -97,8 +98,9 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert not hdu.header.has_key('EXTENSION')
         assert hdu.header.has_key('SIMPLE')
 
-        hdu.writeto(self.temp('test.fits'), output_verify='ignore',
-                    clobber=True)
+        with ignore_warnings():
+            hdu.writeto(self.temp('test.fits'), output_verify='ignore',
+                        clobber=True)
         hdul2 = fits.open(self.temp('test.fits'))
         assert len(hdul2), 2
         assert hdul2[1].header.has_key('MYKEY')
@@ -206,11 +208,13 @@ class TestHeaderFunctions(FitsTestCase):
 
         # card image constructed from key/value/comment is too long
         # (non-string value)
-        c = fits.Card('abc', 9, 'abcde' * 20)
-        assert (str(c) == "ABC     =                    9 "
-                          "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
-        c = fits.Card('abc', 'a' * 68, 'abcdefg')
-        assert str(c) == "ABC     = '%s'" % ('a' * 68)
+        with ignore_warnings():
+            c = fits.Card('abc', 9, 'abcde' * 20)
+            assert (str(c) ==
+                    "ABC     =                    9 "
+                    "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
+            c = fits.Card('abc', 'a' * 68, 'abcdefg')
+            assert str(c) == "ABC     = '%s'" % ('a' * 68)
 
     def test_constructor_filter_illegal_data_structures(self):
         """Test that Card constructor raises exceptions on bad arguments"""
@@ -1013,7 +1017,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert c.value == 2.0
         assert c.field_specifier == 'NAXIS'
 
-        c = fits.Card('DP1.NAXIS', 'a')
+        with ignore_warnings():
+            c = fits.Card('DP1.NAXIS', 'a')
         assert c.keyword == 'DP1.NAXIS'
         assert c.value == 'a'
         assert c.field_specifier == None
