@@ -125,8 +125,13 @@ class Result:
             fail("Invalid URL")
             return
 
-        content = r.read()
-        r.close()
+        try:
+            content = r.read()
+        except socket.timeout as e:
+            fail("Timeout")
+            return
+        else:
+            r.close()
 
         with open(path, 'wb') as fd:
             fd.write(content)
