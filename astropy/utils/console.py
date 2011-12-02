@@ -216,7 +216,7 @@ class ProgressBar:
         else:
             frac = float(value) / float(self._total)
         bar_fill = int(float(self._bar_length) * frac)
-        self._file.write('|')
+        self._file.write('\r|')
         color_print('=' * bar_fill, color='blue',
                     file=self._file, end='')
         if bar_fill < self._bar_length:
@@ -238,7 +238,6 @@ class ProgressBar:
         self._file.write(prefix)
         if t is not None:
             self._file.write(human_time(t))
-        self._file.write('\r')
         self._file.flush()
 
 
@@ -361,11 +360,15 @@ class Spinner():
     def _iterator(self):
         chars = self._chars
         index = 0
+        write = self._file.write
+        flush = self._file.flush
 
         while True:
-            self._file.write(self._colorized)
-            color_print(' ' + chars[index], file=self._file, end=u'\r')
-            self._file.flush()
+            write(u'\r')
+            write(self._colorized)
+            write(u' ')
+            write(chars[index])
+            flush()
             yield
 
             for i in xrange(self._step):
@@ -379,9 +382,10 @@ class Spinner():
         return self._iterator()
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self._file.write(u'\r')
         self._file.write(self._colorized)
         if exc_type is None:
-            color_print(' Done', 'green', bold=True, file=self._file)
+            color_print(u' Done', 'green', bold=True, file=self._file)
         else:
-            color_print(' Failed', 'red', bold=True, file=self._file)
+            color_print(u' Failed', 'red', bold=True, file=self._file)
         self._file.flush()
