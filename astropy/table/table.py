@@ -25,6 +25,11 @@ def rename_odict(d_old, before, after):
     return OrderedDict(zip(keys, values))
 
 
+class TableColumns(OrderedDict):
+    def __init__(self, table):
+        self.table = table  # the parent table containing these columns
+        super(TableColumns, self).__init__()
+
 class Column(np.ndarray):
     """Define a data column for use in a Table object.
 
@@ -223,7 +228,7 @@ class Table(object):
 
     def __init__(self, data=None, names=None, dtypes=None, meta={}):
         self._data = None
-        self.columns = OrderedDict()
+        self.columns = TableColumns(self)
         self.meta = deepcopy(meta)
 
         if isinstance(data, (list, tuple)):
@@ -331,6 +336,7 @@ class Table(object):
         self.meta = deepcopy(data.meta)
 
     def _init_from_cols(self, cols):
+        self.columns = TableColumns(self)
         dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
@@ -339,7 +345,6 @@ class Table(object):
                 'Inconsistent data column lengths: {0}'.format(lengths))
 
         self._data = np.ndarray(lengths.pop(), dtype=dtypes)
-        self.columns = OrderedDict()
         for col in cols:
             self._data[col.name] = col.data
             newcol = Column(col.name, self._data[col.name], units=col.units,
@@ -434,8 +439,8 @@ class Table(object):
             # No existing table data, init from cols
             newcols = cols
         else:
-            new_indexes = range(len(newcols) + 1)
             newcols = self.columns.values()
+            new_indexes = range(len(newcols) + 1)
             for col, index in zip(cols, indexes):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
