@@ -152,7 +152,7 @@ class TestAddPosition():
 class TestInitFromTable():
 
     def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3], meta={'a': np.arange(5)})
+        self.a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
         self.b = Column('b', [4, 5, 6])
         self.c = Column('c', [7, 8, 9])
         self.t = Table([self.a, self.b])
@@ -178,14 +178,14 @@ class TestInitFromTable():
             t2['a'][2] = 10
             t2['b'][2] = 11
             t2['c'][2] = 12
-            t2.columns['a'].meta['a'][3] = 10
+            t2.columns['a'].meta['aa'][3] = 10
             assert np.all(t['a'] == np.array([1, 20, 3]))
             assert np.all(t['b'] == np.array([4, 21, 6]))
             assert np.all(t2['a'] == np.array([1, 2, 10]))
             assert np.all(t2['b'] == np.array([4, 5, 11]))
             assert np.all(t2['c'] == np.array([7, 8, 12]))
-            assert t.columns['a'].meta['a'][3] == 3
-            assert t2.columns['a'].meta['a'][3] == 10
+            assert t2.columns['a'].meta['aa'][3] == 10
+            assert t.columns['a'].meta['aa'][3] == 3
 
 
 class TestAddColumns():

@@ -1,3 +1,4 @@
+import numpy as np
 from .. import Column
 import pytest
 
@@ -7,10 +8,9 @@ class TestColumn():
     def test_1(self):
         Column('a')
 
-    def test_2(self):
+    def test_subclass(self):
         c = Column('a')
-        with pytest.raises(Exception):
-            c.dtype = int  # can't set dtype directly
+        assert isinstance(c, np.ndarray)
 
     def test_5(self):
         c1 = Column(name='a', dtype=int, units='mJy')

@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy
 import numpy as np
 import collections
 from itertools import count
@@ -25,7 +25,7 @@ def rename_odict(d_old, before, after):
     return OrderedDict(zip(keys, values))
 
 
-class Column(object):
+class Column(np.ndarray):
     """Define a data column for use in a Table object.
 
     Parameters
@@ -88,10 +88,17 @@ class Column(object):
       The default ``shape`` is () which means a single value in each element.
     """
 
-    def __init__(self, name, data=None,
+    def __new__(cls, name, data=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
+        if data is None:
+            self_data = np.zeros(length,
+                                 dtype=(np.dtype(dtype).str, shape))
+        else:
+            self_data = np.asarray(data, dtype=dtype)
+
+        self = self_data.view(cls)
         self.name = name
         self.units = units
         self.format = format
@@ -102,37 +109,27 @@ class Column(object):
         if meta is not None:
             self.meta.update(meta)
 
-        if data is None:
-            self._data = np.zeros(length,
-                                  dtype=(np.dtype(dtype).str, shape))
-        else:
-            if not isinstance(data, np.ndarray):
-                data = np.array(data)
+        return self
 
-            np_dtype = data.dtype if (dtype is None) else np.dtype(dtype)
-            shape = data.shape[1:]
-            self._data = np.asarray(data, dtype=(np_dtype.str, shape))
+    def __array_finalize__(self, obj):
+        # see InfoArray.__array_finalize__ for comments
+        if obj is None:
+            return
+        for attr in ('name', 'units', 'format', 'description'):
+            val = getattr(obj, attr, None)
+            setattr(self, attr, val)
+        self.meta = deepcopy(getattr(obj, 'meta', {}))
 
-    def clear_data(self):
-        """Set the internal column data attribute to None in order
-        to release the reference.  This should typically be done
-        in combination with setting the parent_table attribute so
-        that self.data returns the desired column data.
-        """
-        self._data = None
+    @property
+    def data(self):
+        return self.view(np.ndarray)
 
     def copy(self):
         """Return a copy of the current Column instance.
         """
-        # Use a minimal constructor then manually copy attributes
-        newcol = Column(self.name)
-        for attr in ('units', 'format', 'description',
-                     'parent_table', '_data'):
-            val = getattr(self, attr)
-            setattr(newcol, attr, val)
-        newcol.meta = copy.deepcopy(self.meta)
-
-        return newcol
+        newdata = self.view(np.ndarray).copy()
+        return Column(self.name, newdata, units=self.units, format=self.format,
+                      description=self.description, meta=deepcopy(self.meta))
 
     @property
     def descr(self):
@@ -141,24 +138,15 @@ class Column(object):
         This returns a 3-tuple (name, type, shape) that can always be
         used in a structured array dtype definition.
         """
-        return (self.name, self.data.dtype.str, self.data.shape[1:])
+        return (self.name, self.dtype.str, self.shape[1:])
 
-    @property
-    def dtype(self):
-        """Data type attribute.  This checks that column data reference has
-        been made."""
-        if self.data is None:
-            raise ValueError('No column data reference available '
-                             'so dtype is undefined')
-        return self.data.dtype
-
-    @property
-    def data(self):
-        """Column data attribute.  Only available if parent data exist"""
-        if self.parent_table is not None:
-            return self.parent_table[self.name]
-        else:
-            return self._data
+    # @property
+    # def data(self):
+    #     """Column data attribute.  Only available if parent data exist"""
+    #     if self.parent_table is not None:
+    #         return self.parent_table[self.name]
+    #     else:
+    #         return self
 
     def __repr__(self):
         s = "<Column name='{0} units='{1}' " \
@@ -244,7 +232,7 @@ class Table(object):
     def __init__(self, data=None, names=None, dtypes=None, meta={}):
         self._data = None
         self.columns = OrderedDict()
-        self.meta = copy.deepcopy(meta)
+        self.meta = deepcopy(meta)
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
@@ -299,7 +287,8 @@ class Table(object):
         for i_col, col, name, dtype in zip(count(), data, names, dtypes):
             def_name = 'col{0}'.format(i_col)
             if isinstance(col, Column):
-                col = Column((name or col.name), col.data, dtype=dtype)
+                col = Column((name or col.name), col.data, dtype=dtype,
+                             meta=deepcopy(col.meta))
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
@@ -347,7 +336,7 @@ class Table(object):
 
         cols = [data.columns[name] for name in names]
         self._init_from_list(cols, names, dtypes)
-        self.meta = copy.deepcopy(data.meta)
+        self.meta = deepcopy(data.meta)
 
     def _init_from_cols(self, cols):
         dtypes = [col.descr for col in cols]
@@ -363,7 +352,6 @@ class Table(object):
             if col.parent_table is not None:
                 col = col.copy()
             col.parent_table = self  # see same in insert_column()
-            col.clear_data()
             self.columns[col.name] = col
 
     def __repr__(self):
@@ -492,7 +480,6 @@ class Table(object):
             # Now that column data are copied into the Table _data table set
             # the column parent_table to self and clear the data reference.
             col.parent_table = self
-            col.clear_data()
 
             # Insert new column in the same position as for dtypes above
             self.columns = insert_odict(self.columns, insert_index[col.name],
