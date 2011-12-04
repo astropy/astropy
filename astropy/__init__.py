@@ -11,9 +11,8 @@ try:
     from .version import version as __version__
     from .version import githash as __githash__
 except ImportError:
-    # TODO: Issue a warning...
-    __version__ = ''
-# The version number can be found in the "version" variable of version.py
+    # TODO: Issue a warning using the logging framework
+    __version__ = __githash__ = ''
 
 # set up the test command
 from .tests.helper import TestRunner
