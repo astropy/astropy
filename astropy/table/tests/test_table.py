@@ -38,8 +38,8 @@ class TestNewFromColumns():
         cols = [Column('a', [1, 2, 3]),
                 Column('b', [4, 5, 6], dtype=np.float32)]
         t = Table(cols)
-        assert np.all(t['a'] == np.array([1, 2, 3]))
-        assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
+        assert np.all(t['a'].data == np.array([1, 2, 3]))
+        assert np.all(t['b'].data == np.array([4, 5, 6], dtype=np.float32))
         assert type(t['b'][1]) == np.float32
 
     def test_from_np_array(self):
@@ -259,9 +259,9 @@ class TestAddRow():
         t = self.t
         t.add_row()
         assert len(t) == 4
-        assert np.all(t['a'] == np.array([1, 2, 3, 0]))
+        assert np.all(t['a'].data == np.array([1, 2, 3, 0]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
-        assert np.all(t['c'] == np.array(['7', '8', '9', '']))
+        assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
 
     def test_add_missing_column(self):
         t = self.t

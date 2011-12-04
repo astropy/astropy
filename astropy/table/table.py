@@ -7,10 +7,6 @@ from astropy.utils import OrderedDict
 from structhelper import _drop_fields
 
 
-class ArgumentError(Exception):
-    pass
-
-
 def insert_odict(d_old, position, key, value):
     '''Convenience function to insert values into an OrderedDict'''
     items = d_old.items()
@@ -26,9 +22,34 @@ def rename_odict(d_old, before, after):
 
 
 class TableColumns(OrderedDict):
-    def __init__(self, table):
+    def __init__(self, table=None, cols={}):
         self.table = table  # the parent table containing these columns
-        super(TableColumns, self).__init__()
+        if isinstance(cols, (list, tuple)):
+            cols = [(col.name, col) for col in cols]
+        super(TableColumns, self).__init__(cols)
+
+    def __getitem__(self, item):
+        """Get times from a TableColumns object.
+        ::
+
+          tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')))
+          tc['a']  # Column('a')
+          tc[1] # Column('b')
+          tc['a', 'b'] # <TableColumns names=('a', 'b')>
+          tc[1:3] # <TableColumns names=('b', 'c')>
+    
+        """
+        if isinstance(item, basestring):
+            return OrderedDict.__getitem__(self, item)
+        elif isinstance(item, int):
+            return self.values()[item]
+        elif isinstance(item, tuple):
+            return TableColumns(self.table, [self[x] for x in item])
+        elif isinstance(item, slice):
+            return TableColumns(self.table, [self[x] for x in self.keys()[item]])
+        else:
+            raise IndexError('Illegal key or index value for TableColumns object')
+                
 
 class Column(np.ndarray):
     """Define a data column for use in a Table object.
@@ -129,11 +150,13 @@ class Column(np.ndarray):
     def data(self):
         return self.view(np.ndarray)
 
-    def copy(self):
+    def copy(self, data=None):
         """Return a copy of the current Column instance.
         """
-        newdata = self.view(np.ndarray).copy()
-        return Column(self.name, newdata, units=self.units, format=self.format,
+        if data is None:
+            data = self.view(np.ndarray).copy()
+
+        return Column(self.name, data, units=self.units, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
     @property
@@ -147,13 +170,16 @@ class Column(np.ndarray):
 
     def __repr__(self):
         s = "<Column name='{0} units='{1}' " \
-            "format='{2}' description='{3}'>".format(
-            self.name, self.units, self.format, self.description)
+            "format='{2}' description='{3}' data={4}>".format(
+            self.name, self.units, self.format, self.description, self.data)
         return s
 
     def __eq__(self, c):
-        attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
-        equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
+        if isinstance(c, Column):
+            attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
+            equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
+        else:
+            equal = self.data == c
         return equal
 
     def __ne__(self, other):
@@ -355,18 +381,19 @@ class Table(object):
     def __repr__(self):
         s = "<Table "
         s += "rows='{0}' ".format(self.__len__())
-        s += "columns='{0}'>".format(len(self.columns))
+        s += "columns=({0})>".format(','.join(self.columns))
         return s
 
     def __getitem__(self, item):
-        try:
+        if isinstance(item, basestring):
+            return self.columns[item]
+        elif isinstance(item, int):
+            # XXX should return Row instance
             return self._data[item]
-        except (ValueError, KeyError, TypeError):
-            raise KeyError("Column {0} does not exist".format(item))
-        except:
-            # Bad index raises "IndexError: index out of bounds", but also
-            # re-raise any other exception
-            raise
+        else:
+            # XXX Losing other column attrs like description format etc.
+            # XXX Error checking?
+            return Table(self._data[item], names=self.colnames, meta=deepcopy(self.meta))
 
     def __setitem__(self, item, value):
         try:
@@ -563,6 +590,12 @@ class Table(object):
 
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
+
+        # Add_row() probably corrupted the Column views of self._data.  Rebuild
+        # self.columns.  Col.copy() takes an optional data reference that it
+        # uses in the copy.
+        cols = [col.copy(self._data[col.name]) for col in self.columns.values()]
+        self.columns = TableColumns(self, cols)
 
     def sort(self, keys):
         '''
