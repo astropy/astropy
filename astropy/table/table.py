@@ -140,14 +140,6 @@ class Column(np.ndarray):
         """
         return (self.name, self.dtype.str, self.shape[1:])
 
-    # @property
-    # def data(self):
-    #     """Column data attribute.  Only available if parent data exist"""
-    #     if self.parent_table is not None:
-    #         return self.parent_table[self.name]
-    #     else:
-    #         return self
-
     def __repr__(self):
         s = "<Column name='{0} units='{1}' " \
             "format='{2}' description='{3}'>".format(
@@ -357,7 +349,6 @@ class Table(object):
 
     def __repr__(self):
         s = "<Table "
-        s += "name='{0}' ".format(self.name)
         s += "rows='{0}' ".format(self.__len__())
         s += "columns='{0}'>".format(len(self.columns))
         return s
