@@ -279,6 +279,21 @@ class TestAddRow():
             t.add_row(1)
 
 
+class TestTableColumn():
+
+    def setup_method(self, method):
+        self.a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
+        self.b = Column('b', [4, 5, 6])
+        self.c = Column('c', [7, 8, 9])
+        self.t = Table([self.a, self.b])
+
+    def test_column_view(self):
+        t = self.t
+        a = t.columns['a']
+        a[2] = 10
+        assert t._data['a'][2] == 10
+
+
 class TestArrayColumns():
 
     def setup_method(self, method):

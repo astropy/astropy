@@ -292,8 +292,8 @@ class Table(object):
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
-                raise ValueError(
-                    '')
+                raise ValueError('Elements in list initialization must be either '
+                                 'Column or list-like')
             cols.append(col)
 
         self._init_from_cols(cols)
@@ -347,12 +347,13 @@ class Table(object):
                 'Inconsistent data column lengths: {0}'.format(lengths))
 
         self._data = np.ndarray(lengths.pop(), dtype=dtypes)
+        self.columns = OrderedDict()
         for col in cols:
             self._data[col.name] = col.data
-            if col.parent_table is not None:
-                col = col.copy()
-            col.parent_table = self  # see same in insert_column()
-            self.columns[col.name] = col
+            newcol = Column(col.name, self._data[col.name], units=col.units,
+                            format=col.format, description=col.description,
+                            meta=deepcopy(col.meta))
+            self.columns[col.name] = newcol
 
     def __repr__(self):
         s = "<Table "
@@ -439,53 +440,17 @@ class Table(object):
             raise ValueError('Number of indexes must match number of cols')
 
         if self._data is None:
-            # Table has no existing data so make a new structured array
-            # from the cols
-            self._init_from_cols(cols)
+            # No existing table data, init from cols
+            newcols = cols
         else:
-            for col in cols:
-                if len(col.data) != len(self._data):
-                    raise ValueError(
-                        "Column data length does not match table length")
+            new_indexes = range(len(newcols) + 1)
+            newcols = self.columns.values()
+            for col, index in zip(cols, indexes):
+                i = new_indexes.index(index)
+                new_indexes.insert(i, None)
+                newcols.insert(i, col)
 
-            self._add_cols(cols, indexes)
-
-    def _add_cols(self, cols, indexes):
-        # Make a new dtypes starting from the original list of (name, type,
-        # shape) tuples returned by dtype.descr.  In order to insert multiple
-        # values at a position relative to the *original* list, maintain a
-        # parallel list new_indexes which has None inserted just as dtypes has
-        # the new col.descr inserted.
-        dtypes = self._data.dtype.descr
-        new_indexes = range(len(self.colnames) + 1)
-        insert_index = {}
-        for col, index in zip(cols, indexes):
-            i = insert_index[col.name] = new_indexes.index(index)
-            new_indexes.insert(i, None)
-            dtypes.insert(i, col.descr)
-
-        # Make the new data table and copy original columns
-        new_data = np.empty(len(self._data), dtype=dtypes)
-        for name in self.colnames:
-            new_data[name] = self._data[name]
-
-        # Insert and copy new columns
-        for col, index in zip(cols, indexes):
-            new_data[col.name] = col.data
-
-            # If the user-supplied col is already part of a table then copy.
-            if col.parent_table is not None:
-                col = col.copy()
-
-            # Now that column data are copied into the Table _data table set
-            # the column parent_table to self and clear the data reference.
-            col.parent_table = self
-
-            # Insert new column in the same position as for dtypes above
-            self.columns = insert_odict(self.columns, insert_index[col.name],
-                                        col.name, col)
-
-        self._data = new_data
+        self._init_from_cols(newcols)
 
     def remove_column(self, name):
         """
