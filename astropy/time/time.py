@@ -1,0 +1,101 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+
+import datetime
+import decimal
+import numpy as np
+
+#Defining zeropoints - this is work in process, I believe that we are using TT
+calendar_zeropoint = datetime.datetime(2000, 1, 1, 11, 58, 55, 816000)
+jd_zeropoint = 2451545.0
+
+class Time(object):
+    """Class to store a time variable.
+    The internal format uses J2000.0 (2000 January 1, 11:58:55.816 UTC) as the zeropoint
+    and stores the date as days to this zeropoint in `decimal.Decimal`
+    
+    Initialize an AstroTime-object with seconds from J2000.0
+    Parameters
+    ----------
+    seconds : `decimal.Decimal`
+        The number of seconds since 2000 January 1, 11:58:55.816 UTC
+    """
+    
+    @classmethod
+    def from_jd(cls, jd_time):
+        """
+        Instantiate a Time-object with Julian Date
+
+        Parameters
+        ----------
+        jd_time : float
+        A Julian date 
+        :param jd_time:
+            A float object
+        """
+        
+        return cls((decimal.Decimal(jd_time) - decimal.Decimal(jd_zeropoint)) * decimal.Decimal(86400))
+    
+    @classmethod    
+    def from_mjd(cls, mjd_time):
+        """
+        Instantiate an AstroTime-object with Modified Julian Date
+
+        Parameters
+        ----------
+        mjd_time : float
+            A Modified Julian date 
+        
+        """
+        return cls.from_jd(decimal.Decimal(mjd_time) + decimal.Decimal(2400000.5))
+        
+    @classmethod
+    def from_calendar_date(cls, calendar_date):
+        """
+        Initialize from a gregorian calendar date and time (using `datetime.datetime`).
+        
+        Parameters
+        ----------
+        calendar_date : `datetime.datetime` object
+        
+        Examples
+        --------
+        
+        >>> from astropy import astrotime
+        >>> import datetime
+        >>> mytime = astrotime.AstroTime.from_date_gregorian(datetime.datetime(1546, 12, 14, 12, 0, 0))
+        >>> mytime.to_jd()
+        2286072.0
+        
+        References
+        ----------
+        http://asa.usno.navy.mil/SecM/Glossary.html
+        http://en.wikipedia.org/wiki/Julian_day#Converting_Gregorian_calendar_date_to_Julian_Day_Number
+        """
+        
+        return cls((calendar_date - calendar_zeropoint).total_seconds())
+        
+    
+    def __init__(self, seconds):
+        self.seconds = decimal.Decimal(seconds)    
+    
+    def to_jd(self):
+        """return the date as JD in a float64"""
+        
+        return decimal.Decimal(jd_zeropoint) + (self.seconds / decimal.Decimal(86400))
+        
+    jd = property(to_jd)
+    
+    def to_calendar_date(self):
+        """
+        returns the gregorian date in a `datetime.datetime` object
+        
+        References
+        ----------
+        http://www.usno.navy.mil/USNO/astronomical-applications/astronomical-information-center/julian-date-form
+        """
+        
+        days = (self.seconds / decimal.Decimal(86400))
+        return calendar_zeropoint + datetime.timedelta(np.float64(days))
+ 
+    calendar_date = property(to_calendar_date)
