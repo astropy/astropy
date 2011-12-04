@@ -1,6 +1,6 @@
-============================
-Testing Guidelines (Draft 2)
-============================
+==========================
+Testing Guidelines (Draft)
+==========================
 
 .. warning::
     This document is currently in Draft form and is subject to change. Not all

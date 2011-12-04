@@ -1,6 +1,6 @@
-===========================
-Coding Guidelines (Draft 3)
-===========================
+=========================
+Coding Guidelines (Draft)
+=========================
 
 .. warning::
     This document is currently in Draft form and is subject to change.
