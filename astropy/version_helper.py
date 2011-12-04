@@ -6,7 +6,7 @@ import imp
 from distutils import log
 
 """
-Utilities for generating the version string for Astropy (or an affiliated 
+Utilities for generating the version string for Astropy (or an affiliated
 package) and the version.py module, which contains version info for the
 package.
 
@@ -53,12 +53,12 @@ def _update_git_devstr(version, path=None):
     if not devstr:
         # Probably not in git so just pass silently
         return version
-    
-    if 'dev' in version: #update to the current git revision
+
+    if 'dev' in version:  # update to the current git revision
         version_base = version.split('.dev', 1)[0]
-        devstr = get_git_devstr(sha=False,show_warning=False, path=path)
-        
-        return version_base + '.dev' + devstr 
+        devstr = get_git_devstr(sha=False, show_warning=False, path=path)
+
+        return version_base + '.dev' + devstr
     else:
         #otherwise it's already the true/release version
         return version
@@ -103,7 +103,7 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         path = os.path.abspath(os.path.split(path)[0])
 
     if sha:
-        cmd = 'rev-parse' # Faster for getting just the hash of HEAD
+        cmd = 'rev-parse'  # Faster for getting just the hash of HEAD
     else:
         cmd = 'rev-list'
 
