@@ -57,17 +57,24 @@ Documentation and Testing
 Data and Configuration
 ----------------------
 
-* Packages can include data in ``path TBD`` as long as it is less than about
-  100 kb. These data should be accessed via the
-  :func:`astropy.config.[funcname TBD]` mechanism. If the data exceeds this
-  size, it should be hosted outside the source code repository and downloaded
-  using the :func:`astropy.config.[funcname TBD]` mechanism. Exceptions to
-  this size limit may be allowed if there are version dependencies between
-  data and code.
+* Packages can include data in a directory named `data` inside a subpackage
+  source directory as long as it is less than about 100 kb. These data should
+  always be accessed via the :func:`astropy.config.get_data_fileobj` or
+  :func:`astropy.config.get_data_filename` functions. If the data exceeds this
+  size, it should be hosted outside the source code repository, either at a
+  third-party location on the internet or the astropy data server. In either
+  case, it should always be downloaded using the
+  :func:`astropy.config.get_data_fileobj` or
+  :func:`astropy.config.get_data_filename` functions. If a specific version of
+  a data file is needed, the hash mechanism described in :doc:`/configs` should
+  be used.
 
-* All persistent configuration should be stored using the functions in
-  :mod:`astropy.config`, which make use of the :class:`ConfigObj` class and
-  associated file format (http://www.voidspace.org.uk/python/configobj.html.
+* All persistent configuration should use the 
+  `astropy.config.ConfigurationItem` mechanism.  Such configuration items
+  should be placed at the top of the module or package that makes use of them,
+  and supply a description sufficient for users to understand what the setting
+  changes.
+ 
 
 Coding Style/Conventions
 ------------------------
@@ -98,13 +105,13 @@ Coding Style/Conventions
   matplotlib.pyplot as plt`` naming conventions should be used wherever
   relevant. ``from packagename import *`` should never be used, except as a
   tool to flatten the namespace of a module. An example of the allowed usage
-  is given below.
+  is given in :ref:`import-star-example`.
 
 * Classes should either use direct variable access, or python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
   style methods should be used only when getting and setting the values
-  requires a computationally-expensive operation. The example below
-  illustrates this guideline.
+  requires a computationally-expensive operation. :ref:`prop-get-set-example` 
+  below illustrates this guideline.
 
 * All new classes should be new-style classes inheriting from :class:`object`
   (in Python 3 this is a non-issue as all classes are new-style by default).
@@ -114,8 +121,8 @@ Coding Style/Conventions
 * Classes should use the builtin :func:`super` function when making calls to
   methods in their super-class(es) unless there are specific reasons not to.
   :func:`super` should be used consistently in all subclasses since it does not
-  work otherwise.  An example illustrating why this is important is included
-  below.
+  work otherwise.  :ref:`super-vs-direct-example` illustrates why this is 
+  important.
 
 * Multiple inheritance should be avoided in general without good reason.
   Mulitple inheritance is complicated to implement well, which is why many
@@ -134,6 +141,10 @@ Coding Style/Conventions
   in accord with the guideline above). If a module is small enough that 
   it fits in one file, it should simple be a single file, rather than a 
   directory with an ``__init__.py`` file. 
+  
+* When try...except blocks are used to catch exceptions, the ``as`` syntax
+  should always be used, because this is available in all supported versions of 
+  python and is less ambiguous syntax (see :ref:`try-except-as-example`).
 
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
@@ -144,10 +155,10 @@ Including C Code
 * C extensions are only allowed when they provide a significant performance
   enhancement over pure python, or a robust C library already exists to
   provided the needed functionality. When C extensions are used, the Python
-  interface must meet interface guidelines.
+  interface must meet the aforementioned python interface guidelines.
 
 * The use of Cython_ is strongly recommended for C extensions, as per the
-  example in the template package. Cython extensions should store ``.pyx``
+  example in the template package. Cython_ extensions should store ``.pyx``
   files in the source code repository, but they should be compiled to ``.c``
   files that are updated in the repository when important changes are made to
   the ``.pyx`` file.
@@ -158,9 +169,13 @@ Including C Code
   Additionally, the package must be compatible with using a system-installed
   library in place of the library included in Astropy.
 
-* In cases where C extensions are needed but Cython cannot be used, the `PEP 7
+* In cases where C extensions are needed but Cython_ cannot be used, the `PEP 7
   Style Guide for C Code <http://www.python.org/dev/peps/pep-0007/>`_ is
   recommended.
+  
+* C extensions (Cython_ or otherwise) should provide the necessary information
+  for building the extension via the mechanisms described in 
+  :ref:`building-c-or-cython-extensions`.
 
 Requirements Specific to Affiliated Packages
 --------------------------------------------
@@ -180,6 +195,8 @@ Examples
 This section shows a few examples (not all of which are correct!) to
 illustrate points from the guidelines. These will be moved into the template
 project once it has been written.
+
+.. _prop-get-set-example:
 
 Properties vs. get\_/set\_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,6 +226,8 @@ a get/set method. For lengthy or complex calculations, however, use a method::
 
     >>> print s.compute_color(5800, age=5e9)
     0.4
+    
+.. _super-vs-direct-example:
 
 super() vs. Direct Calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -318,6 +337,7 @@ the hierarchy.
           http://rhettinger.wordpress.com/2011/05/26/super-considered-super/
           or http://keithdevens.com/weblog/archive/2011/Mar/16/Python.super)
 
+.. _import-star-example:
 
 Acceptable use of ``from module import *``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -360,6 +380,31 @@ might read::
 
 This ensures that ``from submodule import *`` only imports :func:`foo` and
 :class:`AClass`, but not :class:`numpy.array` or :func:`numpy.linspace`.
+
+.. _try-except-as-example:
+
+try...except block "as" syntax
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Catching of exceptions should always use this syntax::
+
+    try:
+        ... some code that might produce a variety of exceptions ...
+    except ImportError as e:
+        if 'somemodule' in e.args[0]"
+            #for whatever reason, failed import of somemodule is ok
+            pass
+        else:
+            raise 
+    except ValueError, TypeError as e:
+        msg = 'Hit an input problem, which is ok,'
+        msg2 = 'but we're printing it here just so you know:'
+        print msg, msg2, e
+    
+This avoids the old style syntax of ``except ImportError, e`` or 
+``except (ValueError,TypeError), e``, which is dangerous because it's easy to
+instead accidentally do something like ``except ValueError,TypeError``, which 
+won't catch `TypeError`.
 
 
 Additional Resources

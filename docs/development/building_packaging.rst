@@ -52,6 +52,8 @@ function which automatically searches the given source path for
 exist.  This makes it easy for affiliated packages to use this machinery in
 their own ``setup.py``.
 
+.. _building-c-or-cython-extensions:
+
 C or Cython Extensions
 ----------------------
 
