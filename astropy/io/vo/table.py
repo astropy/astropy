@@ -132,6 +132,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
 
     output : writable file-like object, optional
         Where to output the report.  Defaults to `sys.stdout`.
+        If `None`, the output will be returned as a string.
 
     xmllint : bool, optional
         When `True`, also send the file to `xmllint` for schema and
@@ -140,11 +141,16 @@ def validate(filename, output=sys.stdout, xmllint=False):
 
     Returns
     -------
-    is_valid : bool
-        Returns `True` if no warnings were found.
+    is_valid : bool or str
+        Returns `True` if no warnings were found.  If `output` is
+        `None`, the return value will be a string.
     """
     import textwrap
     from ...utils.console import print_code_line
+
+    return_as_str = False
+    if output is None:
+        output = io.StringIO()
 
     lines = []
     votable = None
@@ -204,5 +210,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
         else:
             output.write(u'xmllint passed\n')
 
+    if return_as_str:
+        return output.getvalue()
     return len(lines) == 0 and success == 0
 
