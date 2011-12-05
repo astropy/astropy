@@ -1317,7 +1317,8 @@ class Param(Field):
     def value(self, value):
         if value is None:
             vo_raise(E14, (), self._config, self._pos)
-        if isinstance(value, string_types):
+        if ((IS_PY3K and isinstance(value, unicode)) or
+            (not IS_PY3K and isinstance(value, string_types))):
             self._value = self.converter.parse(
                 value, self._config, self._pos)[0]
         else:

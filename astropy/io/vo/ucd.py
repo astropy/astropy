@@ -7,7 +7,10 @@ from __future__ import with_statement, absolute_import
 #STDLIB
 import os
 import re
+import sys
 
+#LOCAL
+from ... import config
 
 __all__ = ['parse_ucd', 'check_ucd']
 
@@ -24,12 +27,13 @@ class UCDWords:
         self._descriptions = {}
         self._capitalization = {}
 
-        ucd_words_filepath = os.path.join(
-            os.path.dirname(__file__),
-            "data", "ucd1p-words.txt")
-        with open(ucd_words_filepath, 'r') as fd:
+        with config.get_data_fileobj("data/ucd1p-words.txt") as fd:
             for line in fd.readlines():
-                type, name, descr = [x.strip() for x in line.split('|')]
+                if sys.version_info[0] >= 3:
+                    type, name, descr = [
+                        x.strip().decode('ascii') for x in line.split(b'|')]
+                else:
+                    type, name, descr = [x.strip() for x in line.split('|')]
                 name_lower = name.lower()
                 if type in 'QPEV':
                     self._primary.add(name_lower)

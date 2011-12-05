@@ -5,38 +5,22 @@ import sys
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from astropy import wcs
+from ...config.data import get_data_filenames, get_data_fileobj
 
-ROOT_DIR = None
-
-
-def setup_module():
-    global ROOT_DIR
-
-    # do not use __file__ here - we want to find the data files that
-    # belong to the astropy.wcs that we are testing, even if we are
-    # not running this test from the installed copy of this file.  Use
-    # astropy.wcs.__file__
-
-    ROOT_DIR = os.path.join(os.path.dirname(wcs.__file__), 'tests')
+from ... import wcs
 
 
 def test_maps():
     def test_map(filename):
-        filename = os.path.join(ROOT_DIR, "maps", filename)
-
-        fd = open(filename, 'rb')
-        header = fd.read()
-        fd.close()
+        with get_data_fileobj(os.path.join("maps", filename)) as fd:
+            header = fd.read()
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2sky(x, 1)
         pix = wcsobj.wcs_sky2pix(x, 1)
 
-    # get the list of the hdr files that we want to test
-    hdr_file_list = [x for x in glob.glob(
-        os.path.join(ROOT_DIR, "maps", "*.hdr"))]
+    hdr_file_list = list(get_data_filenames("maps", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -60,28 +44,24 @@ def test_maps():
     if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_maps has wrong number data files: found %d, expected "
-            " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR))
+            " %d" % (
+                len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
 
 
 def test_spectra():
     def test_spectrum(filename):
-        filename = os.path.join(ROOT_DIR, "spectra", filename)
+        with get_data_fileobj(os.path.join("spectra", filename)) as fd:
+            header = fd.read()
 
-        fd = open(filename, 'rb')
-        header = fd.read()
-        fd.close()
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2sky(x, 1)
         pix = wcsobj.wcs_sky2pix(x, 1)
 
-    # get the list of the hdr files that we want to test
-    hdr_file_list = [x for x in glob.glob(
-        os.path.join(ROOT_DIR, "spectra", "*.hdr"))]
+    hdr_file_list = list(get_data_filenames("spectra", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -105,7 +85,7 @@ def test_spectra():
     if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_spectra has wrong number data files: found %d, expected "
-            " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR))
+            " %d" % (
+                len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
