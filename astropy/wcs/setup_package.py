@@ -90,7 +90,7 @@ def generate_c_docstrings():
     from astropy.wcs import docstrings
     docstrings = docstrings.__dict__
     keys = [
-        key for key in docstrings.iterkeys()
+        key for key in docstrings.keys()
         if not key.startswith('__') and type(key) in string_types]
     keys.sort()
     for key in keys:

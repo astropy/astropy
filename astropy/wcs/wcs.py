@@ -71,7 +71,7 @@ if _wcs is not None:
     UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs._Wcsprm
     # Copy all the constants from the C extension into this module's namespace
-    for key, val in _wcs.__dict__.iteritems():
+    for key, val in _wcs.__dict__.items():
         if (key.startswith('WCSSUB') or
             key.startswith('WCSHDR') or
             key.startswith('WCSHDO')):
