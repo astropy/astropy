@@ -13,9 +13,9 @@ def test_reraise():
     try:
         try:
             fail()
-        except RuntimeError, e:
+        except RuntimeError as e:
             exceptions.vo_reraise(e, additional="From here")
-    except RuntimeError, e:
+    except RuntimeError as e:
         assert "From here" in str(e)
     else:
         assert False

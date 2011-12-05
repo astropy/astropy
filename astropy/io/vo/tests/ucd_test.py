@@ -34,7 +34,7 @@ examples = {
 
 
 def test_check():
-    for s, p in examples.items():
+    for s, p in examples.iteritems():
         assert ucd.parse_ucd(s, True, True) == p
         assert ucd.check_ucd(s, True, True)
 

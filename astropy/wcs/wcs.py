@@ -71,7 +71,7 @@ if _wcs is not None:
     UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs._Wcsprm
     # Copy all the constants from the C extension into this module's namespace
-    for key, val in _wcs.__dict__.items():
+    for key, val in _wcs.__dict__.iteritems():
         if (key.startswith('WCSSUB') or
             key.startswith('WCSHDR') or
             key.startswith('WCSHDO')):
@@ -280,7 +280,7 @@ naxis kwarg.
 
         if fix:
             fixes = wcsprm.fix()
-            for key, val in fixes.items():
+            for key, val in fixes.iteritems():
                 if val != "No change":
                     warnings.warn(
                         ("'{0}' made the change '{1}'. "
