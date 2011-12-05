@@ -32,7 +32,7 @@ class TableColumns(OrderedDict):
         """Get times from a TableColumns object.
         ::
 
-          tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')))
+          tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')])
           tc['a']  # Column('a')
           tc[1] # Column('b')
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
@@ -49,7 +49,12 @@ class TableColumns(OrderedDict):
             return TableColumns(self.table, [self[x] for x in self.keys()[item]])
         else:
             raise IndexError('Illegal key or index value for TableColumns object')
-                
+
+    def __repr__(self):
+        names = ("'{0}'".format(x) for x in self.keys())
+        return "<TableColumns names=({0})>".format(
+            ",".join(names))
+
 
 class Column(np.ndarray):
     """Define a data column for use in a Table object.
@@ -170,8 +175,8 @@ class Column(np.ndarray):
 
     def __repr__(self):
         s = "<Column name='{0} units='{1}' " \
-            "format='{2}' description='{3}' data={4}>".format(
-            self.name, self.units, self.format, self.description, self.data)
+            "format='{2}' description='{3}'>\n{4}".format(
+            self.name, self.units, self.format, self.description, repr(self.data))
         return s
 
     def __eq__(self, c):
@@ -379,9 +384,9 @@ class Table(object):
             self.columns[col.name] = newcol
 
     def __repr__(self):
-        s = "<Table "
-        s += "rows='{0}' ".format(self.__len__())
-        s += "columns=({0})>".format(','.join(self.columns))
+        names = ("'{0}'".format(x) for x in self.colnames)
+        s = "<Table rows={0} names=({1})>\n{2}".format(
+            self.__len__(),  ','.join(names), repr(self._data))
         return s
 
     def __getitem__(self, item):
