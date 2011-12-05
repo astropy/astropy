@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+#This module implements the base NDData class.
+
+__all__ = ['NDData']
 
 class NDData(object):
     """Class to store array type data.
