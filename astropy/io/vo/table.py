@@ -5,13 +5,19 @@ VOTable file.
 
 from __future__ import division, absolute_import
 
+# STDLIB
+import io
+import sys
+import warnings
+
 # LOCAL
+from . import exceptions
 from . import tree
 from . import util
 from . import xmlutil
 
 
-__all__ = ['parse', 'parse_single_table']
+__all__ = ['parse', 'parse_single_table', 'validate']
 
 
 def parse(source, columns=None, invalid='exception', pedantic=True,
@@ -67,7 +73,7 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
 
     Returns
     -------
-    votable : `astropy.io.vo.tree.VOTable` object
+    votable : `astropy.io.vo.tree.VOTableFile` object
 
     See also
     --------
@@ -113,3 +119,98 @@ def parse_single_table(source, **kwargs):
     votable = parse(source, **kwargs)
 
     return votable.get_first_table()
+
+
+def validate(filename, output=sys.stdout, xmllint=False):
+    """
+    Prints a validation report for the given file.
+
+    Parameters
+    ----------
+    filename : str path
+        Path to a VOTABLE_ xml file.
+
+    output : writable file-like object, optional
+        Where to output the report.  Defaults to `sys.stdout`.
+        If `None`, the output will be returned as a string.
+
+    xmllint : bool, optional
+        When `True`, also send the file to `xmllint` for schema and
+        DTD validation.  Requires that `xmllint` is installed.  The
+        default is `False`.
+
+    Returns
+    -------
+    is_valid : bool or str
+        Returns `True` if no warnings were found.  If `output` is
+        `None`, the return value will be a string.
+    """
+    import textwrap
+    from ...utils.console import print_code_line
+
+    return_as_str = False
+    if output is None:
+        output = io.StringIO()
+
+    lines = []
+    votable = None
+
+    # This is a special variable used by the Python warnings
+    # infrastructure to keep track of warnings that have already been
+    # seen.  Since we want to get every single warning out of this, we
+    # have to delete it first.
+    if hasattr(exceptions, '__warningregistry__'):
+        del exceptions.__warningregistry__
+
+    with io.open(filename, 'rb') as input:
+        with warnings.catch_warnings(record=True) as warning_lines:
+            warnings.resetwarnings()
+            warnings.simplefilter("always", append=True)
+            try:
+                votable = parse(input, pedantic=False, filename=filename)
+            except ValueError as e:
+                lines.append(str(e))
+    lines = [str(x.message) for x in warning_lines] + lines
+
+    output.write(u"Validation report for {0}\n\n".format(filename))
+
+    if len(lines):
+        xml_lines = xmlutil.xml_readlines(filename)
+
+        for warning in lines:
+            w = exceptions.parse_vowarning(warning)
+
+            if not w['is_something']:
+                output.write(warning)
+                output.write(u'\n\n')
+            else:
+                line = xml_lines[w['nline'] - 1]
+                output.write(textwrap.fill(
+                    u'{nline}: {warning}: {message}\n'.format(**w),
+                    subsequent_indent=u'  '))
+                output.write(u'\n')
+                print_code_line(line, w['nchar'], file=output)
+            output.write(u'\n')
+    else:
+        output.write(u'astropy.io.vo found no violations.\n\n')
+
+    success = 0
+    if xmllint:
+        if votable is None:
+            version = "1.1"
+        else:
+            version = votable.version
+        success, stdout, stderr = xmlutil.validate_schema(
+            filename, version)
+
+        if success != 0:
+            output.write(
+                u'xmllint schema violations:\n\n')
+            output.write(stderr)
+        else:
+            output.write(u'xmllint passed\n')
+
+    if return_as_str:
+        return output.getvalue()
+    return len(lines) == 0 and success == 0
+

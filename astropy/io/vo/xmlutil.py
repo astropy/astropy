@@ -5,6 +5,7 @@ Various XML-related utilities
 from __future__ import division, absolute_import
 
 # STDLIB
+import io
 import os
 
 # ASTROPY
@@ -21,7 +22,8 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise,
 __all__ = [
     'fast_iterparse', 'slow_iterparse', 'get_xml_iterator',
     'check_id', 'fix_id', 'check_token', 'check_mime_content_type',
-    'check_anyuri', 'validate_schema'
+    'check_anyuri', 'validate_schema', 'get_xml_encoding',
+    'xml_readlines'
     ]
 
 
@@ -222,3 +224,46 @@ def validate_schema(filename, version='1.2'):
             "data", "VOTable.dtd")
 
     return validate.validate_schema(filename, schema_path)
+
+
+def get_xml_encoding(source):
+    """
+    Determine the encoding of an XML file.  Uses the underlying
+    expat-based iterparser.
+
+    Parameters
+    ----------
+    source : readable file-like object, read function or str path
+
+    Returns
+    -------
+    encoding : str
+    """
+    source = util.convert_to_fd_or_read_function(source)
+    iterator = get_xml_iterator(source)
+    start, tag, data, pos = iterator.next()
+    if not start or tag != 'xml':
+        raise IOError('Invalid XML file')
+
+    return data['encoding']
+
+
+def xml_readlines(source):
+    """
+    Get the lines from a given XML file.  Correctly determines the
+    encoding and always returns unicode.
+
+    Parameters
+    ----------
+    source : readable file-like object, read function or str path
+
+    Returns
+    -------
+    encoding : str
+    """
+    encoding = get_xml_encoding(source)
+
+    with io.open(source, 'rt', encoding=encoding) as input:
+        xml_lines = input.readlines()
+
+    return xml_lines

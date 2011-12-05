@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Utilities for prettifying output to the console.
@@ -60,11 +61,13 @@ def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
 
     color_code = color_mapping.get(color, '0;39')
 
+    styles = []
     if bold:
-        file.write(u'\033[1m')
+        styles.append(';1')
     if italic:
-        file.write(u'\033[3m')
-    file.write(u'\033[%sm' % color_code)
+        styles.append(';3')
+    styles = ''.join(styles)
+    file.write(u'\033[%s%sm' % (color_code, styles))
     if isinstance(s, bytes):
         s = s.decode('ascii')
     file.write(s)
@@ -213,7 +216,7 @@ class ProgressBar:
         else:
             frac = float(value) / float(self._total)
         bar_fill = int(float(self._bar_length) * frac)
-        self._file.write('|')
+        self._file.write('\r|')
         color_print('=' * bar_fill, color='blue',
                     file=self._file, end='')
         if bar_fill < self._bar_length:
@@ -235,7 +238,6 @@ class ProgressBar:
         self._file.write(prefix)
         if t is not None:
             self._file.write(human_time(t))
-        self._file.write('\r')
         self._file.flush()
 
 
@@ -305,3 +307,151 @@ def iterate_with_progress_bar(items, file=sys.stdout):
         for item in items:
             yield item
             bar.update()
+
+
+class Spinner():
+    """
+    A class to display a spinner in the terminal.
+
+    It is designed to be used with the `with` statement::
+
+        with Spinner("Reticulating splines", "green") as s:
+            for item in enumerate(items):
+                s.next()
+    """
+    _default_chars = ur"◓◑◒◐"
+
+    def __init__(self, s, color='default', bold=False, italic=False,
+                 file=sys.stdout, step=1, chars=None):
+        """
+        Parameters
+        ----------
+        s : str
+            The message to print
+
+        color : str, optional
+            An ANSI terminal color name.  Must be one of: black, red,
+            green, brown, blue, magenta, cyan, lightgrey, default,
+            darkgrey, lightred, lightgreen, yellow, lightblue,
+            lightmagenta, lightcyan, white.
+
+        bold : bool, optional
+            When `True` use boldface font.
+
+        italic : bool, optional
+            When `True`, use italic font.
+
+        file : writeable file-like object, optional
+            Where to write to.  Defaults to `sys.stdout`.
+
+        step : int, optional
+            Only update the spinner every *step* steps
+
+        chars : str, optional
+            The character sequence to use for the spinner
+        """
+        self._colorized = color_string(s, color, bold, italic)
+        self._file = file
+        self._step = step
+        if chars is None:
+            chars = self._default_chars
+        self._chars = chars
+
+    def _iterator(self):
+        chars = self._chars
+        index = 0
+        write = self._file.write
+        flush = self._file.flush
+
+        while True:
+            write(u'\r')
+            write(self._colorized)
+            write(u' ')
+            write(chars[index])
+            flush()
+            yield
+
+            for i in xrange(self._step):
+                yield
+
+            index += 1
+            if index == len(chars):
+                index = 0
+
+    def __enter__(self):
+        return self._iterator()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._file.write(u'\r')
+        self._file.write(self._colorized)
+        if exc_type is None:
+            color_print(u' Done', 'green', bold=True, file=self._file)
+        else:
+            color_print(u' Failed', 'red', bold=True, file=self._file)
+        self._file.flush()
+
+
+def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
+    u"""
+    Prints a line of source code, highlighting a particular character
+    position in the line.  Useful for displaying the context of error
+    messages.
+
+    If the line is more than `width` characters, the line is truncated
+    accordingly and '…' characters are inserted at the front and/or
+    end.
+
+    It looks like this::
+
+        there_is_a_syntax_error_here :
+                                     ^
+
+    Parameters
+    ----------
+    line : unicode
+        The line of code to display
+
+    col : int, optional
+        The character in the line to highlight.  `col` must be less
+        than `len(line)`.
+
+    file : writeable file-like object, optional
+        Where to write to.  Defaults to `sys.stdout`.
+
+    tabwidth : int, optional
+        The number of spaces per tab (``'\t'``) character.  Default is
+        8.  All tabs will be converted to spaces to ensure that the
+        caret lines up with the correct column.
+
+    width : int, optional
+        The width of the display, beyond which the line will be
+        truncated.  Defaults to 70 (this matches the default in the
+        standard library's `textwrap` module).
+    """
+    if col is not None:
+        assert col < len(line)
+        ntabs = line[:col].count(u'\t')
+        col += ntabs * (tabwidth - 1)
+
+    line = line.rstrip(u'\n')
+    line = line.replace(u'\t', u' ' * tabwidth)
+
+    if col is not None and col > width:
+        new_col = min(width / 2, len(line) - col)
+        offset = col - new_col
+        line = line[offset + 1: ]
+        new_col = col
+        width = width - 3
+        file.write(u'…')
+
+    if len(line) > width:
+        file.write(line[:width-1])
+        file.write(u'…\n')
+    else:
+        file.write(line)
+        file.write(u'\n')
+
+    if col is not None:
+        file.write(u' ' * col)
+        file.write(u'^\n')
+

@@ -2852,7 +2852,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         for start, tag, data, pos in iterator:
             if start:
-                if tag == 'VOTABLE':
+                if tag == 'xml':
+                    pass
+                elif tag == 'VOTABLE':
                     if 'version' not in data:
                         warn_or_raise(W20, W20, self.version, config, pos)
                         config['version'] = self.version
