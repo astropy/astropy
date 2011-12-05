@@ -14,6 +14,7 @@ Public API
    api_exceptions.rst
    api_ucd.rst
    api_util.rst
+   api_validator.rst
    api_xmlutil.rst
 
 Private API

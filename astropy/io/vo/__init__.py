@@ -13,13 +13,13 @@ if setup_helpers.is_in_build_mode():
     pass
 else:
     del setup_helpers
-    from .table import parse, parse_single_table
+    from .table import parse, parse_single_table, validate
     from .exceptions import (VOWarning, VOTableChangeWarning,
         VOTableSpecWarning, UnimplementedWarning, IOWarning,
         VOTableSpecError)
 
     __all__ = [
-        'parse', 'parse_single_table', 'VOWarning',
+        'parse', 'parse_single_table', 'validate', 'VOWarning',
         'VOTableChangeWarning', 'VOTableSpecWarning',
         'UnimplementedWarning', 'IOWarning', 'VOTableSpecError'
         ]

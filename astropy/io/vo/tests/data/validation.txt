@@ -1,0 +1,199 @@
+Validation report for astropy/io/vo/tests/data/regression.xml
+
+11: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
+^
+
+11: E02: Incorrect number of elements in array. Expected multiple of
+  0, got 2
+<PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…
+^
+
+12: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arrays…
+^
+
+20: W01: Array uses commas rather than whitespace
+<PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.0…
+^
+
+21: W11: The gref attribute on LINK is deprecated in VOTable 1.1
+<LINK href="http://www.foo.com/" gref="DECPRECATED">
+^
+
+22: W10: Unknown tag 'DESCRIPTION'.  Ignoring
+  <DESCRIPTION>Really, this link is totally bogus.</DESCRIPTION>
+  ^
+
+31: W01: Array uses commas rather than whitespace
+<PARAM datatype="float" name="INPUT2" value="0.000000,0.000000" array…
+^
+
+34: W09: ID attribute not capitalized
+<FIELD id="string_test" name="string test" datatype="char" arraysize=…
+^
+
+37: W13: 'unicodeString' is not a valid VOTable datatype, should be
+  'unicodeChar'
+<FIELD ID="fixed_unicode_test" name="unicode test" datatype="unicodeS…
+^
+
+39: W13: 'string' is not a valid VOTable datatype, should be 'char'
+<FIELD ID="string_array_test" name="string array test" datatype="stri…
+^
+
+46: W48: Unknown attribute 'value' on OPTION
+    <OPTION name="bogus" value="whatever"/>
+    ^
+
+48: W10: Unknown tag 'IGNORE_ME'.  Ignoring
+  <IGNORE_ME/>
+  ^
+
+89: W17: GROUP element contains more than one DESCRIPTION element
+  </DESCRIPTION>
+  ^
+
+95: W01: Array uses commas rather than whitespace
+  <PARAM datatype="float" name="INPUT3" value="0.000000,0.000000" arr…
+  ^
+
+35: W32: Duplicate ID 'string_test' renamed to 'string_test_2' to
+  ensure uniqueness
+<FIELD ID="string_test" name="fixed string test" datatype="char" arra…
+^
+
+103: W46: char value is too long for specified length of 10
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+                            ^
+
+105: W46: unicodeChar value is too long for specified length of 10
+  <TD>Ceçi n'est pas un pipe</TD>
+                            ^
+
+106: W46: char value is too long for specified length of 4
+  <TD>ab cd</TD>
+           ^
+
+125: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+       ^
+
+125: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+133: W46: char value is too long for specified length of 10
+  <TD>0123456789A</TD>
+                 ^
+
+136: W46: char value is too long for specified length of 4
+  <TD>0123456789A</TD>
+                 ^
+
+140: W49: Empty cell illegal for integer fields.
+  <TD></TD>
+      ^
+
+143: W01: Array uses commas rather than whitespace
+  <TD>42 32, 12 32</TD>
+                  ^
+
+159: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields.
+  <TD/>
+       ^
+
+159: W49: Empty cell illegal for integer fields. (suppressing further
+  warnings of this type...)
+  <TD/>
+       ^
+
+165: W46: unicodeChar value is too long for specified length of 10
+  <TD>0123456789A</TD>
+                 ^
+
+189: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+       ^
+
+203: W01: Array uses commas rather than whitespace
+  <TD>NaN, 23</TD>
+             ^
+
+205: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
+  <TD/>
+       ^
+
+213: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+       ^
+
+219: E02: Incorrect number of elements in array. Expected multiple of
+  16, got 0
+  <TD/>
+       ^
+
+233: W01: Array uses commas rather than whitespace
+  <TD>31, -1</TD>
+            ^
+
+235: E02: Incorrect number of elements in array. Expected multiple of
+  6, got 0
+  <TD/>
+       ^
+
+243: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1
+  <TD/>
+       ^
+
+245: E02: Incorrect number of elements in array. Expected multiple of
+  4, got 1 (suppressing further warnings of this type...)
+  <TD/>
+       ^
+
+263: W46: char value is too long for specified length of 10
+  <TD>Fixed string long test</TD> <!-- Should truncate -->
+                            ^
+
+265: W46: unicodeChar value is too long for specified length of 10
+  <TD>Ceçi n'est pas un pipe</TD>
+                            ^
+
+266: W46: char value is too long for specified length of 4
+  <TD>ab cd</TD>
+           ^
+
