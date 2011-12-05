@@ -37,7 +37,6 @@ class TableColumns(OrderedDict):
           tc[1] # Column('b')
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
           tc[1:3] # <TableColumns names=('b', 'c')>
-    
         """
         if isinstance(item, basestring):
             return OrderedDict.__getitem__(self, item)
@@ -395,10 +394,13 @@ class Table(object):
         elif isinstance(item, int):
             # XXX should return Row instance
             return self._data[item]
+        elif isinstance(item, tuple):
+            return Table([self[x] for x in item], meta=deepcopy(self.meta))
         else:
             # XXX Losing other column attrs like description format etc.
             # XXX Error checking?
-            return Table(self._data[item], names=self.colnames, meta=deepcopy(self.meta))
+            return Table(self._data[item], names=self.colnames,
+                         meta=deepcopy(self.meta))
 
     def __setitem__(self, item, value):
         try:
