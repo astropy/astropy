@@ -208,19 +208,22 @@ class TestImageFunctions(FitsTestCase):
         f1 = fits.open(self.data('test0.fits'), memmap=1)
         f1.close()
 
-    def test_verification_on_output(self, capsys):
+    def test_verification_on_output(self):
         # verification on output
         # make a defect HDUList first
         x = fits.ImageHDU()
-        hdu = fits.HDUList(x) # HDUList can take a list or one single HDU
-        hdu.verify()
-        out, err = capsys.readouterr()
-        assert "HDUList's 0th element is not a primary HDU." in err
+        hdu = fits.HDUList(x)  # HDUList can take a list or one single HDU
+        with warnings.catch_warnings(record=True) as w:
+            hdu.verify()
+            text = "HDUList's 0th element is not a primary HDU."
+            assert len(w) == 1
+            assert text in str(w[0].message)
 
-        hdu.writeto(self.temp('test_new2.fits'), 'fix')
-        out, err = capsys.readouterr()
-        assert ("HDUList's 0th element is not a primary HDU.  "
-                "Fixed by inserting one as 0th HDU." in err)
+            hdu.writeto(self.temp('test_new2.fits'), 'fix')
+            text = ("HDUList's 0th element is not a primary HDU.  "
+                    "Fixed by inserting one as 0th HDU.")
+            assert len(w) == 2
+            assert text in str(w[1].message)
 
     def test_section(self):
         # section testing

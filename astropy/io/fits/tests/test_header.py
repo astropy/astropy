@@ -327,20 +327,22 @@ class TestHeaderFunctions(FitsTestCase):
         assert (str(c) ==
                 "HISTO   = 'ry          (1, 2)'                                                  ")
 
-    def test_verify_invalid_equal_sign(self, capsys):
+    def test_verify_invalid_equal_sign(self):
         # verification
         c = fits.Card.fromstring('abc= a6')
-        c.verify()
-        out, err = capsys.readouterr()
-        assert ('Card image is not FITS standard (equal sign not at column 8)'
-                in err)
+        with warnings.catch_warnings(record=True) as w:
+            c.verify()
+            assert len(w) == 1
+            assert ('Card image is not FITS standard (equal sign not at '
+                    'column 8)' in str(w[0].message))
 
-    def test_fix_invalid_equal_sign(self, capsys):
+    def test_fix_invalid_equal_sign(self):
         c = fits.Card.fromstring('abc= a6')
-        c.verify('fix')
-        fix_text = 'Fixed card to meet the FITS standard: ABC'
-        out, err = capsys.readouterr()
-        assert fix_text in err
+        with warnings.catch_warnings(record=True) as w:
+            c.verify('fix')
+            fix_text = 'Fixed card to meet the FITS standard: ABC'
+            assert len(w) == 1
+            assert fix_text in str(w[0].message)
         assert (str(c) ==
                 "ABC     = 'a6      '                                                            ")
 
