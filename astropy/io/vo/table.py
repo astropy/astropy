@@ -185,18 +185,20 @@ def validate(filename, output=sys.stdout, xmllint=False):
                 output.write(u'\n\n')
             else:
                 line = xml_lines[w['nline'] - 1]
-                output.write(u'{0:d}: '.format(w['nline']))
                 warning = w['warning']
                 if warning.startswith('W'):
-                    color_print(warning, 'yellow', file=output, end=u'')
+                    color = 'yellow'
                 else:
-                    color_print(warning, 'red', file=output, end=u'')
-                output.write(u': ')
-                output.write(textwrap.fill(
-                    w['message'],
-                    initial_indent=u'          ',
-                    subsequent_indent=u'  ').lstrip())
-                output.write(u'\n')
+                    color = 'red'
+                color_print(
+                    u'{0:d}: '.format(w['nline']), '',
+                    warning, color,
+                    u': ', '',
+                    textwrap.fill(
+                        w['message'],
+                        initial_indent=u'          ',
+                        subsequent_indent=u'  ').lstrip(),
+                    file=output)
                 print_code_line(line, w['nchar'], file=output)
             output.write(u'\n')
     else:

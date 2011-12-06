@@ -41,21 +41,24 @@ def isatty(file):
     return False
 
 
-def color_print(s, color='default', bold=False, file=sys.stdout, end=u'\n'):
+def color_print(*args, **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
-    sequences.
+    sequences::
+
+       color_print('This is the color ', 'default', 'GREEN', 'green')
 
     Parameters
     ----------
-    s : str
-        The message to print
+    positional args : strings
+        The positional arguments come in pairs (*msg*, *color*), where
+        *msg* is the string to display and *color* is the color to
+        display it in.
 
-    color : str, optional
-        An ANSI terminal color name.  Must be one of: black, red,
-        green, brown, blue, magenta, cyan, lightgrey, default,
-        darkgrey, lightred, lightgreen, yellow, lightblue,
-        lightmagenta, lightcyan, white.
+        *color* is an ANSI terminal color name.  Must be one of:
+        black, red, green, brown, blue, magenta, cyan, lightgrey,
+        default, darkgrey, lightred, lightgreen, yellow, lightblue,
+        lightmagenta, lightcyan, white, or '' (the empty string).
 
     bold : bool, optional
         When `True` use boldface font.
@@ -86,20 +89,42 @@ def color_print(s, color='default', bold=False, file=sys.stdout, end=u'\n'):
         'lightcyan': '1;36',
         'white': '1;37'}
 
-    if isinstance(s, bytes):
-        s = s.decode('ascii')
+    bold = kwargs.get('bold', False)
+    file = kwargs.get('file', sys.stdout)
+    end = kwargs.get('end', u'\n')
 
+    write = file.write
     if isatty(file) and USE_COLOR():
-        color_code = color_mapping.get(color, '0;39')
-
         if bold:
             styles = ';1'
         else:
             styles = ''
-        print(u'\033[{0}{1}m{2}\033[0m'.format(color_code, styles, s),
-              file=file, end=end)
+
+        for i in xrange(0, len(args), 2):
+            msg = args[i]
+            if i + 1 == len(args):
+                color = ''
+            else:
+                color = args[i + 1]
+
+            if isinstance(msg, bytes):
+                msg = msg.decode('ascii')
+
+            if color == u'' or color is None:
+                write(msg)
+            else:
+                color_code = color_mapping.get(color, '0;39')
+                write(u'\033[{0}{1}m{2}\033[0m'.format(
+                    color_code, styles, msg))
+
+        write(end)
     else:
-        print(s, file=file, end=end)
+        for i in xrange(0, len(args), 2):
+            msg = args[i]
+            if isinstance(msg, bytes):
+                msg = msg.decode('ascii')
+            write(msg)
+        write(end)
 
 
 def strip_ansi_codes(s):
@@ -428,9 +453,9 @@ class Spinner():
             write(u'\r')
             color_print(self._msg, self._color, file=file, end=u'')
         if exc_type is None:
-            color_print(u' [Done]', 'green', True, file=file)
+            color_print(u' [Done]', 'green', bold=True, file=file)
         else:
-            color_print(u' [Failed]', 'red', True, file=file)
+            color_print(u' [Failed]', 'red', bold=True, file=file)
         flush()
 
     def _silent_iterator(self):

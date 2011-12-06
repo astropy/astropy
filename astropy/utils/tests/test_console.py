@@ -12,6 +12,8 @@ def test_color_print():
     # This stuff is hard to test, at least smoke test it
     console.color_print("foo", "green")
 
+    console.color_print("foo", "green", "bar", "red")
+
 
 def test_color_print2():
     # Test that this automatically detects that io.StringIO is
@@ -19,6 +21,10 @@ def test_color_print2():
     stream = io.StringIO()
     console.color_print("foo", "green", file=stream)
     assert stream.getvalue() == u'foo\n'
+
+    stream = io.StringIO()
+    console.color_print("foo", "green", "bar", "red", "baz", file=stream)
+    assert stream.getvalue() == u'foobarbaz\n'
 
 
 def test_color_print3():
@@ -30,6 +36,10 @@ def test_color_print3():
     stream = FakeTTY()
     console.color_print("foo", "green", file=stream)
     assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\n'
+
+    stream = FakeTTY()
+    console.color_print("foo", "green", "bar", "red", "baz", file=stream)
+    assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\x1b[0;31mbar\x1b[0mbaz\n'
 
 
 def test_color_print_unicode():
