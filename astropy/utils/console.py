@@ -15,8 +15,7 @@ from ..config.configs import ConfigurationItem
 
 
 __all__ = [
-    'isatty', 'color_print', 'human_time', 'ProgressBar',
-    'iterate_with_progress_bar', 'map_with_progress_bar', 'Spinner',
+    'isatty', 'color_print', 'human_time', 'ProgressBar', 'Spinner',
     'print_code_line']
 
 
@@ -179,12 +178,6 @@ class ProgressBar:
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling the `isatty`), the scrollbar will be completely
             silent.
-
-        See also
-        --------
-        map_with_progress_bar
-
-        iterate_with_progress_bar
         """
         if not isatty(file):
             self.update = self._silent_update
@@ -267,73 +260,77 @@ class ProgressBar:
     def _silent_update(self, value=None):
         pass
 
+    @classmethod
+    def map(
+            cls, function, items, multiprocess=False, file=sys.stdout):
+        """
+        Does a `map` operation while displaying a progress bar with
+        percentage complete::
 
-def map_with_progress_bar(
-        function, items, multiprocess=False, file=sys.stdout):
-    """
-    Does a `map` operation while displaying a progress bar with
-    percentage complete.
+            def work(i):
+                print(i)
 
-    Parameters
-    ----------
-    function : function
-        Function to call for each step
+            ProgressBar.map(work, range(50))
 
-    items : sequence
-        Sequence where each element is a tuple of arguments to pass to
-        *function*.
+        Parameters
+        ----------
+        function : function
+            Function to call for each step
 
-    multiprocess : bool, optional
-        If `True`, use the `multiprocessing` module to distribute each
-        task to a different processor core.
+        items : sequence
+            Sequence where each element is a tuple of arguments to pass to
+            *function*.
 
-    file : writeable file-like object
-        The file to write the progress bar to.  Defaults to
-        `sys.stdout`.
-    """
-    with ProgressBar(len(items), file=file) as bar:
-        step_size = max(200, bar._bar_length)
-        steps = max(int(float(len(items)) / step_size), 1)
-        if not multiprocess:
-            for i, item in enumerate(items):
-                function(item)
-                if (i % steps) == 0:
+        multiprocess : bool, optional
+            If `True`, use the `multiprocessing` module to distribute each
+            task to a different processor core.
+
+        file : writeable file-like object
+            The file to write the progress bar to.  Defaults to
+            `sys.stdout`.
+        """
+        with cls(len(items), file=file) as bar:
+            step_size = max(200, bar._bar_length)
+            steps = max(int(float(len(items)) / step_size), 1)
+            if not multiprocess:
+                for i, item in enumerate(items):
+                    function(item)
+                    if (i % steps) == 0:
+                        bar.update(i)
+            else:
+                import multiprocessing
+                p = multiprocessing.Pool()
+                for i, _ in enumerate(
+                    p.imap_unordered(function, items, steps)):
                     bar.update(i)
-        else:
-            import multiprocessing
-            p = multiprocessing.Pool()
-            for i, _ in enumerate(p.imap_unordered(function, items, steps)):
-                bar.update(i)
 
+    @classmethod
+    def iterate(cls, items, file=sys.stdout):
+        """
+        Iterate over a sequence while indicating progress with a progress
+        bar in the terminal::
 
-def iterate_with_progress_bar(items, file=sys.stdout):
-    """
-    Iterate over a sequence while indicating progress with a progress
-    bar in the terminal.
+            for item in ProgressBar.iterate(items):
+                pass
 
-    Use as follows::
+        Parameters
+        ----------
+        items : sequence
+            A sequence of items to iterate over
 
-        for item in iterate_with_progress_bar(items):
-            pass
+        file : writeable file-like object
+            The file to write the progress bar to.  Defaults to
+            `sys.stdout`.
 
-    Parameters
-    ----------
-    items : sequence
-        A sequence of items to iterate over
-
-    file : writeable file-like object
-        The file to write the progress bar to.  Defaults to
-        `sys.stdout`.
-
-    Returns
-    -------
-    generator :
-        A generator over `items`
-    """
-    with ProgressBar(len(items), file=file) as bar:
-        for item in items:
-            yield item
-            bar.update()
+        Returns
+        -------
+        generator :
+            A generator over `items`
+        """
+        with cls(len(items), file=file) as bar:
+            for item in items:
+                yield item
+                bar.update()
 
 
 class Spinner():

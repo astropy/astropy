@@ -112,8 +112,7 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from ....utils.console import (color_print, map_with_progress_bar,
-                                   iterate_with_progress_bar, Spinner)
+    from ....utils.console import (color_print, ProgressBar, Spinner)
 
     if stilts is not None:
         if not os.path.exists(stilts):
@@ -127,29 +126,29 @@ def make_validation_report(
             urls = get_urls(destdir, s)
     else:
         color_print('Marking URLs', 'green')
-        for url in iterate_with_progress_bar(urls):
+        for url in ProgressBar.iterate(urls):
             with result.Result(url, root=destdir) as r:
                 r['expected'] = type
 
     args = [(url, destdir) for url in urls]
 
     color_print('Downloading VO files', 'green')
-    map_with_progress_bar(
+    ProgressBar.map(
         download, args, multiprocess=multiprocess)
 
     color_print('Validating VO files', 'green')
-    map_with_progress_bar(
+    ProgressBar.map(
         validate_vo, args, multiprocess=multiprocess)
 
     if stilts is not None:
         color_print('Validating with votlint', 'green')
         votlint_args = [(stilts, x, destdir) for x in urls]
-        map_with_progress_bar(
+        ProgressBar.map(
             votlint_validate, votlint_args, multiprocess=multiprocess)
 
 
     color_print('Generating HTML files', 'green')
-    map_with_progress_bar(
+    ProgressBar.map(
         write_html_result, args, multiprocess=multiprocess)
 
     with Spinner('Grouping results', 'green') as s:
@@ -160,5 +159,5 @@ def make_validation_report(
 
     color_print('Generating subindices', 'green')
     subindex_args = [(subset, destdir, len(urls)) for subset in subsets]
-    map_with_progress_bar(
+    ProgressBar.map(
         write_subindex, subindex_args, multiprocess=multiprocess)

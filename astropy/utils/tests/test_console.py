@@ -48,7 +48,7 @@ def test_progress_bar():
 
 
 def test_progress_bar2():
-    for x in console.iterate_with_progress_bar(range(50)):
+    for x in console.ProgressBar.iterate(range(50)):
         pass
 
 
@@ -56,4 +56,4 @@ def test_progress_bar3():
     def do_nothing(*args, **kwargs):
         pass
 
-    console.map_with_progress_bar(do_nothing, range(50))
+    console.ProgressBar.map(do_nothing, range(50))
