@@ -64,7 +64,9 @@ def color_print(*args, **kwargs):
         When `True` use boldface font.
 
     file : writeable file-like object, optional
-        Where to write to.  Defaults to `sys.stdout`.
+        Where to write to.  Defaults to `sys.stdout`.  If file is not
+        a tty (as determined by calling its `isatty` member, if one
+        exists), no coloring will be included.
 
     end : str, optional
         The ending of the message.  Defaults to ``\\n``.  The end will
@@ -180,6 +182,7 @@ def human_time(seconds):
             return u'{0:02d}{1}{2:02d}{3}'.format(
                 seconds // limit1, unit1,
                 (seconds % limit1) // limit2, unit2)
+    return u'  ~inf'
 
 
 class ProgressBar:
@@ -202,8 +205,8 @@ class ProgressBar:
         file : writable file-like object
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
-            calling the `isatty`), the scrollbar will be completely
-            silent.
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
         """
         if not isatty(file):
             self.update = self._silent_update
@@ -294,8 +297,7 @@ class ProgressBar:
         pass
 
     @classmethod
-    def map(
-            cls, function, items, multiprocess=False, file=sys.stdout):
+    def map(cls, function, items, multiprocess=False, file=sys.stdout):
         """
         Does a `map` operation while displaying a progress bar with
         percentage complete::
@@ -320,7 +322,9 @@ class ProgressBar:
 
         file : writeable file-like object
             The file to write the progress bar to.  Defaults to
-            `sys.stdout`.
+            `sys.stdout`.  If `file` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
         """
         with cls(len(items), file=file) as bar:
             step_size = max(200, bar._bar_length)
@@ -353,7 +357,9 @@ class ProgressBar:
 
         file : writeable file-like object
             The file to write the progress bar to.  Defaults to
-            `sys.stdout`.
+            `sys.stdout`.  If `file` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
 
         Returns
         -------
@@ -393,9 +399,10 @@ class Spinner():
             lightmagenta, lightcyan, white.
 
         file : writeable file-like object, optional
-            Where to write to.  Defaults to `sys.stdout`.  If `file`
-            is not a tty (as determined by calling the `isatty`),
-            only `msg` will be printed and the spinner will be silent.
+            The file to write the spinner to.  Defaults to
+            `sys.stdout`.  If `file` is not a tty (as determined by
+            calling its `isatty` member, if any), the scrollbar will
+            be completely silent.
 
         step : int, optional
             Only update the spinner every *step* steps
