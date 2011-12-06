@@ -3,10 +3,11 @@
 """
 Utilities for prettifying output to the console.
 """
-from __future__ import print_function
+from __future__ import division, print_function
 
 import io
 import re
+import math
 import sys
 import time
 
@@ -188,7 +189,6 @@ class ProgressBar:
         self._total = total
         self._file = file
         self._start_time = time.time()
-        num_length = len(str(total))
         terminal_width = 78
         if sys.platform.startswith('linux'):
             import subprocess
@@ -201,8 +201,14 @@ class ProgressBar:
             if len(parts) == 2:
                 rows, cols = parts
                 terminal_width = int(cols)
-        self._bar_length = terminal_width - 29 - (num_length * 2)
-        self._num_format = '{{0:>{0}}}/{{1:>{0}}}'.format(num_length)
+        self._bar_length = terminal_width - 36
+        num_scale = int(math.floor(math.log(self._total) / math.log(1000)))
+        if num_scale > 7:
+            self._suffix = '?'
+        else:
+            suffixes = u' kMGTPEH'
+            self._suffix = suffixes[num_scale]
+        self._num_scale = int(math.pow(1000, num_scale))
         self.update(0)
 
     def __enter__(self):
@@ -249,8 +255,10 @@ class ProgressBar:
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
             prefix = u' ETA '
-        write(u' ')
-        write(self._num_format.format(value, self._total))
+        write(u' {0:>3d}/{1:>3d}{2}'.format(
+            value // self._num_scale,
+            self._total // self._num_scale,
+            self._suffix))
         write(u' ({0:>6s}%)'.format(u'{0:.2f}'.format(frac * 100.0)))
         write(prefix)
         if t is not None:
@@ -418,7 +426,7 @@ class Spinner():
 
         if not self._silent:
             write(u'\r')
-            write(self._msg)
+            color_print(self._msg, self._color, file=file, end=u'')
         if exc_type is None:
             color_print(u' [Done]', 'green', True, file=file)
         else:
