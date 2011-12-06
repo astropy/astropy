@@ -292,7 +292,7 @@ naxis kwarg.
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
     def __copy__(self):
-        new_copy = WCS()
+        new_copy = self.__class__()
         WCSBase.__init__(new_copy, self.sip,
                          (self.cpdis1, self.cpdis2),
                          self.wcs,
