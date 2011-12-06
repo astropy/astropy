@@ -186,23 +186,23 @@ def human_time(seconds):
         that is always exactly 6 characters.
     """
     units = [
-        ('y', 60 * 60 * 24 * 7 * 52),
-        ('w', 60 * 60 * 24 * 7),
-        ('d', 60 * 60 * 24),
-        ('h', 60 * 60),
-        ('m', 60),
-        ('s', 1),
+        (u'y', 60 * 60 * 24 * 7 * 52),
+        (u'w', 60 * 60 * 24 * 7),
+        (u'd', 60 * 60 * 24),
+        (u'h', 60 * 60),
+        (u'm', 60),
+        (u's', 1),
         ]
 
     seconds = int(seconds)
 
     if seconds < 60:
-        return '   {0:02d}s'.format(seconds)
+        return u'   {0:02d}s'.format(seconds)
     for i in xrange(len(units) - 1):
         unit1, limit1 = units[i]
         unit2, limit2 = units[i + 1]
-        if seconds > limit1:
-            return '{0:02d}{1}{2:02d}{3}'.format(
+        if seconds >= limit1:
+            return u'{0:02d}{1}{2:02d}{3}'.format(
                 seconds // limit1, unit1,
                 (seconds % limit1) // limit2, unit2)
 
