@@ -14,7 +14,20 @@ def test_color_print():
 
 
 def test_color_print2():
+    # Test that this automatically detects that io.StringIO is
+    # not a tty
     stream = io.StringIO()
+    console.color_print("foo", "green", file=stream)
+    assert stream.getvalue() == u'foo\n'
+
+
+def test_color_print3():
+    # Test that this things the FakeTTY is a tty and applies colors.
+    class FakeTTY(io.StringIO):
+        def isatty(self):
+            return True
+
+    stream = FakeTTY()
     console.color_print("foo", "green", file=stream)
     assert stream.getvalue() == u'\x1b[0;32mfoo\x1b[0m\n'
 
@@ -44,8 +57,3 @@ def test_progress_bar3():
         pass
 
     console.map_with_progress_bar(do_nothing, range(50))
-
-
-def test_color_string():
-    value = console.color_string("foo", "green")
-    assert value == u'\x1b[0;32mfoo\x1b[0m'

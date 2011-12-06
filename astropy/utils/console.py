@@ -15,86 +15,30 @@ from ..config.configs import ConfigurationItem
 
 
 __all__ = [
-    'Color', 'color_print', 'color_string', 'human_time',
-    'ProgressBar', 'iterate_with_progress_bar',
-    'map_with_progress_bar', 'Spinner', 'print_code_line']
+    'isatty', 'color_print', 'human_time', 'ProgressBar',
+    'iterate_with_progress_bar', 'map_with_progress_bar', 'Spinner',
+    'print_code_line']
 
 
 USE_COLOR = ConfigurationItem(
     'use_color', True,
-    'When True, use ANSI color escape sequences when writing to the console. '
-    'Changing has no effect after startup time')
+    'When True, use ANSI color escape sequences when writing to the console.')
 USE_UNICODE = ConfigurationItem(
     'use_unicode', True,
     'Use Unicode characters when drawing progress bars etc. at the console.')
 
 
-if USE_COLOR:
-    def _define_color(name, code):
-        template = u'\033[{0}{{0}}m{{1}}\033[0m'.format(code)
-
-        def color(s, bold=False):
-            if bold:
-                styles = u';1'
-            else:
-                styles = u''
-            if isinstance(s, bytes):
-                s = s.decode('ascii')
-            return template.format(styles, s)
-
-        func = color
-        func.__name__ = name
-        return func
-else:
-    def _define_color(name, code):
-        def color(s, bold=False):
-            if isinstance(s, bytes):
-                s = s.decode('ascii')
-            return s
-
-        func = color
-        func.__name__ = name
-        return func
-
-
-class Color:
+def isatty(file):
     """
-    A class for colorizing text.
+    Returns `True` if `file` is a tty.
 
-    It contains a number of static methods, each of which colorizes a
-    particular color.  For example, to print out a string in the color
-    green, do::
-
-        print(Color.green('go'))
+    Most built-in Python file-like objects have an `isatty` member,
+    but some user-defined types may not, so this assumes those are not
+    ttys.
     """
-    black        = staticmethod(_define_color('black', '0;30'))
-    red          = staticmethod(_define_color('red', '0;31'))
-    green        = staticmethod(_define_color('green', '0;32'))
-    brown        = staticmethod(_define_color('brown', '0:33'))
-    blue         = staticmethod(_define_color('blue', '0;34'))
-    magenta      = staticmethod(_define_color('magenta', '0;35'))
-    cyan         = staticmethod(_define_color('cyan', '0;36'))
-    lightgrey    = staticmethod(_define_color('lightgrey', '0;37'))
-    default      = staticmethod(_define_color('default', '0;39'))
-    darkgrey     = staticmethod(_define_color('darkgrey', '1;30'))
-    lightred     = staticmethod(_define_color('lightred', '1;31'))
-    lightgreen   = staticmethod(_define_color('lightgreen', '1;32'))
-    yellow       = staticmethod(_define_color('yellow', '1;33'))
-    lightblue    = staticmethod(_define_color('lightblue', '1;34'))
-    lightmagenta = staticmethod(_define_color('lightmagenta', '1;35'))
-    lightcyan    = staticmethod(_define_color('lightcyan', '1;36'))
-    white        = staticmethod(_define_color('white', '1;37'))
-
-    @classmethod
-    def get_color_func(cls, color):
-        """
-        Return the function for a particular `color` by name.
-        """
-        try:
-            func = getattr(cls, color)
-        except AttributeError:
-            func = cls.default
-        return func
+    if hasattr(file, 'isatty'):
+        return file.isatty()
+    return False
 
 
 def color_print(s, color='default', bold=False, file=sys.stdout, end=u'\n'):
@@ -123,33 +67,39 @@ def color_print(s, color='default', bold=False, file=sys.stdout, end=u'\n'):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    color_func = Color.get_color_func(color)
+    color_mapping = {
+        'black': '0;30',
+        'red': '0;31',
+        'green': '0;32',
+        'brown': '0;33',
+        'blue': '0;34',
+        'magenta': '0;35',
+        'cyan': '0;36',
+        'lightgrey': '0;37',
+        'default': '0;39',
+        'darkgrey': '1;30',
+        'lightred': '1;31',
+        'lightgreen': '1;32',
+        'yellow': '1;33',
+        'lightblue': '1;34',
+        'lightmagenta': '1;35',
+        'lightcyan': '1;36',
+        'white': '1;37'}
 
-    print(color_func(s, bold), file=file, end=end)
+    if isinstance(s, bytes):
+        s = s.decode('ascii')
 
+    if isatty(file) and USE_COLOR():
+        color_code = color_mapping.get(color, '0;39')
 
-def color_string(s, color='default', bold=False):
-    """
-    Returns a string containing ANSI color codes in the given
-    color.
-
-    Parameters
-    ----------
-    s : str
-        The message to color
-
-    color : str, optional
-        An ANSI terminal color name.  Must be one of: black, red,
-        green, brown, blue, magenta, cyan, lightgrey, default,
-        darkgrey, lightred, lightgreen, yellow, lightblue,
-        lightmagenta, lightcyan, white.
-
-    bold : bool, optional
-        When `True` use boldface font.
-    """
-    color_func = Color.get_color_func(color)
-
-    return color_func(s, bold)
+        if bold:
+            styles = ';1'
+        else:
+            styles = ''
+        print(u'\033[{0}{1}m{2}\033[0m'.format(color_code, styles, s),
+              file=file, end=end)
+    else:
+        print(s, file=file, end=end)
 
 
 def strip_ansi_codes(s):
@@ -226,7 +176,9 @@ class ProgressBar:
 
         file : writable file-like object
             The file to write the progress bar to.  Defaults to
-            `sys.stdout`.
+            `sys.stdout`.  If `file` is not a tty (as determined by
+            calling the `isatty`), the scrollbar will be completely
+            silent.
 
         See also
         --------
@@ -234,6 +186,12 @@ class ProgressBar:
 
         iterate_with_progress_bar
         """
+        if not isatty(file):
+            self.update = self._silent_update
+            self._silent = True
+        else:
+            self._silent = False
+
         self._total = total
         self._file = file
         self._start_time = time.time()
@@ -258,10 +216,11 @@ class ProgressBar:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is None:
-            self.update(self._total)
-        self._file.write('\n')
-        self._file.flush()
+        if not self._silent:
+            if exc_type is None:
+                self.update(self._total)
+            self._file.write('\n')
+            self._file.flush()
 
     def update(self, value=None):
         """
@@ -277,13 +236,14 @@ class ProgressBar:
         else:
             frac = float(value) / float(self._total)
 
-        write = self._file.write
+        file = self._file
+        write = file.write
 
         bar_fill = int(float(self._bar_length) * frac)
         write(u'\r|')
-        write(Color.blue(u'=' * bar_fill))
+        color_print(u'=' * bar_fill, 'blue', file=file, end=u'')
         if bar_fill < self._bar_length:
-            write(Color.green(u'>'))
+            color_print(u'>', 'green', file=file, end=u'')
             write(u'-' * (self._bar_length - bar_fill - 1))
         write(u'|')
 
@@ -303,6 +263,9 @@ class ProgressBar:
         if t is not None:
             write(human_time(t))
         self._file.flush()
+
+    def _silent_update(self, value=None):
+        pass
 
 
 def map_with_progress_bar(
@@ -386,15 +349,23 @@ class Spinner():
     _default_unicode_chars = u"◓◑◒◐"
     _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, s, file=sys.stdout, step=1, chars=None):
+    def __init__(self, msg, color='default', file=sys.stdout, step=1, chars=None):
         """
         Parameters
         ----------
-        s : str
+        msg : str
             The message to print
 
+        color : str
+            An ANSI terminal color name.  Must be one of: black, red,
+            green, brown, blue, magenta, cyan, lightgrey, default,
+            darkgrey, lightred, lightgreen, yellow, lightblue,
+            lightmagenta, lightcyan, white.
+
         file : writeable file-like object, optional
-            Where to write to.  Defaults to `sys.stdout`.
+            Where to write to.  Defaults to `sys.stdout`.  If `file`
+            is not a tty (as determined by calling the `isatty`),
+            only `msg` will be printed and the spinner will be silent.
 
         step : int, optional
             Only update the spinner every *step* steps
@@ -402,7 +373,8 @@ class Spinner():
         chars : str, optional
             The character sequence to use for the spinner
         """
-        self._s = s
+        self._msg = msg
+        self._color = color
         self._file = file
         self._step = step
         if chars is None:
@@ -412,15 +384,18 @@ class Spinner():
                 chars = self._default_ascii_chars
         self._chars = chars
 
+        self._silent = not isatty(file)
+
     def _iterator(self):
         chars = self._chars
         index = 0
-        write = self._file.write
-        flush = self._file.flush
+        file = self._file
+        write = file.write
+        flush = file.flush
 
         while True:
             write(u'\r')
-            write(self._s)
+            color_print(self._msg, self._color, file=file, end=u'')
             write(u' ')
             write(chars[index])
             flush()
@@ -434,19 +409,31 @@ class Spinner():
                 index = 0
 
     def __enter__(self):
-        return self._iterator()
+        if self._silent:
+            return self._silent_iterator()
+        else:
+            return self._iterator()
 
     def __exit__(self, exc_type, exc_value, traceback):
-        write = self._file.write
+        file = self._file
+        write = file.write
+        flush = file.flush
 
-        write(u'\r')
-        write(self._s)
+        if not self._silent:
+            write(u'\r')
+            write(self._msg)
         if exc_type is None:
-            write(Color.green(u' Done', True))
+            color_print(u' [Done]', 'green', True, file=file)
         else:
-            write(Color.red(u' Failed', True))
-        write(u'\n')
+            color_print(u' [Failed]', 'red', True, file=file)
+        flush()
+
+    def _silent_iterator(self):
+        color_print(self._msg, self._color, file=self._file, end=u'')
         self._file.flush()
+
+        while True:
+            yield
 
 
 def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
@@ -486,6 +473,8 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
         truncated.  Defaults to 70 (this matches the default in the
         standard library's `textwrap` module).
     """
+    write = file.write
+
     if col is not None:
         assert col < len(line)
         ntabs = line[:col].count(u'\t')
@@ -500,18 +489,16 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
         line = line[offset + 1: ]
         new_col = col
         width = width - 3
-        file.write(color.darkgrey(u'…'))
+        color_print(u'…', 'darkgrey', file=file, end=u'')
 
     if len(line) > width:
         file.write(line[:width-1])
-        file.write(Color.darkgrey(u'…'))
-        file.write(u'\n')
+        color_print(u'…', 'darkgrey', file=file)
     else:
         file.write(line)
         file.write(u'\n')
 
     if col is not None:
         file.write(u' ' * col)
-        file.write(Color.red(u'^'))
-        file.write(u'\n')
+        color_print(u'^', 'red', file=file)
 

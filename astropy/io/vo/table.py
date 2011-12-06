@@ -146,7 +146,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
         `None`, the return value will be a string.
     """
     import textwrap
-    from ...utils.console import Color, print_code_line
+    from ...utils.console import print_code_line, color_print
 
     return_as_str = False
     if output is None:
@@ -185,16 +185,17 @@ def validate(filename, output=sys.stdout, xmllint=False):
                 output.write(u'\n\n')
             else:
                 line = xml_lines[w['nline'] - 1]
-                nline = w['nline']
+                output.write(u'{0:d}: '.format(w['nline']))
                 warning = w['warning']
                 if warning.startswith('W'):
-                    warning = Color.yellow(warning)
+                    color_print(warning, 'yellow', file=output, end=u'')
                 else:
-                    warning = Color.red(warning)
-                message = w['message']
+                    color_print(warning, 'red', file=output, end=u'')
+                output.write(u': ')
                 output.write(textwrap.fill(
-                    u'{0}: {1}: {2}\n'.format(nline, warning, message),
-                    subsequent_indent=u'  '))
+                    w['message'],
+                    initial_indent=u'          ',
+                    subsequent_indent=u'  ').lstrip())
                 output.write(u'\n')
                 print_code_line(line, w['nchar'], file=output)
             output.write(u'\n')

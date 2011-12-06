@@ -112,7 +112,7 @@ def make_validation_report(
     locally in *destdir*.  To refresh the cache, remove *destdir*
     first.
     """
-    from ....utils.console import (Color, map_with_progress_bar,
+    from ....utils.console import (color_print, map_with_progress_bar,
                                    iterate_with_progress_bar, Spinner)
 
     if stilts is not None:
@@ -123,42 +123,42 @@ def make_validation_report(
     destdir = os.path.abspath(destdir)
 
     if urls is None:
-        with Spinner(Color.green('Loading URLs')) as s:
+        with Spinner('Loading URLs', 'green') as s:
             urls = get_urls(destdir, s)
     else:
-        print(Color.green('Marking URLs'))
+        color_print('Marking URLs', 'green')
         for url in iterate_with_progress_bar(urls):
             with result.Result(url, root=destdir) as r:
                 r['expected'] = type
 
     args = [(url, destdir) for url in urls]
 
-    print(Color.green('Downloading VO files'))
+    color_print('Downloading VO files', 'green')
     map_with_progress_bar(
         download, args, multiprocess=multiprocess)
 
-    print(Color.green('Validating VO files'))
+    color_print('Validating VO files', 'green')
     map_with_progress_bar(
         validate_vo, args, multiprocess=multiprocess)
 
     if stilts is not None:
-        print(Color.green('Validating with votlint'))
+        color_print('Validating with votlint', 'green')
         votlint_args = [(stilts, x, destdir) for x in urls]
         map_with_progress_bar(
             votlint_validate, votlint_args, multiprocess=multiprocess)
 
 
-    print(Color.green('Generating HTML files'))
+    color_print('Generating HTML files', 'green')
     map_with_progress_bar(
         write_html_result, args, multiprocess=multiprocess)
 
-    with Spinner(Color.green('Grouping results')) as s:
+    with Spinner('Grouping results', 'green') as s:
         subsets = result.get_result_subsets(urls, destdir, s)
 
-    print(Color.green('Generating index'))
+    color_print('Generating index', 'green')
     html.write_index(subsets, urls, destdir)
 
-    print(Color.green('Generating subindices'))
+    color_print('Generating subindices', 'green')
     subindex_args = [(subset, destdir, len(urls)) for subset in subsets]
     map_with_progress_bar(
         write_subindex, subindex_args, multiprocess=multiprocess)
