@@ -3,13 +3,101 @@
 """
 Utilities for prettifying output to the console.
 """
+from __future__ import print_function
+
 import io
+import re
 import sys
 import time
 
 
-def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
-                end=u'\n'):
+from ..config.configs import ConfigurationItem
+
+
+__all__ = [
+    'Color', 'color_print', 'color_string', 'human_time',
+    'ProgressBar', 'iterate_with_progress_bar',
+    'map_with_progress_bar', 'Spinner', 'print_code_line']
+
+
+USE_COLOR = ConfigurationItem(
+    'use_color', True,
+    'When True, use ANSI color escape sequences when writing to the console. '
+    'Changing has no effect after startup time')
+USE_UNICODE = ConfigurationItem(
+    'use_unicode', True,
+    'Use Unicode characters when drawing progress bars etc. at the console.')
+
+
+if USE_COLOR:
+    def _define_color(name, code):
+        template = u'\033[{0}{{0}}m{{1}}\033[0m'.format(code)
+
+        def color(s, bold=False):
+            if bold:
+                styles = u';1'
+            else:
+                styles = u''
+            if isinstance(s, bytes):
+                s = s.decode('ascii')
+            return template.format(styles, s)
+
+        func = color
+        func.__name__ = name
+        return func
+else:
+    def _define_color(name, code):
+        def color(s, bold=False):
+            if isinstance(s, bytes):
+                s = s.decode('ascii')
+            return s
+
+        func = color
+        func.__name__ = name
+        return func
+
+
+class Color:
+    """
+    A class for colorizing text.
+
+    It contains a number of static methods, each of which colorizes a
+    particular color.  For example, to print out a string in the color
+    green, do::
+
+        print(Color.green('go'))
+    """
+    black        = staticmethod(_define_color('black', '0;30'))
+    red          = staticmethod(_define_color('red', '0;31'))
+    green        = staticmethod(_define_color('green', '0;32'))
+    brown        = staticmethod(_define_color('brown', '0:33'))
+    blue         = staticmethod(_define_color('blue', '0;34'))
+    magenta      = staticmethod(_define_color('magenta', '0;35'))
+    cyan         = staticmethod(_define_color('cyan', '0;36'))
+    lightgrey    = staticmethod(_define_color('lightgrey', '0;37'))
+    default      = staticmethod(_define_color('default', '0;39'))
+    darkgrey     = staticmethod(_define_color('darkgrey', '1;30'))
+    lightred     = staticmethod(_define_color('lightred', '1;31'))
+    lightgreen   = staticmethod(_define_color('lightgreen', '1;32'))
+    yellow       = staticmethod(_define_color('yellow', '1;33'))
+    lightblue    = staticmethod(_define_color('lightblue', '1;34'))
+    lightmagenta = staticmethod(_define_color('lightmagenta', '1;35'))
+    lightcyan    = staticmethod(_define_color('lightcyan', '1;36'))
+    white        = staticmethod(_define_color('white', '1;37'))
+
+    @classmethod
+    def get_color_func(cls, color):
+        """
+        Return the function for a particular `color` by name.
+        """
+        try:
+            func = getattr(cls, color)
+        except AttributeError:
+            func = cls.default
+        return func
+
+
+def color_print(s, color='default', bold=False, file=sys.stdout, end=u'\n'):
     """
     Prints colors and styles to the terminal uses ANSI escape
     sequences.
@@ -28,9 +116,6 @@ def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
     bold : bool, optional
         When `True` use boldface font.
 
-    italic : bool, optional
-        When `True`, use italic font.
-
     file : writeable file-like object, optional
         Where to write to.  Defaults to `sys.stdout`.
 
@@ -38,47 +123,12 @@ def color_print(s, color='default', bold=False, italic=False, file=sys.stdout,
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    # TODO: Be smart about when to use and not use color.
+    color_func = Color.get_color_func(color)
 
-    color_mapping = {
-        'black': '0;30',
-        'red': '0;31',
-        'green': '0;32',
-        'brown': '0;33',
-        'blue': '0;34',
-        'magenta': '0;35',
-        'cyan': '0;36',
-        'lightgrey': '0;37',
-        'default': '0;39',
-        'darkgrey': '1;30',
-        'lightred': '1;31',
-        'lightgreen': '1;32',
-        'yellow': '1;33',
-        'lightblue': '1;34',
-        'lightmagenta': '1;35',
-        'lightcyan': '1;36',
-        'white': '1;37'}
-
-    color_code = color_mapping.get(color, '0;39')
-
-    styles = []
-    if bold:
-        styles.append(';1')
-    if italic:
-        styles.append(';3')
-    styles = ''.join(styles)
-    file.write(u'\033[%s%sm' % (color_code, styles))
-    if isinstance(s, bytes):
-        s = s.decode('ascii')
-    file.write(s)
-    file.write(u'\033[0m')
-    if end is not None:
-        if isinstance(end, bytes):
-            end = end.decode('ascii')
-        file.write(end)
+    print(color_func(s, bold), file=file, end=end)
 
 
-def color_string(s, color='default', bold=False, italic=False):
+def color_string(s, color='default', bold=False):
     """
     Returns a string containing ANSI color codes in the given
     color.
@@ -96,13 +146,17 @@ def color_string(s, color='default', bold=False, italic=False):
 
     bold : bool, optional
         When `True` use boldface font.
-
-    italic : bool, optional
-        When `True`, use italic font.
     """
-    stream = io.StringIO()
-    color_print(s, color, bold, italic, stream, end=u'')
-    return stream.getvalue()
+    color_func = Color.get_color_func(color)
+
+    return color_func(s, bold)
+
+
+def strip_ansi_codes(s):
+    """
+    Remove ANSI color codes from the string.
+    """
+    return re.sub('\033\[([0-9]+)(;[0-9]+)*m', '', s)
 
 
 def human_time(seconds):
@@ -118,6 +172,8 @@ def human_time(seconds):
         1m 4s
           15s
 
+    Will be in color if console coloring is turned on.
+
     Parameters
     ----------
     seconds : int
@@ -129,21 +185,26 @@ def human_time(seconds):
         A human-friendly representation of the given number of seconds
         that is always exactly 6 characters.
     """
-    minute = 60
-    hour = minute * 60
-    day = hour * 24
-    week = day * 7
+    units = [
+        ('y', 60 * 60 * 24 * 7 * 52),
+        ('w', 60 * 60 * 24 * 7),
+        ('d', 60 * 60 * 24),
+        ('h', 60 * 60),
+        ('m', 60),
+        ('s', 1),
+        ]
 
-    if seconds > week:
-        return '%02dw%02dd' % (seconds // week, (seconds % week) // day)
-    elif seconds > day:
-        return '%02dd%02dh' % (seconds // day, (seconds % day) // hour)
-    elif seconds > hour:
-        return '%02dh%02dm' % (seconds // hour, (seconds % hour) // minute)
-    elif seconds > minute:
-        return '%02dm%02ds' % (seconds // minute, seconds % minute)
-    else:
-        return '   %02ds' % (seconds)
+    seconds = int(seconds)
+
+    if seconds < 60:
+        return '   {0:02d}s'.format(seconds)
+    for i in xrange(len(units) - 1):
+        unit1, limit1 = units[i]
+        unit2, limit2 = units[i + 1]
+        if seconds > limit1:
+            return '{0:02d}{1}{2:02d}{3}'.format(
+                seconds // limit1, unit1,
+                (seconds % limit1) // limit2, unit2)
 
 
 class ProgressBar:
@@ -190,7 +251,7 @@ class ProgressBar:
                 rows, cols = parts
                 terminal_width = int(cols)
         self._bar_length = terminal_width - 29 - (num_length * 2)
-        self._num_format = '| %%%dd/%%%dd ' % (num_length, num_length)
+        self._num_format = '{{0:>{0}}}/{{1:>{0}}}'.format(num_length)
         self.update(0)
 
     def __enter__(self):
@@ -215,29 +276,32 @@ class ProgressBar:
             frac = 1.0
         else:
             frac = float(value) / float(self._total)
+
+        write = self._file.write
+
         bar_fill = int(float(self._bar_length) * frac)
-        self._file.write('\r|')
-        color_print('=' * bar_fill, color='blue',
-                    file=self._file, end='')
+        write(u'\r|')
+        write(Color.blue(u'=' * bar_fill))
         if bar_fill < self._bar_length:
-            color_print('>', color='green',
-                        file=self._file, end='')
-            color_print('-' * (self._bar_length - bar_fill - 1),
-                        file=self._file, end='')
+            write(Color.green(u'>'))
+            write(u'-' * (self._bar_length - bar_fill - 1))
+        write(u'|')
+
         if value >= self._total:
             t = time.time() - self._start_time
-            prefix = '    '
+            prefix = u'     '
         elif value <= 0:
             t = None
-            prefix = ''
+            prefix = u''
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
-            prefix = 'ETA '
-        self._file.write(self._num_format % (value, self._total))
-        self._file.write('(%6s%%) ' % ('%.2f' % (frac * 100.0)))
-        self._file.write(prefix)
+            prefix = u' ETA '
+        write(u' ')
+        write(self._num_format.format(value, self._total))
+        write(u' ({0:>6s}%)'.format(u'{0:.2f}'.format(frac * 100.0)))
+        write(prefix)
         if t is not None:
-            self._file.write(human_time(t))
+            write(human_time(t))
         self._file.flush()
 
 
@@ -319,27 +383,15 @@ class Spinner():
             for item in enumerate(items):
                 s.next()
     """
-    _default_chars = ur"◓◑◒◐"
+    _default_unicode_chars = u"◓◑◒◐"
+    _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, s, color='default', bold=False, italic=False,
-                 file=sys.stdout, step=1, chars=None):
+    def __init__(self, s, file=sys.stdout, step=1, chars=None):
         """
         Parameters
         ----------
         s : str
             The message to print
-
-        color : str, optional
-            An ANSI terminal color name.  Must be one of: black, red,
-            green, brown, blue, magenta, cyan, lightgrey, default,
-            darkgrey, lightred, lightgreen, yellow, lightblue,
-            lightmagenta, lightcyan, white.
-
-        bold : bool, optional
-            When `True` use boldface font.
-
-        italic : bool, optional
-            When `True`, use italic font.
 
         file : writeable file-like object, optional
             Where to write to.  Defaults to `sys.stdout`.
@@ -350,11 +402,14 @@ class Spinner():
         chars : str, optional
             The character sequence to use for the spinner
         """
-        self._colorized = color_string(s, color, bold, italic)
+        self._s = s
         self._file = file
         self._step = step
         if chars is None:
-            chars = self._default_chars
+            if USE_UNICODE:
+                chars = self._default_unicode_chars
+            else:
+                chars = self._default_ascii_chars
         self._chars = chars
 
     def _iterator(self):
@@ -365,7 +420,7 @@ class Spinner():
 
         while True:
             write(u'\r')
-            write(self._colorized)
+            write(self._s)
             write(u' ')
             write(chars[index])
             flush()
@@ -382,12 +437,15 @@ class Spinner():
         return self._iterator()
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._file.write(u'\r')
-        self._file.write(self._colorized)
+        write = self._file.write
+
+        write(u'\r')
+        write(self._s)
         if exc_type is None:
-            color_print(u' Done', 'green', bold=True, file=self._file)
+            write(Color.green(u' Done', True))
         else:
-            color_print(u' Failed', 'red', bold=True, file=self._file)
+            write(Color.red(u' Failed', True))
+        write(u'\n')
         self._file.flush()
 
 
@@ -442,16 +500,18 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
         line = line[offset + 1: ]
         new_col = col
         width = width - 3
-        file.write(u'…')
+        file.write(color.darkgrey(u'…'))
 
     if len(line) > width:
         file.write(line[:width-1])
-        file.write(u'…\n')
+        file.write(Color.darkgrey(u'…'))
+        file.write(u'\n')
     else:
         file.write(line)
         file.write(u'\n')
 
     if col is not None:
         file.write(u' ' * col)
-        file.write(u'^\n')
+        file.write(Color.red(u'^'))
+        file.write(u'\n')
 

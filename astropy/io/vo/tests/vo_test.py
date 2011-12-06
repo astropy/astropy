@@ -678,6 +678,8 @@ def test_build_from_scratch():
 
 
 def test_validate():
+    from ....utils.console import strip_ansi_codes
+
     output = io.StringIO()
 
     # We can't test xmllint, because we can't rely on it being on the
@@ -689,6 +691,14 @@ def test_validate():
 
     output.seek(0)
     output = output.readlines()
+
+    # Remove ANSI codes for comparison, since we can't guarantee what
+    # the user's console coloring setting will be
+    output = [strip_ansi_codes(x) for x in output]
+
+    # Uncomment to generate new groundtruth
+    # with io.open('validation.txt', 'wt', encoding='utf-8') as fd:
+    #     fd.write(u''.join(output))
 
     with io.open(
         os.path.join(ROOT_DIR, 'validation.txt'),
