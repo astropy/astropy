@@ -43,7 +43,7 @@ from . import util
 from . import xmlutil
 
 try:
-    from . import iterparser
+    from . import tablewriter
     _has_c_tabledata_writer = True
 except ImportError:
     _has_c_tabledata_writer = False
@@ -2424,8 +2424,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 not kwargs.get('_debug_python_based_parser')):
                 fields = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
-                iterparser.write_tabledata(w.write, array, mask, fields,
-                                           write_null_values, indent, 1 << 8)
+                tablewriter.write_tabledata(w.write, array, mask, fields,
+                                            write_null_values, indent, 1 << 8)
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
@@ -2931,36 +2931,37 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 util.version_compare(self.version, '1.2') >= 0,
             '_debug_python_based_parser': _debug_python_based_parser}
 
-        fd = util.convert_to_writable_filelike(fd)
-        w = XMLWriter(fd)
-        version = self.version
-        if _astropy_version is None:
-            lib_version = astropy_version
-        else:
-            lib_version = _astropy_version
+        with util.convert_to_writable_filelike(fd) as fd:
+            w = XMLWriter(fd)
+            version = self.version
+            if _astropy_version is None:
+                lib_version = astropy_version
+            else:
+                lib_version = _astropy_version
 
-        xml_header = """
+            xml_header = """
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Produced with astropy.io.vo version %(lib_version)s
      http://www.astropy.org/ -->\n"""
-        w.write(xml_header.lstrip() % locals())
+            w.write(xml_header.lstrip() % locals())
 
-        with w.tag('VOTABLE',
-                   {'version': version,
-                    'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance",
-                    'xsi:noNamespaceSchemaLocation':
-                        "http://www.ivoa.net/xml/VOTable/v%s" % version,
-                    'xmlns':
-                        "http://www.ivoa.net/xml/VOTable/v%s" % version}):
-            if self.description is not None:
-                w.element("DESCRIPTION", self.description, wrap=True)
-            element_sets = [self.coordinate_systems, self.params,
-                            self.infos, self.resources]
-            if kwargs['version_1_2_or_later']:
-                element_sets[0] = self.groups
-            for element_set in element_sets:
-                for element in element_set:
-                    element.to_xml(w, **kwargs)
+            with w.tag('VOTABLE',
+                       {'version': version,
+                        'xmlns:xsi':
+                            "http://www.w3.org/2001/XMLSchema-instance",
+                        'xsi:noNamespaceSchemaLocation':
+                            "http://www.ivoa.net/xml/VOTable/v%s" % version,
+                        'xmlns':
+                            "http://www.ivoa.net/xml/VOTable/v%s" % version}):
+                if self.description is not None:
+                    w.element("DESCRIPTION", self.description, wrap=True)
+                element_sets = [self.coordinate_systems, self.params,
+                                self.infos, self.resources]
+                if kwargs['version_1_2_or_later']:
+                    element_sets[0] = self.groups
+                for element_set in element_sets:
+                    for element in element_set:
+                        element.to_xml(w, **kwargs)
 
     def iter_tables(self):
         """
