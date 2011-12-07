@@ -7,7 +7,7 @@ in Python 3.1.
 from __future__ import absolute_import
 
 import sys
-if sys.version_info[:2] == (3, 1):
+if sys.version_info[:2] == (3, 1) or sys.version_info[:2] == (2, 6):
     """Functions that read and write gzipped files.
 
     The user of the file doesn't have to worry about the compression,
