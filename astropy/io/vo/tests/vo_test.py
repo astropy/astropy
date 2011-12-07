@@ -697,7 +697,7 @@ def test_validate():
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
-    result = validate(os.path.join(ROOT_DIR, 'regression.xml'),
+    result = validate(get_data_filename('data/regression.xml'),
                       output, xmllint=False)
 
     assert result == False
@@ -710,7 +710,7 @@ def test_validate():
     #     fd.write(u''.join(output))
 
     with io.open(
-        os.path.join(ROOT_DIR, 'validation.txt'),
+        get_data_filename('data/validation.txt'),
         'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
