@@ -10,6 +10,15 @@
    :show-inheritance:
    :special-members:
 
+`astropy.utils.xml.iterparser`
+------------------------------
+
+.. automodule:: astropy.utils.xml.iterparser
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :special-members:
+
 `astropy.utils.xml.validate`
 ----------------------------
 
