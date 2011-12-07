@@ -5,7 +5,7 @@ import sys
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...config.data import get_data_filenames, get_data_fileobj
+from ...config import get_data_filenames, get_data_fileobj
 
 from ... import wcs
 
