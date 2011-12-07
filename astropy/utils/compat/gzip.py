@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-A backport of Python 3.2's gzip.py for use in place of the broken one
-in Python 3.1.
+A backport of Python 2.7's gzip.py for use in place of the broken one
+in Python 2.6 and 3.1
 """
 
 from __future__ import absolute_import
