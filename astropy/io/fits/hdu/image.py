@@ -28,13 +28,12 @@ class _ImageBaseHDU(_ValidHDU):
     """
 
     # mappings between FITS and numpy typecodes
-    # NumCode = {8:'int8', 16:'int16', 32:'int32', 64:'int64', -32:'float32', -64:'float64'}
-    # ImgCode = {'<i2':8, '<i4':16, '<i8':32, '<i16':64, '<f8':-32, '<f16':-64)
-    NumCode = {8:'uint8', 16:'int16', 32:'int32', 64:'int64', -32:'float32',
-               -64:'float64'}
-    ImgCode = {'uint8':8, 'int16':16, 'uint16':16, 'int32':32,
-               'uint32':32, 'int64':64, 'uint64':64,
-               'float32':-32, 'float64':-64}
+    # TODO: Maybe make these module-level constants instead...
+    NumCode = {8: 'uint8', 16: 'int16', 32: 'int32', 64: 'int64',
+               -32: 'float32', -64: 'float64'}
+    ImgCode = {'uint8': 8, 'int16': 16, 'uint16': 16, 'int32': 32,
+               'uint32': 32, 'int64': 64, 'uint64': 64, 'float32': -32,
+               'float64': -64}
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
                  uint=False, **kwargs):
@@ -46,14 +45,13 @@ class _ImageBaseHDU(_ValidHDU):
             if not isinstance(header, Header):
                 raise ValueError('header must be a Header object')
 
-
         if data is DELAYED:
-
-            # this should never happen
             if header is None:
+                # this should never happen
                 raise ValueError('No header to setup HDU.')
 
-            # if the file is read the first time, no need to copy, and keep it unchanged
+            # if the file is read the first time, no need to copy, and keep it
+            # unchanged
             else:
                 self._header = header
         else:
@@ -205,6 +203,9 @@ class _ImageBaseHDU(_ValidHDU):
 
         self._header['NAXIS'] = len(axes)
 
+        # TODO: This routine is repeated in several different classes--it
+        # should probably be made available as a methond on all standard HDU
+        # types
         # add NAXISi if it does not exist
         for idx, axis in enumerate(axes):
             naxisn = 'NAXIS' + str(idx + 1)
@@ -212,13 +213,13 @@ class _ImageBaseHDU(_ValidHDU):
                 self._header[naxisn] = axis
             else:
                 if (idx == 0):
-                    after = 'naxis'
-                else :
-                    after = 'naxis' + str(idx)
+                    after = 'NAXIS'
+                else:
+                    after = 'NAXIS' + str(idx)
                 self._header.set(naxisn, axis, after=after)
 
         # delete extra NAXISi's
-        for idx in range(len(axes)+1, old_naxis+1):
+        for idx in range(len(axes) + 1, old_naxis + 1):
             try:
                 del self._header['NAXIS' + str(idx)]
             except KeyError:
@@ -278,7 +279,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         # Determine how to scale the data
         # bscale and bzero takes priority
-        if (bscale != 1 or bzero !=0):
+        if (bscale != 1 or bzero != 0):
             _scale = bscale
             _zero = bzero
         else:
@@ -296,16 +297,18 @@ class _ImageBaseHDU(_ValidHDU):
 
                     if _type == np.uint8:  # uint8 case
                         _zero = min
-                        _scale = (max - min) / (2.**8 - 1)
+                        _scale = (max - min) / (2.0 ** 8 - 1)
                     else:
-                        _zero = (max + min) / 2.
+                        _zero = (max + min) / 2.0
 
                         # throw away -2^N
-                        _scale = (max - min) / (2.**(8*_type().itemsize) - 2)
+                        nbytes = 8 * _type().itemsize
+                        _scale = (max - min) / (2.0 ** nbytes - 2)
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero # 0.9.6.3 to avoid out of range error for BZERO = +32768
+            # 0.9.6.3 to avoid out of range error for BZERO = +32768
+            self.data += -_zero
             self._header['BZERO'] = _zero
         else:
             try:
@@ -323,7 +326,7 @@ class _ImageBaseHDU(_ValidHDU):
                 pass
 
         if self.data.dtype.type != _type:
-            self.data = np.array(np.around(self.data), dtype=_type) #0.7.7.1
+            self.data = np.array(np.around(self.data), dtype=_type)
         #
         # Update the BITPIX Card to match the data
         #
@@ -409,7 +412,6 @@ class _ImageBaseHDU(_ValidHDU):
         elif bitpix > 0:  # scale integers to Float32
             return np.dtype('float32')
 
-
     def _convert_pseudo_unsigned(self, data):
         """
         Handle "pseudo-unsigned" integers, if the user requested it.  Returns
@@ -438,11 +440,10 @@ class _ImageBaseHDU(_ValidHDU):
         Returns a tuple of image dimensions, reverse the order of ``NAXIS``.
         """
         naxis = self._header['NAXIS']
-        axes = naxis*[0]
+        axes = naxis * [0]
         for idx in range(naxis):
             axes[idx] = self._header['NAXIS' + str(idx + 1)]
         axes.reverse()
-#        print "axes in _dimShape line 2081:",axes
         return tuple(axes)
 
     # TODO: Move the GroupsHDU-specific summary code to GroupsHDU itself
@@ -452,7 +453,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
         from .groups import GroupsHDU
 
-        class_name  = self.__class__.__name__
+        class_name = self.__class__.__name__
 
         # if data is touched, use data info.
         if self._data_loaded:
@@ -471,7 +472,7 @@ class _ImageBaseHDU(_ValidHDU):
                     _format = self.data.dtype.name
                 _shape.reverse()
                 _shape = tuple(_shape)
-                _format = _format[_format.rfind('.')+1:]
+                _format = _format[_format.rfind('.') + 1:]
 
         # if data is not touched yet, use header info.
         else:
@@ -529,7 +530,7 @@ class _ImageBaseHDU(_ValidHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a gereric manner.
-            return super(_ImageBaseHDU,self)._calculate_datasum(
+            return super(_ImageBaseHDU, self)._calculate_datasum(
                     blocking=blocking)
 
 
@@ -551,7 +552,7 @@ class Section(object):
         if naxis < len(key):
             raise IndexError('too many indices')
         elif naxis > len(key):
-            key = key + (slice(None),) * (naxis-len(key))
+            key = key + (slice(None),) * (naxis - len(key))
 
         offset = 0
 
@@ -559,7 +560,7 @@ class Section(object):
         # scope leak defect
         idx = 0
         for idx in range(naxis):
-            _naxis = self.hdu.header['NAXIS'+ str(naxis - idx)]
+            _naxis = self.hdu.header['NAXIS' + str(naxis - idx)]
             indx = _iswholeline(key[idx], _naxis)
             offset = offset * _naxis + indx.offset
 
@@ -648,7 +649,7 @@ class Section(object):
                         if k == ns.start:
                             out = self[key1]
                         else:
-                            out = np.append(out,self[key1])
+                            out = np.append(out, self[key1])
 
                 # We have the data so break out of the loop.
                 break
@@ -785,8 +786,9 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
                        0, option, errs)
         return errs
 
+
 def _iswholeline(indx, naxis):
-    if isinstance(indx, (int, long,np.integer)):
+    if _is_int(indx):
         if indx >= 0 and indx < naxis:
             if naxis > 1:
                 return _SinglePoint(1, indx)
@@ -800,15 +802,15 @@ def _iswholeline(indx, naxis):
             return _WholeLine(naxis, 0)
         else:
             if indx.step == 1:
-                return _LineSlice(indx.stop-indx.start, indx.start)
+                return _LineSlice(indx.stop - indx.start, indx.start)
             else:
-                return _SteppedSlice((indx.stop-indx.start) // indx.step,
+                return _SteppedSlice((indx.stop - indx.start) // indx.step,
                                      indx.start)
     else:
         raise IndexError('Illegal index %s' % indx)
 
 
-class _KeyType:
+class _KeyType(object):
     def __init__(self, npts, offset):
         self.npts = npts
         self.offset = offset
@@ -832,7 +834,3 @@ class _LineSlice(_KeyType):
 
 class _SteppedSlice(_KeyType):
     pass
-
-
-
-

@@ -252,7 +252,7 @@ class TestConvenienceFunctions(FitsTestCase):
         with the `writeto()` convenience function.
         """
 
-        data = np.zeros((100,100))
+        data = np.zeros((100, 100))
         header = fits.Header()
         fits.writeto(self.temp('array.fits'), data, header=header,
                      clobber=True)

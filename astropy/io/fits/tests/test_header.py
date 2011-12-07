@@ -7,6 +7,7 @@ from ....io import fits
 from ....tests.helper import pytest
 
 from . import FitsTestCase
+from ..card import _pad
 
 
 class TestOldApiHeaderFunctions(FitsTestCase):
@@ -161,18 +162,15 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with string value"""
 
         c = fits.Card('abc', '<8 ch')
-        assert (str(c) ==
-                "ABC     = '<8 ch   '                                                            ")
+        assert str(c) == _pad("ABC     = '<8 ch   '")
         c = fits.Card('nullstr', '')
-        assert (str(c) ==
-                "NULLSTR = ''                                                                    ")
+        assert str(c) == _pad("NULLSTR = ''")
 
     def test_boolean_value_card(self):
         """Test Card constructor with boolean value"""
 
         c = fits.Card("abc", True)
-        assert (str(c) ==
-                "ABC     =                    T                                                  ")
+        assert str(c) == _pad("ABC     =                    T")
 
         c = fits.Card.fromstring('abc     = F')
         assert c.value == False
@@ -181,41 +179,38 @@ class TestHeaderFunctions(FitsTestCase):
         """Test Card constructor with long integer value"""
 
         c = fits.Card('long_int', -467374636747637647347374734737437)
-        assert (str(c) ==
-                "LONG_INT= -467374636747637647347374734737437                                    ")
+        assert str(c) == _pad("LONG_INT= -467374636747637647347374734737437")
 
     def test_floating_point_value_card(self):
         """Test Card constructor with floating point value"""
 
         c = fits.Card('floatnum', -467374636747637647347374734737437.)
 
-        if (str(c) != "FLOATNUM= -4.6737463674763E+32                                                  " and
-            str(c) != "FLOATNUM= -4.6737463674763E+032                                                 "):
-            assert (str(c) ==
-                    "FLOATNUM= -4.6737463674763E+32                                                  ")
+        if (str(c) != _pad("FLOATNUM= -4.6737463674763E+32") and
+            str(c) != _pad("FLOATNUM= -4.6737463674763E+032")):
+            assert str(c) == _pad("FLOATNUM= -4.6737463674763E+32")
 
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
 
         c = fits.Card('abc',
-                      1.2345377437887837487e88+6324767364763746367e-33j)
-
-        if (str(c) != "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          " and
-            str(c) != "ABC     = (1.2345377437887E+088, 6.3247673647637E-015)                          "):
-            assert (str(c) ==
-                    "ABC     = (1.23453774378878E+88, 6.32476736476374E-15)                          ")
+                      (1.2345377437887837487e88 + 6324767364763746367e-33j))
+        f1 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")
+        f2 = _pad("ABC     = (1.2345377437887E+088, 6.3247673647637E-015)")
+        f3 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")
+        if str(c) != f1 and str(c) != f2:
+            assert str(c) == f3
 
     def test_card_image_constructed_too_long(self):
         """Test that over-long cards truncate the comment"""
 
         # card image constructed from key/value/comment is too long
         # (non-string value)
-        c = fits.Card('abc', 9, 'abcde'*20)
-        assert (str(c) ==
-                "ABC     =                    9 / abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
-        c = fits.Card('abc', 'a'*68, 'abcdefg')
-        assert (str(c) ==
-                "ABC     = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'")
+        c = fits.Card('abc', 9, 'abcde' * 20)
+        assert (str(c) == "ABC     =                    9 "
+                          "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
+        c = fits.Card('abc', 'a' * 68, 'abcdefg')
+        assert str(c) == "ABC     = '%s'" % ('a' * 68)
 
     def test_constructor_filter_illegal_data_structures(self):
         """Test that Card constructor raises exceptions on bad arguments"""
@@ -230,7 +225,6 @@ class TestHeaderFunctions(FitsTestCase):
             warnings.simplefilter('error')
             pytest.raises(UserWarning, fits.Card, 'abcdefghi', 'long')
 
-
     def test_illegal_characters_in_key(self):
         """
         Test that Card constructor disallows illegal characters in the keyword
@@ -240,92 +234,84 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_commentary_cards(self):
         # commentary cards
-        c = fits.Card("history",
-                        "A commentary card's value has no quotes around it.")
-        assert (str(c) ==
-                "HISTORY A commentary card's value has no quotes around it.                      ")
-        c = fits.Card("comment",
-                        "A commentary card has no comment.", "comment")
-        assert (str(c) ==
-                "COMMENT A commentary card has no comment.                                       ")
+        val = "A commentary card's value has no quotes around it."
+        c = fits.Card("history", val)
+        assert str(c) == _pad('HISTORY ' + val)
+        val = "A commentary card has no comment."
+        c = fits.Card("comment", val, "comment")
+        assert str(c) == _pad('COMMENT ' + val)
 
     def test_commentary_card_created_by_fromstring(self):
         # commentary card created by fromstring()
-        c = fits.Card.fromstring("COMMENT card has no comments. / text after slash is still part of the value.")
-        assert (c.value ==
-                'card has no comments. / text after slash is still part of the value.')
+        c = fits.Card.fromstring(
+            "COMMENT card has no comments. "
+            "/ text after slash is still part of the value.")
+        assert (c.value == 'card has no comments. '
+                           '/ text after slash is still part of the value.')
         assert c.comment == ''
 
     def test_commentary_card_will_not_parse_numerical_value(self):
         # commentary card will not parse the numerical value
         c = fits.Card.fromstring("history  (1, 2)")
-        assert (str(c) ==
-                "HISTORY  (1, 2)                                                                 ")
+        assert str(c) == _pad("HISTORY  (1, 2)")
 
     def test_equal_sign_after_column8(self):
-        # equal sign after column 8 of a commentary card will be part ofthe string value
+        # equal sign after column 8 of a commentary card will be part ofthe
+        # string value
         c = fits.Card.fromstring("history =   (1, 2)")
-        assert (str(c) ==
-                "HISTORY =   (1, 2)                                                              ")
+        assert str(c) == _pad("HISTORY =   (1, 2)")
 
     def test_blank_keyword(self):
         c = fits.Card('', '       / EXPOSURE INFORMATION')
-        assert (str(c) ==
-                '               / EXPOSURE INFORMATION                                           ')
+        assert str(c) == _pad('               / EXPOSURE INFORMATION')
         c = fits.Card.fromstring(str(c))
         assert c.keyword == ''
         assert c.value == '       / EXPOSURE INFORMATION'
 
-
     def test_specify_undefined_value(self):
         # this is how to specify an undefined value
         c = fits.Card("undef", fits.card.UNDEFINED)
-        assert (str(c) ==
-                "UNDEF   =                                                                       ")
+        assert str(c) == _pad("UNDEF   =")
 
     def test_complex_number_using_string_input(self):
         # complex number using string input
         c = fits.Card.fromstring('abc     = (8, 9)')
-        assert (str(c) ==
-                "ABC     =               (8, 9)                                                  ")
+        assert str(c) == _pad("ABC     =               (8, 9)")
 
     def test_fixable_non_standard_fits_card(self):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring('abc     = +  2.1   e + 12')
         assert c.value == 2100000000000.0
-        assert (str(c) ==
-                "ABC     =             +2.1E+12                                                  ")
+        assert str(c) == _pad("ABC     =             +2.1E+12")
 
     def test_fixable_non_fsc(self):
         # fixable non-FSC: if the card is not parsable, it's value will be
         # assumed
         # to be a string and everything after the first slash will be comment
-        c = fits.Card.fromstring("no_quote=  this card's value has no quotes / let's also try the comment")
-        assert (str(c) ==
-                "NO_QUOTE= 'this card''s value has no quotes' / let's also try the comment       ")
+        c = fits.Card.fromstring(
+            "no_quote=  this card's value has no quotes "
+            "/ let's also try the comment")
+        assert (str(c) == "NO_QUOTE= 'this card''s value has no quotes' "
+                          "/ let's also try the comment       ")
 
     def test_undefined_value_using_string_input(self):
         # undefined value using string input
         c = fits.Card.fromstring('abc     =    ')
-        assert (str(c) ==
-                "ABC     =                                                                       ")
+        assert str(c) == _pad("ABC     =")
 
     def test_misalocated_equal_sign(self):
         # test mislocated "=" sign
         c = fits.Card.fromstring('xyz= 100')
         assert c.keyword == 'XYZ'
         assert c.value == 100
-        assert (str(c) ==
-                "XYZ     =                  100                                                  ")
+        assert str(c) == _pad("XYZ     =                  100")
 
     def test_equal_only_up_to_column_10(self):
         # the test of "=" location is only up to column 10
         c = fits.Card.fromstring("histo       =   (1, 2)")
-        assert (str(c) ==
-                "HISTO   = '=   (1, 2)'                                                          ")
+        assert str(c) == _pad("HISTO   = '=   (1, 2)'")
         c = fits.Card.fromstring("   history          (1, 2)")
-        assert (str(c) ==
-                "HISTO   = 'ry          (1, 2)'                                                  ")
+        assert str(c) == _pad("HISTO   = 'ry          (1, 2)'")
 
     def test_verify_invalid_equal_sign(self):
         # verification
@@ -343,22 +329,21 @@ class TestHeaderFunctions(FitsTestCase):
             fix_text = 'Fixed card to meet the FITS standard: ABC'
             assert len(w) == 1
             assert fix_text in str(w[0].message)
-        assert (str(c) ==
-                "ABC     = 'a6      '                                                            ")
+        assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
         # test long string value
-        c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
+        c = fits.Card('abc', 'long string value ' * 10, 'long comment ' * 10)
         assert (str(c) ==
-                "ABC     = 'long string value long string value long string value long string &' "
-                "CONTINUE  'value long string value long string value long string value long &'  "
-                "CONTINUE  'string value long string value long string value &'                  "
-                "CONTINUE  '&' / long comment long comment long comment long comment long        "
-                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-                "CONTINUE  '&' / long comment                                                    ")
+            "ABC     = 'long string value long string value long string value long string &' "
+            "CONTINUE  'value long string value long string value long string value long &'  "
+            "CONTINUE  'string value long string value long string value &'                  "
+            "CONTINUE  '&' / long comment long comment long comment long comment long        "
+            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+            "CONTINUE  '&' / long comment                                                    ")
 
     def test_long_string_from_file(self):
-        c = fits.Card('abc', 'long string value '*10, 'long comment '*10)
+        c = fits.Card('abc', 'long string value ' * 10, 'long comment ' * 10)
         hdu = fits.PrimaryHDU()
         hdu.header.append(c)
         hdu.writeto(self.temp('test_new.fits'))
@@ -367,34 +352,36 @@ class TestHeaderFunctions(FitsTestCase):
         c = hdul[0].header.ascard['abc']
         hdul.close()
         assert (str(c) ==
-                "ABC     = 'long string value long string value long string value long string &' "
-                "CONTINUE  'value long string value long string value long string value long &'  "
-                "CONTINUE  'string value long string value long string value &'                  "
-                "CONTINUE  '&' / long comment long comment long comment long comment long        "
-                "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-                "CONTINUE  '&' / long comment                                                    ")
-
+            "ABC     = 'long string value long string value long string value long string &' "
+            "CONTINUE  'value long string value long string value long string value long &'  "
+            "CONTINUE  'string value long string value long string value &'                  "
+            "CONTINUE  '&' / long comment long comment long comment long comment long        "
+            "CONTINUE  '&' / comment long comment long comment long comment long comment     "
+            "CONTINUE  '&' / long comment                                                    ")
 
     def test_word_in_long_string_too_long(self):
         # if a word in a long string is too long, it will be cut in the middle
-        c = fits.Card('abc', 'longstringvalue'*10, 'longcomment'*10)
+        c = fits.Card('abc', 'longstringvalue' * 10, 'longcomment' * 10)
         assert (str(c) ==
-                "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
-                "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
-                "CONTINUE  'elongstringvalue&'                                                   "
-                "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
-                "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
+            "ABC     = 'longstringvaluelongstringvaluelongstringvaluelongstringvaluelongstr&'"
+            "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
+            "CONTINUE  'elongstringvalue&'                                                   "
+            "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
+            "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
 
     def test_long_string_value_via_fromstring(self):
         # long string value via fromstring() method
         c = fits.Card.fromstring(
-            fits.card._pad("abc     = 'longstring''s testing  &  ' / comments in line 1") +
-            fits.card._pad("continue  'continue with long string but without the ampersand at the end' /") +
-            fits.card._pad("continue  'continue must have string value (with quotes)' / comments with ''. "))
+            _pad("abc     = 'longstring''s testing  &  ' "
+                 "/ comments in line 1") +
+            _pad("continue  'continue with long string but without the "
+                 "ampersand at the end' /") +
+            _pad("continue  'continue must have string value (with quotes)' "
+                 "/ comments with ''. "))
         assert (str(c) ==
-                "ABC     = 'longstring''s testing  continue with long string but without the &'  "
-                "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
-                "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
+            "ABC     = 'longstring''s testing  continue with long string but without the &'  "
+            "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
+            "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card
@@ -410,13 +397,13 @@ class TestHeaderFunctions(FitsTestCase):
         # Test manual creation of hierarch card
         c = fits.Card('hierarch abcdefghi', 10)
         assert (str(c) ==
-                "HIERARCH abcdefghi = "
-                "10                                                         ")
+            "HIERARCH abcdefghi = "
+            "10                                                         ")
         c = fits.Card('HIERARCH ESO INS SLIT2 Y1FRML',
                       'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)')
         assert (str(c) ==
-                "HIERARCH ESO INS SLIT2 Y1FRML= "
-                "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+            "HIERARCH ESO INS SLIT2 Y1FRML= "
+            "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
 
     def test_hierarch_card_lookup(self):
         header = fits.Header()
@@ -427,8 +414,10 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_header_setitem_invalid(self):
         header = fits.Header()
+
         def test():
             header['FOO'] = ('bar', 'baz', 'qux')
+
         pytest.raises(ValueError, test)
 
     def test_header_setitem_1tuple(self):

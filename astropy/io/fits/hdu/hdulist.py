@@ -233,8 +233,8 @@ class HDUList(list, _Verify):
                 compressed.COMPRESSION_ENABLED = False
 
             if mode == 'ostream':
-                # Output stream--not interested in reading/parsing the HDUs--just
-                # writing to the output file
+                # Output stream--not interested in reading/parsing the
+                # HDUs--just writing to the output file
                 return hdulist
 
             # read all HDUs
@@ -297,20 +297,20 @@ class HDUList(list, _Verify):
 
             Dictionary contents:
 
-            ========== =========================================================
+            ========== ========================================================
             Key        Value
-            ========== =========================================================
+            ========== ========================================================
             file       File object associated with the HDU
             filename   Name of associated file object
-            filemode   Mode in which the file was opened (readonly, copyonwrite,
-                       update, append, denywrite, ostream)
+            filemode   Mode in which the file was opened (readonly,
+                       copyonwrite, update, append, denywrite, ostream)
             resized    Flag that when `True` indicates that the data has been
                        resized since the last read/write so the returned values
                        may not be valid.
             hdrLoc     Starting byte location of header in file
             datLoc     Starting byte location of data block in file
             datSpan    Data size including padding
-            ========== =========================================================
+            ========== ========================================================
 
         """
 
@@ -325,12 +325,12 @@ class HDUList(list, _Verify):
                 f = None
 
                 for hdu in self:
-                   info = hdu.fileinfo()
+                    info = hdu.fileinfo()
 
-                   if info:
-                      f = info['file']
-                      fm = info['filemode']
-                      break
+                    if info:
+                        f = info['file']
+                        fm = info['filemode']
+                        break
 
                 output = {'file': f, 'filemode': fm, 'hdrLoc': None,
                           'datLoc': None, 'datSpan': None}
@@ -365,12 +365,12 @@ class HDUList(list, _Verify):
                 # We are inserting a new Primary HDU so we need to
                 # make the current Primary HDU into an extension HDU.
                 if isinstance(self[0], GroupsHDU):
-                   raise ValueError(
-                         "The current Primary HDU is a GroupsHDU.  "
-                         "It can't be made into an extension HDU, "
-                         "so you can't insert another HDU in front of it.")
+                    raise ValueError(
+                        "The current Primary HDU is a GroupsHDU.  "
+                        "It can't be made into an extension HDU, "
+                        "so another HDU cannot be inserted before it.")
 
-                hdu1= ImageHDU(self[0].data, self[0].header)
+                hdu1 = ImageHDU(self[0].data, self[0].header)
 
                 # Insert it into position 1, then delete HDU at position 0.
                 super(HDUList, self).insert(1, hdu1)
@@ -392,8 +392,8 @@ class HDUList(list, _Verify):
                     index = 1
         else:
             if isinstance(hdu, GroupsHDU):
-               raise ValueError('A GroupsHDU must be inserted as a '
-                                'Primary HDU.')
+                raise ValueError('A GroupsHDU must be inserted as a '
+                                 'Primary HDU.')
 
             if isinstance(hdu, PrimaryHDU):
                 # You passed a Primary HDU but we need an Extension HDU
@@ -423,8 +423,8 @@ class HDUList(list, _Verify):
 
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
-               raise ValueError(
-                     "Can't append a GroupsHDU to a non-empty HDUList")
+                raise ValueError(
+                    "Can't append a GroupsHDU to a non-empty HDUList")
 
             if isinstance(hdu, PrimaryHDU):
                 # You passed a Primary HDU but we need an Extension HDU
@@ -537,6 +537,7 @@ class HDUList(list, _Verify):
         # Define new signal interput handler
         if single_thread:
             keyboard_interrupt_sent = False
+
             def new_sigint(*args):
                 warnings.warn('KeyboardInterrupt ignored until flush is '
                               'complete!')
@@ -825,7 +826,6 @@ class HDUList(list, _Verify):
             hdu._writeto(hdulist.__file, checksum)
         hdulist.close(output_verify=output_verify, closed=closed)
 
-
     def close(self, output_verify='exception', verbose=False, closed=True):
         """
         Close the associated FITS file and memmap object, if any.
@@ -908,8 +908,8 @@ class HDUList(list, _Verify):
                    None.
         """
         if self.__file is not None:
-           if hasattr(self.__file, 'name'):
-              return self.__file.name
+            if hasattr(self.__file, 'name'):
+                return self.__file.name
         return None
 
     def _verify(self, option='warn'):
@@ -1001,10 +1001,10 @@ class HDUList(list, _Verify):
                     break
 
             if self._truncate:
-               try:
-                   self.__file.truncate(hdu._datLoc + hdu._datSpan)
-               except IOError:
-                   self._resize = True
-               self._truncate = False
+                try:
+                    self.__file.truncate(hdu._datLoc + hdu._datSpan)
+                except IOError:
+                    self._resize = True
+                self._truncate = False
 
         return self._resize

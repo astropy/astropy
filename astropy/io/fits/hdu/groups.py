@@ -126,18 +126,18 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         # add NAXISi if it does not exist
         for idx, axis in enumerate(axes):
             try:
-                self._header['NAXIS'+ str(idx + 1)] = axis
+                self._header['NAXIS' + str(idx + 1)] = axis
             except KeyError:
                 if (idx == 0):
-                    after = 'naxis'
-                else :
-                    after = 'naxis' + str(idx)
-                self._header.update('naxis' + str(idx + 1), axis, after=after)
+                    after = 'NAXIS'
+                else:
+                    after = 'NAXIS' + str(idx)
+                self._header.update('NAXIS' + str(idx + 1), axis, after=after)
 
         # delete extra NAXISi's
-        for idx in range(len(axes)+1, old_naxis+1):
+        for idx in range(len(axes) + 1, old_naxis + 1):
             try:
-                del self._header.ascard['NAXIS' + str(idx)]
+                del self._header['NAXIS' + str(idx)]
             except KeyError:
                 pass
 
@@ -147,7 +147,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                                 after='GROUPS')
             self._header.update('GCOUNT', len(self.data), after='PCOUNT')
             npars = len(self.data.parnames)
-            (_scale, _zero)  = self.data._get_scale_factors(npars)[3:5]
+            _scale, _zero = self.data._get_scale_factors(npars)[3:5]
             if _scale:
                 self._header.update('BSCALE',
                                     self.data._coldefs.bscales[npars])
@@ -156,7 +156,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             for idx in range(npars):
                 self._header.update('PTYPE' + str(idx + 1),
                                     self.data.parnames[idx])
-                (_scale, _zero)  = self.data._get_scale_factors(idx)[3:5]
+                _scale, _zero = self.data._get_scale_factors(idx)[3:5]
                 if _scale:
                     self._header.update('PSCAL' + str(idx + 1),
                                         self.data._coldefs.bscales[idx])
@@ -272,7 +272,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a gereric manner.
-            return super(GroupsHDU,self)._calculate_datasum(blocking=blocking)
+            return super(GroupsHDU, self)._calculate_datasum(blocking=blocking)
 
 
 class GroupData(FITS_rec):
@@ -326,27 +326,24 @@ class GroupData(FITS_rec):
                 npars = len(pardata)
 
             if parbscales is None:
-                parbscales = [None]*npars
+                parbscales = [None] * npars
             if parbzeros is None:
-                parbzeros = [None]*npars
+                parbzeros = [None] * npars
 
             if bitpix is None:
                 bitpix = _ImageBaseHDU.ImgCode[input.dtype.name]
-            fits_fmt = GroupsHDU._width2format[bitpix] # -32 -> 'E'
-            _fmt = FITS2NUMPY[fits_fmt] # 'E' -> 'f4'
-            _formats = (_fmt+',') * npars
+            fits_fmt = GroupsHDU._width2format[bitpix]  # -32 -> 'E'
+            _fmt = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
+            _formats = (_fmt + ',') * npars
             data_fmt = '%s%s' % (str(input.shape[1:]), _fmt)
             _formats += data_fmt
             gcount = input.shape[0]
             for idx in range(npars):
-                _cols.append(Column(name='c'+ str(idx + 1),
-                                    format = fits_fmt,
-                                    bscale = parbscales[idx],
-                                    bzero = parbzeros[idx]))
-            _cols.append(Column(name='data',
-                                format = fits_fmt,
-                                bscale = bscale,
-                                bzero = bzero))
+                _cols.append(Column(name='c' + str(idx + 1), format=fits_fmt,
+                                    bscale=parbscales[idx],
+                                    bzero=parbzeros[idx]))
+            _cols.append(Column(name='data', format=fits_fmt, bscale=bscale,
+                                bzero=bzero))
             _coldefs = ColDefs(_cols)
 
             self = FITS_rec.__new__(subtype,
@@ -358,18 +355,18 @@ class GroupData(FITS_rec):
             self.parnames = parnames
 
             for idx in range(npars):
-                (_scale, _zero)  = self._get_scale_factors(idx)[3:5]
+                _scale, _zero = self._get_scale_factors(idx)[3:5]
                 if _scale or _zero:
                     self._convert[idx] = pardata[idx]
                 else:
-                    np.rec.recarray.field(self,idx)[:] = pardata[idx]
-            (_scale, _zero)  = self._get_scale_factors(npars)[3:5]
+                    np.rec.recarray.field(self, idx)[:] = pardata[idx]
+            _scale, _zero = self._get_scale_factors(npars)[3:5]
             if _scale or _zero:
                 self._convert[npars] = input
             else:
                 np.rec.recarray.field(self, npars)[:] = input
         else:
-             self = FITS_rec.__new__(subtype, input)
+            self = FITS_rec.__new__(subtype, input)
         return self
 
     def __getitem__(self, key):
@@ -467,7 +464,6 @@ class _Group(FITS_record):
 
         return result
 
-
     def setpar(self, parname, value):
         """
         Set the group parameter value.
@@ -491,6 +487,7 @@ class _Group(FITS_record):
                     raise ValueError('Parameter value must be a sequence '
                                      'with %d arrays/numbers.' % len(indx))
 
+
 def _unique(names):
     unique = {}
     for idx, name in enumerate(names):
@@ -499,4 +496,3 @@ def _unique(names):
         else:
             unique[name] = [idx]
     return unique
-

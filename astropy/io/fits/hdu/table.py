@@ -129,7 +129,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             if header is None:
                 raise ValueError('No header to setup HDU.')
 
-            # if the file is read the first time, no need to copy, and keep it unchanged
+            # if the file is read the first time, no need to copy, and keep it
+            # unchanged
             else:
                 self._header = header
         else:
@@ -192,7 +193,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # created, or that it overrides the existing EXTNAME if different
         if name:
             self.name = name
-
 
     @classmethod
     def match_header(cls, header):
@@ -396,7 +396,7 @@ class TableHDU(_TableBaseHDU):
         if dup:
             raise ValueError("Duplicate field names: %s" % dup)
 
-        itemsize = columns.spans[-1] + columns.starts[-1]-1
+        itemsize = columns.spans[-1] + columns.starts[-1] - 1
         dtype = {}
 
         for idx in range(len(columns)):
@@ -523,7 +523,7 @@ class BinTableHDU(_TableBaseHDU):
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
             # all.  This can also be handled in a generic manner.
-            return super(BinTableHDU,self)._calculate_datasum(blocking)
+            return super(BinTableHDU, self)._calculate_datasum(blocking)
 
     def _writedata_internal(self, fileobj):
         size = 0
@@ -556,8 +556,8 @@ class BinTableHDU(_TableBaseHDU):
                                 c.itemsize > 1 and
                                 c.dtype.str[0] in swap_types):
                                 swapped.append(c)
-                            if (field[jdx:jdx+1].dtype.str[0] in swap_types):
-                                swapped.append(field[jdx:jdx+1])
+                            if (field[jdx:jdx + 1].dtype.str[0] in swap_types):
+                                swapped.append(field[jdx:jdx + 1])
                     else:
                         if (coldata.itemsize > 1 and
                             self.data.dtype.descr[idx][1][0] in swap_types):
@@ -571,8 +571,7 @@ class BinTableHDU(_TableBaseHDU):
                 # write out the heap of variable length array
                 # columns this has to be done after the
                 # "regular" data is written (above)
-                fileobj.write(
-                    (self.data._gap * '\0').encode('ascii'))
+                fileobj.write((self.data._gap * '\0').encode('ascii'))
 
             nbytes = self.data._gap
 
@@ -780,7 +779,6 @@ class BinTableHDU(_TableBaseHDU):
         files.
         """
 
-
         # Process the parameter file
         if header is None:
             header = Header()
@@ -848,7 +846,6 @@ class BinTableHDU(_TableBaseHDU):
             elif format in np.typecodes['Float']:
                 # output floating point
                 return '%#21.15g' % val
-
 
         for row in self.data:
             line = []   # the line for this row of the table
@@ -920,7 +917,7 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = open(fileobj, 'r')
             close_file = True
 
-        initialpos = fileobj.tell() # We'll be returning here later
+        initialpos = fileobj.tell()  # We'll be returning here later
         linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
 
         # First we need to do some preprocessing on the file to find out how
@@ -1105,11 +1102,11 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
         # tbtype of the input ColDefs. This should no longer be necessary, but
         # just beware.
         columns = hdu.columns = ColDefs(input)
-    elif isinstance(input, FITS_rec): # input is a FITS_rec
+    elif isinstance(input, FITS_rec):  # input is a FITS_rec
         # Create a new ColDefs object from the input FITS_rec's ColDefs
         # object and assign it to the ColDefs attribute of the new hdu.
         columns = hdu.columns = ColDefs(input._coldefs, tbtype)
-    else: # input is a list of Columns or possibly a recarray
+    else:  # input is a list of Columns or possibly a recarray
         # Create a new ColDefs object from the input list of Columns and
         # assign it to the ColDefs attribute of the new hdu.
         columns = hdu.columns = ColDefs(input, tbtype)
@@ -1136,12 +1133,12 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
 
     if tbtype == 'TableHDU':
         columns = hdu.columns = _ASCIIColDefs(hdu.columns)
-        _itemsize = columns.spans[-1] + columns.starts[-1]-1
+        _itemsize = columns.spans[-1] + columns.starts[-1] - 1
         dtype = {}
 
         for j in range(len(columns)):
-           data_type = 'S' + str(columns.spans[j])
-           dtype[columns.names[j]] = (data_type, columns.starts[j] - 1)
+            data_type = 'S' + str(columns.spans[j])
+            dtype[columns.names[j]] = (data_type, columns.starts[j] - 1)
 
         hdu.data = np.rec.array((' ' * _itemsize * nrows).encode('ascii'),
                                 dtype=dtype, shape=nrows).view(FITS_rec)
@@ -1190,7 +1187,8 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
                 # Data is a bit array
                 if arr[:n].shape[-1] == recformat._nx:
                     _wrapx(arr[:n], field[:n], recformat._nx)
-                else: # from a table parent data, just pass it
+                else:
+                    # from a table parent data, just pass it
                     field[:n] = arr[:n]
             elif isinstance(recformat, _FormatP):
                 hdu.data._convert[idx] = _makep(arr[:n], field, recformat,
@@ -1221,7 +1219,7 @@ def new_table(input, header=None, nrows=0, fill=False, tbtype='BinTableHDU'):
             # copied from the input ColDefs object, initialize the new data
             if tbtype == 'BinTableHDU':
                 if isinstance(field, np.ndarray):
-                    field[n:] = -bzero/bscale
+                    field[n:] = -bzero / bscale
                 else:
                     field[n:] = ''
             else:

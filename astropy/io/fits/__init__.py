@@ -37,7 +37,6 @@ else:
     from .hdu.table import new_table
     from .header import Header
 
-
     # Additional imports used by the documentation (some of which should be
     # restructured at some point)
     from .verify import VerifyError
@@ -51,14 +50,12 @@ else:
         ('ENABLE_RECORD_VALUED_KEYWORD_CARDS', True)
     ]
 
-
     for varname, default in GLOBALS:
         try:
             envvar = os.environ.get('ASTROPY_FITS_' + varname, default)
             locals()[varname] = bool(int(envvar))
         except ValueError:
             locals()[varname] = default
-
 
     __all__ = (card.__all__ + column.__all__ + convenience.__all__ +
                hdu.__all__ +

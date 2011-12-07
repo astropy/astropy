@@ -10,7 +10,6 @@ if sys.version_info[0] >= 3:
     # Bring back the cmp() function
     builtins.cmp = lambda a, b: (a > b) - (a < b)
 
-
     # Make the decode_ascii utility function actually work
     from . import util
     import numpy
@@ -45,6 +44,7 @@ if sys.version_info[0] >= 3:
 
     # Support the io.IOBase.readable/writable methods
     from .util import isreadable as _isreadable
+
     def isreadable(f):
         if hasattr(f, 'readable'):
             return f.readable()
@@ -52,6 +52,7 @@ if sys.version_info[0] >= 3:
     util.isreadable = isreadable
 
     from .util import iswritable as _iswritable
+
     def iswritable(f):
         if hasattr(f, 'writable'):
             return f.writable()
@@ -82,6 +83,7 @@ if sys.version_info[0] >= 3:
     from . import file
 
     _chararray = numpy.char.chararray
+
     class chararray(_chararray):
         def __getitem__(self, obj):
                 val = numpy.ndarray.__getitem__(self, obj)
@@ -94,7 +96,6 @@ if sys.version_info[0] >= 3:
                 return val
     for m in [numpy.char, numpy.core.defchararray, numpy.core.records]:
         m.chararray = chararray
-
 
     # Fix recarrays with sub-array fields.  See
     # http://projects.scipy.org/numpy/ticket/1766
@@ -125,6 +126,7 @@ if sys.version_info[0] >= 3:
                             'offsets': offsets})
 
     _recarray = numpy.recarray
+
     class recarray(_recarray):
         def __new__(subtype, shape, dtype=None, buf=None, offset=0,
                     strides=None, formats=None, names=None, titles=None,
@@ -142,10 +144,10 @@ if sys.version_info[0] >= 3:
                         names, titles, byteorder, aligned)
     numpy.recarray = numpy.core.records.recarray = recarray
 
-
     # We also need to patch pyfits.file._File which can also be affected by the
     # #1766 bug
     old_File = file._File
+
     class _File(old_File):
         def readarray(self, size=None, offset=0, dtype=numpy.uint8,
                       shape=None):
@@ -154,7 +156,6 @@ if sys.version_info[0] >= 3:
             return old_File.readarray(self, size, offset, dtype, shape)
         readarray.__doc__ = old_File.readarray.__doc__
     file._File = _File
-
 
     # Replace pyfits.util.maketrans and translate with versions that work
     # with Python 3 unicode strings

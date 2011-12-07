@@ -94,7 +94,8 @@ class _ErrList(list):
 
         tab = _TAB * indent
 
-        # go through the list twice, first time print out all top level messages
+        # go through the list twice, first time print out all top level
+        # messages
         for item in self:
             if not isinstance(item, _ErrList):
                 result.append('%s%s\n' % (tab, item))

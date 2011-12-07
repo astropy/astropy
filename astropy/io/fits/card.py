@@ -380,7 +380,6 @@ class Card(_Verify):
     _rvkc_keyword_val_comm = (r' +%s *(/ *(?P<comm>[ -~]*))?$' %
                               _rvkc_keyword_val)
 
-
     _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val)
 
     # regular expression to extract the key and the field specifier from a
@@ -946,7 +945,7 @@ class Card(_Verify):
     def _format_value(self):
         # value string
         float_types = (float, np.floating, complex, np.complexfloating)
-        value = self.value # Force the value to be parsed out first
+        value = self.value  # Force the value to be parsed out first
         if self.keyword in self._commentary_keywords:
             # The value of a commentary card must be just a raw unprocessed
             # string
@@ -1228,12 +1227,11 @@ def _format_value(value):
 
     # must be before int checking since bool is also int
     elif isinstance(value, (bool, np.bool_)):
-        return '%20s' % repr(value)[0] # T or F
+        return '%20s' % repr(value)[0]  # T or F
 
     elif _is_int(value):
         return '%20d' % value
 
-    # XXX need to consider platform dependence of the format (e.g. E-009 vs. E-09)
     elif isinstance(value, (float, np.floating)):
         return '%20s' % _format_float(value)
 
@@ -1275,7 +1273,7 @@ def _format_float(value):
         if idx < 0:
             value_str = value_str[:20]
         else:
-            value_str = value_str[:20-(str_len-idx)] + value_str[idx:]
+            value_str = value_str[:20 - (str_len - idx)] + value_str[idx:]
 
     return value_str
 
@@ -1291,11 +1289,9 @@ def _pad(input):
         if strlen == 0:
             return input
         else:
-            return input + ' ' * (Card.length-strlen)
+            return input + ' ' * (Card.length - strlen)
 
     # minimum length is 80
     else:
         strlen = _len % Card.length
-        return input + ' ' * (Card.length-strlen)
-
-
+        return input + ' ' * (Card.length - strlen)

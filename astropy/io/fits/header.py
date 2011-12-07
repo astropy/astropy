@@ -105,7 +105,7 @@ class Header(collections.MutableMapping):
             return False
         return True
 
-    def __getitem__ (self, key):
+    def __getitem__(self, key):
         if isinstance(key, slice):
             return Header([copy.copy(c) for c in self._cards[key]])
         elif self._haswildcard(key):
@@ -118,7 +118,7 @@ class Header(collections.MutableMapping):
             return _HeaderCommentaryCards(self, key)
         return self._cards[self._cardindex(key)].value
 
-    def __setitem__ (self, key, value):
+    def __setitem__(self, key, value):
         if isinstance(key, slice) or self._haswildcard(key):
             if isinstance(key, slice):
                 indices = xrange(*key.indices(len(self)))
@@ -129,7 +129,6 @@ class Header(collections.MutableMapping):
             for idx, val in itertools.izip(indices, value):
                 self[idx] = val
             return
-
 
         if isinstance(value, tuple):
             if not (0 < len(value) <= 2):
@@ -385,7 +384,6 @@ class Header(collections.MutableMapping):
                 actual_len = len(blocks) - actual_block_size + BLOCK_SIZE
                 raise ValueError('Header size is not multiple of %d: %d'
                                  % (BLOCK_SIZE, actual_len))
-
 
             return cls.fromstring(blocks, sep=sep)
         finally:
@@ -1037,7 +1035,7 @@ class Header(collections.MutableMapping):
             idx = len(self._cards) - 1
         else:
             idx = len(self._cards) - 1
-            while idx >=0 and str(self._cards[idx]) == blank:
+            while idx >= 0 and str(self._cards[idx]) == blank:
                 idx -= 1
 
             if not bottom and card.keyword not in Card._commentary_keywords:
@@ -1384,7 +1382,6 @@ class Header(collections.MutableMapping):
 
         self._add_commentary('', value, before=before, after=after)
 
-
     def _update(self, card):
         """
         The real update code.  If keyword already exists, its value and/or
@@ -1441,7 +1438,6 @@ class Header(collections.MutableMapping):
             if key < 0 or key >= len(self._cards):
                 raise IndexError('Header index out of range.')
             return key
-
 
         if isinstance(key, basestring):
             key = (Card.normalize_keyword(key), 0)
@@ -1810,7 +1806,6 @@ class _CardAccessor(object):
     lists of cards.
     """
 
-
     # TODO: Consider giving this dict/list methods like Header itself
     def __init__(self, header):
         self._header = header
@@ -1931,4 +1926,3 @@ def _block_size(sep):
     """
 
     return BLOCK_SIZE + (len(sep) * (BLOCK_SIZE // Card.length - 1))
-

@@ -42,8 +42,9 @@ def compare_arrays(arr1in, arr2in, verbose=False):
             if w.size > 0:
                 nfail += 1
                 if verbose:
-                    sys.stdout.write('\n        '+\
-                            '%s elements in field %s differ\n' % (w.size,n2))
+                    sys.stdout.write(
+                        '\n        %s elements in field %s differ\n' %
+                        (w.size, n2))
             else:
                 if verbose:
                     sys.stdout.write('OK\n')
@@ -86,7 +87,7 @@ class TestStructured(FitsTestCase):
 
         fits.append(outfile, st)
         assert st.dtype.isnative
-        assert np.all(st['f1'] == [1,3,5])
+        assert np.all(st['f1'] == [1, 3, 5])
 
         data1check, h1check = fits.getdata(outfile, ext=1, header=True)
         data2check, h2check = fits.getdata(outfile, ext=2, header=True)

@@ -124,8 +124,8 @@ class Column(object):
     Does not support `theap` yet.
     """
 
-    def __init__(self, name=None, format=None, unit=None, null=None, \
-                       bscale=None, bzero=None, disp=None, start=None, \
+    def __init__(self, name=None, format=None, unit=None, null=None,
+                       bscale=None, bzero=None, disp=None, start=None,
                        dim=None, array=None):
         """
         Construct a `Column` by specifying attributes.  All attributes
@@ -178,7 +178,7 @@ class Column(object):
             # check format
             try:
 
-                # legit FITS format? convert to record format (e.g. '3J'->'3i4')
+                # legit FITS format? convert to record format (e.g. 3J->3i4)
                 recfmt = _convert_format(format)
             except ValueError:
                 try:
@@ -203,11 +203,11 @@ class Column(object):
             # the elements in the object array are consistent.
             if not isinstance(array,
                               (np.ndarray, chararray.chararray, Delayed)):
-                try: # try to convert to a ndarray first
+                try:  # try to convert to a ndarray first
                     if array is not None:
                         array = np.array(array)
                 except:
-                    try: # then try to conver it to a strings array
+                    try:  # then try to conver it to a strings array
                         array = chararray.array(array,
                                                 itemsize=eval(recfmt[1:]))
 
@@ -227,7 +227,7 @@ class Column(object):
 
             # boolean needs to be scaled too
             if recfmt[-2:] == FITS2NUMPY['L']:
-                array = np.where(array==0, ord('F'), ord('T'))
+                array = np.where(array == 0, ord('F'), ord('T'))
 
             # make a copy if scaled, so as not to corrupt the original array
             if bzero not in ['', None, 0] or bscale not in ['', None, 1]:
@@ -252,7 +252,7 @@ class Column(object):
         """
         Return a copy of this `Column`.
         """
-        tmp = Column(format='I') # just use a throw-away format
+        tmp = Column(format='I')  # just use a throw-away format
         tmp.__dict__ = self.__dict__.copy()
         return tmp
 
@@ -516,7 +516,7 @@ class ColDefs(object):
         assert isinstance(column, Column)
 
         for cname in KEYWORD_ATTRIBUTES:
-            attr = getattr(self, cname+'s')
+            attr = getattr(self, cname + 's')
             attr.append(getattr(column, cname))
 
         self._arrays.append(column.array)
@@ -541,7 +541,7 @@ class ColDefs(object):
         indx = _get_index(self.names, col_name)
 
         for cname in KEYWORD_ATTRIBUTES:
-            attr = getattr(self, cname+'s')
+            attr = getattr(self, cname + 's')
             del attr[indx]
 
         del self._arrays[indx]
@@ -570,7 +570,7 @@ class ColDefs(object):
         """
 
         indx = _get_index(self.names, col_name)
-        getattr(self, attrib+'s')[indx] = new_value
+        getattr(self, attrib + 's')[indx] = new_value
 
         # If this ColDefs is being tracked by a Table, inform the
         # table that its data is now invalid.
@@ -646,7 +646,7 @@ class ColDefs(object):
             for idx in range(len(lst)):
                 lst[idx] = lst[idx].strip().lower()
                 if lst[idx][-1] == 's':
-                    lst[idx]=list[idx][:-1]
+                    lst[idx] = list[idx][:-1]
 
         ret = {}
 
@@ -668,8 +668,8 @@ class ColDefs(object):
 class _ASCIIColDefs(ColDefs):
     """ColDefs implementation for ASCII tables."""
 
-    _ascii_fmt = {'A':'A1', 'I':'I10', 'J':'I15', 'E':'E15.7', 'F':'F16.7',
-                  'D':'D25.17'}
+    _ascii_fmt = {'A': 'A1', 'I': 'I10', 'J': 'I15', 'E': 'E15.7',
+                  'F': 'F16.7', 'D': 'D25.17'}
 
     _padding_byte = ' '
 
@@ -806,7 +806,7 @@ def _get_index(names, key):
             # try to match case-insentively,
             _key = key.lower().rstrip()
             names = [n.lower().rstrip() for n in names]
-            count = names.count(_key) # occurrence of _key in names
+            count = names.count(_key)  # occurrence of _key in names
             if count == 1:
                 indx = names.index(_key)
             elif count == 0:
@@ -836,12 +836,12 @@ def _unwrapx(input, output, nx):
     """
 
     pow2 = np.array([128, 64, 32, 16, 8, 4, 2, 1], dtype='uint8')
-    nbytes = ((nx-1) // 8) + 1
+    nbytes = ((nx - 1) // 8) + 1
     for i in range(nbytes):
-        _min = i*8
-        _max = min((i+1)*8, nx)
+        _min = i * 8
+        _max = min((i + 1) * 8, nx)
         for j in range(_min, _max):
-            output[...,j] = np.bitwise_and(input[...,i], pow2[j-i*8])
+            output[..., j] = np.bitwise_and(input[..., i], pow2[j - i * 8])
 
 
 def _wrapx(input, output, nx):
@@ -860,19 +860,19 @@ def _wrapx(input, output, nx):
         number of bits
     """
 
-    output[...] = 0 # reset the output
-    nbytes = ((nx-1) // 8) + 1
-    unused = nbytes*8 - nx
+    output[...] = 0  # reset the output
+    nbytes = ((nx - 1) // 8) + 1
+    unused = nbytes * 8 - nx
     for i in range(nbytes):
-        _min = i*8
-        _max = min((i+1)*8, nx)
+        _min = i * 8
+        _max = min((i + 1) * 8, nx)
         for j in range(_min, _max):
             if j != _min:
-                np.left_shift(output[...,i], 1, output[...,i])
-            np.add(output[...,i], input[...,j], output[...,i])
+                np.left_shift(output[..., i], 1, output[..., i])
+            np.add(output[..., i], input[..., j], output[..., i])
 
     # shift the unused bits
-    np.left_shift(output[...,i], unused, output[...,i])
+    np.left_shift(output[..., i], unused, output[..., i])
 
 
 def _makep(input, desp_output, format, nrows=None):
@@ -928,8 +928,8 @@ def _makep(input, desp_output, format, nrows=None):
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
-        desp_output[idx,0] = len(data_output[idx])
-        desp_output[idx,1] = _offset
+        desp_output[idx, 0] = len(data_output[idx])
+        desp_output[idx, 1] = _offset
         _offset += len(data_output[idx]) * _nbytes
 
     return data_output
@@ -942,7 +942,6 @@ def _parse_tformat(tform):
         (repeat, dtype, option) = TFORMAT_RE.match(tform.strip()).groups()
     except:
         warnings.warn('Format "%s" is not recognized.' % tform)
-
 
     if repeat == '':
         repeat = 1
@@ -988,6 +987,7 @@ def _scalar_to_format(value):
     else:
         return 'A' + str(len(value))
 
+
 def _cmp_recformats(f1, f2):
     """
     Compares two numpy recformats using the ordering given by FORMATORDER.
@@ -998,6 +998,7 @@ def _cmp_recformats(f1, f2):
     else:
         f1, f2 = NUMPY2FITS[f1], NUMPY2FITS[f2]
         return cmp(FORMATORDER.index(f1), FORMATORDER.index(f2))
+
 
 def _convert_fits2record(format):
     """
@@ -1022,7 +1023,7 @@ def _convert_fits2record(format):
             output_format = repeat_str + FITS2NUMPY[dtype]
 
     elif dtype == 'X':
-        nbytes = ((repeat-1) // 8) + 1
+        nbytes = ((repeat - 1) // 8) + 1
         # use an array, even if it is only ONE u1 (i.e. use tuple always)
         output_format = _FormatX(repr((nbytes,)) + 'u1')
         output_format._nx = repeat
@@ -1070,7 +1071,7 @@ def _convert_record2fits(format):
         output_format = str(ntot) + NUMPY2FITS[dtype]
     elif isinstance(dtype, _FormatX):
         warnings.warn('X format')
-    elif dtype + option in NUMPY2FITS: # record format
+    elif dtype + option in NUMPY2FITS:  # record format
         if repeat != 1:
             repeat = str(repeat)
         else:
@@ -1080,6 +1081,7 @@ def _convert_record2fits(format):
         raise ValueError('Illegal format %s.' % format)
 
     return output_format
+
 
 def _convert_format(format, reverse=False):
     """

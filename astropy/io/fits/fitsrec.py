@@ -113,14 +113,12 @@ class FITS_record(object):
             outlist.append(repr(self[idx]))
         return '(%s)' % ', '.join(outlist)
 
-
     def field(self, field):
         """
         Get the field data of the record.
         """
 
         return self.__getitem__(field)
-
 
     def setfield(self, field, value):
         """
@@ -299,11 +297,11 @@ class FITS_rec(np.recarray):
                 self.field(self.names[idx])[row] = value.field(self.names[idx])
         elif isinstance(value, (tuple, list)):
             if self._nfields == len(value):
-                for idx in range (self._nfields):
+                for idx in range(self._nfields):
                     self.field(idx)[row] = value[idx]
             else:
-               raise ValueError('Input tuple or list required to have %s '
-                                'elements.' % self._nfields)
+                raise ValueError('Input tuple or list required to have %s '
+                                 'elements.' % self._nfields)
         else:
             raise TypeError('Assignment requires a FITS_record, tuple, or '
                             'list as input.')
@@ -358,17 +356,17 @@ class FITS_rec(np.recarray):
             if isinstance(recformat, _FormatP):
                 dummy = _VLF([None] * len(self), dtype=recformat.dtype)
                 for i in range(len(self)):
-                    _offset = field[i,1] + self._heapoffset
+                    _offset = field[i, 1] + self._heapoffset
                     self._file.seek(_offset)
                     if recformat.dtype == 'a':
-                        count = field[i,0]
+                        count = field[i, 0]
                         dt = recformat.dtype + str(1)
                         da = _array_from_file(self._file, dtype=dt,
                                               count=count, sep='')
                         dummy[i] = np.char.array(da, itemsize=count)
                         dummy[i] = decode_ascii(dummy[i])
                     else:
-                        count = field[i,0]
+                        count = field[i, 0]
                         dt = recformat.dtype
                         dummy[i] = _array_from_file(self._file, dtype=dt,
                                                     count=count, sep='')
@@ -377,7 +375,7 @@ class FITS_rec(np.recarray):
                 # scale by TSCAL and TZERO
                 if _scale or _zero:
                     for i in range(len(self)):
-                        dummy[i][:] = dummy[i]*bscale+bzero
+                        dummy[i][:] = dummy[i] * bscale + bzero
 
                 # Boolean (logical) column
                 if recformat.dtype == FITS2NUMPY['L']:
@@ -548,14 +546,14 @@ class FITS_rec(np.recarray):
             # add the location offset of the heap area for each
             # variable length column
             if isinstance(recformat, _FormatP):
-                field[:] = 0 # reset
+                field[:] = 0  # reset
                 npts = map(len, self._convert[indx])
-                field[:len(npts),0] = npts
+                field[:len(npts), 0] = npts
                 dtype = np.array([], dtype=recformat.dtype)
-                field[1:,1] = np.add.accumulate(field[:-1,0]) * dtype.itemsize
-
-                field[:,1][:] += self._heapsize
-                self._heapsize += field[:,0].sum() * dtype.itemsize
+                field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
+                                dtype.itemsize)
+                field[:, 1][:] += self._heapsize
+                self._heapsize += field[:, 0].sum() * dtype.itemsize
 
             # conversion for both ASCII and binary tables
             if _number or _str:
@@ -580,8 +578,8 @@ class FITS_rec(np.recarray):
                         raise ValueError(
                             'Column `%s` starting point overlaps to the '
                             'previous column.' % indx + 1)
-                    trail = loc[indx+1] - widths[indx] - \
-                             self._coldefs.starts[indx]
+                    trail = (loc[indx + 1] - widths[indx] -
+                             self._coldefs.starts[indx])
                     if trail < 0:
                         raise ValueError(
                             'Column `%s` ending point overlaps to the next '
@@ -598,7 +596,7 @@ class FITS_rec(np.recarray):
                     # result is not allowed to expand (as C/Python does).
                     for jdx in range(len(dummy)):
                         x = fmt % dummy[jdx]
-                        if len(x) > (loc[indx+1] - loc[indx]):
+                        if len(x) > (loc[indx + 1] - loc[indx]):
                             raise ValueError(
                                 "Number `%s` does not fit into the output's "
                                 "itemsize of %s." % (x, widths[indx]))

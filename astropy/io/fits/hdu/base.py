@@ -31,13 +31,14 @@ class InvalidHDUException(Exception):
     corrupted.
     """
 
+
 def _hdu_class_from_header(cls, header):
     """
     Used primarily by _BaseHDU.__new__ to find an appropriate HDU class to use
     based on values in the header.  See the _BaseHDU.__new__ docstring.
     """
 
-    klass = cls # By default, if no subclasses are defined
+    klass = cls  # By default, if no subclasses are defined
     if header:
         for c in reversed(list(itersubclasses(cls))):
             try:
@@ -433,8 +434,8 @@ class _BaseHDU(object):
         hdulist = HDUList([self])
         hdulist.writeto(name, output_verify, clobber=clobber,
                         checksum=checksum)
-_AllHDU = _BaseHDU # For backwards-compatibility, though nobody should have
-                   # been using this directly
+_AllHDU = _BaseHDU  # For backwards-compatibility, though nobody should have
+                    # been using this directly
 
 
 # For convenience...
@@ -660,9 +661,9 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
 
         if hasattr(self, '_file') and self._file:
-           return {'file': self._file, 'filemode': self._file.mode,
-                   'hdrLoc': self._hdrLoc, 'datLoc': self._datLoc,
-                   'datSpan': self._datSpan}
+            return {'file': self._file, 'filemode': self._file.mode,
+                    'hdrLoc': self._hdrLoc, 'datLoc': self._datLoc,
+                    'datSpan': self._datSpan}
         else:
             return None
 
@@ -723,7 +724,6 @@ class _ValidHDU(_BaseHDU, _Verify):
         self._header.set('extname', value, comment, before, after)
         self.name = value
 
-
     def update_ext_version(self, value, comment=None, before=None,
                            after=None, savecomment=False):
         """
@@ -766,15 +766,14 @@ class _ValidHDU(_BaseHDU, _Verify):
         self._header.set('extver', value, comment, before, after)
         self._extver = value
 
-
     def _verify(self, option='warn'):
-        errs= _ErrList([], unit='Card')
+        errs = _ErrList([], unit='Card')
 
         is_valid = lambda v: v in [8, 16, 32, 64, -32, -64]
 
         # Verify location and value of mandatory keywords.
-        # Do the first card here, instead of in the respective HDU classes,
-        # so the checking is in order, in case of required cards in wrong order.
+        # Do the first card here, instead of in the respective HDU classes, so
+        # the checking is in order, in case of required cards in wrong order.
         if isinstance(self, ExtensionHDU):
             firstkey = 'XTENSION'
             firstval = self._extension
@@ -912,7 +911,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             time when the checksum was calculated
 
         blocking: str, optional
-            "standard" or "nonstandard", compute sum 2880 bytes at a time, or not
+            "standard" or "nonstandard", compute sum 2880 bytes at a time, or
+            not
 
         Returns
         -------
@@ -930,7 +930,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum(blocking)
 
         if when is None:
-           when = 'data unit checksum updated %s' % self._get_timestamp()
+            when = 'data unit checksum updated %s' % self._get_timestamp()
 
         self._header['DATASUM'] = (str(cs), when)
         return cs
@@ -953,7 +953,8 @@ class _ValidHDU(_BaseHDU, _Verify):
            add the ``CHECKSUM`` card only
 
         blocking: str, optional
-            "standard" or "nonstandard", compute sum 2880 bytes at a time, or not
+            "standard" or "nonstandard", compute sum 2880 bytes at a time, or
+            not
 
         Notes
         -----
@@ -965,20 +966,20 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
 
         if not override_datasum:
-           # Calculate and add the data checksum to the header.
-           data_cs = self.add_datasum(when, blocking)
+            # Calculate and add the data checksum to the header.
+            data_cs = self.add_datasum(when, blocking)
         else:
-           # Just calculate the data checksum
-           data_cs = self._calculate_datasum(blocking)
+            # Just calculate the data checksum
+            data_cs = self._calculate_datasum(blocking)
 
         if when is None:
             when = 'HDU checksum updated %s' % self._get_timestamp()
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if 'DATASUM' in self._header:
-            self._header.set('CHECKSUM', '0'*16, when, before='DATASUM')
+            self._header.set('CHECKSUM', '0' * 16, when, before='DATASUM')
         else:
-            self._header.set('CHECKSUM', '0'*16, when)
+            self._header.set('CHECKSUM', '0' * 16, when)
 
         self._header['CHECKSUM'] = self._calculate_checksum(data_cs, blocking)
 
@@ -988,7 +989,8 @@ class _ValidHDU(_BaseHDU, _Verify):
         calculated for the ``DATASUM`` of the current HDU data.
 
         blocking: str, optional
-            "standard" or "nonstandard", compute sum 2880 bytes at a time, or not
+            "standard" or "nonstandard", compute sum 2880 bytes at a time, or
+            not
 
         Returns
         -------
@@ -1002,9 +1004,11 @@ class _ValidHDU(_BaseHDU, _Verify):
             datasum = self._calculate_datasum(blocking)
             if datasum == int(self._header['DATASUM']):
                 return 1
-            elif blocking == 'either': # i.e. standard failed,  try nonstandard
+            elif blocking == 'either':
+                # i.e. standard failed,  try nonstandard
                 return self.verify_datasum(blocking='nonstandard')
-            else: # Failed with all permitted blocking kinds
+            else:
+                # Failed with all permitted blocking kinds
                 return 0
         else:
             return 2
@@ -1015,7 +1019,8 @@ class _ValidHDU(_BaseHDU, _Verify):
         value calculated for the current HDU CHECKSUM.
 
         blocking: str, optional
-            "standard" or "nonstandard", compute sum 2880 bytes at a time, or not
+            "standard" or "nonstandard", compute sum 2880 bytes at a time, or
+            not
 
         Returns
         -------
@@ -1033,13 +1038,14 @@ class _ValidHDU(_BaseHDU, _Verify):
             checksum = self._calculate_checksum(datasum, blocking)
             if checksum == self._header['CHECKSUM']:
                 return 1
-            elif blocking == 'either': # i.e. standard failed,  try nonstandard
+            elif blocking == 'either':
+                # i.e. standard failed,  try nonstandard
                 return self.verify_checksum(blocking='nonstandard')
-            else: # Failed with all permitted blocking kinds
+            else:
+                # Failed with all permitted blocking kinds
                 return 0
         else:
             return 2
-
 
     def _verify_checksum_datasum(self, blocking):
         """
@@ -1055,26 +1061,26 @@ class _ValidHDU(_BaseHDU, _Verify):
             self._checksum = self._header['CHECKSUM']
             self._checksum_comment = self._header.comments['CHECKSUM']
             if not self.verify_checksum(blocking):
-                 warnings.warn('Checksum verification failed for HDU %s.\n' %
-                               ((self.name, self._extver),))
+                warnings.warn('Checksum verification failed for HDU %s.\n' %
+                              ((self.name, self._extver),))
             del self._header['CHECKSUM']
         else:
             self._checksum = None
             self._checksum_comment = None
 
         if 'DATASUM' in self._header:
-             self._datasum = self._header['DATASUM']
-             self._datasum_comment = self._header.comments['DATASUM']
+            self._datasum = self._header['DATASUM']
+            self._datasum_comment = self._header.comments['DATASUM']
 
-             if not self.verify_datasum(blocking):
-                 warnings.warn('Datasum verification failed for HDU %s.\n' %
-                               ((self.name, self._extver),))
-             del self._header['DATASUM']
+            if not self.verify_datasum(blocking):
+                warnings.warn('Datasum verification failed for HDU %s.\n' %
+                              ((self.name, self._extver),))
+            del self._header['DATASUM']
         else:
-             self._checksum = None
-             self._checksum_comment = None
-             self._datasum = None
-             self._datasum_comment = None
+            self._checksum = None
+            self._checksum_comment = None
+            self._datasum = None
+            self._datasum_comment = None
 
     def _get_timestamp(self):
         """
@@ -1145,11 +1151,11 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         blocking
             "standard", "nonstandard", or "either"
-            selects the block size on which to perform checksumming,  originally
-            the blocksize was chosen incorrectly.  "nonstandard" selects the
-            original approach,  "standard" selects the interoperable
-            blocking size of 2880 bytes.  In the context of _compute_checksum,
-            "either" is synonymous with "standard".
+            selects the block size on which to perform checksumming,
+            originally the blocksize was chosen incorrectly.  "nonstandard"
+            selects the original approach,  "standard" selects the
+            interoperable blocking size of 2880 bytes.  In the context of
+            _compute_checksum, "either" is synonymous with "standard".
 
         Returns
         -------
@@ -1158,13 +1164,13 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         blocklen = {'standard': 2880,
                     'nonstandard': len(bytes),
-                    'either':2880,  # do standard first
+                    'either': 2880,  # do standard first
                     True: 2880}[blocking]
 
         sum32 = np.uint32(sum32)
         for i in range(0, len(bytes), blocklen):
-            length = min(blocklen, len(bytes)-i)   # ????
-            sum32 = self._compute_hdu_checksum(bytes[i:i+length], sum32)
+            length = min(blocklen, len(bytes) - i)   # ????
+            sum32 = self._compute_hdu_checksum(bytes[i:i + length], sum32)
         return sum32
 
     def _compute_hdu_checksum(self, bytes, sum32=0):
@@ -1211,16 +1217,15 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         return (hi << u16) + lo
 
-
     # _MASK and _EXCLUDE used for encoding the checksum value into a character
     # string.
-    _MASK = [ 0xFF000000,
-              0x00FF0000,
-              0x0000FF00,
-              0x000000FF ]
+    _MASK = [0xFF000000,
+             0x00FF0000,
+             0x0000FF00,
+             0x000000FF]
 
-    _EXCLUDE = [ 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40,
-                 0x5b, 0x5c, 0x5d, 0x5e, 0x5f, 0x60 ]
+    _EXCLUDE = [0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f, 0x40,
+                0x5b, 0x5c, 0x5d, 0x5e, 0x5f, 0x60]
 
     def _encode_byte(self, byte):
         """
@@ -1239,9 +1244,9 @@ class _ValidHDU(_BaseHDU, _Verify):
             check = False
             for x in self._EXCLUDE:
                 for j in [0, 2]:
-                    if ch[j] == x or ch[j+1] == x:
-                        ch[j]   += 1
-                        ch[j+1] -= 1
+                    if ch[j] == x or ch[j + 1] == x:
+                        ch[j] += 1
+                        ch[j + 1] -= 1
                         check = True
         return ch
 
@@ -1269,10 +1274,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             byte = (value & self._MASK[i]) >> ((3 - i) * 8)
             ch = self._encode_byte(byte)
             for j in range(4):
-                asc[4*j+i] = ch[j]
+                asc[4 * j + i] = ch[j]
 
         for i in range(16):
-            ascii[i] = asc[(i+15) % 16]
+            ascii[i] = asc[(i + 15) % 16]
 
         return decode_ascii(ascii.tostring())
 
@@ -1396,7 +1401,6 @@ class NonstandardExtHDU(ExtensionHDU):
         return (card.keyword == 'XTENSION' and
                 xtension not in standard_xtensions)
 
-
     def _summary(self):
         return (self.name, 'NonstandardExtHDU', len(self._header))
 
@@ -1408,6 +1412,6 @@ class NonstandardExtHDU(ExtensionHDU):
 
         self._file.seek(self._datLoc)
         return self._file.readarray()
+
 # TODO: Mark this as deprecated
 _NonstandardExtHDU = NonstandardExtHDU
-

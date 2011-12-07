@@ -7,6 +7,7 @@ from glob import glob
 
 from ... import setup_helpers
 
+
 def get_extensions():
     return [
         Extension('astropy.io.fits.compression',

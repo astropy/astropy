@@ -122,4 +122,3 @@ class FitsHDU(NonstandardExtHDU):
     def _summary(self):
         # TODO: Perhaps make this more descriptive...
         return (self.name, self.__class__.__name__, len(self._header))
-

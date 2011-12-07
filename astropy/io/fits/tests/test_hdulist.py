@@ -76,7 +76,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         hdul.writeto(self.temp('test-append.fits'))
 
-        assert fits.info(self.temp('test-append.fits'), output=False) ==info
+        assert fits.info(self.temp('test-append.fits'), output=False) == info
 
     def test_append_table_extension_to_empty_list(self):
         """Tests appending a Simple Table ExtensionHDU to a empty HDUList."""
@@ -169,7 +169,7 @@ class TestHDUListFunctions(FitsTestCase):
         """Tests inserting a Simple ImageHDU to an empty HDUList."""
 
         hdul = fits.HDUList()
-        hdu = fits.ImageHDU(np.arange(100,dtype=np.int32))
+        hdu = fits.ImageHDU(np.arange(100, dtype=np.int32))
         hdul.insert(0, hdu)
 
         info = [(0, 'PRIMARY', 'PrimaryHDU', 4, (100,), 'int32', '')]

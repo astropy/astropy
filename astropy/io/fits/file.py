@@ -343,4 +343,3 @@ class _File(object):
             self.__file.close()
 
         self.closed = True
-
