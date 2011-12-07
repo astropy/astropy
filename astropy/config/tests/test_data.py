@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from ...tests.helper import remote_data
+from ...tests.helper import remote_data,raises
 
 TESTURL = 'http://www.google.com/index.html'
 
@@ -48,7 +48,18 @@ def test_local_data_name():
     from os.path import isfile
 
     fnout = get_data_filename('data/local.dat')
-    assert isfile(fnout)
+    assert isfile(fnout) and fnout.endswith('local.dat')
+
+    #get something in the astropy root
+    fnout2 = get_data_filename('../../data/README.rst')
+    assert isfile(fnout2) and fnout2.endswith('README.rst')
+
+@raises(AssertionError)
+def test_local_data_nonlocalfail():
+    from ..data import get_data_filename
+
+    #this would go *outside* the atropy tree
+    fn = get_data_filename('../../../data/README.rst')
 
 def test_compute_hash():
     import string
