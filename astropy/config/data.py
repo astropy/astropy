@@ -378,17 +378,17 @@ def _find_pkg_data_path(dataname, module):
     path.
     """
     from os.path import abspath, dirname, join
-    # TODO: I couldn't find a way to import this relatively, since
-    # there are no modules there other than __init__.py
-    import astropy
+
+    rootpkgname = module.__package__.split('.')[0]
+    rootpkg = __import__(rootpkgname)
 
     module_path = dirname(module.__file__)
     path = join(module_path, dataname)
 
-    root_dir = dirname(astropy.__file__)
+    root_dir = dirname(rootpkg.__file__)
     assert abspath(path).startswith(abspath(root_dir)), \
            ("attempted to get a local data file outside "
-            "of the astropy tree")
+            "of the " + rootpkgname + " tree")
 
     return path
 
