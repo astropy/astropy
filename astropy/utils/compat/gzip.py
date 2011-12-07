@@ -221,8 +221,9 @@ if sys.version_info[:2] == (3, 1) or sys.version_info[:2] == (2, 6):
                 raise ValueError, "write() on closed GzipFile object"
 
             # Convert data type if called by io.BufferedWriter.
-            if isinstance(data, memoryview):
-                data = data.tobytes()
+            if sys.version_info[:2] != (2, 6):
+                if isinstance(data, memoryview):
+                    data = data.tobytes()
 
             if len(data) > 0:
                 self.size = self.size + len(data)
