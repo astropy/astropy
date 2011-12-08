@@ -14,8 +14,8 @@ from __future__ import absolute_import
 
 import sys
 if sys.version_info[:2] == (3, 1):
-    from _gzip_32 import *
+    from ._gzip_32 import *
 elif sys.version_info[:2] == (2, 6):
-    from _gzip_27 import *
+    from ._gzip_27 import *
 else:
     from gzip import *
