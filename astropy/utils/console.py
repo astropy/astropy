@@ -60,9 +60,6 @@ def color_print(*args, **kwargs):
         default, darkgrey, lightred, lightgreen, yellow, lightblue,
         lightmagenta, lightcyan, white, or '' (the empty string).
 
-    bold : bool, optional
-        When `True` use boldface font.
-
     file : writeable file-like object, optional
         Where to write to.  Defaults to `sys.stdout`.  If file is not
         a tty (as determined by calling its `isatty` member, if one
@@ -91,17 +88,11 @@ def color_print(*args, **kwargs):
         'lightcyan': '1;36',
         'white': '1;37'}
 
-    bold = kwargs.get('bold', False)
     file = kwargs.get('file', sys.stdout)
     end = kwargs.get('end', u'\n')
 
     write = file.write
     if isatty(file) and USE_COLOR():
-        if bold:
-            styles = ';1'
-        else:
-            styles = ''
-
         for i in xrange(0, len(args), 2):
             msg = args[i]
             if i + 1 == len(args):
@@ -116,8 +107,8 @@ def color_print(*args, **kwargs):
                 write(msg)
             else:
                 color_code = color_mapping.get(color, '0;39')
-                write(u'\033[{0}{1}m{2}\033[0m'.format(
-                    color_code, styles, msg))
+                write(u'\033[{0}m{1}\033[0m'.format(
+                    color_code, msg))
 
         write(end)
     else:
@@ -460,9 +451,9 @@ class Spinner():
             write(u'\r')
             color_print(self._msg, self._color, file=file, end=u'')
         if exc_type is None:
-            color_print(u' [Done]', 'green', bold=True, file=file)
+            color_print(u' [Done]', 'green', file=file)
         else:
-            color_print(u' [Failed]', 'red', bold=True, file=file)
+            color_print(u' [Failed]', 'red', file=file)
         flush()
 
     def _silent_iterator(self):
