@@ -349,7 +349,7 @@ def adjust_compiler():
 
     The set of broken compilers can be updated by changing the
     compiler_mapping variable.  It is a list of 2-tuples where the
-    first in the pair is a regular expression matching the version 
+    first in the pair is a regular expression matching the version
     of the broken compiler, and the second is the compiler to change
     to.
     """
@@ -389,7 +389,7 @@ def set_build_mode():
 
 def setup_test_command(package_name):
     return type(package_name + '_test_command', (astropy_test,),
-                {'package_name': package_name}) 
+                {'package_name': package_name})
 
 
 ###############################################################################
