@@ -218,7 +218,7 @@ class GzipFile(io.BufferedIOBase):
             raise ValueError, "write() on closed GzipFile object"
 
         # Convert data type if called by io.BufferedWriter.
-        if isinstance(data, memoryview):
+        if sys.version_info[:2] != (2, 6) and isinstance(data, memoryview):
             data = data.tobytes()
 
         if len(data) > 0:
