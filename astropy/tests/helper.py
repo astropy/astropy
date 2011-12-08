@@ -28,7 +28,7 @@ try:
        version.LooseVersion('2.2.0'):
        
         msg = ("py.test 2.2.0 or later is required, but version {0} found." +
-               " Falling back on py.test budled with astropy.")
+               " Falling back on py.test bundled with astropy.")
         warn(VersionWarning(msg.format(pytest.__version__)))
         raise ImportError(msg.format(pytest.__version__))
 
