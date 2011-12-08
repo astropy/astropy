@@ -49,7 +49,9 @@ def get_data_fileobj(dataname, cache=True):
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
               `astropy.pkname`, use ``'data/file.dat'`` to get the
-              file in ``astropy/pkgname/data/file.dat``
+              file in ``astropy/pkgname/data/file.dat``.  Double-dots
+              can be used to go up a level.  In the same example, use
+              ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
             * If a matching local file does not exist, the Astropy
               data server will be queried for the file.
             * A hash like that produced by `compute_hash` can be
@@ -154,7 +156,9 @@ def get_data_filename(dataname, _module=None):
               distribution.  The path is relative to the module
               calling this function.  For example, if calling from
               `astropy.pkname`, use ``'data/file.dat'`` to get the
-              file in ``astropy/pkgname/data/file.dat``
+              file in ``astropy/pkgname/data/file.dat``.  Double-dots
+              can be used to go up a level.  In the same example, use
+              ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
             * If a matching local file does not exist, the Astropy
               data server will be queried for the file.
             * A hash like that produced by `compute_hash` can be
