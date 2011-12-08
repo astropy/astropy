@@ -98,17 +98,20 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
     import sys
     from subprocess import Popen, PIPE
     from warnings import warn
+    from .utils import find_current_module
 
     if path is None:
         try:
-            frame = sys._getframe(1)
-            path = os.path.abspath(frame.f_code.co_filename)
+            mod = find_current_module()
+            path = os.path.abspath(mod.__file__)
             # __file__ may end in .pyc or the like, while the co_filename
             # extension should just be .py
-            this_file = __file__.rsplit('.', 1)[0] + '.py'
-            while path == this_file and frame.f_back is not None:
-                frame = frame.f_back
-                path = os.path.abspath(frame.f_code.co_filename)
+            this_file = os.path.abspath(__file__.rsplit('.', 1)[0] + '.py')
+            depth = 2
+            while path == this_file and mod is not None:
+                mod = find_current_module(depth)
+                path = os.path.abspath(mod.__file__)
+                depth += 1
         except ValueError:
             path = __file__
     if not os.path.isdir(path):
