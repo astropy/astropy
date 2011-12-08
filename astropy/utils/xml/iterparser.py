@@ -86,12 +86,10 @@ def _convert_to_fd_or_read_function(fd):
             from ...utils.compat import gzip
             with gzip.GzipFile(fd, 'rb') as real_fd:
                 yield real_fd.read
-                real_fd.flush()
                 return
         else:
             with open(fd, 'rb') as real_fd:
                 yield real_fd
-                real_fd.flush()
                 return
     elif hasattr(fd, 'read'):
         assert is_callable(fd.read)
