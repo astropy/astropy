@@ -6,3 +6,4 @@ def test_pkg_finder():
     #note that this also implicitly tests compat.misc._patched_getmodule
     assert misc.find_current_module(0).__name__ == 'astropy.utils.misc'
     assert misc.find_current_module(1).__name__ == 'astropy.utils.tests.test_misc'
+    assert misc.find_current_module(0,True).__name__ == 'astropy.utils.tests.test_misc'

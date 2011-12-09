@@ -10,13 +10,18 @@ imported into `astropy.utils`
 __all__ = ['find_current_module']
 
 
-def find_current_module(depth=1):
+def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package this function is called from.
 
     Parameters
     ----------
     depth : int
-        Specifies how far back to go in the call stack.
+        Specifies how far back to go in the call stack (0-indexed, so that
+        passing in 0 gives back `astropy.utils.misc`).
+    finddiff : bool
+        If True, once the module at `depth` is determined, a search will be
+        performed up the call stack until a *different* module is found
+        from the one at `depth`.
 
     Returns
     -------
@@ -35,7 +40,14 @@ def find_current_module(depth=1):
             print find_current_module(1).__name__
         def find2():
             from astropy.utils import find_current_module
-            print find_current_module(2).__name__
+            cmod = find_current_module(2)
+            if cmod is None:
+                print 'None'
+            else:
+                print cmod.__name__
+        def find_diff():
+            from astropy.utils import find_current_module
+            print find_current_module(0,True).__name__
 
     ``mod2.py``:
 
@@ -48,13 +60,15 @@ def find_current_module(depth=1):
         >>> from pkg import mod1, mod2
         >>> from astropy.utils import find_current_module
         >>> mod1.find1()
-        'pkg.mod1'
+        pkg.mod1
         >>> mod1.find2()
         None
         >>> mod2.find()
-        'pkg.mod2'
+        pkg.mod2
         >>> find_current_module(0)
         <module 'astropy.utils.misc' from 'astropy/utils/misc.py'>
+        >>> mod1.find_diff()
+        pkg.mod1
 
     """
     from inspect import currentframe
@@ -68,4 +82,14 @@ def find_current_module(depth=1):
         frm = frm.f_back
         if frm is None:
             return None
-    return inspect_getmodule(frm)
+
+    if finddiff:
+        currmod = inspect_getmodule(frm)
+        while frm:
+            frmb = frm.f_back
+            modb = inspect_getmodule(frmb)
+            if modb is not currmod:
+                return modb
+            frm = frmb
+    else:
+        return inspect_getmodule(frm)
