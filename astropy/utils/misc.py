@@ -27,8 +27,7 @@ def find_current_module(depth=1):
         the module is available as the ``__name__`` attribute of the returned
         object (if it isn't None).
     """
-    from inspect import currentframe, getmodule
-    from sys import version_info
+    from inspect import currentframe
 
     # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
     # is broken if the list of modules changes during import
