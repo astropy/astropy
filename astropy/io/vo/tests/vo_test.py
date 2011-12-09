@@ -690,6 +690,10 @@ def test_validate():
     output.seek(0)
     output = output.readlines()
 
+    # Uncomment to generate new groundtruth
+    # with io.open('validation.txt', 'wt', encoding='utf-8') as fd:
+    #     fd.write(u''.join(output))
+
     with io.open(
         os.path.join(ROOT_DIR, 'validation.txt'),
         'rt', encoding='utf-8') as fd:
