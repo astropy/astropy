@@ -16,9 +16,7 @@ def find_current_module(depth=1):
     Parameters
     ----------
     depth : int
-        Specifies how far back to go in the call stack. e.g. 0 returns the
-        `astropy.utils.general` module, 1 returns the module of this function's
-        caller, 2 retreives the caller's caller, etc.
+        Specifies how far back to go in the call stack.
 
     Returns
     -------
@@ -26,6 +24,38 @@ def find_current_module(depth=1):
         The module object or None if the package cannot be found. The name of
         the module is available as the ``__name__`` attribute of the returned
         object (if it isn't None).
+
+    Examples
+    --------
+    The examples below assume that there are two modules in a package named
+    `pkg`. ``mod1.py``:
+
+        def find1():
+            from astropy.utils import find_current_module
+            print find_current_module(1).__name__
+        def find2():
+            from astropy.utils import find_current_module
+            print find_current_module(2).__name__
+
+    ``mod2.py``:
+
+        def find():
+            from .mod1 import find2
+            find2()
+
+    With these modules in place, the following occurs:
+
+        >>> from pkg import mod1, mod2
+        >>> from astropy.utils import find_current_module
+        >>> mod1.find1()
+        'pkg.mod1'
+        >>> mod1.find2()
+        None
+        >>> mod2.find()
+        'pkg.mod2'
+        >>> find_current_module(0)
+        <module 'astropy.utils.misc' from 'astropy/utils/misc.py'>
+
     """
     from inspect import currentframe
 
