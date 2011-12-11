@@ -13,10 +13,16 @@ import subprocess
 
 from distutils.core import Command
 
-try:
+from ..config import ConfigurationItem
+
+USE_SYSTEM_PYTEST = ConfigurationItem('use_system_pytest', False,
+                                      'Set to True to load system pytest',
+                                      'boolean', 'astropy.tests.helper')
+
+if USE_SYSTEM_PYTEST():
     import pytest
 
-except ImportError:
+else:
     from ..extern import pytest as extern_pytest
 
     if sys.version_info >= (3, 0):
