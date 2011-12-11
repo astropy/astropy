@@ -322,8 +322,8 @@ class Table(object):
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
-                raise ValueError('Elements in list initialization must be either '
-                                 'Column or list-like')
+                raise ValueError('Elements in list initialization must be '
+                                 'either Column or list-like')
             cols.append(col)
 
         self._init_from_cols(cols)
@@ -369,7 +369,7 @@ class Table(object):
         self.meta = deepcopy(data.meta)
 
     def _init_from_cols(self, cols):
-        self.columns = TableColumns(self)
+        columns = TableColumns(self)
         dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
@@ -377,13 +377,16 @@ class Table(object):
             raise ValueError(
                 'Inconsistent data column lengths: {0}'.format(lengths))
 
-        self._data = np.ndarray(lengths.pop(), dtype=dtypes)
+        data = np.ndarray(lengths.pop(), dtype=dtypes)
         for col in cols:
-            self._data[col.name] = col.data
-            newcol = Column(col.name, self._data[col.name], units=col.units,
+            data[col.name] = col.data
+            newcol = Column(col.name, data[col.name], units=col.units,
                             format=col.format, description=col.description,
                             meta=deepcopy(col.meta))
-            self.columns[col.name] = newcol
+            columns[col.name] = newcol
+
+        self.columns = columns
+        self._data = data
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)

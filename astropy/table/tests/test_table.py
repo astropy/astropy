@@ -222,6 +222,22 @@ class TestAddColumns():
         t.add_columns([self.c, self.d], indexes=[2, 2])
         assert t.colnames == ['a', 'b', 'c', 'd']
 
+    def test_add_duplicate_column(self):
+        t = Table()
+        t.add_column(self.a)
+        with pytest.raises(ValueError):
+            t.add_column(Column('a', [0, 1, 2]))
+        t.add_column(self.b)
+        t.add_column(self.c)
+        assert t.colnames == ['a', 'b', 'c']
+
+    def test_add_duplicate_columns(self):
+        t = Table([self.a, self.b, self.c])
+        with pytest.raises(ValueError):
+            t.add_columns([Column('a', [0, 1, 2]), Column('b', [0, 1, 2])])
+        t.add_column(self.d)
+        assert t.colnames == ['a', 'b', 'c', 'd']
+
 
 class TestAddRow():
 
