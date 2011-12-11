@@ -45,9 +45,11 @@ class TableColumns(OrderedDict):
         elif isinstance(item, tuple):
             return TableColumns(self.table, [self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns(self.table, [self[x] for x in self.keys()[item]])
+            return TableColumns(self.table,
+                                [self[x] for x in self.keys()[item]])
         else:
-            raise IndexError('Illegal key or index value for TableColumns object')
+            raise IndexError('Illegal key or index value for TableColumns '
+                             'object')
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.keys())
@@ -113,9 +115,10 @@ class Column(np.ndarray):
         col = Column('name')
         col = Column('name', dtype=int, length=10, shape=(3,4))
 
-      The default ``dtype`` is ``np.float64`` and the default ``length`` is zero.
-      The ``shape`` argument is the array shape of a single cell in the column.
-      The default ``shape`` is () which means a single value in each element.
+      The default ``dtype`` is ``np.float64`` and the default ``length`` is
+      zero.  The ``shape`` argument is the array shape of a single cell in the
+      column.  The default ``shape`` is () which means a single value in each
+      element.
     """
 
     def __new__(cls, name, data=None,
@@ -173,17 +176,17 @@ class Column(np.ndarray):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        s = "<Column name='{0} units='{1}' " \
-            "format='{2}' description='{3}'>\n{4}".format(
-            self.name, self.units, self.format, self.description, repr(self.data))
+        s = "<Column name='{0} units='{1}' format='{2}' " \
+            "description='{3}'>\n{4}".format(self.name, self.units,
+                 self.format, self.description, repr(self.data))
         return s
 
-    def __eq__(self, c):
-        if isinstance(c, Column):
+    def __eq__(self, col):
+        if isinstance(col, Column):
             attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
-            equal = all(getattr(self, attr) == getattr(c, attr) for attr in attrs)
+            equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
         else:
-            equal = self.data == c
+            equal = self.data == col
         return equal
 
     def __ne__(self, other):
@@ -601,7 +604,7 @@ class Table(object):
         # Add_row() probably corrupted the Column views of self._data.  Rebuild
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
-        cols = [col.copy(self._data[col.name]) for col in self.columns.values()]
+        cols = [c.copy(self._data[c.name]) for c in self.columns.values()]
         self.columns = TableColumns(self, cols)
 
     def sort(self, keys):
