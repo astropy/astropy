@@ -10,11 +10,11 @@ class NDData(object):
     Initialize an NDData object with data
     Parameters
     ----------
-    data : `numpy.array`
+    data : `~numpy.ndarray`
         n-dimensional array containing the n-dimensional data
-    error: `numpy.array`, optional
+    error: `~numpy.ndarray`, optional
         n-dimensional array containing the error of the data
-    mask: `numpy.array`, optional
+    mask: `~numpy.ndarray`, optional
         n-dimensional array masking the data (suggested dtype=`bool`)
     wcs: `astropy.wcs`, optional
         WCS-object containing the world coordinate algorithms for the adta
