@@ -212,6 +212,7 @@ def get_extensions():
         'sip.c',
         'sip_wrap.c',
         'str_list_proxy.c',
+        'util.c',
         'wcslib_wrap.c',
         'wcslib_tabprm_wrap.c',
         'wcslib_units_wrap.c',
