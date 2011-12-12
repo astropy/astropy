@@ -47,6 +47,10 @@ class NDData(object):
         header.
     units : undefined, optional
         Description of the units of the data.
+    copy : bool, optional
+        If True, the array will be *copied* from the provided `data`, otherwise
+        it will be referenced if possible (see `numpy.array` `copy` argument
+        for details).
 
         .. warning::
             The units scheme is under development. For now, just supply a
@@ -55,8 +59,10 @@ class NDData(object):
 
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
-                 units=None):
-        self.data = data
+                 units=None, copy=True):
+
+        self.data = np.array(data, subok=True, copy=copy)
+
         self.error = error
         self.mask = mask
         self._validate_mask_and_error()
@@ -91,7 +97,6 @@ class NDData(object):
             raise ValueError('NDData error does not match data')
         elif not maskmatch:
             raise ValueError('NDData mask does not match data')
-
 
     @property
     def shape(self):
