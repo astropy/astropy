@@ -72,7 +72,7 @@ class NDData(object):
         if mask is None:
             self.mask = None
         else:
-            self.mask = np.array(mask, subok=True, copy=copy, dtype=bool)
+            self.mask = np.array(mask, subok=True, copy=copy)
 
         self._validate_mask_and_error()
 
@@ -89,7 +89,7 @@ class NDData(object):
         bool-like
         """
 
-        if self.mask is not None and self.mask.dtype!=np.dtype(bool):
+        if self.mask is not None and self.mask.dtype != np.dtype(bool):
             raise TypeError('Mask is not a boolean array')
 
         try:
