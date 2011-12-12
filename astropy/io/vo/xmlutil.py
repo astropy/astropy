@@ -17,6 +17,7 @@ from . import util
 from .util import IS_PY3K
 from .exceptions import (warn_or_raise, vo_warn, vo_raise,
      VOTableChangeWarning, W02, W03, W04, W05, W34)
+from ... import config
 
 
 __all__ = [
@@ -115,12 +116,10 @@ def validate_schema(filename, version='1.2'):
     assert version in ('1.0', '1.1', '1.2')
 
     if version in ('1.1', '1.2'):
-        schema_path = os.path.join(
-            os.path.dirname(__file__),
-            "data", "VOTable.v%s.xsd" % version)
+        schema_path = config.get_data_filename(
+            'data/VOTable.v{0}.xsd'.format(version))
     else:
-        schema_path = os.path.join(
-            os.path.dirname(__file__),
-            "data", "VOTable.dtd")
+        schema_path = config.get_data_filename(
+            'data/VOTable.dtd')
 
     return validate.validate_schema(filename, schema_path)

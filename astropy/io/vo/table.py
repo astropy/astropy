@@ -15,12 +15,19 @@ from . import exceptions
 from . import tree
 from . import util
 from ...utils.xml import iterparser
+from ...config import ConfigurationItem
 
 
 __all__ = ['parse', 'parse_single_table', 'validate']
 
 
-def parse(source, columns=None, invalid='exception', pedantic=True,
+PEDANTIC = ConfigurationItem(
+    'pedantic',
+    True,
+    'When True, treat fixable violations of the VOTable spec as exceptions.')
+
+
+def parse(source, columns=None, invalid='exception', pedantic=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
           filename=None,
           _debug_python_based_parser=False):
@@ -52,6 +59,8 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
         otherwise issue a warning.  Warnings may be controlled using
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
+        When not provided, uses the configuration setting
+        `astropy.io.vo.pedantic`, which defaults to True.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -81,6 +90,9 @@ def parse(source, columns=None, invalid='exception', pedantic=True,
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
+
+    if pedantic is None:
+        pedantic = PEDANTIC()
 
     config = {
         'columns'      :      columns,

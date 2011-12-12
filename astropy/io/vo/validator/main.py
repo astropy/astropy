@@ -9,7 +9,7 @@ import os
 import sys
 
 # LOCAL
-from ....config.data import get_data_filename
+from ....config import get_data_filename
 from . import html
 from . import result
 

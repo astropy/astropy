@@ -24,6 +24,7 @@ from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
+from ....config import get_data_filename, get_data_fileobj, get_data_filenames
 from ....tests.helper import pytest, raises
 from ....utils.compat import gzip
 
@@ -40,16 +41,12 @@ else:
 
 
 def setup_module():
-    global ROOT_DIR
-    ROOT_DIR = os.path.join(os.path.dirname(__file__), 'data')
-
     global TMP_DIR
     TMP_DIR = tempfile.mkdtemp()
 
 
 def teardown_module():
     shutil.rmtree(TMP_DIR)
-    pass
 
 
 def assert_validate_schema(filename):
@@ -63,14 +60,17 @@ def assert_validate_schema(filename):
 
 def test_parse_single_table():
     table = parse_single_table(
-        join(ROOT_DIR, "regression.xml"), pedantic=False)
+        get_data_filename('data/regression.xml'),
+        pedantic=False)
     assert isinstance(table, tree.Table)
     assert len(table.array) == 5
 
 
 def test_parse_single_table2():
-    table2 = parse_single_table(join(ROOT_DIR, "regression.xml"),
-                                table_number=1, pedantic=False)
+    table2 = parse_single_table(
+        get_data_filename('data/regression.xml'),
+        table_number=1,
+        pedantic=False)
     assert isinstance(table2, tree.Table)
     assert len(table2.array) == 1
     assert len(table2.array.dtype.names) == 28
@@ -78,14 +78,17 @@ def test_parse_single_table2():
 
 @raises(IndexError)
 def test_parse_single_table3():
-    table2 = parse_single_table(join(ROOT_DIR, "regression.xml"),
-                                table_number=2, pedantic=False)
+    table2 = parse_single_table(
+        get_data_filename('data/regression.xml'),
+        table_number=2, pedantic=False)
 
 
 def _test_regression(_python_based=False):
     # Read the VOTABLE
-    votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False,
-                    _debug_python_based_parser=_python_based)
+    votable = parse(
+        get_data_filename('data/regression.xml'),
+        pedantic=False,
+        _debug_python_based_parser=_python_based)
     table = votable.get_first_table()
 
     assert table.array.dtype == [
@@ -134,10 +137,11 @@ def _test_regression(_python_based=False):
                     _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
-    truth = open(
-        join(ROOT_DIR, "regression.bin.tabledata.truth.xml"), 'rb').readlines()
-    output = open(
-        join(TMP_DIR, "regression.bin.tabledata.xml"), 'rb').readlines()
+    with get_data_fileobj(
+        'data/regression.bin.tabledata.truth.xml') as fd:
+        truth = fd.readlines()
+    with open(join(TMP_DIR, "regression.bin.tabledata.xml"), 'rb') as fd:
+        output = fd.readlines()
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
@@ -176,7 +180,8 @@ def test_regression_python_based_parser():
 class TestFixups:
     def setup_class(self):
         self.table = parse(
-            join(ROOT_DIR, "regression.xml"), pedantic=False).get_first_table()
+            get_data_filename('data/regression.xml'),
+            pedantic=False).get_first_table()
         self.array = self.table.array
         self.mask = self.table.mask
 
@@ -187,7 +192,9 @@ class TestFixups:
 
 class TestReferences:
     def setup_class(self):
-        self.votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
+        self.votable = parse(
+            get_data_filename('data/regression.xml'),
+            pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.mask
@@ -226,8 +233,9 @@ class TestReferences:
 
 def test_select_columns_by_index():
     columns = [0, 5, 13]
-    table = parse(join(ROOT_DIR, "regression.xml"),
-                  pedantic=False, columns=columns).get_first_table()
+    table = parse(
+        get_data_filename('data/regression.xml'),
+        pedantic=False, columns=columns).get_first_table()
     array = table.array
     mask = table.mask
     assert array['string_test'][0] == b("String & test")
@@ -239,8 +247,9 @@ def test_select_columns_by_index():
 
 def test_select_columns_by_name():
     columns = ['string_test', 'unsignedByte', 'bitarray']
-    table = parse(join(ROOT_DIR, "regression.xml"),
-                  pedantic=False, columns=columns).get_first_table()
+    table = parse(
+        get_data_filename('data/regression.xml'),
+        pedantic=False, columns=columns).get_first_table()
     array = table.array
     mask = table.mask
     assert array['string_test'][0] == b("String & test")
@@ -251,8 +260,9 @@ def test_select_columns_by_name():
 
 class TestParse:
     def setup_class(self):
-        self.table = parse(join(ROOT_DIR, "regression.xml"),
-                           pedantic=False).get_first_table()
+        self.table = parse(
+            get_data_filename('data/regression.xml'),
+            pedantic=False).get_first_table()
         self.array = self.table.array
         self.mask = self.table.mask
 
@@ -557,7 +567,9 @@ class TestParse:
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
-        votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
+        votable = parse(
+            get_data_filename('data/regression.xml'),
+            pedantic=False)
         votable.to_xml(join(TMP_DIR, "test_through_tabledata.xml"))
         self.table = parse(join(TMP_DIR, "test_through_tabledata.xml"),
                            pedantic=False).get_first_table()
@@ -570,7 +582,9 @@ class TestThroughTableData(TestParse):
 
 class TestThroughBinary(TestParse):
     def setup_class(self):
-        votable = parse(join(ROOT_DIR, "regression.xml"), pedantic=False)
+        votable = parse(
+            get_data_filename('data/regression.xml'),
+            pedantic=False)
         votable.get_first_table().format = 'binary'
         votable.to_xml(join(TMP_DIR, "test_through_binary.xml"))
         self.table = parse(join(TMP_DIR, "test_through_binary.xml"),
@@ -628,14 +642,15 @@ def test_open_files():
     def test_file(filename):
         parse(filename, pedantic=False)
 
-    for filename in glob.glob(os.path.join(ROOT_DIR, 'data', '*.xml')):
+    for filename in get_data_filenames('data', '*.xml'):
         yield test_file, filename
 
 
 @raises(VOTableSpecError)
 def test_too_many_columns():
-    votable = parse(join(ROOT_DIR, "too_many_columns.xml.gz"),
-                    pedantic=False)
+    votable = parse(
+        get_data_filename('data/too_many_columns.xml.gz'),
+        pedantic=False)
 
 
 def test_build_from_scratch():
@@ -682,7 +697,7 @@ def test_validate():
 
     # We can't test xmllint, because we can't rely on it being on the
     # user's machine.
-    result = validate(os.path.join(ROOT_DIR, 'regression.xml'),
+    result = validate(get_data_filename('data/regression.xml'),
                       output, xmllint=False)
 
     assert result == False
@@ -695,7 +710,7 @@ def test_validate():
     #     fd.write(u''.join(output))
 
     with io.open(
-        os.path.join(ROOT_DIR, 'validation.txt'),
+        get_data_filename('data/validation.txt'),
         'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
 
