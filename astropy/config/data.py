@@ -107,19 +107,16 @@ def get_data_fileobj(dataname, cache=True):
     from urlparse import urlparse
     from urllib2 import urlopen
     from types import MethodType
-    from ..utils import find_current_module
 
     if cache:
-        module = find_current_module(2)
-        return open(get_data_filename(dataname, module), 'rb')
+        return open(get_data_filename(dataname), 'rb')
     else:
         url = urlparse(dataname)
         if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
             #it's actually a url for a net location
             urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT())
         else:
-            module = find_current_module(2)
-            datafn = _find_pkg_data_path(dataname, module)
+            datafn = _find_pkg_data_path(dataname)
             if isdir(datafn):
                 raise IOError(
                     "Tried to access a data file that's actually "
@@ -138,7 +135,7 @@ def get_data_fileobj(dataname, cache=True):
                 return urlres
 
 
-def get_data_filename(dataname, _module=None):
+def get_data_filename(dataname):
     """
     Retrieves a data file from the standard locations and provides the local
     name of the file.
@@ -205,7 +202,6 @@ def get_data_filename(dataname, _module=None):
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
-    from ..utils import find_current_module
 
     url = urlparse(dataname)
     if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
@@ -219,9 +215,7 @@ def get_data_filename(dataname, _module=None):
             else:
                 return hashfn
     else:
-        if _module is None:
-            _module = find_current_module(2)
-        datafn = _find_pkg_data_path(dataname, _module)
+        datafn = _find_pkg_data_path(dataname)
         if isdir(datafn):
             raise IOError(
                 "Tried to access a data file that's actually "
@@ -233,7 +227,7 @@ def get_data_filename(dataname, _module=None):
             return _cache_remote(DATAURL() + dataname)
 
 
-def get_data_filenames(datadir, pattern='*', _module=None):
+def get_data_filenames(datadir, pattern='*'):
     """
     Returns the path of all of the data files in a given directory
     that match a given glob pattern.
@@ -275,11 +269,7 @@ def get_data_filenames(datadir, pattern='*', _module=None):
     from os.path import isdir, isfile, join
     from os import listdir
 
-    if _module is None:
-        from ..utils import find_current_module
-        _module = find_current_module(2)
-
-    path = _find_pkg_data_path(datadir, _module)
+    path = _find_pkg_data_path(datadir)
     if isfile(path):
         raise IOError(
             "Tried to access a data directory that's actually "
@@ -330,10 +320,7 @@ def get_data_fileobjs(datadir, pattern='*'):
         for fd in get_data_filename('maps', '*.hdr'):
             fcontents = fd.read()
     """
-    from ..utils import find_current_module
-    module = find_current_module(2)
-
-    for fn in get_data_filenames(datadir, pattern, module):
+    for fn in get_data_filenames(datadir, pattern):
         with open(fn, 'rb') as fd:
             yield fd
 
@@ -376,13 +363,15 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
-def _find_pkg_data_path(dataname, module):
+def _find_pkg_data_path(dataname):
     """
     Look for data in the source-included data directories and return the
     path.
     """
     from os.path import abspath, dirname, join
+    from ..utils.misc import find_current_module
 
+    module = find_current_module(1, True)
     rootpkgname = module.__package__.split('.')[0]
     rootpkg = __import__(rootpkgname)
 
