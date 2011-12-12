@@ -91,3 +91,26 @@ class NDData(object):
             raise ValueError('NDData error does not match data')
         elif not maskmatch:
             raise ValueError('NDData mask does not match data')
+
+
+    @property
+    def shape(self):
+
+        """
+        shape tuple of this object's data.
+        """
+        return self.data.shape
+
+    @property
+    def size(self):
+        """
+        integer size of this object's data.
+        """
+        return self.data.size
+
+    @property
+    def dtype(self):
+        """
+        `numpy.dtype` of this object's data.
+        """
+        return self.data.dtype
