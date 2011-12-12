@@ -3,10 +3,11 @@
 
 __all__ = ['NDData']
 
+
 class NDData(object):
     """Class to store array type data.
     `NDData` provides a superclass for all array based data.
-    
+
     Initialize an NDData object with data
     Parameters
     ----------
@@ -22,9 +23,10 @@ class NDData(object):
         contains meta data for the n-dimensional data
     units: `astropy.units`, optional
         describing the units of the data
-        
+
     """
-    def __init__(self, data, error=None, mask=None, wcs=None, meta=None, units=None):
+    def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
+                 units=None):
         self.data = data
         self.error = error
         self.mask = mask
