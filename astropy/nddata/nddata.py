@@ -6,22 +6,22 @@ __all__ = ['NDData']
 
 class NDData(object):
     """Class to store array type data.
+
     `NDData` provides a superclass for all array based data.
 
-    Initialize an NDData object with data
     Parameters
     ----------
     data : `~numpy.ndarray`
         n-dimensional array containing the n-dimensional data
-    error: `~numpy.ndarray`, optional
+    error : `~numpy.ndarray`, optional
         n-dimensional array containing the error of the data
-    mask: `~numpy.ndarray`, optional
+    mask : `~numpy.ndarray`, optional
         n-dimensional array masking the data (suggested dtype=`bool`)
-    wcs: `astropy.wcs`, optional
+    wcs : `astropy.wcs`, optional
         WCS-object containing the world coordinate algorithms for the adta
-    meta: `dict`-like object, optional
+    meta : `dict`-like object, optional
         contains meta data for the n-dimensional data
-    units: `astropy.units`, optional
+    units : `astropy.units`, optional
         describing the units of the data
 
     """
