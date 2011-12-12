@@ -40,6 +40,12 @@ test command.
 Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
 
+.. note::
+    This method of running the tests defaults to the version of `py.test` that
+    is bundled with Astropy. To use the locally-installed version, you should
+    either change the `use_system_pytest` configuration option to "True" (see
+    :doc:`../../configs`) or the `py.test` method describe below.
+
 py.test
 -------
 
@@ -86,6 +92,11 @@ default regular tests will also be run but these can be turned off by adding
 
   py.test some_dir --pep8 -k pep8
 
+.. note::
+    This method of running the tests uses the locally-installed version of
+    `py.test` rather than the bundled one, and hence will fail if the local
+    version it is not up-to-date enough (`py.test` 2.2 as of this writing).
+
 astropy.test()
 --------------
 
@@ -123,6 +134,12 @@ and convenience options ``verbose=`` and ``pastebin=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
 ``astropy.test``. This will enable PEP8 checking and disable regular tests.
+
+.. note::
+    This method of running the tests defaults to the version of `py.test` that
+    is bundled with Astropy. To use the locally-installed version, you should
+    either change the `use_system_pytest` configuration option to "True" (see
+    :doc:`../../configs`) or the `py.test` method describe above.
 
 Regression tests
 ================
