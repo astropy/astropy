@@ -241,3 +241,18 @@ def test_fixes():
             assert issubclass(item.category, wcs.FITSFixedWarning)
             if 'unitfix' in str(item.message):
                 assert 'Hz' in str(item.message)
+
+
+def test_outside_sky():
+    """
+    From github issue #107
+    """
+    with open(os.path.join(ROOT_DIR, 'data', 'outside_sky.hdr'),
+              'rb') as fd:
+        header = fd.read()
+    w = wcs.WCS(header)
+
+    assert np.all(np.isnan(w.wcs_pix2sky([[100.,500.]], 0)))  # outside sky
+    assert np.all(np.isnan(w.wcs_pix2sky([[200.,200.]], 0)))  # outside sky
+    assert not np.any(np.isnan(w.wcs_pix2sky([[1000.,1000.]], 0)))
+
