@@ -3,6 +3,7 @@
 
 __all__ = ['NDData']
 
+import numpy as np
 
 class NDData(object):
     """Superclass for Astropy data.
@@ -58,6 +59,35 @@ class NDData(object):
         self.data = data
         self.error = error
         self.mask = mask
+        self._validate_mask_and_error()
+
         self.wcs = wcs
-        self.meta = meta
         self.units = units
+        if meta is None:
+            self.meta = {}
+        else:
+            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+
+    def _validate_mask_and_error(self):
+        """
+        Raises ValueError if they don't match
+        """
+        try:
+            if self.error is not None:
+                np.broadcast(self.data, self.error)
+            errmatch = True
+        except ValueError:
+            errmatch = False
+        try:
+            if self.mask is not None:
+                np.broadcast(self.data, self.mask)
+            maskmatch = True
+        except ValueError:
+            maskmatch = False
+
+        if not errmatch and not maskmatch:
+            raise ValueError('NDData error and mask do not match data')
+        elif not errmatch:
+            raise ValueError('NDData error does not match data')
+        elif not maskmatch:
+            raise ValueError('NDData mask does not match data')
