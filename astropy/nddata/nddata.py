@@ -5,6 +5,7 @@ __all__ = ['NDData']
 
 import numpy as np
 
+
 class NDData(object):
     """Superclass for Astropy data.
 
@@ -63,8 +64,16 @@ class NDData(object):
 
         self.data = np.array(data, subok=True, copy=copy)
 
-        self.error = error
-        self.mask = mask
+        if error is None:
+            self.error = None
+        else:
+            self.error = np.array(error, subok=True, copy=copy)
+
+        if mask is None:
+            self.mask = None
+        else:
+            self.mask = np.array(mask, subok=True, copy=copy, dtype=bool)
+
         self._validate_mask_and_error()
 
         self.wcs = wcs
@@ -76,20 +85,26 @@ class NDData(object):
 
     def _validate_mask_and_error(self):
         """
-        Raises ValueError if they don't match
+        Raises ValueError if they don't match or TypeError if `mask` is not
+        bool-like
         """
-        try:
-            if self.error is not None:
-                np.broadcast(self.data, self.error)
-            errmatch = True
-        except ValueError:
-            errmatch = False
+
+        if self.mask is not None and self.mask.dtype!=np.dtype(bool):
+            raise TypeError('Mask is not a boolean array')
+
         try:
             if self.mask is not None:
                 np.broadcast(self.data, self.mask)
             maskmatch = True
         except ValueError:
             maskmatch = False
+
+        try:
+            if self.error is not None:
+                np.broadcast(self.data, self.error)
+            errmatch = True
+        except ValueError:
+            errmatch = False
 
         if not errmatch and not maskmatch:
             raise ValueError('NDData error and mask do not match data')
