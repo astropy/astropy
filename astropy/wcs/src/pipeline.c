@@ -4,6 +4,7 @@
 */
 
 #include "pipeline.h"
+#include "util.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -142,6 +143,10 @@ pipeline_all_pixel2world(
     if ((status = wcsp2s(pipeline->wcs, (int)ncoord, (int)nelem, wcs_input, imgcrd,
                          phi, theta, wcs_output, stat))) {
       wcserr_copy(pipeline->wcs->err, pipeline->err);
+    }
+
+    if (status == 8) {
+      set_invalid_to_nan((int)ncoord, (int)nelem, wcs_output, stat);
     }
   } else {
     if (has_det2im || has_sip || has_p4) {
