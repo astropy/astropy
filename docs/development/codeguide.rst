@@ -149,6 +149,9 @@ Coding Style/Conventions
 * Affiliated packages are required to follow the layout and documentation form
   of the template package included in the core package source distribution.
 
+* Command-line scripts should follow the form outlined in the :doc:`scripts`
+  document.
+
 Including C Code
 ----------------
 
