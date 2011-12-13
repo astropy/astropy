@@ -192,11 +192,8 @@ class astropy_test(Command, object):
     def run(self):
         self.reinitialize_command('build_py', inplace=False)
         self.run_command('build_py')
-        if sys.version_info[0] >= 3:
-            build_py_cmd = self.get_finalized_command('build_py')
-            new_path = os.path.abspath(build_py_cmd.build_lib)
-        else:
-            new_path = os.getcwd()
+        build_py_cmd = self.get_finalized_command('build_py')
+        new_path = os.path.abspath(build_py_cmd.build_lib)
 
         self.reinitialize_command('build_ext', inplace=True)
         self.run_command('build_ext')
