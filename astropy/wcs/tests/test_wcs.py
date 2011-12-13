@@ -226,8 +226,7 @@ def test_outside_sky():
     """
     From github issue #107
     """
-    with open(os.path.join(ROOT_DIR, 'data', 'outside_sky.hdr'),
-              'rb') as fd:
+    with get_data_fileobj('data/outside_sky.hdr') as fd:
         header = fd.read()
     w = wcs.WCS(header)
 
