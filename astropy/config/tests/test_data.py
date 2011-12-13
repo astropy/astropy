@@ -41,7 +41,7 @@ def test_local_data_obj():
 
     with get_data_fileobj('data/local.dat') as f:
         f.readline()
-        assert f.read()=='CONTENT\n'
+        assert f.read()==b'CONTENT\n'
 
 def test_local_data_name():
     from ..data import get_data_filename
