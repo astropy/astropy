@@ -13,12 +13,12 @@ These scripts should be executable, include ``#!/usr/bin/env python`` at the
 top, and should *not* end in ``.py``.
 
 The ``main`` functions these scripts call should accept a single argument that
-holds the ``sys.argv`` list in normal circumstances.  This function can live
-in its own module, or be part of a larger module that implements a class or
-function for astropy library use. The ``main`` function should do very little
-actual work - it should only parse the arguments and pass those arguments on
-to some library function so that the library function can be used
-programmatically when needed.
+holds the ``sys.argv`` list (except for the script name) in normal circumstances.
+This function can live in its own module, or be part of a larger module that
+implements a class or function for astropy library use. The ``main`` function
+should do very little actual work - it should only parse the arguments and pass
+those arguments on to some library function so that the library function can be
+used programmatically when needed.
 
 Command-line options can be parsed however desired, but the :mod:`argparse` 
 module is recommended when possible, due to its simpler and more flexible
@@ -39,7 +39,7 @@ Contents of ``/scripts/cmdlinescript`` ::
     from sys import argv
     import astropy.somepackage.somemod
 
-    astropy.somepackage.ascript.main(argv)
+    astropy.somepackage.ascript.main(argv[1:]e)
 
 Contents of ``/astropy/somepackage/somemod.py`` ::
 
@@ -54,7 +54,7 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
         from astropy.util.compat import argparse
 
         parser = argparse.ArgumentParser(description='Process some integers.')
-        parser.add_argument('-o','--option', dest='op',
+        parser.add_argument('-o', '--option', dest='op',action='store_true',
                             help='Some option that turns something on.')
         parser.add_argument('stuff', metavar='S', nargs='+',
                             help='Some input I should be able to get lots of.')
