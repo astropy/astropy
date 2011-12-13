@@ -17,7 +17,7 @@ from ..config.configs import ConfigurationItem
 
 __all__ = [
     'isatty', 'color_print', 'human_time', 'ProgressBar', 'Spinner',
-    'print_code_line']
+    'print_code_line', 'ProgressBarOrSpinner']
 
 
 USE_COLOR = ConfigurationItem(
@@ -462,6 +462,30 @@ class Spinner():
 
         while True:
             yield
+
+
+class ProgressBarOrSpinner:
+    def __init__(self, total, msg, color='default', file=sys.stdout):
+        if total is None:
+            self._is_spinner = True
+            self._obj = Spinner(msg, color=color, file=file)
+        else:
+            self._is_spinner = False
+            color_print(msg, color, file=file)
+            self._obj = ProgressBar(total, file=file)
+
+    def __enter__(self):
+        self._iter = self._obj.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return self._obj.__exit__(exc_type, exc_value, traceback)
+
+    def update(self, value):
+        if self._is_spinner:
+            self._iter.next()
+        else:
+            self._obj.update(value)
 
 
 def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
