@@ -7,21 +7,15 @@ from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
 import numpy as np
 
-from astropy import wcs
-from astropy.wcs import _wcs
+from .. import wcs
+from .. import _wcs
+from ...config import get_data_filename, get_data_fileobj
 
 
 def b(s):
     return s.encode('ascii')
 
 ######################################################################
-
-ROOT_DIR = None
-
-
-def setup_module():
-    global ROOT_DIR
-    ROOT_DIR = os.path.dirname(__file__)
 
 
 def test_alt():
@@ -562,8 +556,9 @@ def test_set_pv_realloc():
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = open(os.path.join(ROOT_DIR, 'spectra', 'orion-velo-1.hdr'),
-                  'rb').read()
+    with get_data_fileobj(
+        'spectra/orion-velo-1.hdr') as fd:
+        header = fd.read()
     w = _wcs._Wcsprm(header)
     print(w.spcfix())
     assert w.spcfix() == 0
@@ -657,7 +652,9 @@ def test_zsource():
 
 
 def test_cd_3d():
-    header = open(os.path.join(ROOT_DIR, 'data', '3d_cd.hdr'), 'rb').read()
+    with get_data_fileobj(
+        'data/3d_cd.hdr') as fd:
+        header = fd.read()
     w = _wcs._Wcsprm(header)
     assert w.cd.shape == (3, 3)
     assert w.get_pc().shape == (3, 3)
@@ -666,7 +663,9 @@ def test_cd_3d():
 
 @raises(RuntimeError)
 def test_get_pc():
-    header = open(os.path.join(ROOT_DIR, 'data', '3d_cd.hdr'), 'rb').read()
+    with get_data_fileobj(
+        'data/3d_cd.hdr') as fd:
+        header = fd.read()
     w = _wcs._Wcsprm(header)
     w.get_pc()[0, 0] = 42
 
