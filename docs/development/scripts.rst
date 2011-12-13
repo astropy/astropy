@@ -24,7 +24,7 @@ Command-line options can be parsed however desired, but the :mod:`argparse`
 module is recommended when possible, due to its simpler and more flexible
 interface relative to the older :mod:`optparse`. :mod:`argparse` is only
 available in python >=2.7 and >=3.2, however, so it should be imported as
-``from astropy.compat import argparse`` . 
+``from astropy.util.compat import argparse`` . 
 
 
 Example
@@ -51,7 +51,7 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
                 ...do something else...
 
     def main(args):
-        from astropy.compat import argparse
+        from astropy.util.compat import argparse
 
         parser = argparse.ArgumentParser(description='Process some integers.')
         parser.add_argument('-o','--option', dest='op',
