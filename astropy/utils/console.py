@@ -190,10 +190,10 @@ class ProgressBar:
         """
         Parameters
         ----------
-        items : int
+        total : int
             The number of increments in the process being tracked.
 
-        file : writable file-like object
+        file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -311,7 +311,7 @@ class ProgressBar:
             If `True`, use the `multiprocessing` module to distribute each
             task to a different processor core.
 
-        file : writeable file-like object
+        file : writeable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -346,7 +346,7 @@ class ProgressBar:
         items : sequence
             A sequence of items to iterate over
 
-        file : writeable file-like object
+        file : writeable file-like object, optional
             The file to write the progress bar to.  Defaults to
             `sys.stdout`.  If `file` is not a tty (as determined by
             calling its `isatty` member, if any), the scrollbar will
@@ -383,7 +383,7 @@ class Spinner():
         msg : str
             The message to print
 
-        color : str
+        color : str, optional
             An ANSI terminal color name.  Must be one of: black, red,
             green, brown, blue, magenta, cyan, lightgrey, default,
             darkgrey, lightred, lightgreen, yellow, lightblue,
@@ -465,7 +465,50 @@ class Spinner():
 
 
 class ProgressBarOrSpinner:
+    """
+    A class that displays either a `ProgressBar` or `Spinner`
+    depending on whether the total size of the operation is
+    known or not.
+
+    It is designed to be used with the `with` statement::
+
+        if file.has_length():
+            length = file.get_length()
+        else:
+            length = None
+        bytes_read = 0
+        with ProgressBarOrSpinner(length) as bar:
+            while file.read(blocksize):
+                bytes_read += blocksize
+                bar.update(bytes_read)
+    """
+
     def __init__(self, total, msg, color='default', file=sys.stdout):
+        """
+        Parameters
+        ----------
+        total : int or None
+            If an int, the number of increments in the process being
+            tracked and a `ProgressBar` is displayed.  If `None`, a
+            `Spinner` is displayed.
+
+        msg : str
+            The message to display above the `ProgressBar` or
+            alongside the `Spinner`.
+
+        color : str, optional
+            The color of `msg`, if any.  Must be an ANSI terminal
+            color name.  Must be one of: black, red, green, brown,
+            blue, magenta, cyan, lightgrey, default, darkgrey,
+            lightred, lightgreen, yellow, lightblue, lightmagenta,
+            lightcyan, white.
+
+        file : writable file-like object, optional
+            The file to write the to.  Defaults to `sys.stdout`.  If
+            `file` is not a tty (as determined by calling its `isatty`
+            member, if any), only `msg` will be displayed: the
+            `ProgressBar` or `Spinner` will be silent.
+        """
         if total is None:
             self._is_spinner = True
             self._obj = Spinner(msg, color=color, file=file)
@@ -482,6 +525,10 @@ class ProgressBarOrSpinner:
         return self._obj.__exit__(exc_type, exc_value, traceback)
 
     def update(self, value):
+        """
+        Update the progress bar to the given value (out of the total
+        given to the constructor.
+        """
         if self._is_spinner:
             self._iter.next()
         else:
