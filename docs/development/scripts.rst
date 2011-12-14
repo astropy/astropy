@@ -39,11 +39,11 @@ Contents of ``/scripts/cmdlinescript`` ::
     from sys import argv
     import astropy.somepackage.somemod
 
-    astropy.somepackage.ascript.main(argv[1:]e)
+    astropy.somepackage.ascript.main(argv[1:])
 
 Contents of ``/astropy/somepackage/somemod.py`` ::
 
-    def do_something(args,option=False):
+    def do_something(args, option=False):
         for a in args:
             if option:
                 ...do something...
