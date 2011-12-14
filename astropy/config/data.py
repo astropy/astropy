@@ -35,11 +35,6 @@ def get_data_fileobj(dataname, cache=True):
     Retrieves a data file from the standard locations and provides the file as
     a file-like object.
 
-    .. note::
-        If a file is requested using the form used to search inside the source
-        distribution (the first form given in the `dataname` parameter
-        description), the subpackage that stores the data will be imported.
-
     Parameters
     ----------
     dataname : str
