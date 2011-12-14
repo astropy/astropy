@@ -80,3 +80,14 @@ def test_compute_hash():
         shash = hashlib.md5(rands.encode()).hexdigest()
 
         assert chhash==shash
+
+
+def test_get_data_file_contents():
+    from ..data import get_data_fileobj, get_data_file_contents
+
+    with get_data_fileobj('data/local.dat') as f:
+        contents1 = f.read()
+
+    contents2 = get_data_file_contents('data/local.dat')
+
+    assert contents1 == contents2
