@@ -102,16 +102,8 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
 
     if path is None:
         try:
-            mod = find_current_module()
+            mod = find_current_module(1, finddiff=True)
             path = os.path.abspath(mod.__file__)
-            # __file__ may end in .pyc or the like, while the co_filename
-            # extension should just be .py
-            this_file = os.path.abspath(__file__.rsplit('.', 1)[0] + '.py')
-            depth = 2
-            while path == this_file and mod is not None:
-                mod = find_current_module(depth)
-                path = os.path.abspath(mod.__file__)
-                depth += 1
         except ValueError:
             path = __file__
     if not os.path.isdir(path):
