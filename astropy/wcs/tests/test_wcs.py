@@ -7,7 +7,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from ... import wcs
-from ...config import get_data_filename, get_data_fileobj, get_data_filenames
+from ...config import get_data_filenames, get_data_contents
 
 # test_maps() is a generator
 def test_maps():
@@ -17,9 +17,7 @@ def test_maps():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        with get_data_fileobj(os.path.join("maps", filename)) as fd:
-            header = fd.read()
-
+        header = get_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
         world = wcsobj.wcs_pix2sky([[97, 97]], 1)
@@ -69,8 +67,7 @@ def test_spectra():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        with get_data_fileobj(os.path.join("spectra", filename)) as fd:
-            header = fd.read()
+        header = get_data_contents(os.path.join("spectra", filename))
 
         wcsobj = wcs.WCS(header)
 
@@ -207,9 +204,7 @@ def test_fixes():
     From github issue #36
     """
     def run():
-        with get_data_fileobj(
-            'data/nonstandard_units.hdr') as fd:
-            header = fd.read()
+        header = get_data_contents('data/nonstandard_units.hdr')
         w = wcs.WCS(header)
 
     with warnings.catch_warnings(record=True) as w:
@@ -226,8 +221,7 @@ def test_outside_sky():
     """
     From github issue #107
     """
-    with get_data_fileobj('data/outside_sky.hdr') as fd:
-        header = fd.read()
+    header = get_data_contents('data/outside_sky.hdr')
     w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2sky([[100.,500.]], 0)))  # outside sky
