@@ -190,13 +190,10 @@ class astropy_test(Command, object):
         pass
 
     def run(self):
-        self.reinitialize_command('build_py', inplace=False)
-        self.run_command('build_py')
-        build_py_cmd = self.get_finalized_command('build_py')
-        new_path = os.path.abspath(build_py_cmd.build_lib)
-
-        self.reinitialize_command('build_ext', inplace=True)
-        self.run_command('build_ext')
+        self.reinitialize_command('build', inplace=False)
+        self.run_command('build')
+        build_cmd = self.get_finalized_command('build')
+        new_path = os.path.abspath(build_cmd.build_lib)
 
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
