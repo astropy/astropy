@@ -7,7 +7,7 @@ from __future__ import division
 from .configs import ConfigurationItem,save_config
 from sys import version_info
 
-__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_file_contents',
+__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
            'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
            'clear_data_cache']
 
@@ -98,6 +98,10 @@ def get_data_fileobj(dataname, cache=True):
         with get_data_fileobj(vegaurl,False) as fobj:
             fcontents = fobj.read()
 
+    See Also
+    --------
+    `get_data_contents` : returns the contents of a file or url as a bytes object
+    `get_data_filename` : returns a local name for a file containing the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -195,6 +199,11 @@ def get_data_filename(dataname):
         fn = get_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
         with open(fn) as f:
             fcontents = f.read()
+
+    See Also
+    --------
+    `get_data_contents` : returns the contents of a file or url as a bytes object
+    `get_data_fileobj` : returns a file-like object with the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -223,7 +232,7 @@ def get_data_filename(dataname):
             return _cache_remote(DATAURL() + dataname)
 
 
-def get_data_file_contents(dataname, cache=True):
+def get_data_contents(dataname, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
@@ -269,8 +278,8 @@ def get_data_file_contents(dataname, cache=True):
 
     See Also
     --------
-
-    `get_data_fileobj`
+    `get_data_fileobj` : returns a file-like object with the data
+    `get_data_filename` : returns a local name for a file containing the data
     """
     with get_data_fileobj(dataname, cache=cache) as fd:
         contents = fd.read()

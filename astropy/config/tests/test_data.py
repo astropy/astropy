@@ -82,12 +82,12 @@ def test_compute_hash():
         assert chhash==shash
 
 
-def test_get_data_file_contents():
-    from ..data import get_data_fileobj, get_data_file_contents
+def test_get_data_contents():
+    from ..data import get_data_fileobj, get_data_contents
 
     with get_data_fileobj('data/local.dat') as f:
         contents1 = f.read()
 
-    contents2 = get_data_file_contents('data/local.dat')
+    contents2 = get_data_contents('data/local.dat')
 
     assert contents1 == contents2

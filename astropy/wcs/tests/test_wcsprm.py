@@ -9,7 +9,7 @@ import numpy as np
 
 from .. import wcs
 from .. import _wcs
-from ...config import get_data_file_contents
+from ...config import get_data_contents
 
 
 def b(s):
@@ -556,7 +556,7 @@ def test_set_pv_realloc():
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = get_data_file_contents('spectra/orion-velo-1.hdr')
+    header = get_data_contents('spectra/orion-velo-1.hdr')
     w = _wcs._Wcsprm(header)
     print(w.spcfix())
     assert w.spcfix() == 0
@@ -650,7 +650,7 @@ def test_zsource():
 
 
 def test_cd_3d():
-    header = get_data_file_contents('data/3d_cd.hdr')
+    header = get_data_contents('data/3d_cd.hdr')
     w = _wcs._Wcsprm(header)
     assert w.cd.shape == (3, 3)
     assert w.get_pc().shape == (3, 3)
@@ -659,7 +659,7 @@ def test_cd_3d():
 
 @raises(RuntimeError)
 def test_get_pc():
-    header = get_data_file_contents('data/3d_cd.hdr')
+    header = get_data_contents('data/3d_cd.hdr')
     w = _wcs._Wcsprm(header)
     w.get_pc()[0, 0] = 42
 
