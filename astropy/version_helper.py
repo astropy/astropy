@@ -95,7 +95,6 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
     """
 
     import os
-    import sys
     from subprocess import Popen, PIPE
     from warnings import warn
     from .utils import find_current_module
