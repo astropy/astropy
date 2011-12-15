@@ -509,7 +509,7 @@ class ProgressBarOrSpinner:
             member, if any), only `msg` will be displayed: the
             `ProgressBar` or `Spinner` will be silent.
         """
-        if total is None:
+        if total is None or not isatty(file):
             self._is_spinner = True
             self._obj = Spinner(msg, color=color, file=file)
         else:
