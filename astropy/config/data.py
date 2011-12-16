@@ -100,8 +100,8 @@ def get_data_fileobj(dataname, cache=True):
 
     See Also
     --------
-    `get_data_contents` : returns the contents of a file or url as a bytes object
-    `get_data_filename` : returns a local name for a file containing the data
+    get_data_contents : returns the contents of a file or url as a bytes object
+    get_data_filename : returns a local name for a file containing the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -202,8 +202,8 @@ def get_data_filename(dataname):
 
     See Also
     --------
-    `get_data_contents` : returns the contents of a file or url as a bytes object
-    `get_data_fileobj` : returns a file-like object with the data
+    get_data_contents : returns the contents of a file or url as a bytes object
+    get_data_fileobj : returns a file-like object with the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -278,8 +278,8 @@ def get_data_contents(dataname, cache=True):
 
     See Also
     --------
-    `get_data_fileobj` : returns a file-like object with the data
-    `get_data_filename` : returns a local name for a file containing the data
+    get_data_fileobj : returns a file-like object with the data
+    get_data_filename : returns a local name for a file containing the data
     """
     with get_data_fileobj(dataname, cache=cache) as fd:
         contents = fd.read()
