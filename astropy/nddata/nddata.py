@@ -14,7 +14,7 @@ class NDData(object):
     such as error arrays, bad pixel masks, or coordinates.
 
     Parameters
-    ----------
+    -----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
     error : `~numpy.ndarray`, optional
@@ -58,8 +58,11 @@ class NDData(object):
 
     copy : bool, optional
         If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` `copy` argument
-        for details).
+        it will be referenced if possible (see `numpy.array` :attr:`copy`
+        argument for details).
+    validate : bool, optional
+        If False, no type or shape-checking or array conversion will occur.
+        Note that if `validate` is False, :attr:`copy` will be ignored.
 
     Raises
     ------
@@ -69,28 +72,35 @@ class NDData(object):
 
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
-                 units=None, copy=True):
+                 units=None, copy=True, validate=True):
+        if validate:
+            self.data = np.array(data, subok=True, copy=copy)
 
-        self.data = np.array(data, subok=True, copy=copy)
+            if error is None:
+                self.error = None
+            else:
+                self.error = np.array(error, subok=True, copy=copy)
 
-        if error is None:
-            self.error = None
+            if mask is None:
+                self.mask = None
+            else:
+                self.mask = np.array(mask, subok=True, copy=copy)
+
+            self._validate_mask_and_error()
+
+            self.wcs = wcs
+            self.units = units
+            if meta is None:
+                self.meta = {}
+            else:
+                self.meta = dict(meta)  # makes a *copy* of the passed-in meta
         else:
-            self.error = np.array(error, subok=True, copy=copy)
-
-        if mask is None:
-            self.mask = None
-        else:
-            self.mask = np.array(mask, subok=True, copy=copy)
-
-        self._validate_mask_and_error()
-
-        self.wcs = wcs
-        self.units = units
-        if meta is None:
-            self.meta = {}
-        else:
-            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+            self.data = data
+            self.error = error
+            self.mask = mask
+            self.wcs = wcs
+            self.meta = meta
+            self.units = units
 
     def _validate_mask_and_error(self):
         """
