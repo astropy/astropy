@@ -20,6 +20,7 @@ class NDData(object):
     error : `~numpy.ndarray`, optional
         Error of the data. This should be interpreted as a 1-sigma error (e.g,
         square root of the variance), under the assumption of Gaussian errors.
+        Must be a shape that can be broadcast onto `data`.
 
          .. warning::
              The physical interpretation of the `error` array may change in the
@@ -29,8 +30,9 @@ class NDData(object):
              representation in subclasses
 
     mask : `~numpy.ndarray`, optional
-        Masking of the data; True where the array is *valid*, False where it is
-        *invalid*.
+        Masking of the data; Should be False/0 (or the empty string) where the
+        data is *valid*.  All other values indicate that the value should be
+        masked. Must be a shape that can be broadcast onto `data`.
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
 
@@ -59,6 +61,11 @@ class NDData(object):
         it will be referenced if possible (see `numpy.array` `copy` argument
         for details).
 
+    Raises
+    ------
+    ValueError
+        If the `error` or `mask` inputs cannot be broadcast (e.g., match
+        shape) onto `data`.
 
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
@@ -91,9 +98,6 @@ class NDData(object):
         bool-like
         """
 
-        if self.mask is not None and self.mask.dtype != np.dtype(bool):
-            raise TypeError('Mask is not a boolean array')
-
         try:
             if self.mask is not None:
                 np.broadcast(self.data, self.mask)
@@ -117,7 +121,6 @@ class NDData(object):
 
     @property
     def shape(self):
-
         """
         shape tuple of this object's data.
         """
