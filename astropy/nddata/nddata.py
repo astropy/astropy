@@ -11,15 +11,16 @@ class NDData(object):
 
     `NDData` provides a superclass for all array-based data. The key
     distinction from raw numpy arrays is the presence of additional metadata
-    like error arrays, bad pixel masks, or coordinates.
+    such as error arrays, bad pixel masks, or coordinates.
 
     Parameters
-    ----------
+    -----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
     error : `~numpy.ndarray`, optional
-        Error of the data. This should be interpreted as a standard
-        deviation-type error (e.g. square root of the variance).
+        Error of the data. This should be interpreted as a 1-sigma error (e.g,
+        square root of the variance), under the assumption of Gaussian errors.
+        Must be a shape that can be broadcast onto `data`.
 
          .. warning::
              The physical interpretation of the `error` array may change in the
@@ -29,8 +30,9 @@ class NDData(object):
              representation in subclasses
 
     mask : `~numpy.ndarray`, optional
-        Masking of the data; True where the array is *valid*, False where it is
-        *invalid*.
+        Masking of the data; Should be False/0 (or the empty string) where the
+        data is *valid*.  All other values indicate that the value should be
+        masked. Must be a shape that can be broadcast onto `data`.
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
 
@@ -47,50 +49,64 @@ class NDData(object):
         Basically the same kind of stuff you would typcially find in a FITS
         header.
     units : undefined, optional
-        Description of the units of the data.
-    copy : bool, optional
-        If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` `copy` argument
-        for details).
+        The units of the data.
 
         .. warning::
             The units scheme is under development. For now, just supply a
             string when relevant - the units system will likely be compatible
             with providing strings to initialize itself.
 
+    copy : bool, optional
+        If True, the array will be *copied* from the provided `data`, otherwise
+        it will be referenced if possible (see `numpy.array` :attr:`copy`
+        argument for details).
+    validate : bool, optional
+        If False, no type or shape-checking or array conversion will occur.
+        Note that if `validate` is False, :attr:`copy` will be ignored.
+
+    Raises
+    ------
+    ValueError
+        If the `error` or `mask` inputs cannot be broadcast (e.g., match
+        shape) onto `data`.
+
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
-                 units=None, copy=True):
+                 units=None, copy=True, validate=True):
+        if validate:
+            self.data = np.array(data, subok=True, copy=copy)
 
-        self.data = np.array(data, subok=True, copy=copy)
+            if error is None:
+                self.error = None
+            else:
+                self.error = np.array(error, subok=True, copy=copy)
 
-        if error is None:
-            self.error = None
+            if mask is None:
+                self.mask = None
+            else:
+                self.mask = np.array(mask, subok=True, copy=copy)
+
+            self._validate_mask_and_error()
+
+            self.wcs = wcs
+            self.units = units
+            if meta is None:
+                self.meta = {}
+            else:
+                self.meta = dict(meta)  # makes a *copy* of the passed-in meta
         else:
-            self.error = np.array(error, subok=True, copy=copy)
-
-        if mask is None:
-            self.mask = None
-        else:
-            self.mask = np.array(mask, subok=True, copy=copy)
-
-        self._validate_mask_and_error()
-
-        self.wcs = wcs
-        self.units = units
-        if meta is None:
-            self.meta = {}
-        else:
-            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+            self.data = data
+            self.error = error
+            self.mask = mask
+            self.wcs = wcs
+            self.meta = meta
+            self.units = units
 
     def _validate_mask_and_error(self):
         """
         Raises ValueError if they don't match or TypeError if `mask` is not
         bool-like
         """
-
-        if self.mask is not None and self.mask.dtype != np.dtype(bool):
-            raise TypeError('Mask is not a boolean array')
 
         try:
             if self.mask is not None:
@@ -114,8 +130,26 @@ class NDData(object):
             raise ValueError('NDData mask does not match data')
 
     @property
-    def shape(self):
+    def boolmask(self):
+        """
+        The mask as a boolean array (or None if the mask is None).
 
+        This mask is True where the data is *valid*, and False where the data
+        should be *masked*.  This is the opposite of the convention used for
+        `mask`, but allows simple retrieval of the unmasked data points as
+        ``ndd.data[ndd.boolmask]``.
+        """
+        if self.mask is None:
+            return None
+        else:
+            dtchar = self.mask.dtype.char
+            if dtchar is 'U' or dtchar is 'S':
+                return self.mask == ''
+            else:
+                return ~self.mask.astype(bool)
+
+    @property
+    def shape(self):
         """
         shape tuple of this object's data.
         """
