@@ -38,7 +38,7 @@ Contents of ``/scripts/cmdlinescript`` ::
 
     import astropy.somepackage.somemod
 
-    astropy.somepackage.ascript.main()
+    astropy.somepackage.somemod.main()
 
 Contents of ``/astropy/somepackage/somemod.py`` ::
 
