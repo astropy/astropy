@@ -21,11 +21,9 @@ def test_nddata_basic():
         #mismatched error shape
         nd3 = NDData(randn(10,10),rand(10,9))
 
-    with raises(TypeError):
-        #mask not bool
-        nd4 = NDData(randn(10,10),mask=ones((10,10),dtype=float))
-
-
+    with raises(ValueError):
+        #mismatched mask shape
+        nd4 = NDData(randn(10,10),mask=ones((10,9),dtype=float))
 
 
 def test_nddata_copy_conv():
@@ -46,3 +44,39 @@ def test_nddata_copy_conv():
     nd3 = NDData([[1,2,3],[4,5,6]])
     assert nd3.size == 6
     assert nd3.dtype == dtype(int)
+
+def test_boolmask():
+    from numpy.random import rand,randn
+    from numpy import array,arange,all
+    from ..nddata import NDData
+    import random, string
+
+    a = randn(10,10)
+    bm = randn(10,10)>0  # random mask that boolmask should look like
+
+    nd1 = NDData(randn(10,10),mask=~bm) # mask False where valid
+    assert all(nd1.boolmask == bm)
+
+    #scalar mask 0 where valid
+    im = arange(100).reshape((10,10)) + 1
+    im[bm] = 0
+    nd2 = NDData(randn(10,10),mask=im)
+    assert all(nd2.boolmask == bm)
+
+
+    #generate a list of random strings
+    strlst = []
+    for N in rand(100)*9+1:
+        sl = [random.choice(string.ascii_letters) for x in range(int(N))]
+        strlst.append(''.join(sl))
+
+    #string mask '' where valid
+    strmsk = array(strlst).reshape((10,10))
+    strmsk[bm] = ''
+    nd3 = NDData(randn(10,10),mask=strmsk)
+    assert all(nd3.boolmask == bm)
+    #do it with unicode too for goo measure
+    umsk = array([unicode(s) for s in strlst]).reshape((10,10))
+    umsk[bm] = ''
+    nd3 = NDData(randn(10,10),mask=umsk)
+    assert all(nd3.boolmask == bm)
