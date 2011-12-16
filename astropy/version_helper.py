@@ -93,12 +93,18 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         if git version info could not be identified.
 
     """
+
     import os
     from subprocess import Popen, PIPE
     from warnings import warn
+    from .utils import find_current_module
 
     if path is None:
-        path = __file__
+        try:
+            mod = find_current_module(1, finddiff=True)
+            path = os.path.abspath(mod.__file__)
+        except ValueError:
+            path = __file__
     if not os.path.isdir(path):
         path = os.path.abspath(os.path.split(path)[0])
 
@@ -107,9 +113,14 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
     else:
         cmd = 'rev-list'
 
-    p = Popen(['git', cmd, 'HEAD'], cwd=path,
-              stdout=PIPE, stderr=PIPE, stdin=PIPE)
-    stdout, stderr = p.communicate()
+    try:
+        p = Popen(['git', cmd, 'HEAD'], cwd=path,
+                  stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        stdout, stderr = p.communicate()
+    except OSError as e:
+        if show_warning:
+            warn('Error running git: ' + str(e))
+        return ''
 
     if p.returncode == 128:
         if show_warning:
@@ -134,11 +145,8 @@ _frozen_version_py_template = """
 
 from astropy.version_helper import _update_git_devstr, get_git_devstr
 
-version = _update_git_devstr({verstr!r}, path=__file__)
-try:
-    githash =  get_git_devstr(sha=True, show_warning=False, path=__file__)
-except OSError:
-    githash = ''
+version = _update_git_devstr({verstr!r})
+githash = get_git_devstr(sha=True, show_warning=False)
 
 major = {major}
 minor = {minor}
