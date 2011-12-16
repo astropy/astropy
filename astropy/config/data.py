@@ -7,8 +7,9 @@ from __future__ import division
 from .configs import ConfigurationItem,save_config
 from sys import version_info
 
-__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_fileobjs',
-           'get_data_filenames', 'compute_hash', 'clear_data_cache']
+__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
+           'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
+           'clear_data_cache']
 
 DATAURL = ConfigurationItem(
     'dataurl','http://data.astropy.org/','URL for astropy remote data site.')
@@ -97,6 +98,10 @@ def get_data_fileobj(dataname, cache=True):
         with get_data_fileobj(vegaurl,False) as fobj:
             fcontents = fobj.read()
 
+    See Also
+    --------
+    get_data_contents : returns the contents of a file or url as a bytes object
+    get_data_filename : returns a local name for a file containing the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -194,6 +199,11 @@ def get_data_filename(dataname):
         fn = get_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
         with open(fn) as f:
             fcontents = f.read()
+
+    See Also
+    --------
+    get_data_contents : returns the contents of a file or url as a bytes object
+    get_data_fileobj : returns a file-like object with the data
     """
     from os.path import isdir, isfile
     from urlparse import urlparse
@@ -220,6 +230,60 @@ def get_data_filename(dataname):
         else:
             #look for the file on the data server
             return _cache_remote(DATAURL() + dataname)
+
+
+def get_data_contents(dataname, cache=True):
+    """
+    Retrieves a data file from the standard locations and returns its
+    contents as a bytes object.
+
+    Parameters
+    ----------
+    dataname : str
+        Name/location of the desired data file.  One of the following:
+
+            * The name of a data file included in the source
+              distribution.  The path is relative to the module
+              calling this function.  For example, if calling from
+              `astropy.pkname`, use ``'data/file.dat'`` to get the
+              file in ``astropy/pkgname/data/file.dat``.  Double-dots
+              can be used to go up a level.  In the same example, use
+              ``'../data/file.dat'`` to get ``astropy/data/file.dat``.
+            * If a matching local file does not exist, the Astropy
+              data server will be queried for the file.
+            * A hash like that produced by `compute_hash` can be
+              requested, prefixed by 'hash/'
+              e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
+              will first be searched for locally, and if not found,
+              the Astropy data server will be queried.
+            * A URL to some other file.
+
+    cache : bool
+        If True, the file will be downloaded and saved locally or the
+        already-cached local copy will be accessed. If False, the file-like
+        object will directly access the resource (e.g. if a remote URL is
+        accessed, an object like that from `urllib2.urlopen` is returned).
+
+    Returns
+    -------
+    contents : bytes
+        The complete contents of the file as a bytes object.
+
+    Raises
+    ------
+    urllib2.URLError
+        If a remote file cannot be found.
+    IOError
+        If problems occur writing or reading a local file.
+
+    See Also
+    --------
+    get_data_fileobj : returns a file-like object with the data
+    get_data_filename : returns a local name for a file containing the data
+    """
+    with get_data_fileobj(dataname, cache=cache) as fd:
+        contents = fd.read()
+    return contents
 
 
 def get_data_filenames(datadir, pattern='*'):

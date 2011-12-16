@@ -5,15 +5,14 @@ import sys
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...config import get_data_filenames, get_data_fileobj
+from ...config import get_data_filenames, get_data_contents
 
 from ... import wcs
 
 
 def test_maps():
     def test_map(filename):
-        with get_data_fileobj(os.path.join("maps", filename)) as fd:
-            header = fd.read()
+        header = get_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
@@ -52,9 +51,7 @@ def test_maps():
 
 def test_spectra():
     def test_spectrum(filename):
-        with get_data_fileobj(os.path.join("spectra", filename)) as fd:
-            header = fd.read()
-
+        header = get_data_contents(os.path.join("spectra", filename))
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
