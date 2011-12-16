@@ -11,15 +11,15 @@ class NDData(object):
 
     `NDData` provides a superclass for all array-based data. The key
     distinction from raw numpy arrays is the presence of additional metadata
-    like error arrays, bad pixel masks, or coordinates.
+    such as error arrays, bad pixel masks, or coordinates.
 
     Parameters
     ----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
     error : `~numpy.ndarray`, optional
-        Error of the data. This should be interpreted as a standard
-        deviation-type error (e.g. square root of the variance).
+        Error of the data. This should be interpreted as a 1-sigma error (e.g,
+        square root of the variance), under the assumption of Gaussian errors.
 
          .. warning::
              The physical interpretation of the `error` array may change in the
@@ -47,16 +47,18 @@ class NDData(object):
         Basically the same kind of stuff you would typcially find in a FITS
         header.
     units : undefined, optional
-        Description of the units of the data.
-    copy : bool, optional
-        If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` `copy` argument
-        for details).
+        The units of the data.
 
         .. warning::
             The units scheme is under development. For now, just supply a
             string when relevant - the units system will likely be compatible
             with providing strings to initialize itself.
+
+    copy : bool, optional
+        If True, the array will be *copied* from the provided `data`, otherwise
+        it will be referenced if possible (see `numpy.array` `copy` argument
+        for details).
+
 
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
