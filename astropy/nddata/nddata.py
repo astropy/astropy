@@ -120,6 +120,25 @@ class NDData(object):
             raise ValueError('NDData mask does not match data')
 
     @property
+    def boolmask(self):
+        """
+        The mask as a boolean array (or None if the mask is None).
+
+        This mask is True where the data is *valid*, and False where the data
+        should be *masked*.  This is the opposite of the convention used for
+        `mask`, but allows simple retrieval of the unmasked data points as
+        ``ndd.data[ndd.boolmask]``.
+        """
+        if self.mask is None:
+            return None
+        else:
+            dtchar = self.mask.dtype.char
+            if dtchar is 'U' or dtchar is 'S':
+                return self.mask == ''
+            else:
+                return ~self.mask.astype(bool)
+
+    @property
     def shape(self):
         """
         shape tuple of this object's data.
