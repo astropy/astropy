@@ -132,7 +132,8 @@ class Column(np.ndarray):
             self_data = np.asarray(data, dtype=dtype)
 
         self = self_data.view(cls)
-        self.name = name
+        self._dtype = self_data.dtype
+        self._name = name
         self.units = units
         self.format = format
         self.description = description
@@ -152,6 +153,14 @@ class Column(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def dtype(self):
+        return self._dtype
 
     @property
     def data(self):
