@@ -322,7 +322,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('abc= a6')
         with warnings.catch_warnings(record=True) as w:
             c.verify()
-            assert len(w) == 1
+            assert len(w) == 2
             assert ('Card image is not FITS standard (equal sign not at '
                     'column 8)' in str(w[0].message))
 
@@ -331,7 +331,7 @@ class TestHeaderFunctions(FitsTestCase):
         with warnings.catch_warnings(record=True) as w:
             c.verify('fix')
             fix_text = 'Fixed card to meet the FITS standard: ABC'
-            assert len(w) == 1
+            assert len(w) == 2
             assert fix_text in str(w[0].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
