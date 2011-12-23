@@ -149,7 +149,7 @@ class Column(np.ndarray):
         # see InfoArray.__array_finalize__ for comments
         if obj is None:
             return
-        for attr in ('name', 'units', 'format', 'description'):
+        for attr in ('units', 'format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
