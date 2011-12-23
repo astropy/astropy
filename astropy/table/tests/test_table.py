@@ -184,6 +184,7 @@ class TestInitFromTable():
             assert np.all(t2['a'] == np.array([1, 2, 10]))
             assert np.all(t2['b'] == np.array([4, 5, 11]))
             assert np.all(t2['c'] == np.array([7, 8, 12]))
+            assert t2['a'].name == 'a'
             assert t2.columns['a'].meta['aa'][3] == 10
             assert t.columns['a'].meta['aa'][3] == 3
 

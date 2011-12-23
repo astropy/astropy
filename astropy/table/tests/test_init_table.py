@@ -101,5 +101,4 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert self.data.meta['comments'][1] == 'comment2'
         assert np.all(t['a'] == np.array([1, 8]))
         assert np.all(self.data['a'] == np.array([1, 3]))
-
-
+        assert t['c'].name == 'c'
