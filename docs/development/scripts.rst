@@ -7,7 +7,7 @@ readability and compatibility.
 
 The actual script should be in the ``/scripts`` directory of the Astropy
 source distribution, and should do nothing aside from importing a ``main``
-function from astropy and execute it.  This is partly necessary because the 
+function from astropy and execute it.  This is partly necessary because the
 "2to3" utility that converts python 2.x code to 3.x does not convert scripts.
 These scripts should be executable, include ``#!/usr/bin/env python`` at the
 top, and should *not* end in ``.py``.
@@ -19,12 +19,11 @@ larger module that implements a class or function for astropy library use. The
 ``main`` function should do very little actual work - it should only parse the
 arguments and pass those arguments on to some library function so that the
 library function can be used programmatically when needed.
-
-Command-line options can be parsed however desired, but the :mod:`argparse` 
+Command-line options can be parsed however desired, but the :mod:`argparse`
 module is recommended when possible, due to its simpler and more flexible
 interface relative to the older :mod:`optparse`. :mod:`argparse` is only
 available in python >=2.7 and >=3.2, however, so it should be imported as
-``from astropy.util.compat import argparse`` . 
+``from astropy.util.compat import argparse`` .
 
 
 Example
@@ -50,7 +49,7 @@ Contents of ``/astropy/somepackage/somemod.py`` ::
                 ...do something else...
 
     def main(args=None):
-        from astropy.util.compat import argparse
+        from astropy.utils.compat import argparse
 
         parser = argparse.ArgumentParser(description='Process some integers.')
         parser.add_argument('-o', '--option', dest='op',action='store_true',
