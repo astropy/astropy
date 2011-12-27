@@ -11,3 +11,4 @@ API documentation
    api_collections
    api_console
    api_xml
+   api_misc

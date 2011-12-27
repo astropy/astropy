@@ -33,7 +33,7 @@ def find_current_module(depth=1, finddiff=False):
     Examples
     --------
     The examples below assume that there are two modules in a package named
-    `pkg`. ``mod1.py``:
+    `pkg`. ``mod1.py``::
 
         def find1():
             from astropy.utils import find_current_module
@@ -49,13 +49,13 @@ def find_current_module(depth=1, finddiff=False):
             from astropy.utils import find_current_module
             print find_current_module(0,True).__name__
 
-    ``mod2.py``:
+    ``mod2.py``::
 
         def find():
             from .mod1 import find2
             find2()
 
-    With these modules in place, the following occurs:
+    With these modules in place, the following occurs::
 
         >>> from pkg import mod1, mod2
         >>> from astropy.utils import find_current_module
