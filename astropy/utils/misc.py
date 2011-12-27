@@ -7,7 +7,7 @@ This module should not be used directly, as everything in `__all__`` is
 imported into `astropy.utils`
 """
 
-__all__ = ['find_current_module']
+__all__ = ['find_current_module', 'fnpickle', 'fnunpickle']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -93,3 +93,101 @@ def find_current_module(depth=1, finddiff=False):
             frm = frmb
     else:
         return inspect_getmodule(frm)
+
+
+def fnunpickle(fileorname, number=0, usecPickle=True):
+    """ Unpickle a pickled object from a specified file and return the contents.
+
+    Parameters
+    ----------
+    fileorname : str or `file`-like
+        The file from which to unpickle objects
+    number : int
+        The number of objects to unpickle - if <1, returns a single object.
+    usecPickle : bool
+        If True, the :mod:`cPickle` module is to be used in place of
+        :mod:`pickle` (cPickle is faster).
+
+    Returns
+    -------
+    contents : list or obj
+        If `number` is greater than 0, this is a list with `number` objects
+        unpickled from the file. Otherwise, this is an individual object - the
+        first one unpickled from the file.
+
+    """
+    if usecPickle:
+        import cPickle as pickle
+    else:
+        import pickle
+
+    if isinstance(fileorname, basestring):
+        f = open(fileorname, 'r')
+        close = True
+    else:
+        f = fileorname
+        close = False
+
+    try:
+        if number > 0:
+            res = []
+            for i in range(number):
+                res.append(pickle.load(f))
+        elif number < 0:
+            res = []
+            eof = False
+            while not eof:
+                try:
+                    res.append(pickle.load(f))
+                except EOFError:
+                    eof = True
+        else:  # number==0
+            res = pickle.load(f)
+    finally:
+        if close:
+            f.close()
+
+    return res
+
+
+def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
+    """Pickle an object to a specified file.
+
+    Parameters
+    ----------
+    object :
+        The python object to pickle.
+    fileorname : str or `file`-like]
+        The file into which the `object` should be pickled.
+    usecPickle : bool
+        If True, the :mod:`cPickle` module is to be used in place of
+        :mod:`pickle` (cPickle is faster).
+    protocol : int or None
+        Pickle protocol to use - see the :mod:`pickle` module for details on
+        these options. If None, the most recent protocol will be used.
+    append : bool
+        If True, the object is appended to the end of the file, otherwise the
+        file will be overwritten (if a file object is given instead of a
+        file name, this has no effect).
+
+    """
+    if usecPickle:
+        import cPickle as pickle
+    else:
+        import pickle
+
+    if protocol is None:
+        protocol = pickle.HIGHEST_PROTOCOL
+
+    if isinstance(fileorname, basestring):
+        f = open(fileorname, 'a' if append else 'w')
+        close = True
+    else:
+        f = fileorname
+        close = False
+
+    try:
+        pickle.dump(object, f, protocol=protocol)
+    finally:
+        if close:
+            f.close()
