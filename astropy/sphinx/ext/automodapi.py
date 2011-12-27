@@ -111,13 +111,13 @@ def find_mod_objs(modname, names=False):
 
     #sort on fqn
     sortnms = sorted(zip(fullnames, pkgd))
-    fullnames = [nmtuple[0] for nmtuple in sortnms]
-    attrnames = [nmtuple[1] for nmtuple in sortnms]
+    fullnames = [nmtuple[0] for nmtuple in sortnms if nmtuple[0] is not None]
+    attrnames = [nmtuple[1] for nmtuple in sortnms if nmtuple[0] is not None]
 
     if names:
-        return [n for n in sorted(fullnames) if n is not None]
+        return fullnames
     else:
-        return [pkgd[n] for n in sorted(attrnames) if n is not None]
+        return [pkgd[n] for n in attrnames]
 
 
 #<-------------------automod-diagram stuff------------------------------------->
@@ -135,6 +135,7 @@ class Automoddiagram(InheritanceDiagram):
 
         clsnms = []
         for n, o in zip(nms, objs):
+
             if isclass(o):
                 clsnms.append(n)
 
