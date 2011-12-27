@@ -6,6 +6,7 @@ clear other module to live in.
 This module should not be used directly, as everything in `__all__`` is
 imported into `astropy.utils`
 """
+from __future__ import absolute_import
 
 __all__ = ['find_current_module', 'fnpickle', 'fnunpickle']
 
@@ -106,7 +107,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         The number of objects to unpickle - if <1, returns a single object.
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
-        :mod:`pickle` (cPickle is faster).
+        :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
 
     Returns
     -------
@@ -116,7 +117,9 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         first one unpickled from the file.
 
     """
-    if usecPickle:
+    import sys
+
+    if usecPickle and sys.version_info.major < 3:
         import cPickle as pickle
     else:
         import pickle
@@ -161,7 +164,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         The file into which the `object` should be pickled.
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
-        :mod:`pickle` (cPickle is faster).
+        :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
     protocol : int or None
         Pickle protocol to use - see the :mod:`pickle` module for details on
         these options. If None, the most recent protocol will be used.
@@ -171,7 +174,9 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         file name, this has no effect).
 
     """
-    if usecPickle:
+    import sys
+
+    if usecPickle and sys.version_info.major < 3:
         import cPickle as pickle
     else:
         import pickle
