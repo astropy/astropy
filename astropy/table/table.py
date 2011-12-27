@@ -220,7 +220,7 @@ class Column(np.ndarray):
         return not self.__eq__(other)
 
 
-class Row(np.ndarray):
+class Row(object):
     """A class to represent one row of a Table object.
 
     A Row object is returned when a Table object is indexed with an integer
@@ -229,20 +229,25 @@ class Row(np.ndarray):
       >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'))
       >>> row = table[1]
       >>> row
-      Row((2, 4), 
-          dtype=[('a', '<i8'), ('b', '<i8')])
-
-    The Row class inherits from ``np.ndarray`` so any applicable methods and
-    attributes are available in a Row object.
-
+      <Row 1 of table
+       values=(2, 4)
+       dtype=[('a', '<i8'), ('b', '<i8')]>
+      >>> row['a']
+      2
+      >>> row[1]
+      4
     """
 
-    def __new__(cls, table, index):
-        data = table._data[index]
-        self = np.asarray(data).view(cls)
+    def __init__(self, table, index):
         self.table = table
+        self.index = index
+        self.data = table._data[index]
 
-        return self
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, item, val):
+        self.data[item] = val
 
     @property
     def meta(self):
@@ -255,7 +260,15 @@ class Row(np.ndarray):
     @property
     def colnames(self):
         return self.table.colnames
-    
+
+    @property
+    def dtype(self):
+        return self.data.dtype
+
+    def __repr__(self):
+        return "<Row {0} of table\n values={1}\n dtype={2}>".format(
+            self.index, self.data, self.dtype)
+
 
 class Table(object):
     """A class to represent tables of data.

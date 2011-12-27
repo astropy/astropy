@@ -14,7 +14,6 @@ class TestRow():
         table = Table([self.a, self.b])
         c = Row(table, 2)
         assert isinstance(c, Row)
-        assert isinstance(c, np.ndarray)
 
     def test_values(self):
         """Row accurately reflects table values and attributes"""
@@ -22,17 +21,14 @@ class TestRow():
         row = table[1]
         assert row['a'] == 2
         assert row['b'] == 5
+        assert row[0] == 2
+        assert row[1] == 5
         assert row.meta is table.meta
         assert row.colnames == table.colnames
         assert row.columns is table.columns
-
-    def test_index_0d_array(self):
-        """Row has 0 rows and cannot accept a numeric index"""
-        table = Table([self.a, self.b], meta={'x': 1})
-        row = table[1]
-        assert row.ndim == 0
         with pytest.raises(IndexError):
-            row[0]
+            row[2]
+        assert str(row.dtype) == "[('a', '<i8'), ('b', '<i8')]"
 
     def test_ref(self):
         """Row is a reference into original table data"""
