@@ -79,30 +79,4 @@ and the automated tools to generate the default configuration files can also
 locate these items.
 
 
-
-Reference/API
--------------
-Below are the reference documentation for the three main config sub-packages:
-`astropy.config.paths`, `astropy.config.configs`, and `astropy.config.data`. 
-Note that all the public classes and functions in these sub-packages are 
-imported into `astropy.config`, so the recommended usage is simply
-``from astropy.config import foo``.
-
-`astropy.config.paths`
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule::  astropy.config.paths
-    :members:
-
-`astropy.config.configs`
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule::  astropy.config.configs
-    :members:
-
-
-`astropy.config.data`
-^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule::  astropy.config.data
-    :members:
+.. automodapi:: astropy.config
