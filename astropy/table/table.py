@@ -173,7 +173,7 @@ class Column(np.ndarray):
             table._data.dtype.names = table.columns.keys()
 
         self._name = val
-    
+
     name = property(_get_name, _set_name)
 
     @property
@@ -219,6 +219,29 @@ class Column(np.ndarray):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
+class Row(np.ndarray):
+    """A class to represent one row of a table"""
+
+    def __new__(cls, table, index):
+        data = table._data[index]
+        self = np.asarray(data).view(cls)
+        self.table = table
+
+        return self
+
+    @property
+    def meta(self):
+        return self.table.meta
+
+    @property
+    def columns(self):
+        return self.table.columns
+
+    @property
+    def colnames(self):
+        return self.table.colnames
+    
 
 class Table(object):
     """A class to represent tables of data.
@@ -427,7 +450,7 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, int):
             # XXX should return Row instance
-            return self._data[item]
+            return Row(self, item)
         elif isinstance(item, tuple):
             return Table([self[x] for x in item], meta=deepcopy(self.meta))
         else:

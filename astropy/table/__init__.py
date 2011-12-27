@@ -1,1 +1,1 @@
-from .table import Column, Table, TableColumns
+from .table import Column, Table, TableColumns, Row
