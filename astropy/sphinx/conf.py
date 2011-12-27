@@ -10,8 +10,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 import warnings
 
 # -- General configuration ----------------------------------------------------
@@ -215,3 +213,9 @@ intersphinx_mapping = {
 rst_epilog = """
 .. _Astropy: http://astropy.org
 """
+
+
+# -- Settings for extensions --------------------------------------------------
+
+autosummary_generate = True
+automodsumm_generate = True
