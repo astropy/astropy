@@ -1,3 +1,5 @@
+from __future__ import print_function  # For print debugging with python 2 or 3
+
 import pytest
 import numpy as np
 
@@ -19,7 +21,7 @@ class BaseInitFrom():
         assert np.all(t['a'] == np.array([1, 3], dtype='i4'))
         assert np.all(t['b'] == np.array([2, 4], dtype='f4'))
         assert np.all(t['c'] == np.array([3, 5], dtype='f8'))
-        print t._data.dtype, t['a'].dtype, t['b'].dtype, t['c'].dtype
+        print(t._data.dtype, t['a'].dtype, t['b'].dtype, t['c'].dtype)
         assert t['a'].dtype.type == np.int32
         assert t['b'].dtype.type == np.float32
         assert t['c'].dtype.type == np.float64

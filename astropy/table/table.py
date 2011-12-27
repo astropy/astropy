@@ -1,11 +1,17 @@
+from __future__ import print_function
+
 from copy import deepcopy
 import numpy as np
 import collections
 from itertools import count
 
 from astropy.utils import OrderedDict
-from structhelper import _drop_fields
+from .structhelper import _drop_fields
 
+try:
+    unicode
+except NameError:
+    unicode = basestring = str
 
 def insert_odict(d_old, position, key, value):
     '''Convenience function to insert values into an OrderedDict'''
@@ -55,6 +61,22 @@ class TableColumns(OrderedDict):
         names = ("'{0}'".format(x) for x in self.keys())
         return "<TableColumns names=({0})>".format(
             ",".join(names))
+
+    def _rename_column(self, name, new_name):
+        if new_name in self:
+            raise KeyError("Column {0} already exists".format(new_name))
+
+        mapper = {name: new_name}
+        new_names = [mapper.get(name, name) for name in self]
+        cols = self.values()
+        self.clear()
+        self.update(zip(new_names, cols))
+
+    def keys(self):
+        return list(OrderedDict.keys(self))
+
+    def values(self):
+        return list(OrderedDict.values(self))
 
 
 class Column(np.ndarray):
@@ -154,9 +176,18 @@ class Column(np.ndarray):
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
 
-    @property
-    def name(self):
+    def _get_name(self):
         return self._name
+
+    def _set_name(self, val):
+        if self.parent_table is not None:
+            table = self.parent_table
+            table.columns._rename_column(self.name, val)
+            table._data.dtype.names = table.columns.keys()
+
+        self._name = val
+    
+    name = property(_get_name, _set_name)
 
     @property
     def dtype(self):
@@ -393,6 +424,7 @@ class Table(object):
                             format=col.format, description=col.description,
                             meta=deepcopy(col.meta))
             columns[col.name] = newcol
+            newcol.parent_table = self
 
         self.columns = columns
         self._data = data
@@ -427,10 +459,10 @@ class Table(object):
 
     @property
     def colnames(self):
-        return self.columns.keys()
+        return list(self.columns.keys())
 
     def keys(self):
-        return self.columns.keys()
+        return list(self.columns.keys())
 
     def __len__(self):
         if self._data is None:
@@ -488,8 +520,8 @@ class Table(object):
             # No existing table data, init from cols
             newcols = cols
         else:
-            newcols = self.columns.values()
-            new_indexes = range(len(newcols) + 1)
+            newcols = list(self.columns.values())
+            new_indexes = list(range(len(newcols) + 1))
             for col, index in zip(cols, indexes):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
@@ -565,14 +597,17 @@ class Table(object):
         if name not in self.keys():
             raise KeyError("Column {0} does not exist".format(name))
 
-        if new_name in self.keys():
-            raise KeyError("Column {0} already exists".format(new_name))
+        self.columns[name].name = new_name
 
-        pos = self.columns.keys().index(name)
-        self._data.dtype.names = (self.keys()[:pos] + [new_name, ]
-                                  + self.keys()[pos + 1:])
+#         pos = self.columns.keys().index(name)
+#         self._data.dtype.names = (self.keys()[:pos] + [new_name, ]
+#                                   + self.keys()[pos + 1:])
 
-        self.columns = rename_odict(self.columns, name, new_name)
+#         keys = [(after if key == before else key) for key in d_old.keys()]
+#         values = d_old.values()
+#         return OrderedDict(zip(keys, values))
+
+#         self.columns = rename_odict(self.columns, name, new_name)
 
     def add_row(self, vals=None):
         """Add a new row to the end of the table.
