@@ -221,7 +221,21 @@ class Column(np.ndarray):
 
 
 class Row(np.ndarray):
-    """A class to represent one row of a table"""
+    """A class to represent one row of a Table object.
+
+    A Row object is returned when a Table object is indexed with an integer
+    or when iterating over a table::
+
+      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'))
+      >>> row = table[1]
+      >>> row
+      Row((2, 4), 
+          dtype=[('a', '<i8'), ('b', '<i8')])
+
+    The Row class inherits from ``np.ndarray`` so any applicable methods and
+    attributes are available in a Row object.
+
+    """
 
     def __new__(cls, table, index):
         data = table._data[index]
