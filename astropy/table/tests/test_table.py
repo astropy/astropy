@@ -245,16 +245,16 @@ class TestAddRow():
     def setup_method(self, method):
         self.a = Column('a', [1, 2, 3])
         self.b = Column('b', [4.0, 5.1, 6.2])
-        self.c = Column('c', ['7', '8', '9'], dtype='S2')
+        self.c = Column('c', ['7', '8', '9'])
         self.t = Table([self.a, self.b, self.c])
 
     def test_add_with_tuple(self):
         t = self.t
-        t.add_row((4, 7.2, '10'))
+        t.add_row((4, 7.2, '1'))
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 4]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
-        assert np.all(t['c'] == np.array(['7', '8', '9', '10']))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '1']))
 
     def test_add_with_list(self):
         t = self.t
@@ -262,7 +262,7 @@ class TestAddRow():
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 4]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
-        assert np.all(t['c'] == np.array(['7', '8', '9', '10']))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '1']))
 
     def test_add_with_dict(self):
         t = self.t
@@ -396,6 +396,15 @@ class TestRename():
         t = Table([self.a, self.b])
         t.rename_column('a', 'c')
         t.rename_column('b', 'a')
+        assert t.columns.keys() == ['c', 'a']
+        assert t._data.dtype.names == ('c', 'a')
+        assert np.all(t['c'] == np.array([1, 2, 3]))
+        assert np.all(t['a'] == np.array([4, 5, 6]))
+
+    def test_rename_by_attr(self):
+        t = Table([self.a, self.b])
+        t['a'].name = 'c'
+        t['b'].name = 'a'
         assert t.columns.keys() == ['c', 'a']
         assert t._data.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))

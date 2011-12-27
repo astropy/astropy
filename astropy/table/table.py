@@ -584,7 +584,12 @@ class Table(object):
 
     def rename_column(self, name, new_name):
         '''
-        Rename a column
+        Rename a column.
+
+        This can also be done directly with by setting the ``name`` attribute
+        for a column::
+
+          table[name].name = new_name
 
         Parameters
         ----------
