@@ -29,10 +29,11 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
     'sphinx.ext.viewcode',
-    'astropy.sphinx.ext.numpydoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.inheritance_diagram'
-]
+    'sphinx.ext.inheritance_diagram',
+    'astropy.sphinx.ext.numpydoc',
+    'astropy.sphinx.ext.automodapi'
+    ]
 
 # Don't show summaries of the members in each class along with the
 # class' docstring
