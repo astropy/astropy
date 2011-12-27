@@ -13,19 +13,6 @@ try:
 except NameError:
     unicode = basestring = str
 
-def insert_odict(d_old, position, key, value):
-    '''Convenience function to insert values into an OrderedDict'''
-    items = d_old.items()
-    items.insert(position, (key, value))
-    return OrderedDict(items)
-
-
-def rename_odict(d_old, before, after):
-    '''Convenience function to rename keys in an OrderedDict'''
-    keys = [(after if key == before else key) for key in d_old.keys()]
-    values = d_old.values()
-    return OrderedDict(zip(keys, values))
-
 
 class TableColumns(OrderedDict):
     def __init__(self, table=None, cols={}):
