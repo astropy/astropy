@@ -1,6 +1,5 @@
 import numpy as np
 from .. import Column
-import pytest
 
 
 class TestColumn():
@@ -72,3 +71,12 @@ class TestColumn():
         c2 = Column(name='a', dtype=int, units='mJy', format='%i',
                     description='test column', meta={'c': 9, 'd': 12})
         assert c1 != c2
+
+    def test_format(self):
+        c1 = Column(name='a', data=np.arange(2000), dtype=float,
+                    format='%6.2f')
+        assert str(c1).startswith('  0.00,   1.00,   2.00')
+        assert str(c1).endswith(', 1999.00')
+        np.set_printoptions(threshold=5)
+        c1.format = '%6.1f'
+        assert str(c1) == '   0.0,    1.0,    2.0, ..., 1998.0, 1999.0'

@@ -219,6 +219,20 @@ class Column(np.ndarray):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        format = self.format or '%s'
+
+        n_print = np.get_printoptions()['threshold']
+        if n_print < len(self):
+            n_print2 = n_print // 2
+            vals = [format % val for val in self[:n_print - n_print2]]
+            vals.append('...')
+            vals.extend([format % val for val in self[-n_print2:]])
+        else:
+            vals = [format % val for val in self]
+
+        return ', '.join(vals)
+
 
 class Row(object):
     """A class to represent one row of a Table object.

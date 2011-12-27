@@ -121,24 +121,24 @@ class TestAddPosition():
         t = Table()
         t.add_column(self.a)
         t.add_column(self.b)
-        assert list(t.columns.keys()) == ['a', 'b']
+        assert t.columns.keys() == ['a', 'b']
 
     def test_7(self):
         t = Table([self.a])
         t.add_column(self.b, t.index_column('a'))
-        assert list(t.columns.keys()) == ['b', 'a']
+        assert t.columns.keys() == ['b', 'a']
 
     def test_8(self):
         t = Table([self.a])
         t.add_column(self.b, t.index_column('a') + 1)
-        assert list(t.columns.keys()) == ['a', 'b']
+        assert t.columns.keys() == ['a', 'b']
 
     def test_9(self):
         t = Table()
         t.add_column(self.a)
         t.add_column(self.b, t.index_column('a') + 1)
         t.add_column(self.c, t.index_column('b'))
-        assert list(t.columns.keys()) == ['a', 'c', 'b']
+        assert t.columns.keys() == ['a', 'c', 'b']
 
     def test_10(self):
         t = Table()
@@ -146,7 +146,7 @@ class TestAddPosition():
         ia = t.index_column('a')
         t.add_column(self.b, ia + 1)
         t.add_column(self.c, ia)
-        assert list(t.columns.keys()) == ['c', 'a', 'b']
+        assert t.columns.keys() == ['c', 'a', 'b']
 
 
 class TestInitFromTable():
