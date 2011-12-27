@@ -163,7 +163,7 @@ Classes and Functions
     {toctree}
 
 """
-toctreestr = ':toctree: generated/'
+toctreestr = ':toctree: _generated/'
 automod_inh_templ = """
 Class Inheritance Diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^
