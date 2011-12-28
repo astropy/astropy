@@ -28,14 +28,14 @@ class BaseInitFrom():
 
     def test_names_dtypes_mismatch(self):
         with pytest.raises(ValueError):
-            Table(self.data, names=('a'), dtypes=('i4', 'f4'))
+            Table(self.data, names=('a',), dtypes=('i4', 'f4'))
 
 
 class BaseInitFromListLike(BaseInitFrom):
 
     def test_names_cols_mismatch(self):
         with pytest.raises(ValueError):
-            Table(self.data, names=('a'))
+            Table(self.data, names=['a'], dtypes=[int])
 
 
 class BaseInitFromDictLike(BaseInitFrom):
@@ -58,7 +58,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         t = Table(self.data)
         assert t.colnames == ['col0', 'col1', 'col2']
 
-    
+
 class TestInitFromList(BaseInitFromListLike):
 
     def setup_method(self, method):

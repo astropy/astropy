@@ -382,15 +382,15 @@ class Table(object):
 
         init_func(data, names, dtypes)
 
-    def _check_names_dtypes(self, names, dtypes):
+    def _check_names_dtypes(self, names, dtypes, data):
         """Make sure that names and dtypes are boths iterable and have
-        the same length.
+        the same length as data.
         """
         for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
             if not isinstance(inp_list, collections.Iterable):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
-        if len(names) != len(dtypes):
+        if len(names) != len(data) or len(dtypes) != len(data):
             raise ValueError(
                 'Arguments "names" and "dtypes" must match in length'
                 .format(inp_str))
@@ -402,7 +402,7 @@ class Table(object):
             names = [None] * n_cols
         if dtypes is None:
             dtypes = [None] * n_cols
-        self._check_names_dtypes(names, dtypes)
+        self._check_names_dtypes(names, dtypes, data)
 
         cols = []
         for i_col, col, name, dtype in zip(count(), data, names, dtypes):
@@ -484,6 +484,22 @@ class Table(object):
         self.columns = columns
         self._data = data
 
+    def _new_from_slice(self, slice_):
+        table = Table()
+        columns = TableColumns(table)
+        table._data = self._data[slice_]
+
+        for col in self.columns.values():
+            newcol = Column(col.name, table._data[col.name], units=col.units,
+                            format=col.format, description=col.description,
+                            meta=deepcopy(col.meta))
+            newcol.parent_table = table
+            columns[col.name] = newcol
+
+        table.columns = columns
+        table.meta = deepcopy(self.meta)
+        return table
+
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
         s = "<Table rows={0} names=({1})>\n{2}".format(
@@ -496,12 +512,15 @@ class Table(object):
         elif isinstance(item, int):
             return Row(self, item)
         elif isinstance(item, tuple):
+            if any(x not in set(self.colnames) for x in item):
+                raise ValueError('Table column slice must contain only valid '
+                                 'column names')
             return Table([self[x] for x in item], meta=deepcopy(self.meta))
+        elif isinstance(item, slice) or isinstance(item, np.ndarray):
+            return self._new_from_slice(item)
         else:
-            # XXX Losing other column attrs like description format etc.
-            # XXX Error checking?
-            return Table(self._data[item], names=self.colnames,
-                         meta=deepcopy(self.meta))
+            raise ValueError('Illegal type {0} for table item access'
+                             .format(type(item)))
 
     def __setitem__(self, item, value):
         try:
