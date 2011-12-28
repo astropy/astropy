@@ -167,7 +167,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
     Parameters
     ----------
-    object :
+    object
         The python object to pickle.
     fileorname : str or `file`-like
         The file into which the `object` should be pickled.
