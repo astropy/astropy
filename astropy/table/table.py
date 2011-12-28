@@ -409,7 +409,11 @@ class Table(object):
             def_name = 'col{0}'.format(i_col)
             if isinstance(col, Column):
                 col = Column((name or col.name), col.data, dtype=dtype,
-                             meta=deepcopy(col.meta))
+                             meta=deepcopy(col.meta),
+                             format=col.format,
+                             description=col.description,
+                             units=col.units,
+                             )
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
@@ -490,7 +494,6 @@ class Table(object):
         if isinstance(item, basestring):
             return self.columns[item]
         elif isinstance(item, int):
-            # XXX should return Row instance
             return Row(self, item)
         elif isinstance(item, tuple):
             return Table([self[x] for x in item], meta=deepcopy(self.meta))
