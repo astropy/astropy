@@ -97,24 +97,33 @@ def find_current_module(depth=1, finddiff=False):
 
 
 def fnunpickle(fileorname, number=0, usecPickle=True):
-    """ Unpickle a pickled object from a specified file and return the contents.
+    """ Unpickle pickled objects from a specified file and return the contents.
 
     Parameters
     ----------
     fileorname : str or `file`-like
-        The file from which to unpickle objects
+        The file from which to unpickle objects.
     number : int
-        The number of objects to unpickle - if <1, returns a single object.
+        If 0, a single object will be returned (the first in the file). If >0,
+        this specifies the number of objects to be unpickled, and a list will be
+        returned with exactly that many objects. If <0, all objects in the file
+        will be unpickled and returned as a list.
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
         :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
-
+    
+    Raises
+    ------
+    EOFError
+        If `number` is >0 and there are fewer than `number` objects in the
+        pickled file.
+    
     Returns
     -------
-    contents : list or obj
-        If `number` is greater than 0, this is a list with `number` objects
-        unpickled from the file. Otherwise, this is an individual object - the
-        first one unpickled from the file.
+    contents : obj or list
+        If `number` is 0, this is a individual object - the first one unpickled 
+        from the file. Otherwise, it is a list of objects unpickled from the 
+        file.
 
     """
     import sys
@@ -132,11 +141,11 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         close = False
 
     try:
-        if number > 0:
+        if number > 0: #get that number
             res = []
             for i in range(number):
                 res.append(pickle.load(f))
-        elif number < 0:
+        elif number < 0: #get all objects
             res = []
             eof = False
             while not eof:
@@ -160,7 +169,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     ----------
     object :
         The python object to pickle.
-    fileorname : str or `file`-like]
+    fileorname : str or `file`-like
         The file into which the `object` should be pickled.
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
