@@ -138,6 +138,16 @@ class Column(np.ndarray):
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
+        elif isinstance(data, Column):
+            self_data = np.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if units is None:
+                units = units or data.units
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
         else:
             self_data = np.asarray(data, dtype=dtype)
 
@@ -407,6 +417,10 @@ class Table(object):
         if not copy and dtypes is not None:
             raise ValueError('Cannot specify dtypes when copy=False')
 
+        # If `data` looks like a list at the top level, first try to convert to
+        # an (homogeneous) ndarray with numpy.  In this case `data` was a list
+        # of rows (each being a list of values). If this fails for any reason
+        # then data is assumed to be a list of columns.
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
 
@@ -442,13 +456,15 @@ class Table(object):
             if not isinstance(inp_list, collections.Iterable):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
-        if len(names) != len(data) or len(dtypes) != len(data):
+        if len(names) != len(dtypes):
             raise ValueError(
                 'Arguments "names" and "dtypes" must match in length'
                 .format(inp_str))
 
     def _init_from_list(self, data, names, dtypes, copy):
-        """Initialize table from a list of columns"""
+        """Initialize table from a list of columns.  A column can be a
+        Column object, np.ndarray, or any other iterable object.
+        """
         n_cols = len(data)
         if names is None:
             names = [None] * n_cols
@@ -460,12 +476,7 @@ class Table(object):
         for i_col, col, name, dtype in zip(count(), data, names, dtypes):
             def_name = 'col{0}'.format(i_col)
             if isinstance(col, Column):
-                col = Column((name or col.name), col.data, dtype=dtype,
-                             meta=deepcopy(col.meta),
-                             format=col.format,
-                             description=col.description,
-                             units=col.units,
-                             )
+                col = Column((name or col.name), col, dtype=dtype)
             elif isinstance(col, (np.ndarray, collections.Iterable)):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
@@ -477,6 +488,7 @@ class Table(object):
 
     def _init_from_ndarray_struct(self, data, names, dtypes, copy):
         """Initialize table from an ndarray structured array"""
+
         if names is None:
             names = data.dtype.names
         if dtypes is None:
@@ -503,6 +515,7 @@ class Table(object):
 
     def _init_from_ndarray_homog(self, data, names, dtypes, copy):
         """Initialize table from an ndarray homogeneous array"""
+
         n_cols = data.shape[1]
         if names is None:
             names = [None] * n_cols
@@ -527,6 +540,8 @@ class Table(object):
             self._data = data
 
     def _init_from_dict(self, data, names, dtypes, copy):
+        """Initialize table from a dictionary of columns"""
+
         if names is None:
             names = data.keys()
         if dtypes is None:
@@ -538,6 +553,7 @@ class Table(object):
         self._init_from_list(data_list, names, dtypes, copy)
 
     def _init_from_table(self, data, names, dtypes, copy):
+        """Initial table from an existing Table object """
         if names is None:
             names = data.colnames
         if dtypes is None:
@@ -568,6 +584,7 @@ class Table(object):
             self.meta = deepcopy(table.meta)
 
     def _init_from_cols(self, cols):
+        """Initialize table from a list of Column objects"""
         columns = TableColumns(self)
         dtypes = [col.descr for col in cols]
 

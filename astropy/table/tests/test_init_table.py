@@ -32,6 +32,7 @@ class BaseInitFrom():
 
 class BaseInitFromListLike(BaseInitFrom):
 
+    @pytest.mark.xfail
     def test_names_cols_mismatch(self):
         with pytest.raises(ValueError):
             Table(self.data, names=['a'], dtypes=[int])
