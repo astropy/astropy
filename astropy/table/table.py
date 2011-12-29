@@ -16,6 +16,7 @@ except NameError:
 
 class TableColumns(OrderedDict):
     def __init__(self, table=None, cols={}):
+        # XXX Get rid of table attribute, does nothing here.
         self.table = table  # the parent table containing these columns
         if isinstance(cols, (list, tuple)):
             cols = [(col.name, col) for col in cols]
@@ -135,8 +136,8 @@ class Column(np.ndarray):
                  description=None, units=None, format=None, meta=None):
 
         if data is None:
-            self_data = np.zeros(length,
-                                 dtype=(np.dtype(dtype).str, shape))
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = np.zeros(length, dtype=dtype)
         else:
             self_data = np.asarray(data, dtype=dtype)
 
@@ -396,11 +397,15 @@ class Table(object):
     Table.add_row() method, the original data array will likely be lost.
     """
 
-    def __init__(self, data=None, names=None, dtypes=None, meta={},
-                 copy=True):
+    def __init__(self, data=None, names=None, dtypes=None, meta={}, copy=True):
+
         self._data = None
         self.columns = TableColumns(self)
         self.meta = deepcopy(meta)
+
+        # Must copy if names or dtypes are changing
+        if not copy and dtypes is not None:
+            raise ValueError('Cannot specify dtypes when copy=False')
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
@@ -427,7 +432,7 @@ class Table(object):
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
 
-        init_func(data, names, dtypes)
+        init_func(data, names, dtypes, copy)
 
     def _check_names_dtypes(self, names, dtypes, data):
         """Make sure that names and dtypes are boths iterable and have
@@ -442,7 +447,7 @@ class Table(object):
                 'Arguments "names" and "dtypes" must match in length'
                 .format(inp_str))
 
-    def _init_from_list(self, data, names, dtypes):
+    def _init_from_list(self, data, names, dtypes, copy):
         """Initialize table from a list of columns"""
         n_cols = len(data)
         if names is None:
@@ -470,17 +475,33 @@ class Table(object):
 
         self._init_from_cols(cols)
 
-    def _init_from_ndarray_struct(self, data, names, dtypes):
+    def _init_from_ndarray_struct(self, data, names, dtypes, copy):
         """Initialize table from an ndarray structured array"""
         if names is None:
             names = data.dtype.names
         if dtypes is None:
             dtypes = [None] * len(names)
 
-        cols = [data[name] for name in names]
-        self._init_from_list(cols, names, dtypes)
+        # XXX self._check_names_dtypes ??
+        names = [nam or data.dtype.names[i] for i, nam in enumerate(names)]
 
-    def _init_from_ndarray_homog(self, data, names, dtypes):
+        if copy:
+            cols = [data[name] for name in data.dtype.names]
+            self._init_from_list(cols, names, dtypes, copy)
+        else:
+            # XXX above statement needs test
+            dtypes = [(name, data[oldname].dtype)
+                      for name, oldname in zip(names, data.dtype.names)]
+
+            data = data.view(dtypes)
+            columns = TableColumns(self)  # XXX Redundant from __init__?
+            for name in names:
+                columns[name] = Column(name, data[name])
+                columns[name].parent_table = self
+            self.columns = columns
+            self._data = data
+
+    def _init_from_ndarray_homog(self, data, names, dtypes, copy):
         """Initialize table from an ndarray homogeneous array"""
         n_cols = data.shape[1]
         if names is None:
@@ -488,27 +509,63 @@ class Table(object):
         if dtypes is None:
             dtypes = [None] * n_cols
 
-        cols = [data[:, i] for i in range(n_cols)]
-        self._init_from_list(cols, names, dtypes)
+        # XXX self._check_names_dtypes ??
 
-    def _init_from_dict(self, data, names, dtypes):
+        if copy:
+            cols = [data[:, i] for i in range(n_cols)]
+            self._init_from_list(cols, names, dtypes, copy)
+        else:
+            names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
+            # XXX above statement needs test
+            dtypes = [(name, data.dtype) for name in names]
+            data = data.view(dtypes)
+            columns = TableColumns(self)  # XXX Redundant from __init__?
+            for name in names:
+                columns[name] = Column(name, data[name])
+                columns[name].parent_table = self
+            self.columns = columns
+            self._data = data
+
+    def _init_from_dict(self, data, names, dtypes, copy):
         if names is None:
             names = data.keys()
         if dtypes is None:
             dtypes = [None] * len(names)
 
-        data_list = [data[name] for name in names]
-        self._init_from_list(data_list, names, dtypes)
+        # XXX self._check_names_dtypes ??
 
-    def _init_from_table(self, data, names, dtypes):
+        data_list = [data[name] for name in names]
+        self._init_from_list(data_list, names, dtypes, copy)
+
+    def _init_from_table(self, data, names, dtypes, copy):
         if names is None:
             names = data.colnames
         if dtypes is None:
             dtypes = [None] * len(names)
 
-        cols = [data.columns[name] for name in names]
-        self._init_from_list(cols, names, dtypes)
-        self.meta = deepcopy(data.meta)
+        # XXX self._check_names_dtypes ??
+
+        if copy:
+            cols = [data.columns[name] for name in names]
+            self._init_from_list(cols, names, dtypes, copy)
+            self.meta = deepcopy(data.meta)
+        else:
+            # XXX Need test of setting some names and leaving others as None
+            names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
+            columns = TableColumns(self)
+            table = data  # data is really a Table
+            self._data = table._data
+
+            for col in table.columns.values():
+                newcol = Column(col.name, self._data[col.name],
+                                units=col.units, format=col.format,
+                                description=col.description,
+                                meta=deepcopy(col.meta))
+                newcol.parent_table = self
+                columns[col.name] = newcol
+
+            self.columns = columns
+            self.meta = deepcopy(table.meta)
 
     def _init_from_cols(self, cols):
         columns = TableColumns(self)

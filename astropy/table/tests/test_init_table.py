@@ -21,7 +21,6 @@ class BaseInitFrom():
         assert np.all(t['a'] == np.array([1, 3], dtype='i4'))
         assert np.all(t['b'] == np.array([2, 4], dtype='f4'))
         assert np.all(t['c'] == np.array([3, 5], dtype='f8'))
-        print(t._data.dtype, t['a'].dtype, t['b'].dtype, t['c'].dtype)
         assert t['a'].dtype.type == np.int32
         assert t['b'].dtype.type == np.float32
         assert t['c'].dtype.type == np.float64
@@ -37,9 +36,14 @@ class BaseInitFromListLike(BaseInitFrom):
         with pytest.raises(ValueError):
             Table(self.data, names=['a'], dtypes=[int])
 
+    def test_names_copy_false(self):
+        with pytest.raises(ValueError):
+            Table(self.data, names=['a'], dtypes=[int], copy=False)
+
 
 class BaseInitFromDictLike(BaseInitFrom):
 
+    @pytest.mark.xfail
     def test_select_names(self):
         t = Table(self.data, names=('b', 'a'))
         assert t.colnames == ['b', 'a']
@@ -58,6 +62,30 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         t = Table(self.data)
         assert t.colnames == ['col0', 'col1', 'col2']
 
+    def test_ndarray_ref(self):
+        """Init with ndarray and copy=False and show that table uses reference
+        to input ndarray"""
+        t = Table(self.data, copy=False)
+        t['col1'][1] = 0
+        assert t._data['col1'][1] == 0
+        assert self.data[1][1] == 0
+        # NOTE: assert np.all(t._data == self.data) fails because when
+        # homogenous array is viewcast to structured then the == is False
+
+    def test_partial_names_dtypes(self):
+        t = Table(self.data, names=['a', None, 'c'], dtypes=[None, None, 'f8'])
+        assert t.colnames == ['a', 'col1', 'c']
+        assert t['a'].dtype.type == np.int32
+        assert t['col1'].dtype.type == np.int32
+        assert t['c'].dtype.type == np.float64
+
+    def test_partial_names_ref(self):
+        t = Table(self.data, names=['a', None, 'c'])
+        assert t.colnames == ['a', 'col1', 'c']
+        assert t['a'].dtype.type == np.int32
+        assert t['col1'].dtype.type == np.int32
+        assert t['c'].dtype.type == np.int32
+
 
 class TestInitFromList(BaseInitFromListLike):
 
@@ -70,13 +98,49 @@ class TestInitFromList(BaseInitFromListLike):
         t = Table(self.data)
         assert t.colnames == ['a', 'col1', 'col2']
 
+    def test_partial_names_dtypes(self):
+        t = Table(self.data, names=['b', None, 'c'], dtypes=['f4', None, 'f8'])
+        assert t.colnames == ['b', 'col1', 'c']
+        assert t['b'].dtype.type == np.float32
+        assert t['col1'].dtype.type == np.int64
+        assert t['c'].dtype.type == np.float64
+
+    @pytest.mark.xfail
+    def test_no_copy(self):
+        with pytest.raises(ValueError):
+            Table(self.data, copy=False)
+
 
 class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 
     def setup_method(self, method):
         self.data = np.array([(1, 2, 3),
-                             (3, 4, 5)],
-                            dtype=[('a', 'i8'), ('b', 'i4'), ('c', 'i8')])
+                              (3, 4, 5)],
+                             dtype=[('a', 'i8'), ('b', 'i4'), ('c', 'i8')])
+
+    def test_ndarray_ref(self):
+        """Init with ndarray and copy=False and show that table uses reference
+        to input ndarray"""
+        t = Table(self.data, copy=False)
+        assert np.all(t._data == self.data)
+        t['a'][1] = 0
+        assert t._data['a'][1] == 0
+        assert self.data['a'][1] == 0
+        assert np.all(t._data == self.data)
+
+    def test_partial_names_dtypes(self):
+        t = Table(self.data, names=['e', None, 'd'], dtypes=['f4', None, 'f8'])
+        assert t.colnames == ['e', 'b', 'd']
+        assert t['e'].dtype.type == np.float32
+        assert t['b'].dtype.type == np.int32
+        assert t['d'].dtype.type == np.float64
+
+    def test_partial_names_ref(self):
+        t = Table(self.data, names=['e', None, 'd'], copy=False)
+        assert t.colnames == ['e', 'b', 'd']
+        assert t['e'].dtype.type == np.int64
+        assert t['b'].dtype.type == np.int32
+        assert t['d'].dtype.type == np.int64
 
 
 class TestInitFromDict(BaseInitFromDictLike):
@@ -104,3 +168,11 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert np.all(t['a'] == np.array([1, 8]))
         assert np.all(self.data['a'] == np.array([1, 3]))
         assert t['c'].name == 'c'
+
+    def test_table_ref(self):
+        t = Table(self.data, copy=False)
+        assert np.all(t._data == self.data._data)
+        t['a'][1] = 0
+        assert t._data['a'][1] == 0
+        assert self.data._data['a'][1] == 0
+        assert np.all(t._data == self.data._data)

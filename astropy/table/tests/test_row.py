@@ -37,7 +37,8 @@ class TestRow():
         row['a'] = 10
         assert table['a'][1] == 10
 
-    def SKIP_test_set_slice(self):
+    @pytest.mark.xfail
+    def test_set_slice(self):
         """Set row elements with a slice
 
         This currently fails because the underlying np.void object
