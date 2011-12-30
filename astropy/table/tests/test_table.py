@@ -343,20 +343,34 @@ class TestRemove():
     def setup_method(self, method):
         self.a = Column('a', [1, 2, 3])
         self.b = Column('b', [4, 5, 6])
+        self.c = Column('c', [7, 8, 9])
+        self.t = Table([self.a])
+        self.t2 = Table([self.a, self.b, self.c])
 
     def test_1(self):
-        t = Table([self.a])
-        t.remove_columns('a')
-        assert t.columns.keys() == []
-        assert t._data is None
+        self.t.remove_columns('a')
+        assert self.t.columns.keys() == []
+        assert self.t._data is None
 
     def test_2(self):
-        t = Table([self.a])
-        t.add_column(self.b)
-        t.remove_columns('a')
-        assert t.columns.keys() == ['b']
-        assert t._data.dtype.names == ('b',)
-        assert np.all(t['b'] == np.array([4, 5, 6]))
+        self.t.add_column(self.b)
+        self.t.remove_columns('a')
+        assert self.t.columns.keys() == ['b']
+        assert self.t._data.dtype.names == ('b',)
+        assert np.all(self.t['b'] == np.array([4, 5, 6]))
+
+    def test_delitem1(self):
+        del self.t['a']
+        assert self.t.columns.keys() == []
+        assert self.t._data is None
+
+    def test_delitem2(self):
+        del self.t2['b']
+        assert self.t2.colnames == ['a', 'c']
+
+    def test_delitem_fail(self):
+        with pytest.raises(KeyError):
+            del self.t['d']
 
 
 class TestKeep():

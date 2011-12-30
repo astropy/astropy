@@ -22,7 +22,7 @@ class TableColumns(OrderedDict):
         super(TableColumns, self).__init__(cols)
 
     def __getitem__(self, item):
-        """Get times from a TableColumns object.
+        """Get items from a TableColumns object.
         ::
 
           tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')])
@@ -624,6 +624,9 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(item))
         except:
             raise
+
+    def __delitem__(self, item):
+        self.remove_column(item)
 
     def auto_names(self, n_cols):
         return [AUTO_COLNAME.format(i) for i in range(n_cols)]
