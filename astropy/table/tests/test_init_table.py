@@ -7,6 +7,10 @@ from .. import Table, Column
 from astropy.utils import OrderedDict
 
 
+def names_match_cols(t):
+    return 
+
+
 class BaseInitFrom():
 
     def test_basic_init(self):
@@ -15,6 +19,7 @@ class BaseInitFrom():
         assert np.all(t['a'] == np.array([1, 3]))
         assert np.all(t['b'] == np.array([2, 4]))
         assert np.all(t['c'] == np.array([3, 5]))
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_set_dtypes(self):
         t = Table(self.data, names=('a', 'b', 'c'), dtypes=('i4', 'f4', 'f8'))
@@ -25,6 +30,7 @@ class BaseInitFrom():
         assert t['a'].dtype.type == np.int32
         assert t['b'].dtype.type == np.float32
         assert t['c'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_names_dtypes_mismatch(self):
         with pytest.raises(ValueError):
@@ -78,6 +84,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t['a'].dtype.type == np.int32
         assert t['col1'].dtype.type == np.int32
         assert t['c'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_ref(self):
         t = Table(self.data, names=['a', None, 'c'])
@@ -85,6 +92,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t['a'].dtype.type == np.int32
         assert t['col1'].dtype.type == np.int32
         assert t['c'].dtype.type == np.int32
+        assert all(t[name].name == name for name in t.colnames)
 
 
 class TestInitFromListOfLists(BaseInitFromListLike):
@@ -97,6 +105,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
     def test_default_names(self):
         t = Table(self.data)
         assert t.colnames == ['col0', 'col1', 'col2']
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtypes(self):
         t = Table(self.data, names=['b', None, 'c'],
@@ -105,6 +114,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
         assert t['b'].dtype.type == np.float32
         assert t['col1'].dtype.type == np.int64
         assert t['c'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_bad_data(self):
         with pytest.raises(ValueError):
@@ -122,6 +132,7 @@ class TestInitFromColsList(BaseInitFromListLike):
     def test_default_names(self):
         t = Table(self.data)
         assert t.colnames == ['x', 'col1', 'col2']
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtypes(self):
         t = Table(self.data, names=['b', None, 'c'], dtypes=['f4', None, 'f8'])
@@ -129,6 +140,7 @@ class TestInitFromColsList(BaseInitFromListLike):
         assert t['b'].dtype.type == np.float32
         assert t['col1'].dtype.type == np.int64
         assert t['c'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_ref(self):
         with pytest.raises(ValueError):
@@ -151,6 +163,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         assert t._data['x'][1] == 0
         assert self.data['x'][1] == 0
         assert np.all(t._data == self.data)
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtypes(self):
         t = Table(self.data, names=['e', None, 'd'], dtypes=['f4', None, 'f8'])
@@ -158,6 +171,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         assert t['e'].dtype.type == np.float32
         assert t['y'].dtype.type == np.int32
         assert t['d'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_ref(self):
         t = Table(self.data, names=['e', None, 'd'], copy=False)
@@ -165,6 +179,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         assert t['e'].dtype.type == np.int64
         assert t['y'].dtype.type == np.int32
         assert t['d'].dtype.type == np.int64
+        assert all(t[name].name == name for name in t.colnames)
 
 
 class TestInitFromDict(BaseInitFromDictLike):
@@ -204,6 +219,7 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert np.all(t['x'] == np.array([1, 8]))
         assert np.all(self.data['x'] == np.array([1, 3]))
         assert t['z'].name == 'z'
+        assert all(t[name].name == name for name in t.colnames)
 
     def test_table_ref(self):
         t = Table(self.data, copy=False)
@@ -212,3 +228,20 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert t._data['x'][1] == 0
         assert self.data._data['x'][1] == 0
         assert np.all(t._data == self.data._data)
+        assert all(t[name].name == name for name in t.colnames)
+
+    def test_partial_names_dtypes(self):
+        t = Table(self.data, names=['e', None, 'd'], dtypes=['f4', None, 'i8'])
+        assert t.colnames == ['e', 'y', 'd']
+        assert t['e'].dtype.type == np.float32
+        assert t['y'].dtype.type == np.int64
+        assert t['d'].dtype.type == np.int64
+        assert all(t[name].name == name for name in t.colnames)
+
+    def test_partial_names_ref(self):
+        t = Table(self.data, names=['e', None, 'd'], copy=False)
+        assert t.colnames == ['e', 'y', 'd']
+        assert t['e'].dtype.type == np.int64
+        assert t['y'].dtype.type == np.int64
+        assert t['d'].dtype.type == np.float64
+        assert all(t[name].name == name for name in t.colnames)

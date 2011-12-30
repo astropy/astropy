@@ -195,11 +195,13 @@ class Column(np.ndarray):
     def data(self):
         return self.view(np.ndarray)
 
-    def copy(self, data=None):
+    def copy(self, data=None, copy_data=True):
         """Return a copy of the current Column instance.
         """
         if data is None:
-            data = self.view(np.ndarray).copy()
+            data = self.view(np.ndarray)
+            if copy_data:
+                data = data.copy()
 
         return Column(self.name, data, units=self.units, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
@@ -509,7 +511,7 @@ class Table(object):
                       for name, oldname in zip(names, data_names)]
 
             data = data.view(dtypes)
-            columns = TableColumns(self)  # XXX Redundant from __init__?
+            columns = TableColumns(self)
             for name in names:
                 columns[name] = Column(name, data[name])
                 columns[name].parent_table = self
@@ -530,7 +532,6 @@ class Table(object):
             cols = [data[:, i] for i in range(n_cols)]
             self._init_from_list(cols, names, dtypes, copy)
         else:
-            # import pdb; pdb.set_trace()
             names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
             # XXX above statement needs test
             dtypes = [(name, data.dtype) for name in names]
@@ -556,29 +557,31 @@ class Table(object):
 
     def _init_from_table(self, data, names, dtypes, copy):
         """Initialize table from an existing Table object """
+        table = data  # data is really a Table
+        data_names = table.colnames
         if names is None:
-            names = data.colnames
+            names = data_names
         if dtypes is None:
             dtypes = [None] * len(names)
-        self._check_names_dtypes(names, dtypes, len(data.colnames))
+        self._check_names_dtypes(names, dtypes, len(data_names))
 
         if copy:
-            cols = data.columns.values()
+            cols = table.columns.values()
             self._init_from_list(cols, names, dtypes, copy)
-            self.meta = deepcopy(data.meta)
+            self.meta = deepcopy(table.meta)
         else:
-            names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
+            names = [name or data_name
+                     for name, data_name in zip(names, data_names)]
+            dtypes = [(name, data[data_name].dtype)
+                      for name, data_name in zip(names, data_names)]
             columns = TableColumns(self)
-            table = data  # data is really a Table
-            self._data = table._data
 
-            for col in table.columns.values():
-                newcol = Column(col.name, self._data[col.name],
-                                units=col.units, format=col.format,
-                                description=col.description,
-                                meta=deepcopy(col.meta))
+            self._data = table._data.view(dtypes)
+            for name, col in zip(names, table.columns.values()):
+                newcol = col.copy(self._data[name], copy_data=False)
+                newcol.name = name
                 newcol.parent_table = self
-                columns[col.name] = newcol
+                columns[name] = newcol
 
             self.columns = columns
             self.meta = deepcopy(table.meta)
