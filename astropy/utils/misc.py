@@ -134,7 +134,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         import pickle
 
     if isinstance(fileorname, basestring):
-        f = open(fileorname, 'r')
+        f = open(fileorname, 'rb')
         close = True
     else:
         f = fileorname
@@ -194,7 +194,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         protocol = pickle.HIGHEST_PROTOCOL
 
     if isinstance(fileorname, basestring):
-        f = open(fileorname, 'a' if append else 'w')
+        f = open(fileorname, 'ab' if append else 'wb')
         close = True
     else:
         f = fileorname
