@@ -540,65 +540,58 @@ class Table(object):
     def _init_from_table(self, data, names, dtypes, n_cols, copy):
         """Initialize table from an existing Table object """
 
-        table = data  # data is really a Table
+        table = data  # data is really a Table, rename for clarity
         data_names = table.colnames
+        self.meta = deepcopy(table.meta)
+        cols = table.columns.values()
 
         if copy:
-            cols = table.columns.values()
             self._init_from_list(cols, names, dtypes, n_cols, copy)
-            self.meta = deepcopy(table.meta)
         else:
-            names = [name or data_name
-                     for name, data_name in zip(names, data_names)]
-            dtypes = [(name, data[data_name].dtype)
-                      for name, data_name in zip(names, data_names)]
-            columns = TableColumns(self)
+            names = [vals[0] or vals[1] for vals in zip(names, data_names)]
+            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
+            data = table._data.view(dtypes)
 
-            self._data = table._data.view(dtypes)
-            for name, col in zip(names, table.columns.values()):
-                newcol = col.copy(data=self._data[name], copy_data=False)
-                newcol.name = name
-                newcol.parent_table = self
-                columns[name] = newcol
-
-            self.columns = columns
-            self.meta = deepcopy(table.meta)
+            self._update_table_from_cols(self, data, cols, names)
 
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
-        dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
         if len(lengths) != 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
 
-        columns = TableColumns(self)
-        data = np.ndarray(lengths.pop(), dtype=dtypes)
+        names = [col.name for col in cols]
+        dtypes = [col.descr for col in cols]
+        data = np.empty(lengths.pop(), dtype=dtypes)
         for col in cols:
             data[col.name] = col.data
-            newcol = col.copy(data=data[col.name], copy_data=False)
-            newcol.name = col.name
-            newcol.parent_table = self
-            columns[col.name] = newcol
 
-        self.columns = columns
-        self._data = data
+        self._update_table_from_cols(self, data, cols, names)
 
     def _new_from_slice(self, slice_):
         table = Table()
-        columns = TableColumns(table)
-        table._data = self._data[slice_]
-
-        for col in self.columns.values():
-            newcol = col.copy(data=table._data[col.name], copy_data=False)
-            newcol.name = col.name
-            newcol.parent_table = table
-            columns[col.name] = newcol
-
-        table.columns = columns
         table.meta = deepcopy(self.meta)
+        cols = self.columns.values()
+        names = [col.name for col in cols]
+        data = self._data[slice_]
+
+        self._update_table_from_cols(table, data, cols, names)
+
         return table
+
+    @staticmethod
+    def _update_table_from_cols(table, data, cols, names):
+        columns = TableColumns(table)
+        table._data = data
+
+        for name, col in zip(names, cols):
+            newcol = col.copy(data=data[name], copy_data=False)
+            newcol.name = name
+            newcol.parent_table = table
+            columns[name] = newcol
+        table.columns = columns
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
@@ -779,16 +772,6 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(name))
 
         self.columns[name].name = new_name
-
-#         pos = self.columns.keys().index(name)
-#         self._data.dtype.names = (self.keys()[:pos] + [new_name, ]
-#                                   + self.keys()[pos + 1:])
-
-#         keys = [(after if key == before else key) for key in d_old.keys()]
-#         values = d_old.values()
-#         return OrderedDict(zip(keys, values))
-
-#         self.columns = rename_odict(self.columns, name, new_name)
 
     def add_row(self, vals=None):
         """Add a new row to the end of the table.
