@@ -111,24 +111,24 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
         :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
-    
+
     Raises
     ------
     EOFError
         If `number` is >0 and there are fewer than `number` objects in the
         pickled file.
-    
+
     Returns
     -------
     contents : obj or list
-        If `number` is 0, this is a individual object - the first one unpickled 
-        from the file. Otherwise, it is a list of objects unpickled from the 
+        If `number` is 0, this is a individual object - the first one unpickled
+        from the file. Otherwise, it is a list of objects unpickled from the
         file.
 
     """
     import sys
 
-    if usecPickle and sys.version_info.major < 3:
+    if usecPickle and sys.version_info[0] < 3:
         import cPickle as pickle
     else:
         import pickle
