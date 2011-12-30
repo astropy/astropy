@@ -16,9 +16,7 @@ AUTO_COLNAME = 'col{0}'
 
 
 class TableColumns(OrderedDict):
-    def __init__(self, table=None, cols={}):
-        # XXX Get rid of table attribute, does nothing here.
-        self.table = table  # the parent table containing these columns
+    def __init__(self, cols={}):
         if isinstance(cols, (list, tuple)):
             cols = [(col.name, col) for col in cols]
         super(TableColumns, self).__init__(cols)
@@ -38,10 +36,9 @@ class TableColumns(OrderedDict):
         elif isinstance(item, int):
             return self.values()[item]
         elif isinstance(item, tuple):
-            return TableColumns(self.table, [self[x] for x in item])
+            return TableColumns([self[x] for x in item])
         elif isinstance(item, slice):
-            return TableColumns(self.table,
-                                [self[x] for x in self.keys()[item]])
+            return TableColumns([self[x] for x in self.keys()[item]])
         else:
             raise IndexError('Illegal key or index value for TableColumns '
                              'object')
@@ -414,7 +411,7 @@ class Table(object):
 
         # Set up a placeholder empty table
         self._data = None
-        self.columns = TableColumns(self)
+        self.columns = TableColumns()
         self.meta = deepcopy(meta)
 
         # Must copy if dtypes are changing
@@ -522,7 +519,7 @@ class Table(object):
         else:
             dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtypes).ravel()
-            columns = TableColumns(self)
+            columns = TableColumns()
             for name in names:
                 columns[name] = Column(name, self._data[name])
                 columns[name].parent_table = self
@@ -571,6 +568,8 @@ class Table(object):
         self._update_table_from_cols(self, data, cols, names)
 
     def _new_from_slice(self, slice_):
+        """Create a new table as a referenced slice from self."""
+
         table = Table()
         table.meta = deepcopy(self.meta)
         cols = self.columns.values()
@@ -583,7 +582,10 @@ class Table(object):
 
     @staticmethod
     def _update_table_from_cols(table, data, cols, names):
-        columns = TableColumns(table)
+        """Update the existing ``table`` so that it represents the given
+        ``data`` (a structured ndarray) with ``cols`` and ``names``."""
+
+        columns = TableColumns()
         table._data = data
 
         for name, col in zip(names, cols):
@@ -816,7 +818,7 @@ class Table(object):
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
         cols = [c.copy(self._data[c.name]) for c in self.columns.values()]
-        self.columns = TableColumns(self, cols)
+        self.columns = TableColumns(cols)
 
     def sort(self, keys):
         '''
