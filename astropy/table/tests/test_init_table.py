@@ -241,3 +241,4 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert t['y'].dtype.type == np.int64
         assert t['d'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
+

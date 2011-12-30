@@ -3,7 +3,6 @@ from __future__ import print_function
 from copy import deepcopy
 import numpy as np
 import collections
-from itertools import count
 
 from astropy.utils import OrderedDict
 from .structhelper import _drop_fields
@@ -12,6 +11,8 @@ try:
     unicode
 except NameError:
     unicode = basestring = str
+
+AUTO_COLNAME = 'col{0}'
 
 
 class TableColumns(OrderedDict):
@@ -411,13 +412,17 @@ class Table(object):
 
     def __init__(self, data=None, names=None, dtypes=None, meta={}, copy=True):
 
+        # Set up a placeholder empty table
         self._data = None
         self.columns = TableColumns(self)
         self.meta = deepcopy(meta)
 
-        # Must copy if names or dtypes are changing
+        # Must copy if dtypes are changing
         if not copy and dtypes is not None:
             raise ValueError('Cannot specify dtypes when copy=False')
+
+        # Infer the type of the input data and set up the initialization
+        # function, number of columns, and potentially the default col names
 
         default_names = None
 
@@ -427,11 +432,11 @@ class Table(object):
 
         elif isinstance(data, np.ndarray):
             if data.dtype.names:
-                init_func = self._init_from_ndarray_struct
+                init_func = self._init_from_ndarray  # _struct
                 n_cols = len(data.dtype.names)
                 default_names = data.dtype.names
             else:
-                init_func = self._init_from_ndarray_homog
+                init_func = self._init_from_ndarray  # _homog
                 n_cols = data.shape[1]
 
         elif isinstance(data, dict):
@@ -446,14 +451,18 @@ class Table(object):
 
         elif data is None:
             if names is None:
-                return
+                return  # Empty table
             else:
                 init_func = self._init_from_list
                 data = [] * len(names)
         else:
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
-            # XXX needs test
+
+        # Set up defaults if names and/or dtypes are not specified.
+        # A value of None means the actual value will be inferred
+        # within the appropriate initialization routine, either from
+        # existing specification or auto-generated.
 
         if names is None:
             names = default_names or [None] * n_cols
@@ -461,6 +470,7 @@ class Table(object):
             dtypes = [None] * n_cols
         self._check_names_dtypes(names, dtypes, n_cols)
 
+        # Finally do the real initialization
         init_func(data, names, dtypes, n_cols, copy)
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
@@ -484,8 +494,8 @@ class Table(object):
             raise ValueError('Cannot use copy=False with a list data input')
 
         cols = []
-        for i_col, col, name, dtype in zip(count(), data, names, dtypes):
-            def_name = 'col{0}'.format(i_col)
+        def_names = self.auto_names(n_cols)
+        for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, Column):
                 col = Column((name or col.name), col, dtype=dtype)
             elif isinstance(col, (np.ndarray, collections.Iterable)):
@@ -497,46 +507,32 @@ class Table(object):
 
         self._init_from_cols(cols)
 
-    def _init_from_ndarray_struct(self, data, names, dtypes, n_cols, copy):
+    def _init_from_ndarray(self, data, names, dtypes, n_cols, copy):
         """Initialize table from an ndarray structured array"""
 
-        data_names = data.dtype.names
-        names = [nam or data_names[i] for i, nam in enumerate(names)]
+        data_names = data.dtype.names or self.auto_names(n_cols)
+        struct = data.dtype.names is not None
+        names = [name or data_names[i] for i, name in enumerate(names)]
+
+        cols = ([data[name] for name in data_names] if struct else
+                [data[:, i] for i in range(n_cols)])
 
         if copy:
-            cols = [data[name] for name in data_names]
             self._init_from_list(cols, names, dtypes, n_cols, copy)
         else:
-            dtypes = [(name, data[oldname].dtype)
-                      for name, oldname in zip(names, data_names)]
-
-            data = data.view(dtypes)
+            dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
+            self._data = data.view(dtypes).ravel()
             columns = TableColumns(self)
             for name in names:
-                columns[name] = Column(name, data[name])
+                columns[name] = Column(name, self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
-            self._data = data
-
-    def _init_from_ndarray_homog(self, data, names, dtypes, n_cols, copy):
-        """Initialize table from an ndarray homogeneous array"""
-
-        if copy:
-            cols = [data[:, i] for i in range(n_cols)]
-            self._init_from_list(cols, names, dtypes, n_cols, copy)
-        else:
-            names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
-            dtypes = [(name, data.dtype) for name in names]
-            data = data.view(dtypes).ravel()
-            columns = TableColumns(self)
-            for name in names:
-                columns[name] = Column(name, data[name])
-                columns[name].parent_table = self
-            self.columns = columns
-            self._data = data
 
     def _init_from_dict(self, data, names, dtypes, n_cols, copy):
         """Initialize table from a dictionary of columns"""
+
+        if not copy:
+            raise ValueError('Cannot use copy=False with a dict data input')
 
         data_list = [data[name] for name in names]
         self._init_from_list(data_list, names, dtypes, n_cols, copy)
@@ -570,20 +566,21 @@ class Table(object):
 
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
-        columns = TableColumns(self)
         dtypes = [col.descr for col in cols]
 
         lengths = set(len(col.data) for col in cols)
         if len(lengths) != 1:
-            raise ValueError(
-                'Inconsistent data column lengths: {0}'.format(lengths))
+            raise ValueError('Inconsistent data column lengths: {0}'
+                             .format(lengths))
 
+        columns = TableColumns(self)
         data = np.ndarray(lengths.pop(), dtype=dtypes)
         for col in cols:
             data[col.name] = col.data
             newcol = col.copy(data=data[col.name], copy_data=False)
-            columns[col.name] = newcol
+            newcol.name = col.name
             newcol.parent_table = self
+            columns[col.name] = newcol
 
         self.columns = columns
         self._data = data
@@ -595,6 +592,7 @@ class Table(object):
 
         for col in self.columns.values():
             newcol = col.copy(data=table._data[col.name], copy_data=False)
+            newcol.name = col.name
             newcol.parent_table = table
             columns[col.name] = newcol
 
@@ -631,6 +629,9 @@ class Table(object):
             raise KeyError("Column {0} does not exist".format(item))
         except:
             raise
+
+    def auto_names(self, n_cols):
+        return [AUTO_COLNAME.format(i) for i in range(n_cols)]
 
     @property
     def colnames(self):
