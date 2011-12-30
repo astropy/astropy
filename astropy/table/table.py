@@ -533,7 +533,6 @@ class Table(object):
             self._init_from_list(cols, names, dtypes, copy)
         else:
             names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
-            # XXX above statement needs test
             dtypes = [(name, data.dtype) for name in names]
             data = data.view(dtypes).ravel()
             columns = TableColumns(self)  # XXX Redundant from __init__?
@@ -546,10 +545,11 @@ class Table(object):
     def _init_from_dict(self, data, names, dtypes, copy):
         """Initialize table from a dictionary of columns"""
 
+        n_cols = len(data)
         if names is None:
             names = data.keys()
         if dtypes is None:
-            dtypes = [None] * len(names)
+            dtypes = [None] * n_cols
         self._check_names_dtypes(names, dtypes, len(data))
 
         data_list = [data[name] for name in names]
@@ -559,10 +559,11 @@ class Table(object):
         """Initialize table from an existing Table object """
         table = data  # data is really a Table
         data_names = table.colnames
+        n_cols = len(data_names)
         if names is None:
             names = data_names
         if dtypes is None:
-            dtypes = [None] * len(names)
+            dtypes = [None] * n_cols
         self._check_names_dtypes(names, dtypes, len(data_names))
 
         if copy:
@@ -578,7 +579,7 @@ class Table(object):
 
             self._data = table._data.view(dtypes)
             for name, col in zip(names, table.columns.values()):
-                newcol = col.copy(self._data[name], copy_data=False)
+                newcol = col.copy(data=self._data[name], copy_data=False)
                 newcol.name = name
                 newcol.parent_table = self
                 columns[name] = newcol
@@ -599,9 +600,7 @@ class Table(object):
         data = np.ndarray(lengths.pop(), dtype=dtypes)
         for col in cols:
             data[col.name] = col.data
-            newcol = Column(col.name, data[col.name], units=col.units,
-                            format=col.format, description=col.description,
-                            meta=deepcopy(col.meta))
+            newcol = col.copy(data=data[col.name], copy_data=False)
             columns[col.name] = newcol
             newcol.parent_table = self
 
@@ -614,9 +613,7 @@ class Table(object):
         table._data = self._data[slice_]
 
         for col in self.columns.values():
-            newcol = Column(col.name, table._data[col.name], units=col.units,
-                            format=col.format, description=col.description,
-                            meta=deepcopy(col.meta))
+            newcol = col.copy(data=table._data[col.name], copy_data=False)
             newcol.parent_table = table
             columns[col.name] = newcol
 
