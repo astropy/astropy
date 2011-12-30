@@ -7,10 +7,6 @@ from .. import Table, Column
 from astropy.utils import OrderedDict
 
 
-def names_match_cols(t):
-    return 
-
-
 class BaseInitFrom():
 
     def test_basic_init(self):
