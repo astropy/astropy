@@ -185,7 +185,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     """
     import sys
 
-    if usecPickle and sys.version_info.major < 3:
+    if usecPickle and sys.version_info[0] < 3:
         import cPickle as pickle
     else:
         import pickle
