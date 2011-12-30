@@ -64,11 +64,12 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t.colnames == ['col0', 'col1', 'col2']
 
     def test_ndarray_ref(self):
-        """Init with ndarray and copy=False and show that table uses reference
+        """Init with ndarray and copy=False and show that ValueError is raised
         to input ndarray"""
         t = Table(self.data, copy=False)
         t['col1'][1] = 0
         assert t._data['col1'][1] == 0
+        assert t['col1'][1] == 0
         assert self.data[1][1] == 0
         # NOTE: assert np.all(t._data == self.data) fails because when
         # homogenous array is viewcast to structured then the == is False
@@ -88,11 +89,29 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert t['c'].dtype.type == np.int32
 
 
-class TestInitFromList(BaseInitFromListLike):
+class TestInitFromListOfLists(BaseInitFromListLike):
+
+    def setup_method(self, method):
+        self.data = [(1, 2, 3),
+                     (3, 4, 5)]
+
+    def test_default_names(self):
+        t = Table(self.data)
+        assert t.colnames == ['col0', 'col1', 'col2']
+
+    def test_partial_names_dtypes(self):
+        t = Table(self.data, names=['b', None, 'c'], dtypes=['f4', None, 'f8'])
+        assert t.colnames == ['b', 'col1', 'c']
+        assert t['b'].dtype.type == np.float32
+        assert t['col1'].dtype.type == np.int64
+        assert t['c'].dtype.type == np.float64
+
+
+class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
         self.data = [Column('a', [1, 3]),
-                     [2, 4],
+                     np.array([2, 4]),
                      np.array([3, 5], dtype='i8')]
 
     def test_default_names(self):

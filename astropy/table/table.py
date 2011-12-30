@@ -417,12 +417,23 @@ class Table(object):
         if not copy and dtypes is not None:
             raise ValueError('Cannot specify dtypes when copy=False')
 
-        # If `data` looks like a list at the top level, first try to convert to
-        # an (homogeneous) ndarray with numpy.  In this case `data` was a list
-        # of rows (each being a list of values). If this fails for any reason
-        # then data is assumed to be a list of columns.
+        # If `data` looks like a list at the top level, then see if every
+        # element is an ndarray (which includes Column objects).  If so then
+        # init from a list of columns.  Otherwise try to convert to an ndarray
+        # and init from ndarray homogeneous.
         if isinstance(data, (list, tuple)):
-            init_func = self._init_from_list
+            if all(isinstance(x, np.ndarray) for x in data):
+                init_func = self._init_from_list
+            else:
+                try:
+                    data = np.asarray(data)
+                except Exception as err:
+                    raise ValueError('Unable to convert data to ndarray: {0}'
+                                     .format(err))
+                    # XXX test this
+                else:
+                    init_func = self._init_from_ndarray_homog
+                    copy = False
 
         elif isinstance(data, np.ndarray):
             if data.dtype.names:
@@ -528,10 +539,11 @@ class Table(object):
             cols = [data[:, i] for i in range(n_cols)]
             self._init_from_list(cols, names, dtypes, copy)
         else:
+            # import pdb; pdb.set_trace()
             names = [nam or 'col{0}'.format(i) for i, nam in enumerate(names)]
             # XXX above statement needs test
             dtypes = [(name, data.dtype) for name in names]
-            data = data.view(dtypes)
+            data = data.view(dtypes).ravel()
             columns = TableColumns(self)  # XXX Redundant from __init__?
             for name in names:
                 columns[name] = Column(name, data[name])
