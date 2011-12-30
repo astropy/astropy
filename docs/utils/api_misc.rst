@@ -1,5 +1,5 @@
-`astropy.utils.console`: Utilities for console output
-=====================================================
+`astropy.utils.misc`: Miscellaneous/uncategorized Utilities
+===========================================================
 
 .. automodule:: astropy.utils.misc
    :members:
