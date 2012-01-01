@@ -37,6 +37,28 @@ class TestRow():
         row['a'] = 10
         assert table['a'][1] == 10
 
+    def test_left_equal(self):
+        """Compare a table row to the corresponding structured array row"""
+        np_t = self.t._data.copy()
+        for row, np_row in zip(self.t, np_t):
+            assert np.all(row == np_row)
+
+    def test_left_not_equal(self):
+        """Compare a table row to the corresponding structured array row"""
+        np_t = self.t._data.copy()
+        np_t['a'] = [0, 0, 0]
+        for row, np_row in zip(self.t, np_t):
+            assert np.all(row != np_row)
+
+    @pytest.mark.xfail
+    def test_right_equal(self):
+        """This fails because row is a Row object and np_row (np.void)
+        doesn't know how to compare.  How to fix???  Not really a show
+        stopper though."""
+        np_t = self.t._data.copy()
+        for row, np_row in zip(self.t, np_t):
+            assert np.all(np_row == row)
+
     @pytest.mark.xfail
     def test_set_slice(self):
         """Set row elements with a slice

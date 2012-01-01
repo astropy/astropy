@@ -454,3 +454,12 @@ class TestSort():
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
 
+class TestIterator():
+
+    def test_iterator(self):
+        d = np.array([(2, 1),
+                      (3, 6),
+                      (4, 5)], dtype=[('a', 'i4'), ('b', 'i4')])
+        t = Table(d)
+        for row, np_row in zip(t, d):
+            assert np.all(row == np_row)
