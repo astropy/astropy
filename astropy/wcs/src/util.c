@@ -7,6 +7,7 @@
 
 #include "util.h"
 #include <math.h>
+#include <float.h>
 
 void set_invalid_to_nan(
     const int ncoord,
@@ -20,7 +21,12 @@ void set_invalid_to_nan(
   const int* s_end = stat + ncoord;
   double n;
 
-  n = nan("");
+  #ifndef NAN
+    #define INF (DBL_MAX+DBL_MAX)
+    #define NAN (INF-INF)
+  #endif
+
+  n = NAN;
 
   for ( ; s != s_end; ++s) {
     if (*s) {
