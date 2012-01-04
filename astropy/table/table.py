@@ -657,13 +657,18 @@ class Table(object):
         self._iter_index = 0
         return self
 
-    def next(self):
+    def __next__(self):
+        """Python 3 iterator"""
         if self._iter_index < len(self._data):
             val = self[self._iter_index]
             self._iter_index += 1
             return val
         else:
             raise StopIteration
+
+    def next(self):
+        """Python 2 iterator"""
+        return self.__next__()
 
     @property
     def colnames(self):
