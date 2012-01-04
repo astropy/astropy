@@ -102,7 +102,8 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     Parameters
     ----------
     fileorname : str or `file`-like
-        The file from which to unpickle objects.
+        The file name or file from which to unpickle objects. If a file object,
+        it should have been opened in binary mode.
     number : int
         If 0, a single object will be returned (the first in the file). If >0,
         this specifies the number of objects to be unpickled, and a list will be
@@ -141,11 +142,11 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         close = False
 
     try:
-        if number > 0: #get that number
+        if number > 0:  # get that number
             res = []
             for i in range(number):
                 res.append(pickle.load(f))
-        elif number < 0: #get all objects
+        elif number < 0:  # get all objects
             res = []
             eof = False
             while not eof:
@@ -170,9 +171,10 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     object
         The python object to pickle.
     fileorname : str or `file`-like
-        The file into which the `object` should be pickled.
+        The filename or file into which the `object` should be pickled. If a
+        file object, it should have been opened in binary mode.
     usecPickle : bool
-        If True, the :mod:`cPickle` module is to be used in place of
+        If True (default), the :mod:`cPickle` module is to be used in place of
         :mod:`pickle` (cPickle is faster). This only applies for python 2.x.
     protocol : int or None
         Pickle protocol to use - see the :mod:`pickle` module for details on
