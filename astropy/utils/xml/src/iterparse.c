@@ -119,6 +119,11 @@ typedef struct {
     PyObject*  error_value;
     PyObject*  error_traceback;
 
+    /* Store the position for any XML exceptions that may be
+       returned later */
+    unsigned long last_line;
+    unsigned long last_col;
+
     /* "Constants" for efficiency */
     PyObject*  dict_singleton;  /* Empty dict */
     PyObject*  td_singleton;    /* String "TD" */
@@ -235,19 +240,14 @@ text_clear(IterParser *self)
 static inline PyObject*
 make_pos(const IterParser *self)
 {
-    unsigned long line;
-    unsigned long col;
     PyObject* tuple;
     PyObject* line_obj;
     PyObject* col_obj;
 
-    line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
-    col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
-
     tuple = PyTuple_New(2);
 
-    line_obj = PyInt_FromSize_t((size_t)line);
-    col_obj = PyInt_FromSize_t((size_t)col);
+    line_obj = PyInt_FromSize_t((size_t)self->last_line);
+    col_obj = PyInt_FromSize_t((size_t)self->last_col);
 
     PyTuple_SetItem(tuple, 0, line_obj);
     PyTuple_SetItem(tuple, 1, col_obj);
@@ -380,6 +380,10 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
 
         PyTuple_SetItem(tuple, 2, pyatts);
 
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
+            self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
+            self->parser);
         PyTuple_SetItem(tuple, 3, make_pos(self));
 
         text_clear(self);
@@ -484,6 +488,13 @@ characterData(IterParser *self, const XML_Char *text, int len)
         return;
     }
 
+    if (self->text_size == 0) {
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
+            self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
+            self->parser);
+    }
+
     if (self->keep_text) {
         (void)text_append(self, text, (Py_ssize_t)len);
     }
@@ -535,6 +546,10 @@ xmlDecl(IterParser *self, const XML_Char *version,
 
         PyTuple_SET_ITEM(tuple, 2, attrs);
 
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
+            self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
+            self->parser);
         PyTuple_SET_ITEM(tuple, 3, make_pos(self));
 
         self->queue[self->queue_write_idx++] = tuple;
@@ -656,12 +671,12 @@ IterParser_next(IterParser* self)
 
             /* expat raised an error, make note of it -- it won't be thrown
                until the queue is emptied. */
+            Py_XDECREF(data);
             PyErr_Format(
                 PyExc_ValueError, "%lu:%lu: %s",
                 XML_GetCurrentLineNumber(self->parser),
                 XML_GetCurrentColumnNumber(self->parser),
                 XML_ErrorString(XML_GetErrorCode(self->parser)));
-            Py_XDECREF(data);
             goto fail;
         }
         Py_XDECREF(data);
