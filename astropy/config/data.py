@@ -470,6 +470,7 @@ def _cache_remote(remoteurl):
     from os.path import join
     from shutil import move
     from urllib2 import urlopen
+    from ..utils.console import ProgressBarOrSpinner
 
     dldir,urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
@@ -483,14 +484,25 @@ def _cache_remote(remoteurl):
                     tmpfn = join(dldir,'cachedl.tmp')
                     hash = hashlib.md5()
 
-                    with open(tmpfn,'wb') as f:
+                    info = remote.info()
+                    if 'Content-Length' in info:
+                        try:
+                            size = int(info['Content-Length'])
+                        except ValueError:
+                            size = None
+                    else:
+                        size = None
+
+                    with (ProgressBarOrSpinner(
+                            size, "Downloading {0}".format(remoteurl)),
+                          open(tmpfn, 'wb')) as (p, f):
+                        bytes_read = 0
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
                         while block:
-                            #TODO: add in something to update a progress bar
-                            #when the download occurs.  Or use the log. either
-                            #requires stuff that isn't yet in master
                             f.write(block)
                             hash.update(block)
+                            bytes_read += len(block)
+                            p.update(bytes_read)
                             block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
 
                     localpath = join(dldir,hash.hexdigest())
