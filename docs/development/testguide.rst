@@ -1,3 +1,5 @@
+.. _testing-guidelines:
+
 ==========================
 Testing Guidelines (Draft)
 ==========================
@@ -15,6 +17,8 @@ Testing Framework
 
 The testing framework used by Astropy is the `py.test <http://pytest.org/latest/>`_
 framework.
+
+.. _running-tests:
 
 Running Tests
 =============

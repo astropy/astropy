@@ -14,6 +14,7 @@ developed.  For more information, see the `github wiki
    :maxdepth: 2
 
    overview
+   install
    configs
    wcs/index
    vo/index
