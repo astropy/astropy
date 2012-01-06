@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: prj.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: prj.c,v 4.8.1.2 2011/11/17 03:08:29 cal103 Exp cal103 $
 *===========================================================================*/
 
 #include <math.h>
@@ -264,7 +264,7 @@ const struct prjprm *prj;
 
   WCSPRINTF_PTR("        err: ", prj->err, "\n");
   if (prj->err) {
-    wcserr_prt(prj->err, "");
+    wcserr_prt(prj->err, "             ");
   }
 
   wcsprintf("        w[]:");

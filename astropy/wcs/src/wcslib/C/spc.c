@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: spc.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: spc.c,v 4.8.1.2 2011/11/17 03:09:12 cal103 Exp cal103 $
 *===========================================================================*/
 
 #include <math.h>
@@ -195,7 +195,7 @@ int spcprt(const struct spcprm *spc)
 
   WCSPRINTF_PTR("        err: ", spc->err, "\n");
   if (spc->err) {
-    wcserr_prt(spc->err, "");
+    wcserr_prt(spc->err, "             ");
   }
 
   wcsprintf("     spxX2P: %s\n",
