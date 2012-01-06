@@ -32,10 +32,14 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility
 # http://www.atnf.csiro.au/~mcalabre/index.html
-# $Id: GNUmakefile,v 4.8.1.2 2011/10/04 07:49:19 cal103 Exp cal103 $
+# $Id: GNUmakefile,v 4.8.1.3 2011/12/05 06:38:54 cal103 Exp cal103 $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include makedefs
+
+ifeq "$(CHECK)" "nopgplot"
+  TSTDIRS := $(filter-out pgsbox,$(TSTDIRS))
+endif
 
 .PHONY : build check chmod clean cleaner cleanest distclean install \
          realclean show tests writable
@@ -47,7 +51,7 @@ build :
 	     $(MAKE) -k -C $$DIR build ; \
 	   done
 
-check tests : show
+check tests :: show
 	-@ echo ''
 	-@ $(TIMER)
 	 @ for DIR in $(SUBDIRS) ; do \
@@ -60,6 +64,17 @@ check tests : show
 	     $(TIMER) ; \
 	     $(MAKE) -k -C $$DIR $@ ; \
 	   done
+
+check ::
+	-@ echo ''
+	-@ echo 'Summary of results for non-graphical tests'
+	-@ echo '------------------------------------------'
+	-@ cat ./*/test_results
+	 @ if grep 'FAIL:' ./*/test_results > /dev/null ; then \
+	     exit 1 ; \
+	   else \
+	     exit 0 ; \
+	   fi
 
 install :
 	 @ for DIR in $(INSTDIR) ; do \

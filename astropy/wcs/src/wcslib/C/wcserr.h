@@ -29,7 +29,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcserr.h,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: wcserr.h,v 4.8.1.2 2011/11/17 03:13:24 cal103 Exp cal103 $
 *=============================================================================
 *
 * Summary of the wcserr routines
@@ -43,10 +43,11 @@
 * For example:
 *
 =     struct prjprm prj;
+=     wcserr_enable(1);
 =     if (prjini(&prj)) {
 =       // Print the error message to stderr.
 =       wcsprintf_set(stderr);
-=       wcserr_prt(prj.err);
+=       wcserr_prt(prj.err, 0x0);
 =     }
 *
 * A number of utility functions used in managing the wcserr struct are for
@@ -117,6 +118,20 @@
 *                         2: Error messaging is not enabled.
 *
 *
+* wcserr_clear() - Clear a wcserr struct
+* --------------------------------------
+* wcserr_clear() clears the error (if any) contained in a wcserr struct.
+*
+* Given and returned:
+*   err       struct wcserr**
+*                       The error object.  If NULL, nothing is done.  Set to
+*                       NULL on return.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*
+*
 * wcserr_set() - Fill in the contents of an error object
 * ------------------------------------------------------
 * INTERNAL USE ONLY.
@@ -178,7 +193,7 @@
 *
 * Given:
 *   src       const struct wcserr*
-*                       Source error object.  If src is NULL, returns 1.
+*                       Source error object.  If src is NULL, dst is cleared.
 *
 * Returned:
 *   dst       struct wcserr*
@@ -219,6 +234,8 @@ struct wcserr {
 int wcserr_enable(int enable);
 
 int wcserr_prt(const struct wcserr *err, const char *prefix);
+
+int wcserr_clear(struct wcserr **err);
 
 
 /* INTERNAL USE ONLY -------------------------------------------------------*/

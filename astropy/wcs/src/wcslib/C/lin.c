@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: lin.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: lin.c,v 4.8.1.2 2011/11/17 03:07:49 cal103 Exp cal103 $
 *===========================================================================*/
 
 #include <stdio.h>
@@ -343,7 +343,7 @@ const struct linprm *lin;
 
   WCSPRINTF_PTR("        err: ", lin->err, "\n");
   if (lin->err) {
-    wcserr_prt(lin->err, "");
+    wcserr_prt(lin->err, "             ");
   }
 
   if (lin->piximg == 0x0) {

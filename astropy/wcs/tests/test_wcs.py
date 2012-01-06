@@ -210,7 +210,7 @@ def test_fixes():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         run()
-        assert len(w) == 3
+        assert len(w) == 4
         for item in w:
             assert issubclass(item.category, wcs.FITSFixedWarning)
             if 'unitfix' in str(item.message):
