@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ...tests.helper import remote_data,raises
 
+import io
+
 TESTURL = 'http://www.google.com/index.html'
 
 @remote_data
@@ -63,23 +65,20 @@ def test_local_data_nonlocalfail():
 
 def test_compute_hash(tmpdir):
     import string
-    import random
     import tempfile
     import hashlib
     from ..data import compute_hash
 
-    #generate a random string of 25 characters
-    rands = ''.join(random.choice(string.ascii_letters) for x in range(25))
+    rands = b'1234567890abcdefghijklmnopqrstuvwxyz'
 
     filename = tmpdir.join('tmp.dat').strpath
 
-    with open(filename, 'wb') as ntf:
+    with io.open(filename, 'wb') as ntf:
         ntf.write(rands)
         ntf.flush()
 
     chhash = compute_hash(filename)
-    # the encode() call is necessary for py3.x compatibility
-    shash = hashlib.md5(rands.encode()).hexdigest()
+    shash = hashlib.md5(rands).hexdigest()
 
     assert chhash==shash
 

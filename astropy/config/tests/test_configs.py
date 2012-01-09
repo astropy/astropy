@@ -1,25 +1,27 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst  
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import io
 
 def test_paths():
     from ..paths import get_config_dir, get_cache_dir
-    
+
     assert 'astropy' in get_config_dir()
     assert 'astropy' in get_cache_dir()
-    
+
 def test_config_file():
     from ..configs import get_config,reload_config,save_config
     from os.path import exists
-    
+
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
-    
+
     cfgsec = get_config('astropy.config')
     assert cfgsec.depth==1
     assert cfgsec.name=='config'
     assert cfgsec.parent.filename.endswith('astropy.cfg')
-    
+
     reload_config('astropy')
-    
+
     #saving shouldn't change the file, because reload should have made sure it
     #is based on the current file.  But don't do it if there's no file
     if exists(apycfg.filename):
@@ -50,9 +52,9 @@ def test_configitem(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'wb') as fd:
+    with open(f.strpath, 'w') as fd:
         apycfg.write(fd)
-    with open(f.strpath, 'rb') as fd:
+    with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in fd.readlines()]
     assert 'tstnm = 32' in lns
     assert '# updated Descr' in lns
@@ -69,14 +71,14 @@ def test_configitem(tmpdir):
         ci.set(30)
         ci.save()
 
-        with open(apycfg.filename) as f:
+        with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
             assert 'tstnm = 30' in lns
 
         ci.save(31)
 
-        with open(apycfg.filename) as f:
+        with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
             assert 'tstnm = 31' in lns
@@ -85,7 +87,7 @@ def test_configitem(tmpdir):
         apycfg.filename = tmpdir.join('astropy.cfg3').realpath().strpath
         ci.save()
 
-        with open(apycfg.filename) as f:
+        with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
             assert 'tstnm = 30' in lns
@@ -142,9 +144,9 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with open(f.strpath, 'wb') as fd:
+    with open(f.strpath, 'w') as fd:
         apycfg.write(fd)
-    with open(f.strpath, 'rb') as fd:
+    with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in f.readlines()]
 
     assert '# option(op1, op2, op3)' in lns
