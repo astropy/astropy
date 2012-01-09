@@ -70,14 +70,15 @@ def _convert_to_fd_or_read_function(fd):
     fd : context-dependent
         See above.
     """
-    if IS_PY3K:
-        if isinstance(fd, io.IOBase):
-            yield fd
-            return
-    else:
-        if isinstance(fd, file):
-            yield fd
-            return
+    if not sys.platform.startswith('win'):
+        if IS_PY3K:
+            if isinstance(fd, io.IOBase):
+                yield fd
+                return
+        else:
+            if isinstance(fd, file):
+                yield fd
+                return
     if is_callable(fd):
         yield fd
         return
@@ -89,6 +90,11 @@ def _convert_to_fd_or_read_function(fd):
                 return
         else:
             with open(fd, 'rb') as real_fd:
+                if sys.platform.startswith('win'):
+                    # On Windows, we can't pass a real file descriptor
+                    # to the C level, so we pass the read method
+                    yield real_fd.read
+                    return
                 yield real_fd
                 return
     elif hasattr(fd, 'read'):

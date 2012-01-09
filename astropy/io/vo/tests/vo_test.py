@@ -50,6 +50,9 @@ def teardown_module():
 
 
 def assert_validate_schema(filename):
+    if sys.platform.startswith('win'):
+        return
+
     try:
         rc, stdout, stderr = validate_schema(filename, '1.1')
     except OSError:

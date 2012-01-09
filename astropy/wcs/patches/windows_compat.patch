@@ -1,0 +1,241 @@
+Index: C/prj.c
+===================================================================
+--- C/prj.c
++++ C/prj.c
+@@ -6604,34 +6602,34 @@
+   register double *phip, *thetap;
+
+   float     chi, psi, xf, xx, yf, yy, z0, z1, z2, z3, z4, z5, z6;
+-  const float p00 = -0.27292696;
+-  const float p10 = -0.07629969;
+-  const float p20 = -0.22797056;
+-  const float p30 =  0.54852384;
+-  const float p40 = -0.62930065;
+-  const float p50 =  0.25795794;
+-  const float p60 =  0.02584375;
+-  const float p01 = -0.02819452;
+-  const float p11 = -0.01471565;
+-  const float p21 =  0.48051509;
+-  const float p31 = -1.74114454;
+-  const float p41 =  1.71547508;
+-  const float p51 = -0.53022337;
+-  const float p02 =  0.27058160;
+-  const float p12 = -0.56800938;
+-  const float p22 =  0.30803317;
+-  const float p32 =  0.98938102;
+-  const float p42 = -0.83180469;
+-  const float p03 = -0.60441560;
+-  const float p13 =  1.50880086;
+-  const float p23 = -0.93678576;
+-  const float p33 =  0.08693841;
+-  const float p04 =  0.93412077;
+-  const float p14 = -1.41601920;
+-  const float p24 =  0.33887446;
+-  const float p05 = -0.63915306;
+-  const float p15 =  0.52032238;
+-  const float p06 =  0.14381585;
++  const float p00 = -0.27292696f;
++  const float p10 = -0.07629969f;
++  const float p20 = -0.22797056f;
++  const float p30 =  0.54852384f;
++  const float p40 = -0.62930065f;
++  const float p50 =  0.25795794f;
++  const float p60 =  0.02584375f;
++  const float p01 = -0.02819452f;
++  const float p11 = -0.01471565f;
++  const float p21 =  0.48051509f;
++  const float p31 = -1.74114454f;
++  const float p41 =  1.71547508f;
++  const float p51 = -0.53022337f;
++  const float p02 =  0.27058160f;
++  const float p12 = -0.56800938f;
++  const float p22 =  0.30803317f;
++  const float p32 =  0.98938102f;
++  const float p42 = -0.83180469f;
++  const float p03 = -0.60441560f;
++  const float p13 =  1.50880086f;
++  const float p23 = -0.93678576f;
++  const float p33 =  0.08693841f;
++  const float p04 =  0.93412077f;
++  const float p14 = -1.41601920f;
++  const float p24 =  0.33887446f;
++  const float p05 = -0.63915306f;
++  const float p15 =  0.52032238f;
++  const float p06 =  0.14381585f;
+
+   /* Initialize. */
+   if (prj == 0x0) return PRJERR_NULL_POINTER;
+@@ -6656,7 +6654,7 @@
+   rowoff = 0;
+   rowlen = nx*spt;
+   for (ix = 0; ix < nx; ix++, rowoff += spt, xp += sxy) {
+-    xf = (*xp + prj->x0)*prj->w[1];
++    xf = (float)((*xp + prj->x0)*prj->w[1]);
+
+     phip = phi + rowoff;
+     for (iy = 0; iy < my; iy++) {
+@@ -6672,10 +6670,10 @@
+   thetap = theta;
+   statp  = stat;
+   for (iy = 0; iy < ny; iy++, yp += sxy) {
+-    yf = (*yp + prj->y0)*prj->w[1];
++    yf = (float)((*yp + prj->y0)*prj->w[1]);
+
+     for (ix = 0; ix < mx; ix++, phip += spt, thetap += spt) {
+-      xf = *phip;
++      xf = (float)*phip;
+
+       /* Check bounds. */
+       if (fabs(xf) <= 1.0) {
+@@ -6697,24 +6695,24 @@
+       }
+
+       /* Map negative faces to the other side. */
+-      if (xf < -1.0) xf += 8.0;
++      if (xf < -1.0f) xf += 8.0f;
+
+       /* Determine the face. */
+-      if (xf > 5.0) {
++      if (xf > 5.0f) {
+         face = 4;
+-        xf = xf - 6.0;
+-      } else if (xf > 3.0) {
++        xf = xf - 6.0f;
++      } else if (xf > 3.0f) {
+         face = 3;
+-        xf = xf - 4.0;
+-      } else if (xf > 1.0) {
++        xf = xf - 4.0f;
++      } else if (xf > 1.0f) {
+         face = 2;
+-        xf = xf - 2.0;
+-      } else if (yf > 1.0) {
++        xf = xf - 2.0f;
++      } else if (yf > 1.0f) {
+         face = 0;
+-        yf = yf - 2.0;
+-      } else if (yf < -1.0) {
++        yf = yf - 2.0f;
++      } else if (yf < -1.0f) {
+         face = 5;
+-        yf = yf + 2.0;
++        yf = yf + 2.0f;
+       } else {
+         face = 1;
+       }
+@@ -6732,7 +6730,7 @@
+       z6 = p06;
+
+       chi = z0 + yy*(z1 + yy*(z2 + yy*(z3 + yy*(z4 + yy*(z5 + yy*z6)))));
+-      chi = xf + xf*(1.0 - xx)*chi;
++      chi = xf + xf*(1.0f - xx)*chi;
+
+       z0 = p00 + yy*(p10 + yy*(p20 + yy*(p30 + yy*(p40 + yy*(p50 +
+                  yy*(p60))))));
+@@ -6744,7 +6742,7 @@
+       z6 = p06;
+
+       psi = z0 + xx*(z1 + xx*(z2 + xx*(z3 + xx*(z4 + xx*(z5 + xx*z6)))));
+-      psi = yf + yf*(1.0 - yy)*psi;
++      psi = yf + yf*(1.0f - yy)*psi;
+
+       switch (face) {
+       case 1:
+@@ -6807,25 +6805,25 @@
+ {
+   int face, mphi, mtheta, rowlen, rowoff, status;
+   double cosphi, costhe, eta, l, m, n, sinphi, sinthe, xi, zeta;
+-  const float tol = 1.0e-7;
++  const float tol = 1.0e-7f;
+   register int iphi, istat, itheta, *statp;
+   register const double *phip, *thetap;
+   register double *xp, *yp;
+
+   float chi, chi2, chi2psi2, chi4, chipsi, psi, psi2, psi4, chi2co, psi2co,
+         x0, xf, y0, yf;
+-  const float gstar  =  1.37484847732;
+-  const float mm     =  0.004869491981;
+-  const float gamma  = -0.13161671474;
+-  const float omega1 = -0.159596235474;
+-  const float d0  =  0.0759196200467;
+-  const float d1  = -0.0217762490699;
+-  const float c00 =  0.141189631152;
+-  const float c10 =  0.0809701286525;
+-  const float c01 = -0.281528535557;
+-  const float c11 =  0.15384112876;
+-  const float c20 = -0.178251207466;
+-  const float c02 =  0.106959469314;
++  const float gstar  =  1.37484847732f;
++  const float mm     =  0.004869491981f;
++  const float gamma  = -0.13161671474f;
++  const float omega1 = -0.159596235474f;
++  const float d0  =  0.0759196200467f;
++  const float d1  = -0.0217762490699f;
++  const float c00 =  0.141189631152f;
++  const float c10 =  0.0809701286525f;
++  const float c01 = -0.281528535557f;
++  const float c11 =  0.15384112876f;
++  const float c20 = -0.178251207466f;
++  const float c02 =  0.106959469314f;
+
+
+   /* Initialize. */
+@@ -6940,24 +6938,24 @@
+         break;
+       }
+
+-      chi =  xi/zeta;
+-      psi = eta/zeta;
++      chi = (float)(xi/zeta);
++      psi = (float)(eta/zeta);
+
+       chi2 = chi*chi;
+       psi2 = psi*psi;
+-      chi2co = 1.0 - chi2;
+-      psi2co = 1.0 - psi2;
++      chi2co = 1.0f - chi2;
++      psi2co = 1.0f - psi2;
+
+       /* Avoid floating underflows. */
+-      chipsi = fabs(chi*psi);
+-      chi4   = (chi2 > 1.0e-16) ? chi2*chi2 : 0.0;
+-      psi4   = (psi2 > 1.0e-16) ? psi2*psi2 : 0.0;
+-      chi2psi2 = (chipsi > 1.0e-16) ? chi2*psi2 : 0.0;
++      chipsi = fabsf(chi*psi);
++      chi4   = (chi2 > 1.0e-16f) ? chi2*chi2 : 0.0f;
++      psi4   = (psi2 > 1.0e-16f) ? psi2*psi2 : 0.0f;
++      chi2psi2 = (chipsi > 1.0e-16f) ? chi2*psi2 : 0.0f;
+
+       xf = chi*(chi2 + chi2co*(gstar + psi2*(gamma*chi2co + mm*chi2 +
+                 psi2co*(c00 + c10*chi2 + c01*psi2 + c11*chi2psi2 + c20*chi4 +
+                 c02*psi4)) + chi2*(omega1 - chi2co*(d0 + d1*chi2))));
+-       yf = psi*(psi2 + psi2co*(gstar + chi2*(gamma*psi2co + mm*psi2 +
++      yf = psi*(psi2 + psi2co*(gstar + chi2*(gamma*psi2co + mm*psi2 +
+                 chi2co*(c00 + c10*psi2 + c01*chi2 + c11*chi2psi2 + c20*psi4 +
+                 c02*chi4)) + psi2*(omega1 - psi2co*(d0 + d1*psi2))));
+
+@@ -6967,14 +6965,22 @@
+           istat  = 1;
+           if (!status) status = PRJERR_BAD_WORLD_SET("cscs2x");
+         }
+-        xf = copysign(1.0, xf);
++        #ifndef _MSC_VER
++        xf = copysignf(1.0f, xf);
++        #else
++        xf = (float)copysign(1.0, (double)xf);
++        #endif
+       }
+       if (fabs(yf) > 1.0) {
+         if (fabs(yf) > 1.0+tol) {
+           istat  = 1;
+           if (!status) status = PRJERR_BAD_WORLD_SET("cscs2x");
+         }
+-        yf = copysign(1.0, yf);
++        #ifndef _MSC_VER
++        yf = copysignf(1.0f, yf);
++        #else
++        yf = (float)copysign(1.0, (double)yf);
++        #endif
+       }
+
+       *xp = prj->w[0]*(xf + x0) - prj->x0;
