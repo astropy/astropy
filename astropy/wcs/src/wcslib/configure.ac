@@ -8,12 +8,12 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility
 # http://www.atnf.csiro.au/~mcalabre/index.html
-# $Id: configure.ac,v 4.8.1.5 2011/10/04 08:01:03 cal103 Exp cal103 $
+# $Id: configure.ac,v 4.8.1.8 2011/12/05 06:55:00 cal103 Exp cal103 $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [4.8.2], [mcalabre@atnf.csiro.au], [wcslib-4.8.2])
+AC_INIT([WCSLIB], [4.8.4], [mcalabre@atnf.csiro.au], [wcslib-4.8.4])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 4.8.1.5 $])
+AC_REVISION([$Revision: 4.8.1.8 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -464,9 +464,9 @@ if test "x$with_cfitsio" != xno -o \
     AC_CHECK_LIB([png],     [png_error], [PGPLOTLIB="-lpng $PGPLOTLIB"],
                  [], [$PGPLOTLIB $LIBS])
     AC_CHECK_LIB([pgplot],  [pgbeg_],    [PGPLOTLIB="-lpgplot $PGPLOTLIB"],
-                 [], [$PGPLOTLIB $LIBS])
+                 [], [$PGPLOTLIB $FLIBS $LIBS])
     AC_CHECK_LIB([cpgplot], [cpgbeg],    [PGPLOTLIB="-lcpgplot $PGPLOTLIB"],
-                 [PGPLOTLIB=], [$PGPLOTLIB $LIBS])
+                 [PGPLOTLIB=], [$PGPLOTLIB $FLIBS $LIBS])
 
     # Only need the PGPLOT include file to build PGSBOX.
     if test "x$PGPLOTINC" != x; then

@@ -1,3 +1,50 @@
+WCSLIB version 4.8.4 (2011/12/05)
+---------------------------------
+
+* C library
+
+  - Fixed the pseudo-random number generator in twcstab.c - gcc 4.6 with
+    '-O2' baulked at testing for signed integer overflow.
+
+* Installation
+
+  - In configure.ac, the Fortran compiler's libraries must be added to
+    the link list when checking for the PGPLOT libraries since gcc is
+    driving the linker.  Likewise in C/GNUmakefile when linking test
+    programs that use PGPLOT.
+
+  - Use 'make CHECK=nopgplot check' to run only the non-graphical tests
+    (even if PGPLOT is available).
+
+  - After compiling and running the tests, 'make check' now summarizes
+    the non-graphical test results and stops if any failed.
+
+
+WCSLIB version 4.8.3 (2011/11/17)
+---------------------------------
+
+* C library
+
+  - Minor generalization of the wcserr diagnostics to allow the return
+    of informative messages which are associated with negative status
+    values.  wcserr_prt() will now recognize and print them as such.
+    Added wcserr_clear() to reset (clear) a wcserr struct.
+
+    Modified unitfix() to return an informative message if a units
+    alias is applied, and wcsfixi() to allow such messages to be
+    propagated through the info array (from Michael Droettboom).
+
+    Modified twcsfix.c to use wcserr diagnostics, in particular to
+    report units alias translations.
+
+* Fortran wrappers
+
+  - In wcsfix_(), interpret *naxis == 0 as meaning naxis == 0x0, thus
+    causing cylfix() to be skipped.
+
+  - Modified twcsfix.f to reflect changes made to twcsfix.c.
+
+
 WCSLIB version 4.8.2 (2011/10/04)
 ---------------------------------
 
@@ -26,7 +73,7 @@ WCSLIB version 4.8 (2011/08/15)
 
 * C library
 
-  - New error diagnostics mechanism contributed by Michael Droetboom:
+  - New error diagnostics mechanism contributed by Michael Droettboom:
 
     Most functions that return a numeric status (error) code now also
     write a detailed error message to a wcserr struct attached to the
@@ -1784,4 +1831,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.8.1.3 2011/10/04 08:01:03 cal103 Exp cal103 $
+$Id: CHANGES,v 4.8.1.5 2011/12/05 06:55:00 cal103 Exp cal103 $

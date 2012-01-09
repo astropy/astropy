@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: tab.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: tab.c,v 4.8.1.2 2011/11/17 03:09:49 cal103 Exp cal103 $
 *===========================================================================*/
 
 #include <math.h>
@@ -618,7 +618,7 @@ int tabprt(const struct tabprm *tab)
 
   WCSPRINTF_PTR("        err: ", tab->err, "\n");
   if (tab->err) {
-    wcserr_prt(tab->err, "");
+    wcserr_prt(tab->err, "             ");
   }
 
   /* Memory management. */

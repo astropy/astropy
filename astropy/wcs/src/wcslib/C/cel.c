@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: cel.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: cel.c,v 4.8.1.2 2011/11/17 03:06:46 cal103 Exp cal103 $
 *===========================================================================*/
 
 #include <math.h>
@@ -152,7 +152,7 @@ const struct celprm *cel;
 
   WCSPRINTF_PTR("        err: ", cel->err, "\n");
   if (cel->err) {
-    wcserr_prt(cel->err, "");
+    wcserr_prt(cel->err, "             ");
   }
 
   wcsprintf("\n");

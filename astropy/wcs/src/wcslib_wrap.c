@@ -480,6 +480,28 @@ PyWcsprm_find_all_wcs(
 }
 
 static PyObject*
+PyWcsprm_cdfix(
+    PyWcsprm* self) {
+
+  int status = 0;
+
+  wcsprm_python2c(&self->x);
+  status = cdfix(&self->x);
+  wcsprm_c2python(&self->x);
+
+  if (status == -1 || status == 0) {
+    #if PY3K
+    return PyLong_FromLong((long)status);
+    #else
+    return PyInt_FromLong((long)status);
+    #endif
+  } else {
+    wcserr_fix_to_python_exc(self->x.err);
+    return NULL;
+  }
+}
+
+static PyObject*
 PyWcsprm_celfix(
     PyWcsprm* self) {
 
@@ -601,6 +623,7 @@ PyWcsprm_fix(
     const int index;
   };
   const struct message_map_entry message_map[NWCSFIX] = {
+    {"cdfix", CDFIX},
     {"datfix", DATFIX},
     {"unitfix", UNITFIX},
     {"celfix", CELFIX},
@@ -640,7 +663,8 @@ PyWcsprm_fix(
     naxis = (int*)PyArray_DATA(naxis_array);
   }
 
-  /* TODO: Use wcsfixi */
+  bzero(err, sizeof(struct wcserr) * NWCSFIX);
+
   wcsprm_python2c(&self->x);
   wcsfixi(ctrl, naxis, &self->x, stat, err);
   wcsprm_c2python(&self->x);
@@ -654,14 +678,15 @@ PyWcsprm_fix(
     return NULL;
   }
 
-  for (i = 0; i < 5; ++i) {
+  for (i = 0; i < NWCSFIX; ++i) {
     msg_index = stat[message_map[i].index];
-    if (msg_index > 0 && msg_index < 12) {
-      message = err[message_map[i].index].msg;
-    } else if (msg_index == 0) {
-      message = "Success";
-    } else {
-      message = "No change";
+    message = err[message_map[i].index].msg;
+    if (message == NULL || message[0] == 0) {
+      if (msg_index == FIXERR_SUCCESS) {
+        message = "Success";
+      } else {
+        message = "No change";
+      }
     }
     #if PY3K
     subresult = PyUnicode_FromString(message);
@@ -3091,6 +3116,7 @@ static PyGetSetDef PyWcsprm_getset[] = {
 };
 
 static PyMethodDef PyWcsprm_methods[] = {
+  {"cdfix", (PyCFunction)PyWcsprm_cdfix, METH_NOARGS, doc_cdfix},
   {"celfix", (PyCFunction)PyWcsprm_celfix, METH_NOARGS, doc_celfix},
   {"__copy__", (PyCFunction)PyWcsprm_copy, METH_NOARGS, doc_copy},
   {"cylfix", (PyCFunction)PyWcsprm_cylfix, METH_VARARGS|METH_KEYWORDS, doc_cylfix},

@@ -291,6 +291,7 @@ def test_equinox():
 def test_fix():
     w = _wcs._Wcsprm()
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
         'datfix': 'No change',
         'spcfix': 'No change',
@@ -302,6 +303,7 @@ def test_fix2():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/99')
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
         'datfix': 'Success',
         'spcfix': 'No change',
@@ -315,6 +317,7 @@ def test_fix3():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/F9')
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
         'datfix': "Invalid parameter value: invalid date '31/12/F9'",
         'spcfix': 'No change',

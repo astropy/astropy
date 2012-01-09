@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsfix.h,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: wcsfix.h,v 4.8.1.2 2011/11/17 03:23:16 cal103 Exp cal103 $
 *=============================================================================
 *
 * WCSLIB 4.8 - C routines that implement the FITS World Coordinate System
@@ -221,8 +221,12 @@
 * Function return value:
 *             int       Status return value:
 *                        -1: No change required (not an error).
-*                         0: Success.
+*                         0: Success (an alias was applied).
 *                         1: Null wcsprm pointer passed.
+*
+*                       When units are translated (i.e. status 0), status -2
+*                       is set in the wcserr struct to allow an informative
+*                       message to be returned.
 *
 *
 * celfix() - Translate AIPS-convention celestial projection types
@@ -349,6 +353,7 @@ extern const char *wcsfix_errmsg[];
 #define cylfix_errmsg wcsfix_errmsg
 
 enum wcsfix_errmsg_enum {
+  FIXERR_UNITS_ALIAS      = -2,	/* Units alias translation. */
   FIXERR_NO_CHANGE        = -1,	/* No change. */
   FIXERR_SUCCESS          =  0,	/* Success. */
   FIXERR_NULL_POINTER     =  1,	/* Null wcsprm pointer passed. */
@@ -368,7 +373,6 @@ enum wcsfix_errmsg_enum {
 				   coordinate. */
   FIXERR_NO_REF_PIX_VAL   = 10,	/* Could not determine reference pixel
 				   value. */
-  FIXERR_APPLIED_UNIT_ALIAS = 11 /* Applied a unit alias. */
 };
 
 int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[]);

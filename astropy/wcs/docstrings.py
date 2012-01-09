@@ -225,6 +225,23 @@ matrix may be deleted by::
 An undefined value is represented by NaN.
 """
 
+cdfix = """
+cdfix()
+
+Fix erroneously omitted ``CDi_ja`` keywords.
+
+Sets the diagonal element of the ``CDi_ja`` matrix to unity if all
+``CDi_ja`` keywords associated with a given axis were omitted.
+According to Paper I, if any ``CDi_ja`` keywords at all are given in a
+FITS header then those not given default to zero.  This results in a
+singular matrix with an intersecting row and column of zeros.
+
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
+"""
+
 cel_offset = """
 ``boolean``
 
@@ -675,6 +692,8 @@ status : dict
     Returns a dictionary containing the following keys, each referring
     to a status string for each of the sub-fix functions that were
     called:
+
+    - `~astropy.wcs.Wcsprm.cdfix`
 
     - `~astropy.wcs.Wcsprm.datfix`
 
