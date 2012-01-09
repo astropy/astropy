@@ -207,6 +207,14 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                         del extensions[idx]
                         break
 
+    # On Microsoft compilers, we need to pass the '/MANIFEST'
+    # commandline argument.  This was the default on MSVC 9.0, but is
+    # now required on MSVC 10.0, but it doesn't seeem to hurt to add
+    # it unconditionally.
+    if sys.platform.startswith('win'):
+        for ext in extensions:
+            ext.extra_link_args.append('/MANIFEST')
+
 
 def iter_setup_packages(srcdir):
     """ A generator that finds and imports all of the ``setup_package.py``
@@ -369,6 +377,9 @@ def adjust_compiler():
         ]
 
     c = ccompiler.new_compiler()
+    # The MSVC ccompiler class doesn't have a `compiler` member.
+    if not hasattr(c, 'compiler'):
+        return
     process = subprocess.Popen(
         c.compiler + ['--version'], stdout=subprocess.PIPE)
     output = process.communicate()[0].strip()

@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ...tests.helper import remote_data,raises
 
+import io
+
 TESTURL = 'http://www.google.com/index.html'
 
 @remote_data
@@ -61,25 +63,24 @@ def test_local_data_nonlocalfail():
     #this would go *outside* the atropy tree
     fn = get_data_filename('../../../data/README.rst')
 
-def test_compute_hash():
+def test_compute_hash(tmpdir):
     import string
-    import random
     import tempfile
     import hashlib
     from ..data import compute_hash
 
-    #generate a random string of 25 characters
-    rands = ''.join(random.choice(string.ascii_letters) for x in range(25))
+    rands = b'1234567890abcdefghijklmnopqrstuvwxyz'
 
-    with tempfile.NamedTemporaryFile('w+') as ntf:
+    filename = tmpdir.join('tmp.dat').strpath
+
+    with io.open(filename, 'wb') as ntf:
         ntf.write(rands)
         ntf.flush()
 
-        chhash = compute_hash(ntf.name)
-        # the encode() call is necessary for py3.x compatibility
-        shash = hashlib.md5(rands.encode()).hexdigest()
+    chhash = compute_hash(filename)
+    shash = hashlib.md5(rands).hexdigest()
 
-        assert chhash==shash
+    assert chhash==shash
 
 
 def test_get_data_contents():

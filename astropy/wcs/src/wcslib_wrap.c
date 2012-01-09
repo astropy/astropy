@@ -628,8 +628,7 @@ PyWcsprm_fix(
     {"unitfix", UNITFIX},
     {"celfix", CELFIX},
     {"spcfix", SPCFIX},
-    {"cylfix", CYLFIX},
-    {NULL}
+    {"cylfix", CYLFIX}
   };
   const char* keywords[] = {"translate_units", "naxis", NULL};
 
@@ -663,7 +662,7 @@ PyWcsprm_fix(
     naxis = (int*)PyArray_DATA(naxis_array);
   }
 
-  bzero(err, sizeof(struct wcserr) * NWCSFIX);
+  memset(err, 0, sizeof(struct wcserr) * NWCSFIX);
 
   wcsprm_python2c(&self->x);
   wcsfixi(ctrl, naxis, &self->x, stat, err);

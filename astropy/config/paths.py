@@ -139,15 +139,16 @@ def get_cache_dir():
                 return path.abspath(xchpth)
             else:
                 linkto = xchpth
-                
+
     return path.abspath(_find_or_create_astropy_dir('cache',linkto))
-    
+
 def _find_or_create_astropy_dir(dirnm,linkto):
-    from os import path,mkdir,symlink
-    
+    from os import path,mkdir
+    import sys
+
     innerdir = path.join(_find_home(),'.astropy')
     maindir = path.join(_find_home(),'.astropy',dirnm)
-    
+
     if not path.exists(maindir):
         #first create .astropy dir if needed
         if not path.exists(innerdir):
@@ -155,14 +156,18 @@ def _find_or_create_astropy_dir(dirnm,linkto):
         elif not path.isdir(innerdir):
             msg = 'Intended Astropy directory {0} is actually a file.'
             raise IOError(msg.format(innerdir))
-            
+
         mkdir(maindir)
 
-        if linkto is not None and not path.exists(linkto):
+        if (not sys.platform.startswith('win') and
+            linkto is not None and
+            not path.exists(linkto)):
+            from os import symlink
             symlink(maindir,linkto)
+
     elif not path.isdir(maindir):
         msg = 'Intended Astropy {0} directory {1} is actually a file.'
         raise IOError(msg.format(dirnm,maindir))
-    
+
     return path.abspath(maindir)
 
