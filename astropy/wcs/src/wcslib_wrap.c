@@ -662,7 +662,7 @@ PyWcsprm_fix(
     naxis = (int*)PyArray_DATA(naxis_array);
   }
 
-  bzero(err, sizeof(struct wcserr) * NWCSFIX);
+  memset(err, 0, sizeof(struct wcserr) * NWCSFIX);
 
   wcsprm_python2c(&self->x);
   wcsfixi(ctrl, naxis, &self->x, stat, err);
