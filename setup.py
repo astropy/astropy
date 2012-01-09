@@ -6,6 +6,7 @@ from distribute_setup import use_setuptools
 use_setuptools()
 
 import glob
+import os
 from setuptools import setup, find_packages
 
 import astropy
@@ -34,8 +35,8 @@ generate_version_py('astropy', version, release,
 packagenames = find_packages()
 
 # Treat everything in scripts except README.rst as a script to be installed
-scripts = glob.glob('scripts/*')
-scripts.remove('scripts/README.rst')
+scripts = glob.glob(os.path.join('scripts', '*'))
+scripts.remove(os.path.join('scripts', 'README.rst'))
 
 # Check that Numpy is installed.
 # NOTE: We cannot use setuptools/distribute/packaging to handle this

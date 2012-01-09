@@ -30,6 +30,10 @@
 /******************************************************************************
  * Convenience macros and functions
  ******************************************************************************/
+#ifdef _MSC_VER
+#define inline
+#endif
+
 #undef  CLAMP
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
@@ -80,6 +84,12 @@ typedef int Py_ssize_t;
 #else
 # define TD_AS_INT      0x54440000
 # define TD_AS_INT_MASK 0xffffff00
+#endif
+
+/* Clang doesn't like the hackish stuff PyTuple_SET_ITEM does... */
+#ifdef __clang__
+#undef PyTuple_SET_ITEM
+#define PyTuple_SET_ITEM(a, b, c) PyTuple_SetItem((a), (b), (c))
 #endif
 
 /******************************************************************************

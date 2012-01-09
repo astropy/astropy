@@ -628,8 +628,7 @@ PyWcsprm_fix(
     {"unitfix", UNITFIX},
     {"celfix", CELFIX},
     {"spcfix", SPCFIX},
-    {"cylfix", CYLFIX},
-    {NULL}
+    {"cylfix", CYLFIX}
   };
   const char* keywords[] = {"translate_units", "naxis", NULL};
 
