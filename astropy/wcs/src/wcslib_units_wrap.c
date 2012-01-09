@@ -146,7 +146,7 @@ PyUnits_init(
 PyUnits___str__(
     PyUnits* self) {
 
-  const size_t BUF_SIZE = 1 << 8;
+  #define BUF_SIZE (1 << 8)
   char buffer[BUF_SIZE];
   char scale[BUF_SIZE];
   char offset[BUF_SIZE];
