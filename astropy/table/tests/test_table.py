@@ -467,3 +467,14 @@ class TestIterator():
         t = Table(d)
         for row, np_row in zip(t, d):
             assert np.all(row == np_row)
+
+class TestSetMeta():
+
+    def test_set_meta(self):
+        d = Table(names=('a', 'b'))
+        d.meta['a'] = 1
+        d.meta['b'] = 1
+        d.meta['c'] = 1
+        d.meta['d'] = 1
+        assert list(d.meta.keys()) == ['a', 'b', 'c', 'd']
+        

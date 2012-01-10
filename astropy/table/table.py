@@ -339,12 +339,12 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, names=None, dtypes=None, meta={}, copy=True):
+    def __init__(self, data=None, names=None, dtypes=None, meta=None, copy=True):
 
         # Set up a placeholder empty table
         self._data = None
         self.columns = TableColumns()
-        self.meta = deepcopy(meta)
+        self.meta = OrderedDict() if meta is None else deepcopy(meta)
 
         # Must copy if dtypes are changing
         if not copy and dtypes is not None:
