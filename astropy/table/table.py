@@ -559,7 +559,10 @@ class Table(object):
             raise
 
     def __delitem__(self, item):
-        self.remove_column(item)
+        if isinstance(item, basestring):
+            self.remove_column(item)
+        elif isinstance(item, tuple):
+            self.remove_columns(item)
 
     def __iter__(self):
         self._iter_index = 0

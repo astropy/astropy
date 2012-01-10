@@ -368,6 +368,10 @@ class TestRemove():
         del self.t2['b']
         assert self.t2.colnames == ['a', 'c']
 
+    def test_delitems(self):
+        del self.t2['a', 'b']
+        assert self.t2.colnames == ['c']
+
     def test_delitem_fail(self):
         with pytest.raises(KeyError):
             del self.t['d']
