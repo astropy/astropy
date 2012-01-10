@@ -2,7 +2,7 @@
 
 """
 The `nddata` package manages n-dimensional array based data (e.g. CCD
-images, IFU Data, optical spectra, ...)
+images, IFU Data, grid-based simulation data, ...)
 """
 
 from .nddata import *

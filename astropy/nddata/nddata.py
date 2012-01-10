@@ -11,12 +11,13 @@ class NDData(object):
 
     `NDData` provides a superclass for all array-based data. The key
     distinction from raw numpy arrays is the presence of additional metadata
-    such as error arrays, bad pixel masks, or coordinates.
+    such as error arrays, bad pixel masks, units and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
+        
     error : `~numpy.ndarray`, optional
         Error of the data. This should be interpreted as a 1-sigma error (e.g,
         square root of the variance), under the assumption of Gaussian errors.
@@ -33,6 +34,7 @@ class NDData(object):
         Masking of the data; Should be False/0 (or the empty string) where the
         data is *valid*.  All other values indicate that the value should be
         masked. Must be a shape that can be broadcast onto `data`.
+        
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
 
@@ -43,11 +45,10 @@ class NDData(object):
 
     meta : `dict`-like object, optional
         Metadata for this object.  "Metadata" here means all information that
-        is included with this object but not part of the python representation
-        of this particular object.  e.g., exposure times, instrument or
-        telescope status information, observatory location information, etc.
-        Basically the same kind of stuff you would typcially find in a FITS
-        header.
+        is included with this object but not part of any other attribute 
+        of this particular object.  e.g., creation date, unique identifier, 
+        simulation parameters, exposure time, telescope name, etc.
+        
     units : undefined, optional
         The units of the data.
 
@@ -60,6 +61,7 @@ class NDData(object):
         If True, the array will be *copied* from the provided `data`, otherwise
         it will be referenced if possible (see `numpy.array` :attr:`copy`
         argument for details).
+        
     validate : bool, optional
         If False, no type or shape-checking or array conversion will occur.
         Note that if `validate` is False, :attr:`copy` will be ignored.
@@ -104,8 +106,7 @@ class NDData(object):
 
     def _validate_mask_and_error(self):
         """
-        Raises ValueError if they don't match or TypeError if `mask` is not
-        bool-like
+        Raises ValueError if they don't match (using ~numpy.broadcast)
         """
 
         try:
@@ -168,3 +169,11 @@ class NDData(object):
         `numpy.dtype` of this object's data.
         """
         return self.data.dtype
+
+    @property
+    def ndim(self):
+        """
+        integer dimensions of this object's data
+        """
+        return self.data.ndim
+        
