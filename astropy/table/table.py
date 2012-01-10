@@ -19,6 +19,18 @@ def _auto_names(n_cols):
 
 
 class TableColumns(OrderedDict):
+    """OrderedDict subclass for a set of columns.
+
+    This class enhances item access to provide convenient access to columns
+    by name or index, including slice access.  It also handles renaming
+    of columns.
+
+    Parameters
+    ----------
+    cols : dict, optional
+        Dict of column objects
+    """
+
     def __init__(self, cols={}):
         if isinstance(cols, (list, tuple)):
             cols = [(col.name, col) for col in cols]
