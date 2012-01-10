@@ -242,6 +242,24 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert t['d'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
 
+    def test_init_from_columns(self):
+        t = Table(self.data)
+        t2 = Table(t.columns['z', 'x', 'y'])
+        assert t2.colnames == ['z', 'x', 'y']
+        assert t2._data.dtype.names == ('z', 'x', 'y')
+
+    def test_init_from_columns_slice(self):
+        t = Table(self.data)
+        t2 = Table(t.columns[0:2])
+        assert t2.colnames == ['x', 'y']
+        assert t2._data.dtype.names == ('x', 'y')
+
+    def test_init_from_columns_mix(self):
+        t = Table(self.data)
+        t2 = Table([t.columns[0], t.columns['z']])
+        assert t2.colnames == ['x', 'z']
+        assert t2._data.dtype.names == ('x', 'z')
+
 
 class TestInitFromNone():
     # Note table_table.TestEmptyData tests initializing a completely empty
