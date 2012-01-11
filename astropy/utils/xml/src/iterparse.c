@@ -1027,10 +1027,12 @@ static PyMethodDef IterParser_methods[] =
 
 static PyTypeObject IterParserType =
 {
+    #if PY3K
+    PyVarObject_HEAD_INIT(NULL, 0)
+    #else
     PyObject_HEAD_INIT(NULL)
-#ifndef IS_PY3K
-    0,                          /*ob_size*/
-#endif
+    0,                            /*ob_size*/
+    #endif
     "astropy.utils.xml._iterparser.IterParser",    /*tp_name*/
     sizeof(IterParser),         /*tp_basicsize*/
     0,                          /*tp_itemsize*/
