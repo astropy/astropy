@@ -1027,7 +1027,7 @@ static PyMethodDef IterParser_methods[] =
 
 static PyTypeObject IterParserType =
 {
-    #if PY3K
+    #ifdef IS_PY3K
     PyVarObject_HEAD_INIT(NULL, 0)
     #else
     PyObject_HEAD_INIT(NULL)
