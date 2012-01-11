@@ -24,11 +24,6 @@ Using `pip`
 
 TODO: Write once we’re up on PyPI.
 
-Using `easy_install`
-````````````````````
-
-TODO: Is this worth mentioning, or already obsolete?
-
 Binary installers
 `````````````````
 
@@ -41,10 +36,12 @@ Prerequisites
 `````````````
 
 You will need a compiler suite and the development headers for Python
-and Numpy in order to build Astropy.
+and Numpy in order to build Astropy.  Using the package manager for
+your platform will usually be the easiest route.
 
-TODO: Write some platform-specific information about getting these
-prerequisites.
+The `instructions for building Numpy from source
+<http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
+resource for setting up your environment to build Python packages.
 
 Obtaining the source
 ````````````````````
@@ -65,8 +62,11 @@ using this command::
 
    git clone git://github.com/astropy/astropy.git
 
-If you wish to participate in the development of Astropy, see
-:ref:`developer-docs`.
+.. note::
+
+   If you wish to participate in the development of Astropy, see
+   :ref:`developer-docs`.  This document covers only the basics
+   necessary to install Astropy.
 
 Building and Installing
 ```````````````````````
