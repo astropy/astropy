@@ -5,6 +5,9 @@ Documentation Guidelines (Draft)
 .. warning::
     This document is currently in Draft form and is subject to change.
 
+TODO: Detailed information about building the documentation should be
+added here.
+
 Astropy Documentation Rules and Recommendations
 -----------------------------------------------
 
