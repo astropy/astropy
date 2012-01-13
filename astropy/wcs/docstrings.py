@@ -654,8 +654,8 @@ fix(translate_units='', naxis=0)
 
 Applies all of the corrections handled separately by
 `~astropy.wcs.Wcsprm.datfix`, `~astropy.wcs.Wcsprm.unitfix`,
-`~astropy.wcs.Wcsprm.celfix`, `~astropy.wcs.Wcsprm.spcfix` and
-`~astropy.wcs.Wcsprm.cylfix`.
+`~astropy.wcs.Wcsprm.celfix`, `~astropy.wcs.Wcsprm.spcfix`,
+`~astropy.wcs.Wcsprm.cylfix` and `~astropy.wcs.Wcsprm.cdfix`.
 
 Parameters
 ----------
@@ -760,7 +760,7 @@ ps : list of tuples
 
 See also
 --------
-astropy.wcs.Wcsprm.set_ps : Set PSi_ma values
+astropy.wcs.Wcsprm.set_ps : Set ``PSi_ma`` values
 """
 
 get_pv = """
@@ -781,7 +781,7 @@ Returns
 
 See also
 --------
-astropy.wcs.Wcsprm.set_pv : Set `PVi_ma` values
+astropy.wcs.Wcsprm.set_pv : Set ``PVi_ma`` values
 
 Notes
 -----
@@ -848,7 +848,7 @@ astropy.wcs.Wcsprm.crota : Get the raw ``CROTAia`` values
 """
 
 has_crotaia = """
-has_crota_ia() -> bool
+has_crotaia() -> bool
 
 Alias for `~astropy.wcs.Wcsprm.has_crota`.  Maintained for backward
 compatibility.
