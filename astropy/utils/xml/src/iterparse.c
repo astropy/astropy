@@ -1302,10 +1302,10 @@ init_iterparser(void)
     m = Py_InitModule3("_iterparser", module_methods, "Fast XML parser");
 #endif
 
-    if (PyType_Ready(&IterParserType) < 0)
+    if (m == NULL)
         INITERROR;
 
-    if (m == NULL)
+    if (PyType_Ready(&IterParserType) < 0)
         INITERROR;
 
     Py_INCREF(&IterParserType);
