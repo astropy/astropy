@@ -10,10 +10,10 @@ configuration files for Astropy and affiliated packages.
 """
 
 from __future__ import division
-from ..extern.configobj import configobj,validate
+from ..extern.configobj import configobj, validate
 
-__all__ = ['ConfigurationItem','InvalidConfigurationItemWarning','get_config',
-           'save_config','reload_config']
+__all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
+            'get_config', 'save_config', 'reload_config']
 
 
 class InvalidConfigurationItemWarning(Warning):
@@ -21,6 +21,7 @@ class InvalidConfigurationItemWarning(Warning):
     astropy configuration file does not match the type expected for that
     configuration value.
     """
+
 
 class ConfigurationItem(object):
     """ A setting and associated value stored in the astropy configuration
@@ -85,7 +86,7 @@ class ConfigurationItem(object):
     #have to be created every time
     _validator = validate.Validator()
 
-    def __init__(self,name,defaultvalue='',description=None,cfgtype=None,
+    def __init__(self, name, defaultvalue='', description=None, cfgtype=None,
                       module=None):
         from warnings import warn
         from ..utils import find_current_module
@@ -95,7 +96,7 @@ class ConfigurationItem(object):
             if module is None:
                 msg1 = 'Cannot automatically determine get_config module, '
                 msg2 = 'because it is not called from inside a valid module'
-                raise RuntimeError(msg1+msg2)
+                raise RuntimeError(msg1 + msg2)
             else:
                 module = module.__name__
 
@@ -105,16 +106,16 @@ class ConfigurationItem(object):
 
         #now determine cfgtype if it is not given
         if cfgtype is None:
-            if isinstance(defaultvalue,list):
+            if isinstance(defaultvalue, list):
                 #it is an options list
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
                 defaultvalue = dvstr[0]
-            elif isinstance(defaultvalue,bool):
+            elif isinstance(defaultvalue, bool):
                 cfgtype = 'boolean'
-            elif isinstance(defaultvalue,int):
+            elif isinstance(defaultvalue, int):
                 cfgtype = 'integer'
-            elif isinstance(defaultvalue,float):
+            elif isinstance(defaultvalue, float):
                 cfgtype = 'float'
             else:
                 cfgtype = 'string'
@@ -140,7 +141,7 @@ class ConfigurationItem(object):
             else:
                 raise
 
-    def set(self,value):
+    def set(self, value):
         """ Sets the current value of this `ConfigurationItem`.
 
         This also updates the comments that give the description and type
@@ -165,14 +166,14 @@ class ConfigurationItem(object):
             value = self._validate_val(value)
         except validate.ValidateError as e:
             msg = 'Provided value for configuration item {0} not valid: {1}'
-            raise TypeError(msg.format(self.name,e.args[0]))
+            raise TypeError(msg.format(self.name, e.args[0]))
 
         sec = get_config(self.module)
 
         sec[self.name] = value
         sec.comments[self.name] = self._generate_comments()
 
-    def save(self,value=None):
+    def save(self, value=None):
         """ Writes a value for this `ConfigurationItem` to the relevant
         configuration file.
 
@@ -199,7 +200,7 @@ class ConfigurationItem(object):
             value = self() if value is None else self._validate_val(value)
         except validate.ValidateError as e:
             msg = 'Provided value for configuration item {0} not valid: {1}'
-            raise TypeError(msg.format(self.name,e.args[0]))
+            raise TypeError(msg.format(self.name, e.args[0]))
 
         #Now find the  ConfigObj that this is based on
         baseobj = get_config(self.module)
@@ -244,7 +245,6 @@ class ConfigurationItem(object):
 
         baseobj[self.name] = newobj[self.name]
 
-
     def __call__(self):
         """ Returns the value of this `ConfigurationItem`
 
@@ -269,10 +269,9 @@ class ConfigurationItem(object):
         try:
             return self._validate_val(val)
         except validate.ValidateError as e:
-            raise TypeError('Configuration value not valid:'+e.args[0])
+            raise TypeError('Configuration value not valid:' + e.args[0])
 
-
-    def _validate_val(self,val):
+    def _validate_val(self, val):
         """ Validates the provided value based on cfgtype and returns the
         type-cast value
 
@@ -281,7 +280,7 @@ class ConfigurationItem(object):
         #note that this will normally use the *class* attribute `_validator`,
         #but if some arcane reason is needed for making a special one for an
         #instance or sub-class, it will be used
-        return self._validator.check(self.cfgtype,val)
+        return self._validator.check(self.cfgtype, val)
 
     def _generate_comments(self):
         comments = []
@@ -289,13 +288,16 @@ class ConfigurationItem(object):
             comments.append(self.description)
         if self.cfgtype is not None:
             comments.append(self.cfgtype)
-        comments.append('') #adds a blank line after every entry
+        comments.append('')  # adds a blank line after every entry
         return comments
+
 
 # this dictionary stores the master copy of the ConfigObj's for each
 # root package
 _cfgobjs = {}
-def get_config(packageormod=None,reload=False):
+
+
+def get_config(packageormod=None, reload=False):
     """ Gets the configuration object or section associated with a particular
     package or module.
 
@@ -337,17 +339,18 @@ def get_config(packageormod=None,reload=False):
     rootname = packageormodspl[0]
     secname = '.'.join(packageormodspl[1:])
 
-    cobj = _cfgobjs.get(rootname,None)
+    cobj = _cfgobjs.get(rootname, None)
     if cobj is None:
-        cfgfn = join(get_config_dir(),rootname+'.cfg')
+        cfgfn = join(get_config_dir(), rootname + '.cfg')
         _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
 
-    if secname: #not the root package
+    if secname:  # not the root package
         if secname not in cobj:
             cobj[secname] = {}
         return cobj[secname]
     else:
         return cobj
+
 
 def save_config(packageormod=None):
     """ Saves all configuration settings to the configuration file for the
@@ -374,6 +377,7 @@ def save_config(packageormod=None):
         sec = sec.parent
     sec.write()
 
+
 def reload_config(packageormod=None):
     """ Reloads configuration settings from a configuration file for the root
     package of the requested package/module.
@@ -394,7 +398,8 @@ def reload_config(packageormod=None):
         sec = sec.parent
     sec.reload()
 
-def _generate_all_config_items(pkgornm=None,reset_to_default=False):
+
+def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     """ Given a root package name or package, this function simply walks through
     all the subpackages and modules, which should populate any ConfigurationItem
     objects defined at the module level. If `reset_to_default` is True, it also
@@ -405,7 +410,7 @@ def _generate_all_config_items(pkgornm=None,reset_to_default=False):
     the function where this function is called. Be a bit cautious about this,
     though - this might not always be what you want.
     """
-    from pkgutil import find_module,walk_packages
+    from pkgutil import find_module, walk_packages
     from types import ModuleType
 
     from ..utils import find_current_module
@@ -413,19 +418,19 @@ def _generate_all_config_items(pkgornm=None,reset_to_default=False):
     if pkgornm is None:
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
-    if isinstance(pkgornm,basestring):
+    if isinstance(pkgornm, basestring):
         package = find_module(pkgornm).load_module(pkgornm)
-    elif isinstance(pkgornm,ModuleType) and '__init__' in pkgornm.__file__:
+    elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
     else:
         msg = '_generate_all_config_items was not given a package/package name'
         raise TypeError(msg)
 
-    for imper,nm,ispkg in walk_packages(package.__path__,package.__name__+'.'):
+    for imper, nm, ispkg in walk_packages(package.__path__,
+                                          package.__name__ + '.'):
         mod = imper.load_module(nm)
         if reset_to_default:
             for v in mod.__dict__.itervalues():
-                if isinstance(v,ConfigurationItem):
+                if isinstance(v, ConfigurationItem):
                     v.set(v.defaultvalue)
     save_config(package.__name__)
-

@@ -4,7 +4,7 @@ caching data files.
 """
 
 from __future__ import division
-from .configs import ConfigurationItem,save_config
+from .configs import ConfigurationItem
 from sys import version_info
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
@@ -12,24 +12,27 @@ __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
            'clear_data_cache']
 
 DATAURL = ConfigurationItem(
-    'dataurl','http://data.astropy.org/','URL for astropy remote data site.')
+    'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
 REMOTE_TIMEOUT = ConfigurationItem(
-    'remote_timeout',3.,'Time to wait for remote data query (in seconds).')
+    'remote_timeout', 3., 'Time to wait for remote data query (in seconds).')
 COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem(
-    'hash_block_size', 2**16, 'Block size for computing MD5 file hashes.') #64K
+    'hash_block_size', 2 ** 16,  # 64K
+    'Block size for computing MD5 file hashes.')
 DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem(
-    'data_dl_block_size', 2**16, #64K
+    'data_dl_block_size', 2 ** 16,  # 64K
     'Number of bytes of remote data to download per step.')
 DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
-    'data_cache_lock_attempts',3,'Number of times to try to get the lock ' +
+    'data_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
     'while accessing the data cache before giving up.')
 
-if version_info[0]<3:
+if version_info[0] < 3:
     #used for supporting with statements in get_data_fileobj
     def _fake_enter(self):
         return self
+
     def _fake_exit(self, type, value, traceback):
         self.close()
+
 
 def get_data_fileobj(dataname, cache=True):
     """
@@ -112,9 +115,9 @@ def get_data_fileobj(dataname, cache=True):
         return open(get_data_filename(dataname), 'rb')
     else:
         url = urlparse(dataname)
-        if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
+        if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
             #it's actually a url for a net location
-            urlres = urlopen(dataname,timeout=REMOTE_TIMEOUT())
+            urlres = urlopen(dataname, timeout=REMOTE_TIMEOUT())
         else:
             datafn = _find_pkg_data_path(dataname)
             if isdir(datafn):
@@ -125,9 +128,9 @@ def get_data_fileobj(dataname, cache=True):
                 return open(datafn, 'rb')
             else:
                 #not local file - need to get remote data
-                urlres = urlopen(DATAURL() + datafn,timeout=REMOTE_TIMEOUT())
+                urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
 
-                if version_info[0]<3:
+                if version_info[0] < 3:
                     #need to add in context managers to support with urlopen
                     urlres.__enter__ = MethodType(_fake_enter, urlres)
                     urlres.__exit__ = MethodType(_fake_exit, urlres)
@@ -209,7 +212,7 @@ def get_data_filename(dataname):
     from urlparse import urlparse
 
     url = urlparse(dataname)
-    if url[0] != '': #url[0]==url.scheme, but url[0] is py 2.6-compat
+    if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
         #it's actually a url for a net location
         return _cache_remote(dataname)
     elif dataname.startswith('hash/'):
@@ -410,9 +413,7 @@ def compute_hash(localfn):
     """
     import hashlib
 
-
-
-    with open(localfn,'rb') as f:
+    with open(localfn, 'rb') as f:
         h = hashlib.md5()
         block = f.read(COMPUTE_HASH_BLOCK_SIZE())
         while block:
@@ -450,14 +451,15 @@ def _find_hash_fn(hash):
     Looks for a local file by hash - returns file name if found and a valid
     file, otherwise returns None.
     """
-    from os.path import isfile,join
+    from os.path import isfile, join
 
-    dldir,urlmapfn = _get_data_cache_locs()
-    hashfn = join(dldir,hash)
+    dldir, urlmapfn = _get_data_cache_locs()
+    hashfn = join(dldir, hash)
     if isfile(hashfn):
         return hashfn
     else:
         return None
+
 
 def _cache_remote(remoteurl):
     """
@@ -472,16 +474,17 @@ def _cache_remote(remoteurl):
     from urllib2 import urlopen
     from ..utils.console import ProgressBarOrSpinner
 
-    dldir,urlmapfn = _get_data_cache_locs()
+    dldir, urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
     try:
-        with _open_shelve(urlmapfn,True) as url2hash:
+        with _open_shelve(urlmapfn, True) as url2hash:
             if str(remoteurl) in url2hash:
                 localpath = url2hash[str(remoteurl)]
             else:
-                with closing(urlopen(remoteurl,timeout=REMOTE_TIMEOUT())) as remote:
+                with closing(urlopen(remoteurl,
+                                     timeout=REMOTE_TIMEOUT())) as remote:
                     #save the file to a temporary file
-                    tmpfn = join(dldir,'cachedl.tmp')
+                    tmpfn = join(dldir, 'cachedl.tmp')
                     hash = hashlib.md5()
 
                     info = remote.info()
@@ -505,8 +508,8 @@ def _cache_remote(remoteurl):
                             p.update(bytes_read)
                             block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
 
-                    localpath = join(dldir,hash.hexdigest())
-                    move(tmpfn,localpath)
+                    localpath = join(dldir, hash.hexdigest())
+                    move(tmpfn, localpath)
                     url2hash[str(remoteurl)] = localpath
     finally:
         _release_data_cache_lock()
@@ -531,10 +534,10 @@ def clear_data_cache(hashorurl=None):
 
     """
     from os import unlink
-    from os.path import join, split, exists, abspath
+    from os.path import join, exists, abspath
     from shutil import rmtree
 
-    dldir,urlmapfn = _get_data_cache_locs()
+    dldir, urlmapfn = _get_data_cache_locs()
     _acquire_data_cache_lock()
     try:
 
@@ -544,15 +547,15 @@ def clear_data_cache(hashorurl=None):
             if exists(urlmapfn):
                 unlink(urlmapfn)
         else:
-            with _open_shelve(urlmapfn,True) as url2hash:
+            with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = join(dldir, hashorurl)
                 assert abspath(filepath).startswith(abspath(dldir)), \
                        ("attempted to use clear_data_cache on a location" +
                         " that's not inside the data cache directory")
 
                 if exists(filepath):
-                    for k,v in url2hash.items():
-                        if v==filepath:
+                    for k, v in url2hash.items():
+                        if v == filepath:
                             del url2hash[k]
                     unlink(filepath)
 
@@ -567,6 +570,7 @@ def clear_data_cache(hashorurl=None):
     finally:
         _release_data_cache_lock()
 
+
 def _get_data_cache_locs():
     """ Finds the path to the data cache directory.
 
@@ -578,7 +582,7 @@ def _get_data_cache_locs():
         The path to the shelve object that stores the cache info.
     """
     from .paths import get_cache_dir
-    from os.path import exists,isdir,join
+    from os.path import exists, isdir, join
     from os import mkdir
 
     datadir = join(get_cache_dir(), 'data')
@@ -593,9 +597,10 @@ def _get_data_cache_locs():
         msg = 'Data cache shelve object location {0} is a directory'
         raise IOError(msg.format(shelveloc))
 
-    return datadir,shelveloc
+    return datadir, shelveloc
 
-def _open_shelve(shelffn,withclosing=False):
+
+def _open_shelve(shelffn, withclosing=False):
     """
     opens a shelf in a way that is py3.x and py2.x compatible.  If
     `withclosing` is  True, it will be opened with closing, allowing use like:
@@ -607,15 +612,16 @@ def _open_shelve(shelffn,withclosing=False):
     from contextlib import closing
     from sys import version_info
 
-    if version_info[0]>2:
-        shelf = shelve.open(shelffn,protocol=2)
+    if version_info[0] > 2:
+        shelf = shelve.open(shelffn, protocol=2)
     else:
-        shelf = shelve.open(shelffn+'.db',protocol=2)
+        shelf = shelve.open(shelffn + '.db', protocol=2)
 
     if withclosing:
         return closing(shelf)
     else:
         return shelf
+
 
 #the cache directory must be locked before any writes are performed.  Same for
 #the hash shelve, so this should be used for both.  Note
@@ -624,7 +630,7 @@ def _acquire_data_cache_lock():
     from os import mkdir
     from time import sleep
 
-    lockdir = join(_get_data_cache_locs()[0],'lock')
+    lockdir = join(_get_data_cache_locs()[0], 'lock')
     for i in range(DATA_CACHE_LOCK_ATTEMPTS()):
         try:
             mkdir(lockdir)
@@ -635,15 +641,16 @@ def _acquire_data_cache_lock():
     msg = 'Unable to acquire lock for cache directory ({0} exists)'
     raise RuntimeError(msg.format(lockdir))
 
+
 def _release_data_cache_lock():
-    from os.path import join,exists,isdir
+    from os.path import join, exists, isdir
     from os import rmdir
 
-    lockdir = join(_get_data_cache_locs()[0],'lock')
+    lockdir = join(_get_data_cache_locs()[0], 'lock')
 
     if exists(lockdir) and isdir(lockdir):
         rmdir(lockdir)
     else:
-        msg = 'Error releasing lock. "{0}" either does not exist or is not '+\
+        msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\
               'a directory.'
         raise RuntimeError(msg.format(lockdir))
