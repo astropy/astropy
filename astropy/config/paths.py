@@ -84,8 +84,7 @@ def get_config_dir(create=True):
     This directory is typically ``$HOME/.astropy/config``, but if the
     XDG_CONFIG_HOME environment variable is set and the
     ``$XDG_CONFIG_HOME/astropy`` directory exists, it will be that directory.
-    If it neither exists, the former will be created and symlinked to the
-    latter.
+    If neither exists, the former will be created and symlinked to the latter.
 
     Returns
     -------
@@ -119,8 +118,7 @@ def get_cache_dir():
     This directory is typically ``$HOME/.astropy/cache``, but if the
     XDG_CACHE_HOME environment variable is set and the
     ``$XDG_CACHE_HOME/astropy`` directory exists, it will be that directory.
-    If it neither exists, the former will be created and symlinked to the
-    latter.
+    If neither exists, the former will be created and symlinked to the latter.
 
     Returns
     -------
