@@ -32,3 +32,6 @@ distribute-*.tar.gz
 # Other
 .*.swp
 *~
+
+# Mac OSX
+.DS_Store
