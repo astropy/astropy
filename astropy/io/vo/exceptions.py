@@ -990,6 +990,17 @@ class W49(VOTableSpecWarning):
     message = "Empty cell illegal for integer fields."
 
 
+class W50(VOTableSpecWarning):
+    """
+    Invalid unit string as defined in the `Standards for Astronomical
+    Catalogues, Version 2.0
+    <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_.
+    """
+
+    message = "Invalid unit string '%s'"
+    default_args = ('x',)
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be
