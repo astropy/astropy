@@ -130,12 +130,12 @@ def get_data_fileobj(dataname, cache=True):
                 #not local file - need to get remote data
                 urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
 
-                if version_info[0] < 3:
-                    #need to add in context managers to support with urlopen
-                    urlres.__enter__ = MethodType(_fake_enter, urlres)
-                    urlres.__exit__ = MethodType(_fake_exit, urlres)
+        if version_info[0] < 3:
+            #need to add in context managers to support with urlopen for <3.x
+            urlres.__enter__ = MethodType(_fake_enter, urlres)
+            urlres.__exit__ = MethodType(_fake_exit, urlres)
 
-                return urlres
+        return urlres
 
 
 def get_data_filename(dataname):
@@ -496,9 +496,9 @@ def _cache_remote(remoteurl):
                     else:
                         size = None
 
-                    with (ProgressBarOrSpinner(
-                            size, "Downloading {0}".format(remoteurl)),
-                          open(tmpfn, 'wb')) as (p, f):
+                    dlmsg = "Downloading {0}".format(remoteurl)
+                    with ProgressBarOrSpinner(size, dlmsg) as p, \
+                         open(tmpfn, 'wb') as f:
                         bytes_read = 0
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
                         while block:
