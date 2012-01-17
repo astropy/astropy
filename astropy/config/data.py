@@ -497,16 +497,16 @@ def _cache_remote(remoteurl):
                         size = None
 
                     dlmsg = "Downloading {0}".format(remoteurl)
-                    with ProgressBarOrSpinner(size, dlmsg) as p, \
-                         open(tmpfn, 'wb') as f:
-                        bytes_read = 0
-                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-                        while block:
-                            f.write(block)
-                            hash.update(block)
-                            bytes_read += len(block)
-                            p.update(bytes_read)
+                    with ProgressBarOrSpinner(size, dlmsg) as p:
+                        with open(tmpfn, 'wb') as f:
+                            bytes_read = 0
                             block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+                            while block:
+                                f.write(block)
+                                hash.update(block)
+                                bytes_read += len(block)
+                                p.update(bytes_read)
+                                block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
 
                     localpath = join(dldir, hash.hexdigest())
                     move(tmpfn, localpath)
