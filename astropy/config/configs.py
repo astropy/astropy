@@ -323,6 +323,8 @@ def get_config(packageormod=None, reload=False):
 
     """
     from os.path import join
+    from warnings import warn
+
     from .paths import get_config_dir
     from ..utils import find_current_module
 
@@ -341,8 +343,17 @@ def get_config(packageormod=None, reload=False):
 
     cobj = _cfgobjs.get(rootname, None)
     if cobj is None:
-        cfgfn = join(get_config_dir(), rootname + '.cfg')
-        _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+        try:
+            cfgfn = join(get_config_dir(), rootname + '.cfg')
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+        except (IOError, OSError) as e:
+            msg = 'Problem accessing configuration directory; defaults will' +\
+                  ' be used, and configuration cannot be saved:'
+            warn(msg + str(e.args[0]))
+
+            # Don't save to _cfgobjs - then every time the function is run, it
+            # will again try to access the astropy directory.
+            cobj = configobj.ConfigObj()
 
     if secname:  # not the root package
         if secname not in cobj:
