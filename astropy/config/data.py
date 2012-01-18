@@ -452,8 +452,14 @@ def _find_hash_fn(hash):
     file, otherwise returns None.
     """
     from os.path import isfile, join
+    from warnings import warn
 
-    dldir, urlmapfn = _get_data_cache_locs()
+    try:
+        dldir, urlmapfn = _get_data_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Could not access cache directory to search for data file: '
+        warn(msg + str(e))
+        return None
     hashfn = join(dldir, hash)
     if isfile(hashfn):
         return hashfn
@@ -470,49 +476,64 @@ def _cache_remote(remoteurl):
     import hashlib
     from contextlib import closing
     from os.path import join
+    from tempfile import NamedTemporaryFile
     from shutil import move
     from urllib2 import urlopen
+    from warnings import warn
+
     from ..utils.console import ProgressBarOrSpinner
 
-    dldir, urlmapfn = _get_data_cache_locs()
-    _acquire_data_cache_lock()
     try:
-        with _open_shelve(urlmapfn, True) as url2hash:
-            if str(remoteurl) in url2hash:
-                localpath = url2hash[str(remoteurl)]
+        dldir, urlmapfn = _get_data_cache_locs()
+        docache = True
+    except (IOError, OSError) as e:
+        msg = 'Remote data cache could not be accessed: '
+        warn(msg + str(e))
+        docache = False
+
+    if docache:
+        _acquire_data_cache_lock()
+    try:
+        if docache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                if str(remoteurl) in url2hash:
+                    return url2hash[str(remoteurl)]
+
+        with closing(urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
+            #keep a hash to rename the local file to the hashed name
+            hash = hashlib.md5()
+
+            info = remote.info()
+            if 'Content-Length' in info:
+                try:
+                    size = int(info['Content-Length'])
+                except ValueError:
+                    size = None
             else:
-                with closing(urlopen(remoteurl,
-                                     timeout=REMOTE_TIMEOUT())) as remote:
-                    #save the file to a temporary file
-                    tmpfn = join(dldir, 'cachedl.tmp')
-                    hash = hashlib.md5()
+                size = None
 
-                    info = remote.info()
-                    if 'Content-Length' in info:
-                        try:
-                            size = int(info['Content-Length'])
-                        except ValueError:
-                            size = None
-                    else:
-                        size = None
-
-                    dlmsg = "Downloading {0}".format(remoteurl)
-                    with ProgressBarOrSpinner(size, dlmsg) as p:
-                        with open(tmpfn, 'wb') as f:
-                            bytes_read = 0
-                            block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-                            while block:
-                                f.write(block)
-                                hash.update(block)
-                                bytes_read += len(block)
-                                p.update(bytes_read)
-                                block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-
-                    localpath = join(dldir, hash.hexdigest())
-                    move(tmpfn, localpath)
-                    url2hash[str(remoteurl)] = localpath
+            dlmsg = "Downloading {0}".format(remoteurl)
+            with ProgressBarOrSpinner(size, dlmsg) as p:
+                with NamedTemporaryFile(delete=False) as f:
+                    bytes_read = 0
+                    block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+                    while block:
+                        f.write(block)
+                        hash.update(block)
+                        bytes_read += len(block)
+                        p.update(bytes_read)
+                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+        if docache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                localpath = join(dldir, hash.hexdigest())
+                move(f.name, localpath)
+                url2hash[str(remoteurl)] = localpath
+        else:
+            msg = 'File downloaded to {0} due to lack of cache access.'
+            warn(msg.format(f.name))
     finally:
-        _release_data_cache_lock()
+        if docache:
+            _release_data_cache_lock()
 
     return localpath
 
@@ -536,8 +557,15 @@ def clear_data_cache(hashorurl=None):
     from os import unlink
     from os.path import join, exists, abspath
     from shutil import rmtree
+    from warnings import warn
 
-    dldir, urlmapfn = _get_data_cache_locs()
+    try:
+        dldir, urlmapfn = _get_data_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Not clearing data cache because cache could not be accessed: '
+        warn(msg + str(e))
+        return
+
     _acquire_data_cache_lock()
     try:
 
