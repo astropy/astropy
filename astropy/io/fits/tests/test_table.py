@@ -1727,7 +1727,7 @@ class TestTableFunctions(FitsTestCase):
         assert comparerecords(tbhdu.data, new_tbhdu.data)
 
         # Double check that the headers are equivalent
-        assert str(tbhdu.header.ascard) == str(new_tbhdu.header.ascard)
+        assert str(tbhdu.header) == str(new_tbhdu.header)
 
     def test_load_guess_format(self):
         """

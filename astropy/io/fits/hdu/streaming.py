@@ -10,6 +10,7 @@ from .image import PrimaryHDU, _ImageBaseHDU
 from ..util import _pad_length, fileobj_name
 
 
+
 class StreamingHDU(object):
     """
     A class that provides the capability to stream data to a FITS file

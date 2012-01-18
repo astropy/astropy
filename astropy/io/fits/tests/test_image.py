@@ -2,6 +2,7 @@
 
 import shutil
 import os
+import shutil
 import warnings
 
 import numpy as np
@@ -588,6 +589,25 @@ class TestImageFunctions(FitsTestCase):
         assert (hdul[0].data == orig_data).all()
         hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()
+
+    def test_image_update_header(self):
+        """
+        Regression test for #105.  Replacing the original header to an image
+        HDU and saving should update the NAXISn keywords appropriately and save
+        the image data correctly.
+        """
+
+        # Copy the original file before saving to it
+        shutil.copy(self.data('test0.fits'), self.temp('test_new.fits'))
+        hdul = fits.open(self.temp('test_new.fits'), mode='update')
+        orig_data = hdul[1].data.copy()
+        hdr_copy = hdul[1].header.copy()
+        del hdr_copy['NAXIS*']
+        hdul[1].header = hdr_copy
+        hdul.close()
+
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (orig_data == hdul[1].data).all()
 
     def test_image_update_header(self):
         """

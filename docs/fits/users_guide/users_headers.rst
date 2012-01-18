@@ -57,10 +57,10 @@ or index of an HDU's header attribute. Here is a quick summary:
     >>> prihdr['darkcorr'] = 'PERFORM'  # change darkcorr's value
 
 Keyword names are case-insenstive except in a few special cases (see the
-sections on HIERARCH card and record-valued cards). Thus, `prihdr['abc']`,
-`prihdr['ABC']`, or `prihdr['aBc']` are all equivalent.
+sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
+``prihdr['ABC']``, or ``prihdr['aBc']`` are all equivalent.
 
-Like with python ``dict``\s, new keywords can also be added to the header using
+Like with python `dict`\s, new keywords can also be added to the header using
 assignment syntax:
 
     >>> 'DARKCORR' in header  # Check for existence
@@ -113,7 +113,7 @@ It is also possible to delete an entire range of cards using the slice syntax:
 
     >>> del prihdr[3:5]
 
-The method ``Header.set`` is another way to update they value or comment
+The method :meth:`Header.set` is another way to update they value or comment
 associated with an existing keyword, or to create a new keyword.  Most of its
 functionality can be duplicated with the dict-like syntax shown above.  But in
 some cases it might be more clear.  It also has the advantage of allowing one
@@ -160,11 +160,11 @@ keywords, when accessing these keywords they are returned as a list:
     ....
 
 These lists can be sliced like any other list.  For example, to diplay just the
-last HISTORY entry, use `prihdr['history'][-1]`.  Existing commentary cards can
-also be updated by using the appropriate index number for that card.
+last HISTORY entry, use ``prihdr['history'][-1]``.  Existing commentary cards
+can also be updated by using the appropriate index number for that card.
 
 New commentary cards can be added like any other card by using the dict-like
-keyword assignment syntax, or by using the ``Header.set`` method.  However,
+keyword assignment syntax, or by using the :meth:`Header.set` method.  However,
 unlike with other keywords, a new commentary card is always added and appended
 to the last commentary card with the same keyword, rather than to the end of
 the header. Here is an example:

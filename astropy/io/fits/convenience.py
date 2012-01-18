@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from .file import PYTHON_MODES, _File
-from .hdu.base import _BaseHDU
+from .hdu.base import _BaseHDU, _ValidHDU
 from .hdu.hdulist import fitsopen
 from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
@@ -694,7 +694,7 @@ def _makehdu(data, header):
     if header is None:
         header = Header()
     hdu = _BaseHDU(data, header)
-    if hdu.__class__ is _BaseHDU:
+    if hdu.__class__ in (_BaseHDU, _ValidHDU):
         # The HDU type was unrecognized, possibly due to a
         # nonexistent/incomplete header
         if ((isinstance(data, np.ndarray) and data.dtype.fields is not None)

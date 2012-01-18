@@ -41,6 +41,12 @@ Astropy.
   column definition file (#14)
 
 
+3.0.5 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 3.0.4 (2011-11-22)
 ------------------
 

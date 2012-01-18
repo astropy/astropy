@@ -3,9 +3,11 @@
 import functools
 import itertools
 import os
+import signal
 import sys
 import tempfile
 import textwrap
+import threading
 import warnings
 
 import numpy as np
@@ -234,6 +236,51 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         return deprecate(message)
 
     return deprecate
+
+
+def ignore_sigint(func):
+    """
+    This decorator registers a custom SIGINT handler to catch and ignore SIGINT
+    until the wrapped function is completed.
+    """
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        # Get the name of the current thread and determine if this is a single
+        # treaded application
+        curr_thread = threading.currentThread()
+        single_thread = (threading.activeCount() == 1 and
+                         curr_thread.getName() == 'MainThread')
+
+        class SigintHandler(object):
+            def __init__(self):
+                self.sigint_received = False
+
+            def __call__(self, signum, frame):
+                warnings.warn('KeyboardInterrupt ignored until %s is '
+                              'complete!' % func.__name__)
+                self.sigint_received = True
+
+        sigint_handler = SigintHandler()
+
+        # Define new signal interput handler
+        if single_thread:
+            # Install new handler
+            old_handler = signal.signal(signal.SIGINT, sigint_handler)
+
+        try:
+            func(*args, **kwargs)
+        finally:
+            if single_thread:
+                if old_handler is not None:
+                    signal.signal(signal.SIGINT, old_handler)
+                else:
+                    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+                if sigint_handler.sigint_received:
+                    raise KeyboardInterrupt
+
+    return wrapped
 
 
 def pairwise(iterable):

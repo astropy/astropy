@@ -110,7 +110,7 @@ if sys.version_info[0] >= 3:
         See http://projects.scipy.org/numpy/ticket/1766.
         """
 
-        if dtype.fields is None:
+        if not hasattr(dtype, 'fields') or dtype.fields is None:
             return dtype
 
         formats = []

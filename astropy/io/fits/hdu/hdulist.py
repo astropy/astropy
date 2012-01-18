@@ -2,9 +2,7 @@
 
 import gzip
 import os
-import signal
 import sys
-import threading
 import warnings
 
 from numpy import memmap as Memmap
@@ -14,10 +12,9 @@ from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
 from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from .table import _TableBaseHDU
-from ..column import _FormatP
 from ..file import PYTHON_MODES, _File
 from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
-                    fileobj_name, fileobj_closed, fileobj_mode)
+                    fileobj_name, fileobj_closed, fileobj_mode, ignore_sigint)
 from ..verify import _Verify, _ErrList
 
 
@@ -509,6 +506,7 @@ class HDUList(list, _Verify):
             if hdu.data is not None:
                 continue
 
+    @ignore_sigint
     def flush(self, output_verify='fix', verbose=False):
         """
         Force a write of the `HDUList` back to the file (for append and
@@ -524,24 +522,6 @@ class HDUList(list, _Verify):
         verbose : bool
             When `True`, print verbose messages
         """
-
-        # Get the name of the current thread and determine if this is a single
-        # treaded application
-        curr_thread = threading.currentThread()
-        single_thread = (threading.activeCount() == 1) and \
-                        (curr_thread.getName() == 'MainThread')
-
-        # Define new signal interput handler
-        if single_thread:
-            keyboard_interrupt_sent = False
-
-            def new_sigint(*args):
-                warnings.warn('KeyboardInterrupt ignored until flush is '
-                              'complete!')
-                keyboard_interrupt_sent = True
-
-            # Install new handler
-            old_handler = signal.signal(signal.SIGINT, new_sigint)
 
         if self.__file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '%s' mode is not supported."
@@ -725,15 +705,6 @@ class HDUList(list, _Verify):
                 # reset the modification attributes after updating
                 for hdu in self:
                     hdu.header._modified = False
-
-        if single_thread:
-            if keyboard_interrupt_sent:
-                raise KeyboardInterrupt
-
-            if old_handler is not None:
-                signal.signal(signal.SIGINT, old_handler)
-            else:
-                signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     def update_extend(self):
         """
