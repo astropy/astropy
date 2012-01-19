@@ -30,6 +30,7 @@ from __future__ import division  # confidence high
 
 # STDLIB
 import copy
+import io
 import sys
 import warnings
 
@@ -83,6 +84,12 @@ else:
     DistortionLookupTable = object
     Sip = object
     UnitConverter = object
+
+
+def _require_pyfits(msg):
+    if not HAS_PYFITS:
+        raise ImportError(
+            "pyfits is required to {0}".format(msg))
 
 
 def _parse_keysel(keysel):
@@ -402,9 +409,7 @@ naxis kwarg.
         if fobj is None:
             return (None, None)
 
-        if not HAS_PYFITS:
-            raise ImportError(
-                "pyfits is required to use Paper IV lookup tables")
+        _require_pyfits('use Paper IV lookup tables')
 
         if not isinstance(fobj, pyfits.HDUList):
             return (None, None)
@@ -432,6 +437,35 @@ naxis kwarg.
             return (cpdis, None)
         else:
             return (None, cpdis)
+
+    def _write_det2im(self, hdulist):
+        """
+        Writes a Paper IV type lookup table to the given `pyfits.HDUList`.
+        """
+        det2im1 = self.det2im1
+        det2im2 = self.det2im2
+        if det2im1 is not None and det2im2 is None:
+            hdulist[0].header.update('AXISCORR', 1)
+            det2im = det2im1
+        elif det2im1 is None and det2im2 is not None:
+            hdulist[0].header.update('AXISCORR', 0)
+            det2im = det2im2
+        elif det2im1 is None and det2im2 is None:
+            return
+        else:
+            raise ValueError("Saving both distortion images is not supported")
+
+        image = pyfits.ImageHDU(det2im.data[0], name='D2IMARR')
+        header = image.header
+
+        header.update('CRPIX1', det2im.crpix[0])
+        header.update('CRPIX2', det2im.crpix[1])
+        header.update('CRVAL1', det2im.crval[0])
+        header.update('CRVAL2', det2im.crval[1])
+        header.update('CDELT1', det2im.cdelt[0])
+        header.update('CDELT2', det2im.cdelt[1])
+
+        hdulist.append(image)
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
@@ -462,9 +496,8 @@ naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
-                    if fobj is not None and not HAS_PYFITS:
-                        raise ImportError(
-                            "pyfits is required to use Paper IV lookup tables")
+                    if fobj is not None:
+                        _require_pyfits('use Paper IV lookup tables')
 
                     assert isinstance(fobj, pyfits.HDUList), \
                         'A pyfits HDUList is required for Lookup table ' + \
@@ -494,6 +527,46 @@ naxis kwarg.
             return (None, None)
         else:
             return (tables.get(1), tables.get(2))
+
+    def _write_distortion_kw(self, hdulist, dist='CPDIS'):
+        """
+        Write out Paper IV distortion keywords to the given
+        `pyfits.HDUList`.
+        """
+        if self.cpdis1 is None and self.cpdis2 is None:
+            return
+
+        if dist == 'CPDIS':
+            d_kw = 'DP'
+            err_kw = 'CPERR'
+        else:
+            d_kw = 'DQ'
+            err_kw = 'CQERR'
+
+        def write_dist(num, cpdis):
+            if cpdis is None:
+                return
+
+            hdulist[0].header.update('{0}{1:d}'.format(dist, num), 'LOOKUP')
+            hdulist[0].header.update('{0}{1:d}.EXTVER'.format(d_kw, num),
+                                     len(hdulist))
+            hdulist[0].header.update('{0}{1:d}.AXIS.{1:d}'.format(d_kw, num),
+                                     num)
+
+            image = pyfits.ImageHDU(cpdis.data, name='WCSDVARR')
+            header = image.header
+
+            header.update('CRPIX1', cpdis.crpix[0])
+            header.update('CRPIX2', cpdis.crpix[1])
+            header.update('CRVAL1', cpdis.crval[0])
+            header.update('CRVAL2', cpdis.crval[1])
+            header.update('CDELT1', cpdis.cdelt[0])
+            header.update('CDELT2', cpdis.cdelt[1])
+
+            hdulist.append(image)
+
+        write_dist(1, self.cpdis1)
+        write_dist(2, self.cpdis2)
 
     def _read_sip_kw(self, header):
         """
@@ -567,6 +640,36 @@ naxis kwarg.
         crpix2 = header.get("CRPIX2")
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
+
+    def _write_sip_kw(self):
+        """
+        Write out SIP keywords.  Returns a dictionary of key-value
+        pairs.
+        """
+        if self.sip is None:
+            return {}
+
+        keywords = {}
+
+        def write_array(name, a):
+            if a is None:
+                return
+            size = a.shape[0]
+            keywords['{0}_ORDER'.format(name)] = size - 1
+            for i in range(size):
+                for j in range(size - i):
+                    if a[i, j] != 0.0:
+                        keywords['{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
+
+        write_array('A', self.sip.a)
+        write_array('B', self.sip.b)
+        write_array('AP', self.sip.ap)
+        write_array('BP', self.sip.bp)
+
+        keywords['CRPIX1'] = self.sip.crpix[0]
+        keywords['CRPIX2'] = self.sip.crpix[1]
+
+        return keywords
 
     def _denormalize_sky(self, sky):
         if self.wcs.lngtyp != 'RA':
@@ -1027,16 +1130,80 @@ naxis kwarg.
         """.format(__.TWO_OR_THREE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
+    def to_fits(self, relax=False):
+        """
+        Generate a `pyfits.HDUList` object with all of the information
+        stored in this object.  This should be logically identical to
+        the input FITS file, but it will be normalized in a number of
+        ways.
+
+        See `to_header` for some warnings about the output produced.
+
+        Parameters
+        ----------
+
+        relax : bool or int, optional
+            Degree of permissiveness:
+
+            - `False`: Recognize only FITS keywords defined by the
+              published WCS standard.
+
+            - `True`: Admit all recognized informal extensions of the
+              WCS standard.
+
+            - `int`: a bit field selecting specific extensions to
+              write.  See :ref:`relaxwrite` for details.
+
+        Returns
+        -------
+        hdulist : `pyfits.HDUList`
+        """
+        _require_pyfits('generate a FITS file')
+
+        header = self.to_header(relax=relax)
+
+        hdu = pyfits.PrimaryHDU(header=header)
+        hdulist = pyfits.HDUList(hdu)
+
+        self._write_det2im(hdulist)
+        self._write_distortion_kw(hdulist)
+
+        return hdulist
+
     def to_header(self, relax=False):
         """
-        Generate a `pyfits`_ header object with the WCS information
-        stored in this object.
+        Generate a `pyfits.Header` object with the basic WCS and SIP
+        information stored in this object.  This should be logically
+        identical to the input FITS file, but it will be normalized in
+        a number of ways.
 
         .. warning::
 
-          This function does not write out SIP or Paper IV distortion
-          keywords, yet, only the core WCS support by `wcslib`_.
+          This function does not write out Paper IV distortion
+          information, since that requires multiple FITS header data
+          units.  To get a full representation of everything in this
+          object, use `to_fits`.
 
+        Parameters
+        ----------
+        relax : bool or int, optional
+            Degree of permissiveness:
+
+            - `False`: Recognize only FITS keywords defined by the
+              published WCS standard.
+
+            - `True`: Admit all recognized informal extensions of the
+              WCS standard.
+
+            - `int`: a bit field selecting specific extensions to
+              write.  See :ref:`relaxwrite` for details.
+
+        Returns
+        -------
+        header : `pyfits.Header`
+
+        Notes
+        -----
         The output header will almost certainly differ from the input in a
         number of respects:
 
@@ -1066,47 +1233,36 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-
-        Parameters
-        ----------
-        relax : bool or int
-            Degree of permissiveness:
-
-            - `False`: Recognize only FITS keywords defined by the
-              published WCS standard.
-
-            - `True`: Admit all recognized informal extensions of the
-              WCS standard.
-
-            - `int`: a bit field selecting specific extensions to
-              write.  See :ref:`relaxwrite` for details.
-
-        Returns
-        -------
-        header : `pyfits`_ Header object
         """
-        if not HAS_PYFITS:
-            raise ImportError(
-                "pyfits is required to generate a FITS header")
+        _require_pyfits('generate a FITS header')
 
-        header_string = self.wcs.to_header(relax)
-        cards = pyfits.CardList()
-        for i in range(0, len(header_string), 80):
-            card_string = header_string[i:i + 80]
-            if pyfits.__version__[0] >= '3':
-                card = pyfits.Card.fromstring(card_string)
-            else:
-                card = pyfits.Card()
-                card.fromstring(card_string)
-            cards.append(card)
-        return pyfits.Header(cards)
+        if self.wcs is not None:
+            header_string = self.wcs.to_header(relax)
+            cards = pyfits.CardList()
+            for i in range(0, len(header_string), 80):
+                card_string = header_string[i:i+80]
+                if pyfits.__version__[0] >= '3':
+                    card = pyfits.Card.fromstring(card_string)
+                else:
+                    card = pyfits.Card()
+                    card.fromstring(card_string)
+                cards.append(card)
+            header = pyfits.Header(cards)
+        else:
+            header = pyfits.Header()
+
+        if self.sip is not None:
+            for key, val in self._write_sip_kw().items():
+                header.update(key, val)
+
+        return header
 
     def to_header_string(self, relax=False):
         """
         Identical to `to_header`, but returns a string containing the
         header cards.
         """
-        return self.to_header(self, relax).to_string()
+        return str(self.to_header(self, relax))
 
     def footprint_to_file(self, filename=None, color='green', width=2):
         """
@@ -1267,6 +1423,39 @@ naxis kwarg.
             result.append(subresult)
 
         return result
+
+    def __reduce__(self):
+        """
+        Support pickling of WCS objects.  This is done by serializing
+        to an in-memory FITS file and dumping that as a string.
+        """
+        _require_pyfits("pickle")
+
+        hdulist = self.to_fits(relax=True)
+
+        buffer = io.BytesIO()
+        hdulist.writeto(buffer)
+
+        return (__WCS_unpickle__,
+                (self.__class__, self.__dict__, buffer.getvalue(),))
+
+
+def __WCS_unpickle__(cls, dct, fits_data):
+    """
+    Unpickles a WCS object from a serialized FITS string.
+    """
+    _require_pyfits("pickle")
+
+    self = cls.__new__(cls)
+    self.__dict__.update(dct)
+
+    buffer = io.BytesIO(fits_data)
+    hdulist = pyfits.open(buffer)
+
+    WCS.__init__(self, hdulist[0].header, hdulist)
+
+    return self
+
 
 
 def find_all_wcs(header, relax=False, keysel=None):
