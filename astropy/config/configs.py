@@ -342,6 +342,7 @@ def get_config(packageormod=None, reload=False):
     secname = '.'.join(packageormodspl[1:])
 
     cobj = _cfgobjs.get(rootname, None)
+
     if cobj is None:
         try:
             cfgfn = join(get_config_dir(), rootname + '.cfg')
@@ -352,9 +353,9 @@ def get_config(packageormod=None, reload=False):
             errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
             warn(msg1 + msg2 + e.__class__.__name__ + errstr)
 
-            # Don't save to _cfgobjs - then every time the function is run, it
-            # will again try to access the astropy directory.
-            cobj = configobj.ConfigObj()
+            #This caches the object, so if the file becomes acessible, this
+            #function won't see it unless the module is reloaded
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj()
 
     if secname:  # not the root package
         if secname not in cobj:

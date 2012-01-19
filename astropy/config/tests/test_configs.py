@@ -164,16 +164,17 @@ def test_configitem_options(tmpdir):
     assert '# option(op1, op2, op3)' in lns
     assert 'tstnmo = op2' in lns
 
+
 def test_config_noastropy_fallback(monkeypatch, recwarn):
     """
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
     from pytest import raises
-    from .. import paths,configs
+    from .. import paths, configs
 
     #make sure the config directory is not searched
-    monkeypatch.setenv('XDG_CONFIG_HOME','foo')
+    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
     monkeypatch.delenv('XDG_CONFIG_HOME')
 
     # make sure the _find_or_create_astropy_dir function fails as though the
@@ -183,16 +184,16 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
 
     # also have to make sure the stored configuration objects are cleared
-    monkeypatch.setattr(configs,'_cfgobjs', {})
+    monkeypatch.setattr(configs, '_cfgobjs', {})
 
     with raises(OSError):
         #make sure the config dir search fails
         paths.get_config_dir()
 
-    #now run the basic tests, but make sure
-    #test_configitem()
-    ci = configs.ConfigurationItem('arg',42,'descr')
-    assert ci() == 42
-
-    print recwarn.pop()
-    1/0
+    # now run the basic tests, and make sure the warning about no astropy
+    # is present
+    test_configitem()
+    assert len(recwarn.list) > 0
+    w = recwarn.pop()
+    assert 'Configuration defaults will be used' in str(w.message)
+    assert 'and configuration cannot be saved due to' in str(w.message)
