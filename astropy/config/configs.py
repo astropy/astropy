@@ -347,9 +347,10 @@ def get_config(packageormod=None, reload=False):
             cfgfn = join(get_config_dir(), rootname + '.cfg')
             _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
         except (IOError, OSError) as e:
-            msg = 'Problem accessing configuration directory; defaults will' +\
-                  ' be used, and configuration cannot be saved:'
-            warn(msg + str(e.args[0]))
+            msg1 = 'Configuration defaults will be used, and configuration '
+            msg2 = 'cannot be saved due to '
+            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
+            warn(msg1 + msg2 + e.__class__.__name__ + errstr)
 
             # Don't save to _cfgobjs - then every time the function is run, it
             # will again try to access the astropy directory.
