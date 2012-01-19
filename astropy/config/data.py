@@ -9,7 +9,7 @@ from sys import version_info
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
            'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
-           'clear_data_cache']
+           'clear_data_cache', 'CacheMissingWarning']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -32,6 +32,15 @@ if version_info[0] < 3:
 
     def _fake_exit(self, type, value, traceback):
         self.close()
+
+
+class CacheMissingWarning(Warning):
+    """
+    This warning indicates the standard cache directory is not accessible, with
+    the first argument providing the warning message. If args[1] is present, it
+    is a filename indicating the path to a temporary file that was created to
+    store a remote data download in the absence of the cache.
+    """
 
 
 def get_data_fileobj(dataname, cache=True):
@@ -458,7 +467,7 @@ def _find_hash_fn(hash):
         dldir, urlmapfn = _get_data_cache_locs()
     except (IOError, OSError) as e:
         msg = 'Could not access cache directory to search for data file: '
-        warn(msg + str(e))
+        warn(CacheMissingWarning(msg + str(e)))
         return None
     hashfn = join(dldir, hash)
     if isfile(hashfn):
@@ -487,8 +496,9 @@ def _cache_remote(remoteurl):
         dldir, urlmapfn = _get_data_cache_locs()
         docache = True
     except (IOError, OSError) as e:
-        msg = 'Remote data cache could not be accessed: '
-        warn(msg + str(e))
+        msg = 'Remote data cache could not be accessed due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         docache = False
 
     if docache:
@@ -529,8 +539,10 @@ def _cache_remote(remoteurl):
                 move(f.name, localpath)
                 url2hash[str(remoteurl)] = localpath
         else:
-            msg = 'File downloaded to {0} due to lack of cache access.'
-            warn(msg.format(f.name))
+            localpath = f.name
+            msg = 'File downloaded to temp file due to lack of cache access.'
+            warn(CacheMissingWarning(msg, localpath))
+
     finally:
         if docache:
             _release_data_cache_lock()
@@ -562,8 +574,9 @@ def clear_data_cache(hashorurl=None):
     try:
         dldir, urlmapfn = _get_data_cache_locs()
     except (IOError, OSError) as e:
-        msg = 'Not clearing data cache because cache could not be accessed: '
-        warn(msg + str(e))
+        msg = 'Not clearing data cache - cache inacessable due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
 
     _acquire_data_cache_lock()
