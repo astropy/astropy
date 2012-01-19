@@ -195,5 +195,6 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     test_configitem()
     assert len(recwarn.list) > 0
     w = recwarn.pop()
+    assert w.category == configs.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
     assert 'and configuration cannot be saved due to' in str(w.message)

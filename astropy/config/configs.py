@@ -13,13 +13,22 @@ from __future__ import division
 from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
-            'get_config', 'save_config', 'reload_config']
+           'ConfigurationMissingWarning', 'get_config', 'save_config',
+           'reload_config']
 
 
 class InvalidConfigurationItemWarning(Warning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
+    """
+
+
+class ConfigurationMissingWarning(Warning):
+    """ A Warning that is issued when the configuration directory cannot be
+    accessed (usually due to a permissions problem). If this warning appears,
+    configuration items will be set to their defaults rather than read from the
+    configuration file, and no configuration will persist across sessions.
     """
 
 
@@ -351,7 +360,8 @@ def get_config(packageormod=None, reload=False):
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
             errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
-            warn(msg1 + msg2 + e.__class__.__name__ + errstr)
+            wmsg = msg1 + msg2 + e.__class__.__name__ + errstr
+            warn(ConfigurationMissingWarning(wmsg))
 
             #This caches the object, so if the file becomes acessible, this
             #function won't see it unless the module is reloaded
