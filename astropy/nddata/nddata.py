@@ -17,7 +17,7 @@ class NDData(object):
     -----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
-        
+
     error : `~numpy.ndarray`, optional
         Error of the data. This should be interpreted as a 1-sigma error (e.g,
         square root of the variance), under the assumption of Gaussian errors.
@@ -34,7 +34,7 @@ class NDData(object):
         Masking of the data; Should be False/0 (or the empty string) where the
         data is *valid*.  All other values indicate that the value should be
         masked. Must be a shape that can be broadcast onto `data`.
-        
+
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
 
@@ -45,10 +45,10 @@ class NDData(object):
 
     meta : `dict`-like object, optional
         Metadata for this object.  "Metadata" here means all information that
-        is included with this object but not part of any other attribute 
-        of this particular object.  e.g., creation date, unique identifier, 
+        is included with this object but not part of any other attribute
+        of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
-        
+
     units : undefined, optional
         The units of the data.
 
@@ -61,7 +61,7 @@ class NDData(object):
         If True, the array will be *copied* from the provided `data`, otherwise
         it will be referenced if possible (see `numpy.array` :attr:`copy`
         argument for details).
-        
+
     validate : bool, optional
         If False, no type or shape-checking or array conversion will occur.
         Note that if `validate` is False, :attr:`copy` will be ignored.
@@ -144,8 +144,10 @@ class NDData(object):
             return None
         else:
             dtchar = self.mask.dtype.char
-            if dtchar is 'U' or dtchar is 'S':
-                return self.mask == ''
+            if dtchar == 'U':
+                return self.mask == u''
+            elif dtchar == 'S':
+                return self.mask == b''
             else:
                 return ~self.mask.astype(bool)
 
@@ -176,4 +178,4 @@ class NDData(object):
         integer dimensions of this object's data
         """
         return self.data.ndim
-        
+
