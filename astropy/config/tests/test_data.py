@@ -103,6 +103,9 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     from pytest import raises
     from .. import paths, data
 
+    #better yet, set the configuration to make sure the temp files are deleted
+    data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)
+
     #make sure the config directory is not searched
     monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
     monkeypatch.delenv('XDG_CONFIG_HOME')
@@ -137,7 +140,10 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert path.isfile(fnout)
 
     #now remove it so tests don't clutter up the temp dir
-    remove(fnout)
+    #this should get called at exit, anyway, but we do it here just to make
+    #sure it's working correctly
+    data._deltemps()
+    assert not path.isfile(fnout)
 
     assert len(recwarn.list) > 0
     w3 = recwarn.pop()
