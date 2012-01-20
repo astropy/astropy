@@ -4,8 +4,12 @@ caching data files.
 """
 
 from __future__ import division
+
+import sys
+import atexit
+
 from .configs import ConfigurationItem
-from sys import version_info
+
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
            'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
@@ -24,8 +28,13 @@ DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem(
 DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
     'data_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
     'while accessing the data cache before giving up.')
+DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
+    'delete_temporary_downloads_at_exit', True, 'If True, temporary download' +
+    ' files created when the cache is inacessible will be deleted at the end' +
+    ' of the python session.')
 
-if version_info[0] < 3:
+
+if sys.version_info[0] < 3:
     #used for supporting with statements in get_data_fileobj
     def _fake_enter(self):
         return self
@@ -139,7 +148,7 @@ def get_data_fileobj(dataname, cache=True):
                 #not local file - need to get remote data
                 urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
 
-        if version_info[0] < 3:
+        if sys.version_info[0] < 3:
             #need to add in context managers to support with urlopen for <3.x
             urlres.__enter__ = MethodType(_fake_enter, urlres)
             urlres.__exit__ = MethodType(_fake_exit, urlres)
@@ -542,12 +551,32 @@ def _cache_remote(remoteurl):
             localpath = f.name
             msg = 'File downloaded to temp file due to lack of cache access.'
             warn(CacheMissingWarning(msg, localpath))
+            if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
+                global _tempfilestodel
+                _tempfilestodel.append(localpath)
 
     finally:
         if docache:
             _release_data_cache_lock()
 
     return localpath
+
+
+#this is used by _cache_remote and _deltemps to determine the files to delete
+# when the interpreter exits
+_tempfilestodel = []
+
+
+@atexit.register
+def _deltemps():
+    import os
+
+    global _tempfilestodel
+
+    while len(_tempfilestodel) > 0:
+        fn = _tempfilestodel.pop()
+        if os.path.isfile(fn):
+            os.remove(fn)
 
 
 def clear_data_cache(hashorurl=None):
@@ -651,9 +680,8 @@ def _open_shelve(shelffn, withclosing=False):
     """
     import shelve
     from contextlib import closing
-    from sys import version_info
 
-    if version_info[0] > 2:
+    if sys.version_info[0] > 2:
         shelf = shelve.open(shelffn, protocol=2)
     else:
         shelf = shelve.open(shelffn + '.db', protocol=2)
