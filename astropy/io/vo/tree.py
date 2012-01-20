@@ -1920,7 +1920,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     id = (x._unique_name, x.ID)
                 dtype.append((id, x.converter.format))
 
-            array = np.recarray((nrows,), dtype=dtype)
+            array = np.recarray((nrows,), dtype=np.dtype(dtype))
             descr_mask = []
             for d in array.dtype.descr:
                 new_type = (d[1][1] == 'O' and 'O') or 'bool'
