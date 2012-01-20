@@ -13,13 +13,22 @@ from __future__ import division
 from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
-            'get_config', 'save_config', 'reload_config']
+           'ConfigurationMissingWarning', 'get_config', 'save_config',
+           'reload_config']
 
 
 class InvalidConfigurationItemWarning(Warning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
+    """
+
+
+class ConfigurationMissingWarning(Warning):
+    """ A Warning that is issued when the configuration directory cannot be
+    accessed (usually due to a permissions problem). If this warning appears,
+    configuration items will be set to their defaults rather than read from the
+    configuration file, and no configuration will persist across sessions.
     """
 
 
@@ -323,6 +332,8 @@ def get_config(packageormod=None, reload=False):
 
     """
     from os.path import join
+    from warnings import warn
+
     from .paths import get_config_dir
     from ..utils import find_current_module
 
@@ -340,9 +351,21 @@ def get_config(packageormod=None, reload=False):
     secname = '.'.join(packageormodspl[1:])
 
     cobj = _cfgobjs.get(rootname, None)
+
     if cobj is None:
-        cfgfn = join(get_config_dir(), rootname + '.cfg')
-        _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+        try:
+            cfgfn = join(get_config_dir(), rootname + '.cfg')
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+        except (IOError, OSError) as e:
+            msg1 = 'Configuration defaults will be used, and configuration '
+            msg2 = 'cannot be saved due to '
+            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
+            wmsg = msg1 + msg2 + e.__class__.__name__ + errstr
+            warn(ConfigurationMissingWarning(wmsg))
+
+            #This caches the object, so if the file becomes acessible, this
+            #function won't see it unless the module is reloaded
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj()
 
     if secname:  # not the root package
         if secname not in cobj:

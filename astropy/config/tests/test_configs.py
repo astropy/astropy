@@ -27,9 +27,8 @@ def test_config_file():
     if exists(apycfg.filename):
         save_config('astropy')
 
-def test_configitem(tmpdir):
+def test_configitem():
     from ..configs import ConfigurationItem,get_config
-    from shutil import copy
 
     ci = ConfigurationItem('tstnm',34,'this is a Description')
 
@@ -47,8 +46,22 @@ def test_configitem(tmpdir):
     assert ci()==32
     assert sec.comments['tstnm'][0] == 'updated Descr'
 
+    #It's useful to go back to the default to allow other test functions to
+    #call this one and still be in the default configuration.
+    ci.description = 'this is a Description'
+    ci.set(34)
+    assert ci()==34
+    assert sec.comments['tstnm'][0] == 'this is a Description'
+
+def test_configitem_save(tmpdir):
+    from ..configs import ConfigurationItem, get_config
+    from shutil import copy
+
+    ci = ConfigurationItem('tstnm2',42,'this is another Description')
+    apycfg = get_config(ci.module)
+
     #now try saving
-    apycfg = sec
+
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
@@ -56,8 +69,9 @@ def test_configitem(tmpdir):
         apycfg.write(fd)
     with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in fd.readlines()]
-    assert 'tstnm = 32' in lns
-    assert '# updated Descr' in lns
+
+    assert 'tstnm2 = 42' in lns
+    assert '# this is another Description' in lns
 
     oldfn = apycfg.filename
     try:
@@ -74,14 +88,14 @@ def test_configitem(tmpdir):
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
-            assert 'tstnm = 30' in lns
+            assert 'tstnm2 = 30' in lns
 
         ci.save(31)
 
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
-            assert 'tstnm = 31' in lns
+            assert 'tstnm2 = 31' in lns
 
         #also try to save one that doesn't yet exist
         apycfg.filename = tmpdir.join('astropy.cfg3').realpath().strpath
@@ -90,12 +104,10 @@ def test_configitem(tmpdir):
         with io.open(apycfg.filename, 'rU') as f:
             lns = [x.strip() for x in f.readlines()]
             assert '[config.tests.test_configs]' in lns
-            assert 'tstnm = 30' in lns
+            assert 'tstnm2 = 30' in lns
 
     finally:
         apycfg.filename = oldfn
-
-    #also try to save one that doesn't yet exist
 
 def test_configitem_types():
     from ..configs import ConfigurationItem
@@ -153,3 +165,36 @@ def test_configitem_options(tmpdir):
     assert 'tstnmo = op2' in lns
 
 
+def test_config_noastropy_fallback(monkeypatch, recwarn):
+    """
+    Tests to make sure configuration items fall back to their defaults when
+    there's a problem accessing the astropy directory
+    """
+    from pytest import raises
+    from .. import paths, configs
+
+    #make sure the config directory is not searched
+    monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
+    monkeypatch.delenv('XDG_CONFIG_HOME')
+
+    # make sure the _find_or_create_astropy_dir function fails as though the
+    # astropy dir could not be accessed
+    def osraiser(dirnm, linkto):
+        raise OSError
+    monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
+
+    # also have to make sure the stored configuration objects are cleared
+    monkeypatch.setattr(configs, '_cfgobjs', {})
+
+    with raises(OSError):
+        #make sure the config dir search fails
+        paths.get_config_dir()
+
+    # now run the basic tests, and make sure the warning about no astropy
+    # is present
+    test_configitem()
+    assert len(recwarn.list) > 0
+    w = recwarn.pop()
+    assert w.category == configs.ConfigurationMissingWarning
+    assert 'Configuration defaults will be used' in str(w.message)
+    assert 'and configuration cannot be saved due to' in str(w.message)
