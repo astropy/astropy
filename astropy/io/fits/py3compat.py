@@ -29,8 +29,8 @@ if sys.version_info[0] >= 3:
     def decode_ascii(s):
         if isinstance(s, bytes):
             return s.decode('ascii')
-        elif isinstance(s, numpy.ndarray) and \
-             issubclass(s.dtype.type, numpy.bytes_):
+        elif (isinstance(s, numpy.ndarray) and
+              issubclass(s.dtype.type, numpy.bytes_)):
             # np.char.encode/decode annoyingly don't preserve the type of the
             # array, hence the view() call
             # It also doesn't necessarily preserve widths of the strings,
