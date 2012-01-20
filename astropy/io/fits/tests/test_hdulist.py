@@ -437,8 +437,8 @@ class TestHDUListFunctions(FitsTestCase):
                          do_not_scale_image_data=True)
         info = hdul.info(output=False)
         hdul.writeto(self.temp('temp.fits'))
-        with open(self.temp('temp.fits'),'ab') as f:
+        with open(self.temp('temp.fits'), 'ab') as f:
             f.seek(0, os.SEEK_END)
-            f.write('\0' * 2880)
+            f.write(b'\0' * 2880)
         assert info == fits.info(self.temp('temp.fits'), output=False,
                                  do_not_scale_image_data=True)

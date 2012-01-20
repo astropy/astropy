@@ -627,7 +627,7 @@ def _words_group(input, strlen):
     words = []
     nblanks = input.count(' ')
     nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.fromstring((input + ' '), dtype=(np.bytes_, 1))
+    arr = np.fromstring((input + ' '), dtype=(bytes, 1))
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == np.bytes_(' '))[0]
