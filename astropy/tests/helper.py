@@ -146,6 +146,11 @@ class TestRunner(object):
             else:
                 all_args += ' --pep8 -k pep8'
 
+        # Prevent py.test from searching for conftest.py files above the
+        # astropy source directory. This assumes that py.test is run in
+        # build/lib...
+        all_args += ' --confcutdir=../../'
+
         return pytest.main(args=all_args, plugins=plugins)
 
 
