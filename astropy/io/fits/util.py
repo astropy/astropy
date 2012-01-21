@@ -630,7 +630,7 @@ def _words_group(input, strlen):
     arr = np.fromstring((input + ' '), dtype=(bytes, 1))
 
     # locations of the blanks
-    blank_loc = np.nonzero(arr == ' '.encode('latin1'))[0]
+    blank_loc = np.nonzero(arr == b' ')[0]
     offset = 0
     xoffset = 0
     for idx in range(nmax):
