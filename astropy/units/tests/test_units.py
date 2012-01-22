@@ -15,10 +15,16 @@ def test_convert_fail():
         u.cm.convert(u.s)
     with pytest.raises(ValueError):
         (u.cm/u.s).convert(u.meter)
-    
+            
 def test_compound():
     assert (u.cm/u.s*u.hour).scale == 36
     assert (u.cm/u.s*u.hour).convert(u.meter)(1) == 36
+    assert u.cm*u.cm == u.cm**2
+    #assert u1.num_units == u2.num_units and u1.denom_units == u2.denom_units and u1.scale == u2.scale
+    assert u.cm*u.cm*u.cm == u.cm**3
+    #assert u1.num_units == u2.num_units and u1.denom_units == u2.denom_units and u1.scale == u2.scale
+    assert (1 / (u.cm * u.cm)) == u.cm**-2
+    #assert u1.num_units == u2.num_units and u1.denom_units == u2.denom_units and u1.scale == u2.scale
     
 def test_str():
     assert str(u.cm) == "Units: centimeter"
