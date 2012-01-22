@@ -4,6 +4,8 @@ Module for handling physical units
 
 from __future__ import absolute_import, division, print_function
 
+c_constant = 299792458. # m/s # xxx eventually use from constants
+h_constant = 6.62606957e-34 # xxx eventually use from constants
 
 class Unit(object):
     """
@@ -17,10 +19,15 @@ class Unit(object):
     .scale
     .intrinsic_unit # corresponds to scale = 1.0
     """
-    def __init__(self, scale=1.0):
-        """Should never be used"""
-        pass
-        
+    def __init__(self, name='', scale=1.0):
+        """Standard initialization"""
+        self.name = name
+        self.scale = scale
+        self.compound_convert = True
+
+    def copy(self):
+        return self.__class__(name=self.name,scale=self.scale)
+
     def isconsistent(self, newunit):
         """Are units compatible?"""
         if not isinstance(newunit, CompoundUnit) and \
@@ -51,16 +58,25 @@ class Unit(object):
         if isinstance(value, Unit):
             unit = CompoundUnit(self, value, op=op)
             if len(unit.num_units) == 1 and len(unit.denom_units) == 0:
-                # result is a basic unit so just return a scaled version of that
-                return unit.scale * unit.num_units[0]
+                # result is a basic unit so just return a scaled version 
+                tunit = unit.num_units[0].copy()
+                tunit.scale *= unit.scale
+                return tunit
             else:
                 return unit
         else:
             if op=="multiply":
-                newunit = self.__class__(scale=self.scale*self._factor(value))
-                return newunit
+                newinst = self.copy()
+                newinst.scale *= self._factor(value)
+                return newinst
             elif op=="divide":
-                return self.__class__(scale=self.scale/self._factor(value))
+                newinst = self.copy()
+                newinst.scale /= self._factor(value)
+                return newinst
+            elif op=="rdivide":
+                tunit = self.copy()
+                tunit.scale /= self._factor(value)
+                return CompoundUnit(None, tunit, op='divide')
             elif op=="power":
                 pass
             else:
@@ -78,11 +94,32 @@ class Unit(object):
     def __truediv__(self, rhs):
         return self._combine(rhs, op="divide")
 
-    def __rdiv__(self, rhs):
-        pass
+    def __rdiv__(self, lhs):
+        return self._combine(lhs, op="rdivide")
+
+    def __rtruediv__(self, lhs):
+        return self._combine(lhs, op="rdivide")
+
         
     def __pow__(self, rhs):
-        pass
+        if type(rhs) != type(0):
+            raise ValueError("power must be an integer")
+        if rhs == -1:
+            return 1./self
+        elif rhs < 0: # use * and / recursively for now
+            return (1./self)*self**(rhs+1)
+        elif rhs == 2:
+            return self*self
+        elif rhs >= 2:
+            return self*self**(rhs-1)
+        else:
+            return self
+            
+    def __eq__(self, other):
+        return ((self.__class__ == other.__class__) and
+                (self.name == other.name) and
+                (self.scale == other.scale) and
+                (self.compound_convert == other.compound_convert))
         
     def __add__(self, name):
         if type(name) != type(''):
@@ -98,49 +135,64 @@ class Unit(object):
         return "Units: " + name
         
     def __repr__(self):
-        return "%s(scale=%e, name='%s')" % (self.__class__.__name__,self.scale,str(self.name))
+        return "%s(scale=%e, name='%s')" % \
+            (self.__class__.__name__,self.scale,str(self.name))
         
 class CompoundUnit(Unit):
     """Used when the unit involves more than one base unit class
     
     Only recognized operations are multiply, divide, power
     """
-    def __init__(self, unit1, unit2, op=None, name=""):
-        self.name = name
-        self.scale = 1.0
+    def __init__(self, unit1, unit2=None, op=None, scale=1.0, name=""):
+        Unit.__init__(self, name=name)
         if isinstance(unit1, CompoundUnit):
-            self.num_units = unit1.num_units
-            self.denom_units = unit1.denom_units
+            self.num_units = unit1.num_units[:]
+            self.denom_units = unit1.denom_units[:]
             self.scale = unit1.scale
         else:
-            if unit1 is None:
-                self.num_units =[]
-            else:
+            if isinstance(unit1,Unit):
                 self.num_units = [unit1]
+            else:
+                self.num_units = []
             self.denom_units = []
-        if not isinstance(unit2, CompoundUnit):
+        self.scale *= scale
+        if unit2 is None:
+            unit2_num = []
+            unit2_denom =[]
+            unit2_scale = 1.
+        elif not isinstance(unit2, CompoundUnit):
             unit2_num = [unit2]
             unit2_denom = []
             unit2_scale = 1.
         else:
-            unit2_num = unit2.num_units
-            unit2_denom = unit2.denom_units
+            unit2_num = unit2.num_units[:]
+            unit2_denom = unit2.denom_units[:]
             unit2_scale = unit2.scale
         if op == "multiply":
             self.num_units += unit2_num
             self.denom_units += unit2_denom
             self.scale *= unit2_scale
-            self.name = ''
         elif op == "divide":
             self.num_units += unit2_denom
             self.denom_units += unit2_num
             self.scale /= unit2_scale
-            self.name = ''
+
         # now order both numerator and denominator in standard ordering
         self.num_units.sort(key=lambda x: x.__class__.__name__)
         self.denom_units.sort(key=lambda x: x.__class__.__name__)
-        self._simplify() # "cancel" out identical types of units in numerator and
-                         # denominator
+        self._simplify() # "cancel" out identical types of units in numerator
+                         # and denominator
+
+    def __eq__(self, other):
+        return  ((self.__class__ == other.__class__) and
+                  (self.name == other.name) and
+                  (self.scale == other.scale) and
+                  (self.compound_convert == other.compound_convert) and
+                  (self.num_units == other.num_units) and
+                  (self.denom_units == other.denom_units))
+
+    def copy(self):
+        return self.__class__(self, scale=1., op='multiply', name=self.name)
 
     def _simplify(self):
         """remove basic types that appear in both numerator and denominator"""
@@ -156,7 +208,8 @@ class CompoundUnit(Unit):
                 scale *= 1./old_denom[0].convert(old_num[0])(1)
                 del old_num[0]
                 del old_denom[0]
-            elif old_num[0].__class__.__name__ < old_denom[0].__class__.__name__:
+            elif (old_num[0].__class__.__name__ < 
+                    old_denom[0].__class__.__name__):
                 new_num.append(old_num[0])
                 del old_num[0]
             else:
@@ -178,7 +231,12 @@ class CompoundUnit(Unit):
     def _netscale(self, oldlist, newlist):
         scale = 1.0
         for item1, item2 in zip(oldlist, newlist):
-            scale *= item1.convert(item2)(1.)
+            if item1.compound_convert:
+                scale *= item1.convert(item2)(1.)
+            else:
+                raise ValueError(
+                     "Contains a component unit not permitted in compound conversions: %s"
+                      % item1.__class__.__name__)
         return scale
 
     def isconsistent(self, newunit):
@@ -187,8 +245,8 @@ class CompoundUnit(Unit):
             len(self.num_units) != len(newunit.num_units) or \
             len(self.denom_units) != len(newunit.denom_units):
             return False
-        if not self._are_matched_lists(self.num_units, newunit.num_units) or \
-            not self._are_matched_lists(self.denom_units, newunit.denom_units):
+        if not self._are_matched_lists(self.num_units,newunit.num_units) or \
+            not self._are_matched_lists(self.denom_units,newunit.denom_units):
             return False
         return True
     
@@ -213,25 +271,28 @@ class CompoundUnit(Unit):
             if lnum:
                 ustr += " * "
         if lnum:
-            ustr += " %s " % sfunc(self.num_units[0]) + (lnum-1) * "* %s" % tuple([sfunc(item) for item in self.num_units[1:]])
+            ustr += " %s " % sfunc(self.num_units[0]) + \
+                (lnum-1) * "* %s" % \
+                tuple([sfunc(item) for item in self.num_units[1:]])
+        else:
+            if not ustr:
+                ustr = '1 '
         if ldenom:
-            udstr = " %s " % sfunc(self.denom_units[0]) + (ldenom-1) * "* %s" % tuple([sfunc(item) for item in self.denom_units[1:]])
+            udstr = " %s " % sfunc(self.denom_units[0]) + \
+                (ldenom-1) * "* %s" % \
+                tuple([sfunc(item) for item in self.denom_units[1:]])
         if ldenom == 1:
             ustr += '/ ' + udstr
         elif ldenom > 1:
             ustr += '/ (' + udstr + ')'
         return ustr
-        
-        
-        
+       
     def __str__(self):
         return self._build_string(str)
         
     def __repr__(self):
         return self._build_string(repr)
-        
-                    
-        
+
 class Length(Unit):
     """
     Standard class for all lengths
@@ -239,8 +300,7 @@ class Length(Unit):
     Intrinsic length is meters
     """
     def __init__(self, name="", scale=1.0):
-        self.name = name
-        self.scale = scale
+        Unit.__init__(self, name, scale)
         self.intrinsic = "meter"
         
 meter = m = Length("meter", 1.0)
@@ -250,6 +310,19 @@ micron = 10**-6 * meter + "micron"
 nm = nanometer = 10**-9 * meter + "nanometer"
 angstrom = 10**-10 * meter + "angstrom"
 
+class Mass(Unit):
+    """
+    Standard class for all masses
+    
+    Intrinsic mass is kg
+    """
+    def __init__(self, name="", scale= 1.0):
+        Unit.__init__(self, name, scale)
+        self.intrinsic = "kilogram"
+
+kilogram = kg = Mass("kilogram",1.0)
+gram = 0.001 * kilogram + "gram"
+
 class Time(Unit):
     """
     Standard class for all times
@@ -257,8 +330,7 @@ class Time(Unit):
     Intrinsic time is seconds
     """
     def __init__(self, name="", scale= 1.0):
-        self.name = name
-        self.scale = scale
+        Unit.__init__(self, name, scale)
         self.intrinsic = "second"
         
 second = s = Time("second", 1.0)
@@ -271,3 +343,56 @@ minute = 60 * second + "minute"
 hour = 60 * minute + "hour"
 day = 24 * hour + "day"
 week = 7 * day + "week"
+
+
+hertz = hz = 1./second + "hertz"
+joule = kg * meter**2 / second**2
+
+spec_map = {'hertz':'frequency',
+            'micron':'wavelength',
+            'ev':'energy'}
+
+class Spectral(Unit):
+    """
+    Standard class for all measurements for wavelength/frequency
+    
+    Handles implicit conversion between length, hz, and energy
+    representations.
+    """
+    def __init__(self, name="", scale= 1.0, flavor=None):
+        """This unit comes in 3 flavors wavelength, frequency, and energy
+        
+        Each of these has a different intrinsic unit depending 
+        on how it is initialized
+        """
+        Unit.__init__(self, name, scale)
+        self.compound_convert = False
+        if flavor == 'frequency':
+            self.intrinsic = 'hertz'
+        elif flavor == 'wavelength':
+            self.intrinsic = 'micron'
+        elif flavor == 'energy':
+            self.intrinsic = 'ev'
+        else:
+            raise ValueError("spectral flavor must be specified")
+    
+    def flavor(self):
+        """Return type of unit"""
+        return spec_map[self.instrinsic]  
+                      
+    def convert(self, newunit):
+        """Deal with unit equivalences"""
+        if isinstance(newunit, Spectral):
+            flavor == self.flavor()
+        else:
+            if newunit.isconsistent(joule):
+                flavor == 'energy'
+            elif newunit.isconsisten(meter):
+                flavor == 'wavelength'
+            elif newunit.isconsistent(hz):
+                flavor == 'frequency'
+            else:
+                raise ValueError(
+                  'can only convert to units consistent with'+
+                  ' length, frequency or energy')
+        
