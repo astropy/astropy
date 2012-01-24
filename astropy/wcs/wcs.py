@@ -247,7 +247,7 @@ class WCS(WCSBase):
                 header_string = header
             elif HAS_PYFITS:
                 assert isinstance(header, pyfits.Header)
-                header_string = repr(header.ascard)
+                header_string = repr(header.ascard).encode('latin1')
             else:
                 raise TypeError(
                     "header must be a string or a pyfits.Header object")
