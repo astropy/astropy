@@ -619,10 +619,7 @@ def test_theta0():
 
 def test_toheader():
     w = _wcs._Wcsprm()
-    if sys.version_info[0] >= 3:
-        assert isinstance(w.to_header(), bytes)
-    else:
-        assert isinstance(w.to_header(), str)
+    assert isinstance(w.to_header(), str)
 
 
 def test_velangl():
