@@ -4,12 +4,16 @@ caching data files.
 """
 
 from __future__ import division
+
+import sys
+import atexit
+
 from .configs import ConfigurationItem
-from sys import version_info
+
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
            'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
-           'clear_data_cache']
+           'clear_data_cache', 'CacheMissingWarning']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -24,14 +28,28 @@ DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem(
 DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
     'data_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
     'while accessing the data cache before giving up.')
+DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
+    'delete_temporary_downloads_at_exit', True, 'If True, temporary download' +
+    ' files created when the cache is inacessible will be deleted at the end' +
+    ' of the python session.')
 
-if version_info[0] < 3:
+
+if sys.version_info[0] < 3:
     #used for supporting with statements in get_data_fileobj
     def _fake_enter(self):
         return self
 
     def _fake_exit(self, type, value, traceback):
         self.close()
+
+
+class CacheMissingWarning(Warning):
+    """
+    This warning indicates the standard cache directory is not accessible, with
+    the first argument providing the warning message. If args[1] is present, it
+    is a filename indicating the path to a temporary file that was created to
+    store a remote data download in the absence of the cache.
+    """
 
 
 def get_data_fileobj(dataname, cache=True):
@@ -130,7 +148,7 @@ def get_data_fileobj(dataname, cache=True):
                 #not local file - need to get remote data
                 urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
 
-        if version_info[0] < 3:
+        if sys.version_info[0] < 3:
             #need to add in context managers to support with urlopen for <3.x
             urlres.__enter__ = MethodType(_fake_enter, urlres)
             urlres.__exit__ = MethodType(_fake_exit, urlres)
@@ -452,8 +470,14 @@ def _find_hash_fn(hash):
     file, otherwise returns None.
     """
     from os.path import isfile, join
+    from warnings import warn
 
-    dldir, urlmapfn = _get_data_cache_locs()
+    try:
+        dldir, urlmapfn = _get_data_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Could not access cache directory to search for data file: '
+        warn(CacheMissingWarning(msg + str(e)))
+        return None
     hashfn = join(dldir, hash)
     if isfile(hashfn):
         return hashfn
@@ -470,51 +494,89 @@ def _cache_remote(remoteurl):
     import hashlib
     from contextlib import closing
     from os.path import join
+    from tempfile import NamedTemporaryFile
     from shutil import move
     from urllib2 import urlopen
+    from warnings import warn
+
     from ..utils.console import ProgressBarOrSpinner
 
-    dldir, urlmapfn = _get_data_cache_locs()
-    _acquire_data_cache_lock()
     try:
-        with _open_shelve(urlmapfn, True) as url2hash:
-            if str(remoteurl) in url2hash:
-                localpath = url2hash[str(remoteurl)]
+        dldir, urlmapfn = _get_data_cache_locs()
+        docache = True
+    except (IOError, OSError) as e:
+        msg = 'Remote data cache could not be accessed due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        docache = False
+
+    if docache:
+        _acquire_data_cache_lock()
+    try:
+        if docache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                if str(remoteurl) in url2hash:
+                    return url2hash[str(remoteurl)]
+
+        with closing(urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
+            #keep a hash to rename the local file to the hashed name
+            hash = hashlib.md5()
+
+            info = remote.info()
+            if 'Content-Length' in info:
+                try:
+                    size = int(info['Content-Length'])
+                except ValueError:
+                    size = None
             else:
-                with closing(urlopen(remoteurl,
-                                     timeout=REMOTE_TIMEOUT())) as remote:
-                    #save the file to a temporary file
-                    tmpfn = join(dldir, 'cachedl.tmp')
-                    hash = hashlib.md5()
+                size = None
 
-                    info = remote.info()
-                    if 'Content-Length' in info:
-                        try:
-                            size = int(info['Content-Length'])
-                        except ValueError:
-                            size = None
-                    else:
-                        size = None
+            dlmsg = "Downloading {0}".format(remoteurl)
+            with ProgressBarOrSpinner(size, dlmsg) as p:
+                with NamedTemporaryFile(delete=False) as f:
+                    bytes_read = 0
+                    block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+                    while block:
+                        f.write(block)
+                        hash.update(block)
+                        bytes_read += len(block)
+                        p.update(bytes_read)
+                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+        if docache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                localpath = join(dldir, hash.hexdigest())
+                move(f.name, localpath)
+                url2hash[str(remoteurl)] = localpath
+        else:
+            localpath = f.name
+            msg = 'File downloaded to temp file due to lack of cache access.'
+            warn(CacheMissingWarning(msg, localpath))
+            if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
+                global _tempfilestodel
+                _tempfilestodel.append(localpath)
 
-                    dlmsg = "Downloading {0}".format(remoteurl)
-                    with ProgressBarOrSpinner(size, dlmsg) as p:
-                        with open(tmpfn, 'wb') as f:
-                            bytes_read = 0
-                            block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-                            while block:
-                                f.write(block)
-                                hash.update(block)
-                                bytes_read += len(block)
-                                p.update(bytes_read)
-                                block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-
-                    localpath = join(dldir, hash.hexdigest())
-                    move(tmpfn, localpath)
-                    url2hash[str(remoteurl)] = localpath
     finally:
-        _release_data_cache_lock()
+        if docache:
+            _release_data_cache_lock()
 
     return localpath
+
+
+#this is used by _cache_remote and _deltemps to determine the files to delete
+# when the interpreter exits
+_tempfilestodel = []
+
+
+@atexit.register
+def _deltemps():
+    import os
+
+    global _tempfilestodel
+
+    while len(_tempfilestodel) > 0:
+        fn = _tempfilestodel.pop()
+        if os.path.isfile(fn):
+            os.remove(fn)
 
 
 def clear_data_cache(hashorurl=None):
@@ -536,8 +598,16 @@ def clear_data_cache(hashorurl=None):
     from os import unlink
     from os.path import join, exists, abspath
     from shutil import rmtree
+    from warnings import warn
 
-    dldir, urlmapfn = _get_data_cache_locs()
+    try:
+        dldir, urlmapfn = _get_data_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Not clearing data cache - cache inacessable due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        return
+
     _acquire_data_cache_lock()
     try:
 
@@ -610,9 +680,8 @@ def _open_shelve(shelffn, withclosing=False):
     """
     import shelve
     from contextlib import closing
-    from sys import version_info
 
-    if version_info[0] > 2:
+    if sys.version_info[0] > 2:
         shelf = shelve.open(shelffn, protocol=2)
     else:
         shelf = shelve.open(shelffn + '.db', protocol=2)

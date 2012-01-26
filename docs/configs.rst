@@ -42,6 +42,14 @@ want to see your changes immediately in your current Astropy session, just do::
     make driver scripts that actually do this for each user, and coordinate
     when they get run so that everything is already built.
 
+.. note::
+    If for whatever reason your ``$HOME/.astropy`` directory is not accessible
+    (i.e., you have astropy running somehow as root but you are not the root
+    user), the best solution is to set the `XDG_CONFIG_HOME` and 
+    `XDG_CACHE_HOME` environment variables pointing to directories, and create
+    an ``astropy`` directory inside each of those.  Both the configuration and
+    data download systems will then use those directories and never try to
+    access the ``$HOME/.astropy`` directory.
 
 
 
