@@ -1682,7 +1682,7 @@ PyWcsprm_to_header(
   /* Just return the raw header string.  PyFITS on the Python side will help
      to parse and use this information. */
   #if PY3K
-  result = PyBytes_FromStringAndSize(header, (Py_ssize_t)nkeyrec * 80);
+  result = PyUnicode_FromStringAndSize(header, (Py_ssize_t)nkeyrec * 80);
   #else
   result = PyString_FromStringAndSize(header, (Py_ssize_t)nkeyrec * 80);
   #endif

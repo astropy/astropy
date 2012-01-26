@@ -273,7 +273,8 @@ def get_extensions():
 def get_package_data():
     # Installs the testing data files
     return {
-        'astropy.wcs.tests': ['data/*.hdr', 'maps/*.hdr', 'spectra/*.hdr'],
+        'astropy.wcs.tests': ['data/*.hdr', 'data/*.fits',
+                              'maps/*.hdr', 'spectra/*.hdr'],
         'astropy.wcs': ['include/*.h']}
 
 
