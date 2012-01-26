@@ -31,6 +31,7 @@ from __future__ import division  # confidence high
 # STDLIB
 import copy
 import io
+import os
 import sys
 import warnings
 
@@ -55,7 +56,7 @@ if _wcs is not None:
            "on your platform."
 
 if sys.version_info[0] >= 3:
-    string_types = (bytes,)
+    string_types = (bytes, str)
 else:
     string_types = (str, unicode)
 
@@ -244,7 +245,16 @@ class WCS(WCSBase):
             keysel_flags = _parse_keysel(keysel)
 
             if isinstance(header, string_types):
-                header_string = header
+                if HAS_PYFITS and os.path.exists(header):
+                    if fobj is not None:
+                        raise ValueError(
+                            "Can not provide both a FITS filename to "
+                            "argument 1 and a FITS file object to argument 2")
+                    fobj = pyfits.open(header)
+                    header = fobj[0].header
+                    header_string = repr(header.ascard).encode('latin1')
+                else:
+                    header_string = header
             elif HAS_PYFITS:
                 assert isinstance(header, pyfits.Header)
                 header_string = repr(header.ascard).encode('latin1')
