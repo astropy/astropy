@@ -39,6 +39,19 @@ else:
     def b(s):
         return str(s)
 
+#create a decorator that causes tests to be marked as xfail if in py 3.x and
+#pyfits < 3.0.4 is installed
+try:
+    import pyfits
+    HAS_PYFITS = True
+    _pyfits_vers = tuple([int(i) for i in pyfits.__version__.split('.')])
+    if IS_PY3K and _pyfits_vers <= (3,0,4):
+        pyfits304xfail = pytest.mark.xfail
+    else:
+        pyfits304xfail = lambda x:x
+except ImportError:
+    HAS_PYFITS = False
+    pyfitsxfail = lambda x:x
 
 def setup_module():
     global TMP_DIR
@@ -172,10 +185,12 @@ def _test_regression(_python_based=False):
     assert truth == output
 
 
+@pyfits304xfail
 def test_regression():
     _test_regression(False)
 
 
+@pyfits304xfail
 def test_regression_python_based_parser():
     _test_regression(True)
 
@@ -188,6 +203,7 @@ class TestFixups:
         self.array = self.table.array
         self.mask = self.table.mask
 
+    @pyfits304xfail
     def test_implicit_id(self):
         assert_array_equal(self.array['string_test_2'],
                            self.array['fixed string test'])
