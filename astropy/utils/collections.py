@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-A number of specialized collection classes.
+A module containing specialized collection classes.
 """
 
 

@@ -1,11 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This package contains smallish general-purpose utilities that don't have a
-clear other module to live in.
-
-This module should not be used directly, as everything in `__all__`` is
-imported into `astropy.utils`
+A "grab bag" of smallish general-purpose utilities that don't have a
+clear other module/pakcage to live in.
 """
+
 from __future__ import absolute_import
 
 __all__ = ['find_current_module', 'fnpickle', 'fnunpickle']
