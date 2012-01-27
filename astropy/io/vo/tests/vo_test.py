@@ -51,7 +51,7 @@ try:
         pyfits304xfail = lambda x:x
 except ImportError:
     HAS_PYFITS = False
-    pyfitsxfail = lambda x:x
+    pyfits304xfail = lambda x:x
 
 def setup_module():
     global TMP_DIR
