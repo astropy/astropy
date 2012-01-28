@@ -403,21 +403,6 @@ class ColDefs(object):
             raise TypeError('Input to ColDefs must be a table HDU or a list '
                             'of Columns.')
 
-        # For ASCII tables, reconstruct string columns and ensure that spaces
-        # are used for padding instead of \x00, and do the reverse for binary
-        # table columns.
-        for col in self.columns:
-            array = col.array
-            if not isinstance(array, chararray.chararray):
-                continue
-            for i in range(len(array)):
-                al = len(array[i])
-                if isinstance(array[i], unicode):
-                    pad = self._padding_byte
-                else:
-                    pad = self._padding_byte.encode('ascii')
-                array[i] = array[i] + (pad * (array.itemsize - al))
-
     def __getattr__(self, name):
         """
         Automatically returns the values for the given keyword attribute for

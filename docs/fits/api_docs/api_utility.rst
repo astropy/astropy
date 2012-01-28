@@ -7,9 +7,6 @@ Exceptions and Utility Classes
 Exceptions
 ==========
 
-.. inheritance-diagram:: VerifyError
-   :parts: 2
-
 :class:`VerifyError`
 --------------------
 
@@ -20,9 +17,6 @@ Exceptions
 
 Utility Classes
 ===============
-
-.. inheritance-diagram:: Delayed Undefined
-   :parts: 2
 
 :class:`Delayed`
 ----------------

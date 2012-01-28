@@ -589,8 +589,8 @@ class FITS_rec(np.recarray):
                     else:
                         _pc = '%'
 
-                    fmt = (' ' * lead) + _pc + format[1:] + \
-                          _fmap[format[0]] + (' ' * trail)
+                    fmt = ''.join([(' ' * lead), _pc, format[1:],
+                                   _fmap[format[0]], (' ' * trail)])
 
                     # not using numarray.strings's num2char because the
                     # result is not allowed to expand (as C/Python does).
@@ -609,7 +609,22 @@ class FITS_rec(np.recarray):
                 else:
                     if len(field) and isinstance(field[0], np.integer):
                         dummy = np.around(dummy)
-                    field[:] = dummy.astype(field.dtype)
+                    elif isinstance(field, np.chararray):
+                        # Ensure that blanks at the end of each string are
+                        # converted to nulls instead of spaces, see Trac #15
+                        # and #111
+                        itemsize = dummy.itemsize
+                        if dummy.dtype.kind == 'U':
+                            pad = self._coldefs._padding_byte
+                        else:
+                            pad = self._coldefs._padding_byte.encode('ascii')
+
+                        for idx in xrange(len(dummy)):
+                            val = dummy[idx]
+                            dummy[idx] = val + (pad * (itemsize - len(val)))
+                    if dummy.dtype != field.dtype:
+                        dummy = dummy.astype(field.dtype)
+                    field[:] = dummy
 
                 del dummy
 

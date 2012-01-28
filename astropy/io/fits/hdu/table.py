@@ -372,8 +372,8 @@ class TableHDU(_TableBaseHDU):
 
     def __init__(self, data=None, header=None, name=None):
         super(TableHDU, self).__init__(data, header, name=name)
-        if self._data_loaded and self.data is not None and \
-           not isinstance(self.data._coldefs, _ASCIIColDefs):
+        if (self._data_loaded and self.data is not None and
+            not isinstance(self.data._coldefs, _ASCIIColDefs)):
             self.data._coldefs = _ASCIIColDefs(self.data._coldefs)
 
     @classmethod

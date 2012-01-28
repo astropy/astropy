@@ -1,4 +1,57 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+"""
+Convenience functions
+=====================
+
+The functions in this module provide shortcuts for some of the most basic
+operations on FITS files, such as reading and updating the header.  They are
+included directly in the 'pyfits' namespace so that they can be used like:
+
+    >>> pyfits.getheader(...)
+
+These functions are primarily for convenience when working with FITS files in
+the command-line interpreter.  If performing several operations on the same
+file, such as in a script, it is better to *not* use these functions, as each
+one must open and re-parse the file.  In such cases it is better to use
+:func:`pyfits.open` and work directly with the :class:`pyfits.HDUList` object
+and underlying HDU objects.
+
+Several of the convenience functions, such as `getheader` and `getdata` support
+special arguments for selecting which extension HDU to use when working with a
+multi-extension FITS file.  There are a few supported argument formats for
+selecting the extension.  See the documentation for `getdata` for an
+explanation of all the different formats.
+
+.. warning::
+    All arguments to convenience functions other than the filename that are
+    *not* for selecting the extension HDU should be passed in as keyword
+    arguments.  This is to avoid ambiguity and conflicts with the
+    extension arguments.  For example, to set NAXIS=1 on the Primary HDU:
+
+    Wrong:
+
+        >>> pyfits.setval('myimage.fits', 'NAXIS', 1)
+
+    The above example will try to set the NAXIS value on the first extension
+    HDU to blank.  That is, the argument '1' is assumed to specify an extension
+    HDU.
+
+    Right:
+
+        >>> pyfits.setval('myimage.fits', 'NAXIS', value=1)
+
+    This will set the NAXIS keyword to 1 on the primary HDU (the default).  To
+    specify the first extension HDU use:
+
+        >>> pyfits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
+
+    This complexity arises out of the attempt to simultaneously support
+    multiple argument formats that were used in past versions of PyFITS.
+    Unfortunately, it is not possible to support all formats without
+    introducing some ambiguity.  A future PyFITS release may standardize around
+    a single format and offically deprecate the other formats.
+"""
+
 
 import gzip
 import os
@@ -17,8 +70,6 @@ from .util import deprecated, fileobj_closed, fileobj_name, isfile, _is_int
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',
            'append', 'update', 'info', 'tdump', 'tcreate', 'tabledump',
            'tableload']
-
-"""Convenience functions"""
 
 
 def getheader(filename, *args, **kwargs):

@@ -42,6 +42,12 @@ if sys.version_info[0] >= 3:
         return s
     util.decode_ascii = decode_ascii
 
+    # See the docstring for pyfits.util.fileobj_open for why we need to replace
+    # this function
+    def fileobj_open(filename, mode):
+        return open(filename, mode, buffering=0)
+    pyfits.util.fileobj_open = fileobj_open
+
     # Support the io.IOBase.readable/writable methods
     from .util import isreadable as _isreadable
 
@@ -115,15 +121,26 @@ if sys.version_info[0] >= 3:
 
         formats = []
         offsets = []
-        for field in (dtype.fields[name] for name in dtype.names):
+        titles = []
+        for name in dtype.names:
+            field = dtype.fields[name]
             shape = field[0].shape
             if not isinstance(shape, tuple):
                 shape = (shape,)
             formats.append((field[0].base, shape))
             offsets.append(field[1])
 
+            # There seems to be no obvious way to extract the titles from
+            # a dtype, so this just searches for duplicate fields
+            title = None
+            for key, dup in dtype.fields.items():
+                if key != name and dup == field:
+                    title = key
+                    break
+            titles.append(title)
+
         return numpy.dtype({'names': dtype.names, 'formats': formats,
-                            'offsets': offsets})
+                            'offsets': offsets, 'titles': titles})
 
     _recarray = numpy.recarray
 

@@ -1591,11 +1591,27 @@ class TestTableFunctions(FitsTestCase):
         acol = fits.Column(name='MEMNAME', format='A10',
                              array=chararray.array(a))
         ahdu = fits.new_table([acol])
-        assert ahdu.data.tostring().decode('raw-unicode-escape') == s
+        assert_equal(ahdu.data.tostring().decode('raw-unicode-escape'), s)
+        ahdu.writeto(self.temp('newtable.fits'))
+        hdul = fits.open(self.temp('newtable.fits'))
+        assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+        assert (hdul[1].data['MEMNAME'] == a).all()
 
         ahdu = fits.new_table([acol], tbtype='TableHDU')
-        assert (ahdu.data.tostring().decode('raw-unicode-escape') ==
+        with ignore_warnings():
+            ahdu.writeto(self.temp('newtable.fits'), clobber=True)
+        hdul = fits.open(self.temp('newtable.fits'))
+        assert (hdul[1].data.tostring().decode('raw-unicode-escape') ==
                 s.replace('\x00', ' '))
+        assert (hdul[1].data['MEMNAME'] == a).all()
+
+        # Now serialize once more as a binary table; padding bytes should
+        # revert to zeroes
+        ahdu = fits.new_table(hdul[1].data)
+        ahdu.writeto(self.temp('newtable.fits'), clobber=True)
+        hdul = fits.open(self.temp('newtable.fits'))
+        assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+        assert (hdul[1].data['MEMNAME'] == a).all()
 
     def test_multi_dimensional_columns(self):
         """
