@@ -7,7 +7,7 @@ The functions in this module provide shortcuts for some of the most basic
 operations on FITS files, such as reading and updating the header.  They are
 included directly in the 'pyfits' namespace so that they can be used like:
 
-    >>> pyfits.getheader(...)
+    >>> astropy.io.fits.getheader(...)
 
 These functions are primarily for convenience when working with FITS files in
 the command-line interpreter.  If performing several operations on the same
@@ -30,7 +30,7 @@ explanation of all the different formats.
 
     Wrong:
 
-        >>> pyfits.setval('myimage.fits', 'NAXIS', 1)
+        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', 1)
 
     The above example will try to set the NAXIS value on the first extension
     HDU to blank.  That is, the argument '1' is assumed to specify an extension
@@ -38,18 +38,18 @@ explanation of all the different formats.
 
     Right:
 
-        >>> pyfits.setval('myimage.fits', 'NAXIS', value=1)
+        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1)
 
     This will set the NAXIS keyword to 1 on the primary HDU (the default).  To
     specify the first extension HDU use:
 
-        >>> pyfits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
+        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
 
     This complexity arises out of the attempt to simultaneously support
     multiple argument formats that were used in past versions of PyFITS.
     Unfortunately, it is not possible to support all formats without
-    introducing some ambiguity.  A future PyFITS release may standardize around
-    a single format and offically deprecate the other formats.
+    introducing some ambiguity.  A future Astropy release may standardize
+    around a single format and offically deprecate the other formats.
 """
 
 

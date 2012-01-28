@@ -46,7 +46,7 @@ if sys.version_info[0] >= 3:
     # this function
     def fileobj_open(filename, mode):
         return open(filename, mode, buffering=0)
-    pyfits.util.fileobj_open = fileobj_open
+    util.fileobj_open = fileobj_open
 
     # Support the io.IOBase.readable/writable methods
     from .util import isreadable as _isreadable

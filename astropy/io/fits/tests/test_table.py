@@ -1591,7 +1591,7 @@ class TestTableFunctions(FitsTestCase):
         acol = fits.Column(name='MEMNAME', format='A10',
                              array=chararray.array(a))
         ahdu = fits.new_table([acol])
-        assert_equal(ahdu.data.tostring().decode('raw-unicode-escape'), s)
+        assert ahdu.data.tostring().decode('raw-unicode-escape') == s
         ahdu.writeto(self.temp('newtable.fits'))
         hdul = fits.open(self.temp('newtable.fits'))
         assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
