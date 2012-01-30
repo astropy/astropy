@@ -7,7 +7,7 @@ Modifying a table
 =================
 
 The data values within a |Table| object can be modified in much the same manner
-as for NumPy structured arrays by accessing columns or rows of data and
+as for `numpy` structured arrays by accessing columns or rows of data and
 assigning values appropriately.  A key enhancement provided by the |Table| class
 is the ability to easily modify the structure of the table: one can add or
 remove columns, and add new rows of data.   

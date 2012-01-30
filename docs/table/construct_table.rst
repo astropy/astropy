@@ -15,7 +15,7 @@ names : list
     Specify column names
 dtypes : list
     Specify column data types
-meta : dict
+meta : dict-like
     Meta-Data associated with the table
 copy : boolean
     Copy the input data (default=True).
@@ -25,24 +25,48 @@ Examples
 
 There is great deal of flexibility in the way that a table can be initially
 constructed.  Details on the inputs to the :class:`~astropy.table.Table`
-constructor are in the `Initialization arguments`_ section.  However, the 
+constructor are in the `Details`_ section.  However, the 
 easiest way to understand how to make a table is by example.
 
 
 Setup
 -----
 For the following examples you need to import the |Table| and |Column| classes
-along with the NumPy module::
+along with the `numpy` package::
 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
 
+Creating from scratch
+---------------------
+A Table can be created without any initial input data or even without any
+initial columns.  This is useful for building tables dynamically if the initial
+size, columns, or data are not known.  
+
+**Caution:** adding columns or rows requires making a new copy of the entire
+table table each time, so in the case of large tables this may be slow.
+
+::
+
+  >>> t = Table()
+  >>> t.add_column(Column('a', [1, 4]))
+  >>> t.add_column(Column('b', [2.0, 5.0]))
+  >>> t.add_column(Column('c', ['x', 'y']))
+
+  >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
+  >>> t.add_row((1, 2.0, 'x'))
+  >>> t.add_row((4, 5.0, 'y'))
+
+
 NumPy structured array
 ----------------------
 
-The structured array is the standard mechanism in NumPy for storing heterogenous
-table data.  Most scientific I/O packages that read table files (e.g. PyFITS, votable,
-asciitable) will return the table in an object that is based on the structured array.
+The structured array is the standard mechanism in `numpy` for storing heterogenous
+table data.  Most scientific I/O packages that read table files (e.g.
+`PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
+`vo.table <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_,
+`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_) 
+will return the table in an object that is based on the structured array.
 A structured array can be created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
@@ -91,7 +115,7 @@ Likewise the data type for each column can by changed with ``dtypes``::
 
 NumPy homogeneous array
 -----------------------
-A normal NumPy 2-d array (where all elements have the same type) can be
+A normal `numpy` 2-d array (where all elements have the same type) can be
 converted into a |Table|.  In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
 generated as ``col<N>`` where ``<N>`` is the column number.
@@ -224,7 +248,7 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 
 There is a slightly subtle issue that is important to understand in the way
 that |Table| objects are created.  Any data input that looks like a Python list
-(including a tuple) is considered to be a list of columns.  In contrast a NumPy
+(including a tuple) is considered to be a list of columns.  In contrast a `numpy`
 array input is interpreted as a list of rows.
 
   >>> arr = [[1, 2, 3], 
@@ -267,28 +291,6 @@ columns by their numerical index or name and supports slicing syntax::
   <Table rows=0 names=('a','c')>
   array([], 
         dtype=[('a', '<f8'), ('c', '<f8')])
-
-
-No input data
--------------
-
-A Table can be created without any initial input data or even without any
-initial columns.  This is useful for building tables dynamically if the initial
-size or columns are not known.  
-
-**Caution:** adding columns or rows requires making a new copy of the entire
-table table each time, so in the case of large tables this may be slow.
-
-::
-
-  >>> t = Table()
-  >>> t.add_column(Column('a', [1, 4]))
-  >>> t.add_column(Column('b', [2.0, 5.0]))
-  >>> t.add_column(Column('c', ['x', 'y']))
-
-  >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
-  >>> t.add_row((1, 2.0, 'x'))
-  >>> t.add_row((4, 5.0, 'y'))
 
 
 Details
@@ -425,7 +427,7 @@ Another caveat in using referenced data is that you cannot add new row to the
 table.  This generates an error because of conflict between the two references
 to the same underlying memory.  Internally, adding a row may involve moving
 the data to a new memory location which would corrupt the input data object.
-NumPy does not allow this::
+`numpy` does not allow this::
 
   >>> t.add_row([1, 2, 3])
   Traceback (most recent call last):

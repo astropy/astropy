@@ -7,7 +7,7 @@ Accessing a table
 =============================
 
 Accessing the table properties and data is straightforward and is generally consistent with
-the basic interface for NumPy structured arrays.
+the basic interface for `numpy` structured arrays.
 
 Quick overview
 ==============

@@ -6,6 +6,7 @@ import collections
 from astropy.utils import OrderedDict
 from .structhelper import _drop_fields
 
+# Python 2 and 3 source compatibility
 try:
     unicode
 except NameError:
@@ -25,10 +26,14 @@ class TableColumns(OrderedDict):
     by name or index, including slice access.  It also handles renaming
     of columns.
 
+    The initialization argument ``cols`` can be any structure that is valid
+    for initializing a Python dict.  This includes a dict, list of
+    (key, val) tuple pairs, list of [key, val] lists, etc.
+
     Parameters
     ----------
-    cols : dict, optional
-        Dict of column objects
+    cols : dict, list, tuple; optional
+        Column objects as data structure that can init dict (see above)
     """
 
     def __init__(self, cols={}):
@@ -73,6 +78,7 @@ class TableColumns(OrderedDict):
         self.clear()
         self.update(zip(new_names, cols))
 
+    # Define keys and values for Python 2 and 3 source compatibility
     def keys(self):
         return list(OrderedDict.keys(self))
 
@@ -101,7 +107,7 @@ class Column(np.ndarray):
         Physical units
     format : str or None
         Sprintf-style format string for outputting column values
-    meta : dict or None
+    meta : dict-like or None
         Meta-data associated with the column
 
     Examples
@@ -296,9 +302,9 @@ class Row(object):
     """
 
     def __init__(self, table, index):
-        self.table = table
-        self.index = index
-        self.data = table._data[index]
+        self._table = table
+        self._index = index
+        self._data = table._data[index]
 
     def __getitem__(self, item):
         return self.data[item]
@@ -311,6 +317,18 @@ class Row(object):
 
     def __ne__(self, other):
         return self.data != other
+
+    @property
+    def table(self):
+        return self._table
+
+    @property
+    def index(self):
+        return self._index
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def meta(self):
@@ -334,7 +352,7 @@ class Row(object):
 
 
 class Table(object):
-    """A class to represent tables of heteregeous data.
+    """A class to represent tables of heterogeneous data.
 
     Parameters
     ----------
@@ -765,6 +783,10 @@ class Table(object):
             filled with np.zeros for the column dtype.
         None
             All values filled with np.zeros for the column dtype.
+
+        This method requires that the Table object "owns" the underlying array
+        data.  In particular one cannot add a row to a Table that was
+        initialized with copy=False from an existing array.
 
         Parameters
         ----------
