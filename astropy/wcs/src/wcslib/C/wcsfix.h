@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,10 +28,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsfix.h,v 4.8.1.2 2011/11/17 03:23:16 cal103 Exp cal103 $
+  $Id: wcsfix.h,v 4.9 2012/01/24 05:40:29 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.8 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -371,7 +371,7 @@ enum wcsfix_errmsg_enum {
 				   invalid. */
   FIXERR_NO_REF_PIX_COORD =  9,	/* Could not determine reference pixel
 				   coordinate. */
-  FIXERR_NO_REF_PIX_VAL   = 10,	/* Could not determine reference pixel
+  FIXERR_NO_REF_PIX_VAL   = 10	/* Could not determine reference pixel
 				   value. */
 };
 

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsfix.c,v 4.8.1.2 2011/11/17 03:19:58 cal103 Exp cal103 $
+  $Id: wcsfix.c,v 4.9 2012/01/24 05:40:29 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -61,8 +61,7 @@ const char *wcsfix_errmsg[] = {
   "Ill-conditioned coordinate transformation parameters",
   "All of the corner pixel coordinates are invalid",
   "Could not determine reference pixel coordinate",
-  "Could not determine reference pixel value",
-};
+  "Could not determine reference pixel value"};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define WCSFIX_ERRMSG(status) WCSERR_SET(status), wcsfix_errmsg[status]
@@ -94,12 +93,8 @@ int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[])
     status = 1;
   }
 
-  if (naxis) {
-    if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
-      status = 1;
-    }
-  } else {
-    stat[CYLFIX] = -2;
+  if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
+    status = 1;
   }
 
   return status;
@@ -111,47 +106,73 @@ int wcsfixi(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[],
             struct wcserr info[])
 
 {
-  int status = 0;
+  int ifix, status = 0;
+  struct wcserr err;
 
-  if ((stat[CDFIX] = cdfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+CDFIX);
-  }
+  /* Handling the status values returned from the sub-fixers is trickier than
+  it might seem, especially considering that wcs->err may contain an error
+  status on input which should be preserved if no translation errors occur.
+  The simplest way seems to be to save a copy of wcs->err and clear it before
+  each sub-fixer.  The last real error to occur, excluding informative
+  messages, is the one returned. */
+  wcserr_copy(wcs->err, &err);
 
-  if ((stat[DATFIX] = datfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+DATFIX);
-  }
+  for (ifix = CDFIX; ifix < NWCSFIX; ifix++) {
+    /* Clear (delete) wcs->err. */
+    wcserr_clear(&(wcs->err));
 
-  stat[UNITFIX] = unitfix(ctrl, wcs);
-  if (stat[UNITFIX] > 0 ||
-      stat[UNITFIX] == FIXERR_UNITS_ALIAS) {
-    status = 1;
-    wcserr_copy(wcs->err, info+UNITFIX);
-  }
-
-  if ((stat[CELFIX] = celfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+CELFIX);
-  }
-
-  if ((stat[SPCFIX] = spcfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+SPCFIX);
-  }
-
-  if (naxis) {
-    if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
-      status = 1;
+    switch (ifix) {
+    case CDFIX:
+      stat[ifix] = cdfix(wcs);
+      break;
+    case DATFIX:
+      stat[ifix] = datfix(wcs);
+      break;
+    case UNITFIX:
+      stat[ifix] = unitfix(ctrl, wcs);
+      break;
+    case CELFIX:
+      stat[ifix] = celfix(wcs);
+      break;
+    case SPCFIX:
+      stat[ifix] = spcfix(wcs);
+      break;
+    case CYLFIX:
+      stat[ifix] = cylfix(naxis, wcs);
+      break;
+    default:
+      continue;
     }
-    wcserr_copy(wcs->err, info+CYLFIX);
-  } else {
-    stat[CYLFIX] = FIXERR_NO_CHANGE;
-    wcserr_copy(0x0, info+CYLFIX);
+
+    if (stat[ifix] == FIXERR_NO_CHANGE) {
+      /* No change => no message. */
+      wcserr_copy(0x0, info+ifix);
+
+    } else if (stat[ifix] == FIXERR_SUCCESS) {
+      /* Successful translation, but there may be an informative message. */
+      if (wcs->err && wcs->err->status < 0) {
+        wcserr_copy(wcs->err, info+ifix);
+      } else {
+        wcserr_copy(0x0, info+ifix);
+      }
+
+    } else {
+      /* An informative message or error message. */
+      wcserr_copy(wcs->err, info+ifix);
+
+      if ((status = (stat[ifix] > 0))) {
+        /* It was an error, replace the previous one. */
+        wcserr_copy(wcs->err, &err);
+      }
+    }
   }
 
-  if (wcs->err) free(wcs->err);
-  wcs->err = 0x0;
+  /* Restore the last error to occur. */
+  if (err.status) {
+    wcserr_copy(&err, wcs->err);
+  } else {
+    wcserr_clear(&(wcs->err));
+  }
 
   return status;
 }
@@ -275,12 +296,13 @@ int datfix(struct wcsprm *wcs)
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
       } else if (dateobs[10] == ' ') {
+        hour = 0;
+        minute = 0;
+        sec = 0.0;
         if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
           dateobs[10] = 'T';
         } else {
-          hour = 0;
-          minute = 0;
-          sec = 0.0;
+          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
         }
       }
 
@@ -297,12 +319,13 @@ int datfix(struct wcsprm *wcs)
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
       } else if (dateobs[10] == ' ') {
+        hour = 0;
+        minute = 0;
+        sec = 0.0;
         if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
           dateobs[10] = 'T';
         } else {
-          hour = 0;
-          minute = 0;
-          sec = 0.0;
+          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
         }
       }
 
@@ -385,6 +408,8 @@ int unitfix(int ctrl, struct wcsprm *wcs)
     k = strlen(msg) - 2;
     msg[k] = '\0';
     wcserr_set(WCSERR_SET(FIXERR_UNITS_ALIAS), msg);
+
+    status = FIXERR_SUCCESS;
   }
 
   return status;
@@ -567,6 +592,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
          *pixj, theta[4], theta0, world[4][NMAX], x, y;
   struct wcserr **err;
 
+  if (naxis == 0x0) return FIXERR_NO_CHANGE;
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 

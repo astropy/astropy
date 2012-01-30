@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,10 +28,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: prj.h,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: prj.h,v 4.9 2012/01/24 05:40:29 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.8 - C routines that implement the spherical map projections
+* WCSLIB 4.9 - C routines that implement the spherical map projections
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
