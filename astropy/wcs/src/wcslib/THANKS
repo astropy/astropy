@@ -1,6 +1,6 @@
 I would like to acknowledge the following people who have contributed
-to WCSLIB and/or PGSBOX in some way over the past 15 years - via bug
-reports, patches, suggestions for improvements, positive feedback, etc.
+to WCSLIB and/or PGSBOX in some way since 1995 - via bug reports,
+patches, suggestions for improvements, positive feedback, etc.
 
 James M. Anderson
 Robbie Auld
@@ -78,4 +78,4 @@ Daren Scot Wilson
 Tony Wong
 
 
-$Id: THANKS,v 4.8.1.2 2011/09/16 04:48:44 cal103 Exp cal103 $
+$Id: THANKS,v 4.9 2012/01/24 05:40:30 cal103 Exp $
