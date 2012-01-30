@@ -369,7 +369,8 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, names=None, dtypes=None, meta=None, copy=True):
+    def __init__(self, data=None, names=None, dtypes=None, meta=None,
+                 copy=True):
 
         # Set up a placeholder empty table
         self._data = None
@@ -432,6 +433,25 @@ class Table(object):
 
         # Finally do the real initialization
         init_func(data, names, dtypes, n_cols, copy)
+
+    def __array__(self, dtype=None):
+        """Support converting Table to np.array via np.array(table).
+
+        Coercion to a different dtype via np.array(table, dtype) is not
+        supported and will raise a ValueError.
+        """
+        if dtype is not None:
+            raise ValueError('Datatype coercion is not allowed')
+
+        # This limitation is because of the following unexpected result that
+        # should have made a table copy while changing the column names.
+        #
+        # >>> d = astropy.table.Table([[1,2],[3,4]])
+        # >>> np.array(d, dtype=[('a', 'i8'), ('b', 'i8')])
+        # array([(0, 0), (0, 0)],
+        #       dtype=[('a', '<i8'), ('b', '<i8')])
+
+        return self._data
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
         """Make sure that names and dtypes are boths iterable and have

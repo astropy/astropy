@@ -477,6 +477,7 @@ class TestIterator():
         for row, np_row in zip(t, d):
             assert np.all(row == np_row)
 
+
 class TestSetMeta():
 
     def test_set_meta(self):
@@ -486,4 +487,22 @@ class TestSetMeta():
         d.meta['c'] = 1
         d.meta['d'] = 1
         assert list(d.meta.keys()) == ['a', 'b', 'c', 'd']
-        
+
+
+class TestConvertNumpyArray():
+
+    def test_convert_numpy_array(self):
+        d = Table([[1, 2], [3, 4]], names=('a', 'b'))
+
+        np_data = np.array(d)
+        assert np.all(np_data == d._data)
+        assert not np_data is d._data
+        assert d.colnames == list(np_data.dtype.names)
+
+        np_data = np.array(d, copy=False)
+        assert np.all(np_data == d._data)
+        assert np_data is d._data
+        assert d.colnames == list(np_data.dtype.names)
+
+        with pytest.raises(ValueError):
+            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])

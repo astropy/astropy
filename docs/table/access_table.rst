@@ -47,7 +47,7 @@ the data contained in that object relate to the original table data
   t[2:5]       # Table object with rows 2:5
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
-
+  dat = np.array(t)  # Copy table data to numpy structured array object
 
 Details
 ================
@@ -143,3 +143,8 @@ for the selected rows.  ::
   array([(0, 2), (3, 5), (6, 8), (9, 11), (12, 14)], 
         dtype=[('a', '<i8'), ('c', '<i8')])
 
+Finally, one can access the underlying table data as a native `numpy`
+structured array by creating a copy or reference with ``np.array``::
+
+  >>> data = np.array(t)  # copy of data in t as a structured array
+  >>> data = np.array(t, copy=False)  # reference to data in t

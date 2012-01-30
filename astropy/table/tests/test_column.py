@@ -108,4 +108,3 @@ class TestAttrEqual():
         c2 = Column(name='a', dtype=int, units='mJy', format='%i',
                     description='test column', meta={'c': 9, 'd': 12})
         assert not c1.attrs_equal(c2)
-
