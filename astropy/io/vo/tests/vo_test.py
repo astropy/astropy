@@ -5,9 +5,10 @@ This is a set of regression tests for vo.
 from __future__ import absolute_import, print_function
 
 # STDLIB
-import io
 import difflib
+from distutils import version
 import glob
+import io
 import os
 import shutil
 import subprocess
@@ -28,7 +29,9 @@ from ....config import get_data_filename, get_data_fileobj, get_data_filenames
 from ....tests.helper import pytest, raises
 from ....utils.compat import gzip
 
-numpy_has_complex_bug = (np.__version__[:3] < '1.5')
+numpy_has_complex_bug = (
+    version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+    )
 
 join = os.path.join
 
@@ -39,19 +42,16 @@ else:
     def b(s):
         return str(s)
 
-#create a decorator that causes tests to be marked as xfail if in py 3.x and
-#pyfits < 3.0.4 is installed
 try:
     import pyfits
     HAS_PYFITS = True
-    _pyfits_vers = tuple([int(i) for i in pyfits.__version__.split('.')])
-    if IS_PY3K and _pyfits_vers <= (3,0,4):
-        pyfits304xfail = pytest.mark.xfail
-    else:
-        pyfits304xfail = lambda x:x
+    _pyfits_vers = version.LooseVersion(pyfits.__version__)
+    _expected_pyfits_vers = version.LooseVersion('3.0.4')
+    pyfits304x = (IS_PY3K and _pyfits_vers <= _expected_pyfits_vers)
 except ImportError:
     HAS_PYFITS = False
-    pyfits304xfail = lambda x:x
+    pyfits304x = False
+
 
 def setup_module():
     global TMP_DIR
@@ -185,12 +185,12 @@ def _test_regression(_python_based=False):
     assert truth == output
 
 
-@pyfits304xfail
+@pytest.mark.xfail('pyfits304x')
 def test_regression():
     _test_regression(False)
 
 
-@pyfits304xfail
+@pytest.mark.xfail('pyfits304x')
 def test_regression_python_based_parser():
     _test_regression(True)
 
@@ -203,7 +203,7 @@ class TestFixups:
         self.array = self.table.array
         self.mask = self.table.mask
 
-    @pyfits304xfail
+    @pytest.mark.xfail('pyfits304x')
     def test_implicit_id(self):
         assert_array_equal(self.array['string_test_2'],
                            self.array['fixed string test'])
@@ -480,7 +480,7 @@ class TestParse:
                 assert issubclass(a0.dtype.type, np.bool_)
                 assert_array_equal(a0, b0)
 
-    @pytest.mark.skipif('numpy_has_complex_bug')
+    @pytest.mark.xfail('numpy_has_complex_bug')
     def test_floatComplex(self):
         assert issubclass(self.array['floatComplex'].dtype.type,
                           np.complex64)
@@ -489,7 +489,7 @@ class TestParse:
         assert_array_equal(self.mask['floatComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.skipif('numpy_has_complex_bug')
+    @pytest.mark.xfail('numpy_has_complex_bug')
     def test_doubleComplex(self):
         assert issubclass(self.array['doubleComplex'].dtype.type,
                           np.complex128)
@@ -499,7 +499,7 @@ class TestParse:
         assert_array_equal(self.mask['doubleComplex'],
                            [True, False, False, True, True])
 
-    @pytest.mark.skipif('numpy_has_complex_bug')
+    @pytest.mark.xfail('numpy_has_complex_bug')
     def test_doubleComplexArray(self):
         assert issubclass(self.array['doubleComplexArray'].dtype.type,
                           np.object_)
