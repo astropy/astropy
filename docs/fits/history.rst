@@ -41,20 +41,76 @@ Astropy.
   column definition file (#14)
 
 
-3.0.5 (unreleased)
-------------------
+3.0.6 (unreleased)
+----------------------
 
 - Nothing changed yet.
+
+
+3.0.5 (2012-01-30)
+------------------
+
+- Fixed a crash that could occur when accessing image sections of files
+  opened with memmap=True. (r1211)
+
+- Fixed the inconsistency in the behavior of files opened in 'readonly' mode
+  when memmap=True vs. when memmap=False.  In the latter case, although
+  changes to array data were not saved to disk, it was possible to update the
+  array data in memory.  On the other hand with memmap=True, 'readonly' mode
+  prevented even in-memory modification to the data.  This is what
+  'copyonwrite' mode was for, but difference in behavior was confusing.  Now
+  'readonly' is equivalent to 'copyonwrite' when using memmap.  If the old
+  behavior of denying changes to the array data is necessary, a new
+  'denywrite' mode may be used, though it is only applicable to files opened
+  with memmap. (r1275)
+
+- Fixed an issue where files opened with memmap=True would return image data
+  as a raw numpy.memmap object, which can cause some unexpected
+  behaviors--instead memmap object is viewed as a numpy.ndarray. (r1285)
+
+- Fixed an issue in Python 3 where a workaround for a bug in Numpy on Python 3
+  interacted badly with some other software, namely to vo.table package (and
+  possibly others). (r1320, r1337, and #110)
+
+- Fixed buggy behavior in the handling of SIGINTs (i.e. Ctrl-C keyboard
+  interrupts) while flushing changes to a FITS file.  PyFITS already prevented
+  SIGINTs from causing an incomplete flush, but did not clean up the signal
+  handlers properly afterwards, or reraise the keyboard interrupt once the
+  flush was complete. (r1321)
+
+- Fixed a crash that could occur in Python 3 when opening files with checksum
+  checking enabled. (r1336)
+
+- Fixed a small bug that could cause a crash in the `StreamingHDU` interface
+  when using Numpy below version 1.5.
+
+- Fixed a crash that could occur when creating a new `CompImageHDU` from an
+  array of big-endian data. (#104)
+
+- Fixed a crash when opening a file with extra zero padding at the end.
+  Though FITS files should not have such padding, it's not explictly forbidden
+  by the format either, and PyFITS shouldn't stumble over it. (#106)
+
+- Fixed a major slowdown in opening tables containing large columns of string
+  values.  (#111)
 
 
 3.0.4 (2011-11-22)
 ------------------
 
 - Fixed a crash when writing HCOMPRESS compressed images that could happen on
-  Python 2.5 and 2.6.
+  Python 2.5 and 2.6. (r1217)
+
+- Fixed a crash when slicing an table in a file opened in 'readonly' mode with
+  memmap=True. (r1230)
+
+- Writing changes to a file or writing to a new file verifies the output in
+  'fix' mode by default instead of 'exception'--that is, PyFITS will
+  automatically fix common FITS format errors rather than raising an
+  exception. (r1243)
 
 - Fixed a bug where convenience functions such as getval() and getheader()
-  crashed when specifying just 'PRIMARY' as the extension to use.
+  crashed when specifying just 'PRIMARY' as the extension to use (r1263).
 
 - Fixed a bug that prevented passing keyword arguments (beyond the standard
   data and header arguments) as positional arguments to the constructors of
@@ -73,14 +129,14 @@ Astropy.
 - Fixed a bug where long commentary cards (such as HISTORY and COMMENT) were
   broken into multiple CONTINUE cards.  However, commentary cards are not
   expected to be found in CONTINUE cards.  Instead these long cards are broken
-  into multiple commentary cards (#97)
+  into multiple commentary cards. (#97)
 
 - GZIP/ZIP-compressed FITS files can be detected and opened regardless of
-  their filename extension (#99)
+  their filename extension. (#99)
 
 - Fixed a serious bug where opening scaled images in 'update' mode and then
   closing the file without touching the data would cause the file to be
-  corrupted (#101)
+  corrupted. (#101)
 
 
 3.0.3 (2011-10-05)

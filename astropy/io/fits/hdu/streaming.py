@@ -184,7 +184,7 @@ class StreamingHDU(object):
         else:
             output = data
 
-        self._ffo.write(output)
+        self._ffo.writearray(output)
 
         if self._ffo.tell() - self._datLoc == self._size:
 #
