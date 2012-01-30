@@ -274,7 +274,7 @@ def test_dateobs():
 def test_datfix():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/99')
-    assert w.datfix() == 0
+    assert w.datfix() == -4
     assert w.dateobs == b('1999-12-31')
     assert w.mjdobs == 51543.0
 
@@ -305,7 +305,7 @@ def test_fix2():
     assert w.fix() == {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': 'Success',
+        'datfix': "Fixed '31/12/99' to '1999-12-31'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
@@ -561,8 +561,7 @@ def test_spcfix():
     # really test
     header = get_data_contents('spectra/orion-velo-1.hdr')
     w = _wcs._Wcsprm(header)
-    print(w.spcfix())
-    assert w.spcfix() == 0
+    assert w.spcfix() == -1
 
 
 def test_spec():
