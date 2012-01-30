@@ -354,6 +354,17 @@ class Row(object):
 class Table(object):
     """A class to represent tables of heterogeneous data.
 
+    `Table` provides a class for heterogeneous tabular data, making use of a
+    `numpy` structured array internally to store the data values.  A key
+    enhancement provided by the `Table` class is the ability to easily modify
+    the structure of the table by adding or removing columns, or adding new
+    rows of data.  In addition table and column metadata are fully supported.
+
+    `Table` differs from `NDData` by the assumption that the input data
+    consists of columns of homogeneous data, where each column has a unique
+    identifier and may contain additional metadata such as the data
+    units, format, and description.
+
     Parameters
     ----------
     data : numpy ndarray, dict, list, or Table, optional
