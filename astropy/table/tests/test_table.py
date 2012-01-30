@@ -295,6 +295,15 @@ class TestAddRow():
         with pytest.raises(TypeError):
             t.add_row(1)
 
+    def test_add_without_own_fails(self):
+        """Add row to a table that doesn't own the data"""
+        data = np.array([(1, 2, 3),
+                         (3, 4, 5)],
+                        dtype='i4')
+        t = Table(data, copy=False)
+        with pytest.raises(ValueError):
+            t.add_row([6, 7, 8])
+
 
 class TestTableColumn():
 
