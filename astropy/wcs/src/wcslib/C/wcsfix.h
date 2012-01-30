@@ -353,6 +353,8 @@ extern const char *wcsfix_errmsg[];
 #define cylfix_errmsg wcsfix_errmsg
 
 enum wcsfix_errmsg_enum {
+  FIXERR_DATE_FIX         = -4, /* The date formatting has been fixed up. */
+  FIXERR_SPC_UPDATE       = -3, /* Spectral axis type modified. */
   FIXERR_UNITS_ALIAS      = -2,	/* Units alias translation. */
   FIXERR_NO_CHANGE        = -1,	/* No change. */
   FIXERR_SUCCESS          =  0,	/* Success. */

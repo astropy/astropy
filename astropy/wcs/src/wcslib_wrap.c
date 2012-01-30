@@ -489,7 +489,7 @@ PyWcsprm_cdfix(
   status = cdfix(&self->x);
   wcsprm_c2python(&self->x);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
@@ -511,7 +511,7 @@ PyWcsprm_celfix(
   status = celfix(&self->x);
   wcsprm_c2python(&self->x);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
@@ -565,7 +565,7 @@ PyWcsprm_cylfix(
 
   Py_XDECREF(naxis_array);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
@@ -587,7 +587,7 @@ PyWcsprm_datfix(
   status = datfix(&self->x);
   wcsprm_c2python(&self->x);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
@@ -1382,7 +1382,7 @@ PyWcsprm_spcfix(
   status = spcfix(&self->x);
   wcsprm_c2python(&self->x);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
@@ -1717,7 +1717,7 @@ PyWcsprm_unitfix(
 
   status = unitfix(ctrl, &self->x);
 
-  if (status == -1 || status == 0) {
+  if (status <= 0) {
     #if PY3K
     return PyLong_FromLong((long)status);
     #else
