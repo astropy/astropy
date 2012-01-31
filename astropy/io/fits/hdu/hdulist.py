@@ -83,7 +83,7 @@ def fitsopen(name, mode='readonly', memmap=None, **kwargs):
 
     if memmap is None:
         from .. import USE_MEMMAP
-        memmap = USE_MEMMAP
+        memmap = USE_MEMMAP()
 
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']

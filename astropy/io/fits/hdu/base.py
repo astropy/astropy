@@ -1315,7 +1315,7 @@ class ExtensionHDU(_ValidHDU):
         if attr == 'name' and value:
             if not isinstance(value, basestring):
                 raise TypeError("'name' attribute must be a string")
-            if not EXTENSION_NAME_CASE_SENSITIVE:
+            if not EXTENSION_NAME_CASE_SENSITIVE():
                 value = value.upper()
             if 'EXTNAME' in self._header:
                 self._header['EXTNAME'] = value

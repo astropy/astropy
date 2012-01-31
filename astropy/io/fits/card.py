@@ -691,8 +691,7 @@ class Card(_Verify):
         """
 
         from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS
-
-        if not ENABLE_RECORD_VALUED_KEYWORD_CARDS:
+        if not ENABLE_RECORD_VALUED_KEYWORD_CARDS():
             return False
 
         if len(args) == 1:

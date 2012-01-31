@@ -41,24 +41,32 @@ else:
     # restructured at some point)
     from .verify import VerifyError
 
-    # Set module-global boolean variables--these variables can also get their
-    # values from environment variables
-    GLOBALS = [
-         # Variable name                       # Default
-        ('EXTENSION_NAME_CASE_SENSITIVE',      False),
-        ('USE_MEMMAP',                         True),
-        ('ENABLE_RECORD_VALUED_KEYWORD_CARDS', True)
-    ]
+    from ...config import ConfigurationItem
 
-    for varname, default in GLOBALS:
-        try:
-            envvar = os.environ.get('ASTROPY_FITS_' + varname, default)
-            locals()[varname] = bool(int(envvar))
-        except ValueError:
-            locals()[varname] = default
+    # Set module-global boolean variables
+    # TODO: Make it possible to set these variables via environment variables
+    # again, once support for that is added to Astropy
+    EXTENSION_NAME_CASE_SENSITIVE = ConfigurationItem(
+        'extension_name_case_sensitive', False,
+        'If True, extension names (i.e. the EXTNAME keyword) should be '
+        'treated as case-sensitive.')
+
+    USE_MEMMAP = ConfigurationItem(
+        'use_memmap', True,
+        'If True, use memory-mapped file access to read/write the data in '
+        'FITS files. This generally provides better performance, especially '
+        'for large files, but may affect performance in I/O-heavy '
+        'applications.')
+
+    ENABLE_RECORD_VALUED_KEYWORD_CARDS = ConfigurationItem(
+        'enabled_record_valued_keyword_cards', True,
+        'If True, enable support for record-valued keywords as described by '
+        'FITS WCS Paper IV. Otherwise they are treated as normal keywords.')
+
 
     __all__ = (card.__all__ + column.__all__ + convenience.__all__ +
                hdu.__all__ +
-              ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
-               'new_table', 'Header', 'VerifyError',
-               'setExtensionNameCaseSensitive'] + [g[0] for g in GLOBALS])
+               ['FITS_record', 'FITS_rec', 'GroupData', 'open', 'Section',
+                'new_table', 'Header', 'VerifyError',
+                'EXTENSION_NAME_CASE_SENSITIVE', 'USE_MEMMAP',
+                'ENABLE_RECORD_VALUED_KEYWORD_CARDS'])
