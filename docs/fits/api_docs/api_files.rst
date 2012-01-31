@@ -6,7 +6,7 @@ Opening Files
 
 .. autofunction:: open
 
-.. automodule:: pyfits.convenience
+.. automodule:: astropy.io.fits.convenience
    :members: getdata, getheader, getval, setval, delval, writeto, append,
              update, info
 

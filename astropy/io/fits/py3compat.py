@@ -42,8 +42,8 @@ if sys.version_info[0] >= 3:
         return s
     util.decode_ascii = decode_ascii
 
-    # See the docstring for pyfits.util.fileobj_open for why we need to replace
-    # this function
+    # See the docstring for astropy.io.fits.util.fileobj_open for why we need
+    # to replace this function
     def fileobj_open(filename, mode):
         return open(filename, mode, buffering=0)
     util.fileobj_open = fileobj_open
@@ -161,8 +161,8 @@ if sys.version_info[0] >= 3:
                         names, titles, byteorder, aligned)
     numpy.recarray = numpy.core.records.recarray = recarray
 
-    # We also need to patch pyfits.file._File which can also be affected by the
-    # #1766 bug
+    # We also need to patch astropy.io.fits.file._File which can also be
+    # affected by the #1766 bug
     old_File = file._File
 
     class _File(old_File):
@@ -174,8 +174,8 @@ if sys.version_info[0] >= 3:
         readarray.__doc__ = old_File.readarray.__doc__
     file._File = _File
 
-    # Replace pyfits.util.maketrans and translate with versions that work
-    # with Python 3 unicode strings
+    # Replace astropy.io.fits.util.maketrans and translate with versions that
+    # work with Python 3 unicode strings
     util.maketrans = str.maketrans
 
     def translate(s, table, deletechars):

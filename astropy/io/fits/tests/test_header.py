@@ -152,7 +152,7 @@ class TestOldApiHeaderFunctions(FitsTestCase):
 
 
 class TestHeaderFunctions(FitsTestCase):
-    """Test PyFITS Header and Card objects."""
+    """Test Header and Card objects."""
 
     def test_card_constructor_default_args(self):
         """Test Card constructor with default argument values."""

@@ -244,7 +244,8 @@ class HDUList(list, _Verify):
                 except ValueError, err:
                     warnings.warn(
                         'Required keywords missing when trying to read '
-                        'HDU #%d (note: PyFITS uses zero-based indexing.\n'
+                        'HDU #%d (note: astropy.io.fits uses zero-based '
+                        'indexing).\n'
                         '          %s\n          There may be extra '
                         'bytes after the last HDU or the file is corrupted.' %
                         (len(hdulist), err))

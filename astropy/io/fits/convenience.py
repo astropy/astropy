@@ -6,7 +6,8 @@ Convenience functions
 
 The functions in this module provide shortcuts for some of the most basic
 operations on FITS files, such as reading and updating the header.  They are
-included directly in the 'pyfits' namespace so that they can be used like:
+included directly in the 'astropy.io.fits' namespace so that they can be used
+like:
 
     >>> astropy.io.fits.getheader(...)
 
@@ -14,8 +15,8 @@ These functions are primarily for convenience when working with FITS files in
 the command-line interpreter.  If performing several operations on the same
 file, such as in a script, it is better to *not* use these functions, as each
 one must open and re-parse the file.  In such cases it is better to use
-:func:`pyfits.open` and work directly with the :class:`pyfits.HDUList` object
-and underlying HDU objects.
+:func:`astropy.io.fits.open` and work directly with the
+:class:`astropy.io.fits.HDUList` object and underlying HDU objects.
 
 Several of the convenience functions, such as `getheader` and `getdata` support
 special arguments for selecting which extension HDU to use when working with a
@@ -88,7 +89,8 @@ def getheader(filename, *args, **kwargs):
         `getdata` documentation for explanations/examples.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
 
     Returns
     -------
@@ -162,7 +164,8 @@ def getdata(filename, *args, **kwargs):
            data.view(view)
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
 
     Returns
     -------
@@ -238,7 +241,8 @@ def getval(filename, keyword, *args, **kwargs):
         See `getdata` for explanations/examples.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
         *Note:* This function automatically specifies ``do_not_scale_image_data
         = True`` when opening the file so that values can be retrieved from the
         unmodified header.
@@ -304,7 +308,8 @@ def setval(filename, keyword, *args, **kwargs):
         See `getdata` for explanations/examples.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
         *Note:* This function automatically specifies ``do_not_scale_image_data
         = True`` when opening the file so that values can be retrieved from the
         unmodified header.
@@ -346,7 +351,8 @@ def delval(filename, keyword, *args, **kwargs):
         See `getdata` for explanations/examples.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
         *Note:* This function automatically specifies ``do_not_scale_image_data
         = True`` when opening the file so that values can be retrieved from the
         unmodified header.
@@ -431,7 +437,8 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         `False` can be much faster.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
     """
 
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
@@ -499,7 +506,8 @@ def update(filename, data, *args, **kwargs):
             >>> update(file, dat, header=hdr, ext=5) # update the 5th extension
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
     """
 
     # The arguments to this function are a bit tricker to deal with than others
@@ -542,7 +550,8 @@ def info(filename, output=None, **kwargs):
         default.
 
     kwargs
-        Any additional keyword arguments to be passed to `pyfits.open`.
+        Any additional keyword arguments to be passed to
+        `astropy.io.fits.open`.
         *Note:* This function sets ``ignore_missing_end=True`` by default.
     """
 

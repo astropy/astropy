@@ -22,3 +22,7 @@ def get_package_data():
     # Installs the testing data files
     return {
         'astropy.io.fits.tests': ['data/*.fits']}
+
+
+def get_legacy_alias():
+    return setup_helpers.add_legacy_alias('pyfits', 'astropy.io.fits')

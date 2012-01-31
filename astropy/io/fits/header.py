@@ -56,7 +56,7 @@ class Header(collections.MutableMapping):
         This is the second history entry in this header.
         ...
 
-    See the PyFITS documentation for more details on working with headers.
+    See the Astropy documentation for more details on working with headers.
     """
 
     def __init__(self, cards=[], txtfile=None):
@@ -193,7 +193,7 @@ class Header(collections.MutableMapping):
                 # a couple versions (by 3.2 or 3.3, say)
                 warnings.warn(
                     'Deletetion of non-existent keyword %r: '
-                    'In a future PyFITS version Header.__delitem__ may be '
+                    'In a future Astropy version Header.__delitem__ may be '
                     'changed so that this raises a KeyError just like a dict '
                     'would. Please update your code so that KeyErrors are '
                     'caught and handled when deleting non-existent keywords.' %

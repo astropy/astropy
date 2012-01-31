@@ -37,13 +37,9 @@ import warnings
 
 # THIRD-PARTY
 import numpy as np
-try:
-    import pyfits
-    HAS_PYFITS = True
-except ImportError:
-    HAS_PYFITS = False
 
 # LOCAL
+from ..io import fits
 from . import _docutil as __
 try:
     from . import _wcs
@@ -87,12 +83,6 @@ else:
     UnitConverter = object
 
 
-def _require_pyfits(msg):
-    if not HAS_PYFITS:
-        raise ImportError(
-            "pyfits is required to {0}".format(msg))
-
-
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -130,11 +120,11 @@ class WCS(WCSBase):
         """
         Parameters
         ----------
-        header : PyFITS header object, string or None, optional
+        header : astropy.io.fits header object, string or None, optional
             If *header* is not provided or None, the object will be
             initialized to default values.
 
-        fobj : A PyFITS file (hdulist) object, optional
+        fobj : An astropy.io.fits file (hdulist) object, optional
             It is needed when header keywords point to a `Paper IV`_
             Lookup table distortion stored in a different extension.
 
@@ -245,22 +235,22 @@ class WCS(WCSBase):
             keysel_flags = _parse_keysel(keysel)
 
             if isinstance(header, string_types):
-                if HAS_PYFITS and os.path.exists(header):
+                if os.path.exists(header):
                     if fobj is not None:
                         raise ValueError(
                             "Can not provide both a FITS filename to "
                             "argument 1 and a FITS file object to argument 2")
-                    fobj = pyfits.open(header)
+                    fobj = fits.open(header)
                     header = fobj[0].header
                     header_string = repr(header.ascard).encode('latin1')
                 else:
                     header_string = header
-            elif HAS_PYFITS:
-                assert isinstance(header, pyfits.Header)
-                header_string = repr(header.ascard).encode('latin1')
+            elif isinstance(header, fits.Header):
+                header_string = repr(header).encode('latin1')
             else:
                 raise TypeError(
-                    "header must be a string or a pyfits.Header object")
+                    "header must be a string or an astropy.io.fits.Header "
+                    "object")
             try:
                 wcsprm = _wcs._Wcsprm(header=header_string, key=key,
                                       relax=relax, keysel=keysel_flags,
@@ -367,7 +357,7 @@ naxis kwarg.
 
         Parameters
         ----------
-        header : pyfits header object, optional
+        header : astropy.io.fits header object, optional
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into account
@@ -419,9 +409,7 @@ naxis kwarg.
         if fobj is None:
             return (None, None)
 
-        _require_pyfits('use Paper IV lookup tables')
-
-        if not isinstance(fobj, pyfits.HDUList):
+        if not isinstance(fobj, fits.HDUList):
             return (None, None)
 
         try:
@@ -450,8 +438,10 @@ naxis kwarg.
 
     def _write_det2im(self, hdulist):
         """
-        Writes a Paper IV type lookup table to the given `pyfits.HDUList`.
+        Writes a Paper IV type lookup table to the given
+        `astropy.io.fits.HDUList`.
         """
+
         det2im1 = self.det2im1
         det2im2 = self.det2im2
         if det2im1 is not None and det2im2 is None:
@@ -465,7 +455,7 @@ naxis kwarg.
         else:
             raise ValueError("Saving both distortion images is not supported")
 
-        image = pyfits.ImageHDU(det2im.data[0], name='D2IMARR')
+        image = fits.ImageHDU(det2im.data[0], name='D2IMARR')
         header = image.header
 
         header.update('CRPIX1', det2im.crpix[0])
@@ -506,12 +496,9 @@ naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
-                    if fobj is not None:
-                        _require_pyfits('use Paper IV lookup tables')
-
-                    assert isinstance(fobj, pyfits.HDUList), \
-                        'A pyfits HDUList is required for Lookup table ' + \
-                        'distortion.'
+                    assert isinstance(fobj, fits.HDUList), \
+                        'An astropy.io.fits.HDUList is required for ' + \
+                        'Lookup table distortion.'
                     dp = (d_kw + str(i)).strip()
                     d_extver = header.get(dp + '.EXTVER', 1)
                     if i == header[dp + '.AXIS.' + str(i)]:
@@ -541,7 +528,7 @@ naxis kwarg.
     def _write_distortion_kw(self, hdulist, dist='CPDIS'):
         """
         Write out Paper IV distortion keywords to the given
-        `pyfits.HDUList`.
+        `fits.HDUList`.
         """
         if self.cpdis1 is None and self.cpdis2 is None:
             return
@@ -563,7 +550,7 @@ naxis kwarg.
             hdulist[0].header.update('{0}{1:d}.AXIS.{1:d}'.format(d_kw, num),
                                      num)
 
-            image = pyfits.ImageHDU(cpdis.data, name='WCSDVARR')
+            image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
             header.update('CRPIX1', cpdis.crpix[0])
@@ -1142,10 +1129,9 @@ naxis kwarg.
 
     def to_fits(self, relax=False):
         """
-        Generate a `pyfits.HDUList` object with all of the information
-        stored in this object.  This should be logically identical to
-        the input FITS file, but it will be normalized in a number of
-        ways.
+        Generate an `astropy.io.fits.HDUList` object with all of the
+        information stored in this object.  This should be logically identical
+        to the input FITS file, but it will be normalized in a number of ways.
 
         See `to_header` for some warnings about the output produced.
 
@@ -1166,14 +1152,13 @@ naxis kwarg.
 
         Returns
         -------
-        hdulist : `pyfits.HDUList`
+        hdulist : `astropy.io.fits.HDUList`
         """
-        _require_pyfits('generate a FITS file')
 
         header = self.to_header(relax=relax)
 
-        hdu = pyfits.PrimaryHDU(header=header)
-        hdulist = pyfits.HDUList(hdu)
+        hdu = fits.PrimaryHDU(header=header)
+        hdulist = fits.HDUList(hdu)
 
         self._write_det2im(hdulist)
         self._write_distortion_kw(hdulist)
@@ -1182,7 +1167,7 @@ naxis kwarg.
 
     def to_header(self, relax=False):
         """
-        Generate a `pyfits.Header` object with the basic WCS and SIP
+        Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
         information stored in this object.  This should be logically
         identical to the input FITS file, but it will be normalized in
         a number of ways.
@@ -1210,7 +1195,7 @@ naxis kwarg.
 
         Returns
         -------
-        header : `pyfits.Header`
+        header : `astropy.io.fits.Header`
 
         Notes
         -----
@@ -1244,22 +1229,12 @@ naxis kwarg.
 
           8. Keyword order may be changed.
         """
-        _require_pyfits('generate a FITS header')
 
         if self.wcs is not None:
             header_string = self.wcs.to_header(relax)
-            cards = pyfits.CardList()
-            for i in range(0, len(header_string), 80):
-                card_string = header_string[i:i+80]
-                if pyfits.__version__[0] >= '3':
-                    card = pyfits.Card.fromstring(card_string)
-                else:
-                    card = pyfits.Card()
-                    card.fromstring(card_string)
-                cards.append(card)
-            header = pyfits.Header(cards)
+            header = fits.Header.fromstring(header_string)
         else:
-            header = pyfits.Header()
+            header = fits.Header()
 
         if self.sip is not None:
             for key, val in self._write_sip_kw().items():
@@ -1439,7 +1414,6 @@ naxis kwarg.
         Support pickling of WCS objects.  This is done by serializing
         to an in-memory FITS file and dumping that as a string.
         """
-        _require_pyfits("pickle")
 
         hdulist = self.to_fits(relax=True)
 
@@ -1454,13 +1428,12 @@ def __WCS_unpickle__(cls, dct, fits_data):
     """
     Unpickles a WCS object from a serialized FITS string.
     """
-    _require_pyfits("pickle")
 
     self = cls.__new__(cls)
     self.__dict__.update(dct)
 
     buffer = io.BytesIO(fits_data)
-    hdulist = pyfits.open(buffer)
+    hdulist = fits.open(buffer)
 
     WCS.__init__(self, hdulist[0].header, hdulist)
 
@@ -1474,7 +1447,7 @@ def find_all_wcs(header, relax=False, keysel=None):
 
     Parameters
     ----------
-    header : string or PyFITS header object.
+    header : string or astropy.io.fits header object.
 
     relax : bool or int, optional
         Degree of permissiveness:
@@ -1512,14 +1485,14 @@ def find_all_wcs(header, relax=False, keysel=None):
     -------
     wcses : list of `WCS` objects
     """
+
     if isinstance(header, string_types):
         header_string = header
-    elif HAS_PYFITS:
-        assert isinstance(header, pyfits.Header)
-        header_string = repr(header.ascard)
+    elif isinstance(header, fits.Header):
+        header_string = repr(header)
     else:
         raise TypeError(
-            "header must be a string or pyfits.Header object")
+            "header must be a string or astropy.io.fits.Header object")
 
     keysel_flags = _parse_keysel(keysel)
 

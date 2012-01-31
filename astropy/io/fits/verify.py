@@ -69,7 +69,8 @@ class _Verify(object):
                 # Each line contains a single issue that was fixed--issue a
                 # separate warning for each of those issues
                 warnings.warn(line)
-            sys.stderr.write(u'Note: PyFITS uses zero-based indexing.\n')
+            sys.stderr.write(u'Note: Astropy uses zero-based indexing for '
+                              'FITS file extensions and header keywords.\n')
         if opt == 'exception' and x:
             raise VerifyError('\n' + x)
 

@@ -25,6 +25,7 @@ from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError
 from ..xmlutil import validate_schema
+from ... import fits
 from ....config import get_data_filename, get_data_fileobj, get_data_filenames
 from ....tests.helper import pytest, raises
 from ....utils.compat import gzip
@@ -41,16 +42,6 @@ if IS_PY3K:
 else:
     def b(s):
         return str(s)
-
-try:
-    import pyfits
-    HAS_PYFITS = True
-    _pyfits_vers = version.LooseVersion(pyfits.__version__)
-    _expected_pyfits_vers = version.LooseVersion('3.0.4')
-    pyfits304x = (IS_PY3K and _pyfits_vers <= _expected_pyfits_vers)
-except ImportError:
-    HAS_PYFITS = False
-    pyfits304x = False
 
 
 def setup_module():
@@ -185,12 +176,10 @@ def _test_regression(_python_based=False):
     assert truth == output
 
 
-@pytest.mark.xfail('pyfits304x')
 def test_regression():
     _test_regression(False)
 
 
-@pytest.mark.xfail('pyfits304x')
 def test_regression_python_based_parser():
     _test_regression(True)
 
@@ -203,7 +192,6 @@ class TestFixups:
         self.array = self.table.array
         self.mask = self.table.mask
 
-    @pytest.mark.xfail('pyfits304x')
     def test_implicit_id(self):
         assert_array_equal(self.array['string_test_2'],
                            self.array['fixed string test'])
