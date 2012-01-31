@@ -128,7 +128,16 @@ def get_compiler_option():
                                     ['build', 'build_ext', 'build_clib'])
     if compiler is None:
         import distutils.ccompiler
-        return distutils.ccompiler.get_default_compiler()
+        compiler = distutils.ccompiler.get_default_compiler()
+
+    try:
+        from astropy.version import compiler as current_compiler
+    except ImportError:
+        current_compiler = None
+
+    if current_compiler is not None and current_compiler != compiler:
+        # Force rebuild of extension modules
+        sys.argv.extend(['build', '--force'])
 
     return compiler
 
