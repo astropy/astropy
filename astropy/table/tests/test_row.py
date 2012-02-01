@@ -50,7 +50,6 @@ class TestRow():
         for row, np_row in zip(self.t, np_t):
             assert np.all(row != np_row)
 
-    @pytest.mark.xfail
     def test_right_equal(self):
         """This fails because row is a Row object and np_row (np.void)
         doesn't know how to compare.  How to fix???  Not really a show
@@ -73,3 +72,19 @@ class TestRow():
         assert np.all(table._data == np.array([[-1, -1],
                                                [-2, 5],
                                                [3, 6]]))
+
+    def test_convert_numpy_array(self):
+        d = self.t[1]
+
+        np_data = np.array(d)
+        assert np.all(np_data == d._data)
+        assert not np_data is d._data
+        assert d.colnames == list(np_data.dtype.names)
+
+        np_data = np.array(d, copy=False)
+        assert np.all(np_data == d._data)
+        assert not np_data is d._data
+        assert d.colnames == list(np_data.dtype.names)
+
+        with pytest.raises(ValueError):
+            np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])

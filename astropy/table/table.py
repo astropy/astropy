@@ -318,6 +318,17 @@ class Row(object):
     def __ne__(self, other):
         return self.data != other
 
+    def __array__(self, dtype=None):
+        """Support converting Row to np.array via np.array(table).
+
+        Coercion to a different dtype via np.array(table, dtype) is not
+        supported and will raise a ValueError.
+        """
+        if dtype is not None:
+            raise ValueError('Datatype coercion is not allowed')
+
+        return np.array(self._data)
+
     @property
     def table(self):
         return self._table
