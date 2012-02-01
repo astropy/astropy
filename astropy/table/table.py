@@ -1,9 +1,10 @@
 import sys
 from copy import deepcopy
-import numpy as np
 import collections
 
-from astropy.utils import OrderedDict
+import numpy as np
+
+from ..utils import OrderedDict
 from .structhelper import _drop_fields
 
 # Python 2 and 3 source compatibility
@@ -65,8 +66,7 @@ class TableColumns(OrderedDict):
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.keys())
-        return "<TableColumns names=({0})>".format(
-            ",".join(names))
+        return "<TableColumns names=({0})>".format(",".join(names))
 
     def _rename_column(self, name, new_name):
         if new_name in self:
@@ -106,7 +106,7 @@ class Column(np.ndarray):
     units : str or None
         Physical units
     format : str or None
-        Sprintf-style format string for outputting column values
+        Python `str.format` string for outputting column values
     meta : dict-like or None
         Meta-data associated with the column
 
