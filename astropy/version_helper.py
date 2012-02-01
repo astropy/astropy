@@ -155,7 +155,10 @@ bugfix = {bugfix}
 release = {rel}
 debug = {debug}
 
-
+try:
+    from astropy._compiler import compiler
+except ImportError:
+    compiler = "unknown"
 """[1:]
 
 
