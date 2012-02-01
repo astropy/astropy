@@ -51,9 +51,7 @@ class TestRow():
             assert np.all(row != np_row)
 
     def test_right_equal(self):
-        """This fails because row is a Row object and np_row (np.void)
-        doesn't know how to compare.  How to fix???  Not really a show
-        stopper though."""
+        """Test right equal"""
         np_t = self.t._data.copy()
         for row, np_row in zip(self.t, np_t):
             assert np.all(np_row == row)

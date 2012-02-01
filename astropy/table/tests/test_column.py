@@ -44,6 +44,16 @@ class TestColumn():
         c1.format = '%6.1f'
         assert str(c1) == '   0.0,    1.0,    2.0, ..., 1998.0, 1999.0'
 
+    def test_convert_numpy_array(self):
+        d = Column('a', [1, 2, 3], dtype='i8')
+
+        np_data = np.array(d)
+        assert np.all(np_data == d)
+        np_data = np.array(d, copy=False)
+        assert np.all(np_data == d)
+        np_data = np.array(d, dtype='i4')
+        assert np.all(np_data == d)
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
