@@ -106,7 +106,7 @@ class Column(np.ndarray):
     units : str or None
         Physical units
     format : str or None
-        Python `str.format` string for outputting column values
+        Format string for outputting column values using ``format % value``
     meta : dict-like or None
         Meta-data associated with the column
 
