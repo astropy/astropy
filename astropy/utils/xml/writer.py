@@ -66,9 +66,9 @@ class XMLWriter:
         self._indentation = u" " * 64
 
         try:
-            from astropy.io.vo import iterparser
-            self.xml_escape_cdata = iterparser.escape_xml_cdata
-            self.xml_escape = iterparser.escape_xml
+            from . import _iterparser
+            self.xml_escape_cdata = _iterparser.escape_xml_cdata
+            self.xml_escape = _iterparser.escape_xml
         except ImportError:
             self.xml_escape_cdata = xml_escape_cdata
             self.xml_escape = xml_escape
