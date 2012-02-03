@@ -85,7 +85,8 @@ def get_distutils_option(option, commands):
     """
     # Pre-parse the Distutils command-line options and config files to
     # if the option is set.
-    dist = Distribution()
+    dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                         'script_args': sys.argv[1:]})
     try:
         dist.parse_config_files()
         dist.parse_command_line()
