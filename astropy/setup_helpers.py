@@ -122,8 +122,6 @@ def get_compiler_option():
 
     """
 
-    adjust_compiler()
-
     compiler = get_distutils_option('compiler',
                                     ['build', 'build_ext', 'build_clib'])
     if compiler is None:
