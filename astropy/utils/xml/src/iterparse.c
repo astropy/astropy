@@ -102,11 +102,7 @@ typedef struct {
 
     /* File-like object reading */
     PyObject*  fd;              /* Python file object */
-#ifdef IS_PY3K
     int        file;            /* C file descriptor */
-#else
-    FILE*      file;            /* C FILE pointer */
-#endif
     PyObject*  read;            /* The read method on the file object */
     ssize_t    buffersize;      /* The size of the read buffer */
     XML_Char*  buffer;          /* The read buffer */
@@ -642,30 +638,14 @@ IterParser_next(IterParser* self)
         /* Handle a real C file descriptor or handle -- this is faster
            if we've got one. */
         } else {
-#ifdef IS_PY3K
             buflen = (Py_ssize_t)read(
                 self->file, self->buffer, (size_t)self->buffersize);
-            if (buflen < self->buffersize) {
-                self->done = 1;
-            } else if (buflen == -1) {
+            if (buflen == -1) {
                 PyErr_SetFromErrno(PyExc_IOError);
                 goto fail;
+            } else if (buflen < self->buffersize) {
+                self->done = 1;
             }
-#else
-            buflen = (Py_ssize_t)fread(
-                self->buffer, 1, (size_t)self->buffersize, self->file);
-            if (buflen < self->buffersize) {
-                if (feof(self->file)) {
-                    self->done = 1;
-                } else if (ferror(self->file)) {
-                    PyErr_SetFromErrno(PyExc_IOError);
-                    goto fail;
-                } else {
-                    PyErr_SetString(PyExc_RuntimeError, "Undefined C I/O error");
-                    goto fail;
-                }
-            }
-#endif
 
             buf = self->buffer;
         }
@@ -868,11 +848,7 @@ IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self != NULL) {
         self->parser          = NULL;
         self->fd              = NULL;
-#ifdef IS_PY3K
         self->file            = -1;
-#else
-        self->file            = NULL;
-#endif
         self->read            = NULL;
         self->read_args       = NULL;
         self->dict_singleton  = NULL;
@@ -908,6 +884,7 @@ static int
 IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
 {
     PyObject* fd              = NULL;
+    PyObject* read            = NULL;
     ssize_t   buffersize      = 1 << 14;
 
     static char *kwlist[] = {"fd", "buffersize", NULL};
@@ -918,12 +895,16 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
 
     /* Keep the buffersize within a reasonable range */
     self->buffersize = CLAMP(buffersize, (ssize_t)(1 << 10), (ssize_t)(1 << 24));
-#ifdef IS_PY3K
+#ifdef __clang__
+    /* Clang can't handle the file descriptors Python gives us,
+       so in that case, we just call the object's read method. */
+    read = PyObject_GetAttrString(fd, "read");
+    if (read != NULL) {
+        fd = read;
+    }
+#else
     self->file = PyObject_AsFileDescriptor(fd);
     if (self->file != -1) {
-#else
-    if (PyFile_CheckExact(fd)) {
-#endif
         /* This is a real C file handle or descriptor.  We therefore
            need to allocate our own read buffer, and get the real C
            object. */
@@ -933,10 +914,9 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
             goto fail;
         }
         self->fd = fd;   Py_INCREF(self->fd);
-#ifndef IS_PY3K
-        self->file = PyFile_AsFile(fd);
+    } else
 #endif
-    } else if (PyCallable_Check(fd)) {
+    if (PyCallable_Check(fd)) {
         /* fd is a Python callable */
         self->fd = fd;   Py_INCREF(self->fd);
         self->read = fd; Py_INCREF(self->read);
@@ -1001,9 +981,12 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
         self->parser,
         (XML_XmlDeclHandler)xmlDecl);
 
+    Py_XDECREF(read);
+
     return 0;
 
  fail:
+    Py_XDECREF(read);
     Py_XDECREF(self->fd);
     Py_XDECREF(self->read);
     free(self->text);
