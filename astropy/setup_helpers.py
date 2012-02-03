@@ -110,6 +110,27 @@ def get_distutils_option(option, commands):
         return None
 
 
+def get_compiler_option():
+    """ Determines the compiler that will be used to build extension modules.
+
+    Returns
+    -------
+    compiler : str
+        The compiler option specificied for the build, build_ext, or build_clib
+        command; or the default compiler for the platform if none was
+        specified.
+
+    """
+
+    compiler = get_distutils_option('compiler',
+                                    ['build', 'build_ext', 'build_clib'])
+    if compiler is None:
+        import distutils.ccompiler
+        return distutils.ccompiler.get_default_compiler()
+
+    return compiler
+
+
 def get_debug_option():
     """ Determines if the build is in debug mode.
 
@@ -120,6 +141,7 @@ def get_debug_option():
         otherwise.
 
     """
+
     debug = bool(get_distutils_option(
         'debug', ['build', 'build_ext', 'build_clib']))
 
@@ -211,7 +233,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     # commandline argument.  This was the default on MSVC 9.0, but is
     # now required on MSVC 10.0, but it doesn't seeem to hurt to add
     # it unconditionally.
-    if sys.platform.startswith('win'):
+    if get_compiler_option() == 'msvc':
         for ext in extensions:
             ext.extra_link_args.append('/MANIFEST')
 
@@ -343,6 +365,9 @@ def get_numpy_include_path():
     return numpy_include
 
 
+_adjusted_compiler = False
+
+
 def adjust_compiler():
     """
     This function detects broken compilers and switches to another.  If
@@ -361,6 +386,14 @@ def adjust_compiler():
     of the broken compiler, and the second is the compiler to change
     to.
     """
+
+    global _adjusted_compiler
+    if _adjusted_compiler:
+        return
+
+    # Whatever the result of this function is, it only needs to be run once
+    _adjusted_compiler = True
+
     if 'CC' in os.environ:
         return
 
