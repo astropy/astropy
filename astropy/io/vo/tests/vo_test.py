@@ -53,6 +53,7 @@ except ImportError:
     pyfits304x = False
 
 
+# Update this to use py.test's tmpdir functionality
 def setup_module():
     global TMP_DIR
     TMP_DIR = tempfile.mkdtemp()
@@ -153,24 +154,22 @@ def _test_regression(_python_based=False):
                     _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.bin.tabledata.xml"))
 
-    with get_data_fileobj(
-        'data/regression.bin.tabledata.truth.xml') as fd:
+    with io.open(
+        get_data_filename('data/regression.bin.tabledata.truth.xml'),
+        'rt', encoding='utf-8') as fd:
         truth = fd.readlines()
-    with open(join(TMP_DIR, "regression.bin.tabledata.xml"), 'rb') as fd:
+    with io.open(
+        join(TMP_DIR, "regression.bin.tabledata.xml"),
+        'rt', encoding='utf-8') as fd:
         output = fd.readlines()
 
     # If the lines happen to be different, print a diff
     # This is convenient for debugging
     for line in difflib.unified_diff(truth, output):
-        if IS_PY3K:
-            sys.stdout.write(
-                line.decode('utf-8').
-                encode('string_escape').
-                replace('\\n', '\n'))
-        else:
-            sys.stdout.write(
-                line.encode('string_escape').
-                replace('\\n', '\n'))
+        sys.stdout.write(
+            line.
+            encode('string_escape').
+            replace('\\n', '\n'))
 
     assert truth == output
 
@@ -179,8 +178,11 @@ def _test_regression(_python_based=False):
         join(TMP_DIR, "regression.bin.tabledata.xml.gz"),
         _astropy_version="testing",
         _debug_python_based_parser=_python_based)
-    truth = gzip.GzipFile(
-        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'rb').readlines()
+    with gzip.GzipFile(
+        join(TMP_DIR, "regression.bin.tabledata.xml.gz"), 'rb') as gzfd:
+        output = gzfd.readlines()
+    output = [x.decode('utf-8').rstrip() for x in output]
+    truth = [x.rstrip() for x in truth]
 
     assert truth == output
 
