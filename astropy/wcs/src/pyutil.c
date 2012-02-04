@@ -728,13 +728,13 @@ set_pscards(
     int *nps,
     int *npsmax) {
 
-  PyObject*  subvalue  = NULL;
-  Py_ssize_t i         = 0;
-  Py_ssize_t size      = 0;
-  int        ival      = 0;
-  int        mval      = 0;
-  char*      strvalue  = 0;
-  void*      newmem    = NULL;
+  PyObject*   subvalue  = NULL;
+  Py_ssize_t  i         = 0;
+  Py_ssize_t  size      = 0;
+  int         ival      = 0;
+  int         mval      = 0;
+  const char* strvalue  = 0;
+  void*       newmem    = NULL;
 
   if (!PySequence_Check(value))
     return -1;

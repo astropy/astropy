@@ -102,7 +102,7 @@ PyWcsprm_init(
   char *         header        = NULL;
   Py_ssize_t     header_length = 0;
   Py_ssize_t     nkeyrec       = 0;
-  char *         key           = " ";
+  const char *   key           = " ";
   PyObject*      relax_obj     = NULL;
   int            relax         = 0;
   int            naxis         = -1;
@@ -605,7 +605,7 @@ PyWcsprm_fix(
     PyObject* args,
     PyObject* kwds) {
 
-  char*          translate_units = NULL;
+  const char*    translate_units = NULL;
   int            ctrl            = 0;
   PyObject*      naxis_obj       = NULL;
   PyArrayObject* naxis_array     = NULL;
@@ -1400,10 +1400,10 @@ PyWcsprm_sptr(
     PyObject* args,
     PyObject* kwds) {
 
-  int   i                = -1;
-  char* py_ctype         = NULL;
-  char  ctype[9];
-  int   status           = 0;
+  int         i          = -1;
+  const char* py_ctype   = NULL;
+  char        ctype[9];
+  int         status     = 0;
   const char* keywords[] = {"ctype", "i", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
@@ -1698,10 +1698,10 @@ PyWcsprm_unitfix(
     PyObject* args,
     PyObject* kwds) {
 
-  char* translate_units  = NULL;
-  int   ctrl             = 0;
-  int   status           = 0;
-  const char* keywords[] = {"translate_units", NULL};
+  const char* translate_units = NULL;
+  int         ctrl            = 0;
+  int         status          = 0;
+  const char* keywords[]      = {"translate_units", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
           args, kwds, "|s:unitfix", (char **)keywords,

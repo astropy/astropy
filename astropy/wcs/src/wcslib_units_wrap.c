@@ -92,9 +92,9 @@ PyUnits_init(
     PyObject* kwds) {
 
   int            status     = -1;
-  char*          have;
-  char*          want;
-  char*          ctrl_str   = NULL;
+  const char*    have;
+  const char*    want;
+  const char*    ctrl_str   = NULL;
   int            ctrl       = 0;
   const char*    keywords[] = {"have", "want", "translate_units", NULL};
   struct wcserr* err        = NULL;
