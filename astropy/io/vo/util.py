@@ -67,7 +67,7 @@ def convert_to_writable_filelike(fd):
                     real_fd.flush()
                     return
             else:
-                with io.open(fd, 'wb') as real_fd:
+                with open(fd, 'wb') as real_fd:
                     yield real_fd
                     return
     elif hasattr(fd, 'write'):
