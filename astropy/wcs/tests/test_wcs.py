@@ -10,12 +10,6 @@ from ... import wcs
 from ...config import get_data_filenames, get_data_contents, get_data_filename
 from ...tests.helper import pytest
 
-try:
-    import pyfits
-    HAS_PYFITS = True
-except ImportError:
-    HAS_PYFITS = False
-
 
 # test_maps() is a generator
 def test_maps():
@@ -237,7 +231,6 @@ def test_outside_sky():
     assert not np.any(np.isnan(w.wcs_pix2sky([[1000.,1000.]], 0)))
 
 
-@pytest.mark.skipif("not HAS_PYFITS")
 def test_load_fits_path():
     fits = get_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
