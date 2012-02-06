@@ -5,11 +5,11 @@ from __future__ import division # confidence high
 
 import numpy
 from astropy import wcs
-import pyfits
+from astropy.io import fits
 import sys
 
-# Load the FITS hdulist using pyfits
-hdulist = pyfits.open(sys.argv[-1])
+# Load the FITS hdulist using astropy.io.fits
+hdulist = fits.open(sys.argv[-1])
 
 # Parse the WCS keywords in the primary HDU
 w = wcs.WCS(hdulist[0].header)

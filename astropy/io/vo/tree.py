@@ -20,13 +20,9 @@ else:
 
 # THIRD-PARTY
 import numpy as np
-try:
-    import pyfits
-    _has_pyfits = True
-except ImportError:
-    _has_pyfits = False
 
 # LOCAL
+from .. import fits
 from ... import __version__ as astropy_version
 from ...utils.collections import HomogeneousList
 from ...utils.xml.writer import XMLWriter
@@ -2333,11 +2329,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         return array, mask
 
     def _parse_fits(self, iterator, extnum, config):
-        if not _has_pyfits:
-            vo_raise(
-                "Input file contains FITS data, but pyfits is not installed.",
-                config, None, ImportError)
-
         for start, tag, data, pos in iterator:
             if tag == 'STREAM':
                 if start:
@@ -2370,7 +2361,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     "Unknown encoding type '%s'" % encoding,
                     self._config, self._pos, NotImplementedError)
 
-        fits = pyfits.open(fd)
+        fits = fits.open(fd)
 
         array = fits[int(extnum)].data
         if array.dtype != self.array.dtype:

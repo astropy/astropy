@@ -5,13 +5,9 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from ...config import get_data_contents, get_data_fileobj
+from ...io import fits
 from ...tests.helper import pytest
 from ... import wcs
-
-try:
-    import pyfits
-except ImportError:
-    pytestmark = pytest.mark.skipif('True')
 
 
 def test_basic():
@@ -21,7 +17,7 @@ def test_basic():
 
 
 def test_dist():
-    hdulist = pyfits.open(get_data_fileobj(os.path.join("data", "dist.fits")))
+    hdulist = fits.open(get_data_fileobj(os.path.join("data", "dist.fits")))
     wcs1 = wcs.WCS(hdulist[0].header, hdulist)
     assert wcs1.det2im2 is not None
     s = cPickle.dumps(wcs1)
@@ -35,8 +31,8 @@ def test_dist():
 
 
 def test_sip():
-    hdulist = pyfits.open(get_data_fileobj(os.path.join("data", "sip.fits")),
-                          ignore_missing_end=True)
+    hdulist = fits.open(get_data_fileobj(os.path.join("data", "sip.fits")),
+                        ignore_missing_end=True)
     wcs1 = wcs.WCS(hdulist[0].header)
     assert wcs1.sip is not None
     s = cPickle.dumps(wcs1)
@@ -50,8 +46,8 @@ def test_sip():
 
 
 def test_sip2():
-    hdulist = pyfits.open(get_data_fileobj(os.path.join("data", "sip2.fits")),
-                          ignore_missing_end=True)
+    hdulist = fits.open(get_data_fileobj(os.path.join("data", "sip2.fits")),
+                        ignore_missing_end=True)
     wcs1 = wcs.WCS(hdulist[0].header)
     assert wcs1.sip is not None
     s = cPickle.dumps(wcs1)

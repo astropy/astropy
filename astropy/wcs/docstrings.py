@@ -2233,7 +2233,7 @@ Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
 
 Parameters
 ----------
-header : A PyFITS header, string, or `None`.
+header : An astropy.io.fits header, string, or `None`.
   If ``None``, the object will be initialized to default values.
 
 key : string, optional
