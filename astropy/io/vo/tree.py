@@ -2149,11 +2149,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             if colnumbers_bits[i]:
                                 try:
                                     if binary:
-                                        if IS_PY3K:
-                                            rawdata = base64.b64decode(
-                                                data.encode('ascii'))
-                                        else:
-                                            rawdata = data.decode('base64')
+                                        rawdata = base64.b64decode(
+                                            data.encode('ascii'))
                                         buf = io.BytesIO(rawdata)
                                         buf.seek(0)
                                         try:

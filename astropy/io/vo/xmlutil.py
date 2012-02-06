@@ -14,7 +14,6 @@ from ...utils.xml import validate
 
 # LOCAL
 from . import util
-from .util import IS_PY3K
 from .exceptions import (warn_or_raise, vo_warn, vo_raise,
      VOTableChangeWarning, W02, W03, W04, W05, W34)
 from ... import config

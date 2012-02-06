@@ -35,12 +35,6 @@ numpy_has_complex_bug = (
 
 join = os.path.join
 
-if IS_PY3K:
-    def b(s):
-        return bytes(s, 'ascii')
-else:
-    def b(s):
-        return str(s)
 
 
 # Update this to use py.test's tmpdir functionality
@@ -249,7 +243,7 @@ def test_select_columns_by_index():
         pedantic=False, columns=columns).get_first_table()
     array = table.array
     mask = table.mask
-    assert array['string_test'][0] == b("String & test")
+    assert array['string_test'][0] == b"String & test"
     columns = ['string_test', 'unsignedByte', 'bitarray']
     for c in columns:
         assert not np.all(mask[c])
@@ -263,7 +257,7 @@ def test_select_columns_by_name():
         pedantic=False, columns=columns).get_first_table()
     array = table.array
     mask = table.mask
-    assert array['string_test'][0] == b("String & test")
+    assert array['string_test'][0] == b"String & test"
     for c in columns:
         assert not np.all(mask[c])
     assert np.all(mask['unicode_test'])
@@ -282,15 +276,15 @@ class TestParse:
                           np.object_)
         assert_array_equal(
             self.array['string_test'],
-            [b('String & test'), b('String &amp; test'), b('XXXX'),
-             b(''), b('')])
+            [b'String & test', b'String &amp; test', b'XXXX',
+             b'', b''])
 
     def test_fixed_string_test(self):
         assert issubclass(self.array['string_test_2'].dtype.type,
                           np.string_)
         assert_array_equal(
             self.array['string_test_2'],
-            [b('Fixed stri'), b('0123456789'), b('XXXX'), b(''), b('')])
+            [b'Fixed stri', b'0123456789', b'XXXX', b'', b''])
 
     def test_unicode_test(self):
         assert issubclass(self.array['unicode_test'].dtype.type,
