@@ -732,3 +732,19 @@ def test_validate():
 
     assert truth == output
 
+
+def test_gzip_filehandles():
+    votable = parse(
+        get_data_filename('data/regression.xml'),
+        pedantic=False)
+
+    with open(join(TMP_DIR, "regression.compressed.xml"), 'wb') as fd:
+        votable.to_xml(
+            fd,
+            compressed=True,
+            _astropy_version="testing")
+
+    with open(join(TMP_DIR, "regression.compressed.xml"), 'rb') as fd:
+        votable = parse(
+            fd,
+            pedantic=False)

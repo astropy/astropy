@@ -62,24 +62,14 @@ def _convert_to_fd_or_read_function(fd):
               :meth:`read` method on the file object is returned.
               Otherwise, the raw file object is returned.
 
-           - an object with a :meth:`read` method, in which case that
-             method is returned.
+            - an object with a :meth:`read` method, in which case that
+              method is returned.
 
     Returns
     -------
     fd : context-dependent
         See above.
     """
-    if not sys.platform.startswith('win'):
-        if IS_PY3K:
-            if isinstance(fd, io.IOBase):
-                yield fd
-                return
-        else:
-            if isinstance(fd, file):
-                yield fd
-                return
-
     if is_callable(fd):
         yield fd
         return
@@ -100,13 +90,30 @@ def _convert_to_fd_or_read_function(fd):
                 return
     elif hasattr(fd, 'read'):
         assert is_callable(fd.read)
+        magic = fd.read(2)
+        fd.seek(0)
+        if magic == b'\x1f\x8b':
+            from ...utils.compat import gzip
+            fd = gzip.GzipFile(fileobj=fd)
+
         if type(fd.read(0)) == type(u''):
             def make_encoder(reader):
                 def read(n):
                     return reader(n).encode('utf-8')
             yield make_encoder(fd.read)
-        else:
-            yield fd.read
+            return
+
+        if not sys.platform.startswith('win'):
+            if IS_PY3K:
+                if isinstance(fd, io.FileIO):
+                    yield fd
+                    return
+            else:
+                if isinstance(fd, file):
+                    yield fd
+                    return
+
+        yield fd.read
         return
     else:
         raise TypeError("Can not be coerced to read function")
