@@ -22,10 +22,6 @@ from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01, W26,
     W30, W31, W32, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06)
 from .util import IS_PY3K
 
-if not IS_PY3K:
-    def bytes(s, encoding):
-        return str(s)
-
 
 __all__ = ['get_converter']
 
@@ -39,9 +35,9 @@ SPEC: Usage of commas is not actually allowed by the spec, but many
 files in the wild use them.
 """
 
-_zero_int = bytes('\0\0\0\0', 'ascii')
-_empty_bytes = bytes('', 'ascii')
-_zero_byte = bytes('\0', 'ascii')
+_zero_int = b'\0\0\0\0'
+_empty_bytes = b''
+_zero_byte = b'\0'
 
 
 class Converter(object):
@@ -116,7 +112,8 @@ class Converter(object):
     def output(self, value, mask):
         """
         Convert the object *value* (in the native in-memory datatype)
-        to a string suitable for serializing in the TABLEDATA_ format.
+        to a unicode string suitable for serializing in the TABLEDATA_
+        format.
 
         Parameters
         ----------
@@ -129,7 +126,7 @@ class Converter(object):
 
         Returns
         -------
-        tabledata_repr : str
+        tabledata_repr : unicode
         """
         raise NotImplementedError(
             "This datatype must implement a 'output' method.")
@@ -223,29 +220,17 @@ class Char(Converter):
             vo_warn(W46, ('char', self.arraysize), config, pos)
         return value.encode('ascii'), False
 
-    if IS_PY3K:
-        def _str_parse(self, value, config={}, pos=None):
-            if self.arraysize != '*' and len(value) > self.arraysize:
-                vo_warn(W46, ('char', self.arraysize), config, pos)
-            return bytes(value, 'ascii'), False
-    else:
-        def _str_parse(self, value, config={}, pos=None):
-            if self.arraysize != '*' and len(value) > self.arraysize:
-                vo_warn(W46, ('char', self.arraysize), config, pos)
-            return str(value), False
+    def _str_parse(self, value, config={}, pos=None):
+        if self.arraysize != '*' and len(value) > self.arraysize:
+            vo_warn(W46, ('char', self.arraysize), config, pos)
+        return value.encode('utf-8'), False
 
-    if IS_PY3K:
-        def output(self, value, mask):
-            if mask:
-                return ''
-            if not isinstance(value, str):
-                value = value.decode('ascii')
-            return xml_escape_cdata(value)
-    else:
-        def output(self, value, mask):
-            if mask:
-                return ''
-            return xml_escape_cdata(value).encode('ascii')
+    def output(self, value, mask):
+        if mask:
+            return u''
+        if not isinstance(value, str):
+            value = value.decode('ascii')
+        return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -259,7 +244,7 @@ class Char(Converter):
         return s, False
 
     def _binoutput_var(self, value, mask):
-        if mask or value is None or value == '':
+        if mask or value is None or value == u'':
             return _zero_int
         return self._write_length(len(value)) + value
 
@@ -299,28 +284,15 @@ class UnicodeChar(Converter):
             self.binoutput = self._binoutput_fixed
             self._struct_format = ">%ds" % (self.arraysize * 2)
 
-    if IS_PY3K:
-        def parse(self, value, config={}, pos=None):
-            if self.arraysize != '*' and len(value) > self.arraysize:
-                vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
-            return value, False
-    else:
-        def parse(self, value, config={}, pos=None):
-            value = unicode(value, 'utf-8')
-            if self.arraysize != '*' and len(value) > self.arraysize:
-                vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
-            return value, False
+    def parse(self, value, config={}, pos=None):
+        if self.arraysize != '*' and len(value) > self.arraysize:
+            vo_warn(W46, ('unicodeChar', self.arraysize), config, pos)
+        return value, False
 
-    if IS_PY3K:
-        def output(self, value, mask):
-            if mask:
-                return ''
-            return xml_escape_cdata(value)
-    else:
-        def output(self, value, mask):
-            if mask:
-                return ''
-            return xml_escape_cdata(value).encode('utf-8')
+    def output(self, value, mask):
+        if mask:
+            return u''
+        return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -387,7 +359,7 @@ class VarArray(Array):
     def output(self, value, mask):
         output = self._base.output
         result = [output(x, m) for x, m in np.broadcast(value, mask)]
-        return ' '.join(result)
+        return u' '.join(result)
 
     def binparse(self, read):
         length = self._parse_length(read)
@@ -516,8 +488,8 @@ class NumericArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
-        return ' '.join(base_output(x, m) for x, m in
-                        zip(value.flat, mask.flat))
+        return u' '.join(base_output(x, m) for x, m in
+                         zip(value.flat, mask.flat))
 
     def binparse(self, read):
         result = np.fromstring(read(self._memsize),
@@ -572,18 +544,18 @@ class FloatingPoint(Numeric):
 
         precision = field.precision
         if precision is None:
-            self._output_format = '%g'
+            self._output_format = u'%g'
         elif precision.startswith("E"):
-            self._output_format = "%%.%dE" % (int(precision[1:]))
+            self._output_format = u"%%.%dE" % (int(precision[1:]))
         elif precision.startswith("F"):
-            self._output_format = "%%.%dg" % (int(precision[1:]))
+            self._output_format = u"%%.%dg" % (int(precision[1:]))
         else:
-            self._output_format = "%%.%dg" % (int(precision))
+            self._output_format = u"%%.%dg" % (int(precision))
 
         self.nan = np.array(np.nan, self.format)
 
         if self.null is None:
-            self._null_output = 'NaN'
+            self._null_output = u'NaN'
             self._null_binoutput = self.binoutput(self.nan, False)
             self.filter_array = self._filter_nan
         else:
@@ -619,11 +591,11 @@ class FloatingPoint(Numeric):
         if np.isfinite(value):
             return self._output_format % value
         elif np.isnan(value):
-            return 'NaN'
+            return u'NaN'
         elif np.isposinf(value):
-            return '+InF'
+            return u'+InF'
         elif np.isneginf(value):
-            return '-InF'
+            return u'-InF'
         # Should never raise
         vo_raise("Invalid floating point value '%s'" % value)
 
@@ -697,14 +669,14 @@ class Integer(Numeric):
         if mask:
             if self.null is None:
                 warn_or_raise(W31, W31, (), config, pos)
-                return 'NaN'
-            return str(self.null)
-        return str(value)
+                return u'NaN'
+            return unicode(self.null)
+        return unicode(value)
 
     def binoutput(self, value, mask):
         if mask:
             if self.null is None:
-                vo_raise(W31, (), config, pos)
+                vo_raise(W31)
             else:
                 value = self.null
         if value.dtype.byteorder != '>':
@@ -863,7 +835,7 @@ class Complex(FloatingPoint, Array):
     def output(self, value, mask):
         if mask:
             if self.null is None:
-                return 'NaN'
+                return u'NaN'
             else:
                 value = self.null
         return self._output_format % (value.real, value.imag)
@@ -908,8 +880,8 @@ class BitArray(NumericArray):
 
     def output(self, value, mask):
         value = np.asarray(value)
-        mapping = {False: '0', True: '1'}
-        return ''.join(mapping[x] for x in value.flat)
+        mapping = {False: u'0', True: u'1'}
+        return u''.join(mapping[x] for x in value.flat)
 
     def binparse(self, read):
         data = read(self._bytes)
@@ -964,8 +936,8 @@ class Bit(Converter):
     array_type = BitArray
     vararray_type = ScalarVarArray
     default = False
-    binary_one = bytes(chr(0x8), 'ascii')
-    binary_zero = bytes(chr(0), 'ascii')
+    binary_one = b'\x08'
+    binary_zero = b'\0'
 
     def __init__(self, field, config={}, pos=None):
         Converter.__init__(self, field, config, pos)
@@ -986,9 +958,9 @@ class Bit(Converter):
             vo_warn(W39)
 
         if value:
-            return '1'
+            return u'1'
         else:
-            return '0'
+            return u'0'
 
     def binparse(self, read):
         data = read(1)
@@ -1046,9 +1018,9 @@ class Boolean(Converter):
     array_type = BooleanArray
     vararray_type = VarArray
     default = False
-    binary_question_mark = bytes('?', 'ascii')
-    binary_true = bytes('T', 'ascii')
-    binary_false = bytes('F', 'ascii')
+    binary_question_mark = b'?'
+    binary_true = b'T'
+    binary_false = b'F'
 
     def __init__(self, field, config={}, pos=None):
         Converter.__init__(self, field, config, pos)
@@ -1073,10 +1045,10 @@ class Boolean(Converter):
 
     def output(self, value, mask):
         if mask:
-            return '?'
+            return u'?'
         if value:
-            return 'T'
-        return 'F'
+            return u'T'
+        return u'F'
 
     def binparse(self, read):
         value = ord(read(1))

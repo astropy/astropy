@@ -133,11 +133,14 @@ def _test_regression(_python_based=False):
                    _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.tabledata.xml"))
     votable.get_first_table().format = 'binary'
-    votable.to_xml(join(TMP_DIR, "regression.binary.xml"),
-                   _debug_python_based_parser=_python_based)
+    # Also try passing a file handle
+    with open(join(TMP_DIR, "regression.binary.xml"), "wb") as fd:
+        votable.to_xml(fd, _debug_python_based_parser=_python_based)
     assert_validate_schema(join(TMP_DIR, "regression.binary.xml"))
-    votable2 = parse(join(TMP_DIR, "regression.binary.xml"), pedantic=False,
-                     _debug_python_based_parser=_python_based)
+    # Also try passing a file handle
+    with open(join(TMP_DIR, "regression.binary.xml"), "rb") as fd:
+        votable2 = parse(fd, pedantic=False,
+                         _debug_python_based_parser=_python_based)
     votable2.get_first_table().format = 'tabledata'
     votable2.to_xml(join(TMP_DIR, "regression.bin.tabledata.xml"),
                     _astropy_version="testing",

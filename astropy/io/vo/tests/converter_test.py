@@ -24,7 +24,7 @@ def test_oversize_char(recwarn):
     c = converters.get_converter(field, config=config)
     w = recwarn.pop(exceptions.W47)
 
-    c.parse("XXX")
+    c.parse(u"XXX")
     w = recwarn.pop(exceptions.W46)
 
 
@@ -44,7 +44,7 @@ def test_oversize_unicode(recwarn):
         config=config)
     c = converters.get_converter(field, config=config)
 
-    c.parse("XXX")
+    c.parse(u"XXX")
     w = recwarn.pop(exceptions.W46)
 
 
@@ -54,7 +54,7 @@ def test_unicode_mask():
         None, name='c', datatype='unicodeChar',
         config=config)
     c = converters.get_converter(field, config=config)
-    assert c.output("Foo", True) == ''
+    assert c.output(u"Foo", True) == u''
 
 
 @raises(exceptions.E02)

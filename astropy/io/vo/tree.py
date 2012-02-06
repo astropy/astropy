@@ -891,31 +891,31 @@ class Values(Element, _IDProperty):
     def to_xml(self, w, **kwargs):
         def yes_no(value):
             if value:
-                return 'yes'
-            return 'no'
+                return u'yes'
+            return u'no'
 
         if self.is_defaults():
             return
 
         if self.ref is not None:
-            w.element('VALUES', attrib=w.object_attrs(self, ['ref']))
+            w.element(u'VALUES', attrib=w.object_attrs(self, [u'ref']))
         else:
-            with w.tag('VALUES',
+            with w.tag(u'VALUES',
                        attrib=w.object_attrs(
-                           self, ['ID', 'null', 'ref'])):
+                           self, [u'ID', u'null', u'ref'])):
                 if self.min is not None:
                     w.element(
-                        'MIN',
+                        u'MIN',
                         value=self._field.converter.output(self.min, False),
                         inclusive=yes_no(self.min_inclusive))
                 if self.max is not None:
                     w.element(
-                        'MAX',
+                        u'MAX',
                         value=self._field.converter.output(self.max, False),
                         inclusive=yes_no(self.max_inclusive))
                 for name, value in self.options:
                     w.element(
-                        'OPTION',
+                        u'OPTION',
                         name=name,
                         value=value)
 
@@ -1271,7 +1271,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         with w.tag(self._element_name,
                    attrib=w.object_attrs(self, self._attr_list)):
             if self.description is not None:
-                w.element("DESCRIPTION", self.description, wrap=True)
+                w.element(u'DESCRIPTION', self.description, wrap=True)
             if not self.values.is_defaults():
                 self.values.to_xml(w, **kwargs)
             for link in self.links:
@@ -1327,8 +1327,8 @@ class Param(Field):
         tmp_value = self._value
         self._value = self.converter.output(tmp_value, False)
         # We must always have a value
-        if self._value in (None, ''):
-            self._value = " "
+        if self._value in (None, u'', b''):
+            self._value = u" "
         Field.to_xml(self, w, **kwargs)
         self._value = tmp_value
 
@@ -1672,11 +1672,11 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def to_xml(self, w, **kwargs):
         with w.tag(
-            'GROUP',
+            u'GROUP',
             attrib=w.object_attrs(
-                self, ['ID', 'name', 'ref', 'ucd', 'utype'])):
+                self, [u'ID', u'name', u'ref', u'ucd', u'utype'])):
             if self.description is not None:
-                w.element("DESCRIPTION", self.description, wrap=True)
+                w.element(u"DESCRIPTION", self.description, wrap=True)
             for entry in self.entries:
                 entry.to_xml(w, **kwargs)
 
@@ -1910,10 +1910,16 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
             dtype = []
             for x in fields:
-                if x._unique_name == x.ID:
-                    id = x.ID
+                if IS_PY3K:
+                    if x._unique_name == x.ID:
+                        id = x.ID
+                    else:
+                        id = (x._unique_name, x.ID)
                 else:
-                    id = (x._unique_name, x.ID)
+                    if x._unique_name == x.ID:
+                        id = x.ID.encode('utf-8')
+                    else:
+                        id = (x._unique_name.encode('utf-8'), x.ID.encode('utf-8'))
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
@@ -2371,13 +2377,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def to_xml(self, w, **kwargs):
         with w.tag(
-            'TABLE',
-             attrib=w.object_attrs(
-                       self,
-                       ('ID', 'name', 'ref', 'ucd', 'utype', 'nrows'))):
+            u'TABLE',
+            attrib=w.object_attrs(
+                self,
+                (u'ID', u'name', u'ref', u'ucd', u'utype', u'nrows'))):
 
             if self.description is not None:
-                w.element("DESCRIPTION", self.description, wrap=True)
+                w.element(u"DESCRIPTION", self.description, wrap=True)
 
             for element_set in (self.fields, self.params):
                 for element in element_set:
@@ -2390,13 +2396,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                         element.to_xml(w, **kwargs)
 
             if len(self.array):
-                with w.tag('DATA'):
-                    if self.format == 'fits':
-                        self.format = 'tabledata'
+                with w.tag(u'DATA'):
+                    if self.format == u'fits':
+                        self.format = u'tabledata'
 
-                    if self.format == 'tabledata':
+                    if self.format == u'tabledata':
                         self._write_tabledata(w, **kwargs)
-                    elif self.format == 'binary':
+                    elif self.format == u'binary':
                         self._write_binary(w, **kwargs)
 
             if self.ref is None and kwargs['version_1_2_or_later']:
@@ -2409,7 +2415,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         mask = self.mask
 
         write_null_values = kwargs.get('write_null_values', False)
-        with w.tag('TABLEDATA'):
+        with w.tag(u'TABLEDATA'):
             w._flush()
             if (_has_c_tabledata_writer and
                 not kwargs.get('_debug_python_based_parser')):
@@ -2420,12 +2426,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
-                if not IS_PY3K:
-                    indent_spaces = indent_spaces.encode('ascii')
-                tr_start = indent_spaces + "<TR>\n"
-                tr_end = indent_spaces + "</TR>\n"
-                td = indent_spaces + " <TD>%s</TD>\n"
-                td_empty = indent_spaces + " <TD/>\n"
+                tr_start = indent_spaces + u"<TR>\n"
+                tr_end = indent_spaces + u"</TR>\n"
+                td = indent_spaces + u" <TD>%s</TD>\n"
+                td_empty = indent_spaces + u" <TD/>\n"
                 fields = [(i, field.converter.output)
                           for i, field in enumerate(fields)]
                 for row in xrange(len(array)):
@@ -2438,8 +2442,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             try:
                                 val = output(array_row[i], masked)
                             except Exception as e:
-                                vo_reraise(e, config, pos,
-                                           "(in row %d, col '%s')" %
+                                vo_reraise(e,
+                                           additional="(in row %d, col '%s')" %
                                            (row, fields[i].ID))
                             write(td % val)
                         else:
@@ -2451,29 +2455,27 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         array = self.array
         mask = self.mask
 
-        with w.tag('BINARY'):
-            with w.tag('STREAM', encoding='base64'):
-                fields = [(i, field.converter.binoutput)
-                          for (i, field) in enumerate(fields)]
+        with w.tag(u'BINARY'):
+            with w.tag(u'STREAM', encoding='base64'):
+                fields_basic = [(i, field.converter.binoutput)
+                                for (i, field) in enumerate(fields)]
 
                 data = io.BytesIO()
                 for row in xrange(len(array)):
                     array_row = array[row]
                     array_mask = mask[row]
-                    for i, converter in fields:
+                    for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
+                            assert type(chunk) == type(b'')
                         except Exception as e:
-                            vo_reraise(e, config, pos,
-                                       "(in row %d, col '%s')" %
+                            vo_reraise(e,
+                                       additional="(in row %d, col '%s')" %
                                        (row, fields[i].ID))
                         data.write(chunk)
 
                 w._flush()
-                if IS_PY3K:
-                    w.write(base64.b64encode(data.getvalue()).decode('ascii'))
-                else:
-                    w.write(data.getvalue().encode('base64'))
+                w.write(base64.b64encode(data.getvalue()).decode('ascii'))
 
     def iter_fields_and_params(self):
         """
@@ -2686,11 +2688,11 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         return self
 
     def to_xml(self, w, **kwargs):
-        attrs = w.object_attrs(self, ('ID', 'type', 'utype'))
+        attrs = w.object_attrs(self, (u'ID', u'type', u'utype'))
         attrs.update(self.extra_attributes)
-        with w.tag('RESOURCE', attrib=attrs):
+        with w.tag(u'RESOURCE', attrib=attrs):
             if self.description is not None:
-                w.element("DESCRIPTION", self.description, wrap=True)
+                w.element(u"DESCRIPTION", self.description, wrap=True)
             for element_set in (self.coordinate_systems, self.params,
                                 self.infos, self.links, self.tables,
                                 self.resources):
@@ -2917,9 +2919,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             'write_null_values': write_null_values,
             'version': self.version,
             'version_1_1_or_later':
-                util.version_compare(self.version, '1.1') >= 0,
+                util.version_compare(self.version, u'1.1') >= 0,
             'version_1_2_or_later':
-                util.version_compare(self.version, '1.2') >= 0,
+                util.version_compare(self.version, u'1.2') >= 0,
             '_debug_python_based_parser': _debug_python_based_parser}
 
         with util.convert_to_writable_filelike(fd) as fd:
@@ -2930,22 +2932,22 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             else:
                 lib_version = _astropy_version
 
-            xml_header = """
+            xml_header = u"""
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Produced with astropy.io.vo version %(lib_version)s
      http://www.astropy.org/ -->\n"""
             w.write(xml_header.lstrip() % locals())
 
-            with w.tag('VOTABLE',
-                       {'version': version,
-                        'xmlns:xsi':
-                            "http://www.w3.org/2001/XMLSchema-instance",
-                        'xsi:noNamespaceSchemaLocation':
-                            "http://www.ivoa.net/xml/VOTable/v%s" % version,
-                        'xmlns':
-                            "http://www.ivoa.net/xml/VOTable/v%s" % version}):
+            with w.tag(u'VOTABLE',
+                       {u'version': version,
+                        u'xmlns:xsi':
+                            u"http://www.w3.org/2001/XMLSchema-instance",
+                        u'xsi:noNamespaceSchemaLocation':
+                            u"http://www.ivoa.net/xml/VOTable/v%s" % version,
+                        u'xmlns':
+                            u"http://www.ivoa.net/xml/VOTable/v%s" % version}):
                 if self.description is not None:
-                    w.element("DESCRIPTION", self.description, wrap=True)
+                    w.element(u"DESCRIPTION", self.description, wrap=True)
                 element_sets = [self.coordinate_systems, self.params,
                                 self.infos, self.resources]
                 if kwargs['version_1_2_or_later']:

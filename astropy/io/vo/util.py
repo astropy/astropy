@@ -46,33 +46,40 @@ def convert_to_writable_filelike(fd):
     fd : writable file-like object
     """
     if isinstance(fd, basestring):
-        if IS_PY3K:
-            if fd.endswith('.gz'):
-                from ...utils.compat import gzip
-                with gzip.GzipFile(fd, 'wb') as real_fd:
-                    encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
-                    yield encoded_fd
-                    encoded_fd.flush()
-                    real_fd.flush()
-                    return
-            else:
-                with io.open(fd, 'wt', encoding='utf8') as real_fd:
-                    yield real_fd
-                    return
+        if fd.endswith('.gz'):
+            from ...utils.compat import gzip
+            with gzip.GzipFile(fd, 'wb') as real_fd:
+                encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
+                yield encoded_fd
+                encoded_fd.flush()
+                real_fd.flush()
+                return
         else:
-            if fd.endswith('.gz'):
-                from ...utils.compat import gzip
-                with gzip.GzipFile(fd, 'wb') as real_fd:
-                    yield real_fd
-                    real_fd.flush()
-                    return
-            else:
-                with open(fd, 'wb') as real_fd:
-                    yield real_fd
-                    return
+            with io.open(fd, 'wt', encoding='utf8') as real_fd:
+                yield real_fd
+                return
     elif hasattr(fd, 'write'):
         assert is_callable(fd.write)
-        yield fd
+
+        # If we can't write Unicode strings, use a codecs.StreamWriter
+        # object
+        needs_wrapper = False
+        try:
+            fd.write(u'')
+        except TypeError:
+            needs_wrapper = True
+
+        if not hasattr(fd, 'encoding') or fd.encoding is None:
+            needs_wrapper = True
+
+        if needs_wrapper:
+            import codecs
+            yield codecs.getwriter('utf-8')(fd)
+            fd.flush()
+        else:
+            yield fd
+            fd.flush()
+
         return
     else:
         raise TypeError("Can not be coerced to writable file-like object")

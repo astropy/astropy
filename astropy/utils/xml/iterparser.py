@@ -79,6 +79,7 @@ def _convert_to_fd_or_read_function(fd):
             if isinstance(fd, file):
                 yield fd
                 return
+
     if is_callable(fd):
         yield fd
         return
@@ -99,7 +100,13 @@ def _convert_to_fd_or_read_function(fd):
                 return
     elif hasattr(fd, 'read'):
         assert is_callable(fd.read)
-        yield fd.read
+        if type(fd.read(0)) == type(u''):
+            def make_encoder(reader):
+                def read(n):
+                    return reader(n).encode('utf-8')
+            yield make_encoder(fd.read)
+        else:
+            yield fd.read
         return
     else:
         raise TypeError("Can not be coerced to read function")
@@ -122,12 +129,12 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
         del text[:]
 
     def end(name):
-        queue.append((False, name, ''.join(text).strip(),
+        queue.append((False, name, u''.join(text).strip(),
                       (parser.CurrentLineNumber, parser.CurrentColumnNumber)))
 
     parser = expat.ParserCreate()
     if not IS_PY3K:
-        parser.returns_unicode = False
+        parser.returns_unicode = True
     parser.specified_attributes = True
     parser.StartElementHandler = start
     parser.EndElementHandler = end
@@ -213,7 +220,7 @@ def get_xml_encoding(source):
     """
     with get_xml_iterator(source) as iterator:
         start, tag, data, pos = iterator.next()
-        if not start or tag != 'xml':
+        if not start or tag != u'xml':
             raise IOError('Invalid XML file')
 
     return data['encoding']
