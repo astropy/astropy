@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -29,7 +29,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcserr.c,v 4.8.1.2 2011/11/17 03:15:21 cal103 Exp cal103 $
+  $Id: wcserr.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -75,7 +75,9 @@ int wcserr_prt(
         err->msg);
     } else {
       /* An informative message only. */
-      wcsprintf("%s%s.\n", prefix, err->msg);
+      wcsprintf("%sINFORMATIVE message from %s() at line %d of file "
+        "%s:\n%s%s.\n", prefix, err->function, err->line_no, err->file,
+        prefix, err->msg);
     }
   }
 

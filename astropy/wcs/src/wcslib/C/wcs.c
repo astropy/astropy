@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcs.c,v 4.8.1.2 2011/11/17 03:10:27 cal103 Exp cal103 $
+  $Id: wcs.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -699,6 +699,10 @@ int wcssub(
       }
       if (k == msub) map[msub++] = axis;
 
+    } else if (axis == 0) {
+      /* Graft on a new axis. */
+      map[msub++] = 0;
+
     } else {
       status = wcserr_set(WCS_ERRMSG(WCSERR_BAD_SUBIMAGE));
       goto cleanup;
@@ -715,13 +719,19 @@ int wcssub(
   }
 
 
-  /* Construct the inverse axis map. */
+  /* Construct the inverse axis map:
+     axes[i] == j means that output axis i+1 comes from input axis j,
+     axes[i] == 0 means to create a new axis,
+      map[i] == j means that input axis i+1 goes to output axis j,
+      map[i] == 0 means that input axis i+1 is not used. */
   for (i = 0; i < naxis; i++) {
     map[i] = 0;
   }
 
   for (i = 0; i < *nsub; i++) {
-    map[axes[i]-1] = i+1;
+    if (axes[i] > 0) {
+      map[axes[i]-1] = i+1;
+    }
   }
 
   /* Check that the subimage coordinate system is separable. */
@@ -773,40 +783,52 @@ int wcssub(
   /* Linear transformation. */
   srcp = wcssrc->crpix;
   dstp = wcsdst->crpix;
-  for (j = 0; j < *nsub; j++) {
-    k = axes[j] - 1;
-    *(dstp++) = *(srcp+k);
+  for (j = 0; j < *nsub; j++, dstp++) {
+    if (axes[j] > 0) {
+      k = axes[j] - 1;
+      *dstp = *(srcp+k);
+    }
   }
 
   srcp = wcssrc->pc;
   dstp = wcsdst->pc;
   for (i = 0; i < *nsub; i++) {
-    for (j = 0; j < *nsub; j++) {
-      k = (axes[i]-1)*naxis + (axes[j]-1);
-      *(dstp++) = *(srcp+k);
+    if (axes[i] > 0) {
+      for (j = 0; j < *nsub; j++, dstp++) {
+        if (axes[j] > 0) {
+          k = (axes[i]-1)*naxis + (axes[j]-1);
+          *dstp = *(srcp+k);
+        }
+      }
     }
   }
 
   srcp = wcssrc->cdelt;
   dstp = wcsdst->cdelt;
-  for (i = 0; i < *nsub; i++) {
-    k = axes[i] - 1;
-    *(dstp++) = *(srcp+k);
+  for (i = 0; i < *nsub; i++, dstp++) {
+    if (axes[i] > 0) {
+      k = axes[i] - 1;
+      *dstp = *(srcp+k);
+    }
   }
 
   /* Coordinate reference value. */
   srcp = wcssrc->crval;
   dstp = wcsdst->crval;
-  for (i = 0; i < *nsub; i++) {
-    k = axes[i] - 1;
-    *(dstp++) = *(srcp+k);
+  for (i = 0; i < *nsub; i++, dstp++) {
+    if (axes[i] > 0) {
+      k = axes[i] - 1;
+      *dstp = *(srcp+k);
+    }
   }
 
   /* Coordinate units and type. */
   for (i = 0; i < *nsub; i++) {
-    k = axes[i] - 1;
-    strncpy(wcsdst->cunit[i], wcssrc->cunit[k], 72);
-    strncpy(wcsdst->ctype[i], wcssrc->ctype[k], 72);
+    if (axes[i] > 0) {
+      k = axes[i] - 1;
+      strncpy(wcsdst->cunit[i], wcssrc->cunit[k], 72);
+      strncpy(wcsdst->ctype[i], wcssrc->ctype[k], 72);
+    }
   }
 
   /* Celestial and spectral transformation parameters. */
@@ -843,17 +865,23 @@ int wcssub(
   srcp = wcssrc->cd;
   dstp = wcsdst->cd;
   for (i = 0; i < *nsub; i++) {
-    for (j = 0; j < *nsub; j++) {
-      k = (axes[i]-1)*naxis + (axes[j]-1);
-      *(dstp++) = *(srcp+k);
+    if (axes[i] > 0) {
+      for (j = 0; j < *nsub; j++, dstp++) {
+        if (axes[j] > 0) {
+          k = (axes[i]-1)*naxis + (axes[j]-1);
+          *dstp = *(srcp+k);
+        }
+      }
     }
   }
 
   srcp = wcssrc->crota;
   dstp = wcsdst->crota;
-  for (i = 0; i < *nsub; i++) {
-    k = axes[i] - 1;
-    *(dstp++) = *(srcp+k);
+  for (i = 0; i < *nsub; i++, dstp++) {
+    if (axes[i] > 0) {
+      k = axes[i] - 1;
+      *dstp = *(srcp+k);
+    }
   }
 
   wcsdst->altlin = wcssrc->altlin;
@@ -865,11 +893,13 @@ int wcssub(
 
   strncpy(wcsdst->wcsname, wcssrc->wcsname, 72);
   for (i = 0; i < *nsub; i++) {
-    k = axes[i] - 1;
-    wcsdst->colax[i] = wcssrc->colax[k];
-    strncpy(wcsdst->cname[i], wcssrc->cname[k], 72);
-    wcsdst->crder[i] = wcssrc->crder[k];
-    wcsdst->csyer[i] = wcssrc->csyer[k];
+    if (axes[i] > 0) {
+      k = axes[i] - 1;
+      wcsdst->colax[i] = wcssrc->colax[k];
+      strncpy(wcsdst->cname[i], wcssrc->cname[k], 72);
+      wcsdst->crder[i] = wcssrc->crder[k];
+      wcsdst->csyer[i] = wcssrc->csyer[k];
+    }
   }
 
   strncpy(wcsdst->radesys, wcssrc->radesys, 72);
@@ -1774,7 +1804,7 @@ int wcs_types(struct wcsprm *wcs)
       }
     }
 
-    /* Translate AIPS spectral types. */
+    /* Translate AIPS spectral types for spctyp(). */
     if (spcaips(ctypei, wcs->velref, ctypei, specsys) == 0) {
       strcpy(wcs->ctype[i], ctypei);
       if (wcs->specsys[0] == '\0') strcpy(wcs->specsys, specsys);
