@@ -36,7 +36,6 @@ numpy_has_complex_bug = (
 join = os.path.join
 
 
-
 # Update this to use py.test's tmpdir functionality
 def setup_module():
     global TMP_DIR
