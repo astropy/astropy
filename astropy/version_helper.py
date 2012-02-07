@@ -156,7 +156,7 @@ release = {rel}
 debug = {debug}
 
 try:
-    from astropy._compiler import compiler
+    from astropy.utils._compiler import compiler
 except ImportError:
     compiler = "unknown"
 """[1:]
