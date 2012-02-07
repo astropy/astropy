@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsfix.c,v 4.8.1.2 2011/11/17 03:19:58 cal103 Exp cal103 $
+  $Id: wcsfix.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -61,8 +61,7 @@ const char *wcsfix_errmsg[] = {
   "Ill-conditioned coordinate transformation parameters",
   "All of the corner pixel coordinates are invalid",
   "Could not determine reference pixel coordinate",
-  "Could not determine reference pixel value",
-};
+  "Could not determine reference pixel value"};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define WCSFIX_ERRMSG(status) WCSERR_SET(status), wcsfix_errmsg[status]
@@ -86,20 +85,16 @@ int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[])
     status = 1;
   }
 
-  if ((stat[CELFIX] = celfix(wcs)) > 0) {
-    status = 1;
-  }
-
   if ((stat[SPCFIX] = spcfix(wcs)) > 0) {
     status = 1;
   }
 
-  if (naxis) {
-    if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
-      status = 1;
-    }
-  } else {
-    stat[CYLFIX] = -2;
+  if ((stat[CELFIX] = celfix(wcs)) > 0) {
+    status = 1;
+  }
+
+  if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
+    status = 1;
   }
 
   return status;
@@ -111,47 +106,77 @@ int wcsfixi(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[],
             struct wcserr info[])
 
 {
-  int status = 0;
+  int ifix, status = 0;
+  struct wcserr err;
 
-  if ((stat[CDFIX] = cdfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+CDFIX);
-  }
+  /* Handling the status values returned from the sub-fixers is trickier than
+  it might seem, especially considering that wcs->err may contain an error
+  status on input which should be preserved if no translation errors occur.
+  The simplest way seems to be to save a copy of wcs->err and clear it before
+  each sub-fixer.  The last real error to occur, excluding informative
+  messages, is the one returned.
 
-  if ((stat[DATFIX] = datfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+DATFIX);
-  }
+  To get informative messages from spcfix() it must precede celfix() and
+  cylfix().  The latter call wcsset() which also translates AIPS-convention
+  spectral axes. */
+  wcserr_copy(wcs->err, &err);
 
-  stat[UNITFIX] = unitfix(ctrl, wcs);
-  if (stat[UNITFIX] > 0 ||
-      stat[UNITFIX] == FIXERR_UNITS_ALIAS) {
-    status = 1;
-    wcserr_copy(wcs->err, info+UNITFIX);
-  }
+  for (ifix = CDFIX; ifix < NWCSFIX; ifix++) {
+    /* Clear (delete) wcs->err. */
+    wcserr_clear(&(wcs->err));
 
-  if ((stat[CELFIX] = celfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+CELFIX);
-  }
-
-  if ((stat[SPCFIX] = spcfix(wcs)) > 0) {
-    status = 1;
-    wcserr_copy(wcs->err, info+SPCFIX);
-  }
-
-  if (naxis) {
-    if ((stat[CYLFIX] = cylfix(naxis, wcs)) > 0) {
-      status = 1;
+    switch (ifix) {
+    case CDFIX:
+      stat[ifix] = cdfix(wcs);
+      break;
+    case DATFIX:
+      stat[ifix] = datfix(wcs);
+      break;
+    case UNITFIX:
+      stat[ifix] = unitfix(ctrl, wcs);
+      break;
+    case SPCFIX:
+      stat[ifix] = spcfix(wcs);
+      break;
+    case CELFIX:
+      stat[ifix] = celfix(wcs);
+      break;
+    case CYLFIX:
+      stat[ifix] = cylfix(naxis, wcs);
+      break;
+    default:
+      continue;
     }
-    wcserr_copy(wcs->err, info+CYLFIX);
-  } else {
-    stat[CYLFIX] = FIXERR_NO_CHANGE;
-    wcserr_copy(0x0, info+CYLFIX);
+
+    if (stat[ifix] == FIXERR_NO_CHANGE) {
+      /* No change => no message. */
+      wcserr_copy(0x0, info+ifix);
+
+    } else if (stat[ifix] == FIXERR_SUCCESS) {
+      /* Successful translation, but there may be an informative message. */
+      if (wcs->err && wcs->err->status < 0) {
+        wcserr_copy(wcs->err, info+ifix);
+      } else {
+        wcserr_copy(0x0, info+ifix);
+      }
+
+    } else {
+      /* An informative message or error message. */
+      wcserr_copy(wcs->err, info+ifix);
+
+      if ((status = (stat[ifix] > 0))) {
+        /* It was an error, replace the previous one. */
+        wcserr_copy(wcs->err, &err);
+      }
+    }
   }
 
-  if (wcs->err) free(wcs->err);
-  wcs->err = 0x0;
+  /* Restore the last error to occur. */
+  if (err.status) {
+    wcserr_copy(&err, wcs->err);
+  } else {
+    wcserr_clear(&(wcs->err));
+  }
 
   return status;
 }
@@ -203,6 +228,7 @@ int datfix(struct wcsprm *wcs)
 {
   static const char *function = "datfix";
 
+  char orig_dateobs[72];
   char *dateobs;
   int  day, dd, hour = 0, jd, minute = 0, month, msec, n4, year;
   double mjdobs, sec = 0.0, t;
@@ -212,6 +238,7 @@ int datfix(struct wcsprm *wcs)
   err = &(wcs->err);
 
   dateobs = wcs->dateobs;
+  strncpy(orig_dateobs, dateobs, 72);
   if (dateobs[0] == '\0') {
     if (undefined(wcs->mjdobs)) {
      /* No date information was provided. */
@@ -250,8 +277,6 @@ int datfix(struct wcsprm *wcs)
           sprintf(dateobs+19, ".%.3d", msec%1000);
         }
       }
-
-      return FIXERR_SUCCESS;
     }
 
   } else {
@@ -275,12 +300,13 @@ int datfix(struct wcsprm *wcs)
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
       } else if (dateobs[10] == ' ') {
+        hour = 0;
+        minute = 0;
+        sec = 0.0;
         if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
           dateobs[10] = 'T';
         } else {
-          hour = 0;
-          minute = 0;
-          sec = 0.0;
+          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
         }
       }
 
@@ -297,12 +323,13 @@ int datfix(struct wcsprm *wcs)
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
       } else if (dateobs[10] == ' ') {
+        hour = 0;
+        minute = 0;
+        sec = 0.0;
         if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
           dateobs[10] = 'T';
         } else {
-          hour = 0;
-          minute = 0;
-          sec = 0.0;
+          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
         }
       }
 
@@ -355,7 +382,14 @@ int datfix(struct wcsprm *wcs)
     }
   }
 
-  return FIXERR_SUCCESS;
+  if (strncmp(orig_dateobs, dateobs, 72)) {
+    wcserr_set(WCSERR_SET(FIXERR_DATE_FIX),
+      "Changed '%s' to '%s'", orig_dateobs, dateobs);
+
+    return FIXERR_SUCCESS;
+  }
+
+  return FIXERR_NO_CHANGE;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -371,7 +405,7 @@ int unitfix(int ctrl, struct wcsprm *wcs)
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 
-  strcpy(msg, "Translated units: ");
+  strcpy(msg, "Changed units: ");
   for (i = 0; i < wcs->naxis; i++) {
     strncpy(orig_unit, wcs->cunit[i], 80);
     if (wcsutrne(ctrl, wcs->cunit[i], &(wcs->err)) == 0) {
@@ -385,9 +419,77 @@ int unitfix(int ctrl, struct wcsprm *wcs)
     k = strlen(msg) - 2;
     msg[k] = '\0';
     wcserr_set(WCSERR_SET(FIXERR_UNITS_ALIAS), msg);
+
+    status = FIXERR_SUCCESS;
   }
 
   return status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int spcfix(struct wcsprm *wcs)
+
+{
+  static const char *function = "spcfix";
+
+  char ctype[9], specsys[9];
+  int  i, status;
+  struct wcserr **err;
+
+  if (wcs == 0x0) return FIXERR_NULL_POINTER;
+  err = &(wcs->err);
+
+  for (i = 0; i < wcs->naxis; i++) {
+    /* Translate an AIPS-convention spectral type if present. */
+    status = spcaips(wcs->ctype[i], wcs->velref, ctype, specsys);
+    if (status == 0) {
+      /* An AIPS type was found but it may match what we already have. */
+      status = FIXERR_NO_CHANGE;
+
+      /* Was specsys translated? */
+      if (wcs->specsys[0] == '\0' && *specsys) {
+        strncpy(wcs->specsys, specsys, 9);
+        wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
+          "Changed SPECSYS to '%s'", specsys);
+        status = FIXERR_SUCCESS;
+      }
+
+      /* Was ctype translated?  Have to null-fill for comparing them. */
+      wcsutil_null_fill(9, wcs->ctype[i]);
+      if (strncmp(wcs->ctype[i], ctype, 9)) {
+        /* ctype was translated... */
+        if (status == FIXERR_SUCCESS) {
+          /* ...and specsys was also. */
+          wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
+            "Changed CTYPE%d from '%s' to '%s', and SPECSYS to '%s'",
+            i+1, wcs->ctype[i], ctype, wcs->specsys);
+        } else {
+          wcserr_set(WCSERR_SET(FIXERR_SPC_UPDATE),
+            "Changed CTYPE%d from '%s' to '%s'", i+1, wcs->ctype[i], ctype);
+          status = FIXERR_SUCCESS;
+        }
+
+        strncpy(wcs->ctype[i], ctype, 9);
+      }
+
+      /* Tidy up. */
+      if (status == FIXERR_SUCCESS) {
+        wcsutil_null_fill(72, wcs->ctype[i]);
+        wcsutil_null_fill(72, wcs->specsys);
+      }
+
+      /* No need to check for others, wcsset() will fail if so. */
+      return status;
+
+    } else if (status == SPCERR_BAD_SPEC_PARAMS) {
+      /* An AIPS spectral type was found but with invalid velref. */
+      return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+        "Invalid parameter value: velref = %d", wcs->velref);
+    }
+  }
+
+  return FIXERR_NO_CHANGE;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -514,48 +616,6 @@ int celfix(struct wcsprm *wcs)
 
 /*--------------------------------------------------------------------------*/
 
-int spcfix(struct wcsprm *wcs)
-
-{
-  char ctype[9], specsys[9];
-  int  i, status;
-
-  /* Initialize if required. */
-  if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  if (wcs->flag != WCSSET) {
-    if ((status = wcsset(wcs))) return status;
-  }
-
-  if ((i = wcs->spec) < 0) {
-    /* Look for a linear spectral axis. */
-    for (i = 0; i < wcs->naxis; i++) {
-      if (wcs->types[i]/100 == 30) {
-        break;
-      }
-    }
-
-    if (i >= wcs->naxis) {
-      /* No spectral axis. */
-      return FIXERR_NO_CHANGE;
-    }
-  }
-
-  /* Translate an AIPS-convention spectral type if present. */
-  if ((status = spcaips(wcs->ctype[i], wcs->velref, ctype, specsys))) {
-    return status;
-  }
-
-  strcpy(wcs->ctype[i], ctype);
-  if (wcs->specsys[1] == '\0') strcpy(wcs->specsys, specsys);
-
-  wcsutil_null_fill(72, wcs->ctype[i]);
-  wcsutil_null_fill(72, wcs->specsys);
-
-  return FIXERR_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------*/
-
 int cylfix(const int naxis[], struct wcsprm *wcs)
 
 {
@@ -567,6 +627,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
          *pixj, theta[4], theta0, world[4][NMAX], x, y;
   struct wcserr **err;
 
+  if (naxis == 0x0) return FIXERR_NO_CHANGE;
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   err = &(wcs->err);
 
