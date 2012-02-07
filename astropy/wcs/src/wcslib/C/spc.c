@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: spc.c,v 4.8.1.2 2011/11/17 03:09:12 cal103 Exp cal103 $
+  $Id: spc.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -115,7 +115,7 @@ int spcini(struct spcprm *spc)
   spc->spxS2P = 0x0;
   spc->spxP2X = 0x0;
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -130,7 +130,7 @@ struct spcprm *spc;
   if (spc->err) free(spc->err);
   spc->err = 0x0;
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -207,7 +207,7 @@ int spcprt(const struct spcprm *spc)
   wcsprintf("     spxP2X: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -491,7 +491,7 @@ int spcset(struct spcprm *spc)
   }
 
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -508,7 +508,7 @@ int spcx2s(
 {
   static const char *function = "spcx2s";
 
-  int statP2S, status = 0, statX2P;
+  int statP2S, status = SPCERR_SUCCESS, statX2P;
   double beta;
   register int ix;
   register int *statp;
@@ -594,7 +594,7 @@ int spcs2x(
 {
   static const char *function = "spcs2x";
 
-  int statP2X, status = 0, statS2P;
+  int statP2X, status = SPCERR_SUCCESS, statS2P;
   double beta, s;
   register int ispec;
   register int *statp;
@@ -860,7 +860,7 @@ int spctype(
   if (restreq) *restreq = restreq_t;
 
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1032,7 +1032,7 @@ int spcspxe(
 
   *dXdS = dXdP * dPdS;
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1207,7 +1207,7 @@ int spcxpse(
 
   *dSdX = dSdP * dPdX;
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1290,7 +1290,7 @@ int spctrne(
 
   *cdeltS2 = dS2dX * dXdS1 * cdeltS1;
 
-  return 0;
+  return SPCERR_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1305,7 +1305,7 @@ int spcaips(
   const char *frames[] = {"LSRK", "BARYCENT", "TOPOCENT",
                           "LSRD", "GEOCENTR", "SOURCE", "GALACTOC"};
   char *fcode;
-  int  ivf;
+  int  ivf, status;
 
   /* Make a null-filled copy of ctypeA. */
   if (ctype != ctypeA) strncpy(ctype, ctypeA, 8);
@@ -1314,6 +1314,7 @@ int spcaips(
   *specsys = '\0';
 
   /* Is it a recognized AIPS-convention type? */
+  status = SPCERR_NO_CHANGE;
   if (strncmp(ctype, "FREQ", 4) == 0 ||
       strncmp(ctype, "VELO", 4) == 0 ||
       strncmp(ctype, "FELO", 4) == 0) {
@@ -1327,36 +1328,42 @@ int spcaips(
         strcpy(specsys, "TOPOCENT");
       } else {
         /* Not a recognized AIPS spectral type. */
-        return -1;
+        return SPCERR_NO_CHANGE;
       }
 
       *fcode = '\0';
+      status = SPCERR_SUCCESS;
     }
 
     /* VELREF takes precedence if present. */
     ivf = velref%256;
-    if (1 <= ivf && ivf <= 7) {
+    if (0 < ivf && ivf <= 7) {
       strcpy(specsys, frames[ivf-1]);
+      status = SPCERR_SUCCESS;
+    } else if (ivf) {
+      status = SPCERR_BAD_SPEC_PARAMS;
     }
 
     if (strcmp(ctype, "VELO") == 0) {
       /* Check that we found an AIPS-convention Doppler frame. */
       if (*specsys) {
         /* 'VELO' in AIPS means radio or optical depending on VELREF. */
-        if (velref&256) {
+        ivf = velref/256;
+        if (ivf == 0) {
+          strcpy(ctype, "VOPT");
+        } else if (ivf == 1) {
           strcpy(ctype, "VRAD");
         } else {
-          strcpy(ctype, "VOPT");
+          status = SPCERR_BAD_SPEC_PARAMS;
         }
       }
     } else if (strcmp(ctype, "FELO") == 0) {
       /* Uniform in frequency but expressed as an optical velocity (strictly
          we should also have found an AIPS-convention Doppler frame). */
       strcpy(ctype, "VOPT-F2W");
+      if (status < 0) status = SPCERR_SUCCESS;
     }
-
-    return 0;
   }
 
-  return -1;
+  return status;
 }

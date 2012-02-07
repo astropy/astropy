@@ -305,7 +305,7 @@ def test_fix2():
     assert w.fix() == {
         'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': 'Success',
+        'datfix': "Changed '31/12/99' to '1999-12-31'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
@@ -561,8 +561,7 @@ def test_spcfix():
     # really test
     header = get_data_contents('spectra/orion-velo-1.hdr')
     w = _wcs._Wcsprm(header)
-    print(w.spcfix())
-    assert w.spcfix() == 0
+    assert w.spcfix() == -1
 
 
 def test_spec():

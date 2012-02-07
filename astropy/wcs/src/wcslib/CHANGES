@@ -1,3 +1,31 @@
+WCSLIB version 4.10 (2012/02/06)
+--------------------------------
+
+* C library
+
+  - datfix() and spcfix() now return informative messages when dates and
+    AIPS-convention spectral axes are translated (changes contributed by
+    Michael Droettboom).  spcaips() now returns an error status for
+    invalid values of VELREF.
+
+  - wcssub() has been augmented with the ability to add new axes onto a
+    wcsprm struct.
+
+
+WCSLIB version 4.9 (2012/01/24)
+-------------------------------
+
+* C library
+
+  - Fixes to wcsfixi() for collecting the messages properly in the info
+    array (from Michael Droettboom).
+
+  - Handle certain malformed date strings more gracefully in datfix().
+
+  - Make informative messages printed by wcserr_prt() a bit more
+    informative.
+
+
 WCSLIB version 4.8.4 (2011/12/05)
 ---------------------------------
 
@@ -30,11 +58,11 @@ WCSLIB version 4.8.3 (2011/11/17)
     values.  wcserr_prt() will now recognize and print them as such.
     Added wcserr_clear() to reset (clear) a wcserr struct.
 
-    Modified unitfix() to return an informative message if a units
+  - Modified unitfix() to return an informative message if a units
     alias is applied, and wcsfixi() to allow such messages to be
     propagated through the info array (from Michael Droettboom).
 
-    Modified twcsfix.c to use wcserr diagnostics, in particular to
+  - Modified twcsfix.c to use wcserr diagnostics, in particular to
     report units alias translations.
 
 * Fortran wrappers
@@ -1831,4 +1859,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.8.1.5 2011/12/05 06:55:00 cal103 Exp cal103 $
+$Id: CHANGES,v 4.10 2012/02/05 23:41:45 cal103 Exp $

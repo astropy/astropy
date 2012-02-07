@@ -8,12 +8,12 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility
 # http://www.atnf.csiro.au/~mcalabre/index.html
-# $Id: configure.ac,v 4.8.1.8 2011/12/05 06:55:00 cal103 Exp cal103 $
+# $Id: configure.ac,v 4.10 2012/02/05 23:41:45 cal103 Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [4.8.4], [mcalabre@atnf.csiro.au], [wcslib-4.8.4])
+AC_INIT([WCSLIB], [4.10], [mcalabre@atnf.csiro.au], [wcslib-4.10])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 4.8.1.8 $])
+AC_REVISION([$Revision: 4.10 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 

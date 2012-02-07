@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,10 +28,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsfix.h,v 4.8.1.2 2011/11/17 03:23:16 cal103 Exp cal103 $
+  $Id: wcsfix.h,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.8 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.10 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -103,11 +103,11 @@
 *   - unitfix(): translate some commonly used but non-standard unit strings in
 *     the CUNITia keyvalues, e.g. 'DEG' -> 'deg'.
 *
-*   - celfix(): translate AIPS-convention celestial projection types, NCP and
-*     GLS, in ctype[] as set from CTYPEia.
-*
 *   - spcfix(): translate AIPS-convention spectral types, 'FREQ-LSR',
 *     'FELO-HEL', etc., in ctype[] as set from CTYPEia.
+*
+*   - celfix(): translate AIPS-convention celestial projection types, NCP and
+*     GLS, in ctype[] as set from CTYPEia.
 *
 *   - cylfix(): fixes WCS keyvalues for malformed cylindrical projections that
 *     suffer from the problem described in Sect. 7.3.4 of Paper I.
@@ -120,8 +120,8 @@
 *
 * wcsfixi() - Translate a non-standard WCS struct
 * -----------------------------------------------
-* wcsfix() applies all of the corrections handled separately by datfix(),
-* unitfix(), celfix(), spcfix() and cylfix().
+* wcsfix() applies all of the corrections handled separately by cdfix(),
+* datfix(), unitfix(), spcfix(), celfix(), and cylfix().
 *
 * Given:
 *   ctrl      int       Do potentially unsafe translations of non-standard
@@ -140,14 +140,14 @@
 *   stat      int [NWCSFIX]
 *                       Status returns from each of the functions.  Use the
 *                       preprocessor macros NWCSFIX to dimension this vector
-*                       and CDFIX, DATFIX, UNITFIX, CELFIX, SPCFIX and CYLFIX
+*                       and CDFIX, DATFIX, UNITFIX, SPCFIX, CELFIX, and CYLFIX
 *                       to access its elements.  A status value of -2 is set
 *                       for functions that were not invoked.
 *
 *   info      struct wcserr [NWCSFIX]
 *                       Status messages from each of the functions.  Use the
 *                       preprocessor macros NWCSFIX to dimension this vector
-*                       and CDFIX, DATFIX, UNITFIX, CELFIX, SPCFIX and CYLFIX
+*                       and CDFIX, DATFIX, UNITFIX, SPCFIX, CELFIX, and CYLFIX
 *                       to access its elements.
 *
 * Function return value:
@@ -229,20 +229,18 @@
 *                       message to be returned.
 *
 *
-* celfix() - Translate AIPS-convention celestial projection types
-* ---------------------------------------------------------------
-* celfix() translates AIPS-convention celestial projection types, NCP and
-* GLS, set in the ctype[] member of the wcsprm struct.
+* spcfix() - Translate AIPS-convention spectral types
+* ---------------------------------------------------
+* spcfix() translates AIPS-convention spectral coordinate types,
+* '{FREQ,FELO,VELO}-{LSR,HEL,OBS}' (e.g. 'FREQ-OBS', 'FELO-HEL', 'VELO-LSR')
+* set in wcsprm::ctype[], subject to VELREF set in wcsprm::velref.
 *
-* Two additional pv[] keyvalues are created when translating NCP.  If the
-* pv[] array was initially allocated by wcsini() then the array will be
-* expanded if necessary.  Otherwise, error 2 will be returned if two empty
-* slots are not already available for use.
+* Note that if wcs::specsys is already set then it will not be overridden.
 *
 * Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.  wcsprm::ctype[]
-*                       and/or wcsprm::pv[] may be changed.
+*                       and/or wcsprm::specsys may be changed.
 *
 * Function return value:
 *             int       Status return value:
@@ -262,16 +260,20 @@
 *                       wcsprm::err if enabled, see wcserr_enable().
 *
 *
-* spcfix() - Translate AIPS-convention spectral types
-* ---------------------------------------------------
-* spcfix() translates AIPS-convention spectral coordinate types,
-* '{FREQ,FELO,VELO}-{LSR,HEL,OBS}' (e.g. 'FREQ-OBS', 'FELO-HEL', 'VELO-LSR')
-* set in wcsprm::ctype[], subject to VELREF set in wcsprm::velref.
+* celfix() - Translate AIPS-convention celestial projection types
+* ---------------------------------------------------------------
+* celfix() translates AIPS-convention celestial projection types, NCP and
+* GLS, set in the ctype[] member of the wcsprm struct.
+*
+* Two additional pv[] keyvalues are created when translating NCP.  If the
+* pv[] array was initially allocated by wcsini() then the array will be
+* expanded if necessary.  Otherwise, error 2 will be returned if two empty
+* slots are not already available for use.
 *
 * Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.  wcsprm::ctype[]
-*                       and/or wcsprm::specsys may be changed.
+*                       and/or wcsprm::pv[] may be changed.
 *
 * Function return value:
 *             int       Status return value:
@@ -344,8 +346,8 @@ extern "C" {
 #define CDFIX    0
 #define DATFIX   1
 #define UNITFIX  2
-#define CELFIX   3
-#define SPCFIX   4
+#define SPCFIX   3
+#define CELFIX   4
 #define CYLFIX   5
 #define NWCSFIX  6
 
@@ -353,6 +355,8 @@ extern const char *wcsfix_errmsg[];
 #define cylfix_errmsg wcsfix_errmsg
 
 enum wcsfix_errmsg_enum {
+  FIXERR_DATE_FIX         = -4, /* The date formatting has been fixed up. */
+  FIXERR_SPC_UPDATE       = -3, /* Spectral axis type modified. */
   FIXERR_UNITS_ALIAS      = -2,	/* Units alias translation. */
   FIXERR_NO_CHANGE        = -1,	/* No change. */
   FIXERR_SUCCESS          =  0,	/* Success. */
@@ -371,7 +375,7 @@ enum wcsfix_errmsg_enum {
 				   invalid. */
   FIXERR_NO_REF_PIX_COORD =  9,	/* Could not determine reference pixel
 				   coordinate. */
-  FIXERR_NO_REF_PIX_VAL   = 10,	/* Could not determine reference pixel
+  FIXERR_NO_REF_PIX_VAL   = 10	/* Could not determine reference pixel
 				   value. */
 };
 
@@ -386,9 +390,9 @@ int datfix(struct wcsprm *wcs);
 
 int unitfix(int ctrl, struct wcsprm *wcs);
 
-int celfix(struct wcsprm *wcs);
-
 int spcfix(struct wcsprm *wcs);
+
+int celfix(struct wcsprm *wcs);
 
 int cylfix(const int naxis[], struct wcsprm *wcs);
 
