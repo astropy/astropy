@@ -176,7 +176,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
     with io.open(filename, 'rb') as input:
         with warnings.catch_warnings(record=True) as warning_lines:
             warnings.resetwarnings()
-            warnings.simplefilter("always", append=True)
+            warnings.simplefilter("always", exceptions.VOWarning, append=True)
             try:
                 votable = parse(input, pedantic=False, filename=filename)
             except ValueError as e:
