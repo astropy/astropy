@@ -45,28 +45,15 @@ typedef int Py_ssize_t;
 #  define IS_PY3K
 #endif
 
-#ifdef IS_PY3K
-#  define PyString_InternFromString  PyUnicode_InternFromString
-#  define PyString_FromString        PyUnicode_FromString
-#  define PyString_FromStringAndSize PyUnicode_FromStringAndSize
-#  define PyInt_FromSsize_t          PyLong_FromSsize_t
-#  define PyString_AsStringAndSize   PyBytes_AsStringAndSize
-#  define PyInt_FromSize_t           PyLong_FromSize_t
-#else
 #  ifndef Py_TYPE
 #    define Py_TYPE(o) ((o)->ob_type)
 #  endif
-#endif
 
 /******************************************************************************
  * Write TABLEDATA
  ******************************************************************************/
 
-#ifdef IS_PY3K
-#  define CHAR Py_UNICODE
-#else
-#  define CHAR char
-#endif
+#define CHAR Py_UNICODE
 
 /*
  * Reallocate the write buffer to the requested size
@@ -123,8 +110,7 @@ _write_indent(CHAR** buffer, Py_ssize_t* buffer_size,
 }
 
 /*
- * Write a string into a buffer.  On Python 3 the string and buffer
- * are multibyte
+ * Write a string into a buffer.
  */
 static int
 _write_string(CHAR** buffer, Py_ssize_t* buffer_size,
@@ -142,7 +128,7 @@ _write_string(CHAR** buffer, Py_ssize_t* buffer_size,
 }
 
 /*
- * Write an 8-bit C string to a possibly Unicode string
+ * Write an 8-bit ascii-encoded C string to a Unicode string.
  */
 static int
 _write_cstring(CHAR** buffer, Py_ssize_t* buffer_size,
@@ -287,19 +273,11 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
                 if ((str_val =
                      PyObject_CallFunctionObjArgs(converter, array_val, mask_val, NULL))
                     == NULL) goto exit;
-#ifdef IS_PY3K
                 if ((str_tmp = PyUnicode_AsUnicode(str_val)) == NULL) {
                     Py_DECREF(str_val);
                     goto exit;
                 }
                 str_len = PyUnicode_GetSize(str_val);
-#else
-                if (PyString_AsStringAndSize(str_val, &str_tmp, &str_len)
-                    == -1) {
-                    Py_DECREF(str_val);
-                    goto exit;
-                }
-#endif
                 if (_write_string(&buf, &buf_size, &x, str_tmp, str_len)) {
                     Py_DECREF(str_val);
                     goto exit;
@@ -325,13 +303,8 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
 
         /* NULL-terminate the string */
         *x = (CHAR)0;
-#ifdef IS_PY3K
         if ((tmp = PyObject_CallFunction(write_method, "u#", buf, x - buf))
             == NULL) goto exit;
-#else
-        if ((tmp = PyObject_CallFunction(write_method, "s#", buf, x - buf))
-            == NULL) goto exit;
-#endif
         Py_DECREF(tmp);
     }
 

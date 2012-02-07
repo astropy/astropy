@@ -91,9 +91,9 @@ class XMLWriter:
                     data,
                     initial_indent=indent,
                     subsequent_indent=indent)
-                self.write('\n')
+                self.write(u'\n')
                 self.write(self.xml_escape_cdata(data))
-                self.write('\n')
+                self.write(u'\n')
                 self.write(self.get_indentation_spaces())
             else:
                 self.write(self.xml_escape_cdata(data))
@@ -275,5 +275,5 @@ class XMLWriter:
         d = {}
         for attr in attrs:
             if getattr(obj, attr) is not None:
-                d[attr.replace('_', '-')] = str(getattr(obj, attr))
+                d[attr.replace(u'_', u'-')] = unicode(getattr(obj, attr))
         return d

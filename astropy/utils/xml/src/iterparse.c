@@ -65,18 +65,9 @@ typedef int Py_ssize_t;
 #  define IS_PY3K
 #endif
 
-#ifdef IS_PY3K
-#  define PyString_InternFromString  PyUnicode_InternFromString
-#  define PyString_FromString        PyUnicode_FromString
-#  define PyString_FromStringAndSize PyUnicode_FromStringAndSize
-#  define PyInt_FromSsize_t          PyLong_FromSsize_t
-#  define PyString_AsStringAndSize   PyBytes_AsStringAndSize
-#  define PyInt_FromSize_t           PyLong_FromSize_t
-#else
 #  ifndef Py_TYPE
 #    define Py_TYPE(o) ((o)->ob_type)
 #  endif
-#endif
 
 #if BYTEORDER == 1234
 # define TD_AS_INT      0x00004454
@@ -252,8 +243,8 @@ make_pos(const IterParser *self)
 
     tuple = PyTuple_New(2);
 
-    line_obj = PyInt_FromSize_t((size_t)self->last_line);
-    col_obj = PyInt_FromSize_t((size_t)self->last_col);
+    line_obj = PyLong_FromSize_t((size_t)self->last_line);
+    col_obj = PyLong_FromSize_t((size_t)self->last_col);
 
     PyTuple_SetItem(tuple, 0, line_obj);
     PyTuple_SetItem(tuple, 1, col_obj);
@@ -335,7 +326,7 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
         } else {
             name_start = remove_namespace(name);
 
-            pyname = PyString_FromString(name_start);
+            pyname = PyUnicode_FromString(name_start);
             if (pyname == NULL) {
                 Py_DECREF(tuple);
                 XML_StopParser(self->parser, 0);
@@ -353,13 +344,13 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
             }
             do {
                 if (*(*(att_ptr + 1)) != 0) {
-                    key = PyString_FromString(*att_ptr);
+                    key = PyUnicode_FromString(*att_ptr);
                     if (key == NULL) {
                         Py_DECREF(tuple);
                         XML_StopParser(self->parser, 0);
                         return;
                     }
-                    val = PyString_FromString(*(att_ptr + 1));
+                    val = PyUnicode_FromString(*(att_ptr + 1));
                     if (val == NULL) {
                         Py_DECREF(key);
                         Py_DECREF(tuple);
@@ -446,7 +437,7 @@ endElement(IterParser *self, const XML_Char *name)
         } else {
             name_start = remove_namespace(name);
 
-            pyname = PyString_FromString(name_start);
+            pyname = PyUnicode_FromString(name_start);
             if (pyname == NULL) {
                 Py_DECREF(tuple);
                 XML_StopParser(self->parser, 0);
@@ -461,7 +452,7 @@ endElement(IterParser *self, const XML_Char *name)
             --end;
             --self->text_size;
         }
-        pytext = PyString_FromStringAndSize(self->text, self->text_size);
+        pytext = PyUnicode_FromStringAndSize(self->text, self->text_size);
         if (pytext == NULL) {
             Py_DECREF(tuple);
             XML_StopParser(self->parser, 0);
@@ -529,23 +520,23 @@ xmlDecl(IterParser *self, const XML_Char *version,
         Py_INCREF(Py_True);
         PyTuple_SET_ITEM(tuple, 0, Py_True);
 
-        xml_str = PyString_FromString("xml");
+        xml_str = PyUnicode_FromString("xml");
         PyTuple_SET_ITEM(tuple, 1, xml_str);
 
         attrs = PyDict_New();
 
         if (encoding) {
-            encoding_str = PyString_FromString(encoding);
+            encoding_str = PyUnicode_FromString(encoding);
         } else {
-            encoding_str = PyString_FromString("");
+            encoding_str = PyUnicode_FromString("");
         }
         PyDict_SetItemString(attrs, "encoding", encoding_str);
         Py_DECREF(encoding_str);
 
         if (version) {
-            version_str = PyString_FromString(version);
+            version_str = PyUnicode_FromString(version);
         } else {
-            version_str = PyString_FromString("");
+            version_str = PyUnicode_FromString("");
         }
         PyDict_SetItemString(attrs, "version", version_str);
         Py_DECREF(version_str);
@@ -627,7 +618,7 @@ IterParser_next(IterParser* self)
                 goto fail;
             }
 
-            if (PyString_AsStringAndSize(data, &buf, &buflen) == -1) {
+            if (PyBytes_AsStringAndSize(data, &buf, &buflen) == -1) {
                 Py_DECREF(data);
                 goto fail;
             }
@@ -941,7 +932,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     }
     text_clear(self);
 
-    self->read_args = PyTuple_Pack(1, PyInt_FromSsize_t(buffersize));
+    self->read_args = PyTuple_Pack(1, PyLong_FromSsize_t(buffersize));
     if (self->read_args == NULL) {
         goto fail;
     }
@@ -951,7 +942,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
         goto fail;
     }
 
-    self->td_singleton = PyString_FromString("TD");
+    self->td_singleton = PyUnicode_FromString("TD");
     if (self->td_singleton == NULL) {
         goto fail;
     }

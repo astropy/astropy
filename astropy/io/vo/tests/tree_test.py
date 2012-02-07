@@ -6,7 +6,6 @@ from .. import converters
 from .. import exceptions
 from .. import tree
 from ....tests.helper import raises
-from ..util import IS_PY3K
 
 
 @raises(exceptions.W07)
