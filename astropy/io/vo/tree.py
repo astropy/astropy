@@ -2897,6 +2897,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         return self
 
     def to_xml(self, fd, write_null_values=False,
+               compressed=False,
                _debug_python_based_parser=False,
                _astropy_version=None):
         """
@@ -2907,10 +2908,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         fd : str path or writable file-like object
            Where to write the file.
 
-        write_null_values : bool
+        write_null_values : bool, optional
            When `True`, write the 'null' value (specified in the null
            attribute of the VALUES element for each FIELD) for empty
            values.  When False (default), simply write no value.
+
+        compressed : bool, optional
+           When `True`, write to a gzip-compressed file.  (Default:
+           `False`)
         """
         kwargs = {
             'write_null_values': write_null_values,
@@ -2921,7 +2926,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 util.version_compare(self.version, u'1.2') >= 0,
             '_debug_python_based_parser': _debug_python_based_parser}
 
-        with util.convert_to_writable_filelike(fd) as fd:
+        with util.convert_to_writable_filelike(
+            fd, compressed=compressed) as fd:
             w = XMLWriter(fd)
             version = self.version
             if _astropy_version is None:
