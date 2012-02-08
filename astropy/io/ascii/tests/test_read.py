@@ -445,7 +445,7 @@ def get_testfiles(name=None):
          'opts': {}},
         {'cols': ('zabs1.nh', 'p1.gamma', 'p1.ampl', 'statname', 'statval'),
          'name': 't/test4.dat',
-         'nrows': 1172,
+         'nrows': 9,
          'opts': {}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/fill_values.txt',

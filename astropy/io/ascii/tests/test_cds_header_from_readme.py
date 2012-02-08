@@ -28,9 +28,9 @@ def test_multi_header():
     data = 't/cds/multi/lhs2065.dat'
     for read_table in (read_table1, read_table2, read_table3):
         table = read_table(readme, data)
-        assert_equal(len(table), 14390)
-        assert_almost_equal(table['Lambda'][-1], 9210.00)
-        assert_equal(table['Fnu'][-1], '14.2352')
+        assert_equal(len(table), 18)
+        assert_almost_equal(table['Lambda'][-1], 6479.32)
+        assert_equal(table['Fnu'][-1], '0.285937')
 
 def test_glob_header():
     readme = 't/cds/glob/ReadMe'
