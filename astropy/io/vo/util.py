@@ -5,13 +5,11 @@ Various utilities and cookbook-like things.
 from __future__ import division, with_statement, absolute_import
 
 # STDLIB
-import collections
 import contextlib
 from distutils import version
 import io
 import re
 import sys
-import time
 
 
 __all__ = [
@@ -221,6 +219,8 @@ def version_compare(a, b):
 
 
 if IS_PY3K:
+    import collections
+
     def is_callable(o):
         """
         Abstracts away the different ways to test for a callable object in

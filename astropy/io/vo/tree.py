@@ -5,14 +5,9 @@ from __future__ import division, absolute_import
 from .util import IS_PY3K
 
 # STDLIB
-import base64
 import codecs
 import io
-from math import ceil
-from operator import attrgetter
 import re
-import sys
-import urllib2
 if IS_PY3K:
     string_types = (str, bytes)
 else:
@@ -157,7 +152,7 @@ def check_astroyear(year, field, config={}, pos=None):
         Information about the source of the value
     """
     if (year is not None and
-        re.match(r"^[JB]?[0-9]+([.][0-9]*)?$", year) is None):
+        re.match(ur"^[JB]?[0-9]+([.][0-9]*)?$", year) is None):
         warn_or_raise(W07, W07, (field, year), config, pos)
         return False
     return True
@@ -1103,7 +1098,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @precision.setter
     def precision(self, precision):
-        if precision is not None and not re.match("^[FE]?[0-9]+$", precision):
+        if precision is not None and not re.match(ur"^[FE]?[0-9]+$", precision):
             vo_raise(E11, precision, self._config, self._pos)
         self._precision = precision
 
@@ -1182,7 +1177,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     @arraysize.setter
     def arraysize(self, arraysize):
         if (arraysize is not None and
-            not re.match("^([0-9]+x)*[0-9]*[*]?(s\W)?$", arraysize)):
+            not re.match(ur"^([0-9]+x)*[0-9]*[*]?(s\W)?$", arraysize)):
             vo_raise(E13, arraysize, self._config, self._pos)
         self._arraysize = arraysize
 
@@ -1945,7 +1940,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         # factor of 1.5 to help keep memory usage compact
         if size == 0:
             return 512
-        return int(ceil(size * RESIZE_AMOUNT))
+        return int(np.ceil(size * RESIZE_AMOUNT))
 
     def _add_field(self, iterator, tag, data, config, pos):
         field = Field(self._votable, config=config, pos=pos, **data)
@@ -2149,6 +2144,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             if colnumbers_bits[i]:
                                 try:
                                     if binary:
+                                        import base64
                                         rawdata = base64.b64decode(
                                             data.encode('ascii'))
                                         buf = io.BytesIO(rawdata)
@@ -2250,6 +2246,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     break
 
         if have_local_stream:
+            import base64
             buffer = base64.b64decode(buffer.encode('ascii'))
             string_io = io.BytesIO(buffer)
             string_io.seek(0)
@@ -2262,6 +2259,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     "The vo package only supports remote data through http, " +
                     "ftp or file",
                     self._config, self._pos, NotImplementedError)
+            import urllib2
             fd = urllib2.urlopen(href)
             if encoding is not None:
                 if encoding == 'gzip':
@@ -2352,6 +2350,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 "ftp or file",
                 self._config, self._pos, NotImplementedError)
 
+        import urllib2
         fd = urllib2.urlopen(href)
         if encoding is not None:
             if encoding == 'gzip':
@@ -2448,6 +2447,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     write(tr_end)
 
     def _write_binary(self, w, **kwargs):
+        import base64
+
         fields = self.fields
         array = self.array
         mask = self.mask
