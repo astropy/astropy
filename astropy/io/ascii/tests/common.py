@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import os
 try:
     from ... import ascii as asciitable
@@ -11,10 +13,20 @@ else:
 
 __all__ = ['has_numpy_and_not_has_numpy', 'has_numpy', 'raises',
            'assert_equal', 'assert_almost_equal', 'assert_true',
-           'setup_function', 'teardown_function']
+           'setup_function', 'teardown_function', 'has_isnan']
 
 CWD = os.getcwd()
 TEST_DIR = os.path.dirname(__file__)
+
+has_isnan = True
+try:
+    from math import isnan
+except ImportError:
+    try:
+        from numpy import isnan
+    except ImportError:
+        has_isnan = False
+        print('Tests requiring isnan will fail')
 
 def setup_function(function):
     os.chdir(TEST_DIR)
@@ -71,7 +83,10 @@ def make_decorator(func):
         newfunc.__doc__ = func.__doc__
         newfunc.__module__ = func.__module__
         if not hasattr(newfunc, 'compat_co_firstlineno'):
-            newfunc.compat_co_firstlineno = func.func_code.co_firstlineno
+            try:
+                newfunc.compat_co_firstlineno = func.func_code.co_firstlineno
+            except AttributeError:
+                newfunc.compat_co_firstlineno = func.__code__.co_firstlineno
         try:
             newfunc.__name__ = name
         except TypeError:

@@ -649,9 +649,10 @@ class DictLikeNumpy(dict):
             self.__index += 1
             return vals
 
-    def next(self):
-        return self.__next__()
-        
+    if sys.version_info[0] < 3:
+        next = __next__
+
+
 def convert_list(python_type):
     """Return a tuple ``(converter_func, converter_type)``.  The converter
     function converts a list into a list of the given ``python_type``.  This
@@ -805,9 +806,10 @@ class TableOutputter(BaseOutputter):
     NumpyOutputter.
     """
 
-    default_converters = [convert_numpy(numpy.int),
-                          convert_numpy(numpy.float),
-                          convert_numpy(numpy.str)]
+    if has_numpy:
+        default_converters = [convert_numpy(numpy.int),
+                              convert_numpy(numpy.float),
+                              convert_numpy(numpy.str)]
 
     def __call__(self, cols):
         if not has_table:

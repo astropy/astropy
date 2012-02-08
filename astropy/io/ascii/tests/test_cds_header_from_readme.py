@@ -1,19 +1,15 @@
+from __future__ import absolute_import
+
 # run from main directory; not from test/
 try:
     from ... import ascii as asciitable
 except:
     import asciitable
 
-from .common import *
+from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+                     assert_equal, assert_almost_equal, assert_true,
+                     setup_function, teardown_function, has_isnan)
 
-try:
-    from math import isnan
-except ImportError:
-    try:
-        from numpy import isnan
-    except ImportError:
-        print('Tests requiring isnan will fail')
-    
 def read_table1(readme, data):
     reader = asciitable.Cds(readme)
     return reader.read(data)
@@ -122,11 +118,13 @@ def test_header_from_readme():
           1.958, 
           1.416, 
           0.949] 
-    for i, val in enumerate(table.field('Q')):
-        if isnan(val):
-            assert Q[i] == -9.999 #the text value for a missing value in that table
-        else:
-            assert val == Q[i]
+    if has_isnan:
+        from .common import isnan
+        for i, val in enumerate(table.field('Q')):
+            if isnan(val):
+                assert Q[i] == -9.999 #the text value for a missing value in that table
+            else:
+                assert val == Q[i]
 
 if __name__ == "__main__": # run from main directory; not from test/
     test_header_from_readme()

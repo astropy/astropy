@@ -9,7 +9,9 @@ except:
 if asciitable.has_numpy:
     import numpy as np
 
-from .common import *
+from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+                     assert_equal, assert_almost_equal, assert_true,
+                     setup_function, teardown_function)
 
 def _test_values_equal(data, mem_data, numpy):
     for colname in data.dtype.names:

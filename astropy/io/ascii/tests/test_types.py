@@ -16,7 +16,9 @@ except:
 if asciitable.has_numpy:
     import numpy as np
 
-from .common import *
+from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+                     assert_equal, assert_almost_equal, assert_true,
+                     setup_function, teardown_function)
 
 @has_numpy_and_not_has_numpy
 def test_types_from_dat(numpy):

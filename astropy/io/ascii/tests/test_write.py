@@ -10,7 +10,9 @@ try:
 except:
     import asciitable
 
-from .common import *
+from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+                     assert_equal, assert_almost_equal, assert_true,
+                     setup_function, teardown_function)
 
 test_defs = [
     dict(kwargs=dict(),

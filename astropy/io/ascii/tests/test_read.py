@@ -10,15 +10,9 @@ except:
 if asciitable.has_numpy:
     import numpy as np
 
-from .common import *
-
-try:
-    from math import isnan
-except ImportError:
-    try:
-        from numpy import isnan
-    except ImportError:
-        print('Tests requiring isnan will fail')
+from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+                     assert_equal, assert_almost_equal, assert_true,
+                     setup_function, teardown_function, has_isnan)
 
 @has_numpy_and_not_has_numpy
 def test_read_all_files(numpy):
@@ -279,8 +273,10 @@ def test_masking_Cds(numpy):
         assert_true(data['AK'].mask[0])
         assert_true(not data['Fit'].mask[0])
     else:
-        assert_true(isnan(data['AK'][0]))
-        assert_true(not isnan(data['Fit'][0]))
+        if has_isnan:
+            from .common import isnan
+            assert_true(isnan(data['AK'][0]))
+            assert_true(not isnan(data['Fit'][0]))
 
 @has_numpy_and_not_has_numpy
 def test_set_guess_kwarg(numpy):
