@@ -2,8 +2,8 @@ import re
 import glob
 
 try:
-    from .. import ascii as asciitable
-except ValueError:
+    from ... import ascii as asciitable
+except:
     import asciitable
 
 if asciitable.has_numpy:

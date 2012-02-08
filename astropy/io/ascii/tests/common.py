@@ -1,6 +1,6 @@
 import os
 try:
-    from .. import ascii as asciitable
+    from ... import ascii as asciitable
 except ValueError:
     import asciitable
 

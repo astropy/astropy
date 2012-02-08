@@ -1,7 +1,7 @@
 # run from main directory; not from test/
 try:
-    from .. import ascii as asciitable
-except ValueError:
+    from ... import ascii as asciitable
+except:
     import asciitable
 
 from .common import *
