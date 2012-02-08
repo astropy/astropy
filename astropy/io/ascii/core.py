@@ -1027,7 +1027,10 @@ def _get_reader(Reader, Inputter=None, Outputter=None, numpy=True, **kwargs):
         reader.inputter = Inputter()
 
     if has_numpy and numpy:
-        reader.outputter = NumpyOutputter()
+        if is_astropy:
+            reader.outputter = TableOutputter()
+        else:
+            reader.outputter = NumpyOutputter()
 
     if Outputter is not None:
         reader.outputter = Outputter()
