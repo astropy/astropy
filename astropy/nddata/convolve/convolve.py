@@ -8,12 +8,13 @@ from .boundary_wrap import convolve2d_boundary_wrap
 
 def convolve(array, kernel, boundary=None, fill_value=0.):
     '''
-    Convolve an array with a Kernel
+    Convolve an array with a kernel
 
     This routine differs from scipy.ndimage.convolve because it includes a
     special treatment for NaN values. Rather than including NaNs in the
     convolution calculation, which causes large NaN holes in the convolved
-    image, NaN values are ignored in the summations.
+    image, NaN values are replaced with interpolated values using the kernel
+    as an interpolation function.
 
     Parameters
     ----------
@@ -21,8 +22,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
         The array to convolve. This should be a 2-dimensional array.
     kernel: np.ndarray
         The convolution kernel. The number of dimensions should match those
-        for the array, and the number of dimensions should be odd in all
-        directions.
+        for the array, and the dimensions should be odd in all directions.
     boundary: str, optional
         A flag indicating how to handle boundaries:
             * None : set the ``result`` values to zero where the kernel
@@ -53,7 +53,8 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
-        raise Exception("array and kernel have differing number of dimensions")
+        raise Exception('array and kernel have differing number of'
+                        'dimensions')
 
     # The .dtype.type attribute returs the datatype without the endian. We can
     # use this to check that the arrays are 32- or 64-bit arrays
@@ -84,7 +85,8 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
             result = convolve2d_boundary_none(array.astype(np.float),
                                               kernel.astype(np.float))
     else:
-        raise NotImplemented("convolve only supports 2-dimensional arrays at this time")
+        raise NotImplemented('convolve only supports 2-dimensional arrays'
+                             'at this time')
 
     # Cast back to original dtype and return
     return result.astype(array_dtype)
