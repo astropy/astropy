@@ -29,7 +29,8 @@ setup_helpers.set_build_mode()
 if not release:
     version += get_git_devstr(False)
 generate_version_py('astropy', version, release,
-                    setup_helpers.get_debug_option())
+                    setup_helpers.get_debug_option(),
+                    setup_helpers.get_compiler_option())
 
 # Use the find_packages tool to locate all packages and modules
 packagenames = find_packages()

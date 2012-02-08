@@ -154,6 +154,7 @@ bugfix = {bugfix}
 
 release = {rel}
 debug = {debug}
+compiler = {compiler!r}
 
 try:
     from astropy.utils._compiler import compiler
@@ -162,7 +163,7 @@ except ImportError:
 """[1:]
 
 
-def _get_version_py_str(packagename, version, release, debug):
+def _get_version_py_str(packagename, version, release, debug, compiler):
 
     import datetime
 
@@ -178,10 +179,12 @@ def _get_version_py_str(packagename, version, release, debug):
                                               major=major,
                                               minor=minor,
                                               bugfix=bugfix,
-                                              rel=release, debug=debug)
+                                              rel=release, debug=debug,
+                                              compiler=compiler)
 
 
-def generate_version_py(packagename, version, release, debug=None):
+def generate_version_py(packagename, version, release, debug=None,
+                        compiler=None):
     """Regenerate the version.py module if necessary."""
 
     import os
@@ -189,15 +192,18 @@ def generate_version_py(packagename, version, release, debug=None):
 
     try:
         version_module = __import__(packagename + '.version',
-                                    fromlist=['version', 'release', 'debug'])
-        current_version = version_module.version
-        current_release = version_module.release
-        current_debug = version_module.debug
+                                    fromlist=['version', 'release', 'debug',
+                                              'compiler'])
+        current_version = getattr(version_module, 'version', None)
+        current_release = getattr(version_module, 'release', None)
+        current_debug = getattr(version_module, 'debug', None)
+        current_compiler = getattr(version_module, 'compiler', None)
     except ImportError:
         version_module = None
         current_version = None
         current_release = None
         current_debug = None
+        current_compiler = None
 
     if debug is None:
         # Keep whatever the current value is, if it exists
@@ -206,14 +212,15 @@ def generate_version_py(packagename, version, release, debug=None):
     version_py = os.path.join(packagename, 'version.py')
 
     if (current_version != version or current_release != release or
-        current_debug != debug):
+        current_debug != debug or current_compiler != compiler):
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
         log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:
             # This overwrites the actual version.py
-            f.write(_get_version_py_str(packagename, version, release, debug))
+            f.write(_get_version_py_str(packagename, version, release, debug,
+                                        compiler))
 
         if version_module:
             imp.reload(version_module)
