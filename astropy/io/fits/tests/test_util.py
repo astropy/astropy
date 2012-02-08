@@ -12,8 +12,8 @@ from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):
+    @pytest.mark.skipif("not hasattr(os, 'kill')")
     def test_ignore_sigint(self):
-
         @ignore_sigint
         def test():
             with warnings.catch_warnings(record=True) as w:

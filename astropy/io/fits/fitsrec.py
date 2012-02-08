@@ -3,6 +3,7 @@
 import operator
 import sys
 import warnings
+import weakref
 
 import numpy as np
 
@@ -129,7 +130,7 @@ class FITS_record(object):
 
     @lazyproperty
     def _bases(self):
-        bases = [self]
+        bases = [weakref.proxy(self)]
         base = self.base
         while base:
             bases.append(base)

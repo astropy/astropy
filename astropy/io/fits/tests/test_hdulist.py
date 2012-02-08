@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 
+from .util import ignore_warnings
 from ....io import fits
 from ....tests.helper import pytest, raises
 
@@ -331,7 +332,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
         hdul = fits.HDUList()
         hdul.append(hdu)
-        tmpfile = open(self.temp('tmpfile.fits'), 'w')
+        tmpfile = open(self.temp('tmpfile.fits'), 'wb')
         hdul.writeto(tmpfile)
         tmpfile.close()
 
@@ -341,7 +342,7 @@ class TestHDUListFunctions(FitsTestCase):
 
     def test_file_like_2(self):
         hdu = fits.PrimaryHDU(np.arange(100, dtype=np.int32))
-        tmpfile = open(self.temp('tmpfile.fits'), 'w')
+        tmpfile = open(self.temp('tmpfile.fits'), 'wb')
         hdul = fits.open(tmpfile, mode='ostream')
         hdul.append(hdu)
         hdul.flush()
@@ -352,8 +353,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert fits.info(self.temp('tmpfile.fits'), output=False) == info
 
     def test_file_like_3(self):
-
-        tmpfile = open(self.temp('tmpfile.fits'), 'w')
+        tmpfile = open(self.temp('tmpfile.fits'), 'wb')
         fits.writeto(tmpfile, np.arange(100, dtype=np.int32))
         tmpfile.close()
         info = [(0, 'PRIMARY', 'PrimaryHDU', 5, (100,), 'int32', '')]
@@ -440,5 +440,6 @@ class TestHDUListFunctions(FitsTestCase):
         with open(self.temp('temp.fits'), 'ab') as f:
             f.seek(0, os.SEEK_END)
             f.write(b'\0' * 2880)
-        assert info == fits.info(self.temp('temp.fits'), output=False,
-                                 do_not_scale_image_data=True)
+        with ignore_warnings():
+            assert info == fits.info(self.temp('temp.fits'), output=False,
+                                     do_not_scale_image_data=True)

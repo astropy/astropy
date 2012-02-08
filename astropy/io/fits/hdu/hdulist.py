@@ -14,7 +14,8 @@ from .image import PrimaryHDU, ImageHDU
 from .table import _TableBaseHDU
 from ..file import PYTHON_MODES, _File
 from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
-                    fileobj_name, fileobj_closed, fileobj_mode, ignore_sigint)
+                    fileobj_name, fileobj_closed, fileobj_mode, ignore_sigint,
+                    _get_array_memmap)
 from ..verify import _Verify, _ErrList
 
 
@@ -593,8 +594,26 @@ class HDUList(list, _Verify):
                         # TODO: Fix this once new HDU writing API is settled on
                         (hdu._hdrLoc, hdu._datLoc, hdu._datSpan) = \
                                hdu._writeto(hdulist.__file, checksum=checksum)
+
+                    if sys.platform.startswith('win'):
+                        # Collect a list of open mmaps to the data; this well
+                        # be used later.  See below.
+                        mmaps = [(idx, _get_array_memmap(hdu.data), hdu.data)
+                                 for idx, hdu in enumerate(self)
+                                 if hdu._data_loaded]
+
                     hdulist.__file.close()
                     self.__file.close()
+
+                    if sys.platform.startswith('win'):
+                        # Close all open mmaps to the data.  This is only
+                        # necessary on Windows, which will not allow a file to
+                        # be renamed or deleted until all handles to that file
+                        # have been closed.
+                        for idx, map, arr in mmaps:
+                            if map is not None:
+                                map.base.close()
+
                     os.remove(self.__file.name)
 
                     if verbose:
@@ -612,8 +631,35 @@ class HDUList(list, _Verify):
                     ffo = _File(old_file, mode='update', memmap=old_memmap)
 
                     self.__file = ffo
+
+                    for hdu in self:
+                        # Need to update the _file attribute and close any open
+                        # mmaps on each HDU
+                        if (hdu._data_loaded and
+                            _get_array_memmap(hdu.data) is not None):
+                            del hdu.data
+                        hdu._file = ffo
+
                     if verbose:
                         print 'reopen the newly renamed file', old_name
+
+                    if sys.platform.startswith('win'):
+                        # On Windows, all the original data mmaps were closed
+                        # above.  However, it's possible that the user still
+                        # has references to the old data which would no longer
+                        # work (possibly even cause a segfault if they try to
+                        # access it).  This replaces the buffers used by the
+                        # original arrays with the buffers of mmap arrays
+                        # created from the new file.  This seems to work, but
+                        # it's a flaming hack and carries no guarantees that it
+                        # won't lead to odd behavior in practice.  Better to
+                        # just not keep references to data from files that had
+                        # to be resized upon flushing (on Windows--again, this
+                        # is no problem on Linux).
+                        for idx, map, arr in mmaps:
+                            arr.data = self[idx].data.data
+                        del mmaps  # Just to be sure
+
                 else:
                     #
                     # The underlying file is not a file object, it is a file
@@ -678,18 +724,11 @@ class HDUList(list, _Verify):
                                   hdu.name, extver
                     if hdu._data_loaded:
                         if hdu.data is not None:
-                            memmap_array = None
                             # Seek through the array's bases for an memmap'd
                             # array; we can't rely on the _File object to give
                             # us this info since the user may have replaced the
                             # previous mmap'd array
-                            base = hdu.data
-                            while (hasattr(base, 'base') and
-                                   base.base is not None):
-                                if isinstance(base.base, Memmap):
-                                    memmap_array = base.base
-                                    break
-                                base = base.base
+                            memmap_array = _get_array_memmap(hdu.data)
 
                             if memmap_array is not None:
                                 memmap_array.flush()
