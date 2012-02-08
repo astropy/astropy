@@ -28,19 +28,18 @@ together in a pipeline:
 
 from __future__ import division  # confidence high
 
-# stdlib
+# STDLIB
 import copy
+import io
+import os
 import sys
+import warnings
 
-# third-party
+# THIRD-PARTY
 import numpy as np
-try:
-    import pyfits
-    HAS_PYFITS = True
-except ImportError:
-    HAS_PYFITS = False
 
-# local
+# LOCAL
+from ..io import fits
 from . import _docutil as __
 try:
     from . import _wcs
@@ -53,9 +52,15 @@ if _wcs is not None:
            "on your platform."
 
 if sys.version_info[0] >= 3:
-    string_types = (bytes,)
+    string_types = (bytes, str)
 else:
     string_types = (str, unicode)
+
+
+__all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
+           'WCSBase', 'DistortionLookupTable', 'Sip',
+           'UnitConverter', 'Wcsprm']
+
 
 if _wcs is not None:
     WCSBase = _wcs._Wcs
@@ -69,9 +74,13 @@ if _wcs is not None:
             key.startswith('WCSHDR') or
             key.startswith('WCSHDO')):
             locals()[key] = val
+            __all__.append(key)
 else:
     WCSBase = object
     Wcsprm = object
+    DistortionLookupTable = object
+    Sip = object
+    UnitConverter = object
 
 
 def _parse_keysel(keysel):
@@ -94,6 +103,10 @@ def _parse_keysel(keysel):
     return keysel_flags
 
 
+class FITSFixedWarning(Warning):
+    pass
+
+
 class WCS(WCSBase):
     """
     WCS objects perform standard WCS transformations, and correct for
@@ -102,15 +115,16 @@ class WCS(WCSBase):
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
-                 relax=False, naxis=None, keysel=None, colsel=None):
+                 relax=False, naxis=None, keysel=None, colsel=None,
+                 fix=True):
         """
         Parameters
         ----------
-        header : PyFITS header object, string or None
+        header : astropy.io.fits header object, string or None, optional
             If *header* is not provided or None, the object will be
             initialized to default values.
 
-        fobj : A PyFITS file (hdulist) object, optional
+        fobj : An astropy.io.fits file (hdulist) object, optional
             It is needed when header keywords point to a `Paper IV`_
             Lookup table distortion stored in a different extension.
 
@@ -126,7 +140,7 @@ class WCS(WCSBase):
             smaller than *minerr*, the corresponding distortion is not
             applied.
 
-        relax : bool or int
+        relax : bool or int, optional
             Degree of permissiveness:
 
             - `False`: Recognize only FITS keywords defined by the
@@ -168,11 +182,17 @@ class WCS(WCSBase):
             ``WCSNna`` and ``TWCSna``) are selected by both 'binary'
             and 'pixel'.
 
-        colsel : sequence of int
+        colsel : sequence of int, optional
             A sequence of table column numbers used to restrict the
             WCS transformations considered to only those pertaining to
             the specified columns.  If `None`, there is no
             restriction.
+
+        fix : bool, optional
+            When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix`
+            on the resulting object to fix any non-standard uses in
+            the header.  `FITSFixedWarning` Warnings will be emitted
+            if any changes were made.
 
         Raises
         ------
@@ -215,13 +235,22 @@ class WCS(WCSBase):
             keysel_flags = _parse_keysel(keysel)
 
             if isinstance(header, string_types):
-                header_string = header
-            elif HAS_PYFITS:
-                assert isinstance(header, pyfits.Header)
-                header_string = repr(header.ascard)
+                if os.path.exists(header):
+                    if fobj is not None:
+                        raise ValueError(
+                            "Can not provide both a FITS filename to "
+                            "argument 1 and a FITS file object to argument 2")
+                    fobj = fits.open(header)
+                    header = fobj[0].header
+                    header_string = repr(header.ascard).encode('latin1')
+                else:
+                    header_string = header
+            elif isinstance(header, fits.Header):
+                header_string = repr(header).encode('latin1')
             else:
                 raise TypeError(
-                    "header must be a string or a pyfits.Header object")
+                    "header must be a string or an astropy.io.fits.Header "
+                    "object")
             try:
                 wcsprm = _wcs._Wcsprm(header=header_string, key=key,
                                       relax=relax, keysel=keysel_flags,
@@ -255,11 +284,22 @@ To use core WCS in conjunction with Paper IV lookup tables or SIP
 distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
 """.format(wcsprm.naxis))
+
+        if fix:
+            fixes = wcsprm.fix()
+            for key, val in fixes.iteritems():
+                if val != "No change":
+                    warnings.warn(
+                        ("'{0}' made the change '{1}'. "
+                         "This FITS header contains non-standard content.").
+                        format(key, val),
+                        FITSFixedWarning)
+
         self.get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
     def __copy__(self):
-        new_copy = WCS()
+        new_copy = self.__class__()
         WCSBase.__init__(new_copy, self.sip,
                          (self.cpdis1, self.cpdis2),
                          self.wcs,
@@ -317,7 +357,7 @@ naxis kwarg.
 
         Parameters
         ----------
-        header : pyfits header object, optional
+        header : astropy.io.fits header object, optional
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into account
@@ -369,11 +409,7 @@ naxis kwarg.
         if fobj is None:
             return (None, None)
 
-        if not HAS_PYFITS:
-            raise ImportError(
-                "pyfits is required to use Paper IV lookup tables")
-
-        if not isinstance(fobj, pyfits.HDUList):
+        if not isinstance(fobj, fits.HDUList):
             return (None, None)
 
         try:
@@ -399,6 +435,37 @@ naxis kwarg.
             return (cpdis, None)
         else:
             return (None, cpdis)
+
+    def _write_det2im(self, hdulist):
+        """
+        Writes a Paper IV type lookup table to the given
+        `astropy.io.fits.HDUList`.
+        """
+
+        det2im1 = self.det2im1
+        det2im2 = self.det2im2
+        if det2im1 is not None and det2im2 is None:
+            hdulist[0].header.update('AXISCORR', 1)
+            det2im = det2im1
+        elif det2im1 is None and det2im2 is not None:
+            hdulist[0].header.update('AXISCORR', 0)
+            det2im = det2im2
+        elif det2im1 is None and det2im2 is None:
+            return
+        else:
+            raise ValueError("Saving both distortion images is not supported")
+
+        image = fits.ImageHDU(det2im.data[0], name='D2IMARR')
+        header = image.header
+
+        header.update('CRPIX1', det2im.crpix[0])
+        header.update('CRPIX2', det2im.crpix[1])
+        header.update('CRVAL1', det2im.crval[0])
+        header.update('CRVAL2', det2im.crval[1])
+        header.update('CDELT1', det2im.cdelt[0])
+        header.update('CDELT2', det2im.cdelt[1])
+
+        hdulist.append(image)
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
@@ -429,13 +496,9 @@ naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
-                    if fobj is not None and not HAS_PYFITS:
-                        raise ImportError(
-                            "pyfits is required to use Paper IV lookup tables")
-
-                    assert isinstance(fobj, pyfits.HDUList), \
-                        'A pyfits HDUList is required for Lookup table ' + \
-                        'distortion.'
+                    assert isinstance(fobj, fits.HDUList), \
+                        'An astropy.io.fits.HDUList is required for ' + \
+                        'Lookup table distortion.'
                     dp = (d_kw + str(i)).strip()
                     d_extver = header.get(dp + '.EXTVER', 1)
                     if i == header[dp + '.AXIS.' + str(i)]:
@@ -461,6 +524,46 @@ naxis kwarg.
             return (None, None)
         else:
             return (tables.get(1), tables.get(2))
+
+    def _write_distortion_kw(self, hdulist, dist='CPDIS'):
+        """
+        Write out Paper IV distortion keywords to the given
+        `fits.HDUList`.
+        """
+        if self.cpdis1 is None and self.cpdis2 is None:
+            return
+
+        if dist == 'CPDIS':
+            d_kw = 'DP'
+            err_kw = 'CPERR'
+        else:
+            d_kw = 'DQ'
+            err_kw = 'CQERR'
+
+        def write_dist(num, cpdis):
+            if cpdis is None:
+                return
+
+            hdulist[0].header.update('{0}{1:d}'.format(dist, num), 'LOOKUP')
+            hdulist[0].header.update('{0}{1:d}.EXTVER'.format(d_kw, num),
+                                     len(hdulist))
+            hdulist[0].header.update('{0}{1:d}.AXIS.{1:d}'.format(d_kw, num),
+                                     num)
+
+            image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
+            header = image.header
+
+            header.update('CRPIX1', cpdis.crpix[0])
+            header.update('CRPIX2', cpdis.crpix[1])
+            header.update('CRVAL1', cpdis.crval[0])
+            header.update('CRVAL2', cpdis.crval[1])
+            header.update('CDELT1', cpdis.cdelt[0])
+            header.update('CDELT2', cpdis.cdelt[1])
+
+            hdulist.append(image)
+
+        write_dist(1, self.cpdis1)
+        write_dist(2, self.cpdis2)
 
     def _read_sip_kw(self, header):
         """
@@ -534,6 +637,36 @@ naxis kwarg.
         crpix2 = header.get("CRPIX2")
 
         return Sip(a, b, ap, bp, (crpix1, crpix2))
+
+    def _write_sip_kw(self):
+        """
+        Write out SIP keywords.  Returns a dictionary of key-value
+        pairs.
+        """
+        if self.sip is None:
+            return {}
+
+        keywords = {}
+
+        def write_array(name, a):
+            if a is None:
+                return
+            size = a.shape[0]
+            keywords['{0}_ORDER'.format(name)] = size - 1
+            for i in range(size):
+                for j in range(size - i):
+                    if a[i, j] != 0.0:
+                        keywords['{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
+
+        write_array('A', self.sip.a)
+        write_array('B', self.sip.b)
+        write_array('AP', self.sip.ap)
+        write_array('BP', self.sip.bp)
+
+        keywords['CRPIX1'] = self.sip.crpix[0]
+        keywords['CRPIX2'] = self.sip.crpix[1]
+
+        return keywords
 
     def _denormalize_sky(self, sky):
         if self.wcs.lngtyp != 'RA':
@@ -636,7 +769,8 @@ naxis kwarg.
                 sky = self._normalize_sky_output(sky)
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
-        raise TypeError("Expected 2 or 3 arguments, {0} given".format(len(args)))
+        raise TypeError(
+            "Expected 2 or 3 arguments, {0} given".format(len(args)))
 
     def all_pix2sky(self, *args, **kwargs):
         return self._array_converter(
@@ -993,16 +1127,78 @@ naxis kwarg.
         """.format(__.TWO_OR_THREE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
+    def to_fits(self, relax=False):
+        """
+        Generate an `astropy.io.fits.HDUList` object with all of the
+        information stored in this object.  This should be logically identical
+        to the input FITS file, but it will be normalized in a number of ways.
+
+        See `to_header` for some warnings about the output produced.
+
+        Parameters
+        ----------
+
+        relax : bool or int, optional
+            Degree of permissiveness:
+
+            - `False`: Recognize only FITS keywords defined by the
+              published WCS standard.
+
+            - `True`: Admit all recognized informal extensions of the
+              WCS standard.
+
+            - `int`: a bit field selecting specific extensions to
+              write.  See :ref:`relaxwrite` for details.
+
+        Returns
+        -------
+        hdulist : `astropy.io.fits.HDUList`
+        """
+
+        header = self.to_header(relax=relax)
+
+        hdu = fits.PrimaryHDU(header=header)
+        hdulist = fits.HDUList(hdu)
+
+        self._write_det2im(hdulist)
+        self._write_distortion_kw(hdulist)
+
+        return hdulist
+
     def to_header(self, relax=False):
         """
-        Generate a `pyfits`_ header object with the WCS information
-        stored in this object.
+        Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
+        information stored in this object.  This should be logically
+        identical to the input FITS file, but it will be normalized in
+        a number of ways.
 
         .. warning::
 
-          This function does not write out SIP or Paper IV distortion
-          keywords, yet, only the core WCS support by `wcslib`_.
+          This function does not write out Paper IV distortion
+          information, since that requires multiple FITS header data
+          units.  To get a full representation of everything in this
+          object, use `to_fits`.
 
+        Parameters
+        ----------
+        relax : bool or int, optional
+            Degree of permissiveness:
+
+            - `False`: Recognize only FITS keywords defined by the
+              published WCS standard.
+
+            - `True`: Admit all recognized informal extensions of the
+              WCS standard.
+
+            - `int`: a bit field selecting specific extensions to
+              write.  See :ref:`relaxwrite` for details.
+
+        Returns
+        -------
+        header : `astropy.io.fits.Header`
+
+        Notes
+        -----
         The output header will almost certainly differ from the input in a
         number of respects:
 
@@ -1032,47 +1228,26 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-
-        Parameters
-        ----------
-        relax : bool or int
-            Degree of permissiveness:
-
-            - `False`: Recognize only FITS keywords defined by the
-              published WCS standard.
-
-            - `True`: Admit all recognized informal extensions of the
-              WCS standard.
-
-            - `int`: a bit field selecting specific extensions to
-              write.  See :ref:`relaxwrite` for details.
-
-        Returns
-        -------
-        header : `pyfits`_ Header object
         """
-        if not HAS_PYFITS:
-            raise ImportError(
-                "pyfits is required to generate a FITS header")
 
-        header_string = self.wcs.to_header(relax)
-        cards = pyfits.CardList()
-        for i in range(0, len(header_string), 80):
-            card_string = header_string[i:i + 80]
-            if pyfits.__version__[0] >= '3':
-                card = pyfits.Card.fromstring(card_string)
-            else:
-                card = pyfits.Card()
-                card.fromstring(card_string)
-            cards.append(card)
-        return pyfits.Header(cards)
+        if self.wcs is not None:
+            header_string = self.wcs.to_header(relax)
+            header = fits.Header.fromstring(header_string)
+        else:
+            header = fits.Header()
+
+        if self.sip is not None:
+            for key, val in self._write_sip_kw().items():
+                header.update(key, val)
+
+        return header
 
     def to_header_string(self, relax=False):
         """
         Identical to `to_header`, but returns a string containing the
         header cards.
         """
-        return self.to_header(self, relax).to_string()
+        return str(self.to_header(self, relax))
 
     def footprint_to_file(self, filename=None, color='green', width=2):
         """
@@ -1113,7 +1288,7 @@ naxis kwarg.
             self.naxis2 = header.get('NAXIS2', 0.0)
 
     def rotateCD(self, theta):
-        _theta = DEGTORAD(theta)
+        _theta = np.deg2rad(theta)
         _mrot = np.zeros(shape=(2, 2), dtype=np.double)
         _mrot[0] = (np.cos(_theta), np.sin(_theta))
         _mrot[1] = (-np.sin(_theta), np.cos(_theta))
@@ -1127,9 +1302,9 @@ naxis kwarg.
         print('WCS Keywords\n')
         if hasattr(self.wcs, 'cd'):
             print('CD_11  CD_12: {!r} {!r}'.format(
-                self.wcs.cd[0, 0],  self.wcs.cd[0, 1]))
+                self.wcs.cd[0, 0], self.wcs.cd[0, 1]))
             print('CD_21  CD_22: {!r} {!r}'.format(
-                self.wcs.cd[1, 0],  self.wcs.cd[1, 1]))
+                self.wcs.cd[1, 0], self.wcs.cd[1, 1]))
         print('CRVAL    : {!r} {!r}'.format(
             self.wcs.crval[0], self.wcs.crval[1]))
         print('CRPIX    : {!r} {!r}'.format(
@@ -1234,13 +1409,36 @@ naxis kwarg.
 
         return result
 
+    def __reduce__(self):
+        """
+        Support pickling of WCS objects.  This is done by serializing
+        to an in-memory FITS file and dumping that as a string.
+        """
 
-def DEGTORAD(deg):
-    return (deg * np.pi / 180.)
+        hdulist = self.to_fits(relax=True)
+
+        buffer = io.BytesIO()
+        hdulist.writeto(buffer)
+
+        return (__WCS_unpickle__,
+                (self.__class__, self.__dict__, buffer.getvalue(),))
 
 
-def RADTODEG(rad):
-    return (rad * 180. / np.pi)
+def __WCS_unpickle__(cls, dct, fits_data):
+    """
+    Unpickles a WCS object from a serialized FITS string.
+    """
+
+    self = cls.__new__(cls)
+    self.__dict__.update(dct)
+
+    buffer = io.BytesIO(fits_data)
+    hdulist = fits.open(buffer)
+
+    WCS.__init__(self, hdulist[0].header, hdulist)
+
+    return self
+
 
 
 def find_all_wcs(header, relax=False, keysel=None):
@@ -1249,7 +1447,7 @@ def find_all_wcs(header, relax=False, keysel=None):
 
     Parameters
     ----------
-    header : string or PyFITS header object.
+    header : string or astropy.io.fits header object.
 
     relax : bool or int, optional
         Degree of permissiveness:
@@ -1287,14 +1485,14 @@ def find_all_wcs(header, relax=False, keysel=None):
     -------
     wcses : list of `WCS` objects
     """
+
     if isinstance(header, string_types):
         header_string = header
-    elif HAS_PYFITS:
-        assert isinstance(header, pyfits.Header)
-        header_string = repr(header.ascard)
+    elif isinstance(header, fits.Header):
+        header_string = repr(header)
     else:
         raise TypeError(
-            "header must be a string or pyfits.Header object")
+            "header must be a string or astropy.io.fits.Header object")
 
     keysel_flags = _parse_keysel(keysel)
 

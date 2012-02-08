@@ -8,25 +8,30 @@ modules and packages.
 `astropy` Package Layout
 ------------------------
 
-Astropy contains the following base-level modules:
+Astropy contains the following base-level subpackages:
 
 
 * :mod:`~astropy.config`
-    This module contains configuration and setup utilities, including the 
+    This subpackage contains configuration and setup utilities, including the 
     affiliated package install tools.
 * :mod:`~astropy.utils`
-    This module contains utilities of general use for multiple modules or
+    This subpackage contains utilities of general use for multiple modules or
     affiliated packages.
 * :mod:`~astropy.version`
-    This module contains the version number information for the package. Note
-    that the version is also copied to the base level of the package as
+    This subpackage contains the version number information for the package. 
+    Note that the version is also available at the base level of the package as
     :attr:`astropy.__version__`.
 * :mod:`~astropy.extern`
-    This module contains small python packages that are not unique to astropy
-    but are convinient to include as part of the astropy source code.
+    This subpackage contains small python packages that are not unique to 
+    astropy but are convinient to include as part of the astropy source code.
 * :mod:`~astropy.tests`
-    This module contains astropy tests and test helpers.
-
+    This subpackage contains utilities to run the astropy test suite (the 
+    simplest method is to just call :meth:`astropy.test`), tools for writing 
+    tests, and general tests that are not associated with a particular package.
+* :mod:`~astropy.wcs`
+    This subpackage contains a python wrapper around the 
+    `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ library for 
+    managing FITS world coordinate systems (WCS).
 
 Affiliated Packages
 -------------------

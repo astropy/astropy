@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
 # Astropy documentation build configuration file, created by
 # sphinx-quickstart on Tue Jul 26 02:59:34 2011.
@@ -11,7 +12,16 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, warnings
+import os
+import sys
+
+#some of the docs require the autodoc special-members option, in 1.1
+needs_sphinx = '1.1'
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0, os.path.abspath('..'))
 
 # Load all of the global Astropy configuration
 from astropy.sphinx.conf import *
@@ -22,10 +32,6 @@ from astropy.sphinx.conf import *
 # astropy in its own build so we remove it here.
 del intersphinx_mapping['astropy']
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -36,11 +42,13 @@ copyright = u'2011, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perr
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-#
+
+import astropy
+
 # The short X.Y version.
-version = '0.0.0'
+version = astropy.__version__.split('-', 1)[0]
 # The full version, including alpha/beta/rc tags.
-release = '0.0.0'
+release = astropy.__version__
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -107,3 +115,8 @@ man_pages = [
 # be used globally.
 rst_epilog += """
 """
+
+# -- Options for linkcheck --------------------------------------------
+
+# A timeout value, in seconds, for the linkcheck builder
+linkcheck_timeout = 60

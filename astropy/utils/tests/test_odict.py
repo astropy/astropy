@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Test the Python 2.6 backport of OrderedDict.
 
@@ -16,7 +17,7 @@ from random import shuffle
 
 import astropy.utils.tests.odict_mapping as mapping_tests
 
-from astropy.utils.odict import OrderedDict
+from astropy.utils.compat.odict import OrderedDict
 
 #Skips all of these tests if the builtin ordered dict is available
 pytestmark = pytest.mark.skipif("sys.version_info >= (2,7)")

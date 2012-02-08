@@ -531,4 +531,18 @@ and the history looks now like this::
 If it went wrong, recovery is again possible as explained :ref:`above
 <recovering-from-mess-up>`.
 
+Converting a github issue to a pull request
+-------------------------------------------
+
+Sometimes you have a branch in your own github repository designed to
+fix one particular issue.  If that issue is listed on github, a natural
+way to address it is to convert the issue to a pull request by
+attaching code with the fix to the issue.  This can currently only be
+done using the github API (there's no button or anything on the web
+site that does it, at least as of 2/6/2012).  To facilitate this, a
+script is available at https://gist.github.com/1750715 that will do
+this for you automatically - just download the script and run it as a
+python command-line script, using the ``python issue2pr.py --help``
+option to determine the precise usage.
+
 .. include:: links.inc

@@ -5,6 +5,9 @@ astropy.wcs-specific utilities for generating boilerplate in docstrings.
 from __future__ import division  # confidence high
 
 
+__all__ = ['TWO_OR_THREE_ARGS', 'RETURNS', 'ORIGIN', 'RA_DEC_ORDER']
+
+
 def _fix(content, indent=0):
     lines = content.split('\n')
     indent = '\n' + ' ' * indent

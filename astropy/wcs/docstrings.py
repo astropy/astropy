@@ -225,6 +225,23 @@ matrix may be deleted by::
 An undefined value is represented by NaN.
 """
 
+cdfix = """
+cdfix()
+
+Fix erroneously omitted ``CDi_ja`` keywords.
+
+Sets the diagonal element of the ``CDi_ja`` matrix to unity if all
+``CDi_ja`` keywords associated with a given axis were omitted.
+According to Paper I, if any ``CDi_ja`` keywords at all are given in a
+FITS header then those not given default to zero.  This results in a
+singular matrix with an intersecting row and column of zeros.
+
+Returns
+-------
+success : int
+    Returns ``0`` for success; ``-1`` if no change required.
+"""
+
 cel_offset = """
 ``boolean``
 
@@ -637,8 +654,8 @@ fix(translate_units='', naxis=0)
 
 Applies all of the corrections handled separately by
 `~astropy.wcs.Wcsprm.datfix`, `~astropy.wcs.Wcsprm.unitfix`,
-`~astropy.wcs.Wcsprm.celfix`, `~astropy.wcs.Wcsprm.spcfix` and
-`~astropy.wcs.Wcsprm.cylfix`.
+`~astropy.wcs.Wcsprm.celfix`, `~astropy.wcs.Wcsprm.spcfix`,
+`~astropy.wcs.Wcsprm.cylfix` and `~astropy.wcs.Wcsprm.cdfix`.
 
 Parameters
 ----------
@@ -675,6 +692,8 @@ status : dict
     Returns a dictionary containing the following keys, each referring
     to a status string for each of the sub-fix functions that were
     called:
+
+    - `~astropy.wcs.Wcsprm.cdfix`
 
     - `~astropy.wcs.Wcsprm.datfix`
 
@@ -741,7 +760,7 @@ ps : list of tuples
 
 See also
 --------
-astropy.wcs.Wcsprm.set_ps : Set PSi_ma values
+astropy.wcs.Wcsprm.set_ps : Set ``PSi_ma`` values
 """
 
 get_pv = """
@@ -762,7 +781,7 @@ Returns
 
 See also
 --------
-astropy.wcs.Wcsprm.set_pv : Set `PVi_ma` values
+astropy.wcs.Wcsprm.set_pv : Set ``PVi_ma`` values
 
 Notes
 -----
@@ -829,7 +848,7 @@ astropy.wcs.Wcsprm.crota : Get the raw ``CROTAia`` values
 """
 
 has_crotaia = """
-has_crota_ia() -> bool
+has_crotaia() -> bool
 
 Alias for `~astropy.wcs.Wcsprm.has_crota`.  Maintained for backward
 compatibility.
@@ -1829,6 +1848,12 @@ practice, this means that the ``PCi_ja`` matrix of the original image
 must not contain non-zero off-diagonal terms that associate any of the
 subimage axes with any of the non-subimage axes.
 
+`sub` can also add axes to a wcsprm object.  The new axes will be
+created using the defaults set by the Wcsprm constructor which produce
+a simple, unnamed, linear axis with world coordinates equal to the
+pixel coordinate.  These default values can be changed before
+invoking `set`.
+
 Parameters
 ----------
 axes : int or a sequence.
@@ -1838,7 +1863,8 @@ axes : int or a sequence.
     - If a sequence, may contain a combination of image axis numbers
       (1-relative) or special axis identifiers (see below).  Order is
       significant; ``axes[0]`` is the axis number of the input image
-      that corresponds to the first axis in the subimage, etc.
+      that corresponds to the first axis in the subimage, etc.  Use an
+      axis number of 0 to create a new axis using the defaults.
 
     - If ``0``, ``[]`` or ``None``, do a deep copy.
 
@@ -2038,7 +2064,7 @@ have : string
     closing bracket is ignored.
 
 want : string
-    ref:`fits-unit` to convert to, with or without surrounding square
+    :ref:`fits-unit` to convert to, with or without surrounding square
     brackets (for inline specifications); text following the closing
     bracket is ignored.
 
@@ -2214,7 +2240,7 @@ Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
 
 Parameters
 ----------
-header : A PyFITS header, string, or `None`.
+header : An astropy.io.fits header, string, or `None`.
   If ``None``, the object will be initialized to default values.
 
 key : string, optional

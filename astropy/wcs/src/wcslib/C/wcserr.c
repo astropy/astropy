@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -29,7 +29,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcserr.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: wcserr.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -48,6 +48,52 @@ int wcserr_enable(int enable)
 
 {
   return wcserr_enabled = (enable ? 1 : 0);
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcserr_prt(
+  const struct wcserr *err,
+  const char *prefix)
+
+{
+  if (!wcserr_enabled) {
+    wcsprintf("Error messaging is not enabled, use wcserr_enable().\n");
+    return 2;
+  }
+
+  if (err == 0x0) {
+    return 0;
+  }
+
+  if (err->status) {
+    if (prefix == 0x0) prefix = "";
+
+    if (err->status > 0) {
+      wcsprintf("%sERROR %d in %s() at line %d of file %s:\n%s%s.\n",
+        prefix, err->status, err->function, err->line_no, err->file, prefix,
+        err->msg);
+    } else {
+      /* An informative message only. */
+      wcsprintf("%sINFORMATIVE message from %s() at line %d of file "
+        "%s:\n%s%s.\n", prefix, err->function, err->line_no, err->file,
+        prefix, err->msg);
+    }
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcserr_clear(
+  struct wcserr **err)
+
+{
+  if (*err) free(*err);
+  *err = 0x0;
+
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -111,30 +157,4 @@ int wcserr_copy(
   }
 
   return src->status;
-}
-
-/*--------------------------------------------------------------------------*/
-
-int wcserr_prt(
-  const struct wcserr *err,
-  const char *prefix)
-
-{
-  if (!wcserr_enabled) {
-    wcsprintf("Error messaging is not enabled, use wcserr_enable().\n");
-    return 2;
-  }
-
-  if (err == 0x0) {
-    return 0;
-  }
-
-  if (err->status) {
-    if (prefix == 0x0) prefix = "";
-
-    wcsprintf("%sERROR %d in %s() at line %d of file %s:\n%s  %s.\n", prefix,
-      err->status, err->function, err->line_no, err->file, prefix, err->msg);
-  }
-
-  return 0;
 }

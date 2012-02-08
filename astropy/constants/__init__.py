@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains astronomical and physical constants for use in Astropy or other
 places.
@@ -25,7 +26,7 @@ The following constants are defined in `~astropy.constants.cgs` and
 
 """
 
-for nm, val in sorted(si.__dict__.iteritems()):
+for nm, val in sorted(si.__dict__.items()):
     if isinstance(val, Constant):
         __doc__ += '    * ' + nm + '\n        ' + val.name + '\n'
 del nm, val

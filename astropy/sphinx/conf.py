@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 #
 # Astropy shared Sphinx settings.  These settings are shared between
 # astropy itself and affiliated packages.
@@ -9,16 +10,29 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, warnings
+import os
+import sys
+import warnings
 
-# -- General configuration -----------------------------------------------------
+# -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.0'
 
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.viewcode', 'astropy.sphinx.ext.numpydoc', 'sphinx.ext.autosummary']
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.pngmath',
+    'sphinx.ext.viewcode',
+    'astropy.sphinx.ext.numpydoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.inheritance_diagram'
+]
 
 # Don't show summaries of the members in each class along with the
 # class' docstring
@@ -30,7 +44,9 @@ default_role = 'obj'
 try:
     import matplotlib.sphinxext.plot_directive
 except ImportError:
-    warnings.warn("matplotlib's plot_directive could not be imported.  Inline plots will not be included in the output")
+    warnings.warn(
+        "matplotlib's plot_directive could not be imported. " +
+        "Inline plots will not be included in the output")
 else:
     extensions += ['matplotlib.sphinxext.plot_directive']
 
@@ -60,7 +76,8 @@ master_doc = 'index'
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build']
 
-# The reST default role (used for this markup: `text`) to use for all documents.
+# The reST default role (used for this markup: `text`) to use for all
+# documents.
 default_role = 'obj'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
@@ -81,7 +98,7 @@ pygments_style = 'sphinx'
 #modindex_common_prefix = []
 
 
-# -- Options for HTML output ---------------------------------------------------
+# -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -94,6 +111,8 @@ html_theme = 'default'
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
+
+html_style = 'astropy.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -143,7 +162,7 @@ html_theme = 'default'
 # This is the file name suffix for HTML files (e.g. ".xhtml").
 #html_file_suffix = None
 
-# -- Options for LaTeX output --------------------------------------------------
+# -- Options for LaTeX output ------------------------------------------------
 
 # The paper size ('letter' or 'a4').
 #latex_paper_size = 'letter'
@@ -171,22 +190,24 @@ html_theme = 'default'
 #latex_domain_indices = True
 
 
-# -- Options for manual page output --------------------------------------------
+# -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'astropy', u'Astropy Documentation',
-     [u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration'], 1)
+     [u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, ' +
+      u'and the Astropy Collaboration'], 1)
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python':('http://docs.python.org/',None),
-                        'numpy':('http://docs.scipy.org/doc/numpy/',None),
-                        'scipy':('http://docs.scipy.org/doc/scipy/reference/',None),
-                        'matplotlib':('http://matplotlib.sourceforge.net/',None),
-                        'astropy':('http://www.astropy.org/',None),
-                      }
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/', None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
+    'matplotlib': ('http://matplotlib.sourceforge.net/', None),
+    'astropy': ('http://www.astropy.org/', None),
+    }
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.

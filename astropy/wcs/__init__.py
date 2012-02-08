@@ -1,8 +1,7 @@
 """
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
-.. _pyfits: http://www.stsci.edu/resources/software_hardware/pyfits
 .. _Paper IV: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
-.. _SIP: http://ssc.spitzer.caltech.edu/postbcd/doc/shupeADASS.pdf
+.. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 .. _ds9: http://hea-www.harvard.edu/RD/ds9/
 
 astropy.wcs provides transformations following the `SIP`_ conventions,
@@ -14,7 +13,7 @@ The basic workflow is as follows:
 
     1. ``from astropy import wcs``
 
-    2. Call the `wcs.WCS` constructor with a `pyfits`_ header
+    2. Call the `wcs.WCS` constructor with an `astropy.io.fits` header
        and/or hdulist object.
 
     3. Optionally, if the FITS file uses any deprecated or
@@ -48,7 +47,6 @@ The basic workflow is as follows:
 
 from __future__ import division  # confidence high
 
-import sys
 from .wcs import *
 
 

@@ -32,3 +32,8 @@ distribute-*.tar.gz
 # Other
 .*.swp
 *~
+.coverage
+cover
+
+# Mac OSX
+.DS_Store

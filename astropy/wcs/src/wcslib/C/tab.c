@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: tab.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: tab.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -618,7 +618,7 @@ int tabprt(const struct tabprm *tab)
 
   WCSPRINTF_PTR("        err: ", tab->err, "\n");
   if (tab->err) {
-    wcserr_prt(tab->err, "");
+    wcserr_prt(tab->err, "             ");
   }
 
   /* Memory management. */
@@ -1142,6 +1142,8 @@ int tabs2x(
   /* This is used a lot. */
   M = tab->M;
 
+  tabcoord = 0x0;
+  nv = 0;
   if (M > 1) {
     nv = 1 << M;
     tabcoord = calloc(nv, sizeof(double *));

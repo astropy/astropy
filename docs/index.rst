@@ -14,8 +14,15 @@ developed.  For more information, see the `github wiki
    :maxdepth: 2
 
    overview
-   development/index
+   install
+   configs
    wcs/index
+   fits/index
+   vo/index
+   table/index
+   tools
+   utils/index
+   development/index
 
 Indices and Tables
 ==================

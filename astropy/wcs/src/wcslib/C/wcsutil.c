@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,7 +28,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsutil.c,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: wcsutil.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
 #include <stdio.h>
@@ -151,7 +151,7 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
 /*--------------------------------------------------------------------------*/
 
-char *wcsutil_fptr2str(int (*func)(), char hext[])
+char *wcsutil_fptr2str(int (*func)(void), char hext[])
 
 {
   unsigned char *p = (unsigned char *)(&func);

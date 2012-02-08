@@ -5,7 +5,7 @@ from __future__ import division # confidence high
 
 import numpy
 from astropy import wcs
-import pyfits
+from astropy.io import fits
 import sys
 
 # Create a new WCS object.  The number of axes must be set
@@ -20,9 +20,7 @@ w.wcs.crval = [0, -90]
 w.wcs.ctype = ["RA---AIR", "DEC--AIR"]
 w.wcs.set_pv([(2, 1, 45.0)])
 
-# Print out the "name" of the WCS, as defined in the FITS header
-print w.wcs.name
-
+# Print out all of the contents of the WCS object
 w.wcs.print_contents()
 
 # Some pixel coordinates of interest.
@@ -43,7 +41,7 @@ assert numpy.max(numpy.abs(pixcrd - pixcrd2)) < 1e-6
 # Now, write out the WCS object as a FITS header
 header = w.to_header()
 
-# header is a PyFITS Header object.  We can use it to create a new
+# header is an astropy.io.fits.Header object.  We can use it to create a new
 # PrimaryHDU and write it to a file.
-hdu = pyfits.PrimaryHDU(header=header)
+hdu = fits.PrimaryHDU(header=header)
 hdu.writeto('test.fits')

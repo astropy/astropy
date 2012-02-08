@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 4.8 and its test suite.
+# GNU makefile for building WCSLIB 4.10 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -16,9 +16,12 @@
 #              executed in batch mode, and non-graphical tests only report
 #              "PASS" on success.  Use
 #
-#                gmake MODE=interactive check
+#                make MODE=interactive check
 #
-#              to run them interactively with full diagnostic output.
+#              to run them interactively with full diagnostic output.  To skip
+#              graphical tests even if PGPLOT is available, use
+#
+#                make CHECK=nopgplot check
 #
 #   tests:     Compile the test programs (but don't run them).
 #
@@ -28,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility
 # http://www.atnf.csiro.au/~mcalabre/index.html
-# $Id: GNUmakefile,v 4.8.1.2 2011/09/16 04:41:29 cal103 Exp cal103 $
+# $Id: GNUmakefile,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -64,7 +67,7 @@ ifneq "$(DO_WCSHDR)" ""
   CPPFLAGS += -DDO_WCSHDR
 endif
 
-# Test programs that don't require PGPLOT.
+# Test programs that don't require CFITSIO or PGPLOT.
 TEST_N := tlin tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub tpih1 tbth1 \
           tfitshdr tunits twcsfix
 
@@ -90,9 +93,11 @@ endif
 endif
 
 # Add test programs that require PGPLOT if we have it.
+ifneq "$(CHECK)" "nopgplot"
 ifneq "$(PGPLOTINC)" ""
 ifneq "$(PGPLOTLIB)" ""
   TESTS += $(TEST_P) $(TEST_B)
+endif
 endif
 endif
 
@@ -147,41 +152,66 @@ run_% : %
 	 @ if [ '$(MODE)' = interactive -o '$(VALGRIND)' ] ; then \
 	     printf 'Press <CR> to run $<: ' ; \
 	     read DUMMY ; \
+	   fi ; \
+	   if [ '$(VALGRIND)' ] ; then \
 	     if [ '$<' = tunits ] ; then \
 	       $(VALGRIND) ./$< < test/units_test ; \
 	     else \
 	       $(VALGRIND) ./$< ; \
 	     fi ; \
 	   else \
-	     if [ '$<' = tcel2 ] ; then \
-	       echo N | ./$< ; \
-	     elif [ '$(filter $<, $(TEST_N) $(TEST_C))' ] ; then \
+	     if [ '$(filter $<, $(TEST_N) $(TEST_C))' ] ; then \
 	       if [ '$<' = tunits ] ; then \
-	         ./$< < test/units_test > $<.out 2>&1 ; \
+	         if [ '$(MODE)' = interactive ] ; then \
+	           ./$< < test/units_test 2>&1 | tee $<.out ; \
+	         else \
+	           ./$< < test/units_test > $<.out 2>&1 ; \
+	         fi ; \
 	       else \
-	         ./$< < /dev/null > $<.out 2>&1 ; \
+	         if [ '$(MODE)' = interactive ] ; then \
+	           ./$< < /dev/null 2>&1 | tee $<.out ; \
+	         else \
+	           ./$< < /dev/null > $<.out 2>&1 ; \
+	         fi ; \
 	       fi ; \
 	       if grep 'PASS:' $<.out > /dev/null ; then \
-	         head -2 $<.out ; \
-	         grep 'PASS:' $<.out ; \
+	         if [ '$(MODE)' != interactive ] ; then \
+	           head -2 $<.out ; \
+	           grep 'PASS:' $<.out ; \
+	         fi ; \
+	         echo 'PASS: C/$<' >> test_results ; \
 	       elif [ -f 'test/$<.out' ] ; then \
 	         trap 'rm -f run_test.tmp' 0 1 2 3 15 ; \
 	         sed -e 's/0x[0-9a-f][0-9a-f][0-9a-f]*/0x<address>/g' $<.out > \
 	           run_test.tmp ; \
 	         mv -f run_test.tmp $<.out ; \
 	         if cmp -s $<.out test/$<.out ; then \
-	           head -2 $<.out ; \
+	           if [ '$(MODE)' != interactive ] ; then \
+	             head -1 $<.out ; \
+	           fi ; \
+	           echo '' ; \
 	           echo 'PASS: Output agrees with C/test/$<.out' ; \
+	           echo 'PASS: C/$<' >> test_results ; \
 	         else \
-	           cat $<.out ; \
+	           if [ '$(MODE)' != interactive ] ; then \
+	             cat $<.out ; \
+	           fi ; \
 	           echo '' ; \
 	           echo 'FAIL: Output disagrees with C/test/$<.out' ; \
+	           echo 'FAIL: C/$<' >> test_results ; \
 	         fi ; \
-	       else \
+	       elif [ '$(MODE)' != interactive ] ; then \
 	         cat $<.out ; \
+	         echo 'FAIL: C/$<' >> test_results ; \
 	       fi ; \
+	     elif [ '$(MODE)' = interactive ] ; then \
+	       ./$< ; \
 	     else \
-	       ./$< < /dev/null 2>&1 ; \
+	       if [ '$<' = tcel2 ] ; then \
+	         echo N | ./$< ; \
+	       else \
+	         ./$< < /dev/null 2>&1 ; \
+	       fi ; \
 	     fi ; \
 	   fi
 	-@ echo ''
@@ -250,7 +280,7 @@ cleaner : clean
 	-  $(RM) $(TEST_N) $(TEST_X)
 	-  $(RM) $(TEST_P) tpih2 twcstab twcshdr
 	-  $(RM) tofits bth.fits pih.fits wcstab.fits
-	-  $(RM) t*_cfitsio
+	-  $(RM) t*_cfitsio test_results
 
 cleanest distclean realclean : cleaner
 	-  $(RM) ../wcsconfig.h ../wcsconfig_tests.h
@@ -269,7 +299,7 @@ $(TEST_N) : % : test/%.c $(WCSLIB)
 $(TEST_P) : % : test/%.c $(WCSLIB)
 	-@ echo ''
 	   $(CC) $(CPPFLAGS) $(PGPLOTINC) $(CFLAGS) -c -o $@.o $<
-	   $(LD) $(LDFLAGS) -o $@ $@.o $(PGPLOTLIB) $(WCSLIB) $(LIBS)
+	   $(LD) $(LDFLAGS) -o $@ $@.o $(PGPLOTLIB) $(WCSLIB) $(FLIBS) $(LIBS)
 	-@ $(RM) $@.o
 
 tpih2 : test/tpih2.c $(PGSBOXLIB) $(WCSLIB)

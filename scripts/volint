@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import astropy.io.vo.volint
+
+astropy.io.vo.volint.main()

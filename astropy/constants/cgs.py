@@ -1,4 +1,7 @@
-# Numerical constants, in cgs units
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+Astronomical and physics constants in cgs units.
+"""
 
 from .constant import Constant
 from . import si

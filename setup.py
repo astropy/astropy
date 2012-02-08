@@ -1,113 +1,95 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # Use "distribute" - the setuptools fork that supports python 3.
 from distribute_setup import use_setuptools
 use_setuptools()
 
-import os
 import glob
+import os
 from setuptools import setup, find_packages
 
 import astropy
 from astropy import setup_helpers
-from astropy.tests.helper import astropy_test
-from astropy.version_helper import _get_git_devstr, _generate_version_py
+from astropy.version_helper import get_git_devstr, generate_version_py
 
+#version should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
+version = '0.0.dev'
 
-VERSION = '0.0dev'
-RELEASE = not VERSION.endswith('dev')
+# Indicates if this version is a release version
+release = 'dev' not in version
 
-if not RELEASE:
-    VERSION += _get_git_devstr(False)
-_generate_version_py(VERSION, RELEASE, setup_helpers.get_debug_option())
+# Adjust the compiler in case the default on this platform is to use a
+# broken one.
+setup_helpers.adjust_compiler()
 
-# Use the find_packages tool to locate all packages and modules other than
-# those that are in tests/
-packages = find_packages(exclude=['tests'])
+# Indicate that we are in building mode
+setup_helpers.set_build_mode()
+
+if not release:
+    version += get_git_devstr(False)
+generate_version_py('astropy', version, release,
+                    setup_helpers.get_debug_option())
+
+# Use the find_packages tool to locate all packages and modules
+packagenames = find_packages()
 
 # Treat everything in scripts except README.rst as a script to be installed
-scripts = glob.glob('scripts/*')
-scripts.remove('scripts/README.rst')
+scripts = glob.glob(os.path.join('scripts', '*'))
+scripts.remove(os.path.join('scripts', 'README.rst'))
 
 # Check that Numpy is installed.
-# NOTE: We can not use setuptools/distribute/packaging to handle this
+# NOTE: We cannot use setuptools/distribute/packaging to handle this
 # dependency for us, since some of the subpackages need to be able to
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
 setup_helpers.check_numpy()
 
 # This dictionary stores the command classes used in setup below
-cmdclassd = {'test': astropy_test}
-
-# A dictionary to keep track of all package data to install
-package_data = {'astropy': ['data/*']}
+cmdclassd = {'test': setup_helpers.setup_test_command('astropy')}
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
 
-# Extra data files
-data_files = []
+# A dictionary to keep track of all package data to install
+package_data = {'astropy': ['data/*']}
 
-# For each of the setup_package.py modules, extract any information
-# that is needed to install them.
-for package in setup_helpers.iter_setup_packages():
-    if hasattr(package, 'get_extensions'):
-        extensions.extend(package.get_extensions())
-    if hasattr(package, 'get_package_data'):
-        package_data.update(package.get_package_data())
-    if hasattr(package, 'get_data_files'):
-        data_files.extend(package.get_data_files())
+# A dictionary to keep track of extra packagedir mappings
+package_dirs = {}
 
-extensions.extend(setup_helpers.get_cython_extensions())
+# Update extensions, package_data, packagenames and package_dirs from
+# any sub-packages that define their own extension modules and package
+# data.  See the docstring for setup_helpers.update_package_files for
+# more details.
+setup_helpers.update_package_files('astropy', extensions, package_data,
+                                   packagenames, package_dirs)
 
-if setup_helpers.HAVE_CYTHON and not RELEASE:
+if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
+    # Builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = build_ext
 
-# Implement a version of build_sphinx that automatically creates the
-# docs/_build dir - this is needed because github won't create the _build dir
-# because it has no tracked files
-
-try:
-
-    from sphinx.setup_command import BuildDoc
-
-    class astropy_build_sphinx(BuildDoc):
-
-        def finalize_options(self):
-
-            from distutils.cmd import DistutilsOptionError
-
-            if self.build_dir is not None:
-                if os.path.isfile(self.build_dir):
-                    raise DistutilsOptionError('Attempted to build_sphinx ' + \
-                                               'into a file ' + self.build_dir)
-                self.mkpath(self.build_dir)
-
-            return BuildDoc.finalize_options(self)
-
-    cmdclassd['build_sphinx'] = astropy_build_sphinx
-
-except ImportError:  # Sphinx not present
-    pass
+if setup_helpers.AstropyBuildSphinx is not None:
+    cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
 
 
 setup(name='astropy',
-      version=VERSION,
+      version=version,
       description='Community-developed python astronomy tools',
-      packages=packages,
+      packages=packagenames,
       package_data=package_data,
+      package_dir=package_dirs,
       ext_modules=extensions,
       scripts=scripts,
-      requires=['numpy', 'scipy'],
+      requires=['numpy'],  # scipy not required, but strongly recommended
       install_requires=['numpy'],
       provides=['astropy'],
       author='The Astropy Team',
       author_email='astropy.team@gmail.com',
-      #license = '', #TODO: decide on a license
+      license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
       zip_safe=False,
-      data_files=data_files
+      use_2to3=True
       )

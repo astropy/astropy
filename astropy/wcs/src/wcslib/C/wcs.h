@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,10 +28,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcs.h,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: wcs.h,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.8 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.10 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -207,6 +207,11 @@
 * wtbarr array is not.  (Thus it is not appropriate to call wcssub() after
 * wcstab() but before filling the tabprm structs - refer to wcshdr.h.)
 *
+* wcssub() can also add axes to a wcsprm struct.  The new axes will be created
+* using the defaults set by wcsini() which produce a simple, unnamed, linear
+* axis with world coordinate equal to the pixel coordinate.  These default
+* values can be changed in before invoking wcsset().
+*
 * Given:
 *   alloc     int       If true, allocate memory for the crpix, etc. arrays in
 *                       the destination.  Otherwise, it is assumed that
@@ -225,10 +230,13 @@
 *                       image that corresponds to the first axis in the
 *                       subimage, etc.
 *
+*                       Use an axis number of 0 to create a new axis using
+*                       the defaults set by wcsini().
+*
 *                       nsub (the pointer) may be set to zero, and so also may
 *                       nsub, to indicate the number of axes in the input
 *                       image; the number of axes will be returned if
-*                       nsub != 0.  axes itself (the pointer) may be set to
+*                       nsub != 0x0.  axes itself (the pointer) may be set to
 *                       zero to indicate the first *nsub axes in their
 *                       original order.
 *
@@ -251,10 +259,11 @@
 *                       the subimage; this may be zero if there were no axes
 *                       of the required type(s) (in which case no memory will
 *                       be allocated).  axes[] will contain the axis numbers
-*                       that were extracted.  The vector length must be
-*                       sufficient to contain all axis numbers.  No checks are
-*                       performed to verify that the coordinate axes are
-*                       consistent, this is done by wcsset().
+*                       that were extracted, or 0 for newly created axes.  The
+*                       vector length must be sufficient to contain all axis
+*                       numbers.  No checks are performed to verify that the
+*                       coordinate axes are consistent, this is done by
+*                       wcsset().
 *
 *   wcsdst    struct wcsprm*
 *                       Struct describing the subimage.  wcsprm::flag should
@@ -304,7 +313,8 @@
 *
 *   From the foregoing, it is apparent that the value of *nsub returned may be
 *   less than or greater than that given.  However, it will never exceed the
-*   number of axes in the input image.
+*   number of axes in the input image (plus the number of newly-created axes
+*   if any were specified on input).
 *
 *
 * wcscopy() macro - Copy routine for the wcsprm struct
@@ -1217,7 +1227,8 @@
 * All members of this struct are to be set by the user.
 *
 *   int i
-*     (Given) Axis number (1-relative), as in the FITS PVi_ma keyword.
+*     (Given) Axis number (1-relative), as in the FITS PVi_ma keyword.  If
+*     i == 0, wcsset() will replace it with the latitude axis number.
 *
 *   int m
 *     (Given) Parameter number (non-negative), as in the FITS PVi_ma keyword.
@@ -1507,7 +1518,7 @@ int wcsmix(struct wcsprm *wcs, int mixpix, int mixcel, const double vspan[],
 int wcssptr(struct wcsprm *wcs, int *i, char ctype[9]);
 
 /* Defined mainly for backwards compatibility, use wcssub() instead. */
-#define wcscopy(alloc, wcssrc, wcsdst) wcssub(alloc, wcssrc, 0, 0, wcsdst)
+#define wcscopy(alloc, wcssrc, wcsdst) wcssub(alloc, wcssrc, 0x0, 0x0, wcsdst)
 
 
 /* Deprecated. */

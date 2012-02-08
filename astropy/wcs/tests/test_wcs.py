@@ -1,22 +1,14 @@
 import glob
 import os
 import sys
+import warnings
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from astropy import wcs
-
-ROOT_DIR = None
-
-
-def setup_module():
-    global ROOT_DIR
-
-    # do not use __file__ here - we want to find the data files that
-    # belong to the wcs that we are testing, even if we are not running
-    # this test from the installed copy of this file.  Use wcs.__file__
-    ROOT_DIR = os.path.dirname(wcs.__file__) + "/tests"
+from ... import wcs
+from ...config import get_data_filenames, get_data_contents, get_data_filename
+from ...tests.helper import pytest
 
 
 # test_maps() is a generator
@@ -27,12 +19,7 @@ def test_maps():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        filename = os.path.join(ROOT_DIR, "maps", filename)
-
-        fd = open(filename, 'rb')
-        header = fd.read()
-        fd.close()
-
+        header = get_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
         world = wcsobj.wcs_pix2sky([[97, 97]], 1)
@@ -44,8 +31,7 @@ def test_maps():
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = [x for x in glob.glob(
-        os.path.join(ROOT_DIR, "maps", "*.hdr"))]
+    hdr_file_list = list(get_data_filenames("maps", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -69,8 +55,7 @@ def test_maps():
     if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_maps has wrong number data files: found %d, expected "
-            " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR))
+            " %d" % (len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
 
@@ -84,11 +69,7 @@ def test_spectra():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        filename = os.path.join(ROOT_DIR, "spectra", filename)
-
-        fd = open(filename, 'rb')
-        header = fd.read()
-        fd.close()
+        header = get_data_contents(os.path.join("spectra", filename))
 
         wcsobj = wcs.WCS(header)
 
@@ -96,8 +77,7 @@ def test_spectra():
         assert len(all) == 9
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = [x for x in glob.glob(os.path.join(
-        ROOT_DIR, "spectra", "*.hdr"))]
+    hdr_file_list = list(get_data_filenames("spectra", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -121,8 +101,7 @@ def test_spectra():
     if len(hdr_file_list) != n_data_files:
         assert False, (
             "test_spectra has wrong number data files: found %d, expected "
-            " %d, looking in %s" % (
-                len(hdr_file_list), n_data_files, ROOT_DIR))
+            " %d" % (len(hdr_file_list), n_data_files))
         # b.t.w.  If this assert happens, py.test reports one more test
         # than it would have otherwise.
 
@@ -220,3 +199,38 @@ def test_unit_prefixes():
     for unit in add_sub_units:
         for prefix in sub_prefixes:
             yield test_self, unit, prefix
+
+
+def test_fixes():
+    """
+    From github issue #36
+    """
+    def run():
+        header = get_data_contents('data/nonstandard_units.hdr')
+        w = wcs.WCS(header)
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        run()
+        assert len(w) == 3
+        for item in w:
+            assert issubclass(item.category, wcs.FITSFixedWarning)
+            if 'unitfix' in str(item.message):
+                assert 'Hz' in str(item.message)
+
+
+def test_outside_sky():
+    """
+    From github issue #107
+    """
+    header = get_data_contents('data/outside_sky.hdr')
+    w = wcs.WCS(header)
+
+    assert np.all(np.isnan(w.wcs_pix2sky([[100.,500.]], 0)))  # outside sky
+    assert np.all(np.isnan(w.wcs_pix2sky([[200.,200.]], 0)))  # outside sky
+    assert not np.any(np.isnan(w.wcs_pix2sky([[1000.,1000.]], 0)))
+
+
+def test_load_fits_path():
+    fits = get_data_filename('data/sip.fits')
+    w = wcs.WCS(fits)

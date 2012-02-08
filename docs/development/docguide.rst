@@ -1,9 +1,12 @@
-==================================
-Documentation Guidelines (Draft 2)
-==================================
+================================
+Documentation Guidelines (Draft)
+================================
 
 .. warning::
     This document is currently in Draft form and is subject to change.
+
+TODO: Detailed information about building the documentation should be
+added here.
 
 Astropy Documentation Rules and Recommendations
 -----------------------------------------------
@@ -576,7 +579,7 @@ Conclusion
 `An example <http://github.com/numpy/numpy/blob/master/doc/example.py>`_ of the
 format shown here is available.  Refer to `How to Build API/Reference
 Documentation
-<http://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.txt>`_
+<https://github.com/numpy/numpy/blob/master/doc/HOWTO_BUILD_DOCS.rst.txt>`_
 on how to use Sphinx_ to build the manual.
 
 .. _SciPy: http://www.scipy.org

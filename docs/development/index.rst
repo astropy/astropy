@@ -1,3 +1,5 @@
+.. _developer-docs:
+
 Documentation for Developers
 ============================
 
@@ -14,3 +16,4 @@ to the layout of the `astropy` package.
     docguide
     testguide
     building_packaging
+    scripts

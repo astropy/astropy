@@ -50,8 +50,8 @@ get_dist_clamp(
     const int y) {
 
   return data[
-      ((naxis[0] * CLAMP(y, 0, naxis[1] - 1)) +
-       CLAMP(x, 0, naxis[0] - 1))];
+    ((naxis[0] * CLAMP(y, 0, (long)naxis[1] - 1)) +
+     CLAMP(x, 0, (long)naxis[0] - 1))];
 }
 
 static inline float
@@ -140,8 +140,8 @@ get_distortion_offset(
   /* If we may need to clamp the lookups, use this slower approach */
   if (dist_ifloor[0] < 0 ||
       dist_ifloor[1] < 0 ||
-      dist_ifloor[0] >= lookup->naxis[0] - 1 ||
-      dist_ifloor[1] >= lookup->naxis[1] - 1) {
+      dist_ifloor[0] >= (long)lookup->naxis[0] - 1 ||
+      dist_ifloor[1] >= (long)lookup->naxis[1] - 1) {
     result =
       (double)get_dist_clamp(data, naxis, dist_ifloor[0],     dist_ifloor[1])     * dist_iweight[0] * dist_iweight[1] +
       (double)get_dist_clamp(data, naxis, dist_ifloor[0],     dist_ifloor[1] + 1) * dist_iweight[0] * dist_weight[1] +

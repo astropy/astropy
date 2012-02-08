@@ -84,8 +84,7 @@ static void
 Wcs_dealloc(
     Wcs* self) {
 
-  int ignored;
-  ignored = Wcs_clear(self);
+  Wcs_clear(self);
   pipeline_free(&self->x);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }

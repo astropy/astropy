@@ -7,21 +7,15 @@ from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
 import numpy as np
 
-from astropy import wcs
-from astropy.wcs import _wcs
+from .. import wcs
+from .. import _wcs
+from ...config import get_data_contents
 
 
 def b(s):
     return s.encode('ascii')
 
 ######################################################################
-
-ROOT_DIR = None
-
-
-def setup_module():
-    global ROOT_DIR
-    ROOT_DIR = os.path.dirname(__file__)
 
 
 def test_alt():
@@ -297,6 +291,7 @@ def test_equinox():
 def test_fix():
     w = _wcs._Wcsprm()
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
         'datfix': 'No change',
         'spcfix': 'No change',
@@ -308,8 +303,9 @@ def test_fix2():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/99')
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
-        'datfix': 'Success',
+        'datfix': "Changed '31/12/99' to '1999-12-31'",
         'spcfix': 'No change',
         'unitfix': 'No change',
         'celfix': 'No change'}
@@ -321,6 +317,7 @@ def test_fix3():
     w = _wcs._Wcsprm()
     w.dateobs = b('31/12/F9')
     assert w.fix() == {
+        'cdfix': 'No change',
         'cylfix': 'No change',
         'datfix': "Invalid parameter value: invalid date '31/12/F9'",
         'spcfix': 'No change',
@@ -562,11 +559,9 @@ def test_set_pv_realloc():
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = open(os.path.join(ROOT_DIR, 'spectra', 'orion-velo-1.hdr'),
-                  'rb').read()
+    header = get_data_contents('spectra/orion-velo-1.hdr')
     w = _wcs._Wcsprm(header)
-    print(w.spcfix())
-    assert w.spcfix() == 0
+    assert w.spcfix() == -1
 
 
 def test_spec():
@@ -623,10 +618,7 @@ def test_theta0():
 
 def test_toheader():
     w = _wcs._Wcsprm()
-    if sys.version_info[0] >= 3:
-        assert isinstance(w.to_header(), bytes)
-    else:
-        assert isinstance(w.to_header(), str)
+    assert isinstance(w.to_header(), str)
 
 
 def test_velangl():
@@ -657,7 +649,7 @@ def test_zsource():
 
 
 def test_cd_3d():
-    header = open(os.path.join(ROOT_DIR, 'data', '3d_cd.hdr'), 'rb').read()
+    header = get_data_contents('data/3d_cd.hdr')
     w = _wcs._Wcsprm(header)
     assert w.cd.shape == (3, 3)
     assert w.get_pc().shape == (3, 3)
@@ -666,7 +658,7 @@ def test_cd_3d():
 
 @raises(RuntimeError)
 def test_get_pc():
-    header = open(os.path.join(ROOT_DIR, 'data', '3d_cd.hdr'), 'rb').read()
+    header = get_data_contents('data/3d_cd.hdr')
     w = _wcs._Wcsprm(header)
     w.get_pc()[0, 0] = 42
 

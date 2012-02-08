@@ -1,15 +1,25 @@
-#!/usr/bin/env python
-from __future__ import division
-try:
-    from astropy.version import version as __version__
-except ImportError:
-    # TODO: Issue a warning...
-    __version__ = ''
-# The version number can be found in the "version" variable of version.py
-
-"""_Astropy is a package intended to contain core functionality and some
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+Astropy is a package intended to contain core functionality and some
 common tools needed for performing astronomy and astrophysics research with
 Python. It also provides an index for other astronomy packages and tools for
-managing them."""
+managing them.
+"""
 
-from .tests.helper import run_tests as test
+
+try:
+    from .version import version as __version__
+except ImportError:
+    # TODO: Issue a warning using the logging framework
+    __version__ = ''
+try:
+    from .version import githash as __githash__
+except ImportError:
+    # TODO: Issue a warning using the logging framework
+    __githash__ = ''
+
+# set up the test command
+from .tests.helper import TestRunner
+_test_runner = TestRunner(__path__[0])
+del TestRunner
+test = _test_runner.run_tests

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.8 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2011, Mark Calabretta
+  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -28,10 +28,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: spc.h,v 4.8.1.1 2011/08/15 08:07:06 cal103 Exp cal103 $
+  $Id: spc.h,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.8 - C routines that implement the spectral coordinate systems
+* WCSLIB 4.10 - C routines that implement the spectral coordinate systems
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -84,8 +84,8 @@
 *   - Given a set of spectral keywords, a translation routine, spctrne(),
 *     produces the corresponding set for the specified spectral CTYPEia.
 *
-*   - spcaips() translates AIPS-convention spectral keywords, CTYPEn and
-*     VELREF, into CTYPEia and SPECSYSa.
+*   - spcaips() translates AIPS-convention spectral CTYPEia and VELREF
+*     keyvalues.
 *
 * Spectral variable types - S, P, and X:
 * --------------------------------------
@@ -592,13 +592,13 @@
 *
 * spcaips() - Translate AIPS-convention spectral keywords
 * -------------------------------------------------------
-* spcaips() translates AIPS-convention spectral keywords, CTYPEn and VELREF,
-* into CTYPEia and SPECSYSa.
+* spcaips() translates AIPS-convention spectral CTYPEia and VELREF keyvalues.
 *
 * Given:
 *   ctypeA    const char[9]
-*                       CTYPEia keyvalue (eight characters, need not be null-
-*                       terminated).
+*                       CTYPEia keyvalue possibly containing an
+*                       AIPS-convention spectral code (eight characters, need
+*                       not be null-terminated).
 *
 *   velref    int       AIPS-convention VELREF code.  It has the following
 *                       integer values:
@@ -615,31 +615,40 @@
 *                         5: Geocentric.
 *                         6: Source rest frame.
 *                         7: Galactocentric.
+*
 *                       For an AIPS 'VELO' axis, a radio convention velocity
-*                       is denoted by adding 256 to VELREF, otherwise an
-*                       optical velocity is indicated (not applicable to
-*                       'FELO' axes).  Unrecognized values of VELREF are
-*                       simply ignored.
+*                       (VRAD) is denoted by adding 256 to VELREF, otherwise
+*                       an optical velocity (VOPT) is indicated (this is not
+*                       applicable to 'FREQ' or 'FELO' axes).  Setting velref
+*                       to 0 or 256 chooses between optical and radio velocity
+*                       without specifying a Doppler frame, provided that a
+*                       frame is encoded in ctypeA.  If not, i.e. for
+*                       ctypeA = 'VELO', ctype will be returned as 'VELO'.
 *
 *                       VELREF takes precedence over CTYPEia in defining the
-*                       Doppler frame, e.g. if
+*                       Doppler frame, e.g.
 *
-=                         CTYPEn = 'VELO-HEL'
-=                         VELREF = 1
+=                         ctypeA = 'VELO-HEL'
+=                         velref = 1
 *
-*                       the Doppler frame is set to LSRK.
+*                       returns ctype = 'VOPT' with specsys set to 'LSRK'.
 *
 * Returned:
 *   ctype     char[9]   Translated CTYPEia keyvalue, or a copy of ctypeA if no
-*                       translation was performed (null-filled).
+*                       translation was performed (in which case any trailing
+*                       blanks in ctypeA will be replaced with nulls).
 *
-*   specsys   char[9]   Doppler reference frame indicated by VELREF or else by
-*                       CTYPEn.
+*   specsys   char[9]   Doppler reference frame indicated by VELREF or else
+*                       by CTYPEia with value corresponding to the SPECSYS
+*                       keyvalue in the FITS WCS standard.  May be returned
+*                       blank if neither specifies a Doppler frame, e.g.
+*                       ctypeA = 'FELO' and velref%256 == 0.
 *
 * Function return value:
 *             int       Status return value:
 *                        -1: No translation required (not an error).
 *                         0: Success.
+*                         2: Invalid value of VELREF.
 *
 *
 * spcprm struct - Spectral transformation parameters
@@ -758,12 +767,13 @@ extern "C" {
 extern const char *spc_errmsg[];
 
 enum spc_errmsg_enum {
-  SPCERR_SUCCESS         = 0,	/* Success. */
-  SPCERR_NULL_POINTER    = 1,	/* Null spcprm pointer passed. */
-  SPCERR_BAD_SPEC_PARAMS = 2,	/* Invalid spectral parameters. */
-  SPCERR_BAD_X           = 3,	/* One or more of x coordinates were
+  SPCERR_NO_CHANGE       = -1,	/* No change. */
+  SPCERR_SUCCESS         =  0,	/* Success. */
+  SPCERR_NULL_POINTER    =  1,	/* Null spcprm pointer passed. */
+  SPCERR_BAD_SPEC_PARAMS =  2,	/* Invalid spectral parameters. */
+  SPCERR_BAD_X           =  3,	/* One or more of x coordinates were
 				   invalid. */
-  SPCERR_BAD_SPEC        = 4 	/* One or more of the spec coordinates were
+  SPCERR_BAD_SPEC        =  4 	/* One or more of the spec coordinates were
 				   invalid. */
 };
 
