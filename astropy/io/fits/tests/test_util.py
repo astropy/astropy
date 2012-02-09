@@ -3,6 +3,7 @@ from __future__ import with_statement
 
 import os
 import signal
+import sys
 import warnings
 
 from ....tests.helper import pytest
@@ -12,7 +13,7 @@ from . import FitsTestCase
 
 
 class TestUtils(FitsTestCase):
-    @pytest.mark.skipif("not hasattr(os, 'kill')")
+    @pytest.mark.skipif("sys.platform.startswith('win')")
     def test_ignore_sigint(self):
         @ignore_sigint
         def test():
