@@ -94,9 +94,9 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
 class TestInitFromListOfLists(BaseInitFromListLike):
 
     def setup_method(self, method):
-        self.data = [(1, 3),
-                     Column('col1', [2, 4]),
-                     np.array([3, 5])]
+        self.data = [(np.int32(1), np.int32(3)),
+                     Column('col1', [2, 4], dtype=np.int32),
+                     np.array([3, 5], dtype=np.int32)]
 
     def test_default_names(self):
         t = Table(self.data)
@@ -108,7 +108,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
                   dtypes=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
         assert t['b'].dtype.type == np.float32
-        assert t['col1'].dtype.type == np.int64
+        assert t['col1'].dtype.type == np.int32
         assert t['c'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
 
@@ -121,8 +121,8 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
-        self.data = [Column('x', [1, 3]),
-                     np.array([2, 4]),
+        self.data = [Column('x', [1, 3], dtype=np.int32),
+                     np.array([2, 4], dtype=np.int32),
                      np.array([3, 5], dtype='i8')]
 
     def test_default_names(self):
@@ -134,7 +134,7 @@ class TestInitFromColsList(BaseInitFromListLike):
         t = Table(self.data, names=['b', None, 'c'], dtypes=['f4', None, 'f8'])
         assert t.colnames == ['b', 'col1', 'c']
         assert t['b'].dtype.type == np.float32
-        assert t['col1'].dtype.type == np.int64
+        assert t['col1'].dtype.type == np.int32
         assert t['c'].dtype.type == np.float64
         assert all(t[name].name == name for name in t.colnames)
 
