@@ -187,29 +187,30 @@ class Latex(core.BaseReader):
                 
                 asciitable.write(data, sys.stdout, Writer = asciitable.Latex,
                              latexdict = {'tabletype': 'table*'})
-    
+
         * col_align : Alignment of columns
             If not present all columns will be centered.
-        
+
         * caption : Table caption (string or list of strings)
             This will appear above the table as it is the standard in many scientific publications.
             If you prefer a caption below the table, just write the full LaTeX command as
             ``latexdict['tablefoot'] = r'\caption{My table}'``
-            
+
         * preamble, header_start, header_end, data_start, data_end, tablefoot: Pure LaTeX
             Each one can be a string or a list of strings. These strings will be inserted into the table
             without any further processing. See the examples below.
+
         * units : dictionary of strings
             Keys in this dictionary should be names of columns. If present,
             a line in the LaTeX table directly below the column names is 
             added, which contains the values of the dictionary. Example::
-    
-            import asciitable
-            import asciitable.latex
-            import sys
-            data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
-            asciitable.write(data, sys.stdout, Writer = asciitable.Latex,
-                             latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
+            
+              import asciitable
+              import asciitable.latex
+              import sys
+              data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
+              asciitable.write(data, sys.stdout, Writer = asciitable.Latex,
+                               latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
             
             If the column has no entry in the `units` dictionary, it defaults
             to `' '`.

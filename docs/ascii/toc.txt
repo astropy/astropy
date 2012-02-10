@@ -1,0 +1,8 @@
+.. toctree::
+   :maxdepth: 2
+
+   read
+   write
+   base_classes
+   fixed_width_gallery
+   ascii_api

@@ -1,7 +1,5 @@
 """ An extensible ASCII table reader and writer.
 
-:Copyright: Smithsonian Astrophysical Observatory (2010)
-:Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 ## 
 ## Redistribution and use in source and binary forms, with or without
@@ -25,6 +23,9 @@
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 ## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+##
+## Copyright: Smithsonian Astrophysical Observatory (2010)
+## Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 
 from __future__ import absolute_import
 

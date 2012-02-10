@@ -175,12 +175,12 @@ class FixedWidthHeader(core.BaseHeader):
             col.index = i
 
     def get_fixedwidth_params(self, line):
-        """Split ``line`` on the delimiter and determine column values and column
-        start and end positions.  This might include null columns with zero length
-        (e.g. for header row = "| col1 || col2 | col3 |" or
-        header2_row = "-----    -------   -----").  The null columns are
-        stripped out.  Returns the values between delimiters and the corresponding
-        start and end positions.
+        """Split ``line`` on the delimiter and determine column values and
+        column start and end positions.  This might include null columns with
+        zero length (e.g. for ``header row = "| col1 || col2 | col3 |"`` or
+        ``header2_row = "----- ------- -----"``).  The null columns are
+        stripped out.  Returns the values between delimiters and the
+        corresponding start and end positions.
 
         :param line: input line
         :returns: (vals, starts, ends)
