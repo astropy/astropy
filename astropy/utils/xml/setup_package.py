@@ -23,4 +23,5 @@ def get_extensions(build_type='release'):
          join(EXPAT_DIR, "xmltok.c"),
          join(EXPAT_DIR, "xmltok_impl.c")],
         define_macros=defines,
-        include_dirs=[XML_DIR, EXPAT_DIR])]
+        include_dirs=[XML_DIR, EXPAT_DIR],
+        extra_link_args=['-Wl,-Bsymbolic'])]
