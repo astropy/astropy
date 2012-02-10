@@ -15,6 +15,17 @@ def get_extensions(build_type='release'):
     if sys.platform != 'win32':
         defines.append(('HAVE_UNISTD_H', None))
 
+    if sys.platform.startswith('linux'):
+        # This is to ensure we only export the Python entry point
+        # symbols and the linker won't try to use the system expat in
+        # place of ours.
+        extra_link_args = [
+            '-Wl,--version-script={0}'.format(
+                join(XML_DIR, '_iterparser.vers'))
+            ]
+    else:
+        extra_link_args = []
+
     return [Extension(
         "astropy.utils.xml._iterparser",
         [join(XML_DIR, "iterparse.c"),
@@ -23,4 +34,5 @@ def get_extensions(build_type='release'):
          join(EXPAT_DIR, "xmltok.c"),
          join(EXPAT_DIR, "xmltok_impl.c")],
         define_macros=defines,
-        include_dirs=[XML_DIR, EXPAT_DIR])]
+        include_dirs=[XML_DIR, EXPAT_DIR],
+        extra_link_args=extra_link_args)]
