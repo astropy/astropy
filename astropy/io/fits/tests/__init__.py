@@ -11,7 +11,8 @@ class FitsTestCase(object):
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
 
     def teardown(self):
-        shutil.rmtree(self.temp_dir)
+        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
 
     def data(self, filename):
         return os.path.join(self.data_dir, filename)

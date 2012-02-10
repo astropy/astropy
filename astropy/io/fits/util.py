@@ -12,6 +12,8 @@ import warnings
 
 import numpy as np
 
+from numpy import memmap as Memmap
+
 
 BLOCK_SIZE = 2880  # the FITS block size
 
@@ -680,3 +682,19 @@ def _tmp_name(input):
     f, fn = tempfile.mkstemp(dir=input)
     os.close(f)
     return fn
+
+
+def _get_array_memmap(array):
+    """
+    If the array has a numpy.memmap as one of its bases, return the memmap
+    base; otherwise return None.
+    """
+
+    if isinstance(array, Memmap):
+        return array
+
+    base = array
+    while hasattr(base, 'base') and base.base is not None:
+        if isinstance(base.base, Memmap):
+            return base.base
+        base = base.base

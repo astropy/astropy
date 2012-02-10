@@ -478,7 +478,7 @@ class Header(collections.MutableMapping):
                 else:
                     raise IOError("File '%s' already exists." % fileobj)
 
-            fileobj = open(fileobj, 'w')
+            fileobj = open(fileobj, 'wb')
             close_file = True
 
         if not isinstance(fileobj, _File):

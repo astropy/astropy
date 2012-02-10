@@ -361,10 +361,10 @@ class TestTableFunctions(FitsTestCase):
 
     def test_new_table_from_recarray(self):
         bright = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
-                            (2, 'Canopys', -0.73, 'F0Ib'),
-                            (3, 'Rigil Kent', -0.1, 'G2V')],
-                           formats='int16,a20,float32,a10',
-                           names='order,name,mag,Sp')
+                               (2, 'Canopys', -0.73, 'F0Ib'),
+                               (3, 'Rigil Kent', -0.1, 'G2V')],
+                              formats='int16,a20,float32,a10',
+                              names='order,name,mag,Sp')
         hdu = fits.new_table(bright, nrows=2, tbtype='TableHDU')
 
         # Verify that all ndarray objects within the HDU reference the
@@ -425,17 +425,16 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.data[1][3] == 'F0Ib'
         with ignore_warnings():
             hdu.writeto(self.temp('toto.fits'), clobber=True)
-        hdul = fits.open(self.temp('toto.fits'))
-        assert (hdul[1].data.field(0).all() ==
-                np.array([1, 2], dtype=np.int16).all())
-        assert hdul[1].data[0][1] == 'Serius'
-        assert hdul[1].data[1][1] == 'Canopys'
-        assert (hdul[1].data.field(2).all() ==
-                np.array([-1.45, -0.73], dtype=np.float32).all())
-        assert hdul[1].data[0][3] == 'A1V'
-        assert hdul[1].data[1][3] == 'F0Ib'
-
-        hdul.close()
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert (hdul[1].data.field(0) ==
+                    np.array([800, 2], dtype=np.int16)).all()
+            assert hdul[1].data[0][1] == 'Serius'
+            assert hdul[1].data[1][1] == 'Canopys'
+            assert (hdul[1].data.field(2) ==
+                    np.array([-1.45, -0.73], dtype=np.float32)).all()
+            assert hdul[1].data[0][3] == 'A1V'
+            assert hdul[1].data[1][3] == 'F0Ib'
+        del hdul
 
         hdu = fits.new_table(bright, nrows=2)
         tmp = np.rec.array([(1, 'Serius', -1.45, 'A1V'),
@@ -443,10 +442,10 @@ class TestTableFunctions(FitsTestCase):
                            formats='int16,a20,float32,a10',
                            names='order,name,mag,Sp')
         assert comparerecords(hdu.data, tmp)
-        hdu.writeto(self.temp('toto.fits'), clobber=True)
-        hdul = fits.open(self.temp('toto.fits'))
-        assert comparerecords(hdu.data, hdul[1].data)
-        hdul.close()
+        with ignore_warnings():
+            hdu.writeto(self.temp('toto.fits'), clobber=True)
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
 
     def test_new_fitsrec(self):
         """
@@ -1593,25 +1592,27 @@ class TestTableFunctions(FitsTestCase):
         ahdu = fits.new_table([acol])
         assert ahdu.data.tostring().decode('raw-unicode-escape') == s
         ahdu.writeto(self.temp('newtable.fits'))
-        hdul = fits.open(self.temp('newtable.fits'))
-        assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
-        assert (hdul[1].data['MEMNAME'] == a).all()
+        with fits.open(self.temp('newtable.fits')) as hdul:
+            assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+            assert (hdul[1].data['MEMNAME'] == a).all()
+        del hdul
 
         ahdu = fits.new_table([acol], tbtype='TableHDU')
         with ignore_warnings():
             ahdu.writeto(self.temp('newtable.fits'), clobber=True)
-        hdul = fits.open(self.temp('newtable.fits'))
-        assert (hdul[1].data.tostring().decode('raw-unicode-escape') ==
-                s.replace('\x00', ' '))
-        assert (hdul[1].data['MEMNAME'] == a).all()
+        with fits.open(self.temp('newtable.fits')) as hdul:
+            assert (hdul[1].data.tostring().decode('raw-unicode-escape') ==
+                    s.replace('\x00', ' '))
+            assert (hdul[1].data['MEMNAME'] == a).all()
+            ahdu = fits.new_table(hdul[1].data.copy())
+        del hdul
 
         # Now serialize once more as a binary table; padding bytes should
         # revert to zeroes
-        ahdu = fits.new_table(hdul[1].data)
         ahdu.writeto(self.temp('newtable.fits'), clobber=True)
-        hdul = fits.open(self.temp('newtable.fits'))
-        assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
-        assert (hdul[1].data['MEMNAME'] == a).all()
+        with fits.open(self.temp('newtable.fits')) as hdul:
+            assert hdul[1].data.tostring().decode('raw-unicode-escape') == s
+            assert (hdul[1].data['MEMNAME'] == a).all()
 
     def test_multi_dimensional_columns(self):
         """
@@ -1631,22 +1632,26 @@ class TestTableFunctions(FitsTestCase):
 
         thdu.writeto(self.temp('newtable.fits'))
 
-        hdul = fits.open(self.temp('newtable.fits'))
-        thdu = hdul[1]
+        with fits.open(self.temp('newtable.fits')) as hdul:
+            thdu = hdul[1]
 
-        c1 = thdu.data.field(0)
-        c2 = thdu.data.field(1)
+            c1 = thdu.data.field(0)
+            c2 = thdu.data.field(1)
 
-        hdul.close()
+            hdul.close()
 
-        assert c1.shape == (3, 3, 2)
-        assert c2.shape == (3, 2)
-        assert (c1 == np.array([[[0, 1], [2, 3], [4, 5]],
-                                [[6, 7], [8, 9], [0, 1]],
-                                [[2, 3], [4, 5], [6, 7]]])).all()
-        assert (c2 == np.array([['row1', 'row1'],
-                                ['row2', 'row2'],
-                                ['row3', 'row3']])).all()
+            assert c1.shape == (3, 3, 2)
+            assert c2.shape == (3, 2)
+            assert (c1 == np.array([[[0, 1], [2, 3], [4, 5]],
+                                    [[6, 7], [8, 9], [0, 1]],
+                                    [[2, 3], [4, 5], [6, 7]]])).all()
+            assert (c2 == np.array([['row1', 'row1'],
+                                    ['row2', 'row2'],
+                                    ['row3', 'row3']])).all()
+        del c1
+        del c2
+        del thdu
+        del hdul
 
         # Test setting the TDIMn header based on the column data
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', 4)])
@@ -1665,6 +1670,9 @@ class TestTableFunctions(FitsTestCase):
         data = np.zeros(3, dtype=[('x', 'f4'), ('s', 'S5', (4, 3))])
         data['x'] = 1, 2, 3
         data['s'] = 'ok'
+
+        del t
+
         with ignore_warnings():
             fits.writeto(self.temp('newtable.fits'), data, clobber=True)
 

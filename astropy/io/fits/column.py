@@ -398,7 +398,7 @@ class ColDefs(object):
 
             # now build the columns
             self.columns = [Column(**attrs) for attrs in col_attributes]
-            self._listener = input
+            self._listener = weakref.proxy(input)
         else:
             raise TypeError('Input to ColDefs must be a table HDU or a list '
                             'of Columns.')
@@ -489,9 +489,12 @@ class ColDefs(object):
 
     def _update_listener(self):
         if hasattr(self, '_listener'):
-            if self._listener._data_loaded:
-                del self._listener.data
-            self._listener.columns = self
+            try:
+                if self._listener._data_loaded:
+                    del self._listener.data
+                self._listener.columns = self
+            except ReferenceError:
+                del self._listener
 
     def add_col(self, column):
         """

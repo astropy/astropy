@@ -5,13 +5,11 @@ Various utilities and cookbook-like things.
 from __future__ import division, with_statement, absolute_import
 
 # STDLIB
-import collections
 import contextlib
 from distutils import version
 import io
 import re
 import sys
-import time
 
 
 __all__ = [
@@ -26,7 +24,7 @@ IS_PY3K = sys.hexversion >= 0x03000000
 
 
 @contextlib.contextmanager
-def convert_to_writable_filelike(fd):
+def convert_to_writable_filelike(fd, compressed=False):
     """
     Returns a writable file-like object suitable for streaming output.
 
@@ -41,12 +39,15 @@ def convert_to_writable_filelike(fd):
             - an object with a :meth:`write` method, in which case that
               object.
 
+    compressed : bool, optional
+        If `True`, create a gzip-compressed file.  (Default is `False`).
+
     Returns
     -------
     fd : writable file-like object
     """
     if isinstance(fd, basestring):
-        if fd.endswith('.gz'):
+        if fd.endswith('.gz') or compressed:
             from ...utils.compat import gzip
             with gzip.GzipFile(fd, 'wb') as real_fd:
                 encoded_fd = io.TextIOWrapper(real_fd, encoding='utf8')
@@ -60,6 +61,10 @@ def convert_to_writable_filelike(fd):
                 return
     elif hasattr(fd, 'write'):
         assert is_callable(fd.write)
+
+        if compressed:
+            from ...utils.compat import gzip
+            fd = gzip.GzipFile(fileobj=fd)
 
         # If we can't write Unicode strings, use a codecs.StreamWriter
         # object
@@ -214,6 +219,8 @@ def version_compare(a, b):
 
 
 if IS_PY3K:
+    import collections
+
     def is_callable(o):
         """
         Abstracts away the different ways to test for a callable object in
