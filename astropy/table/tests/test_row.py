@@ -6,8 +6,8 @@ from .. import Column, Row, Table
 class TestRow():
 
     def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
+        self.a = Column('a', [1, 2, 3], dtype='i8')
+        self.b = Column('b', [4, 5, 6], dtype='i8')
         self.t = Table([self.a, self.b])
 
     def test_subclass(self):
