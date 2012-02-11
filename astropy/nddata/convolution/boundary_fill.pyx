@@ -27,8 +27,8 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
     cdef int nky = g.shape[1]
     cdef int wkx = nkx // 2
     cdef int wky = nky // 2
-    cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.zeros([nx, ny], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=2] conv = np.zeros([nx, ny], dtype=DTYPE)
+    cdef np.ndarray[DTYPE_t, ndim=2] fixed = np.empty([nx, ny], dtype=DTYPE)
+    cdef np.ndarray[DTYPE_t, ndim=2] conv = np.empty([nx, ny], dtype=DTYPE)
     cdef unsigned int i, j, iii, jjj
     cdef int ii, jj
 
