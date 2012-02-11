@@ -21,7 +21,7 @@ def get_extensions(build_type='release'):
         # place of ours.
         extra_link_args = [
             '-Wl,--version-script={0}'.format(
-                join(XML_DIR, '_iterparser.vers'))
+                join(XML_DIR, 'iterparse.map'))
             ]
     else:
         extra_link_args = []
