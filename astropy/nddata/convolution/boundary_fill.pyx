@@ -17,7 +17,7 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
                              float fill_value):
 
     if g.shape[0] % 2 != 1 or g.shape[1] % 2 != 1:
-        raise ValueError("Only odd dimensions on filter supported")
+        raise ValueError("Convolution kernel must have odd dimensions")
 
     assert f.dtype == DTYPE and g.dtype == DTYPE
 
