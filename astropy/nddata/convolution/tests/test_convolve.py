@@ -2,7 +2,7 @@ import numpy as np
 
 from ....tests.helper import pytest
 
-from .. import convolve
+from ..convolve import convolve
 
 
 VALID_DTYPES = []
