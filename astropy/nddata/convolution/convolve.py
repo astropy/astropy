@@ -26,7 +26,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
     boundary: str, optional
         A flag indicating how to handle boundaries:
             * None : set the ``result`` values to zero where the kernel
-                     extends eyond the edge of the array (default)
+                     extends beyond the edge of the array (default)
             * 'fill' : set values outside the array boundary to fill_value
             * 'wrap' : periodic boundary
             * 'extend' : set values outside the array to the nearest array
