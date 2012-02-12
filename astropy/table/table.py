@@ -31,6 +31,7 @@ def _auto_format_func(format_, val):
     """
     try:
         out = format_.format(val.tolist())
+        # Require that the format statement actually did something
         if out == format_:
             raise ValueError
         format_func = lambda format_, val: format_.format(val.tolist())
