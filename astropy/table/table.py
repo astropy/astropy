@@ -14,10 +14,37 @@ except NameError:
     unicode = basestring = str
 
 AUTO_COLNAME = 'col{0}'
+FORMAT_FUNCS = {None: lambda format_, val: str(val)}
 
 
 def _auto_names(n_cols):
     return [AUTO_COLNAME.format(i) for i in range(n_cols)]
+
+
+def _auto_format_func(format_, val):
+    """Format ``val`` according to ``format_`` for both old- and new-
+    style format specifications.  More importantly, determine and cache
+    (in FORMAT_FUNCS) a function that will do this subsequently.  In
+    this way this complicated logic is only done for the first value.
+
+    Returns the formatted value.
+    """
+    try:
+        out = format_.format(val.tolist())
+        if out == format_:
+            raise ValueError
+        format_func = lambda format_, val: format_.format(val.tolist())
+    except:  # Not sure what exceptions might be raised
+        try:
+            out = format_ % val
+            if out == format_:
+                raise ValueError
+            format_func = lambda format_, val: format_ % val
+        except:
+            raise ValueError('Unable to parse format string {0}'
+                             .format(format_))
+    FORMAT_FUNCS[format_] = format_func
+    return out
 
 
 class TableColumns(OrderedDict):
@@ -269,16 +296,19 @@ class Column(np.ndarray):
         return equal
 
     def __str__(self):
-        format = self.format or '%s'
-
         n_print = np.get_printoptions()['threshold']
         if n_print < len(self):
             n_print2 = n_print // 2
-            vals = [format % val for val in self[:n_print - n_print2]]
+            vals = [FORMAT_FUNCS.get(self.format + ' ', _auto_format_func)(
+                    self.format, val)
+                    for val in self[:n_print - n_print2]]
             vals.append('...')
-            vals.extend([format % val for val in self[-n_print2:]])
+            vals.extend([FORMAT_FUNCS.get(self.format, _auto_format_func)(
+                        self.format, val)
+                         for val in self[-n_print2:]])
         else:
-            vals = [format % val for val in self]
+            vals = [FORMAT_FUNCS.get(self.format, _auto_format_func)(
+                    self.format, val) for val in self]
 
         return ', '.join(vals)
 
