@@ -535,3 +535,11 @@ class TestFormat():
         t['a'].format = 'fail'
         with pytest.raises(ValueError):
             str(t['a'])
+
+    def test_column_format_with_threshold(self):
+        np.set_printoptions(threshold=4)
+        t = Table([np.arange(10)], names=['a'])
+        t['a'].format = '%{0:}'
+        assert str(t['a']) == '%0, %1, ..., %8, %9'
+        t['a'].format = '{ %4.2f }'
+        assert str(t['a']) == '{ 0.00 }, { 1.00 }, ..., { 8.00 }, { 9.00 }'

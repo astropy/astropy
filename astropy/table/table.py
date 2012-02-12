@@ -30,6 +30,8 @@ def _auto_format_func(format_, val):
     Returns the formatted value.
     """
     try:
+        # Convert val to Python object with tolist().  See
+        # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
         out = format_.format(val.tolist())
         # Require that the format statement actually did something
         if out == format_:
@@ -300,7 +302,7 @@ class Column(np.ndarray):
         n_print = np.get_printoptions()['threshold']
         if n_print < len(self):
             n_print2 = n_print // 2
-            vals = [FORMAT_FUNCS.get(self.format + ' ', _auto_format_func)(
+            vals = [FORMAT_FUNCS.get(self.format, _auto_format_func)(
                     self.format, val)
                     for val in self[:n_print - n_print2]]
             vals.append('...')
