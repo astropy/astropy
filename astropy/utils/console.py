@@ -583,10 +583,11 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
     line = line.replace(u'\t', u' ' * tabwidth)
 
     if col is not None and col > width:
-        new_col = min(width / 2, len(line) - col)
+        new_col = min(width // 2, len(line) - col)
         offset = col - new_col
         line = line[offset + 1: ]
         new_col = col
+        col -= offset
         width = width - 3
         color_print(u'…', 'darkgrey', file=file, end=u'')
 
