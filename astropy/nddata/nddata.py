@@ -178,4 +178,3 @@ class NDData(object):
         integer dimensions of this object's data
         """
         return self.data.ndim
-

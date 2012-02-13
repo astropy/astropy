@@ -104,9 +104,9 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         it should have been opened in binary mode.
     number : int
         If 0, a single object will be returned (the first in the file). If >0,
-        this specifies the number of objects to be unpickled, and a list will be
-        returned with exactly that many objects. If <0, all objects in the file
-        will be unpickled and returned as a list.
+        this specifies the number of objects to be unpickled, and a list will
+        be returned with exactly that many objects. If <0, all objects in the
+        file will be unpickled and returned as a list.
     usecPickle : bool
         If True, the :mod:`cPickle` module is to be used in place of
         :mod:`pickle` (cPickle is faster). This only applies for python 2.x.

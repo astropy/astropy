@@ -46,9 +46,9 @@ class ConfigurationItem(object):
         The (case-sensitive) name of this parameter, as shown in the
         configuration file.
     defaultvalue
-        The default value for this item. If this is a list of strings, this item
-        will be interpreted as an 'options' value - this item must be one of
-        those values, and the first in the list will be taken as the default
+        The default value for this item. If this is a list of strings, this
+        item will be interpreted as an 'options' value - this item must be one
+        of those values, and the first in the list will be taken as the default
         value.
     description : str or None
         A description of this item (will be shown as a comment in the
@@ -313,9 +313,9 @@ def get_config(packageormod=None, reload=False):
     Parameters
     -----------
     packageormod : str or None
-        The package for which to retrieve the configuration object. If a string,
-        it must be a valid package name, or if None, the package from which this
-        function is called will be used.
+        The package for which to retrieve the configuration object. If a
+        string, it must be a valid package name, or if None, the package from
+        which this function is called will be used.
 
     Returns
     -------
@@ -423,15 +423,16 @@ def reload_config(packageormod=None):
 
 
 def _generate_all_config_items(pkgornm=None, reset_to_default=False):
-    """ Given a root package name or package, this function simply walks through
-    all the subpackages and modules, which should populate any ConfigurationItem
-    objects defined at the module level. If `reset_to_default` is True, it also
-    sets all of the items to their default values, regardless of what the file's
-    value currently is. It then saves the `ConfigObj`.
+    """ Given a root package name or package, this function simply walks
+    through all the subpackages and modules, which should populate any
+    ConfigurationItem objects defined at the module level. If
+    `reset_to_default` is True, it also sets all of the items to their default
+    values, regardless of what the file's value currently is. It then saves the
+    `ConfigObj`.
 
-    If `pkgname` is None, it determines the package based on the root package of
-    the function where this function is called. Be a bit cautious about this,
-    though - this might not always be what you want.
+    If `pkgname` is None, it determines the package based on the root package
+    of the function where this function is called. Be a bit cautious about
+    this, though - this might not always be what you want.
     """
     from pkgutil import find_module, walk_packages
     from types import ModuleType

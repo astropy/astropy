@@ -376,7 +376,8 @@ class Spinner():
     _default_unicode_chars = u"◓◑◒◐"
     _default_ascii_chars = u"-/|\\"
 
-    def __init__(self, msg, color='default', file=sys.stdout, step=1, chars=None):
+    def __init__(self, msg, color='default', file=sys.stdout, step=1,
+                 chars=None):
         """
         Parameters
         ----------
@@ -585,14 +586,14 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
     if col is not None and col > width:
         new_col = min(width // 2, len(line) - col)
         offset = col - new_col
-        line = line[offset + 1: ]
+        line = line[offset + 1:]
         new_col = col
         col -= offset
         width = width - 3
         color_print(u'…', 'darkgrey', file=file, end=u'')
 
     if len(line) > width:
-        file.write(line[:width-1])
+        file.write(line[:width - 1])
         color_print(u'…', 'darkgrey', file=file)
     else:
         file.write(line)
@@ -601,4 +602,3 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
     if col is not None:
         file.write(u' ' * col)
         color_print(u'^', 'red', file=file)
-

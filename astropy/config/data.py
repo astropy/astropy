@@ -87,9 +87,9 @@ def get_data_fileobj(dataname, cache=True):
     Returns
     -------
     fileobj : file-like
-        An object with the contents of the data file available via :func:`read`.
-        Can be used as part of a ``with`` statement, automatically closing
-        itself after the ``with`` block.
+        An object with the contents of the data file available via
+        :func:`read`.  Can be used as part of a ``with`` statement,
+        automatically closing itself after the ``with`` block.
 
     Raises
     ------
@@ -585,9 +585,9 @@ def clear_data_cache(hashorurl=None):
     Parameters
     ----------
     hashorurl : str or None
-        If None, the whole cache is cleared.  Otherwise, either specifies a hash
-        for the cached file that is supposed to be deleted, or a URL that has
-        previously been downloaded to the cache.
+        If None, the whole cache is cleared.  Otherwise, either specifies a
+        hash for the cached file that is supposed to be deleted, or a URL that
+        has previously been downloaded to the cache.
 
     Raises
     ------

@@ -74,7 +74,7 @@ class TestImageFunctions(FitsTestCase):
             # If there are more than one extension with the same EXTNAME value,
             # the EXTVER can be used (as the second argument) to distinguish
             # the extension.
-            assert r['sci',1].header['detector'] == 1
+            assert r['sci', 1].header['detector'] == 1
 
             # append (using "update()") a new card
             r[0].header['xxx'] = 1.234e56
@@ -94,7 +94,7 @@ class TestImageFunctions(FitsTestCase):
             r[0].header.rename_key('fname', 'filename')
 
             # get a subsection of data
-            assert (r[2].data[:3,:3] ==
+            assert (r[2].data[:3, :3] ==
                     np.array([[349, 349, 348],
                               [349, 349, 347],
                               [347, 350, 349]], dtype=np.int16)).all()
@@ -111,10 +111,10 @@ class TestImageFunctions(FitsTestCase):
                 # to the newly created file on disk.  The HDUList is still open
                 # and can be further operated.
                 n.flush()
-                assert n[1].data[1,1] == 349
+                assert n[1].data[1, 1] == 349
 
                 # modify a data point
-                n[1].data[1,1] = 99
+                n[1].data[1, 1] = 99
 
                 # When the file is closed, the most recent additions of
                 # extension(s) since last flush() will be appended, but any HDU
@@ -132,7 +132,7 @@ class TestImageFunctions(FitsTestCase):
 
                 # The above change did not take effect since this was made
                 # after the flush().
-                assert a[1].data[1,1] == 349
+                assert a[1].data[1, 1] == 349
                 a.append(r[1])
             del a
 
@@ -149,8 +149,8 @@ class TestImageFunctions(FitsTestCase):
                 # written back "in place".
                 assert u[0].header['rootname'] == 'U2EQ0201T'
                 u[0].header['rootname'] = 'abc'
-                assert u[1].data[1,1] == 349
-                u[1].data[1,1] = 99
+                assert u[1].data[1, 1] == 349
+                u[1].data[1, 1] = 99
                 u.flush()
 
                 # If the changes affect the size structure, e.g. adding or
@@ -173,21 +173,20 @@ class TestImageFunctions(FitsTestCase):
                 u.writeto(self.temp('test_new.fits'))
             del u
 
-
         # Another useful new HDUList method is readall.  It will "touch" the
         # data parts in all HDUs, so even if the HDUList is closed, we can
         # still operate on the data.
         with fits.open(self.data('test0.fits')) as r:
             r.readall()
-            assert r[1].data[1,1] == 315
+            assert r[1].data[1, 1] == 315
 
         # create an HDU with data only
-        data = np.ones((3,5), dtype=np.float32)
+        data = np.ones((3, 5), dtype=np.float32)
         hdu = fits.ImageHDU(data=data, name='SCI')
         assert (hdu.data ==
-                np.array([[ 1.,  1.,  1.,  1.,  1.],
-                          [ 1.,  1.,  1.,  1.,  1.],
-                          [ 1.,  1.,  1.,  1.,  1.]],
+                np.array([[1.,  1.,  1.,  1.,  1.],
+                          [1.,  1.,  1.,  1.,  1.],
+                          [1.,  1.,  1.,  1.,  1.]],
                           dtype=np.float32)).all()
 
         # create an HDU with header and data

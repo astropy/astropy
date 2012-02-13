@@ -40,17 +40,17 @@ try:
         github won't create the _static dir because it has no tracked files.
         """
         def finalize_options(self):
-            from os.path import split,join
+            from os.path import split, join
 
             from distutils.cmd import DistutilsOptionError
 
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
-                basedir,subdir = split(self.build_dir)
-                if subdir=='': #the path has a trailing /...
-                    basedir,subdir = split(basedir)
-                staticdir = join(basedir,'_static')
+                basedir, subdir = split(self.build_dir)
+                if subdir == '':  # the path has a trailing /...
+                    basedir, subdir = split(basedir)
+                staticdir = join(basedir, '_static')
                 if os.path.isfile(staticdir):
                     raise DistutilsOptionError(
                         'Attempted to build_sphinx such in a location where' +
@@ -60,7 +60,7 @@ try:
             return BuildDoc.finalize_options(self)
 
 except ImportError as e:
-    if 'sphinx' in e.args[0]: # Sphinx not present
+    if 'sphinx' in e.args[0]:  # Sphinx not present
         AstropyBuildSphinx = None
     else:
         raise

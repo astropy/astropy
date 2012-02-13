@@ -56,4 +56,3 @@ ra_dec_order : bool, optional
     returned in as (*ra*, *dec*) pairs, regardless of the order of the
     axes specified by the in the ``CTYPE`` keywords.
 """, indent)
-

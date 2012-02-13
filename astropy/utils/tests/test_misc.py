@@ -9,7 +9,8 @@ def test_pkg_finder():
     """
     assert misc.find_current_module(0).__name__ == 'astropy.utils.misc'
     assert misc.find_current_module(1).__name__ == 'astropy.utils.tests.test_misc'
-    assert misc.find_current_module(0,True).__name__ == 'astropy.utils.tests.test_misc'
+    assert misc.find_current_module(0, True).__name__ == 'astropy.utils.tests.test_misc'
+
 
 def test_fnpickling_simple(tmpdir):
     """
@@ -30,30 +31,30 @@ def test_fnpickling_simple(tmpdir):
     assert obj1 == res
 
     #now try with a file-like object instead of a string
-    with open(fn,'wb') as f:
+    with open(fn, 'wb') as f:
         misc.fnpickle(obj1, f)
-    with open(fn,'rb') as f:
+    with open(fn, 'rb') as f:
         res = misc.fnunpickle(f)
         assert obj1 == res
 
     #same without cPickle
-    with open(fn,'wb') as f:
+    with open(fn, 'wb') as f:
         misc.fnpickle(obj1, f, usecPickle=False)
-    with open(fn,'rb') as f:
+    with open(fn, 'rb') as f:
         res = misc.fnunpickle(f, usecPickle=False)
         assert obj1 == res
 
 
-
 class ToBePickled(object):
-    def __init__(self,item):
+    def __init__(self, item):
         self.item = item
 
-    def __eq__(self,other):
-        if isinstance(other,ToBePickled):
+    def __eq__(self, other):
+        if isinstance(other, ToBePickled):
             return self.item == other.item
         else:
             return False
+
 
 def test_fnpickling_class(tmpdir):
     """
@@ -68,6 +69,7 @@ def test_fnpickling_class(tmpdir):
     res = misc.fnunpickle(fn)
     assert res == obj2
 
+
 def test_fnpickling_protocol(tmpdir):
     """
     Tests the `utils.misc.fnpickle` and `utils.misc.fnupickle` functions'
@@ -78,8 +80,8 @@ def test_fnpickling_protocol(tmpdir):
     obj1 = 'astring'
     obj2 = ToBePickled(obj1)
 
-    for p in range(pickle.HIGHEST_PROTOCOL+1):
-        fn = str(tmpdir.join('testp%i.pickle'%p))
+    for p in range(pickle.HIGHEST_PROTOCOL + 1):
+        fn = str(tmpdir.join('testp%i.pickle' % p))
         misc.fnpickle(obj2, fn, protocol=p)
         res = misc.fnunpickle(fn)
         assert res == obj2

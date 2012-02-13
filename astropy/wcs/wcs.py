@@ -1440,7 +1440,6 @@ def __WCS_unpickle__(cls, dct, fits_data):
     return self
 
 
-
 def find_all_wcs(header, relax=False, keysel=None):
     """
     Find all the WCS transformations in the given header.
