@@ -1077,9 +1077,9 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     def datatype(self, datatype):
         if datatype is None:
             if self._config.get('version_1_1_or_later'):
-                vo_raise(E10, self._element_name, self._config, self._pos)
-            else:
-                datatype = 'char'
+                warn_or_raise(E10, E10, self._element_name, self._config,
+                              self._pos)
+            datatype = 'char'
         if datatype not in converters.converter_mapping:
             vo_raise(E06, (datatype, self.ID), self._config, self._pos)
         self._datatype = datatype
