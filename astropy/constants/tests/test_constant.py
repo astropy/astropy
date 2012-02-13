@@ -39,9 +39,3 @@ def test_h():
     assert cgs.h.name
     assert cgs.h.origin
     assert cgs.h.units
-
-def test_info():
-    # check the info functions can be successfully called and return
-    # something.
-    assert si.info()
-    assert cgs.info()

@@ -1,58 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Astronomical and physics constants in SI units.
-
-G        6.67384e-11     m^3/kg/s^2      Gravitational constant
-Jy       1e-26           W/m^2/Hz        Jansky
-L_sun    3.846e+26       W               Solar luminosity
-M_earth  5.9742e+24      kg              Earth mass
-M_jup    1.8987e+27      kg              Jupiter mass
-M_sun    1.9891e+30      kg              Solar mass
-Mpc      3.0856776e+22   m               Megaparsec
-N_A      6.02214129e+23  /mol            Avogadro's number
-R        8.3144621       J/mol/K         Gas constant
-R_earth  6378136         m               Earth equatorial radius
-R_jup    71492000        m               Jupiter equatorial radius
-R_sun    695508000       m               Solar radius
-Ryd      10973731.57     m^-1            Rydberg constant
-au       1.495978707e+11 m               Astronomical Unit
-c        299792458       m/s             Speed of light in vacuum
-e        1.602176565e-19 C               Electron charge
-eV       1.602176565e-19 J               Electron volt
-h        6.62606957e-34  J.s             Planck constant
-hbar     1.054571725e-34 J.s             Reduced Planck constant
-k_B      1.3806488e-23   J/K             Boltzmann constant
-kpc      3.0856776e+19   m               Kiloparsec
-m_e      9.10938291e-31  kg              Electron mass
-m_n      1.674927351e-27 kg              Neutron mass
-m_p      1.672621777e-27 kg              Proton mass
-pc       3.0856776e+16   m               Parsec
-sigma_sb 5.670373e-08    W/m^2/K^4       Stefan-Boltzmann constant
-
-This list is generated using the si.info() function and the values
-printed are approximate. Look at the individual constants for precise
-values, errors, and their source.
 """
 
 import numpy as np
 from .constant import Constant
-
-def info():
-    """ Return a string giving an overview of constants in this module.
-
-    The values printed are approximate. Look at the individual
-    constants for precise values, errors, and their source.
-    """
-    s = []
-    for key in sorted(globals()):
-        val = globals()[key]
-        try:
-            s.append('%-8s %-15.10g %-14s  %-s' % (
-                key, val.real, val.units, val.name))
-        except AttributeError:
-            pass
-
-    return '\n'.join(s)
 
 # PHYSICAL CONSTANTS
 
