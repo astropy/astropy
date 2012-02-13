@@ -14,7 +14,7 @@ except NameError:
     unicode = basestring = str
 
 AUTO_COLNAME = 'col{0}'
-FORMAT_FUNCS = {None: lambda format_, val: str(val)}
+_format_funcs = {None: lambda format_, val: str(val)}
 
 
 def _auto_names(n_cols):
@@ -24,7 +24,7 @@ def _auto_names(n_cols):
 def _auto_format_func(format_, val):
     """Format ``val`` according to ``format_`` for both old- and new-
     style format specifications.  More importantly, determine and cache
-    (in FORMAT_FUNCS) a function that will do this subsequently.  In
+    (in _format_funcs) a function that will do this subsequently.  In
     this way this complicated logic is only done for the first value.
 
     Returns the formatted value.
@@ -46,7 +46,7 @@ def _auto_format_func(format_, val):
         except:
             raise ValueError('Unable to parse format string {0}'
                              .format(format_))
-    FORMAT_FUNCS[format_] = format_func
+    _format_funcs[format_] = format_func
     return out
 
 
@@ -302,15 +302,15 @@ class Column(np.ndarray):
         n_print = np.get_printoptions()['threshold']
         if n_print < len(self):
             n_print2 = n_print // 2
-            vals = [FORMAT_FUNCS.get(self.format, _auto_format_func)(
+            vals = [_format_funcs.get(self.format, _auto_format_func)(
                     self.format, val)
                     for val in self[:n_print - n_print2]]
             vals.append('...')
-            vals.extend([FORMAT_FUNCS.get(self.format, _auto_format_func)(
+            vals.extend([_format_funcs.get(self.format, _auto_format_func)(
                         self.format, val)
                          for val in self[-n_print2:]])
         else:
-            vals = [FORMAT_FUNCS.get(self.format, _auto_format_func)(
+            vals = [_format_funcs.get(self.format, _auto_format_func)(
                     self.format, val) for val in self]
 
         return ', '.join(vals)
