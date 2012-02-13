@@ -1,15 +1,16 @@
 include README.rst
 
 include distribute_setup.py
-recursive-include astropy/data *
+include setup.cfg
 recursive-include astropy *.pyx *.c *.h
 
 recursive-include docs *
 recursive-include licenses *
 recursive-include cextern *
 recursive-include scripts *
+recursive-include astropy/wcs/src/wcslib *
 
-exclude *.pyc *.o 
+exclude *.pyc *.o
 prune docs/_build
 prune build
 
