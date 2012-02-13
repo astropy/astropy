@@ -4,6 +4,7 @@ This module prvoides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 
+import shlex
 import sys
 import base64
 import zlib
@@ -145,6 +146,9 @@ class TestRunner(object):
                                   'http://pypi.python.org/pypi/pytest-pep8')
             else:
                 all_args += ' --pep8 -k pep8'
+
+        all_args = shlex.split(all_args,
+                               posix=not sys.platform.startswith('win'))
 
         return pytest.main(args=all_args, plugins=plugins)
 
