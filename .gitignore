@@ -10,6 +10,7 @@ __pycache__
 *.c
 
 # Other generated files
+MANIFEST
 astropy/version.py
 astropy/wcs/include/wcsconfig.h
 

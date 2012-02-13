@@ -5,6 +5,8 @@
 from distribute_setup import use_setuptools
 use_setuptools()
 
+from distutils.command import sdist
+
 import glob
 import os
 from setuptools import setup, find_packages
@@ -46,7 +48,12 @@ scripts.remove(os.path.join('scripts', 'README.rst'))
 setup_helpers.check_numpy()
 
 # This dictionary stores the command classes used in setup below
-cmdclassd = {'test': setup_helpers.setup_test_command('astropy')}
+cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
+
+             # Use distutils' sdist because it respects package_data.
+             # setuptools/distributes sdist requires duplication of
+             # information in MANIFEST.in
+             'sdist': sdist.sdist}
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []

@@ -11,7 +11,7 @@ import sys
 
 from astropy import setup_helpers
 
-WCSROOT = os.path.dirname(__file__)
+WCSROOT = os.path.relpath(os.path.dirname(__file__))
 WCSVERSION = "4.10"
 
 
