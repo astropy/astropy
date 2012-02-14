@@ -16,6 +16,7 @@ developed.  For more information, see the `github wiki
    overview
    install
    configs
+   nddata/index
    wcs/index
    fits/index
    vo/index
