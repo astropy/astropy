@@ -6,6 +6,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 from __future__ import absolute_import
 
+import imp
 import os
 import shutil
 import sys
@@ -186,7 +187,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
 
     # For each of the setup_package.py modules, extract any information that is
     # needed to install them.
-    for pkgnm, setuppkg in iter_setup_packages(srcdir):
+    for setuppkg in iter_setup_packages(srcdir):
         # get_extensions must include any Cython extensions by their .pyx
         # filename.
         if hasattr(setuppkg, 'get_extensions'):
@@ -253,9 +254,9 @@ def iter_setup_packages(srcdir):
 
     for root, dirs, files in os.walk(srcdir):
         if 'setup_package.py' in files:
-            name = root.replace(os.path.sep, '.') + '.setup_package'
-            module = import_module(name)
-            yield name, module
+            filename = os.path.join(root, 'setup_package.py')
+            module = import_file(filename)
+            yield module
 
 
 def iter_pyx_files(srcdir):
@@ -437,48 +438,21 @@ def setup_test_command(package_name):
                 {'package_name': package_name})
 
 
-###############################################################################
-# Backport of importlib.import_module from 3.x.  This backport was provided by
-# Brett Cannon and downloaded from here:
-#    http://pypi.python.org/pypi/importlib/1.0.1
-
-try:
-    from importlib import import_module
-except ImportError:
-
-    def _resolve_name(name, package, level):
-        """Return the absolute name of the module to be imported."""
-        if not hasattr(package, 'rindex'):
-            raise ValueError("'package' not set to a string")
-        dot = len(package)
-        for x in xrange(level, 1, -1):
-            try:
-                dot = package.rindex('.', 0, dot)
-            except ValueError:
-                raise ValueError("attempted relative import beyond top-level "
-                                  "package")
-        return "%s.%s" % (package[:dot], name)
-
-    def import_module(name, package=None):
-        """Import a module.
-
-        The 'package' argument is required when performing a relative
-        import. It specifies the package to use as the anchor point
-        from which to resolve the relative import to an absolute
-        import.
-        """
-        if name.startswith('.'):
-            if not package:
-                raise TypeError(
-                    "relative imports require the 'package' argument")
-            level = 0
-            for character in name:
-                if character != '.':
-                    break
-                level += 1
-            name = _resolve_name(name[level:], package, level)
-        __import__(name)
-        return sys.modules[name]
+def import_file(filename):
+    """
+    Imports a module from a single file as if it doesn't belong to a
+    particular package.
+    """
+    with open(filename, 'U') as fd:
+        # If we specify a fully qualified name here, we'll get a
+        # number of "Parent module 'astropy' not found while handling
+        # absolute import" warnings.  Since this function is just used
+        # to import setup_package.py files without importing their
+        # parent packages, we can just give the name of the module.
+        # In general, however, this is not something one would want to
+        # do.
+        name = os.path.splitext(os.path.basename(filename))[0]
+        return imp.load_module(name, fd, filename, ('.py', 'U', 1))
 
 
 def get_legacy_alias_dir():
@@ -540,10 +514,17 @@ def add_legacy_alias(old_package, new_package):
     else:
         # We want ImportError to raise here, because that means it was
         # found, but something else went wrong.
-        module = imp.load_module(old_package, *location)
 
-        if not hasattr(module, '_is_astropy_legacy_alias'):
-            found_legacy_module = True
+        # We could import the module here to determine if its "real"
+        # or just a legacy alias.  However, importing the legacy alias
+        # may cause importing of code within the astropy source tree,
+        # which may require 2to3 to have been run.  It's safer to just
+        # open the file and search for a string.
+        filename = os.path.join(location[1], '__init__.py')
+        if os.path.exists(filename):
+            with open(filename, 'U') as fd:
+                if '_is_astropy_legacy_alias' in fd.read():
+                    found_legacy_module = True
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 

@@ -47,8 +47,12 @@ The basic workflow is as follows:
 
 from __future__ import division  # confidence high
 
-from .wcs import *
+from ..setup_helpers import is_in_build_mode
 
+if not is_in_build_mode():
+    from .wcs import *
 
-class Wcsprm(Wcsprm):
-    pass
+    class Wcsprm(Wcsprm):
+        pass
+
+del is_in_build_mode
