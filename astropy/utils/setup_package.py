@@ -1,5 +1,5 @@
 from distutils.core import Extension
-from os.path import dirname, join
+from os.path import dirname, join, relpath
 
 
 def get_extensions():
@@ -7,5 +7,5 @@ def get_extensions():
 
     return [
         Extension('astropy.utils._compiler',
-                  [join(ROOT, 'src', 'compiler.c')])
+                  [relpath(join(ROOT, 'src', 'compiler.c'))])
         ]
