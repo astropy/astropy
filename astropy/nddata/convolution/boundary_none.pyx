@@ -67,8 +67,9 @@ def convolve2d_boundary_none(np.ndarray[DTYPE_t, ndim=2] f,
                         val = fixed[ii, jj]
                         ker = g[<unsigned int>(wkx + ii - i),
                                 <unsigned int>(wky + jj - j)]
-                        top += val * ker
-                        bot += ker
+                        if not isnan(val):
+                            top += val * ker
+                            bot += ker
                 conv[i, j] = top / bot
             else:
                 conv[i, j] = fixed[i, j]
