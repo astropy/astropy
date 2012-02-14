@@ -7,6 +7,15 @@
  * the compilers we care about.
  ***************************************************************************/
 
+#ifndef PY3K
+#if PY_MAJOR_VERSION >= 3
+#define PY3K 1
+#else
+#define PY3K 0
+#endif
+#endif
+
+
 #define STRINGIZE(X) DO_STRINGIZE(X)
 #define DO_STRINGIZE(X) #X
 
