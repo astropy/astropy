@@ -60,7 +60,7 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                             top += val * ker
                             bot += ker
 
-                if bot > 0.:
+                if bot != 0.:
                     fixed[i, j] = top / bot
                 else:
                     fixed[i, j] = f[i, j]
@@ -87,7 +87,7 @@ def convolve2d_boundary_extend(np.ndarray[DTYPE_t, ndim=2] f,
                         if not isnan(val):
                             top += val * ker
                             bot += ker
-                if bot > 0:
+                if bot != 0:
                     conv[i, j] = top / bot
                 else:
                     conv[i, j] = fixed[i, j]

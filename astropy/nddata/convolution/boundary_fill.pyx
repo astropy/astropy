@@ -58,7 +58,7 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
                                     <unsigned int>(wky + jj - j)]
                             top += val * ker
                             bot += ker
-                if bot > 0.:
+                if bot != 0.:
                     fixed[i, j] = top / bot
                 else:
                     fixed[i, j] = f[i, j]
@@ -86,7 +86,7 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
                         if not isnan(val):
                             top += val * ker
                             bot += ker
-                if bot > 0:
+                if bot != 0:
                     conv[i, j] = top / bot
                 else:
                     conv[i, j] = fixed[i, j]
