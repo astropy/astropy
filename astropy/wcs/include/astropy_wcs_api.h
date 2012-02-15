@@ -1,6 +1,7 @@
 #ifndef ASTROPY_WCS_API_H
 #define ASTROPY_WCS_API_H
 
+#include "wcsconfig.h"
 #include "pyutil.h"
 #include "distortion.h"
 #include "pipeline.h"
