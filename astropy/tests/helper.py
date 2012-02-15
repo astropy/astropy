@@ -210,7 +210,7 @@ class astropy_test(Command, object):
                          self.remote_data, self.pep8)
 
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
-                                         cwd=new_path))
+                                         cwd=new_path, close_fds=False))
 
 
 class raises:
