@@ -506,3 +506,40 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+
+
+class TestFormat():
+
+    def test_column_format(self):
+        t = Table([[1, 2], [3, 4]], names=('a', 'b'))
+        # default (format=None)
+        assert str(t['a']) == '1, 2'
+
+        #  Old-style that is almost new-style
+        t['a'].format = '{ %4.2f }'
+        assert str(t['a']) == '{ 1.00 }, { 2.00 }'
+
+        #  New-style that is almost old-style
+        t['a'].format = '%{0:}'
+        assert str(t['a']) == '%1, %2'
+
+        #  New-style with extra spaces
+        t['a'].format = ' {0:05d} '
+        assert str(t['a']) == ' 00001 ,  00002 '
+
+        #  New-style has precedence
+        t['a'].format = '%4.2f {0:}'
+        assert str(t['a']) == '%4.2f 1, %4.2f 2'
+
+        #  Invalid format spec
+        t['a'].format = 'fail'
+        with pytest.raises(ValueError):
+            str(t['a'])
+
+    def test_column_format_with_threshold(self):
+        np.set_printoptions(threshold=4)
+        t = Table([np.arange(10)], names=['a'])
+        t['a'].format = '%{0:}'
+        assert str(t['a']) == '%0, %1, ..., %8, %9'
+        t['a'].format = '{ %4.2f }'
+        assert str(t['a']) == '{ 0.00 }, { 1.00 }, ..., { 8.00 }, { 9.00 }'
