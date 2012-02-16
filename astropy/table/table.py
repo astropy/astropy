@@ -362,6 +362,9 @@ class Row(object):
 
         return np.array(self._data)
 
+    def __len__(self):
+        return len(self._data)
+
     @property
     def table(self):
         return self._table
@@ -684,6 +687,14 @@ class Table(object):
 
     if sys.version_info[0] < 3:
         next = __next__
+
+    def field(self, item):
+        """Return column[item] for recarray compatibility."""
+        return self.columns[item]
+
+    @property
+    def dtype(self):
+        return self._data.dtype
 
     @property
     def colnames(self):
