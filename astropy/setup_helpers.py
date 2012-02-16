@@ -574,6 +574,8 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     if extras:
         extras = '\n'.join('{0} = {1!r}'.format(*v) for v in extras.items())
+    else:
+        extras = ''
 
     if not os.path.isdir(shim_dir):
         os.makedirs(shim_dir)
