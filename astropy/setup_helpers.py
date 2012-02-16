@@ -498,12 +498,13 @@ __path__ = pkgutil.extend_path(__path__, "{new_package}")
 
 from {new_package} import *
 from astropy import __version__
+__version__ = {equiv_version!r} + '-' + __version__
 
 _is_astropy_legacy_alias = True
 """
 
 
-def add_legacy_alias(old_package, new_package):
+def add_legacy_alias(old_package, new_package, equiv_version):
     """
     Adds a legacy alias that makes *pkgfrom* also importable as
     *pkgto*.
@@ -523,6 +524,12 @@ def add_legacy_alias(old_package, new_package):
 
     new_package : str
         The new namespace, specified using `.` as a delimiter
+
+    equiv_version : str
+        The equivalent version of the old package.  Code using the
+        legacy shim may do a version check, and this version should be
+        based on the version of the legacy package, not the version of
+        astropy.
 
     Returns
     -------

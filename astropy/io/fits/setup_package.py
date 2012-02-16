@@ -31,4 +31,5 @@ def get_package_data():
 
 
 def get_legacy_alias():
-    return setup_helpers.add_legacy_alias('pyfits', 'astropy.io.fits')
+    return setup_helpers.add_legacy_alias(
+        'pyfits', 'astropy.io.fits', '3.1')
