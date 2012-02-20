@@ -19,6 +19,7 @@ developed.  For more information, see the `github wiki
    wcs/index
    fits/index
    vo/index
+   ascii/index
    table/index
    tools
    utils/index
