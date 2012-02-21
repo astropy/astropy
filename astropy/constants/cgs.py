@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Astronomical and physics constants in cgs units.
+Astronomical and physics constants in cgs units.  The constants
+available (with approximate values) are:
 """
+# This docstring is extended by __init__.py
 
 from .constant import Constant
 from . import si
@@ -56,6 +58,10 @@ N_A = Constant(si.N_A, si.N_A.error,
 # Gas constant
 R = Constant(si.R * 1.e7, si.R.error * 1.e7,
              si.R.name, si.R.origin, 'erg/K/mol')
+
+# Rydberg constant
+Ryd = Constant(si.Ryd * 1.e-2, si.Ryd.error * 1.e-2,
+               si.Ryd.name, si.Ryd.origin, 'cm^-1')
 
 # DISTANCE
 

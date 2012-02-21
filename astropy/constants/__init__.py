@@ -19,15 +19,40 @@ from . import si
 from .constant import Constant
 
 
-# Update the docstring to include a list of units from the si module
+# Update the docstring to include a list of units from the si
+# module. The rows with lots of '=' signs are to tell Sphinx to
+# display a table in the documentation.
+
 __doc__ += """
 The following constants are defined in `~astropy.constants.cgs` and
-`~astropy.constants.si` .
+`~astropy.constants.si`. The `si` and `cgs` docstrings list the units
+and values in each system.
 
+========== ==============================
 """
 
 for nm, val in sorted(si.__dict__.items()):
     if isinstance(val, Constant):
-        __doc__ += '    * ' + nm + '\n        ' + val.name + '\n'
+        __doc__ += '{:^10} {}\n'.format(nm, val.name)
+
+__doc__ += """\
+========== ==============================
+"""
+
+# update the si cand cgs module doctrings.
+for module in si,cgs:
+    module.__doc__ += """
+========== ============== ================ =========================
+   Name        Value            Unit       Description
+========== ============== ================ =========================
+"""
+    for nm, val in sorted(module.__dict__.items()):
+        if isinstance(val, Constant):
+            module.__doc__ += '{:^10} {:^14.9g} {:^16} {}\n'.format(
+                nm, val.real, val.units, val.name)
+
+    module.__doc__ += """\
+========== ============== ================ =========================
+"""
+
 del nm, val
-__doc__ += '\n'

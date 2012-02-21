@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Astronomical and physics constants in SI units.
+Astronomical and physics constants in SI units. The constants
+available (with approximate values) are:
 """
+# This docstring is extended by __init__.py
 
 import numpy as np
-
 from .constant import Constant
 
 # PHYSICAL CONSTANTS
@@ -68,6 +69,11 @@ N_A = Constant(6.02214129e23, 0.00000027e23,
 R = Constant(8.3144621, 0.0000075,
              "Gas constant",
              'CODATA 2010', 'J/mol/K')
+
+# Rydberg constant
+Ryd = Constant(10973731.568539, 0.000055,
+               'Rydberg constant',
+               'CODATA 2010', 'm^-1')
 
 # DISTANCE
 
