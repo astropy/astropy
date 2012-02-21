@@ -75,16 +75,6 @@ Ryd = Constant(10973731.568539, 0.000055,
                'Rydberg constant',
                'CODATA 2010', 'm^-1')
 
-# Electron volt
-eV = Constant(1.602176565e-19, 0.000000035e-19,
-              'Electron volt',
-              'CODATA 2010', 'J')
-
-# Jansky
-Jy = Constant(1e-26, 0, 'Jansky',
-              "Allen's Astrophysical Quantities 4th", 'W/m^2/Hz')
-
-
 # DISTANCE
 
 # Astronomical Unit
@@ -100,11 +90,6 @@ pc = Constant(3.0856776e16, 0.00000005e16,
 # Kiloparsec
 kpc = Constant(3.0856776e19, 0.00000005e19,
               "Kiloparsec",
-              "Allen's Astrophysical Quantities 4th Ed.", 'm')
-
-# Megaparsec
-Mpc = Constant(3.0856776e22, 0.00000005e22,
-              "Megaparsec",
               "Allen's Astrophysical Quantities 4th Ed.", 'm')
 
 # SOLAR QUANTITIES

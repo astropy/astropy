@@ -63,14 +63,6 @@ R = Constant(si.R * 1.e7, si.R.error * 1.e7,
 Ryd = Constant(si.Ryd * 1.e-2, si.Ryd.error * 1.e-2,
                si.Ryd.name, si.Ryd.origin, 'cm^-1')
 
-# Electron volt
-eV = Constant(si.eV * 1e7, si.eV.error * 1e7, si.eV.name,
-              si.eV.origin, 'erg')
-
-# Jansky
-Jy = Constant(si.Jy * 1e3, si.Jy.error * 1e3, si.Jy.name,
-              si.Jy.origin, 'erg/s/cm^2/Hz')
-
 # DISTANCE
 
 # Astronomical Unit
@@ -84,11 +76,6 @@ pc = Constant(si.pc * 1.e2, si.pc.error * 1.e2,
 # Kiloparsec
 kpc = Constant(si.kpc * 1.e2, si.kpc.error * 1.e2,
                si.kpc.name, si.kpc.origin, 'cm')
-
-# Megaparsec
-Mpc = Constant(si.Mpc * 1.e2, si.Mpc.error * 1.e2,
-               si.Mpc.name, si.Mpc.origin, 'cm')
-
 
 # SOLAR QUANTITIES
 
