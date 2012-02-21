@@ -136,7 +136,9 @@ class Column(np.ndarray):
     units : str or None
         Physical units
     format : str or None
-        Format string for outputting column values using ``format % value``
+        Format string for outputting column values.  This can be an
+        "old-style" (``format % value``) or "new-style" (`str.format`)
+        format specification string.
     meta : dict-like or None
         Meta-data associated with the column
 
