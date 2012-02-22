@@ -33,7 +33,7 @@ and values in each system.
 
 for nm, val in sorted(si.__dict__.items()):
     if isinstance(val, Constant):
-        __doc__ += '{:^10} {}\n'.format(nm, val.name)
+        __doc__ += '{0:^10} {1}\n'.format(nm, val.name)
 
 __doc__ += """\
 ========== ==============================
@@ -48,7 +48,7 @@ for module in si,cgs:
 """
     for nm, val in sorted(module.__dict__.items()):
         if isinstance(val, Constant):
-            module.__doc__ += '{:^10} {:^14.9g} {:^16} {}\n'.format(
+            module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
                 nm, val.real, val.units, val.name)
 
     module.__doc__ += """\
