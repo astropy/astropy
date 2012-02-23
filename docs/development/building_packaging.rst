@@ -99,6 +99,30 @@ you probably want to install its header files along side the Python module.
            def get_package_data():
                return {'astropy.wcs': ['include/*.h']}
 
+Preventing importing at build time
+----------------------------------
+
+In rare cases, some packages may need to be imported at build time.
+Unfortunately, anything that requires a C or Cython extension or
+processing through 2to3 will fail to import until the build phase has
+completed.  In those cases, the `is_in_build_mode` function can be
+used to determine if the package is being imported as part of the
+build and choose to not import problematic modules.
+
+For example, suppose there is a subpackage ``foo`` that needs to
+import a module called ``version.py`` at build time in order to set
+some version information, and also has a C extension, ``process``,
+that will not be available in the source tree.  In this case,
+``astropy/foo/__init__.py`` would probably want to check the result of
+``is_in_build_mode`` before importing the C extension::
+
+    from ..setup_helpers import is_in_build_mode
+
+    if not is_in_build_mode():
+        from . import process
+
+    from . import version
+
 Release
 -------
 
