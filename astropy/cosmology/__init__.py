@@ -13,3 +13,5 @@ Capabilities will include
   Pre-defined sets of cosmological parameters (e.g. from WMAP).
 
 """
+
+from cosmology import *
