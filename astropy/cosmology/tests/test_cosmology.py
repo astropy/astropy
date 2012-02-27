@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from .. import cosmology
+import numpy as np
 
 def test_cosmology():
     cosmo = cosmology.Cosmology(H0=70, Om=0.27 ,Ol=0.73)
