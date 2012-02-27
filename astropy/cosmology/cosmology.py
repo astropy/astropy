@@ -165,12 +165,12 @@ class Cosmology(object):
         else:
             return dh / sqrtOk * sin(sqrtOk * dc / dh)
 
-    def Da(self, z):
+    def da(self, z):
         """ Angular diameter distance in metres.  Ratio of an object's
         physical transverse size to its angular size in radians."""
         return self.dm(z) / (1. + z)
 
-    def Da2(self, z1, z2):
+    def da2(self, z1, z2):
         """ Angular diameter distance in metres between objects at 2
         redshifts.  Useful for gravitational lensing."""
         # does not work for negative curvature
