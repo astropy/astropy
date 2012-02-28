@@ -905,6 +905,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
             goto fail;
         }
         self->fd = fd;   Py_INCREF(self->fd);
+        lseek(self->file, 0, SEEK_SET);
     } else
 #endif
     if (PyCallable_Check(fd)) {
