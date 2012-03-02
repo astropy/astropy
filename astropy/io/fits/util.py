@@ -491,6 +491,11 @@ def translate(s, table, deletechars):
         return s.translate(table)
 
 
+def indent(s, shift=1, width=4):
+    return '\n'.join(' ' * (width * shift) + l if l else ''
+                     for l in s.splitlines())
+
+
 def _array_from_file(infile, dtype, count, sep):
     """Create a numpy array from a file or a file-like object."""
 

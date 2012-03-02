@@ -33,6 +33,9 @@ FITS2NUMPY = {'L': 'i1', 'B': 'u1', 'I': 'i2', 'J': 'i4', 'K': 'i8', 'E': 'f4',
 
 # the inverse dictionary of the above
 NUMPY2FITS = dict([(val, key) for key, val in FITS2NUMPY.items()])
+# Normally booleans are represented as ints in pyfits, but if passed in a numpy
+# boolean array, that should be supported
+NUMPY2FITS['b1'] = 'L'
 
 # This is the order in which values are converted to FITS types
 # Note that only double precision floating point/complex are supported
@@ -224,11 +227,6 @@ class Column(object):
 
         # scale the array back to storage values if there is bscale/bzero
         if isinstance(array, np.ndarray):
-
-            # boolean needs to be scaled too
-            if recfmt[-2:] == FITS2NUMPY['L']:
-                array = np.where(array == 0, ord('F'), ord('T'))
-
             # make a copy if scaled, so as not to corrupt the original array
             if bzero not in ['', None, 0] or bscale not in ['', None, 1]:
                 array = array.copy()
@@ -270,6 +268,12 @@ class Column(object):
                 else:
                     numpy_format = _convert_format(format)
                     return _convert_array(array, np.dtype(numpy_format))
+            elif 'L' in format:
+                # boolean needs to be scaled back to storage values ('T', 'F')
+                if array.dtype == np.dtype('bool'):
+                    return np.where(array == False, ord('F'), ord('T'))
+                else:
+                    return np.where(array == 0, ord('F'), ord('T'))
             elif 'X' not in format and 'P' not in format:
                 (repeat, fmt, option) = _parse_tformat(format)
                 # Preserve byte order of the original array for now; see #77

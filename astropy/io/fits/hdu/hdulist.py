@@ -16,7 +16,7 @@ from ..file import PYTHON_MODES, _File
 from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
                     fileobj_name, fileobj_closed, fileobj_mode, ignore_sigint,
                     _get_array_memmap)
-from ..verify import _Verify, _ErrList
+from ..verify import _Verify, _ErrList, VerifyError
 
 
 def fitsopen(name, mode='readonly', memmap=None, **kwargs):
@@ -130,7 +130,10 @@ class HDUList(list, _Verify):
             if not isinstance(hdu, _BaseHDU):
                 raise TypeError(
                       "Element %d in the HDUList input is not an HDU." % idx)
+
         super(HDUList, self).__init__(hdus)
+
+        self.update_extend()
 
     def __iter__(self):
         for idx in range(len(self)):
@@ -242,14 +245,13 @@ class HDUList(list, _Verify):
                     break
                 # check in the case there is extra space after the last HDU or
                 # corrupted HDU
-                except ValueError, err:
+                except (VerifyError, ValueError), err:
                     warnings.warn(
-                        'Required keywords missing when trying to read '
-                        'HDU #%d (note: astropy.io.fits uses zero-based '
-                        'indexing).\n'
-                        '          %s\n          There may be extra '
-                        'bytes after the last HDU or the file is corrupted.' %
-                        (len(hdulist), err))
+                        'Error validating header for HDU #%d (note: '
+                        'astropy.io.fits uses zero-based indexing).\n%s\n'
+                        'There may be extra bytes after the last HDU or the '
+                        'file is corrupted.' %
+                        (len(hdulist), indent(str(err))))
                     break
                 except IOError, err:
                     if ffo.writeonly:
@@ -260,7 +262,7 @@ class HDUList(list, _Verify):
             # If we're trying to read only and no header units were found,
             # raise and exception
             if mode in ('readonly', 'denywrite') and len(hdulist) == 0:
-                raise IOError('Empty FITS file')
+                raise IOError('Empty or corrupt FITS file')
 
             # initialize/reset attributes to be used in "update/append" mode
             hdulist._resize = False
@@ -401,8 +403,7 @@ class HDUList(list, _Verify):
         self._resize = True
         self._truncate = False
         # make sure the EXTEND keyword is in primary HDU if there is extension
-        if len(self) > 1:
-            self.update_extend()
+        self.update_extend()
 
     def append(self, hdu):
         """
@@ -449,8 +450,7 @@ class HDUList(list, _Verify):
         self._truncate = False
 
         # make sure the EXTEND keyword is in primary HDU if there is extension
-        if len(self) > 1:
-            self.update_extend()
+        self.update_extend()
 
     def index_of(self, key):
         """
@@ -751,16 +751,28 @@ class HDUList(list, _Verify):
         Make sure that if the primary header needs the keyword
         ``EXTEND`` that it has it and it is correct.
         """
+
+        if not len(self):
+            return
+
+        if not isinstance(self[0], PrimaryHDU):
+            # A PrimaryHDU will be automatically inserted at some point, but it
+            # might not have been added yet
+            return
+
         hdr = self[0].header
-        if 'extend' in hdr:
-            if (hdr['extend'] == False):
-                hdr['extend'] = True
-        else:
-            if hdr['naxis'] == 0:
-                hdr.set('extend', True, after='naxis')
+
+        if 'EXTEND' in hdr:
+            if len(self) > 1 and hdr['EXTEND'] == False:
+                hdr['EXTEND'] = True
+            elif len(self) == 1 and hdr['EXTEND'] == True:
+                hdr['EXTEND'] = False
+        elif len(self) > 1:
+            if hdr['NAXIS'] == 0:
+                hdr.set('EXTEND', True, after='NAXIS')
             else:
-                n = hdr['naxis']
-                hdr.set('extend', True, after='naxis' + str(n))
+                n = hdr['NAXIS']
+                hdr.set('EXTEND', True, after='NAXIS' + str(n))
 
     def writeto(self, fileobj, output_verify='exception', clobber=False,
                 checksum=False):
@@ -818,8 +830,7 @@ class HDUList(list, _Verify):
                 raise IOError("File '%s' already exists." % filename)
 
         # make sure the EXTEND keyword is there if there is extension
-        if len(self) > 1:
-            self.update_extend()
+        self.update_extend()
 
         mode = 'copyonwrite'
         for key, val in PYTHON_MODES.iteritems():
@@ -980,12 +991,6 @@ class HDUList(list, _Verify):
 
             # determine if any of the HDU is resized
             for hdu in self:
-                # A shortcut to let an HDU tell us for itself whether or not it
-                # will be resized
-                if hasattr(hdu, '_resize') and hdu._resize:
-                    self._resize = True
-                    break
-
                 # Header:
                 nbytes = len(str(hdu.header))
                 if nbytes != (hdu._datLoc - hdu._hdrLoc):

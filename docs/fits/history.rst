@@ -15,7 +15,33 @@ Astropy.
 3.1.0 (unreleased)
 --------------------
 
+- Highlights:
+
+ * Memory maps are now used by default to access HDU data.  See API Changes
+   below for more details.
+
+ * The ``Header`` object has been significantly reworked, and ``CardList``
+   objects are now deprecated (their functionality folded into the ``Header``
+   class).  See API Changes below for more details.
+
 - API Changes:
+
+  * Memory mapping is now used by default to access HDU data.  That is,
+    ``pyfits.open()`` uses ``memmap=True`` as the default.  This provides
+    better performance in the majority of use cases--there are only some I/O
+    intensive applications where it might not be desirable.  Enabling mmap by
+    default also enabled finding and fixing a large number of bugs in PyFITS'
+    handling of memory-mapped data (most of these bug fixes were backported to
+    PyFITS 3.0.5). (#85)
+
+    + A new ``pyfits.USE_MEMMAP`` global variable was added.  Set
+      ``pyfits.USE_MEMMAP = False`` to change the default memmap setting for
+      opening files.  This is especially useful for controlling the behavior
+      in applications where pyfits is deeply embedded.
+
+    + Likewise, a new ``PYFITS_USE_MEMMAP`` environment variable is supported.
+      Set ``PYFITS_USE_MEMMAP = 0`` in your environment to change the default
+      behavior.
 
   * The size() method on HDU objects is now a .size property--this returns the
     size in bytes of the data portion of the HDU, and in most cases is
@@ -28,23 +54,94 @@ Astropy.
     compatible with data dumps from previous versions of PyFITS, but not
     vice-versa due to a parsing bug in older versions.
 
+  * Likewise the ``pyfits.tdump`` and ``pyfits.tcreate`` convenience function
+    versions of these methods have been renamed ``pyfits.tabledump`` and
+    ``pyfits.tableload``.  The old deprecated, but currently retained for
+    backwards compatibility. (r1125)
+
+  * A new global variable ``pyfits.EXTENSION_NAME_CASE_SENSITIVE`` was added.
+    This serves as a replacement for ``pyfits.setExtensionNameCaseSensitive``
+    which is not deprecated and may be removed in a future version.  To enable
+    case-sensitivity of extension names (i.e. treat 'sci' as distict from
+    'SCI') set ``pyfits.EXTENSION_NAME_CASE_SENSITIVE = True``.  The default
+    is ``False``. (r1139)
+
   * The old ``classExtensions`` extension mechanism (which was deprecated in
     PyFITS 3.0) is removed outright.  To our knowledge it was no longer used
-    anywhere.
+    anywhere. (r1309)
 
-- Added a new .is_image attribute on HDU objects, which is True if the HDU
-  data is an 'image' as opposed to a table or something else.  Here the
-  meaning of 'image' is fairly loose, and mostly just means a Primary or Image
-  extension HDU, or possibly a compressed image HDU (#71)
+  * Warning messages from PyFITS issued through the Python warnings API are
+    now output to stderr instead of stdout, as is the default.  PyFITS no
+    longer modifies the default behavior of the warnings module with respect
+    to which stream it outputs to. (r1319)
 
-- Fixed pyfits.tcreate() to be more robust when encountering blank lines in a
-  column definition file (#14)
+- New Features:
+
+  * Added support for the proposed FITS extension HDU type.  See
+    http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.
+    FITS HDUs contain an entire FITS file embedded in their data section.
+    `FitsHDU` objects work like other HDU types in PyFITS.  Their ``.data``
+    attribute returns the raw data array.  However, they have a special
+    ``.hdulist`` attribute which processes the data as a FITS file and returns
+    it as an in-memory HDUList object.  FitsHDU objects also support a
+    ``FitsHDU.fromhdulist()`` which returns a new `FitsHDU` object that embeds
+    the supplied HDUList. (#80)
+
+  * Added a new .is_image attribute on HDU objects, which is True if the HDU
+    data is an 'image' as opposed to a table or something else.  Here the
+    meaning of 'image' is fairly loose, and mostly just means a Primary or Image
+    extension HDU, or possibly a compressed image HDU (#71)
+
+- Bug Fixes:
+
+  * Fixed ``pyfits.tcreate()`` (now ``pyfits.tableload()``) to be more robust
+    when encountering blank lines in a column definition file (#14)
+
+  * Fixed a fairly rare crash that could occur in the handling of CONTINUE
+    cards when using Numpy 1.4 or lower (though 1.4 is the oldest version
+    supported by PyFITS). (r1330)
 
 
 3.0.6 (unreleased)
 ----------------------
 
-- Nothing changed yet.
+- Highlights:
+
+  * The main reason for this release is to fix an issue that was introduced in
+    PyFITS 3.0.5 where merely opening a file containing scaled data (that is,
+    with non-trivial BSCALE and BZERO keywords) in 'update' mode would cause
+    the data to be automatically rescaled--possibly converting the data from
+    ints to floats--as soon as the file is closed, even if the application did
+    not touch the data.  Now PyFITS will only rescale the data in an extension
+    when the data is actually accessed by the application.  So opening a file
+    in 'update' mode in order to modify the header or append new extensions
+    will not cause any change to the data in existing extensions.
+
+- More accurate error messages when opening files containing invalid header
+  cards. (#109)
+
+- Fixed a possible reference cycle/memory leak that was caught through more
+  extensive testing on Windows. (#112)
+
+- Fixed 'ostream' mode to open the underlying file in 'wb' mode instead of 'w'
+  mode. (#112)
+
+- Fixed a Windows-only issue where trying to save updates to a resized FITS
+  file could result in a crash due to there being open mmaps on that file.
+  (#112)
+
+- Fixed a crash when trying to create a FITS table (i.e. with new_table())
+  from a Numpy array containing bool fields. (#113)
+
+- Fixed a bug where manually initializing an ``HDUList`` with a list of of
+  HDUs wouldn't set the correct EXTEND keyword value on the primary HDU.
+  (#114)
+
+- Fixed a crash that could occur when trying to deepcopy a Header in Python <
+  2.7. (#115)
+
+- Fixed an issue where merely opening a scaled image in 'update' mode would
+  cause the data to be converted to floats when the file is closed. (#119)
 
 
 3.0.5 (2012-01-30)

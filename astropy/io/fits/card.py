@@ -10,7 +10,7 @@ import numpy as np
 
 from .util import (_str_to_num, _is_int, deprecated, maketrans, translate,
                    _words_group, lazyproperty)
-from .verify import _Verify, _ErrList
+from .verify import _Verify, _ErrList, VerifyError
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
@@ -739,7 +739,7 @@ class Card(_Verify):
 
         keyword = self._image[:8].strip()
         keyword_upper = keyword.upper()
-        if keyword_upper in self._commentary_keywords:
+        if keyword_upper in self._commentary_keywords + ['CONTINUE']:
             if keyword_upper != keyword:
                 self._modified = True
             return keyword_upper
@@ -749,10 +749,10 @@ class Card(_Verify):
             if keyword[:8].upper() == 'HIERARCH':
                 return keyword[9:].strip()
             else:
-                raise ValueError(
-                    'Invalid keyword value in card image: %r; cards with '
-                    'keywords longer than 8 characters must use the HIERARCH '
-                    'keyword.' % self._image)
+                raise VerifyError(
+                    'Invalid keyword value in header:\n    %r\nkeywords '
+                    'longer than 8 characters must be prefixed with the '
+                    'HIERARCH keyword.' % keyword)
         else:
             keyword_upper = keyword.upper()
             if keyword_upper != keyword:
@@ -787,8 +787,8 @@ class Card(_Verify):
         m = self._value_NFSC_RE.match(self._split()[1])
 
         if m is None:
-            raise ValueError("Unparsable card (%s), fix it first with "
-                             ".verify('fix')." % self.key)
+            raise VerifyError("Unparsable card (%s), fix it first with "
+                              ".verify('fix')." % self.key)
 
         if m.group('bool') is not None:
             value = m.group('bool') == 'T'
@@ -1144,12 +1144,12 @@ class Card(_Verify):
         for idx in xrange(0, Card.length * ncards, Card.length):
             card = Card.fromstring(self._image[idx:idx + Card.length])
             if idx > 0 and card.keyword.upper() != 'CONTINUE':
-                raise ValueError(
+                raise VerifyError(
                         'Long card images must have CONTINUE cards after '
                         'the first card.')
 
             if not isinstance(card.value, str):
-                raise ValueError('CONTINUE cards must have string values.')
+                raise VerifyError('CONTINUE cards must have string values.')
 
             yield card
 

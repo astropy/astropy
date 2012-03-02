@@ -101,7 +101,6 @@ class _ImageBaseHDU(_ValidHDU):
 
         self._do_not_scale_image_data = do_not_scale_image_data
         self._uint = uint
-        self._rescaled = False
 
         if do_not_scale_image_data:
             self._bzero = 0
@@ -109,8 +108,6 @@ class _ImageBaseHDU(_ValidHDU):
         else:
             self._bzero = self._header.get('BZERO', 0)
             self._bscale = self._header.get('BSCALE', 1)
-            if not (self._bzero == 0 and self._bscale == 1):
-                self._resize = True
 
         # Save off other important values from the header needed to interpret
         # the image data
@@ -261,7 +258,7 @@ class _ImageBaseHDU(_ValidHDU):
         """
 
         if (not self._modified and not self._header._modified and
-            (self._data_loaded and self.shape == self.data.shape)):
+            not (self._data_loaded and self.shape == self.data.shape)):
             # Not likely that anything needs updating
             return
 
@@ -271,9 +268,17 @@ class _ImageBaseHDU(_ValidHDU):
             bitpix_comment = self.standard_keyword_comments['BITPIX']
         else:
             bitpix_comment = self._header.comments['BITPIX']
+
         # Update the BITPIX keyword and ensure it's in the correct
         # location in the header
         self._header.set('BITPIX', self._bitpix, bitpix_comment, after=0)
+
+        # If the data's shape has changed (this may have happened without our
+        # noticing either via a direct update to the data.shape attribute) we
+        # need to update the internal self._axes
+        if self._data_loaded and self.shape != self.data.shape:
+            self._axes = list(self.data.shape)
+            self._axes.reverse()
 
         # Update the NAXIS keyword and ensure it's in the correct location in
         # the header
@@ -322,7 +327,10 @@ class _ImageBaseHDU(_ValidHDU):
             if dtype is not None:
                 self._header['BITPIX'] = _ImageBaseHDU.ImgCode[dtype.name]
 
-            self._rescaled = True
+            # These are some internal tweaks that update_header doesn't need to
+            # know about, and it won't know if we tell it the header is
+            # unmodified
+            self._header._modified = False
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -425,11 +433,6 @@ class _ImageBaseHDU(_ValidHDU):
 
     def _writeheader(self, fileobj, checksum=False):
         self.update_header()
-        if not self._data_loaded:
-            # Normally this is done when the data is loaded, but since the data
-            # is not loaded yet we need to update the header appropriately
-            # before writing it
-            self._update_header_scale_info()
         return super(_ImageBaseHDU, self)._writeheader(fileobj, checksum)
 
     def _writedata_internal(self, fileobj):
@@ -466,14 +469,15 @@ class _ImageBaseHDU(_ValidHDU):
 
             size += output.size * output.itemsize
 
-        if self._rescaled:
-            # If the data was rescaled then the file written to was
-            # automatically resized on writing.  But now that the scaled data
-            # has been written we don't necessarily need to resize on
-            # subsequent writes
-            self._resize = False
-
         return size
+
+    def _writeto(self, fileobj, checksum=False):
+        if not self._data_loaded:
+            # Normally this is done when the data is loaded, but since the data
+            # is not loaded yet we need to update the header appropriately
+            # before writing it
+            self._update_header_scale_info()
+        return super(_ImageBaseHDU, self)._writeto(fileobj, checksum=checksum)
 
     def _dtype_for_bitpix(self):
         """

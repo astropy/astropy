@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import shutil
 import os
 import shutil
+import time
 import warnings
 
 import numpy as np
@@ -499,7 +499,7 @@ class TestImageFunctions(FitsTestCase):
         assert hdul[0].data.dtype == np.dtype('float32')
 
     def test_append_uint_data(self):
-        """Test for ticket #56 (BZERO and BSCALE added in the wrong location
+        """Regression test for #56 (BZERO and BSCALE added in the wrong location
         when appending scaled data)
         """
 
@@ -540,7 +540,7 @@ class TestImageFunctions(FitsTestCase):
         assert (hdul[1].data == arr).all()
 
     def test_rewriting_large_scaled_image(self):
-        """Regression test for #84"""
+        """Regression test for #84 and #101."""
 
         hdul = fits.open(self.data('fixed-1890.fits'))
         orig_data = hdul[0].data
@@ -579,9 +579,10 @@ class TestImageFunctions(FitsTestCase):
 
     def test_image_update_header(self):
         """
-        Regression test for #105.  Replacing the original header to an image
-        HDU and saving should update the NAXISn keywords appropriately and save
-        the image data correctly.
+        Regression test for #105.
+
+        Replacing the original header to an image HDU and saving should update
+        the NAXISn keywords appropriately and save the image data correctly.
         """
 
         # Copy the original file before saving to it
@@ -594,3 +595,49 @@ class TestImageFunctions(FitsTestCase):
 
         with fits.open(self.temp('test_new.fits')) as hdul:
             assert (orig_data == hdul[1].data).all()
+
+    def test_open_scaled_in_update_mode(self):
+        """
+        Regression test for #119 (Don't update scaled image data if the data is
+        not read)
+
+        This ensures that merely opening and closing a file containing scaled
+        image data does not cause any change to the data (or the header).
+        Changes should only occur if the data is accessed.
+        """
+
+        # Copy the original file before making any possible changes to it
+        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+        mtime = os.stat(self.temp('scale.fits')).st_mtime
+
+        fits.open(self.temp('scale.fits'), mode='update').close()
+
+        # Ensure that no changes were made to the file merely by immediately
+        # opening and closing it.
+        assert mtime == os.stat(self.temp('scale.fits')).st_mtime
+
+        time.sleep(1)
+
+        hdul = fits.open(self.temp('scale.fits'), 'update')
+        hdul[0].data
+        hdul.close()
+
+        # Now the file should be updated with the rescaled data
+        assert mtime != os.stat(self.temp('scale.fits')).st_mtime
+        hdul = fits.open(self.temp('scale.fits'), mode='update')
+        assert hdul[0].data.dtype == np.dtype('>f4')
+        assert hdul[0].header['BITPIX'] == -32
+        assert 'BZERO' not in hdul[0].header
+        assert 'BSCALE' not in hdul[0].header
+
+        # Try reshaping the data, then closing and reopening the file; let's
+        # see if all the changes are preseved properly
+        hdul[0].data.shape = (42, 10)
+        hdul.close()
+
+        hdul = fits.open(self.temp('scale.fits'))
+        assert hdul[0].shape, (42 == 10)
+        assert hdul[0].data.dtype == np.dtype('>f4')
+        assert hdul[0].header['BITPIX'] == -32
+        assert 'BZERO' not in hdul[0].header
+        assert 'BSCALE' not in hdul[0].header

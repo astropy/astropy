@@ -232,7 +232,7 @@ class TestTableFunctions(FitsTestCase):
 
         assert comparerecords(a2, ra2)
 
-        assert a2.field(1).all() == np.array([345]).all()
+        assert (a2.field(1) == np.array([345])).all()
 
         ra3 = np.rec.array([
             (10.123000144958496, 37),
@@ -270,7 +270,8 @@ class TestTableFunctions(FitsTestCase):
         hdu_list.writeto(self.temp('toto.fits'), clobber=True)
         toto = fits.open(self.temp('toto.fits'))
         q = toto[1].data.field('QUAL_SPE')
-        assert q[0][4:8].all() == np.array([0, 0, 0, 0], dtype=np.uint8).all()
+        assert (q[0][4:8].all() ==
+                np.array([0, 0, 0, 0], dtype=np.uint8)).all()
         toto.close()
 
     def test_extend_variable_length_array(self):
@@ -304,7 +305,7 @@ class TestTableFunctions(FitsTestCase):
         rfiHDU = hduL['RFI']
         data = rfiHDU.data
         channelsOut = data.field('Channels')[0]
-        assert channelsIn.all() == channelsOut.all()
+        assert (channelsIn == channelsOut).all()
         hduL.close()
 
     def test_column_endianness(self):
@@ -415,12 +416,11 @@ class TestTableFunctions(FitsTestCase):
         assert hdu.columns._arrays[0][0] == 800
         assert hdu.columns.columns[0].array[0] == 800
 
-        assert (hdu.data.field(0).all() ==
-                np.array([1, 2], dtype=np.int16).all())
+        assert (hdu.data.field(0) == np.array([800, 2], dtype=np.int16)).all()
         assert hdu.data[0][1] == 'Serius'
         assert hdu.data[1][1] == 'Canopys'
-        assert (hdu.data.field(2).all() ==
-                np.array([-1.45, -0.73], dtype=np.float32).all())
+        assert (hdu.data.field(2) ==
+                np.array([-1.45, -0.73], dtype=np.float32)).all()
         assert hdu.data[0][3] == 'A1V'
         assert hdu.data[1][3] == 'F0Ib'
         with ignore_warnings():
@@ -1000,8 +1000,8 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[1].array[0] == 312
         assert tbhdu2.columns.columns[0].array[0] == 'NGC1'
         assert tbhdu2.columns.columns[2].array[0] == '0.0'
-        assert (tbhdu2.columns.columns[3].array[0].all() ==
-                np.array([0., 0., 0., 0., 0.], dtype=np.float32).all())
+        assert (tbhdu2.columns.columns[3].array[0] ==
+                np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[0] == True
 
         assert tbhdu2.data[4][1] == 112
@@ -1011,15 +1011,15 @@ class TestTableFunctions(FitsTestCase):
         assert tbhdu2.columns.columns[1].array[4] == 112
         assert tbhdu2.columns.columns[0].array[4] == 'NGC5'
         assert tbhdu2.columns.columns[2].array[4] == '0.0'
-        assert (tbhdu2.columns.columns[3].array[4].all() ==
-                np.array([1., 2., 3., 4., 5.], dtype=np.float32).all())
+        assert (tbhdu2.columns.columns[3].array[4] ==
+                np.array([1., 2., 3., 4., 5.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[4] == False
 
         assert tbhdu2.columns.columns[1].array[8] == 0
         assert tbhdu2.columns.columns[0].array[8] == '0.0'
         assert tbhdu2.columns.columns[2].array[8] == '0.0'
-        assert (tbhdu2.columns.columns[3].array[8].all() ==
-                np.array([0., 0., 0., 0., 0.], dtype=np.float32).all())
+        assert (tbhdu2.columns.columns[3].array[8] ==
+                np.array([0., 0., 0., 0., 0.], dtype=np.float32)).all()
         assert tbhdu2.columns.columns[4].array[8] == False
 
     def test_verify_data_references(self):
@@ -1476,17 +1476,17 @@ class TestTableFunctions(FitsTestCase):
 
         tbhdu1 = fits.new_table(coldefs)
 
-        assert (tbhdu1.data.field('flag')[0].all() ==
-                np.array([True, False], dtype=np.bool).all())
-        assert (tbhdu1.data.field('flag')[1].all(),
-                np.array([False, True], dtype=np.bool).all())
+        assert (tbhdu1.data.field('flag')[0] ==
+                np.array([True, False], dtype=np.bool)).all()
+        assert (tbhdu1.data.field('flag')[1] ==
+                np.array([False, True], dtype=np.bool)).all()
 
         tbhdu = fits.new_table(tbhdu1.data)
 
-        assert (tbhdu.data.field('flag')[0].all(),
-                np.array([True, False], dtype=np.bool).all())
-        assert (tbhdu.data.field('flag')[1].all(),
-                np.array([False, True], dtype=np.bool).all())
+        assert (tbhdu.data.field('flag')[0] ==
+                np.array([True, False], dtype=np.bool)).all()
+        assert (tbhdu.data.field('flag')[1] ==
+                np.array([False, True], dtype=np.bool)).all()
 
     def test_variable_length_table_format_pd_from_object_array(self):
         a = np.array([np.array([7.2e-20, 7.3e-20]), np.array([0.0]),
@@ -1545,8 +1545,8 @@ class TestTableFunctions(FitsTestCase):
     def test_fits_rec_column_access(self):
         t = fits.open(self.data('table.fits'))
         tbdata = t[1].data
-        assert tbdata.V_mag.all() == tbdata.field('V_mag').all()
-        assert tbdata.V_mag.all() == tbdata['V_mag'].all()
+        assert (tbdata.V_mag == tbdata.field('V_mag')).all()
+        assert (tbdata.V_mag == tbdata['V_mag']).all()
 
         t.close()
 
@@ -1819,3 +1819,21 @@ class TestTableFunctions(FitsTestCase):
         assert (t.data['names'] == [1]).all()
         assert (t.data['formats'] == [2]).all()
         assert (t.data.other == [3]).all()
+
+    def test_table_from_bool_fields(self):
+        """
+        Regression test for #113.
+
+        Tests creating a table from a recarray containing numpy.bool columns.
+        """
+
+        array = np.rec.array([(True, False), (False, True)], formats='|b1,|b1')
+        thdu = fits.new_table(array)
+        assert thdu.columns.formats == ['L', 'L']
+        assert comparerecords(thdu.data, array)
+
+        # Test round trip
+        thdu.writeto(self.temp('table.fits'))
+        data = fits.getdata(self.temp('table.fits'), ext=1)
+        assert thdu.columns.formats == ['L', 'L']
+        assert comparerecords(data, array)

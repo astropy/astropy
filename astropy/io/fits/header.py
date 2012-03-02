@@ -23,7 +23,12 @@ PY3K = sys.version_info[:2] >= (3, 0)
 HEADER_END_RE = re.compile('END {77} *$')
 
 
-class Header(collections.MutableMapping):
+# According to the FITS standard the only characters that may appear in a
+# header record are the restricted ASCII chars from 0x20 through 0x7E.
+VALID_HEADER_CHARS = set(chr(x) for x in range(0x20, 0x7F))
+
+
+class Header(object):
     """
     FITS header class.  This class exposes both a dict-like interface and a
     list-like interface to FITS headers.
@@ -149,8 +154,12 @@ class Header(collections.MutableMapping):
         else:
             comment = None
 
+        card = None
         if isinstance(key, int):
             card = self._cards[key]
+        elif isinstance(key, tuple):
+            card = self._cards[self._cardindex(key)]
+        if card:
             card.value = value
             if comment is not None:
                 card.comment = comment
@@ -222,6 +231,14 @@ class Header(collections.MutableMapping):
     def __str__(self):
         return self.tostring()
 
+    def __eq__(self, other):
+        """
+        Two Headers are equal only if they have the exact same string
+        representation.
+        """
+
+        return str(self) == str(other)
+
     def __add__(self, other):
         temp = self.copy(strip=False)
         temp.extend(other)
@@ -238,7 +255,7 @@ class Header(collections.MutableMapping):
         looked at, but it should not be modified directly.
         """
 
-        return tuple(self._cards)
+        return _CardAccessor(self)
 
     @property
     def comments(self):
@@ -280,34 +297,48 @@ class Header(collections.MutableMapping):
             A new `Header` instance.
         """
 
-        actual_block_size = _block_size(sep)
-
         cards = []
-
-        # Split the header into individual cards
-        idx = 0
-
-        def peeknext():
-            if idx + Card.length < len(data):
-                return data[idx + Card.length:idx + Card.length * 2]
-            else:
-                return None
 
         end = 'END' + ' ' * 77
 
+        # If the card separator contains characters that may validly appear in
+        # a card, the only way to unambiguously distinguish between cards is to
+        # require that they be Card.length long.  However, if the separator
+        # contains non-valid characters (namely \n) the cards may be split
+        # immediately at the separator
+        require_full_cardlength = set(sep).issubset(VALID_HEADER_CHARS)
+
+        # Split the header into individual cards
+        idx = 0
+        image = []
+
         while idx < len(data):
-            image = [data[idx:idx + Card.length]]
-            if image[0] == end:
+            if require_full_cardlength:
+                end_idx = idx + Card.length
+            else:
+                try:
+                    end_idx = data.index(sep, idx)
+                except ValueError:
+                    end_idx = len(data)
+
+            next_image = data[idx:end_idx]
+            idx = end_idx + len(sep)
+
+            if image:
+                if next_image[:8] == 'CONTINUE':
+                    image.append(next_image)
+                    continue
+                cards.append(Card.fromstring(''.join(image)))
+
+            if next_image == end:
+                image = []
                 break
 
-            next = peeknext()
-            while next and next[:8] == 'CONTINUE':
-                image.append(next)
-                idx += Card.length + len(sep)
-                next = peeknext()
+            image = [next_image]
 
+        # Add the last image that was found before the end, if any
+        if image:
             cards.append(Card.fromstring(''.join(image)))
-            idx += Card.length + len(sep)
 
         return cls(cards)
 
@@ -892,7 +923,7 @@ class Header(collections.MutableMapping):
 
         """
 
-        legacy_args = ['key', 'value', 'args', 'comment', 'before', 'after',
+        legacy_args = ['key', 'value', 'comment', 'before', 'after',
                        'savecomment']
 
         # This if statement covers all the cases in which this could be a
@@ -1022,7 +1053,6 @@ class Header(collections.MutableMapping):
 
         if isinstance(card, basestring):
             card = Card(card)
-            self._cards.append(card)
         elif isinstance(card, tuple):
             card = Card(*card)
         elif card is None:
@@ -1824,7 +1854,7 @@ class _CardAccessor(object):
         self._header = header
 
     def __repr__(self):
-        '\n'.join(str(c) for c in self._header._cards)
+        return '\n'.join(repr(c) for c in self._header._cards)
 
     def __len__(self):
         return len([c for c in self])
@@ -1844,6 +1874,24 @@ class _CardAccessor(object):
 
         idx = self._header._cardindex(item)
         return self._header._cards[idx]
+
+    def _setslice(self, item, value):
+        """
+        Helper for implementing __setitem__ on _CardAccessor subclasses; slices
+        should always be handled in this same way.
+        """
+
+        if isinstance(item, slice) or self._header._haswildcard(item):
+            if isinstance(item, slice):
+                indices = xrange(*item.indices(len(self)))
+            else:
+                indices = self._header._wildcardmatch(item)
+            if isinstance(value, basestring) or not isiterable(value):
+                value = itertools.repeat(value, len(indices))
+            for idx, val in itertools.izip(indices, value):
+                self[idx] = val
+            return True
+        return False
 
 
 class _HeaderComments(_CardAccessor):
@@ -1879,20 +1927,12 @@ class _HeaderComments(_CardAccessor):
 
     def __setitem__(self, item, comment):
         """
-        Set the comment on specified card or cards.
+        Set/update the comment on specified card or cards.
 
         Slice/filter updates work similarly to how Header.__setitem__ works.
         """
 
-        if isinstance(item, slice) or self._header._haswildcard(item):
-            if isinstance(item, slice):
-                indices = xrange(*item.indices(len(self._header)))
-            else:
-                indices = self._header._wildcardmatch(item)
-            if isinstance(comment, basestring) or not isiterable(comment):
-                comment = itertools.repeat(comment, len(indices))
-            for idx, val in itertools.izip(indices, comment):
-                self[idx] = val
+        if self._setslice(item, comment):
             return
 
         # In this case, key/index errors should be raised; don't update
@@ -1908,14 +1948,27 @@ class _HeaderCommentaryCards(_CardAccessor):
         self._keyword = keyword
 
     def __repr__(self):
-        return '\n'.join('%d: %s' % (idx, c.value)
-                         for idx, c in enumerate(self._header._cards)
-                         if c.keyword == self._keyword)
+        return '\n'.join('%d: %s' % (idx, value)
+                         for idx, value in enumerate(self))
 
     def __getitem__(self, idx):
         if not isinstance(idx, int):
             raise ValueError('%s index must be an integer' % self._keyword)
         return self._header[(self._keyword, idx)]
+
+    def __setitem__(self, item, value):
+        """
+        Set the value of a specified commentary card or cards.
+
+        Slice/filter updates work similarly to how Header.__setitem__ works.
+        """
+
+        if self._setslice(item, value):
+            return
+
+        # In this case, key/index errors should be raised; don't update
+        # comments of nonexistent cards
+        self._header[(self._keyword, item)] = value
 
 
 def _is_astropy_internal():
