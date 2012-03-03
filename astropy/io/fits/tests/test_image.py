@@ -610,12 +610,16 @@ class TestImageFunctions(FitsTestCase):
         shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
         mtime = os.stat(self.temp('scale.fits')).st_mtime
 
+        time.sleep(1)
+
         fits.open(self.temp('scale.fits'), mode='update').close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
         assert mtime == os.stat(self.temp('scale.fits')).st_mtime
 
+        # Insert a slight delay to ensure the mtime does change when the file
+        # is changed
         time.sleep(1)
 
         hdul = fits.open(self.temp('scale.fits'), 'update')

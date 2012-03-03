@@ -79,7 +79,6 @@ class Header(object):
         """
 
         self.clear()
-        self._modified = False
 
         if txtfile:
             warnings.warn(
@@ -88,6 +87,7 @@ class Header(object):
                 DeprecationWarning)
             # get the cards from the input ASCII file
             self.update(self.fromfile(txtfile))
+            self._modified = False
             return
 
         if isinstance(cards, Header):
@@ -95,6 +95,8 @@ class Header(object):
 
         for card in cards:
             self.append(card, end=True)
+
+        self._modified = False
 
     def __len__(self):
         return len(self._cards)
@@ -274,6 +276,26 @@ class Header(object):
         """
 
         return _HeaderComments(self)
+
+    @property
+    def _modified(self):
+        """
+        Whether or not the header has been modified; this is a property so that
+        it can also check each card for modifications--cards may have been
+        modified directly without the header containing it otherwise knowing.
+        """
+
+        modified_cards = any(c._modified for c in self._cards)
+        if modified_cards:
+            # If any cards were modified then by definition the header was
+            # modified
+            self.__dict__['_modified'] = True
+
+        return self.__dict__['_modified']
+
+    @_modified.setter
+    def _modified(self, val):
+        self.__dict__['_modified'] = val
 
     @classmethod
     def fromstring(cls, data, sep=''):
@@ -713,16 +735,12 @@ class Header(object):
             if value is None:
                 value = self[keyword]
 
-            setval = (value, comment)
+            self[keyword] = (value, comment)
 
-            if before is None and after is None:
-                self[keyword] = setval
-            else:
-                self[keyword] = setval
-                idx = self._cardindex(keyword)
-                card = self._cards[idx]
-                del self[idx]
-                self._relativeinsert(card, before=before, after=after)
+            if before is not None or after is not None:
+                card = self._cards[self._cardindex(keyword)]
+                self._relativeinsert(card, before=before, after=after,
+                                     replace=True)
         elif before is not None or after is not None:
             self._relativeinsert((keyword, value, comment), before=before,
                                  after=after)
@@ -1516,28 +1534,58 @@ class Header(object):
                     'Header indices must be either a string, a 2-tuple, or '
                     'an integer.')
 
-    def _relativeinsert(self, card, before=None, after=None):
+    def _relativeinsert(self, card, before=None, after=None, replace=False):
         """
         Inserts a new card before or after an existing card; used to
         implement support for the legacy before/after keyword arguments to
         Header.update().
+
+        If replace=True, move an existing card with the same keyword.
         """
 
         if before is None:
             insertionkey = after
         else:
             insertionkey = before
-        if not (isinstance(insertionkey, int) and
-                insertionkey >= len(self._cards)):
-            # Don't bother looking up the card index if idx is above the last
-            # card--this just means append to the end, and would otherwise
-            # result in an IndexError
-            idx = self._cardindex(insertionkey)
-        else:
-            idx = insertionkey
 
-        if before is None:
-            idx += 1
+        def get_insertion_idx():
+            if not (isinstance(insertionkey, int) and
+                    insertionkey >= len(self._cards)):
+                idx = self._cardindex(insertionkey)
+            else:
+                idx = insertionkey
+
+            if before is None:
+                idx += 1
+
+            return idx
+
+        if replace:
+            # The card presumably already exists somewhere in the header.
+            # Check whether or not we actually have to move it; if it does need
+            # to be moved we just delete it and then it will be reinstered
+            # below
+            old_idx = self._cardindex(card.keyword)
+            insertion_idx = get_insertion_idx()
+
+            if (insertion_idx >= len(self._cards) and
+                old_idx == len(self._cards) - 1):
+                # The card would be appended to the end, but it's already at
+                # the end
+                return
+
+            if before is not None:
+                if old_idx == insertion_idx - 1:
+                    return
+            elif after is not None and old_idx == insertion_idx:
+                return
+
+            del self[old_idx]
+
+
+        # Even if replace=True, the insertion idx may have changed since the
+        # old card was deleted
+        idx = get_insertion_idx()
 
         if card[0] in Card._commentary_keywords:
             cards = reversed(self._splitcommentary(card[0], card[1]))

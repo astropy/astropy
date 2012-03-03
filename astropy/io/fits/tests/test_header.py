@@ -1029,6 +1029,45 @@ class TestHeaderFunctions(FitsTestCase):
         header2 = fits.Header.fromtextfile(self.temp('test.hdr'))
         assert header == header2
 
+    def test_unnecessary_move(self):
+        """Regression test for #125.
+
+        Ensures that a header is not modified when setting the position of a
+        keyword that's already in its correct position.
+        """
+
+        header = fits.Header([('A', 'B'), ('B', 'C'), ('C', 'D')])
+
+        header.set('B', before=2)
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        header.set('B', after=0)
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        header.set('B', before='C')
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        header.set('B', after='A')
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        header.set('B', before=2)
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        # 123 is well past the end, and C is already at the end, so it's in the
+        # right place already
+        header.set('C', before=123)
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
+        header.set('C', after=123)
+        assert header.keys() == ['A', 'B', 'C']
+        assert not header._modified
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
