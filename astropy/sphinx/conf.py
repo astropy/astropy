@@ -30,6 +30,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.inheritance_diagram',
     'astropy.sphinx.ext.numpydoc',
+    'astropy.sphinx.ext.automodsumm',
     'astropy.sphinx.ext.automodapi'
     ]
 
