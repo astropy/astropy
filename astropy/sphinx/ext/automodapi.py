@@ -49,9 +49,11 @@ Class Inheritance Diagram
 
 """
 
-_automodapirex = re.compile(
-    r'^(\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)\s*$', flags=re.MULTILINE)
-
+_automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
+                            r'\s*$((?:\n\s+:[a-zA-Z_\-]+:.*$)*)',
+                            flags=re.MULTILINE)
+#the last group of the above regex is intended to go into finall with the below
+_automodapiargsrex = re.compile(r':([a-zA-Z_\-]+):(.*)$', flags=re.MULTILINE)
 
 def automodapi_replace(sourcestr, dotoctree=True):
     """
@@ -61,21 +63,26 @@ def automodapi_replace(sourcestr, dotoctree=True):
 
     spl = _automodapirex.split(sourcestr)
     if len(spl) > 1:  # automodsumm is in this document
-        for grp in reversed(range(len(spl) // 3)):
-            modnm = spl[grp * 3 + 2]
-            del spl[grp * 3 + 2]
+        newstrs = [spl[0]]
+        for grp in range(len(spl) // 3):
+            modnm = spl[grp * 3 + 1]
+            #each of modops is a optionname, arguments tuple
+            modops = _automodapiargsrex.findall(spl[grp * 3 + 2])
 
-            templstr = automod_templ.format(
+            #do something with modops
+
+            newstrs.append(automod_templ.format(
                 modname=modnm, modcrts='^' * len(modnm),
-                toctree=toctreestr if dotoctree else '')
+                toctree=toctreestr if dotoctree else ''))
 
             # add in the inheritance diagram if any classes are in the module
             if any([isclass(obj) for obj in find_mod_objs(modnm, False)]):
                 templinhstr = automod_inh_templ.format(modname=modnm)
-                spl[grp * 3 + 1] = templstr + templinhstr
-            else:
-                spl[grp * 3 + 1] = templstr
-    return ''.join(spl)
+                newstrs[-1] += templinhstr
+            newstrs.append(spl[grp * 3 + 3])
+        return ''.join(newstrs)
+    else:
+        return sourcestr
 
 
 def process_automodapi(app, docname, source):
