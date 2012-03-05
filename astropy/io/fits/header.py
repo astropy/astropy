@@ -779,19 +779,12 @@ class Header(object):
             yield v
 
     def keys(self):
-        """Return a list of keys with duplicates removed."""
+        """
+        Return a list of keywords in the header in the order they
+        appear--like:meth:`dict.keys` but ordered.
+        """
 
-        seen = set()
-        retval = []
-
-        for card in self._cards:
-            # Blank keywords are ignored
-            keyword = card.keyword
-            if keyword and keyword not in seen:
-                seen.add(keyword)
-                retval.append(keyword)
-
-        return retval
+        return [keyword for keyword in self]
 
     def pop(self, *args):
         """

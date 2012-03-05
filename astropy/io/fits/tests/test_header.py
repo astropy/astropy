@@ -903,9 +903,9 @@ class TestHeaderFunctions(FitsTestCase):
         # a little more clear)
         header.append('')
         assert len(header) == 4
-        # Blank keywords are ignored in the keys list
-        assert header.keys()[-1] == 'E'
+        assert header.keys()[-1] == ''
         assert header[''] == ''
+        assert header.comments[''] == ''
 
     def test_header_insert_use_blanks(self):
         header = fits.Header([('A', 'B'), ('C', 'D')])
