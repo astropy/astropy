@@ -121,8 +121,9 @@ def generate_c_docstrings():
         key for key in docstrings.keys()
         if not key.startswith('__') and type(key) in string_types]
     keys.sort()
+    docs = {}
     for key in keys:
-        docstrings[key] = docstrings[key].encode('utf8').lstrip() + b'\0'
+        docs[key] = docstrings[key].encode('utf8').lstrip() + b'\0'
 
     h_file = StringIO()
     h_file.write("""/*
@@ -141,7 +142,7 @@ void fill_docstrings(void);
 
 """)
     for key in keys:
-        val = docstrings[key]
+        val = docs[key]
         h_file.write('extern char doc_{0}[{1}];\n'.format(key, len(val)))
     h_file.write("\n#endif\n\n")
 
@@ -166,12 +167,12 @@ MSVC, do not support string literals greater than 256 characters.
 #if defined(_MSC_VER)
 """)
     for key in keys:
-        val = docstrings[key]
+        val = docs[key]
         c_file.write('char doc_{0}[{1}];\n'.format(key, len(val)))
 
     c_file.write("\nvoid fill_docstrings(void)\n{\n")
     for key in keys:
-        val = docstrings[key]
+        val = docs[key]
         # For portability across various compilers, we need to fill the
         # docstrings in 256-character chunks
         for i in range(0, len(val), 256):
@@ -184,7 +185,7 @@ MSVC, do not support string literals greater than 256 characters.
     c_file.write("#else /* UNIX */\n")
 
     for key in keys:
-        val = docstrings[key]
+        val = docs[key]
         c_file.write('char doc_{0}[{1}] = "{2}";\n\n'.format(
             key, len(val), string_escape(val).replace('"', '\\"')))
 
