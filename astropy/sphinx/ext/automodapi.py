@@ -39,7 +39,7 @@ Classes and Functions
     {toctree}
 
 """
-toctreestr = ':toctree: _generated/'
+toctreedirnm = '_generated/'
 automod_inh_templ = """
 Class Inheritance Diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,6 +63,16 @@ def automodapi_replace(sourcestr, dotoctree=True):
 
     spl = _automodapirex.split(sourcestr)
     if len(spl) > 1:  # automodsumm is in this document
+
+        if dotoctree:
+            toctreestr = ':toctree: '
+            if isinstance(dotoctree, basestring):
+                toctreestr += '../' * dotoctree.count('/') + toctreedirnm
+            else:
+                toctreestr += toctreedirnm
+        else:
+            toctreestr = ''
+
         newstrs = [spl[0]]
         for grp in range(len(spl) // 3):
             modnm = spl[grp * 3 + 1]
@@ -73,7 +83,7 @@ def automodapi_replace(sourcestr, dotoctree=True):
 
             newstrs.append(automod_templ.format(
                 modname=modnm, modcrts='^' * len(modnm),
-                toctree=toctreestr if dotoctree else ''))
+                toctree=toctreestr))
 
             # add in the inheritance diagram if any classes are in the module
             if any([isclass(obj) for obj in find_mod_objs(modnm, False)]):
@@ -86,7 +96,8 @@ def automodapi_replace(sourcestr, dotoctree=True):
 
 
 def process_automodapi(app, docname, source):
-    source[0] = automodapi_replace(source[0], app.config.automodsumm_generate)
+    dotoctree = docname if app.config.automodsumm_generate else False
+    source[0] = automodapi_replace(source[0], dotoctree)
 
 
 def setup(app):
