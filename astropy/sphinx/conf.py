@@ -43,12 +43,11 @@ default_role = 'obj'
 
 try:
     import matplotlib.sphinxext.plot_directive
+    extensions += [matplotlib.sphinxext.plot_directive.__name__]
 except ImportError:
     warnings.warn(
         "matplotlib's plot_directive could not be imported. " +
         "Inline plots will not be included in the output")
-else:
-    extensions += ['matplotlib.sphinxext.plot_directive']
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
