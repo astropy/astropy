@@ -7,39 +7,42 @@ These directives are primarily for use with the `automodapi` extension,
 but can be used independently.
 
 =======================
-"automodsumm" directive
+`automodsumm` directive
 =======================
 
-This directive requires a single argument that must be a
-module or package.  It will then produce an "autosummary" table for public
-attributes of that module, as produced by the `sphinx.ext.autosummary`
-extension.  The main difference from the autosummary directive is that
-autosummary requires manually inputting all attributes that appear in the
-table, while this captures the entries automatically.  Otherwise, it has the
-same options as the 'autosummary' directive.
+This directive will produce an "autosummary"-style table for public
+attributesof a specified module. See the `sphinx.ext.autosummary`
+extensionfor details on this process. The main difference from the
+`autosummary`directive is that `autosummary` requires manually inputting
+all attributes that appear in the table, while this captures the entries
+automatically.
 
-To control autogeneration of stub documentation for automodsumm
-directives, this extension adds a 'automodsumm_generate' spinx
-configuration option. If it is True, 'automodsumm' (and 'automodapi')
-directives where the ':toctree:' option is set cause stub documentation
-to be produced for the items in the summary table. For 'automodapi',
-the generated files are placed in a directory '_generated', while for
-'automodsumm', the 'toctree' option can be used to specify where the
-documentation goes. See the `sphinx.ext.autosummary` documentation for
-more details on controlling the output of this generation.
+This directive requires a single argument that must be a module or
+package. It also accepts the same arguments as the `autosummary`
+directive- see `sphinx.ext.autosummary` for details.
+
+This extension also adds a sphinx configuration option
+`automodsumm_generate`.If it is True, `automodsumm` directives where the
+':toctree:' option is set cause stub documentation to be produced for
+theitemsin the summary table. The option takes an argument that
+specifieswherethe generated table should go. By convention for astropy,
+thisshould be the ``docs/_generated`` directory (this is where the
+`automodapi`directiveplaces its generated summary table).
 
 
 ===========================
-"automod-diagram" directive
+`automod-diagram` directive
 ===========================
 
 This directive will produce an inheritance diagram like that of the
-`sphinx.ext.inheritance_diagram` extension. It requires a single
- argument that must be a module or package.
+`sphinx.ext.inheritance_diagram`extension.
+
+This directive requires a single argument that must be a module or
+package.It accepts no options.
 
 .. note::
-    Like 'inheritance-diagram', 'automod-diagram' requires graphviz
-    to generate the inheritance diagram.
+    Like 'inheritance-diagram', 'automod-diagram' requires graphviz to
+    generate the inheritance diagram.
 
 """
 import re
@@ -74,7 +77,7 @@ class Automodsumm(Autosummary):
 
 
 def find_mod_objs(modname, names=False):
-    """ Find the all public attributes of a module or package.
+    """ Find all the public attributes of a module or package.
 
     Parameters
     ----------
@@ -158,10 +161,8 @@ def process_automodsumm_generation(app):
         filestosearch = [x + ext for x in env.found_docs
                          if os.path.isfile(env.doc2path(x))]\
 
-        liness = []
-        for sfn in filestosearch:
-            fullfn = os.path.join(env.srcdir, sfn)
-            liness.append(automodsumm_to_autosummary_lines(fullfn, app))
+        liness = [automodsumm_to_autosummary_lines(sfn, app) for
+                  sfn in filestosearch]
 
         for sfn, lines in zip(filestosearch, liness):
             if len(lines) > 0:
@@ -179,18 +180,22 @@ def automodsumm_to_autosummary_lines(fn, app):
     Searches the provided file for automodsumm directives and returns a list of
     lines where they've been replaced by appropriate autosummary directives
     """
+    import os
+
     config = app.config
+    fullfn = os.path.join(app.builder.env.srcdir, fn)
 
     lines = []
     singleindent = ' ' * 4
 
-    with open(fn) as fr:
+    with open(fullfn) as fr:
         if 'astropy.sphinx.ext.automodapi' in app._extensions:
             from astropy.sphinx.ext.automodapi import automodapi_replace
             # Must do the automodapi on the source to get the automodsumm
             # that might be in there
             filestr = automodapi_replace(fr.read(),
-                                         config.automodsumm_generate)
+                                         config.automodsumm_generate,
+                                         fn)
         else:
             filestr = fr.read()
 
