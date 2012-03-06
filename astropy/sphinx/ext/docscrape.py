@@ -7,7 +7,6 @@ import textwrap
 import re
 import pydoc
 from StringIO import StringIO
-from warnings import warn
 
 class Reader(object):
     """A line-based string reader.
@@ -84,9 +83,12 @@ class Reader(object):
 
 
 class NumpyDocString(object):
-    def __init__(self, docstring, config={}):
-        docstring = textwrap.dedent(docstring).split('\n')
+    def __init__(self, docstring, config={}, warn=None):
+        from warnings import warn as stdlib_warn
 
+        self.warn = stdlib_warn if warn is None else warn
+
+        docstring = textwrap.dedent(docstring).split('\n')
         self._doc = Reader(docstring)
         self._parsed_data = {
             'Signature': '',
@@ -109,12 +111,13 @@ class NumpyDocString(object):
 
         self._parse()
 
+
     def __getitem__(self,key):
         return self._parsed_data[key]
 
     def __setitem__(self,key,val):
         if not self._parsed_data.has_key(key):
-            warn("Unknown section %s" % key)
+            self.warn("Unknown section %s" % key)
         else:
             self._parsed_data[key] = val
 
@@ -451,7 +454,7 @@ class FunctionDoc(NumpyDocString):
 
         if self._role:
             if not roles.has_key(self._role):
-                print "Warning: invalid role %s" % self._role
+                self.warn("Warning: invalid role %s" % self._role)
             out += '.. %s:: %s\n    \n\n' % (roles.get(self._role,''),
                                              func_name)
 
