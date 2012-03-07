@@ -11,8 +11,7 @@ from parameters import WMAP5, WMAP7
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
 # Kramer (robanhk@gmail.com).
 
-# Many of these adapted from
-# astro-ph/9905116
+# Many of these adapted from astro-ph/9905116
 
 # Constants
 
@@ -176,7 +175,7 @@ class Cosmology(object):
         return 1. / (1. + z)
 
     def lookback_time(self, z):
-        """ Lookback time in Gyr to a given redshift.
+        """ Lookback time in Gyr to redshift `z`.
 
         The lookback time is the difference between the age of the
         Universe now and the age at redshift `z`.
@@ -323,8 +322,8 @@ def kpc_proper_per_arcmin(z, cosmo=None):
     return cosmo.angular_diameter_distance(z) * 1.e3 * arcmin_in_radians
 
 def arcsec_per_kpc_comoving(z, cosmo=None):
-    """ Angular separation in arcsec corresponding to a comoving
-    transverse separation in kpc at redshift `z`.
+    """ Angular separation in arcsec corresponding to a comoving kpc
+    at redshift `z`.
     """
     if cosmo is None:
         cosmo = Cosmology()
@@ -332,8 +331,8 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
                  1.e3 * arcsec_in_radians)
 
 def arcsec_per_kpc_proper(z, cosmo=None):
-    """ Angular separation in arcsec corresponding to a proper
-    transverse separation in kpc at redshift `z`.
+    """ Angular separation in arcsec corresponding to a proper kpc at
+    redshift `z`.
     """
     if cosmo is None:
         cosmo = Cosmology()
