@@ -218,4 +218,4 @@ rst_epilog = """
 # -- Settings for extensions --------------------------------------------------
 
 autosummary_generate = True
-automodsumm_generate = True
+automodapi_toctreedirnm = '_generated'

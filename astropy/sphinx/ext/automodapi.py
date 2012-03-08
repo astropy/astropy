@@ -36,6 +36,13 @@ It accepts the following options:
         ignored).  Defaults to "-^_".  Note that this must match the rest of
         the documentation page.
 
+
+This extension also adds a sphinx configuration option
+`automodapi_toctreedirnm`. It must be a string that specifies the name of the
+directory the automodsumm generated documentation ends up in.  This directory
+path should be relative to the documentation root (e.g., same place as
+``index.rst``).  It defaults to '_generated'
+
 """
 
 # Implementation note:
@@ -47,8 +54,6 @@ It accepts the following options:
 # actually built.
 
 import re
-
-toctreedirnm = '_generated/'
 
 automod_templ_header = """
 {title}
@@ -83,7 +88,8 @@ _automodapirex = re.compile(r'^(?:\s*\.\.\s+automodapi::\s*)([A-Za-z0-9_.]+)'
 _automodapiargsrex = re.compile(r':([a-zA-Z_\-]+):(.*)$', flags=re.MULTILINE)
 
 
-def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
+def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
+                       warnings=True):
     """
     Replaces `sourcestr`'s entries of ".. automdapi::" with the automodapi
     template form based on provided options.
@@ -96,17 +102,18 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
     ----------
     sourcestr : str
         The string with sphinx source to be checked for automodapi replacement.
+    app : `sphinx.application.Application`
+        The sphinx application.
     dotoctree : bool
         If True, a ":toctree:" option will be added in the ".. automodsumm::"
         sections of the template, pointing to the appropriate "generated"
         directory based on the Astropy convention (e.g. in ``docs/_generated``)
     docname : str
-        The name of the file this (if known - if not, it can be None). If not
-        provided and `dotoctree` is True, the generated files may end up in the
-        wrong place.
-    app : `sphinx.application.Application` or None
-        The sphinx application.  If None, no warnings will be issued when
-        problems are encountered.
+        The name of the file for this `sourcestr` (if known - if not, it can be
+        None). If not provided and `dotoctree` is True, the generated files may
+        end up in the wrong place.
+    warnings : bool
+        If False, all warnings that would normally be issued are silenced.
 
     Returns
     -------
@@ -114,6 +121,7 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
         The string with automodapi entries replaced with the correct sphinx
         markup.
     """
+    from os import sep
     from inspect import ismodule
 
     spl = _automodapirex.split(sourcestr)
@@ -121,10 +129,13 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
 
         if dotoctree:
             toctreestr = ':toctree: '
+            dirnm = app.config.automodapi_toctreedirnm
+            if not dirnm.endswith(sep):
+                dirnm += sep
             if docname is not None:
-                toctreestr += '../' * docname.count('/') + toctreedirnm
+                toctreestr += '../' * docname.count('/') + dirnm
             else:
-                toctreestr += toctreedirnm
+                toctreestr += dirnm
         else:
             toctreestr = ''
 
@@ -151,7 +162,8 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
 
             if len(hds) < 3:
                 msg = 'not enough headings (got {0}, need 3), using default -^_'
-                app.warn(msg.format(len(hds)), location)
+                if warnings:
+                    app.warn(msg.format(len(hds)), location)
                 hds = '-^_'
             h1, h2, h3 = hds[:3]
 
@@ -160,7 +172,8 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
                 opsstrs = ','.join(modops.keys())
                 msg = 'Found additional options ' + opsstrs + ' in automodapi.'
 
-                app.warn(msg, location)
+                if warnings:
+                    app.warn(msg, location)
 
             #now actually populate the templates
             newstrs.append(automod_templ_header.format(title=sectitle,
@@ -180,11 +193,13 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
                             msg = 'Attempted to add documentation section for '
                             '{0}, which is neither module nor package. '
                             'Skipping.'
-                            app.warn(msg.format(submodnm), location)
+                            if warnings:
+                                app.warn(msg.format(submodnm), location)
                     except ImportError:
                         msg = 'Attempted to add documentation section for '
                         '{0}, which is not importable. Skipping.'
-                        app.warn(msg.format(submodnm), location)
+                        if warnings:
+                            app.warn(msg.format(submodnm), location)
 
             for modnm in modnames:
                 ispkg, hascls, hasfunc = _mod_info(modnm)
@@ -241,10 +256,7 @@ def _mod_info(modname):
 
 
 def process_automodapi(app, docname, source):
-    source[0] = automodapi_replace(source[0],
-                                   app.config.automodsumm_generate,
-                                   docname,
-                                   app)
+    source[0] = automodapi_replace(source[0], app, True, docname)
 
 
 def setup(app):
@@ -252,3 +264,5 @@ def setup(app):
     app.setup_extension('astropy.sphinx.ext.automodsumm')
 
     app.connect('source-read', process_automodapi)
+
+    app.add_config_value('automodapi_toctreedirnm', '_generated', True)

@@ -21,14 +21,6 @@ This directive requires a single argument that must be a module or
 package. It also accepts the same arguments as the `autosummary`
 directive- see `sphinx.ext.autosummary` for details.
 
-This extension also adds a sphinx configuration option
-`automodsumm_generate`.If it is True, `automodsumm` directives where the
-':toctree:' option is set cause stub documentation to be produced for
-theitemsin the summary table. The option takes an argument that
-specifieswherethe generated table should go. By convention for astropy,
-thisshould be the ``docs/_generated`` directory (this is where the
-`automodapi`directiveplaces its generated summary table).
-
 
 ===========================
 `automod-diagram` directive
@@ -154,22 +146,21 @@ class Automoddiagram(InheritanceDiagram):
 def process_automodsumm_generation(app):
     import os
 
-    if app.config.automodsumm_generate:
-        env = app.builder.env
-        ext = app.config.source_suffix
+    env = app.builder.env
+    ext = app.config.source_suffix
 
-        filestosearch = [x + ext for x in env.found_docs
-                         if os.path.isfile(env.doc2path(x))]\
+    filestosearch = [x + ext for x in env.found_docs
+                     if os.path.isfile(env.doc2path(x))]\
 
-        liness = [automodsumm_to_autosummary_lines(sfn, app) for
-                  sfn in filestosearch]
+    liness = [automodsumm_to_autosummary_lines(sfn, app) for
+              sfn in filestosearch]
 
-        for sfn, lines in zip(filestosearch, liness):
-            if len(lines) > 0:
-                generate_automodsumm_docs(lines, sfn, builder=app.builder,
-                                          warn=app.warn, info=app.info,
-                                          suffix=app.config.source_suffix,
-                                          base_path=app.srcdir)
+    for sfn, lines in zip(filestosearch, liness):
+        if len(lines) > 0:
+            generate_automodsumm_docs(lines, sfn, builder=app.builder,
+                                      warn=app.warn, info=app.info,
+                                      suffix=app.config.source_suffix,
+                                      base_path=app.srcdir)
 
 _automodsummrex = re.compile(
     r'^(\s*)\.\.\s+(automodsumm)::\s*([A-Za-z0-9_.]+)\s*$')
@@ -182,7 +173,6 @@ def automodsumm_to_autosummary_lines(fn, app):
     """
     import os
 
-    config = app.config
     fullfn = os.path.join(app.builder.env.srcdir, fn)
 
     lines = []
@@ -193,9 +183,7 @@ def automodsumm_to_autosummary_lines(fn, app):
             from astropy.sphinx.ext.automodapi import automodapi_replace
             # Must do the automodapi on the source to get the automodsumm
             # that might be in there
-            filestr = automodapi_replace(fr.read(),
-                                         config.automodsumm_generate,
-                                         fn)
+            filestr = automodapi_replace(fr.read(), app, True, fn, False)
         else:
             filestr = fr.read()
 
@@ -398,7 +386,3 @@ def setup(app):
     #need inheritance-diagram for automod-diagram
     app.setup_extension('sphinx.ext.inheritance_diagram')
     app.add_directive('automod-diagram', Automoddiagram)
-
-    app.connect('builder-inited', process_automodsumm_generation)
-
-    app.add_config_value('automodsumm_generate', False, True)
