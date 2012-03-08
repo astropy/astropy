@@ -17,15 +17,24 @@ It accepts the following options:
         If present, the inheritance diagram will not be shown even if
         themodule/packagehashas classes.
 
-    * ``:show-subsections:``
-        If present and the specified package has modules or subpackages,
-        the summary table will be split into multiple tables for each
-        subpackage.This does not nest - only one layer of
-        subpackages/moduleswill be shown.
+    * ``:subsections: mod1[,mod2,subpkg3]``
+        If present, this generates separate documentation sections for the
+        requested submodules or subpackages.
+
+    * ``:no-main-section:``
+        If present, the documentation and summary table for the main module or
+        package will not be generated (this would generally only be used with
+        ``:subsections:`` to document a set of subsections only.)
 
     * ``:title: [str]``
         Specifies the top-level title for the section. Defaults to
         "Reference/API".
+
+    * ``:headings: [str]``
+        Specifies the characters (all in one string) to use for the heading
+        levels.  This *must* have at least 3 characters (any after 3 will be
+        ignored).  Defaults to "-^_".  Note that this must match the rest of
+        the documentation page.
 
 """
 
@@ -43,12 +52,12 @@ toctreedirnm = '_generated/'
 
 automod_templ_header = """
 {title}
-{titledashes}
+{titlehd}
 """
 
 automod_templ_docs = """
 {modname} {pkgormod}
-{modcrts}^{pkgormodcrts}
+{modhdr}{pkgormodhds}
 
 .. automodule:: {modname}
 
@@ -61,7 +70,7 @@ automod_templ_docs = """
 
 automod_inh_templ = """
 Class Inheritance Diagram
-_________________________
+{clsinhsechdr}
 
 .. automod-diagram:: {modname}
     :private-bases:
@@ -81,7 +90,6 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
     if app is None, warnings will pass silently
     """
     from inspect import ismodule
-    from .automodsumm import find_mod_objs
 
     spl = _automodapirex.split(sourcestr)
     if len(spl) > 1:  # automodsumm is in this document
@@ -99,37 +107,59 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
         for grp in range(len(spl) // 3):
             basemodnm = spl[grp * 3 + 1]
 
+            #find where this is in the document for warnings
+            if docname is None:
+                location = None
+            else:
+                location = (docname, spl[0].count('\n'))
+
             #findall yields an optionname, arguments tuple
             modops = dict(_automodapiargsrex.findall(spl[grp * 3 + 2]))
 
             inhdiag = 'no-inheritance-diagram' not in modops
             modops.pop('no-inheritance-diagram', None)
-            subsecs = 'show-subsections' in modops
-            modops.pop('show-subsections', None)
+            subsecs = modops.pop('show-subsections', None)
+            nomain = 'no-main-section' in modops
+            modops.pop('no-main-section', None)
             sectitle = modops.pop('sectitle', 'Reference/API')
+            hds = modops.pop('headings', '-^_')
+
+            if len(hds) < 3:
+                msg = 'not enough headings (got {0}, need 3), using default -^_'
+                app.warn(msg.format(len(hds)), location)
+                hds = '-^_'
+            h1, h2, h3 = hds[:3]
 
             #tell sphinx that the remaining args are invalid.
             if len(modops) > 0 and app is not None:
                 opsstrs = ','.join(modops.keys())
                 msg = 'Found additional options ' + opsstrs + ' in automodapi.'
-                if docname is None:
-                    location = None
-                else:
-                    location = (docname, spl[0].count('\n'))
+
                 app.warn(msg, location)
 
             #now actually populate the templates
             newstrs.append(automod_templ_header.format(title=sectitle,
-                titledashes='-' * len(sectitle)))
+                titlehd=h1 * len(sectitle)))
 
             # construct the list of modules to document based on the
             # show-subsections argument
-            modnames = [basemodnm]
-            if subsecs:
-                raise NotImplementedError('subsecs not yet supported')
-                for obj in find_mod_objs(basemodnm, False):
-                    if ismodule(obj):
-                        modnames.append(obj.__name__)
+            modnames = [] if nomain else [basemodnm]
+            if subsecs is not None:
+                for ss in subsecs.replace(' ', '').split(','):
+                    submodnm = basemodnm + '.' + ss
+                    try:
+                        mod = __import__(submodnm)
+                        if ismodule(mod):
+                            modnames.append(mod.__name__)
+                        else:
+                            msg = 'Attempted to add documentation section for '
+                            '{0}, which is neither module nor package. '
+                            'Skipping.'
+                            app.warn(msg.format(submodnm), location)
+                    except ImportError:
+                        msg = 'Attempted to add documentation section for '
+                        '{0}, which is not importable. Skipping.'
+                        app.warn(msg.format(submodnm), location)
 
             for modnm in modnames:
                 ispkg, hascls, hasfunc = _mod_info(modnm)
@@ -142,16 +172,17 @@ def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
                     clsfuncstr = 'Classes and Functions'
 
                 newstrs.append(automod_templ_docs.format(modname=modnm,
-                               modcrts='^' * len(modnm),
+                               modhds=h2 * len(modnm),
                                pkgormod='Package' if ispkg else 'Module',
-                               pkgormodcrts='^' * (7 if ispkg else 6),
+                               pkgormodhds=h2 * (8 if ispkg else 7),
                                classesandfunctions=clsfuncstr,
-                               classesandfunctionsudrsc='_' * len(clsfuncstr),
+                               classesandfunctionsudrsc=h3 * len(clsfuncstr),
                                toctree=toctreestr))
 
                 if inhdiag and hascls:
                     # add inheritance diagram if any classes are in the module
-                    newstrs.append(automod_inh_templ.format(modname=modnm))
+                    newstrs.append(automod_inh_templ.format(
+                        modname=modnm, clsinhsechd=h3 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)
