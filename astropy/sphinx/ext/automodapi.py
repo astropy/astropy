@@ -85,9 +85,34 @@ _automodapiargsrex = re.compile(r':([a-zA-Z_\-]+):(.*)$', flags=re.MULTILINE)
 
 def automodapi_replace(sourcestr, dotoctree=True, docname=None, app=None):
     """
-    replaces sourcestr's entries of automodapi with automodsumm entries
-    if docname is None, _generated may not be in the right place
-    if app is None, warnings will pass silently
+    Replaces `sourcestr`'s entries of ".. automdapi::" with the automodapi
+    template form based on provided options.
+
+    This is used with the sphinx event 'source-read' to replace `automodapi`
+    entries before sphinx actually processes them, as automodsumm needs the
+    code to be present to generate stub documentation.
+
+    Parameters
+    ----------
+    sourcestr : str
+        The string with sphinx source to be checked for automodapi replacement.
+    dotoctree : bool
+        If True, a ":toctree:" option will be added in the ".. automodsumm::"
+        sections of the template, pointing to the appropriate "generated"
+        directory based on the Astropy convention (e.g. in ``docs/_generated``)
+    docname : str
+        The name of the file this (if known - if not, it can be None). If not
+        provided and `dotoctree` is True, the generated files may end up in the
+        wrong place.
+    app : `sphinx.application.Application` or None
+        The sphinx application.  If None, no warnings will be issued when
+        problems are encountered.
+
+    Returns
+    -------
+    newstr :str
+        The string with automodapi entries replaced with the correct sphinx
+        markup.
     """
     from inspect import ismodule
 
@@ -218,7 +243,8 @@ def _mod_info(modname):
 def process_automodapi(app, docname, source):
     source[0] = automodapi_replace(source[0],
                                    app.config.automodsumm_generate,
-                                   docname)
+                                   docname,
+                                   app)
 
 
 def setup(app):
