@@ -62,7 +62,7 @@ automod_templ_header = """
 
 automod_templ_docs = """
 {modname} {pkgormod}
-{modhdr}{pkgormodhds}
+{modhds}{pkgormodhds}
 
 .. automodule:: {modname}
 
@@ -75,7 +75,7 @@ automod_templ_docs = """
 
 automod_inh_templ = """
 Class Inheritance Diagram
-{clsinhsechdr}
+{clsinhsechds}
 
 .. automod-diagram:: {modname}
     :private-bases:
@@ -121,6 +121,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         The string with automodapi entries replaced with the correct sphinx
         markup.
     """
+    import sys
     from os import sep
     from inspect import ismodule
 
@@ -154,7 +155,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             inhdiag = 'no-inheritance-diagram' not in modops
             modops.pop('no-inheritance-diagram', None)
-            subsecs = modops.pop('show-subsections', None)
+            subsecs = modops.pop('subsections', None)
             nomain = 'no-main-section' in modops
             modops.pop('no-main-section', None)
             sectitle = modops.pop('sectitle', 'Reference/API')
@@ -165,7 +166,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if warnings:
                     app.warn(msg.format(len(hds)), location)
                 hds = '-^_'
-            h1, h2, h3 = hds[:3]
+            h1, h2, h3 = hds.lstrip()[:3]
 
             #tell sphinx that the remaining args are invalid.
             if len(modops) > 0 and app is not None:
@@ -186,18 +187,19 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 for ss in subsecs.replace(' ', '').split(','):
                     submodnm = basemodnm + '.' + ss
                     try:
-                        mod = __import__(submodnm)
+                        __import__(submodnm)
+                        mod = sys.modules[submodnm]
                         if ismodule(mod):
                             modnames.append(mod.__name__)
                         else:
-                            msg = 'Attempted to add documentation section for '
-                            '{0}, which is neither module nor package. '
-                            'Skipping.'
+                            msg = ('Attempted to add documentation section for '
+                                   '{0}, which is neither module nor package. '
+                                   'Skipping.')
                             if warnings:
                                 app.warn(msg.format(submodnm), location)
                     except ImportError:
-                        msg = 'Attempted to add documentation section for '
-                        '{0}, which is not importable. Skipping.'
+                        msg = ('Attempted to add documentation section for '
+                               '{0}, which is not importable. Skipping.')
                         if warnings:
                             app.warn(msg.format(submodnm), location)
 
@@ -222,7 +224,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if inhdiag and hascls:
                     # add inheritance diagram if any classes are in the module
                     newstrs.append(automod_inh_templ.format(
-                        modname=modnm, clsinhsechd=h3 * 25))
+                        modname=modnm, clsinhsechds=h3 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)
