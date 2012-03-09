@@ -30,7 +30,7 @@ This directive will produce an inheritance diagram like that of the
 `sphinx.ext.inheritance_diagram`extension.
 
 This directive requires a single argument that must be a module or
-package.It accepts no options.
+package. It accepts no options.
 
 .. note::
     Like 'inheritance-diagram', 'automod-diagram' requires graphviz to
@@ -125,8 +125,9 @@ _automodsummrex = re.compile(
 
 def automodsumm_to_autosummary_lines(fn, app):
     """
-    Searches the provided file for automodsumm directives and returns a list of
-    lines where they've been replaced by appropriate autosummary directives
+    Searches the provided file for automodsumm directives and returns a
+    list of lines where they've been replaced by appropriate autosummary
+    directives.
     """
     import os
 
@@ -191,10 +192,10 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                               template_dir=None):
     """
     This function is adapted from
-    `sphinx.ext.autosummary.generate.generate_autosummmary_docs` to generate
-    source for the automodsumm directives that should be autosummarized.
-    Unlike generate_autosummary_docs, this function is called one file at a
-    time.
+    `sphinx.ext.autosummary.generate.generate_autosummmary_docs` to
+    generate source for the automodsumm directives that should be
+    autosummarized. Unlike generate_autosummary_docs, this function is
+    called one file at a time.
     """
     import os
 

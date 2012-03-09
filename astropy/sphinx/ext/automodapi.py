@@ -15,33 +15,34 @@ It accepts the following options:
 
     * ``:no-inheritance-diagram:``
         If present, the inheritance diagram will not be shown even if
-        themodule/packagehashas classes.
+        the module/package has classes.
 
     * ``:subsections: mod1[,mod2,subpkg3]``
-        If present, this generates separate documentation sections for the
-        requested submodules or subpackages.
+        If present, this generates separate documentation sections for
+        the requested submodules or subpackages.
 
     * ``:no-main-section:``
-        If present, the documentation and summary table for the main module or
-        package will not be generated (this would generally only be used with
-        ``:subsections:`` to document a set of subsections only.)
+        If present, the documentation and summary table for the main
+        module or package will not be generated (this would generally
+        only be used with ``:subsections:`` to document a set of
+        subsections only.)
 
     * ``:title: [str]``
         Specifies the top-level title for the section. Defaults to
         "Reference/API".
 
     * ``:headings: [str]``
-        Specifies the characters (all in one string) to use for the heading
-        levels.  This *must* have at least 3 characters (any after 3 will be
-        ignored).  Defaults to "-^_".  Note that this must match the rest of
-        the documentation page.
+        Specifies the characters (all in one string) to use for the
+        heading levels. This *must* have at least 3 characters (any after
+        3 will be ignored). Defaults to "-^_". Note that this must match
+        the rest of the documentation page.
 
 
 This extension also adds a sphinx configuration option
-`automodapi_toctreedirnm`. It must be a string that specifies the name of the
-directory the automodsumm generated documentation ends up in.  This directory
-path should be relative to the documentation root (e.g., same place as
-``index.rst``).  It defaults to '_generated'
+`automodapi_toctreedirnm`. It must be a string that specifies the name of
+the directory the automodsumm generated documentation ends up in. This
+directory path should be relative to the documentation root (e.g., same
+place as ``index.rst``). It defaults to '_generated'
 
 """
 
@@ -91,35 +92,39 @@ _automodapiargsrex = re.compile(r':([a-zA-Z_\-]+):(.*)$', flags=re.MULTILINE)
 def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                        warnings=True):
     """
-    Replaces `sourcestr`'s entries of ".. automdapi::" with the automodapi
-    template form based on provided options.
+    Replaces `sourcestr`'s entries of ".. automdapi::" with the
+    automodapi template form based on provided options.
 
-    This is used with the sphinx event 'source-read' to replace `automodapi`
-    entries before sphinx actually processes them, as automodsumm needs the
-    code to be present to generate stub documentation.
+    This is used with the sphinx event 'source-read' to replace
+    `automodapi` entries before sphinx actually processes them, as
+    automodsumm needs the code to be present to generate stub
+    documentation.
 
     Parameters
     ----------
     sourcestr : str
-        The string with sphinx source to be checked for automodapi replacement.
+        The string with sphinx source to be checked for automodapi
+        replacement.
     app : `sphinx.application.Application`
         The sphinx application.
     dotoctree : bool
-        If True, a ":toctree:" option will be added in the ".. automodsumm::"
-        sections of the template, pointing to the appropriate "generated"
-        directory based on the Astropy convention (e.g. in ``docs/_generated``)
+        If True, a ":toctree:" option will be added in the "..
+        automodsumm::" sections of the template, pointing to the
+        appropriate "generated" directory based on the Astropy convention
+        (e.g. in ``docs/_generated``)
     docname : str
-        The name of the file for this `sourcestr` (if known - if not, it can be
-        None). If not provided and `dotoctree` is True, the generated files may
-        end up in the wrong place.
+        The name of the file for this `sourcestr` (if known - if not, it
+        can be None). If not provided and `dotoctree` is True, the
+        generated files may end up in the wrong place.
     warnings : bool
-        If False, all warnings that would normally be issued are silenced.
+        If False, all warnings that would normally be issued are
+        silenced.
 
     Returns
     -------
     newstr :str
-        The string with automodapi entries replaced with the correct sphinx
-        markup.
+        The string with automodapi entries replaced with the correct
+        sphinx markup.
     """
     import sys
     from os import sep
@@ -234,8 +239,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
 def _mod_info(modname):
     """
-    Determines if a module is a module or a package and whether or not it has
-    classes or functions.
+    Determines if a module is a module or a package and whether or not
+    it has classes or functions.
     """
     import sys
 
