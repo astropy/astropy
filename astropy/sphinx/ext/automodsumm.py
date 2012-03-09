@@ -119,7 +119,8 @@ def process_automodsumm_generation(app):
                                       suffix=app.config.source_suffix,
                                       base_path=app.srcdir)
 
-_automodsummrex = re.compile(r'^(\s*)\.\. automodsumm::\s*([A-Za-z0-9_.]+)\s*\n\1(\s*)(\S|$)', re.MULTILINE)
+_automodsummrex = re.compile(r'^(\s*)\.\. automodsumm::\s*([A-Za-z0-9_.]+)\s*'
+                             r'\n\1(\s*)(\S|$)', re.MULTILINE)
 
 
 def automodsumm_to_autosummary_lines(fn, app):
@@ -131,9 +132,6 @@ def automodsumm_to_autosummary_lines(fn, app):
     import os
 
     fullfn = os.path.join(app.builder.env.srcdir, fn)
-
-    lines = []
-    singleindent = ' ' * 4
 
     with open(fullfn) as fr:
         if 'astropy.sphinx.ext.automodapi' in app._extensions:
