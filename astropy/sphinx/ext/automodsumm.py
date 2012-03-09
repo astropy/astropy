@@ -155,6 +155,7 @@ def automodsumm_to_autosummary_lines(fn, app):
                                      finals):
         allindent = i1 + i2
         newlines.append(i1 + '.. autosummary::')
+        #TODO: make :toctree: go here instead of at the end
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
             newlines.append(allindent + '~' + fqn)
         newlines.extend((allindent + rem + fin).split('\n'))
@@ -189,7 +190,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
     if warn is None:
         warn = _simple_warn
 
-    info('[automodapi] generating automodsumm for: ' + srcfn)
+    #info('[automodsumm] generating automodsumm for: ' + srcfn)
 
     # create our own templating environment
     template_dirs = [os.path.join(package_dir, 'ext',
@@ -207,11 +208,14 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
     # read
     #items = find_autosummary_in_files(sources)
     items = find_autosummary_in_lines(lines, filename=srcfn)
+    if len(items) > 0:
+        msg = '[automodsumm] {1}: found {0} automodsumm entries to generate'
+        info(msg.format(len(items), srcfn))
 
 #    gennms = [item[0] for item in items]
 #    if len(gennms) > 20:
 #        gennms = gennms[:10] + ['...'] + gennms[-10:]
-#    info('[automodapi] generating autosummary for: ' + ', '.join(gennms))
+#    info('[automodsumm] generating autosummary for: ' + ', '.join(gennms))
 
     # remove possible duplicates
     items = dict([(item, True) for item in items]).keys()
@@ -312,10 +316,11 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
 
 
 def setup(app):
-    # need autosummary for automodapi
+    # need autosummary for automodsumm
     app.setup_extension('sphinx.ext.autosummary')
-    app.add_directive('automodsumm', Automodsumm)
-
-    #need inheritance-diagram for automod-diagram
+    # need inheritance-diagram for automod-diagram
     app.setup_extension('sphinx.ext.inheritance_diagram')
+
     app.add_directive('automod-diagram', Automoddiagram)
+    app.add_directive('automodsumm', Automodsumm)
+    app.connect('builder-inited', process_automodsumm_generation)
