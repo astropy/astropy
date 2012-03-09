@@ -7,9 +7,12 @@ def test_pkg_finder():
     Tests that the `utils.misc.find_current_module` function works. Note that
     this also implicitly tests compat.misc._patched_getmodule
     """
-    assert misc.find_current_module(0).__name__ == 'astropy.utils.misc'
-    assert misc.find_current_module(1).__name__ == 'astropy.utils.tests.test_misc'
-    assert misc.find_current_module(0, True).__name__ == 'astropy.utils.tests.test_misc'
+    mod1 = 'astropy.utils.misc'
+    mod2 = 'astropy.utils.tests.test_misc'
+    mod3 = 'astropy.utils.tests.test_misc'
+    assert misc.find_current_module(0).__name__ == mod1
+    assert misc.find_current_module(1).__name__ == mod2
+    assert misc.find_current_module(0, True).__name__ == mod3
 
 
 def test_fnpickling_simple(tmpdir):
@@ -113,3 +116,18 @@ def test_fnpickling_many(tmpdir):
 
     with raises(EOFError):
         misc.fnunpickle(fn, number=5)
+
+
+def test_find_mod_objs():
+    import astropy
+
+    lnms, fqns, objs = misc.find_mod_objs('astropy')
+
+    # just check for astropy.test ... other things might be added, so we
+    # shouldn't check that it's the only thing
+    assert 'test' in lnms
+    assert 'astropy.tests.helper.run_tests' in fqns
+    assert astropy.test in objs
+
+    lnms, fqns, objs = misc.find_mod_objs('astropy', lylocal=True)
+    assert 'test' not in lnms

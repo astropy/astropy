@@ -241,10 +241,10 @@ def _mod_info(modname):
 
     from os.path import split
     from inspect import isclass, isfunction
-    from .automodsumm import find_mod_objs
+    from ...utils.misc import find_mod_objs
 
     hascls = hasfunc = False
-    for obj in find_mod_objs(modname, False):
+    for obj in find_mod_objs(modname, onlylocals=True)[2]:
         hascls = hascls or isclass(obj)
         hasfunc = hasfunc or isfunction(obj)
         if hascls and hasfunc:

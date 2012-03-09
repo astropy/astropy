@@ -42,6 +42,8 @@ import re
 from sphinx.ext.autosummary import Autosummary
 from sphinx.ext.inheritance_diagram import InheritanceDiagram
 
+from ...utils.misc import find_mod_objs
+
 
 class Automodsumm(Autosummary):
     required_arguments = 1
@@ -52,7 +54,7 @@ class Automodsumm(Autosummary):
 
     def run(self):
         try:
-            modnms = find_mod_objs(self.arguments[0], True)
+            modnms = find_mod_objs(self.arguments[0])[1]
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
@@ -68,58 +70,13 @@ class Automodsumm(Autosummary):
             self.content = []
 
 
-def find_mod_objs(modname, names=False):
-    """ Find all the public attributes of a module or package.
-
-    Parameters
-    ----------
-    modname : str
-        The name of the module to search.
-    names : bool
-        If True, the attribute's names will be returned, otherwise the objects
-        themselves.
-
-    Returns
-    -------
-    objs : list
-        A list with the fully-qualified names of the module's public attributes
-        If `names` is True, or the objects themselves if it is False.
-
-    """
-    import sys
-
-    __import__(modname)
-    pkg = sys.modules[modname]
-    pkgd = dict([(k, v) for k, v in pkg.__dict__.iteritems() if k[0] != '_'])
-
-    #full-qualified names
-    fullnames = []
-    for n in pkgd:
-        obj = pkgd[n]
-        if hasattr(obj, '__module__'):
-            fullnames.append(obj.__module__ + '.' + obj.__name__)
-        else:
-            fullnames.append(None)
-
-    #sort on fqn
-    sortnms = sorted(zip(fullnames, pkgd))
-    fullnames = [nmtuple[0] for nmtuple in sortnms if nmtuple[0] is not None]
-    attrnames = [nmtuple[1] for nmtuple in sortnms if nmtuple[0] is not None]
-
-    if names:
-        return fullnames
-    else:
-        return [pkgd[n] for n in attrnames]
-
-
 #<-------------------automod-diagram stuff------------------------------------>
 class Automoddiagram(InheritanceDiagram):
     def run(self):
         from inspect import isclass
 
         try:
-            nms = find_mod_objs(self.arguments[0], True)
-            objs = find_mod_objs(self.arguments[0], False)
+            nms, objs = find_mod_objs(self.arguments[0], onlylocals=True)[1:]
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
@@ -194,7 +151,7 @@ def automodsumm_to_autosummary_lines(fn, app):
     def finish_content(lines, modnm, indent):
         """Adds the content items for autosummary to the lines"""
         lines.append(indent + singleindent)
-        for objnm in find_mod_objs(modnm, names=True):
+        for objnm in find_mod_objs(modnm, onlylocals=True)[1]:
             lines.append(indent + singleindent + '~' + objnm)
         lines.append(indent + singleindent)
 
