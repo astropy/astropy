@@ -119,8 +119,7 @@ def process_automodsumm_generation(app):
                                       suffix=app.config.source_suffix,
                                       base_path=app.srcdir)
 
-_automodsummrex = re.compile(
-    r'^(\s*)\.\.\s+(automodsumm)::\s*([A-Za-z0-9_.]+)\s*$')
+_automodsummrex = re.compile(r'^(\s*)\.\. automodsumm::\s*([A-Za-z0-9_.]+)\s*\n\1(\s*)(\S|$)', re.MULTILINE)
 
 
 def automodsumm_to_autosummary_lines(fn, app):
@@ -145,46 +144,24 @@ def automodsumm_to_autosummary_lines(fn, app):
         else:
             filestr = fr.read()
 
-    indentrex = None
-    modnm = None
-    indent = ''
+    spl = _automodsummrex.split(filestr)
+    indent1s = spl[1::5]
+    mods = spl[2::5]
+    indent2s = spl[3::5]
+    remainders = spl[4::5]
+    finals = spl[5::5]
 
-    def finish_content(lines, modnm, indent):
-        """Adds the content items for autosummary to the lines"""
-        lines.append(indent + singleindent)
-        for objnm in find_mod_objs(modnm, onlylocals=True)[1]:
-            lines.append(indent + singleindent + '~' + objnm)
-        lines.append(indent + singleindent)
+    newlines = [spl[0][:-1]]  # the [:-1] strips off the trailing newline
 
-    # iterate over lines in the source file, searching for automodsumm
-    for l in filestr.split('\n'):
-        if indentrex is not None:  # inside automodsumm
-            if not indentrex.match(l):
-                finish_content(lines, modnm, indent)
-                indentrex = None
-                modnm = None
-                indent = ''
-            else:
-                lines.append(l)
-        else:
-            m = _automodsummrex.match(l)
-            if m:
-                indent = m.group(1)
-                modnm = m.group(3)
+    for i1, modnm, i2, rem, fin in zip(indent1s, mods, indent2s, remainders,
+                                     finals):
+        allindent = i1 + i2
+        newlines.append(i1 + '.. autosummary::')
+        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+            newlines.append(allindent + '~' + fqn)
+        newlines.extend((allindent + rem + fin).split('\n'))
 
-                amsstart, amsend = m.regs[2]
-                mnmstart, mnmend = m.regs[3]
-                lines.append((l[:amsstart] + 'autosummary' +
-                              l[amsend:mnmstart] + l[mnmend:]))
-
-                #now make the regex for checking if still in automodsumm
-                rexstr = '({0})|({1})'.format(r'\s*$',
-                                              r'^' + indent + r'\s+')
-                indentrex = re.compile(rexstr)
-    if indentrex is not None:  # the file ends while still in automodsumm
-        finish_content(lines, modnm, indent)
-
-    return lines
+    return newlines
 
 
 def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
