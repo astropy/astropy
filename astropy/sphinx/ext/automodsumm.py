@@ -119,15 +119,42 @@ def process_automodsumm_generation(app):
                                       suffix=app.config.source_suffix,
                                       base_path=app.srcdir)
 
-_automodsummrex = re.compile(r'^(\s*)\.\. automodsumm::\s*([A-Za-z0-9_.]+)\s*'
-                             r'\n\1(\s*)(\S|$)', re.MULTILINE)
+#_automodsummrex = re.compile(r'^(\s*)\.\. automodsumm::\s*([A-Za-z0-9_.]+)\s*'
+#                             r'\n\1(\s*)(\S|$)', re.MULTILINE)
+_lineendrex = r'(?:\n|$)'
+_hdrex = r'^\n?(\s*)\.\. automodsumm::\s*(\S+)\s*' + _lineendrex
+_oprex1 = r'(?:\1(\s+)\S.*' + _lineendrex + ')'
+_oprex2 = r'(?:\1\4\S.*' + _lineendrex + ')'
+_automodsummrex = re.compile(_hdrex + '(' + _oprex1 + '?' + _oprex2 + '*)',
+                             re.MULTILINE)
 
 
 def automodsumm_to_autosummary_lines(fn, app):
     """
-    Searches the provided file for automodsumm directives and returns a
-    list of lines where they've been replaced by appropriate autosummary
-    directives.
+    Generates lines from a file with an "automodsumm" entry suitable for
+    feeding into "autosummary".
+
+    Searches the provided file for `automodsumm` directives and returns
+    a list of lines specifying the `autosummary` commands for the modules
+    requested. This does *not* return the whole file contents - just an
+    autosummary section in place of any :automodsumm: entries. Note that
+    any options given for `automodsumm` are also included in the
+    generated `autosummary` section.
+
+    Parameters
+    ----------
+    fn : str
+        The name of the file to search for `automodsumm` entries.
+    app : sphinx.application.Application
+        The sphinx Application object
+
+    Return
+    ------
+    lines : list of str
+        Lines for all `automodsumm` entries with the entries replaced by
+        `autosummary` and the module's members added.
+
+
     """
     import os
 
@@ -143,22 +170,24 @@ def automodsumm_to_autosummary_lines(fn, app):
             filestr = fr.read()
 
     spl = _automodsummrex.split(filestr)
+    #0th entry is the stuff before the first automodsumm line
     indent1s = spl[1::5]
     mods = spl[2::5]
-    indent2s = spl[3::5]
-    remainders = spl[4::5]
-    finals = spl[5::5]
+    opssecs = spl[3::5]
+    indent2s = spl[4::5]
+    remainders = spl[5::5]
 
-    newlines = [spl[0][:-1]]  # the [:-1] strips off the trailing newline
+    # only grab automodsumm sections and convert them to autosummary with the
+    # entries for all the public objects
+    newlines = []
 
-    for i1, modnm, i2, rem, fin in zip(indent1s, mods, indent2s, remainders,
-                                     finals):
+    for i1, i2, modnm, ops, rem in zip(indent1s, indent2s, mods, opssecs,
+                                       remainders):
         allindent = i1 + i2
         newlines.append(i1 + '.. autosummary::')
-        #TODO: make :toctree: go here instead of at the end
+        newlines.extend(ops.split('\n'))
         for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
             newlines.append(allindent + '~' + fqn)
-        newlines.extend((allindent + rem + fin).split('\n'))
 
     return newlines
 
