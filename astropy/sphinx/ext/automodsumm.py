@@ -18,8 +18,21 @@ all attributes that appear in the table, while this captures the entries
 automatically.
 
 This directive requires a single argument that must be a module or
-package. It also accepts the same arguments as the `autosummary`
-directive- see `sphinx.ext.autosummary` for details.
+package.
+
+It also accepts any options supported by the `autosummary` directive-
+see `sphinx.ext.autosummary` for details. It also accepts two additional
+options:
+
+    * ``:classes-only:``
+        If present, the autosummary table will only contain entries for
+        classes. This cannot be used at the same time with
+        ``:functions-only:``.
+
+    * ``:functions-only:``
+        If present, the autosummary table will only contain entries for
+        functions. This cannot be used at the same time with
+        ``:classes-only:``.
 
 
 ===========================
@@ -41,6 +54,7 @@ import re
 
 from sphinx.ext.autosummary import Autosummary
 from sphinx.ext.inheritance_diagram import InheritanceDiagram
+from docutils.parsers.rst.directives import flag
 
 from ...utils.misc import find_mod_objs
 
@@ -50,22 +64,48 @@ class Automodsumm(Autosummary):
     optional_arguments = 0
     final_argument_whitespace = False
     has_content = False
-    #option_spec = dict(Autosummary.option_spec)
+    option_spec = dict(Autosummary.option_spec)
+    option_spec['functions-only'] = flag
+    option_spec['classes-only'] = flag
 
     def run(self):
+        from inspect import isclass, isfunction
+
+        nodelist = []
+
         try:
-            modnms = find_mod_objs(self.arguments[0])[1]
+            localnames, fqns, objs = find_mod_objs(self.arguments[0])
         except ImportError:
             self.warnings = []
             self.warn("Couldn't import module " + self.arguments[0])
             return self.warnings
 
         try:
-            #set self.content to trick the Autosummary internals
-            self.content = ['~' + objname for objname in modnms]
+            # set self.content to trick the Autosummary internals.
+            # Be sure to respect functions-only and classes-only.
+            funconly = 'functions-only' in self.options
+            clsonly = 'classes-only' in self.options
+            if funconly and not clsonly:
+                cont = []
+                for nm, obj in zip(fqns, objs):
+                    if isfunction(obj):
+                        cont.append('~' + nm)
+            elif clsonly:
+                cont = []
+                for nm, obj in zip(fqns, objs):
+                    if isclass(obj):
+                        cont.append('~' + nm)
+            else:
+                if clsonly and funconly:
+                    self.warning('functions-only and classes-only both '
+                                 'defined. Skipping.')
+                cont = ['~' + objname for objname in fqns]
+            self.content = cont
+
             #can't use super because Sphinx/docutils has trouble
             #return super(Autosummary,self).run()
-            return Autosummary.run(self)
+            nodelist.extend(Autosummary.run(self))
+            return nodelist
         finally:  # has_content = False for the Automodsumm
             self.content = []
 
@@ -98,8 +138,6 @@ class Automoddiagram(InheritanceDiagram):
 
 
 #<---------------------automodsumm generation stuff--------------------------->
-
-
 def process_automodsumm_generation(app):
     import os
 
@@ -157,6 +195,7 @@ def automodsumm_to_autosummary_lines(fn, app):
 
     """
     import os
+    from inspect import isfunction, isclass
 
     fullfn = os.path.join(app.builder.env.srcdir, fn)
 
@@ -181,13 +220,41 @@ def automodsumm_to_autosummary_lines(fn, app):
     # entries for all the public objects
     newlines = []
 
-    for i1, i2, modnm, ops, rem in zip(indent1s, indent2s, mods, opssecs,
-                                       remainders):
+    #loop over all automodsumms in this document
+    for i, (i1, i2, modnm, ops, rem) in enumerate(zip(indent1s, indent2s, mods,
+                                                    opssecs, remainders)):
         allindent = i1 + i2
+
+        #filter out functions-only and classes-only options if present
+        oplines = ops.split('\n')
+        funcsonly = clssonly = False
+        for i, ln in reversed(list(enumerate(oplines))):
+            if ':functions-only:' in ln:
+                funcsonly = True
+                del oplines[i]
+            if ':classes-only:' in ln:
+                clssonly = True
+                del oplines[i]
+        if funcsonly and clssonly:
+            msg = ('Defined both functions-only and classes-only options. '
+                   'Skipping this directive.')
+            lnnum = sum([spl[j].count('\n') for j in range(i * 5 + 1)])
+            app.warn('[automodsumm]' + msg, (fn, lnnum))
+            continue
+
         newlines.append(i1 + '.. autosummary::')
-        newlines.extend(ops.split('\n'))
-        for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
-            newlines.append(allindent + '~' + fqn)
+        newlines.extend(oplines)
+        if funcsonly:
+            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+                if isfunction(obj):
+                    newlines.append(allindent + '~' + fqn)
+        elif clssonly:
+            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+                if isclass(obj):
+                    newlines.append(allindent + '~' + fqn)
+        else:
+            for nm, fqn, obj in zip(*find_mod_objs(modnm, onlylocals=True)):
+                newlines.append(allindent + '~' + fqn)
 
     return newlines
 

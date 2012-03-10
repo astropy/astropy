@@ -23,9 +23,9 @@ It accepts the following options:
 
     * ``:no-main-section:``
         If present, the documentation and summary table for the main
-        module or package will not be generated (this would generally
-        only be used with ``:subsections:`` to document a set of
-        subsections only.)
+        module or package will not be generated (this would generally be
+        used with ``:subsections:`` if there is nothing of intereset in
+        the package itself.)
 
     * ``:title: [str]``
         Specifies the top-level title for the section. Defaults to
@@ -61,20 +61,32 @@ automod_templ_header = """
 {titlehd}
 """
 
-automod_templ_docs = """
+automod_templ_modheader = """
 {modname} {pkgormod}
 {modhds}{pkgormodhds}
 
 .. automodule:: {modname}
+"""
 
-{classesandfunctions}
-{classesandfunctionsudrsc}
+automod_templ_classes = """
+Classes
+{clshds}
 
 .. automodsumm:: {modname}
+    :classes-only:
     {toctree}
 """
 
-automod_inh_templ = """
+automod_templ_funcs = """
+Functions
+{funchds}
+
+.. automodsumm:: {modname}
+    :functions-only:
+    {toctree}
+"""
+
+automod_templ_inh = """
 Class Inheritance Diagram
 {clsinhsechds}
 
@@ -209,26 +221,26 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                             app.warn(msg.format(submodnm), location)
 
             for modnm in modnames:
-                ispkg, hascls, hasfunc = _mod_info(modnm)
+                ispkg, hascls, hasfuncs = _mod_info(modnm)
 
-                if hascls and not hasfunc:
-                    clsfuncstr = 'Classes'
-                if not hascls and hasfunc:
-                    clsfuncstr = 'Functions'
-                else:
-                    clsfuncstr = 'Classes and Functions'
+                newstrs.append(automod_templ_modheader.format(modname=modnm,
+                    modhds=h2 * len(modnm),
+                    pkgormod='Package' if ispkg else 'Module',
+                    pkgormodhds=h2 * (8 if ispkg else 7)))
 
-                newstrs.append(automod_templ_docs.format(modname=modnm,
-                               modhds=h2 * len(modnm),
-                               pkgormod='Package' if ispkg else 'Module',
-                               pkgormodhds=h2 * (8 if ispkg else 7),
-                               classesandfunctions=clsfuncstr,
-                               classesandfunctionsudrsc=h3 * len(clsfuncstr),
-                               toctree=toctreestr))
+                if hasfuncs:
+                    newstrs.append(automod_templ_funcs.format(modname=modnm,
+                        funchds=h3 * 9,
+                        toctree=toctreestr))
+
+                if hascls:
+                    newstrs.append(automod_templ_classes.format(modname=modnm,
+                        clshds=h3 * 7,
+                        toctree=toctreestr))
 
                 if inhdiag and hascls:
                     # add inheritance diagram if any classes are in the module
-                    newstrs.append(automod_inh_templ.format(
+                    newstrs.append(automod_templ_inh.format(
                         modname=modnm, clsinhsechds=h3 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
