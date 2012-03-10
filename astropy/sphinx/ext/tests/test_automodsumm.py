@@ -46,20 +46,15 @@ Before
 And After
 """
 
-ams_to_asmry_expected = """
-Before
+ams_to_asmry_expected = """.. autosummary::
+    :p:
 
-.. autosummary::
     ~astropy.sphinx.ext.automodsumm.Automoddiagram
     ~astropy.sphinx.ext.automodsumm.Automodsumm
     ~astropy.sphinx.ext.automodsumm.automodsumm_to_autosummary_lines
     ~astropy.sphinx.ext.automodsumm.generate_automodsumm_docs
     ~astropy.sphinx.ext.automodsumm.process_automodsumm_generation
-    ~astropy.sphinx.ext.automodsumm.setup
-    :p:
-
-And After
-"""
+    ~astropy.sphinx.ext.automodsumm.setup"""
 
 
 def test_ams_to_asmry(tmpdir):

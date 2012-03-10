@@ -46,10 +46,18 @@ astropy.sphinx.ext.tests.test_automodapi Module
 
 .. automodule:: astropy.sphinx.ext.tests.test_automodapi
 
-Classes and Functions
-_____________________
+Functions
+_________
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :functions-only:
+    :toctree: _generated/
+
+Classes
+_______
+
+.. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :classes-only:
     :toctree: _generated/
 
 Class Inheritance Diagram
@@ -85,10 +93,18 @@ astropy.sphinx.ext.tests.test_automodapi Module
 
 .. automodule:: astropy.sphinx.ext.tests.test_automodapi
 
-Classes and Functions
-_____________________
+Functions
+_________
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :functions-only:
+    :toctree: _generated/
+
+Classes
+_______
+
+.. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :classes-only:
     :toctree: _generated/
 
 
@@ -121,10 +137,18 @@ astropy.sphinx.ext.tests.test_automodapi Module
 
 .. automodule:: astropy.sphinx.ext.tests.test_automodapi
 
-Classes and Functions
-*********************
+Functions
+*********
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :functions-only:
+    :toctree: _generated/
+
+Classes
+*******
+
+.. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
+    :classes-only:
     :toctree: _generated/
 
 Class Inheritance Diagram
@@ -174,10 +198,18 @@ astropy.sphinx.ext.automodsumm Module
 
 .. automodule:: astropy.sphinx.ext.automodsumm
 
-Classes and Functions
-_____________________
+Functions
+_________
 
 .. automodsumm:: astropy.sphinx.ext.automodsumm
+    :functions-only:
+    :toctree: _generated/
+
+Classes
+_______
+
+.. automodsumm:: astropy.sphinx.ext.automodsumm
+    :classes-only:
     :toctree: _generated/
 
 Class Inheritance Diagram
@@ -195,18 +227,13 @@ Functions
 _________
 
 .. automodsumm:: astropy.sphinx.ext.automodapi
+    :functions-only:
     :toctree: _generated/
 
 astropy.sphinx.ext.tests Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: astropy.sphinx.ext.tests
-
-Classes and Functions
-_____________________
-
-.. automodsumm:: astropy.sphinx.ext.tests
-    :toctree: _generated/
 
 
 This comes after
