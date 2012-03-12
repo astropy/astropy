@@ -129,5 +129,10 @@ def test_find_mod_objs():
     assert 'astropy.tests.helper.run_tests' in fqns
     assert astropy.test in objs
 
-    lnms, fqns, objs = misc.find_mod_objs('astropy', lylocal=True)
-    assert 'test' not in lnms
+    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.compat.misc',
+                                          onlylocals=False)
+    assert 'inspect_getmodule' in lnms
+
+    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.compat.misc',
+                                          onlylocals=True)
+    assert 'inspect_getmodule' not in lnms
