@@ -26,3 +26,7 @@ div.figures .figure {
     margin-left: 0.5em;
     margin-right: 0.5em;
 }
+
+.field-list th {
+    white-space: nowrap;
+}
