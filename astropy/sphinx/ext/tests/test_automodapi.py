@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+from pytest import importorskip
+importorskip('sphinx')  # skips these tests if sphinx not present
 
 class FakeConfig(object):
     """
