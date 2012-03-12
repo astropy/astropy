@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .. import misc
 
+#namedtuple is needed for find_mod_objs so it can have a non-local module
+from collections import namedtuple
+
 
 def test_pkg_finder():
     """
@@ -119,9 +122,11 @@ def test_fnpickling_many(tmpdir):
 
 
 def test_find_mod_objs():
-    import astropy
-
     lnms, fqns, objs = misc.find_mod_objs('astropy')
+
+    # this import  is after the above call intentionally to make sure
+    # find_mod_objs properly imports astropy on its own
+    import astropy
 
     # just check for astropy.test ... other things might be added, so we
     # shouldn't check that it's the only thing
@@ -129,10 +134,14 @@ def test_find_mod_objs():
     assert 'astropy.tests.helper.run_tests' in fqns
     assert astropy.test in objs
 
-    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.compat.misc',
+    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.tests.test_misc',
                                           onlylocals=False)
-    assert 'inspect_getmodule' in lnms
+    assert 'namedtuple' in lnms
+    assert 'collections.namedtuple' in fqns
+    assert namedtuple in objs
 
-    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.compat.misc',
+    lnms, fqns, objs = misc.find_mod_objs('astropy.utils.tests.test_misc',
                                           onlylocals=True)
-    assert 'inspect_getmodule' not in lnms
+    assert 'namedtuple' not in lnms
+    assert 'collections.namedtuple' not in fqns
+    assert namedtuple not in objs
