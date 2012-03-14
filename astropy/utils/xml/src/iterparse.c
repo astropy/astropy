@@ -55,12 +55,6 @@ next_power_of_2(Py_ssize_t n)
 /******************************************************************************
  * Python version compatibility macros
  ******************************************************************************/
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#  define PY_SSIZE_T_MAX INT_MAX
-#  define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 #if PY_MAJOR_VERSION >= 3
 #  define IS_PY3K
 #endif

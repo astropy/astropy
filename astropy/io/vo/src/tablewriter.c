@@ -35,19 +35,13 @@ next_power_of_2(Py_ssize_t n)
 /******************************************************************************
  * Python version compatibility macros
  ******************************************************************************/
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#  define PY_SSIZE_T_MAX INT_MAX
-#  define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 #if PY_MAJOR_VERSION >= 3
 #  define IS_PY3K
 #endif
 
-#  ifndef Py_TYPE
-#    define Py_TYPE(o) ((o)->ob_type)
-#  endif
+#ifndef Py_TYPE
+#  define Py_TYPE(o) ((o)->ob_type)
+#endif
 
 /******************************************************************************
  * Write TABLEDATA
@@ -150,9 +144,8 @@ _write_cstring(CHAR** buffer, Py_ssize_t* buffer_size,
  *
  * The Python arguments are:
  *
- * *write_method* (callable): A Python callable that takes a string
- *    (8-bit on Python 2, Unicode on Python 3) and writes it to a file
- *    or buffer.
+ * *write_method* (callable): A Python callable that takes a unicode
+ *    string and writes it to a file or buffer.
  *
  * *array* (numpy structured array): A Numpy record array containing
  *    the data
@@ -162,8 +155,8 @@ _write_cstring(CHAR** buffer, Py_ssize_t* buffer_size,
  *
  * *converters* (list of callables): A sequence of methods which
  *    convert from the native data types in the columns of *array* to
- *    a string in VOTABLE XML format.  Must have the same length as
- *    the number of columns in *array*.
+ *    a unicode string in VOTABLE XML format.  Must have the same
+ *    length as the number of columns in *array*.
  *
  * *write_null_values* (boolean): When True, write null values in
  *    their entirety in the table.  When False, just write empty <TD/>
