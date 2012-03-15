@@ -10,8 +10,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 import warnings
 
 # -- General configuration ----------------------------------------------------
@@ -29,10 +27,12 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
     'sphinx.ext.viewcode',
-    'astropy.sphinx.ext.numpydoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.inheritance_diagram'
-]
+    'sphinx.ext.inheritance_diagram',
+    'astropy.sphinx.ext.numpydoc',
+    'astropy.sphinx.ext.automodsumm',
+    'astropy.sphinx.ext.automodapi'
+    ]
 
 # Don't show summaries of the members in each class along with the
 # class' docstring
@@ -43,12 +43,11 @@ default_role = 'obj'
 
 try:
     import matplotlib.sphinxext.plot_directive
+    extensions += [matplotlib.sphinxext.plot_directive.__name__]
 except ImportError:
     warnings.warn(
         "matplotlib's plot_directive could not be imported. " +
         "Inline plots will not be included in the output")
-else:
-    extensions += ['matplotlib.sphinxext.plot_directive']
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
@@ -214,3 +213,9 @@ intersphinx_mapping = {
 rst_epilog = """
 .. _Astropy: http://astropy.org
 """
+
+
+# -- Settings for extensions --------------------------------------------------
+
+autosummary_generate = True
+automodapi_toctreedirnm = '_generated'

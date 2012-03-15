@@ -16,6 +16,7 @@ astropy/wcs/include/wcsconfig.h
 
 # Sphinx
 _build
+_generated
 
 # Packages/installer info
 *.egg
