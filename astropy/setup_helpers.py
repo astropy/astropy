@@ -40,11 +40,12 @@ try:
         docs/_static directories - this is needed because
         github won't create the _static dir because it has no tracked files.
         """
-        def finalize_options(self):
-            from os.path import split, join
+        def run(self):
+            from os.path import split,join
 
             from distutils.cmd import DistutilsOptionError
 
+            #If possible, creat the _static dir
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
@@ -58,7 +59,14 @@ try:
                         staticdir + 'is a file.  Must be a directory.')
                 self.mkpath(staticdir)
 
-            return BuildDoc.finalize_options(self)
+            #Now make sure Astropy is built and inject it into the sphinx path
+            #self.reinitialize_command('build', inplace=False)
+            self.run_command('build')
+            build_cmd = self.get_finalized_command('build')
+            new_path = os.path.abspath(build_cmd.build_lib)
+            sys.path.insert(0, os.path.abspath(new_path))
+
+            return BuildDoc.run(self)
 
 except ImportError as e:
     if 'sphinx' in e.args[0]:  # Sphinx not present

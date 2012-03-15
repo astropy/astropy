@@ -85,7 +85,7 @@ def mangle_signature(app, what, name, obj, options, sig, retann):
     if not (callable(obj) or hasattr(obj, '__argspec_is_invalid_')): return
     if not hasattr(obj, '__doc__'): return
 
-    doc = SphinxDocString(pydoc.getdoc(obj))
+    doc = SphinxDocString(pydoc.getdoc(obj), warn=app.warn)
     if doc['Signature']:
         sig = re.sub(u"^[^(]*", u"", doc['Signature'])
         return sig, u''

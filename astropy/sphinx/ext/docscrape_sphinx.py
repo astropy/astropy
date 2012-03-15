@@ -3,9 +3,9 @@ import sphinx
 from docscrape import NumpyDocString, FunctionDoc, ClassDoc
 
 class SphinxDocString(NumpyDocString):
-    def __init__(self, docstring, config={}):
+    def __init__(self, docstring, config={}, warn=None):
         self.use_plots = config.get('use_plots', False)
-        NumpyDocString.__init__(self, docstring, config=config)
+        NumpyDocString.__init__(self, docstring, config=config, warn=warn)
 
     # string conversion routines
     def _str_header(self, name, symbol='`'):

@@ -17,3 +17,4 @@ to the layout of the `astropy` package.
     testguide
     building_packaging
     scripts
+    sphinxext
