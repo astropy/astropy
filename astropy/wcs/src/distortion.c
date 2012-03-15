@@ -42,7 +42,7 @@ distortion_lookup_t_free(
  * (This is nothing more special than an array lookup with range
  * checking.)
  */
-static inline float
+static INLINE float
 get_dist_clamp(
     const float* const data,
     const unsigned int* const naxis,
@@ -54,7 +54,7 @@ get_dist_clamp(
      CLAMP(x, 0, (long)naxis[0] - 1))];
 }
 
-static inline float
+static INLINE float
 get_dist(
     const float* const data,
     const unsigned int* const naxis,
@@ -68,7 +68,7 @@ get_dist(
  * Converts a pixel coordinate to a fractional coordinate in the
  * lookup table on a single axis
  */
-static inline double
+static INLINE double
 image_coord_to_distortion_coord(
     const distortion_lookup_t * const lookup,
     const unsigned int axis,
@@ -92,7 +92,7 @@ image_coord_to_distortion_coord(
  * Converts a pixel coordinate to a fractional coordinate in the
  * lookup table.
  */
-static inline void
+static INLINE void
 image_coords_to_distortion_coords(
     const distortion_lookup_t * const lookup,
     const double * const img /* [NAXES] */,
@@ -110,7 +110,7 @@ image_coords_to_distortion_coords(
   }
 }
 
-inline double
+INLINE double
 get_distortion_offset(
     const distortion_lookup_t * const lookup,
     const double * const img /*[NAXES]*/) {

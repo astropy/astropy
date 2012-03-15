@@ -60,7 +60,7 @@ is_valid_alt_key(
 static int
 PyWcsprm_cset(PyWcsprm* self, const int convert);
 
-static inline void
+static INLINE void
 note_change(PyWcsprm* self) {
   self->x.flag = 0;
 }

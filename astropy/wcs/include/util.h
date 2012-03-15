@@ -7,11 +7,15 @@
 #define __UTIL_H__
 
 #ifdef __SUNPRO_C
-#define inline
+#define INLINE
 #endif
 
 #ifdef _MSC_VER
-#define inline __inline
+#define INLINE __inline
+#endif
+
+#ifndef INLINE
+#define INLINE inline
 #endif
 
 #include <wcs.h>

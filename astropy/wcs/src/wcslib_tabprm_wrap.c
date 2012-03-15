@@ -23,7 +23,7 @@
  * Helper functions                                                        *
  ***************************************************************************/
 
-static inline void
+static INLINE void
 note_change(PyTabprm* self) {
   self->x->flag = 0;
 }

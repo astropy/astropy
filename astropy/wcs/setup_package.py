@@ -274,6 +274,8 @@ def get_extensions():
         undef_macros.append('DEBUG')
 
     if sys.platform == 'win32':
+        # These are written into wcsconfig.h, but that file is not
+        # used by all parts of wcslib.
         define_macros.extend([
             ('YY_NO_UNISTD_H', None),
             ('_CRT_SECURE_NO_WARNINGS', None),
