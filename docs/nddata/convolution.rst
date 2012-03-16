@@ -21,7 +21,7 @@ The following thumbnails show the difference between Scipy's and Astropy's convo
 +-----------------------+--------------------+----------------------+
 |        Original       | Scipy ``convolve`` | Astropy ``convolve`` |
 +-----------------------+--------------------+----------------------+
-|       |original|      |       |scipy|      |      |astropy|       | 
+|       |original|      |       |scipy|      |      |astropy|       |
 +-----------------------+--------------------+----------------------+
 
 
@@ -31,7 +31,7 @@ Usage
 The convolution function is imported with::
 
     from astropy.nddata import convolve
-    
+
 and is used as::
 
     result = convolve(image, kernel)
@@ -51,3 +51,22 @@ The ``convolve`` function takes an optional ``boundary=`` argument describing ho
 By default, the kernel is not normalized. To normalize it prior to convolution, use::
 
     result = convolve(image, kernel, normalize_kernel=True)
+
+Examples
+--------
+
+Smooth a 1D array with a custom kernel and no boundary treatment::
+
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
+    array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
+
+As above, but using the 'extend' algorithm for boundaries::
+
+    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
+    array([ 1.6,  3.6,  5. ,  5.6,  5.6,  6.8,  7.8])
+
+If a NaN value is present in the original array, it will be interpolated using the kernel::
+
+    >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
+    array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
+
