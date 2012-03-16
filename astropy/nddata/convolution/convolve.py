@@ -1,12 +1,24 @@
 import numpy as np
 
-from .boundary_none import convolve2d_boundary_none
-from .boundary_extend import convolve2d_boundary_extend
-from .boundary_fill import convolve2d_boundary_fill
-from .boundary_wrap import convolve2d_boundary_wrap
+from .boundary_none import convolve1d_boundary_none, \
+                           convolve2d_boundary_none, \
+                           convolve3d_boundary_none
+
+from .boundary_extend import convolve1d_boundary_extend, \
+                             convolve2d_boundary_extend, \
+                             convolve3d_boundary_extend
+
+from .boundary_fill import convolve1d_boundary_fill, \
+                           convolve2d_boundary_fill, \
+                           convolve3d_boundary_fill
+
+from .boundary_wrap import convolve1d_boundary_wrap, \
+                           convolve2d_boundary_wrap, \
+                           convolve3d_boundary_wrap
 
 
-def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False):
+def convolve(array, kernel, boundary=None, fill_value=0.,
+             normalize_kernel=False):
     '''
     Convolve an array with a kernel
 
@@ -19,8 +31,9 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
     Parameters
     ----------
     array: np.ndarray
-        The array to convolve. This should be a 2-dimensional array or a set
-        of nested lists.
+        The array to convolve. This should be a 1, 2, or 3-dimensional array
+        or a list or a set of nested lists representing a 1, 2, or
+        3-dimensional array.
     kernel: np.ndarray
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
@@ -68,11 +81,13 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
     if array.dtype.kind == 'i':
         array = array.astype(float)
     elif array.dtype.kind != 'f':
-        raise TypeError("array should be an integer or a floating-point Numpy array")
+        raise TypeError('array should be an integer or a '
+                        'floating-point Numpy array')
     if kernel.dtype.kind == 'i':
         kernel = kernel.astype(float)
     elif kernel.dtype.kind != 'f':
-        raise TypeError("kernel should be an integer or a floating-point Numpy array")
+        raise TypeError('kernel should be an integer or a '
+                        'floating-point Numpy array')
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
@@ -87,6 +102,20 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
 
     if array.ndim == 0:
         raise Exception("cannot convolve 0-dimensional arrays")
+    elif array.ndim == 1:
+        if boundary == 'extend':
+            result = convolve1d_boundary_extend(array.astype(np.float),
+                                                kernel.astype(np.float))
+        elif boundary == 'fill':
+            result = convolve1d_boundary_fill(array.astype(np.float),
+                                              kernel.astype(np.float),
+                                              float(fill_value))
+        elif boundary == 'wrap':
+            result = convolve1d_boundary_wrap(array.astype(np.float),
+                                              kernel.astype(np.float))
+        else:
+            result = convolve1d_boundary_none(array.astype(np.float),
+                                              kernel.astype(np.float))
     elif array.ndim == 2:
         if boundary == 'extend':
             result = convolve2d_boundary_extend(array.astype(np.float),
@@ -101,9 +130,23 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
         else:
             result = convolve2d_boundary_none(array.astype(np.float),
                                               kernel.astype(np.float))
+    elif array.ndim == 3:
+        if boundary == 'extend':
+            result = convolve3d_boundary_extend(array.astype(np.float),
+                                                kernel.astype(np.float))
+        elif boundary == 'fill':
+            result = convolve3d_boundary_fill(array.astype(np.float),
+                                              kernel.astype(np.float),
+                                              float(fill_value))
+        elif boundary == 'wrap':
+            result = convolve3d_boundary_wrap(array.astype(np.float),
+                                              kernel.astype(np.float))
+        else:
+            result = convolve3d_boundary_none(array.astype(np.float),
+                                              kernel.astype(np.float))
     else:
-        raise NotImplemented('convolve only supports 2-dimensional arrays'
-                             'at this time')
+        raise NotImplemented('convolve only supports 1, 2, and 3-dimensional '
+                             'arrays at this time')
 
     # If normalization was not requested, we need to scale the array (since
     # the kernel was normalized prior to convolution)

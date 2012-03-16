@@ -4,6 +4,7 @@ from ....tests.helper import pytest
 
 from ..convolve import convolve
 
+from numpy.testing import assert_array_almost_equal_nulp
 
 VALID_DTYPES = []
 for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
@@ -80,9 +81,9 @@ class TestConvolve2D(object):
         a 3x3 uniform kernel.
         '''
 
-        x = np.array([[0., 0., 27.],
-                      [9., 0., 0.],
-                      [0., 18., 0.]], dtype='>f8')
+        x = np.array([[0., 0., 3.],
+                      [1., 0., 0.],
+                      [0., 2., 0.]], dtype='>f8')
 
         y = np.array([[1., 1., 1.],
                       [1., 1., 1.],
@@ -144,9 +145,9 @@ class TestConvolve2D(object):
         original array.
         '''
 
-        x = np.array([[0., 0., 27.],
-                      [9., np.nan, 0.],
-                      [0., 18., 0.]], dtype='>f8')
+        x = np.array([[0., 0., 4.],
+                      [1., np.nan, 0.],
+                      [0., 3., 0.]], dtype='>f8')
 
         y = np.array([[1., 1., 1.],
                       [1., 1., 1.],
@@ -155,18 +156,18 @@ class TestConvolve2D(object):
         z = convolve(x, y, boundary=boundary)
 
         if boundary is None:
-            assert np.all(z == np.array([[0.00, 0.00, 0.00],
-                                         [0.00, 0.75, 0.00],
-                                         [0.00, 0.00, 0.00]], dtype='>f8'))
+            assert_array_almost_equal_nulp(z,np.array([[0., 0., 0.],
+                                                       [0., 1., 0.],
+                                                       [0., 0., 0.]], dtype='>f8'), 10)
         elif boundary == 'fill':
-            assert np.all(z == np.array([[1.75, 4.75, 3.75],
-                                         [3.75, 6.75, 5.75],
-                                         [3.75, 3.75, 2.75]], dtype='>f8'))
+            assert_array_almost_equal_nulp(z, np.array([[2., 6., 5.],
+                                                        [5., 9., 8.],
+                                                        [5., 5., 4.]], dtype='>f8'), 10)
         elif boundary == 'wrap':
-            assert np.all(z == np.array([[6.75, 6.75, 6.75],
-                                         [6.75, 6.75, 6.75],
-                                         [6.75, 6.75, 6.75]], dtype='>f8'))
+            assert_array_almost_equal_nulp(z, np.array([[9., 9., 9.],
+                                                        [9., 9., 9.],
+                                                        [9., 9., 9.]], dtype='>f8'), 10)
         else:
-            assert np.all(z == np.array([[2.75, 7.75, 12.75],
-                                         [4.75, 6.75, 8.75],
-                                         [6.75, 5.75, 4.75]], dtype='>f8'))
+            assert_array_almost_equal_nulp(z, np.array([[3., 10., 17.],
+                                                        [6., 9., 12.],
+                                                        [9., 8., 7.]], dtype='>f8'), 10)
