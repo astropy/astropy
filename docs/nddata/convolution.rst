@@ -70,3 +70,26 @@ If a NaN value is present in the original array, it will be interpolated using t
     >>> convolve([1, 4, 5, 6, np.nan, 7, 8], [0.2, 0.6, 0.2], boundary='extend')
     array([ 1.6,  3.6,  5. ,  5.9,  6.5,  7.1,  7.8])
 
+Kernels and arrays can be specified either as lists or as Numpy arrays. The following examples show how to construct a 1-d array as a list::
+
+    >>> kernel = [0, 1, 0]
+    >>> result = convolve(spectrum, kernel)
+
+a 2-d array as a list::
+
+    >>> kernel = [[0, 1, 0], \
+                  [1, 2, 1], \
+                  [0, 1, 0]]
+    >>> result = convolve(image, kernel)
+
+and a 3-d array as a list::
+
+    >>> kernel = [[[0, 0, 0], [0, 2, 0], [0, 0, 0]], \
+                  [[0, 1, 0], [2, 3, 2], [0, 1, 0]], \
+                  [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
+    >>> result = convolve(cube, kernel)
+
+API
+---
+
+.. autofunction:: astropy.nddata.convolve
