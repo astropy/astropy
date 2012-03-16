@@ -19,7 +19,8 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
     Parameters
     ----------
     array: np.ndarray
-        The array to convolve. This should be a 2-dimensional array.
+        The array to convolve. This should be a 2-dimensional array or a set
+        of nested lists.
     kernel: np.ndarray
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
@@ -47,11 +48,15 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
     Masked arrays are not supported at this time.
     '''
 
-    # Check that the arguemnts are Numpy arrays
-    if type(array) != np.ndarray:
-        raise TypeError("array should be a Numpy array")
-    if type(kernel) != np.ndarray:
-        raise TypeError("kernel should be a Numpy array")
+    # Check that the arguemnts are lists or Numpy arrays
+    if type(array) == list:
+        array = np.array(array, dtype=float)
+    elif type(array) != np.ndarray:
+        raise TypeError("array should be a list or a Numpy array")
+    if type(kernel) == list:
+        kernel = np.array(kernel, dtype=float)
+    elif type(kernel) != np.ndarray:
+        raise TypeError("kernel should be a list or a Numpy array")
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -60,10 +65,14 @@ def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False
 
     # The .dtype.type attribute returs the datatype without the endian. We can
     # use this to check that the arrays are 32- or 64-bit arrays
-    if array.dtype.type not in [np.float32, np.float64]:
-        raise TypeError("array should be a 32- or 64-bit Numpy array")
-    if kernel.dtype.type not in [np.float32, np.float64]:
-        raise TypeError("kernel should be a 32- or 64-bit Numpy array")
+    if array.dtype.kind == 'i':
+        array = array.astype(float)
+    elif array.dtype.kind != 'f':
+        raise TypeError("array should be an integer or a floating-point Numpy array")
+    if kernel.dtype.kind == 'i':
+        kernel = kernel.astype(float)
+    elif kernel.dtype.kind != 'f':
+        raise TypeError("kernel should be an integer or a floating-point Numpy array")
 
     # Because the Cython routines have to normalize the kernel on the fly, we
     # explicitly normalize the kernel here, and then scale the image at the
