@@ -6,7 +6,7 @@ from .boundary_fill import convolve2d_boundary_fill
 from .boundary_wrap import convolve2d_boundary_wrap
 
 
-def convolve(array, kernel, boundary=None, fill_value=0.):
+def convolve(array, kernel, boundary=None, fill_value=0., normalize_kernel=False):
     '''
     Convolve an array with a kernel
 
@@ -33,6 +33,8 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
                          value
     fill_value: float, optional
         The value to use outside the array when using boundary='fill'
+    normalize_kernel: bool, optional
+        Whether to normalize the kernel prior to convolving
 
     Returns
     -------
@@ -63,6 +65,12 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
     if kernel.dtype.type not in [np.float32, np.float64]:
         raise TypeError("kernel should be a 32- or 64-bit Numpy array")
 
+    # Because the Cython routines have to normalize the kernel on the fly, we
+    # explicitly normalize the kernel here, and then scale the image at the
+    # end if normalization was not requested.
+    kernel_sum = np.sum(kernel)
+    kernel /= kernel_sum
+
     # The cython routines are written for np.flaot, but the default endian
     # depends on platform. For that reason, we first save the original
     # array datatype, cast to np.float, then convert back
@@ -87,6 +95,11 @@ def convolve(array, kernel, boundary=None, fill_value=0.):
     else:
         raise NotImplemented('convolve only supports 2-dimensional arrays'
                              'at this time')
+
+    # If normalization was not requested, we need to scale the array (since
+    # the kernel was normalized prior to convolution)
+    if not normalize_kernel:
+        result *= kernel_sum
 
     # Cast back to original dtype and return
     return result.astype(array_dtype)
