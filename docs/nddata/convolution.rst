@@ -36,7 +36,7 @@ and is used as::
 
     result = convolve(image, kernel)
 
-The input images and kernels should be Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image.
+The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image.
 
 The ``convolve`` function takes an optional ``boundary=`` argument describing how to perform the convolution at the edge of the array. The values for ``boundary`` can be:
 
@@ -48,3 +48,6 @@ The ``convolve`` function takes an optional ``boundary=`` argument describing ho
 
 * ``'extend'`` : set values outside the array to the nearest array value
 
+By default, the kernel is not normalized. To normalize it prior to convolution, use::
+
+    result = convolve(image, kernel, normalize_kernel=True)
