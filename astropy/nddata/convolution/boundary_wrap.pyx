@@ -11,7 +11,7 @@ cdef extern from "math.h":
 cimport cython
 
 
-@cython.boundscheck(False)  # turn of bounds-checking for entire function
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
                              np.ndarray[DTYPE_t, ndim=1] g):
 
@@ -79,7 +79,7 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
     return conv
 
 
-@cython.boundscheck(False)  # turn of bounds-checking for entire function
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                              np.ndarray[DTYPE_t, ndim=2] g):
 
@@ -162,7 +162,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
     return conv
 
 
-@cython.boundscheck(False)  # turn of bounds-checking for entire function
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
 def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                              np.ndarray[DTYPE_t, ndim=3] g):
 
