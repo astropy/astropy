@@ -162,7 +162,7 @@ sip_free(sip_t* sip) {
   sip->err = NULL;
 }
 
-static inline double
+static INLINE double
 lu(
     const unsigned int order,
     const double* const matrix,
