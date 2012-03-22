@@ -203,8 +203,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # appropriate slice size to get back to the input dimensions
     arrayslices = []
     kernslices = []
-    for (ii, (newdimsize, arraydimsize, kerndimsize) in
-            enumerate(zip(newshape, arrayshape, kernshape))):
+    for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
         center = newdimsize/2.
         arrayslices += [slice(center - arraydimsize/2.,
             center + arraydimsize/2.)]
