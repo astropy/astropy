@@ -1,30 +1,34 @@
 import numpy as np
 import warnings
 
-try: 
+try:
     import fftw3
     has_fftw = True
-    def fftwn(array,nthreads=1):
+
+    def fftwn(array, nthreads=1):
         array = array.astype('complex').copy()
         outarray = array.copy()
-        fft_forward = fftw3.Plan(array,outarray, direction='forward', flags=['estimate'],nthreads=nthreads)
+        fft_forward = fftw3.Plan(array, outarray, direction='forward',
+                flags=['estimate'], nthreads=nthreads)
         fft_forward.execute()
         return outarray
-    def ifftwn(array,nthreads=1):
+
+    def ifftwn(array, nthreads=1):
         array = array.astype('complex').copy()
         outarray = array.copy()
-        fft_backward = fftw3.Plan(array,outarray, direction='backward', flags=['estimate'],nthreads=nthreads)
+        fft_backward = fftw3.Plan(array, outarray, direction='backward',
+                flags=['estimate'], nthreads=nthreads)
         fft_backward.execute()
         return outarray / np.size(array)
 except ImportError:
     fftn = np.fft.fftn
     ifftn = np.fft.ifftn
     has_fftw = False
-    # I performed some fft speed tests and found that scipy is slower than numpy
-    # http://code.google.com/p/agpy/source/browse/trunk/tests/test_ffts.py
-    # However, the speed varied on machines - YMMV.  If someone finds that
-    # scipy's fft is faster, we should add that as an option here... not sure how
-    # exactly
+# I performed some fft speed tests and found that scipy is slower than numpy
+# http://code.google.com/p/agpy/source/browse/trunk/tests/test_ffts.py However,
+# the speed varied on machines - YMMV.  If someone finds that scipy's fft is
+# faster, we should add that as an option here... not sure how exactly
+
 
 def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         fft_pad=True, psf_pad=False, ignore_nan=False, quiet=False,
@@ -38,9 +42,9 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
 
     Parameters
     ----------
-    - *array* : np.ndarray 
+    *array* : np.ndarray
           Array to be convolved with *kernel*
-    - *kernel* : np.ndarray 
+    *kernel* : np.ndarray
           Will be normalized if *normalize_kernel* is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
 
@@ -48,20 +52,20 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     -------
     *fft_pad* : bool
       Default on.  Zero-pad image to the nearest 2^n
-    *psf_pad* : bool 
+    *psf_pad* : bool
       Default off.  Zero-pad image to be at least the sum of the image sizes
       (in order to avoid edge-wrapping when smoothing)
-    *crop* : bool 
+    *crop* : bool
       Default on.  Return an image of the size of the largest input image.
       If the images are asymmetric in opposite directions, will return the
       largest image in both directions.
       For example, if an input image has shape [100,3] but a kernel with shape
-      [6,6] is used, the output will be [100,6].  
-    *return_fft* : bool 
+      [6,6] is used, the output will be [100,6].
+    *return_fft* : bool
       Return the fft(image)*fft(kernel) instead of the convolution (which is
       ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
     *fftshift* : bool
-      If return_fft on, will shift & crop image to appropriate dimensions 
+      If return_fft on, will shift & crop image to appropriate dimensions
     *ignore_nan* : bool
       attempts to re-weight assuming NAN values are meant to be ignored, not
       treated as zero.  If this is off, all NaN values will be treated as
@@ -74,12 +78,12 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
       You can choose to turn off the ignore-zeros when padding; this may be
       desirable if you want to think of the region outside of your image as
       all zeros
-    *min_wt* : float 
+    *min_wt* : float
       If ignoring nans/zeros, force all grid points with a weight less than
       this value to NAN (the weight of a grid point with *no* ignored
-      neighbors is 1.0).  
+      neighbors is 1.0).
     *normalize_kernel* : function
-      if specified, function to divide kernel by to normalize it.  e.g., 
+      if specified, function to divide kernel by to normalize it.  e.g.,
       normalize_kernel=np.sum means that kernel will be modified to be:
       kernel = kernel / np.sum(kernel)
     *nthreads* : int
@@ -87,13 +91,14 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
       to use.  Probably only helpful for large arrays
     *use_numpy_fft* : bool
       Force the code to use the numpy FFTs instead of FFTW even if FFTW is
-      installed 
+      installed
 
     Returns
     -------
     *default* : *array* convolved with *kernel*
     if *return_fft* : fft(*array*) * fft(*kernel*)
-      - if *fftshift* : Determines whether the fft will be shifted before returning
+      - if *fftshift* : Determines whether the fft will be shifted before
+        returning
     if *crop* == False : Returns the image, but with the fft-padded size
       instead of the input size
 
@@ -130,8 +135,9 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         kernel[mask] = np.nan
 
     # replace fftn if has_fftw so that nthreads can be passed
-    global fftn,ifftn
+    global fftn, ifftn
     if has_fftw and not use_numpy_fft:
+
         def fftn(*args, **kwargs):
             return fftwn(*args, nthreads=nthreads, **kwargs)
 
@@ -143,20 +149,26 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
 
 
     # NAN catching
-    nanmaskarray = array!=array
+    nanmaskarray = (array != array)
     array[nanmaskarray] = 0
-    nanmaskkernel = kernel!=kernel
+    nanmaskkernel = (kernel != kernel)
     kernel[nanmaskkernel] = 0
-    if (nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not ignore_nan and not quiet:
-        warnings.warn( "NOT ignoring nan values even though they are present (they are treated as 0)" )
+    if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not ignore_nan
+            and not quiet):
+        warnings.warn("NOT ignoring nan values even though they are present" +
+                " (they are treated as 0)")
 
-    if (psf_pad or fft_pad) and not ignore_edge_zeros and not force_ignore_zeros_off and not quiet:
-        warnings.warn( "when psf_pad or fft_pad are enabled, ignore_edge_zeros is forced on" )
-        ignore_edge_zeros=True
+    if ((psf_pad or fft_pad) and not ignore_edge_zeros and not
+            force_ignore_zeros_off and not quiet):
+        warnings.warn("when psf_pad or fft_pad are enabled, " +
+                "ignore_edge_zeros is forced on")
+        ignore_edge_zeros = True
     elif force_ignore_zeros_off:
-        ignore_edge_zeros=False
+        ignore_edge_zeros = False
 
-    if normalize_kernel: # try this.  If a function is not passed, the code will just crash... I think type checking would be better but PEPs say otherwise...
+    if normalize_kernel:
+        # try this.  If a function is not passed, the code will just crash... I
+        # think type checking would be better but PEPs say otherwise...
         kernel = kernel / normalize_kernel(kernel)
 
 
@@ -164,48 +176,57 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     kernshape = kernel.shape
     ndim = len(array.shape)
     if ndim != len(kernshape):
-        raise ValueError("Image and kernel must have same number of dimensions")
-    # find ideal size (power of 2) for fft.  Can add shapes because they are tuples
+        raise ValueError("Image and kernel must " +
+            "have same number of dimensions")
+    # find ideal size (power of 2) for fft.
+    # Can add shapes because they are tuples
     if fft_pad:
-        if psf_pad: 
-            # add the X dimensions and Y dimensions and then take the max (bigger)
-            fsize = 2**np.ceil(np.log2(np.max(np.array(arrayshape)+np.array(kernshape)))) 
-        else: 
+        if psf_pad:
+            # add the dimensions and then take the max (bigger)
+            fsize = 2**np.ceil(np.log2(
+                np.max(np.array(arrayshape) + np.array(kernshape))))
+        else:
             # add the shape lists (max of a list of length 4) (smaller)
+            # also makes the shapes square
             fsize = 2**np.ceil(np.log2(np.max(arrayshape+kernshape)))
         newshape = np.array([fsize for ii in range(ndim)])
     else:
         if psf_pad:
-            newshape = np.array(arrayshape)+np.array(kernshape) # just add the biggest dimensions
+            # just add the biggest dimensions
+            newshape = np.array(arrayshape)+np.array(kernshape)
         else:
-            newshape = np.array([np.max([imsh,kernsh]) for imsh,kernsh in zip(arrayshape,kernshape)]) 
+            newshape = np.array([np.max([imsh, kernsh])
+                for imsh, kernsh in zip(arrayshape, kernshape)])
 
 
-    # separate each dimension by the padding size...
-    # this is to determine the appropriate slice size to get back to the input dimensions
+    # separate each dimension by the padding size...  this is to determine the
+    # appropriate slice size to get back to the input dimensions
     arrayslices = []
     kernslices = []
-    for ii,(newdimsize,arraydimsize,kerndimsize) in enumerate(zip(newshape,arrayshape,kernshape)):
+    for (ii, (newdimsize, arraydimsize, kerndimsize) in
+            enumerate(zip(newshape, arrayshape, kernshape))):
         center = newdimsize/2.
         arrayslices += [slice(center - arraydimsize/2., center + arraydimsize/2.)]
         kernslices += [slice(center - kerndimsize/2., center + kerndimsize/2.)]
 
-    bigarray = np.zeros(newshape,dtype=np.complex128)
-    bigkernel = np.zeros(newshape,dtype=np.complex128)
+    bigarray = np.zeros(newshape, dtype=np.complex128)
+    bigkernel = np.zeros(newshape, dtype=np.complex128)
     bigarray[arrayslices] = array
-    bigkernel[kernslices] = kernel 
+    bigkernel[kernslices] = kernel
     arrayfft = fftn(bigarray)
     kernfft = fftn(bigkernel)
     fftmult = arrayfft*kernfft
     if ignore_nan or ignore_edge_zeros:
-        if ignore_edge_zeros: 
-            bigimwt = np.zeros(newshape,dtype=np.complex128)
+        if ignore_edge_zeros:
+            bigimwt = np.zeros(newshape, dtype=np.complex128)
         else:
-            bigimwt = np.ones(newshape,dtype=np.complex128)
+            bigimwt = np.ones(newshape, dtype=np.complex128)
         bigimwt[arrayslices] = 1.0-nanmaskarray*ignore_nan
         wtfft = fftn(bigimwt)
-        wtfftmult = wtfft*kernfft/kernel.sum() # I think this one HAS to be normalized
-        wtsm   = ifftn(wtfftmult)
+        # I think this one HAS to be normalized (i.e., the weights can't be
+        # computed with a non-normalized kernel)
+        wtfftmult = wtfft*kernfft/kernel.sum()
+        wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = np.fft.fftshift(wtsm).real[arrayslices]
@@ -220,25 +241,23 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     array[nanmaskarray] = np.nan
     kernel[nanmaskkernel] = np.nan
 
-    if return_fft: 
-        if fftshift: # default on 
+    if return_fft:
+        if fftshift: # default on
             if crop:
-                return np.fft.fftshift(fftmult)[ arrayslices ]
+                return np.fft.fftshift(fftmult)[arrayslices]
             else:
                 return np.fft.fftshift(fftmult)
         else:
             return fftmult
 
     if ignore_nan or ignore_edge_zeros:
-        rifft = np.fft.fftshift( ifftn( fftmult ) ) / bigimwt
+        rifft = np.fft.fftshift(ifftn(fftmult)) / bigimwt
         rifft[bigimwt < min_wt] = np.nan
     else:
-        rifft = np.fft.fftshift( ifftn( fftmult ) ) 
+        rifft = np.fft.fftshift(ifftn(fftmult))
 
     if crop:
-        result = rifft[ arrayslices ].real
+        result = rifft[arrayslices].real
         return result
     else:
         return rifft.real
-
-
