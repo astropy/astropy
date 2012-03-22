@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 try: 
     import fftw3
@@ -119,11 +120,11 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         kernel = kernel.astype(np.complex)
 
     # mask catching - masks must be turned into NaNs for use later
-    if hasattr(array,'mask'):
+    if np.ma.is_masked(array):
         mask = array.mask
         array = np.array(array)
         array[mask] = np.nan
-    if hasattr(kernel,'mask'):
+    if np.ma.is_masked(kernel):
         mask = kernel.mask
         kernel = np.array(kernel)
         kernel[mask] = np.nan
@@ -147,11 +148,10 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     nanmaskkernel = kernel!=kernel
     kernel[nanmaskkernel] = 0
     if (nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not ignore_nan and not quiet:
-        # these should be WARNINGS, not print statements - haven't researched the astropy way to do this yet
-        print "Warning: NOT ignoring nan values even though they are present (they are treated as 0)"
+        warnings.warn( "NOT ignoring nan values even though they are present (they are treated as 0)" )
 
     if (psf_pad or fft_pad) and not ignore_edge_zeros and not force_ignore_zeros_off and not quiet:
-        print "Warning: when psf_pad or fft_pad are enabled, ignore_edge_zeros is forced on"
+        warnings.warn( "when psf_pad or fft_pad are enabled, ignore_edge_zeros is forced on" )
         ignore_edge_zeros=True
     elif force_ignore_zeros_off:
         ignore_edge_zeros=False
