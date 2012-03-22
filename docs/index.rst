@@ -22,6 +22,7 @@ For discussions and ideas regarding development of the Astropy package, see the 
    overview
    install
    configs
+   nddata/index
    wcs/index
    fits/index
    vo/index
