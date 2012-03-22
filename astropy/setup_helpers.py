@@ -480,12 +480,14 @@ __path__ = pkgutil.extend_path(__path__, "{new_package}")
 
 from {new_package} import *
 from astropy import __version__
+__version__ = {equiv_version!r} + '-' + __version__
+{extras}
 
 _is_astropy_legacy_alias = True
 """
 
 
-def add_legacy_alias(old_package, new_package):
+def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     Adds a legacy alias that makes *pkgfrom* also importable as
     *pkgto*.
@@ -505,6 +507,18 @@ def add_legacy_alias(old_package, new_package):
 
     new_package : str
         The new namespace, specified using `.` as a delimiter
+
+    equiv_version : str
+        The equivalent version of the old package.  Code using the
+        legacy shim may do a version check, and this version should be
+        based on the version of the legacy package, not the version of
+        astropy.
+
+    extras : dict
+        A dictionary of extra values to include in the legacy shim template;
+        the keys should be the variable names, while the values will be written
+        to the template in their repr() form, so they should generally be
+        simple objects such as strings.
 
     Returns
     -------
@@ -546,6 +560,11 @@ def add_legacy_alias(old_package, new_package):
         if os.path.isdir(shim_dir):
             shutil.rmtree(shim_dir)
         return (None, None)
+
+    if extras:
+        extras = '\n'.join('{0} = {1!r}'.format(*v) for v in extras.items())
+    else:
+        extras = ''
 
     if not os.path.isdir(shim_dir):
         os.makedirs(shim_dir)
