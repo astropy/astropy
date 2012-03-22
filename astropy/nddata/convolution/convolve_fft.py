@@ -206,8 +206,10 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     for (ii, (newdimsize, arraydimsize, kerndimsize) in
             enumerate(zip(newshape, arrayshape, kernshape))):
         center = newdimsize/2.
-        arrayslices += [slice(center - arraydimsize/2., center + arraydimsize/2.)]
-        kernslices += [slice(center - kerndimsize/2., center + kerndimsize/2.)]
+        arrayslices += [slice(center - arraydimsize/2.,
+            center + arraydimsize/2.)]
+        kernslices += [slice(center - kerndimsize/2.,
+            center + kerndimsize/2.)]
 
     bigarray = np.zeros(newshape, dtype=np.complex128)
     bigkernel = np.zeros(newshape, dtype=np.complex128)
