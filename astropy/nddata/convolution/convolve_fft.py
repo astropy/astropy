@@ -25,9 +25,9 @@ except ImportError:
     # scipy's fft is faster, we should add that as an option here... not sure how
     # exactly
 
-def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
+def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         fft_pad=True, psf_pad=False, ignore_nan=False, quiet=False,
-        ignore_zeros=True, min_wt=1e-8, force_ignore_zeros_off=False,
+        ignore_edge_zeros=True, min_wt=1e-8, force_ignore_zeros_off=False,
         normalize_kernel=np.sum, use_numpy_fft=not has_fftw, nthreads=1):
     """
     Convolve an image with a kernel.  Returns a convolved image with shape =
@@ -54,16 +54,21 @@ def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
         largest image in both directions.
+        For example, if an input image has shape [100,3] but a kernel with shape
+        [6,6] is used, the output will be [100,6].  
     - *return_fft* : 
-        Return the FFT instead of the convolution.  Useful for making PSDs.
+        Return the fft(image)*fft(kernel) instead of the convolution (which is
+        ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
     - *fftshift* :
-        If return_fft on, will shift & crop image to appropriate dimensions
+        If return_fft on, will shift & crop image to appropriate dimensions 
     - *ignore_nan* :
         attempts to re-weight assuming NAN values are meant to be ignored, not
-        treated as zero.  
-    - *ignore_zeros* :
-        Ignore the zero-pad-created zeros.  Desirable if you have periodic
-        boundaries on a non-2^n grid
+        treated as zero.  If this is off, all NaN values will be treated as
+        zero.
+    - *ignore_edge_zeros* :
+        Ignore the zero-pad-created zeros.  This will effectively decrease
+        the kernel area on the edges but will not re-normalize the kernel.
+        This is on by default but I'm not entirely sure it should be...
     - *force_ignore_zeros_off* :
         You can choose to turn off the ignore-zeros when padding; this may be
         desirable if you want to think of the region outside of your image as
@@ -71,9 +76,11 @@ def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
     - *min_wt* :  
         If ignoring nans/zeros, force all grid points with a weight less than
         this value to NAN (the weight of a grid point with *no* ignored
-        neighbors is 1.0)
+        neighbors is 1.0).  
     - *normalize_kernel* : 
-        if specified, function to divide kernel by to normalize it
+        if specified, function to divide kernel by to normalize it.  e.g., 
+        normalize_kernel=np.sum means that kernel will be modified to be:
+        kernel = kernel / np.sum(kernel)
     - *nthreads* :
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
@@ -149,11 +156,11 @@ def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
         # these should be WARNINGS, not print statements - haven't researched the astropy way to do this yet
         print "Warning: NOT ignoring nan values even though they are present (they are treated as 0)"
 
-    if (psf_pad or fft_pad) and not ignore_zeros and not force_ignore_zeros_off and not quiet:
-        print "Warning: when psf_pad or fft_pad are enabled, ignore_zeros is forced on"
-        ignore_zeros=True
+    if (psf_pad or fft_pad) and not ignore_edge_zeros and not force_ignore_zeros_off and not quiet:
+        print "Warning: when psf_pad or fft_pad are enabled, ignore_edge_zeros is forced on"
+        ignore_edge_zeros=True
     elif force_ignore_zeros_off:
-        ignore_zeros=False
+        ignore_edge_zeros=False
 
     if normalize_kernel: # try this.  If a function is not passed, the code will just crash... I think type checking would be better but PEPs say otherwise...
         kernel = kernel / normalize_kernel(kernel)
@@ -196,8 +203,8 @@ def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
     arrayfft = fftn(bigarray)
     kernfft = fftn(bigkernel)
     fftmult = arrayfft*kernfft
-    if ignore_nan or ignore_zeros:
-        if ignore_zeros: 
+    if ignore_nan or ignore_edge_zeros:
+        if ignore_edge_zeros: 
             bigimwt = np.zeros(newshape,dtype=np.complex128)
         else:
             bigimwt = np.ones(newshape,dtype=np.complex128)
@@ -228,7 +235,7 @@ def convolvend(array, kernel, crop=True, return_fft=False, fftshift=True,
         else:
             return fftmult
 
-    if ignore_nan or ignore_zeros:
+    if ignore_nan or ignore_edge_zeros:
         rifft = np.fft.fftshift( ifftn( fftmult ) ) / bigimwt
         rifft[bigimwt < min_wt] = np.nan
     else:
