@@ -35,69 +35,67 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         ignore_edge_zeros=True, min_wt=1e-8, force_ignore_zeros_off=False,
         normalize_kernel=np.sum, use_numpy_fft=not has_fftw, nthreads=1):
     """
-    Convolve an image with a kernel.  Returns a convolved image with shape =
+    Convolve an ndarray with an nd-kernel.  Returns a convolved image with shape =
     array.shape.  Assumes image & kernel are centered.
-
-    .. note:: Order matters; the kernel should be second.
 
     Parameters
     ----------
-    *array* : np.ndarray
+    array: `numpy.ndarray`
           Array to be convolved with *kernel*
-    *kernel* : np.ndarray
+    kernel: `numpy.ndarray`
           Will be normalized if *normalize_kernel* is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
 
     Options
     -------
-    *fft_pad* : bool
+    fft_pad: bool
       Default on.  Zero-pad image to the nearest 2^n
-    *psf_pad* : bool
+    psf_pad: bool
       Default off.  Zero-pad image to be at least the sum of the image sizes
       (in order to avoid edge-wrapping when smoothing)
-    *crop* : bool
+    crop: bool
       Default on.  Return an image of the size of the largest input image.
       If the images are asymmetric in opposite directions, will return the
       largest image in both directions.
       For example, if an input image has shape [100,3] but a kernel with shape
       [6,6] is used, the output will be [100,6].
-    *return_fft* : bool
+    return_fft: bool
       Return the fft(image)*fft(kernel) instead of the convolution (which is
       ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
-    *fftshift* : bool
+    fftshift: bool
       If return_fft on, will shift & crop image to appropriate dimensions
-    *ignore_nan* : bool
+    ignore_nan: bool
       attempts to re-weight assuming NAN values are meant to be ignored, not
       treated as zero.  If this is off, all NaN values will be treated as
       zero.
-    *ignore_edge_zeros* : bool
+    ignore_edge_zeros: bool
       Ignore the zero-pad-created zeros.  This will effectively decrease
       the kernel area on the edges but will not re-normalize the kernel.
       This is on by default but I'm not entirely sure it should be...
-    *force_ignore_zeros_off* : bool
+    force_ignore_zeros_off: bool
       You can choose to turn off the ignore-zeros when padding; this may be
       desirable if you want to think of the region outside of your image as
       all zeros
-    *min_wt* : float
+    min_wt: float
       If ignoring nans/zeros, force all grid points with a weight less than
       this value to NAN (the weight of a grid point with *no* ignored
       neighbors is 1.0).
-    *normalize_kernel* : function
+    normalize_kernel: function
       if specified, function to divide kernel by to normalize it.  e.g.,
       normalize_kernel=np.sum means that kernel will be modified to be:
       kernel = kernel / np.sum(kernel)
-    *nthreads* : int
+    nthreads: int
       if fftw3 is installed, can specify the number of threads to allow FFTs
       to use.  Probably only helpful for large arrays
-    *use_numpy_fft* : bool
+    use_numpy_fft: bool
       Force the code to use the numpy FFTs instead of FFTW even if FFTW is
       installed
 
     Returns
     -------
-    *default* : *array* convolved with *kernel*
-    if *return_fft* : fft(*array*) * fft(*kernel*)
-      - if *fftshift* : Determines whether the fft will be shifted before
+    default: *array* convolved with *kernel*
+    if return_fft: fft(*array*) * fft(*kernel*)
+      * if fftshift: Determines whether the fft will be shifted before
         returning
     if *crop* == False : Returns the image, but with the fft-padded size
       instead of the input size
