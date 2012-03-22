@@ -37,56 +37,56 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
 
     Parameters
     ----------
-    - *array* : An n-dimensional `~np.ndarray` object.  Will be convolved
-      with *kernel*
-    - *kernel* : An n-dimensional `~np.ndarray` object.  Will be normalized
-      if *normalize_kernel* is set.  Assumed to be centered (i.e., shifts
-      may result if your kernel is asymmetric)
+    - *array* : np.ndarray 
+          Array to be convolved with *kernel*
+    - *kernel* : np.ndarray 
+          Will be normalized if *normalize_kernel* is set.  Assumed to be
+          centered (i.e., shifts may result if your kernel is asymmetric)
 
     Options
     -------
-    - *fft_pad* :  
-        Default on.  Zero-pad image to the nearest 2^n
-    - *psf_pad* :  
-        Default off.  Zero-pad image to be at least the sum of the image sizes
-        (in order to avoid edge-wrapping when smoothing)
-    - *crop* :  
-        Default on.  Return an image of the size of the largest input image.
-        If the images are asymmetric in opposite directions, will return the
-        largest image in both directions.
-        For example, if an input image has shape [100,3] but a kernel with shape
-        [6,6] is used, the output will be [100,6].  
-    - *return_fft* : 
-        Return the fft(image)*fft(kernel) instead of the convolution (which is
-        ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
-    - *fftshift* :
-        If return_fft on, will shift & crop image to appropriate dimensions 
-    - *ignore_nan* :
-        attempts to re-weight assuming NAN values are meant to be ignored, not
-        treated as zero.  If this is off, all NaN values will be treated as
-        zero.
-    - *ignore_edge_zeros* :
-        Ignore the zero-pad-created zeros.  This will effectively decrease
-        the kernel area on the edges but will not re-normalize the kernel.
-        This is on by default but I'm not entirely sure it should be...
-    - *force_ignore_zeros_off* :
-        You can choose to turn off the ignore-zeros when padding; this may be
-        desirable if you want to think of the region outside of your image as
-        all zeros
-    - *min_wt* :  
-        If ignoring nans/zeros, force all grid points with a weight less than
-        this value to NAN (the weight of a grid point with *no* ignored
-        neighbors is 1.0).  
-    - *normalize_kernel* : 
-        if specified, function to divide kernel by to normalize it.  e.g., 
-        normalize_kernel=np.sum means that kernel will be modified to be:
-        kernel = kernel / np.sum(kernel)
-    - *nthreads* :
-        if fftw3 is installed, can specify the number of threads to allow FFTs
-        to use.  Probably only helpful for large arrays
-    - *use_numpy_fft* : 
-        Force the code to use the numpy FFTs instead of FFTW even if FFTW is
-        installed 
+    *fft_pad* : bool
+      Default on.  Zero-pad image to the nearest 2^n
+    *psf_pad* : bool 
+      Default off.  Zero-pad image to be at least the sum of the image sizes
+      (in order to avoid edge-wrapping when smoothing)
+    *crop* : bool 
+      Default on.  Return an image of the size of the largest input image.
+      If the images are asymmetric in opposite directions, will return the
+      largest image in both directions.
+      For example, if an input image has shape [100,3] but a kernel with shape
+      [6,6] is used, the output will be [100,6].  
+    *return_fft* : bool 
+      Return the fft(image)*fft(kernel) instead of the convolution (which is
+      ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
+    *fftshift* : bool
+      If return_fft on, will shift & crop image to appropriate dimensions 
+    *ignore_nan* : bool
+      attempts to re-weight assuming NAN values are meant to be ignored, not
+      treated as zero.  If this is off, all NaN values will be treated as
+      zero.
+    *ignore_edge_zeros* : bool
+      Ignore the zero-pad-created zeros.  This will effectively decrease
+      the kernel area on the edges but will not re-normalize the kernel.
+      This is on by default but I'm not entirely sure it should be...
+    *force_ignore_zeros_off* : bool
+      You can choose to turn off the ignore-zeros when padding; this may be
+      desirable if you want to think of the region outside of your image as
+      all zeros
+    *min_wt* : float 
+      If ignoring nans/zeros, force all grid points with a weight less than
+      this value to NAN (the weight of a grid point with *no* ignored
+      neighbors is 1.0).  
+    *normalize_kernel* : function
+      if specified, function to divide kernel by to normalize it.  e.g., 
+      normalize_kernel=np.sum means that kernel will be modified to be:
+      kernel = kernel / np.sum(kernel)
+    *nthreads* : int
+      if fftw3 is installed, can specify the number of threads to allow FFTs
+      to use.  Probably only helpful for large arrays
+    *use_numpy_fft* : bool
+      Force the code to use the numpy FFTs instead of FFTW even if FFTW is
+      installed 
 
     Returns
     -------
@@ -102,14 +102,8 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # complex components, we change the types.  Only the real part will be
     # returned!
     # Check that the arguments are lists or Numpy arrays
-    if type(array) == list:
-        array = np.array(array, dtype=np.complex)
-    elif type(array) != np.ndarray:
-        raise TypeError("array should be a list or a Numpy array")
-    if type(kernel) == list:
-        kernel = np.array(kernel, dtype=np.complex)
-    elif type(kernel) != np.ndarray:
-        raise TypeError("kernel should be a list or a Numpy array")
+    array = np.asarray(array, dtype=np.complex)
+    kernel = np.asarray(kernel, dtype=np.complex)
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -121,7 +115,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # turn the arrays into 'complex' arrays
     if array.dtype.kind != 'c':
         array = array.astype(np.complex)
-    if kernel.dtype.kind == 'c':
+    if kernel.dtype.kind != 'c':
         kernel = kernel.astype(np.complex)
 
     # mask catching - masks must be turned into NaNs for use later
