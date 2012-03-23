@@ -7,11 +7,11 @@ import numpy as np
 
 
 class NDData(object):
-    """Superclass for Astropy data.
+    """A Superclass for array-based data in Astropy.
 
-    `NDData` provides a superclass for all array-based data. The key
-    distinction from raw numpy arrays is the presence of additional metadata
-    such as error arrays, bad pixel masks, units and/or a coordinate system.
+    The key distinction from raw numpy arrays is the presence of
+    additional metadata such as error arrays, bad pixel masks, units
+    and/or a coordinate system.
 
     Parameters
     -----------
