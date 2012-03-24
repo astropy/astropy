@@ -13,3 +13,5 @@ if setup_helpers.is_in_build_mode():
     pass
 else:
     from .convolution.convolve import convolve
+    from .convolution.convolve_fft import convolve_fft
+    from .convolution.make_kernel import make_kernel
