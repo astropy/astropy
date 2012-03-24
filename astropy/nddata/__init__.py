@@ -14,3 +14,5 @@ from .nddata import *
 
 if not _ASTROPY_SETUP_:
     from .convolution.convolve import convolve
+    from .convolution.convolve_fft import convolve_fft
+    from .convolution.make_kernel import make_kernel

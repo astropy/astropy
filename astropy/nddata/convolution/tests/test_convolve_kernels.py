@@ -38,7 +38,7 @@ class Test2DConvolutions(object):
         xslice = [slice(sh//2,sh//2+1) for sh in shape]
         x[xslice] = 1.0
 
-        c2 = convolve_fft(x, kernel, boundary='fill', ignore_edge_zeros=False)
+        c2 = convolve_fft(x, kernel, boundary='fill')
         c1 = convolve(x, kernel, boundary='fill')
 
         print shape, width, kerneltype
