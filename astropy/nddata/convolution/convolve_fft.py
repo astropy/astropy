@@ -228,7 +228,8 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     bigarray[arrayslices] = array
     bigkernel[kernslices] = kernel
     arrayfft = fftn(bigarray)
-    kernfft = fftn(bigkernel)
+    # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
+    kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft*kernfft
     if (interpolate_nan or ignore_edge_zeros) and normalize_kernel:
         if ignore_edge_zeros:
@@ -244,7 +245,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
-        bigimwt[arrayslices] = np.fft.ifftshift(wtsm).real[arrayslices]
+        bigimwt[arrayslices] = wtsm.real[arrayslices]
         # HACK?  This may make sense for non-normalized kernels: you want SUMS,
         # not AVERAGES
     else:
@@ -271,23 +272,23 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
             return fftmult
 
     if interpolate_nan or ignore_edge_zeros:
-        rifft = np.fft.ifftshift(ifftn(fftmult)) / bigimwt
-        rifft[bigimwt < min_wt] = np.nan
+        rifft = (ifftn(fftmult)) / bigimwt
+        if not np.isscalar(bigimwt):
+            rifft[bigimwt < min_wt] = np.nan
     else:
-        rifft = np.fft.ifftshift(ifftn(fftmult))
+        rifft = (ifftn(fftmult))
 
     if debug:
-        for name in ('nanmaskarray','arrayfft','kernfft','bigimwt','wtsm','fftmult','rifft'):
+        for name in ('nanmaskarray','bigarray','arrayfft','bigkernel','kernfft','bigimwt','wtsm','fftmult','rifft'):
             try:
                 var = locals()[name]
                 try:
                     print "%15s: %65s" % (name,var.real)
                 except AttributeError:
                     print "%15s: %65s" % (name,var)
-                if name in ('fftmult',):
-                    print "%15s: %65s" % ('ifft(fftmult)',ifft(fftmult).real)
             except:
                 pass
+        print "%15s: %65s" % ('ifft(fftmult)',ifftn(fftmult).real)
 
     if crop:
         result = rifft[arrayslices].real
