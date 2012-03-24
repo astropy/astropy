@@ -93,3 +93,5 @@ API
 ---
 
 .. autofunction:: astropy.nddata.convolve
+
+.. autofunction:: astropy.nddata.convolve_fft

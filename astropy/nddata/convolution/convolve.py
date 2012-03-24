@@ -1,20 +1,20 @@
 import numpy as np
 
-from .boundary_none import convolve1d_boundary_none, \
-                           convolve2d_boundary_none, \
-                           convolve3d_boundary_none
-
-from .boundary_extend import convolve1d_boundary_extend, \
-                             convolve2d_boundary_extend, \
-                             convolve3d_boundary_extend
-
-from .boundary_fill import convolve1d_boundary_fill, \
-                           convolve2d_boundary_fill, \
-                           convolve3d_boundary_fill
-
-from .boundary_wrap import convolve1d_boundary_wrap, \
-                           convolve2d_boundary_wrap, \
-                           convolve3d_boundary_wrap
+#from .boundary_none import convolve1d_boundary_none, \
+#                           convolve2d_boundary_none, \
+#                           convolve3d_boundary_none
+#
+#from .boundary_extend import convolve1d_boundary_extend, \
+#                             convolve2d_boundary_extend, \
+#                             convolve3d_boundary_extend
+#
+#from .boundary_fill import convolve1d_boundary_fill, \
+#                           convolve2d_boundary_fill, \
+#                           convolve3d_boundary_fill
+#
+#from .boundary_wrap import convolve1d_boundary_wrap, \
+#                           convolve2d_boundary_wrap, \
+#                           convolve3d_boundary_wrap
 
 
 def convolve(array, kernel, boundary=None, fill_value=0.,
