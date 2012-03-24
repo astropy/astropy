@@ -32,10 +32,10 @@ except ImportError:
 
 def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         fft_pad=True, psf_pad=False, interpolate_nan=False, quiet=False,
-        ignore_edge_zeros=True, min_wt=1e-8, 
+        ignore_edge_zeros=True, min_wt=0.0, 
         normalize_kernel=False, use_numpy_fft=not has_fftw, nthreads=1,
         debug=False,
-        boundary=None, fill_value=0):
+        boundary='fill', fill_value=0):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with shape =
     array.shape.  Assumes image & kernel are centered.
@@ -77,7 +77,10 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     min_wt: float
         If ignoring nans/zeros, force all grid points with a weight less than
         this value to NAN (the weight of a grid point with *no* ignored
-        neighbors is 1.0).
+        neighbors is 1.0).  
+        If `min_wt` == 0.0, then all zero-weight points will be set to zero
+        instead of nan (which they would be otherwise, because 1/0 = nan).
+        See Example #XX below
     normalize_kernel: function
         if specified, function to divide kernel by to normalize it.  e.g.,
         normalize_kernel=np.sum means that kernel will be modified to be:
@@ -96,16 +99,34 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
             * 'wrap' : periodic boundary
             * 'extend' : set values outside the array to the nearest array
                          value
-        .. note:: This option overrides psd_pad and fft_pad for some options
+        .. note:: This option overrides psf_pad and fft_pad for some options
 
     Returns
     -------
-    default: *array* convolved with *kernel*
-    if return_fft: fft(*array*) * fft(*kernel*)
+    default: `array` convolved with `kernel`
+    if return_fft: fft(`array`) ` fft(`kernel`)
       * if fftshift: Determines whether the fft will be shifted before
         returning
-    if *crop* == False : Returns the image, but with the fft-padded size
+    if not(`crop`) : Returns the image, but with the fft-padded size
         instead of the input size
+
+    Examples
+    --------
+    >>> convolve_fft([1,0,3],[1,1,1])
+    array([ 1.,  4.,  3.])
+
+    >>> convolve_fft([1,np.nan,3],[1,1,1])
+    array([ 1.,  4.,  3.])
+
+    >>> convolve_fft([1,0,3],[0,1,0])
+    array([ 1.,  0.,  3.])
+
+    >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True)
+    array([ 1.,  0.,  3.])
+
+    >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True, min_wt=1e-8)
+    array([ 1.,  nan,  3.])
+
 
     """
 
@@ -171,14 +192,16 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         kernel = kernel / normalize_kernel(kernel)
 
     if boundary is None:
-        warnings.warn("The convolve_fft version of boundary=None is equivalent" +
-                " to the convolve boundary='fill' ")
+        WARNING = ("The convolve_fft version of boundary=None is equivalent" +
+                " to the convolve boundary='fill'.  There is no FFT " +
+                " equivalent to convolve's zero-if-kernel-leaves-boundary" )
+        warnings.warn(WARNING)
         psf_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
         psf_pad = True
     elif boundary == 'wrap':
-        psd_pad = False
+        psf_pad = False
         fft_pad = False
         fill_value = 0 # force zero; it should not be used
     elif boundary == 'extend':
@@ -231,7 +254,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft*kernfft
-    if (interpolate_nan or ignore_edge_zeros) and normalize_kernel:
+    if (interpolate_nan or ignore_edge_zeros) and (normalize_kernel or bigkernel.sum()==1.0):
         if ignore_edge_zeros:
             bigimwt = np.zeros(newshape, dtype=np.complex128)
         else:
@@ -246,8 +269,9 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = wtsm.real[arrayslices]
-        # HACK?  This may make sense for non-normalized kernels: you want SUMS,
-        # not AVERAGES
+        # curiously, at the floating-point limit, can get slightly negative numbers
+        # they break the min_wt=0 "flag" and must therefore be removed
+        bigimwt[bigimwt<0] = 0
     else:
         bigimwt = 1
 
@@ -275,6 +299,8 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         rifft = (ifftn(fftmult)) / bigimwt
         if not np.isscalar(bigimwt):
             rifft[bigimwt < min_wt] = np.nan
+            if min_wt == 0.0:
+                rifft[bigimwt == 0.0] = 0.0
     else:
         rifft = (ifftn(fftmult))
 
@@ -289,6 +315,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
             except:
                 pass
         print "%15s: %65s" % ('ifft(fftmult)',ifftn(fftmult).real)
+        print "%15s: %65s" % ('bigimwt < min_wt',(bigimwt < min_wt))
 
     if crop:
         result = rifft[arrayslices].real
