@@ -4,9 +4,17 @@
 astropy.nddata documentation
 ============================
 
-`astropy.nddata` is a Python package to store and manipulate N-dimensional data arrays.
+The `nddata` subpackage provides the `~astropy.nddata.nddata.NDData` 
+class and related tools to manage n-dimensional array-based data (e.g. 
+CCD images, IFU Data, grid-based simulation data, ...). This is more than
+just `numpy.ndarray` objects, because it provides metadata that cannot 
+be easily provided by a single array.
 
 .. toctree::
    :maxdepth: 2
 
    convolution.rst
+
+
+.. automodapi:: astropy.nddata
+    :no-inheritance-diagram:
