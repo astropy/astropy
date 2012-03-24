@@ -121,12 +121,21 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     >>> convolve_fft([1,0,3],[0,1,0])
     array([ 1.,  0.,  3.])
 
+    >>> convolve_fft([1,2,3],[1])
+    array([ 1.,  2.,  3.])
+
     >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True)
     array([ 1.,  0.,  3.])
 
     >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True, min_wt=1e-8)
     array([ 1.,  nan,  3.])
 
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True)
+    array([ 1.,  4.,  3.])
+
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
+            normalize_kernel=True)
+    array([ 1.,  2.,  3.])
 
     """
 
