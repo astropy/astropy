@@ -34,7 +34,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fftshift=True, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=not has_fftw, nthreads=1, debug=False,):
+        use_numpy_fft=not has_fftw, nthreads=1):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with shape =
     array.shape.  Assumes image & kernel are centered.
@@ -275,7 +275,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         else:
             bigimwt = np.ones(newshape, dtype=np.complex128)
         bigimwt[arrayslices] = 1.0-nanmaskarray*interpolate_nan
-        if debug: print "bigimwt: ",bigimwt," ignore_edge_zeros: ",ignore_edge_zeros
         wtfft = fftn(bigimwt)
         # I think this one HAS to be normalized (i.e., the weights can't be
         # computed with a non-normalized kernel)
@@ -318,19 +317,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
                 rifft[bigimwt == 0.0] = 0.0
     else:
         rifft = (ifftn(fftmult))
-
-    if debug:
-        for name in ('nanmaskarray','bigarray','arrayfft','bigkernel','kernfft','bigimwt','wtsm','fftmult','rifft'):
-            try:
-                var = locals()[name]
-                try:
-                    print "%15s: %65s" % (name,var.real)
-                except AttributeError:
-                    print "%15s: %65s" % (name,var)
-            except:
-                pass
-        print "%15s: %65s" % ('ifft(fftmult)',ifftn(fftmult).real)
-        print "%15s: %65s" % ('bigimwt < min_wt',(bigimwt < min_wt))
 
     if crop:
         result = rifft[arrayslices].real
