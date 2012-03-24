@@ -102,20 +102,28 @@ def set_color(use_color):
 
 class catch_messages(object):
 
-    def __init__(self, record=True):
+    def __init__(self, record=True, filter_level=None, filter_origin=None):
         self.record = record
+        self.filter_level = filter_level
+        self.filter_origin = filter_origin
         self.current_module = sys.modules[__name__]
 
     def __enter__(self):
         if self.record:
             self._show_message = self.current_module._show_message
             log = []
-
             def _log_message(message, level, origin):
                 global _threshold_level
-                if level >= _threshold_level:
-                    m = Message(message, level, origin, color=_use_color)
-                    log.append(m)
+                if (self.filter_level is None and level >= _threshold_level) or self.filter_level == level:
+                    if level >= _threshold_level:
+                        if self.filter_origin is None or self.filter_origin == origin:
+                            m = Message(message, level, origin, color=_use_color)
+                            log.append(m)
+                else:
+                    if level >= _threshold_level:
+                        m = Message(message, level, origin, color=_use_color)
+                        print(m)
+
             self.current_module._show_message = _log_message
             return log
         else:
