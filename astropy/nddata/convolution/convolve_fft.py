@@ -36,8 +36,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
         use_numpy_fft=not has_fftw, nthreads=1):
     """
-    Convolve an ndarray with an nd-kernel.  Returns a convolved image with shape =
-    array.shape.  Assumes image & kernel are centered.
+    Convolve an ndarray with an nd-kernel.  Returns a convolved image with
+    shape = array.shape.  Assumes kernel is centered.
+
+    convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
+    * can treat NaN's as zeros or interpolate over them 
+    * defaults to using the faster FFTW algorithm if installed
+    * (optionally) pads to the nearest 2^n size to improve FFT speed
+    * only operates in mode='same' (i.e., the same shape array is returned) mode
 
     Parameters
     ----------
@@ -88,7 +94,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         If the images are asymmetric in opposite directions, will return the
         largest image in both directions.
         For example, if an input image has shape [100,3] but a kernel with shape
-      [6,6] is used, the output will be [100,6].
+        [6,6] is used, the output will be [100,6].
     return_fft: bool
         Return the fft(image)*fft(kernel) instead of the convolution (which is
         ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
