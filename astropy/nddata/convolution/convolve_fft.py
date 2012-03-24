@@ -30,12 +30,11 @@ except ImportError:
 # faster, we should add that as an option here... not sure how exactly
 
 
-def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
-        fft_pad=True, psf_pad=False, interpolate_nan=False, quiet=False,
-        ignore_edge_zeros=True, min_wt=0.0, 
-        normalize_kernel=False, use_numpy_fft=not has_fftw, nthreads=1,
-        debug=False,
-        boundary='fill', fill_value=0):
+def convolve_fft(array, kernel, boundary='fill', fill_value=0,
+        crop=True, return_fft=False, fftshift=True, fft_pad=True,
+        psf_pad=False, interpolate_nan=False, quiet=False,
+        ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
+        use_numpy_fft=not has_fftw, nthreads=1, debug=False,):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with shape =
     array.shape.  Assumes image & kernel are centered.
@@ -50,11 +49,40 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
 
     Options
     -------
+    boundary: str, optional
+        A flag indicating how to handle boundaries:
+            * 'fill' : set values outside the array boundary to fill_value
+                       (default)
+            * 'wrap' : periodic boundary
+    interpolate_nan: bool
+        attempts to re-weight assuming NAN values are meant to be ignored, not
+        treated as zero.  If this is off, all NaN values will be treated as
+        zero.
+    ignore_edge_zeros: bool
+        Ignore the zero-pad-created zeros.  This will effectively decrease
+        the kernel area on the edges but will not re-normalize the kernel.
+        This parameter may result in 'edge-brightening' effects if you're using
+        a normalized kernel
+    min_wt: float
+        If ignoring NANs/zeros, force all grid points with a weight less than
+        this value to NAN (the weight of a grid point with *no* ignored
+        neighbors is 1.0).  
+        If `min_wt` == 0.0, then all zero-weight points will be set to zero
+        instead of NAN (which they would be otherwise, because 1/0 = nan).
+        See the examples below
+    normalize_kernel: function or boolean
+        if specified, function to divide kernel by to normalize it.  e.g.,
+        normalize_kernel=np.sum means that kernel will be modified to be:
+        kernel = kernel / np.sum(kernel).  If True, defaults to
+        normalize_kernel = np.sum
+
+    Advanced options
+    ----------------
     fft_pad: bool
         Default on.  Zero-pad image to the nearest 2^n
     psf_pad: bool
         Default off.  Zero-pad image to be at least the sum of the image sizes
-      (in order to avoid edge-wrapping when smoothing)
+        (in order to avoid edge-wrapping when smoothing)
     crop: bool
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
@@ -66,45 +94,17 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
         ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
     fftshift: bool
         If return_fft on, will shift & crop image to appropriate dimensions
-    interpolate_nan: bool
-        attempts to re-weight assuming NAN values are meant to be ignored, not
-        treated as zero.  If this is off, all NaN values will be treated as
-        zero.
-    ignore_edge_zeros: bool
-        Ignore the zero-pad-created zeros.  This will effectively decrease
-        the kernel area on the edges but will not re-normalize the kernel.
-        This is on by default but I'm not entirely sure it should be...
-    min_wt: float
-        If ignoring nans/zeros, force all grid points with a weight less than
-        this value to NAN (the weight of a grid point with *no* ignored
-        neighbors is 1.0).  
-        If `min_wt` == 0.0, then all zero-weight points will be set to zero
-        instead of nan (which they would be otherwise, because 1/0 = nan).
-        See Example #XX below
-    normalize_kernel: function
-        if specified, function to divide kernel by to normalize it.  e.g.,
-        normalize_kernel=np.sum means that kernel will be modified to be:
-        kernel = kernel / np.sum(kernel)
     nthreads: int
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
     use_numpy_fft: bool
         Force the code to use the numpy FFTs instead of FFTW even if FFTW is
         installed
-    boundary: str, optional
-        A flag indicating how to handle boundaries:
-            * None : set the ``result`` values to zero where the kernel
-                     extends beyond the edge of the array (default)
-            * 'fill' : set values outside the array boundary to fill_value
-            * 'wrap' : periodic boundary
-            * 'extend' : set values outside the array to the nearest array
-                         value
-        .. note:: This option overrides psf_pad and fft_pad for some options
 
     Returns
     -------
     default: `array` convolved with `kernel`
-    if return_fft: fft(`array`) ` fft(`kernel`)
+    if return_fft: fft(`array`) * fft(`kernel`)
       * if fftshift: Determines whether the fft will be shifted before
         returning
     if not(`crop`) : Returns the image, but with the fft-padded size
@@ -133,8 +133,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True)
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
-            normalize_kernel=True)
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, normalize_kernel=True)
     array([ 1.,  2.,  3.])
 
     """
@@ -172,7 +171,6 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # replace fftn if has_fftw so that nthreads can be passed
     global fftn, ifftn
     if has_fftw and not use_numpy_fft:
-
         def fftn(*args, **kwargs):
             return fftwn(*args, nthreads=nthreads, **kwargs)
 
@@ -195,10 +193,18 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
 
     if normalize_kernel is True:
         kernel = kernel / kernel.sum()
+        kernel_is_normalized = True
     elif normalize_kernel:
         # try this.  If a function is not passed, the code will just crash... I
         # think type checking would be better but PEPs say otherwise...
         kernel = kernel / normalize_kernel(kernel)
+        kernel_is_normalized = True
+    else:
+        if np.abs(kernel.sum() - 1) < 1e-8:
+            kernel_is_normalized = True
+        else:
+            kernel_is_normalized = False
+
 
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
@@ -263,7 +269,7 @@ def convolve_fft(array, kernel, crop=True, return_fft=False, fftshift=True,
     # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
     kernfft = fftn(np.fft.ifftshift(bigkernel))
     fftmult = arrayfft*kernfft
-    if (interpolate_nan or ignore_edge_zeros) and (normalize_kernel or bigkernel.sum()==1.0):
+    if (interpolate_nan or ignore_edge_zeros) and kernel_is_normalized:
         if ignore_edge_zeros:
             bigimwt = np.zeros(newshape, dtype=np.complex128)
         else:
