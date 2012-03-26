@@ -55,7 +55,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     Options
     -------
-    boundary: str, optional
+    boundary: {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
             * 'fill' : set values outside the array boundary to fill_value
                        (default)
