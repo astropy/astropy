@@ -16,7 +16,7 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
     -------
     kernelwidth : float
         Width of kernel in pixels  (see definitions under `kerneltype`)
-    kerneltype : 'gaussian', 'boxcar', 'tophat', 'brickwall', 'airy', 'trapezoid'
+    kerneltype : {'gaussian', 'boxcar', 'tophat', 'brickwall', 'airy', 'trapezoid'}
         Defines the type of kernel to be generated.
         For a gaussian, uses a gaussian with sigma = `kernelwidth` (in pixels)
             i.e. kernel = exp(-r**2 / (2*sigma**2)) where r is the radius 
@@ -40,6 +40,29 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
     Returns
     -------
     An N-dimensional float array
+
+    Examples
+    --------
+
+    >>> make_kernel([3,3],1,'boxcar')
+    array([[ 0.  0.  0.]
+           [ 0.  1.  0.]
+           [ 0.  0.  0.]])
+
+    >>> make_kernel([9],1) # Gaussian by default
+    array([  1.33830625e-04   4.43186162e-03   5.39911274e-02   2.41971446e-01
+             3.98943469e-01   2.41971446e-01   5.39911274e-02   4.43186162e-03
+             1.33830625e-04])
+
+    >>> make_kernel([3,3],3,'boxcar')
+    array([[ 0.11111111,  0.11111111,  0.11111111],
+           [ 0.11111111,  0.11111111,  0.11111111],
+           [ 0.11111111,  0.11111111,  0.11111111]])
+    
+    >>> make_kernel([3,3],1.4,'tophat')
+    array([[ 0. ,  0.2,  0. ],
+           [ 0.2,  0.2,  0.2],
+           [ 0. ,  0.2,  0. ]])
 
     """
 

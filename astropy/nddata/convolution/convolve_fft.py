@@ -52,7 +52,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     kernel: `numpy.ndarray`
           Will be normalized if *normalize_kernel* is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
-    boundary: str, optional
+    boundary: {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
             * 'fill' : set values outside the array boundary to fill_value
                        (default)
