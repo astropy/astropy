@@ -921,3 +921,10 @@ class Table(object):
         if type(keys) is not list:
             keys = [keys]
         self._data.sort(order=keys)
+
+    def reverse(self):
+        '''
+        Reverse the row order of table rows.  The table is reversed
+        in place and there are no function arguments.
+        '''
+        self._data[:] = self._data[::-1]

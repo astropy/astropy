@@ -70,6 +70,11 @@ The code below shows the basics of modifying a table and its data.
   >>> t.sort('b_new')
   >>> t.sort(['a_new', 'b_new'])
 
+**Reverse table rows**
+::
+
+  >>> t.reverse()
+
 **Modify meta-data**
 ::
 
