@@ -64,13 +64,24 @@ try:
                         staticdir + 'is a file.  Must be a directory.')
                 self.mkpath(staticdir)
 
-            #Now make sure Astropy is built and inject it into the sphinx path
+            #Now make sure Astropy is built and inject it into the python path
+            #so that sphinx will see the built version
             build_cmd = self.reinitialize_command('build')
             build_cmd.inplace = 0
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
             new_path = os.path.abspath(build_cmd.build_lib)
             sys.path.insert(0, os.path.abspath(new_path))
+
+            #NEW APPROACH: subprocess?
+            #now clean out all references to the source directory in sys.path
+            pkgdir = os.path.abspath('')
+            todel = []
+            for i, p in enumerate(sys.path):
+                if os.path.abspath(p) == pkgdir:
+                    todel.append(i)
+            for i in reversed(todel):
+                del sys.path[i]
 
             return BuildDoc.run(self)
 
