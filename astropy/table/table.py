@@ -927,4 +927,4 @@ class Table(object):
         Reverse the row order of table rows.  The table is reversed
         in place and there are no function arguments.
         '''
-        self._data[:] = self._data[::-1]
+        self._data[:] = self._data[::-1].copy()
