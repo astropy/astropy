@@ -36,16 +36,21 @@ try:
     from sphinx.setup_command import BuildDoc
 
     class AstropyBuildSphinx(BuildDoc):
-        """ A version of build_sphinx that automatically creates the
-        docs/_static directories - this is needed because
-        github won't create the _static dir because it has no tracked files.
+        """ A version of the ``build_sphinx`` command that uses the
+        version of Astropy that is built by the setup ``build`` command,
+        rather than whatever is installed on the system - to build docs
+        against the installed version, run ``make html`` in the
+        ``astropy/docs`` directory.
+
+        This also automatically creates the docs/_static directories -
+        this is needed because github won't create the _static dir
+        because it has no tracked files.
         """
         def run(self):
-            from os.path import split,join
-
+            from os.path import split, join
             from distutils.cmd import DistutilsOptionError
 
-            #If possible, creat the _static dir
+            # If possible, create the _static dir
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
@@ -60,7 +65,7 @@ try:
                 self.mkpath(staticdir)
 
             #Now make sure Astropy is built and inject it into the sphinx path
-            #self.reinitialize_command('build', inplace=False)
+            self.reinitialize_command('build')#, inplace=False)
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
             new_path = os.path.abspath(build_cmd.build_lib)
