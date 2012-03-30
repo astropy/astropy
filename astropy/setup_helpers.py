@@ -65,7 +65,8 @@ try:
                 self.mkpath(staticdir)
 
             #Now make sure Astropy is built and inject it into the sphinx path
-            self.reinitialize_command('build')#, inplace=False)
+            build_cmd = self.reinitialize_command('build')
+            build_cmd.inplace = 0
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
             new_path = os.path.abspath(build_cmd.build_lib)
