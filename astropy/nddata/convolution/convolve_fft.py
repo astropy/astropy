@@ -31,7 +31,7 @@ except ImportError:
 
 
 def convolve_fft(array, kernel, boundary='fill', fill_value=0,
-        crop=True, return_fft=False, fftshift=True, fft_pad=True,
+        crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
         use_numpy_fft=not has_fftw, nthreads=1):
@@ -47,33 +47,33 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     Parameters
     ----------
-    array: `numpy.ndarray`
+    array : `numpy.ndarray`
           Array to be convolved with *kernel*
-    kernel: `numpy.ndarray`
+    kernel : `numpy.ndarray`
           Will be normalized if *normalize_kernel* is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
-    boundary: {'fill', 'wrap'}
+    boundary : {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
             * 'fill' : set values outside the array boundary to fill_value
                        (default)
             * 'wrap' : periodic boundary
-    interpolate_nan: bool
+    interpolate_nan : bool
         attempts to re-weight assuming NAN values are meant to be ignored, not
         treated as zero.  If this is off, all NaN values will be treated as
         zero.
-    ignore_edge_zeros: bool
+    ignore_edge_zeros : bool
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
         This parameter may result in 'edge-brightening' effects if you're using
         a normalized kernel
-    min_wt: float
+    min_wt : float
         If ignoring NANs/zeros, force all grid points with a weight less than
         this value to NAN (the weight of a grid point with *no* ignored
         neighbors is 1.0).  
         If `min_wt` == 0.0, then all zero-weight points will be set to zero
         instead of NAN (which they would be otherwise, because 1/0 = nan).
         See the examples below
-    normalize_kernel: function or boolean
+    normalize_kernel : function or boolean
         if specified, function to divide kernel by to normalize it.  e.g.,
         normalize_kernel=np.sum means that kernel will be modified to be:
         kernel = kernel / np.sum(kernel).  If True, defaults to
@@ -81,36 +81,33 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     Other Parameters
     ----------------
-    fft_pad: bool
+    fft_pad : bool
         Default on.  Zero-pad image to the nearest 2^n
-    psf_pad: bool
+    psf_pad : bool
         Default off.  Zero-pad image to be at least the sum of the image sizes
         (in order to avoid edge-wrapping when smoothing)
-    crop: bool
+    crop : bool
         Default on.  Return an image of the size of the largest input image.
         If the images are asymmetric in opposite directions, will return the
         largest image in both directions.
         For example, if an input image has shape [100,3] but a kernel with shape
         [6,6] is used, the output will be [100,6].
-    return_fft: bool
+    return_fft : bool
         Return the fft(image)*fft(kernel) instead of the convolution (which is
         ifft(fft(image)*fft(kernel))).  Useful for making PSDs.
-    fftshift: bool
-        If return_fft on, will shift & crop image to appropriate dimensions
-    nthreads: int
+    nthreads : int
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
-    use_numpy_fft: bool
+    use_numpy_fft : bool
         Force the code to use the numpy FFTs instead of FFTW even if FFTW is
         installed
 
     Returns
     -------
-    default: `array` convolved with `kernel`
-    if return_fft: fft(`array`) * fft(`kernel`)
-      * if fftshift: Determines whether the fft will be shifted before
-        returning
-    if not(`crop`) : Returns the image, but with the fft-padded size
+    default : ndarray
+        `array` convolved with `kernel`.
+        If `return_fft` is set, returns fft(`array`) * fft(`kernel`).
+        If crop is not set, returns the image, but with the fft-padded size
         instead of the input size
 
     Examples
@@ -304,13 +301,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     kernel[nanmaskkernel] = np.nan
 
     if return_fft:
-        if fftshift: # default on
-            if crop:
-                return np.fft.fftshift(fftmult)[arrayslices]
-            else:
-                return np.fft.fftshift(fftmult)
-        else:
-            return fftmult
+        return fftmult
 
     if interpolate_nan or ignore_edge_zeros:
         rifft = (ifftn(fftmult)) / bigimwt

@@ -11,9 +11,6 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         A tuple (or list or array) defining the shape of the kernel.  The
         length of kernelshape determines the dimensionality of the resulting
         kernel
-
-    Options
-    -------
     kernelwidth : float
         Width of kernel in pixels  (see definitions under `kerneltype`)
     kerneltype : {'gaussian', 'boxcar', 'tophat', 'brickwall', 'airy', 'trapezoid'}
@@ -39,7 +36,8 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
 
     Returns
     -------
-    An N-dimensional float array
+    kernel : ndarray
+        An N-dimensional float array
 
     Examples
     --------
