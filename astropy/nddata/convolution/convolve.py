@@ -30,11 +30,11 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
 
     Parameters
     ----------
-    array : numpy.ndarray
+    array : `numpy.ndarray`
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel : numpy.ndarray
+    kernel : `numpy.ndarray`
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
     boundary : str, optional
@@ -56,7 +56,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
 
     Returns
     -------
-    result : numpy.ndarray
+    result : `numpy.ndarray`
         An array with the same dimensions and type as the input array,
         convolved with kernel.
 
