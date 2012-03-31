@@ -58,9 +58,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
                        (default)
             * 'wrap' : periodic boundary
     interpolate_nan : bool
-        attempts to re-weight assuming NAN values are meant to be ignored, not
-        treated as zero.  If this is off, all NaN values will be treated as
-        zero.
+        The convolution will be re-weighted assuming NAN values are meant to be
+        ignored, not treated as zero.  If this is off, all NaN values will be
+        treated as zero.
     ignore_edge_zeros : bool
         Ignore the zero-pad-created zeros.  This will effectively decrease
         the kernel area on the edges but will not re-normalize the kernel.
@@ -74,8 +74,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         instead of NAN (which they would be otherwise, because 1/0 = nan).
         See the examples below
     normalize_kernel : function or boolean
-        if specified, function to divide kernel by to normalize it.  e.g.,
-        normalize_kernel=np.sum means that kernel will be modified to be:
+        If specified, this is the function to divide kernel by to normalize it.
+        e.g., normalize_kernel=np.sum means that kernel will be modified to be:
         kernel = kernel / np.sum(kernel).  If True, defaults to
         normalize_kernel = np.sum
 
