@@ -40,6 +40,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     shape = array.shape.  Assumes kernel is centered.
 
     convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
+
     * can treat NaN's as zeros or interpolate over them 
     * defaults to using the faster FFTW algorithm if installed
     * (optionally) pads to the nearest 2^n size to improve FFT speed
@@ -48,15 +49,17 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     Parameters
     ----------
     array : `numpy.ndarray`
-          Array to be convolved with *kernel*
+          Array to be convolved with `kernel`
     kernel : `numpy.ndarray`
-          Will be normalized if *normalize_kernel* is set.  Assumed to be
+          Will be normalized if `normalize_kernel` is set.  Assumed to be
           centered (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
+            
             * 'fill' : set values outside the array boundary to fill_value
                        (default)
             * 'wrap' : periodic boundary
+
     interpolate_nan : bool
         The convolution will be re-weighted assuming NAN values are meant to be
         ignored, not treated as zero.  If this is off, all NaN values will be
@@ -102,11 +105,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         Force the code to use the numpy FFTs instead of FFTW even if FFTW is
         installed
 
+    See Also
+    --------
+    convolve : Convolve is a non-fft version of this code.
+
     Returns
     -------
     default : ndarray
-        `array` convolved with `kernel`.
-        If `return_fft` is set, returns fft(`array`) * fft(`kernel`).
+        **array** convolved with `kernel`.
+        If `return_fft` is set, returns fft(**array**) * fft(`kernel`).
         If crop is not set, returns the image, but with the fft-padded size
         instead of the input size
 
