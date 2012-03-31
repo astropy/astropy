@@ -20,39 +20,43 @@ from .boundary_wrap import convolve1d_boundary_wrap, \
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
     '''
-    Convolve an array with a kernel
+    Convolve an array with a kernel.
 
-    This routine differs from scipy.ndimage.convolve because it includes a
-    special treatment for NaN values. Rather than including NaNs in the
-    convolution calculation, which causes large NaN holes in the convolved
-    image, NaN values are replaced with interpolated values using the kernel
-    as an interpolation function.
+    This routine differs from `scipy.ndimage.filters.convolve` because
+    it includes a special treatment for `NaN` values. Rather than
+    including `NaN`s in the convolution calculation, which causes large
+    `NaN` holes in the convolved image, `NaN` values are replaced with
+    interpolated values using the kernel as an interpolation function.
 
     Parameters
     ----------
-    array: np.ndarray
+    array : numpy.ndarray
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.
-    kernel: np.ndarray
+    kernel : numpy.ndarray
         The convolution kernel. The number of dimensions should match those
         for the array, and the dimensions should be odd in all directions.
-    boundary: str, optional
+    boundary : str, optional
         A flag indicating how to handle boundaries:
-            * None : set the ``result`` values to zero where the kernel
-                     extends beyond the edge of the array (default)
-            * 'fill' : set values outside the array boundary to fill_value
-            * 'wrap' : periodic boundary
-            * 'extend' : set values outside the array to the nearest array
-                         value
-    fill_value: float, optional
+            * `None`
+                Set the `result` values to zero where the kernel
+                extends beyond the edge of the array (default).
+            * 'fill'
+                Set values outside the array boundary to `fill_value`.
+            * 'wrap'
+                Periodic boundary that wrap to the other side of `array`.
+            * 'extend'
+                Set values outside the array to the nearest `array`
+                value.
+    fill_value : float, optional
         The value to use outside the array when using boundary='fill'
-    normalize_kernel: bool, optional
+    normalize_kernel : bool, optional
         Whether to normalize the kernel prior to convolving
 
     Returns
     -------
-    result, np.ndarray
+    result : numpy.ndarray
         An array with the same dimensions and type as the input array,
         convolved with kernel.
 
