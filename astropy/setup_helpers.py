@@ -49,6 +49,9 @@ try:
         def run(self):
             from os.path import split, join
             from distutils.cmd import DistutilsOptionError
+            from subprocess import Popen, PIPE
+            from textwrap import dedent
+            from distutils.fancy_getopt import translate_longopt
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -73,17 +76,29 @@ try:
             new_path = os.path.abspath(build_cmd.build_lib)
             sys.path.insert(0, os.path.abspath(new_path))
 
-            #NEW APPROACH: subprocess?
-            #now clean out all references to the source directory in sys.path
-            pkgdir = os.path.abspath('')
-            todel = []
-            for i, p in enumerate(sys.path):
-                if os.path.abspath(p) == pkgdir:
-                    todel.append(i)
-            for i in reversed(todel):
-                del sys.path[i]
+            #Now spawn a new python process that runs a BuildDoc command.
+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)
+                           for (nm, _, _) in BuildDoc.user_options]
+            optionvals = [getattr(self, nm) for nm in optionnames]
 
-            return BuildDoc.run(self)
+            subproccode = dedent("""
+            from sphinx.setup_command import BuildDoc
+            cmd = BuildDoc()
+            for onm, oval in zip([{opnms}], [{opvals}]):
+                setattr(cmd, onm, oval)
+            cmd.finalize_options()
+            cmd.run()
+            """).format(opnms=','.join(optionnames),
+                        opvals=','.join([repr(v) for v in optionvals]))
+
+            log.debug('Starting subprocess of {0} with python '
+                      'code:\n{1}'.format(sys.executable, subproccode))
+
+            proc = Popen([sys.executable], stdin=PIPE)
+            proc.communicate(subproccode)
+            if proc.returncode != 0:
+                log.warn('Sphinx Documentation subprocess failed with return '
+                         'code ' + str(proc.returncode))
 
 except ImportError as e:
     if 'sphinx' in e.args[0]:  # Sphinx not present
