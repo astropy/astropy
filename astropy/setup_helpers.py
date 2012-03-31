@@ -10,6 +10,7 @@ import imp
 import os
 import shutil
 import sys
+import re
 
 from distutils import log
 from distutils.dist import Distribution
@@ -46,12 +47,16 @@ try:
         this is needed because github won't create the _static dir
         because it has no tracked files.
         """
+
+        _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
+
         def run(self):
             from os.path import split, join
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE
             from textwrap import dedent
-            from distutils.fancy_getopt import translate_longopt
+            from inspect import getsourcelines
+
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -67,32 +72,38 @@ try:
                         staticdir + 'is a file.  Must be a directory.')
                 self.mkpath(staticdir)
 
-            #Now make sure Astropy is built and inject it into the python path
-            #so that sphinx will see the built version
+            #Now make sure Astropy is built and determine where it was built
             build_cmd = self.reinitialize_command('build')
             build_cmd.inplace = 0
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
-            new_path = os.path.abspath(build_cmd.build_lib)
-            sys.path.insert(0, os.path.abspath(new_path))
+            build_path = os.path.abspath(build_cmd.build_lib)
 
-            #Now spawn a new python process that runs a BuildDoc command.
-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)
-                           for (nm, _, _) in BuildDoc.user_options]
-            optionvals = [getattr(self, nm) for nm in optionnames]
+            #Now generate the source for and spawn a new process that runs the
+            #command.  This is needed to get the correct imports for the built
+            #version
 
+            runlines, runlineno = getsourcelines(BuildDoc.run)
             subproccode = dedent("""
-            from sphinx.setup_command import BuildDoc
-            cmd = BuildDoc()
-            for onm, oval in zip([{opnms}], [{opvals}]):
-                setattr(cmd, onm, oval)
-            cmd.finalize_options()
-            cmd.run()
-            """).format(opnms=','.join(optionnames),
-                        opvals=','.join([repr(v) for v in optionvals]))
+            from sphinx.setup_command import *
 
-            log.debug('Starting subprocess of {0} with python '
-                      'code:\n{1}'.format(sys.executable, subproccode))
+            os.chdir('docs')
+            sys.path.insert(0,'{build_path}')
+
+            """).format(build_path=build_path)
+            #runlines[1:] removes 'def run(self)' on the first line
+            subproccode += dedent(''.join(runlines[1:]))
+
+            # All "self.foo" in the subprocess code needs to be replaced by the
+            # values taken from the current self in *this* process
+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)
+            for i in range(1, len(subproccode), 2):
+                iden = subproccode[i]
+                subproccode[i] = repr(getattr(self, iden))
+            subproccode = ''.join(subproccode)
+
+            log.debug('Starting subprocess of {0} with python code:\n{1}\n'
+                      '[CODE END])'.format(sys.executable, subproccode))
 
             proc = Popen([sys.executable], stdin=PIPE)
             proc.communicate(subproccode)
