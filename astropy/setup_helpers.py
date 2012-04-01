@@ -48,7 +48,40 @@ try:
         because it has no tracked files.
         """
 
+        description = 'Build Sphinx documentation for Astropy environment'
+        user_options = BuildDoc.user_options[:]
+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '
+                                                'before building new ones'))
+        boolean_options = BuildDoc.boolean_options[:]
+        boolean_options.append('clean-docs')
+
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
+
+        def initialize_options(self):
+            BuildDoc.initialize_options(self)
+            self.clean_docs = False
+
+        def finalize_options(self):
+            from os.path import isdir
+            from shutil import rmtree
+
+            #Clear out previous sphinx builds, if requested
+            if self.clean_docs:
+                dirstorm = ['docs/_generated']
+                if self.build_dir is None:
+                    dirstorm.append('docs/_build')
+                else:
+                    dirstorm.append(self.build_dir)
+
+                for d in dirstorm:
+                    if isdir(d):
+                        log.info('Cleaning directory ' + d)
+                        rmtree(d)
+                    else:
+                        log.info('Not cleaning directory ' + d + ' because '
+                                 'not present or not a directory')
+
+            BuildDoc.finalize_options(self)
 
         def run(self):
             from os.path import split, join
@@ -56,7 +89,6 @@ try:
             from subprocess import Popen, PIPE
             from textwrap import dedent
             from inspect import getsourcelines
-
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -77,7 +109,7 @@ try:
             build_cmd.inplace = 0
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
-            build_path = os.path.abspath(build_cmd.build_lib)
+            build_cmd_path = os.path.abspath(build_cmd.build_lib)
 
             #Now generate the source for and spawn a new process that runs the
             #command.  This is needed to get the correct imports for the built
@@ -88,9 +120,9 @@ try:
             from sphinx.setup_command import *
 
             os.chdir('docs')
-            sys.path.insert(0,'{build_path}')
+            sys.path.insert(0,'{build_cmd_path}')
 
-            """).format(build_path=build_path)
+            """).format(build_cmd_path=build_cmd_path)
             #runlines[1:] removes 'def run(self)' on the first line
             subproccode += dedent(''.join(runlines[1:]))
 
