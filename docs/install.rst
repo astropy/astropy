@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::
 Building documentation
 ``````````````````````
 
-Building the documentation requires some additional packages:
+Building the documentation requires the Astropy source code and some additional
+packages:
 
     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later
 
     - `Graphviz <http://www.graphviz.org>`_
 
-To build the Astropy documentation (from the root of the source tree)::
+There are two ways to build the Astropy documentation. The most straightforward
+way is to execute the command (from the astropy source directory)::
 
     python setup.py build_sphinx
 
-The documentation tree will be built in the `docs/_build/html`
-directory.
+The documentation will be built in the ``docs/_build/html`` directory, and can
+be read by pointing a web browser to ``docs/_build/html/index.html``.
+
+The above method builds the API documentation from the source code.
+Alternatively, you can do::
+
+    cd docs
+    make html
+
+And the documentation will be generated in the same location, but using the
+*installed* version of Astropy.
 
 Testing Astropy
 ```````````````
