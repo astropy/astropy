@@ -1,21 +1,5 @@
 import numpy as np
 
-from .boundary_none import convolve1d_boundary_none, \
-                           convolve2d_boundary_none, \
-                           convolve3d_boundary_none
-
-from .boundary_extend import convolve1d_boundary_extend, \
-                             convolve2d_boundary_extend, \
-                             convolve3d_boundary_extend
-
-from .boundary_fill import convolve1d_boundary_fill, \
-                           convolve2d_boundary_fill, \
-                           convolve3d_boundary_fill
-
-from .boundary_wrap import convolve1d_boundary_wrap, \
-                           convolve2d_boundary_wrap, \
-                           convolve3d_boundary_wrap
-
 
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
@@ -60,6 +44,21 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     -----
     Masked arrays are not supported at this time.
     '''
+    from .boundary_none import convolve1d_boundary_none, \
+                               convolve2d_boundary_none, \
+                               convolve3d_boundary_none
+
+    from .boundary_extend import convolve1d_boundary_extend, \
+                                 convolve2d_boundary_extend, \
+                                 convolve3d_boundary_extend
+
+    from .boundary_fill import convolve1d_boundary_fill, \
+                               convolve2d_boundary_fill, \
+                               convolve3d_boundary_fill
+
+    from .boundary_wrap import convolve1d_boundary_wrap, \
+                               convolve2d_boundary_wrap, \
+                               convolve3d_boundary_wrap
 
     # Check that the arguemnts are lists or Numpy arrays
     if type(array) == list:
