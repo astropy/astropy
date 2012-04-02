@@ -1,6 +1,6 @@
 # -*- coding: utf-8 *-*
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
+import pytest
 
 def do_import_test(pkg=None, skiptests=True, queue=None):
     """
@@ -86,6 +86,7 @@ known_import_fails = [
 ]
 
 
+@pytest.mark.importtest
 def test_all_imports():
     """
     Tries to import all astropy packages (that aren't tests) to make sure they
