@@ -105,8 +105,9 @@ def test_all_imports():
     p2.start()
     p2.join()
 
-    assert q.qsize() == 2
+    assert not q.empty()
     excres = q.get()
+    assert not q.empty()
     excres2 = q.get()
 
     #the two do_import_test calls should do the same thing
