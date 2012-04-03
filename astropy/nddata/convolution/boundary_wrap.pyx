@@ -5,8 +5,8 @@ cimport numpy as np
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
-cdef extern from "math.h":
-    bint isnan(double x)
+cdef extern from "numpy/npy_math.h":
+    bint npy_isnan(double x)
 
 cimport cython
 
@@ -35,7 +35,7 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
     # Need a first pass to replace NaN values with value convolved from
     # neighboring values
     for i in range(nx):
-        if isnan(f[i]):
+        if npy_isnan(f[i]):
             top = 0.
             bot = 0.
             iimin = i - wkx
@@ -43,7 +43,7 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
             for ii in range(iimin, iimax):
                 iii = ii % nx
                 val = f[iii]
-                if not isnan(val):
+                if not npy_isnan(val):
                     ker = g[<unsigned int>(wkx + ii - i)]
                     top += val * ker
                     bot += ker
@@ -57,7 +57,7 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
 
     # Now run the proper convolution
     for i in range(nx):
-        if not isnan(fixed[i]):
+        if not npy_isnan(fixed[i]):
             top = 0.
             bot = 0.
             iimin = i - wkx
@@ -66,7 +66,7 @@ def convolve1d_boundary_wrap(np.ndarray[DTYPE_t, ndim=1] f,
                 iii = ii % nx
                 val = fixed[iii]
                 ker = g[<unsigned int>(wkx + ii - i)]
-                if not isnan(val):
+                if not npy_isnan(val):
                     top += val * ker
                     bot += ker
             if bot != 0:
@@ -107,7 +107,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
     # neighboring values
     for i in range(nx):
         for j in range(ny):
-            if isnan(f[i, j]):
+            if npy_isnan(f[i, j]):
                 top = 0.
                 bot = 0.
                 iimin = i - wkx
@@ -119,7 +119,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                         iii = ii % nx
                         jjj = jj % ny
                         val = f[iii, jjj]
-                        if not isnan(val):
+                        if not npy_isnan(val):
                             ker = g[<unsigned int>(wkx + ii - i),
                                     <unsigned int>(wky + jj - j)]
                             top += val * ker
@@ -135,7 +135,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
     # Now run the proper convolution
     for i in range(nx):
         for j in range(ny):
-            if not isnan(fixed[i, j]):
+            if not npy_isnan(fixed[i, j]):
                 top = 0.
                 bot = 0.
                 iimin = i - wkx
@@ -149,7 +149,7 @@ def convolve2d_boundary_wrap(np.ndarray[DTYPE_t, ndim=2] f,
                         val = fixed[iii, jjj]
                         ker = g[<unsigned int>(wkx + ii - i),
                                 <unsigned int>(wky + jj - j)]
-                        if not isnan(val):
+                        if not npy_isnan(val):
                             top += val * ker
                             bot += ker
                 if bot != 0:
@@ -194,7 +194,7 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
     for i in range(nx):
         for j in range(ny):
             for k in range(nz):
-                if isnan(f[i, j, k]):
+                if npy_isnan(f[i, j, k]):
                     top = 0.
                     bot = 0.
                     iimin = i - wkx
@@ -210,7 +210,7 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                                 jjj = jj % ny
                                 kkk = kk % nz
                                 val = f[iii, jjj, kkk]
-                                if not isnan(val):
+                                if not npy_isnan(val):
                                     ker = g[<unsigned int>(wkx + ii - i),
                                             <unsigned int>(wky + jj - j),
                                             <unsigned int>(wkz + kk - k)]
@@ -228,7 +228,7 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
     for i in range(nx):
         for j in range(ny):
             for k in range(nz):
-                if not isnan(fixed[i, j, k]):
+                if not npy_isnan(fixed[i, j, k]):
                     top = 0.
                     bot = 0.
                     iimin = i - wkx
@@ -247,7 +247,7 @@ def convolve3d_boundary_wrap(np.ndarray[DTYPE_t, ndim=3] f,
                                 ker = g[<unsigned int>(wkx + ii - i),
                                         <unsigned int>(wky + jj - j),
                                         <unsigned int>(wkz + kk - k)]
-                                if not isnan(val):
+                                if not npy_isnan(val):
                                     top += val * ker
                                     bot += ker
                     if bot != 0:
