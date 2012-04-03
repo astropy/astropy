@@ -100,7 +100,7 @@ try:
                 staticdir = join(basedir, '_static')
                 if os.path.isfile(staticdir):
                     raise DistutilsOptionError(
-                        'Attempted to build_sphinx such in a location where' +
+                        'Attempted to build_sphinx in a location where' +
                         staticdir + 'is a file.  Must be a directory.')
                 self.mkpath(staticdir)
 
@@ -119,10 +119,10 @@ try:
             subproccode = dedent("""
             from sphinx.setup_command import *
 
-            os.chdir('docs')
+            os.chdir('{srcdir}')
             sys.path.insert(0,'{build_cmd_path}')
 
-            """).format(build_cmd_path=build_cmd_path)
+            """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
             #runlines[1:] removes 'def run(self)' on the first line
             subproccode += dedent(''.join(runlines[1:]))
 
@@ -131,7 +131,13 @@ try:
             subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)
             for i in range(1, len(subproccode), 2):
                 iden = subproccode[i]
-                subproccode[i] = repr(getattr(self, iden))
+                val = getattr(self, iden)
+                if iden.endswith('_dir'):
+                    #Directories should be absolute, because the `chdir` call
+                    #in the new process moves to a different directory
+                    subproccode[i] = repr(os.path.abspath(val))
+                else:
+                    subproccode[i] = repr(val)
             subproccode = ''.join(subproccode)
 
             log.debug('Starting subprocess of {0} with python code:\n{1}\n'
