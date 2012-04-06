@@ -8,7 +8,7 @@ from __future__ import division
 import sys
 import atexit
 
-from .configs import ConfigurationItem
+from .configuration import ConfigurationItem
 
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',

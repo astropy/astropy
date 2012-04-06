@@ -12,7 +12,7 @@ import sys
 import time
 
 
-from ..config.configs import ConfigurationItem
+from ..config import ConfigurationItem
 
 
 __all__ = [
