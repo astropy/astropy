@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import warnings
 
 # THIRD-PARTY
 from numpy.testing import assert_array_equal
@@ -23,7 +24,7 @@ import numpy as np
 from ..table import parse, parse_single_table, validate
 from .. import tree
 from ..util import IS_PY3K
-from ..exceptions import VOTableSpecError
+from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
 from ....config import get_data_filename, get_data_fileobj, get_data_filenames
 from ....tests.helper import pytest, raises
@@ -748,3 +749,47 @@ def test_gzip_filehandles():
         votable = parse(
             fd,
             pedantic=False)
+
+
+def test_from_scratch_example():
+    with warnings.catch_warnings(record=True) as warning_lines:
+        warnings.resetwarnings()
+        warnings.simplefilter("always", VOWarning, append=True)
+        try:
+            _run_test_from_scratch_example()
+        except ValueError as e:
+            lines.append(str(e))
+
+    assert len(warning_lines) == 0
+
+
+def _run_test_from_scratch_example():
+    from astropy.io.vo.tree import VOTableFile, Resource, Table, Field
+
+    # Create a new VOTable file...
+    votable = VOTableFile()
+
+    # ...with one resource...
+    resource = Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = Table(votable)
+    resource.tables.append(table)
+
+    # Define some fields
+    table.fields.extend([
+        Field(votable, name="filename", datatype="char", arraysize="*"),
+        Field(votable, name="matrix", datatype="double", arraysize="2x2")])
+
+    # Now, use those field definitions to create the numpy record arrays, with
+    # the given number of rows
+    table.create_arrays(2)
+
+    # Now table.array can be filled with data
+    table.array[0] = ('test1.xml', [[1, 0], [0, 1]])
+    table.array[1] = ('test2.xml', [[0.5, 0.3], [0.2, 0.1]])
+
+    assert table.array[0][0] == 'test1.xml'
+
+
