@@ -7,6 +7,6 @@ affiliated package index.
 """
 
 from .paths import *
-from .configs import *
+from .configuration import *
 from .data import *
 from .affiliated import *
