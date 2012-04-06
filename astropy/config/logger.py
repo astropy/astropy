@@ -4,95 +4,15 @@
 import sys
 import logging
 import warnings
+from contextlib import contextmanager
 
 from . import ConfigurationItem
 from ..utils.console import color_print
+from ..utils.misc import find_current_module
 
 # Save original showwarning and excepthook functions so they can be restored
 _showwarning = warnings.showwarning
 _excepthook = sys.excepthook
-
-
-def set_catch_warnings(catch):
-    if catch:
-        def logging_showwarning(*args, **kwargs):
-            logger.warn(args[0].message)
-        warnings.showwarning = logging_showwarning
-    else:
-        warnings.showwarning = _showwarning
-
-
-def set_catch_exceptions(catch):
-    if catch:
-        def handle_exceptions(type, value, exception):
-            print type(value)
-            logger.error(value.message)
-            _excepthook(type, value, exception)
-        sys.excepthook = handle_exceptions
-    else:
-        sys.excepthook = _excepthook
-
-# Set default levels
-DEFAULT_LEVELS = {'debug': 10, 'info': 20, 'warn': 30, 'error': 40}
-
-
-def numerical_level(log_level):
-    if log_level in DEFAULT_LEVELS:
-        return DEFAULT_LEVELS[log_level]
-    else:
-        raise ValueError("{:s} is not a valid log level (should be one of "
-                         "debug/info/warning/error)".format(log_level))
-
-# Read in configuration
-
-log_level = ConfigurationItem('log_level', DEFAULT_LEVELS['info'],
-                              "Threshold for the logging messages. Logging "
-                              "messages that are less severe than this level "
-                              "will be ignored. The levels are 'debug', "
-                              "'info', 'warning', 'error'")
-
-log_level = numerical_level(log_level)
-
-use_color = ConfigurationItem('use_color', True,
-                              "Whether to use color for the level names")
-
-catch_warnings = ConfigurationItem('catch_warnings', False,
-                                   "Whether to catch warnings.warn calls and "
-                                   "output them via the logger")
-
-set_catch_warnings(catch_warnings)
-del catch_warnings  # future changes should be done directly by the function
-
-catch_exceptions = ConfigurationItem('catch_exceptions', False,
-                                     "Whether to output an entry for "
-                                     "exceptions in the logger")
-
-set_catch_exceptions(catch_exceptions)
-del catch_exceptions  # future changes should be done directly by the function
-
-
-# Initialize logger
-logger = logging.getLogger('astropy')
-
-# Set up the stdout handler
-sh = logging.StreamHandler()
-
-
-def stream_formatter(record):
-    if record.levelno < 10 or not use_color:
-        print(record.levelname),
-    elif(record.levelno < 20):
-        color_print(record.levelname, 'pink', end='')
-    elif(record.levelno < 30):
-        color_print(record.levelname, 'green', end='')
-    elif(record.levelno < 40):
-        color_print(record.levelname, 'yellow', end='')
-    else:
-        color_print(record.levelname, 'red', end='')
-    print(": " + record.msg)
-
-sh.emit = stream_formatter
-logger.addHandler(sh)
 
 
 class FilterOrigin(object):
@@ -102,24 +22,6 @@ class FilterOrigin(object):
 
     def filter(self, record):
         return record.module.startswith(self.origin)
-
-
-class log_to_file(object):
-    '''A context manager to log to a file'''
-
-    def __init__(self, filename, filter_level='info', filter_origin=None):
-        self.filename = filename
-        self.filter_level = numerical_level(filter_level)
-        self.filter_origin = filter_origin
-
-    def __enter__(self):
-        self.fh = logging.FileHandler(self.filename)
-        self.fh.setLevel(self.filter_level)
-        self.fh.addFilter(FilterOrigin(self.filter_origin))
-        logger.addHandler(self.fh)
-
-    def __exit__(self, *exc_info):
-        logger.removeHandler(self.fh)
 
 
 class ListHandler(logging.Handler):
@@ -132,20 +34,141 @@ class ListHandler(logging.Handler):
     def emit(self, record):
         self.log_list.append(record)
 
+Logger = logging.getLoggerClass()
 
-class log_to_list(object):
-    '''A context manager to log to a list'''
 
-    def __init__(self, filter_level='info', filter_origin=None):
-        self.filter_level = numerical_level(filter_level)
-        self.filter_origin = filter_origin
+class AstropyLogger(Logger):
 
-    def __enter__(self):
-        self.lh = ListHandler()
-        self.lh.setLevel(self.filter_level)
-        self.lh.addFilter(FilterOrigin(self.filter_origin))
-        logger.addHandler(self.lh)
-        return self.lh.log_list
+    def debug(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.debug(self, *args, **kwargs)
 
-    def __exit__(self, *exc_info):
-        logger.removeHandler(self.lh)
+    def info(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.info(self, *args, **kwargs)
+
+    def warning(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.warning(self, *args, **kwargs)
+
+    warn = warning
+
+    def error(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.error(self, *args, **kwargs)
+
+    def exception(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.exception(self, *args, **kwargs)
+
+    def critical(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.critical(self, *args, **kwargs)
+
+    fatal = critical
+
+    def log(self, *args, **kwargs):
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        kwargs['extra']['origin'] = find_current_module(2).__name__
+        Logger.log(self, *args, **kwargs)
+
+    def set_catch_warnings(self, catch):
+        if catch:
+            def logging_showwarning(*args, **kwargs):
+                self.warn(args[0].message)
+            warnings.showwarning = logging_showwarning
+        else:
+            warnings.showwarning = _showwarning
+
+    def set_catch_exceptions(self, catch):
+        if catch:
+            def handle_exceptions(type, value, exception):
+                print type(value)
+                self.error(value.message)
+                _excepthook(type, value, exception)
+            sys.excepthook = handle_exceptions
+        else:
+            sys.excepthook = _excepthook
+
+    def setColor(self, use_color):
+        self._use_color = use_color
+
+    def stream_formatter(self, record):
+        if record.levelno < 10 or not self._use_color:
+            print(record.levelname),
+        elif(record.levelno < 20):
+            color_print(record.levelname, 'magenta', end='')
+        elif(record.levelno < 30):
+            color_print(record.levelname, 'green', end='')
+        elif(record.levelno < 40):
+            color_print(record.levelname, 'brown', end='')
+        else:
+            color_print(record.levelname, 'red', end='')
+        print(": " + record.msg + " [{:s}]".format(record.origin))
+
+    @contextmanager
+    def log_to_file(self, filename, filter_level='INFO', filter_origin=None):
+        fh = logging.FileHandler(filename)
+        fh.setLevel(filter_level)
+        if filter_origin is not None:
+            fh.addFilter(FilterOrigin(filter_origin))
+        self.addHandler(fh)
+        yield
+        self.removeHandler(fh)
+
+    @contextmanager
+    def log_to_list(self, filter_level='INFO', filter_origin=None):
+        lh = ListHandler()
+        lh.setLevel(filter_level)
+        if filter_origin is not None:
+            lh.addFilter(FilterOrigin(filter_origin))
+        self.addHandler(lh)
+        yield lh.log_list
+        self.removeHandler(lh)
+
+logging.setLoggerClass(AstropyLogger)
+
+# Read in configuration
+
+LOG_LEVEL = ConfigurationItem('log_level', 'INFO',
+                              "Threshold for the logging messages. Logging "
+                              "messages that are less severe than this level "
+                              "will be ignored. The levels are 'DEBUG', "
+                              "'INFO', 'WARNING', 'ERROR'")
+
+USE_COLOR = ConfigurationItem('use_color', True,
+                              "Whether to use color for the level names")
+
+CATCH_WARNINGS = ConfigurationItem('catch_warnings', False,
+                                   "Whether to catch warnings.warn calls and "
+                                   "output them via the logger")
+
+CATCH_EXCEPTIONS = ConfigurationItem('catch_exceptions', False,
+                                     "Whether to output an entry for "
+                                     "exceptions in the logger")
+
+# Initialize logger
+logger = logging.getLogger('astropy')
+logger.setLevel(LOG_LEVEL())
+logger.setColor(USE_COLOR())
+
+# Set up the stdout handler
+sh = logging.StreamHandler()
+sh.emit = logger.stream_formatter
+logger.addHandler(sh)
+
+logger.set_catch_warnings(CATCH_WARNINGS())
+logger.set_catch_exceptions(CATCH_EXCEPTIONS())
