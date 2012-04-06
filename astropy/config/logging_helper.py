@@ -126,6 +126,8 @@ class AstropyLogger(Logger):
         fh.setLevel(filter_level)
         if filter_origin is not None:
             fh.addFilter(FilterOrigin(filter_origin))
+        f = logging.Formatter("%(levelname)s: %(message)s [%(origin)s]")
+        fh.setFormatter(f)
         self.addHandler(fh)
         yield
         self.removeHandler(fh)
