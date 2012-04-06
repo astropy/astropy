@@ -109,7 +109,7 @@ class AstropyLogger(Logger):
 
     def stream_formatter(self, record):
         if record.levelno < 10 or not self._use_color:
-            print(record.levelname),
+            print(record.levelname, end='')
         elif(record.levelno < 20):
             color_print(record.levelname, 'magenta', end='')
         elif(record.levelno < 30):
