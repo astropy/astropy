@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """This module defines a logging class based on the built-in logging module"""
 
+from __future__ import print_function
+
 import sys
 import logging
 import warnings
