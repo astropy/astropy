@@ -451,15 +451,16 @@ def import_file(filename):
     Imports a module from a single file as if it doesn't belong to a
     particular package.
     """
+    # Specifying a traditional dot-separated fully qualified name here
+    # results in a number of "Parent module 'astropy' not found while
+    # handling absolute import" warnings.  Using the same name, the
+    # namespaces of the modules get merged together.  So, this
+    # generates an underscore-separated name which is more likely to
+    # be unique, and it doesn't really matter because the name isn't
+    # used directly here anyway.
     with open(filename, 'U') as fd:
-        # If we specify a fully qualified name here, we'll get a
-        # number of "Parent module 'astropy' not found while handling
-        # absolute import" warnings.  Since this function is just used
-        # to import setup_package.py files without importing their
-        # parent packages, we can just give the name of the module.
-        # In general, however, this is not something one would want to
-        # do.
-        name = os.path.splitext(os.path.basename(filename))[0]
+        name = '_'.join(
+            os.path.relpath(os.path.splitext(filename)[0]).split(os.sep)[1:])
         return imp.load_module(name, fd, filename, ('.py', 'U', 1))
 
 
