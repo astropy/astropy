@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import sys
+import inspect
 import logging
 import warnings
 from contextlib import contextmanager
@@ -44,19 +45,22 @@ class AstropyLogger(Logger):
     def debug(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.debug(self, *args, **kwargs)
 
     def info(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.info(self, *args, **kwargs)
 
     def warning(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.warning(self, *args, **kwargs)
 
     warn = warning
@@ -64,19 +68,22 @@ class AstropyLogger(Logger):
     def error(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.error(self, *args, **kwargs)
 
     def exception(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.exception(self, *args, **kwargs)
 
     def critical(self, *args, **kwargs):
         if 'extra' not in kwargs:
             kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
+        if 'origin' not in kwargs['extra']:
+            kwargs['extra']['origin'] = find_current_module(2).__name__
         Logger.critical(self, *args, **kwargs)
 
     fatal = critical
@@ -98,7 +105,8 @@ class AstropyLogger(Logger):
     def set_catch_exceptions(self, catch):
         if catch:
             def handle_exceptions(type, value, exception):
-                self.error(value.message)
+                origin = inspect.getmodule(exception.tb_next).__name__
+                self.error(value.message, extra={'origin': origin})
                 _excepthook(type, value, exception)
             sys.excepthook = handle_exceptions
         else:
