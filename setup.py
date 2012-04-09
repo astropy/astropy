@@ -11,6 +11,9 @@ import glob
 import os
 from setuptools import setup, find_packages
 
+#A dirty hack to get around some early import/configurations ambiguities
+__builtins__._in_setup = True
+
 import astropy
 from astropy import setup_helpers
 from astropy.version_helper import get_git_devstr, generate_version_py
