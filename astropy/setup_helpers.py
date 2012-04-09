@@ -529,11 +529,11 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     import imp
 
-    found_legacy_module = False
+    found_legacy_module = True
     try:
         location = imp.find_module(old_package)
     except ImportError:
-        pass
+        found_legacy_module = False
     else:
         # We want ImportError to raise here, because that means it was
         # found, but something else went wrong.
@@ -547,7 +547,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
         if os.path.exists(filename):
             with open(filename, 'U') as fd:
                 if '_is_astropy_legacy_alias' in fd.read():
-                    found_legacy_module = True
+                    found_legacy_module = False
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
