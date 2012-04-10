@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import os
 import sys
 import inspect
 import logging
@@ -17,6 +18,7 @@ from ..utils.misc import find_current_module
 _showwarning = warnings.showwarning
 _excepthook = sys.excepthook
 
+FILE_FORMAT = "%(asctime)s - %(origin)s - %(levelname)s - %(message)s"
 
 class FilterOrigin(object):
     '''A filter for the record origin'''
@@ -137,7 +139,7 @@ class AstropyLogger(Logger):
         fh.setLevel(filter_level)
         if filter_origin is not None:
             fh.addFilter(FilterOrigin(filter_origin))
-        f = logging.Formatter("%(levelname)s: %(message)s [%(origin)s]")
+        f = logging.Formatter(FILE_FORMAT)
         fh.setFormatter(f)
         self.addHandler(fh)
         yield
@@ -174,6 +176,18 @@ CATCH_EXCEPTIONS = ConfigurationItem('catch_exceptions', False,
                                      "Whether to output an entry for "
                                      "exceptions in the logger")
 
+LOG_TO_FILE = ConfigurationItem('log_to_file', True,
+                                "Whether to always log messages to a log "
+                                "file")
+
+LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
+                                  "The file to log messages to")
+
+LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'WARN',
+                                   "Threshold for logging messages to "
+                                   "log_file_path")
+
+
 # Initialize logger
 logger = logging.getLogger('astropy')
 logger.setLevel(LOG_LEVEL())
@@ -183,6 +197,19 @@ logger.setColor(USE_COLOR())
 sh = logging.StreamHandler()
 sh.emit = logger.stream_formatter
 logger.addHandler(sh)
+
+# Set up the main log file handler if requested (but this might fail if
+# configuration file is not writeable)
+if LOG_TO_FILE():
+    try:
+        fh = logging.FileHandler(os.path.expanduser(LOG_FILE_PATH()))
+    except IOError:
+        pass
+    else:
+        formatter = logging.Formatter(FILE_FORMAT)
+        fh.setFormatter(formatter)
+        fh.setLevel(LOG_FILE_LEVEL())
+        logger.addHandler(fh)
 
 logger.set_catch_warnings(CATCH_WARNINGS())
 logger.set_catch_exceptions(CATCH_EXCEPTIONS())
