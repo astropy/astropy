@@ -105,7 +105,10 @@ class AstropyLogger(Logger):
     def set_catch_exceptions(self, catch):
         if catch:
             def handle_exceptions(type, value, exception):
-                origin = inspect.getmodule(exception.tb_next).__name__
+                try:
+                    origin = inspect.getmodule(exception.tb_next).__name__
+                except:
+                    origin = inspect.getmodule(exception).__name__
                 self.error(value.message, extra={'origin': origin})
                 _excepthook(type, value, exception)
             sys.excepthook = handle_exceptions
