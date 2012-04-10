@@ -157,7 +157,7 @@ logging.setLoggerClass(AstropyLogger)
 
 # Read in configuration
 
-LOG_LEVEL = ConfigurationItem('log_level', 'INFO',
+LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
                               "Threshold for the logging messages. Logging "
                               "messages that are less severe than this level "
                               "will be ignored. The levels are 'DEBUG', "
