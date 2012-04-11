@@ -471,13 +471,34 @@ def get_legacy_alias_dir():
 legacy_shim_template = """
 # This is generated code.  DO NOT EDIT!
 
+from __future__ import absolute_import
+
+# This implements a PEP 302 finder/loader pair that translates
+# {old_package}.foo import {new_package}.foo.  This approach allows
+# relative imports in astropy that go above the level of the
+# {new_package} subpackage to work.
+class Finder(object):
+    def find_module(self, fullname, path=None):
+        if fullname.startswith("{old_package}."):
+            return self.Loader()
+
+    class Loader(object):
+        def load_module(self, fullname):
+            import importlib
+            fullname = fullname[len("{old_package}"):]
+            return importlib.import_module(fullname, package="{new_package}")
+
+import sys
+sys.meta_path.append(Finder())
+# Carefully clean up the namespace, since we can't use __all__ here
+del sys
+del Finder
+
 import warnings
 warnings.warn(
     "{old_package} is deprecated.  Use {new_package} instead.",
     DeprecationWarning)
-
-import pkgutil
-__path__ = pkgutil.extend_path(__path__, "{new_package}")
+del warnings
 
 from {new_package} import *
 from astropy import __version__
