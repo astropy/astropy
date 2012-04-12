@@ -434,11 +434,11 @@ def adjust_compiler():
 
 
 def is_in_build_mode():
-    return __builtins__.get('_build_mode')
+    return __builtins__.get('_ASTROPY_SETUP_')
 
 
 def set_build_mode():
-    __builtins__['_build_mode'] = True
+    __builtins__['_ASTROPY_SETUP_'] = True
 
 
 def setup_test_command(package_name):

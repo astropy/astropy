@@ -15,7 +15,7 @@ import subprocess
 from distutils.core import Command
 
 #If we are in setup.py, we don't want to import astropy.config
-if __builtins__.get('_in_setup'):
+if __builtins__.get('_ASTROPY_SETUP_'):
     if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
         USE_SYSTEM_PYTEST = lambda: True
     else:

@@ -6,6 +6,11 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+#this indicates whether or not we are in astropy's setup.py
+try:
+    _ASTROPY_SETUP_
+except NameError:
+    __builtins__['_ASTROPY_SETUP_'] = False
 
 try:
     from .version import version as __version__

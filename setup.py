@@ -12,7 +12,9 @@ import os
 from setuptools import setup, find_packages
 
 #A dirty hack to get around some early import/configurations ambiguities
-__builtins__._in_setup = True
+#This is the same as setup_helpers.set_build_mode(), but does not require
+#importing setupy_helpers
+__builtins__._ASTROPY_SETUP_ = True
 
 import astropy
 from astropy import setup_helpers
@@ -27,9 +29,6 @@ release = 'dev' not in version
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
-
-# Indicate that we are in building mode
-setup_helpers.set_build_mode()
 
 if not release:
     version += get_git_devstr(False)
