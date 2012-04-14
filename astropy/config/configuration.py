@@ -221,7 +221,7 @@ class ConfigurationItem(object):
 
         #use the current on disk version, which will be modified with the
         #given value and type/description
-        newobj = configobj.ConfigObj(cobj.filename)
+        newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
             if secname not in newobj:
                 newobj[secname] = {}
@@ -248,7 +248,7 @@ class ConfigurationItem(object):
         while cobj.parent is not cobj:
             cobj = cobj.parent
 
-        newobj = configobj.ConfigObj(cobj.filename)
+        newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
             newobj = newobj[secname]
 
@@ -355,7 +355,8 @@ def get_config(packageormod=None, reload=False):
     if cobj is None:
         try:
             cfgfn = join(get_config_dir(), rootname + '.cfg')
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
+                interpolation=False)
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
@@ -365,7 +366,7 @@ def get_config(packageormod=None, reload=False):
 
             #This caches the object, so if the file becomes acessible, this
             #function won't see it unless the module is reloaded
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj()
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(interpolation=False)
 
     if secname:  # not the root package
         if secname not in cobj:
