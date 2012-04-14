@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-from .. import cosmology
 from StringIO import StringIO
+from .. import cosmology
 import numpy as np
 
 # Still need to test:
 
-# convenience functions, critical density, age,
+# some convenience functions, critical density, age,
 # absorption distance, distance modulus.
 
 def test_flat_z1():
@@ -15,7 +14,7 @@ def test_flat_z1():
     """
     cosmo = cosmology.Cosmology(H0=70, Om=0.27, Ol=0.73)
     z = 1
-    
+
     # Test values were taken from the following web cosmology
     # calculators on 27th Feb 2012:
 
@@ -42,7 +41,7 @@ def test_convenience():
 
     assert np.allclose(cosmology.arcsec_per_kpc_comoving(3), 0.0317179)
     assert np.allclose(cosmology.arcsec_per_kpc_proper(3), 0.1268716668)
-    assert np.allclose(cosmology.kpc_comoving_per_arcmin(3), 1891.67531)
+    assert np.allclose(cosmology.kpc_comoving_per_arcmin(3), 1891.6753126)
     assert np.allclose(cosmology.kpc_proper_per_arcmin(3), 472.918828)
     assert np.allclose(cosmology.distmod(3), 47.075902)
 
@@ -62,7 +61,7 @@ def test_comoving_volume():
         #print c_flat.comoving_volume(z), wright_flat[i] * 1e9
         #print c_open.comoving_volume(z), wright_open[i]  * 1e9
         #print c_closed.comoving_volume(z), wright_closed[i] * 1e9
-        
+
         assert np.allclose(c_flat.comoving_volume(z), wright_flat[i] * 1e9,
                            rtol=1e-2)
         assert np.allclose(c_open.comoving_volume(z), wright_open[i] * 1e9,
@@ -78,7 +77,7 @@ def test_flat_open_closed_icosmo():
     cosmo_flat = """\
 # from icosmo (icosmo.org)
 # Om 0.3 w -1 h 0.7 Ol 0.7
-# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist   
+# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist
        0.0000000       0.0000000       0.0000000         0.0000000
       0.16250000       669.77536       576.15085         778.61386
       0.32500000       1285.5964       970.26143         1703.4152
@@ -113,7 +112,7 @@ def test_flat_open_closed_icosmo():
     cosmo_open = """\
 # from icosmo (icosmo.org)
 # Om 0.3 w -1 h 0.7 Ol 0.1
-# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist   
+# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist
        0.0000000       0.0000000       0.0000000       0.0000000
       0.16250000       643.08185       553.18868       747.58265
       0.32500000       1200.9858       906.40441       1591.3062
@@ -148,7 +147,7 @@ def test_flat_open_closed_icosmo():
     cosmo_closed = """\
 # from icosmo (icosmo.org)
 # Om 2 w -1 h 0.7 Ol 0.1
-# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist   
+# z     comoving_transvers_dist   angular_diameter_dist  luminosity_dist
        0.0000000       0.0000000       0.0000000       0.0000000
       0.16250000       601.80160       517.67879       699.59436
       0.32500000       1057.9502       798.45297       1401.7840
@@ -206,4 +205,10 @@ def test_flat_open_closed_icosmo():
         assert np.allclose(cosmo.luminosity_distance(z), dl[i])
 
 
-
+def test_default():
+    cosmo = cosmology.get_default()
+    assert cosmo == cosmology.WMAP7
+    cosmology.set_default('WMAP5')
+    assert cosmology.get_default() == cosmology.WMAP5
+    cosmology.set_default(cosmo)
+    assert cosmology.get_default() == cosmo

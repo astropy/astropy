@@ -1,11 +1,12 @@
 import sys
+import warnings
 from math import sqrt, log10, sin, sinh, asin, asinh, pi
 
 import numpy as np
 from scipy import integrate
 
 from ..constants.cgs import pc, G, c
-from parameters import WMAP5, WMAP7
+import parameters
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
@@ -41,14 +42,12 @@ class Cosmology(object):
     Om:  Omega matter; matter density / critical density at z=0
     Ol:  Omega lambda; dark energy density / critical density at z=0
 
-    or with a single name, either 'wmap7' or 'wmap5'.
-
     Variables derived from H0, Om, and Ol
     -------------------------------------
     
     Ok:  Omega_k, the curvature density at z=0. Defined as 1 - Om - Ol
     h:  Dimensionless Hubble parameter (H0 = 100*h km/s/Mpc).
-        Often used to quote cosmological values independent of H0.
+        Often used to quote cosmological values independently of H0.
     hubble_time:    Hubble time in Gyr
     hubble_distance:   Hubble distance in Mpc
     critical_density0:  Critical density in g cm^-3 at z=0
@@ -57,11 +56,11 @@ class Cosmology(object):
     -------
 
     H(z):
-      Hubble parameter at redshift z (km/s/Mpc)
+      Hubble parameter (km/s/Mpc)
     critical_density(z):
       The critical density such that the universe is flat at redshift z
     scale_factor(z):
-      Scale factor at redshift z
+      Scale factor
     lookback_time(z):
       Lookback time to redshift z (Gyr)
     age(z):
@@ -94,33 +93,19 @@ class Cosmology(object):
     # get comoving distance in Mpc at redshift z
     dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, name=None, H0=None, Om=None, Ol=None):
-
-        if name in (None, 'wmap7'):
-            self.Om = WMAP7['Om']
-            self.Ol = WMAP7['Ol']
-            self.H0 = WMAP7['H0']
-        elif name == 'wmap5':
-            self.Om = WMAP5['Om']
-            self.Ol = WMAP5['Ol']
-            self.H0 = WMAP5['H0']
-        else:
-            s = "Cosmology must be one of ('wmap5', 'wmap7')"
-            raise ValueError(s)
+    def __init__(self, H0=None, Om=None, Ol=None, name='Cosmology'):
 
         # all densities are in units of the critical density
-        if Om is not None:
-            self.Om = float(Om)
-        if Ol is not None:
-            self.Ol = float(Ol)
+        self.Om = float(Om)
+        self.Ol = float(Ol)
         Ok = 1 - self.Om - self.Ol
         if abs(Ok) < 1e-5:
             Ok = 0
         self.Ok = Ok
+        self.name = name
 
         # Hubble parameter at z=0, km/s/Mpc
-        if H0 is not None:
-            self.H0 = float(H0)
+        self.H0 = float(H0)
         # H0 in s^-1
         H0_s = self.H0 / Mpc_km
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
@@ -134,17 +119,18 @@ class Cosmology(object):
         self.critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
     def __repr__(self):
-        s = "Cosmology(H0=%.3g, Om=%.3g, Ol=%.3g, Ok=%.3g)" % (
-            self.H0, self.Om, self.Ol, self.Ok)
+        s = "%s(H0=%.3g, Om=%.3g, Ol=%.3g, Ok=%.3g)" % (
+            self.name, self.H0, self.Om, self.Ol, self.Ok)
         return s
 
     def _efunc(self, z):
-        """ Function for integration. Eqn 14 from Hogg."""
+        """ Function used to calculate the hubble parameter as a
+        function of redshift. Eqn 14 from Hogg."""
         zp1 = 1. + z
         return sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
 
     def _inv_efunc(self, z):
-        """ integrand of the comoving distance.
+        """ Integrand of the comoving distance.
         """
         zp1 = 1. + z
         return 1. / sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
@@ -183,7 +169,7 @@ class Cosmology(object):
         return self.hubble_time * integrate.quad(self._tfunc, 0, z)[0]
 
     def age(self, z):
-        """ Age of the universe in Gyr at a given redshift. """
+        """ Age of the universe in Gyr at redshift `z`. """
         return self.hubble_time * integrate.quad(self._tfunc, z, np.inf)[0]
 
     def critical_density(self, z):
@@ -304,13 +290,74 @@ class Cosmology(object):
         else:
             return term1 * (term2 - 1. / sqrt(abs(Ok)) * asin(term3))
 
+
+# Pre-defined cosmologies. This loops over the parameter sets in the
+# parameters module and creates a Cosmology instance with the same
+# name as the parameter set in the current module's namespace.
+
+i0 = Cosmology.__doc__.index('H0')
+i1 = Cosmology.__doc__.index('Examples\n')
+for key in parameters.available:
+    par = getattr(parameters, key)
+    cosmo = Cosmology(par['H0'], par['Om'], par['Ol'], name=key)
+    cosmo.__doc__ = """\
+    %s cosmology
+
+    Variables
+    ---------
+
+    %s""" % (key, cosmo.__doc__[i0:i1])
+    setattr(sys.modules[__name__], key, cosmo)
+
+# don't leave these variables floating around in the namespace
+del key, par, cosmo, i0, i1
+
+#########################################################################
+# The variable below contains default cosmology used by the
+# convenience functions below and by other astropy functions if no
+# cosmology is explicitly given. It can be set with set_default() and
+# should be accessed using get_default().
+#########################################################################
+
+_default = None
+
+def get_default():
+    """ Return the default cosmology. If no default has been set, a
+    warning is given and the default is set to the WMAP7 parameters.
+    """ 
+    global _default
+    if _default is None:
+        s = ('No cosmology has been specified with set_default(); '
+             'using 7-year WMAP.')
+        warnings.warn(s)
+        _default = WMAP7
+
+    return _default
+
+def set_default(arg):
+    """ Set the default cosmology. """ 
+    global _default
+    if isinstance(arg, basestring):
+        try:
+            _default = getattr(sys.modules[__name__], arg)
+        except AttributeError:
+            s = "Unknown cosmology '%s'. Valid cosmologies:\n%s" % (
+                arg, parameters.available)
+            print s
+            return
+    elif isinstance(arg, Cosmology):
+        _default = arg
+    else:
+        print "Argument must be a string or cosmology instance"
+
+
 # convenience functions
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
     arcminute at redshift `z`.
     """
     if cosmo is None:
-        cosmo = Cosmology()
+        cosmo = get_default()
     return cosmo.comoving_transverse_distance(z) * 1.e3 * arcmin_in_radians
 
 def kpc_proper_per_arcmin(z, cosmo=None):
@@ -318,7 +365,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
     arcminute at redshift `z`.
     """
     if cosmo is None:
-        cosmo = Cosmology()
+        cosmo = get_default()
     return cosmo.angular_diameter_distance(z) * 1.e3 * arcmin_in_radians
 
 def arcsec_per_kpc_comoving(z, cosmo=None):
@@ -326,26 +373,26 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
     at redshift `z`.
     """
     if cosmo is None:
-        cosmo = Cosmology()
+        cosmo = get_default()
     return 1 / (cosmo.comoving_transverse_distance(z) *
-                 1.e3 * arcsec_in_radians)
+                1.e3 * arcsec_in_radians)
 
 def arcsec_per_kpc_proper(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a proper kpc at
     redshift `z`.
     """
     if cosmo is None:
-        cosmo = Cosmology()
+        cosmo = get_default()
     return 1 / (cosmo.angular_diameter_distance(z) * 1.e3 * arcsec_in_radians)
 
 def distmod(z, cosmo=None):
     """ Distance modulus at redshift `z`.
     """
     if cosmo is None:
-        cosmo = Cosmology()
+        cosmo = get_default()
     return cosmo.distmod(z)
 
-def to_xyz(ra, dec, r, deg2rad=np.pi/180.):
+def radec_to_xyz(ra, dec, r, deg2rad=np.pi/180.):
     """ Convert a ra, dec and comoving distance to 3d comoving
     coordinates.
 
@@ -356,8 +403,7 @@ def to_xyz(ra, dec, r, deg2rad=np.pi/180.):
     Assumes universe is flat.
 
     ra = 0 corresponds to the positive x-z half plane. dec = 0
-    corresponds to the whole x-y plane. If this is confusing, draw a
-    picture :)
+    corresponds to the whole x-y plane.
 
     To align the axes such that a vector r with direction (ra0, dec0)
     points along the positive x-axis, use ra-ra0 and dec-dec0 instead
