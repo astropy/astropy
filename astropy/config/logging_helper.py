@@ -199,7 +199,7 @@ sh.emit = logger.stream_formatter
 logger.addHandler(sh)
 
 # Set up the main log file handler if requested (but this might fail if
-# configuration file is not writeable)
+# configuration directory or log file is not writeable).
 if LOG_TO_FILE():
     try:
         fh = logging.FileHandler(os.path.expanduser(LOG_FILE_PATH()))
