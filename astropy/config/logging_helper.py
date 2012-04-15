@@ -18,7 +18,38 @@ from ..utils.misc import find_current_module
 _showwarning = warnings.showwarning
 _excepthook = sys.excepthook
 
-FILE_FORMAT = "%(asctime)s - %(origin)s - %(levelname)s - %(message)s"
+# Read in configuration
+
+LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
+                              "Threshold for the logging messages. Logging "
+                              "messages that are less severe than this level "
+                              "will be ignored. The levels are 'DEBUG', "
+                              "'INFO', 'WARNING', 'ERROR'")
+
+USE_COLOR = ConfigurationItem('use_color', True,
+                              "Whether to use color for the level names")
+
+LOG_WARNINGS = ConfigurationItem('catch_warnings', False,
+                                 "Whether to log warnings.warn calls")
+
+LOG_EXCEPTIONS = ConfigurationItem('catch_exceptions', False,
+                                   "Whether to log exceptions")
+
+LOG_TO_FILE = ConfigurationItem('log_to_file', True,
+                                "Whether to always log messages to a log "
+                                "file")
+
+LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
+                                  "The file to log messages to")
+
+LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'WARN',
+                                   "Threshold for logging messages to "
+                                   "log_file_path")
+
+LOG_FILE_FORMAT = ConfigurationItem('log_file_format', "%(asctime)s, "
+                                    "%(origin)s, %(levelname)s, %(message)s",
+                                    "Format for log file entries")
+
 
 class FilterOrigin(object):
     '''A filter for the record origin'''
@@ -139,7 +170,7 @@ class AstropyLogger(Logger):
         fh.setLevel(filter_level)
         if filter_origin is not None:
             fh.addFilter(FilterOrigin(filter_origin))
-        f = logging.Formatter(FILE_FORMAT)
+        f = logging.Formatter(LOG_FILE_FORMAT())
         fh.setFormatter(f)
         self.addHandler(fh)
         yield
@@ -156,37 +187,6 @@ class AstropyLogger(Logger):
         self.removeHandler(lh)
 
 logging.setLoggerClass(AstropyLogger)
-
-# Read in configuration
-
-LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
-                              "Threshold for the logging messages. Logging "
-                              "messages that are less severe than this level "
-                              "will be ignored. The levels are 'DEBUG', "
-                              "'INFO', 'WARNING', 'ERROR'")
-
-USE_COLOR = ConfigurationItem('use_color', True,
-                              "Whether to use color for the level names")
-
-CATCH_WARNINGS = ConfigurationItem('catch_warnings', False,
-                                   "Whether to catch warnings.warn calls and "
-                                   "output them via the logger")
-
-CATCH_EXCEPTIONS = ConfigurationItem('catch_exceptions', False,
-                                     "Whether to output an entry for "
-                                     "exceptions in the logger")
-
-LOG_TO_FILE = ConfigurationItem('log_to_file', True,
-                                "Whether to always log messages to a log "
-                                "file")
-
-LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
-                                  "The file to log messages to")
-
-LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'WARN',
-                                   "Threshold for logging messages to "
-                                   "log_file_path")
-
 
 # Initialize logger
 logger = logging.getLogger('astropy')
@@ -206,10 +206,10 @@ if LOG_TO_FILE():
     except IOError:
         pass
     else:
-        formatter = logging.Formatter(FILE_FORMAT)
+        formatter = logging.Formatter(LOG_FILE_FORMAT())
         fh.setFormatter(formatter)
         fh.setLevel(LOG_FILE_LEVEL())
         logger.addHandler(fh)
 
-logger.set_catch_warnings(CATCH_WARNINGS())
-logger.set_catch_exceptions(CATCH_EXCEPTIONS())
+logger.set_catch_warnings(LOG_WARNINGS())
+logger.set_catch_exceptions(LOG_EXCEPTIONS())
