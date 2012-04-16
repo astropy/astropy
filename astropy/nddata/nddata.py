@@ -5,6 +5,59 @@ __all__ = ['NDData']
 
 import numpy as np
 
+from .masks import NDMask, BoolMask
+from .errors import NDError, SDError
+
+from astropy.config import logger
+
+def merge_meta(meta1, meta2):
+    #Merging meta information and removing all duplicate keys -- warning what keys were removed
+    #should be in NDData somewhere
+    meta1_keys = meta1.viewkeys()
+    meta2_keys = meta2.viewkeys()
+    
+    
+    duplicates = meta1_keys & meta2_keys
+    
+    if len(duplicates) > 0:
+        logger.warn('Removing duplicate keys found in meta data: ' + ','.join(duplicates))
+                    
+    new_meta = copy.deepcopy(meta1)
+    new_meta.update(copy.deepcopy(meta2))
+    for key in duplicates:
+        del new_meta[key]
+    
+    return new_meta
+
+
+
+def nddata_operation(func):
+    #used as a decorator for the arithmetic of spectra
+    def convert_operands(self, operand):
+        
+        #checking if they have the same wcs and units
+        if isinstance(operand, self.__class__):
+            #check if wcs is the same ! Can't be implemented yet due to missing wcs (in spectrum1d it checks the dispersion)
+            
+            data = operand.data
+            mask = operand.mask
+            error = operand.error
+            meta = operand.meta
+        #for a scalar the data is the scalar and the error and mask and meta are None/ {}
+        elif np.isscalar(operand):
+            data = operand
+            mask = None
+            error = None
+            meta = {}
+            
+        else:
+            raise ValueError("unsupported operand type(s) for operation: %s and %s" %
+                             (type(self), type(operand)))
+        
+        return func(self, data, error, mask, meta)
+        
+    return convert_operands
+
 
 class NDData(object):
     """Superclass for Astropy data.
@@ -77,16 +130,8 @@ class NDData(object):
                  units=None, copy=True, validate=True):
         if validate:
             self.data = np.array(data, subok=True, copy=copy)
-
-            if error is None:
-                self.error = None
-            else:
-                self.error = np.array(error, subok=True, copy=copy)
-
-            if mask is None:
-                self.mask = None
-            else:
-                self.mask = np.array(mask, subok=True, copy=copy)
+            self.error = error
+            self.mask = mask
 
             self._validate_mask_and_error()
 
@@ -97,24 +142,40 @@ class NDData(object):
             else:
                 self.meta = dict(meta)  # makes a *copy* of the passed-in meta
         else:
-            self.data = data
-            self.error = error
-            self.mask = mask
-            self.wcs = wcs
-            self.meta = meta
+            self.data = np.array(data, copy=copy)
+            self.error = np.array(error, copy=copy)
+            self.mask = np.array(mask, copy=copy)
+            self.meta = copy.deepcopy(meta) if copy else meta
+            
+            #what about copy for units and wcs?
             self.units = units
-
+            self.wcs = wcs
     def _validate_mask_and_error(self):
         """
         Raises ValueError if they don't match (using ~numpy.broadcast)
         """
-
+        if self.mask is not None:
+            if isinstance(self.mask, np.ndarray):
+                self.mask = nddata.BoolMask(mask)
+            elif isinstance(self.mask, nddata.NDMask):
+                pass
+            else:
+                raise ValueError('Mask not of appropriate type')
+            
         try:
             if self.mask is not None:
                 np.broadcast(self.data, self.mask)
             maskmatch = True
         except ValueError:
             maskmatch = False
+
+        if self.error is not None:
+            if isinstance(self.error, np.ndarray):
+                    self.error = nddata.SDError(self.error)
+            elif isinstance(self.error, nddata.NDError):
+                pass
+            else:
+                raise ValueError('Error not of appropriate type')
 
         try:
             if self.error is not None:
@@ -177,3 +238,29 @@ class NDData(object):
         """
         return self.data.ndim
         
+    @nddata_operation 
+    def __add__(self, operand_data, operand_error, operand_mask, operand_meta):
+        new_data = self.data + operand_data
+        
+        if self.error is None and operand_error is None:
+            new_error = None
+        elif self.error is None:
+            new_error = operand_error.copy()
+        else:
+            new_error = self.error.error_add(self.data, operand_error, operand_data, new_data)
+        
+        if self.mask is None and operand_mask is None:
+            new_mask = None
+        elif self.mask is None:
+            new_mask = operand_mask.copy()
+        else:
+            new_mask = self.mask.mask_add(operand_mask)
+        
+        new_meta = merge_meta(self.meta, operand_meta)
+        
+        return self.__class__(new_data,
+                              #!!! What if it's a WCS
+                              self.dispersion.copy(),
+                              error=new_error,
+                              mask=new_mask,
+                              meta=new_meta)
