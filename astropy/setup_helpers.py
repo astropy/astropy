@@ -532,15 +532,16 @@ def import_file(filename):
     Imports a module from a single file as if it doesn't belong to a
     particular package.
     """
+    # Specifying a traditional dot-separated fully qualified name here
+    # results in a number of "Parent module 'astropy' not found while
+    # handling absolute import" warnings.  Using the same name, the
+    # namespaces of the modules get merged together.  So, this
+    # generates an underscore-separated name which is more likely to
+    # be unique, and it doesn't really matter because the name isn't
+    # used directly here anyway.
     with open(filename, 'U') as fd:
-        # If we specify a fully qualified name here, we'll get a
-        # number of "Parent module 'astropy' not found while handling
-        # absolute import" warnings.  Since this function is just used
-        # to import setup_package.py files without importing their
-        # parent packages, we can just give the name of the module.
-        # In general, however, this is not something one would want to
-        # do.
-        name = os.path.splitext(os.path.basename(filename))[0]
+        name = '_'.join(
+            os.path.relpath(os.path.splitext(filename)[0]).split(os.sep)[1:])
         return imp.load_module(name, fd, filename, ('.py', 'U', 1))
 
 
@@ -551,13 +552,34 @@ def get_legacy_alias_dir():
 legacy_shim_template = """
 # This is generated code.  DO NOT EDIT!
 
+from __future__ import absolute_import
+
+# This implements a PEP 302 finder/loader pair that translates
+# {old_package}.foo import {new_package}.foo.  This approach allows
+# relative imports in astropy that go above the level of the
+# {new_package} subpackage to work.
+class Finder(object):
+    def find_module(self, fullname, path=None):
+        if fullname.startswith("{old_package}."):
+            return self.Loader()
+
+    class Loader(object):
+        def load_module(self, fullname):
+            import importlib
+            fullname = fullname[len("{old_package}"):]
+            return importlib.import_module(fullname, package="{new_package}")
+
+import sys
+sys.meta_path.append(Finder())
+# Carefully clean up the namespace, since we can't use __all__ here
+del sys
+del Finder
+
 import warnings
 warnings.warn(
     "{old_package} is deprecated.  Use {new_package} instead.",
     DeprecationWarning)
-
-import pkgutil
-__path__ = pkgutil.extend_path(__path__, "{new_package}")
+del warnings
 
 from {new_package} import *
 from astropy import __version__
@@ -609,11 +631,11 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     import imp
 
-    found_legacy_module = False
+    found_legacy_module = True
     try:
         location = imp.find_module(old_package)
     except ImportError:
-        pass
+        found_legacy_module = False
     else:
         # We want ImportError to raise here, because that means it was
         # found, but something else went wrong.
@@ -627,7 +649,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
         if os.path.exists(filename):
             with open(filename, 'U') as fd:
                 if '_is_astropy_legacy_alias' in fd.read():
-                    found_legacy_module = True
+                    found_legacy_module = False
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
