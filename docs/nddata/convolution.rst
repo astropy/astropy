@@ -89,3 +89,7 @@ and a 3-d array as a list::
                   [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)
 
+API
+---
+
+.. autofunction:: astropy.nddata.convolve

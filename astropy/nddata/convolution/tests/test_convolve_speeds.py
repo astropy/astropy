@@ -11,7 +11,7 @@ if __name__ == "__main__":
             #array = np.random.random([2**ii]*ndims)
             setup=("""
 from astropy.nddata.convolution.convolve import convolve; 
-from astropy.nddata.convolution.convolve_fft import convolve_fft; 
+from astropy.nddata.convolution.convolve import convolve_fft; 
 from astropy.nddata.convolution.make_kernel import make_kernel; 
 import numpy as np; 
 array = np.random.random([%i]*%i); 
