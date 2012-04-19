@@ -14,11 +14,23 @@ import subprocess
 
 from distutils.core import Command
 
-from ..config import ConfigurationItem
+#If we are in setup.py, we don't want to import astropy.config
+if __builtins__.get('_ASTROPY_SETUP_'):
+    if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
+        USE_SYSTEM_PYTEST = lambda: True
+    else:
+        USE_SYSTEM_PYTEST = lambda: False
+else:
+    from ..config import ConfigurationItem
 
-USE_SYSTEM_PYTEST = ConfigurationItem('use_system_pytest', False,
-                                      'Set to True to load system pytest',
-                                      'boolean', 'astropy.tests.helper')
+    USE_SYSTEM_PYTEST = ConfigurationItem('use_system_pytest', False,
+                                          'Set to True to load system pytest.  '
+                                          'This item will *not* be obeyed if '
+                                          'using setup.py.  In that case the '
+                                          'environment variable '
+                                          'ASTROPY_USE_SYSTEM_TEST must be '
+                                          'used',
+                                          'boolean', 'astropy.tests.helper')
 
 if USE_SYSTEM_PYTEST():
     import pytest

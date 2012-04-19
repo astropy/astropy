@@ -9,7 +9,17 @@ from distutils.command import sdist
 
 import glob
 import os
+import sys
 from setuptools import setup, find_packages
+
+#A dirty hack to get around some early import/configurations ambiguities
+#This is the same as setup_helpers.set_build_mode(), but does not require
+#importing setup_helpers
+if sys.version_info[0] >= 3:
+    import builtins
+else:
+    import __builtin__ as builtins
+builtins._ASTROPY_SETUP_ = True
 
 import astropy
 from astropy import setup_helpers
@@ -24,9 +34,6 @@ release = 'dev' not in version
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
-
-# Indicate that we are in building mode
-setup_helpers.set_build_mode()
 
 if not release:
     version += get_git_devstr(False)
