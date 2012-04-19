@@ -481,7 +481,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     of the function where this function is called. Be a bit cautious about
     this, though - this might not always be what you want.
     """
-    from pkgutil import find_module, walk_packages
+    from pkgutil import get_loader, walk_packages
     from types import ModuleType
 
     from ..utils import find_current_module
@@ -490,7 +490,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
     if isinstance(pkgornm, basestring):
-        package = find_module(pkgornm).load_module(pkgornm)
+        package = get_loader(pkgornm).load_module(pkgornm)
     elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
     else:
@@ -499,7 +499,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
 
     for imper, nm, ispkg in walk_packages(package.__path__,
                                           package.__name__ + '.'):
-        mod = imper.load_module(nm)
+        mod = imper.find_module(nm)
         if reset_to_default:
             for v in mod.__dict__.itervalues():
                 if isinstance(v, ConfigurationItem):
