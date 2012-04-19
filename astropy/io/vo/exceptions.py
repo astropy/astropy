@@ -35,7 +35,6 @@ from __future__ import division, absolute_import
 # STDLIB
 import io
 import re
-import sys
 from warnings import warn
 
 # LOCAL
@@ -44,7 +43,7 @@ from .util import IS_PY3K
 
 __all__ = [
     'warn_or_raise', 'vo_raise', 'vo_reraise', 'vo_warn',
-    'warn_unknown_attrs', 'parse_vowarning', 'VOWarning'
+    'warn_unknown_attrs', 'parse_vowarning', 'VOWarning',
     'VOTableChangeWarning', 'VOTableSpecWarning',
     'UnimplementedWarning', 'IOWarning', 'VOTableSpecError']
 

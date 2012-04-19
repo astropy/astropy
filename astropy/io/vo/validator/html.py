@@ -13,7 +13,6 @@ from ....utils import online_docs_root
 
 # VO
 from .. import exceptions
-from .. import xmlutil
 
 html_header = u"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html

@@ -13,7 +13,6 @@ import cPickle as pickle
 import shutil
 import socket
 import subprocess
-import sys
 import urllib2
 import warnings
 
@@ -145,7 +144,6 @@ class Result:
         return content
 
     def validate_vo(self):
-        orig_stdout = sys.stdout
         path = self.get_vo_xml_path()
         if not os.path.exists(path):
             self.download_xml_content()

@@ -6,7 +6,6 @@ from __future__ import with_statement, absolute_import
 
 #STDLIB
 import re
-import sys
 
 #LOCAL
 from ... import config
@@ -183,6 +182,6 @@ def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
         parse_ucd(ucd,
                   check_controlled_vocabulary=check_controlled_vocabulary,
                   has_colon=has_colon)
-    except ValueError as e:
+    except ValueError:
         return False
     return True
