@@ -10,6 +10,7 @@ import imp
 import os
 import shutil
 import sys
+import re
 
 from distutils import log
 from distutils.dist import Distribution
@@ -36,16 +37,60 @@ try:
     from sphinx.setup_command import BuildDoc
 
     class AstropyBuildSphinx(BuildDoc):
-        """ A version of build_sphinx that automatically creates the
-        docs/_static directories - this is needed because
-        github won't create the _static dir because it has no tracked files.
+        """ A version of the ``build_sphinx`` command that uses the
+        version of Astropy that is built by the setup ``build`` command,
+        rather than whatever is installed on the system - to build docs
+        against the installed version, run ``make html`` in the
+        ``astropy/docs`` directory.
+
+        This also automatically creates the docs/_static directories -
+        this is needed because github won't create the _static dir
+        because it has no tracked files.
         """
+
+        description = 'Build Sphinx documentation for Astropy environment'
+        user_options = BuildDoc.user_options[:]
+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '
+                                                'before building new ones'))
+        boolean_options = BuildDoc.boolean_options[:]
+        boolean_options.append('clean-docs')
+
+        _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
+
+        def initialize_options(self):
+            BuildDoc.initialize_options(self)
+            self.clean_docs = False
+
+        def finalize_options(self):
+            from os.path import isdir
+            from shutil import rmtree
+
+            #Clear out previous sphinx builds, if requested
+            if self.clean_docs:
+                dirstorm = ['docs/_generated']
+                if self.build_dir is None:
+                    dirstorm.append('docs/_build')
+                else:
+                    dirstorm.append(self.build_dir)
+
+                for d in dirstorm:
+                    if isdir(d):
+                        log.info('Cleaning directory ' + d)
+                        rmtree(d)
+                    else:
+                        log.info('Not cleaning directory ' + d + ' because '
+                                 'not present or not a directory')
+
+            BuildDoc.finalize_options(self)
+
         def run(self):
-            from os.path import split,join
-
+            from os.path import split, join
             from distutils.cmd import DistutilsOptionError
+            from subprocess import Popen, PIPE
+            from textwrap import dedent
+            from inspect import getsourcelines
 
-            #If possible, creat the _static dir
+            # If possible, create the _static dir
             if self.build_dir is not None:
                 # the _static dir should be in the same place as the _build dir
                 # for Astropy
@@ -55,18 +100,54 @@ try:
                 staticdir = join(basedir, '_static')
                 if os.path.isfile(staticdir):
                     raise DistutilsOptionError(
-                        'Attempted to build_sphinx such in a location where' +
+                        'Attempted to build_sphinx in a location where' +
                         staticdir + 'is a file.  Must be a directory.')
                 self.mkpath(staticdir)
 
-            #Now make sure Astropy is built and inject it into the sphinx path
-            #self.reinitialize_command('build', inplace=False)
+            #Now make sure Astropy is built and determine where it was built
+            build_cmd = self.reinitialize_command('build')
+            build_cmd.inplace = 0
             self.run_command('build')
             build_cmd = self.get_finalized_command('build')
-            new_path = os.path.abspath(build_cmd.build_lib)
-            sys.path.insert(0, os.path.abspath(new_path))
+            build_cmd_path = os.path.abspath(build_cmd.build_lib)
 
-            return BuildDoc.run(self)
+            #Now generate the source for and spawn a new process that runs the
+            #command.  This is needed to get the correct imports for the built
+            #version
+
+            runlines, runlineno = getsourcelines(BuildDoc.run)
+            subproccode = dedent("""
+            from sphinx.setup_command import *
+
+            os.chdir('{srcdir}')
+            sys.path.insert(0,'{build_cmd_path}')
+
+            """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
+            #runlines[1:] removes 'def run(self)' on the first line
+            subproccode += dedent(''.join(runlines[1:]))
+
+            # All "self.foo" in the subprocess code needs to be replaced by the
+            # values taken from the current self in *this* process
+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)
+            for i in range(1, len(subproccode), 2):
+                iden = subproccode[i]
+                val = getattr(self, iden)
+                if iden.endswith('_dir'):
+                    #Directories should be absolute, because the `chdir` call
+                    #in the new process moves to a different directory
+                    subproccode[i] = repr(os.path.abspath(val))
+                else:
+                    subproccode[i] = repr(val)
+            subproccode = ''.join(subproccode)
+
+            log.debug('Starting subprocess of {0} with python code:\n{1}\n'
+                      '[CODE END])'.format(sys.executable, subproccode))
+
+            proc = Popen([sys.executable], stdin=PIPE)
+            proc.communicate(subproccode)
+            if proc.returncode != 0:
+                log.warn('Sphinx Documentation subprocess failed with return '
+                         'code ' + str(proc.returncode))
 
 except ImportError as e:
     if 'sphinx' in e.args[0]:  # Sphinx not present
@@ -451,15 +532,16 @@ def import_file(filename):
     Imports a module from a single file as if it doesn't belong to a
     particular package.
     """
+    # Specifying a traditional dot-separated fully qualified name here
+    # results in a number of "Parent module 'astropy' not found while
+    # handling absolute import" warnings.  Using the same name, the
+    # namespaces of the modules get merged together.  So, this
+    # generates an underscore-separated name which is more likely to
+    # be unique, and it doesn't really matter because the name isn't
+    # used directly here anyway.
     with open(filename, 'U') as fd:
-        # If we specify a fully qualified name here, we'll get a
-        # number of "Parent module 'astropy' not found while handling
-        # absolute import" warnings.  Since this function is just used
-        # to import setup_package.py files without importing their
-        # parent packages, we can just give the name of the module.
-        # In general, however, this is not something one would want to
-        # do.
-        name = os.path.splitext(os.path.basename(filename))[0]
+        name = '_'.join(
+            os.path.relpath(os.path.splitext(filename)[0]).split(os.sep)[1:])
         return imp.load_module(name, fd, filename, ('.py', 'U', 1))
 
 
@@ -470,13 +552,34 @@ def get_legacy_alias_dir():
 legacy_shim_template = """
 # This is generated code.  DO NOT EDIT!
 
+from __future__ import absolute_import
+
+# This implements a PEP 302 finder/loader pair that translates
+# {old_package}.foo import {new_package}.foo.  This approach allows
+# relative imports in astropy that go above the level of the
+# {new_package} subpackage to work.
+class Finder(object):
+    def find_module(self, fullname, path=None):
+        if fullname.startswith("{old_package}."):
+            return self.Loader()
+
+    class Loader(object):
+        def load_module(self, fullname):
+            import importlib
+            fullname = fullname[len("{old_package}"):]
+            return importlib.import_module(fullname, package="{new_package}")
+
+import sys
+sys.meta_path.append(Finder())
+# Carefully clean up the namespace, since we can't use __all__ here
+del sys
+del Finder
+
 import warnings
 warnings.warn(
     "{old_package} is deprecated.  Use {new_package} instead.",
     DeprecationWarning)
-
-import pkgutil
-__path__ = pkgutil.extend_path(__path__, "{new_package}")
+del warnings
 
 from {new_package} import *
 from astropy import __version__
@@ -528,11 +631,11 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     import imp
 
-    found_legacy_module = False
+    found_legacy_module = True
     try:
         location = imp.find_module(old_package)
     except ImportError:
-        pass
+        found_legacy_module = False
     else:
         # We want ImportError to raise here, because that means it was
         # found, but something else went wrong.
@@ -546,7 +649,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
         if os.path.exists(filename):
             with open(filename, 'U') as fd:
                 if '_is_astropy_legacy_alias' in fd.read():
-                    found_legacy_module = True
+                    found_legacy_module = False
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 

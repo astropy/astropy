@@ -11,7 +11,7 @@ def test_paths():
 
 
 def test_config_file():
-    from ..configs import get_config, reload_config, save_config
+    from ..configuration import get_config, reload_config, save_config
     from os.path import exists
 
     apycfg = get_config('astropy')
@@ -31,7 +31,7 @@ def test_config_file():
 
 
 def test_configitem():
-    from ..configs import ConfigurationItem, get_config
+    from ..configuration import ConfigurationItem, get_config
 
     ci = ConfigurationItem('tstnm', 34, 'this is a Description')
 
@@ -58,7 +58,7 @@ def test_configitem():
 
 
 def test_configitem_save(tmpdir):
-    from ..configs import ConfigurationItem, get_config
+    from ..configuration import ConfigurationItem, get_config
     from shutil import copy
 
     ci = ConfigurationItem('tstnm2', 42, 'this is another Description')
@@ -116,7 +116,7 @@ def test_configitem_save(tmpdir):
 
 
 def test_configitem_types():
-    from ..configs import ConfigurationItem
+    from ..configuration import ConfigurationItem
     from pytest import raises
 
     ci1 = ConfigurationItem('tstnm1', 34)
@@ -141,7 +141,7 @@ def test_configitem_types():
 
 
 def test_configitem_options(tmpdir):
-    from ..configs import ConfigurationItem, get_config
+    from ..configuration import ConfigurationItem, get_config
     from pytest import raises
 
     cio = ConfigurationItem('tstnmo', ['op1', 'op2', 'op3'])
@@ -176,7 +176,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     there's a problem accessing the astropy directory
     """
     from pytest import raises
-    from .. import paths, configs
+    from .. import paths, configuration
 
     #make sure the config directory is not searched
     monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
@@ -189,7 +189,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     monkeypatch.setattr(paths, '_find_or_create_astropy_dir', osraiser)
 
     # also have to make sure the stored configuration objects are cleared
-    monkeypatch.setattr(configs, '_cfgobjs', {})
+    monkeypatch.setattr(configuration, '_cfgobjs', {})
 
     with raises(OSError):
         #make sure the config dir search fails
@@ -200,6 +200,6 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     test_configitem()
     assert len(recwarn.list) > 0
     w = recwarn.pop()
-    assert w.category == configs.ConfigurationMissingWarning
+    assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
     assert 'and configuration cannot be saved due to' in str(w.message)

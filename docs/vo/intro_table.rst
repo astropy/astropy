@@ -157,8 +157,8 @@ and populate it with data::
 
   # Define some fields
   table.fields.extend([
-          Field(votable, ID="filename", datatype="char"),
-          Field(votable, ID="matrix", datatype="double", arraysize="2x2")])
+          Field(votable, name="filename", datatype="char", arraysize="*"),
+          Field(votable, name="matrix", datatype="double", arraysize="2x2")])
 
   # Now, use those field definitions to create the numpy record arrays, with
   # the given number of rows

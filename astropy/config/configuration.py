@@ -59,9 +59,9 @@ class ConfigurationItem(object):
         from the default value.
     module : str or None
         The full module name that this item is associated with. The first
-        element (e.g. 'astropy' if this is 'astropy.config.configs') will be
-        used to determine the name of the configuration file, while the
-        remaining items determine the section. If None, the package will be
+        element (e.g. 'astropy' if this is 'astropy.config.configuration')
+        will be used to determine the name of the configuration file, while
+        the remaining items determine the section. If None, the package will be
         inferred from the package within whiich this object's initializer is
         called.
 
@@ -74,18 +74,18 @@ class ConfigurationItem(object):
     Examples
     --------
     The following example will create an item 'cfgoption = 42' in the
-    '[configs]' section of astropy.cfg (located in the directory that
+    '[configuration]' section of astropy.cfg (located in the directory that
     `astropy.config.paths.get_config_dir` returns), or if the option is already
     set, it will take the value from the configuration file::
 
         from astropy.config import ConfigurationItem
 
-        CFG_OPTION = ConfigurationItem('cfgoption',42,module='astropy.configs')
+        CFG_OPTION = ConfigurationItem('cfgoption',42,module='astropy.configuration')
 
     If called as ``CFG_OPTION()``, this will return the value ``42``, or some
     other integer if the ``astropy.cfg`` file specifies a different value.
 
-    If this were in the ``astropy/configs/__init__.py`` file, the `module`
+    If this were a file ``astropy/configuration/__init__.py``, the `module`
     option would not be necessary, as it would automatically detect the correct
     module.
 
@@ -221,7 +221,7 @@ class ConfigurationItem(object):
 
         #use the current on disk version, which will be modified with the
         #given value and type/description
-        newobj = configobj.ConfigObj(cobj.filename)
+        newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
             if secname not in newobj:
                 newobj[secname] = {}
@@ -248,7 +248,7 @@ class ConfigurationItem(object):
         while cobj.parent is not cobj:
             cobj = cobj.parent
 
-        newobj = configobj.ConfigObj(cobj.filename)
+        newobj = configobj.ConfigObj(cobj.filename, interpolation=False)
         if secname is not None:
             newobj = newobj[secname]
 
@@ -355,7 +355,8 @@ def get_config(packageormod=None, reload=False):
     if cobj is None:
         try:
             cfgfn = join(get_config_dir(), rootname + '.cfg')
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn)
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
+                interpolation=False)
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
@@ -365,7 +366,7 @@ def get_config(packageormod=None, reload=False):
 
             #This caches the object, so if the file becomes acessible, this
             #function won't see it unless the module is reloaded
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj()
+            _cfgobjs[rootname] = cobj = configobj.ConfigObj(interpolation=False)
 
     if secname:  # not the root package
         if secname not in cobj:
@@ -382,7 +383,7 @@ def save_config(packageormod=None):
     This overwrites any configuration items that have been changed in
     `ConfigurationItem` objects that are based on the configuration file
     determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
-    the 'astropy.config.configs' module).
+    the 'astropy.config.configuration' module).
 
     .. note::
         To save only a single item, use the `ConfigurationItem.save` method -
@@ -408,7 +409,7 @@ def reload_config(packageormod=None):
     This overwrites any changes that may have been made in `ConfigurationItem`
     objects.  This applies for any items that are based on this file, which is
     determined by the *root* package of `packageormod` (e.g. 'astropy.cfg' for
-    the 'astropy.config.configs' module).
+    the 'astropy.config.configuration' module).
 
     Parameters
     ----------

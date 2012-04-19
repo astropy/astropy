@@ -59,6 +59,28 @@ class TestNewFromColumns():
             Table(cols)
 
 
+class TestReverse():
+
+    def test_reverse(self):
+        t = Table([[1, 2, 3],
+                   ['a', 'b', 'cc']])
+        t.reverse()
+        assert np.all(t['col0'] == np.array([3, 2, 1]))
+        assert np.all(t['col1'] == np.array(['cc', 'b', 'a']))
+
+        t2 = Table(t, copy=False)
+        assert np.all(t2['col0'] == np.array([3, 2, 1]))
+        assert np.all(t2['col1'] == np.array(['cc', 'b', 'a']))
+
+        t2 = Table(t, copy=True)
+        assert np.all(t2['col0'] == np.array([3, 2, 1]))
+        assert np.all(t2['col1'] == np.array(['cc', 'b', 'a']))
+
+        t2.sort('col0')
+        assert np.all(t2['col0'] == np.array([1, 2, 3]))
+        assert np.all(t2['col1'] == np.array(['a', 'b', 'cc']))
+
+
 class TestColumnAccess():
 
     def test_1(self):

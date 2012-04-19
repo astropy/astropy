@@ -57,7 +57,8 @@ class TestRunner(object):
         self.base_path = base_path
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data=False, pep8=False):
+                  verbose=False, pastebin=None, remote_data=False, pep8=False,
+                  pdb=False):
         """
         Run Astropy tests using py.test. A proper set of arguments is
         constructed and passed to `pytest.main`.
@@ -98,6 +99,10 @@ class TestRunner(object):
         pep8 : bool, optional
             Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
             tests. Same as specifying `--pep8 -k pep8` in `args`.
+
+        pdb : bool, optional
+            Turn on PDB post-mortem analysis for failing tests. Same as
+            specifying `--pdb` in `args`.
 
         See Also
         --------
@@ -147,6 +152,10 @@ class TestRunner(object):
             else:
                 all_args += ' --pep8 -k pep8'
 
+        # activate post-mortem PDB for failing tests
+        if pdb:
+            all_args += ' --pdb'
+
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
@@ -173,7 +182,9 @@ class astropy_test(Command, object):
         ('remote-data', 'R', 'Run tests that download remote data'),
         ('pep8', '8', 'Enable PEP8 checking and disable regular tests. '
          'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
-         'pytest-pep8 plugin.')
+         'pytest-pep8 plugin.'),
+        ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
+         'Same as specifying `--pdb` in `args`.')
     ]
 
     package_name = None
@@ -187,6 +198,7 @@ class astropy_test(Command, object):
         self.args = None
         self.remote_data = False
         self.pep8 = False
+        self.pdb = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -203,11 +215,11 @@ class astropy_test(Command, object):
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
         cmd = ('import {0}, sys; sys.exit({0}.test({1!r}, {2!r}, ' +
-               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}))')
+               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}, {9!r}))')
         cmd = cmd.format(self.package_name,
                          self.package, self.test_path, self.args,
                          self.plugins, self.verbose_results, self.pastebin,
-                         self.remote_data, self.pep8)
+                         self.remote_data, self.pep8, self.pdb)
 
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path, close_fds=False))
