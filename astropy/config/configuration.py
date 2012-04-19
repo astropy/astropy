@@ -293,11 +293,13 @@ class ConfigurationItem(object):
 
     def _generate_comments(self):
         comments = []
+        comments.append('')  # adds a blank line before every entry
         if self.description is not None:
-            comments.append(self.description)
+            import textwrap
+            for line in textwrap.wrap(self.description, width=76):
+                comments.append(line)
         if self.cfgtype is not None:
             comments.append(self.cfgtype)
-        comments.append('')  # adds a blank line after every entry
         return comments
 
 
