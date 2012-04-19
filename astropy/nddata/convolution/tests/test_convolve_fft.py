@@ -2,7 +2,7 @@ import numpy as np
 
 from astropy.tests.helper import pytest
 
-from ..convolve_fft import convolve_fft
+from ..convolve import convolve_fft
 #from astropy.nddata.convolutions.convolve_fft import convolve_fft
 
 from numpy.testing import assert_array_almost_equal_nulp
