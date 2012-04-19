@@ -30,7 +30,11 @@ except ImportError:
     __githash__ = ''
 
 # set up the test command
-from .tests.helper import TestRunner
-_test_runner = TestRunner(__path__[0])
-del TestRunner
-test = _test_runner.run_tests
+_test_runner = None
+def _get_test_runner():
+    from .tests.helper import TestRunner
+    return TestRunner(__path__[0])
+
+def test(*args, **kwargs):
+    test_runner = _get_test_runner()
+    return test_runner.run_tests(*args, **kwargs)
