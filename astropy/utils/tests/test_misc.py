@@ -131,7 +131,6 @@ def test_find_mod_objs():
     # just check for astropy.test ... other things might be added, so we
     # shouldn't check that it's the only thing
     assert 'test' in lnms
-    assert 'astropy.tests.helper.run_tests' in fqns
     assert astropy.test in objs
 
     lnms, fqns, objs = misc.find_mod_objs('astropy.utils.tests.test_misc',
