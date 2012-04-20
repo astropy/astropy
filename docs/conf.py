@@ -43,7 +43,7 @@ del intersphinx_mapping['astropy']
 
 # General information about the project.
 project = u'Astropy'
-copyright = u'2011, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perry Greenfield'
+copyright = u'2012, The Astropy Collaboration'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -85,9 +85,23 @@ templates_path.append('_templates')
 
 # -- Options for HTML output ---------------------------------------------------
 
+import sys
+import os
+sys.path.append(os.path.abspath('_themes'))
+html_theme_path = ['_themes']
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'bootstrap'
+
+# The name for this set of Sphinx documents.  If None, it defaults to
+# "<project> v<release> documentation".
+html_title = '{0} v{1}'.format(project, release)
+
+
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'logo/astropylogo.png'
+html_logo = 'logo/astropylogo_docs_32.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
