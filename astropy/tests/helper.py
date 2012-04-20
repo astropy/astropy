@@ -14,6 +14,8 @@ import subprocess
 
 from distutils.core import Command
 
+from .. import test
+
 #If we are in setup.py, we don't want to import astropy.config
 if __builtins__.get('_ASTROPY_SETUP_'):
     if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
@@ -72,54 +74,7 @@ class TestRunner(object):
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
                   pdb=False):
         """
-        Run Astropy tests using py.test. A proper set of arguments is
-        constructed and passed to `pytest.main`.
-
-        Parameters
-        ----------
-        package : str, optional
-            The name of a specific package to test, e.g. 'io.fits' or 'utils'.
-            If nothing is specified all default Astropy tests are run.
-
-        test_path : str, optional
-            Specify location to test by path. May be a single file or
-            directory. Must be specified absolutely or relative to the
-            calling directory.
-
-        args : str, optional
-            Additional arguments to be passed to `pytest.main` in the `args`
-            keyword argument.
-
-        plugins : list, optional
-            Plugins to be passed to `pytest.main` in the `plugins` keyword
-            argument.
-
-        verbose : bool, optional
-            Convenience option to turn on verbose output from py.test. Passing
-            True is the same as specifying `-v` in `args`.
-
-        pastebin : {'failed','all',None}, optional
-            Convenience option for turning on py.test pastebin output. Set to
-            'failed' to upload info for failed tests, or 'all' to upload info
-            for all tests.
-
-        remote_data : bool, optional
-            Controls whether to run tests marked with @remote_data. These
-            tests use online data and are not run by default. Set to True to
-            run these tests.
-
-        pep8 : bool, optional
-            Turn on PEP8 checking via the pytest-pep8 plugin and disable normal
-            tests. Same as specifying `--pep8 -k pep8` in `args`.
-
-        pdb : bool, optional
-            Turn on PDB post-mortem analysis for failing tests. Same as
-            specifying `--pdb` in `args`.
-
-        See Also
-        --------
-        pytest.main : py.test function wrapped by `run_tests`.
-
+        The docstring for this method lives in astropy/__init__.py:test
         """
         if package is None:
             package_path = self.base_path
@@ -172,6 +127,7 @@ class TestRunner(object):
                                posix=not sys.platform.startswith('win'))
 
         return pytest.main(args=all_args, plugins=plugins)
+    run_tests.__doc__ = test.__doc__
 
 
 class astropy_test(Command, object):

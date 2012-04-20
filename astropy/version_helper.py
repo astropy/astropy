@@ -1,10 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import division
 
-import imp
-
-from distutils import log
-
 """
 Utilities for generating the version string for Astropy (or an affiliated
 package) and the version.py module, which contains version info for the
@@ -184,6 +180,8 @@ def _get_version_py_str(packagename, version, release, debug):
 def generate_version_py(packagename, version, release, debug=None):
     """Regenerate the version.py module if necessary."""
 
+    from distutils import log
+    import imp
     import os
     import sys
 
