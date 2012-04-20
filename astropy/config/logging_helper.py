@@ -14,8 +14,6 @@ from . import ConfigurationItem
 from ..utils.console import color_print
 from ..utils.misc import find_current_module
 
-# Save original showwarning and excepthook functions so they can be restored
-_excepthook = sys.excepthook
 
 # Read in configuration
 
