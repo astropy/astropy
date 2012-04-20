@@ -6,7 +6,10 @@ import numpy as np
 from scipy import integrate
 
 from ..constants.cgs import pc, G, c
+from ..config import ConfigurationItem
+
 import parameters
+
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
@@ -30,6 +33,9 @@ Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
 arcsec_in_radians = 1 / 3600. * pi / 180
 arcmin_in_radians = 1 / 60. * pi / 180
+
+DEFAULT_COSMOLOGY = ConfigurationItem('default_cosmology', 'no_default',
+                                      'The default cosmology to use')
 
 class Cosmology(object):
     """
@@ -93,7 +99,7 @@ class Cosmology(object):
     # get comoving distance in Mpc at redshift z
     dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0=None, Om=None, Ol=None, name='Cosmology'):
+    def __init__(self, H0, Om, Ol, name='Cosmology'):
 
         # all densities are in units of the critical density
         self.Om = float(Om)
@@ -319,16 +325,15 @@ del key, par, cosmo, i0, i1
 # should be accessed using get_default().
 #########################################################################
 
-_default = None
+_default = DEFAULT_COSMOLOGY()
 
 def get_default():
     """ Return the default cosmology. If no default has been set, a
     warning is given and the default is set to the WMAP7 parameters.
     """ 
     global _default
-    if _default is None:
-        s = ('No cosmology has been specified with set_default(); '
-             'using 7-year WMAP.')
+    if _default == 'no_default':
+        s = 'No default cosmology has been specified, using 7-year WMAP.'
         warnings.warn(s)
         _default = WMAP7
 
