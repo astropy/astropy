@@ -1,5 +1,5 @@
-Configuration system Documentation
-==================================
+Configuration system
+====================
 
 The astropy configuration system is designed to give users control of various
 parameters used in astropy or affiliated packages without delving into the

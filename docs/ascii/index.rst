@@ -1,8 +1,8 @@
 .. include:: references.txt
 
-===============================
-astropy.io.ascii Documentation
-===============================
+================
+astropy.io.ascii
+================
 An extensible ASCII table reader and writer for Python 2 and 3.
 
 The :mod:`astropy.io.ascii` packge can read and write a wide range of ASCII table

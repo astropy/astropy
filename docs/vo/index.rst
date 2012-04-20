@@ -1,5 +1,7 @@
-astropy.io.vo Documentation
-===========================
+
+=============
+astropy.io.vo
+=============
 
 Contents:
 

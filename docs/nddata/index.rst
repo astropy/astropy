@@ -1,8 +1,8 @@
 .. _astropy_nddata:
 
-============================
-astropy.nddata documentation
-============================
+==============
+astropy.nddata
+==============
 
 The `nddata` subpackage provides the `~astropy.nddata.nddata.NDData` 
 class and related tools to manage n-dimensional array-based data (e.g. 
