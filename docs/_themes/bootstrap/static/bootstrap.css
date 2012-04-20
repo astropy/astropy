@@ -20,6 +20,30 @@ dt:hover > a.headerlink {
     height: 32px;
 }
 
+cite, code, tt {
+    font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 0.95em;
+    letter-spacing: 0.01em;
+    line-height: 1.5em;
+}
+
+tt.descname {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+tt.descname, tt.descclassname, tt.xref {
+    border: 0pt none;
+}
+
+.viewcode-link {
+    float: right;
+}
+
+dt:target {
+    background: none repeat scroll 0% 0% rgba(255,80,0,0.75);
+}
+
 /*!
  * Bootstrap v1.4.0
  *
@@ -51,8 +75,6 @@ a,
 abbr,
 acronym,
 address,
-cite,
-code,
 del,
 dfn,
 em,
@@ -65,7 +87,6 @@ strike,
 strong,
 sub,
 sup,
-tt,
 var,
 dd,
 dl,
@@ -514,9 +535,6 @@ dl {
 }
 dl dt, dl dd {
   line-height: 18px;
-}
-dl dt {
-  font-weight: bold;
 }
 dl dd {
   margin-left: 9px;
