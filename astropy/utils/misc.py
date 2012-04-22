@@ -144,7 +144,7 @@ def find_mod_objs(modname, onlylocals=False):
     #fully qualified names can be determined from the object's module
     fqnames = []
     for obj, lnm in zip(objs, localnames):
-        if hasattr(obj, '__module__'):
+        if hasattr(obj, '__module__') and hasattr(obj, '__name__'):
             fqnames.append(obj.__module__ + '.' + obj.__name__)
         else:
             fqnames.append(modname + '.' + lnm)
