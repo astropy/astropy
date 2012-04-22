@@ -14,6 +14,11 @@ from . import ConfigurationItem
 from ..utils.console import color_print
 from ..utils.misc import find_current_module
 
+__all__ = ['logger', 'LoggingError']
+
+
+class LoggingError(Exception):
+    pass
 
 # Read in configuration
 
@@ -131,15 +136,15 @@ class AstropyLogger(Logger):
 
     def enable_warnings_logging(self):
         if self._showwarning_orig is not None:
-            raise Exception("Warnings logging has already been enabled")
+            raise LoggingError("Warnings logging has already been enabled")
         self._showwarning_orig = warnings.showwarning
         warnings.showwarning = self._showwarning
 
     def disable_warnings_logging(self):
         if self._showwarning_orig is None:
-            raise Exception("Warnings logging has not been enabled")
+            raise LoggingError("Warnings logging has not been enabled")
         if warnings.showwarning != self._showwarning:
-            raise Exception("Cannot disable warnings logging: warnings.showwarning was not set by this logger, or has been overridden")
+            raise LoggingError("Cannot disable warnings logging: warnings.showwarning was not set by this logger, or has been overridden")
         warnings.showwarning = self._showwarning_orig
         self._showwarning_orig = None
 
@@ -155,15 +160,15 @@ class AstropyLogger(Logger):
 
     def enable_exception_logging(self):
         if self._excepthook_orig is not None:
-            raise Exception("Exception logging has already been enabled")
+            raise LoggingError("Exception logging has already been enabled")
         self._excepthook_orig = sys.excepthook
         sys.excepthook = self._excepthook
 
     def disable_exception_logging(self):
         if self._excepthook_orig is None:
-            raise Exception("Exception logging has not been enabled")
+            raise LoggingError("Exception logging has not been enabled")
         if sys.excepthook != self._excepthook:
-            raise Exception("Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden")
+            raise LoggingError("Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden")
         sys.excepthook = self._excepthook_orig
         self._excepthook_orig = None
 

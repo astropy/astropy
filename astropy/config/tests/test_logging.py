@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from .. import logger
+from .. import logger, LoggingError
 
 
 # Save original values of hooks
@@ -34,14 +34,14 @@ def teardown_module(function):
 
 
 def test_warnings_logging_disable_no_enable():
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.disable_warnings_logging()
     assert e.value.args[0] == 'Warnings logging has not been enabled'
 
 
 def test_warnings_logging_enable_twice():
     logger.enable_warnings_logging()
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.enable_warnings_logging()
     assert e.value.args[0] == 'Warnings logging has already been enabled'
 
@@ -49,7 +49,7 @@ def test_warnings_logging_enable_twice():
 def test_warnings_logging_overridden():
     logger.enable_warnings_logging()
     warnings.showwarning = lambda: None
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.disable_warnings_logging()
     assert e.value.args[0] == 'Cannot disable warnings logging: warnings.showwarning was not set by this logger, or has been overridden'
 
@@ -87,14 +87,14 @@ def test_warnings_logging():
 
 
 def test_exception_logging_disable_no_enable():
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.disable_exception_logging()
     assert e.value.args[0] == 'Exception logging has not been enabled'
 
 
 def test_exception_logging_enable_twice():
     logger.enable_exception_logging()
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.enable_exception_logging()
     assert e.value.args[0] == 'Exception logging has already been enabled'
 
@@ -102,7 +102,7 @@ def test_exception_logging_enable_twice():
 def test_exception_logging_overridden():
     logger.enable_exception_logging()
     sys.excepthook = lambda: None
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.disable_exception_logging()
     assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'
 
@@ -118,7 +118,7 @@ def test_exception_logging():
     assert e.value.args[0] == "This is an Exception"
 
     # With exception logging
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         logger.enable_exception_logging()
         with logger.log_to_list() as log_list:
             raise Exception("This is an Exception")
@@ -130,7 +130,7 @@ def test_exception_logging():
 
     # Without exception logging
     logger.disable_exception_logging()
-    with pytest.raises(Exception) as e:
+    with pytest.raises(LoggingError) as e:
         with logger.log_to_list() as log_list:
             raise Exception("This is an Exception")
     assert len(log_list) == 0

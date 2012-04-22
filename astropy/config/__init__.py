@@ -10,4 +10,4 @@ from .paths import *
 from .configuration import *
 from .data import *
 from .affiliated import *
-from .logging_helper import logger
+from .logging_helper import *
