@@ -51,20 +51,20 @@ def test_configitem():
 
     sec = get_config(ci.module)
     assert sec['tstnm'] == 34
-    assert sec.comments['tstnm'][0] == 'this is a Description'
-    assert sec.comments['tstnm'][1] == 'integer'
+    assert sec.comments['tstnm'][0] == ''
+    assert sec.comments['tstnm'][1] == 'this is a Description'
 
     ci.description = 'updated Descr'
     ci.set(32)
     assert ci() == 32
-    assert sec.comments['tstnm'][0] == 'updated Descr'
+    assert sec.comments['tstnm'][1] == 'updated Descr'
 
     #It's useful to go back to the default to allow other test functions to
     #call this one and still be in the default configuration.
     ci.description = 'this is a Description'
     ci.set(34)
     assert ci() == 34
-    assert sec.comments['tstnm'][0] == 'this is a Description'
+    assert sec.comments['tstnm'][1] == 'this is a Description'
 
 
 def test_configitem_save(tmpdir):
@@ -176,7 +176,6 @@ def test_configitem_options(tmpdir):
     with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in f.readlines()]
 
-    assert '# option(op1, op2, op3)' in lns
     assert 'tstnmo = op2' in lns
 
 
