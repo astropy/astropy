@@ -298,8 +298,6 @@ class ConfigurationItem(object):
             import textwrap
             for line in textwrap.wrap(self.description, width=76):
                 comments.append(line)
-        if self.cfgtype is not None:
-            comments.append(self.cfgtype)
         return comments
 
 
