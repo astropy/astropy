@@ -10,17 +10,27 @@ __all__ = ['find_current_module', 'fnpickle', 'fnunpickle']
 
 
 def find_current_module(depth=1, finddiff=False):
-    """ Determines the module/package this function is called from.
+    """ Determines the module/package from which this function is called.
+
+    This function has two modes, determined by the `finddiff` option. it
+    will either simply go the requested number of frames up the call
+    stack (if `finddiff` is False), or it will go up the call stack until
+    it reaches a module that is *not* in a specified set.
 
     Parameters
     ----------
     depth : int
         Specifies how far back to go in the call stack (0-indexed, so that
         passing in 0 gives back `astropy.utils.misc`).
-    finddiff : bool
-        If True, once the module at `depth` is determined, a search will be
-        performed up the call stack until a *different* module is found
-        from the one at `depth`.
+    finddiff : bool or list
+        If False, the returned `mod` will just be `depth` frames up from
+        the current frame. Otherwise, the function will start at a frame
+        `depth` up from current, and continue up the call stack to the
+        first module that is *different* from those in the provided list.
+        In this case, `finddiff` can be a list of modules or modules
+        names. Alternatively, it can be True, which will use the module
+        `depth` call stack frames up as the module the returned module
+        most be different from.
 
     Returns
     -------
@@ -28,6 +38,11 @@ def find_current_module(depth=1, finddiff=False):
         The module object or None if the package cannot be found. The name of
         the module is available as the ``__name__`` attribute of the returned
         object (if it isn't None).
+
+    Raises
+    ------
+    ValueError
+        If `finddiff` is a list with an invalid entry.
 
     Examples
     --------
@@ -70,7 +85,7 @@ def find_current_module(depth=1, finddiff=False):
         pkg.mod1
 
     """
-    from inspect import currentframe
+    from inspect import currentframe, ismodule
 
     # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
     # is broken if the list of modules changes during import
@@ -84,10 +99,24 @@ def find_current_module(depth=1, finddiff=False):
 
     if finddiff:
         currmod = inspect_getmodule(frm)
+        if finddiff is True:
+            diffmods = [currmod]
+        else:
+            diffmods = []
+            for fd in finddiff:
+                if ismodule(fd):
+                    diffmods.append(fd)
+                elif isinstance(fd, basestring):
+                    diffmods.append(__import__(fd))
+                elif fd is True:
+                    diffmods.append(currmod)
+                else:
+                    raise ValueError('invalid entry in finddiff')
+
         while frm:
             frmb = frm.f_back
             modb = inspect_getmodule(frmb)
-            if modb is not currmod:
+            if modb not in diffmods:
                 return modb
             frm = frmb
     else:
