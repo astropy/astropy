@@ -27,11 +27,11 @@ w.wcs.print_contents()
 pixcrd = numpy.array([[0,0],[24,38],[45,98]], numpy.float_)
 
 # Convert pixel coordinates to world coordinates
-world = w.wcs_pix2sky(pixcrd, 1)
+world = w.wcs_pix2world(pixcrd, 1)
 print world
 
 # Convert the same coordinates back to pixel coordinates.
-pixcrd2 = w.wcs_sky2pix(world, 1)
+pixcrd2 = w.wcs_world2pix(world, 1)
 print pixcrd2
 
 # These should be the same as the original pixel coordinates, modulo

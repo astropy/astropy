@@ -62,7 +62,7 @@ coordinates, in the following order:
 
 @param pixcrd [in]: Array of pixel coordinates.
 
-@param world [out]: Array of sky coordinates (output).
+@param world [out]: Array of world coordinates (output).
 
 @return: A wcslib error code.
 */

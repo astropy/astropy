@@ -27,10 +27,10 @@ a_order = """
 The order of the polynomial in the `SIP`_ ``A_i_j`` array (``A_ORDER``).
 """
 
-all_pix2sky = """
-all_pix2sky(pixcrd, origin) -> ``double array[ncoord][nelem]``
+all_pix2world = """
+all_pix2world(pixcrd, origin) -> ``double array[ncoord][nelem]``
 
-Transforms pixel coordinates to sky coordinates.
+Transforms pixel coordinates to world coordinates.
 
 Does the following:
 
@@ -54,7 +54,7 @@ pixcrd : double array[ncoord][nelem]
 Returns
 -------
 world : double array[ncoord][nelem]
-    Returns an array of sky coordinates.
+    Returns an array of world coordinates.
 
 Raises
 ------
@@ -408,8 +408,8 @@ represented in FITS in either of two ways:
                                        5
 
       Faces 2, 3 and 4 may appear on one side or the other (or both).
-      The sky-to-pixel routines map faces 2, 3 and 4 to the left but
-      the pixel-to-sky routines accept them on either side.
+      The world-to-pixel routines map faces 2, 3 and 4 to the left but
+      the pixel-to-world routines accept them on either side.
 
     - The ``COBE`` convention in which the six faces are stored in a
       three-dimensional structure using a ``CUBEFACE`` axis indexed
@@ -918,7 +918,7 @@ Character identifying the wcstab array type:
 lat = """
 ``int`` (read-only)
 
-The index into the sky coordinate array containing latitude values.
+The index into the world coordinate array containing latitude values.
 """
 
 latpole = """
@@ -938,7 +938,7 @@ four characters of ``CTYPEia`` but with trailing dashes removed.
 lng = """
 ``int`` (read-only)
 
-The index into the sky coordinate array containing longitude values.
+The index into the world coordinate array containing longitude values.
 """
 
 lngtyp = """
@@ -1224,7 +1224,7 @@ Paper III, is equal to ``(p0[m] + 1) + delta[m]``.
 p2s = """
 p2s(pixcrd, origin)
 
-Converts pixel to sky coordinates.
+Converts pixel to world coordinates.
 
 Parameters
 ----------
@@ -1241,7 +1241,7 @@ result : dict
 
     - *imgcrd*: double array[ncoord][nelem]
 
-      - Array of intermediate sky coordinates.  For celestial axes,
+      - Array of intermediate world coordinates.  For celestial axes,
         ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
         projected *x*-, and *y*-coordinates, in pseudo degrees.  For
         spectral axes, ``imgcrd[][self.spec]`` is the intermediate
@@ -1256,7 +1256,7 @@ result : dict
 
     - *world*: double array[ncoord][nelem]
 
-      - Array of sky coordinates.  For celestial axes,
+      - Array of world coordinates.  For celestial axes,
         ``world[][self.lng]`` and ``world[][self.lat]`` are the
         celestial longitude and latitude, in degrees.  For spectral
         axes, ``world[][self.spec]`` is the intermediate spectral
@@ -1454,14 +1454,14 @@ Table row number.
 """
 
 s2p = """
-s2p(sky, origin)
+s2p(world, origin)
 
-Transforms sky coordinates to pixel coordinates.
+Transforms world coordinates to pixel coordinates.
 
 Parameters
 ----------
-sky : double array[ncoord][nelem]
-    Array of sky coordinates, in decimal degrees.
+world : double array[ncoord][nelem]
+    Array of world coordinates, in decimal degrees.
 
 {0}
 
@@ -1479,7 +1479,7 @@ result : dict
 
     - *imgcrd*: double array[ncoord][nelem]
 
-       - Array of intermediate sky coordinates.  For celestial axes,
+       - Array of intermediate world coordinates.  For celestial axes,
          ``imgcrd[][self.lng]`` and ``imgcrd[][self.lat]`` are the
          projected *x*-, and *y*-coordinates, in pseudo \"degrees\".
          For quadcube projections with a ``CUBEFACE`` axis, the face
@@ -2211,7 +2211,7 @@ Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
 `SIP`_ and `Paper IV`_ distortion operations.
 
 To perform all distortion corrections and WCS tranformation, use
-`all_pix2sky`.
+`all_pix2world`.
 
 Parameters
 ----------
@@ -2263,7 +2263,7 @@ relax : bool or int, optional
       :ref:`relaxread` for details.
 
 naxis : int, optional
-    The number of sky coordinates axes for the object.  (*naxis* may
+    The number of world coordinates axes for the object.  (*naxis* may
     only be provided if *header* is `None`.)
 
 keysel : sequence of flag bits, optional
