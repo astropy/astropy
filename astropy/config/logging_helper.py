@@ -15,7 +15,7 @@ from ..utils.console import color_print
 from ..utils.misc import find_current_module
 
 
-__all__ = ['log', 'LoggingError']
+__all__ = ['log', 'AstropyLogger', 'LoggingError']
 
 
 class LoggingError(Exception):
