@@ -106,13 +106,13 @@ class AstropyLogger(Logger):
 
     _excepthook_orig = None
 
-    def _excepthook(self, type, value, exception):
+    def _excepthook(self, type, value, traceback):
         try:
-            origin = inspect.getmodule(exception.tb_next).__name__
+            origin = inspect.getmodule(traceback.tb_next).__name__
         except:
-            origin = inspect.getmodule(exception).__name__
+            origin = inspect.getmodule(traceback).__name__
         self.error(value.message, extra={'origin': origin})
-        self._excepthook_orig(type, value, exception)
+        self._excepthook_orig(type, value, traceback)
 
     def enable_exception_logging(self):
         if self._excepthook_orig is not None:
