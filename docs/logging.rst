@@ -7,8 +7,10 @@ Overview
 The Astropy logging system is designed to give users flexibility in deciding
 which log messages to show, to capture them, and to send them to a file.
 
-All messages printed by Astropy routines use the built-in logging facility.
-Messages can have one of several levels:
+All messages printed by Astropy routines should use the built-in logging
+facility (normal ``print()`` calls should only be done by routines that are
+explicitly requested to print output). Messages can have one of several
+levels:
 
 * DEBUG: Detailed information, typically of interest only when diagnosing
   problems.
