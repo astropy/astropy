@@ -14,7 +14,8 @@ from . import ConfigurationItem
 from ..utils.console import color_print
 from ..utils.misc import find_current_module
 
-__all__ = ['logger', 'LoggingError']
+
+__all__ = ['log', 'LoggingError']
 
 
 class LoggingError(Exception):
@@ -77,57 +78,12 @@ Logger = logging.getLoggerClass()
 
 class AstropyLogger(Logger):
 
-    def debug(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.debug(self, *args, **kwargs)
-
-    def info(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.info(self, *args, **kwargs)
-
-    def warning(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.warning(self, *args, **kwargs)
-
-    warn = warning
-
-    def error(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.error(self, *args, **kwargs)
-
-    def exception(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.exception(self, *args, **kwargs)
-
-    def critical(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        if 'origin' not in kwargs['extra']:
-            kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.critical(self, *args, **kwargs)
-
-    fatal = critical
-
-    def log(self, *args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        kwargs['extra']['origin'] = find_current_module(2).__name__
-        Logger.log(self, *args, **kwargs)
+    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None):
+        if extra is None:
+            extra = {}
+        if 'origin' not in extra:
+            extra['origin'] = find_current_module(1, finddiff=[True, 'logging']).__name__
+        return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func, extra)
 
     _showwarning_orig = None
 
@@ -156,7 +112,7 @@ class AstropyLogger(Logger):
         except:
             origin = inspect.getmodule(exception).__name__
         self.error(value.message, extra={'origin': origin})
-        _excepthook(type, value, exception)
+        self._excepthook_orig(type, value, exception)
 
     def enable_exception_logging(self):
         if self._excepthook_orig is not None:
@@ -256,5 +212,5 @@ class AstropyLogger(Logger):
 logging.setLoggerClass(AstropyLogger)
 
 # Initialize logger
-logger = logging.getLogger('astropy')
-logger.set_defaults()
+log = logging.getLogger('astropy')
+log.set_defaults()
