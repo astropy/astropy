@@ -10,6 +10,7 @@ configuration files for Astropy and affiliated packages.
 """
 
 from __future__ import division
+import textwrap
 from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
@@ -295,9 +296,10 @@ class ConfigurationItem(object):
         comments = []
         comments.append('')  # adds a blank line before every entry
         if self.description is not None:
-            import textwrap
             for line in textwrap.wrap(self.description, width=76):
                 comments.append(line)
+        if self.cfgtype.startswith('option'):
+            comments.append("Options: " + self.cfgtype[7:-1])
         return comments
 
 
