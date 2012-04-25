@@ -66,7 +66,8 @@ from .hdu.hdulist import fitsopen
 from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
-from .util import deprecated, fileobj_closed, fileobj_name, isfile, _is_int
+from .util import fileobj_closed, fileobj_name, isfile, _is_int
+from ...utils import deprecated
 
 
 __all__ = ['getheader', 'getdata', 'getval', 'setval', 'delval', 'writeto',

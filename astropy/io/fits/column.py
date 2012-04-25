@@ -10,7 +10,8 @@ from numpy import char as chararray
 
 from .card import Card
 from .util import (lazyproperty, pairwise, _is_int, _convert_array,
-                   encode_ascii, deprecated)
+                   encode_ascii)
+from ...utils import deprecated
 from .verify import VerifyError
 
 

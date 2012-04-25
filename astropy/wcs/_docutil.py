@@ -52,7 +52,7 @@ def RA_DEC_ORDER(indent=0):
     return _fix(
 """
 ra_dec_order : bool, optional
-    When `True` will ensure that sky coordinates are always given and
-    returned in as (*ra*, *dec*) pairs, regardless of the order of the
-    axes specified by the in the ``CTYPE`` keywords.
+    When `True` will ensure that world coordinates are always given
+    and returned in as (*ra*, *dec*) pairs, regardless of the order of
+    the axes specified by the in the ``CTYPE`` keywords.
 """, indent)
