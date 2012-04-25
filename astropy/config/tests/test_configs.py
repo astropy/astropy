@@ -176,6 +176,7 @@ def test_configitem_options(tmpdir):
     with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in f.readlines()]
 
+    assert '# Options: op1, op2, op3' in lns
     assert 'tstnmo = op2' in lns
 
 
