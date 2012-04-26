@@ -14,8 +14,7 @@ import numpy as np
 from ..file import _File
 from ..header import Header, HEADER_END_RE
 from ..util import (lazyproperty, _is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    _pad_length, itersubclasses, decode_ascii, BLOCK_SIZE,
-                    deprecated)
+                    _pad_length, itersubclasses, decode_ascii, BLOCK_SIZE)
 from ..verify import _Verify, _ErrList
 
 

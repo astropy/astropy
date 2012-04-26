@@ -195,7 +195,7 @@ Wcs_init(
 }
 
 /*@null@*/ static PyObject*
-Wcs_all_pix2sky(
+Wcs_all_pix2world(
     Wcs* self,
     PyObject* args,
     PyObject* kwds) {
@@ -210,7 +210,7 @@ Wcs_all_pix2sky(
     "pixcrd", "origin", NULL };
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "Oi:all_pix2sky", (char **)keywords,
+          args, kwds, "Oi:all_pix2world", (char **)keywords,
           &pixcrd_obj, &origin)) {
     return NULL;
   }
@@ -825,7 +825,7 @@ static PyGetSetDef Wcs_getset[] = {
 };
 
 static PyMethodDef Wcs_methods[] = {
-  {"_all_pix2sky", (PyCFunction)Wcs_all_pix2sky, METH_VARARGS|METH_KEYWORDS, doc_all_pix2sky},
+  {"_all_pix2world", (PyCFunction)Wcs_all_pix2world, METH_VARARGS|METH_KEYWORDS, doc_all_pix2world},
   {"__copy__", (PyCFunction)Wcs___copy__, METH_NOARGS, NULL},
   {"__deepcopy__", (PyCFunction)Wcs___deepcopy__, METH_O, NULL},
   {"_det2im", (PyCFunction)Wcs_det2im, METH_VARARGS|METH_KEYWORDS, doc_det2im},

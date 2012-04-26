@@ -16,8 +16,8 @@ def test_maps():
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
-        world = wcsobj.wcs_pix2sky(x, 1)
-        pix = wcsobj.wcs_sky2pix(x, 1)
+        world = wcsobj.wcs_pix2world(x, 1)
+        pix = wcsobj.wcs_world2pix(x, 1)
 
     hdr_file_list = list(get_data_filenames("maps", "*.hdr"))
 
@@ -55,8 +55,8 @@ def test_spectra():
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
-        world = wcsobj.wcs_pix2sky(x, 1)
-        pix = wcsobj.wcs_sky2pix(x, 1)
+        world = wcsobj.wcs_pix2world(x, 1)
+        pix = wcsobj.wcs_world2pix(x, 1)
 
     hdr_file_list = list(get_data_filenames("spectra", "*.hdr"))
 
