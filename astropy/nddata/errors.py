@@ -4,7 +4,7 @@ class NDError(np.ndarray):
     pass
     
     
-class SDError(np.ndarray):
+class SDError(NDError):
     
     def __new__(cls, input_array):
         obj = np.asarray(input_array).view(cls)
@@ -37,12 +37,12 @@ class SDError(np.ndarray):
         if operand is None:
             return self
         
-        return np.sqrt((self / self_data)**2 + (operand / operand_data)**2)
+        return np.sqrt((self / self_data)**2 + (operand / operand_data)**2) * result_data
         
     def error_div(self, self_data, operand, operand_data, result_data):
         self._check_operand(operand)
         if operand is None:
             return self
         
-        return np.sqrt((self / self_data)**2 + (operand / operand_data)**2)
+        return np.sqrt((self / self_data)**2 + (operand / operand_data)**2) * result_data
 
