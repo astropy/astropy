@@ -11,7 +11,7 @@
         <ul class="nav">
           {% block sidebartoc %}
             {% include "globaltoc.html" %}
-            {% include "localtoc.html" %}
+            {# {% include "localtoc.html" %} #}
           {% endblock %}
           {% block sidebarrel %}
             {# {% include "relations.html" %} #}
@@ -86,8 +86,7 @@
 
 {% block header %}{{ navBar() }}{% endblock %}
 
-{# Silence the sidebar's, relbar's #}
-{% block sidebar1 %}{% endblock %}
+{# Silence the sidebars, relbars #}
 {% block sidebar2 %}{% endblock %}
 {% block relbar2 %}{% endblock %}
 
@@ -128,10 +127,23 @@
   </div>
 </div>
 {% endblock %}
+
 {%- block content %}
-<div class="container">
-   {% block body %} {% endblock %}
-</div>
+  {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
+
+    <div class="document">
+  {%- block document %}
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="container">
+            {% block body %} {% endblock %}
+          </div>
+        </div>
+      </div>
+  {%- endblock %}
+
+      <div class="clearer"></div>
+    </div>
 {%- endblock %}
 
 {%- block footer %}
