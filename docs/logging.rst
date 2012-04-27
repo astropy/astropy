@@ -124,10 +124,10 @@ of the Astropy configuration file::
     use_color = True
 
     # Whether to log warnings.warn calls
-    catch_warnings = False
+    log_warnings = False
 
     # Whether to log exceptions before raising them
-    catch_exceptions = False
+    log_exceptions = False
 
     # Whether to always log messages to a log file
     log_to_file = True

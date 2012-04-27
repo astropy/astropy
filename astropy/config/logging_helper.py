@@ -32,10 +32,10 @@ LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
 USE_COLOR = ConfigurationItem('use_color', True,
                               "Whether to use color for the level names")
 
-LOG_WARNINGS = ConfigurationItem('catch_warnings', False,
+LOG_WARNINGS = ConfigurationItem('log_warnings', False,
                                  "Whether to log warnings.warn calls")
 
-LOG_EXCEPTIONS = ConfigurationItem('catch_exceptions', False,
+LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', False,
                                    "Whether to log exceptions before raising them")
 
 LOG_TO_FILE = ConfigurationItem('log_to_file', True,
