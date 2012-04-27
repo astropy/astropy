@@ -212,9 +212,12 @@ class AstropyLogger(Logger):
         if LOG_EXCEPTIONS():
             self.enable_exception_logging()
 
-# Set up the class
+# Set up the class and initialize logger
+_orig_logger_cls = logging.getLoggerClass()
 logging.setLoggerClass(AstropyLogger)
-
-# Initialize logger
-log = logging.getLogger('astropy')
-log.set_defaults()
+try:
+    log = logging.getLogger('astropy')
+    log.set_defaults()
+finally:
+    logging.setLoggerClass(_orig_logger_cls)
+    del _orig_logger_cls
