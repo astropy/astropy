@@ -49,8 +49,8 @@ LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'WARN',
                                    "Threshold for logging messages to "
                                    "log_file_path")
 
-LOG_FILE_FORMAT = ConfigurationItem('log_file_format', "%(asctime)s, "
-                                    "%(origin)s, %(levelname)s, %(message)s",
+LOG_FILE_FORMAT = ConfigurationItem('log_file_format', "%(asctime)r, "
+                                    "%(origin)r, %(levelname)r, %(message)r",
                                     "Format for log file entries")
 
 
