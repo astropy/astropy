@@ -82,7 +82,11 @@ class AstropyLogger(Logger):
         if extra is None:
             extra = {}
         if 'origin' not in extra:
-            extra['origin'] = find_current_module(1, finddiff=[True, 'logging']).__name__
+            current_module = find_current_module(1, finddiff=[True, 'logging'])
+            if current_module is not None:
+                extra['origin'] = current_module.__name__
+            else:
+                extra['origin'] = 'unknown'
         return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func, extra)
 
     _showwarning_orig = None
