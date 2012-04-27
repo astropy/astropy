@@ -242,16 +242,16 @@ def test_log_to_file(level):
 
     # Check list content
 
-    assert log_entries[0].endswith('astropy.config.tests.test_logging, ERROR, Error message\n')
+    assert log_entries[0].endswith("'astropy.config.tests.test_logging', 'ERROR', 'Error message'\n")
 
     if len(log_entries) >= 2:
-        assert log_entries[1].endswith('astropy.config.tests.test_logging, WARNING, Warning message\n')
+        assert log_entries[1].endswith("'astropy.config.tests.test_logging', 'WARNING', 'Warning message'\n")
 
     if len(log_entries) >= 3:
-        assert log_entries[2].endswith('astropy.config.tests.test_logging, INFO, Information message\n')
+        assert log_entries[2].endswith("'astropy.config.tests.test_logging', 'INFO', 'Information message'\n")
 
     if len(log_entries) >= 4:
-        assert log_entries[3].endswith('astropy.config.tests.test_logging, DEBUG, Debug message\n')
+        assert log_entries[3].endswith("'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'\n")
 
 
 def test_log_to_file_level():
@@ -266,7 +266,7 @@ def test_log_to_file_level():
     log_entries = log_file.readlines()
     log_file.close()
 
-    assert len(log_entries) == 1 and log_entries[0].endswith('ERROR, Error message\n')
+    assert len(log_entries) == 1 and log_entries[0].endswith("'ERROR', 'Error message'\n")
 
 
 def test_log_to_file_origin1():
