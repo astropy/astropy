@@ -5,9 +5,11 @@ import datetime
 import decimal
 import numpy as np
 
-#Defining zeropoints - this is work in process, I believe that we are using TT
-calendar_zeropoint = datetime.datetime(2000, 1, 1, 11, 58, 55, 816000)
-jd_zeropoint = 2451545.0
+#Defining zeropoints where TCB, TCG and TT are linked to ephemeris time
+#wikipedia http://en.wikipedia.org/wiki/International_Atomic_Time
+
+calendar_zeropoint = datetime.datetime(1977, 1, 1, 0, 0, 32, 184000)
+jd_zeropoint = 2443144.5003725
 
 class Time(object):
     """Class to store a time variable.
@@ -50,9 +52,9 @@ class Time(object):
         return cls.from_jd(decimal.Decimal(mjd_time) + decimal.Decimal(2400000.5))
         
     @classmethod
-    def from_calendar_date(cls, calendar_date):
+    def from_utc(cls, calendar_date):
         """
-        Initialize from a gregorian calendar date and time (using `datetime.datetime`).
+        Initialize from a UTC date and time (using `datetime.datetime`).
         
         Parameters
         ----------
@@ -86,9 +88,9 @@ class Time(object):
         
     jd = property(to_jd)
     
-    def to_calendar_date(self):
+    def to_utc(self):
         """
-        returns the gregorian date in a `datetime.datetime` object
+        returns the UTC date in a `datetime.datetime` object
         
         References
         ----------
@@ -98,4 +100,4 @@ class Time(object):
         days = (self.seconds / decimal.Decimal(86400))
         return calendar_zeropoint + datetime.timedelta(np.float64(days))
  
-    calendar_date = property(to_calendar_date)
+    utc = property(to_utc)
