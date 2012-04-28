@@ -9,18 +9,19 @@ import numpy as np
 #wikipedia http://en.wikipedia.org/wiki/International_Atomic_Time
 
 calendar_zeropoint = datetime.datetime(1977, 1, 1, 0, 0, 32, 184000)
-jd_zeropoint = 2443144.5003725
+jd_zeropoint = decimal.Decimal('2443144.5003725')
 
 class Time(object):
     """Class to store a time variable.
-    The internal format uses J2000.0 (2000 January 1, 11:58:55.816 UTC) as the zeropoint
+    The internal format uses JD 2443144.5003725 (1 January 1977 00:00:32.184) as the zeropoint
+    (the instant where TCB, TCG and TT were the same)
     and stores the date as days to this zeropoint in `decimal.Decimal`
     
-    Initialize an AstroTime-object with seconds from J2000.0
+    Initialize an AstroTime-object with seconds from JD 2443144.5003725
     Parameters
     ----------
     seconds : `decimal.Decimal`
-        The number of seconds since 2000 January 1, 11:58:55.816 UTC
+        The number of seconds since 1 January 1977 00:00:32.184
     """
     
     @classmethod
@@ -65,7 +66,7 @@ class Time(object):
         
         >>> from astropy import astrotime
         >>> import datetime
-        >>> mytime = astrotime.AstroTime.from_date_gregorian(datetime.datetime(1546, 12, 14, 12, 0, 0))
+        >>> mytime = time.Time.from_utc(datetime.datetime(1546, 12, 14, 12, 0, 0))
         >>> mytime.to_jd()
         2286072.0
         
