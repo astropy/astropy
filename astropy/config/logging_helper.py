@@ -95,12 +95,29 @@ class AstropyLogger(Logger):
         self.warn(args[0].message)
 
     def enable_warnings_logging(self):
+        '''
+        Enable logging of warnings.warn() calls
+
+        Once called, any subsequent calls to ``warnings.warn()`` are
+        redirected to this logger and emitted with level ``WARN``. Note that
+        this replaces the output from ``warnings.warn``.
+
+        This can be disabled with ``disable_warnings_logging``.
+        '''
         if self._showwarning_orig is not None:
             raise LoggingError("Warnings logging has already been enabled")
         self._showwarning_orig = warnings.showwarning
         warnings.showwarning = self._showwarning
 
     def disable_warnings_logging(self):
+        '''
+        Disable logging of warnings.warn() calls
+
+        Once called, any subsequent calls to ``warnings.warn()`` are no longer
+        redirected to this logger.
+
+        This can be re-enabled with ``enable_warnings_logging``.
+        '''
         if self._showwarning_orig is None:
             raise LoggingError("Warnings logging has not been enabled")
         if warnings.showwarning != self._showwarning:
@@ -119,12 +136,28 @@ class AstropyLogger(Logger):
         self._excepthook_orig(type, value, traceback)
 
     def enable_exception_logging(self):
+        '''
+        Enable logging of exceptions
+
+        Once called, any uncaught exceptions will be emitted with level
+        ``ERROR`` by this logger, before being raised.
+
+        This can be disabled with ``disable_exception_logging``.
+        '''
         if self._excepthook_orig is not None:
             raise LoggingError("Exception logging has already been enabled")
         self._excepthook_orig = sys.excepthook
         sys.excepthook = self._excepthook
 
     def disable_exception_logging(self):
+        '''
+        Disable logging of exceptions
+
+        Once called, any uncaught exceptions will no longer be emitted by this
+        logger.
+
+        This can be re-enabled with ``enable_exception_logging``.
+        '''
         if self._excepthook_orig is None:
             raise LoggingError("Exception logging has not been enabled")
         if sys.excepthook != self._excepthook:
@@ -132,10 +165,22 @@ class AstropyLogger(Logger):
         sys.excepthook = self._excepthook_orig
         self._excepthook_orig = None
 
-    def setColor(self, use_color):
-        self._use_color = use_color
+    def enable_color(self):
+        '''
+        Enable colorized output
+        '''
+        self._use_color = True
 
-    def stream_formatter(self, record):
+    def disable_color(self):
+        '''
+        Disable colorized output
+        '''
+        self._use_color = False
+
+    def _stream_formatter(self, record):
+        '''
+        The formatter for standard output
+        '''
         if record.levelno < logging.DEBUG or not self._use_color:
             print(record.levelname, end='')
         elif(record.levelno < logging.INFO):
@@ -150,6 +195,41 @@ class AstropyLogger(Logger):
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
+        '''
+        Context manager to temporarily log messages to a file
+
+        Parameters
+        ----------
+        filename : str
+            The file to log messages to.
+        filter_level : str
+            If set, any log messages less important than ``filter_level`` will
+            not be output to the file. Note that this is in addition to the
+            top-level filtering for the logger, so if the logger has level
+            'INFO', then setting ``filter_level`` to ``INFO`` or ``DEBUG``
+            will have no effect, since these messages are already filtered
+            out.
+        filter_origin : str
+            If set, only log messages with an origin starting with
+            ``filter_origin`` will be output to the file.
+
+        Notes
+        -----
+
+        By default, the logger already outputs log messages to a file set in
+        the Astropy configuration file. Using this context manager does not
+        stop log messages from being output to that file, nor does it stop log
+        messages from being printed to standard output.
+
+        Examples
+        --------
+
+        The context manager is used as::
+
+            with logger.log_to_file('myfile.log'):
+                # your code here
+        '''
+
         fh = logging.FileHandler(filename)
         if filter_level is not None:
             fh.setLevel(filter_level)
@@ -163,6 +243,38 @@ class AstropyLogger(Logger):
 
     @contextmanager
     def log_to_list(self, filter_level=None, filter_origin=None):
+        '''
+        Context manager to temporarily log messages to a list
+
+        Parameters
+        ----------
+        filename : str
+            The file to log messages to.
+        filter_level : str
+            If set, any log messages less important than ``filter_level`` will
+            not be output to the file. Note that this is in addition to the
+            top-level filtering for the logger, so if the logger has level
+            'INFO', then setting ``filter_level`` to ``INFO`` or ``DEBUG``
+            will have no effect, since these messages are already filtered
+            out.
+        filter_origin : str
+            If set, only log messages with an origin starting with
+            ``filter_origin`` will be output to the file.
+
+        Notes
+        -----
+
+        Using this context manager does not stop log messages from being
+        output to standard output.
+
+        Examples
+        --------
+
+        The context manager is used as::
+
+            with logger.log_to_list() as log_list:
+                # your code here
+        '''
         lh = ListHandler()
         if filter_level is not None:
             lh.setLevel(filter_level)
@@ -172,7 +284,10 @@ class AstropyLogger(Logger):
         yield lh.log_list
         self.removeHandler(lh)
 
-    def set_defaults(self):
+    def _set_defaults(self):
+        '''
+        Reset logger to its initial state
+        '''
 
         # Reset any previously installed hooks
         if self._showwarning_orig is not None:
@@ -186,11 +301,14 @@ class AstropyLogger(Logger):
 
         # Set levels
         self.setLevel(LOG_LEVEL())
-        self.setColor(USE_COLOR())
+        if USE_COLOR():
+            self.enable_color()
+        else:
+            self.disable_color()
 
         # Set up the stdout handler
         sh = logging.StreamHandler()
-        sh.emit = self.stream_formatter
+        sh.emit = self._stream_formatter
         self.addHandler(sh)
 
         # Set up the main log file handler if requested (but this might fail if
@@ -217,7 +335,7 @@ _orig_logger_cls = logging.getLoggerClass()
 logging.setLoggerClass(AstropyLogger)
 try:
     log = logging.getLogger('astropy')
-    log.set_defaults()
+    log._set_defaults()
 finally:
     logging.setLoggerClass(_orig_logger_cls)
     del _orig_logger_cls

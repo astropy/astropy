@@ -23,7 +23,7 @@ def setup_function(function):
     log._excepthook_orig = None
 
     # Set up the logger
-    log.set_defaults()
+    log._set_defaults()
 
 
 def teardown_module(function):
