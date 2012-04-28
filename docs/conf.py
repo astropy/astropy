@@ -76,6 +76,7 @@ pygments_style = 'sphinx'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')
+exclude_patterns.append('pkgtemplate.rst')
 
 # Add any paths that contain templates here, relative to this directory.
 if 'templates_path' not in locals():  # in case parent conf.py defines it
