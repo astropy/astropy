@@ -36,7 +36,8 @@ LOG_WARNINGS = ConfigurationItem('log_warnings', True,
                                  "Whether to log warnings.warn calls")
 
 LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', True,
-                                   "Whether to log exceptions before raising them")
+                                   "Whether to log exceptions before raising "
+                                   "them")
 
 LOG_TO_FILE = ConfigurationItem('log_to_file', True,
                                 "Whether to always log messages to a log "
@@ -124,7 +125,8 @@ class AstropyLogger(Logger):
     easily capture messages to a file or list.
     '''
 
-    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None, sinfo=None):
+    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info,
+                   func=None, extra=None, sinfo=None):
         if extra is None:
             extra = {}
         if 'origin' not in extra:
@@ -133,17 +135,21 @@ class AstropyLogger(Logger):
                 extra['origin'] = current_module.__name__
             else:
                 extra['origin'] = 'unknown'
-        if sys.version_info[0] < 3 or (sys.version_info[0] == 3 and sys.version_info[1] < 2):
-            return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=func, extra=extra)
+        if sys.version_info[0] < 3 or \
+           (sys.version_info[0] == 3 and sys.version_info[1] < 2):
+            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
+                                     args, exc_info, func=func, extra=extra)
         else:
-            return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=func, extra=extra, sinfo=sinfo)
+            return Logger.makeRecord(self, name, level, pathname, lineno, msg,
+                                     args, exc_info, func=func, extra=extra,
+                                     sinfo=sinfo)
 
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
         try:
             self.warn(args[0].args[0])
-        except IndexError:  # necessary for astropy.io.vo warnings in Python 2.6
+        except IndexError:  # necessary for astropy.io.vo warnings
             self.warn(args[0].message)
 
     def warnings_logging_enabled(self):
@@ -176,7 +182,9 @@ class AstropyLogger(Logger):
         if self._showwarning_orig is None:
             raise LoggingError("Warnings logging has not been enabled")
         if warnings.showwarning != self._showwarning:
-            raise LoggingError("Cannot disable warnings logging: warnings.showwarning was not set by this logger, or has been overridden")
+            raise LoggingError("Cannot disable warnings logging: "
+                               "warnings.showwarning was not set by this "
+                               "logger, or has been overridden")
         warnings.showwarning = self._showwarning_orig
         self._showwarning_orig = None
 
@@ -219,7 +227,9 @@ class AstropyLogger(Logger):
         if self._excepthook_orig is None:
             raise LoggingError("Exception logging has not been enabled")
         if sys.excepthook != self._excepthook:
-            raise LoggingError("Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden")
+            raise LoggingError("Cannot disable exception logging: "
+                               "sys.excepthook was not set by this logger, "
+                               "or has been overridden")
         sys.excepthook = self._excepthook_orig
         self._excepthook_orig = None
 
