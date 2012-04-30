@@ -77,6 +77,15 @@ Logger = logging.getLoggerClass()
 
 
 class AstropyLogger(Logger):
+    '''
+    This class is used to set up the Astropy logging.
+
+    The main functionality added by this class over the built-in
+    logging.Logger class is the ability to keep track of the origin of the
+    messages, the ability to enable logging of warnings.warn calls and
+    exceptions, and the addition of colorized output and context managers to
+    easily capture messages to a file or list.
+    '''
 
     def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None):
         if extra is None:
