@@ -23,7 +23,7 @@ class LoggingError(Exception):
 
 # Read in configuration
 
-LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
+LOG_LEVEL = ConfigurationItem('log_level', 'INFO',
                               "Threshold for the logging messages. Logging "
                               "messages that are less severe than this level "
                               "will be ignored. The levels are 'DEBUG', "
@@ -45,7 +45,7 @@ LOG_TO_FILE = ConfigurationItem('log_to_file', True,
 LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
                                   "The file to log messages to")
 
-LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'WARN',
+LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'INFO',
                                    "Threshold for logging messages to "
                                    "log_file_path")
 
