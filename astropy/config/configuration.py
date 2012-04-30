@@ -471,6 +471,31 @@ def get_config_items(packageormod=None):
     return configitems
 
 
+def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
+    """
+    Adds a blank line to the comments of any sections in the requested sections,
+    recursing into subsections if `recurse` is True. If `gotoroot` is True,
+    this first goes to the root of the requested section, just like
+    `save_config` and `reload_config` - this does nothing if `sec` is a
+    configobj already.
+    """
+
+    if not hasattr(sec, 'sections'):
+        sec = get_config(sec)
+
+        #look for the section that is its own parent - that's the base object
+        if gotoroot:
+            while sec.parent is not sec:
+                sec = sec.parent
+
+    for snm in sec.sections:
+        comm = sec.comments[snm]
+        if len(comm) == 0 or comm[-1] != '':
+            comm.append('')
+        if recurse:
+            _fix_section_blank_lines(sec[snm], True, False)
+
+
 def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     """ Given a root package name or package, this function simply walks
     through all the subpackages and modules, which should populate any
@@ -506,4 +531,6 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
             for v in mod.__dict__.itervalues():
                 if isinstance(v, ConfigurationItem):
                     v.set(v.defaultvalue)
+
+    _fix_section_blank_lines(package.__name__, True, True)
     save_config(package.__name__)
