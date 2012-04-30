@@ -31,31 +31,31 @@ Configuring the logging system
 
 First, import the logger::
 
-    from astropy.config import logger
+    from astropy.config import log
 
 The threshold level (defined above) for messages can be set with e.g.::
 
-    logger.setLevel('INFO')
+    log.setLevel('INFO')
 
 Color (enabled by default) can be disabled with::
 
-    logger.setColor(False)
+    log.setColor(False)
 
 Warnings from ``warnings.warn`` can be logged with::
 
-    logger.enable_warnings_logging()
+    log.enable_warnings_logging()
 
 which can be disabled with::
 
-    logger.disable_warnings_logging()
+    log.disable_warnings_logging()
 
 and exceptions can be included in the log with::
 
-    logger.set_exception_logging()
+    log.set_exception_logging()
 
 which can be disabled with::
 
-    logger.disable_exception_logging()
+    log.disable_exception_logging()
 
 It is also possible to set these settings from the Astropy configuration file,
 which also allows an overall log file to be specified. See
@@ -71,12 +71,12 @@ section of code to a file. Both of these are possible using context managers.
 To add the log messages to a list, first import the logger if you have not
 already done so::
 
-    from astropy.config import logger
+    from astropy.config import log
 
 then enclose the code in which you want to log the messages to a list in a
 ``with`` statement::
 
-    with logger.log_to_list() as log_list:
+    with log.log_to_list() as log_list:
         # your code here
 
 In the above example, once the block of code has executed, ``log_list`` will
@@ -86,14 +86,14 @@ Note that messages continue to be output as normal.
 Similarly, you can output the log messages of a specific section of code to a
 file using::
 
-    with logger.log_to_file('myfile.log'):
+    with log.log_to_file('myfile.log'):
         # your code here
 
 which will add all the messages to ``myfile.log`` (this is in addition to the
 overall log file mentioned in `Using the configuration file`_).
 
 While these context managers will include all the messages emitted by the
-logger (using the global level set by ``logger.setLevel``), it is possible to
+logger (using the global level set by ``log.setLevel``), it is possible to
 filter a subset of these using ``filter_level=``, and specifying one of
 ``'DEBUG'``, ``'INFO'``, ``'WARN'``, ``'ERROR'``. Note that if
 ``filter_level`` is a lower level than that set via ``setLevel``, only
