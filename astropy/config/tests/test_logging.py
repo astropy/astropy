@@ -11,7 +11,7 @@ from .. import log, LoggingError
 # already overwritten values since the logger already gets imported before
 # this file gets executed.
 _excepthook = sys.__excepthook__
-_showwarning = warnings.showwarning
+_showwarning = warnings._show_warning
 
 
 def setup_function(function):
