@@ -54,6 +54,37 @@ LOG_FILE_FORMAT = ConfigurationItem('log_file_format', "%(asctime)r, "
                                     "Format for log file entries")
 
 
+# The following function is copied from the source code of Python 2.7 and 3.2.
+# This function is not included in Python 2.6 and 3.1, so we have to include it
+# here to provide uniform behavior across versions.
+
+
+def _checkLevel(level):
+    '''
+    '''
+    if isinstance(level, int):
+        rv = level
+    elif str(level) == level:
+        if level not in logging._levelNames:
+            raise ValueError("Unknown level: %r" % level)
+        rv = logging._levelNames[level]
+    else:
+        raise TypeError("Level not an integer or a valid string: %r" % level)
+    return rv
+
+
+# We now have to be sure that we overload the setLevel in FileHandler, again
+# for compatibility with Python 2.6 and 3.1.
+
+
+class FileHandler(logging.FileHandler):
+    def setLevel(self, level):
+        """
+        Set the logging level of this handler.
+        """
+        self.level = _checkLevel(level)
+
+
 class FilterOrigin(object):
     '''A filter for the record origin'''
     def __init__(self, origin):
@@ -73,6 +104,12 @@ class ListHandler(logging.Handler):
     def emit(self, record):
         self.log_list.append(record)
 
+    def setLevel(self, level):
+        """
+        Set the logging level of this handler.
+        """
+        self.level = _checkLevel(level)
+
 Logger = logging.getLoggerClass()
 
 
@@ -87,7 +124,7 @@ class AstropyLogger(Logger):
     easily capture messages to a file or list.
     '''
 
-    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None):
+    def makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=None, extra=None, sinfo=None):
         if extra is None:
             extra = {}
         if 'origin' not in extra:
@@ -96,12 +133,18 @@ class AstropyLogger(Logger):
                 extra['origin'] = current_module.__name__
             else:
                 extra['origin'] = 'unknown'
-        return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func, extra)
+        if sys.version_info[0] < 3 or (sys.version_info[0] == 3 and sys.version_info[1] < 2):
+            return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=func, extra=extra)
+        else:
+            return Logger.makeRecord(self, name, level, pathname, lineno, msg, args, exc_info, func=func, extra=extra, sinfo=sinfo)
 
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
-        self.warn(args[0].message)
+        try:
+            self.warn(args[0].args[0])
+        except IndexError:  # necessary for astropy.io.vo warnings in Python 2.6
+            self.warn(args[0].message)
 
     def warnings_logging_enabled(self):
         return self._showwarning_orig is not None
@@ -144,7 +187,7 @@ class AstropyLogger(Logger):
             origin = inspect.getmodule(traceback.tb_next).__name__
         except:
             origin = inspect.getmodule(traceback).__name__
-        self.error(value.message, extra={'origin': origin})
+        self.error(value.args[0], extra={'origin': origin})
         self._excepthook_orig(type, value, traceback)
 
     def exception_logging_enabled(self):
@@ -206,7 +249,7 @@ class AstropyLogger(Logger):
             color_print(record.levelname, 'brown', end='')
         else:
             color_print(record.levelname, 'red', end='')
-        print(": " + record.msg + " [{:s}]".format(record.origin))
+        print(": " + record.msg + " [{0:s}]".format(record.origin))
 
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
@@ -245,7 +288,7 @@ class AstropyLogger(Logger):
                 # your code here
         '''
 
-        fh = logging.FileHandler(filename)
+        fh = FileHandler(filename)
         if filter_level is not None:
             fh.setLevel(filter_level)
         if filter_origin is not None:
@@ -299,6 +342,12 @@ class AstropyLogger(Logger):
         yield lh.log_list
         self.removeHandler(lh)
 
+    def setLevel(self, level):
+        """
+        Set the logging level of this logger.
+        """
+        self.level = _checkLevel(level)
+
     def _set_defaults(self):
         '''
         Reset logger to its initial state
@@ -330,7 +379,7 @@ class AstropyLogger(Logger):
         # configuration directory or log file is not writeable).
         if LOG_TO_FILE():
             try:
-                fh = logging.FileHandler(os.path.expanduser(LOG_FILE_PATH()))
+                fh = FileHandler(os.path.expanduser(LOG_FILE_PATH()))
             except IOError:
                 pass
             else:

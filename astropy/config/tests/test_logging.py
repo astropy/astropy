@@ -11,7 +11,7 @@ from .. import log, LoggingError
 # already overwritten values since the logger already gets imported before
 # this file gets executed.
 _excepthook = sys.__excepthook__
-_showwarning = warnings._show_warning
+_showwarning = warnings.showwarning
 
 
 def setup_function(function):
@@ -122,8 +122,10 @@ def test_exception_logging():
             raise Exception("This is an Exception")
     except Exception as exc:
         sys.excepthook(*sys.exc_info())
+        assert exc.args[0] == "This is an Exception"
+    else:
+        assert False  # exception should have been raised
     assert len(log_list) == 0
-    assert exc.args[0] == "This is an Exception"
 
     # With exception logging
     try:
@@ -132,11 +134,13 @@ def test_exception_logging():
             raise Exception("This is an Exception")
     except Exception as exc:
         sys.excepthook(*sys.exc_info())
+        assert exc.args[0] == "This is an Exception"
+    else:
+        assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
     assert log_list[0].message == 'This is an Exception'
     assert log_list[0].origin == 'astropy.config.tests.test_logging'
-    assert exc.args[0] == "This is an Exception"
 
     # Without exception logging
     log.disable_exception_logging()
@@ -145,8 +149,10 @@ def test_exception_logging():
             raise Exception("This is an Exception")
     except Exception as exc:
         sys.excepthook(*sys.exc_info())
+        assert exc.args[0] == "This is an Exception"
+    else:
+        assert False  # exception should have been raised
     assert len(log_list) == 0
-    assert exc.args[0] == "This is an Exception"
 
 
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
@@ -250,16 +256,16 @@ def test_log_to_file(level):
 
     # Check list content
 
-    assert log_entries[0].endswith("'astropy.config.tests.test_logging', 'ERROR', 'Error message'\n")
+    assert log_entries[0].endswith(b"'astropy.config.tests.test_logging', 'ERROR', 'Error message'\n")
 
     if len(log_entries) >= 2:
-        assert log_entries[1].endswith("'astropy.config.tests.test_logging', 'WARNING', 'Warning message'\n")
+        assert log_entries[1].endswith(b"'astropy.config.tests.test_logging', 'WARNING', 'Warning message'\n")
 
     if len(log_entries) >= 3:
-        assert log_entries[2].endswith("'astropy.config.tests.test_logging', 'INFO', 'Information message'\n")
+        assert log_entries[2].endswith(b"'astropy.config.tests.test_logging', 'INFO', 'Information message'\n")
 
     if len(log_entries) >= 4:
-        assert log_entries[3].endswith("'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'\n")
+        assert log_entries[3].endswith(b"'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'\n")
 
 
 def test_log_to_file_level():
@@ -274,7 +280,7 @@ def test_log_to_file_level():
     log_entries = log_file.readlines()
     log_file.close()
 
-    assert len(log_entries) == 1 and log_entries[0].endswith("'ERROR', 'Error message'\n")
+    assert len(log_entries) == 1 and log_entries[0].endswith(b"'ERROR', 'Error message'\n")
 
 
 def test_log_to_file_origin1():
