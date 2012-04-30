@@ -32,10 +32,10 @@ LOG_LEVEL = ConfigurationItem('log_level', 'WARN',
 USE_COLOR = ConfigurationItem('use_color', True,
                               "Whether to use color for the level names")
 
-LOG_WARNINGS = ConfigurationItem('log_warnings', False,
+LOG_WARNINGS = ConfigurationItem('log_warnings', True,
                                  "Whether to log warnings.warn calls")
 
-LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', False,
+LOG_EXCEPTIONS = ConfigurationItem('log_exceptions', True,
                                    "Whether to log exceptions before raising them")
 
 LOG_TO_FILE = ConfigurationItem('log_to_file', True,
@@ -103,6 +103,9 @@ class AstropyLogger(Logger):
     def _showwarning(self, *args, **kwargs):
         self.warn(args[0].message)
 
+    def warnings_logging_enabled(self):
+        return self._showwarning_orig is not None
+
     def enable_warnings_logging(self):
         '''
         Enable logging of warnings.warn() calls
@@ -143,6 +146,9 @@ class AstropyLogger(Logger):
             origin = inspect.getmodule(traceback).__name__
         self.error(value.message, extra={'origin': origin})
         self._excepthook_orig(type, value, traceback)
+
+    def exception_logging_enabled(self):
+        return self._excepthook_orig is not None
 
     def enable_exception_logging(self):
         '''

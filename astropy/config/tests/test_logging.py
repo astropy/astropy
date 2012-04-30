@@ -7,8 +7,10 @@ import pytest
 from .. import log, LoggingError
 
 
-# Save original values of hooks
-_excepthook = sys.excepthook
+# Save original values of hooks. These are not the system values, but the
+# already overwritten values since the logger already gets imported before
+# this file gets executed.
+_excepthook = sys.__excepthook__
 _showwarning = warnings.showwarning
 
 
@@ -24,6 +26,12 @@ def setup_function(function):
 
     # Set up the logger
     log._set_defaults()
+
+    # Reset hooks
+    if log.warnings_logging_enabled():
+        log.disable_warnings_logging()
+    if log.exception_logging_enabled():
+        log.disable_exception_logging()
 
 
 def teardown_module(function):
