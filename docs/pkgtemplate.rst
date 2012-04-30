@@ -16,10 +16,35 @@ Short tutorial-like examples of how to do common-tasks - should be fairly quick,
 with any more detailed examples in the next section.
 
 
-packagename usage
+Using packagename
 -----------------
 
-More detailed subdivisions and more specific/detail tutorials as necessary.
+This section is for the detailed documentation.  For simpler packages, this
+should either by paragraphs or sub-divided into sub-sections like:
+
+Sub-topic 1
+^^^^^^^^^^^
+
+Content if needed
+
+A Complex example
+^^^^^^^^^^^^^^^^^
+
+Content if needed
+
+
+
+For more complicated packages that require multiple documents, this should just
+be a table of contents referencing those documents:
+
+.. toctree::
+    packagename/subdoc1
+    packagename/subdoc2
+    packagename/subdoc3
+
+
+Either a toctree or sub-sections should be used, *not* both.
+
 
 
 See Also (optional)
