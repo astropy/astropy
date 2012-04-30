@@ -170,9 +170,9 @@ def test_log_to_list(level):
     # Check list length
     if level == 'DEBUG':
         assert len(log_list) == 4
-    elif level == 'INFO':
+    elif level is None or level == 'INFO':
         assert len(log_list) == 3
-    elif level is None or level == 'WARN':
+    elif level == 'WARN':
         assert len(log_list) == 2
     elif level == 'ERROR':
         assert len(log_list) == 1
@@ -247,9 +247,9 @@ def test_log_to_file(level):
     # Check list length
     if level == 'DEBUG':
         assert len(log_entries) == 4
-    elif level == 'INFO':
+    elif level is None or level == 'INFO':
         assert len(log_entries) == 3
-    elif level is None or level == 'WARN':
+    elif level == 'WARN':
         assert len(log_entries) == 2
     elif level == 'ERROR':
         assert len(log_entries) == 1
