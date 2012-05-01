@@ -1,5 +1,5 @@
-packagname -- a description of the package
-==========================================
+A description of the package (`astropy.packagename`)
+====================================================
 
 Introduction
 ------------
