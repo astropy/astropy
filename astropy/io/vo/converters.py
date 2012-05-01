@@ -22,7 +22,7 @@ from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
 from .util import IS_PY3K
 
 
-__all__ = ['get_converter']
+__all__ = ['get_converter', 'Converter']
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -1094,8 +1094,7 @@ converter_mapping = {
 
 def get_converter(field, config={}, pos=None):
     """
-    Factory function to get an appropriate converter instance for a
-    given field.
+    Get an appropriate converter instance for a given field.
 
     Parameters
     ----------

@@ -78,8 +78,9 @@ def make_validation_report(
     urls=None, destdir='astropy.io.vo.validator.results', multiprocess=True,
     stilts=None):
     """
-    Validates a large collection of web-accessible VOTable files,
-    and generates a report as a directory tree of HTML files.
+    Validates a large collection of web-accessible VOTable files.
+
+    Generates a report as a directory tree of HTML files.
 
     Parameters
     ----------
