@@ -18,3 +18,4 @@ to the layout of the `astropy` package.
     building_packaging
     scripts
     sphinxext
+    logging
