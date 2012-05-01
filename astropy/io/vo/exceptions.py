@@ -170,6 +170,7 @@ class VOWarning(Warning):
         msg = self.message % args
         self.formatted_message = _format_message(
             msg, self.__class__.__name__, config, pos)
+        Warning.__init__(self, self.formatted_message)
 
     def __str__(self):
         return self.formatted_message
