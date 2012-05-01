@@ -1,19 +1,16 @@
-Configuration system Documentation
-==================================
+Configuration system Documentation (`astropy.config`)
+=====================================================
+
+Introduction
+------------
 
 The astropy configuration system is designed to give users control of various
 parameters used in astropy or affiliated packages without delving into the
 source code to make those changes.
 
-.. todo::
-    Move this portion of the documentation to a more appropriate place when a
-    doc reorg happens
 
-For Users
----------
-
-The Astropy configuration system is designed to make it easy to see what general
-options are to be used
+Getting Started
+---------------
 
 To see the configuration options, look for your astropy configuration file.
 You can find it by doing::
@@ -57,129 +54,112 @@ want to see your changes immediately in your current Astropy session, just do::
     data download systems will then use those directories and never try to
     access the ``$HOME/.astropy`` directory.
 
-These files are only read when the relevant package is imported, though,
-so any changes you make after starting an astropy session will not be
-detected. You can, however, change configuration items directly. This can
-be accomplished using the `set` method of a `ConfigurationItem` object as the
-following example shows::
 
-    # astropy.config.io.fits has a configuration item that sets whether or not
-    # FITS extension names are case-sensitive
-    >>> from astropy.io import fits
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE  # This item defaults to False
-    False
-    >>> f = fits.open('somefile.fits')  # it's first extension is named "AnExt"
-    >>> f[1].name
-    'ANEXT'
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.set(True)
-    >>> f = fits.open('somefile.fits')
-    >>> f[1].name
-    'AnExt'
+Advanced usage of the configuration system
+------------------------------------------
 
-If you want this setting to persist across later sessions, you can save this
-setting by following the above code with::
+Changing Values at Run-time
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The configuration system is most conviniently used, by modifying
+configuration files as described above. Values can also, however, be
+modified in an active python session using the
+:meth:`~astropy.config.configuration.ConfigurationItem.set` method. A run-time
+`ConfigurationItem` object can be used to make these changes. These items
+are found in the same module as the configuration section they are in,
+and usually have the same name as in the configuration files, but in all
+caps. Alternatively, they may be located with the
+:func:`~astropy.config.configuration.get_config_items` function.
 
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.save()
+For example, if there is a part of your configuration file that looks like::
 
-Alternatively, you can directly modify the value of the
-"extension_name_case_sensitive" entry in the "[io.fits]" section of
-``astropy.cfg`` to True, and then update the value in you python session
-by calling the `ConfigurationItem` `reload` method::
+    [config.data]
+    # URL for astropy remote data site.
+    dataurl = http://data.astropy.org/
 
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.reload()
-
-Or if you want to reload all astropy configuration at once, use the
-`~astropy.config.configuration.reload_config` function::
-
-    >>> config.reoad_config('astropy')
+    # Time to wait for remote data query (in seconds).
+    remote_timeout = 3.0
 
 
+You should be able to modify the values at run-time this way::
 
-For Developers
---------------
-Configuration items should be used wherever an option or setting is
-needed that is either tied to a system configuration or should persist
-across sessions of astropy or an affiliated package. Admittedly, this is
-only a guideline, as the precise cases where a configuration item is
-preferred over, say, a keyword option for a function is somewhat personal
-preference. It is the preferred form of persistent configuration,
-however, and astropy packages must all use it (and it is recommended for
-affiliated packages).
+    from astropy.config.data import DATAURL, REMOTE_TIMEOUT
 
-The Reference guide below describes the full interface for a
-`ConfigurationItem` - this is a guide for *typical* developer usage. In
-almost all cases, a configuration item should be defined and used in the
-following manner::
+    DATAURL.set('http://astropydata.mywebsite.com')
+    REMOTE_TIMEOUT.set(4.5)
+
+Or alternatively::
+
+    from astropy.config import get_config_items
+
+    items = get_config_items('astropy.config.data')
+    items['DATAURL'].set('http://astropydata.mywebsite.com')
+    items['REMOTE_TIMEOUT'].set('4.5')
+
+Note that this will *not* permanently change these values in the configuration
+files - just for the current session.  To modify the values in the configuration
+files, you can do::
+
+    DATAURL.save()
+    REMOTE_TIMEOUT.save()
+
+Or to save all modifications to configuration items in `astropy.config.data`
+(which includes the changes made above), do::
+
+    from astropy.config import save_config
+
+    save_config('astropy.config.data')
+
+
+
+Developer Usage
+^^^^^^^^^^^^^^^
+
+The most common way to use the configuration system in a module is as follows::
 
     """ This is the docstring at the beginning of a module
     """
     from astropy.config import ConfigurationItem
 
-    SOME_OPTION = ConfigurationItem('some_option', 1, 'A description.')
-    ANOTHER_OPTION = ConfigurationItem('annother_opt', 'a string val',
-                                       'A longer description of what this does.')
+    SOME_OPTION = ConfigurationItem('some_opt',1,'A description.')
+    ANOTHER_OPTION = ConfigurationItem('anno_opt','a string val',
+                            'A longer description of what this does.')
 
     ... implementation ...
     def some_func():
         #to get the value of these options, I might do:
-        something = SOME_OPTION() + 2
-        return ANOTHER_OPTION() + ' Also, I added text.'
+        something = SOME_OPTION()+2
+        return ANOTHER_OPTION()+' Also, I added text.'
 
 It is highly recommended that any configuration items be placed at the
 top of a module like this, as they can then be easily found when viewing
-the source code and the automated tools to generate the default
-configuration files can also locate these items.
+the source code. Additionally, the automated tools to generate the
+default configuration files can also locate these items, and will use the
+description here to produce descriptive comments in the configuration file.
 
-There are a couple important gotchas to remember about using configuration
-items in your code. First, it is tempting to do something like::
-
-    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
-
-    def some_func():
-        return SOME_OPTION + 2  # WRONG, you wanted SOME_OPTION() + 2
-
-but this is incorrect, because ``SOME_OPTION`` instead of
-``SOME_OPTION()`` will yield a `ConfigurationItem` object, instead of the
-*value* of that item (an integer, in this case).
-
-The second point to keep in mind is that `ConfigurationItem` objects can
-be changed at runtime by users. So you always read their values instead
-of just storing their initial value to some other variable (or used as a
-default for a function). For example, the following will work, but is
-incorrect usage::
-
-    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
-
-    def some_func(val=SOME_OPTION()):
-        return val + 2
-
-This works fine as long as the user doesn't change its value during
-runtime, but if they do, the function won't know about the change::
-
-    >>> some_func()
-    3
-    >>> SOME_OPTION.set(3)
-    >>> some_func()  # naively should return 5, because 3 + 2 = 5
-    3
-
-There are two ways around this.  The typical/intended way is::
-
-    def some_func():
-        """
-        The `SOME_OPTION` configuration item influences this output
-        """
-        return SOME_OPTION() + 2
-
-Or, if the option needs to be available as a function parameter::
-
-    def some_func(val=None):
-        """
-        If not specified, `val` is set by the `SOME_OPTION` configuration item.
-        """
-        return (SOME_OPTION() if val is None else val) + 2
+It is important to realize that whil the typical usage of the configuration
+system uses the astropy configuration files, the configuration items can also
+be changed at runtime.  Thus, in general, you should access the value of an item
+via the ``SOME_OPTION()`` call syntax above.  This always accesses an up-to-date
+value for the item rather than assuming that its value remains fixed until the
+module is next imported.  If you need to use an item as an initialization
+parameter (such that changing it at runtime has no effect), be sure to note this
+in an item's description.
 
 
+See Also
+--------
 
+:doc:`logging` (overview of `astropy.config.logging`)
+
+
+API/Reference
+-------------
 
 .. automodapi:: astropy.config
     :no-inheritance-diagram:
+
+
+
+
+
+
