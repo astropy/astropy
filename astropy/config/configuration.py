@@ -488,10 +488,13 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
             while sec.parent is not sec:
                 sec = sec.parent
 
-    for snm in sec.sections:
+    for isec, snm in enumerate(sec.sections):
         comm = sec.comments[snm]
         if len(comm) == 0 or comm[-1] != '':
-            comm.append('')
+            if sec.parent is sec and isec == 0:
+                pass  # don't do it for first section
+            else:
+                comm.append('')
         if recurse:
             _fix_section_blank_lines(sec[snm], True, False)
 
