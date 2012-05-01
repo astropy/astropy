@@ -118,7 +118,7 @@ of the Astropy configuration file::
     # Threshold for the logging messages. Logging messages that are less severe
     # than this level will be ignored. The levels are 'DEBUG', 'INFO', 'WARNING',
     # 'ERROR'
-    log_level = 'WARN'
+    log_level = 'INFO'
 
     # Whether to use color for the level names
     use_color = True
@@ -136,7 +136,7 @@ of the Astropy configuration file::
     log_file_path = '~/.astropy/astropy.log'
 
     # Threshold for logging messages to log_file_path
-    log_file_level = 'WARN'
+    log_file_level = 'INFO'
 
     # Format for log file entries
     log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
