@@ -423,6 +423,52 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
+def get_config_items(packageormod=None):
+    """ Returns the `ConfigurationItem` objects associated with a particular
+    module.
+
+    Parameters
+    ----------
+    packageormod : str or None
+        The package or module name or None to get the current module's items.
+
+    Returns
+    -------
+    configitems : dict
+        A dictionary where the keys are the name of the items as the are named
+        in the module, and the values are the associated `ConfigurationItem`
+        objects.
+
+    """
+    import sys
+    from inspect import ismodule
+
+    from ..utils import find_current_module
+
+    if packageormod is None:
+        packageormod = find_current_module(2)
+        if packageormod is None:
+            msg1 = 'Cannot automatically determine get_config module, '
+            msg2 = 'because it is not called from inside a valid module'
+            raise RuntimeError(msg1 + msg2)
+    elif isinstance(packageormod, basestring):
+        __import__(packageormod)
+        packageormod = sys.modules[packageormod]
+    elif ismodule(packageormod):
+        pass
+    else:
+        raise TypeError('packageormod in get_config_items is invalid')
+
+    configitems = {}
+    for n, obj in packageormod.__dict__.iteritems():
+        objcls = obj.__class__
+        fqn = objcls.__module__ + '.' + objcls.__name__
+        if fqn == 'astropy.config.configuration.ConfigurationItem':
+            configitems[n] = obj
+
+    return configitems
+
+
 def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     """ Given a root package name or package, this function simply walks
     through all the subpackages and modules, which should populate any
