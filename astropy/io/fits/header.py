@@ -13,8 +13,9 @@ import warnings
 
 from .card import Card, CardList, _pad
 from .file import _File, PYTHON_MODES
-from .util import (BLOCK_SIZE, deprecated, isiterable, decode_ascii,
+from .util import (BLOCK_SIZE, isiterable, decode_ascii,
                    fileobj_mode, _pad_length)
+from ...utils import deprecated
 
 
 PY3K = sys.version_info[:2] >= (3, 0)

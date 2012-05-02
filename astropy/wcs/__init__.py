@@ -22,14 +22,14 @@ The basic workflow is as follows:
 
     4. Use one of the following transformation methods:
 
-       - `~WCS.all_pix2sky`: Perform all three transformations from
-         pixel to sky coordinates.
+       - `~WCS.all_pix2world`: Perform all three transformations from
+         pixel to world coordinates.
 
-       - `~WCS.wcs_pix2sky`: Perform just the core WCS transformation
-         from pixel to sky coordinates.
+       - `~WCS.wcs_pix2world`: Perform just the core WCS
+         transformation from pixel to world coordinates.
 
-       - `~WCS.wcs_sky2pix`: Perform just the core WCS transformation
-         from sky to pixel coordinates.
+       - `~WCS.wcs_world2pix`: Perform just the core WCS
+         transformation from world to pixel coordinates.
 
        - `~WCS.sip_pix2foc`: Convert from pixel to focal plane
          coordinates using the `SIP`_ polynomial coefficients.
@@ -47,12 +47,10 @@ The basic workflow is as follows:
 
 from __future__ import division  # confidence high
 
-from ..setup_helpers import is_in_build_mode
-
-if not is_in_build_mode():
+if not _ASTROPY_SETUP_:
     from .wcs import *
 
     class Wcsprm(Wcsprm):
         pass
 
-del is_in_build_mode
+    pass

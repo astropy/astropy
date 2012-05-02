@@ -13,7 +13,6 @@ import warnings
 # LOCAL
 from . import exceptions
 from . import tree
-from . import util
 from ...utils.xml import iterparser
 from ...config import ConfigurationItem
 
@@ -217,11 +216,13 @@ def validate(filename, output=sys.stdout, xmllint=False):
 
     success = 0
     if xmllint:
+        from ...utils.xml import validate
+
         if votable is None:
             version = "1.1"
         else:
             version = votable.version
-        success, stdout, stderr = xmlutil.validate_schema(
+        success, stdout, stderr = validate.validate_schema(
             filename, version)
 
         if success != 0:

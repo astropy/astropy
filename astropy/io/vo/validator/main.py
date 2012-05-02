@@ -6,7 +6,6 @@ from __future__ import print_function
 
 # STDLIB
 import os
-import sys
 
 # LOCAL
 from ....config import get_data_filename

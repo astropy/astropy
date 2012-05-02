@@ -6,21 +6,35 @@ clear other module/pakcage to live in.
 
 from __future__ import absolute_import
 
-__all__ = ['find_current_module', 'fnpickle', 'fnunpickle']
+import functools
+import textwrap
+import warnings
+
+__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'deprecated']
 
 
 def find_current_module(depth=1, finddiff=False):
-    """ Determines the module/package this function is called from.
+    """ Determines the module/package from which this function is called.
+
+    This function has two modes, determined by the `finddiff` option. it
+    will either simply go the requested number of frames up the call
+    stack (if `finddiff` is False), or it will go up the call stack until
+    it reaches a module that is *not* in a specified set.
 
     Parameters
     ----------
     depth : int
         Specifies how far back to go in the call stack (0-indexed, so that
         passing in 0 gives back `astropy.utils.misc`).
-    finddiff : bool
-        If True, once the module at `depth` is determined, a search will be
-        performed up the call stack until a *different* module is found
-        from the one at `depth`.
+    finddiff : bool or list
+        If False, the returned `mod` will just be `depth` frames up from
+        the current frame. Otherwise, the function will start at a frame
+        `depth` up from current, and continue up the call stack to the
+        first module that is *different* from those in the provided list.
+        In this case, `finddiff` can be a list of modules or modules
+        names. Alternatively, it can be True, which will use the module
+        `depth` call stack frames up as the module the returned module
+        most be different from.
 
     Returns
     -------
@@ -28,6 +42,11 @@ def find_current_module(depth=1, finddiff=False):
         The module object or None if the package cannot be found. The name of
         the module is available as the ``__name__`` attribute of the returned
         object (if it isn't None).
+
+    Raises
+    ------
+    ValueError
+        If `finddiff` is a list with an invalid entry.
 
     Examples
     --------
@@ -70,7 +89,7 @@ def find_current_module(depth=1, finddiff=False):
         pkg.mod1
 
     """
-    from inspect import currentframe
+    from inspect import currentframe, ismodule
 
     # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
     # is broken if the list of modules changes during import
@@ -84,10 +103,24 @@ def find_current_module(depth=1, finddiff=False):
 
     if finddiff:
         currmod = inspect_getmodule(frm)
+        if finddiff is True:
+            diffmods = [currmod]
+        else:
+            diffmods = []
+            for fd in finddiff:
+                if ismodule(fd):
+                    diffmods.append(fd)
+                elif isinstance(fd, basestring):
+                    diffmods.append(__import__(fd))
+                elif fd is True:
+                    diffmods.append(currmod)
+                else:
+                    raise ValueError('invalid entry in finddiff')
+
         while frm:
             frmb = frm.f_back
             modb = inspect_getmodule(frmb)
-            if modb is not currmod:
+            if modb not in diffmods:
                 return modb
             frm = frmb
     else:
@@ -144,7 +177,7 @@ def find_mod_objs(modname, onlylocals=False):
     #fully qualified names can be determined from the object's module
     fqnames = []
     for obj, lnm in zip(objs, localnames):
-        if hasattr(obj, '__module__'):
+        if hasattr(obj, '__module__') and hasattr(obj, '__name__'):
             fqnames.append(obj.__module__ + '.' + obj.__name__)
         else:
             fqnames.append(modname + '.' + lnm)
@@ -269,3 +302,121 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     finally:
         if close:
             f.close()
+
+
+# TODO: Provide a class deprecation marker as well.
+def deprecated(since, message='', name='', alternative='', pending=False):
+    """
+    Used to mark a function as deprecated.
+
+    To mark an attribute as deprecated, replace that attribute with a
+    depcrecated property.
+
+    Parameters
+    ------------
+    since : str
+        The release at which this API became deprecated.  This is required.
+
+    message : str, optional
+        Override the default deprecation message.  The format specifier
+        %(func)s may be used for the name of the function, and %(alternative)s
+        may be used in the deprecation message to insert the name of an
+        alternative to the deprecated function.
+
+    name : str, optional
+        The name of the deprecated function; if not provided the name is
+        automatically determined from the passed in function, though this is
+        useful in the case of renamed functions, where the new function is just
+        assigned to the name of the deprecated function.  For example:
+            def new_function():
+                ...
+            oldFunction = new_function
+
+    alternative : str, optional
+        An alternative function that the user may use in place of the
+        deprecated function.  The deprecation warning will tell the user about
+        this alternative if provided.
+
+    pending : bool, optional
+        If True, uses a PendingDeprecationWarning instead of a
+        DeprecationWarning.
+
+    """
+
+    def deprecate(func, message=message, name=name, alternative=alternative,
+                  pending=pending):
+        if isinstance(func, classmethod):
+            try:
+                func = func.__func__
+            except AttributeError:
+                # classmethods in Python2.6 and below lack the __func__
+                # attribute so we need to hack around to get it
+                method = func.__get__(None, object)
+                if hasattr(method, '__func__'):
+                    func = method.__func__
+                elif hasattr(method, 'im_func'):
+                    func = method.im_func
+                else:
+                    # Nothing we can do really...  just return the original
+                    # classmethod
+                    return func
+            is_classmethod = True
+        else:
+            is_classmethod = False
+
+        if not name:
+            name = func.__name__
+
+        altmessage = ''
+        if not message or type(message) == type(deprecate):
+            if pending:
+                message = ('The %(func)s function will be deprecated in a '
+                           'future version.')
+            else:
+                message = ('The %(func)s function is deprecated and may '
+                           'be removed in a future version.')
+            if alternative:
+                altmessage = '\n        Use %s instead.' % alternative
+
+        message = ((message % {'func': name, 'alternative': alternative}) +
+                   altmessage)
+
+        @functools.wraps(func)
+        def deprecated_func(*args, **kwargs):
+            if pending:
+                category = PendingDeprecationWarning
+            else:
+                category = DeprecationWarning
+
+            warnings.warn(message, category, stacklevel=2)
+
+            return func(*args, **kwargs)
+
+        old_doc = deprecated_func.__doc__
+        if not old_doc:
+            old_doc = ''
+        old_doc = textwrap.dedent(old_doc).strip('\n')
+        altmessage = altmessage.strip()
+        if not altmessage:
+            altmessage = message.strip()
+        new_doc = (('\n.. deprecated:: %(since)s'
+                    '\n    %(message)s\n\n' %
+                    {'since': since, 'message': altmessage.strip()}) + old_doc)
+        if not old_doc:
+            # This is to prevent a spurious 'unexected unindent' warning from
+            # docutils when the original docstring was blank.
+            new_doc += r'\ '
+
+        deprecated_func.__doc__ = new_doc
+
+        if is_classmethod:
+            deprecated_func = classmethod(deprecated_func)
+        return deprecated_func
+
+    if type(message) == type(deprecate):
+        return deprecate(message)
+
+    return deprecate
+
+
+

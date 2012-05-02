@@ -22,11 +22,11 @@ def test_maps():
         header = get_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
-        world = wcsobj.wcs_pix2sky([[97, 97]], 1)
+        world = wcsobj.wcs_pix2world([[97, 97]], 1)
 
         assert_array_almost_equal(world, [[285.0, -66.25]], decimal=1)
 
-        pix = wcsobj.wcs_sky2pix([[285.0, -66.25]], 1)
+        pix = wcsobj.wcs_world2pix([[285.0, -66.25]], 1)
 
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
@@ -226,11 +226,20 @@ def test_outside_sky():
     header = get_data_contents('data/outside_sky.hdr')
     w = wcs.WCS(header)
 
-    assert np.all(np.isnan(w.wcs_pix2sky([[100.,500.]], 0)))  # outside sky
-    assert np.all(np.isnan(w.wcs_pix2sky([[200.,200.]], 0)))  # outside sky
-    assert not np.any(np.isnan(w.wcs_pix2sky([[1000.,1000.]], 0)))
+    assert np.all(np.isnan(w.wcs_pix2world([[100.,500.]], 0)))  # outside sky
+    assert np.all(np.isnan(w.wcs_pix2world([[200.,200.]], 0)))  # outside sky
+    assert not np.any(np.isnan(w.wcs_pix2world([[1000.,1000.]], 0)))
 
 
 def test_load_fits_path():
     fits = get_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
+
+
+def test_backward_compatible():
+    fits = get_data_filename('data/sip.fits')
+    w = wcs.WCS(fits)
+
+    data = np.random.rand(100, 2)
+    assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
+    assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))

@@ -131,7 +131,6 @@ def test_find_mod_objs():
     # just check for astropy.test ... other things might be added, so we
     # shouldn't check that it's the only thing
     assert 'test' in lnms
-    assert 'astropy.tests.helper.run_tests' in fqns
     assert astropy.test in objs
 
     lnms, fqns, objs = misc.find_mod_objs('astropy.utils.tests.test_misc',
@@ -145,3 +144,21 @@ def test_find_mod_objs():
     assert 'namedtuple' not in lnms
     assert 'collections.namedtuple' not in fqns
     assert namedtuple not in objs
+
+
+def test_find_current_mod():
+    from sys import getrecursionlimit
+    from pytest import raises
+
+    thismodnm = __name__
+
+    assert misc.find_current_module(0) is misc
+    assert misc.find_current_module(1).__name__ == thismodnm
+    assert misc.find_current_module(getrecursionlimit() + 1) is None
+
+    assert misc.find_current_module(0, True).__name__ == thismodnm
+    assert misc.find_current_module(0, [misc]).__name__ == thismodnm
+    assert misc.find_current_module(0, ['astropy.utils.misc']).__name__ == thismodnm
+
+    with raises(ImportError):
+        misc.find_current_module(0, ['faddfdsasewrweriopunjlfiurrhujnkflgwhu'])

@@ -26,11 +26,11 @@ pixcrd = numpy.array([[0,0],[24,38],[45,98]], numpy.float_)
 # Convert pixel coordinates to world coordinates
 # The second argument is "origin" -- in this case we're declaring we
 # have 1-based (Fortran-like) coordinates.
-sky = w.wcs_pix2sky(pixcrd, 1)
-print sky
+world = w.wcs_pix2world(pixcrd, 1)
+print world
 
 # Convert the same coordinates back to pixel coordinates.
-pixcrd2 = w.wcs_sky2pix(sky, 1)
+pixcrd2 = w.wcs_world2pix(world, 1)
 print pixcrd2
 
 # These should be the same as the original pixel coordinates, modulo

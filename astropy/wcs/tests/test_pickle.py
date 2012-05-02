@@ -24,8 +24,8 @@ def test_dist():
     wcs2 = cPickle.loads(s)
 
     x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-    world1 = wcs1.all_pix2sky(x, 1)
-    world2 = wcs2.all_pix2sky(x, 1)
+    world1 = wcs1.all_pix2world(x, 1)
+    world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 
@@ -39,8 +39,8 @@ def test_sip():
     wcs2 = cPickle.loads(s)
 
     x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-    world1 = wcs1.all_pix2sky(x, 1)
-    world2 = wcs2.all_pix2sky(x, 1)
+    world1 = wcs1.all_pix2world(x, 1)
+    world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 
@@ -54,8 +54,8 @@ def test_sip2():
     wcs2 = cPickle.loads(s)
 
     x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-    world1 = wcs1.all_pix2sky(x, 1)
-    world2 = wcs2.all_pix2sky(x, 1)
+    world1 = wcs1.all_pix2world(x, 1)
+    world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 
@@ -68,8 +68,8 @@ def test_wcs():
     wcs2 = cPickle.loads(s)
 
     x = np.random.rand(2 ** 16, wcs1.wcs.naxis)
-    world1 = wcs1.all_pix2sky(x, 1)
-    world2 = wcs2.all_pix2sky(x, 1)
+    world1 = wcs1.all_pix2world(x, 1)
+    world2 = wcs2.all_pix2world(x, 1)
 
     assert_array_almost_equal(world1, world2)
 

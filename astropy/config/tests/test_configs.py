@@ -2,6 +2,16 @@
 
 import io
 
+try:
+    #used by test_get_config_items
+    from ..configuration import ConfigurationItem
+
+    TESTCONF1 = ConfigurationItem('test1', 1, 'descr')
+    TESTCONF2 = ConfigurationItem('test2', 2, 'descr')
+except:
+    #if this fails on import, don't worry - the tests will catch it.
+    pass
+
 
 def test_paths():
     from ..paths import get_config_dir, get_cache_dir
@@ -41,20 +51,20 @@ def test_configitem():
 
     sec = get_config(ci.module)
     assert sec['tstnm'] == 34
-    assert sec.comments['tstnm'][0] == 'this is a Description'
-    assert sec.comments['tstnm'][1] == 'integer'
+    assert sec.comments['tstnm'][0] == ''
+    assert sec.comments['tstnm'][1] == 'this is a Description'
 
     ci.description = 'updated Descr'
     ci.set(32)
     assert ci() == 32
-    assert sec.comments['tstnm'][0] == 'updated Descr'
+    assert sec.comments['tstnm'][1] == 'updated Descr'
 
     #It's useful to go back to the default to allow other test functions to
     #call this one and still be in the default configuration.
     ci.description = 'this is a Description'
     ci.set(34)
     assert ci() == 34
-    assert sec.comments['tstnm'][0] == 'this is a Description'
+    assert sec.comments['tstnm'][1] == 'this is a Description'
 
 
 def test_configitem_save(tmpdir):
@@ -166,7 +176,7 @@ def test_configitem_options(tmpdir):
     with io.open(f.strpath, 'rU') as fd:
         lns = [x.strip() for x in f.readlines()]
 
-    assert '# option(op1, op2, op3)' in lns
+    assert '# Options: op1, op2, op3' in lns
     assert 'tstnmo = op2' in lns
 
 
@@ -203,3 +213,22 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     assert w.category == configuration.ConfigurationMissingWarning
     assert 'Configuration defaults will be used' in str(w.message)
     assert 'and configuration cannot be saved due to' in str(w.message)
+
+
+def test_get_config_items():
+    """ Checks if the get_config_items function is working correctly, using
+    `ConfigurationItem` objects from this module.
+    """
+    import sys
+
+    from ..configuration import get_config_items
+
+    itemslocal = get_config_items(sys.modules['astropy.config.tests.test_configs'])
+    itemslocalnone = get_config_items(None)
+    itemsname = get_config_items('astropy.config.tests.test_configs')
+
+    assert itemslocal == itemsname
+    assert itemslocal == itemslocalnone
+
+    assert 'TESTCONF1' in itemslocal.keys()
+    assert 'TESTCONF2' in itemslocal.keys()

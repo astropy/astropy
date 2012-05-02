@@ -5,7 +5,6 @@ Utilities for prettifying output to the console.
 """
 from __future__ import division, print_function
 
-import io
 import re
 import math
 import sys
@@ -593,12 +592,12 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
         color_print(u'…', 'darkgrey', file=file, end=u'')
 
     if len(line) > width:
-        file.write(line[:width - 1])
+        write(line[:width - 1])
         color_print(u'…', 'darkgrey', file=file)
     else:
-        file.write(line)
-        file.write(u'\n')
+        write(line)
+        write(u'\n')
 
     if col is not None:
-        file.write(u' ' * col)
+        write(u' ' * col)
         color_print(u'^', 'red', file=file)

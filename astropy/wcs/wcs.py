@@ -45,6 +45,7 @@ try:
     from . import _wcs
 except ImportError:
     _wcs = None
+from ..utils import deprecated
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -392,9 +393,9 @@ naxis kwarg.
         corners[3, 0] = naxis1
         corners[3, 1] = 1.
         if undistort:
-            return self.all_pix2sky(corners, 1)
+            return self.all_pix2world(corners, 1)
         else:
-            return self.wcs_pix2sky(corners, 1)
+            return self.wcs_pix2world(corners, 1)
 
     def _read_det2im_kw(self, header, fobj):
         """
@@ -772,11 +773,11 @@ naxis kwarg.
         raise TypeError(
             "Expected 2 or 3 arguments, {0} given".format(len(args)))
 
-    def all_pix2sky(self, *args, **kwargs):
+    def all_pix2world(self, *args, **kwargs):
         return self._array_converter(
-            self._all_pix2sky, 'output', *args, **kwargs)
-    all_pix2sky.__doc__ = """
-        Transforms pixel coordinates to sky coordinates.
+            self._all_pix2world, 'output', *args, **kwargs)
+    all_pix2world.__doc__ = """
+        Transforms pixel coordinates to world coordinates.
 
         Performs all of the following in order:
 
@@ -840,19 +841,23 @@ naxis kwarg.
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('sky coordinates, in degrees', 8))
 
-    def wcs_pix2sky(self, *args, **kwargs):
+    @deprecated("0.0", name="all_pix2sky", alternative="all_pix2world")
+    def all_pix2sky(self, *args, **kwargs):
+        return self.all_pix2world(*args, **kwargs)
+
+    def wcs_pix2world(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
         return self._array_converter(
             lambda xy, o: self.wcs.p2s(xy, o)['world'],
             'output', *args, **kwargs)
-    wcs_pix2sky.__doc__ = """
-        Transforms pixel coordinates to sky coordinates by doing only
-        the basic `wcslib`_ transformation.
+    wcs_pix2world.__doc__ = """
+        Transforms pixel coordinates to world coordinates by doing
+        only the basic `wcslib`_ transformation.
 
         No `SIP`_ or `Paper IV`_ table lookup distortion correction is
         applied.  To perform distortion correction, see
-        `~astropy.wcs.WCS.all_pix2sky`,
+        `~astropy.wcs.WCS.all_pix2world`,
         `~astropy.wcs.WCS.sip_pix2foc`, `~astropy.wcs.WCS.p4_pix2foc`,
         or `~astropy.wcs.WCS.pix2foc`.
 
@@ -907,16 +912,20 @@ naxis kwarg.
 
         """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
-                   __.RETURNS('sky coordinates, in degrees', 8))
+                   __.RETURNS('world coordinates, in degrees', 8))
 
-    def wcs_sky2pix(self, *args, **kwargs):
+    @deprecated("0.0", name="wcs_pix2sky", alternative="wcs_pix2world")
+    def wcs_pix2sky(self, *args, **kwargs):
+        return self.wcs_pix2world(*args, **kwargs)
+
+    def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
         return self._array_converter(
             lambda xy, o: self.wcs.s2p(xy, o)['pixcrd'],
             'input', *args, **kwargs)
-    wcs_sky2pix.__doc__ = """
-        Transforms sky coordinates to pixel coordinates, using only
+    wcs_world2pix.__doc__ = """
+        Transforms world coordinates to pixel coordinates, using only
         the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
         IV`_ table lookup distortion is applied.
 
@@ -936,7 +945,7 @@ naxis kwarg.
 
         Notes
         -----
-        The order of the axes for the input sky array is determined by
+        The order of the axes for the input world array is determined by
         the `CTYPEia` keywords in the FITS header, therefore it may
         not always be of the form (*ra*, *dec*).  The
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
@@ -971,6 +980,10 @@ naxis kwarg.
         """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))
+
+    @deprecated("0.0", name="wcs_sky2pix", alternative="wcs_world2pix")
+    def wcs_sky2pix(self, *args, **kwargs):
+        return self.wcs_world2pix(*args, **kwargs)
 
     def pix2foc(self, *args, **kwargs):
         return self._array_converter(self._pix2foc, None, *args, **kwargs)

@@ -8,8 +8,9 @@ import warnings
 
 import numpy as np
 
-from .util import (_str_to_num, _is_int, deprecated, maketrans, translate,
+from .util import (_str_to_num, _is_int, maketrans, translate,
                    _words_group, lazyproperty)
+from ...utils import deprecated
 from .verify import _Verify, _ErrList, VerifyError
 
 

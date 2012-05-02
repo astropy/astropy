@@ -9,7 +9,6 @@ from __future__ import division, absolute_import
 import re
 from struct import unpack as struct_unpack
 from struct import pack as struct_pack
-import sys
 
 # THIRD-PARTY
 import numpy as np
@@ -18,8 +17,8 @@ import numpy as np
 from ...utils.xml.writer import xml_escape_cdata
 
 # LOCAL
-from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01, W26,
-    W30, W31, W32, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06)
+from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
+    W30, W31, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06)
 from .util import IS_PY3K
 
 
@@ -668,7 +667,7 @@ class Integer(Numeric):
     def output(self, value, mask):
         if mask:
             if self.null is None:
-                warn_or_raise(W31, W31, (), config, pos)
+                warn_or_raise(W31, W31)
                 return u'NaN'
             return unicode(self.null)
         return unicode(value)
@@ -688,7 +687,7 @@ class Integer(Numeric):
             if self.null is not None:
                 return np.where(mask, self.null, value)
             else:
-                vo_raise(W31, (), config, pos)
+                vo_raise(W31)
         return value
 
 
@@ -906,7 +905,6 @@ class BitArray(NumericArray):
         if np.any(mask):
             vo_warn(W39)
 
-        x = value
         value = value.flat
         bit_no = 7
         byte = 0

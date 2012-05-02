@@ -4,7 +4,6 @@ CONTACT = "Michael Droettboom"
 EMAIL = "mdroe@stsci.edu"
 
 from distutils.core import Extension
-import glob
 from os.path import join
 import os.path
 import sys

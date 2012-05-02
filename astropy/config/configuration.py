@@ -10,6 +10,7 @@ configuration files for Astropy and affiliated packages.
 """
 
 from __future__ import division
+import textwrap
 from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
@@ -293,11 +294,12 @@ class ConfigurationItem(object):
 
     def _generate_comments(self):
         comments = []
+        comments.append('')  # adds a blank line before every entry
         if self.description is not None:
-            comments.append(self.description)
-        if self.cfgtype is not None:
-            comments.append(self.cfgtype)
-        comments.append('')  # adds a blank line after every entry
+            for line in textwrap.wrap(self.description, width=76):
+                comments.append(line)
+        if self.cfgtype.startswith('option'):
+            comments.append("Options: " + self.cfgtype[7:-1])
         return comments
 
 
@@ -423,6 +425,80 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
+def get_config_items(packageormod=None):
+    """ Returns the `ConfigurationItem` objects associated with a particular
+    module.
+
+    Parameters
+    ----------
+    packageormod : str or None
+        The package or module name or None to get the current module's items.
+
+    Returns
+    -------
+    configitems : dict
+        A dictionary where the keys are the name of the items as the are named
+        in the module, and the values are the associated `ConfigurationItem`
+        objects.
+
+    """
+    import sys
+    from inspect import ismodule
+
+    from ..utils import find_current_module
+
+    if packageormod is None:
+        packageormod = find_current_module(2)
+        if packageormod is None:
+            msg1 = 'Cannot automatically determine get_config module, '
+            msg2 = 'because it is not called from inside a valid module'
+            raise RuntimeError(msg1 + msg2)
+    elif isinstance(packageormod, basestring):
+        __import__(packageormod)
+        packageormod = sys.modules[packageormod]
+    elif ismodule(packageormod):
+        pass
+    else:
+        raise TypeError('packageormod in get_config_items is invalid')
+
+    configitems = {}
+    for n, obj in packageormod.__dict__.iteritems():
+        objcls = obj.__class__
+        fqn = objcls.__module__ + '.' + objcls.__name__
+        if fqn == 'astropy.config.configuration.ConfigurationItem':
+            configitems[n] = obj
+
+    return configitems
+
+
+def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
+    """
+    Adds a blank line to the comments of any sections in the requested sections,
+    recursing into subsections if `recurse` is True. If `gotoroot` is True,
+    this first goes to the root of the requested section, just like
+    `save_config` and `reload_config` - this does nothing if `sec` is a
+    configobj already.
+    """
+
+    if not hasattr(sec, 'sections'):
+        sec = get_config(sec)
+
+        #look for the section that is its own parent - that's the base object
+        if gotoroot:
+            while sec.parent is not sec:
+                sec = sec.parent
+
+    for isec, snm in enumerate(sec.sections):
+        comm = sec.comments[snm]
+        if len(comm) == 0 or comm[-1] != '':
+            if sec.parent is sec and isec == 0:
+                pass  # don't do it for first section
+            else:
+                comm.append('')
+        if recurse:
+            _fix_section_blank_lines(sec[snm], True, False)
+
+
 def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     """ Given a root package name or package, this function simply walks
     through all the subpackages and modules, which should populate any
@@ -435,7 +511,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     of the function where this function is called. Be a bit cautious about
     this, though - this might not always be what you want.
     """
-    from pkgutil import find_module, walk_packages
+    from pkgutil import get_loader, walk_packages
     from types import ModuleType
 
     from ..utils import find_current_module
@@ -444,7 +520,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
     if isinstance(pkgornm, basestring):
-        package = find_module(pkgornm).load_module(pkgornm)
+        package = get_loader(pkgornm).load_module(pkgornm)
     elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
     else:
@@ -453,9 +529,11 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
 
     for imper, nm, ispkg in walk_packages(package.__path__,
                                           package.__name__ + '.'):
-        mod = imper.load_module(nm)
+        mod = imper.find_module(nm)
         if reset_to_default:
             for v in mod.__dict__.itervalues():
                 if isinstance(v, ConfigurationItem):
                     v.set(v.defaultvalue)
+
+    _fix_section_blank_lines(package.__name__, True, True)
     save_config(package.__name__)

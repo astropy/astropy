@@ -24,10 +24,10 @@ from ...utils.xml.writer import XMLWriter
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
-    warn_unknown_attrs, UnimplementedWarning, VOTableChangeWarning,
+    warn_unknown_attrs,
     W06, W07, W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20,
     W21, W22, W26, W27, W28, W29, W32, W33, W35, W36, W37, W38, W40,
-    W41, W42, W43, W44, W45, W48, E06, E08, E09, E10, E11, E12, E13,
+    W41, W42, W43, W44, W45, E06, E08, E09, E10, E11, E12, E13,
     E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
 from .unit import check_unit
@@ -291,7 +291,7 @@ class _UtypeProperty(object):
             not self._config.get('version_1_2_or_later')):
             warn_or_raise(
                 W28, W28, ('utype', self._element_name, '1.2'),
-                config, pos)
+                self._config, self._pos)
         check_string(utype, 'utype', self._config, self._pos)
         self._utype = utype
 
@@ -317,7 +317,7 @@ class _UcdProperty(object):
                 not self._config.get('version_1_2_or_later')):
                 warn_or_raise(
                     W28, W28, ('ucd', self._element_name, '1.2'),
-                    config, pos)
+                    self._config, self._pos)
             check_ucd(ucd, self._config, self._pos)
         self._ucd = ucd
 
@@ -604,7 +604,8 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
     @ref.setter
     def ref(self, ref):
         if ref is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('ref', 'INFO', '1.2'), config, pos)
+            warn_or_raise(W28, W28, ('ref', 'INFO', '1.2'),
+                          self._config, self._pos)
         xmlutil.check_id(ref, 'ref', self._config, self._pos)
         # TODO: actually apply the reference
         # if ref is not None:
@@ -635,7 +636,8 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
     @unit.setter
     def unit(self, unit):
         if unit is not None and not self._config.get('version_1_2_or_later'):
-            warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'), config, pos)
+            warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
+                          self._config, self._pos)
         check_unit(unit, 'unit', self._config, self._pos)
         self._unit = unit
 
@@ -2363,9 +2365,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     "Unknown encoding type '%s'" % encoding,
                     self._config, self._pos, NotImplementedError)
 
-        fits = fits.open(fd)
+        hdulist = fits.open(fd)
 
-        array = fits[int(extnum)].data
+        array = hdulist[int(extnum)].data
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
 

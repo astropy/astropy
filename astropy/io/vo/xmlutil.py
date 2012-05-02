@@ -4,18 +4,13 @@ Various XML-related utilities
 
 from __future__ import division, absolute_import
 
-# STDLIB
-import io
-import os
-
 # ASTROPY
 from ...utils.xml import check as xml_check
 from ...utils.xml import validate
 
 # LOCAL
-from . import util
-from .exceptions import (warn_or_raise, vo_warn, vo_raise,
-     VOTableChangeWarning, W02, W03, W04, W05, W34)
+from .exceptions import (warn_or_raise, vo_warn,
+     W02, W03, W04, W05)
 from ... import config
 
 
@@ -110,8 +105,6 @@ def validate_schema(filename, version='1.2'):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    import subprocess
-
     assert version in ('1.0', '1.1', '1.2')
 
     if version in ('1.1', '1.2'):
