@@ -1,9 +1,7 @@
 import sys
 import warnings
-from tempfile import NamedTemporaryFile
 
 import pytest
-
 from .. import log, LoggingError
 
 
@@ -227,20 +225,24 @@ def test_log_to_list_origin2():
 
 
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
-def test_log_to_file(level):
+def test_log_to_file(tmpdir, level):
 
-    log_file = NamedTemporaryFile()
+    local_path = tmpdir.join('test.log')
+    log_file = local_path.open('wb')
+    log_path = str(local_path.realpath())
 
     if level is not None:
         log.setLevel(level)
 
-    with log.log_to_file(log_file.name):
+    with log.log_to_file(log_path):
         log.error("Error message")
         log.warn("Warning message")
         log.info("Information message")
         log.debug("Debug message")
 
-    log_file.seek(0)
+    log_file.close()
+
+    log_file = local_path.open('rb')
     log_entries = log_file.readlines()
     log_file.close()
 
@@ -268,45 +270,57 @@ def test_log_to_file(level):
         assert log_entries[3].endswith(b"'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'\n")
 
 
-def test_log_to_file_level():
+def test_log_to_file_level(tmpdir):
 
-    log_file = NamedTemporaryFile()
+    local_path = tmpdir.join('test.log')
+    log_file = local_path.open('wb')
+    log_path = str(local_path.realpath())
 
-    with log.log_to_file(log_file.name, filter_level='ERROR'):
+    with log.log_to_file(log_path, filter_level='ERROR'):
         log.error("Error message")
         log.warn("Warning message")
 
-    log_file.seek(0)
+    log_file.close()
+
+    log_file = local_path.open('rb')
     log_entries = log_file.readlines()
     log_file.close()
 
     assert len(log_entries) == 1 and log_entries[0].endswith(b"'ERROR', 'Error message'\n")
 
 
-def test_log_to_file_origin1():
+def test_log_to_file_origin1(tmpdir):
 
-    log_file = NamedTemporaryFile()
+    local_path = tmpdir.join('test.log')
+    log_file = local_path.open('wb')
+    log_path = str(local_path.realpath())
 
-    with log.log_to_file(log_file.name, filter_origin='astropy.config.tests'):
+    with log.log_to_file(log_path, filter_origin='astropy.config.tests'):
         log.error("Error message")
         log.warn("Warning message")
 
-    log_file.seek(0)
+    log_file.close()
+
+    log_file = local_path.open('rb')
     log_entries = log_file.readlines()
     log_file.close()
 
     assert len(log_entries) == 2
 
 
-def test_log_to_file_origin2():
+def test_log_to_file_origin2(tmpdir):
 
-    log_file = NamedTemporaryFile()
+    local_path = tmpdir.join('test.log')
+    log_file = local_path.open('wb')
+    log_path = str(local_path.realpath())
 
-    with log.log_to_file(log_file.name, filter_origin='astropy.wcs'):
+    with log.log_to_file(log_path, filter_origin='astropy.wcs'):
         log.error("Error message")
         log.warn("Warning message")
 
-    log_file.seek(0)
+    log_file.close()
+
+    log_file = local_path.open('rb')
     log_entries = log_file.readlines()
     log_file.close()
 
