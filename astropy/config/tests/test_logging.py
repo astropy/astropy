@@ -258,16 +258,16 @@ def test_log_to_file(tmpdir, level):
 
     # Check list content
 
-    assert log_entries[0].endswith(b"'astropy.config.tests.test_logging', 'ERROR', 'Error message'\n")
+    assert log_entries[0].strip().endswith(b"'astropy.config.tests.test_logging', 'ERROR', 'Error message'")
 
     if len(log_entries) >= 2:
-        assert log_entries[1].endswith(b"'astropy.config.tests.test_logging', 'WARNING', 'Warning message'\n")
+        assert log_entries[1].strip().endswith(b"'astropy.config.tests.test_logging', 'WARNING', 'Warning message'")
 
     if len(log_entries) >= 3:
-        assert log_entries[2].endswith(b"'astropy.config.tests.test_logging', 'INFO', 'Information message'\n")
+        assert log_entries[2].strip().endswith(b"'astropy.config.tests.test_logging', 'INFO', 'Information message'")
 
     if len(log_entries) >= 4:
-        assert log_entries[3].endswith(b"'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'\n")
+        assert log_entries[3].strip().endswith(b"'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'")
 
 
 def test_log_to_file_level(tmpdir):
@@ -286,7 +286,7 @@ def test_log_to_file_level(tmpdir):
     log_entries = log_file.readlines()
     log_file.close()
 
-    assert len(log_entries) == 1 and log_entries[0].endswith(b"'ERROR', 'Error message'\n")
+    assert len(log_entries) == 1 and log_entries[0].strip().endswith(b"'ERROR', 'Error message'")
 
 
 def test_log_to_file_origin1(tmpdir):
