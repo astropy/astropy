@@ -4,6 +4,7 @@ given cosmology.
 
 Each cosmology has the following parameters defined:
 
+    ==========  =====================================
     Oc          Omega cold dark matter
     Ob          Omega baryon
     Om          Omega matter
@@ -14,6 +15,7 @@ Each cosmology has the following parameters defined:
     tau         Ionisation optical depth
     z_reion     Redshift of hydrogen reionisation
     t0          Age of the universe in Gyr
+    ==========  =====================================
 
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
@@ -40,6 +42,8 @@ WMAP7 = dict(
     tau = 0.085,
     z_reion = 10.3,
     t0 = 13.76,
+    reference = ("Komatsu et al. 2011, ApJS, 192, 18. "
+                 "Table 1 (WMAP + BAO + H0 ML)")
     )
 
 # Komatsu et al. 2009 WMAP + BAO + SN ML (table 1).
@@ -55,6 +59,8 @@ WMAP5 = dict(
     tau = 0.088,
     z_reion = 11.3,
     t0 = 13.72,
+    reference = ("Komatsu et al. 2009, ApJS, 180, 330. "
+                 "Table 1 (WMAP + BAO + SN ML)")
     )
 
 available = tuple(k for k in locals() if not k.startswith('_'))

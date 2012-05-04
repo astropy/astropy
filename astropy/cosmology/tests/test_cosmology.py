@@ -1,18 +1,12 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from StringIO import StringIO
-from .. import cosmology
+from .. import core
 import numpy as np
-
-# Still need to test:
-
-# some convenience functions, critical density, age,
-# absorption distance, distance modulus.
 
 def test_flat_z1():
     """ Test a flat cosmology at z=1 against several other on-line
     calculators.
     """
-    cosmo = cosmology.Cosmology(H0=70, Om=0.27, Ol=0.73)
+    cosmo = core.Cosmology(H0=70, Om=0.27, Ol=0.73)
     z = 1
 
     # Test values were taken from the following web cosmology
@@ -33,23 +27,32 @@ def test_flat_z1():
     assert np.allclose(cosmo.lookback_time(z),
                        [7.841, 7.84178, 7.843],  rtol=1e-3)
 
-    #print 'redshift', z
-    #print 'critical density at z=0', cosmo.critical_density0
-    #print 'comoving volume in Mpc^3', cosmo.comoving_volume(z)
-
 def test_convenience():
 
-    assert np.allclose(cosmology.arcsec_per_kpc_comoving(3), 0.0317179)
-    assert np.allclose(cosmology.arcsec_per_kpc_proper(3), 0.1268716668)
-    assert np.allclose(cosmology.kpc_comoving_per_arcmin(3), 1891.6753126)
-    assert np.allclose(cosmology.kpc_proper_per_arcmin(3), 472.918828)
-    assert np.allclose(cosmology.distmod(3), 47.075902)
+    # scalars
+    assert np.allclose(core.arcsec_per_kpc_comoving(3), 0.0317179)
+    assert np.allclose(core.arcsec_per_kpc_proper(3), 0.1268716668)
+    assert np.allclose(core.kpc_comoving_per_arcmin(3), 1891.6753126)
+    assert np.allclose(core.kpc_proper_per_arcmin(3), 472.918828)
+    assert np.allclose(core.distmod(3), 47.075902)
+
+    # arrays
+    assert np.allclose(core.arcsec_per_kpc_comoving([0.1,0.5]),
+                       [ 0.4946986 ,  0.10876163])
+    assert np.allclose(core.arcsec_per_kpc_proper([0.1,0.5]),
+                       [0.54416846354697479, 0.16314245192751084])
+    assert np.allclose(core.kpc_comoving_per_arcmin([0.1,0.5]),
+                       [ 121.2859701 ,  551.66511804])
+    assert np.allclose(core.kpc_proper_per_arcmin([0.1,0.5]),
+                       [ 110.25997282,  367.77674536])
+    assert np.allclose(core.distmod([0.1,0.5]),
+                       [ 38.30738567,  42.27020333])
 
 def test_comoving_volume():
 
-    c_flat = cosmology.Cosmology(H0=70, Om=0.27, Ol=0.73)
-    c_open = cosmology.Cosmology(H0=70, Om=0.27, Ol=0.0)
-    c_closed = cosmology.Cosmology(H0=70, Om=2, Ol=0.0)
+    c_flat = core.Cosmology(H0=70, Om=0.27, Ol=0.73)
+    c_open = core.Cosmology(H0=70, Om=0.27, Ol=0.0)
+    c_closed = core.Cosmology(H0=70, Om=2, Ol=0.0)
 
     redshifts = 0.5, 1, 2, 3, 5, 9
 
@@ -58,10 +61,6 @@ def test_comoving_volume():
     wright_open = 20.501, 99.019, 380.278, 747.049, 1558.363, 3123.814
     wright_closed = 12.619, 44.708, 114.904, 173.709, 258.82, 358.992
     for i,z in enumerate(redshifts):
-        #print c_flat.comoving_volume(z), wright_flat[i] * 1e9
-        #print c_open.comoving_volume(z), wright_open[i]  * 1e9
-        #print c_closed.comoving_volume(z), wright_closed[i] * 1e9
-
         assert np.allclose(c_flat.comoving_volume(z), wright_flat[i] * 1e9,
                            rtol=1e-2)
         assert np.allclose(c_open.comoving_volume(z), wright_open[i] * 1e9,
@@ -180,35 +179,40 @@ def test_flat_open_closed_icosmo():
 """
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_flat), unpack=1)
-    cosmo = cosmology.Cosmology(H0=70, Om=0.3, Ol=0.70)
-    for i,z in enumerate(redshifts):
-        #print z
-        #print cosmo.angular_diameter_distance(z), da[i]
-        #print cosmo.luminosity_distance(z), dl[i]
-        #print cosmo.comoving_transverse_distance(z), dm[i]
-        assert np.allclose(cosmo.comoving_transverse_distance(z), dm[i])
-        assert np.allclose(cosmo.angular_diameter_distance(z), da[i])
-        assert np.allclose(cosmo.luminosity_distance(z), dl[i])
+    cosmo = core.Cosmology(H0=70, Om=0.3, Ol=0.70)
+    assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
+    assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
+    assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_open), unpack=1)
-    cosmo = cosmology.Cosmology(H0=70, Om=0.3, Ol=0.1)
-    for i,z in enumerate(redshifts):
-        assert np.allclose(cosmo.comoving_transverse_distance(z), dm[i])
-        assert np.allclose(cosmo.angular_diameter_distance(z), da[i])
-        assert np.allclose(cosmo.luminosity_distance(z), dl[i])
+    cosmo = core.Cosmology(H0=70, Om=0.3, Ol=0.1)
+    assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
+    assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
+    assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_closed), unpack=1)
-    cosmo = cosmology.Cosmology(H0=70, Om=2, Ol=0.1)
-    for i,z in enumerate(redshifts):
-        assert np.allclose(cosmo.comoving_transverse_distance(z), dm[i])
-        assert np.allclose(cosmo.angular_diameter_distance(z), da[i])
-        assert np.allclose(cosmo.luminosity_distance(z), dl[i])
+    cosmo = core.Cosmology(H0=70, Om=2, Ol=0.1)
+    assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
+    assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
+    assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
 
-def test_default():
-    cosmo = cosmology.get_default()
-    assert cosmo == cosmology.WMAP7
-    cosmology.set_default('WMAP5')
-    assert cosmology.get_default() == cosmology.WMAP5
-    cosmology.set_default(cosmo)
-    assert cosmology.get_default() == cosmo
+def test_current():
+    cosmo = core.get_current()
+    assert cosmo == core.WMAP7
+    core.set_current('WMAP5')
+    assert core.get_current() == core.WMAP5
+    core.set_current(cosmo)
+    assert core.get_current() == cosmo
+
+def test_age():
+    assert np.allclose(core.WMAP7.age([1,5]), [ 5.97113193,  1.20553129])
+
+def test_distmod():
+    assert np.allclose(core.WMAP7.distmod([1,5]), [ 44.124857,  48.40167258])
+    assert np.allclose(core.distmod([1,5], cosmo=core.WMAP7),
+                       [ 44.124857,  48.40167258])
+
+def test_critical_density():
+    assert np.allclose(core.WMAP7.critical_density([1,5]),
+                       [  2.70362491e-29, 5.53758986e-28])
