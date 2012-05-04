@@ -91,6 +91,39 @@ def test_warnings_logging():
     assert warn_list[0].message.args[0] == "This is a warning"
 
 
+def test_warnings_logging_with_custom_class():
+    class CustomWarningClass(Warning):
+        pass
+
+    # With warnings logging
+    with warnings.catch_warnings(record=True) as warn_list:
+        log.enable_warnings_logging()
+        with log.log_to_list() as log_list:
+            warnings.warn("This is a warning", CustomWarningClass)
+        log.disable_warnings_logging()
+    assert len(log_list) == 1
+    assert len(warn_list) == 0
+    assert log_list[0].levelname == 'WARNING'
+    assert log_list[0].message == 'CustomWarningClass: This is a warning'
+    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+
+
+def test_warning_logging_with_io_vo_warning():
+    from ...io.vo.exceptions import W02, vo_warn
+
+    with warnings.catch_warnings(record=True) as warn_list:
+        log.enable_warnings_logging()
+        with log.log_to_list() as log_list:
+            vo_warn(W02, ('a', 'b'))
+        log.disable_warnings_logging()
+    assert len(log_list) == 1
+    assert len(warn_list) == 0
+    assert log_list[0].levelname == 'WARNING'
+    assert log_list[0].message == ("W02: ?:?:?: W02: a attribute 'b' is "
+                                   "invalid.  Must be a standard XML id")
+    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+
+
 def test_exception_logging_disable_no_enable():
     with pytest.raises(LoggingError) as e:
         log.disable_exception_logging()
@@ -151,6 +184,30 @@ def test_exception_logging():
     else:
         assert False  # exception should have been raised
     assert len(log_list) == 0
+
+
+def test_exception_logging_origin():
+    # The point here is to get an exception raised from another location
+    # and make sure the error's origin is reported correctly
+
+    from ...utils.collections import HomogeneousList
+
+    l = HomogeneousList(int)
+    try:
+        log.enable_exception_logging()
+        with log.log_to_list() as log_list:
+            l.append('foo')
+    except TypeError as exc:
+        sys.excepthook(*sys.exc_info())
+        assert exc.args[0].startswith(
+            "homogeneous list must contain only objects of type ")
+    else:
+        assert False
+    assert len(log_list) == 1
+    assert log_list[0].levelname == 'ERROR'
+    assert log_list[0].message.startswith(
+        "homogeneous list must contain only objects of type ")
+    assert log_list[0].origin == 'astropy.utils.collections'
 
 
 @pytest.mark.parametrize(('level'), [None, 'DEBUG', 'INFO', 'WARN', 'ERROR'])
