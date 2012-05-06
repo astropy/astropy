@@ -64,7 +64,7 @@ class Time(object):
         Examples
         --------
         
-        >>> from astropy import astrotime
+        >>> from astropy import time
         >>> import datetime
         >>> mytime = time.Time.from_utc(datetime.datetime(1546, 12, 14, 12, 0, 0))
         >>> mytime.to_jd()
