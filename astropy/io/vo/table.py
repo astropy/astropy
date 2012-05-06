@@ -156,6 +156,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
         `None`, the return value will be a string.
     """
     import textwrap
+    from . import converters, unit, xmlutil
     from ...utils.console import print_code_line, color_print
 
     return_as_str = False
@@ -168,9 +169,10 @@ def validate(filename, output=sys.stdout, xmllint=False):
     # This is a special variable used by the Python warnings
     # infrastructure to keep track of warnings that have already been
     # seen.  Since we want to get every single warning out of this, we
-    # have to delete it first.
-    if hasattr(exceptions, '__warningregistry__'):
-        del exceptions.__warningregistry__
+    # have to delete all of them first.
+    for module in (exceptions, converters, tree, unit, xmlutil):
+        if hasattr(module, '__warningregistry__'):
+            del module.__warningregistry__
 
     with io.open(filename, 'rb') as input:
         with warnings.catch_warnings(record=True) as warning_lines:
@@ -235,4 +237,3 @@ def validate(filename, output=sys.stdout, xmllint=False):
     if return_as_str:
         return output.getvalue()
     return len(lines) == 0 and success == 0
-
