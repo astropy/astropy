@@ -1,0 +1,6 @@
+[run]
+source = astropy
+omit =
+   astropy/extern/*
+   astropy/sphinx/*
+   astropy/*tests/*

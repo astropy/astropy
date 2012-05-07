@@ -11,6 +11,7 @@ import zlib
 import functools
 import os
 import subprocess
+import shutil
 
 from distutils.core import Command
 
@@ -72,7 +73,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False):
+                  pdb=False, coverage=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -123,10 +124,25 @@ class TestRunner(object):
         if pdb:
             all_args += ' --pdb'
 
+        if coverage:
+            try:
+                import pytest_cov
+            except ImportError:
+                raise ImportError('Coverage reporting requires pytest-cov plugin: '
+                                  'http://pypi.python.org/pypi/pytest-cov')
+            else:
+                all_args += ' --cov-report html --cov astropy --cov-config coveragerc'
+
         all_args = shlex.split(all_args,
                                posix=not sys.platform.startswith('win'))
 
-        return pytest.main(args=all_args, plugins=plugins)
+        result = pytest.main(args=all_args, plugins=plugins)
+
+        if coverage:
+            # Copy the htmlcov from build/lib.../htmlcov to a more obvious place
+            if os.path.exists('../../htmlcov'):
+                shutil.rmtree('../../htmlcov')
+            shutil.copytree('htmlcov', '../../htmlcov')
     run_tests.__doc__ = test.__doc__
 
 
@@ -152,7 +168,9 @@ class astropy_test(Command, object):
          'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
          'pytest-pep8 plugin.'),
         ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.')
+         'Same as specifying `--pdb` in `args`.'),
+        ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
+         'plugin is installed')
     ]
 
     package_name = None
@@ -167,6 +185,7 @@ class astropy_test(Command, object):
         self.remote_data = False
         self.pep8 = False
         self.pdb = False
+        self.coverage = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -183,11 +202,11 @@ class astropy_test(Command, object):
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
         cmd = ('import {0}, sys; sys.exit({0}.test({1!r}, {2!r}, ' +
-               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}, {9!r}))')
+               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}, {9!r}, {10!r}))')
         cmd = cmd.format(self.package_name,
                          self.package, self.test_path, self.args,
                          self.plugins, self.verbose_results, self.pastebin,
-                         self.remote_data, self.pep8, self.pdb)
+                         self.remote_data, self.pep8, self.pdb, self.coverage)
 
         raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
                                          cwd=new_path, close_fds=False))
