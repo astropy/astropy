@@ -4,7 +4,7 @@ import collections
 
 import numpy as np
 
-from ..utils import OrderedDict
+from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 
 # Python 2 and 3 source compatibility
@@ -518,7 +518,7 @@ class Table(object):
         the same length as data.
         """
         for inp_list, inp_str in ((dtypes, 'dtypes'), (names, 'names')):
-            if not isinstance(inp_list, collections.Iterable):
+            if not isiterable(inp_list):
                 raise ValueError('{0} must be a list or None'.format(inp_str))
 
         if len(names) != n_cols or len(dtypes) != n_cols:
@@ -538,7 +538,7 @@ class Table(object):
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, Column):
                 col = Column((name or col.name), col, dtype=dtype)
-            elif isinstance(col, (np.ndarray, collections.Iterable)):
+            elif isinstance(col, np.ndarray) or isiterable(col):
                 col = Column((name or def_name), col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
@@ -893,7 +893,7 @@ class Table(object):
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
 
-        elif isinstance(vals, collections.Iterable):
+        elif isiterable(vals):
             if len(self.columns) != len(vals):
                 raise ValueError('Mismatch between number of vals and columns')
             if not isinstance(vals, tuple):

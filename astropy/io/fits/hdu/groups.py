@@ -7,7 +7,9 @@ from .image import _ImageBaseHDU, PrimaryHDU
 from .table import _TableLikeHDU
 from ..column import Column, ColDefs, FITS2NUMPY
 from ..fitsrec import FITS_rec, FITS_record
-from ..util import lazyproperty, _is_int, _pad_length, _is_pseudo_unsigned
+from ..util import _is_int, _is_pseudo_unsigned
+
+from ....utils import lazyproperty
 
 
 class GroupsHDU(PrimaryHDU, _TableLikeHDU):

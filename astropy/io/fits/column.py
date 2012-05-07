@@ -9,10 +9,10 @@ import numpy as np
 from numpy import char as chararray
 
 from .card import Card
-from .util import (lazyproperty, pairwise, _is_int, _convert_array,
-                   encode_ascii)
-from ...utils import deprecated
+from .util import pairwise, _is_int, _convert_array, encode_ascii
 from .verify import VerifyError
+
+from ...utils import deprecated, lazyproperty
 
 
 __all__ = ['Column', 'ColDefs', 'Delayed']

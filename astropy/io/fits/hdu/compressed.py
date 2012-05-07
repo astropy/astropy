@@ -11,7 +11,8 @@ from .table import BinTableHDU
 from ..column import Column, ColDefs, _FormatP, _makep
 from ..fitsrec import FITS_rec
 from ..header import Header
-from ..util import lazyproperty, _pad_length
+
+from ....utils import lazyproperty
 
 try:
     from .. import compression

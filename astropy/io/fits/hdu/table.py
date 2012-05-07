@@ -18,9 +18,10 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
                       _FormatP, _wrapx, _makep, _VLF, _parse_tformat,
                       _scalar_to_format, _convert_format, _cmp_recformats)
 from ..fitsrec import FITS_rec
-from ..header import Header
-from ..util import lazyproperty, _is_int, _str_to_num, _pad_length
-from ....utils import deprecated
+from ..header import Header, _pad_length
+from ..util import _is_int, _str_to_num
+
+from ....utils import deprecated, lazyproperty
 
 
 class FITSTableDumpDialect(csv.excel):

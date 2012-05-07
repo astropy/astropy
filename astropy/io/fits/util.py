@@ -4,7 +4,6 @@ import functools
 import itertools
 import os
 import signal
-import sys
 import tempfile
 import textwrap
 import threading
@@ -13,9 +12,6 @@ import warnings
 import numpy as np
 
 from numpy import memmap as Memmap
-
-
-BLOCK_SIZE = 2880  # the FITS block size
 
 
 def itersubclasses(cls, _seen=None):
@@ -60,69 +56,6 @@ def itersubclasses(cls, _seen=None):
             yield sub
             for sub in itersubclasses(sub, _seen):
                 yield sub
-
-
-class lazyproperty(object):
-    """
-    Works similarly to property(), but computes the value only once.
-
-    Adapted from the recipe at
-    http://code.activestate.com/recipes/363602-lazy-property-evaluation
-    """
-
-    def __init__(self, fget, fset=None, fdel=None, doc=None):
-        self._fget = fget
-        self._fset = fset
-        self._fdel = fdel
-        if doc is None:
-            self.__doc__ = fget.__doc__
-        else:
-            self.__doc__ = doc
-
-    def __get__(self, obj, owner=None):
-        if obj is None:
-            return self
-        key = self._fget.func_name
-        if key not in obj.__dict__:
-            val = self._fget(obj)
-            obj.__dict__[key] = val
-            return val
-        else:
-            return obj.__dict__[key]
-
-    def __set__(self, obj, val):
-        if self._fset:
-            self._fset(obj, val)
-        obj.__dict__[self._fget.func_name] = val
-
-    def __delete__(self, obj):
-        if self._fdel:
-            self._fdel(obj)
-        key = self._fget.func_name
-        if key in obj.__dict__:
-            del obj.__dict__[key]
-
-    def getter(self, fget):
-        return self.__ter(fget, 0)
-
-    def setter(self, fset):
-        return self.__ter(fset, 1)
-
-    def deleter(self, fdel):
-        return self.__ter(fdel, 2)
-
-    def __ter(self, f, arg):
-        args = [self._fget, self._fset, self._fdel, self.__doc__]
-        args[arg] = f
-        cls_ns = sys._getframe(1).f_locals
-        for k, v in cls_ns.iteritems():
-            if v is self:
-                property_name = k
-                break
-
-        cls_ns[property_name] = lazyproperty(*args)
-
-        return cls_ns[property_name]
 
 
 def ignore_sigint(func):
@@ -182,25 +115,6 @@ def pairwise(iterable):
         # StopIter if b happens to be empty
         break
     return itertools.izip(a, b)
-
-
-def isiterable(obj):
-    """Returns true of the given object is iterable."""
-
-    # In Python2.6 and up this is simply a matter of checking isinstance
-    # collections.Iterable, but this unavailable in Python 2.5 and below
-    try:
-        from collections import Iterable
-        if isinstance(obj, Iterable):
-            return True
-    except ImportError:
-        pass
-
-    try:
-        iter(obj)
-        return True
-    except TypeError:
-        return False
 
 
 def encode_ascii(s):
@@ -468,12 +382,6 @@ def _str_to_num(val):
         # If this fails then an exception should be raised anyways
         num = float(val)
     return num
-
-
-def _pad_length(stringlen):
-    """Bytes needed to pad the input stringlen to the next FITS block."""
-
-    return (BLOCK_SIZE - (stringlen % BLOCK_SIZE)) % BLOCK_SIZE
 
 
 def _normalize_slice(input, naxis):
