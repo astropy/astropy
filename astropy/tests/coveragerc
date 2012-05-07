@@ -4,3 +4,4 @@ omit =
    astropy/extern/*
    astropy/sphinx/*
    astropy/*tests/*
+   astropy/utils/compat/*
