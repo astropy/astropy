@@ -18,7 +18,7 @@ from distutils.core import Command
 from .. import test
 
 #If we are in setup.py, we don't want to import astropy.config
-if __builtins__.get('_ASTROPY_SETUP_'):
+if __builtins__.get('_ASTROPY_SETUP_') or __builtins__.get('_ASTROPY_TEST_'):
     if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
         USE_SYSTEM_PYTEST = lambda: True
     else:
@@ -132,11 +132,13 @@ class TestRunner(object):
                     'Coverage reporting requires pytest-cov plugin: '
                     'http://pypi.python.org/pypi/pytest-cov')
             else:
-                from .. import config
+                # Don't use get_data_filename here, because it
+                # requires import astropy.config here and thus
+                # screwing up coverage results for those packages.
                 all_args += (
-                    ' --cov-report html --cov astropy '
-                    '--cov-config {0}'.format(
-                        config.get_data_filename('coveragerc')))
+                    ' --cov-report html --cov astropy'
+                    ' --cov-config {0}'.format(
+                        os.path.join(os.path.dirname(__file__), 'coveragerc')))
 
         all_args = shlex.split(
             all_args, posix=not sys.platform.startswith('win'))
@@ -200,12 +202,21 @@ class astropy_test(Command, object):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = ('import {0}, sys; sys.exit({0}.test({1!r}, {2!r}, ' +
-               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}, {9!r}, {10!r}))')
-        cmd = cmd.format(self.package_name,
-                         self.package, self.test_path, self.args,
-                         self.plugins, self.verbose_results, self.pastebin,
-                         self.remote_data, self.pep8, self.pdb, self.coverage)
+
+        # We need to set a flag in the child's environment so that
+        # unnecessary code is not imported before py.test can start
+        # up, otherwise the coverage results will be artifically low.
+        if sys.version_info[0] >= 3:
+            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        else:
+            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
+
+        cmd = ('{0}; import {1.package_name}, sys; sys.exit('
+               '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
+               '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
+               '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
+               '{1.coverage!r}))')
+        cmd = cmd.format(set_flag, self)
 
         retcode = subprocess.call([sys.executable, '-c', cmd],
                                   cwd=new_path, close_fds=False)
