@@ -12,6 +12,7 @@ import functools
 import os
 import subprocess
 import shutil
+import tempfile
 
 from distutils.core import Command
 
@@ -133,17 +134,39 @@ class TestRunner(object):
                     'http://pypi.python.org/pypi/pytest-cov')
             else:
                 # Don't use get_data_filename here, because it
-                # requires import astropy.config here and thus
-                # screwing up coverage results for those packages.
+                # requires importing astropy.config and thus screwing
+                # up coverage results for those packages.
+                coveragerc = os.path.join(
+                    os.path.dirname(__file__), 'coveragerc')
+
+                # We create a coveragerc that is specific to the version
+                # of Python we're running, so that we can mark branches
+                # as being specifically for Python 2 or Python 3
+                with open(coveragerc, 'r') as fd:
+                    coveragerc_content = fd.read()
+                if sys.version_info[0] >= 3:
+                    ignore_python_version = '2'
+                else:
+                    ignore_python_version = '3'
+                coveragerc_content = coveragerc_content.replace(
+                    "{ignore_python_version}", ignore_python_version)
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(coveragerc_content)
+
                 all_args += (
                     ' --cov-report html --cov astropy'
-                    ' --cov-config {0}'.format(
-                        os.path.join(os.path.dirname(__file__), 'coveragerc')))
+                    ' --cov-config {0}'.format(tmp.name))
 
-        all_args = shlex.split(
-            all_args, posix=not sys.platform.startswith('win'))
+        try:
+            all_args = shlex.split(
+                all_args, posix=not sys.platform.startswith('win'))
 
-        result = pytest.main(args=all_args, plugins=plugins)
+            result = pytest.main(args=all_args, plugins=plugins)
+        finally:
+            if coverage:
+                os.remove(tmp.name)
+
+        return result
     run_tests.__doc__ = test.__doc__
 
 

@@ -218,7 +218,7 @@ def version_compare(a, b):
     return (av > bv) - (av < bv)
 
 
-if IS_PY3K:
+if IS_PY3K:  # pragma: py3
     import collections
 
     def is_callable(o):
@@ -227,12 +227,10 @@ if IS_PY3K:
         Python 2.x and 3.x.
         """
         return isinstance(o, collections.Callable)
-else:
+else:  # pragma: py2
     def is_callable(o):
         """
         Abstracts away the different ways to test for a callable object in
         Python 2.x and 3.x.
         """
         return callable(o)
-
-

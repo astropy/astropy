@@ -687,7 +687,7 @@ class Table(object):
         else:
             raise StopIteration
 
-    if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3:  # pragma: py2
         next = __next__
 
     def field(self, item):
