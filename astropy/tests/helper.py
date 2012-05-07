@@ -128,21 +128,20 @@ class TestRunner(object):
             try:
                 import pytest_cov
             except ImportError:
-                raise ImportError('Coverage reporting requires pytest-cov plugin: '
-                                  'http://pypi.python.org/pypi/pytest-cov')
+                raise ImportError(
+                    'Coverage reporting requires pytest-cov plugin: '
+                    'http://pypi.python.org/pypi/pytest-cov')
             else:
-                all_args += ' --cov-report html --cov astropy --cov-config coveragerc'
+                from .. import config
+                all_args += (
+                    ' --cov-report html --cov astropy '
+                    '--cov-config {0}'.format(
+                        config.get_data_filename('coveragerc')))
 
-        all_args = shlex.split(all_args,
-                               posix=not sys.platform.startswith('win'))
+        all_args = shlex.split(
+            all_args, posix=not sys.platform.startswith('win'))
 
         result = pytest.main(args=all_args, plugins=plugins)
-
-        if coverage:
-            # Copy the htmlcov from build/lib.../htmlcov to a more obvious place
-            if os.path.exists('../../htmlcov'):
-                shutil.rmtree('../../htmlcov')
-            shutil.copytree('htmlcov', '../../htmlcov')
     run_tests.__doc__ = test.__doc__
 
 
@@ -208,8 +207,17 @@ class astropy_test(Command, object):
                          self.plugins, self.verbose_results, self.pastebin,
                          self.remote_data, self.pep8, self.pdb, self.coverage)
 
-        raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
-                                         cwd=new_path, close_fds=False))
+        retcode = subprocess.call([sys.executable, '-c', cmd],
+                                  cwd=new_path, close_fds=False)
+
+        if self.coverage and retcode == 0:
+            # Copy the htmlcov from build/lib.../htmlcov to a more
+            # obvious place
+            if os.path.exists('htmlcov'):
+                shutil.rmtree('htmlcov')
+            shutil.copytree(os.path.join(new_path, 'htmlcov'), 'htmlcov')
+
+        raise SystemExit(retcode)
 
 
 class raises:

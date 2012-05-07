@@ -2,7 +2,7 @@ include README.rst
 
 include distribute_setup.py
 include setup.cfg
-include coveragerc
+include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map
 
 recursive-include docs *
