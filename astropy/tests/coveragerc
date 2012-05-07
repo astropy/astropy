@@ -5,3 +5,5 @@ omit =
    astropy/sphinx/*
    astropy/*tests/*
    astropy/utils/compat/*
+   astropy/*setup*
+   astropy/version*
