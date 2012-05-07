@@ -170,7 +170,7 @@ def test_exception_logging():
         assert False  # exception should have been raised
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
-    assert log_list[0].message == 'This is an Exception'
+    assert log_list[0].message == 'Exception: This is an Exception'
     assert log_list[0].origin == 'astropy.config.tests.test_logging'
 
     # Without exception logging
@@ -206,7 +206,7 @@ def test_exception_logging_origin():
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
     assert log_list[0].message.startswith(
-        "homogeneous list must contain only objects of type ")
+        "TypeError: homogeneous list must contain only objects of type ")
     assert log_list[0].origin == 'astropy.utils.collections'
 
 
