@@ -6,13 +6,15 @@ from astropy.config import ConfigurationItem
 
 USE_NUMPY_FFT = ConfigurationItem('use_numpy_fft', False,
         "Use numpy's fft instead of fftw.  This will be forced True if fftw is unavailable.")
+NTHREADS = ConfigurationItem('nthreads', 1,
+        "Number of threads to use if fftw is available")
 
 
 try:
     import fftw3
     has_fftw = True
 
-    def fftwn(array, nthreads=1):
+    def fftwn(array, nthreads=NTHREADS):
         array = array.astype('complex').copy()
         outarray = array.copy()
         fft_forward = fftw3.Plan(array, outarray, direction='forward',
@@ -20,7 +22,7 @@ try:
         fft_forward.execute()
         return outarray
 
-    def ifftwn(array, nthreads=1):
+    def ifftwn(array, nthreads=NTHREADS):
         array = array.astype('complex').copy()
         outarray = array.copy()
         fft_backward = fftw3.Plan(array, outarray, direction='backward',
@@ -197,7 +199,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=USE_NUMPY_FFT, nthreads=1):
+        use_numpy_fft=USE_NUMPY_FFT, nthreads=NTHREADS):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
