@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 import numpy as np
 
 def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
