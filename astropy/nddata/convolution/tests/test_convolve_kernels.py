@@ -2,12 +2,8 @@ import numpy as np
 
 from astropy.tests.helper import pytest
 
-#from ..convolve_fft import convolve_fft
-#from ..make_kernel import make_kernel
-#from ..convolve import convolve
-from astropy.nddata.convolution.convolve_fft import convolve_fft
-from astropy.nddata.convolution.make_kernel import make_kernel
-from astropy.nddata.convolution.convolve import convolve
+from ..make_kernel import make_kernel
+from ..convolve import convolve,convolve_fft
 
 from numpy.testing import assert_array_almost_equal_nulp,assert_allclose
 
