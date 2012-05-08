@@ -146,6 +146,8 @@ class TestRunner(object):
             result = pytest.main(args=all_args, plugins=plugins)
         finally:
             if coverage:
+                if not tmp.closed:
+                    tmp.close()
                 os.remove(tmp.name)
 
         return result
