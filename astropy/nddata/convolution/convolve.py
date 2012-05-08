@@ -1,5 +1,13 @@
+# Licensed under a 3-clause BSD style license - see PYFITS.rst
+
 import numpy as np
 import warnings
+from astropy.config import ConfigurationItem
+
+USE_NUMPY_FFT = ConfigurationItem('use_numpy_fft', False,
+        "Use numpy's fft instead of fftw.  This will be forced True if fftw is unavailable.")
+
+
 try:
     import fftw3
     has_fftw = True
@@ -23,6 +31,8 @@ except ImportError:
     fftn = np.fft.fftn
     ifftn = np.fft.ifftn
     has_fftw = False
+    USE_NUMPY_FFT=True
+
 
 from .boundary_none import convolve1d_boundary_none, \
                            convolve2d_boundary_none, \
@@ -203,7 +213,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=not has_fftw, nthreads=1):
+        use_numpy_fft=USE_NUMPY_FFT, nthreads=1):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
