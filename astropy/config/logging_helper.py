@@ -11,6 +11,7 @@ import warnings
 from contextlib import contextmanager
 
 from . import ConfigurationItem
+from ..utils.compat import inspect_getmodule
 from ..utils.console import color_print
 from ..utils.misc import find_current_module
 
@@ -147,10 +148,42 @@ class AstropyLogger(Logger):
     _showwarning_orig = None
 
     def _showwarning(self, *args, **kwargs):
-        try:
-            self.warn(args[0].args[0])
-        except IndexError:  # necessary for astropy.io.vo warnings
-            self.warn(args[0].message)
+        warning = args[0]
+        # Deliberately not using isinstance here: We want to display
+        # the class name only when it's not the default class,
+        # UserWarning.  The name of subclasses of UserWarning should
+        # be displayed.
+        if type(warning) != UserWarning:
+            message = '{0}: {1}'.format(warning.__class__.__name__, args[0])
+        else:
+            message = unicode(args[0])
+
+        mod_path = args[2]
+        # Now that we have the module's path, we look through
+        # sys.modules to find the module object and thus the
+        # fully-package-specified module name.  On Python 2, the
+        # module.__file__ is the compiled file name, not the .py, so
+        # we have to ignore the extension.  On Python 3,
+        # module.__file__ is the original source file name, so things
+        # are more direct.
+        mod_name = None
+        if sys.version_info[0] < 3:
+            for name, mod in sys.modules.items():
+                if getattr(mod, '__file__', '') == mod_path:
+                    mod_name = mod.__name__
+                    break
+        else:
+            mod_path, ext = os.path.splitext(mod_path)
+            for name, mod in sys.modules.items():
+                path = os.path.splitext(getattr(mod, '__file__', ''))[0]
+                if path == mod_path:
+                    mod_name = mod.__name__
+                    break
+
+        if mod_name is not None:
+            self.warn(message, extra={'origin': mod_name})
+        else:
+            self.warn(message)
 
     def warnings_logging_enabled(self):
         return self._showwarning_orig is not None
@@ -165,7 +198,7 @@ class AstropyLogger(Logger):
 
         This can be disabled with ``disable_warnings_logging``.
         '''
-        if self._showwarning_orig is not None:
+        if self.warnings_logging_enabled():
             raise LoggingError("Warnings logging has already been enabled")
         self._showwarning_orig = warnings.showwarning
         warnings.showwarning = self._showwarning
@@ -179,7 +212,7 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_warnings_logging``.
         '''
-        if self._showwarning_orig is None:
+        if not self.warnings_logging_enabled():
             raise LoggingError("Warnings logging has not been enabled")
         if warnings.showwarning != self._showwarning:
             raise LoggingError("Cannot disable warnings logging: "
@@ -190,13 +223,25 @@ class AstropyLogger(Logger):
 
     _excepthook_orig = None
 
-    def _excepthook(self, type, value, traceback):
-        try:
-            origin = inspect.getmodule(traceback.tb_next).__name__
-        except:
-            origin = inspect.getmodule(traceback).__name__
-        self.error(value.args[0], extra={'origin': origin})
-        self._excepthook_orig(type, value, traceback)
+    def _excepthook(self, etype, value, traceback):
+        tb = traceback
+        while tb.tb_next is not None:
+            tb = tb.tb_next
+        mod = inspect_getmodule(tb)
+
+        # include the the error type in the message.
+        if len(value.args) > 0:
+            message = '{0}: {1}'.format(etype.__name__, str(value))
+        else:
+            message = unicode(etype.__name__)
+
+
+
+        if mod is not None:
+            self.error(message, extra={'origin': mod.__name__})
+        else:
+            self.error(message)
+        self._excepthook_orig(etype, value, traceback)
 
     def exception_logging_enabled(self):
         return self._excepthook_orig is not None
@@ -210,7 +255,7 @@ class AstropyLogger(Logger):
 
         This can be disabled with ``disable_exception_logging``.
         '''
-        if self._excepthook_orig is not None:
+        if self.exception_logging_enabled():
             raise LoggingError("Exception logging has already been enabled")
         self._excepthook_orig = sys.excepthook
         sys.excepthook = self._excepthook
@@ -224,7 +269,7 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_exception_logging``.
         '''
-        if self._excepthook_orig is None:
+        if not self.exception_logging_enabled():
             raise LoggingError("Exception logging has not been enabled")
         if sys.excepthook != self._excepthook:
             raise LoggingError("Cannot disable exception logging: "
@@ -364,9 +409,9 @@ class AstropyLogger(Logger):
         '''
 
         # Reset any previously installed hooks
-        if self._showwarning_orig is not None:
+        if self.warnings_logging_enabled():
             self.disable_warnings_logging()
-        if self._excepthook_orig is not None:
+        if self.exception_logging_enabled():
             self.disable_exception_logging()
 
         # Remove all previous handlers

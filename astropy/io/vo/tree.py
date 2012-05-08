@@ -2206,13 +2206,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         # Now, resize the array to the exact number of rows we need and
         # put the last chunk values in there.
-        if len(array_chunk):
-            alloc_rows = numrows + len(array_chunk)
-            array.resize((alloc_rows,))
-            mask.resize((alloc_rows,))
-            array[numrows:] = array_chunk
-            mask[numrows:] = mask_chunk
-            numrows += len(array_chunk)
+        alloc_rows = numrows + len(array_chunk)
+        array.resize((alloc_rows,))
+        mask.resize((alloc_rows,))
+        array[numrows:] = array_chunk
+        mask[numrows:] = mask_chunk
+        numrows += len(array_chunk)
 
         if (self.nrows is not None and
             self.nrows >= 0 and

@@ -327,7 +327,8 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         The name of the deprecated function; if not provided the name is
         automatically determined from the passed in function, though this is
         useful in the case of renamed functions, where the new function is just
-        assigned to the name of the deprecated function.  For example:
+        assigned to the name of the deprecated function.  For example::
+
             def new_function():
                 ...
             oldFunction = new_function
@@ -340,7 +341,6 @@ def deprecated(since, message='', name='', alternative='', pending=False):
     pending : bool, optional
         If True, uses a PendingDeprecationWarning instead of a
         DeprecationWarning.
-
     """
 
     def deprecate(func, message=message, name=name, alternative=alternative,
@@ -417,6 +417,3 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         return deprecate(message)
 
     return deprecate
-
-
-

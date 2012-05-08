@@ -58,7 +58,7 @@ def _format_message(message, name, config={}, pos=None):
     return '%s:%s:%s: %s: %s' % (filename, pos[0], pos[1], name, message)
 
 
-def _suppressed_warning(warning, config):
+def _suppressed_warning(warning, config, stacklevel=2):
     warning_class = type(warning)
     config.setdefault('_warning_counts', {}).setdefault(warning_class, 0)
     config['_warning_counts'][warning_class] += 1
@@ -67,11 +67,11 @@ def _suppressed_warning(warning, config):
         if message_count == MAX_WARNINGS:
             warning.formatted_message += \
                 ' (suppressing further warnings of this type...)'
-        warn(warning)
+        warn(warning, stacklevel=stacklevel+1)
 
 
 def warn_or_raise(warning_class, exception_class=None, args=(), config={},
-                  pos=None):
+                  pos=None, stacklevel=1):
     """
     Warn or raise an exception, depending on the pedantic setting.
     """
@@ -80,7 +80,7 @@ def warn_or_raise(warning_class, exception_class=None, args=(), config={},
             exception_class = warning_class
         vo_raise(exception_class, args, config, pos)
     else:
-        vo_warn(warning_class, args, config, pos)
+        vo_warn(warning_class, args, config, pos, stacklevel=stacklevel+1)
 
 
 def vo_raise(exception_class, args=(), config={}, pos=None):
@@ -106,18 +106,18 @@ def vo_reraise(exc, config={}, pos=None, additional=''):
     raise exc
 
 
-def vo_warn(warning_class, args=(), config={}, pos=None):
+def vo_warn(warning_class, args=(), config={}, pos=None, stacklevel=1):
     """
     Warn, with proper position information if available.
     """
     warning = warning_class(args, config, pos)
-    _suppressed_warning(warning, config)
+    _suppressed_warning(warning, config, stacklevel=stacklevel+1)
 
 
-def warn_unknown_attrs(element, attrs, config, pos, good_attr=[]):
+def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
     for attr in attrs:
         if attr not in good_attr:
-            vo_warn(W48, (attr, element), config, pos)
+            vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel+1)
 
 
 _warning_pat = re.compile(
