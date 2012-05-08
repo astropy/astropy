@@ -9,7 +9,6 @@ omit =
    astropy/utils/compat/*
    astropy/version*
    astropy/wcs/docstrings*
-   astropy/*.
 
 [report]
 exclude_lines =
