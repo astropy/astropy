@@ -50,13 +50,12 @@ Either a toctree or sub-sections should be used, *not* both.
 See Also (optional)
 -------------------
 
-Include here any references to related packages, artciles, or texts.
+Include here any references to related packages, articles, or texts.
 
 
-API/Reference
--------------
 
 .. automodapi:: packagename
+
 
 
 Acknowledgments and Licenses (optional)

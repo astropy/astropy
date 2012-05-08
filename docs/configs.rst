@@ -1,5 +1,5 @@
-Configuration system Documentation (`astropy.config`)
-=====================================================
+Configuration system (`astropy.config`)
+=======================================
 
 Introduction
 ------------
@@ -59,7 +59,7 @@ Advanced usage of the configuration system
 
 Changing Values at Run-time
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The configuration system is most conviniently used, by modifying
+The configuration system is most conveniently used by modifying
 configuration files as described above. Values can also, however, be
 modified in an active python session using the
 :meth:`~astropy.config.configuration.ConfigurationItem.set` method. A run-time
@@ -150,9 +150,6 @@ See Also
 
 :doc:`logging` (overview of `astropy.config.logging`)
 
-
-API/Reference
--------------
 
 .. automodapi:: astropy.config
     :no-inheritance-diagram:
