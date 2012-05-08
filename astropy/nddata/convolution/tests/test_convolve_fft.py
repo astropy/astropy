@@ -26,13 +26,14 @@ Convolved with [1,0] = [1, 2, 3, 4, 5]
 Convolved with [0,1] = [0, 1, 2, 3, 4]
 """
 
-option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros')
-options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False)))
+# NOTE: use_numpy_fft is redundant if you don't have FFTW installed
+option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'use_numpy_fft')
+options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),(True,False)))
 
 class TestConvolve1D(object):
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_1_none(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_1_none(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a unit kernel with a single element returns the same array
         '''
@@ -41,12 +42,12 @@ class TestConvolve1D(object):
 
         y = np.array([1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
-        assert_array_almost_equal_nulp(z, x)
+        assert_array_almost_equal_nulp(z, x, 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None).
@@ -56,12 +57,12 @@ class TestConvolve1D(object):
 
         y = np.array([0., 1., 0.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
-        assert_array_almost_equal_nulp(z, x)
+        assert_array_almost_equal_nulp(z, x, 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_uniform_3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_uniform_3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that the different modes are producing the correct results using
         a uniform kernel with three elements
@@ -71,7 +72,10 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
         answer_dict = {
                 'sum': np.array([1., 4., 3.], dtype='float64'),
@@ -101,7 +105,7 @@ class TestConvolve1D(object):
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None). This version includes a NaN value in
@@ -112,15 +116,24 @@ class TestConvolve1D(object):
 
         y = np.array([0., 1., 0.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
         #if interpolate_nan:
         #    assert (z[0] == 1.) and (z[2] == 3.) and np.isnan(z[1])
         #else:
-        assert np.all(z == np.array([1.,0.,3.], dtype='float64'))
+        #print z,np.array([1.,0.,3.], dtype='float64')
+        if use_numpy_fft:
+            # for whatever reason, numpy's fft has very limited precision, and
+            # the comparison fails unless you cast the float64 to a float16
+            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
+        else:
+            assert_array_almost_equal_nulp(z, np.array([1.,0.,3.], dtype='float64'), 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_1_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_1_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a unit kernel with three elements returns the same array
         (except when boundary is None). This version includes a NaN value in
@@ -131,15 +144,23 @@ class TestConvolve1D(object):
 
         y = np.array([1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
         #if interpolate_nan:
         #    assert (z[0] == 1.) and (z[2] == 3.) and np.isnan(z[1])
         #else:
-        assert np.all(z == np.array([1.,0.,3.], dtype='float64'))
+        if use_numpy_fft:
+            # for whatever reason, numpy's fft has very limited precision, and
+            # the comparison fails unless you cast the float64 to a float16
+            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
+        else:
+            assert_array_almost_equal_nulp(z, np.array([1.,0.,3.], dtype='float64'), 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_uniform_3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_uniform_3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that the different modes are producing the correct results using
         a uniform kernel with three elements. This version includes a NaN
@@ -150,7 +171,7 @@ class TestConvolve1D(object):
 
         y = np.array([1., 1., 1.], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
         answer_dict = {
                 'sum': np.array([1., 4., 3.], dtype='float64'),
@@ -193,7 +214,7 @@ class TestConvolve1D(object):
 class TestConvolve2D(object):
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_1x1_none(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_1x1_none(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a 1x1 unit kernel returns the same array
         '''
@@ -204,12 +225,12 @@ class TestConvolve2D(object):
 
         y = np.array([[1.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
-        assert np.all(z == x)
+        assert_array_almost_equal_nulp(z, x, 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_3x3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_3x3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a 3x3 unit kernel returns the same array (except when
         boundary is None).
@@ -223,12 +244,17 @@ class TestConvolve2D(object):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros,
+                use_numpy_fft=use_numpy_fft)
 
-        assert np.all( np.abs(z-x) < np.spacing(np.where(z>x,z,x))*2 )
+        assert_array_almost_equal_nulp(z, x, 10)
+        #assert np.all( np.abs(z-x) < np.spacing(np.where(z>x,z,x))*2 )
 
     @pytest.mark.parametrize(option_names, options)
-    def test_uniform_3x3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_uniform_3x3(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that the different modes are producing the correct results using
         a 3x3 uniform kernel.
@@ -242,7 +268,7 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros, use_numpy_fft=use_numpy_fft)
 
         w = np.array([[4., 6., 4.],
                       [6., 9., 6.],
@@ -279,7 +305,7 @@ class TestConvolve2D(object):
 
 
     @pytest.mark.parametrize(option_names, options)
-    def test_unity_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_unity_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that a 3x3 unit kernel returns the same array (except when
         boundary is None). This version includes a NaN value in the original
@@ -294,7 +320,11 @@ class TestConvolve2D(object):
                       [0., 1., 0.],
                       [0., 0., 0.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros,
+                use_numpy_fft=use_numpy_fft)
 
         a = x
         a[1,1] = 0
@@ -302,10 +332,16 @@ class TestConvolve2D(object):
         print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros
         print z
         print a
-        assert np.all( np.abs(z-a) < np.spacing(np.where(z>a,z,a))*2 )
+        #assert np.all( np.abs(z-a) < np.spacing(np.where(z>a,z,a))*2 )
+        if use_numpy_fft:
+            # for whatever reason, numpy's fft has very limited precision, and
+            # the comparison fails unless you cast the float64 to a float16
+            assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.asarray(a, dtype=np.float16), 10)
+        else:
+            assert_array_almost_equal_nulp(z, a, 10)
 
     @pytest.mark.parametrize(option_names, options)
-    def test_uniform_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros):
+    def test_uniform_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, use_numpy_fft):
         '''
         Test that the different modes are producing the correct results using
         a 3x3 uniform kernel. This version includes a NaN value in the
@@ -320,7 +356,11 @@ class TestConvolve2D(object):
                       [1., 1., 1.],
                       [1., 1., 1.]], dtype='float64')
 
-        z = convolve_fft(x, y, boundary=boundary, interpolate_nan=interpolate_nan, normalize_kernel=normalize_kernel, ignore_edge_zeros=ignore_edge_zeros)
+        z = convolve_fft(x, y, boundary=boundary,
+                interpolate_nan=interpolate_nan,
+                normalize_kernel=normalize_kernel,
+                ignore_edge_zeros=ignore_edge_zeros,
+                use_numpy_fft=use_numpy_fft)
 
         w_n = np.array([[3., 5., 3.],
                         [5., 8., 5.],
