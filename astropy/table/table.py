@@ -654,7 +654,8 @@ class Table(object):
                 raise ValueError('Table column slice must contain only valid '
                                  'column names')
             return Table([self[x] for x in item], meta=deepcopy(self.meta))
-        elif isinstance(item, slice) or isinstance(item, np.ndarray):
+        elif (isinstance(item, slice) or isinstance(item, np.ndarray)
+              or isinstance(item, list)):
             return self._new_from_slice(item)
         else:
             raise ValueError('Illegal type {0} for table item access'

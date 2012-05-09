@@ -123,6 +123,18 @@ class TestTableItems(BaseTestItems):
         assert np.all(self.t._data == DATA)
         assert np.any(t2['a'] != DATA['a'])
 
+    def test_list_index_slice(self):
+        """Table list index slice returns COPY of data"""
+        slice = [0, 2]
+        t2 = self.t[slice]
+        assert np.all(t2['a'] == DATA['a'][slice])
+        assert t2['a'].attrs_equal(COLS[0])
+        assert t2['b'].attrs_equal(COLS[1])
+        assert t2['c'].attrs_equal(COLS[2])
+        t2['a'][0] = 0
+        assert np.all(self.t._data == DATA)
+        assert np.any(t2['a'] != DATA['a'])
+
     def test_select_columns(self):
         """Select columns returns COPY of data and all column
         attributes"""
