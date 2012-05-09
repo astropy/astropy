@@ -162,7 +162,6 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    import sys
     from inspect import ismodule
 
     __import__(modname)
@@ -225,7 +224,6 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         file.
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
@@ -283,7 +281,6 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         file name, this has no effect).
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
