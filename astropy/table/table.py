@@ -1,6 +1,7 @@
 import sys
 from copy import deepcopy
 import collections
+from itertools import izip
 
 import numpy as np
 
@@ -643,6 +644,89 @@ class Table(object):
         s = "<Table rows={0} names=({1})>\n{2}".format(
             self.__len__(),  ','.join(names), repr(self._data))
         return s
+
+    def __str__(self):
+        return self.pformat()
+
+    def pprint(self, max_rows=None, show_units=False):
+        """Print a nicely formatted string representation of the table.
+
+        Parameters
+        ----------
+        max_rows : int
+            Maximum number of rows to output
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        out : str
+            Formatted table as a single string
+
+        """
+        print self.pformat(max_rows, show_units)
+
+    def pformat(self, max_rows=None, show_units=False):
+        """Return a nicely formatted string representation of the table.
+
+        Parameters
+        ----------
+        max_rows : int
+            Maximum number of rows to output
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        out : str
+            Formatted table as a single string
+
+        """
+        if max_rows is None:
+            max_rows = np.get_printoptions()['threshold']
+        n_print2 = max_rows // 2
+        n_rows = len(self)
+        col_widths = []
+        col_strs_list = []
+        if len(self.colnames) == 0:
+            return 'Empty table'
+
+        # "Print" all the values into temporary lists by column for
+        # subsequent use and to determine the width
+        for colname, col in self.columns.items():
+            col_strs = []
+            col_format = col.format  # avoid lookup in inner loop later
+            format_func = _format_funcs.get(col_format, _auto_format_func)
+            col_strs.append(colname)
+            i0 = n_print2
+            i1 = n_rows - n_print2
+            for i in range(n_rows):
+                if i < i0 or i > i1:
+                    col_strs.append(format_func(col_format, col[i]))
+                elif i == i0:
+                    col_strs.append('...')
+            col_widths.append(max(len(x) for x in col_strs))
+            col_strs_list.append(col_strs)
+
+        # Now "print" the (already-stringified) column values into a
+        # row-oriented list.
+        n_rows = len(col_strs_list[0])
+        rows = []
+        for i in range(n_rows):
+            # I think using string concat is faster than %<len>s formatting
+            row = ' '.join(' ' * (col_width - len(col_strs[i])) + col_strs[i]
+                           for col_width, col_strs
+                           in izip(col_widths, col_strs_list))
+            rows.append(row)
+
+            # Put in a line of dashes after first (colnames) row
+            if i == 0:
+                row = ' '.join('-' * col_width for col_width in col_widths)
+                rows.append(row)
+
+        return '\n'.join(rows)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
