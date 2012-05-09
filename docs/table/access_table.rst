@@ -45,6 +45,7 @@ the data contained in that object relate to the original table data
   t[1]         # Row obj for with row 1 values
   t[1]['a']    # Column 'a' of row 1
   t[2:5]       # Table object with rows 2:5
+  t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
@@ -133,6 +134,11 @@ It is possible to select table rows with an array of indexes or by providing
 specifying multiple column names.  This returns a copy of the original table
 for the selected rows.  ::
 
+  >>> t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
+  <Table rows=3 names=('a','b','c')>
+  array([(3, 4, 5), (9, 10, 11), (12, 13, 14)], 
+        dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')])
+  
   >>> t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
   <Table rows=3 names=('a','b','c')>
   array([(3, 4, 5), (9, 10, 11), (12, 13, 14)], 
