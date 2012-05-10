@@ -16,6 +16,21 @@ except NameError:
 
 AUTO_COLNAME = 'col{0}'
 _format_funcs = {None: lambda format_, val: str(val)}
+MAX_LINES = 25
+
+
+def _get_screen_lines():
+    try:  # Will likely fail on Windows
+        import termios
+        import fcntl
+        import struct
+        s = struct.pack("HHHH", 0, 0, 0, 0)
+        fd_stdout = sys.stdout.fileno()
+        x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
+        (rows, cols, xpixels, ypixels) = struct.unpack("HHHH", x)
+        return max(rows - 4, 10)
+    except:
+        return MAX_LINES
 
 
 def _auto_names(n_cols):
@@ -301,22 +316,97 @@ class Column(np.ndarray):
 
         return equal
 
-    def __str__(self):
-        n_print = np.get_printoptions()['threshold']
-        if n_print < len(self):
-            n_print2 = n_print // 2
-            vals = [_format_funcs.get(self.format, _auto_format_func)(
-                    self.format, val)
-                    for val in self[:n_print - n_print2]]
-            vals.append('...')
-            vals.extend([_format_funcs.get(self.format, _auto_format_func)(
-                        self.format, val)
-                         for val in self[-n_print2:]])
-        else:
-            vals = [_format_funcs.get(self.format, _auto_format_func)(
-                    self.format, val) for val in self]
+    def pformat(self, max_lines=None, show_name=True, show_units=False):
+        """Return a list of formatted string representation of column values.
 
-        return ', '.join(vals)
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of values in output
+
+        show_name : bool
+            Include column name (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        out : list
+            List of formatted column values
+
+        """
+        if max_lines == None:
+            max_lines = _get_screen_lines()
+        elif max_lines == -1:
+            max_lines = sys.maxint
+
+        # "Print" all the values into temporary lists by column for
+        # subsequent use and to determine the width
+        col_strs = []
+        i_dashes = -1
+        if show_name:
+            col_strs.append(self.name)
+            max_lines -= 1
+        if show_units:
+            col_strs.append(self.units or '')
+            max_lines -= 1
+        if show_units or show_name:
+            col_strs.append('---')
+            i_dashes = len(col_strs) - 1
+            max_lines -= 1
+
+        n_print2 = max_lines // 2
+        n_rows = len(self)
+
+        format_func = _format_funcs.get(self.format, _auto_format_func)
+        if len(self) > max_lines:
+            i0 = n_print2
+            i1 = n_rows - n_print2 - max_lines % 2
+        else:
+            i0 = len(self)
+            i1 = 0
+
+        for i in xrange(n_rows):
+            if i < i0 or i > i1:
+                col_strs.append(format_func(self.format, self[i]))
+            elif i == i0:
+                col_strs.append('...')
+        col_width = max(len(x) for x in col_strs)
+
+        # Now bring all the column string values to the same fixed width
+        fmt_str = '%' + str(col_width) + 's'
+        for i, col_str in enumerate(col_strs):
+            col_strs[i] = fmt_str % col_str
+        if i_dashes > 0:
+            col_strs[i_dashes] = '-' * col_width
+
+        return col_strs
+
+    def pprint(self, max_lines=None, show_name=True, show_units=False):
+        """Print a formatted string representation of column values.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of values in output
+
+        show_name : bool
+            Include column name (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        out : list
+            List of formatted column values
+
+        """
+        print '\n'.join(self.pformat(max_lines, show_name, show_units))
+
+    def __str__(self):
+        return '\n'.join(self.pformat())
 
 
 class Row(object):
@@ -648,13 +738,13 @@ class Table(object):
     def __str__(self):
         return self.pformat()
 
-    def pprint(self, max_rows=None, show_units=False):
+    def pprint(self, max_lines=None, show_units=False):
         """Print a nicely formatted string representation of the table.
 
         Parameters
         ----------
-        max_rows : int
-            Maximum number of rows to output
+        max_lines : int
+            Maximum number of lines in table output
 
         show_units : bool
             Include a header row for units (default=False)
@@ -665,14 +755,15 @@ class Table(object):
             Formatted table as a single string
 
         """
-        print self.pformat(max_rows, show_units)
+        print self.pformat(max_lines, show_units)
 
-    def pformat(self, max_rows=None, show_units=False):
-        """Return a nicely formatted string representation of the table.
+    def pformat(self, max_lines=None, show_units=False):
+        """Return a list of lines for the formatted string representation of
+        the table.
 
         Parameters
         ----------
-        max_rows : int
+        max_lines : int
             Maximum number of rows to output
 
         show_units : bool
@@ -684,9 +775,9 @@ class Table(object):
             Formatted table as a single string
 
         """
-        if max_rows is None:
-            max_rows = np.get_printoptions()['threshold']
-        n_print2 = max_rows // 2
+        if max_lines is None:
+            max_lines = np.get_printoptions()['threshold']
+        n_print2 = max_lines // 2
         n_rows = len(self)
         col_widths = []
         col_strs_list = []
