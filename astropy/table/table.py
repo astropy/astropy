@@ -28,7 +28,7 @@ def _get_screen_lines():
         fd_stdout = sys.stdout.fileno()
         x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
         (rows, cols, xpixels, ypixels) = struct.unpack("HHHH", x)
-        return max(rows - 4, 10)
+        return max(rows - 6, 10)
     except:
         return MAX_LINES
 
@@ -736,9 +736,9 @@ class Table(object):
         return s
 
     def __str__(self):
-        return self.pformat()
+        return '\n'.join(self.pformat())
 
-    def pprint(self, max_lines=None, show_units=False):
+    def pprint(self, max_lines=None, show_name=True, show_units=False):
         """Print a nicely formatted string representation of the table.
 
         Parameters
@@ -746,18 +746,16 @@ class Table(object):
         max_lines : int
             Maximum number of lines in table output
 
+        show_name : bool
+            Include a header row for column names (default=True)
+
         show_units : bool
             Include a header row for units (default=False)
 
-        Returns
-        -------
-        out : str
-            Formatted table as a single string
-
         """
-        print self.pformat(max_lines, show_units)
+        print '\n'.join(self.pformat(max_lines, show_name, show_units))
 
-    def pformat(self, max_lines=None, show_units=False):
+    def pformat(self, max_lines=None, show_name=True, show_units=False):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -766,6 +764,9 @@ class Table(object):
         max_lines : int
             Maximum number of rows to output
 
+        show_name : bool
+            Include a header row for column names (default=True)
+
         show_units : bool
             Include a header row for units (default=False)
 
@@ -775,49 +776,25 @@ class Table(object):
             Formatted table as a single string
 
         """
-        if max_lines is None:
-            max_lines = np.get_printoptions()['threshold']
-        n_print2 = max_lines // 2
         n_rows = len(self)
-        col_widths = []
         col_strs_list = []
         if len(self.colnames) == 0:
-            return 'Empty table'
+            return []
 
-        # "Print" all the values into temporary lists by column for
-        # subsequent use and to determine the width
-        for colname, col in self.columns.items():
-            col_strs = []
-            col_format = col.format  # avoid lookup in inner loop later
-            format_func = _format_funcs.get(col_format, _auto_format_func)
-            col_strs.append(colname)
-            i0 = n_print2
-            i1 = n_rows - n_print2
-            for i in range(n_rows):
-                if i < i0 or i > i1:
-                    col_strs.append(format_func(col_format, col[i]))
-                elif i == i0:
-                    col_strs.append('...')
-            col_widths.append(max(len(x) for x in col_strs))
-            col_strs_list.append(col_strs)
+        # "Print" all the values into temporary lists by column for subsequent
+        # use and to determine the width
+        for col in self.columns.values():
+            col_strs_list.append(col.pformat(max_lines, show_name, show_units))
 
         # Now "print" the (already-stringified) column values into a
         # row-oriented list.
         n_rows = len(col_strs_list[0])
         rows = []
         for i in range(n_rows):
-            # I think using string concat is faster than %<len>s formatting
-            row = ' '.join(' ' * (col_width - len(col_strs[i])) + col_strs[i]
-                           for col_width, col_strs
-                           in izip(col_widths, col_strs_list))
+            row = ' '.join(col_strs[i] for col_strs in col_strs_list)
             rows.append(row)
 
-            # Put in a line of dashes after first (colnames) row
-            if i == 0:
-                row = ' '.join('-' * col_width for col_width in col_widths)
-                rows.append(row)
-
-        return '\n'.join(rows)
+        return rows
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
