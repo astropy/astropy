@@ -40,18 +40,22 @@ def _get_pprint_size(max_lines=None, max_width=None):
             fd_stdout = sys.stdout.fileno()
             x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
             (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
+            if lines > 12:
+                lines -= 6
+            if width > 10:
+                width -= 1
         except:
             lines, width = MAX_LINES, MAX_WIDTH
 
     if max_lines is None:
-        max_lines = lines - 6
+        max_lines = lines
     elif max_lines < 0:
         max_lines = sys.maxint
     if max_lines < 6:
         max_lines = 6
 
     if max_width is None:
-        max_width = width - 1
+        max_width = width
     elif max_width < 0:
         max_width = sys.maxint
     if max_width < 10:
