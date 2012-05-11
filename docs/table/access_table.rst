@@ -97,7 +97,8 @@ column with a numerical index::
   3
   
 When a table column is printed, either with ``print`` or via the ``str()``
-built-in function, it is formatted according to the ``format`` attribute::
+built-in function, it is formatted according to the ``format`` attribute (see
+:ref:`table_format_string`)::
 
   >>> print t['a'].description, t['a']
   unladen swallow velocity  0.000,  3.000,  6.000,  9.000, 12.000

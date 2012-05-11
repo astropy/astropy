@@ -6,28 +6,19 @@
 Constructing a table
 ====================
 
-A table object is created by initializing a :class:`~astropy.table.Table` class
-object with the following arguments, all of which are optional:
-
-data : numpy ndarray, dict, list, or Table
-    Data to initialize table.
-names : list
-    Specify column names
-dtypes : list
-    Specify column data types
-meta : dict-like
-    Meta-Data associated with the table
-copy : boolean
-    Copy the input data (default=True).
+There is great deal of flexibility in the way that a table can be initially
+constructed.  Details on the inputs to the :class:`~astropy.table.Table`
+constructor are in the `Initialization Details`_ section.  However, the 
+easiest way to understand how to make a table is by example.
 
 Examples
 ========
 
-There is great deal of flexibility in the way that a table can be initially
-constructed.  Details on the inputs to the :class:`~astropy.table.Table`
-constructor are in the `Details`_ section.  However, the 
-easiest way to understand how to make a table is by example.
-
+Much of the flexibility lies in the types of data structures
+which can be used to initialize the table data.  The examples below show how to
+create a table from scratch with no initial data, create a table with a list of
+columns, a dictionary of columns, or from `numpy` arrays (either structured or
+homogeneous).  
 
 Setup
 -----
@@ -43,8 +34,9 @@ A Table can be created without any initial input data or even without any
 initial columns.  This is useful for building tables dynamically if the initial
 size, columns, or data are not known.  
 
-**Caution:** adding columns or rows requires making a new copy of the entire
-table table each time, so in the case of large tables this may be slow.
+.. Note:: 
+   Adding columns or rows requires making a new copy of the entire
+   table table each time, so in the case of large tables this may be slow.
 
 ::
 
@@ -56,6 +48,116 @@ table table each time, so in the case of large tables this may be slow.
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
   >>> t.add_row((1, 2.0, 'x'))
   >>> t.add_row((4, 5.0, 'y'))
+
+
+List input
+----------
+
+A typical case is where you have a number of data columns with the same length
+defined in different variables.  These might be Python lists or `numpy` arrays
+or a mix of the two.  These can be used to create a |Table| by putting the column
+data variables into a Python list.  In this case the column names are not
+defined by the input data, so they must either be set using the ``names``
+keyword or they will be auto-generated as ``col<N>``.
+
+::
+
+  >>> a = [1, 4]
+  >>> b = [2.0, 5.0]
+  >>> c = ['x', 'y']
+  >>> t = Table([a, b, c], names=('a', 'b', 'c'))
+  >>> print t
+  <Table rows=2 names=('a','b','c')>
+  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
+        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+
+**Make a new table using columns from the first table**
+
+Once you have a `Table` then you can make new table by selecting columns
+and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
+
+  >>> Table([t['c'], t['a']])
+  <Table rows=2 names=('c','a')>
+  array([('x', 1), ('y', 4)], 
+        dtype=[('c', '|S1'), ('a', '<i8')])
+
+**Make a new table using expressions involving columns**
+
+The |Column| object is derived from the standard `numpy` array and can be used
+directly in arithmetic expressions.  This allows for a compact way of making a
+new table with modified column values::
+
+  >>> Table([t['a']**2, t['b'] + 10])
+  <Table rows=2 names=('a','b')>
+  array([(1, 12.0), (16, 15.0)], 
+        dtype=[('a', '<i8'), ('b', '<f8')])
+
+
+**Different types of column data**
+
+The list input method for |Table| is very flexible since you can use a mix
+of different data types to initialize a table::
+
+  >>> a = (1, 4)
+  >>> b = np.array([[2, 3], [5, 6]])  # vector column
+  >>> c = Column('axis', ['x', 'y'])
+  >>> arr = (a, b, c)
+  >>> Table(arr)  # Data column named "c" has a name "axis" that table
+  <Table rows=2 names=('col0','col1','axis')>
+  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
+        dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', '|S1')])
+
+Notice that in the third column the existing column name ``'axis'`` is used.
+
+Dictionary input
+----------------
+
+A dictionary of column data can be used to initialize a |Table|.
+
+  >>> arr = {'a': [1, 4],
+  ...        'b': [2.0, 5.0],
+  ...        'c': ['x', 'y']}
+  >>> 
+  >>> Table(arr)
+  <Table rows=2 names=('a','c','b')>
+  array([(1, 'x', 2.0), (4, 'y', 5.0)], 
+        dtype=[('a', '<i8'), ('c', '|S1'), ('b', '<f8')])
+
+**Specify the column order and optionally the data types**
+::
+
+  >>> Table(arr, names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
+  <Table rows=2 names=('a','b','c')>
+  array([(1.0, 2, 'x'), (4.0, 5, 'y')], 
+        dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S2')])
+
+**Different types of column data**
+
+The input column data can be any data type that can initialize a |Column| object::
+
+  >>> arr = {'a': (1, 4),
+             'b': np.array([[2, 3], [5, 6]]),
+             'c': Column('axis', ['x', 'y'])}
+  >>> Table(arr, names=('a', 'b', 'c'))
+  <Table rows=2 names=('a','b','c')>
+  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
+        dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', '|S1')])
+
+Notice that the key ``'c'`` takes precendence over the existing column name
+``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
+column where each row element is itself a 2-element array.
+
+**Renaming columns is not possible**
+::
+
+  >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
+  Traceback (most recent call last):
+    File "<stdin>", line 2, in <module>
+    File "astropy/table/table.py", line 404, in __init__
+      init_func(data, names, dtypes, n_cols, copy)
+    File "astropy/table/table.py", line 467, in _init_from_dict
+      data_list = [data[name] for name in names]
+  KeyError: 'a_new'
 
 
 NumPy structured array
@@ -145,125 +247,41 @@ as the data types are not changed::
 
   >>> t = Table(arr, copy=False)
 
-Dictionary input
-----------------
-
-A dictionary of column data can be used to initialize a |Table|.
-
-  >>> arr = {'a': [1, 4],
-  ...        'b': [2.0, 5.0],
-  ...        'c': ['x', 'y']}
-  >>> 
-  >>> Table(arr)
-  <Table rows=2 names=('a','c','b')>
-  array([(1, 'x', 2.0), (4, 'y', 5.0)], 
-        dtype=[('a', '<i8'), ('c', '|S1'), ('b', '<f8')])
-
-**Specify the column order and optionally the data types**
-::
-
-  >>> Table(arr, names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
-  <Table rows=2 names=('a','b','c')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')], 
-        dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S2')])
-
-**Different types of column data**
-
-The input column data can be any data type that can initialize a |Column| object::
-
-  >>> arr = {'a': (1, 4),
-             'b': np.array([[2, 3], [5, 6]]),
-             'c': Column('axis', ['x', 'y'])}
-  >>> Table(arr, names=('a', 'b', 'c'))
-  <Table rows=2 names=('a','b','c')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
-        dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', '|S1')])
-
-Notice that the key ``'c'`` takes precendence over the existing column name
-``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
-column where each row element is itself a 2-element array.
-
-**Renaming columns is not possible**
-::
-
-  >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
-  Traceback (most recent call last):
-    File "<stdin>", line 2, in <module>
-    File "astropy/table/table.py", line 404, in __init__
-      init_func(data, names, dtypes, n_cols, copy)
-    File "astropy/table/table.py", line 467, in _init_from_dict
-      data_list = [data[name] for name in names]
-  KeyError: 'a_new'
-
-
-List input
-----------
-
-::
-
-  >>> a = [1, 4]
-  >>> b = [2.0, 5.0]
-  >>> c = ['x', 'y']
-  >>> t = Table([a, b, c], names=('a', 'b', 'c'))
-  >>> print t
-  <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
-
-**Make a new table using columns from the first table**
-
-::
-
-  >>> Table([t['c'], t['a']])
-  <Table rows=2 names=('c','a')>
-  array([('x', 1), ('y', 4)], 
-        dtype=[('c', '|S1'), ('a', '<i8')])
-
-**Make a new table using expressions involving columns**
-
-::
-
-  >>> Table([t['a']**2, t['b'] + 10])
-  <Table rows=2 names=('a','b')>
-  array([(1, 12.0), (16, 15.0)], 
-        dtype=[('a', '<i8'), ('b', '<f8')])
-
-
-**Different types of column data**
-
-::
-
-  >>> a = (1, 4)
-  >>> b = np.array([[2, 3], [5, 6]])  # vector column
-  >>> c = Column('axis', ['x', 'y'])
-  >>> arr = (a, b, c)
-  >>> Table(arr)  # Data column named "c" has a name "axis" that table
-  <Table rows=2 names=('col0','col1','axis')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
-        dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', '|S1')])
-
-Notice that in the third column the existing column name ``'axis'`` is used.
-
-**Python arrays versus NumPy arrays as input**
+**Python arrays versus `numpy` arrays as input**
 
 There is a slightly subtle issue that is important to understand in the way
 that |Table| objects are created.  Any data input that looks like a Python list
-(including a tuple) is considered to be a list of columns.  In contrast a `numpy`
-array input is interpreted as a list of rows.
+(including a tuple) is considered to be a list of columns.  In contrast an
+homogeneous `numpy` array input is interpreted as a list of rows::
 
   >>> arr = [[1, 2, 3], 
   ...        [4, 5, 6]]
-  >>> nparr = np.array(arr)
+  >>> np_arr = np.array(arr)
 
   >>> Table(arr)    # Two columns, three rows
   <Table rows=3 names=('col0','col1')>
   array([(1, 4), (2, 5), (3, 6)], 
         dtype=[('col0', '<i8'), ('col1', '<i8')])
 
-  >>> Table(nparr)  # Three columns, two rows
+  >>> Table(np_arr)  # Three columns, two rows
   <Table rows=2 names=('col0','col1','col2')>
   array([(1, 2, 3), (4, 5, 6)], 
         dtype=[('col0', '<i8'), ('col1', '<i8'), ('col2', '<i8')])
+
+This dichotomy is needed to support flexible list input while retaining the
+natural interpretation of 2-d `numpy` arrays where the first index corresponds
+to data "rows" and the second index corresponds to data "columns".  
+
+If you have a Python list which is structured as a list of data rows, use the
+following trick to effectively transpose into a list of columns for
+initializing a |Table| object::
+
+   >>> arr = [[1, 2.0, 'string'],  # list of rows
+              [2, 3.0, 'values']]
+   >>> col_arr = zip(*arr)  # transpose to a list of columns
+   >>> col_arr
+   [(1, 2), (2.0, 3.0), ('string', 'values')]
+   >>> t = Table(col_arr)
 
 Table columns
 -------------
@@ -293,8 +311,22 @@ columns by their numerical index or name and supports slicing syntax::
         dtype=[('a', '<f8'), ('c', '<f8')])
 
 
-Details
-========
+Initialization Details
+======================
+
+A table object is created by initializing a :class:`~astropy.table.Table` class
+object with the following arguments, all of which are optional:
+
+``data`` : numpy ndarray, dict, list, or Table
+    Data to initialize table.
+``names`` : list
+    Specify column names
+``dtypes`` : list
+    Specify column data types
+``meta`` : dict-like
+    Meta-Data associated with the table
+``copy`` : boolean
+    Copy the input data (default=True).
 
 The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
@@ -355,6 +387,11 @@ as ``col<N>``.  If ``names`` is provided then it must be a list with the
 same length as the number of columns.  Any list elements with value
 ``None`` fall back to the default name.
 
+In the case where ``data`` is provided as dict of columns, the ``names``
+argument can be supplied to specify the order of columns.  The ``names`` list
+must then contain each of the keys in the ``data`` dict.  If ``names`` is not
+supplied then the order of columns in the output table is not determinate.
+
 dtypes
 -------
 
@@ -366,10 +403,14 @@ then it must be a list with the same length as the number of columns.  The
 values must be valid ``numpy.dtype`` initializers or ``None``.  Any list
 elements with value ``None`` fall back to the default type.
 
+In the case where `data` is provided as dict of columns, the ``dtypes`` argument
+must be accompanied by a corresponding ``names`` argument in order to uniquely
+specify the column ordering.
+
 meta
 -----
 
-The ``meta`` argument is simple an object that contains meta-data associated
+The ``meta`` argument is simply an object that contains meta-data associated
 with the table.  It is recommended that this object be a dict or
 OrderedDict_, but the only firm requirement is that it can be copied with
 the standard library ``copy.deepcopy()`` routine.  By default ``meta`` is
@@ -450,19 +491,17 @@ A |Column| object can be created as follows, where in all cases the column
 ``name`` is required as the first argument and one can optionally provide
 these values:
 
-description : str
+``description`` : str
     Full description of column
-units : str
+``units`` : str
     Physical units
-format : str
-    `Python format string
-    <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_
-    for outputting column values.  For instance
-    ``"%.4f"`` to print four digits after the decimal in float format, or
-    ``"%6d"`` to print an integer in a 6-character wide field.
-meta : dict
+``format`` : str
+    `Format string`_ for outputting column values
+``meta`` : dict
     Meta-data associated with the column
 
+Initialization options
+^^^^^^^^^^^^^^^^^^^^^^^
 The column data values, shape, and data type are specified in one of two ways:
 
 **Provide a ``data`` value and optionally a ``dtype`` value**
@@ -500,6 +539,36 @@ The column data values, shape, and data type are specified in one of two ways:
   column.  The default ``shape`` is () which means a single value in each
   element.
 
+.. _table_format_string:
+
+Format string
+^^^^^^^^^^^^^^
+
+The format string controls the output of column values when a table or column
+is printed or written to an ASCII table.  The format string can be either
+"old-style" or "new-style":
+
+**Old-style**
+
+This corresponds to syntax like ``"%.4f" % value`` as documented in
+`String formatting operations <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
+
+   ``"%.4f"`` to print four digits after the decimal in float format, or
+
+   ``"%6d"`` to print an integer in a 6-character wide field.
+
+**New-style**
+
+This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in 
+`format string syntax
+<http://docs.python.org/library/string.html#format-string-syntax>`_.
+
+   ``"{:.4f}"`` to print four digits after the decimal in float format, or
+
+   ``"{:6d}"`` to print an integer in a 6-character wide field.
+
+Note that in either case any Python format string that formats exactly
+one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
 
 TableColumns
 ------------
