@@ -44,14 +44,18 @@ def _get_pprint_size(max_lines=None, max_width=None):
             lines, width = MAX_LINES, MAX_WIDTH
 
     if max_lines is None:
-        max_lines = max(lines - 6, 10)
+        max_lines = lines - 6
     elif max_lines < 0:
         max_lines = sys.maxint
+    if max_lines < 6:
+        max_lines = 6
 
     if max_width is None:
-        max_width = max(width - 1, 10)
+        max_width = width - 1
     elif max_width < 0:
         max_width = sys.maxint
+    if max_width < 10:
+        max_width = 10
 
     return max_lines, max_width
 
