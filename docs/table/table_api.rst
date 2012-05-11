@@ -1,7 +1,7 @@
 .. _table_api:
 
 ===============================
-Table package API documentation
+Table package API reference
 ===============================
 
 Table class
