@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 import warnings
 from math import sqrt, pi
@@ -16,14 +17,14 @@ import parameters
 # Many of these adapted from astro-ph/9905116
 
 
-__all__ =  ("Cosmology kpc_comoving_per_arcmin kpc_proper_per_arcmin "
-            "arcsec_per_kpc_comoving arcsec_per_kpc_proper distmod "
-            "radec_to_xyz get_current set_current WMAP5 WMAP7").split()
+__all__ = ("Cosmology kpc_comoving_per_arcmin kpc_proper_per_arcmin "
+           "arcsec_per_kpc_comoving arcsec_per_kpc_proper distmod "
+           "radec_to_xyz get_current set_current WMAP5 WMAP7").split()
 
 # Constants
 
 # speed of light in km/s
-c_kms  = c * 1e-5
+c_kms = c * 1e-5
 
 # Mpc in cm
 Mpc = 1e6 * pc
@@ -39,6 +40,7 @@ arcmin_in_radians = 1 / 60. * pi / 180
 
 DEFAULT_COSMOLOGY = ConfigurationItem('default_cosmology', 'no_default',
                                       'The default cosmology to use')
+
 
 class Cosmology(object):
     """ A class describing an isotropic and homogeneous
@@ -273,13 +275,18 @@ class Cosmology(object):
         -------
         d : ndarray
           Comoving transverse distance in Mpc at each input redshift.
+
+        Notes
+        -----
+        This quantity also called the 'proper motion distance' in some
+        texts.
         """
         Ok = self.Ok
-        dc  = self.comoving_distance(z)
+        dc = self.comoving_distance(z)
         if Ok == 0:
             return dc
         sqrtOk = sqrt(abs(Ok))
-        dh  = self.hubble_distance
+        dh = self.hubble_distance
         if Ok > 0:
             return dh / sqrtOk * np.sinh(sqrtOk * dc / dh)
         else:
@@ -357,7 +364,7 @@ class Cosmology(object):
         (omega_k >= 0).
         """
         # does not work for negative curvature
-        Ok  = self.Ok
+        Ok = self.Ok
         assert(Ok) >= 0
 
         outscalar = False
@@ -379,7 +386,7 @@ class Cosmology(object):
 
         dm1 = self.comoving_transverse_distance(z1)
         dm2 = self.comoving_transverse_distance(z2)
-        dh_2  = self.hubble_distance**2
+        dh_2 = self.hubble_distance**2
 
         out = 1. / (1. + z2) * (dm2*np.sqrt(1. + Ok*dm1**2 / dh_2) -
                                 dm1*np.sqrt(1. + Ok*dm2**2 / dh_2))
@@ -487,6 +494,7 @@ del key, par, cosmo
 # should be accessed using get_current().
 #########################################################################
 
+
 def get_cosmology_from_string(arg):
     """ Return a cosmology instance from a string.
     """
@@ -502,6 +510,7 @@ def get_cosmology_from_string(arg):
     return cosmo
 
 _current = get_cosmology_from_string(DEFAULT_COSMOLOGY())
+
 
 def get_current():
     """ Get the current cosmology.
@@ -520,6 +529,7 @@ def get_current():
         _current = WMAP7
 
     return _current
+
 
 def set_current(arg):
     """ Set the current cosmology.
@@ -552,6 +562,7 @@ def set_current(arg):
             "Argument must be a string or cosmology instance. Valid strings:"
             "\n%s" % parameters.available)
 
+
 # convenience functions
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
@@ -572,6 +583,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
         cosmo = get_current()
     return cosmo.comoving_transverse_distance(z) * 1.e3 * arcmin_in_radians
 
+
 def kpc_proper_per_arcmin(z, cosmo=None):
     """ Separation in transverse proper kpc corresponding to an
     arcminute at redshift `z`.
@@ -590,6 +602,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
     if cosmo is None:
         cosmo = get_current()
     return cosmo.angular_diameter_distance(z) * 1.e3 * arcmin_in_radians
+
 
 def arcsec_per_kpc_comoving(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a comoving kpc
@@ -611,6 +624,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
     return 1 / (cosmo.comoving_transverse_distance(z) *
                 1.e3 * arcsec_in_radians)
 
+
 def arcsec_per_kpc_proper(z, cosmo=None):
     """ Angular separation in arcsec corresponding to a proper kpc at
     redshift `z`.
@@ -630,6 +644,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
         cosmo = get_current()
     return 1 / (cosmo.angular_diameter_distance(z) * 1.e3 * arcsec_in_radians)
 
+
 def distmod(z, cosmo=None):
     """ Distance modulus at redshift `z`.
 
@@ -647,6 +662,7 @@ def distmod(z, cosmo=None):
         cosmo = get_current()
     return cosmo.distmod(z)
 
+
 def radec_to_xyz(ra, dec, r):
     """ Convert a RA, Dec and comoving distance to 3d comoving
     coordinates.
@@ -662,12 +678,12 @@ def radec_to_xyz(ra, dec, r):
       RA and Dec coordinates in degrees.
     r : array_like, shape (N,)
       Comoving distance coordinate.
-    
+
     Returns
     -------
     x, y, z : ndarrays, shape (N,)
       x,y,z coordinates with the same units as `r`.
-      
+
     Notes
     -----
     This function is only accurate for comoving distances calculated
@@ -687,4 +703,4 @@ def radec_to_xyz(ra, dec, r):
     y = r * (cos_dec1 * np.sin(ra1))
     z = r * np.sin(dec1)
 
-    return x,y,z
+    return x, y, z
