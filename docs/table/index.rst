@@ -42,10 +42,24 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> b = [2.0, 5.0, 8.2]
   >>> c = ['x', 'y', 'z']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
+
+There are two ways to examine the table.  You can get detailed information
+about the table values and column definitions as follows::
+
   >>> t
   <Table rows=3 names=('a','b','c')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8.2, 'z')], 
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+
+If instead you print the table then a nicely formatted version appears::
+
+  >>> print(t)
+    a   b   c
+  --- --- ---
+    1 2.0   x
+    4 5.0   y
+    5 8.2   z
+
 
 Now examine some high-level information about the table::
 
@@ -76,15 +90,18 @@ Access the data by column or row using familiar `numpy` structured array syntax:
 One can retreive a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
-  >>> t[0:2]       # Table object with rows 0 and 1
-  <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+  >>> print(t[0:2])      # Table object with rows 0 and 1
+    a   b   c
+  --- --- ---
+    1 2.0   x
+    4 5.0   y
 
   >>> t['a', 'c']  # Table with cols 'a', 'c'
-  <Table rows=3 names=('a','c')>
-  array([(1, 'x'), (4, 'y'), (5, 'z')], 
-        dtype=[('a', '<i8'), ('c', '|S1')])
+    a   c
+  --- ---
+    1   x
+    4   y
+    5   z
 
 Modifying table values in place is flexible and works as one would expect::
 
@@ -93,10 +110,12 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t[1] = (8, 9.0, "W")        # Set all row values
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:2]['b'] = 100.0         # Set column 'c' of rows 0 and 1
-  >>> t
-  <Table rows=3 names=('a','b','c')>
-  array([(-1, 100.0, 'n'), (8, 100.0, 'W'), (30, 8.2, 'z')], 
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+  >>> print(t)
+    a     b   c
+  --- ----- ---
+   -1 100.0   x
+    8 100.0   W
+   30   8.2   z
 
 Add, remove, and rename columns with the following::
 
