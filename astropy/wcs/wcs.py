@@ -52,9 +52,9 @@ if _wcs is not None:
            "astropy.wcs did not pass its sanity check for your build " \
            "on your platform."
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] >= 3:  # pragma: py3
     string_types = (bytes, str)
-else:
+else:  # pragma: py2
     string_types = (str, unicode)
 
 

@@ -167,12 +167,12 @@ class AstropyLogger(Logger):
         # module.__file__ is the original source file name, so things
         # are more direct.
         mod_name = None
-        if sys.version_info[0] < 3:
+        if sys.version_info[0] < 3:  # pragma: py2
             for name, mod in sys.modules.items():
                 if getattr(mod, '__file__', '') == mod_path:
                     mod_name = mod.__name__
                     break
-        else:
+        else:  # pragma: py3
             mod_path, ext = os.path.splitext(mod_path)
             for name, mod in sys.modules.items():
                 path = os.path.splitext(getattr(mod, '__file__', ''))[0]

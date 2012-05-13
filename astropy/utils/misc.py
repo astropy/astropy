@@ -224,7 +224,7 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
     """
     import sys
 
-    if usecPickle and sys.version_info[0] < 3:
+    if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
     else:
         import pickle
@@ -282,7 +282,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     """
     import sys
 
-    if usecPickle and sys.version_info[0] < 3:
+    if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
     else:
         import pickle

@@ -38,6 +38,7 @@ distribute-*.tar.gz
 *~
 .coverage
 cover
+htmlcov
 
 # Mac OSX
 .DS_Store

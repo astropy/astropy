@@ -2,7 +2,7 @@
 
 import sys
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] >= 3:  # pragma: py3
     # Stuff to do if Python 3
     import builtins
     import io

@@ -649,7 +649,7 @@ class DictLikeNumpy(dict):
             self.__index += 1
             return vals
 
-    if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3:  # pragma: py2
         next = __next__
 
 
