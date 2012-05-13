@@ -1,12 +1,8 @@
 .. _testing-guidelines:
 
-==========================
-Testing Guidelines (Draft)
-==========================
-
-.. warning::
-    This document is currently in Draft form and is subject to change. Not all
-    described functionality may be implemented.
+==================
+Testing Guidelines
+==================
 
 This section describes the testing framework and format standards for tests in
 Astropy core packages (this also serves as recommendations for affiliated
@@ -73,7 +69,6 @@ within those files.
     will not succeed.  Similarly, in python 3, these tests will not
     run correctly in the source code, because they need the ``2to3``
     tool to be run on them.
-
 
 You may specify a specific test file or directory at the command line::
 
@@ -408,6 +403,29 @@ These take one argument, which is the function being tested::
     def teardown_method(function):
         pass
 
+Parametrizing tests
+-------------------
+
+If you want to run a test several times for slightly different values, then
+it can be advantageous to use the ``py.test`` option to parametrize tests.
+For example, instead of writing::
+
+    def test1():
+        assert type('a') == str
+
+    def test2():
+        assert type('b') == str
+
+    def test3():
+        assert type('c') == str
+
+You can use the ``parametrize`` decorator to loop over the different
+inputs::
+
+    @pytest.mark.parametrize(('letter'), ['a', 'b', 'c'])
+    def test(letter):
+        assert type(letter) == str
+
 Using py.test helper functions
 ------------------------------
 
@@ -421,7 +439,6 @@ You may need to adjust the relative import to work for the depth of your module.
 ``tests.helper`` imports ``pytest`` either from the user's system or ``extern.pytest``
 if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
-
 
 Using data in tests
 ===================
