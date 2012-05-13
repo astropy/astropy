@@ -33,7 +33,7 @@ The following example shows how to fork the core ``astropy`` repository, but the
 
 #. Log into your GitHub account.
 
-#. Go to the Astropy_ GitHub home at `Astropy github`_.
+#. Go to the Astropy_ GitHub home.
 
 #. Click on the *fork* button:
 
@@ -90,7 +90,7 @@ In detail
     git remote add upstream git://github.com/astropy/astropy.git
 
    ``upstream`` here is just the arbitrary name we're using to refer to the
-   main Astropy_ repository at `Astropy github`_.
+   main Astropy_ repository.
 
    Note that we've used ``git://`` for the URL rather than ``git@``. The
    ``git://`` URL is read only. This means we that we can't accidentally (or
@@ -130,7 +130,7 @@ sections.
 
 * If you do find yourself merging from the trunk, consider :ref:`rebase-on-trunk`
 
-* Ask on the `Astropy mailing list`_ if you get stuck.
+* Ask on the `astropy-dev mailing list`_ if you get stuck.
 
 * Ask for code review!
 
@@ -187,7 +187,7 @@ or ``buxfix-for-issue-42``.
     git checkout my-new-feature
 
 Generally, you will want to keep your feature branches on your public github_
-fork of Astropy_. To do this, you `git push`_ this new branch up to your
+fork. To do this, you `git push`_ this new branch up to your
 github repo. Generally (if you followed the instructions in these pages, and
 by default), git will have a link to your GitHub repo, called ``origin``. You
 push up to your own repo on GitHub with::
@@ -229,12 +229,12 @@ In more detail
      #   (use "git add <file>..." to update what will be committed)
      #   (use "git checkout -- <file>..." to discard changes in working directory)
      #
-     #	modified:   README
+     #    modified:   README
      #
      # Untracked files:
      #   (use "git add <file>..." to include in what will be committed)
      #
-     #	INSTALL
+     #    INSTALL
      no changes added to commit (use "git add" and/or "git commit -a")
 
 #. Check what the actual changes are with ``git diff`` (`git diff`_).
@@ -242,14 +242,19 @@ In more detail
 #. Add any new files to version control ``git add new_file_name`` (see
    `git add`_).
 
-#. To commit all modified files into the local copy of your repo,, do
-   ``git commit -am 'A commit message'``. Note the ``-am`` options to
-   ``commit``. The ``m`` flag just signals that you're going to type a message
-   on the command line. The ``a`` flag |emdash| you can just take on faith
-   |emdash| or see `why the -a flag?`_ |emdash| and the helpful use-case
-   description in the `tangled working copy problem`_. The `git commit`_
-   manual
-   page might also be useful.
+#. Add any modified files that you want to commit using
+   ``git add modified_file_name``  (see `git add`_).
+
+#. Once you are ready to commit, check with ``git status`` which files are about to be committed::
+
+    # Changes to be committed:
+    #   (use "git reset HEAD <file>..." to unstage)
+    #
+    #    modified:   README
+
+   Then use ``git commit -m 'A commit message'``. The ``m`` flag just
+   signals that you're going to type a message on the command line. The `git
+   commit`_ manual page might also be useful.
 
 #. To push the changes up to your forked repo on github, do a ``git
    push`` (see `git push`_).

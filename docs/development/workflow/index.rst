@@ -6,20 +6,24 @@ Contributing To/Developing Astropy or Affiliated Packages
 Summary
 -------
 
-As described in :ref:`vision`, development of components intended for
-inclusion in the core ``astropy`` package will initially be done by different
-teams via *affiliated packages*. These affiliated packages will then be
-submitted for inclusion in the ``astropy`` core package by creating a git fork
-of the core repository, merging the new component into the fork, and
-submitting the package as a pull request. The step of creating a fork and
-merging the affiliated package into the fork can be done either by the team
-contributing the affiliated package, or by the coordination committee if
-requested.
+Development of components intended for
+inclusion in the core ``astropy`` package can be done either via:
 
-Once an affiliated package has been accepted and integrated as a component
-into the core ``astropy`` package, subsequent improvements and bug fixes can
-be made in the same way by forking the core repository and submitting a pull
-request.
+* **Affiliated packages** (as described in :ref:`vision`). Once ready for
+  inclusion, affiliated packages should be submitted to the Astropy core
+  package by creating a git fork of the core repository, merging the new
+  component into the fork, and submitting the package as a pull request. The
+  step of creating a fork and merging the affiliated package into the fork
+  can be done either by the team contributing the affiliated package, or by
+  the coordination committee if requested. Once an affiliated package has
+  been accepted and integrated as a component into the core ``astropy``
+  package, subsequent improvements and bug fixes can be made in the same way
+  by forking the core repository and submitting pull requests.
+
+
+* **Direct pull requests** on Github. While affiliated packages should be used
+  for major new components of Astropy, smaller additions and bug fixes to
+  the code or documentation can be done via a GitHub pull request.
 
 The bottom line is that teams working on various components are free to choose
 the version control system and workflow that they want, but ultimately the
@@ -29,33 +33,44 @@ coordination committee.
 
 .. _git-configure-impatient:
 
-For the Impatient
+For the impatient
 -----------------
 
-The only absolutely necessary configuration step is identifying yourself and your contact info::
+The only absolutely necessary configuration step is identifying yourself and
+your contact info::
 
      git config --global user.name "Your Name"
      git config --global user.email you@yourdomain.example.com
 
 More detailed information and instructions are below.
 
-After that, if you then just want to get the latest ``astropy`` source code, cd to a directory on your computer you want to put the source code, and do::
+After that, if you then just want to get the latest ``astropy`` source code,
+cd to a directory on your computer you want to put the source code, and do::
 
      git clone git@github.com:astropy/astropy.git
 
-You will then have a new copy of the source code in the ``astropy`` directory.
+You will then have a new copy of the source code in the ``astropy``
+directory.
 
-Later, if you want to update to the most recent version of the ``astropy`` code, just go do::
+Later, if you want to update to the most recent version of the ``astropy``
+code, just go do::
 
    cd astropy
    git pull
 
-If you find a bug and want to fix it, see :ref:`basic-workflow` or :ref:`advanced-workflow` depending on how comfortable you are with git.
+If you find a bug and want to fix it, see :ref:`basic-workflow` or
+:ref:`advanced-workflow` depending on how comfortable you are with git (the
+former describes how to create a patch, while the latter explains how to
+create a pull request).
 
-Git Documentation
------------------
+Getting started with git
+------------------------
 
-The following sections cover the installation of the git software, the basic configuration, and links to resources to learn more about using git. However, you can also directly go to the `GitHub help pages <http://help.github.com/>`_ which offer a great introduction to git and GitHub.
+The following sections cover the installation of the git software, the basic
+configuration, and links to resources to learn more about using git.
+However, you can also directly go to the `GitHub help pages
+<http://help.github.com/>`_ which offer a great introduction to git and
+GitHub.
 
 .. toctree::
    :maxdepth: 1

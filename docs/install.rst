@@ -83,6 +83,8 @@ To install Astropy (from the root of the source tree)::
 
     python setup.py install
 
+.. _builddocs:
+
 Building documentation
 ``````````````````````
 

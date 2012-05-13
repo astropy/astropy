@@ -54,7 +54,7 @@ Then, the workflow is the following:
    # Make the patch files
    git format-patch -M -C master
 
-Then, send the generated patch files to the `Astropy mailing list`_ |emdash|
+Then, send the generated patch files to the `astropy-dev mailing list`_ |emdash|
 where we will thank you warmly.
 
 In detail
@@ -116,7 +116,7 @@ In detail
       0001-BF-added-tests-for-Funny-bug.patch
       0002-BF-added-fix-for-Funny-bug.patch
 
-   Send these files to the `Astropy mailing list`_.
+   Send these files to the `astropy-dev mailing list`_.
 
 When you are done, to switch back to the main copy of the
 code, just return to the ``master`` branch::
@@ -128,6 +128,7 @@ Moving from patching to development
 
 If you find you have done some patches, and you have one or more feature
 branches, you will probably want to switch to a more advanced development
-mode. You can do this with the repository you have. See :ref:`advanced-workflow` for more details.
+mode. You can do this with the repository you have. See
+:ref:`advanced-workflow` for more details.
 
 .. include:: links.inc
