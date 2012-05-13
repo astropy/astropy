@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 import re
+import shlex
 
 from distutils import log
 from distutils.dist import Distribution
@@ -492,7 +493,7 @@ def adjust_compiler():
         'compiler', ['build', 'build_ext', 'build_clib']) is not None:
         return
 
-    from distutils import ccompiler
+    from distutils import ccompiler, sysconfig
     import subprocess
     import re
 
@@ -500,18 +501,24 @@ def adjust_compiler():
         (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
         ]
 
-    c = ccompiler.new_compiler()
-    # The MSVC ccompiler class doesn't have a `compiler` member.
-    if not hasattr(c, 'compiler'):
-        return
-    process = subprocess.Popen(
-        c.compiler + ['--version'], stdout=subprocess.PIPE)
-    output = process.communicate()[0].strip()
-    version = output.split()[0]
-    for broken, fixed in compiler_mapping:
-        if re.match(broken, version):
-            os.environ['CC'] = fixed
-            break
+    compiler_type = ccompiler.get_default_compiler()
+
+    if compiler_type == 'unix':
+
+        # We have to get the compiler this way, as this is the one that is
+        # used if os.environ['CC'] is not set. It is actually read in from
+        # the Python Makefile. Note that this is not necessarily the same
+        # compiler as returned by ccompiler.new_compiler()
+        c_compiler = sysconfig.get_config_var('CC')
+
+        process = subprocess.Popen(
+            shlex.split(c_compiler) + ['--version'], stdout=subprocess.PIPE)
+        output = process.communicate()[0].strip()
+        version = output.split()[0]
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                os.environ['CC'] = fixed
+                break
 
 
 def is_in_build_mode():
