@@ -1,12 +1,12 @@
-================================
-Documentation Guidelines (Draft)
-================================
+=======================
+Documentation Guideline
+=======================
 
-.. warning::
-    This document is currently in Draft form and is subject to change.
+Building the Documentation from source
+--------------------------------------
 
-TODO: Detailed information about building the documentation should be
-added here.
+For information about building the documentation from source, see
+the :ref:`builddocs` section in the installation instructions.
 
 Astropy Documentation Rules and Recommendations
 -----------------------------------------------
@@ -15,7 +15,7 @@ This section describes the standards for documentation format affiliated
 packages that must follow for consideration of integration into the core
 module, as well as the standard Astropy docstring format.
 
-* Documentation shall use the Sphinx documentation tool.
+* All documentation should be written use the Sphinx documentation tool.
 
 * The template package will provide a recommended general structure for
   documentation.
@@ -265,12 +265,12 @@ The sections of the docstring are:
    docstrings further explain parameters used by this function are good
    candidates.
 
-   As an example, for a hypothetical function ``astropy.wcs.sky2pix``
+   As an example, for a hypothetical function ``astropy.wcs.world2pix``
    converting sky to pixel coordinates, we would have::
 
      See Also
      --------
-     pix2sky : Convert pixel to sky coordinates
+     pix2world : Convert pixel to sky coordinates
 
    When referring to functions in the same sub-module, no prefix is needed,
    and the tree is searched upwards for a match.
@@ -377,7 +377,7 @@ The sections of the docstring are:
    lines. Comments explaining the examples should have blank lines both above
    and below them::
 
-     >>> astropy.wcs.sky2pix(233.2, -12.3)
+     >>> astropy.wcs.world2pix(233.2, -12.3)
      (134.5, 233.1)
 
      Comment explaining the second example
@@ -389,21 +389,14 @@ The sections of the docstring are:
    output as such::
 
      >>> astropy.coords.randomize_position(244.9, 44.2, radius=0.1)
-     (244.855, 44.13)  #random
-
-   You can run examples using::
-
-     >>> astropy.test(doctests=True)
+     (244.855, 44.13)  # random
 
    It is not necessary to use the doctest markup ``<BLANKLINE>`` to indicate
-   empty lines in the output. Note that the option to run the examples through
-   ``numpy.test`` is provided for checking if the examples work, not for
-   making the examples part of the testing framework.
+   empty lines in the output. The examples may assume that ``import numpy as
+   np`` is executed before the example code.
 
-   The examples may assume that ``import numpy as np`` is executed before the
-   example code Additional examples may make use of *matplotlib*
-   for plotting, but should import it explicitly, e.g., ``import
-   matplotlib.pyplot as plt``.
+.. We need to consider whether to add a doctest= option to astropy.test to
+.. enable automated testing of the examples as in Numpy.
 
 Documenting classes
 ^^^^^^^^^^^^^^^^^^^
@@ -413,10 +406,10 @@ Class docstrings
 
 Use the same sections as outlined above (all except ``Returns`` are
 applicable). The constructor (``__init__``) should also be documented here,
-the **parameters** section of the docstring details the constructors
+the ``Parameters`` section of the docstring details the constructors
 parameters.
 
-An ``Attributes`` section, located below the **parameters** section, may be
+An ``Attributes`` section, located below the ``Parameters`` section, may be
 used to describe class variables::
 
   Attributes
@@ -467,16 +460,16 @@ If it is necessary to explain a private method (use with care!), it can be
 referred to in the **extended summary** or the **notes**. Do not list private
 methods in the Methods section.
 
-Note that ``self`` is *not* listed as the first parameter of methods.
+Do not list ``self`` as the first parameter of a method.
 
 Method docstrings
 `````````````````
 
-Document these as you would any other function. Do not include ``self`` in the
-list of parameters. If a method has an equivalent function (which is the case
-for many ndarray methods for example), the function docstring should contain
-the detailed documentation, and the method docstring should refer to it. Only
-put brief summary and See Also sections in the method docstring.
+Document these as you would any other function. Do not include ``self`` in
+the list of parameters. If a method has an equivalent function, the function
+docstring should contain the detailed documentation, and the method
+docstring should refer to it. Only put brief ``Summary`` and ``See Also``
+sections in the method docstring.
 
 Documenting class instances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -525,7 +518,7 @@ functions when they are appropriate::
 
 Routine listings are encouraged, especially for large modules, for which it is
 hard to get a good overview of all functionality provided by looking at the
-source file(s) or the __all__ dict.
+source file(s) or the ``__all__`` dict.
 
 Note that license and author info, while often included in source files, do not
 belong in docstrings.
@@ -551,7 +544,7 @@ Other points to keep in mind
   that are not answered in this document, refer to
   `<http://docs.scipy.org/numpy/Questions+Answers/>`_.
 
-* array_like : For functions that take arguments which can have not only
+* ``array_like`` : For functions that take arguments which can have not only
   a type `ndarray`, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
   with type `array_like`.
