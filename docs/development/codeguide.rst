@@ -1,49 +1,58 @@
-=========================
-Coding Guidelines (Draft)
-=========================
+=================
+Coding Guidelines
+=================
 
-.. warning::
-    This document is currently in Draft form and is subject to change.
+This section describes requirements and guidelines that should be followed
+both for the core package and for affiliated packages.
 
-This section describes requirements and guidelines that affiliated packages
-will have to follow before being considered for integration as a module in the
-core package.
+.. note:: Affiliated packages will only be considered for integration as a
+          module in the core package once these guidelines have been
+          followed.
 
 Interface and Dependencies
 --------------------------
 
-* The package should meet the interface requirements set out by the
-  coordination committee.
+* All code must be compatible with Python 2.6, 2.7, as well as 3.1 and
+  later. All files should include the preamble::
 
-* Packages implementing many classes/functions not relevant to the component
-  requested will not be accepted - the package should only include the
-  required functionality and relevant extensions.
+        from __future__ import print_function, division
 
-* Packages must be compatible with Python 2.6, 2.7, and 3.x (for 3.x
-  compatibility, the `2to3 tool <http://docs.python.org/library/2to3.html>`_
-  will be used).
+  and therefore use the ``print()`` function from Python 3. In addition, the
+  new Python 3 formatting style should be used (i.e.
+  ``"{0:s}".format("spam")`` instead of ``"%s" % "spam"``), although when
+  using positional arguments, the position should always be specified (i.e.
+  ``"{:s}"`` is not compatible with Python 2.6). Astropy automatically runs
+  the `2to3 tool <http://docs.python.org/library/2to3.html>`_ on the source
+  code, so in cases where syntax is different between Python 2 and 3, the
+  Python 2 syntax should be used.
 
-* The package should be importable with no dependencies other than components
-  already in the Astropy core, the `Python Standard Library (v2.6)
-  <http://docs.python.org/release/2.6/library/index.html>`_, NumPy_, SciPy_,
-  and Matplotlib_ (versions for these packages will be specified in the
-  Astropy ``setup.py`` file and on PyPI_).
+* The core package and affiliated packages should be importable with no
+  dependencies other than components already in the Astropy core, the
+  `Python Standard Library
+  <http://docs.python.org/release/2.6/library/index.html>`_, and NumPy_ 1.4
+  or later.
 
-* The package should be importable from the source tree at build time.
-  This means that, for example, if the package relies on C extensions
-  that have yet to be built, the Python code is still importable, even
-  if none of its functionality will work.
+* The package should be importable from the source tree at build time. This
+  means that, for example, if the package relies on C extensions that have
+  yet to be built, the Python code is still importable, even if none of its
+  functionality will work. One way to ensure this is to import the functions
+  in the C extensions only within the functions/methods that require them
+  (see next bullet point).
 
-* Additional dependencies are allowed for sub-modules or in function calls,
+* Additional dependencies - such as SciPy_, Matplotlib_, or other
+  third-party packages - are allowed for sub-modules or in function calls,
   but they must be noted in the package documentation and should only affect
   the relevant component.
 
-* General utilities necessary for but not specific to the package should be
-  placed in the :mod:`packagename.utils` module. These utilities will be moved
-  to the :mod:`astropy.utils` module when the package is integrated into the
-  core package. If a utility is already present in :mod:`astropy.utils`, the
-  package should always use that utility instead of re-implementing it in
-  :mod:`packagename.utils`.
+* General utilities necessary for but not specific to the package or
+  sub-package should be placed in the :mod:`packagename.utils`. These
+  utilities will be moved to the :mod:`astropy.utils` module when the
+  package is integrated into the core package. If a utility is already
+  present in :mod:`astropy.utils`, the package should always use that
+  utility instead of re-implementing it in :mod:`packagename.utils`. Note
+  that the same applies to :mod:`astropy.tools`, which is intended for
+  Astronomy-specific utilities.
+
 
 Documentation and Testing
 -------------------------
@@ -51,8 +60,10 @@ Documentation and Testing
 * Docstrings must be present for all public classes/methods/functions, and
   must follow the form outlined in the :doc:`docguide` document.
 
-* Unit tests are encouraged for all public methods and functions, and should
-  adhere to the standards set in the :doc:`testguide` document.
+* Unit tests should be provided for as many public methods and functions as
+  possible, and should adhere to the standards set in the :doc:`testguide`
+  document.
+
 
 Data and Configuration
 ----------------------
@@ -69,12 +80,12 @@ Data and Configuration
   a data file is needed, the hash mechanism described in :doc:`/configs` should
   be used.
 
-* All persistent configuration should use the 
+* All persistent configuration should use the
   `astropy.config.ConfigurationItem` mechanism.  Such configuration items
   should be placed at the top of the module or package that makes use of them,
   and supply a description sufficient for users to understand what the setting
   changes.
- 
+
 
 Coding Style/Conventions
 ------------------------
@@ -89,17 +100,16 @@ Coding Style/Conventions
   syntax. This is primarily due to improved relative import support since PEP8
   was developed, and to simplify the process of moving modules.
 
-.. note:: There are multiple options for testing PEP8 compliance of code,
-          see :doc:`testguide` for more information.
+  .. note:: There are multiple options for testing PEP8 compliance of code,
+            see :doc:`testguide` for more information.
+            See :doc:`codeguide_emacs` for some configuration options for Emacs
+            that helps in ensuring conformance to PEP8.
 
-          See :doc:`codeguide_emacs` for some configuration options for
-          Emacs that helps in ensuring conformance to PEP8.
-      
 * Astropy source code should contain a comment at the beginning of the file (or
-  imppediately after the ``#!/usr/bin env python`` command, if relevant) 
+  immediately after the ``#!/usr/bin env python`` command, if relevant)
   pointing to the license for the Astropy source code.  This line should say::
-  
-      # Licensed under a 3-clause BSD style license - see LICENSE.rst  
+
+      # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 * The ``import numpy as np``, ``import matplotlib as mpl``, and ``import
   matplotlib.pyplot as plt`` naming conventions should be used wherever
@@ -110,7 +120,7 @@ Coding Style/Conventions
 * Classes should either use direct variable access, or python’s property
   mechanism for setting object instance variables. ``get_value``/``set_value``
   style methods should be used only when getting and setting the values
-  requires a computationally-expensive operation. :ref:`prop-get-set-example` 
+  requires a computationally-expensive operation. :ref:`prop-get-set-example`
   below illustrates this guideline.
 
 * All new classes should be new-style classes inheriting from :class:`object`
@@ -121,7 +131,7 @@ Coding Style/Conventions
 * Classes should use the builtin :func:`super` function when making calls to
   methods in their super-class(es) unless there are specific reasons not to.
   :func:`super` should be used consistently in all subclasses since it does not
-  work otherwise.  :ref:`super-vs-direct-example` illustrates why this is 
+  work otherwise.  :ref:`super-vs-direct-example` illustrates why this is
   important.
 
 * Multiple inheritance should be avoided in general without good reason.
@@ -135,19 +145,17 @@ Coding Style/Conventions
   method resolution order.  However, trivial multiple inheritance using
   orthogonal base classes, known as the 'mixin' pattern, may be used.
 
-* ``__init__.py`` files for modules should not contain any significant 
-  implementation code. ``__init__.py`` can contain docstrings and code for 
+* ``__init__.py`` files for modules should not contain any significant
+  implementation code. ``__init__.py`` can contain docstrings and code for
   organizing the module layout, however (e.g. ``from submodule import *``
-  in accord with the guideline above). If a module is small enough that 
-  it fits in one file, it should simple be a single file, rather than a 
-  directory with an ``__init__.py`` file. 
-  
-* When try...except blocks are used to catch exceptions, the ``as`` syntax
-  should always be used, because this is available in all supported versions of 
-  python and is less ambiguous syntax (see :ref:`try-except-as-example`).
+  in accord with the guideline above). If a module is small enough that
+  it fits in one file, it should simple be a single file, rather than a
+  directory with an ``__init__.py`` file.
 
-* Affiliated packages are required to follow the layout and documentation form
-  of the template package included in the core package source distribution.
+* When ``try...except`` blocks are used to catch exceptions, the ``as``
+  syntax should always be used, because this is available in all supported
+  versions of python and is less ambiguous syntax (see
+  :ref:`try-except-as-example`).
 
 * Command-line scripts should follow the form outlined in the :doc:`scripts`
   document.
@@ -175,13 +183,21 @@ Including C Code
 * In cases where C extensions are needed but Cython_ cannot be used, the `PEP 7
   Style Guide for C Code <http://www.python.org/dev/peps/pep-0007/>`_ is
   recommended.
-  
+
 * C extensions (Cython_ or otherwise) should provide the necessary information
-  for building the extension via the mechanisms described in 
+  for building the extension via the mechanisms described in
   :ref:`building-c-or-cython-extensions`.
 
 Requirements Specific to Affiliated Packages
 --------------------------------------------
+
+* Affiliated packages implementing many classes/functions not relevant to
+  the affiliated package itself (for example leftover code from a previous
+  package) will not be accepted - the package should only include the
+  required functionality and relevant extensions.
+
+* Affiliated packages are required to follow the layout and documentation form
+  of the template package included in the core package source distribution.
 
 * Affiliated packages must be registered on the `Python Package Index
   <http://pypi.python.org/pypi>`_, with proper metadata for downloading and
@@ -229,7 +245,7 @@ a get/set method. For lengthy or complex calculations, however, use a method::
 
     >>> print s.compute_color(5800, age=5e9)
     0.4
-    
+
 .. _super-vs-direct-example:
 
 super() vs. Direct Calling
@@ -398,15 +414,15 @@ Catching of exceptions should always use this syntax::
             #for whatever reason, failed import of somemodule is ok
             pass
         else:
-            raise 
+            raise
     except ValueError, TypeError as e:
         msg = 'Hit an input problem, which is ok,'
         msg2 = 'but we're printing it here just so you know:'
         print msg, msg2, e
-    
-This avoids the old style syntax of ``except ImportError, e`` or 
+
+This avoids the old style syntax of ``except ImportError, e`` or
 ``except (ValueError,TypeError), e``, which is dangerous because it's easy to
-instead accidentally do something like ``except ValueError,TypeError``, which 
+instead accidentally do something like ``except ValueError,TypeError``, which
 won't catch `TypeError`.
 
 
@@ -419,8 +435,6 @@ Further tips and hints relating to the coding guidelines are included below.
     :maxdepth: 1
 
     codeguide_emacs
-
-
 
 .. _Numpy: http://numpy.scipy.org/
 .. _Scipy: http://www.scipy.org/
