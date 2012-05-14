@@ -34,7 +34,7 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     ' of the python session.')
 
 
-if sys.version_info[0] < 3:
+if sys.version_info[0] < 3:  # pragma: py2
     #used for supporting with statements in get_data_fileobj
     def _fake_enter(self):
         return self
@@ -148,7 +148,7 @@ def get_data_fileobj(dataname, cache=True):
                 #not local file - need to get remote data
                 urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
 
-        if sys.version_info[0] < 3:
+        if sys.version_info[0] < 3:  # pragma: py2
             #need to add in context managers to support with urlopen for <3.x
             urlres.__enter__ = MethodType(_fake_enter, urlres)
             urlres.__exit__ = MethodType(_fake_exit, urlres)
@@ -681,9 +681,9 @@ def _open_shelve(shelffn, withclosing=False):
     import shelve
     from contextlib import closing
 
-    if sys.version_info[0] > 2:
+    if sys.version_info[0] > 2:  # pragma: py3
         shelf = shelve.open(shelffn, protocol=2)
-    else:
+    else:  # pragma: py2
         shelf = shelve.open(shelffn + '.db', protocol=2)
 
     if withclosing:

@@ -46,9 +46,10 @@ turn off regular testing and enable PEP8 testing.
 
 .. note::
     This method of running the tests defaults to the version of `py.test` that
-    is bundled with Astropy. To use the locally-installed version, you should
-    either change the `use_system_pytest` configuration option to "True"
-    (see :doc:`../../configs`) or the `py.test` method describe below.
+    is bundled with Astropy. To use the locally-installed version, you can set
+    the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
+
+        > ASTROPY_USE_SYSTEM_PYTEST=1 python setup.py test
 
 py.test
 -------
@@ -66,11 +67,11 @@ in the currect directory and all recursive directories then run all the code tha
 within those files.
 
 .. note::
-    To test any compiled C/Cython extensions, you must either have run
-    ``python setup.py test`` or ``python setup.py develop`` prior to running
-    the py.test command-line script.  Otherwise, any tests that make use of
-    these extensions will not succeed.  Similarly, in python 3, these tests
-    will not run correctly in the source code, because they need the ``2to3``
+    To test any compiled C/Cython extensions, you must run ``python
+    setup.py develop`` prior to running the py.test command-line
+    script.  Otherwise, any tests that make use of these extensions
+    will not succeed.  Similarly, in python 3, these tests will not
+    run correctly in the source code, because they need the ``2to3``
     tool to be run on them.
 
 
@@ -130,20 +131,21 @@ or absolutely.
 By default ``astropy.test()`` will skip tests which retrieve data from the
 internet. To turn these tests on use the ``remote_data`` flag::
 
-    astropy.test('io.fits',remote_data=True)
+    astropy.test('io.fits', remote_data=True)
 
 In addition, the ``test`` function supports any of the options that can be
 passed to `pytest.main() <http://pytest.org/latest/builtin.html#pytest.main>`_,
-and convenience options ``verbose=`` and ``pastebin=``.
+and convenience options ``verbose=``, ``pastebin=`` and ``coverage=``.
 
 Enable PEP8 compliance testing with ``pep8=True`` in the call to
 ``astropy.test``. This will enable PEP8 checking and disable regular tests.
 
 .. note::
-    This method of running the tests defaults to the version of `py.test` that
-    is bundled with Astropy. To use the locally-installed version, you should
-    either change the `use_system_pytest` configuration option to "True"
-    (see :doc:`../../configs`) or the `py.test` method describe above.
+    This method of running the tests defaults to the version of
+    `py.test` that is bundled with Astropy. To use the
+    locally-installed version, you should set the
+    ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable (see
+    :doc:`../../configs`) or the `py.test` method describe above.
 
 Regression tests
 ================
@@ -442,3 +444,37 @@ AstroPy.
 The details of the server implementation have yet to be decided, but using
 these static hash-based URLs ensures that even if we change the backend, the
 URL will remain the same.
+
+
+Test coverage reports
+=====================
+
+Astropy can use `coverage.py
+<http://nedbatchelder.com/code/coverage/>`_ to generate test coverage
+reports.  To generate a test coverage report, use::
+
+    python setup.py test --coverage
+
+There is a `coveragerc
+<http://nedbatchelder.com/code/coverage/config.html>`_ file that
+defines files to omit as well as lines to exclude.  It is installed
+along with astropy so that the `astropy.test` function can use it.  In
+the source tree, it is at `astropy/tests/coveragerc`.
+
+Marking blocks of code to exclude from coverage
+-----------------------------------------------
+
+Blocks of code may be ignored by adding a comment containing the
+phrase ``pragma: no cover`` to the start of the block::
+
+    if this_rarely_happens:  # pragma: no cover
+        this_call_is_ignored()
+
+Blocks of code that are intended to run only in Python 2.x or 3.x may
+also be marked so that they will be ignored when appropriate by
+`coverage.py`::
+
+    if sys.version_info[0] >= 3:  # pragma: py3
+        do_it_the_python3_way()
+    else:  # pragma: py2
+        do_it_the_python2_way()

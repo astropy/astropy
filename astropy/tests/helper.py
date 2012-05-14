@@ -11,30 +11,14 @@ import zlib
 import functools
 import os
 import subprocess
+import shutil
+import tempfile
 
 from distutils.core import Command
 
 from .. import test
 
-#If we are in setup.py, we don't want to import astropy.config
-if __builtins__.get('_ASTROPY_SETUP_'):
-    if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
-        USE_SYSTEM_PYTEST = lambda: True
-    else:
-        USE_SYSTEM_PYTEST = lambda: False
-else:
-    from ..config import ConfigurationItem
-
-    USE_SYSTEM_PYTEST = ConfigurationItem('use_system_pytest', False,
-                                          'Set to True to load system pytest.  '
-                                          'This item will *not* be obeyed if '
-                                          'using setup.py.  In that case the '
-                                          'environment variable '
-                                          'ASTROPY_USE_SYSTEM_TEST must be '
-                                          'used',
-                                          'boolean', 'astropy.tests.helper')
-
-if USE_SYSTEM_PYTEST():
+if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
     import pytest
 
 else:
@@ -72,7 +56,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False):
+                  pdb=False, coverage=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -123,10 +107,50 @@ class TestRunner(object):
         if pdb:
             all_args += ' --pdb'
 
-        all_args = shlex.split(all_args,
-                               posix=not sys.platform.startswith('win'))
+        if coverage:
+            try:
+                import pytest_cov
+            except ImportError:
+                raise ImportError(
+                    'Coverage reporting requires pytest-cov plugin: '
+                    'http://pypi.python.org/pypi/pytest-cov')
+            else:
+                # Don't use get_data_filename here, because it
+                # requires importing astropy.config and thus screwing
+                # up coverage results for those packages.
+                coveragerc = os.path.join(
+                    os.path.dirname(__file__), 'coveragerc')
 
-        return pytest.main(args=all_args, plugins=plugins)
+                # We create a coveragerc that is specific to the version
+                # of Python we're running, so that we can mark branches
+                # as being specifically for Python 2 or Python 3
+                with open(coveragerc, 'r') as fd:
+                    coveragerc_content = fd.read()
+                if sys.version_info[0] >= 3:
+                    ignore_python_version = '2'
+                else:
+                    ignore_python_version = '3'
+                coveragerc_content = coveragerc_content.replace(
+                    "{ignore_python_version}", ignore_python_version)
+                with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                    tmp.write(coveragerc_content)
+
+                all_args += (
+                    ' --cov-report html --cov astropy'
+                    ' --cov-config {0}'.format(tmp.name))
+
+        try:
+            all_args = shlex.split(
+                all_args, posix=not sys.platform.startswith('win'))
+
+            result = pytest.main(args=all_args, plugins=plugins)
+        finally:
+            if coverage:
+                if not tmp.closed:
+                    tmp.close()
+                os.remove(tmp.name)
+
+        return result
     run_tests.__doc__ = test.__doc__
 
 
@@ -152,7 +176,9 @@ class astropy_test(Command, object):
          'Same as specifying `--pep8 -k pep8` in `args`. Requires the '
          'pytest-pep8 plugin.'),
         ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
-         'Same as specifying `--pdb` in `args`.')
+         'Same as specifying `--pdb` in `args`.'),
+        ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
+         'plugin is installed')
     ]
 
     package_name = None
@@ -167,6 +193,7 @@ class astropy_test(Command, object):
         self.remote_data = False
         self.pep8 = False
         self.pdb = False
+        self.coverage = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -182,15 +209,33 @@ class astropy_test(Command, object):
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
-        cmd = ('import {0}, sys; sys.exit({0}.test({1!r}, {2!r}, ' +
-               '{3!r}, {4!r}, {5!r}, {6!r}, {7!r}, {8!r}, {9!r}))')
-        cmd = cmd.format(self.package_name,
-                         self.package, self.test_path, self.args,
-                         self.plugins, self.verbose_results, self.pastebin,
-                         self.remote_data, self.pep8, self.pdb)
 
-        raise SystemExit(subprocess.call([sys.executable, '-c', cmd],
-                                         cwd=new_path, close_fds=False))
+        # We need to set a flag in the child's environment so that
+        # unnecessary code is not imported before py.test can start
+        # up, otherwise the coverage results will be artifically low.
+        if sys.version_info[0] >= 3:
+            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+        else:
+            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
+
+        cmd = ('{0}; import {1.package_name}, sys; sys.exit('
+               '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
+               '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
+               '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
+               '{1.coverage!r}))')
+        cmd = cmd.format(set_flag, self)
+
+        retcode = subprocess.call([sys.executable, '-c', cmd],
+                                  cwd=new_path, close_fds=False)
+
+        if self.coverage and retcode == 0:
+            # Copy the htmlcov from build/lib.../htmlcov to a more
+            # obvious place
+            if os.path.exists('htmlcov'):
+                shutil.rmtree('htmlcov')
+            shutil.copytree(os.path.join(new_path, 'htmlcov'), 'htmlcov')
+
+        raise SystemExit(retcode)
 
 
 class raises:

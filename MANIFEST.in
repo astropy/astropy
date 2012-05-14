@@ -2,6 +2,7 @@ include README.rst
 
 include distribute_setup.py
 include setup.cfg
+include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map
 
 recursive-include docs *
@@ -13,4 +14,3 @@ recursive-include astropy/wcs/src/wcslib *
 exclude *.pyc *.o
 prune docs/_build
 prune build
-

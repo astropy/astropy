@@ -25,9 +25,9 @@ def _find_home():
 
     # this is used below to make fix up encoding issues that sometimes crop up
     # in py2.x but not in py3.x
-    if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3:  # pragma: py3
         decodepath = lambda pth: pth.decode(sys.getfilesystemencoding())
-    else:
+    else:  # pragma: py2
         decodepath = lambda pth: pth
 
     #First find the home directory - this is inspired by the scheme ipython
