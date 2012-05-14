@@ -8,6 +8,33 @@ BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
 
 
+class TestMultiD():
+
+    def test_multidim(self):
+        """Test printing with multidimensional column"""
+        arr = [np.array([[1, 2],
+                         [10, 20]]),
+               np.array([[3, 4],
+                         [30, 40]]),
+               np.array([[5, 6],
+                         [50, 60]])]
+        t = Table(arr)
+        lines = t.pformat()
+        print lines
+        assert lines == ['col0 [2] col1 [2] col2 [2]',
+                         '-------- -------- --------',
+                         '  1 .. 2   3 .. 4   5 .. 6',
+                         '10 .. 20 30 .. 40 50 .. 60']
+        t = Table([arr])
+        lines = t.pformat()
+        print lines
+        assert lines == ['col0 [2,2]',
+                         '----------',
+                         '   1 .. 20',
+                         '   3 .. 40',
+                         '   5 .. 60']
+
+
 class TestPprint():
 
     def setup_method(self, method):

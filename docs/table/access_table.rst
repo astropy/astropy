@@ -237,6 +237,9 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   2940 2941 2942 2943 2944 2945 2946 ...  2964  2965  2966  2967  2968  2969
   2970 2971 2972 2973 2974 2975 2976 ...  2994  2995  2996  2997  2998  2999
 
+pprint() method
+^^^^^^^^^^^^^^^^
+
 In order to fully control the print output use the Table :func:`~astropy.table.Table.pprint` or Column
 :func:`~astropy.table.Column.pprint` methods.  These have keyword
 arguments ``max_lines``, ``max_width``, ``show_name``, ``show_units`` with
@@ -317,6 +320,9 @@ there is no ``max_width`` keyword argument::
   2943.0
   2973.0
 
+pformat() method
+^^^^^^^^^^^^^^^^^
+
 In order to get the formatted output for manipulation or writing to a file use
 the Table :func:`~astropy.table.Table.pformat` or Column
 :func:`~astropy.table.Column.pformat` methods.  These behave just as for
@@ -327,3 +333,30 @@ the Table :func:`~astropy.table.Table.pformat` or Column
   >>> lines
   ['  col3', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
+Multidimensional columns
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a column has more than one dimension then each element of the column is
+itself an array.  In the example below there are 3 rows, each of which is a 
+``2 x 2`` array.  The formatted output for such a column shows only the first
+and last value of each row element and indicates the array dimensions in the
+column name header::
+
+  >>> from astropy.table import Table, Column
+  >>> import numpy as np
+  >>> t = Table()
+  >>> arr = [ np.array([[ 1,  2],   
+  ...                   [10, 20]]), 
+  ...         np.array([[ 3,  4],   
+  ...                   [30, 40]]), 
+  ...         np.array([[ 5,  6],   
+  ...                   [50, 60]]) ]
+  >>> t.add_column(Column('a', arr))
+  >>> t['a'].shape
+  (3, 2, 2)
+  >>> t.pprint()
+  a [2,2]
+  -------
+  1 .. 20
+  3 .. 40
+  5 .. 60

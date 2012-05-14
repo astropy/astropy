@@ -115,12 +115,22 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     """
     max_lines, _ = _get_pprint_size(max_lines, -1)
 
+    multidims = col.shape[1:]
+    if multidims:
+        multidim0 = tuple(0 for n in multidims)
+        multidim1 = tuple(n - 1 for n in multidims)
+
     col_strs = []  # List of formatted column values
     i_dashes = None
     i_centers = []  # Line indexes where content should be centered
     if show_name:
         i_centers.append(len(col_strs))
-        col_strs.append(col.name)
+        if multidims:
+            col_name = col.name + ' [{}]'.format(
+                ','.join(str(n) for n in multidims))
+        else:
+            col_name = col.name
+        col_strs.append(col_name)
         max_lines -= 1
     if show_units:
         i_centers.append(len(col_strs))
@@ -145,7 +155,13 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     # Add formatted values if within bounds allowed by max_lines
     for i in xrange(n_rows):
         if i < i0 or i > i1:
-            col_strs.append(format_func(col.format, col[i]))
+            if multidims:
+                col_str = (format_func(col.format, col[(i,) + multidim0]) +
+                           ' .. ' +
+                           format_func(col.format, col[(i,) + multidim1]))
+            else:
+                col_str = format_func(col.format, col[i])
+            col_strs.append(col_str)
         elif i == i0:
             col_strs.append('...')
 
@@ -158,9 +174,8 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         col_strs[i_dashes] = '-' * col_width
 
     # Now bring all the column string values to the same fixed width
-    fmt_str = '%' + str(col_width) + 's'
     for i, col_str in enumerate(col_strs):
-        col_strs[i] = fmt_str % col_str
+        col_strs[i] = col_str.rjust(col_width)
 
     return col_strs
 
