@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+import re
 import datetime
 import decimal
 import numpy as np
@@ -10,6 +10,23 @@ import numpy as np
 
 calendar_zeropoint = datetime.datetime(1977, 1, 1, 0, 0, 32, 184000)
 jd_zeropoint = decimal.Decimal('2443144.5003725')
+
+
+iso8601_re = re.compile("(?P<year>\d{4})"
+           "(-?(?P<month>\d{1,2})"
+           "(-?(?P<day>\d{1,2})"
+           "((?P<separator>.)"
+           "(?P<hour>\d{2})"
+           ":?(?P<minute>\d{2})"
+           "(:?(?P<second>\d{2})"
+           "(\.(?P<fraction>\d+))?)?"
+           "(?P<timezone>Z|(([-+])(\d{2}):(\d{2})))?)?)?)?"
+
+
+
+
+
+    
 
 class Time(object):
     """Class to store a time variable.
