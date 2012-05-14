@@ -2,6 +2,7 @@
 source = astropy
 omit =
    astropy/__init__*
+   astropy/conftest.py
    astropy/*setup*
    astropy/*tests/*
    astropy/extern/*
