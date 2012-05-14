@@ -325,7 +325,7 @@ class Column(np.ndarray):
             List of formatted column values
 
         """
-        print '\n'.join(_pformat_col(self, max_lines, show_name, show_units))
+        print('\n'.join(_pformat_col(self, max_lines, show_name, show_units)))
 
     def __str__(self):
         return '\n'.join(_pformat_col(self))
@@ -688,8 +688,8 @@ class Table(object):
             Include a header row for units (default=False)
 
         """
-        print '\n'.join(_pformat_table(self, max_lines, max_width, show_name,
-                                      show_units))
+        print('\n'.join(_pformat_table(self, max_lines, max_width, show_name,
+                                      show_units)))
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_units=False):
