@@ -20,7 +20,19 @@ __all__ = ['log', 'AstropyLogger', 'LoggingError']
 
 
 class LoggingError(Exception):
-    pass
+    """
+    This exception is for various errors that occur in the astropy logger,
+    typically when activating or deactivating logger-related features.
+    """
+
+class _AstLogIPYExc(Exception):
+    """
+    An exception that is used only as a placeholder to indicate to the
+    IPython exception-catching mechanism that the astropy
+    exception-capturing is activated. It should not actually be used as
+    an exception anywhere.
+    """
+
 
 # Read in configuration
 
@@ -251,7 +263,7 @@ class AstropyLogger(Logger):
         if ip is None:
             return self._excepthook_orig is not None
         else:
-            return LoggingError in ip.custom_exceptions
+            return _AstLogIPYExc in ip.custom_exceptions
 
     def enable_exception_logging(self):
         '''
@@ -286,9 +298,9 @@ class AstropyLogger(Logger):
                 ipyshell.showtraceback((etype, evalue, tb), tb_offset=tb_offset)
 
             #now register the function with IPython
-            #note that we include LoggingError so `disable_exception_logging`
+            #note that we include _AstLogIPYExc so `disable_exception_logging`
             #knows that it's disabling the right thing
-            ip.set_custom_exc((Exception, LoggingError), ipy_exc_handler)
+            ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
 
             #and set self._excepthook_orig to a no-op
             self._excepthook_orig = lambda etype, evalue, tb:None
