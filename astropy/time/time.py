@@ -37,7 +37,7 @@ def get_fraction_of_seconds(time1, time2):
     return td.microseconds / 1e6
 
 def convert_seconds_to_timedelta(seconds, fraction_of_seconds):
-    return datetime.timedelta(seconds=seconds, microseconds=fraction_of_seconds * 1e6)
+    return datetime.timedelta(seconds=int(seconds), microseconds=fraction_of_seconds * 1e6)
 
 class Time(object):
     """Class to store a time variable.
@@ -83,10 +83,19 @@ class Time(object):
             
         elif isinstance(tai, datetime.datetime):
             time_to_zeropoint = (tai - calendar_zeropoint)
-            return cls(seconds=time_to_zeropoint.seconds,
+            seconds = get_total_seconds(tai, calendar_zeropoint)
+            
+            if low_precision:
+                return cls(seconds=seconds,
+                       fraction_of_seconds=None,
+                       isarray=False,
+                       low_precision=low_precision)
+            else:
+                return cls(seconds=seconds,
                        fraction_of_seconds=time_to_zeropoint.microseconds/1e6,
                        isarray=False,
                        low_precision=low_precision)
+                
             
         elif np.iterable(tai):
             tais = np.array(tai)
@@ -94,19 +103,19 @@ class Time(object):
                 NotImplementedError('ISO8601 parsing not available yet')
             
             elif isinstance(tais[0], datetime.datetime):
-                vector_total_seconds = np.vectorize(get_total_seconds, otypes=np.int64)
-                seconds = vector_total_seconds(tais)
+                vector_total_seconds = np.vectorize(get_total_seconds, otypes=(np.int64,))
+                seconds = vector_total_seconds(tais, calendar_zeropoint)
                 if low_precision:
                     cls(seconds, None, isarray=True, low_precision=True)
                 else:
-                    vector_fraction_of_seconds = np.vectorize(get_fraction_of_seconds, otypes=np.float64)
-                    fraction_of_seconds = vector_fraction_of_seconds(tais)
+                    vector_fraction_of_seconds = np.vectorize(get_fraction_of_seconds, otypes=(np.float64,))
+                    fraction_of_seconds = vector_fraction_of_seconds(tais, calendar_zeropoint)
                     return cls(seconds, fraction_of_seconds, isarray=True, low_precision=False)
                 
             
     
     @classmethod
-    def from_jd(cls, jd_time):
+    def from_jd(cls, jd_time, low_precision=False):
         """
         Instantiate a Time-object with Julian Date (linked to TAI)
 
@@ -120,7 +129,7 @@ class Time(object):
         
         if np.iterable(jd_time):
             jd_times = np.array(jd_time)
-            seconds = jd * 86400 - jd_seconds
+            seconds = jd_time * 86400 - jd_zeropoint_seconds
             int_seconds = np.int64(seconds)
             if low_precision:
                 return cls(int_seconds, fraction_of_seconds=None, isarray=True, low_precision=True)
@@ -128,7 +137,7 @@ class Time(object):
                 fraction_of_seconds = np.float64(seconds - int_seconds)
                 return cls(int_seconds, fraction_of_seconds, isarray=True, low_precision=False)
         else:
-            seconds = jd * 86400 - jd_seconds
+            seconds = jd_time * 86400 - jd_zeropoint_seconds
             int_seconds = np.int64(seconds)
             if low_precision:
                 return cls(int_seconds, fraction_of_seconds=None, isarray=False, low_precision=True)
@@ -138,7 +147,7 @@ class Time(object):
         
     
     @classmethod    
-    def from_mjd(cls, mjd_time):
+    def from_mjd(cls, mjd_time, low_precision=False):
         """
         Instantiate an AstroTime-object with Modified Julian Date
 
@@ -186,9 +195,9 @@ class Time(object):
         
         else:
             if self.fraction_of_seconds is None:
-                td = datetime.timedelta(seconds=self.seconds)
+                td = datetime.timedelta(seconds=int(self.seconds))
             else:
-                td = datetime.timedelta(seconds=self.seconds, microseconds = self.fraction_of_seconds*1e6)
+                td = datetime.timedelta(seconds=int(self.seconds), microseconds = self.fraction_of_seconds*1e6)
         
         return calendar_zeropoint + td
  
