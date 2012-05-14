@@ -134,7 +134,7 @@ class XMLWriter:
             attrib = attrib.items()
             attrib.sort()
             for k, v in attrib:
-                if not v == '' and v is not None:
+                if v is not None:
                     # This is just busy work -- we know our keys are clean
                     # k = xml_escape_cdata(k)
                     v = self.xml_escape(v)

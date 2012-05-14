@@ -13,7 +13,7 @@
   be closer to the FITS Binary Table format.
  </DESCRIPTION>
  <COOSYS ID="J2000" equinox="J2000" system="eq_FK5"/>
- <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=" "/>
+ <PARAM ID="wrong_arraysize" arraysize="0" datatype="float" name="wrong_arraysize" value=""/>
  <PARAM ID="INPUT" arraysize="*" datatype="float" name="INPUT" ucd="phys.size;instr.tel" unit="deg" value="0 0">
   <DESCRIPTION>
    This is the most interesting parameter in the world, and it drinks
@@ -26,6 +26,7 @@
    This is a resource description
   </DESCRIPTION>
   <PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="0 0"/>
+  <PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" value=""/>
   <LINK href="http://www.foo.com/"/>
   <TABLE ID="main_table" nrows="5">
    <DESCRIPTION>

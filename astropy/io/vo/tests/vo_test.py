@@ -155,7 +155,7 @@ def _test_regression(_python_based=False):
     for line in difflib.unified_diff(truth, output):
         sys.stdout.write(
             line.
-            encode('string_escape').
+            encode('unicode_escape').
             replace('\\n', '\n'))
 
     assert truth == output
