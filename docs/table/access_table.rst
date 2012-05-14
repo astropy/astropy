@@ -360,3 +360,18 @@ column name header::
   1 .. 20
   3 .. 40
   5 .. 60
+
+In order to see all the data values for a multidimensional column use the
+column representation.  This uses the standard `numpy` mechanism for printing
+any array::
+
+  >>> t['a']
+  <Column name='a' units=None format=None description=None>
+  array([[[ 1,  2],
+          [10, 20]],
+
+         [[ 3,  4],
+          [30, 40]],
+
+         [[ 5,  6],
+          [50, 60]]])
