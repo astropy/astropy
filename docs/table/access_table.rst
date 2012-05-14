@@ -80,7 +80,7 @@ For all the following examples it is assumed that the table has been created as 
   >>> t['a'].units = 'm sec^-1'
   >>> t['a'].description = 'unladen swallow velocity'
   >>> print t
-       a   b   c
+    a     b   c 
   ------ --- ---
    0.000   1   2
    3.000   4   5
@@ -162,21 +162,21 @@ specifying multiple column names.  This returns a copy of the original table
 for the selected rows.  ::
 
   >>> print t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
-       a   b   c
+    a     b   c
   ------ --- ---
    3.000   4   5
    9.000  10  11
   12.000  13  14
   
   >>> print t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
-       a   b   c
+    a     b   c
   ------ --- ---
    3.000   4   5
    9.000  10  11
   12.000  13  14
   
   >>> print t['a', 'c']  # Table with cols 'a', 'c' (copy)
-       a   c
+    a     c
   ------ ---
    0.000   2
    3.000   5
@@ -246,11 +246,11 @@ meaning as shown below::
   >>> t = Table(arr)
   >>> t['col0'].format = '%e'
   >>> t['col1'].format = '%.6f'
-  >>> t['col1'].units = 'km**2'
+  >>> t['col0'].units = 'km**2'
   >>> t['col29'].units = 'kg sec m**-2'
 
   >>> t.pprint(max_lines=8, max_width=40)
-          col0        col1 ...  col29
+      col0         col1    ... col29 
   ------------ ----------- ... ------
   0.000000e+00    1.000000 ...   29.0
   3.000000e+01   31.000000 ...   59.0
@@ -260,8 +260,8 @@ meaning as shown below::
   2.970000e+03 2971.000000 ... 2999.0
 
   >>> t.pprint(max_lines=8, max_width=40, show_units=True)
-          col0 ...        col29
-               ... kg sec m**-2
+      col0     ...    col29    
+     km**2     ... kg sec m**-2
   ------------ ... ------------
   0.000000e+00 ...         29.0
   3.000000e+01 ...         59.0
@@ -284,9 +284,10 @@ set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
 table in this example one sees 6 lines of wrapped output like the following::
 
   >>> t.pprint(max_lines=6, max_width=-1)
-          col0        col1   col2   col3   col4   col5   col6   col7   col8   co
-  l9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col2
-  0  col21  col22  col23  col24  col25  col26  col27  col28  col29
+
+      col0         col1     col2   col3   col4   col5   col6   col7   col8   col
+  9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20
+    col21  col22  col23  col24  col25  col26  col27  col28  col29 
   ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ----
   -- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ -----
   - ------ ------ ------ ------ ------ ------ ------ ------ ------
@@ -307,7 +308,7 @@ For columns the syntax and behavior of ``pprint()`` is the same except that
 there is no ``max_width`` keyword argument::
 
   >>> t['col3'].pprint(max_lines=8)
-    col3
+   col3 
   ------
      3.0
     33.0

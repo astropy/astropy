@@ -41,7 +41,7 @@ class TestColumn():
         pprint.MAX_LINES = 7
         c1 = Column(name='a', data=np.arange(2000), dtype=float,
                     format='%6.2f')
-        assert str(c1) == ('      a\n-------\n   0.00\n'
+        assert str(c1) == ('   a   \n-------\n   0.00\n'
                            '   1.00\n    ...\n1998.00\n1999.00')
         pprint.MAX_LINES = MAX_LINES
 

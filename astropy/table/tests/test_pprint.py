@@ -14,7 +14,7 @@ class TestPprint():
         self.tb = Table(BIG_WIDE_ARR)
         self.tb['col0'].format = '%e'
         self.tb['col1'].format = '%.6f'
-        self.tb['col1'].units = 'km**2'
+        self.tb['col0'].units = 'km**2'
         self.tb['col19'].units = 'kg sec m**-2'
         self.ts = Table(SMALL_ARR)
 
@@ -32,7 +32,7 @@ class TestPprint():
     def test_format1(self):
         """Basic test of formatting"""
         lines = self.tb.pformat(max_lines=8, max_width=40)
-        assert lines == ['        col0        col1 ...  col19',
+        assert lines == ['    col0         col1    ... col19 ',
                          '------------ ----------- ... ------',
                          '0.000000e+00    1.000000 ...   19.0',
                          '2.000000e+01   21.000000 ...   39.0',
@@ -44,8 +44,8 @@ class TestPprint():
     def test_format2(self):
         """Include the units header row"""
         lines = self.tb.pformat(max_lines=8, max_width=40, show_units=True)
-        assert lines == ['        col0 ...        col19',
-                         '             ... kg sec m**-2',
+        assert lines == ['    col0     ...    col19    ',
+                         '   km**2     ... kg sec m**-2',
                          '------------ ... ------------',
                          '0.000000e+00 ...         19.0',
                          '2.000000e+01 ...         39.0',
@@ -121,23 +121,23 @@ class TestFormat():
     def test_column_format(self):
         t = Table([[1, 2], [3, 4]], names=('a', 'b'))
         # default (format=None)
-        assert str(t['a']) == '  a\n---\n  1\n  2'
+        assert str(t['a']) == ' a \n---\n  1\n  2'
 
         #  Old-style that is almost new-style
         t['a'].format = '{ %4.2f }'
-        assert str(t['a']) == '       a\n--------\n{ 1.00 }\n{ 2.00 }'
+        assert str(t['a']) == '   a    \n--------\n{ 1.00 }\n{ 2.00 }'
 
         #  New-style that is almost old-style
         t['a'].format = '%{0:}'
-        assert str(t['a']) == '  a\n---\n %1\n %2'
+        assert str(t['a']) == ' a \n---\n %1\n %2'
 
         #  New-style with extra spaces
         t['a'].format = ' {0:05d} '
-        assert str(t['a']) == '      a\n-------\n 00001 \n 00002 '
+        assert str(t['a']) == '   a   \n-------\n 00001 \n 00002 '
 
         #  New-style has precedence
         t['a'].format = '%4.2f {0:}'
-        assert str(t['a']) == '      a\n-------\n%4.2f 1\n%4.2f 2'
+        assert str(t['a']) == '   a   \n-------\n%4.2f 1\n%4.2f 2'
 
         #  Invalid format spec
         t['a'].format = 'fail'
@@ -150,8 +150,8 @@ class TestFormat():
         pprint.MAX_LINES = 6
         t = Table([np.arange(20)], names=['a'])
         t['a'].format = '%{0:}'
-        assert str(t['a']) == '  a\n---\n %0\n %1\n...\n%19'
+        assert str(t['a']) == ' a \n---\n %0\n %1\n...\n%19'
         t['a'].format = '{ %4.2f }'
-        assert str(t['a']) == '        a\n---------\n { 0.00 }\n' \
+        assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
                               ' { 1.00 }\n      ...\n{ 19.00 }'
         pprint.MAX_LINES = MAX_LINES

@@ -91,13 +91,13 @@ One can retreive a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
-    a   b   c
+   a   b   c 
   --- --- ---
     1 2.0   x
     4 5.0   y
 
   >>> t['a', 'c']  # Table with cols 'a', 'c'
-    a   c
+   a   c
   --- ---
     1   x
     4   y
@@ -111,7 +111,7 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:2]['b'] = 100.0         # Set column 'c' of rows 0 and 1
   >>> print(t)
-    a     b   c
+   a    b    c 
   --- ----- ---
    -1 100.0   x
     8 100.0   W

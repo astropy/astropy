@@ -115,19 +115,20 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     """
     max_lines, _ = _get_pprint_size(max_lines, -1)
 
-    # "Print" all the values into temporary lists by column for
-    # subsequent use and to determine the width
-    col_strs = []
-    i_dashes = -1
+    col_strs = []  # List of formatted column values
+    i_dashes = None
+    i_centers = []  # Line indexes where content should be centered
     if show_name:
+        i_centers.append(len(col_strs))
         col_strs.append(col.name)
         max_lines -= 1
     if show_units:
+        i_centers.append(len(col_strs))
         col_strs.append(col.units or '')
         max_lines -= 1
     if show_units or show_name:
+        i_dashes = len(col_strs)
         col_strs.append('---')
-        i_dashes = len(col_strs) - 1
         max_lines -= 1
 
     n_print2 = max_lines // 2
@@ -141,19 +142,25 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         i0 = len(col)
         i1 = 0
 
+    # Add formatted values if within bounds allowed by max_lines
     for i in xrange(n_rows):
         if i < i0 or i > i1:
             col_strs.append(format_func(col.format, col[i]))
         elif i == i0:
             col_strs.append('...')
+
     col_width = max(len(x) for x in col_strs)
+
+    # Center line content and generate dashed headerline
+    for i in i_centers:
+        col_strs[i] = col_strs[i].center(col_width)
+    if i_dashes is not None:
+        col_strs[i_dashes] = '-' * col_width
 
     # Now bring all the column string values to the same fixed width
     fmt_str = '%' + str(col_width) + 's'
     for i, col_str in enumerate(col_strs):
         col_strs[i] = fmt_str % col_str
-    if i_dashes > 0:
-        col_strs[i_dashes] = '-' * col_width
 
     return col_strs
 
