@@ -8,10 +8,10 @@ import warnings
 
 import numpy as np
 
-from .util import (_str_to_num, _is_int, maketrans, translate,
-                   _words_group, lazyproperty)
-from ...utils import deprecated
+from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError
+
+from ...utils import deprecated, lazyproperty
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',

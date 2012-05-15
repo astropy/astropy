@@ -13,9 +13,9 @@ from .groups import GroupsHDU
 from .image import PrimaryHDU, ImageHDU
 from .table import _TableBaseHDU
 from ..file import PYTHON_MODES, _File
-from ..util import (_is_int, _tmp_name, _pad_length, BLOCK_SIZE, isfile,
-                    fileobj_name, fileobj_closed, fileobj_mode, ignore_sigint,
-                    _get_array_memmap)
+from ..header import BLOCK_SIZE, _pad_length
+from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
+                    fileobj_mode, ignore_sigint, _get_array_memmap)
 from ..verify import _Verify, _ErrList, VerifyError
 
 
