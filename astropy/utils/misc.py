@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import functools
 import textwrap
+import types
 import warnings
 
 import numpy as np
@@ -422,10 +423,10 @@ def deprecated(since, message='', name='', alternative='', pending=False):
     return deprecate
 
 
-class vectorize(object):
+def vectorize(otypes=''):
     """
     Wrapper around `numpy.vectorize` such that it can work as a decorator with
-    support for the optional otypes parameters.  For example::
+    support for the optional otypes parameter.  For example::
 
         @vectorize(otypes=(np.float64,))
         def myadd(a, b):
@@ -435,13 +436,21 @@ class vectorize(object):
     `numpy.vectorize`.
     """
 
-    def __init__(self, otypes=''):
-        self.otypes = otypes
-        self.vectorized = None
+    def wrapper(otypes=''):
+        def wrap(func, otypes=otypes):
+            vectorized = np.vectorize(func, otypes=otypes)
+            @functools.wraps(func)
+            def wrapped(*args, **kwargs):
+                return vectorized(*args, **kwargs)
+            return wrapped
+        return wrap
 
-    def __call__(self, func):
-        self.vectorized = np.vectorize(func)
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            return self.vectorized(*args, **kwargs)
-        return wrapped
+    if isinstance(otypes, types.FunctionType):
+        # The otypes argument was a function instead of one of the expected
+        # types for the otypes argument; that means this decorator was used
+        # without any arguments
+        return wrapper()(otypes)
+    else:
+        # The first argument wasn't a function, so it was used in a
+        # parameterized decorator context
+        return wrapper(otypes)
