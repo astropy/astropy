@@ -10,7 +10,10 @@ import functools
 import textwrap
 import warnings
 
-__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'deprecated']
+import numpy as np
+
+__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'deprecated',
+           'vectorize']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -417,3 +420,28 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         return deprecate(message)
 
     return deprecate
+
+
+class vectorize(object):
+    """
+    Wrapper around `numpy.vectorize` such that it can work as a decorator with
+    support for the optional otypes parameters.  For example::
+
+        @vectorize(otypes=(np.float64,))
+        def myadd(a, b):
+            return numpy.add(a, b)
+
+    This sort of syntactic sugar is not possible with the normal
+    `numpy.vectorize`.
+    """
+
+    def __init__(self, otypes=''):
+        self.otypes = otypes
+        self.vectorized = None
+
+    def __call__(self, func):
+        self.vectorized = np.vectorize(func)
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            return self.vectorized(*args, **kwargs)
+        return wrapped
