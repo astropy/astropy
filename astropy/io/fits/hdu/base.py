@@ -12,10 +12,12 @@ import warnings
 import numpy as np
 
 from ..file import _File
-from ..header import Header, HEADER_END_RE
-from ..util import (lazyproperty, _is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    _pad_length, itersubclasses, decode_ascii, BLOCK_SIZE)
+from ..header import Header, HEADER_END_RE, BLOCK_SIZE, _pad_length
+from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
+                    itersubclasses, decode_ascii)
 from ..verify import _Verify, _ErrList
+
+from ....utils import lazyproperty
 
 
 class _Delayed(object):

@@ -6,11 +6,14 @@ clear other module/pakcage to live in.
 
 from __future__ import absolute_import
 
+import collections
 import functools
+import sys
 import textwrap
 import warnings
 
-__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'deprecated']
+__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'isiterable',
+           'deprecated', 'lazyproperty']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -159,7 +162,6 @@ def find_mod_objs(modname, onlylocals=False):
         the other arguments)
 
     """
-    import sys
     from inspect import ismodule
 
     __import__(modname)
@@ -222,7 +224,6 @@ def fnunpickle(fileorname, number=0, usecPickle=True):
         file.
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
@@ -280,7 +281,6 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
         file name, this has no effect).
 
     """
-    import sys
 
     if usecPickle and sys.version_info[0] < 3:  # pragma: py2
         import cPickle as pickle
@@ -302,6 +302,103 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
     finally:
         if close:
             f.close()
+
+
+def isiterable(obj):
+    """Returns `True` if the given object is iterable."""
+
+    if isinstance(obj, collections.Iterable):
+        return True
+
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False
+
+
+class lazyproperty(object):
+    """
+    Works similarly to property(), but computes the value only once.
+
+    This essentially memoizes the value of the property by storing the result
+    of its computation in the ``__dict__`` of the object instance.  This is
+    useful for computing the value of some property that should otherwise be
+    invariant.  For example::
+
+        >>> class LazyTest(object):
+        ...     @lazyproperty
+        ...     def complicated_property(self):
+        ...         print 'Computing the value for complicated_property..."
+        ...         return 42
+        ...
+        >>> lt = LazyTest()
+        >>> lt.complicated_property
+        Computing the value for complicated_property...
+        42
+        >>> lt.complicated_property
+        42
+
+    If a setter for this property is defined, it will still be possible to
+    manually update the value of the property, if that capability is desired.
+
+    Adapted from the recipe at
+    http://code.activestate.com/recipes/363602-lazy-property-evaluation
+    """
+
+    def __init__(self, fget, fset=None, fdel=None, doc=None):
+        self._fget = fget
+        self._fset = fset
+        self._fdel = fdel
+        if doc is None:
+            self.__doc__ = fget.__doc__
+        else:
+            self.__doc__ = doc
+
+    def __get__(self, obj, owner=None):
+        if obj is None:
+            return self
+        key = self._fget.func_name
+        if key not in obj.__dict__:
+            val = self._fget(obj)
+            obj.__dict__[key] = val
+            return val
+        else:
+            return obj.__dict__[key]
+
+    def __set__(self, obj, val):
+        if self._fset:
+            self._fset(obj, val)
+        obj.__dict__[self._fget.func_name] = val
+
+    def __delete__(self, obj):
+        if self._fdel:
+            self._fdel(obj)
+        key = self._fget.func_name
+        if key in obj.__dict__:
+            del obj.__dict__[key]
+
+    def getter(self, fget):
+        return self.__ter(fget, 0)
+
+    def setter(self, fset):
+        return self.__ter(fset, 1)
+
+    def deleter(self, fdel):
+        return self.__ter(fdel, 2)
+
+    def __ter(self, f, arg):
+        args = [self._fget, self._fset, self._fdel, self.__doc__]
+        args[arg] = f
+        cls_ns = sys._getframe(1).f_locals
+        for k, v in cls_ns.iteritems():
+            if v is self:
+                property_name = k
+                break
+
+        cls_ns[property_name] = lazyproperty(*args)
+
+        return cls_ns[property_name]
 
 
 # TODO: Provide a class deprecation marker as well.

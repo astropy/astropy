@@ -10,7 +10,9 @@ import numpy as np
 from .column import (ASCIITNULL, FITS2NUMPY, TDIM_RE, Column, ColDefs,
                      _FormatX, _FormatP, _VLF, _get_index, _wrapx, _unwrapx,
                      _convert_format, _convert_ascii_format)
-from .util import _array_from_file, decode_ascii, lazyproperty
+from .util import _array_from_file, decode_ascii
+
+from ...utils import lazyproperty
 
 
 class FITS_record(object):

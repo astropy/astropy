@@ -4,10 +4,11 @@ import gzip
 import os
 
 from ..file import _File
+from ..header import _pad_length
 from .base import _BaseHDU
 from .hdulist import HDUList
 from .image import PrimaryHDU, _ImageBaseHDU
-from ..util import _pad_length, fileobj_name
+from ..util import fileobj_name
 
 
 

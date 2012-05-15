@@ -5,8 +5,10 @@ import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..header import Header
-from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int, _pad_length,
-                    _normalize_slice, lazyproperty)
+from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
+                    _normalize_slice)
+
+from ....utils import lazyproperty
 
 
 class _ImageBaseHDU(_ValidHDU):

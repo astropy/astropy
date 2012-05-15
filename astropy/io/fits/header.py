@@ -13,12 +13,15 @@ import warnings
 
 from .card import Card, CardList, _pad
 from .file import _File, PYTHON_MODES
-from .util import (BLOCK_SIZE, isiterable, decode_ascii,
-                   fileobj_mode, _pad_length)
-from ...utils import deprecated
+from .util import decode_ascii, fileobj_mode
+
+from ...utils import deprecated, isiterable
 
 
 PY3K = sys.version_info[:2] >= (3, 0)
+
+
+BLOCK_SIZE = 2880  # the FITS block size
 
 
 HEADER_END_RE = re.compile('END {77} *$')
@@ -2034,3 +2037,9 @@ def _block_size(sep):
     """
 
     return BLOCK_SIZE + (len(sep) * (BLOCK_SIZE // Card.length - 1))
+
+
+def _pad_length(stringlen):
+    """Bytes needed to pad the input stringlen to the next FITS block."""
+
+    return (BLOCK_SIZE - (stringlen % BLOCK_SIZE)) % BLOCK_SIZE

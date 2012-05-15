@@ -7,7 +7,9 @@ from ..file import _File
 from .base import NonstandardExtHDU
 from .hdulist import HDUList
 from ..header import Header
-from ..util import lazyproperty, fileobj_name
+from ..util import fileobj_name
+
+from ....utils import lazyproperty
 
 
 class FitsHDU(NonstandardExtHDU):
