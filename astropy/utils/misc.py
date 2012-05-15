@@ -305,7 +305,7 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
 
 def isiterable(obj):
-    """Returns true of the given object is iterable."""
+    """Returns `True` if the given object is iterable."""
 
     if isinstance(obj, collections.Iterable):
         return True
@@ -320,6 +320,27 @@ def isiterable(obj):
 class lazyproperty(object):
     """
     Works similarly to property(), but computes the value only once.
+
+    This essentially memoizes the value of the property by storing the result
+    of its computation in the ``__dict__`` of the object instance.  This is
+    useful for computing the value of some property that should otherwise be
+    invariant.  For example::
+
+        >>> class LazyTest(object):
+        ...     @lazyproperty
+        ...     def complicated_property(self):
+        ...         print 'Computing the value for complicated_property..."
+        ...         return 42
+        ...
+        >>> lt = LazyTest()
+        >>> lt.complicated_property
+        Computing the value for complicated_property...
+        42
+        >>> lt.complicated_property
+        42
+
+    If a setter for this property is defined, it will still be possible to
+    manually update the value of the property, if that capability is desired.
 
     Adapted from the recipe at
     http://code.activestate.com/recipes/363602-lazy-property-evaluation
