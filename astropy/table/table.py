@@ -6,7 +6,7 @@ import numpy as np
 
 from ..utils import OrderedDict
 from .structhelper import _drop_fields
-from .pprint import _pformat_table, _pformat_col
+from .pprint import _pformat_table, _pformat_col, _more_tabcol
 
 # Python 2 and 3 source compatibility
 try:
@@ -326,6 +326,36 @@ class Column(np.ndarray):
 
         """
         print('\n'.join(_pformat_col(self, max_lines, show_name, show_units)))
+
+    def more(self, max_lines=None, show_name=True, show_units=False):
+        """Interactively browse column with a paging interface.
+
+        Supported keys::
+
+          f, <space> : forward one page
+          b : back one page
+          r : refresh same page
+          n : next row
+          p : previous row
+          < : go to beginning
+          > : go to end
+          q : quit browsing
+          h : print this help
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        """
+        _more_tabcol(self, max_lines=max_lines, show_name=show_name,
+                     show_units=show_units)
 
     def __str__(self):
         return '\n'.join(_pformat_col(self))
@@ -727,6 +757,40 @@ class Table(object):
         """
         return _pformat_table(self, max_lines, max_width, show_name,
                               show_units)
+
+    def more(self, max_lines=None, max_width=None, show_name=True,
+               show_units=False):
+        """Interactively browse table with a paging interface.
+
+        Supported keys::
+
+          f, <space> : forward one page
+          b : back one page
+          r : refresh same page
+          n : next row
+          p : previous row
+          < : go to beginning
+          > : go to end
+          q : quit browsing
+          h : print this help
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output
+
+        max_width : int or None
+            Maximum character width of output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        """
+        _more_tabcol(self, max_lines, max_width, show_name,
+                     show_units)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
