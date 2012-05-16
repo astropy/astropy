@@ -162,3 +162,13 @@ def test_find_current_mod():
 
     with raises(ImportError):
         misc.find_current_module(0, ['faddfdsasewrweriopunjlfiurrhujnkflgwhu'])
+
+
+def test_isiterable():
+    from numpy import array
+
+    assert misc.isiterable(2) is False
+    assert misc.isiterable([2]) is True
+    assert misc.isiterable([1, 2, 3]) is True
+    assert misc.isiterable(array(2)) is False
+    assert misc.isiterable(array([1, 2, 3])) is True
