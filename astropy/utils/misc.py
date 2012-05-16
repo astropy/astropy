@@ -306,6 +306,12 @@ def fnpickle(object, fileorname, usecPickle=True, protocol=None, append=False):
 
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
+    from numpy import ndarray
+
+    # Numpy arrays are in collections.Iterable no matter what, but if you
+    # attempt to iterate over a 0-d array, it throws a TypeError.
+    if isinstance(obj, ndarray) and len(obj.shape) == 0:
+        return False
 
     if isinstance(obj, collections.Iterable):
         return True
@@ -315,6 +321,21 @@ def isiterable(obj):
         return True
     except TypeError:
         return False
+
+def isscalar_iterable(obj):
+    """
+    Determines if an object is a scalar
+
+    Returns
+    -------
+    True if an
+
+    .. note::
+        The `numpy.isscalar` function is similar to this, but
+    """
+    from numpy import isscalar
+
+    return isscalar(obj)
 
 
 class lazyproperty(object):
