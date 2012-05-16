@@ -2,7 +2,7 @@ import os
 import sys
 
 from astropy.config import log
-from .getch import Getch
+from astropy.utils.console import Getch
 
 _format_funcs = {None: lambda format_, val: str(val)}
 MAX_LINES = 25
