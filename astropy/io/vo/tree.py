@@ -1308,7 +1308,7 @@ class Param(Field):
     @value.setter
     def value(self, value):
         if value is None:
-            vo_raise(E14, (), self._config, self._pos)
+            value = ""
         if ((IS_PY3K and isinstance(value, unicode)) or
             (not IS_PY3K and isinstance(value, string_types))):
             self._value = self.converter.parse(
@@ -1324,8 +1324,8 @@ class Param(Field):
         tmp_value = self._value
         self._value = self.converter.output(tmp_value, False)
         # We must always have a value
-        if self._value in (None, u'', b''):
-            self._value = u" "
+        if self._value is None:
+            self._value = u""
         Field.to_xml(self, w, **kwargs)
         self._value = tmp_value
 
