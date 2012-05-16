@@ -1,6 +1,7 @@
 import os
 import sys
 
+from astropy.config import log
 from .getch import Getch
 
 _format_funcs = {None: lambda format_, val: str(val)}
@@ -310,7 +311,13 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
         print "-- f, <space>, b, r, p, n, <, >, q h (help) --",
         # Get a valid key
         while True:
-            key = inkey().lower()
+            try:
+                key = inkey().lower()
+            except:
+                print "\n"
+                log.error('Console does not support getting a character'
+                          ' as required by more().  Use pprint() instead.')
+                return
             if key in allowed_keys:
                 break
         print key
