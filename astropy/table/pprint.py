@@ -131,7 +131,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     if show_name:
         i_centers.append(len(col_strs))
         if multidims:
-            col_name = col.name + ' [{}]'.format(
+            col_name = col.name + ' [{0}]'.format(
                 ','.join(str(n) for n in multidims))
         else:
             col_name = col.name
