@@ -1,8 +1,9 @@
 import os
 import sys
+from itertools import izip
 
 from astropy.config import log
-from astropy.utils.console import Getch
+from astropy.utils.console import Getch, color_print
 
 _format_funcs = {None: lambda format_, val: str(val)}
 MAX_LINES = 25
@@ -304,8 +305,10 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
             except:
                 pass  # No worries if clear screen call fails
             lines = tabcol[i0:i1].pformat(**kwargs)
-            for line in lines:
-                print line
+            colors = ('red' if i < header_lines else 'default'
+                      for i in xrange(len(lines)))
+            for color, line in izip(colors, lines):
+                color_print(line, color)
         showlines = True
         print
         print "-- f, <space>, b, r, p, n, <, >, q h (help) --",
