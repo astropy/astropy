@@ -18,6 +18,7 @@ notable features of this package are:
   or adding new rows of data.
 * Include table and column metadata as flexible data structures.
 * Specify a description, units and output formatting for columns.
+* Interactively scroll through long tables similar to using ``more``.
 * Create a new table by selecting rows or columns from a table.
 * Full support for multidimensional columns.
 * Create a table by referencing (not copying) an existing `numpy` table.
@@ -43,7 +44,7 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> c = ['x', 'y', 'z']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
 
-There are two ways to examine the table.  You can get detailed information
+There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 
   >>> t
@@ -60,6 +61,10 @@ If instead you print the table then a nicely formatted version appears::
     4 5.0   y
     5 8.2   z
 
+For a long table you can scroll up and down through the table one page at
+time::
+
+  >>> t.more()
 
 Now examine some high-level information about the table::
 

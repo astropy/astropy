@@ -59,8 +59,11 @@ the data contained in that object relate to the original table data
   t.pprint(show_name=False)  # Do not show column names
   t.pprint(max_lines=-1, max_width=-1)  # Print full table no matter how long / wide it is
 
+  t.more()  # Interactively scroll through table like Unix "more"
+
   print t['a'] # Formatted column values
   t['a'].pprint()  # Same as above, with same options as Table.pprint()
+  t['a'].more()  # Interactively scroll through column
 
   lines = t.pformat()  # Formatted table as a list of lines (same options as pprint)
   lines = t['a'].pformat()  # Formatted column valuues as a list
@@ -194,10 +197,13 @@ structured array by creating a copy or reference with ``np.array``::
 Formatted printing
 ------------------
 
-The values in a table or column printed or retrieved as a formatted table
-using one of several methods:
+The values in a table or column can be printed or retrieved as a formatted
+table using one of several methods:
 
 - `print` statement (Python 2) or `print()` function (Python 3).
+- Table :func:`~astropy.table.Table.more` or Column
+  :func:`~astropy.table.Column.more` methods to interactively scroll
+  through table values.
 - Table :func:`~astropy.table.Table.pprint` or Column
   :func:`~astropy.table.Column.pprint` methods to print a formatted version of
   the table to the screen.  
@@ -236,6 +242,25 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   2910 2911 2912 2913 2914 2915 2916 ...  2934  2935  2936  2937  2938  2939
   2940 2941 2942 2943 2944 2945 2946 ...  2964  2965  2966  2967  2968  2969
   2970 2971 2972 2973 2974 2975 2976 ...  2994  2995  2996  2997  2998  2999
+
+more() method
+^^^^^^^^^^^^^
+
+In order to browse all rows of a table or column use the Table
+:func:`~astropy.table.Table.more` or Column :func:`~astropy.table.Column.more`
+methods.  These let you interactively scroll through the rows much like the
+linux ``more`` command.  Once part of the table or column is displayed the
+supported navigation keys are:
+
+|  **f, space** : forward one page
+|  **b** : back one page
+|  **r** : refresh same page
+|  **n** : next row
+|  **p** : previous row
+|  **<** : go to beginning
+|  **>** : go to end
+|  **q** : quit browsing
+|  **h** : print this help
 
 pprint() method
 ^^^^^^^^^^^^^^^^
