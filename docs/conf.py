@@ -92,7 +92,8 @@ html_theme_path = ['_themes']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bootstrap'
+html_theme = 'bootstrap-astropy'
+html_sidebars = {'**': ['globaltoc.html']}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -101,7 +102,7 @@ html_title = '{0} v{1}'.format(project, release)
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'logo/astropylogo_docs_32.png'
+#html_logo = 'logo/astropylogo_docs_32.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
