@@ -7,6 +7,7 @@ import numpy as np
 from ..utils import OrderedDict
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
+from ..utils.console import color_print
 
 # Python 2 and 3 source compatibility
 try:
@@ -293,11 +294,12 @@ class Column(np.ndarray):
 
         Returns
         -------
-        out : list
-            List of formatted column values
+        lines : list
+            List of lines with header and formatted column values
 
         """
-        return _pformat_col(self, max_lines, show_name, show_units)
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        return lines
 
     def pprint(self, max_lines=None, show_name=True, show_units=False):
         """Print a formatted string representation of column values.
@@ -318,14 +320,13 @@ class Column(np.ndarray):
 
         show_units : bool
             Include a header row for units (default=False)
-
-        Returns
-        -------
-        out : list
-            List of formatted column values
-
         """
-        print('\n'.join(_pformat_col(self, max_lines, show_name, show_units)))
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        for i, line in enumerate(lines):
+            if i < n_header:
+                color_print(line, 'red')
+            else:
+                print line
 
     def more(self, max_lines=None, show_name=True, show_units=False):
         """Interactively browse column with a paging interface.
@@ -358,7 +359,8 @@ class Column(np.ndarray):
                      show_units=show_units)
 
     def __str__(self):
-        return '\n'.join(_pformat_col(self))
+        lines, n_header = _pformat_col(self)
+        return '\n'.join(lines)
 
 
 class Row(object):
@@ -688,7 +690,8 @@ class Table(object):
         return s
 
     def __str__(self):
-        return '\n'.join(_pformat_table(self))
+        lines, n_header = _pformat_table(self)
+        return '\n'.join(lines)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_units=False):
@@ -716,10 +719,15 @@ class Table(object):
 
         show_units : bool
             Include a header row for units (default=False)
-
         """
-        print('\n'.join(_pformat_table(self, max_lines, max_width, show_name,
-                                      show_units)))
+
+        lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
+                                         show_units)
+        for i, line in enumerate(lines):
+            if i < n_header:
+                color_print(line, 'red')
+            else:
+                print line
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_units=False):
@@ -751,12 +759,12 @@ class Table(object):
 
         Returns
         -------
-        out : str
-            Formatted table as a single string
-
+        lines : list
+            Formatted table as a list of strings
         """
-        return _pformat_table(self, max_lines, max_width, show_name,
-                              show_units)
+        lines, n_header = _pformat_table(self, max_lines, max_width,
+                                         show_name, show_units)
+        return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
                show_units=False):
@@ -787,7 +795,6 @@ class Table(object):
 
         show_units : bool
             Include a header row for units (default=False)
-
         """
         _more_tabcol(self, max_lines, max_width, show_name,
                      show_units)

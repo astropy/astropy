@@ -2,8 +2,8 @@ import os
 import sys
 from itertools import izip
 
-from astropy.config import log
-from astropy.utils.console import Getch, color_print
+from ..config import log
+from ..utils.console import Getch, color_print
 
 _format_funcs = {None: lambda format_, val: str(val)}
 MAX_LINES = 25
@@ -114,8 +114,11 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
 
     Returns
     -------
-    out : list
-        List of formatted column values
+    lines : list
+        List of lines with formatted column values
+
+    n_header : int
+        Number of lines in the header
 
     """
     max_lines, _ = _get_pprint_size(max_lines, -1)
@@ -146,6 +149,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         col_strs.append('---')
         max_lines -= 1
 
+    n_header = len(col_strs)
     n_print2 = max_lines // 2
     n_rows = len(col)
 
@@ -182,7 +186,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     for i, col_str in enumerate(col_strs):
         col_strs[i] = col_str.rjust(col_width)
 
-    return col_strs
+    return col_strs, n_header
 
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
@@ -209,12 +213,17 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     out : str
         Formatted table as a single string
 
+    n_header : int
+        Number of lines in the header
     """
     # "Print" all the values into temporary lists by column for subsequent
     # use and to determine the width
     max_lines, max_width = _get_pprint_size(max_lines, max_width)
-    cols = [_pformat_col(col, max_lines, show_name, show_units)
-            for col in table.columns.values()]
+    cols = []
+    for col in table.columns.values():
+        lines, n_header = _pformat_col(col, max_lines, show_name,
+                                       show_units)
+        cols.append(lines)
 
     if not cols:
         return []
@@ -241,7 +250,7 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
         row = ' '.join(col[i] for col in cols)
         rows.append(row)
 
-    return rows
+    return rows, n_header
 
 
 def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
@@ -261,23 +270,17 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
 
     show_units : bool
         Include a header row for units (default=False)
-
-    Returns
-    -------
-    out : str
-        Formatted table as a single string
-
     """
     allowed_keys = 'f br<>qhpn'
 
     # Count the header lines
-    header_lines = 0
+    n_header = 0
     if show_name:
-        header_lines += 1
+        n_header += 1
     if show_units:
-        header_lines += 1
+        n_header += 1
     if show_name or show_units:
-        header_lines += 1
+        n_header += 1
 
     # Set up kwargs for pformat call.  Only Table gets max_width.
     kwargs = dict(max_lines=-1, show_name=show_name, show_units=show_units)
@@ -290,7 +293,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
     max_lines1, max_width = _get_pprint_size(max_lines, max_width)
     if max_lines == None:
         max_lines1 += 2
-    delta_lines = max_lines1 - header_lines
+    delta_lines = max_lines1 - n_header
 
     # Set up a function to get a single character on any platform
     inkey = Getch()
@@ -305,7 +308,7 @@ def _more_tabcol(tabcol, max_lines=None, max_width=None, show_name=True,
             except:
                 pass  # No worries if clear screen call fails
             lines = tabcol[i0:i1].pformat(**kwargs)
-            colors = ('red' if i < header_lines else 'default'
+            colors = ('red' if i < n_header else 'default'
                       for i in xrange(len(lines)))
             for color, line in izip(colors, lines):
                 color_print(line, color)
