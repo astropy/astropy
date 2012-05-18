@@ -66,7 +66,7 @@ keyword or they will be auto-generated as ``col<N>``.
   >>> b = [2.0, 5.0]
   >>> c = ['x', 'y']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
-  >>> print t
+  >>> t
   <Table rows=2 names=('a','b','c')>
   array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])

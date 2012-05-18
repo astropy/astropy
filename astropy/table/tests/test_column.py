@@ -1,5 +1,6 @@
 import numpy as np
 from .. import Column
+from .. import pprint
 
 
 class TestColumn():
@@ -36,13 +37,13 @@ class TestColumn():
 
     def test_format(self):
         """Show that the formatted output from str() works"""
+        MAX_LINES = pprint.MAX_LINES
+        pprint.MAX_LINES = 7
         c1 = Column(name='a', data=np.arange(2000), dtype=float,
                     format='%6.2f')
-        assert str(c1).startswith('  0.00,   1.00,   2.00')
-        assert str(c1).endswith(', 1999.00')
-        np.set_printoptions(threshold=5)
-        c1.format = '%6.1f'
-        assert str(c1) == '   0.0,    1.0,    2.0, ..., 1998.0, 1999.0'
+        assert str(c1) == ('   a   \n-------\n   0.00\n'
+                           '   1.00\n    ...\n1998.00\n1999.00')
+        pprint.MAX_LINES = MAX_LINES
 
     def test_convert_numpy_array(self):
         d = Column('a', [1, 2, 3], dtype='i8')
