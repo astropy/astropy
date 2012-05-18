@@ -25,6 +25,7 @@ $(function() {
   // global elements used by the functions.
   // the 'sidebarbutton' element is defined as global after its
   // creation, in the add_sidebar_button function
+  var document = $('.document');
   var bodywrapper = $('.bodywrapper');
   var sidebar = $('.sphinxsidebar');
   var sidebarwrapper = $('.sphinxsidebarwrapper');
@@ -43,7 +44,7 @@ $(function() {
   var ssb_width_collapsed = '.8em';
 
   // colors used by the current theme
-  var dark_color = '#222222';
+  var dark_color = '#404040';
   var light_color = '#505050';
   //var dark_color = $('.related').css('background-color');
   //var light_color = $('.document').css('background-color');
@@ -65,7 +66,7 @@ $(function() {
     bodywrapper.css('margin-left', bw_margin_collapsed);
     sidebarbutton.css({
         'margin-left': '0',
-        'height': bodywrapper.height(),
+        'height': document.height(),
 	'border-radius': '5px 5px 5px 5px'
     });
     sidebarbutton.find('span').text('»');
@@ -79,7 +80,7 @@ $(function() {
     sidebarwrapper.show();
     sidebarbutton.css({
         'margin-left': ssb_width_expanded-12,
-        'height': bodywrapper.height(),
+        'height': document.height(),
 	'border-radius': '0px 5px 5px 0px'
     });
     sidebarbutton.find('span').text('«');
@@ -108,7 +109,8 @@ $(function() {
     sidebarbutton.find('span').css({
         'font-family': '"Lucida Grande",Arial,sans-serif', 
 	'display': 'block',
-        'top': (viewport_height - sidebar.position().top - 20) / 2,
+        //'top': (viewport_height - sidebar.position().top - 20) / 2,
+	'top': 61 + (Math.min(viewport_height - 61, document.height())) / 2,
 	'position': 'fixed'
     });
 
@@ -120,7 +122,7 @@ $(function() {
         'border-radius': '0px 5px 5px 0px',
         'font-size': '1.2em',
         'cursor': 'pointer',
-        'height': bodywrapper.height(),
+        'height': document.height(),
         'padding-top': '1px',
         'margin-left': ssb_width_expanded - 12
     });
