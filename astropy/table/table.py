@@ -6,6 +6,8 @@ import numpy as np
 
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
+from .pprint import _pformat_table, _pformat_col, _more_tabcol
+from ..utils.console import color_print
 
 # Python 2 and 3 source compatibility
 try:
@@ -14,40 +16,10 @@ except NameError:
     unicode = basestring = str
 
 AUTO_COLNAME = 'col{0}'
-_format_funcs = {None: lambda format_, val: str(val)}
 
 
 def _auto_names(n_cols):
     return [AUTO_COLNAME.format(i) for i in range(n_cols)]
-
-
-def _auto_format_func(format_, val):
-    """Format ``val`` according to ``format_`` for both old- and new-
-    style format specifications.  More importantly, determine and cache
-    (in _format_funcs) a function that will do this subsequently.  In
-    this way this complicated logic is only done for the first value.
-
-    Returns the formatted value.
-    """
-    try:
-        # Convert val to Python object with tolist().  See
-        # https://github.com/astropy/astropy/issues/148#issuecomment-3930809
-        out = format_.format(val.tolist())
-        # Require that the format statement actually did something
-        if out == format_:
-            raise ValueError
-        format_func = lambda format_, val: format_.format(val.tolist())
-    except:  # Not sure what exceptions might be raised
-        try:
-            out = format_ % val
-            if out == format_:
-                raise ValueError
-            format_func = lambda format_, val: format_ % val
-        except:
-            raise ValueError('Unable to parse format string {0}'
-                             .format(format_))
-    _format_funcs[format_] = format_func
-    return out
 
 
 class TableColumns(OrderedDict):
@@ -300,22 +272,95 @@ class Column(np.ndarray):
 
         return equal
 
-    def __str__(self):
-        n_print = np.get_printoptions()['threshold']
-        if n_print < len(self):
-            n_print2 = n_print // 2
-            vals = [_format_funcs.get(self.format, _auto_format_func)(
-                    self.format, val)
-                    for val in self[:n_print - n_print2]]
-            vals.append('...')
-            vals.extend([_format_funcs.get(self.format, _auto_format_func)(
-                        self.format, val)
-                         for val in self[-n_print2:]])
-        else:
-            vals = [_format_funcs.get(self.format, _auto_format_func)(
-                    self.format, val) for val in self]
+    def pformat(self, max_lines=None, show_name=True, show_units=False):
+        """Return a list of formatted string representation of column values.
 
-        return ', '.join(vals)
+        If no value of ``max_lines`` is supplied then the height of the screen
+        terminal is used to set ``max_lines``.  If the terminal height cannot
+        be determined then a default of ``astropy.table.MAX_LINES`` is used.
+        If a negative value of ``max_lines`` is supplied then there is no line
+        limit applied.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum lines of output (header + data rows)
+
+        show_name : bool
+            Include column name (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        lines : list
+            List of lines with header and formatted column values
+
+        """
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        return lines
+
+    def pprint(self, max_lines=None, show_name=True, show_units=False):
+        """Print a formatted string representation of column values.
+
+        If no value of ``max_lines`` is supplied then the height of the screen
+        terminal is used to set ``max_lines``.  If the terminal height cannot
+        be determined then a default of ``astropy.table.MAX_LINES`` is used.
+        If a negative value of ``max_lines`` is supplied then there is no line
+        limit applied.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of values in output
+
+        show_name : bool
+            Include column name (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+        """
+        lines, n_header = _pformat_col(self, max_lines, show_name, show_units)
+        for i, line in enumerate(lines):
+            if i < n_header:
+                color_print(line, 'red')
+            else:
+                print line
+
+    def more(self, max_lines=None, show_name=True, show_units=False):
+        """Interactively browse column with a paging interface.
+
+        Supported keys::
+
+          f, <space> : forward one page
+          b : back one page
+          r : refresh same page
+          n : next row
+          p : previous row
+          < : go to beginning
+          > : go to end
+          q : quit browsing
+          h : print this help
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        """
+        _more_tabcol(self, max_lines=max_lines, show_name=show_name,
+                     show_units=show_units)
+
+    def __str__(self):
+        lines, n_header = _pformat_col(self)
+        return '\n'.join(lines)
 
 
 class Row(object):
@@ -643,6 +688,116 @@ class Table(object):
         s = "<Table rows={0} names=({1})>\n{2}".format(
             self.__len__(),  ','.join(names), repr(self._data))
         return s
+
+    def __str__(self):
+        lines, n_header = _pformat_table(self)
+        return '\n'.join(lines)
+
+    def pprint(self, max_lines=None, max_width=None, show_name=True,
+               show_units=False):
+        """Print a formatted string representation of the table.
+
+        If no value of ``max_lines`` is supplied then the height of the screen
+        terminal is used to set ``max_lines``.  If the terminal height cannot
+        be determined then a default of ``astropy.table.pprint.MAX_LINES`` is
+        used.  If a negative value of ``max_lines`` is supplied then there is
+        no line limit applied.
+
+        The Same applies for max_width except the default is
+        ``astropy.table.pprint.MAX_WIDTH``.
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output
+
+        max_width : int or None
+            Maximum character width of output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+        """
+
+        lines, n_header = _pformat_table(self, max_lines, max_width, show_name,
+                                         show_units)
+        for i, line in enumerate(lines):
+            if i < n_header:
+                color_print(line, 'red')
+            else:
+                print line
+
+    def pformat(self, max_lines=None, max_width=None, show_name=True,
+                show_units=False):
+        """Return a list of lines for the formatted string representation of
+        the table.
+
+        If no value of ``max_lines`` is supplied then the height of the screen
+        terminal is used to set ``max_lines``.  If the terminal height cannot
+        be determined then a default of ``astropy.table.pprint.MAX_LINES`` is
+        used.  If a negative value of ``max_lines`` is supplied then there is
+        no line limit applied.
+
+        The Same applies for max_width except the default is
+        ``astropy.table.pprint.MAX_WIDTH``.
+
+        Parameters
+        ----------
+        max_lines : int or None
+            Maximum number of rows to output
+
+        max_width : int or None
+            Maximum character width of output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+
+        Returns
+        -------
+        lines : list
+            Formatted table as a list of strings
+        """
+        lines, n_header = _pformat_table(self, max_lines, max_width,
+                                         show_name, show_units)
+        return lines
+
+    def more(self, max_lines=None, max_width=None, show_name=True,
+               show_units=False):
+        """Interactively browse table with a paging interface.
+
+        Supported keys::
+
+          f, <space> : forward one page
+          b : back one page
+          r : refresh same page
+          n : next row
+          p : previous row
+          < : go to beginning
+          > : go to end
+          q : quit browsing
+          h : print this help
+
+        Parameters
+        ----------
+        max_lines : int
+            Maximum number of lines in table output
+
+        max_width : int or None
+            Maximum character width of output
+
+        show_name : bool
+            Include a header row for column names (default=True)
+
+        show_units : bool
+            Include a header row for units (default=False)
+        """
+        _more_tabcol(self, max_lines, max_width, show_name,
+                     show_units)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
