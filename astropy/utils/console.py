@@ -34,7 +34,19 @@ def isatty(file):
     Most built-in Python file-like objects have an `isatty` member,
     but some user-defined types may not, so this assumes those are not
     ttys.
+
+    This also returns `True` if an IPython two-process shell is in use and
+    `file` is stdout.  This is because even though it's technically not a tty,
+    the IPython shell works as one for most console-related purposes.
+
     """
+    try:
+        ipnm = get_ipython().__class__.__name__
+        if ipnm == 'ZMQInteractiveShell' and file is sys.stdout:
+            return True
+    except NameError:
+        pass
+
     if hasattr(file, 'isatty'):
         return file.isatty()
     return False
