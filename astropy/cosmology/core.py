@@ -16,10 +16,9 @@ import parameters
 
 # Many of these adapted from astro-ph/9905116
 
-
-__all__ = ("Cosmology kpc_comoving_per_arcmin kpc_proper_per_arcmin "
+__all__ = ("FLRWCosmology kpc_comoving_per_arcmin kpc_proper_per_arcmin "
            "arcsec_per_kpc_comoving arcsec_per_kpc_proper distmod "
-           "radec_to_xyz get_current set_current WMAP5 WMAP7").split()
+           "get_current set_current WMAP5 WMAP7").split()
 
 # Constants
 
@@ -38,11 +37,31 @@ Gyr = 1e9 * 365.25 * 24 * 60 * 60
 arcsec_in_radians = 1 / 3600. * pi / 180
 arcmin_in_radians = 1 / 60. * pi / 180
 
-DEFAULT_COSMOLOGY = ConfigurationItem('default_cosmology', 'no_default',
-                                      'The default cosmology to use')
+DEFAULT_COSMOLOGY = ConfigurationItem(
+    'default_cosmology', 'no_default',
+    'The default cosmology to use. Note this is only read on import, '
+    'changing this value at runtime has no effect.')
 
+def isiterable(obj):
+    'Return true if *obj* is iterable'
+    if isinstance(obj, np.ndarray) and len(obj.shape) == 0:
+        return False
+    try:
+        iter(obj)
+    except TypeError:
+        return False
+
+    return True
+
+class CosmologyError(Exception):
+    pass
 
 class Cosmology(object):
+    """ Placeholder for when a more general Cosmology class is
+    implemented. """ 
+    pass
+
+class FLRWCosmology(Cosmology):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -73,14 +92,14 @@ class Cosmology(object):
 
     Examples
     --------
-    >>> from astro.cosmology import Cosmology
-    >>> cosmo = Cosmology(H0=70, Om=0.3, Ol=0.7)
+    >>> from astro.cosmology import FLRWCosmology
+    >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ol=0.7)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om, Ol, name='Cosmology'):
+    def __init__(self, H0, Om, Ol, name='FLRWCosmology'):
 
         # all densities are in units of the critical density
         self.Om = float(Om)
@@ -113,7 +132,7 @@ class Cosmology(object):
     def _efunc(self, z):
         """ Function used to calculate the hubble parameter as a
         function of redshift. Eqn 14 from Hogg."""
-        if not np.isscalar(z):
+        if isiterable(z):
             z = np.asarray(z)
         zp1 = 1. + z
         return np.sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
@@ -149,7 +168,7 @@ class Cosmology(object):
 
         Returns
         -------
-        H : ndarray
+        H : ndarray, or float if input scalar
           Hubble parameter in km/s/Mpc at each input redshift.
         """
         return self.H0 * self._efunc(z)
@@ -166,11 +185,11 @@ class Cosmology(object):
 
         Returns
         -------
-        a : ndarray
+        a : ndarray, or float if input scalar
           Scale factor at each input redshift.
         """
 
-        if not np.isscalar(z):
+        if isiterable(z):
             z = np.asarray(z)
 
         return 1. / (1. + z)
@@ -188,11 +207,11 @@ class Cosmology(object):
 
         Returns
         -------
-        t : ndarray
+        t : ndarray, or float if input scalar
           Lookback time in Gyr to each input redshift.
         """
         from scipy.integrate import quad
-        if np.isscalar(z):
+        if not isiterable(z):
             return self.hubble_time * quad(self._tfunc, 0, z)[0]
 
         out = np.array([quad(self._tfunc, 0, redshift)[0] for redshift in z])
@@ -208,11 +227,11 @@ class Cosmology(object):
 
         Returns
         -------
-        t : ndarray
+        t : ndarray, or float if input scalar
           The age of the universe in Gyr at each input redshift.
         """
         from scipy.integrate import quad
-        if np.isscalar(z):
+        if not isiterable(z):
             return self.hubble_time * quad(self._tfunc, z, np.inf)[0]
 
         out = [quad(self._tfunc, redshift, np.inf)[0] for redshift in z]
@@ -228,7 +247,7 @@ class Cosmology(object):
 
         Returns
         -------
-        rho : ndarray
+        rho : ndarray, or float if input scalar
           Critical density in g/cm^3 at each input redshift.
         """
         return self.critical_density0 * (self._efunc(z))**2
@@ -248,11 +267,11 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray
+        d : ndarray, or float if input scalar
           Comoving distance in Mpc to each input redshift.
         """
         from scipy.integrate import quad
-        if np.isscalar(z):
+        if not isiterable(z):
             return self.hubble_distance * quad(self._inv_efunc, 0, z)[0]
 
         out = [quad(self._inv_efunc, 0, redshift)[0] for redshift in z]
@@ -273,7 +292,7 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray
+        d : ndarray, or float if input scalar
           Comoving transverse distance in Mpc at each input redshift.
 
         Notes
@@ -309,10 +328,10 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray
+        d : ndarray, or float if input scalar
           Angular diameter distance in Mpc at each input redshift.
         """
-        if not np.isscalar(z):
+        if isiterable(z):
             z = np.asarray(z)
 
         return self.comoving_transverse_distance(z) / (1. + z)
@@ -331,14 +350,14 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray
+        d : ndarray, or float if input scalar
           Luminosity distance in Mpc at each input redshift.
 
         References
         ----------
         Weinberg, 1972, pp 420-424; Weedman, 1986, pp 60-62.
         """
-        if not np.isscalar(z):
+        if isiterable(z):
             z = np.asarray(z)
 
         return (1. + z) * self.comoving_transverse_distance(z)
@@ -354,9 +373,14 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray, shape (N,)
+        d : ndarray, shape (N,) or float if input scalar
           The angular diameter distance between each input redshift
           pair.
+
+        Raises
+        ------
+        CosmologyError
+          If omega_k is < 0.
 
         Notes
         -----
@@ -365,10 +389,11 @@ class Cosmology(object):
         """
         # does not work for negative curvature
         Ok = self.Ok
-        assert(Ok) >= 0
+        if Ok < 0:
+            raise CosmologyError('Ok must be > 0 to use this method.')
 
         outscalar = False
-        if np.isscalar(z1) and np.isscalar(z2):
+        if not isiterable(z1) and not isiterable(z2):
             outscalar = True
 
         z1 = np.atleast_1d(z1)
@@ -410,7 +435,7 @@ class Cosmology(object):
 
         Returns
         -------
-        d : ndarray
+        d : ndarray, or float if input scalar
           Absorption distance (dimensionless) at each input redshift.
 
         References
@@ -434,7 +459,7 @@ class Cosmology(object):
 
         Returns
         -------
-        distmod : ndarray
+        distmod : ndarray, or float if input scalar
           Distance modulus at each input redshift.
         """
         # Remember that the luminosity distance is in Mpc
@@ -455,7 +480,7 @@ class Cosmology(object):
 
         Returns
         -------
-        V : ndarray
+        V : ndarray, or float if input scalar
           Comoving volume in Mpc^3 at each input redshift.
         """
         Ok = self.Ok
@@ -475,12 +500,12 @@ class Cosmology(object):
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a Cosmology instance with the same
+# parameters module and creates a FLRWCosmology instance with the same
 # name as the parameter set in the current module's namespace.
 
 for key in parameters.available:
     par = getattr(parameters, key)
-    cosmo = Cosmology(par['H0'], par['Om'], par['Ol'], name=key)
+    cosmo = FLRWCosmology(par['H0'], par['Om'], par['Ol'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
@@ -575,7 +600,7 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : ndarray
+    d : ndarray, or float if input scalar
       The distance in comoving kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -595,7 +620,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
 
     Returns
     -------
-    d : ndarray
+    d : ndarray, or float if input scalar
       The distance in proper kpc corresponding to an arcmin at each
       input redshift.
     """
@@ -615,7 +640,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
 
     Returns
     -------
-    theta : ndarray
+    theta : ndarray, or float if input scalar
       The angular separation in arcsec corresponding to a comoving kpc
       at each input redshift.
     """
@@ -636,7 +661,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
 
     Returns
     -------
-    theta : ndarray
+    theta : ndarray, or float if input scalar
       The angular separation in arcsec corresponding to a proper kpc
       at each input redshift.
     """
@@ -655,52 +680,9 @@ def distmod(z, cosmo=None):
 
     Returns
     -------
-    distmod : ndarray
+    distmod : ndarray, or float if input scalar
       Distance modulus at each input redshift.
     """
     if cosmo is None:
         cosmo = get_current()
     return cosmo.distmod(z)
-
-
-def radec_to_xyz(ra, dec, r):
-    """ Convert a RA, Dec and comoving distance to 3d comoving
-    coordinates.
-
-    Convert a vectors pointing from the origin with comoving lengths
-    `r` in the directions `ra`, `dec` (both in degrees) to comoving
-    3-d coordinates x,y,z. RA = 0 corresponds to the positive x-z half
-    plane. Dec = 0 corresponds to the whole x-y plane.
-
-    Parameters
-    ----------
-    ra, dec : array_like, shape (N,)
-      RA and Dec coordinates in degrees.
-    r : array_like, shape (N,)
-      Comoving distance coordinate.
-
-    Returns
-    -------
-    x, y, z : ndarrays, shape (N,)
-      x,y,z coordinates with the same units as `r`.
-
-    Notes
-    -----
-    This function is only accurate for comoving distances calculated
-    in a flat cosmology (omega matter + omega lambda = 1).
-
-    To align the axes such that a vector r with direction (ra0, dec0)
-    points along the positive x-axis, use ra-ra0 and dec-dec0 instead
-    of ra and dec. In this case increasing dec corresponds to
-    increasing z, and increasing ra (from ra=0) corresponds to
-    increasing y.
-    """
-    ra1 = pi / 180. * ra
-    dec1 = pi / 180. * dec
-
-    cos_dec1 = np.cos(dec1)
-    x = r * (cos_dec1 * np.cos(ra1))
-    y = r * (cos_dec1 * np.sin(ra1))
-    z = r * np.sin(dec1)
-
-    return x, y, z

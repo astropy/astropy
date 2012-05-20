@@ -15,6 +15,7 @@ Each cosmology has the following parameters defined:
     tau         Ionisation optical depth
     z_reion     Redshift of hydrogen reionisation
     t0          Age of the universe in Gyr
+    reference   Reference for the parameters
     ==========  =====================================
 
 The list of cosmologies available are given by the tuple

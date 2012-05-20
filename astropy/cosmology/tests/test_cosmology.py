@@ -7,7 +7,7 @@ def test_flat_z1():
     """ Test a flat cosmology at z=1 against several other on-line
     calculators.
     """
-    cosmo = core.Cosmology(H0=70, Om=0.27, Ol=0.73)
+    cosmo = core.FLRWCosmology(H0=70, Om=0.27, Ol=0.73)
     z = 1
 
     # Test values were taken from the following web cosmology
@@ -51,9 +51,9 @@ def test_convenience():
 
 def test_comoving_volume():
 
-    c_flat = core.Cosmology(H0=70, Om=0.27, Ol=0.73)
-    c_open = core.Cosmology(H0=70, Om=0.27, Ol=0.0)
-    c_closed = core.Cosmology(H0=70, Om=2, Ol=0.0)
+    c_flat = core.FLRWCosmology(H0=70, Om=0.27, Ol=0.73)
+    c_open = core.FLRWCosmology(H0=70, Om=0.27, Ol=0.0)
+    c_closed = core.FLRWCosmology(H0=70, Om=2, Ol=0.0)
 
     redshifts = 0.5, 1, 2, 3, 5, 9
 
@@ -180,19 +180,19 @@ def test_flat_open_closed_icosmo():
 """
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_flat), unpack=1)
-    cosmo = core.Cosmology(H0=70, Om=0.3, Ol=0.70)
+    cosmo = core.FLRWCosmology(H0=70, Om=0.3, Ol=0.70)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_open), unpack=1)
-    cosmo = core.Cosmology(H0=70, Om=0.3, Ol=0.1)
+    cosmo = core.FLRWCosmology(H0=70, Om=0.3, Ol=0.1)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_closed), unpack=1)
-    cosmo = core.Cosmology(H0=70, Om=2, Ol=0.1)
+    cosmo = core.FLRWCosmology(H0=70, Om=2, Ol=0.1)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
