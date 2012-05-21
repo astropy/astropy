@@ -39,7 +39,9 @@ def isatty(file):
     but some user-defined types may not, so this assumes those are not
     ttys.
     """
-    if OutStream is not None and isinstance(file, OutStream):
+    if (OutStream is not None and
+        isinstance(file, OutStream) and
+        file.name == 'stdout'):
         return True
     elif hasattr(file, 'isatty'):
         return file.isatty()
