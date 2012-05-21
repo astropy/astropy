@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                     if os.path.isfile(cfn):
                         ext.sources[jdx] = cfn
                     else:
-                        log.warn('Could not find c file {0} for {1}; skipping '
-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))
-                        del extensions[idx]
-                        break
+                        raise IOError(
+                            'Could not find C file {0} for Cython file {1}; '
+                            'Cython must be installed to build from a git '
+                            'checkout'.format(cfn, pyxfn, ext.name))
 
     # On Microsoft compilers, we need to pass the '/MANIFEST'
     # commandline argument.  This was the default on MSVC 9.0, but is
