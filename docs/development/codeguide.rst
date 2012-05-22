@@ -86,6 +86,32 @@ Data and Configuration
   and supply a description sufficient for users to understand what the setting
   changes.
 
+Standard output, warnings, and errors
+-------------------------------------
+
+The built-in ``print(...)`` function should only be used for output that
+is explicitly requested by the user, for example ``print_header(...)``
+or ``list_catalogs(...)``. Any other standard output, warnings, and
+errors should follow these rules:
+
+* For errors/exceptions, one should always use ``raise`` with one of the
+  built-in exception classes, or a custom exception class. The
+  nondescript ``Exception`` class should be avoided as much as possible,
+  in favor of more specific exceptions (``IOError``, ``ValueError``,
+  etc.).
+
+* For warnings, one should always use ``warnings.warn(message)``. These
+  get redirected to ``log.warn`` by default, but one can still use the
+  standard warning-catching mechanism and custom warning classes.
+
+* For informational and debugging messages, one should always use
+  ``log.info(message)`` and ``log.debug(message)``.
+
+The logging system uses the built-in Python `logging
+<http://docs.python.org/library/logging.html>`_ module. The logger can
+be imported using::
+
+    from astropy import log
 
 Coding Style/Conventions
 ------------------------
