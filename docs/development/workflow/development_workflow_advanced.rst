@@ -33,7 +33,7 @@ The following example shows how to fork the core ``astropy`` repository, but the
 
 #. Log into your GitHub account.
 
-#. Go to the Astropy_ GitHub home.
+#. Go to the `Astropy GitHub`_ home.
 
 #. Click on the *fork* button:
 
@@ -83,7 +83,7 @@ In detail
    What remote repository is ``remote/origin``? Try ``git remote -v`` to
    see the URLs for the remote.  They will point to your github fork.
 
-   Now you want to connect to the `Astropy github`_ repository, so you can
+   Now you want to connect to the `Astropy GitHub`_ repository, so you can
    merge in changes from the trunk::
 
     cd astropy

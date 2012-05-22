@@ -45,7 +45,8 @@ your contact info::
 More detailed information and instructions are below.
 
 After that, if you then just want to get the latest ``astropy`` source code,
-cd to a directory on your computer you want to put the source code, and do::
+``cd`` to a directory on your computer you want to put the source code, and
+do::
 
      git clone git@github.com:astropy/astropy.git
 
