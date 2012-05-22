@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                         ext.sources[jdx] = cfn
                     else:
                         raise IOError(
-                            'Could not find C file {0} for Cython file {1}; '
+                            'Could not find C file {0} for Cython file {1} '
+                            'when building extension {2}. '
                             'Cython must be installed to build from a git '
                             'checkout'.format(cfn, pyxfn, ext.name))
 
