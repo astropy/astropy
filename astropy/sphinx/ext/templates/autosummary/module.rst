@@ -1,3 +1,7 @@
+{% if referencefile %}
+.. include:: {{ referencefile }}
+{% endif %}
+
 {{ fullname }}
 {{ underline }}
 

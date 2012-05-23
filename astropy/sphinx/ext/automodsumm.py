@@ -406,6 +406,27 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             ns['objtype'] = doc.objtype
             ns['underline'] = len(name) * '='
 
+            # We now check whether a reference file exists for the module
+            # being documented. This assumes that we are in _generated, and
+            # that ../ gives us the root of the docs. We first check if the
+            # current module is a file or a directory, as this will give a
+            # different path for the reference file. For example, if
+            # documenting astropy.wcs then the reference file is at
+            # ../wcs/references.txt, while if we are documenting
+            # astropy.config.logging_helper (which is at
+            # astropy/config/logging_helper.py) then the reference file is set
+            # to ../config/references.txt
+            mod_name_dir = mod_name.replace('.', '/').split('/', 1)[1]
+            if not os.path.isdir(os.path.join(path, '..', mod_name_dir)) \
+               and os.path.isdir(os.path.join(path, '..', mod_name_dir.rsplit('/', 1)[0])):
+                mod_name_dir = mod_name_dir.rsplit('/', 1)[0]
+
+            # We then have to check whether it exists, and if so, we pass it
+            # to the template
+            reference_file = os.path.join('..', mod_name_dir, 'references.txt')
+            if os.path.exists(os.path.join(path, reference_file)):
+                ns['referencefile'] = reference_file
+
             rendered = template.render(**ns)
             f.write(rendered)
         finally:
