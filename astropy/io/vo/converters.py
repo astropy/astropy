@@ -44,21 +44,21 @@ class Converter(object):
     The base class for all converters.  Each subclass handles
     converting a specific VOTABLE data type to/from the TABLEDATA_ and
     BINARY_ on-disk representations.
+
+    Parameters
+    ----------
+    field : `~astropy.io.vo.table.Field`
+        object describing the datatype
+
+    config : dict
+        The parser configuration dictionary
+
+    pos : tuple
+        The position in the XML file where the FIELD object was
+        found.  Used for error messages.
+
     """
     def __init__(self, field, config={}, pos=None):
-        """
-        Parameters
-        ----------
-        field : `~astropy.io.vo.table.Field`
-            object describing the datatype
-
-        config : dict
-            The parser configuration dictionary
-
-        pos : tuple
-            The position in the XML file where the FIELD object was
-            found.  Used for error messages.
-        """
         pass
 
     @staticmethod
