@@ -98,3 +98,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
         coverage=coverage)
+
+#if we are *not* in setup mode, import the logger
+if not _ASTROPY_SETUP_:
+    from config.logging_helper import log

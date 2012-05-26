@@ -31,7 +31,7 @@ Configuring the logging system
 
 First, import the logger::
 
-    from astropy.config import log
+    from astropy import log
 
 The threshold level (defined above) for messages can be set with e.g.::
 
@@ -71,7 +71,7 @@ section of code to a file. Both of these are possible using context managers.
 To add the log messages to a list, first import the logger if you have not
 already done so::
 
-    from astropy.config import log
+    from astropy import log
 
 then enclose the code in which you want to log the messages to a list in a
 ``with`` statement::
