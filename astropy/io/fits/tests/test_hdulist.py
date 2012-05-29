@@ -18,7 +18,10 @@ class TestHDUListFunctions(FitsTestCase):
         hdul = fits.open(self.data('o4sp040b0_raw.fits'))
         hdul[4].update_ext_name('Jim', "added by Jim")
         hdul[4].update_ext_version(9, "added by Jim")
-        assert hdul[('JIM', 9)].header['extname'] == 'JIM'
+        if fits.EXTENSION_NAME_CASE_SENSITIVE():
+            assert hdul[('JIM', 9)].header['extname'] == 'Jim'
+        else:
+            assert hdul[('JIM', 9)].header['extname'] == 'JIM'
 
     def test_hdu_file_bytes(self):
         hdul = fits.open(self.data('checksum.fits'))
