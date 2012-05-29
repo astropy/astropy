@@ -88,6 +88,12 @@ To install Astropy (from the root of the source tree)::
 Building documentation
 ``````````````````````
 
+.. note::
+    Building the documentation is in general not necessary unless you
+    are writing new documentation or do not have internet access, because
+    the latest (and archive) versions of astropy's documentation should
+    be available at `docs.astropy.org <http://docs.astropy.org>`_ .
+
 Building the documentation requires the Astropy source code and some additional
 packages:
 
