@@ -4,37 +4,41 @@
 Header Data Units
 *****************
 
-.. inheritance-diagram:: PrimaryHDU ImageHDU GroupsHDU TableHDU BinTableHDU StreamingHDU
-
-The `ImageHDU` and `CompImageHDU` classes are discussed in the
+The :class:`ImageHDU` and :class:`CompImageHDU` classes are discussed in the
 section on :ref:`Images`.
 
-The `TableHDU` and `BinTableHDU` classes are discussed in the
+The :class:`TableHDU` and :class:`BinTableHDU` classes are discussed in the
 section on :ref:`Tables`.
 
-`PrimaryHDU`
-============
-
+:class:`PrimaryHDU`
+===================
 .. autoclass:: PrimaryHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`GroupsHDU`
-===========
-
+:class:`GroupsHDU`
+==================
 .. autoclass:: GroupsHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`StreamingHDU`
-==============
+:class:`GroupData`
+==================
+.. autoclass:: GroupData
+   :members:
+   :show-inheritance:
 
+:class:`Group`
+==============
+.. autoclass:: GroupData
+   :members:
+   :show-inheritance:
+
+:class:`StreamingHDU`
+=====================
 .. autoclass:: StreamingHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:

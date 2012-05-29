@@ -3,6 +3,8 @@
 import itertools
 import warnings
 
+import numpy as np
+
 from ....io import fits
 from ....tests.helper import pytest
 
@@ -152,6 +154,38 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert len(cards) == 2
         assert cards[0].value == 0
         assert cards[1].value == 2
+
+    def test_assign_boolean(self):
+        """
+        Regression test for #123. Tests assigning Python and Numpy boolean
+        values to keyword values.
+        """
+
+        fooimg = _pad('FOO     =                    T')
+        barimg = _pad('BAR     =                    F')
+        h = fits.Header()
+        h.update('FOO', True)
+        h.update('BAR', False)
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert h.ascard['FOO'].cardimage == fooimg
+        assert h.ascard['BAR'].cardimage == barimg
+
+        h = fits.Header()
+        h.update('FOO', np.bool_(True))
+        h.update('BAR', np.bool_(False))
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert h.ascard['FOO'].cardimage == fooimg
+        assert h.ascard['BAR'].cardimage == barimg
+
+        h = fits.Header()
+        h.ascard.append(fits.Card.fromstring(fooimg))
+        h.ascard.append(fits.Card.fromstring(barimg))
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert h.ascard['FOO'].cardimage == fooimg
+        assert h.ascard['BAR'].cardimage == barimg
 
 
 class TestHeaderFunctions(FitsTestCase):
@@ -320,14 +354,18 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring("   history          (1, 2)")
         assert str(c) == _pad("HISTO   = 'ry          (1, 2)'")
 
-    def test_verify_invalid_equal_sign(self):
+    def test_verify_invalid_equal_sign(self, capsys):
         # verification
         c = fits.Card.fromstring('abc= a6')
         with warnings.catch_warnings(record=True) as w:
             c.verify()
+            err_text1 = ('Card image is not FITS standard (equal sign not at '
+                         'column 8)')
+            err_text2 = ('Card image is not FITS standard (invalid value '
+                         'string: a6')
             assert len(w) == 2
-            assert ('Card image is not FITS standard (equal sign not at '
-                    'column 8)' in str(w[0].message))
+            assert err_text1 in str(w[0].message)
+            assert err_text2 in str(w[1].message)
 
     def test_fix_invalid_equal_sign(self):
         c = fits.Card.fromstring('abc= a6')
@@ -386,9 +424,9 @@ class TestHeaderFunctions(FitsTestCase):
             _pad("continue  'continue must have string value (with quotes)' "
                  "/ comments with ''. "))
         assert (str(c) ==
-            "ABC     = 'longstring''s testing  continue with long string but without the &'  "
-            "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
-            "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
+                "ABC     = 'longstring''s testing  continue with long string but without the &'  "
+                 "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
+                 "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
 
     def test_continue_card_with_equals_in_value(self):
         """
@@ -396,9 +434,9 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         c = fits.Card.fromstring(
-            fits.card._pad("EXPR    = '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits * &'") +
-            fits.card._pad("CONTINUE  '5.87359e-12 * MWAvg(Av=0.12)&'") +
-            fits.card._pad("CONTINUE  '&' / pysyn expression"))
+            _pad("EXPR    = '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits * &'") +
+            _pad("CONTINUE  '5.87359e-12 * MWAvg(Av=0.12)&'") +
+            _pad("CONTINUE  '&' / pysyn expression"))
 
         assert c.keyword == 'EXPR'
         assert (c.value ==
@@ -427,6 +465,17 @@ class TestHeaderFunctions(FitsTestCase):
         assert (str(c) ==
             "HIERARCH ESO INS SLIT2 Y1FRML= "
             "'ENC=OFFSET+RESOL*acos((WID-(MAX+MIN))/(MAX-MIN)'")
+
+    def test_missing_keyword(self):
+        """Test that accessing a non-existent keyword raises a KeyError."""
+
+        header = fits.Header()
+        pytest.raises(KeyError, lambda k: header[k], 'NAXIS')
+        # Test the exception message
+        try:
+            header['NAXIS']
+        except KeyError, e:
+            assert e.args[0] == "Keyword 'NAXIS' not found."
 
     def test_hierarch_card_lookup(self):
         header = fits.Header()
@@ -848,6 +897,18 @@ class TestHeaderFunctions(FitsTestCase):
         assert len(hdu.header['HISTORY']) == 2
         assert hdu.header[-1] == 'history 2'
 
+    def test_header_extend_exact(self):
+        """
+        Test that extending an empty header with the contents of an existing
+        header can exactly duplicate that header, given strip=False and
+        end=True.
+        """
+
+        header = fits.getheader(self.data('test0.fits'))
+        header2 = fits.Header()
+        header2.extend(header, strip=False, end=True)
+        assert header == header2
+
     def test_header_count(self):
         header = fits.Header([('A', 'B'), ('C', 'D'), ('E', 'F')])
         assert header.count('A') == 1
@@ -970,6 +1031,37 @@ class TestHeaderFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test.fits'))
         assert hdul[0].header.comments['FOO'] == 'QUX'
 
+    def test_commentary_slicing(self):
+        header = fits.Header()
+
+        indices = range(5)
+
+        for idx in indices:
+            header['HISTORY'] = idx
+
+        # Just a few sample slice types; this won't get all corner cases but if
+        # these all work we should be in good shape
+        assert header['HISTORY'][1:] == indices[1:]
+        assert header['HISTORY'][:3] == indices[:3]
+        assert header['HISTORY'][:6] == indices[:6]
+        assert header['HISTORY'][:-2] == indices[:-2]
+        assert header['HISTORY'][::-1] == indices[::-1]
+        assert header['HISTORY'][1::-1] == indices[1::-1]
+        assert header['HISTORY'][1:5:2] == indices[1:5:2]
+
+        # Same tests, but copy the values first; as it turns out this is
+        # different from just directly doing an __eq__ as in the first set of
+        # assertions
+        header.insert(0, ('A', 'B', 'C'))
+        header.append(('D', 'E', 'F'), end=True)
+        assert list(header['HISTORY'][1:]) == indices[1:]
+        assert list(header['HISTORY'][:3]) == indices[:3]
+        assert list(header['HISTORY'][:6]) == indices[:6]
+        assert list(header['HISTORY'][:-2]) == indices[:-2]
+        assert list(header['HISTORY'][::-1]) == indices[::-1]
+        assert list(header['HISTORY'][1::-1]) == indices[1::-1]
+        assert list(header['HISTORY'][1:5:2]) == indices[1:5:2]
+
     def test_update_commentary(self):
         header = fits.Header()
         header['FOO'] = 'BAR'
@@ -1029,8 +1121,50 @@ class TestHeaderFunctions(FitsTestCase):
         header2 = fits.Header.fromtextfile(self.temp('test.hdr'))
         assert header == header2
 
+    def test_header_fromtextfile_with_end_card(self):
+        """Regression test for #154.
+
+        Make sure that when a Header is read from a text file that the END card
+        is ignored.
+        """
+
+        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
+
+        # We don't use header.totextfile here because it writes each card with
+        # trailing spaces to pad them out to 80 characters.  But this bug only
+        # presents itself when each card ends immediately with a newline, and
+        # no trailing spaces
+        with open(self.temp('test.hdr'), 'w') as f:
+            f.write('\n'.join(str(c).strip() for c in header.cards))
+            f.write('\nEND')
+
+        new_header = fits.Header.fromtextfile(self.temp('test.hdr'))
+
+        assert 'END' not in new_header
+        assert header == new_header
+
+    def test_append_end_card(self):
+        """
+        Regression test 2 for #154.
+
+        Manually adding an END card to a header should simply result in a
+        ValueError (as was the case in PyFITS 3.0 and earlier).
+        """
+
+        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
+
+        def setitem(k, v):
+            header[k] = v
+
+        pytest.raises(ValueError, setitem, 'END', '')
+        pytest.raises(ValueError, header.append, 'END')
+        pytest.raises(ValueError, header.append, 'END', end=True)
+        pytest.raises(ValueError, header.insert, len(header), 'END')
+        pytest.raises(ValueError, header.set, 'END')
+
     def test_unnecessary_move(self):
-        """Regression test for #125.
+        """
+        Regression test for #125.
 
         Ensures that a header is not modified when setting the position of a
         keyword that's already in its correct position.
@@ -1067,6 +1201,304 @@ class TestHeaderFunctions(FitsTestCase):
         header.set('C', after=123)
         assert header.keys() == ['A', 'B', 'C']
         assert not header._modified
+
+    def test_invalid_float_cards(self):
+        """Regression test for #137."""
+
+        # Create a header containing two of the problematic cards in the test
+        # case where this came up:
+        hstr = "FOCALLEN= +1.550000000000e+002\nAPERTURE=+0.000000000000e+000"
+        h = fits.Header.fromstring(hstr, sep='\n')
+
+        # First the case that *does* work prior to fixing this issue
+        assert h['FOCALLEN'] == 155.0
+        assert h['APERTURE'] == 0.0
+
+        # Now if this were reserialized, would new values for these cards be
+        # written with repaired exponent signs?
+        assert (str(h.cards['FOCALLEN']) ==
+                _pad("FOCALLEN= +1.550000000000E+002"))
+        assert h.cards['FOCALLEN']._modified
+        assert (str(h.cards['APERTURE']) ==
+                _pad("APERTURE= +0.000000000000E+000"))
+        assert h.cards['APERTURE']._modified
+        assert h._modified
+
+        # This is the case that was specifically causing problems; generating
+        # the card strings *before* parsing the values.  Also, the card strings
+        # really should be "fixed" before being returned to the user
+        h = fits.Header.fromstring(hstr, sep='\n')
+        assert (str(h.cards['FOCALLEN']) ==
+                _pad("FOCALLEN= +1.550000000000E+002"))
+        assert h.cards['FOCALLEN']._modified
+        assert (str(h.cards['APERTURE']) ==
+                _pad("APERTURE= +0.000000000000E+000"))
+        assert h.cards['APERTURE']._modified
+
+        assert h['FOCALLEN'] == 155.0
+        assert h['APERTURE'] == 0.0
+        assert h._modified
+
+        # For the heck of it, try assigning the identical values and ensure
+        # that the newly fixed value strings are left intact
+        h['FOCALLEN'] = 155.0
+        h['APERTURE'] = 0.0
+        assert (str(h.cards['FOCALLEN']) ==
+                _pad("FOCALLEN= +1.550000000000E+002"))
+        assert (str(h.cards['APERTURE']) ==
+                     _pad("APERTURE= +0.000000000000E+000"))
+
+    def test_invalid_float_cards2(self, capsys):
+        """
+        Regression test for #140.
+        """
+
+        # The example for this test requires creating a FITS file containing a
+        # slightly misformatted float value.  I can't actually even find a way
+        # to do that directly through PyFITS--it won't let me.
+        hdu = fits.PrimaryHDU()
+        hdu.header['TEST'] = 5.0022221e-07
+        hdu.writeto(self.temp('test.fits'))
+
+        # Here we manually make the file invalid
+        with open(self.temp('test.fits'), 'rb+') as f:
+            f.seek(346)  # Location of the exponent 'E' symbol
+            f.write('e')
+
+        hdul = fits.open(self.temp('test.fits'))
+        with warnings.catch_warnings(record=True) as w:
+            hdul.writeto(self.temp('temp.fits'), output_verify='warn')
+            assert len(w) == 3
+            # The first two warnings are just the headers to the actual warning
+            # message (HDU 0, Card 4).  I'm still not sure things like that
+            # should be output as separate warning messages, but that's
+            # something to think about...
+            msg = str(w[2].message)
+            assert '(invalid value string: 5.0022221e-07)' in msg
+
+    def test_leading_zeros(self):
+        """
+        Regression test for #137, part 2.
+
+        Ticket #137 also showed that in float values like 0.001 the leading
+        zero was unnecessarily being stripped off when rewriting the header.
+        Though leading zeros should be removed from integer values to prevent
+        misinterpretation as octal by python (for now PyFITS will still
+        maintain the leading zeros if now changes are made to the value, but
+        will drop them if changes are made).
+        """
+
+        c = fits.Card.fromstring("APERTURE= +0.000000000000E+000")
+        assert str(c) == _pad("APERTURE= +0.000000000000E+000")
+        assert c.value == 0.0
+        c = fits.Card.fromstring("APERTURE= 0.000000000000E+000")
+        assert str(c) == _pad("APERTURE= 0.000000000000E+000")
+        assert c.value == 0.0
+        c = fits.Card.fromstring("APERTURE= 017")
+        assert str(c) == _pad("APERTURE= 017")
+        assert c.value == 17
+
+    def test_assign_boolean(self):
+        """
+        Regression test for #123. Tests assigning Python and Numpy boolean
+        values to keyword values.
+        """
+
+        fooimg = _pad('FOO     =                    T')
+        barimg = _pad('BAR     =                    F')
+        h = fits.Header()
+        h['FOO'] = True
+        h['BAR'] = False
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert str(h.cards['FOO']) == fooimg
+        assert str(h.cards['BAR']) == barimg
+
+        h = fits.Header()
+        h['FOO'] = np.bool_(True)
+        h['BAR'] = np.bool_(False)
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert str(h.cards['FOO']) == fooimg
+        assert str(h.cards['BAR']) == barimg
+
+        h = fits.Header()
+        h.append(fits.Card.fromstring(fooimg))
+        h.append(fits.Card.fromstring(barimg))
+        assert h['FOO'] == True
+        assert h['BAR'] == False
+        assert str(h.cards['FOO']) == fooimg
+        assert str(h.cards['BAR']) == barimg
+
+    def test_header_method_keyword_normalization(self):
+        """
+        Regression test for #149.  Basically ensures that all public Header
+        methods are case-insensitive w.r.t. keywords.
+
+        Provides a reasonably comprehensive test of several methods at once.
+        """
+
+        h = fits.Header([('abC', 1), ('Def', 2), ('GeH', 3)])
+        assert h.keys() == ['ABC', 'DEF', 'GEH']
+        assert 'abc' in h
+        assert 'dEf' in h
+
+        assert h['geh'] == 3
+
+        # Case insensitivity of wildcards
+        assert len(h['g*']) == 1
+
+        h['aBc'] = 2
+        assert h['abc'] == 2
+        # ABC already existed so assigning to aBc should not have added any new
+        # cards
+        assert len(h) == 3
+
+        del h['gEh']
+        assert h.keys() == ['ABC', 'DEF']
+        assert len(h) == 2
+        assert h.get('def') == 2
+
+        h.set('Abc', 3)
+        assert h['ABC'] == 3
+        h.set('gEh', 3, before='Abc')
+        assert h.keys() == ['GEH', 'ABC', 'DEF']
+
+        assert h.pop('abC') == 3
+        assert len(h) == 2
+
+        assert h.setdefault('def', 3) == 2
+        assert len(h) == 2
+        assert h.setdefault('aBc', 1) == 1
+        assert len(h) == 3
+        assert h.keys(), ['GEH', 'DEF' == 'ABC']
+
+        h.update({'GeH': 1, 'iJk': 4})
+        assert len(h) == 4
+        assert h.keys() == ['GEH', 'DEF', 'ABC', 'IJK']
+        assert h['GEH'] == 1
+
+        assert h.count('ijk') == 1
+        assert h.index('ijk') == 3
+
+        h.remove('Def')
+        assert len(h) == 3
+        assert h.keys() == ['GEH', 'ABC', 'IJK']
+
+    def test_end_in_comment(self):
+        """
+        Regression test for #142.  Tests a case where the comment of a card
+        ends with END, and is followed by several blank cards.
+        """
+
+        data = np.arange(100).reshape((10, 10))
+        hdu = fits.PrimaryHDU(data=data)
+        hdu.header['TESTKW'] = ('Test val', 'This is the END')
+        # Add a couple blanks after the END string
+        hdu.header.append()
+        hdu.header.append()
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert 'TESTKW' in hdul[0].header
+            assert hdul[0].header == hdu.header
+            assert (hdul[0].data == data).all()
+
+        # Add blanks until the header is extended to two block sizes
+        while len(hdu.header) < 36:
+            hdu.header.append()
+        with ignore_warnings():
+            hdu.writeto(self.temp('test.fits'), clobber=True)
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert 'TESTKW' in hdul[0].header
+            assert hdul[0].header == hdu.header
+            assert (hdul[0].data == data).all()
+
+        # Test parsing the same header when it's written to a text file
+        hdu.header.totextfile(self.temp('test.hdr'))
+        header2 = fits.Header.fromtextfile(self.temp('test.hdr'))
+        assert hdu.header == header2
+
+    def test_assign_unicode(self):
+        """
+        Regression test for #134.  Assigning a unicode literal as a header
+        value should not fail silently.  If the value can be converted to ASCII
+        then it should just work.  Otherwise it should fail with an appropriate
+        value error.
+
+        Also tests unicode for keywords and comments.
+        """
+
+        erikku = u'\u30a8\u30ea\u30c3\u30af'
+
+        def assign(keyword, val):
+            h[keyword] = val
+
+        h = fits.Header()
+        h[u'FOO'] = 'BAR'
+        assert 'FOO' in h
+        assert h['FOO'] == 'BAR'
+        assert h[u'FOO'] == 'BAR'
+        assert repr(h) == _pad("FOO     = 'BAR     '")
+        pytest.raises(ValueError, assign, erikku, 'BAR')
+
+
+        h['FOO'] = u'BAZ'
+        assert h[u'FOO'] == 'BAZ'
+        assert h[u'FOO'] == u'BAZ'
+        assert repr(h) == _pad("FOO     = 'BAZ     '")
+        pytest.raises(ValueError, assign, 'FOO', erikku)
+
+        h['FOO'] = ('BAR', u'BAZ')
+        assert h['FOO'] == 'BAR'
+        assert h['FOO'] == u'BAR'
+        assert h.comments['FOO'] == 'BAZ'
+        assert h.comments['FOO'] == u'BAZ'
+        assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
+
+        h['FOO'] = (u'BAR', u'BAZ')
+        assert h['FOO'] == 'BAR'
+        assert h['FOO'] == u'BAR'
+        assert h.comments['FOO'] == 'BAZ'
+        assert h.comments['FOO'] == u'BAZ'
+        assert repr(h) == _pad("FOO     = 'BAR     '           / BAZ")
+
+        pytest.raises(ValueError, assign, 'FOO', ('BAR', erikku))
+        pytest.raises(ValueError, assign, 'FOO', (erikku, 'BAZ'))
+        pytest.raises(ValueError, assign, 'FOO', (erikku, erikku))
+
+    def test_header_strip_whitespace(self):
+        """
+        Regression test for #146, and for the solution that is optional
+        stripping of whitespace from the end of a header value.
+
+        By default extra whitespace is stripped off, but if
+        fits.STRIP_HEADER_WHITESPACE = False it should not be stripped.
+        """
+
+        h = fits.Header()
+        h['FOO'] = 'Bar      '
+        assert h['FOO'] == 'Bar'
+        c = fits.Card.fromstring("QUX     = 'Bar        '")
+        h.append(c)
+        assert h['QUX'] == 'Bar'
+        assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
+        assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
+
+        fits.STRIP_HEADER_WHITESPACE.set(False)
+        try:
+            assert h['FOO'] == 'Bar      '
+            assert h['QUX'] == 'Bar        '
+            assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
+            assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
+        finally:
+            fits.STRIP_HEADER_WHITESPACE.set(True)
+
+        assert h['FOO'] == 'Bar'
+        assert h['QUX'] == 'Bar'
+        assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
+        assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):
@@ -1223,6 +1655,11 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
         pytest.raises(IndexError, lambda x: self._test_header[x], 8)
         pytest.raises(KeyError, lambda k: self._test_header[k], 'DP1.AXIS.3')
+        # Test the exception message
+        try:
+            self._test_header['DP1.AXIS.3']
+        except KeyError, e:
+            assert e.args[0] == "Keyword 'DP1.AXIS.3' not found."
 
     def test_update_rvkc(self):
         """A RVKC can be updated either via index or keyword access."""

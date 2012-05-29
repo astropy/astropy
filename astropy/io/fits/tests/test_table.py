@@ -90,6 +90,26 @@ def comparerecords(a, b):
 
 
 class TestTableFunctions(FitsTestCase):
+    def test_constructor_copies_header(self):
+       """
+       Regression test for #153.  Ensure that a header from one HDU is copied
+       when used to initialize new HDU.
+
+       This is like the test of the same name in test_image, but tests this for
+       tables as well.
+       """
+
+       ifd = fits.HDUList([fits.PrimaryHDU(), fits.BinTableHDU()])
+       thdr = ifd[1].header
+       thdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+
+       thdu = fits.BinTableHDU(header=thdr)
+       ofd = fits.HDUList(thdu)
+       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+
+       # Original header should be unchanged
+       assert thdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+
     def test_open(self):
         # open some existing FITS files:
         tt = fits.open(self.data('tb.fits'))
@@ -166,11 +186,10 @@ class TestTableFunctions(FitsTestCase):
         fout.append(tbhdu)
         fout.writeto(self.temp('tableout1.fits'), clobber=True)
 
-        f2 = fits.open(self.temp('tableout1.fits'))
-        temp = f2[1].data.field(7)
-        assert (temp[0] == [True, True, False, True, False, True, True,
-                            True, False, False, True]).all()
-        f2.close()
+        with fits.open(self.temp('tableout1.fits')) as f2:
+            temp = f2[1].data.field(7)
+            assert (temp[0] == [True, True, False, True, False, True, True,
+                                True, False, False, True]).all()
 
         # An alternative way to create an output table FITS file:
         fout2 = fits.open(self.temp('tableout2.fits'), 'append')
@@ -1837,3 +1856,19 @@ class TestTableFunctions(FitsTestCase):
         data = fits.getdata(self.temp('table.fits'), ext=1)
         assert thdu.columns.formats == ['L', 'L']
         assert comparerecords(data, array)
+
+    def test_bool_column_update(self):
+        """Regression test for #139."""
+
+        c1 = fits.Column('F1', 'L', array=[True, False])
+        c2 = fits.Column('F2', 'L', array=[False, True])
+        thdu = fits.new_table(fits.ColDefs([c1, c2]))
+        thdu.writeto(self.temp('table.fits'))
+
+        with fits.open(self.temp('table.fits'), mode='update') as hdul:
+            hdul[1].data['F1'][1] = True
+            hdul[1].data['F2'][0] = True
+
+        with fits.open(self.temp('table.fits')) as hdul:
+            assert (hdul[1].data['F1'] == [True, True]).all()
+            assert (hdul[1].data['F2'] == [True, True]).all()

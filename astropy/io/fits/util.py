@@ -291,8 +291,29 @@ def translate(s, table, deletechars):
 
 
 def indent(s, shift=1, width=4):
-    return '\n'.join(' ' * (width * shift) + l if l else ''
-                     for l in s.splitlines())
+    indented = '\n'.join(' ' * (width * shift) + l if l else ''
+                         for l in s.splitlines())
+    if s[-1] == '\n':
+        indented += '\n'
+
+    return indented
+
+
+def fill(text, width, *args, **kwargs):
+    """
+    Like :func:`textwrap.wrap` but preserves existing paragraphs which
+    :func:`textwrap.wrap` does not otherwise handle well.  Also handles section
+    headers.
+    """
+
+    paragraphs = text.split('\n\n')
+    def maybe_fill(t):
+        if all(len(l) < width for l in t.splitlines()):
+            return t
+        else:
+            return textwrap.fill(t, width, *args, **kwargs)
+
+    return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
 
 def _array_from_file(infile, dtype, count, sep):

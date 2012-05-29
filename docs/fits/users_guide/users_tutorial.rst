@@ -30,16 +30,16 @@ For the sake of brevity, one may also use `astropy.io.fits` like so:
 
 The :func:`open` function has several optional arguments which will be
 discussed in a later chapter. The default mode, as in the above example, is
-"readonly".  The open function returns an object called an `HDUList` which is a
-Python list-like collection of HDU objects. An HDU (Header Data Unit) is the
-highest level component of the FITS file structure. So, after the above open
-call, ``hdulist[0]`` is the primary HDU, ``hdulist[1]``, if any, is the first
-extension HDU, etc.  It should be noted that Astropy is using zero-based
-indexing when referring to HDUs and header cards, though the FITS standard
-(which was designed with FORTRAN in mind) uses one-based indexing.
+"readonly".  The open function returns an object called an :class:`HDUList`
+which is a Python list-like collection of HDU objects. An HDU (Header Data
+Unit) is the highest level component of the FITS file structure. So, after the
+above open call, ``hdulist[0]`` is the primary HDU, ``hdulist[1]``, if any, is
+the first extension HDU, etc.  It should be noted that Astropy is using
+zero-based indexing when referring to HDUs and header cards, though the FITS
+standard (which was designed with FORTRAN in mind) uses one-based indexing.
 
-The `HDUList` has a useful method `HDUList.info()`, which summarizes the
-content of the opened FITS file:
+The :class:`HDUList` has a useful method :meth:`HDUList.info`, which
+summarizes the content of the opened FITS file:
 
     >>> hdulist.info()
     Filename: test1.fits
@@ -50,8 +50,8 @@ content of the opened FITS file:
     3 SCI     ImageHDU      61 (800, 800) float32
     4 SCI     ImageHDU      61 (800, 800) float32
 
-After you are done with the opened file, close it with the `HDUList.close()`
-method:
+After you are done with the opened file, close it with the
+:meth:`HDUList.close` method:
 
     >>> hdulist.close()
 
@@ -62,7 +62,7 @@ are memory-mapped, see later chapters for detail.
 Working with large files
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The :func:`open` function supports a ``memmap=True`` argument that cause the
+The :func:`open` function supports a ``memmap=True`` argument that allows the
 array data of each HDU to be accessed with mmap, rather than being read into
 memory all at once.  This is particularly useful for working with very large
 arrays that cannot fit entirely into physical memory.
@@ -77,7 +77,7 @@ because by that point you're likely to run out of physical memory anyways), but
 Working With a FITS Header
 --------------------------
 
-As mentioned earlier, each element of an `HDUList` is an HDU object with
+As mentioned earlier, each element of an :class:`HDUList` is an HDU object with
 attributes of header and data, which can be used to access the header keywords
 and the data.
 
@@ -98,7 +98,7 @@ to get the value of the keyword targname, which is a string 'NGC121'.
 Although keyword names are always in upper case inside the FITS file,
 specifying a keyword name with Astropy is case-insensitive, for the user's
 convenience. If the specified keyword name does not exist, it will raise a
-`KeyError` exception.
+:exc:`KeyError` exception.
 
 We can also get the keyword value by indexing (a la Python lists):
 
@@ -131,7 +131,7 @@ the end of the header (unless it's a commentary keyword such as COMMENT or
 HISTORY, in which case it is appended after the last card with that keyword).
 
 Another way to either update an existing card or append a new one is to use the 
-`Header.set()` method:
+:meth:`Header.set` method:
 
     >>> prihdr.set('observer', 'Edwin Hubble')
 
@@ -175,8 +175,8 @@ It's also possible to view a slice of the header:
 
 Only the first two cards are shown above.
 
-To get a list of all keywords, use the `Header.keys()` method just as you would
-with a dict:
+To get a list of all keywords, use the :meth:`Header.keys` method just as you
+would with a dict:
 
     >>> prihdr.keys()
     ['SIMPLE', 'BITPIX', 'NAXIS', ...]
@@ -243,7 +243,7 @@ This example performs the math on the array in-place, thereby keeping the
 memory usage to a minimum.
 
 If at this point you want to preserve all the changes you made and write it to
-a new file, you can use the `HDUList.writeto()` method (see below).
+a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 .. _Numpy documentation: http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
 
@@ -266,12 +266,13 @@ To see the first row of the table:
     >>> print tbdata[0]
     (1, 'abc', 3.7000002861022949, 0)
 
-Each row in the table is a `FITS_rec` object which looks like a (Python) tuple
-containing elements of heterogeneous data types. In this example: an integer, a
-string, a floating point number, and a Boolean value. So the table data are
-just an array of such records. More commonly, a user is likely to access the
-data in a column-wise way. This is accomplished by using the field() method. To
-get the first column (or field) of the table, use:
+Each row in the table is a :class:`FITS_rec` object which looks like a (Python)
+tuple containing elements of heterogeneous data types. In this example: an
+integer, a string, a floating point number, and a Boolean value. So the table
+data are just an array of such records. More commonly, a user is likely to
+access the data in a column-wise way. This is accomplished by using the
+:meth:`~FITS_rec.field` method. To get the first column (or field) of the
+table, use:
 
     >>> tbdata.field(0)
     array([1, 2])
@@ -285,12 +286,12 @@ name:
     array([1, 2])
 
 But how do we know what field names we've got? First, let's introduce another
-attribute of the table HDU: the ``.columns`` attribute:
+attribute of the table HDU: the :attr:`~HDUList.columns` attribute:
 
     >>> cols = hdulist[1].columns
 
-This attribute is a `ColDefs` (column definitions) object. If we use the
-`ColDefs.info()` method:
+This attribute is a :class:`ColDefs` (column definitions) object. If we use the
+:meth:`ColDefs.info` method:
 
     >>> cols.info()
      name:
@@ -330,19 +331,19 @@ Save File Changes
 -----------------
 
 As mentioned earlier, after a user opened a file, made a few changes to either
-header or data, the user can use `HDUList.writeto()` to save the changes. This
-takes the version of headers and data in memory and writes them to a new FITS
-file on disk. Subsequent operations can be performed to the data in memory and
-written out to yet another different file, all without recopying the original
-data to (more) memory.
+header or data, the user can use :meth:`HDUList.writeto` to save the changes.
+This takes the version of headers and data in memory and writes them to a new
+FITS file on disk. Subsequent operations can be performed to the data in memory
+and written out to yet another different file, all without recopying the
+original data to (more) memory.
 
     >>> hdulist.writeto('newimage.fits')
 
 will write the current content of ``hdulist`` to a new disk file newfile.fits.
-If a file was opened with the update mode, the `HDUList.flush()` method can
-also be used to write all the changes made since ``open()``, back to the
-original file. The ``close()`` method will do the same for a FITS file opened
-with update mode.
+If a file was opened with the update mode, the :meth:`HDUList.flush` method can
+also be used to write all the changes made since :func:`open`, back to the
+original file. The :meth:`~HDUList.close` method will do the same for a FITS
+file opened with update mode.
 
     >>> f = astropy.io.fits.open('original.fits', mode='update')
     ... # making changes in data and/or header
@@ -366,7 +367,7 @@ First, we create a numpy object for the data part:
     >>> import numpy as np
     >>> n = np.arange(100) # a simple sequence from 0 to 99
 
-Next, we create a `PrimaryHDU` object to encapsulate the data:
+Next, we create a :class:`PrimaryHDU` object to encapsulate the data:
 
     >>> hdu = astropy.io.fits.PrimaryHDU(n)
 
@@ -391,8 +392,9 @@ extension HDU, not a primary. There are two kinds of FITS table extensions:
 ASCII and binary. We'll use binary table examples here.
 
 To create a table from scratch, we need to define columns first, by
-constructing the `Column` objects and their data. Suppose we have two columns,
-the first containing strings, and the second containing floating point numbers:
+constructing the :class:`Column` objects and their data. Suppose we have two
+columns, the first containing strings, and the second containing floating point
+numbers:
 
     >>> import astropy.io.fits
     >>> import numpy as np
@@ -401,15 +403,16 @@ the first containing strings, and the second containing floating point numbers:
     >>> col1 = astropy.io.fits.Column(name='target', format='20A', array=a1)
     >>> col2 = astropy.io.fits.Column(name='V_mag', format='E', array=a2)
 
-Next, create a `ColDefs` (column-definitions) object for all columns:
+Next, create a :class:`ColDefs` (column-definitions) object for all columns:
 
     >>> cols = astropy.io.fits.ColDefs([col1, col2])
 
-Now, create a new binary table HDU object by using the `new_table()` function:
+Now, create a new binary table HDU object by using the :func:`new_table()`
+function:
 
     >>> tbhdu = astropy.io.fits.new_table(cols)
 
-This function returns (in this case) a `BinTableHDU`.
+This function returns (in this case) a :class:`BinTableHDU`.
 
 Of course, you can do this more concisely:
 
@@ -418,7 +421,7 @@ Of course, you can do this more concisely:
     ...     fits.ColDefs([fits.Column(name='target', format='20A', array=a1),
     ...                   fits.Column(name='V_mag', format='E', array=a2)]))
 
-As before, we create a `PrimaryHDU` object to encapsulate the data:
+As before, we create a :class:`PrimaryHDU` object to encapsulate the data:
 
     >>> hdu = astropy.io.fits.PrimaryHDU(n)
 
@@ -451,7 +454,7 @@ Such a convenience function is a "canned" operation to achieve one simple task.
 By using these "convenience" functions, a user does not have to worry about
 opening or closing a file, all the housekeeping is done implicitly.
 
-The first of these functions is `getheader()`, to get the header of an HDU.
+The first of these functions is :func:`getheader`, to get the header of an HDU.
 Here are several examples of getting the header. Only the file name is required
 for this function. The rest of the arguments are optional and flexible to
 specify which HDU the user wants to get:
@@ -486,8 +489,9 @@ For the header keywords, the header is like a dictionary, as well as a list.
 The user can access the keywords either by name or by numeric index, as
 explained earlier in this chapter.
 
-If a user only needs to read one keyword, the `getval()` function can further
-simplify to just one call, instead of two as shown in the above examples:
+If a user only needs to read one keyword, the  :func:`getval` function can
+further simplify to just one call, instead of two as shown in the above
+examples:
 
     >>> from astropy.io.fits import getval
     >>> flt = getval('in.fits', 'filter', 1) # get 1st extension's keyword
@@ -495,11 +499,11 @@ simplify to just one call, instead of two as shown in the above examples:
     >>> val = getval('in.fits', 10, 'sci', 2) # get the 2nd sci extension's
                                               # 11th keyword's value
 
-The function `getdata()` gets the data of an HDU. Similar to `getheader()`, it
-only requires the input FITS file name while the extension is specified through
-the optional arguments. It does have one extra optional argument header. If
-header is set to True, this function will return both data and header,
-otherwise only data is returned.
+The function :func:`getdata` gets the data of an HDU. Similar to
+:func:`getheader`, it only requires the input FITS file name while the
+extension is specified through the optional arguments. It does have one extra
+optional argument header. If header is set to True, this function will return
+both data and header, otherwise only data is returned.
 
     >>> from astropy.io.fits import getdata
     >>> dat = getdata('in.fits', 'sci', 3) # get 3rd sci extension's data
@@ -511,14 +515,14 @@ demonstrate convenience functions for writing:
 
     >>> astropy.io.fits.writeto('out.fits', data, header)
 
-The `writeto()` function uses the provided data and an optional header to write
-to an output FITS file.
+The :func:`writeto` function uses the provided data and an optional header to
+write to an output FITS file.
 
     >>> astropy.io.fits.append('out.fits', data, header)
 
-The `append()` function will use the provided data and the optional header to
-append to an existing FITS file. If the specified output file does not exist,
-it will create one.
+The :func:`append` function will use the provided data and the optional header
+to append to an existing FITS file. If the specified output file does not
+exist, it will create one.
 
     >>> from astropy.io.fits import update
     >>> update(file, dat, hdr, 'sci') # update the 'sci' extension
@@ -528,14 +532,14 @@ it will create one.
     >>> update(file, dat, 3, header=hdr) # update the 3rd extension
     >>> update(file, dat, header=hdr, ext=5) # update the 5th extension
 
-The `update()` function will update the specified extension with the input
+The :func:`update` function will update the specified extension with the input
 data/header. The 3rd argument can be the header associated with the data. If
 the 3rd argument is not a header, it (and other positional arguments) are
 assumed to be the extension specification(s). Header and extension specs can
 also be keyword arguments.
 
-Finally, the `info()` function will print out information of the specified FITS
-file:
+Finally, the :func:`info` function will print out information of the specified
+FITS file:
 
     >>> astropy.io.fits.info('test0.fits')
     Filename: test0.fits

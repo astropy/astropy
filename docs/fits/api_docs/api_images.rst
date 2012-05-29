@@ -1,12 +1,10 @@
 .. currentmodule:: astropy.io.fits
 
-.. _Images:
+.. _images:
 
 ******
 Images
 ******
-
-.. inheritance-diagram:: Section ImageHDU
 
 `ImageHDU`
 ==========
@@ -14,7 +12,6 @@ Images
 .. autoclass:: ImageHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
 `CompImageHDU`
@@ -23,15 +20,4 @@ Images
 .. autoclass:: CompImageHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
-
-`Section`
-=========
-
-.. autoclass:: Section
-   :members:
-   :inherited-members:
-   :undoc-members:
-   :show-inheritance:
-

@@ -12,6 +12,6 @@ API Documentation
    api_cards.rst
    api_tables.rst
    api_images.rst
-   api_utility.rst
+   api_diff.rst
    api_verification.rst
 

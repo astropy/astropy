@@ -16,36 +16,26 @@ import os
 
 from . import py3compat
 
-# Public API compatibility imports
-from . import card
-from . import column
-from . import convenience
-from . import hdu
-from .card import *
-from .column import *
-from .convenience import *
-from .fitsrec import FITS_record, FITS_rec
-from .hdu import *
-
-from .hdu.groups import GroupData
-from .hdu.hdulist import fitsopen as open
-from .hdu.image import Section
-from .hdu.table import new_table
-from .header import Header
-
-# Additional imports used by the documentation (some of which should be
-# restructured at some point)
-from .verify import VerifyError
-
 from ...config import ConfigurationItem
 
 # Set module-global boolean variables
 # TODO: Make it possible to set these variables via environment variables
 # again, once support for that is added to Astropy
+ENABLE_RECORD_VALUED_KEYWORD_CARDS = ConfigurationItem(
+    'enabled_record_valued_keyword_cards', True,
+    'If True, enable support for record-valued keywords as described by '
+    'FITS WCS Paper IV. Otherwise they are treated as normal keywords.')
+
 EXTENSION_NAME_CASE_SENSITIVE = ConfigurationItem(
     'extension_name_case_sensitive', False,
     'If True, extension names (i.e. the EXTNAME keyword) should be '
     'treated as case-sensitive.')
+
+STRIP_HEADER_WHITESPACE = ConfigurationItem(
+    'strip_header_whitespace', True,
+    'If True, automatically remove trailing whitespace for string values in '
+    'headers.  Otherwise the values are returned verbatim, with all '
+    'whitespace intact.')
 
 USE_MEMMAP = ConfigurationItem(
     'use_memmap', True,
@@ -54,10 +44,27 @@ USE_MEMMAP = ConfigurationItem(
     'for large files, but may affect performance in I/O-heavy '
     'applications.')
 
-ENABLE_RECORD_VALUED_KEYWORD_CARDS = ConfigurationItem(
-    'enabled_record_valued_keyword_cards', True,
-    'If True, enable support for record-valued keywords as described by '
-    'FITS WCS Paper IV. Otherwise they are treated as normal keywords.')
+
+# Public API compatibility imports
+# These need to come after the global config variables, as some of the
+# submodules use them
+from . import card
+from . import column
+from . import convenience
+from . import hdu
+from .card import *
+from .column import *
+from .convenience import *
+from .diff import *
+from .fitsrec import FITS_record, FITS_rec
+from .hdu import *
+
+from .hdu.groups import GroupData
+from .hdu.hdulist import fitsopen as open
+from .hdu.image import Section
+from .hdu.table import new_table
+from .header import Header
+from .verify import VerifyError
 
 
 __all__ = (card.__all__ + column.__all__ + convenience.__all__ +

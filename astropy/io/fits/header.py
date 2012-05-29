@@ -11,9 +11,9 @@ import re
 import sys
 import warnings
 
-from .card import Card, CardList, _pad
+from .card import Card, CardList, _pad, BLANK_CARD
 from .file import _File, PYTHON_MODES
-from .util import decode_ascii, fileobj_mode
+from .util import encode_ascii, decode_ascii, fileobj_mode
 
 from ...utils import deprecated, isiterable
 
@@ -23,8 +23,7 @@ PY3K = sys.version_info[:2] >= (3, 0)
 
 BLOCK_SIZE = 2880  # the FITS block size
 
-
-HEADER_END_RE = re.compile('END {77} *$')
+HEADER_END_RE = re.compile(encode_ascii('END {77} *'))
 
 
 # According to the FITS standard the only characters that may appear in a
@@ -74,7 +73,7 @@ class Header(object):
 
         Parameters
         ----------
-        cards : A list of `Card` objects, (optional)
+        cards : A list of `Card` objects (optional)
             The cards to initialize the header with.
 
         txtfile : file path, file object or file-like object (optional)
@@ -356,9 +355,14 @@ class Header(object):
                     continue
                 cards.append(Card.fromstring(''.join(image)))
 
-            if next_image == end:
-                image = []
-                break
+            if require_full_cardlength:
+                if next_image == end:
+                    image = []
+                    break
+            else:
+                if next_image.split(sep)[0].rstrip() == 'END':
+                    image = []
+                    break
 
             image = [next_image]
 
@@ -404,43 +408,67 @@ class Header(object):
 
         close_file = False
         if isinstance(fileobj, basestring):
-            fileobj = open(fileobj, 'r')
+            fileobj = open(fileobj, 'rb')
             close_file = True
 
         actual_block_size = _block_size(sep)
+        clen = Card.length + len(sep)
 
         try:
             # Read the first header block.
-            block = decode_ascii(fileobj.read(actual_block_size))
-            # Strip any zero-padding (see ticket #106)
-            if block and block[-1] == '\0':
-                block = block.strip('\0')
-                warnings.warn('Unexpected extra padding at the end of the '
-                              'file.  This padding may not be preserved when '
-                              'saving changes.')
+            block = fileobj.read(actual_block_size)
 
-            if block == '':
+            if not block:
                 raise EOFError()
 
             blocks = []
+            is_eof = False
 
             # continue reading header blocks until END card is reached
             while True:
                 # find the END card
-                mo = HEADER_END_RE.search(block)
-                if mo is None:
-                    blocks.append(block)
-                    block = decode_ascii(fileobj.read(actual_block_size))
-                    if block == '':
+                is_end = False
+                for mo in HEADER_END_RE.finditer(block):
+                    # Ensure the END card was found, and it started on the
+                    # boundary of a new card (see ticket #142)
+                    if mo.start() % clen == 0:
+                        # This must be the last header block, otherwise the
+                        # file is malformatted
+                        is_end = True
+                        break
+
+                if not is_end:
+                    blocks.append(decode_ascii(block))
+                    block = fileobj.read(actual_block_size)
+                    if not block:
+                        is_eof = True
                         break
                 else:
                     break
-            blocks.append(block)
 
-            if not HEADER_END_RE.search(block) and endcard:
-                raise IOError('Header missing END card.')
+            last_block = block
+            blocks.append(decode_ascii(block))
 
             blocks = ''.join(blocks)
+
+            # Strip any zero-padding (see ticket #106)
+            if blocks and blocks[-1] == '\0':
+                if is_eof and blocks.strip('\0') == '':
+                    warnings.warn('Unexpected extra padding at the end of the '
+                                  'file.  This padding may not be preserved '
+                                  'when saving changes.')
+                    raise EOFError()
+                else:
+                    # Replace the illegal null bytes with spaces as required by
+                    # the FITS standard, and issue a nasty warning
+                    warnings.warn('Header block contains null bytes instead '
+                                  'of spaces for padding, and is not FITS-'
+                                  'compliant. Nulls may be replaced with '
+                                  'spaces upon writing.')
+                    blocks.replace('\0', ' ')
+
+            if not HEADER_END_RE.search(last_block) and endcard:
+                raise IOError('Header missing END card.')
 
             if padding and (len(blocks) % actual_block_size) != 0:
                 # This error message ignores the length of the separator for
@@ -473,7 +501,7 @@ class Header(object):
             If True (default) adds the END card to the end of the header
             string
 
-        padding : bool (optiona)
+        padding : bool (optional)
             If True (default) pads the string with spaces out to the next
             multiple of 2880 characters
 
@@ -581,7 +609,7 @@ class Header(object):
 
         return cls.fromfile(fileobj, sep='\n', endcard=False, padding=False)
 
-    def totextfile(cls, fileobj, clobber=False):
+    def totextfile(self, fileobj, clobber=False):
         """
         Equivalent to ``Header.tofile(fileobj, sep='\\n', endcard=False,
         padding=False, clobber=clobber)``.
@@ -733,7 +761,7 @@ class Header(object):
         new_card = Card(keyword, value, comment)
 
         if (new_card.keyword in self and
-                new_card.keyword not in Card._commentary_keywords):
+            new_card.keyword not in Card._commentary_keywords):
             if comment is None:
                 comment = self.comments[keyword]
             if value is None:
@@ -1077,8 +1105,7 @@ class Header(object):
                 'The value appended to a Header must be either a keyword or '
                 '(keyword, value, [comment]) tuple; got: %r' % card)
 
-        blank = ' ' * Card.length
-        if str(card) == blank:
+        if not end and str(card) == BLANK_CARD:
             # Blank cards should always just be appended to the end
             end = True
 
@@ -1087,7 +1114,7 @@ class Header(object):
             idx = len(self._cards) - 1
         else:
             idx = len(self._cards) - 1
-            while idx >= 0 and str(self._cards[idx]) == blank:
+            while idx >= 0 and str(self._cards[idx]) == BLANK_CARD:
                 idx -= 1
 
             if not bottom and card.keyword not in Card._commentary_keywords:
@@ -1194,7 +1221,12 @@ class Header(object):
                     self.append(card, useblanks=useblanks, bottom=bottom,
                                 end=end)
             else:
-                if unique or update:
+                if unique or update and keyword in self:
+                    if str(card) == BLANK_CARD:
+                        self.append(card, useblanks=useblanks, bottom=bottom,
+                                    end=end)
+                        continue
+
                     for value in self[keyword]:
                         if value == card.value:
                             break
@@ -1217,10 +1249,13 @@ class Header(object):
 
         """
 
+        keyword = Card.normalize_keyword(keyword)
+
         # We have to look before we leap, since otherwise _keyword_indices,
         # being a defaultdict, will create an entry for the nonexistent keyword
         if keyword not in self._keyword_indices:
             raise KeyError("Keyword %r not found." % keyword)
+
         return len(self._keyword_indices[keyword])
 
     def index(self, keyword, start=None, stop=None):
@@ -1252,6 +1287,8 @@ class Header(object):
             step = -1
         else:
             step = 1
+
+        keyword = Card.normalize_keyword(keyword)
 
         for idx in xrange(start, stop, step):
             if self._cards[idx].keyword == keyword:
@@ -1492,7 +1529,7 @@ class Header(object):
             return key
 
         if isinstance(key, basestring):
-            key = (Card.normalize_keyword(key), 0)
+            key = (key, 0)
 
         if isinstance(key, tuple):
             if (len(key) != 2 or not isinstance(key[0], basestring) or
@@ -1510,6 +1547,8 @@ class Header(object):
                 # Great--now we have to check if there's a RVKC that starts
                 # with the given keyword, making failed lookups fairly
                 # expensive
+                # TODO: Find a way to make this more efficient; perhaps a set
+                # of RVKCs in the header or somesuch.
                 keyword = keyword + '.'
                 found = 0
                 for idx, card in enumerate(self._cards):
@@ -1519,7 +1558,7 @@ class Header(object):
                             return idx
                         found += 1
                 else:
-                    raise KeyError("Keyword %r not found." % keyword)
+                    raise KeyError("Keyword %r not found." % keyword[:-1])
             try:
                 return self._keyword_indices[keyword][n]
             except IndexError:
@@ -1611,16 +1650,14 @@ class Header(object):
     def _countblanks(self):
         """Returns the number of blank cards at the end of the Header."""
 
-        blank = ' ' * 80
         for idx in xrange(1, len(self._cards)):
-            if str(self._cards[-idx]) != blank:
+            if str(self._cards[-idx]) != BLANK_CARD:
                 return idx - 1
         return 0
 
     def _useblanks(self, count):
-        blank = ' ' * 80
         for _ in range(count):
-            if str(self._cards[-1]) == blank:
+            if str(self._cards[-1]) == BLANK_CARD:
                 del self[-1]
             else:
                 break
@@ -1738,7 +1775,7 @@ class Header(object):
 
     # Some fixes for compatibility with the Python 3 dict interface, where
     # iteritems -> items, etc.
-    if PY3K:
+    if PY3K:  # pragma: py3
         keys = iterkeys
         values = itervalues
         items = iteritems
@@ -1991,14 +2028,21 @@ class _HeaderCommentaryCards(_CardAccessor):
     def __init__(self, header, keyword=''):
         super(_HeaderCommentaryCards, self).__init__(header)
         self._keyword = keyword
+        self._count = self._header.count(self._keyword)
+        self._indices = slice(self._count).indices(self._count)
 
     def __repr__(self):
-        return '\n'.join('%d: %s' % (idx, value)
-                         for idx, value in enumerate(self))
+        return '\n'.join(self)
 
     def __getitem__(self, idx):
-        if not isinstance(idx, int):
+        if isinstance(idx, slice):
+            n = self.__class__(self._header, self._keyword)
+            n._indices = idx.indices(self._count)
+            return n
+        elif not isinstance(idx, int):
             raise ValueError('%s index must be an integer' % self._keyword)
+
+        idx = range(*self._indices)[idx]
         return self._header[(self._keyword, idx)]
 
     def __setitem__(self, item, value):

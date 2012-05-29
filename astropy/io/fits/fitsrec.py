@@ -73,7 +73,7 @@ class FITS_record(object):
             if indx < self.start or indx > self.end - 1:
                 raise KeyError("Key '%s' does not exist." % key)
         elif isinstance(key, slice):
-            return FITS_record(self.array, self.row, key.start, key.stop,
+            return type(self)(self.array, self.row, key.start, key.stop,
                                key.step, self)
         else:
             indx = self._get_index(key)
@@ -160,6 +160,8 @@ class FITS_rec(np.recarray):
     It inherits all of the standard methods from `numpy.ndarray`.
     """
 
+    _record_type = FITS_record
+
     def __new__(subtype, input):
         """
         Construct a FITS record array from a recarray.
@@ -177,6 +179,7 @@ class FITS_rec(np.recarray):
         self._convert = [None] * len(self.dtype.names)
         self._heapoffset = 0
         self._file = None
+        self._buffer = None
         self._coldefs = None
         self._gap = 0
         self.names = list(self.dtype.names)
@@ -191,6 +194,7 @@ class FITS_rec(np.recarray):
             self._convert = obj._convert
             self._heapoffset = obj._heapoffset
             self._file = obj._file
+            self._buffer = obj._buffer
             self._coldefs = obj._coldefs
             self._nfields = obj._nfields
             self._gap = obj._gap
@@ -204,6 +208,7 @@ class FITS_rec(np.recarray):
 
             self._heapoffset = getattr(obj, '_heapoffset', 0)
             self._file = getattr(obj, '_file', None)
+            self._buffer = getattr(obj, '_buffer', None)
 
             self._coldefs = None
             self._gap = 0
@@ -251,7 +256,8 @@ class FITS_rec(np.recarray):
             # Have to view as a recarray then back as a FITS_rec, otherwise the
             # circular reference fix/hack in FITS_rec.field() won't preserve
             # the slice
-            out = self.view(np.recarray).__getitem__(key).view(FITS_rec)
+            subtype = type(self)
+            out = self.view(np.recarray).__getitem__(key).view(subtype)
             out._coldefs = ColDefs(self._coldefs)
             arrays = []
             out._convert = [None] * len(self.dtype.names)
@@ -281,7 +287,7 @@ class FITS_rec(np.recarray):
             if isinstance(key, int) and key >= len(self):
                 raise IndexError("Index out of bounds")
 
-            newrecord = FITS_record(self, key)
+            newrecord = self._record_type(self, key)
             return newrecord
 
     def __setitem__(self, row, value):
@@ -360,19 +366,28 @@ class FITS_rec(np.recarray):
                 dummy = _VLF([None] * len(self), dtype=recformat.dtype)
                 for i in range(len(self)):
                     _offset = field[i, 1] + self._heapoffset
-                    self._file.seek(_offset)
+
+                    if self._file is not None:
+                        self._file.seek(_offset)
+                        def get_pdata(dtype, count):
+                            return _array_from_file(self._file, dtype=dtype,
+                                                    count=count, sep='')
+                    else:  # There must be a _buffer or something is wrong
+                        buff = self._buffer[_offset:]
+                        def get_pdata(dtype, count):
+                            return np.fromstring(buff, dtype=dtype,
+                                                 count=count, sep='')
+
                     if recformat.dtype == 'a':
                         count = field[i, 0]
                         dt = recformat.dtype + str(1)
-                        da = _array_from_file(self._file, dtype=dt,
-                                              count=count, sep='')
+                        da = get_pdata(dt, count)
                         dummy[i] = np.char.array(da, itemsize=count)
                         dummy[i] = decode_ascii(dummy[i])
                     else:
                         count = field[i, 0]
                         dt = recformat.dtype
-                        dummy[i] = _array_from_file(self._file, dtype=dt,
-                                                    count=count, sep='')
+                        dummy[i] = get_pdata(dt, count)
                         dummy[i].dtype = dummy[i].dtype.newbyteorder('>')
 
                 # scale by TSCAL and TZERO

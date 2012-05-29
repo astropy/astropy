@@ -58,11 +58,15 @@ def fitsopen(name, mode='readonly', memmap=None, **kwargs):
             Do not issue an exception when opening a file that is
             missing an ``END`` card in the last header.
 
-        - **checksum** : bool
+        - **checksum** : bool, str
 
             If `True`, verifies that both ``DATASUM`` and
             ``CHECKSUM`` card values (when present in the HDU header)
-            match the header and data of all HDU's in the file.
+            match the header and data of all HDU's in the file.  Updates to a
+            file that already has a checksum will preserve and update the
+            existing checksums unless this argument is given a value of
+            'remove', in which case the CHECKSUM and DATASUM values are not
+            checked, and are removed when saving changes to the file.
 
         - **disable_image_compression** : bool
 
@@ -212,66 +216,48 @@ class HDUList(list, _Verify):
         self.close()
 
     @classmethod
-    def fromfile(cls, fileobj, mode="copyonwrite", memmap=False, **kwargs):
+    def fromfile(cls, fileobj, mode='readonly', memmap=False, **kwargs):
         """
         Creates an HDUList instance from a file-like object.
 
-        The actual implementation of `fitsopen()`.
+        The actual implementation of :func:`fitsopen`, and generally shouldn't
+        be used directly.  Use :func:`pyfits.open` instead (and see its
+        documentation for details of the parameters accepted by this method).
         """
 
-        # instantiate a FITS file object (ffo)
-        ffo = _File(fileobj, mode=mode, memmap=memmap)
-        hdulist = cls(file=ffo)
+        return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
+                             **kwargs)
 
-        saved_compression_supported = compressed.COMPRESSION_SUPPORTED
+    @classmethod
+    def fromstring(cls, data, **kwargs):
+        """
+        Creates an HDUList instance from a string or other in-memory data
+        buffer containing an entire FITS file.  Similar to
+        :meth:`HDUList.fromfile`, but does not accept the mode or memmap
+        arguments, as they are only relevant to reading from a file on disk.
 
-        try:
-            if 'disable_image_compression' in kwargs and \
-               kwargs['disable_image_compression']:
-                compressed.COMPRESSION_ENABLED = False
+        This is useful for interfacing with other libraries such as CFITSIO,
+        and may also be useful for streaming applications.
 
-            if mode == 'ostream':
-                # Output stream--not interested in reading/parsing the
-                # HDUs--just writing to the output file
-                return hdulist
+        Parameters
+        ----------
+        data : str, buffer, memoryview, etc.
+            A string or other memory buffer containing an entire FITS file.  It
+            should be noted that if that memory is read-only (such as a Python
+            string) the returned :class:`HDUList`'s data portions will also be
+            read-only.
 
-            # read all HDUs
-            while True:
-                try:
-                    hdu = _BaseHDU.readfrom(ffo, **kwargs)
-                    hdulist.append(hdu)
-                    hdu._new = False
-                except EOFError:
-                    break
-                # check in the case there is extra space after the last HDU or
-                # corrupted HDU
-                except (VerifyError, ValueError), err:
-                    warnings.warn(
-                        'Error validating header for HDU #%d (note: '
-                        'astropy.io.fits uses zero-based indexing).\n%s\n'
-                        'There may be extra bytes after the last HDU or the '
-                        'file is corrupted.' %
-                        (len(hdulist), indent(str(err))))
-                    break
-                except IOError, err:
-                    if ffo.writeonly:
-                        break
-                    else:
-                        raise
+        kwargs : dict
+            Optional keyword arguments.  See
+            :func:`astropy.io.fits.open` for details.
 
-            # If we're trying to read only and no header units were found,
-            # raise and exception
-            if mode in ('readonly', 'denywrite') and len(hdulist) == 0:
-                raise IOError('Empty or corrupt FITS file')
+        Returns
+        -------
+        hdul : HDUList
+            An :class:`HDUList` object representing the in-memory FITS file.
+        """
 
-            # initialize/reset attributes to be used in "update/append" mode
-            hdulist._resize = False
-            hdulist._truncate = False
-
-        finally:
-            compressed.COMPRESSION_SUPPORTED = saved_compression_supported
-
-        return hdulist
+        return cls._readfrom(data=data, **kwargs)
 
     def fileinfo(self, index):
         """
@@ -287,7 +273,7 @@ class HDUList(list, _Verify):
 
         Returns
         -------
-        dictionary or None
+        fileinfo : dict or None
 
             The dictionary details information about the locations of
             the indexed HDU within an associated file.  Returns `None`
@@ -541,210 +527,17 @@ class HDUList(list, _Verify):
                         extver = ''
 
                 # only append HDU's which are "new"
-                if not hasattr(hdu, '_new') or hdu._new:
-                    # only output the checksum if flagged to do so
-                    if hasattr(hdu, '_output_checksum'):
-                        checksum = hdu._output_checksum
-                    else:
-                        checksum = False
-
-                    # TODO: Fix this once new HDU writing API is settled on
-                    hdu._writeto(self.__file, checksum=checksum)
-                    if verbose:
-                        print 'append HDU', hdu.name, extver
-                    hdu._new = False
-
-        elif self.__file.mode == 'update':
-            self._wasresized(verbose)
-
-            # TODO: Much of this section should probably be handled in _File
-
-            # if the HDUList is resized, need to write out the entire contents
-            # of the hdulist to the file.
-            if self._resize or self.__file.compression:
-                old_name = self.__file.name
-                old_memmap = self.__file.memmap
-                name = _tmp_name(old_name)
-
-                if not self.__file.file_like:
-                    old_mode = os.stat(old_name).st_mode
-                    #
-                    # The underlying file is an acutal file object.
-                    # The HDUList is resized, so we need to write it to a tmp
-                    # file, delete the original file, and rename the tmp
-                    # file to the original file.
-                    #
-                    if self.__file.compression == 'gzip':
-                        new_file = gzip.GzipFile(name, mode='ab+')
-                    else:
-                        new_file = name
-
-                    hdulist = self.fromfile(new_file, mode='append')
-
-                    if verbose:
-                        print 'open a temp file', name
-
-                    for hdu in self:
-                        # only output the checksum if flagged to do so
-                        if hasattr(hdu, '_output_checksum'):
-                            checksum = hdu._output_checksum
-                        else:
-                            checksum = False
-
-                        # TODO: Fix this once new HDU writing API is settled on
-                        (hdu._hdrLoc, hdu._datLoc, hdu._datSpan) = \
-                               hdu._writeto(hdulist.__file, checksum=checksum)
-
-                    if sys.platform.startswith('win'):
-                        # Collect a list of open mmaps to the data; this well
-                        # be used later.  See below.
-                        mmaps = [(idx, _get_array_memmap(hdu.data), hdu.data)
-                                 for idx, hdu in enumerate(self)
-                                 if hdu._data_loaded]
-
-                    hdulist.__file.close()
-                    self.__file.close()
-
-                    if sys.platform.startswith('win'):
-                        # Close all open mmaps to the data.  This is only
-                        # necessary on Windows, which will not allow a file to
-                        # be renamed or deleted until all handles to that file
-                        # have been closed.
-                        for idx, map, arr in mmaps:
-                            if map is not None:
-                                map.base.close()
-
-                    os.remove(self.__file.name)
-
-                    if verbose:
-                        print 'delete the original file', old_name
-
-                    # reopen the renamed new file with "update" mode
-                    os.rename(name, old_name)
-                    os.chmod(old_name, old_mode)
-
-                    if isinstance(new_file, gzip.GzipFile):
-                        old_file = gzip.GzipFile(old_name, mode='rb+')
-                    else:
-                        old_file = old_name
-
-                    ffo = _File(old_file, mode='update', memmap=old_memmap)
-
-                    self.__file = ffo
-
-                    for hdu in self:
-                        # Need to update the _file attribute and close any open
-                        # mmaps on each HDU
-                        if (hdu._data_loaded and
-                            _get_array_memmap(hdu.data) is not None):
-                            del hdu.data
-                        hdu._file = ffo
-
-                    if verbose:
-                        print 'reopen the newly renamed file', old_name
-
-                    if sys.platform.startswith('win'):
-                        # On Windows, all the original data mmaps were closed
-                        # above.  However, it's possible that the user still
-                        # has references to the old data which would no longer
-                        # work (possibly even cause a segfault if they try to
-                        # access it).  This replaces the buffers used by the
-                        # original arrays with the buffers of mmap arrays
-                        # created from the new file.  This seems to work, but
-                        # it's a flaming hack and carries no guarantees that it
-                        # won't lead to odd behavior in practice.  Better to
-                        # just not keep references to data from files that had
-                        # to be resized upon flushing (on Windows--again, this
-                        # is no problem on Linux).
-                        for idx, map, arr in mmaps:
-                            arr.data = self[idx].data.data
-                        del mmaps  # Just to be sure
-
-                else:
-                    #
-                    # The underlying file is not a file object, it is a file
-                    # like object.  We can't write out to a file, we must
-                    # update the file like object in place.  To do this,
-                    # we write out to a temporary file, then delete the
-                    # contents in our file like object, then write the
-                    # contents of the temporary file to the now empty file
-                    # like object.
-                    #
-                    self.writeto(name)
-                    hdulist = self.fromfile(name)
-                    ffo = self.__file
-
-                    ffo.truncate(0)
-                    ffo.seek(0)
-
-                    for hdu in hdulist:
-                        # only output the checksum if flagged to do so
-                        if hasattr(hdu, '_output_checksum'):
-                            checksum = hdu._output_checksum
-                        else:
-                            checksum = False
-
-                        # TODO: Fix this once new HDU writing API is settled on
-                        (hdu._hdrLoc, hdu._datLoc, hdu._datSpan) = \
-                                hdu._writeto(ffo, checksum=checksum)
-
-                    # Close the temporary file and delete it.
-                    hdulist.close()
-                    os.remove(hdulist.__file.name)
-
-                # reset the resize attributes after updating
-                self._resize = False
-                self._truncate = False
-                for hdu in self:
-                    hdu.header._modified = False
-                    hdu._new = False
-                    hdu._file = ffo
-
-            # if not resized, update in place
-            else:
-                for hdu in self:
-                    if verbose:
-                        try:
-                            extver = str(hdu.header['extver'])
-                        except KeyError:
-                            extver = ''
-
-                    if hdu.header._modified:
-                        # only output the checksum if flagged to do so
-                        if hasattr(hdu, '_output_checksum'):
-                            checksum = hdu._output_checksum
-                        else:
-                            checksum = False
-
-                        hdu._file.seek(hdu._hdrLoc)
-                        # TODO: Fix this once new HDU writing API is settled on
-                        hdu._writeheader(self.__file, checksum=checksum)
+                if hdu._new:
+                    hdu._prewriteto(checksum=hdu._output_checksum)
+                    try:
+                        hdu._writeto(self.__file)
                         if verbose:
-                            print 'update header in place: Name =', \
-                                  hdu.name, extver
-                    if hdu._data_loaded:
-                        if hdu.data is not None:
-                            # Seek through the array's bases for an memmap'd
-                            # array; we can't rely on the _File object to give
-                            # us this info since the user may have replaced the
-                            # previous mmap'd array
-                            memmap_array = _get_array_memmap(hdu.data)
-
-                            if memmap_array is not None:
-                                memmap_array.flush()
-                            else:
-                                hdu._file.seek(hdu._datLoc)
-                                # TODO: Fix this once new HDU writing API is
-                                # settled on
-                                hdu._writedata(self.__file)
-
-                            if verbose:
-                                print 'update data in place: Name =', \
-                                      hdu.name, extver
-
-                # reset the modification attributes after updating
-                for hdu in self:
-                    hdu.header._modified = False
+                            print 'append HDU', hdu.name, extver
+                        hdu._new = False
+                    finally:
+                        hdu._postwriteto()
+        elif self.__file.mode == 'update':
+            self._flush_update()
 
     def update_extend(self):
         """
@@ -800,8 +593,6 @@ class HDUList(list, _Verify):
             warnings.warn("There is nothing to write.")
             return
 
-        if output_verify == 'warn':
-            output_verify = 'exception'
         self.verify(option=output_verify)
 
         # check if the file object is closed
@@ -839,8 +630,11 @@ class HDUList(list, _Verify):
         hdulist = fitsopen(fileobj, mode=mode)
 
         for hdu in self:
-            # TODO: Fix this once new HDU writing API is settled on
-            hdu._writeto(hdulist.__file, checksum)
+            hdu._prewriteto(checksum=checksum)
+            try:
+                hdu._writeto(hdulist.__file)
+            finally:
+                hdu._postwriteto()
         hdulist.close(output_verify=output_verify, closed=closed)
 
     def close(self, output_verify='exception', verbose=False, closed=True):
@@ -894,7 +688,7 @@ class HDUList(list, _Verify):
         results = ['Filename: %s' % name,
                    'No.    Name         Type      Cards   Dimensions   Format']
 
-        format = '%-3d  %-10s  %-11s  %5d   %-10s   %s%s'
+        format = '%-3d  %-10s  %-11s  %5d   %-10s   %s   %s'
         default = ('', '', 0, '()', '', '')
         for idx, hdu in enumerate(self):
             summary = hdu._summary()
@@ -928,6 +722,85 @@ class HDUList(list, _Verify):
             if hasattr(self.__file, 'name'):
                 return self.__file.name
         return None
+
+    @classmethod
+    def _readfrom(cls, fileobj=None, data=None, mode='readonly',
+                  memmap=False, **kwargs):
+        """
+        Provides the implementations from HDUList.fromfile and
+        HDUList.fromstring, both of which wrap this method, as their
+        implementations are largely the same.
+        """
+
+        if fileobj is not None:
+            # instantiate a FITS file object (ffo)
+            ffo = _File(fileobj, mode=mode, memmap=memmap)
+            hdulist = cls(file=ffo)
+        else:
+            hdulist = cls()
+            # This method is currently only called from HDUList.fromstring and
+            # HDUList.fromfile.  If fileobj is None then this must be the
+            # fromstring case; the data type of `data` will be checked in the
+            # _BaseHDU.fromstring call.
+
+        saved_compression_supported = compressed.COMPRESSION_SUPPORTED
+
+        try:
+            if 'disable_image_compression' in kwargs and \
+               kwargs['disable_image_compression']:
+                compressed.COMPRESSION_ENABLED = False
+
+            if mode == 'ostream':
+                # Output stream--not interested in reading/parsing the
+                # HDUs--just writing to the output file
+                return hdulist
+
+            # read all HDUs
+            while True:
+                try:
+                    if fileobj is not None:
+                        try:
+                            hdu = _BaseHDU.readfrom(ffo, **kwargs)
+                        except EOFError:
+                            break
+                        except IOError, err:
+                            if ffo.writeonly:
+                                break
+                            else:
+                                raise
+                    else:
+                        if not data:
+                            break
+                        hdu = _BaseHDU.fromstring(data)
+                        data = data[hdu._datLoc + hdu._datSpan:]
+                    hdulist.append(hdu)
+                    hdu._new = False
+                    if 'checksum' in kwargs:
+                        hdu._output_checksum = kwargs['checksum']
+                # check in the case there is extra space after the last HDU or
+                # corrupted HDU
+                except (VerifyError, ValueError), err:
+                    warnings.warn(
+                        'Error validating header for HDU #%d (note: PyFITS '
+                        'uses zero-based indexing).\n%s\n'
+                        'There may be extra bytes after the last HDU or the '
+                        'file is corrupted.' %
+                        (len(hdulist), indent(str(err))))
+                    break
+
+            # If we're trying to read only and no header units were found,
+            # raise and exception
+            if mode in ('readonly', 'denywrite') and len(hdulist) == 0:
+                raise IOError('Empty or corrupt FITS file')
+
+            # initialize/reset attributes to be used in "update/append" mode
+            hdulist._resize = False
+            hdulist._truncate = False
+
+        finally:
+            compressed.COMPRESSION_SUPPORTED = saved_compression_supported
+
+        return hdulist
 
     def _verify(self, option='warn'):
         text = ''
@@ -966,16 +839,152 @@ class HDUList(list, _Verify):
         # each element calls their own verify
         for idx, hdu in enumerate(self):
             if idx > 0 and (not isinstance(hdu, ExtensionHDU)):
-                err_text = "HDUList's element %s is not an extension HDU." \
-                           % str(idx)
-                err = self.run_option(option, err_text=err_text, fixable=True)
-                errs.append(errs)
+                err_text = ("HDUList's element %s is not an extension HDU." %
+                            str(idx))
+                err = self.run_option(option, err_text=err_text, fixable=False)
+                errs.append(err)
 
             else:
                 result = hdu._verify(option)
                 if result:
                     errs.append(result)
         return errs
+
+    def _flush_update(self):
+        """Implements flushing changes to a file in update mode."""
+
+        for hdu in self:
+            # Need to all _prewriteto() for each HDU first to determine if
+            # resizing will be necessary
+            hdu._prewriteto(checksum=hdu._output_checksum, inplace=True)
+
+        try:
+            self._wasresized()
+
+            # if the HDUList is resized, need to write out the entire contents of
+            # the hdulist to the file.
+            if self._resize or self.__file.compression:
+                self._flush_resize()
+            else:
+                # if not resized, update in place
+                for hdu in self:
+                    hdu._writeto(self.__file, inplace=True)
+
+            # reset the modification attributes after updating
+            for hdu in self:
+                hdu.header._modified = False
+        finally:
+            for hdu in self:
+                hdu._postwriteto()
+
+    def _flush_resize(self):
+        """
+        Implements flushing changes in update mode when parts of one or more HDU
+        need to be resized.
+        """
+
+        old_name = self.__file.name
+        old_memmap = self.__file.memmap
+        name = _tmp_name(old_name)
+
+        if not self.__file.file_like:
+            old_mode = os.stat(old_name).st_mode
+            # The underlying file is an acutal file object.  The HDUList is
+            # resized, so we need to write it to a tmp file, delete the
+            # original file, and rename the tmp file to the original file.
+            if self.__file.compression == 'gzip':
+                new_file = gzip.GzipFile(name, mode='ab+')
+            else:
+                new_file = name
+
+            hdulist = self.fromfile(new_file, mode='append')
+
+            for hdu in self:
+                hdu._writeto(hdulist.__file, inplace=True, copy=True)
+
+            if sys.platform.startswith('win'):
+                # Collect a list of open mmaps to the data; this well be used
+                # later.  See below.
+                mmaps = [(idx, _get_array_memmap(hdu.data), hdu.data)
+                         for idx, hdu in enumerate(self) if hdu._data_loaded]
+
+            hdulist.__file.close()
+            self.__file.close()
+
+            if sys.platform.startswith('win'):
+                # Close all open mmaps to the data.  This is only necessary on
+                # Windows, which will not allow a file to be renamed or deleted
+                # until all handles to that file have been closed.
+                for idx, map, arr in mmaps:
+                    if map is not None:
+                        map.base.close()
+
+            os.remove(self.__file.name)
+
+            # reopen the renamed new file with "update" mode
+            os.rename(name, old_name)
+            os.chmod(old_name, old_mode)
+
+            if isinstance(new_file, gzip.GzipFile):
+                old_file = gzip.GzipFile(old_name, mode='rb+')
+            else:
+                old_file = old_name
+
+            ffo = _File(old_file, mode='update', memmap=old_memmap)
+
+            self.__file = ffo
+
+            for hdu in self:
+                # Need to update the _file attribute and close any open mmaps
+                # on each HDU
+                if (hdu._data_loaded and
+                    _get_array_memmap(hdu.data) is not None):
+                    del hdu.data
+                hdu._file = ffo
+
+            if sys.platform.startswith('win'):
+                # On Windows, all the original data mmaps were closed above.
+                # However, it's possible that the user still has references to
+                # the old data which would no longer work (possibly even cause
+                # a segfault if they try to access it).  This replaces the
+                # buffers used by the original arrays with the buffers of mmap
+                # arrays created from the new file.  This seems to work, but
+                # it's a flaming hack and carries no guarantees that it won't
+                # lead to odd behavior in practice.  Better to just not keep
+                # references to data from files that had to be resized upon
+                # flushing (on Windows--again, this is no problem on Linux).
+                for idx, map, arr in mmaps:
+                    arr.data = self[idx].data.data
+                del mmaps  # Just to be sure
+
+        else:
+            # The underlying file is not a file object, it is a file like
+            # object.  We can't write out to a file, we must update the file
+            # like object in place.  To do this, we write out to a temporary
+            # file, then delete the contents in our file like object, then
+            # write the contents of the temporary file to the now empty file
+            # like object.
+            self.writeto(name)
+            hdulist = self.fromfile(name)
+            ffo = self.__file
+
+            ffo.truncate(0)
+            ffo.seek(0)
+
+            for hdu in hdulist:
+                hdu._writeto(ffo, inplace=True, copy=True)
+
+            # Close the temporary file and delete it.
+            hdulist.close()
+            os.remove(hdulist.__file.name)
+
+        # reset the resize attributes after updating
+        self._resize = False
+        self._truncate = False
+        for hdu in self:
+            hdu.header._modified = False
+            hdu._new = False
+            hdu._file = ffo
 
     def _wasresized(self, verbose=False):
         """
