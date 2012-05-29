@@ -2,7 +2,7 @@ import os
 import sys
 from itertools import izip
 
-from ..config import log
+from .. import log
 from ..utils.console import Getch, color_print
 
 _format_funcs = {None: lambda format_, val: str(val)}
