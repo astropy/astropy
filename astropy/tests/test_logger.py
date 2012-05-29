@@ -2,8 +2,8 @@ import sys
 import warnings
 
 import pytest
-from ... import log
-from .. import LoggingError
+from .. import log
+from ..logger import LoggingError
 
 
 # Save original values of hooks. These are not the system values, but the
@@ -81,7 +81,7 @@ def test_warnings_logging():
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message == 'This is a warning'
-    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
     # Without warnings logging
     with warnings.catch_warnings(record=True) as warn_list:
@@ -106,11 +106,11 @@ def test_warnings_logging_with_custom_class():
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message == 'CustomWarningClass: This is a warning'
-    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
 def test_warning_logging_with_io_vo_warning():
-    from ...io.vo.exceptions import W02, vo_warn
+    from ..io.vo.exceptions import W02, vo_warn
 
     with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()
@@ -122,7 +122,7 @@ def test_warning_logging_with_io_vo_warning():
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message == ("W02: ?:?:?: W02: a attribute 'b' is "
                                    "invalid.  Must be a standard XML id")
-    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
 def test_exception_logging_disable_no_enable():
@@ -172,7 +172,7 @@ def test_exception_logging():
     assert len(log_list) == 1
     assert log_list[0].levelname == 'ERROR'
     assert log_list[0].message == 'Exception: This is an Exception'
-    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
     # Without exception logging
     log.disable_exception_logging()
@@ -191,7 +191,7 @@ def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
 
-    from ...utils.collections import HomogeneousList
+    from ..utils.collections import HomogeneousList
 
     l = HomogeneousList(int)
     try:
@@ -237,22 +237,22 @@ def test_log_to_list(level):
 
     assert log_list[0].levelname == 'ERROR'
     assert log_list[0].message == 'Error message'
-    assert log_list[0].origin == 'astropy.config.tests.test_logging'
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 2:
         assert log_list[1].levelname == 'WARNING'
         assert log_list[1].message == 'Warning message'
-        assert log_list[1].origin == 'astropy.config.tests.test_logging'
+        assert log_list[1].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 3:
         assert log_list[2].levelname == 'INFO'
         assert log_list[2].msg == 'Information message'
-        assert log_list[2].origin == 'astropy.config.tests.test_logging'
+        assert log_list[2].origin == 'astropy.tests.test_logger'
 
     if len(log_list) >= 4:
         assert log_list[3].levelname == 'DEBUG'
         assert log_list[3].msg == 'Debug message'
-        assert log_list[3].origin == 'astropy.config.tests.test_logging'
+        assert log_list[3].origin == 'astropy.tests.test_logger'
 
 
 def test_log_to_list_level():
@@ -266,7 +266,7 @@ def test_log_to_list_level():
 
 def test_log_to_list_origin1():
 
-    with log.log_to_list(filter_origin='astropy.config.tests') as log_list:
+    with log.log_to_list(filter_origin='astropy.tests') as log_list:
         log.error("Error message")
         log.warn("Warning message")
 
@@ -316,16 +316,16 @@ def test_log_to_file(tmpdir, level):
 
     # Check list content
 
-    assert log_entries[0].strip().endswith(b"'astropy.config.tests.test_logging', 'ERROR', 'Error message'")
+    assert log_entries[0].strip().endswith(b"'astropy.tests.test_logger', 'ERROR', 'Error message'")
 
     if len(log_entries) >= 2:
-        assert log_entries[1].strip().endswith(b"'astropy.config.tests.test_logging', 'WARNING', 'Warning message'")
+        assert log_entries[1].strip().endswith(b"'astropy.tests.test_logger', 'WARNING', 'Warning message'")
 
     if len(log_entries) >= 3:
-        assert log_entries[2].strip().endswith(b"'astropy.config.tests.test_logging', 'INFO', 'Information message'")
+        assert log_entries[2].strip().endswith(b"'astropy.tests.test_logger', 'INFO', 'Information message'")
 
     if len(log_entries) >= 4:
-        assert log_entries[3].strip().endswith(b"'astropy.config.tests.test_logging', 'DEBUG', 'Debug message'")
+        assert log_entries[3].strip().endswith(b"'astropy.tests.test_logger', 'DEBUG', 'Debug message'")
 
 
 def test_log_to_file_level(tmpdir):
@@ -353,7 +353,7 @@ def test_log_to_file_origin1(tmpdir):
     log_file = local_path.open('wb')
     log_path = str(local_path.realpath())
 
-    with log.log_to_file(log_path, filter_origin='astropy.config.tests'):
+    with log.log_to_file(log_path, filter_origin='astropy.tests'):
         log.error("Error message")
         log.warn("Warning message")
 

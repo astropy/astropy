@@ -101,4 +101,4 @@ def test(package=None, test_path=None, args=None, plugins=None,
 
 #if we are *not* in setup mode, import the logger
 if not _ASTROPY_SETUP_:
-    from config.logging_helper import log
+    from logger import log
