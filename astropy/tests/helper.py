@@ -48,6 +48,7 @@ else:
 
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
+optional_deps = pytest.mark.optional_deps
 
 
 class TestRunner(object):
@@ -56,7 +57,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False):
+                  pdb=False, coverage=False, optional_deps=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -93,6 +94,9 @@ class TestRunner(object):
         # run @remote_data tests
         if remote_data:
             all_args += ' --remote-data'
+
+        if optional_deps:
+            all_args += ' --optional-deps'
 
         if pep8:
             try:
@@ -178,7 +182,8 @@ class astropy_test(Command, object):
         ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
          'Same as specifying `--pdb` in `args`.'),
         ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed')
+         'plugin is installed'),
+        ('optional-deps', 'O', 'Run tests that have optional dependencies')
     ]
 
     package_name = None
@@ -194,6 +199,7 @@ class astropy_test(Command, object):
         self.pep8 = False
         self.pdb = False
         self.coverage = False
+        self.optional_deps = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -222,7 +228,7 @@ class astropy_test(Command, object):
                '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
                '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
                '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
-               '{1.coverage!r}))')
+               '{1.coverage!r}, {1.optional_deps!r}))')
         cmd = cmd.format(set_flag, self)
 
         retcode = subprocess.call([sys.executable, '-c', cmd],
