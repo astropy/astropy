@@ -2,7 +2,8 @@ import sys
 import warnings
 
 import pytest
-from .. import log, LoggingError
+from ... import log
+from .. import LoggingError
 
 
 # Save original values of hooks. These are not the system values, but the
