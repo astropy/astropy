@@ -322,21 +322,6 @@ def isiterable(obj):
     except TypeError:
         return False
 
-def isscalar_iterable(obj):
-    """
-    Determines if an object is a scalar
-
-    Returns
-    -------
-    True if an
-
-    .. note::
-        The `numpy.isscalar` function is similar to this, but
-    """
-    from numpy import isscalar
-
-    return isscalar(obj)
-
 
 class lazyproperty(object):
     """
