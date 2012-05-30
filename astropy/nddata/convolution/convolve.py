@@ -14,7 +14,7 @@ try:
     import fftw3
     has_fftw = True
 
-    def fftwn(array, nthreads=NTHREADS):
+    def fftwn(array, nthreads=NTHREADS()):
         array = array.astype('complex').copy()
         outarray = array.copy()
         fft_forward = fftw3.Plan(array, outarray, direction='forward',
@@ -22,7 +22,7 @@ try:
         fft_forward.execute()
         return outarray
 
-    def ifftwn(array, nthreads=NTHREADS):
+    def ifftwn(array, nthreads=NTHREADS()):
         array = array.astype('complex').copy()
         outarray = array.copy()
         fft_backward = fftw3.Plan(array, outarray, direction='backward',
@@ -33,7 +33,7 @@ except ImportError:
     fftn = np.fft.fftn
     ifftn = np.fft.ifftn
     has_fftw = False
-    USE_NUMPY_FFT=True
+    USE_NUMPY_FFT = lambda:True
 
 
 from .boundary_none import convolve1d_boundary_none, \
@@ -215,7 +215,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=USE_NUMPY_FFT, nthreads=NTHREADS):
+        use_numpy_fft=USE_NUMPY_FFT(), nthreads=NTHREADS()):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
