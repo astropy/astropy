@@ -11,6 +11,7 @@ from ....tests.helper import pytest
 from . import FitsTestCase
 from .util import ignore_warnings
 from ..card import _pad
+from ..util import encode_ascii
 
 
 class TestOldApiHeaderFunctions(FitsTestCase):
@@ -1263,7 +1264,7 @@ class TestHeaderFunctions(FitsTestCase):
         # Here we manually make the file invalid
         with open(self.temp('test.fits'), 'rb+') as f:
             f.seek(346)  # Location of the exponent 'E' symbol
-            f.write('e')
+            f.write(encode_ascii('e'))
 
         hdul = fits.open(self.temp('test.fits'))
         with warnings.catch_warnings(record=True) as w:
