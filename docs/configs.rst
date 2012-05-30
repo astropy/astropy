@@ -87,7 +87,8 @@ by calling the `ConfigurationItem` `reload` method::
 
     >>> fits.EXTENSION_NAME_CASE_SENSITIVE.reload()
 
-Or if you want to reloa all astropy configuration at once, use::
+Or if you want to reload all astropy configuration at once, use the
+`~astropy.config.configuration.reload_config` function::
 
     >>> config.reoad_config('astropy')
 
