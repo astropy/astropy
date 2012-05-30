@@ -65,7 +65,7 @@ following example shows::
     # astropy.config.io.fits has a configuration item that sets whether or not
     # FITS extension names are case-sensitive
     >>> from astropy.io import fits
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE  # Assuming you're on the default
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE  # This item defaults to False
     False
     >>> f = fits.open('somefile.fits')  # it's first extension is named "AnExt"
     >>> f[1].name
@@ -78,12 +78,20 @@ following example shows::
 If you want this setting to persist across later sessions, you can save this
 setting by following the above code with::
 
-    >>> fits.EXTENSION_NAME_CASE_SENSITIV.save()
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.save()
 
-Alternatively, you can simply modify the value of the
+Alternatively, you can directly modify the value of the
 "extension_name_case_sensitive" entry in the "[io.fits]" section of
-``astropy.cfg`` to True, but this would require a restart of your python
-session.
+``astropy.cfg`` to True, and then update the value in you python session
+by calling the `ConfigurationItem` `reload` method::
+
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.reload()
+
+Or if you want to reloa all astropy configuration at once, use::
+
+    >>> config.reoad_config('astropy')
+
+
 
 For Developers
 --------------
@@ -105,9 +113,9 @@ following manner::
     """
     from astropy.config import ConfigurationItem
 
-    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
-    ANOTHER_OPTION = ConfigurationItem('annother_opt','a string val',
-                            'A longer description of what this does.')
+    SOME_OPTION = ConfigurationItem('some_option', 1, 'A description.')
+    ANOTHER_OPTION = ConfigurationItem('annother_opt', 'a string val',
+                                       'A longer description of what this does.')
 
     ... implementation ...
     def some_func():
@@ -143,7 +151,7 @@ incorrect usage::
     def some_func(val=SOME_OPTION()):
         return val + 2
 
-This works fine as long as the user doesn't change it's value during
+This works fine as long as the user doesn't change its value during
 runtime, but if they do, the function won't know about the change::
 
     >>> some_func()
@@ -166,7 +174,7 @@ Or, if the option needs to be available as a function parameter::
         """
         If not specified, `val` is set by the `SOME_OPTION` configuration item.
         """
-        return (SOME_OPTION() if None else val) + 2
+        return (SOME_OPTION() if val is None else val) + 2
 
 
 
