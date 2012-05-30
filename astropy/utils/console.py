@@ -563,8 +563,8 @@ def print_code_line(line, col=None, file=sys.stdout, tabwidth=8, width=70):
         Where to write to.  Defaults to `sys.stdout`.
 
     tabwidth : int, optional
-        The number of spaces per tab (``'\t'``) character.  Default is
-        8.  All tabs will be converted to spaces to ensure that the
+        The number of spaces per tab (``'\\t'``) character.  Default
+        is 8.  All tabs will be converted to spaces to ensure that the
         caret lines up with the correct column.
 
     width : int, optional
