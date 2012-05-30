@@ -377,8 +377,9 @@ footer {
 /* Sphinx sidebar
  * ----------------------------------------------------------------------*/
 div.sphinxsidebar {
-    border-radius: 5px;
-    background-color: #dddddd;
+    border-radius: 3px;
+    background-color: #eee;
+    border: 1px solid #ccc;
 }
 
 div.sphinxsidebar h3 {

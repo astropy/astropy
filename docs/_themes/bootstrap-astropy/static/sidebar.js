@@ -67,7 +67,7 @@ $(function() {
     sidebarbutton.css({
         'margin-left': '0',
         'height': document.height(),
-	'border-radius': '5px 5px 5px 5px'
+	'border-radius': '3px'
     });
     sidebarbutton.find('span').text('»');
     sidebarbutton.attr('title', _('Expand sidebar'));
@@ -81,7 +81,7 @@ $(function() {
     sidebarbutton.css({
         'margin-left': ssb_width_expanded-12,
         'height': document.height(),
-	'border-radius': '0px 5px 5px 0px'
+	'border-radius': '0px 3px 3px 0px'
     });
     sidebarbutton.find('span').text('«');
     sidebarbutton.attr('title', _('Collapse sidebar'));
@@ -119,7 +119,7 @@ $(function() {
     sidebarbutton.css({
         'color': '#FFFFFF',
 	'background-color': light_color,
-        'border-radius': '0px 5px 5px 0px',
+        'border-radius': '0px 3px 3px 0px',
         'font-size': '1.2em',
         'cursor': 'pointer',
         'height': document.height(),
