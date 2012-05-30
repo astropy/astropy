@@ -12,6 +12,9 @@ source code to make those changes.
 For Users
 ---------
 
+The Astropy configuration system is designed to make it easy to see what general
+options are to be used
+
 To see the configuration options, look for your astropy configuration file.
 You can find it by doing::
 
@@ -53,32 +56,128 @@ want to see your changes immediately in your current Astropy session, just do::
     data download systems will then use those directories and never try to
     access the ``$HOME/.astropy`` directory.
 
+These files are only read when the relevant package is imported, though,
+so any changes you make after starting an astropy session will not be
+detected. You can, however, change configuration items directly. This can
+be accomplished using the `set` method of a `ConfigurationItem` object as the
+following example shows::
+
+    # astropy.config.io.fits has a configuration item that sets whether or not
+    # FITS extension names are case-sensitive
+    >>> from astropy.io import fits
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE  # This item defaults to False
+    False
+    >>> f = fits.open('somefile.fits')  # it's first extension is named "AnExt"
+    >>> f[1].name
+    'ANEXT'
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.set(True)
+    >>> f = fits.open('somefile.fits')
+    >>> f[1].name
+    'AnExt'
+
+If you want this setting to persist across later sessions, you can save this
+setting by following the above code with::
+
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.save()
+
+Alternatively, you can directly modify the value of the
+"extension_name_case_sensitive" entry in the "[io.fits]" section of
+``astropy.cfg`` to True, and then update the value in you python session
+by calling the `ConfigurationItem` `reload` method::
+
+    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.reload()
+
+Or if you want to reload all astropy configuration at once, use the
+`~astropy.config.configuration.reload_config` function::
+
+    >>> config.reoad_config('astropy')
+
 
 
 For Developers
 --------------
-The Reference guide below describes the full interface - this is a summary of
-typical practices.  The most common way to use the configuration system is as
-follows::
+Configuration items should be used wherever an option or setting is
+needed that is either tied to a system configuration or should persist
+across sessions of astropy or an affiliated package. Admittedly, this is
+only a guideline, as the precise cases where a configuration item is
+preferred over, say, a keyword option for a function is somewhat personal
+preference. It is the preferred form of persistent configuration,
+however, and astropy packages must all use it (and it is recommended for
+affiliated packages).
+
+The Reference guide below describes the full interface for a
+`ConfigurationItem` - this is a guide for *typical* developer usage. In
+almost all cases, a configuration item should be defined and used in the
+following manner::
 
     """ This is the docstring at the beginning of a module
     """
     from astropy.config import ConfigurationItem
 
-    SOME_OPTION = ConfigurationItem('some_opt',1,'A description.')
-    ANOTHER_OPTION = ConfigurationItem('anno_opt','a string val',
-                            'A longer description of what this does.')
+    SOME_OPTION = ConfigurationItem('some_option', 1, 'A description.')
+    ANOTHER_OPTION = ConfigurationItem('annother_opt', 'a string val',
+                                       'A longer description of what this does.')
 
     ... implementation ...
     def some_func():
         #to get the value of these options, I might do:
-        something = SOME_OPTION()+2
-        return ANOTHER_OPTION()+' Also, I added text.'
+        something = SOME_OPTION() + 2
+        return ANOTHER_OPTION() + ' Also, I added text.'
 
-It is highly recommended that any configuration items be placed at the top of a
-module like this, as they can then be easily found when viewing the source code
-and the automated tools to generate the default configuration files can also
-locate these items.
+It is highly recommended that any configuration items be placed at the
+top of a module like this, as they can then be easily found when viewing
+the source code and the automated tools to generate the default
+configuration files can also locate these items.
+
+There are a couple important gotchas to remember about using configuration
+items in your code. First, it is tempting to do something like::
+
+    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
+
+    def some_func():
+        return SOME_OPTION + 2  # WRONG, you wanted SOME_OPTION() + 2
+
+but this is incorrect, because ``SOME_OPTION`` instead of
+``SOME_OPTION()`` will yield a `ConfigurationItem` object, instead of the
+*value* of that item (an integer, in this case).
+
+The second point to keep in mind is that `ConfigurationItem` objects can
+be changed at runtime by users. So you always read their values instead
+of just storing their initial value to some other variable (or used as a
+default for a function). For example, the following will work, but is
+incorrect usage::
+
+    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
+
+    def some_func(val=SOME_OPTION()):
+        return val + 2
+
+This works fine as long as the user doesn't change its value during
+runtime, but if they do, the function won't know about the change::
+
+    >>> some_func()
+    3
+    >>> SOME_OPTION.set(3)
+    >>> some_func()  # naively should return 5, because 3 + 2 = 5
+    3
+
+There are two ways around this.  The typical/intended way is::
+
+    def some_func():
+        """
+        The `SOME_OPTION` configuration item influences this output
+        """
+        return SOME_OPTION() + 2
+
+Or, if the option needs to be available as a function parameter::
+
+    def some_func(val=None):
+        """
+        If not specified, `val` is set by the `SOME_OPTION` configuration item.
+        """
+        return (SOME_OPTION() if val is None else val) + 2
+
+
 
 
 .. automodapi:: astropy.config
