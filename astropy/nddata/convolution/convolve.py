@@ -215,7 +215,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=USE_NUMPY_FFT(), nthreads=NTHREADS()):
+        use_numpy_fft=None, nthreads=None):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -325,6 +325,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     array([ 1.,  2.,  3.])
 
     """
+    if use_numpy_fft is None:
+        use_numpy_fft = USE_NUMPY_FFT()
+    if nthreads is None:
+        nthreads = NTHREADS()
 
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be

@@ -1,8 +1,9 @@
 import numpy as np
 
 from astropy.tests.helper import pytest
+from astropy.config import ConfigurationItem
 
-from ..convolve import convolve_fft
+from ..convolve import convolve_fft, USE_NUMPY_FFT
 
 from numpy.testing import assert_array_almost_equal_nulp
 
@@ -28,7 +29,9 @@ Convolved with [0,1] = [0, 1, 2, 3, 4]
 
 # NOTE: use_numpy_fft is redundant if you don't have FFTW installed
 option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'use_numpy_fft')
-options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),(True,False)))
+# do not try use_numpy_fft=False if FFTW is not available (check using isinstance... ugly hack but functional)
+numpy_fft_loop = (True,False) if isinstance(USE_NUMPY_FFT, ConfigurationItem) else (True,)
+options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),numpy_fft_loop))
 
 class TestConvolve1D(object):
 
