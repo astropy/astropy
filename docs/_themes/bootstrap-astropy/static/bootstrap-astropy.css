@@ -403,11 +403,43 @@ div.sphinxsidebar p.topless {
     margin: 5px 10px 10px 10px;
 }
 div.sphinxsidebar ul {
-    margin: 0px 5px;
+    margin: 0px 0px 0px 5px;
     padding: 0;
 }
+/* No bullets for nested lists */
+div.sphinxsidebar ul ul {
+    list-style-type: none;
+}
+
+/* Make these into hidden one-liners */
+div.sphinxsidebar li,
+div.sphinxsidebar p.topless {
+    white-space: nowrap;
+    overflow: hidden;
+}
+/* ...which become visible when hovered */
+div.sphinxsidebar li:hover,
+div.sphinxsidebar p.topless:hover {
+    overflow: visible;
+}
+/* Sidebar links are unusual */
+div.sphinxsidebar li a,
+div.sphinxsidebar p a {
+    background: #eee; /* In case links overlap main content */
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border: 1px solid transparent; /* prevent things jumping around on hover */
+    padding: 0 5px 0 5px;
+}
+
+div.sphinxsidebar li a:hover,
+div.sphinxsidebar p a:hover {
+    border: 1px solid #888;
+}
+
 div.sphinxsidebarwrapper {
-    padding: 0px 5px;
+    padding: 0px 0px 0px 5px;
 }
 
 

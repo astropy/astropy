@@ -92,7 +92,7 @@ $(function() {
     sidebarwrapper.css({
         'float': 'left',
         'margin-right': '0',
-        'width': ssb_width_expanded - 28
+        'width': ssb_width_expanded - 18
     });
     // create the button
     sidebar.append(
