@@ -4,16 +4,31 @@ import numpy as np
 import warnings
 from astropy.config import ConfigurationItem
 
+USE_FFTW = ConfigurationItem('use_fftw',True,
+        "Use FFTW3 if it is installed.  This is the default behavior, but can be overridden with scipy's or numpy's fft")
+USE_SCIPY_FFT = ConfigurationItem('use_scipy_fft', False,
+        "Try to use scipy's FFT before reverting to numpy's FFT.  Scipy's fft is apparently more accurate on some machines.")
 USE_NUMPY_FFT = ConfigurationItem('use_numpy_fft', False,
         "Use numpy's fft instead of fftw.  This will be forced True if fftw is unavailable.")
 NTHREADS = ConfigurationItem('nthreads', 1,
         "Number of threads to use if fftw is available")
 
+try: 
+    import scipy.fftpack
+    has_scipy = True
+except ImportError:
+    has_scipy = False
+    # Do not allow USE_SCIPY_FFT to be set true any more
+    USE_SCIPY_FFT = lambda:False
+
 
 try:
     import fftw3
     has_fftw = True
+except ImportError:
+    has_fftw = False
 
+if USE_FFTW() and has_fftw:
     def fftwn(array, nthreads=NTHREADS()):
         array = array.astype('complex').copy()
         outarray = array.copy()
@@ -29,12 +44,13 @@ try:
                 flags=['estimate'], nthreads=nthreads)
         fft_backward.execute()
         return outarray / np.size(array)
-except ImportError:
-    fftn = np.fft.fftn
-    ifftn = np.fft.ifftn
-    has_fftw = False
-    USE_NUMPY_FFT = lambda:True
 
+elif USE_SCIPY_FFT():
+    pass
+
+else:
+    # if neither scipy nor FFTW are available, force use numpy
+    USE_NUMPY_FFT = lambda:True
 
 from .boundary_none import convolve1d_boundary_none, \
                            convolve2d_boundary_none, \
@@ -215,7 +231,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=None, nthreads=None):
+        use_numpy_fft=None, use_scipy_fft=None, nthreads=None):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -284,7 +300,11 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         to use.  Probably only helpful for large arrays
     use_numpy_fft : bool
         Force the code to use the numpy FFTs instead of FFTW even if FFTW is
-        installed
+        installed.  If None, will use the default as specified in the 
+        USE_NUMPY_FFT ConfigurationItem
+    use_scipy_fft : bool
+        Prefer scipy's FFT over numpy's if installed.  If None, defaults to 
+        USE_SCIPY_FFT ConfigurationItem
 
     See Also
     --------
@@ -327,6 +347,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     """
     if use_numpy_fft is None:
         use_numpy_fft = USE_NUMPY_FFT()
+    if use_scipy_fft is None:
+        use_scipy_fft = USE_SCIPY_FFT()
     if nthreads is None:
         nthreads = NTHREADS()
 
@@ -368,6 +390,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
         def ifftn(*args, **kwargs):
             return ifftwn(*args, nthreads=nthreads, **kwargs)
+    elif has_scipy and use_scipy_fft:
+        fftn = scipy.fftpack.fftn
+        ifftn = scipy.fftpack.ifftn
     elif use_numpy_fft:
         fftn = np.fft.fftn
         ifftn = np.fft.ifftn
