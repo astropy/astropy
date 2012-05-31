@@ -5,8 +5,8 @@ import os
 import sys
 import textwrap
 
-import pyfits.diff
-from pyfits.util import fill
+from ... import fits
+from ..util import fill
 
 
 log = logging.getLogger('fitsdiff')
@@ -254,7 +254,7 @@ def main():
     try:
         for a, b in files:
             # TODO: pass in any additonal arguments here too
-            diff = pyfits.diff.FITSDiff(
+            diff = fits.diff.FITSDiff(
                 a, b, ignore_keywords=opts.ignore_keywords,
                 ignore_comments=opts.ignore_comments,
                 ignore_fields=opts.ignore_fields, numdiffs=opts.numdiffs,

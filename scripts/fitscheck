@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-import pyfits.scripts.fitscheck
+import astropy.io.fits.scripts.fitscheck
 import sys
 
 
 if __name__ == '__main__':
-    sys.exit(pyfits.scripts.fitscheck.main())
+    sys.exit(astropy.io.fits.scripts.fitscheck.main())

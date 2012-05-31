@@ -221,7 +221,7 @@ class HDUList(list, _Verify):
         Creates an HDUList instance from a file-like object.
 
         The actual implementation of :func:`fitsopen`, and generally shouldn't
-        be used directly.  Use :func:`pyfits.open` instead (and see its
+        be used directly.  Use :func:`open` instead (and see its
         documentation for details of the parameters accepted by this method).
         """
 
