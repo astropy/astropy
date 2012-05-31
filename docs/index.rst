@@ -44,7 +44,14 @@ testing guidelines.
 .. toctree::
    :maxdepth: 1
 
-   development/index
+   development/vision
+   development/workflow/index
+   development/codeguide
+   development/docguide
+   development/testguide
+   development/building_packaging
+   development/scripts
+   development/sphinxext
 
 Indices and Tables
 ==================
