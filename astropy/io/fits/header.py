@@ -13,7 +13,8 @@ import warnings
 
 from .card import Card, CardList, _pad, BLANK_CARD
 from .file import _File, PYTHON_MODES
-from .util import encode_ascii, decode_ascii, fileobj_mode
+from .util import (encode_ascii, decode_ascii, fileobj_mode,
+                   fileobj_is_binary)
 
 from ...utils import deprecated, isiterable
 
@@ -408,15 +409,21 @@ class Header(object):
 
         close_file = False
         if isinstance(fileobj, basestring):
-            fileobj = open(fileobj, 'rb')
+            # Open in text mode by default to support newline handling; if a
+            # binary-mode file object is passed in, the user is on their own
+            # with respect to newline handling
+            fileobj = open(fileobj, 'r')
             close_file = True
 
+        is_binary = fileobj_is_binary(fileobj)
         actual_block_size = _block_size(sep)
         clen = Card.length + len(sep)
 
         try:
             # Read the first header block.
             block = fileobj.read(actual_block_size)
+            if not is_binary:
+                block = encode_ascii(block)
 
             if not block:
                 raise EOFError()
@@ -440,6 +447,8 @@ class Header(object):
                 if not is_end:
                     blocks.append(decode_ascii(block))
                     block = fileobj.read(actual_block_size)
+                    if not is_binary:
+                        block = encode_ascii(block)
                     if not block:
                         is_eof = True
                         break

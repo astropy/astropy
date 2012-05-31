@@ -273,6 +273,22 @@ def fileobj_mode(f):
     return mode
 
 
+def fileobj_is_binary(f):
+    """
+    Returns True if the give file or file-like object has a file open in binary
+    mode.  When in doubt, returns True by default.
+    """
+
+    # TODO: In Python 3 it might be more reliable to check if the fileobj is a
+    # text reader or a binary reader
+
+    mode = fileobj_mode(f)
+    if mode:
+        return 'b' in mode
+    else:
+        return True
+
+
 def translate(s, table, deletechars):
     """
     This is a version of string/unicode.translate() that can handle string or
@@ -348,11 +364,7 @@ def _write_string(f, s):
 
     # Assume if the file object doesn't have a specific mode, that the mode is
     # binary
-    mode = fileobj_mode(f)
-    if mode:
-        binmode = 'b' in mode
-    else:
-        binmode = True
+    binmode = fileobj_is_binary(f)
 
     if binmode and isinstance(s, unicode):
         s = encode_ascii(s)

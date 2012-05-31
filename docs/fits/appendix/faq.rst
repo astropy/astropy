@@ -247,7 +247,7 @@ to build with PPC support, which is no longer supported in Xcode.
 In this case the best solution is to install the x86-64 build of Python for
 OSX (http://www.python.org/ftp/python/2.7.2/python-2.7.2-macosx10.6.dmg for
 2.7.2).  In fact, this is the build version officially supported for use on
-Lion.  Other, unofficial Python buils such as from `MacPorts`_ may also work.
+Lion.  Other, unofficial Python builds such as from `MacPorts`_ may also work.
 
 .. _MacPorts: http://astrofrog.github.com/macports-python/
 
