@@ -7,7 +7,7 @@ Git resources
 Tutorials and summaries
 =======================
 
-* `github help`_ has an excellent series of how-to guides.
+* `GitHub Help`_ has an excellent series of how-to guides.
 * `learn.github`_ has an excellent series of tutorials
 * The `pro git book`_ is a good in-depth book on git.
 * A `git cheat sheet`_ is a page giving summaries of common commands.
