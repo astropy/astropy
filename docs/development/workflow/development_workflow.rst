@@ -534,18 +534,40 @@ and the history looks now like this::
 If it went wrong, recovery is again possible as explained :ref:`above
 <recovering-from-mess-up>`.
 
-Converting a github issue to a pull request
+Converting a GitHub issue to a pull request
 -------------------------------------------
 
-Sometimes you have a branch in your own github repository designed to
-fix one particular issue.  If that issue is listed on github, a natural
+Sometimes you have a branch in your own GitHub repository designed to
+fix one particular issue.  If that issue is listed on GitHub, a natural
 way to address it is to convert the issue to a pull request by
-attaching code with the fix to the issue.  This can currently only be
-done using the github API (there's no button or anything on the web
-site that does it, at least as of 2/6/2012).  To facilitate this, a
-script is available at https://gist.github.com/1750715 that will do
-this for you automatically - just download the script and run it as a
-python command-line script, using the ``python issue2pr.py --help``
-option to determine the precise usage.
+attaching code with the fix to the issue. This can currently only be
+done using the GitHub API (there's no button or anything on the web
+site that does it, at least as of 2/6/2012). There are two options to do this:
+
+* You can use the script at https://gist.github.com/1750715 which will
+  do this for you automatically - just download the script and run it as
+  a python command-line script, using the ``python issue2pr.py --help``
+  option to determine the precise usage.
+
+* You can use the ``hub`` command-line utility provided `here
+  <https://github.com/defunkt/hub>`_ by GitHub. Once installed, you can
+  attach a branch to a pull request by doing::
+
+          hub pull-request -i <ID> -b astropy:master -h <USER>:<BRANCH>
+
+  where ``<ID>`` is the ID of the issue, ``<USER>`` is the username, and
+  ``<BRANCH>`` is the name of the branch you want to attach to the
+  issue. For example::
+
+          hub pull-request -i 42 -b astropy:master -h galahad:feature
+
+  will attach the ``feature`` branch from ``galahad``'s Astropy
+  repository to issue 42.
+
+  The ``hub`` command can do a lot more to interact with GitHub, so be
+  sure to read their documentation. For example, you can fetch all
+  branches of a repository for a given user by doing::
+
+          hub fetch <USER>
 
 .. include:: links.inc
