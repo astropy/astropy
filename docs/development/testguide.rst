@@ -463,6 +463,25 @@ these static hash-based URLs ensures that even if we change the backend, the
 URL will remain the same.
 
 
+Tests requiring optional dependencies
+=====================================
+
+For tests that test functions or methods that require optional dependencies (e.g. Scipy), pytest should be instructed to skip the test if the dependencies are not present. The following example shows how this should be done::
+
+    import pytest
+
+    try:
+        import scipy
+        HAS_SCIPY = True
+    except ImportError:
+        HAS_SCIPY = False
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_that_uses_scipy():
+        ...
+
+In this way, the test is run if Scipy is present, and skipped if not. No tests should fail simply because an optional dependency is not present.
+
 Test coverage reports
 =====================
 
