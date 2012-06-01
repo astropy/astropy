@@ -4,12 +4,12 @@ import numpy as np
 import warnings
 from astropy.config import ConfigurationItem
 
-USE_FFTW = ConfigurationItem('use_fftw',True,
-        "Use FFTW3 if it is installed.  This is the default behavior, but can be overridden with scipy's or numpy's fft")
-USE_SCIPY_FFT = ConfigurationItem('use_scipy_fft', False,
-        "Try to use scipy's FFT before reverting to numpy's FFT.  Scipy's fft is apparently more accurate on some machines.")
-USE_NUMPY_FFT = ConfigurationItem('use_numpy_fft', False,
-        "Use numpy's fft instead of fftw.  This will be forced True if fftw is unavailable.")
+FFT_TYPE = ConfigurationItem("fft_type",['fftw','scipy','numpy'],
+    """
+Which FFT should be used?  FFTW uses the fftw3 package and is fastest and can
+be multi-threaded, but it can be memory intensive.  Scipy's FFT is more precise
+than numpy's.
+""")
 NTHREADS = ConfigurationItem('nthreads', 1,
         "Number of threads to use if fftw is available")
 
@@ -18,9 +18,6 @@ try:
     has_scipy = True
 except ImportError:
     has_scipy = False
-    # Do not allow USE_SCIPY_FFT to be set true any more
-    USE_SCIPY_FFT = lambda:False
-
 
 try:
     import fftw3
@@ -28,7 +25,7 @@ try:
 except ImportError:
     has_fftw = False
 
-if USE_FFTW() and has_fftw:
+if has_fftw:
     def fftwn(array, nthreads=NTHREADS()):
         array = array.astype('complex').copy()
         outarray = array.copy()
@@ -44,29 +41,6 @@ if USE_FFTW() and has_fftw:
                 flags=['estimate'], nthreads=nthreads)
         fft_backward.execute()
         return outarray / np.size(array)
-
-elif USE_SCIPY_FFT():
-    pass
-
-else:
-    # if neither scipy nor FFTW are available, force use numpy
-    USE_NUMPY_FFT = lambda:True
-
-from .boundary_none import convolve1d_boundary_none, \
-                           convolve2d_boundary_none, \
-                           convolve3d_boundary_none
-
-from .boundary_extend import convolve1d_boundary_extend, \
-                             convolve2d_boundary_extend, \
-                             convolve3d_boundary_extend
-
-from .boundary_fill import convolve1d_boundary_fill, \
-                           convolve2d_boundary_fill, \
-                           convolve3d_boundary_fill
-
-from .boundary_wrap import convolve1d_boundary_wrap, \
-                           convolve2d_boundary_wrap, \
-                           convolve3d_boundary_wrap
 
 
 def convolve(array, kernel, boundary=None, fill_value=0.,
@@ -231,7 +205,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
         ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        use_numpy_fft=None, use_scipy_fft=None, nthreads=None):
+        fft_type=None, nthreads=None):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -298,13 +272,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     nthreads : int
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
-    use_numpy_fft : bool
-        Force the code to use the numpy FFTs instead of FFTW even if FFTW is
-        installed.  If None, will use the default as specified in the 
-        USE_NUMPY_FFT ConfigurationItem
-    use_scipy_fft : bool
-        Prefer scipy's FFT over numpy's if installed.  If None, defaults to 
-        USE_SCIPY_FFT ConfigurationItem
+    fft_type : [None, 'fftw', 'scipy', 'numpy']
+        Which FFT implementation to use.  If not specified, defaults to the type
+        specified in the FFT_TYPE ConfigurationItem
 
     See Also
     --------
@@ -345,10 +315,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     array([ 1.,  2.,  3.])
 
     """
-    if use_numpy_fft is None:
-        use_numpy_fft = USE_NUMPY_FFT()
-    if use_scipy_fft is None:
-        use_scipy_fft = USE_SCIPY_FFT()
+    if fft_type is None:
+        fft_type = FFT_TYPE()
     if nthreads is None:
         nthreads = NTHREADS()
 
@@ -384,18 +352,20 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     # replace fftn if has_fftw so that nthreads can be passed
     global fftn, ifftn
-    if has_fftw and not use_numpy_fft:
+    if has_fftw and fft_type == "fftw":
         def fftn(*args, **kwargs):
             return fftwn(*args, nthreads=nthreads, **kwargs)
 
         def ifftn(*args, **kwargs):
             return ifftwn(*args, nthreads=nthreads, **kwargs)
-    elif has_scipy and use_scipy_fft:
+    elif has_scipy and fft_type == "scipy":
         fftn = scipy.fftpack.fftn
         ifftn = scipy.fftpack.ifftn
-    elif use_numpy_fft:
+    elif fft_type == "numpy":
         fftn = np.fft.fftn
         ifftn = np.fft.ifftn
+    else:
+        raise ValueError("Invalid fft_type specified: %s" % fft_type)
 
 
     # NAN catching

@@ -20,7 +20,8 @@ kernel = make_kernel([%i]*%i,3,force_odd=True)""") % (2**ii,ndims,2**ii,ndims)
 
             print "%16i:" % (int(2**ii)) ,
 
-            for ffttype,extra in zip(("","_fft","_fft"),("","use_numpy_fft=True","")):
+            for ffttype,extra in zip(("","_fftw","_fftnp","_fftsp"),
+                    ("","fft_type='fftw'","fft_type='numpy'","fft_type='scipy'")):
                 statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
                 besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
                 print "%17f" % (besttime),
