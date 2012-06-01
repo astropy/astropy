@@ -523,6 +523,20 @@ a.headerlink:hover {
     text-docoration: none;
 }
 
+/* The following is a hack to fix the position of anchor links (headerlink).
+Clicking on anchorlinks positions the item at the top of the viewport.
+However, with the fixed topbar, the item appears under the topbar, 
+and is hence not visible. The following is a fix from
+http://nicolasgallagher.com/jump-links-and-viewport-positioning
+and will work for all our div.section anchor links as long as the background
+is the same as the page background. */
+div.section:before {
+  display:block; 
+  content:""; 
+  height:61px; 
+  margin:-61px 0 0; 
+}
+
 /* Other divs and things in the body
  * ----------------------------------------------------------------------*/
 div.admonition p.admonition-title + p {
