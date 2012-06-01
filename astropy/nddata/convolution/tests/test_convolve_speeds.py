@@ -2,12 +2,16 @@ import numpy as np
 
 import timeit
 
+# largest image size to use for "linear" and fft convolutions
+max_exponents_linear = {1:12, 2:7, 3:5}
+max_exponents_fft    = {1:14, 2:9, 3:7}
+
 if __name__ == "__main__":
     for ndims in [1,2,3]:
         print "\n%i-dimensional arrays ('n' is the size of the image AND the kernel)" % ndims
-        print " ".join(["%17s" % n for n in ("n","convolve","convolve_fft","convolve_fftw")])
+        print " ".join(["%17s" % n for n in ("n","convolve","convolve_fftnp","convolve_fftw","convolve_fftsp")])
 
-        for ii in xrange(3,15-ndims*3):
+        for ii in xrange(3,max_exponents_fft[ndims]):
             #array = np.random.random([2**ii]*ndims)
             setup=("""
 from astropy.nddata.convolution.convolve import convolve; 
@@ -20,11 +24,19 @@ kernel = make_kernel([%i]*%i,3,force_odd=True)""") % (2**ii,ndims,2**ii,ndims)
 
             print "%16i:" % (int(2**ii)) ,
 
-            for ffttype,extra in zip(("","_fftw","_fftnp","_fftsp"),
-                    ("","fft_type='fftw'","fft_type='numpy'","fft_type='scipy'")):
-                statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
-                besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
-                print "%17f" % (besttime),
+            if ii <= max_exponents_linear:
+                for ffttype,extra in zip(("","_fft","_fft","_fft"),
+                        ("","fft_type='numpy'","fft_type='fftw'","fft_type='scipy'")):
+                    statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
+                    besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                    print "%17f" % (besttime),
+            else:
+                print "%17s" % "toolong",
+                for ffttype,extra in zip(("_fft","_fft","_fft"),
+                        ("fft_type='numpy'","fft_type='fftw'","fft_type='scipy'")):
+                    statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
+                    besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                    print "%17f" % (besttime),
 
             print
 
