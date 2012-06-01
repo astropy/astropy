@@ -3,11 +3,23 @@ import numpy as np
 from astropy.tests.helper import pytest
 from astropy.config import ConfigurationItem
 
-from ..convolve import convolve_fft, has_fftw, has_scipy
+from ..convolve import convolve_fft
 
 from numpy.testing import assert_array_almost_equal_nulp
 
 import itertools
+
+try:
+    import scipy.fftpack
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
+try:
+    import fftw3
+    HAS_FFTW = True
+except ImportError:
+    HAS_FFTW = False
 
 VALID_DTYPES = []
 for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
@@ -29,10 +41,7 @@ Convolved with [0,1] = [0, 1, 2, 3, 4]
 
 # NOTE: use_numpy_fft is redundant if you don't have FFTW installed
 option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'fft_type')
-fft_types = ['numpy']
-fft_types += ['scipy'] if has_scipy else []
-fft_types += ['fftw'] if has_fftw else []
-options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),fft_types))
+options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),['numpy', 'scipy', 'fftw']))
 
 class TestConvolve1D(object):
 
@@ -41,6 +50,11 @@ class TestConvolve1D(object):
         '''
         Test that a unit kernel with a single element returns the same array
         '''
+
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
 
         x = np.array([1., 2., 3.], dtype='float64')
 
@@ -61,6 +75,11 @@ class TestConvolve1D(object):
         (except when boundary is None).
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([1., 2., 3.], dtype='float64')
 
         y = np.array([0., 1., 0.], dtype='float64')
@@ -79,6 +98,11 @@ class TestConvolve1D(object):
         Test that the different modes are producing the correct results using
         a uniform kernel with three elements
         '''
+
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
 
         x = np.array([1., 0., 3.], dtype='float64')
 
@@ -125,6 +149,11 @@ class TestConvolve1D(object):
         the original array.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([1., np.nan, 3.], dtype='float64')
 
         y = np.array([0., 1., 0.], dtype='float64')
@@ -153,6 +182,11 @@ class TestConvolve1D(object):
         the original array.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([1., np.nan, 3.], dtype='float64')
 
         y = np.array([1.], dtype='float64')
@@ -180,6 +214,11 @@ class TestConvolve1D(object):
         value in the original array.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([1., np.nan, 3.], dtype='float64')
 
         y = np.array([1., 1., 1.], dtype='float64')
@@ -206,7 +245,7 @@ class TestConvolve1D(object):
                 'average_zeros': np.array([1/2., 4/2., 3/2.], dtype='float64'),
                 'average_zeros_noignan': np.array([1/3., 4/3., 3/3.], dtype='float64'),
                 }
-    
+
         if normalize_kernel:
             answer_key = 'average'
         else:
@@ -227,7 +266,6 @@ class TestConvolve1D(object):
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
 
-
 class TestConvolve2D(object):
 
     @pytest.mark.parametrize(option_names, options)
@@ -236,6 +274,11 @@ class TestConvolve2D(object):
         '''
         Test that a 1x1 unit kernel returns the same array
         '''
+
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
 
         x = np.array([[1., 2., 3.],
                       [4., 5., 6.],
@@ -257,6 +300,11 @@ class TestConvolve2D(object):
         Test that a 3x3 unit kernel returns the same array (except when
         boundary is None).
         '''
+
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
 
         x = np.array([[1., 2., 3.],
                       [4., 5., 6.],
@@ -282,6 +330,11 @@ class TestConvolve2D(object):
         a 3x3 uniform kernel.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([[0., 0., 3.],
                       [1., 0., 0.],
                       [0., 2., 0.]], dtype='float64')
@@ -300,7 +353,7 @@ class TestConvolve2D(object):
                       [6., 9., 6.],
                       [4., 6., 4.]], dtype='float64')
         answer_dict = {
-                'sum': np.array([[1., 4., 3.],                  
+                'sum': np.array([[1., 4., 3.],
                                  [3., 6., 5.],
                                  [3., 3., 2.]], dtype='float64'),
                 'sum_wrap': np.array([[6., 6., 6.],
@@ -338,6 +391,11 @@ class TestConvolve2D(object):
         array.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([[1., 2., 3.],
                       [4., np.nan, 6.],
                       [7., 8., 9.]], dtype='float64')
@@ -371,6 +429,11 @@ class TestConvolve2D(object):
         original array.
         '''
 
+        if fft_type == 'fftw' and not HAS_FFTW:
+            pytest.skip('fftw3 is not installed')
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            pytest.skip('scipy is not installed')
+
         x = np.array([[0., 0., 3.],
                       [1., np.nan, 0.],
                       [0., 2., 0.]], dtype='float64')
@@ -392,7 +455,7 @@ class TestConvolve2D(object):
                         [6., 9., 6.],
                         [4., 6., 4.]], dtype='float64')
         answer_dict = {
-                'sum': np.array([[1., 4., 3.],                  
+                'sum': np.array([[1., 4., 3.],
                                  [3., 6., 5.],
                                  [3., 3., 2.]], dtype='float64'),
                 'sum_wrap': np.array([[6., 6., 6.],
@@ -429,5 +492,3 @@ class TestConvolve2D(object):
         print "answer: ",a
         print "ratio: ",z/a
         assert np.all( np.abs(z-a) < np.spacing(np.where(z>a,z,a))*10 )
-
-

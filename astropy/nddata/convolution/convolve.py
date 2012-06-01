@@ -2,7 +2,8 @@
 
 import numpy as np
 import warnings
-from astropy.config import ConfigurationItem
+from ...config import ConfigurationItem
+from ... import log
 
 FFT_TYPE = ConfigurationItem("fft_type",['fftw','scipy','numpy'],
     """
@@ -13,19 +14,19 @@ than numpy's.
 NTHREADS = ConfigurationItem('nthreads', 1,
         "Number of threads to use if fftw is available")
 
-try: 
+try:
     import scipy.fftpack
-    has_scipy = True
+    HAS_SCIPY = True
 except ImportError:
-    has_scipy = False
+    HAS_SCIPY = False
 
 try:
     import fftw3
-    has_fftw = True
+    HAS_FFTW = True
 except ImportError:
-    has_fftw = False
+    HAS_FFTW = False
 
-if has_fftw:
+if HAS_FFTW:
     def fftwn(array, nthreads=NTHREADS()):
         array = array.astype('complex').copy()
         outarray = array.copy()
@@ -212,7 +213,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
 
-    * can treat NaN's as zeros or interpolate over them 
+    * can treat NaN's as zeros or interpolate over them
     * defaults to using the faster FFTW algorithm if installed
     * (optionally) pads to the nearest 2^n size to improve FFT speed
     * only operates in mode='same' (i.e., the same shape array is returned) mode
@@ -226,7 +227,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
           centered (i.e., shifts may result if your kernel is asymmetric)
     boundary : {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
-            
+
             * 'fill' : set values outside the array boundary to fill_value
                        (default)
             * 'wrap' : periodic boundary
@@ -243,7 +244,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     min_wt : float
         If ignoring NANs/zeros, force all grid points with a weight less than
         this value to NAN (the weight of a grid point with *no* ignored
-        neighbors is 1.0).  
+        neighbors is 1.0).
         If `min_wt` == 0.0, then all zero-weight points will be set to zero
         instead of NAN (which they would be otherwise, because 1/0 = nan).
         See the examples below
@@ -317,6 +318,16 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     """
     if fft_type is None:
         fft_type = FFT_TYPE()
+        if fft_type == 'fftw' and not HAS_FFTW:
+            if HAS_SCIPY:
+                log.warn("fftw3 is not installed, using scipy for the FFT calculations")
+                fft_type = 'scipy'
+            else:
+                log.warn("fftw3 and scipy are not installed, using numpy for the FFT calculations")
+                fft_type = 'numpy'
+        elif fft_type == 'scipy' and not HAS_SCIPY:
+            log.warn("scipy is not installed, using numpy for the FFT calculations")
+            fft_type = 'numpy'
     if nthreads is None:
         nthreads = NTHREADS()
 
@@ -350,17 +361,22 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         kernel = np.array(kernel)
         kernel[mask] = np.nan
 
-    # replace fftn if has_fftw so that nthreads can be passed
+    # replace fftn if HAS_FFTW so that nthreads can be passed
     global fftn, ifftn
-    if has_fftw and fft_type == "fftw":
-        def fftn(*args, **kwargs):
-            return fftwn(*args, nthreads=nthreads, **kwargs)
-
-        def ifftn(*args, **kwargs):
-            return ifftwn(*args, nthreads=nthreads, **kwargs)
-    elif has_scipy and fft_type == "scipy":
-        fftn = scipy.fftpack.fftn
-        ifftn = scipy.fftpack.ifftn
+    if fft_type == "fftw":
+        if HAS_FFTW:
+            def fftn(*args, **kwargs):
+                return fftwn(*args, nthreads=nthreads, **kwargs)
+            def ifftn(*args, **kwargs):
+                return ifftwn(*args, nthreads=nthreads, **kwargs)
+        else:
+            raise ValueError("fft_type=fftw specified, but fftw3 is not installed")
+    elif fft_type == "scipy":
+        if HAS_SCIPY:
+            fftn = scipy.fftpack.fftn
+            ifftn = scipy.fftpack.ifftn
+        else:
+            raise ValueError("fft_type=scipy specified, but scipy is not installed")
     elif fft_type == "numpy":
         fftn = np.fft.fftn
         ifftn = np.fft.ifftn
