@@ -141,7 +141,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     kernel_sum = np.sum(kernel)
     kernel /= kernel_sum
 
-    # The cython routines are written for np.flaot, but the default endian
+    # The cython routines are written for np.float, but the default endian
     # depends on platform. For that reason, we first save the original
     # array datatype, cast to np.float, then convert back
     array_dtype = array.dtype
