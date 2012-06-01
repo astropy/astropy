@@ -440,9 +440,19 @@ div.sphinxsidebar p a:hover {
     border: 1px solid #888;
 }
 
+/* Formatting for current page link*/
+div.sphinxsidebar a.current {
+    color: #404040;
+}
+div.sphinxsidebar a.current:hover {
+    color: #404040;
+    border: 1px solid transparent;
+}
+
 div.sphinxsidebarwrapper {
     padding: 0px 0px 0px 5px;
 }
+
 
 
 /* document, documentwrapper, body, bodywrapper
