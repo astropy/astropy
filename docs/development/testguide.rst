@@ -1,12 +1,8 @@
 .. _testing-guidelines:
 
-==========================
-Testing Guidelines (Draft)
-==========================
-
-.. warning::
-    This document is currently in Draft form and is subject to change. Not all
-    described functionality may be implemented.
+==================
+Testing Guidelines
+==================
 
 This section describes the testing framework and format standards for tests in
 Astropy core packages (this also serves as recommendations for affiliated
@@ -73,7 +69,6 @@ within those files.
     will not succeed.  Similarly, in python 3, these tests will not
     run correctly in the source code, because they need the ``2to3``
     tool to be run on them.
-
 
 You may specify a specific test file or directory at the command line::
 
@@ -408,6 +403,29 @@ These take one argument, which is the function being tested::
     def teardown_method(function):
         pass
 
+Parametrizing tests
+-------------------
+
+If you want to run a test several times for slightly different values, then
+it can be advantageous to use the ``py.test`` option to parametrize tests.
+For example, instead of writing::
+
+    def test1():
+        assert type('a') == str
+
+    def test2():
+        assert type('b') == str
+
+    def test3():
+        assert type('c') == str
+
+You can use the ``parametrize`` decorator to loop over the different
+inputs::
+
+    @pytest.mark.parametrize(('letter'), ['a', 'b', 'c'])
+    def test(letter):
+        assert type(letter) == str
+
 Using py.test helper functions
 ------------------------------
 
@@ -421,7 +439,6 @@ You may need to adjust the relative import to work for the depth of your module.
 ``tests.helper`` imports ``pytest`` either from the user's system or ``extern.pytest``
 if the user does not have py.test installed. This is so that users need not
 install py.test to run AstroPy's tests.
-
 
 Using data in tests
 ===================
@@ -445,6 +462,25 @@ The details of the server implementation have yet to be decided, but using
 these static hash-based URLs ensures that even if we change the backend, the
 URL will remain the same.
 
+
+Tests requiring optional dependencies
+=====================================
+
+For tests that test functions or methods that require optional dependencies (e.g. Scipy), pytest should be instructed to skip the test if the dependencies are not present. The following example shows how this should be done::
+
+    import pytest
+
+    try:
+        import scipy
+        HAS_SCIPY = True
+    except ImportError:
+        HAS_SCIPY = False
+
+    @pytest.mark.skipif('not HAS_SCIPY')
+    def test_that_uses_scipy():
+        ...
+
+In this way, the test is run if Scipy is present, and skipped if not. No tests should fail simply because an optional dependency is not present.
 
 Test coverage reports
 =====================

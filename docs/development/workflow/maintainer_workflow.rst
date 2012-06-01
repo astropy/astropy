@@ -1,8 +1,8 @@
 .. _maintainer-workflow:
 
-###################
-Maintainer workflow
-###################
+########################
+Workflow for Maintainers
+########################
 
 This page is for maintainers |emdash| those of us who merge our own or other
 peoples' changes into the upstream repository.

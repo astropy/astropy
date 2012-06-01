@@ -33,7 +33,25 @@ For discussions and ideas regarding development of the Astropy package, see the 
    table/index
    tools
    utils/index
-   development/index
+
+Developer Documentation
+-----------------------
+
+The developer documentation contains instructions for how to contribute to
+Astropy or affiliated packages, as well as coding, documentation, and
+testing guidelines.
+
+.. toctree::
+   :maxdepth: 1
+
+   development/vision
+   development/workflow/index
+   development/codeguide
+   development/docguide
+   development/testguide
+   development/building_packaging
+   development/scripts
+   development/sphinxext
 
 Indices and Tables
 ==================
