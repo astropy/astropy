@@ -65,7 +65,7 @@ $(function() {
     sidebar.css('width', ssb_width_collapsed);
     bodywrapper.css('margin-left', bw_margin_collapsed);
     sidebarbutton.css({
-        'margin-left': '0',
+        'margin-left': '-1px',
         'height': document.height(),
 	'border-radius': '3px'
     });
@@ -109,7 +109,6 @@ $(function() {
     sidebarbutton.find('span').css({
         'font-family': '"Lucida Grande",Arial,sans-serif', 
 	'display': 'block',
-        //'top': (viewport_height - sidebar.position().top - 20) / 2,
 	'top': 61 + (Math.min(viewport_height - 61, document.height())) / 2,
 	'position': 'fixed'
     });
@@ -119,11 +118,13 @@ $(function() {
     sidebarbutton.css({
         'color': '#FFFFFF',
 	'background-color': light_color,
+	'border': '1px solid ' + light_color,
         'border-radius': '0px 3px 3px 0px',
         'font-size': '1.2em',
         'cursor': 'pointer',
         'height': document.height(),
         'padding-top': '1px',
+	'margin': '-1px',
         'margin-left': ssb_width_expanded - 12
     });
 
