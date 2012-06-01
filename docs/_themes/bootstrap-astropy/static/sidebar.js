@@ -40,14 +40,12 @@ $(function() {
 
   // margin-left of the bodywrapper and width of the sidebar
   // with the sidebar collapsed
-  var bw_margin_collapsed = '.8em';
-  var ssb_width_collapsed = '.8em';
+  var bw_margin_collapsed = 12;
+  var ssb_width_collapsed = 12;
 
-  // colors used by the current theme
+  // custom colors
   var dark_color = '#404040';
   var light_color = '#505050';
-  //var dark_color = $('.related').css('background-color');
-  //var light_color = $('.document').css('background-color');
 
   function sidebar_is_collapsed() {
     return sidebarwrapper.is(':not(:visible)');
@@ -79,7 +77,7 @@ $(function() {
     sidebar.css('width', ssb_width_expanded);
     sidebarwrapper.show();
     sidebarbutton.css({
-        'margin-left': ssb_width_expanded-12,
+        'margin-left': ssb_width_expanded - 12,
         'height': document.height(),
 	'border-radius': '0px 3px 3px 0px'
     });
@@ -99,7 +97,7 @@ $(function() {
         '<div id="sidebarbutton"><span>&laquo;</span></div>'
     );
     var sidebarbutton = $('#sidebarbutton');
-    //light_color = sidebarbutton.css('background-color');
+
     // find the height of the viewport to center the '<<' in the page
     var viewport_height;
     if (window.innerHeight)
@@ -110,7 +108,9 @@ $(function() {
         'font-family': '"Lucida Grande",Arial,sans-serif', 
 	'display': 'block',
 	'top': 61 + (Math.min(viewport_height - 61, document.height())) / 2,
-	'position': 'fixed'
+	'width': 12,
+	'position': 'fixed',
+	'text-align': 'center'
     });
 
     sidebarbutton.click(toggle_sidebar);
