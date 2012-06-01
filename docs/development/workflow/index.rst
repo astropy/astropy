@@ -6,56 +6,28 @@ Contributing To/Developing Astropy or Affiliated Packages
 Summary
 -------
 
-As described in :ref:`vision`, development of components intended for
-inclusion in the core ``astropy`` package will initially be done by different
-teams via *affiliated packages*. These affiliated packages will then be
-submitted for inclusion in the ``astropy`` core package by creating a git fork
-of the core repository, merging the new component into the fork, and
-submitting the package as a pull request. The step of creating a fork and
-merging the affiliated package into the fork can be done either by the team
-contributing the affiliated package, or by the coordination committee if
-requested.
+Any contributions to the core Astropy package, whether bug fixes,
+improvements to the documentation, or new functionality, can be done via
+*pull requests* on GitHub. The workflow for this is described below.
 
-Once an affiliated package has been accepted and integrated as a component
-into the core ``astropy`` package, subsequent improvements and bug fixes can
-be made in the same way by forking the core repository and submitting a pull
-request.
+However, substantial contributions, such as whole new sub-packages, can
+first be developed as *affiliated packages* then submitted to the Astropy
+core via pull requests once ready (as described in :ref:`vision`). Teams working on affiliated packages are free to choose whatever version control system they wish, but ultimately the affiliated package should be merged into a fork of the Astropy repository in order to be submitted as a pull request (this merging can be done either by the team or by one of the core maintainers).
 
-The bottom line is that teams working on various components are free to choose
-the version control system and workflow that they want, but ultimately the
-changes need to be merged into a fork of the core repository and submitted via
-a pull request to the core repository, either by the team or by the
-coordination committee.
+Getting started with git
+------------------------
 
-.. _git-configure-impatient:
-
-For the Impatient
------------------
-
-The only absolutely necessary configuration step is identifying yourself and your contact info::
+The only absolutely necessary configuration step is identifying yourself and
+your contact info::
 
      git config --global user.name "Your Name"
      git config --global user.email you@yourdomain.example.com
 
-More detailed information and instructions are below.
-
-After that, if you then just want to get the latest ``astropy`` source code, cd to a directory on your computer you want to put the source code, and do::
-
-     git clone git@github.com:astropy/astropy.git
-
-You will then have a new copy of the source code in the ``astropy`` directory.
-
-Later, if you want to update to the most recent version of the ``astropy`` code, just go do::
-
-   cd astropy
-   git pull
-
-If you find a bug and want to fix it, see :ref:`basic-workflow` or :ref:`advanced-workflow` depending on how comfortable you are with git.
-
-Git Documentation
------------------
-
-The following sections cover the installation of the git software, the basic configuration, and links to resources to learn more about using git. However, you can also directly go to the `GitHub help pages <http://help.github.com/>`_ which offer a great introduction to git and GitHub.
+The following sections cover the installation of the git software, the basic
+configuration, and links to resources to learn more about using git.
+However, you can also directly go to the `GitHub help pages
+<http://help.github.com/>`_ which offer a great introduction to git and
+GitHub.
 
 .. toctree::
    :maxdepth: 1
@@ -67,12 +39,14 @@ The following sections cover the installation of the git software, the basic con
 Workflow
 --------
 
-The following two sections describe the workflow for the ``astropy`` core
-package, but teams working on affiliated packages that have chosen to use git
-are encouraged to also follow these guidelines internally.
+The following two sections describe the workflow for the Astropy core
+package, but teams working on affiliated packages that have chosen to use
+git are encouraged to also follow these guidelines internally.
 
 .. toctree::
    :maxdepth: 1
 
    development_workflow
    maintainer_workflow
+
+If for any reason developers do not wish to or cannot contribute via pull requests, they can submit a patch as described in :doc:`patches`.
