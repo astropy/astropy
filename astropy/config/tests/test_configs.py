@@ -232,3 +232,22 @@ def test_get_config_items():
 
     assert 'TESTCONF1' in itemslocal.keys()
     assert 'TESTCONF2' in itemslocal.keys()
+
+
+def test_configitem_setters():
+    from ..configuration import ConfigurationItem
+
+    ci = ConfigurationItem('tstnm12', 42, 'this is another Description')
+
+    assert ci() == 42
+    with ci.set_temp(45):
+        assert ci() == 45
+    assert ci() == 42
+
+    ci.set(43)
+    assert ci() == 43
+
+    with ci.set_temp(46):
+        assert ci() == 46
+
+    assert ci() == 43
