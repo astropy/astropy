@@ -3,70 +3,68 @@ import numpy as np
 import timeit
 
 # largest image size to use for "linear" and fft convolutions
-max_exponents_linear = {1:15, 2:7, 3:5}
-max_exponents_fft    = {1:15, 2:10, 3:7}
+max_exponents_linear = {1: 15, 2: 7, 3: 5}
+max_exponents_fft = {1: 15, 2: 10, 3: 7}
 
 if __name__ == "__main__":
-    for ndims in [1,2,3]:
+    for ndims in [1, 2, 3]:
         print "\n%i-dimensional arrays ('n' is the size of the image AND the kernel)" % ndims
-        print " ".join(["%17s" % n for n in ("n","convolve","convolve_fftnp","convolve_fftw","convolve_fftsp")])
+        print " ".join(["%17s" % n for n in ("n", "convolve", "convolve_fftnp", "convolve_fftw", "convolve_fftsp")])
 
-        for ii in xrange(3,max_exponents_fft[ndims]):
+        for ii in xrange(3, max_exponents_fft[ndims]):
             #array = np.random.random([2**ii]*ndims)
             # test ODD sizes too
             if ii < max_exponents_fft[ndims]:
-                setup=("""
-from astropy.nddata.convolution.convolve import convolve; 
-from astropy.nddata.convolution.convolve import convolve_fft; 
-from astropy.nddata.convolution.make_kernel import make_kernel; 
-import numpy as np; 
-array = np.random.random([%i]*%i); 
-kernel = make_kernel([%i]*%i,3,force_odd=True)""") % (2**ii-1,ndims,2**ii-1,ndims)
+                setup = ("""
+from astropy.nddata.convolution.convolve import convolve;
+from astropy.nddata.convolution.convolve import convolve_fft;
+from astropy.nddata.convolution.make_kernel import make_kernel;
+import numpy as np;
+array = np.random.random([%i]*%i);
+kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims)
 
-
-                print "%16i:" % (int(2**ii-1)) ,
+                print "%16i:" % (int(2 ** ii - 1)),
 
                 if ii <= max_exponents_linear[ndims]:
-                    for ffttype,extra in zip(("","_fft","_fft","_fft"),
-                            ("","fft_pad=False,fft_type='numpy'",
-                                "fft_pad=False,fft_type='fftw'", 
+                    for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
+                            ("", "fft_pad=False, fft_type='numpy'",
+                                "fft_pad=False,fft_type='fftw'",
                                 "fft_pad=False,fft_type='scipy'")):
-                        statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
-                        besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                        statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print "%17f" % (besttime),
                 else:
                     print "%17s" % "skipped",
-                    for ffttype,extra in zip(("_fft","_fft","_fft"),
-                            ("fft_type='numpy'","fft_type='fftw'","fft_type='scipy'")):
-                        statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
-                        besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                    for ffttype, extra in zip(("_fft", "_fft", "_fft"),
+                            ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                        statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                        besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                         print "%17f" % (besttime),
 
                 print
 
-            setup=("""
-from astropy.nddata.convolution.convolve import convolve; 
-from astropy.nddata.convolution.convolve import convolve_fft; 
-from astropy.nddata.convolution.make_kernel import make_kernel; 
-import numpy as np; 
-array = np.random.random([%i]*%i); 
-kernel = make_kernel([%i]*%i,3,force_odd=True)""") % (2**ii,ndims,2**ii,ndims)
+            setup = ("""
+from astropy.nddata.convolution.convolve import convolve;
+from astropy.nddata.convolution.convolve import convolve_fft;
+from astropy.nddata.convolution.make_kernel import make_kernel;
+import numpy as np;
+array = np.random.random([%i]*%i);
+kernel = make_kernel([%i]*%i, 3, force_odd=True)""") % (2 ** ii, ndims, 2 ** ii, ndims)
 
-
-            print "%16i:" % (int(2**ii)) ,
+            print "%16i:" % (int(2 ** ii)),
 
             if ii <= max_exponents_linear[ndims]:
-                for ffttype,extra in zip(("","_fft","_fft","_fft"),
-                        ("","fft_type='numpy'","fft_type='fftw'","fft_type='scipy'")):
-                    statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
-                    besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                for ffttype, extra in zip(("", "_fft", "_fft", "_fft"),
+                        ("", "fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                    statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print "%17f" % (besttime),
             else:
                 print "%17s" % "skipped",
-                for ffttype,extra in zip(("_fft","_fft","_fft"),
-                        ("fft_type='numpy'","fft_type='fftw'","fft_type='scipy'")):
-                    statement = "convolve%s(array,kernel,boundary='fill',%s)" % (ffttype,extra)
-                    besttime = min(timeit.Timer(stmt=statement,setup=setup).repeat(3,10))
+                for ffttype, extra in zip(("_fft", "_fft", "_fft"),
+                        ("fft_type='numpy'", "fft_type='fftw'", "fft_type='scipy'")):
+                    statement = "convolve%s(array, kernel, boundary='fill', %s)" % (ffttype, extra)
+                    besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
                     print "%17f" % (besttime),
 
             print
@@ -129,8 +127,8 @@ RESULTS on a 2011 Mac Air:
               32:         79.507060          1.169182          0.821779          1.275770
               63:           skipped         11.250225         10.982726         10.585744
               64:           skipped         10.013558         11.507645         12.665557
-    
-    
+
+
 
 On a 2009 Mac Pro:
 1-dimensional arrays ('n' is the size of the image AND the kernel)
@@ -176,7 +174,7 @@ On a 2009 Mac Pro:
              256:           skipped          0.797800          0.721042          0.880848
              511:           skipped          3.643626          3.687562          4.584770
              512:           skipped          3.715215          4.893539          5.538462
-  
+
 3-dimensional arrays ('n' is the size of the image AND the kernel)
                 n          convolve    convolve_fftnp     convolve_fftw    convolve_fftsp
                7:          0.004520          0.011519          0.009464          0.012335
@@ -187,5 +185,5 @@ On a 2009 Mac Pro:
               32:         27.524226          0.724053          0.543507          1.027568
               63:           skipped          8.982771         12.407683         16.900078
               64:           skipped          8.956070         11.934627         17.296447
-    
+
 """

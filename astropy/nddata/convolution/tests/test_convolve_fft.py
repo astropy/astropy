@@ -40,8 +40,9 @@ Convolved with [0,1] = [0, 1, 2, 3, 4]
 """
 
 # NOTE: use_numpy_fft is redundant if you don't have FFTW installed
-option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'fft_type')
-options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),['numpy', 'scipy', 'fftw']))
+option_names = ('boundary', 'interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'fft_type')
+options = list(itertools.product(BOUNDARY_OPTIONS, (True, False), (True, False), (True, False), ['numpy', 'scipy', 'fftw']))
+
 
 class TestConvolve1D(object):
 
@@ -118,11 +119,11 @@ class TestConvolve1D(object):
                 'sum': np.array([1., 4., 3.], dtype='float64'),
                 'sum_zeros': np.array([1., 4., 3.], dtype='float64'),
                 'sum_nozeros': np.array([1., 4., 3.], dtype='float64'),
-                'average': np.array([1/3., 4/3., 1.], dtype='float64'),
+                'average': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
                 'sum_wrap':  np.array([4., 4., 4.], dtype='float64'),
-                'average_wrap': np.array([4/3., 4/3., 4/3.], dtype='float64'),
-                'average_zeros': np.array([1/3., 4/3., 1.], dtype='float64'),
-                'average_nozeros': np.array([0.5, 4/3., 1.5], dtype='float64'),
+                'average_wrap': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
+                'average_zeros': np.array([1 / 3., 4 / 3., 1.], dtype='float64'),
+                'average_nozeros': np.array([0.5, 4 / 3., 1.5], dtype='float64'),
                 }
 
         if normalize_kernel:
@@ -164,14 +165,14 @@ class TestConvolve1D(object):
                 ignore_edge_zeros=ignore_edge_zeros,
                 fft_type=fft_type)
 
-        if fft_type=='numpy':
+        if fft_type == 'numpy':
             # for whatever reason, numpy's fft has very limited precision, and
             # the comparison fails unless you cast the float64 to a float16
             # REMOVED because of numpy 1.4 incompatibility assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
             # ASSERT equality to better than 16 bit but worse than 32 bit precision
-            assert np.all(np.abs(z - np.array([1.,0.,3.])) < 1e-14)
+            assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
         else:
-            assert_array_almost_equal_nulp(z, np.array([1.,0.,3.], dtype='float64'), 10)
+            assert_array_almost_equal_nulp(z, np.array([1., 0., 3.], dtype='float64'), 10)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1_withnan(self, boundary, interpolate_nan, normalize_kernel,
@@ -197,13 +198,13 @@ class TestConvolve1D(object):
                 ignore_edge_zeros=ignore_edge_zeros,
                 fft_type=fft_type)
 
-        if fft_type=='numpy':
+        if fft_type == 'numpy':
             # for whatever reason, numpy's fft has very limited precision, and
             # the comparison fails unless you cast the float64 to a float16
             # np1.4 incompatible assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.array([1.,0.,3.], dtype=np.float16), 10)
-            assert np.all(np.abs(z - np.array([1.,0.,3.])) < 1e-14)
+            assert np.all(np.abs(z - np.array([1., 0., 3.])) < 1e-14)
         else:
-            assert_array_almost_equal_nulp(z, np.array([1.,0.,3.], dtype='float64'), 10)
+            assert_array_almost_equal_nulp(z, np.array([1., 0., 3.], dtype='float64'), 10)
 
     @pytest.mark.parametrize(option_names, options)
     def test_uniform_3_withnan(self, boundary, interpolate_nan,
@@ -238,11 +239,11 @@ class TestConvolve1D(object):
                 'average': np.array([1., 2., 3.], dtype='float64'),
                 'sum_wrap':  np.array([4., 4., 4.], dtype='float64'),
                 'sum_wrap_noignan':  np.array([4., 4., 4.], dtype='float64'),
-                'average_wrap': np.array([(1+3)/2., 2., 2.], dtype='float64'),
-                'average_wrap_noignan': np.array([4/3., 4/3., 4/3.], dtype='float64'),
+                'average_wrap': np.array([(1 + 3) / 2., 2., 2.], dtype='float64'),
+                'average_wrap_noignan': np.array([4 / 3., 4 / 3., 4 / 3.], dtype='float64'),
                 'average_nozeros': np.array([1, 2, 3], dtype='float64'),
-                'average_nozeros_noignan': np.array([1/2., 4/3., 3/2.], dtype='float64'),
-                'average_zeros': np.array([1/2., 4/2., 3/2.], dtype='float64'),
+                'average_nozeros_noignan': np.array([1 / 2., 4 / 3., 3 / 2.], dtype='float64'),
+                'average_zeros': np.array([1 / 2., 4 / 2., 3 /2.], dtype='float64'),
                 'average_zeros_noignan': np.array([1/3., 4/3., 3/3.], dtype='float64'),
                 }
 
@@ -262,7 +263,7 @@ class TestConvolve1D(object):
         if not interpolate_nan:
             answer_key += '_noignan'
 
-        print boundary,interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
+        print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
         assert_array_almost_equal_nulp(z, answer_dict[answer_key], 10)
 
 
@@ -377,11 +378,10 @@ class TestConvolve2D(object):
 
         a = answer_dict[answer_key]
         print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
-        print "z: ",z
-        print "answer: ",a
-        print "ratio: ",z/a
-        assert np.all( np.abs(z-a) < np.spacing(np.where(z>a,z,a))*10 )
-
+        print "z: ", z
+        print "answer: ", a
+        print "ratio: ", z / a
+        assert np.all(np.abs(z - a) < np.spacing(np.where(z > a, z, a)) * 10)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, fft_type):
@@ -411,13 +411,13 @@ class TestConvolve2D(object):
                 fft_type=fft_type)
 
         a = x
-        a[1,1] = 0
+        a[1, 1] = 0
 
-        if fft_type=='numpy':
+        if fft_type == 'numpy':
             # for whatever reason, numpy's fft has very limited precision, and
             # the comparison fails unless you cast the float64 to a float16
             # np1.4 incompatible assert_array_almost_equal_nulp(np.asarray(z, dtype=np.float16), np.asarray(a, dtype=np.float16), 10)
-            assert np.all(np.abs(z-a) < 1e-14)
+            assert np.all(np.abs(z - a) < 1e-14)
         else:
             assert_array_almost_equal_nulp(z, a, 10)
 
@@ -488,7 +488,7 @@ class TestConvolve2D(object):
 
         a = answer_dict[answer_key]
         print boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, answer_key
-        print "z: ",z
-        print "answer: ",a
-        print "ratio: ",z/a
-        assert np.all( np.abs(z-a) < np.spacing(np.where(z>a,z,a))*10 )
+        print "z: ", z
+        print "answer: ", a
+        print "ratio: ", z / a
+        assert np.all(np.abs(z - a) < np.spacing(np.where(z > a, z, a)) * 10)

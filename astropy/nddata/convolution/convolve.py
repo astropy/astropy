@@ -5,7 +5,7 @@ import warnings
 from ...config import ConfigurationItem
 from ... import log
 
-FFT_TYPE = ConfigurationItem("fft_type",['fftw','scipy','numpy'],
+FFT_TYPE = ConfigurationItem("fft_type", ['fftw', 'scipy', 'numpy'],
     """
 Which FFT should be used?  FFTW uses the fftw3 package and is fastest and can
 be multi-threaded, but it can be memory intensive.  Scipy's FFT is more precise
@@ -202,6 +202,7 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     # Cast back to original dtype and return
     return result.astype(array_dtype)
 
+
 def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         crop=True, return_fft=False, fft_pad=True,
         psf_pad=False, interpolate_nan=False, quiet=False,
@@ -367,6 +368,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         if HAS_FFTW:
             def fftn(*args, **kwargs):
                 return fftwn(*args, nthreads=nthreads, **kwargs)
+
             def ifftn(*args, **kwargs):
                 return ifftwn(*args, nthreads=nthreads, **kwargs)
         else:
@@ -382,7 +384,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         ifftn = np.fft.ifftn
     else:
         raise ValueError("Invalid fft_type specified: %s" % fft_type)
-
 
     # NAN catching
     nanmaskarray = (array != array)
@@ -408,11 +409,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         else:
             kernel_is_normalized = False
 
-
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
                 " to the convolve boundary='fill'.  There is no FFT " +
-                " equivalent to convolve's zero-if-kernel-leaves-boundary" )
+                " equivalent to convolve's zero-if-kernel-leaves-boundary")
         warnings.warn(WARNING)
         psf_pad = True
     elif boundary == 'fill':
@@ -421,7 +421,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     elif boundary == 'wrap':
         psf_pad = False
         fft_pad = False
-        fill_value = 0 # force zero; it should not be used
+        fill_value = 0  # force zero; it should not be used
     elif boundary == 'extend':
         raise NotImplementedError("The 'extend' option is not implemented " +
                 "for fft-based convolution")
@@ -437,32 +437,31 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     if fft_pad:
         if psf_pad:
             # add the dimensions and then take the max (bigger)
-            fsize = 2**np.ceil(np.log2(
+            fsize = 2 ** np.ceil(np.log2(
                 np.max(np.array(arrayshape) + np.array(kernshape))))
         else:
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
-            fsize = 2**np.ceil(np.log2(np.max(arrayshape+kernshape)))
+            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
         newshape = np.array([fsize for ii in range(ndim)])
     else:
         if psf_pad:
             # just add the biggest dimensions
-            newshape = np.array(arrayshape)+np.array(kernshape)
+            newshape = np.array(arrayshape) + np.array(kernshape)
         else:
             newshape = np.array([np.max([imsh, kernsh])
                 for imsh, kernsh in zip(arrayshape, kernshape)])
-
 
     # separate each dimension by the padding size...  this is to determine the
     # appropriate slice size to get back to the input dimensions
     arrayslices = []
     kernslices = []
     for ii, (newdimsize, arraydimsize, kerndimsize) in enumerate(zip(newshape, arrayshape, kernshape)):
-        center = newdimsize - (newdimsize+1)//2
-        arrayslices += [slice(center - arraydimsize//2,
-            center + (arraydimsize+1)//2)]
-        kernslices += [slice(center - kerndimsize//2,
-            center + (kerndimsize+1)//2)]
+        center = newdimsize - (newdimsize + 1) // 2
+        arrayslices += [slice(center - arraydimsize // 2,
+            center + (arraydimsize + 1) // 2)]
+        kernslices += [slice(center - kerndimsize // 2,
+            center + (kerndimsize + 1) // 2)]
 
     bigarray = np.ones(newshape, dtype=np.complex128) * fill_value
     bigkernel = np.zeros(newshape, dtype=np.complex128)
@@ -471,27 +470,26 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     arrayfft = fftn(bigarray)
     # need to shift the kernel so that, e.g., [0,0,1,0] -> [1,0,0,0] = unity
     kernfft = fftn(np.fft.ifftshift(bigkernel))
-    fftmult = arrayfft*kernfft
+    fftmult = arrayfft * kernfft
     if (interpolate_nan or ignore_edge_zeros) and kernel_is_normalized:
         if ignore_edge_zeros:
             bigimwt = np.zeros(newshape, dtype=np.complex128)
         else:
             bigimwt = np.ones(newshape, dtype=np.complex128)
-        bigimwt[arrayslices] = 1.0-nanmaskarray*interpolate_nan
+        bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
         wtfft = fftn(bigimwt)
         # I think this one HAS to be normalized (i.e., the weights can't be
         # computed with a non-normalized kernel)
-        wtfftmult = wtfft*kernfft/kernel.sum()
+        wtfftmult = wtfft * kernfft / kernel.sum()
         wtsm = ifftn(wtfftmult)
         # need to re-zero weights outside of the image (if it is padded, we
         # still don't weight those regions)
         bigimwt[arrayslices] = wtsm.real[arrayslices]
         # curiously, at the floating-point limit, can get slightly negative numbers
         # they break the min_wt=0 "flag" and must therefore be removed
-        bigimwt[bigimwt<0] = 0
+        bigimwt[bigimwt < 0] = 0
     else:
         bigimwt = 1
-
 
     if np.isnan(fftmult).any():
         # this check should be unnecessary; call it an insanity check
