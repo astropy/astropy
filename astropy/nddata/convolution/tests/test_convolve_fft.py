@@ -30,8 +30,8 @@ Convolved with [0,1] = [0, 1, 2, 3, 4]
 # NOTE: use_numpy_fft is redundant if you don't have FFTW installed
 option_names = ('boundary','interpolate_nan', 'normalize_kernel', 'ignore_edge_zeros', 'fft_type')
 fft_types = ['numpy']
-fft_types += ['scipy'] if has_scipy
-fft_types += ['fftw'] if has_fftw
+fft_types += ['scipy'] if has_scipy else []
+fft_types += ['fftw'] if has_fftw else []
 options = list(itertools.product(BOUNDARY_OPTIONS,(True,False),(True,False),(True,False),fft_types))
 
 class TestConvolve1D(object):
