@@ -2,7 +2,7 @@
 .. include:: {{ referencefile }}
 {% endif %}
 
-{{ fullname }}
+{{ objname }}
 {{ underline }}
 
 .. automodule:: {{ fullname }}

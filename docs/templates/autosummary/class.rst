@@ -2,7 +2,7 @@
 .. include:: {{ referencefile }}
 {% endif %}
 
-{{ name }}
+{{ objname }}
 {{ underline }}
 
 .. currentmodule:: {{ module }}
