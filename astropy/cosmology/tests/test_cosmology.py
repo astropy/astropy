@@ -2,7 +2,17 @@
 from StringIO import StringIO
 from .. import core
 import numpy as np
+import pytest
 
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_z1():
     """ Test a flat cosmology at z=1 against several other on-line
     calculators.
@@ -28,6 +38,7 @@ def test_flat_z1():
     assert np.allclose(cosmo.lookback_time(z),
                        [7.841, 7.84178, 7.843],  rtol=1e-3)
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
 
     # scalars
@@ -49,6 +60,7 @@ def test_convenience():
     assert np.allclose(core.distmod([0.1,0.5]),
                        [ 38.30738567,  42.27020333])
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_volume():
 
     c_flat = core.FLRWCosmology(H0=70, Om=0.27, Ol=0.73)
@@ -69,6 +81,7 @@ def test_comoving_volume():
         assert np.allclose(c_closed.comoving_volume(z), wright_closed[i] * 1e9,
                           rtol=1e-3)
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_open_closed_icosmo():
     """ Test against the tabulated values generated from icosmo.org
     with three example cosmologies (flat, open and closed).
@@ -206,6 +219,7 @@ def test_current():
     core.set_current(cosmo)
     assert core.get_current() == cosmo
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_age():
     assert np.allclose(core.WMAP7.age([1,5]), [ 5.97113193,  1.20553129])
 
@@ -218,6 +232,7 @@ def test_critical_density():
     assert np.allclose(core.WMAP7.critical_density([1,5]),
                        [  2.70362491e-29, 5.53758986e-28])
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
     assert (core.WMAP7.angular_diameter_distance_z1z2(1, 2) ==
             646.22968662822018)
