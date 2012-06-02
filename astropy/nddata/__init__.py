@@ -12,5 +12,6 @@ from astropy import setup_helpers
 
 from .nddata import *
 
-if not _ASTROPY_SETUP_:
-    from .convolution.convolve import convolve
+if not setup_helpers.is_in_build_mode():
+    from .convolution.convolve import convolve,convolve_fft
+    from .convolution.make_kernel import make_kernel
