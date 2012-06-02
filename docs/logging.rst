@@ -141,7 +141,7 @@ of the Astropy configuration file::
     # Format for log file entries
     log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
 
-API
----
 
-The API is included in the API section of :doc:`configs`.
+.. automodapi:: astropy.logger
+    :no-inheritance-diagram:
+
