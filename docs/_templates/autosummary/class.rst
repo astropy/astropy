@@ -29,13 +29,17 @@
 
    .. autosummary::
    {% for item in methods %}
+      {% if item != "__init__" %}
       ~{{ name }}.{{ item }}
+      {% endif %}
    {%- endfor %}
 
    .. rubric:: Methods Documentation
 
    {% for item in methods %}
+      {% if item != "__init__" %}
    .. automethod:: {{ item }}
+      {% endif %}
    {%- endfor %}
    {% endif %}
    {% endblock %}
