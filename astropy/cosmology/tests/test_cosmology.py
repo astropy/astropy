@@ -217,7 +217,6 @@ def test_distmod():
 def test_critical_density():
     assert np.allclose(core.WMAP7.critical_density([1,5]),
                        [  2.70362491e-29, 5.53758986e-28])
-<<<<<<< HEAD
 
 def test_angular_diameter_distance_z1z2():
     assert (core.WMAP7.angular_diameter_distance_z1z2(1, 2) ==
@@ -232,5 +231,3 @@ def test_angular_diameter_distance_z1z2():
 
     assert np.allclose(core.WMAP7.angular_diameter_distance_z1z2(z1, z2),
                        results)
-=======
->>>>>>> 3a4cb8341c3bd25e7a2b40a56b478e8fe18322f2
