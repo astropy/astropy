@@ -223,11 +223,13 @@ def test_current():
 def test_age():
     assert np.allclose(core.WMAP7.age([1,5]), [ 5.97113193,  1.20553129])
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_distmod():
     assert np.allclose(core.WMAP7.distmod([1,5]), [ 44.124857,  48.40167258])
     assert np.allclose(core.distmod([1,5], cosmo=core.WMAP7),
                        [ 44.124857,  48.40167258])
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_critical_density():
     assert np.allclose(core.WMAP7.critical_density([1,5]),
                        [  2.70362491e-29, 5.53758986e-28])
