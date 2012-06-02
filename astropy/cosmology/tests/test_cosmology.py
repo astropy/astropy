@@ -231,6 +231,6 @@ def test_angular_diameter_distance_z1z2():
                115.72768186186921)
 
     assert np.allclose(core.WMAP7.angular_diameter_distance_z1z2(z1, z2),
-                       results)    
+                       results)
 =======
 >>>>>>> 3a4cb8341c3bd25e7a2b40a56b478e8fe18322f2
