@@ -344,8 +344,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         raise Exception('array and kernel have differing number of'
                         'dimensions')
 
-    # store the dtype for conversion back later
-    array_dtype = array.dtype
     # turn the arrays into 'complex' arrays
     if array.dtype.kind != 'c':
         array = array.astype(np.complex)
