@@ -73,6 +73,10 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+exclude_patterns.append('templates')
+
 
 # -- Options for HTML output ---------------------------------------------------
 

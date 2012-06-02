@@ -2,7 +2,7 @@
 .. include:: {{ referencefile }}
 {% endif %}
 
-{{ fullname }}
+{{ name }}
 {{ underline }}
 
 .. currentmodule:: {{ module }}
