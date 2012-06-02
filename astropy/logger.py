@@ -10,10 +10,10 @@ import logging
 import warnings
 from contextlib import contextmanager
 
-from . import ConfigurationItem
-from ..utils.compat import inspect_getmodule
-from ..utils.console import color_print
-from ..utils.misc import find_current_module
+from .config import ConfigurationItem
+from .utils.compat import inspect_getmodule
+from .utils.console import color_print
+from .utils.misc import find_current_module
 
 
 __all__ = ['log', 'AstropyLogger', 'LoggingError']
