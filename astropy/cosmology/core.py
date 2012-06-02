@@ -7,6 +7,7 @@ import numpy as np
 
 from ..constants.cgs import pc, G, c
 from ..config import ConfigurationItem
+from ..utils.misc import isiterable
 
 import parameters
 
@@ -42,16 +43,6 @@ DEFAULT_COSMOLOGY = ConfigurationItem(
     'The default cosmology to use. Note this is only read on import, '
     'changing this value at runtime has no effect.')
 
-def isiterable(obj):
-    'Return true if *obj* is iterable'
-    if isinstance(obj, np.ndarray) and len(obj.shape) == 0:
-        return False
-    try:
-        iter(obj)
-    except TypeError:
-        return False
-
-    return True
 
 class CosmologyError(Exception):
     pass
@@ -406,7 +397,7 @@ class FLRWCosmology(Cosmology):
             raise ValueError('z2 must greater than z1')
 
         # z1 < z2
-        if (z2 < z1):
+        if (z2 < z1).any():
             z1, z2 = z2, z1
 
         dm1 = self.comoving_transverse_distance(z1)
@@ -540,18 +531,21 @@ _current = get_cosmology_from_string(DEFAULT_COSMOLOGY())
 def get_current():
     """ Get the current cosmology.
 
-    If no current has been set, a warning is given and the current is
-    set to the WMAP7 parameters.
+    If no current has been set, the WMAP7 comology is returned and a
+    warning is given.
 
     Returns
     -------
     cosmo : `Cosmology` instance
+
+    See Also
+    --------
+    `set_current`
     """
-    global _current
     if _current is None:
         warnings.warn('No default cosmology has been specified, '
                       'using 7-year WMAP.')
-        _current = WMAP7
+        return WMAP7
 
     return _current
 
@@ -569,13 +563,17 @@ def set_current(arg):
 
     Notes
     -----
-    Warning: `set_current` is the only way to change the current
+    **Warning:** `set_current` is the only way to change the current
     cosmology at runtime! The current cosmology can also be read from
     an option in the astropy configuration file when astropy.cosmology
     is first imported. However, any subsequent changes to the
     cosmology configuration option using
     `astropy.config.ConfigurationItem.set()` at run-time will not
     update the current cosmology.
+
+    See Also
+    --------
+    `get_current`
     """
     global _current
     if isinstance(arg, basestring):
