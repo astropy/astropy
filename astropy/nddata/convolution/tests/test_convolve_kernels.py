@@ -5,7 +5,7 @@ from astropy.tests.helper import pytest
 from ..make_kernel import make_kernel
 from ..convolve import convolve, convolve_fft
 
-from numpy.testing import assert_array_almost_equal_nulp, assert_allclose
+from numpy.testing import assert_array_almost_equal_nulp, assert_almost_equal
 
 import itertools
 
@@ -39,7 +39,7 @@ class Test2DConvolutions(object):
         c1 = convolve(x, kernel, boundary='fill')
 
         print shape, width, kerneltype
-        assert_allclose(c1, c2, atol=1e-8)
+        assert_almost_equal(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(('shape', 'width', 'kerneltype'), list(itertools.product(shapes, widths, kerneltype)))
     def test_random_makekernel(self, shape, width, kerneltype):
@@ -60,7 +60,7 @@ class Test2DConvolutions(object):
 
         print shape, width, kerneltype
         # not clear why, but these differ by a couple ulps...
-        assert_allclose(c1, c2, atol=1e-8)
+        assert_almost_equal(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(shapes, widths)))
     def test_uniform_smallkernel(self, shape, width):
@@ -84,7 +84,7 @@ class Test2DConvolutions(object):
         c1 = convolve(x, kernel, boundary='fill')
 
         print shape, width
-        assert_allclose(c1, c2, atol=1e-8)
+        assert_almost_equal(c1, c2, decimal=12)
 
     @pytest.mark.parametrize(('shape', 'width'), list(itertools.product(shapes, widths)))
     def test_smallkernel_vs_makekernel(self, shape, width):
@@ -105,7 +105,7 @@ class Test2DConvolutions(object):
         c1 = convolve_fft(x, kernel1, boundary='fill')
 
         print shape, width
-        assert_allclose(c1, c2, atol=1e-8)
+        assert_almost_equal(c1, c2, decimal=12)
 
         if width % 2 == 1:
             kernel2 = make_kernel(shape, width, kerneltype='boxcar', force_odd=True)
@@ -115,4 +115,4 @@ class Test2DConvolutions(object):
 
             print shape, width
 
-            assert_allclose(c1, c2, atol=1e-8)
+            assert_almost_equal(c1, c2, decimal=12)
