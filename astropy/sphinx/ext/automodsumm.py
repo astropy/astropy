@@ -291,7 +291,7 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
     # Create our own templating environment - here we use Astropy's
     # templates rather than the default autosummary templates, in order to
     # allow docstrings to be shown for methods.
-    template_dirs = [os.path.join(base_path, 'templates')]
+    template_dirs = [os.path.join(base_path, '_templates')]
     if builder is not None:
         # allow the user to override the templates
         template_loader = BuiltinTemplateLoader()
