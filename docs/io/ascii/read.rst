@@ -175,11 +175,11 @@ given directly with fill_values::
 Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
 column remains unaltered. 
 
-If the ``numpy`` module is available, then the default output is a 
-`NumPy masked array <http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_, 
-where all values, which were replaced by ``fill_values`` are masked.  See the
-description of the :class:`~astropy.io.ascii.NumpyOutputter` class for information on 
-disabling masked arrays.
+When ``fill_values`` is specified then |read| returns a `NumPy masked array
+<http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ instead of the
+default `~astropy.table.Table` object.  See the description of the
+:class:`~astropy.io.ascii.core.NumpyOutputter` class for information on disabling
+masked arrays.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^^^^^
