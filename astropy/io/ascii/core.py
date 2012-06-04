@@ -822,7 +822,7 @@ class TableOutputter(BaseOutputter):
 
 
 class BaseReader(object):
-    """Class providing methods to read an ASCII table using the specified
+    """Class providing methods to read and write an ASCII table using the specified
     header, data, inputter, and outputter instances.
 
     Typical usage is to instantiate a Reader() object and customize the

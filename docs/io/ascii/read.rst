@@ -19,8 +19,6 @@ format, for example::
    data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')
    data = astropy.io.ascii.read('t/simple.txt', quotechar="'")
    data = astropy.io.ascii.read('t/simple4.txt', Reader=astropy.io.ascii.NoHeader, delimiter='|')
-   table = ['col1 col2 col3', '1 2 hi', '3 4.2 there']
-   data = astropy.io.ascii.read(table, delimiter=" ")
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different Reader classes can define different defaults, so the
@@ -48,16 +46,6 @@ Commonly used parameters for ``read()``
   be a Reader class.  For basic usage this means one of the 
   built-in :ref:`extension_reader_classes`.  
 
-**numpy** : return a NumPy record array (default=True)
-  By default the output from |read| is a 
-  `NumPy record array <http://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html>`_ object.
-  This powerful container efficiently supports both column-wise and row access to the
-  table and comes with the full NumPy stack of array manipulation methods.
-
-  If NumPy is not available or desired then set ``numpy=False``.  The output
-  of |read| will then be a dictionary of :class:`~astropy.io.ascii.Column` objects
-  with each key for the corresponding named column.
-  
 **guess**: try to guess table format (default=True)
   If set to True then |read| will try to guess the table format by cycling
   through a number of possible table format permuations and attemping to read
@@ -256,50 +244,7 @@ numeric data types by using converter functions such as the Python ``int`` and
 ``float`` functions.  For example ``int("5.0")`` will fail while float("5.0")
 will succeed and return 5.0 as a Python float.  
 
-Without NumPy
-+++++++++++++++++
-The default set of converters
-for the :class:`~astropy.io.ascii.BaseOutputter` class is defined as such::
-
-  default_converters = [astropy.io.ascii.convert_list(int),
-                        astropy.io.ascii.convert_list(float),
-                        astropy.io.ascii.convert_list(str)]
-
-These take advantage of the :func:`~astropy.io.ascii.convert_list` function which
-returns a 2-element tuple.  The first element is function that will convert 
-a list of values to the desired type.  The second element is an :mod:`astropy.io.ascii` 
-class that specifies the type of data produced.  This element should be one of 
-:class:`~astropy.io.ascii.StrType`, :class:`~astropy.io.ascii.IntType`, or
-:class:`~astropy.io.ascii.FloatType`.  
-
-The conversion code steps through each applicable converter function and tries
-to call the function with a column of string values.  If it succeeds without
-throwing an exception it will then break out, but otherwise move on to the next
-conversion function.
-
-Use the ``converters`` keyword argument in order to force a specific data type
-for a column.  This should be a dictionary with keys corresponding to the
-column names.  Each dictionary value is a list similar to the
-``default_converter``.  For example::
-
-  # col1 is int, col2 is float, col3 is string
-  converters = {'col1': [astropy.io.ascii.convert_list(int)],
-                'col2': [astropy.io.ascii.convert_list(float)],
-                'col3': [astropy.io.ascii.convert_list(str)]}
-  read('file.dat', converters=converters)
-
-Note that it is also possible to specify a list of converter functions that
-will be tried in order::
-
-  converters = {'col1': [astropy.io.ascii.convert_list(float),
-                         astropy.io.ascii.convert_list(str)]}
-  read('file.dat', converters=converters)
-
-With NumPy
-++++++++++++++++
-
-If the ``numpy`` module is available then the
-:class:`~astropy.io.ascii.NumpyOutputter` is selected by default.  In this case  the
+The :class:`~astropy.io.ascii.NumpyOutputter` is used by default.  In this case  the
 default converters are::
 
     default_converters = [astropy.io.ascii.convert_numpy(numpy.int),

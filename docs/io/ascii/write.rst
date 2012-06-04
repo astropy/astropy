@@ -58,24 +58,17 @@ Data from astropy.io.ascii.read()
 ++++++++++++++++++++++++++++++++++++++++++++
 
 :mod:`astropy.io.ascii.read` returns a data object that can be an input to the
-|write| function.  If NumPy is available the default data
-object type is a NumPy record array.  However it is possible to use
-:mod:`astropy.io.ascii` without NumPy in which case a :class:`~astropy.io.ascii.DictLikeNumpy` 
-object is returned.  This object supports the most basic column and row indexing 
-API of a NumPy `structured array`_.  This object can be used as input to the |write| 
-function.
+|write| function.
 
 ::
 
-    table = astropy.io.ascii.get_reader(Reader=astropy.io.ascii.Daophot, numpy=False)
-    data = table.read('t/daophot.dat')
-
+    data = astropy.io.ascii.get_reader('t/daophot.dat', Reader=astropy.io.ascii.Daophot)
     astropy.io.ascii.write(data, sys.stdout)
 
 NumPy structured array
 ++++++++++++++++++++++++
 
-A NumPy `structured array`_ (aka record array) can serve as input to the |write| function.
+A NumPy `structured array`_ (or record array) can serve as input to the |write| function.
 
 ::
 
@@ -105,12 +98,15 @@ dict key is taken as the column name while the value must be an iterable object
 containing the corresponding column values.  Note the difference in output between
 this example and the previous example.
 
+Since a Python dictionary is not ordered the output column order will be
+unpredictable unless the ``names`` argument is provided.
+
 ::
 
     data = {'x': [1, 2, 3], 
             'y': [4, 5.2, 6.1], 
             'z': [8, 9, 'hello world']}
-    astropy.io.ascii.write(data, 'table.dat')
+    astropy.io.ascii.write(data, 'table.dat', names=['x', 'y', 'z'])
 
 
 Commonly used parameters for ``write()``
