@@ -247,7 +247,6 @@ class _BaseHDU(object):
 
         hdu = cls(data=DELAYED, header=header, **new_kwargs)
 
-        size = hdu.size
         hdu._file = fileobj
 
         if not fileobj and len(data) > hdrlen:
@@ -261,6 +260,7 @@ class _BaseHDU(object):
             hdu._datLoc = hdrlen
 
         # data area size, including padding
+        size = hdu.size
         hdu._datSpan = size + _pad_length(size)
 
         # Checksums are not checked on invalid HDU types

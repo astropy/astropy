@@ -1205,10 +1205,16 @@ class Header(object):
             first = self.cards[0].keyword
         else:
             first = None
+
+        # This copy is used to check for duplicates in this header prior to the
+        # extend, while not counting duplicates in the header being extended
+        # from (see ticket #156)
+        orig = self[:]
+
         for idx, card in enumerate(temp.cards):
             keyword = card.keyword
             if keyword not in Card._commentary_keywords:
-                if unique and not update and keyword in self:
+                if unique and not update and keyword in orig:
                     continue
                 elif update:
                     if idx == 0 and update_first:
@@ -1221,7 +1227,7 @@ class Header(object):
                             self.insert(0, card)
                         else:
                             self[keyword] = (card.value, card.comment)
-                    elif keyword in self:
+                    elif keyword in orig:
                         self[keyword] = (card.value, card.comment)
                     else:
                         self.append(card, useblanks=useblanks, bottom=bottom,
@@ -1230,13 +1236,13 @@ class Header(object):
                     self.append(card, useblanks=useblanks, bottom=bottom,
                                 end=end)
             else:
-                if unique or update and keyword in self:
+                if unique or update and keyword in orig:
                     if str(card) == BLANK_CARD:
                         self.append(card, useblanks=useblanks, bottom=bottom,
                                     end=end)
                         continue
 
-                    for value in self[keyword]:
+                    for value in orig[keyword]:
                         if value == card.value:
                             break
                     else:

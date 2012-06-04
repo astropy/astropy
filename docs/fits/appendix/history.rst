@@ -251,6 +251,16 @@ Bug Fixes
   in saving, could cause the file to be slightly corrupted and unreadable.
   (#147)
 
+- Fixed problems with reading "non-standard" FITS files with primary headers
+  containing SIMPLE = F.  PyFITS has never made many guarantees as to how such
+  files are handled.  But it should at least be possible to read their
+  headers, and the data if possible.  Saving changes to such a file should not
+  try to prepend an unwanted valid PRIMARY HDU. (#157)
+
+- Fixed a bug where opening an image with ``disable_image_compression = True``
+  caused compression to be disabled for all subsequent ``pyfits.open()`` calls.
+  (r1651)
+
 
 3.0.7 (2012-04-10)
 ----------------------
