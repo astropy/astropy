@@ -62,7 +62,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, numpy=True, **kwargs)
     :param Reader: Reader class (default= :class:`BasicReader`)
     :param Inputter: Inputter class 
     :param Outputter: Outputter class
-    :param numpy: use the NumpyOutputter class else use BaseOutputter (default=True)
+    :param numpy: if False use :class:`BaseOutputter` (default=True)
     :param delimiter: column delimiter string
     :param comment: regular expression defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -93,7 +93,7 @@ def read(table, numpy=True, guess=None, **kwargs):
     default behavior for various parameters is determined by the Reader class.
 
     :param table: input table (file name, list of strings, or single newline-separated string)
-    :param numpy: use the :class:`NumpyOutputter` class else use :class:`BaseOutputter` (default=True)
+    :param numpy: if False use :class:`BaseOutputter` (default=True)
     :param guess: try to guess the table format (default=True)
     :param Reader: Reader class (default= :class:`~asciitable.BasicReader`)
     :param Inputter: Inputter class
@@ -120,11 +120,14 @@ def read(table, numpy=True, guess=None, **kwargs):
     # supplied in kwargs that will take precedence.
     new_kwargs = {}
     if core.has_numpy and numpy:
-        new_kwargs['Outputter'] = core.NumpyOutputter
+        if core.is_astropy and 'fill_values' not in kwargs:
+            new_kwargs['Outputter'] = core.TableOutputter
+        else:
+            new_kwargs['Outputter'] = core.NumpyOutputter
     else:
         new_kwargs['Outputter'] = core.BaseOutputter
     new_kwargs.update(kwargs)
-        
+
     if guess is None:
         guess = _GUESS
     if guess:

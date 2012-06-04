@@ -17,7 +17,7 @@ def read_table1(readme, data):
 def read_table2(readme, data):
     reader = asciitable.get_reader(Reader=asciitable.Cds, readme=readme)
     if asciitable.has_numpy:
-        reader.outputter = asciitable.NumpyOutputter()
+        reader.outputter = asciitable.TableOutputter()
     return reader.read(data)
 
 def read_table3(readme, data):
