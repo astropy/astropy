@@ -1520,22 +1520,22 @@ class TestHeaderFunctions(FitsTestCase):
                    '     INFLIGHT 12/07/2001 25/02/2002',
                    '     all bias frames'] * 3
 
-        hdu = pyfits.PrimaryHDU()
+        hdu = fits.PrimaryHDU()
         # Add the history entries twice
         for item in history:
             hdu.header['HISTORY'] = item
 
         hdu.writeto(self.temp('test.fits'))
 
-        with pyfits.open(self.temp('test.fits')) as hdul:
-            assert_equal(hdul[0].header['HISTORY'], history)
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[0].header['HISTORY'] == history
 
-        new_hdu = pyfits.PrimaryHDU(header=hdu.header)
-        assert_equal(new_hdu.header['HISTORY'], hdu.header['HISTORY'])
+        new_hdu = fits.PrimaryHDU(header=hdu.header)
+        assert new_hdu.header['HISTORY'] == hdu.header['HISTORY']
         new_hdu.writeto(self.temp('test2.fits'))
 
-        with pyfits.open(self.temp('test2.fits')) as hdul:
-            assert_equal(hdul[0].header['HISTORY'], history)
+        with fits.open(self.temp('test2.fits')) as hdul:
+            assert hdul[0].header['HISTORY'] == history
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):

@@ -313,19 +313,19 @@ class TestCore(FitsTestCase):
         """
 
         data = np.arange(100, dtype=np.uint8)
-        hdu = pyfits.PrimaryHDU(data=data)
+        hdu = fits.PrimaryHDU(data=data)
         hdu.header['SIMPLE'] = False
         hdu.writeto(self.temp('test.fits'))
 
         info = [(0, '', 'NonstandardHDU', 5, (), '', '')]
-        with pyfits.open(self.temp('test.fits')) as hdul:
-            assert_equal(hdul.info(output=False), info)
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul.info(output=False) == info
             # NonstandardHDUs just treat the data as an unspecified array of
             # bytes.  The first 100 bytes should match the original data we
             # passed in...the rest should be zeros padding out the rest of the
             # FITS block
-            assert_true((hdul[0].data[:100] == data).all())
-            assert_true((hdul[0].data[100:] == 0).all())
+            assert (hdul[0].data[:100] == data).all()
+            assert (hdul[0].data[100:] == 0).all()
 
 
 class TestConvenienceFunctions(FitsTestCase):
