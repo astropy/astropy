@@ -360,7 +360,7 @@ class HDUList(list, _Verify):
                 super(HDUList, self).insert(1, hdu1)
                 super(HDUList, self).__delitem__(0)
 
-            if not isinstance(hdu, PrimaryHDU):
+            if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary HDU.
                 # If you provided an ImageHDU then we can convert it to
                 # a primary HDU and use that.
@@ -416,7 +416,7 @@ class HDUList(list, _Verify):
                 # _hdrLoc and friends need to be copied too.
                 hdu = ImageHDU(hdu.data, hdu.header)
         else:
-            if not isinstance(hdu, PrimaryHDU):
+            if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary
                 # HDU.
                 # If you provided an ImageHDU then we can convert it to
@@ -689,7 +689,7 @@ class HDUList(list, _Verify):
                    'No.    Name         Type      Cards   Dimensions   Format']
 
         format = '%-3d  %-10s  %-11s  %5d   %-10s   %s   %s'
-        default = ('', '', 0, '()', '', '')
+        default = ('', '', 0, (), '', '')
         for idx, hdu in enumerate(self):
             summary = hdu._summary()
             if len(summary) < len(default):
@@ -743,11 +743,11 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of `data` will be checked in the
             # _BaseHDU.fromstring call.
 
-        saved_compression_supported = compressed.COMPRESSION_SUPPORTED
+        saved_compression_enabled = compressed.COMPRESSION_ENABLED
 
         try:
-            if 'disable_image_compression' in kwargs and \
-               kwargs['disable_image_compression']:
+            if ('disable_image_compression' in kwargs and
+                kwargs['disable_image_compression']):
                 compressed.COMPRESSION_ENABLED = False
 
             if mode == 'ostream':
@@ -798,7 +798,7 @@ class HDUList(list, _Verify):
             hdulist._truncate = False
 
         finally:
-            compressed.COMPRESSION_SUPPORTED = saved_compression_supported
+            compressed.COMPRESSION_ENABLED = saved_compression_enabled
 
         return hdulist
 
@@ -953,8 +953,9 @@ class HDUList(list, _Verify):
                 # lead to odd behavior in practice.  Better to just not keep
                 # references to data from files that had to be resized upon
                 # flushing (on Windows--again, this is no problem on Linux).
-                for idx, map, arr in mmaps:
-                    arr.data = self[idx].data.data
+                for idx, mmap, arr in mmaps:
+                    if mmap is not None:
+                        arr.data = self[idx].data.data
                 del mmaps  # Just to be sure
 
         else:

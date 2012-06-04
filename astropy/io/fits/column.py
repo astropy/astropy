@@ -296,11 +296,10 @@ class Column(object):
         if isinstance(array, np.ndarray):
             # make a copy if scaled, so as not to corrupt the original array
             if bzero not in ['', None, 0] or bscale not in ['', None, 1]:
-                array = array.copy()
                 if bzero not in ['', None, 0]:
-                    array += -bzero
+                    array = array - bzero
                 if bscale not in ['', None, 1]:
-                    array /= bscale
+                    array = array / bscale
 
         array = self._convert_to_valid_data_type(array, self.format)
         self.array = array
