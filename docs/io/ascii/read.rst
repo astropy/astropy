@@ -39,7 +39,7 @@ Commonly used parameters for ``read()``
   The first two options are distinguished by the presence of a newline in the string.  
   This assumes that valid file names will not normally contain a newline.
 
-**Reader** : Reader class (default= :class:`~astropy.io.ascii.BasicReader`)
+**Reader** : Reader class (default= :class:`~astropy.io.ascii.Basic`)
   This specifies the top-level format of the ASCII table, for example
   if it is a basic character delimited table, fixed format table, or
   a CDS-compatible table, etc.  The value of this parameter must
@@ -205,7 +205,7 @@ The order of guessing is shown by this Python code::
   
   for Reader in (Rdb, Tab, Cds, Daophot, Ipac):
       read(Reader=Reader)
-  for Reader in (CommentedHeader, BasicReader, NoHeader):
+  for Reader in (CommentedHeader, Basic, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
               read(Reader=Reader, delimiter=delimiter, quotechar=quotechar)

@@ -125,7 +125,6 @@ class Memory(core.BaseReader):
         """Not available for the Memory class (raises NotImplementedError)"""
         raise NotImplementedError
 
-MemoryReader = Memory
 
 class MemoryInputter(core.BaseInputter):
     """Get the lines from the table input and return an iterable object that contains the data lines.

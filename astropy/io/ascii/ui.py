@@ -59,7 +59,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, numpy=True, **kwargs)
     """Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
-    :param Reader: Reader class (default= :class:`BasicReader`)
+    :param Reader: Reader class (default= :class:`Basic`)
     :param Inputter: Inputter class 
     :param Outputter: Outputter class
     :param numpy: if False use :class:`BaseOutputter` (default=True)
@@ -82,7 +82,7 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, numpy=True, **kwargs)
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
     if Reader is None:
-        Reader = basic.BasicReader
+        Reader = basic.Basic
     reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, numpy=numpy, **kwargs)
     return reader
 
@@ -95,7 +95,7 @@ def read(table, numpy=True, guess=None, **kwargs):
     :param table: input table (file name, list of strings, or single newline-separated string)
     :param numpy: if False use :class:`BaseOutputter` (default=True)
     :param guess: try to guess the table format (default=True)
-    :param Reader: Reader class (default= :class:`~asciitable.BasicReader`)
+    :param Reader: Reader class (default= :class:`~asciitable.Basic`)
     :param Inputter: Inputter class
     :param Outputter: Outputter class
     :param delimiter: column delimiter string
@@ -216,7 +216,7 @@ def _get_guess_kwargs_list():
                          dict(Reader=latex.Latex),
                          dict(Reader=latex.AASTex)
                          ]
-    for Reader in (basic.CommentedHeader, basic.BasicReader, basic.NoHeader):
+    for Reader in (basic.CommentedHeader, basic.Basic, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(

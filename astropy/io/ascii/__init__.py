@@ -30,31 +30,31 @@
 from __future__ import absolute_import
 
 from .core import (has_numpy,
-                             InconsistentTableError,
-                             NoType, StrType, NumType, FloatType, IntType, AllType,
-                             Column, Keyword,
-                             BaseInputter, ContinuationLinesInputter,
-                             BaseHeader,
-                             BaseData,
-                             BaseOutputter, NumpyOutputter, TableOutputter,
-                             DictLikeNumpy,
-                             BaseReader, 
-                             BaseSplitter, DefaultSplitter, WhitespaceSplitter,
-                             convert_list, convert_numpy,
-                             )
-from .basic import (Basic, BasicReader,
-                              Rdb, RdbReader,
-                              Tab, TabReader,
-                              NoHeader, NoHeaderReader,
-                              CommentedHeader, CommentedHeaderReader)
-from .cds import Cds, CdsReader
-from .latex import Latex, LatexReader, AASTex, AASTexReader, latexdicts
-from .ipac import Ipac, IpacReader
-from .daophot import Daophot, DaophotReader
-from .memory import Memory, MemoryReader
+                   InconsistentTableError,
+                   NoType, StrType, NumType, FloatType, IntType, AllType,
+                   Column, Keyword,
+                   BaseInputter, ContinuationLinesInputter,
+                   BaseHeader,
+                   BaseData,
+                   BaseOutputter, NumpyOutputter, TableOutputter,
+                   DictLikeNumpy,
+                   BaseReader,
+                   BaseSplitter, DefaultSplitter, WhitespaceSplitter,
+                   convert_list, convert_numpy,
+                   )
+from .basic import (Basic,
+                    Rdb,
+                    Tab,
+                    NoHeader,
+                    CommentedHeader)
+from .cds import Cds
+from .latex import Latex, AASTex, latexdicts
+from .ipac import Ipac
+from .daophot import Daophot
+from .memory import Memory
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
-                                   FixedWidthTwoLine, FixedWidthSplitter,
-                                   FixedWidthHeader, FixedWidthData)
+                         FixedWidthTwoLine, FixedWidthSplitter,
+                         FixedWidthHeader, FixedWidthData)
 from .ui import (set_guess, get_reader, read, get_writer, write)
 
 from .version import version as __version__

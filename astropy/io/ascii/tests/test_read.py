@@ -48,7 +48,7 @@ def test_guess_all_files(numpy):
 
 @has_numpy
 def test_daophot_header_keywords(numpy):
-    reader = asciitable.get_reader(Reader=asciitable.DaophotReader, numpy=numpy)
+    reader = asciitable.get_reader(Reader=asciitable.Daophot, numpy=numpy)
     table = reader.read('t/daophot.dat')
     expected_keywords = (('NSTARFILE', 'test.nst.1', 'filename', '%-23s'),
                          ('REJFILE', 'hello world', 'filename', '%-23s'),
@@ -199,7 +199,7 @@ def test_from_lines(numpy):
     
 @has_numpy_and_not_has_numpy
 def test_comment_lines(numpy):
-    table = asciitable.get_reader(Reader=asciitable.RdbReader, numpy=numpy)
+    table = asciitable.get_reader(Reader=asciitable.Rdb, numpy=numpy)
     data = table.read('t/apostrophe.rdb')
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
 
@@ -470,4 +470,3 @@ def get_testfiles(name=None):
         return [x for x in testfiles if x['name'] == name][0]
     else:
         return testfiles
-    
