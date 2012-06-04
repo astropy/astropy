@@ -96,10 +96,13 @@ class _ImageBaseHDU(_ValidHDU):
                               self.standard_keyword_comments['GCOUNT']))
 
             if header is not None:
-                hcopy = header.copy(strip=True)
-                cards.extend(hcopy.cards)
+                orig = header.copy()
+                header = Header(cards)
+                header.extend(orig, strip=True, update=True, end=True)
+            else:
+                header = Header(cards)
 
-            self._header = Header(cards)
+            self._header = header
 
         self._do_not_scale_image_data = do_not_scale_image_data
         self._uint = uint
@@ -151,6 +154,19 @@ class _ImageBaseHDU(_ValidHDU):
 
     @property
     def section(self):
+        """
+        Access a section of the image array without loading the entire array
+        into memory.  The :class:`Section` object returned by this attribute is
+        not meant to be used directly by itself.  Rather, slices of the section
+        return the appropriate slice of the data, and loads *only* that section
+        into memory.
+
+        Sections are mostly obsoleted by memmap support, but should still be
+        used to deal with very large scaled images.  See the
+        :ref:`data-sections` section of the PyFITS documentation for more
+        details.
+        """
+
         return Section(self)
 
 
@@ -178,56 +194,7 @@ class _ImageBaseHDU(_ValidHDU):
         if len(self._axes) < 1:
             return
 
-        # Numpy array dimensions are in row/column order
-        code = _ImageBaseHDU.NumCode[self._orig_bitpix]
-
-        raw_data = self._file.readarray(offset=self._datLoc, dtype=code,
-                                        shape=self.shape)
-        raw_data.dtype = raw_data.dtype.newbyteorder('>')
-
-        if (self._orig_bzero == 0 and self._orig_bscale == 1 and
-            self._blank is None):
-            # No further conversion of the data is necessary
-            return raw_data
-
-        data = None
-        if not (self._orig_bzero == 0 and self._orig_bscale == 1):
-            data = self._convert_pseudo_unsigned(raw_data)
-
-        if data is None:
-            # In these cases, we end up with floating-point arrays and have to
-            # apply bscale and bzero. We may have to handle BLANK and convert
-            # to NaN in the resulting floating-point arrays.
-            if self._blank is not None:
-                blanks = raw_data.flat == self._blank
-                # The size of blanks in bytes is the number of elements in
-                # raw_data.flat.  However, if we use np.where instead we will
-                # only use 8 bytes for each index where the condition is true.
-                # So if the number of blank items is fewer than
-                # len(raw_data.flat) / 8, using np.where will use less memory
-                if blanks.sum() < len(blanks) / 8:
-                    blanks = np.where(blanks)
-
-            new_dtype = self._dtype_for_bitpix()
-            if new_dtype is not None:
-                data = np.array(raw_data, dtype=new_dtype)
-            else:  # floating point cases
-                if self._file.memmap:
-                    data = raw_data.copy()
-                # if not memmap, use the space already in memory
-                else:
-                    data = raw_data
-
-            del raw_data
-
-            if self._orig_bscale != 1:
-                np.multiply(data, self._orig_bscale, data)
-            if self._orig_bzero != 0:
-                data += self._orig_bzero
-
-            if self._blank is not None:
-                data.flat[blanks] = np.nan
-
+        data = self._get_scaled_image_data(self._datLoc, self.shape)
         self._update_header_scale_info(data.dtype)
 
         return data
@@ -326,6 +293,10 @@ class _ImageBaseHDU(_ValidHDU):
             for keyword in ['BSCALE', 'BZERO']:
                 try:
                     del self._header[keyword]
+                    # Since _update_header_scale_info can, currently, be called
+                    # *after* _prewriteto(), replace these with blank cards so
+                    # the header size doesn't change
+                    self._header.append()
                 except KeyError:
                     pass
 
@@ -445,9 +416,11 @@ class _ImageBaseHDU(_ValidHDU):
 
         return super(_ImageBaseHDU, self)._verify(option)
 
-    def _writeheader(self, fileobj, checksum=False):
+    def _prewriteto(self, checksum=False, inplace=False):
         self.update_header()
-        return super(_ImageBaseHDU, self)._writeheader(fileobj, checksum)
+        if not inplace and not self._data_loaded:
+            self._update_header_scale_info()
+        return super(_ImageBaseHDU, self)._prewriteto(checksum, inplace)
 
     def _writedata_internal(self, fileobj):
         size = 0
@@ -484,14 +457,6 @@ class _ImageBaseHDU(_ValidHDU):
             size += output.size * output.itemsize
 
         return size
-
-    def _writeto(self, fileobj, checksum=False):
-        if not self._data_loaded:
-            # Normally this is done when the data is loaded, but since the data
-            # is not loaded yet we need to update the header appropriately
-            # before writing it
-            self._update_header_scale_info()
-        return super(_ImageBaseHDU, self)._writeto(fileobj, checksum=checksum)
 
     def _dtype_for_bitpix(self):
         """
@@ -536,6 +501,63 @@ class _ImageBaseHDU(_ValidHDU):
             data = np.array(data, dtype=dtype)
             data -= np.uint64(1 << (bits - 1))
             return data
+
+    def _get_scaled_image_data(self, offset, shape):
+        """
+        Internal function for reading image data from a file and apply scale
+        factors to it.  Normally this is used for the entire image, but it
+        supports alternate offset/shape for Section support.
+        """
+
+        code = _ImageBaseHDU.NumCode[self._orig_bitpix]
+
+        raw_data = self._get_raw_data(shape, code, offset)
+        raw_data.dtype = raw_data.dtype.newbyteorder('>')
+
+        if (self._orig_bzero == 0 and self._orig_bscale == 1 and
+            self._blank is None):
+            # No further conversion of the data is necessary
+            return raw_data
+
+        data = None
+        if not (self._orig_bzero == 0 and self._orig_bscale == 1):
+            data = self._convert_pseudo_unsigned(raw_data)
+
+        if data is None:
+            # In these cases, we end up with floating-point arrays and have to
+            # apply bscale and bzero. We may have to handle BLANK and convert
+            # to NaN in the resulting floating-point arrays.
+            if self._blank is not None:
+                blanks = raw_data.flat == self._blank
+                # The size of blanks in bytes is the number of elements in
+                # raw_data.flat.  However, if we use np.where instead we will
+                # only use 8 bytes for each index where the condition is true.
+                # So if the number of blank items is fewer than
+                # len(raw_data.flat) / 8, using np.where will use less memory
+                if blanks.sum() < len(blanks) / 8:
+                    blanks = np.where(blanks)
+
+            new_dtype = self._dtype_for_bitpix()
+            if new_dtype is not None:
+                data = np.array(raw_data, dtype=new_dtype)
+            else:  # floating point cases
+                if self._file.memmap:
+                    data = raw_data.copy()
+                # if not memmap, use the space already in memory
+                else:
+                    data = raw_data
+
+            del raw_data
+
+            if self._orig_bscale != 1:
+                np.multiply(data, self._orig_bscale, data)
+            if self._orig_bzero != 0:
+                data += self._orig_bzero
+
+            if self._blank is not None:
+                data.flat[blanks] = np.nan
+
+        return data
 
     # TODO: Move the GroupsHDU-specific summary code to GroupsHDU itself
     def _summary(self):
@@ -608,7 +630,14 @@ class Section(object):
     """
     Image section.
 
-    TODO: elaborate
+    Slices of this object load the corresponding section of an image array from
+    the underlying FITS file on disk, and applies any BSCALE/BZERO factors.
+
+    Section slices cannot be assigned to, and modifications to a section are
+    not saved back to the underlying file.
+
+    See the :ref:`data-sections` section of the PyFITS documentation for more
+    details.
     """
 
     def __init__(self, hdu):
@@ -660,26 +689,11 @@ class Section(object):
                 dims = [1]
 
             dims = tuple(dims)
-
-            bitpix = self.hdu._bitpix
+            bitpix = self.hdu._orig_bitpix
             offset = self.hdu._datLoc + (offset * abs(bitpix) // 8)
-            # If the data is already loaded use whatever dtype it was scaled
-            # to, else figure it out from the bitpix...
-            if self.hdu._data_loaded:
-                code = self.hdu.data.dtype.name
-            else:
-                code = _ImageBaseHDU.NumCode[bitpix]
-            raw_data = self.hdu._file.readarray(offset=offset, dtype=code,
-                                                shape=dims)
-            raw_data.dtype = raw_data.dtype.newbyteorder('>')
-            data = raw_data
+            data = self.hdu._get_scaled_image_data(offset, dims)
         else:
             data = self._getdata(key)
-
-        if not (self.hdu._bzero == 0 and self.hdu._bscale == 1):
-            converted_data = self.hdu._convert_pseudo_unsigned(data)
-            if converted_data is not None:
-                data = converted_data
 
         return data
 

@@ -11,7 +11,8 @@ import numpy as np
 from .util import _str_to_num, _is_int, maketrans, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError
 
-from ...utils import deprecated, lazyproperty
+from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
+from ...utils import deprecated
 
 
 __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
@@ -21,6 +22,9 @@ __all__ = ['Card', 'CardList', 'create_card', 'create_card_from_string',
 
 FIX_FP_TABLE = maketrans('de', 'DE')
 FIX_FP_TABLE2 = maketrans('dD', 'eE')
+
+
+BLANK_CARD = ' ' * 80
 
 
 class Undefined:
@@ -310,10 +314,11 @@ class Card(_Verify):
     _numr_NFSC = r'[+-]? *' + _digits_NFSC
 
     # This regex helps delete leading zeros from numbers, otherwise
-    # Python might evaluate them as octal values.
-    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*(?P<digt>%s)'
+    # Python might evaluate them as octal values (this is not-greedy, however,
+    # so it may not strip leading zeros from a float, which is fine)
+    _number_FSC_RE = re.compile(r'(?P<sign>[+-])?0*?(?P<digt>%s)'
                                 % _digits_FSC)
-    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*(?P<digt>%s)'
+    _number_NFSC_RE = re.compile(r'(?P<sign>[+-])? *0*?(?P<digt>%s)'
                                  % _digits_NFSC)
 
     # FSC commentary card string which must contain printable ASCII characters.
@@ -360,7 +365,7 @@ class Card(_Verify):
     _value_NFSC_RE = re.compile(
         r'(?P<valu_field> *'
             r'(?P<valu>'
-                r'\'(?P<strg>([ -~]+?|\'\'|)) *?\'(?=$|/| )|'
+                r'\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )|'
                 r'(?P<bool>[FT])|'
                 r'(?P<numr>' + _numr_NFSC + r')|'
                 r'(?P<cplx>\( *'
@@ -434,7 +439,6 @@ class Card(_Verify):
 
     def __str__(self):
         return self.image
-        self._modified = True
 
     def __len__(self):
         return 3
@@ -471,6 +475,8 @@ class Card(_Verify):
                 keyword = keyword.upper()
                 if not self._keywd_FSC_RE.match(keyword):
                     raise ValueError('Illegal keyword name: %r.' % keyword)
+                elif keyword == 'END':
+                    raise ValueError("Keyword 'END' not allowed.")
             else:
                 # In prior versions of PyFITS HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
@@ -502,17 +508,19 @@ class Card(_Verify):
     def value(self):
         if self.field_specifier:
             return float(self._value)
+
         if self._value is not None:
-            return self._value
-        elif self._valuestring is not None:
-            self.value = self._valuestring
-            return self._valuestring
-        elif self._image:
+            value = self._value
+        elif self._valuestring is not None or self._image:
             self._value = self._parse_value()
-            return self._value
+            value = self._value
         else:
-            self.value = ''
-            return ''
+            self._value = value = ''
+
+        if STRIP_HEADER_WHITESPACE() and isinstance(value, basestring):
+            value = value.rstrip()
+
+        return value
 
     @value.setter
     def value(self, value):
@@ -521,22 +529,41 @@ class Card(_Verify):
         oldvalue = self._value
         if oldvalue is None:
             oldvalue = ''
-        if isinstance(value, (basestring, int, long, float, complex, bool,
-                              Undefined, np.floating, np.integer,
-                              np.complexfloating)):
-            if value != oldvalue:
-                self._value = value
-                self._modified = True
-                self._valuestring = None
-                self._valuemodified = True
-                if self.field_specifier:
-                    try:
-                        self._value = _int_or_float(self._value)
-                    except ValueError:
-                        raise ValueError('value %s is not a float' %
-                                         self._value)
-        else:
+
+        if not isinstance(value, (basestring, int, long, float, complex, bool,
+                                  Undefined, np.floating, np.integer,
+                                  np.complexfloating, np.bool_)):
             raise ValueError('Illegal value: %r.' % value)
+
+        if isinstance(value, unicode):
+            try:
+                # Any string value must be encodable as ASCII
+                value.encode('ascii')
+            except UnicodeEncodeError:
+                raise ValueError(
+                    'FITS header values must contain standard ASCII '
+                    'characters; %r contains characters not representable in '
+                    'ASCII.' % value)
+
+        if (STRIP_HEADER_WHITESPACE() and
+            (isinstance(oldvalue, basestring) and
+             isinstance(value, basestring))):
+            # Ignore extra whitespace when comparing the new value to the old
+            different = oldvalue.rstrip() != value.rstrip()
+        else:
+            different = oldvalue != value
+
+        if different:
+            self._value = value
+            self._modified = True
+            self._valuestring = None
+            self._valuemodified = True
+            if self.field_specifier:
+                try:
+                    self._value = _int_or_float(self._value)
+                except ValueError:
+                    raise ValueError('value %s is not a float' %
+                                     self._value)
 
     @value.deleter
     def value(self):
@@ -562,6 +589,17 @@ class Card(_Verify):
     def comment(self, comment):
         if comment is None:
             comment = ''
+
+        if isinstance(comment, unicode):
+            try:
+                # Any string value must be encodable as ASCII
+                comment.encode('ascii')
+            except UnicodeEncodeError:
+                raise ValueError(
+                    'FITS header comments must contain standard ASCII '
+                    'characters; %r contains characters not representable in '
+                    'ASCII.' % comment)
+
         oldcomment = self._comment
         if oldcomment is None:
             oldcomment = ''
@@ -691,7 +729,6 @@ class Card(_Verify):
         >>> self._check_if_rvkc('DP1     = AXIS.1: 2')
         """
 
-        from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS
         if not ENABLE_RECORD_VALUED_KEYWORD_CARDS():
             return False
 
@@ -781,7 +818,8 @@ class Card(_Verify):
                     value = value[:-1]
                 values.append(value)
 
-            value = ''.join(values).rstrip()
+            value = ''.join(values)
+
             self._valuestring = value
             return value
 
@@ -824,7 +862,8 @@ class Card(_Verify):
         else:
             value = UNDEFINED
 
-        self._valuestring = m.group('valu')
+        if not self._valuestring:
+            self._valuestring = m.group('valu')
         return value
 
     def _parse_comment(self):
@@ -909,7 +948,6 @@ class Card(_Verify):
             except (ValueError, IndexError):
                 self.value = valuecomment
             self._valuestring = self._value
-            self._valuemodified = False
             return
         elif m.group('numr') is not None:
             numr = self._number_NFSC_RE.match(m.group('numr'))
@@ -929,7 +967,10 @@ class Card(_Verify):
                 idigt = imag.group('sign') + idigt
             value = '(%s, %s)' % (rdigt, idigt)
         self._valuestring = value
-        self._valuemodified = False
+        # The value itself has not been modified, but its serialized
+        # representation (as stored in self._valuestring) has been changed, so
+        # still set this card as having been modified (see ticket #137)
+        self._modified = True
 
     def _format_keyword(self):
         if self.keyword:
@@ -945,13 +986,19 @@ class Card(_Verify):
     def _format_value(self):
         # value string
         float_types = (float, np.floating, complex, np.complexfloating)
-        value = self.value  # Force the value to be parsed out first
+
+        # Force the value to be parsed out first
+        value = self.value
+        # But work with the underlying raw value instead (to preserve
+        # whitespace, for now...)
+        value = self._value
+
         if self.keyword in self._commentary_keywords:
             # The value of a commentary card must be just a raw unprocessed
             # string
             value = str(value)
         elif (self._valuestring and not self._valuemodified and
-                isinstance(self.value, float_types)):
+              isinstance(self.value, float_types)):
             # Keep the existing formatting for float/complex numbers
             value = '%20s' % self._valuestring
         elif self.field_specifier:
@@ -1036,7 +1083,7 @@ class Card(_Verify):
 
         # do the value string
         value_format = "'%-s&'"
-        value = self.value.replace("'", "''")
+        value = self._value.replace("'", "''")
         words = _words_group(value, value_length)
         for idx, word in enumerate(words):
             if idx == 0:
@@ -1115,7 +1162,7 @@ class Card(_Verify):
         if not (m or self.keyword in self._commentary_keywords):
             errs.append(self.run_option(
                 option,
-                err_text='Card image is not FITS standard (unparsable value '
+                err_text='Card image is not FITS standard (invalid value '
                          'string: %s).' % valuecomment,
                 fix_text=fix_text,
                 fix=self._fix_value))
@@ -1217,7 +1264,7 @@ def _format_value(value):
 
     # string value should occupies at least 8 columns, unless it is
     # a null string
-    if isinstance(value, str):
+    if isinstance(value, basestring):
         if value == '':
             return "''"
         else:

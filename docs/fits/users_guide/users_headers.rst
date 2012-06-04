@@ -13,8 +13,8 @@ Header of an HDU
 ================
 
 Every HDU normally has two components: header and data. In Astropy these two
-components are accessed through the two attributes of the HDU, ``.header`` and
-``.data``.
+components are accessed through the two attributes of the HDU,
+:attr:`~_BaseHDU.header` and :attr:`~_BaseHDU.data`.
 
 While an HDU may have empty data, i.e. the .data attribute is None, any HDU
 will always have a header. When an HDU is created with a constructor, e.g.
@@ -60,8 +60,8 @@ Keyword names are case-insenstive except in a few special cases (see the
 sections on HIERARCH card and record-valued cards). Thus, ``prihdr['abc']``,
 ``prihdr['ABC']``, or ``prihdr['aBc']`` are all equivalent.
 
-Like with python `dict`\s, new keywords can also be added to the header using
-assignment syntax:
+Like with python :class:`dict`\s, new keywords can also be added to the header
+using assignment syntax:
 
     >>> 'DARKCORR' in header  # Check for existence
     False
@@ -82,7 +82,7 @@ You can also add a new value *and* comment by assigning them as a tuple:
     HISTORY/COMMENT keywords at the end of the header.
 
     There are a couple of ways to override this functionality:
-    
+
     * Use the :meth:`Header.append` method with the ``end=True`` argument:
 
         >>> header.append(('DARKCORR', 'OMIT', 'Dark Image Subtraction'),
@@ -128,7 +128,7 @@ relative to existing cards:
 
 In FITS headers, each keyword may also have a comment associated with it
 explaining its purpose.  The comments associated with each keyword are accessed
-through the `.comments` attribute:
+through the :attr:`~Header.comments` attribute:
 
     >>> header['NAXIS']
     2
@@ -154,7 +154,7 @@ to as commentary cards), which commonly appear in FITS headers more than once.
 They are (1) blank keyword, (2) HISTORY, and (3) COMMENT. Unlike other
 keywords, when accessing these keywords they are returned as a list:
 
-    >>> prihdr['history']
+    >>> prihdr['HISTORY']
     I updated this file on 02/03/2011
     I updated this file on 02/04/2011
     ....
@@ -169,12 +169,12 @@ unlike with other keywords, a new commentary card is always added and appended
 to the last commentary card with the same keyword, rather than to the end of
 the header. Here is an example:
 
-    >>> hdu.header['history'] = 'history 1'
+    >>> hdu.header['HISTORY'] = 'history 1'
     >>> hdu.header[''] = 'blank 1'
-    >>> hdu.header['comment'] = 'comment 1'
-    >>> hdu.header['history'] = 'history 2'
+    >>> hdu.header['COMMENT'] = 'comment 1'
+    >>> hdu.header['HISTORY'] = 'history 2'
     >>> hdu.header[''] = 'blank 2'
-    >>> hdu.header['comment'] = 'comment 2'
+    >>> hdu.header['COMMENT'] = 'comment 2'
 
 and the part in the modified header becomes:
 
@@ -205,28 +205,29 @@ A FITS header consists of card images.
 A card image in a FITS header consists of a keyword name, a value, and
 optionally a comment. Physically, it takes 80 columns (bytes)--without carriage
 return--in a FITS file's storage format. In Astropy, each card image is
-manifested by a `Card` object. There are also special kinds of cards:
+manifested by a :class:`Card` object. There are also special kinds of cards:
 commentary cards (see above) and card images taking more than one 80-column
 card image.  The latter will be discussed later.
 
-Most of the time the details of dealing with cards are handled by the `Header`
-object, and it is not necessary to directly manipulate cards.  In fact, most
-`Header` methods that accept a (keyword, value) or (keyword, value, comment)
-tuple as an argument can also take a `Card` object as an argument.  `Card`
-objects are just wrappers around that header that provide the logic for parsing
-and formatting individual cards in a header.  But there's nothing gained by
-manually using a `Card` object, except to examine how a card might appear in a
-header before actually adding it to the header.
+Most of the time the details of dealing with cards are handled by the
+:class:`Header` object, and it is not necessary to directly manipulate cards.
+In fact, most :class:`Header` methods that accept a (keyword, value) or
+(keyword, value, comment) tuple as an argument can also take a :class:`Card`
+object as an argument.  :class:`Card` objects are just wrappers around that
+header that provide the logic for parsing and formatting individual cards in a
+header.  But there's nothing gained by manually using a :class:`Card` object,
+except to examine how a card might appear in a header before actually adding it
+to the header.
 
-A new Card object is created with the `Card` constructor:
+A new Card object is created with the :class:`Card` constructor:
 ``Card(key, value, comment)``. For example:
 
-    >>> c1 = astropy.io.fits.Card('temp', 80.0, 'temperature, floating value')
-    >>> c2 = astropy.io.fits.Card('detector', 1) # comment is optional
-    >>> c3 = astropy.io.fits.Card('mir_revr', True,
+    >>> c1 = astropy.io.fits.Card('TEMP', 80.0, 'temperature, floating value')
+    >>> c2 = astropy.io.fits.Card('DETECTOR', 1) # comment is optional
+    >>> c3 = astropy.io.fits.Card('MIR_REVR', True,
     ...                           'mirror reversed? Boolean value)
-    >>> c4 = astropy.io.fits.Card('abc', 2+3j, 'complex value')
-    >>> c5 = astropy.io.fits.Card('observer', 'Hubble', 'string value')
+    >>> c4 = astropy.io.fits.Card('ABC', 2+3j, 'complex value')
+    >>> c5 = astropy.io.fits.Card('OBSERVER', 'Hubble', 'string value')
 
     >>> print c1; print c2; print c3; print c4; print c5 # show the card images
     TEMP = 80.0 / temperature, floating value
@@ -238,14 +239,14 @@ A new Card object is created with the `Card` constructor:
 Cards have the attributes ``.keyword``, ``.value``, and ``.comment``. Both
 ``.value`` and ``.comment`` can be changed but not the ``.keyword`` attribute.
 
-The `Card()` constructor will check if the arguments given are conforming to
-the FITS standard and has a fixed card image format. If the user wants to
+The :meth:`Card` constructor will check if the arguments given are conforming
+to the FITS standard and has a fixed card image format. If the user wants to
 create a card with a customized format or even a card which is not conforming
-to the FITS standard (e.g. for testing purposes), the `Card.fromstring()`
+to the FITS standard (e.g. for testing purposes), the :meth:`Card.fromstring`
 class method can be used.
 
-Cards can be verified with `Card.verify()`. The non-standard card ``c2`` in the
-example below is flagged by such verification. More about verification in
+Cards can be verified with :meth:`Card.verify`. The non-standard card ``c2`` in
+the example below is flagged by such verification. More about verification in
 Astropy will be discussed in a later chapter.
 
     >>> c1 = astropy.io.fits.Card.fromstring('ABC = 3.456D023')
@@ -257,11 +258,11 @@ Astropy will be discussed in a later chapter.
     Output verification result:
     Unfixable error: Illegal keyword name 'P.I.'
 
-A list of the `Card` objects underlying a `Header` object can be accessed with
-the ``header.cards`` attribute.  This list is only meant for observing, and
-should not be directly manipulated.  In fact, it is only a copy--modifications
-to it will not affect the header it came from.  Use the methods provided by the
-`Header` class instead.
+A list of the :class:`Card` objects underlying a :class:`Header` object can be
+accessed with the :attr:`Header.cards` attribute.  This list is only meant for
+observing, and should not be directly manipulated.  In fact, it is only a
+copy--modifications to it will not affect the header it came from.  Use the
+methods provided by the :class:`Header` class instead.
 
 
 CONTINUE Cards

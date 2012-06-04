@@ -93,11 +93,11 @@ before and after the data is touched
     >>> hdu = f[1]
     >>> print hdu.header['bitpix'], hdu.header['bzero']
     16 32768
-    >>> print hdu.data # once data is touched, it is scaled
+    >>> print hdu.data  # once data is touched, it is scaled
     [ 11. 12. 13. 14. 15.]
     >>> hdu.data.dtype.name
     'float32'
-    >>> print hdu.header['bitpix'] # BITPIX is also updated
+    >>> print hdu.header['bitpix']  # BITPIX is also updated
     -32
     # BZERO and BSCALE are removed after the scaling
     >>> print hdu.header['bzero']
@@ -123,12 +123,14 @@ examples:
 
 The first example above shows how to store an unsigned short integer array.
 
-Great caution must be exercised when using the ``scale()`` method. The
-``.data`` attribute of an image HDU, after the ``scale()`` call, will become
-the storage values, not the physical values. So, only call ``scale()`` just
-before writing out to FITS files, i.e. calls of ``writeto()``, ``flush()``, or
-``close()``. No further use of the data should be exercised. Here is an example
-of what happens to the ``.data`` attribute after the ``scale()`` call:
+Great caution must be exercised when using the :meth:`~ImageHDU.scale` method.
+The :attr:`~ImageHDU.data` attribute of an image HDU, after the
+:meth:`~ImageHDU.scale` call, will become the storage values, not the physical
+values. So, only call :meth:`~ImageHDU.scale` just before writing out to FITS
+files, i.e. calls of :meth:`~HDUList.writeto`, :meth:`~HDUList.flush`, or
+:meth:`~HDUList.close`. No further use of the data should be exercised. Here is
+an example of what happens to the :attr:`~ImageHDU.data` attribute after the
+:meth:`~ImageHDU.scale` call:
 
     >>> hdu = astropy.io.fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
     >>> print hdu.data
@@ -138,6 +140,8 @@ of what happens to the ``.data`` attribute after the ``scale()`` call:
     [-32768 -32767 -32766 -32765]
     >>> hdu.writeto('new.fits')
 
+
+.. _data-sections:
 
 Data Sections
 =============
@@ -149,8 +153,15 @@ memory mapping of non-scaled data). If there are several very large image HDUs
 being accessed at the same time, the system may run out of memory.
 
 If a user does not need the entire image(s) at the same time, e.g. processing
-images(s) ten rows at a time, the ``.section`` attribute of an HDU can be used
-to alleviate such memory problems.
+images(s) ten rows at a time, the :attr:`~ImageHDU.section` attribute of an
+HDU can be used to alleviate such memory problems.
+
+With PyFITS' improved support for memory-mapping, the sections feature is not
+as necessary as it used to be for handling very large images.  However, if the
+image's data is scaled with non-trivial BSCALE/BZERO values, accessing the data
+in sections may still be necessary under the current implementation.  Memmap is
+also insufficient for loading images large than ~4 GB on a 32-bit system--in
+such cases it may be necessary to use sections.
 
 Here is an example of getting the median image from 3 input images of the size
 5000x5000:
@@ -168,16 +179,10 @@ Here is an example of getting the median image from 3 input images of the size
     ... # use scipy.stsci.image's median function
     ... output[j:k] = image.median([x1, x2, x3])
 
-Data in each ``.section`` must be contiguous. Therefore, if ``f1[1].data`` is a
-400x400 image, the first part of the following specifications will not work,
-while the second part will:
+Data in each :attr:`~ImageHDU.section` does not need to be contiguous for
+memory savings to be possible.  PyFITS will do its best to join together
+discontiguous sections of the array while reading as little as possible into
+memory.
 
-    >>> f1[1].section[:5,:5]
-    >>> f1[1].section[:,:3]
-    >>> f1[1].section[:,2]
-
-But these will work:
-
-    >>> f1[1].section[5,:]
-    >>> f1[1].section[5,:10]
-    >>> f1[1].section[6,7]
+Sections cannot be assigned to.  Any modifications made to a data section are
+not saved back to the original file.

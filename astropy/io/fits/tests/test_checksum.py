@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import shutil
 import warnings
 
 import numpy as np
@@ -173,7 +174,69 @@ class TestChecksumFunctions(FitsTestCase):
         if not (hasattr(hdul[0], '_checksum_comment') and
                 not hdul[0]._checksum_comment):
             pytest.fail(msg='Non-empty CHECKSUM Card comment')
+
+    def test_open_update_mode_preserve_checksum(self):
+        """
+        Regression test for #148 where checksums are being removed from headers
+        when a file is opened in update mode, even though no changes were made
+        to the file.
+        """
+
+        shutil.copy(self.data('checksum.fits'), self.temp('tmp.fits'))
+
+        with fits.open(self.temp('tmp.fits')) as hdul:
+            data = hdul[1].data.copy()
+
+        hdul = fits.open(self.temp('tmp.fits'), mode='update')
         hdul.close()
+
+        with fits.open(self.temp('tmp.fits')) as hdul:
+            assert 'CHECKSUM' in hdul[1].header
+            assert 'DATASUM' in hdul[1].header
+            assert (data == hdul[1].data).all()
+
+    def test_open_update_mode_update_checksum(self):
+        """
+        Regression test for #148, part 2.  This ensures that if a file contains
+        a checksum, the checksum is updated when changes are saved to the file,
+        even if the file was opened with the default of checksum=False.
+
+        An existing checksum and/or datasum are only stripped if the file is
+        opened with checksum='remove'.
+        """
+
+        shutil.copy(self.data('checksum.fits'), self.temp('tmp.fits'))
+        with fits.open(self.temp('tmp.fits')) as hdul:
+            header = hdul[1].header.copy()
+            data = hdul[1].data.copy()
+
+        with fits.open(self.temp('tmp.fits'), mode='update') as hdul:
+            hdul[1].header['FOO'] = 'BAR'
+            hdul[1].data[0]['TIME'] = 42
+
+        with fits.open(self.temp('tmp.fits')) as hdul:
+            header2 = hdul[1].header
+            data2 = hdul[1].data
+            assert header2[:-3] == header[:-2]
+            assert 'CHECKSUM' in header2
+            assert 'DATASUM' in header2
+            assert header2['FOO'] == 'BAR'
+            assert (data2['TIME'][1:] == data['TIME'][1:]).all()
+            assert data2['TIME'][0] == 42
+
+        with fits.open(self.temp('tmp.fits'), mode='update',
+                         checksum='remove') as hdul:
+            pass
+
+        with fits.open(self.temp('tmp.fits')) as hdul:
+            header2 = hdul[1].header
+            data2 = hdul[1].data
+            assert header2[:-1] == header[:-2]
+            assert not 'CHECKSUM' in header2
+            assert not 'DATASUM' in header2
+            assert header2['FOO'] == 'BAR'
+            assert (data2['TIME'][1:] == data['TIME'][1:]).all()
+            assert data2['TIME'][0] == 42
 
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, '_datasum') and hdu._datasum):

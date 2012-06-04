@@ -1,14 +1,25 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import division  # confidence high
 
 import os
 import shutil
 import tempfile
+
+from ... import fits
 
 
 class FitsTestCase(object):
     def setup(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.temp_dir = tempfile.mkdtemp(prefix='fits-test-')
+
+        # Restore global settings to defaults
+        # TODO: Replace this when there's a better way to in the config API to
+        # force config values to their defaults
+        fits.ENABLE_RECORD_VALUED_KEYWORD_CARDS.set(True)
+        fits.EXTENSION_NAME_CASE_SENSITIVE.set(False)
+        fits.STRIP_HEADER_WHITESPACE.set(True)
+        fits.USE_MEMMAP.set(True)
 
     def teardown(self):
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):

@@ -4,10 +4,8 @@
 Headers
 *******
 
-.. inheritance-diagram:: Header CardList
-
-`Header`
-========
+:class:`Header`
+===============
 
 .. autoclass:: Header
    :members:

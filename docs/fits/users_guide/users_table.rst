@@ -184,8 +184,8 @@ Column Creation
 ---------------
 
 To create a table from scratch, it is necessary to create individual columns
-first. A `Column` constructor needs the minimal information of column name and
-format. Here is a summary of all allowed formats for a binary table:
+first. A :class:`Column` constructor needs the minimal information of column
+name and format. Here is a summary of all allowed formats for a binary table:
 
 .. parsed-literal::
 
@@ -209,10 +209,10 @@ discussed in a later chapter. The less frequently used X format (bit array) and
 P format (used in variable length tables) will also be discussed in a later
 chapter.
 
-Besides the required name and format arguments in constructing a `Column`,
-there are many optional arguments which can be used in creating a column. Here
-is a list of these arguments and their corresponding header keywords and
-descriptions:
+Besides the required name and format arguments in constructing a
+:class:`Column`, there are many optional arguments which can be used in
+creating a column. Here is a list of these arguments and their corresponding
+header keywords and descriptions:
 
 .. parsed-literal::
 
@@ -253,13 +253,13 @@ letter 'A' and they will mean the same string size. So, for columns c1 and c3,
 they both have 10 characters in each of their cells. For numeric data type, the
 dimension number must be before the letter code, not after.
 
-After the columns are constructed, the `new_table()` function can be used to
+After the columns are constructed, the :func:`new_table` function can be used to
 construct a table HDU. We can either go through the column definition object:
 
     >>> coldefs = astropy.io.fits.ColDefs([c1, c2, c3, c4, c5])
     >>> tbhdu = astropy.io.fits.new_table(coldefs)
 
-or directly use the `new_table()` function:
+or directly use the :func:`new_table` function:
 
     >>> tbhdu = astropy.io.fits.new_table([c1, c2, c3, c4, c5])
 
@@ -288,7 +288,7 @@ properly populated:
     TFORM5   = 'L '
 
 **Warning:** It should be noted that when creating a new table with
-`new_table()`, an in-memory copy of all of the input column arrays is
+:func:`new_table`, an in-memory copy of all of the input column arrays is
 created.  This is because it is not guaranteed that the columns are arranged
 contiguously in memory in row-major order (in fact, they are most likely not),
 so they have to be combined into a new array.
@@ -301,7 +301,7 @@ any copying.  First, create the Columns as before, but without using the
     >>> c1 = Column(name='target', format='10A')
     ...
 
-Then call `new_table()`:
+Then call :func:`new_table`:
 
     >>> tbhdu = astropy.io.fits.new_table([c1, c2, c3, c4, c5])
 

@@ -461,15 +461,13 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
             f = fitsopen(filename, mode='append')
             f.append(hdu)
 
-            # Set a flag in the HDU so that only this HDU gets a checksum
-            # when writing the file.
+            # Set a flag in the HDU so that only this HDU gets a checksum when
+            # writing the file.
             hdu._output_checksum = checksum
             f.close(closed=closed)
         else:
             f = _File(filename, mode='append')
             hdu._output_checksum = checksum
-            # TODO: Fix this once an API for writing an HDU to a file is
-            # settled on
             hdu._writeto(f)
             f.close()
 

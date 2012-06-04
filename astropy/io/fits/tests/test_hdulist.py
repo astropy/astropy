@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import glob
 import io
 import os
 import warnings
@@ -7,6 +8,7 @@ import warnings
 import numpy as np
 
 from .util import ignore_warnings
+from ..verify import VerifyError
 from ....io import fits
 from ....tests.helper import pytest, raises
 
@@ -53,6 +55,16 @@ class TestHDUListFunctions(FitsTestCase):
 
         res = hdul.fileinfo(2)
         test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
+
+    def test_create_from_multiple_primary(self):
+        """
+        Regression test for #145.  Ensure that a validation error occurs when
+        saving an HDUList containing multiple PrimaryHDUs.
+        """
+
+        hdul = fits.HDUList([fits.PrimaryHDU(), fits.PrimaryHDU()])
+        pytest.raises(VerifyError, hdul.writeto, self.temp('temp.fits'),
+                      output_verify='exception')
 
     def test_append_primary_to_empty_list(self):
         # Tests appending a Simple PrimaryHDU to an empty HDUList.
@@ -102,7 +114,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.append(hdu)
 
         info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), 'uint8',
-                 '   1 Groups  0 Parameters')]
+                 '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
 
@@ -205,7 +217,7 @@ class TestHDUListFunctions(FitsTestCase):
         hdul.insert(0, hdu)
 
         info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), 'uint8',
-                 '   1 Groups  0 Parameters')]
+                 '1 Groups  0 Parameters')]
 
         assert hdul.info(output=False) == info
 
@@ -257,7 +269,7 @@ class TestHDUListFunctions(FitsTestCase):
             hdul.insert(1, hdu)
 
         info = [(0, 'PRIMARY', 'GroupsHDU', 8, (), 'uint8',
-                 '   1 Groups  0 Parameters'),
+                 '1 Groups  0 Parameters'),
                 (1, '', 'ImageHDU', 6, (100,), 'int32', '')]
 
         hdul.insert(0, hdu)
@@ -457,3 +469,158 @@ class TestHDUListFunctions(FitsTestCase):
         with ignore_warnings():
             assert info == fits.info(self.temp('temp.fits'), output=False,
                                      do_not_scale_image_data=True)
+
+    def test_open_file_with_bad_header_padding(self):
+        """
+        Regression test for #136; open files with nulls for header block
+        padding instead of spaces.
+        """
+
+        a = np.arange(100).reshape((10, 10))
+        hdu = fits.PrimaryHDU(data=a)
+        hdu.writeto(self.temp('temp.fits'))
+
+        # Figure out where the header padding begins and fill it with nulls
+        end_card_pos = str(hdu.header).index('END' + ' ' * 77)
+        padding_start = end_card_pos + 80
+        padding_len = 2880 - padding_start
+        with open(self.temp('temp.fits'), 'r+b') as f:
+            f.seek(padding_start)
+            f.write('\0'.encode('ascii') * padding_len)
+
+        with warnings.catch_warnings(record=True) as w:
+            with fits.open(self.temp('temp.fits')) as hdul:
+                assert ('contains null bytes instead of spaces' in
+                        str(w[0].message))
+                assert len(w) == 1
+                assert len(hdul) == 1
+                assert str(hdul[0].header) == str(hdu.header)
+                assert (hdul[0].data == a).all()
+
+    def test_update_with_truncated_header(self):
+        """
+        Regression test for #148.  Test that saving an update where the header
+        is shorter than the original header doesn't leave a stump from the old
+        header in the file.
+        """
+
+        data = np.arange(100)
+        hdu = fits.PrimaryHDU(data=data)
+        idx = 1
+        while len(hdu.header) < 34:
+            hdu.header['TEST%d' % idx] = idx
+            idx += 1
+        hdu.writeto(self.temp('temp.fits'), checksum=True)
+
+        with fits.open(self.temp('temp.fits'), mode='update') as hdul:
+            # Modify the header, forcing it to be rewritten
+            hdul[0].header['TEST1'] = 2
+
+        with fits.open(self.temp('temp.fits')) as hdul:
+            assert (hdul[0].data == data).all()
+
+    def test_update_resized_header(self):
+        """
+        Test saving updates to a file where the header is one block smaller
+        than before, and in the case where the heade ris one block larger than
+        before.
+        """
+
+        data = np.arange(100)
+        hdu = fits.PrimaryHDU(data=data)
+        idx = 1
+        while len(str(hdu.header)) <= 2880:
+            hdu.header['TEST%d' % idx] = idx
+            idx += 1
+        orig_header = hdu.header.copy()
+        hdu.writeto(self.temp('temp.fits'))
+
+        with fits.open(self.temp('temp.fits'), mode='update') as hdul:
+            while len(str(hdul[0].header)) > 2880:
+                del hdul[0].header[-1]
+
+        with fits.open(self.temp('temp.fits')) as hdul:
+            assert hdul[0].header == orig_header[:-1]
+            assert (hdul[0].data == data).all()
+
+        with fits.open(self.temp('temp.fits'), mode='update') as hdul:
+            idx = 101
+            while len(str(hdul[0].header)) <= 2880 * 2:
+                hdul[0].header['TEST%d' % idx] = idx
+                idx += 1
+            # Touch something in the data too so that it has to be rewritten
+            hdul[0].data[0] = 27
+
+        with fits.open(self.temp('temp.fits')) as hdul:
+            assert hdul[0].header[:-37] == orig_header[:-1]
+            assert hdul[0].data[0] == 27
+            assert (hdul[0].data[1:] == data[1:]).all()
+
+    def test_update_resized_header2(self):
+        """
+        Regression test for #150.  This is similar to
+        test_update_resized_header, but specifically tests a case of multiple
+        consecutive flush() calls on the same HDUList object, where each
+        flush() requires a resize.
+        """
+
+        data1 = np.arange(100)
+        data2 = np.arange(100) + 100
+        phdu = fits.PrimaryHDU(data=data1)
+        hdu = fits.ImageHDU(data=data2)
+
+        phdu.writeto(self.temp('temp.fits'))
+
+        with fits.open(self.temp('temp.fits'), mode='append') as hdul:
+            hdul.append(hdu)
+
+        with fits.open(self.temp('temp.fits'), mode='update') as hdul:
+            idx = 1
+            while len(str(hdul[0].header)) <= 2880 * 2:
+                hdul[0].header['TEST%d' % idx] = idx
+                idx += 1
+            hdul.flush()
+            hdul.append(hdu)
+
+        with fits.open(self.temp('temp.fits')) as hdul:
+            assert (hdul[0].data == data1).all()
+            assert hdul[1].header == hdu.header
+            assert (hdul[1].data == data2).all()
+            assert (hdul[2].data == data2).all()
+
+    def test_hdul_fromstring(self):
+        """
+        Test creating the HDUList structure in memory from a string containing
+        an entire FITS file.  This is similar to test_hdu_fromstring but for an
+        entire multi-extension FITS file at once.
+        """
+
+        # Tests HDUList.fromstring for all of PyFITS' built in test files
+        def test_fromstring(filename):
+            with fits.open(filename) as hdul:
+                orig_info = hdul.info(output=False)
+                with open(filename, 'rb') as f:
+                    dat = f.read()
+
+                hdul2 = fits.HDUList.fromstring(dat)
+
+                assert orig_info == hdul2.info(output=False)
+                for idx in range(len(hdul)):
+                    assert hdul[idx].header == hdul2[idx].header
+                    if hdul[idx].data is None or hdul2[idx].data is None:
+                        assert hdul[idx].data == hdul2[idx].data
+                    elif (hdul[idx].data.dtype.fields and
+                          hdul2[idx].data.dtype.fields):
+                        # Compare tables
+                        for n in hdul[idx].data.names:
+                            c1 = hdul[idx].data[n]
+                            c2 = hdul2[idx].data[n]
+                            assert (c1 == c2).all()
+                    else:
+                        assert (hdul[idx].data == hdul2[idx].data).all()
+
+        for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
+            test_fromstring(filename)
+
+        # Test that creating an HDUList from something silly raises a TypeError
+        pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])

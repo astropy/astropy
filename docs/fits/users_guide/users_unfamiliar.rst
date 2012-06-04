@@ -64,9 +64,9 @@ a field of 3-character string is specified '3A' in a binary table and as 'A3' in
 an ASCII table.
 
 The other difference is the need to specify the table type when using either
-`ColDef()` or `new_table()`.
+:meth:`ColDef` or :func:`new_table`.
 
-The default value for tbtype is `BinTableHDU`.
+The default value for tbtype is ``BinTableHDU``.
 
      >>>
      # Define the columns
@@ -205,7 +205,7 @@ Accessing the header of a Random Access Group HDU is no different from any
 other HDU. Just use the .header attribute.
 
 The content of the HDU can similarly be summarized by using the
-`HDUList.info()` method:
+:meth:`HDUList.info` method:
 
     >>> f = astropy.io.fits.open('random_group.fits')
     >>> print f[0].header['groups']
@@ -248,8 +248,9 @@ To access the parameters, first find out what the parameter names are, with the
     >>> f[0].data.parnames # get the parameter names
     ['uu--', 'vv--', 'ww--', 'baseline', 'date', 'date']
 
-The group parameter can be accessed by the ``.par()`` method. Like the table
-``field()`` method, the argument can be either index or name:
+The group parameter can be accessed by the :meth:`~GroupData.par` method. Like
+the table :meth:`~FITS_rec.field` method, the argument can be either index or
+name:
 
     >>> print f[0].data.par(0)[99] # Access group parameter by name or by index
     -8.1987486677035799e-06
@@ -270,10 +271,10 @@ random access group, and it means to add the values together. Thus:
     >>> print f[0].data.par('date')[99]
     2445728.10
 
-The ``.par()`` is a method for either the entire data object or one data item
-(a group). So there are two possible ways to get a group parameter for a
-certain group, this is similar to the situation in table data (with its
-``field()`` method):
+The :meth`~GroupData.par` is a method for either the entire data object or one
+data item (a group). So there are two possible ways to get a group parameter
+for a certain group, this is similar to the situation in table data (with its
+:meth:`~FITS_rec.field` method):
 
     >>>
     # Access group parameter by selecting the row (group) number last
@@ -284,10 +285,10 @@ certain group, this is similar to the situation in table data (with its
     -8.1987486677035799e-06
 
 On the other hand, to modify a group parameter, we can either assign the new
-value directly (if accessing the row/group number last) or use the ``setpar()``
-method (if accessing the row/group number first). The method ``setpar()`` is
-also needed for updating by name if the parameter is shared by more than one
-parameters:
+value directly (if accessing the row/group number last) or use the
+:meth:`~GroupData.setpar` method (if accessing the row/group number first). The
+method :meth:`~GroupData.setpar` is also needed for updating by name if the
+parameter is shared by more than one parameters:
 
     >>>
     # Update group parameter when selecting the row (group) number last
@@ -307,10 +308,10 @@ parameters:
 Data: Image Data
 ----------------
 
-The image array of the data portion is accessible by the ``.data`` attribute of
-the data object. A numpy array is returned:
+The image array of the data portion is accessible by the
+:attr:`~GroupData.data` attribute of the data object. A numpy array is
+returned:
 
-    # image part of the data
     >>> print f[0].data.data[99]
     array([[[[[ 12.4308672 , 0.56860745, 3.99993873],
     [ 12.74043655, 0.31398511, 3.99993873],
@@ -321,9 +322,9 @@ the data object. A numpy array is returned:
 Creating a Random Access Group HDU
 ----------------------------------
 
-To create a random access group HDU from scratch, use `GroupData()` to
-encapsulate the data into the group data structure, and use `GroupsHDU()` to
-create the HDU itself:
+To create a random access group HDU from scratch, use :meth:`GroupData` to
+encapsulate the data into the group data structure, and use :meth:`GroupsHDU`
+to create the HDU itself:
 
     >>>
     # Create the image arrays. The first dimension is the number of groups.
@@ -448,7 +449,7 @@ should be accomplished through the image header (the ``.header`` attribute).
     ZVAL1   =                   32 / pixels per block
     EXTNAME = 'COMPRESSED'         / name of this binary table extension
 
-The contents of the HDU can be summarized by using either the `info()`
+The contents of the HDU can be summarized by using either the :func:`info`
 convenience function or method:
 
     >>> astropy.io.fits.info('compressed_image.fits')
@@ -498,38 +499,13 @@ Creating a Compressed Image HDU
 -------------------------------
 
 To create a compressed image HDU from scratch, simply construct a
-`CompImageHDU` object from an uncompressed image data array and its associated
-image header.  From there, the HDU can be treated just like any other image
-HDU.
+:class:`CompImageHDU` object from an uncompressed image data array and its
+associated image header.  From there, the HDU can be treated just like any
+other image HDU.
 
     >>> hdu = astropy.io.fits.CompImageHDU(imageData, imageHeader)
     >>> hdu.writeto('compressed_image.fits')
     >>>
 
-The signature for the `CompImageHDU` initializer method describes the possible
-options for constructing a `CompImageHDU` object:
-
-.. parsed-literal::
-
-    def __init__(self, data=None, header=None, name=None,
-                 compressionType='RICE_1',
-                 tileSize=None,
-                 hcompScale=0.,
-                 hcompSmooth=0
-                 quantizeLevel=16.):
-    """data:            data of the image
-       header:          header to be associated with the image
-       name:            the EXTNAME value; if this value is None, then
-                         the name from the input image header will be
-                         used; if there is no name in the input image
-                         header then the default name 'COMPRESSED_IMAGE'
-                         is used
-       compressionType: compression algorithm 'RICE_1', 'PLIO_1',
-                         'GZIP_1', 'HCOMPRESS_1'
-       tileSize:        compression tile sizes default treats each row
-                         of image as a tile
-       hcompScale:      HCOMPRESS scale parameter
-       hcompSmooth:     HCOMPRESS smooth parameter
-       quantizeLevel:   floating point quantization level
-    """
-
+The API documentation for the :class:`CompImageHDU` initializer method
+describes the possible options for constructing a :class:`CompImageHDU` object.

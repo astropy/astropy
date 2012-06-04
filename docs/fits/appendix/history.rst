@@ -15,107 +15,321 @@ Astropy.
 3.1.0 (unreleased)
 --------------------
 
-- Highlights:
+Highlights
+++++++++++
 
- * Memory maps are now used by default to access HDU data.  See API Changes
-   below for more details.
+- The ``Header`` object has been significantly reworked, and ``CardList``
+  objects are now deprecated (their functionality folded into the ``Header``
+  class).  See API Changes below for more details.
 
- * The ``Header`` object has been significantly reworked, and ``CardList``
-   objects are now deprecated (their functionality folded into the ``Header``
-   class).  See API Changes below for more details.
+- Memory maps are now used by default to access HDU data.  See API Changes
+  below for more details.
 
-- API Changes:
+- Now includes a new version of the ``fitsdiff`` program for comparing two
+  FITS files, and a new FITS comparison API used by ``fitsdiff``.  See New
+  Features below.
 
-  * Memory mapping is now used by default to access HDU data.  That is,
-    ``pyfits.open()`` uses ``memmap=True`` as the default.  This provides
-    better performance in the majority of use cases--there are only some I/O
-    intensive applications where it might not be desirable.  Enabling mmap by
-    default also enabled finding and fixing a large number of bugs in PyFITS'
-    handling of memory-mapped data (most of these bug fixes were backported to
-    PyFITS 3.0.5). (#85)
+API Changes
++++++++++++
 
-    + A new ``pyfits.USE_MEMMAP`` global variable was added.  Set
-      ``pyfits.USE_MEMMAP = False`` to change the default memmap setting for
-      opening files.  This is especially useful for controlling the behavior
-      in applications where pyfits is deeply embedded.
+- The ``Header`` class has been rewritten, and the ``CardList`` class is
+  deprecated.  Most of the basic details of working with FITS headers are
+  unchanged, and will not be noticed by most users.  But there are differences
+  in some areas that will be of interest to advanced users, and to application
+  developers.  For full details of the changes, see the "Header Interface
+  Transition Guide" section in the PyFITS documentation.  See ticket #64 on
+  the PyFITS Trac for futher details and background. Some highlights are
+  listed below:
 
-    + Likewise, a new ``PYFITS_USE_MEMMAP`` environment variable is supported.
-      Set ``PYFITS_USE_MEMMAP = 0`` in your environment to change the default
-      behavior.
+  * The Header class now fully implements the Python dict interface, and can
+    be used interchangably with a dict, where the keys are header keywords.
 
-  * The size() method on HDU objects is now a .size property--this returns the
-    size in bytes of the data portion of the HDU, and in most cases is
-    equivalent to hdu.data.nbytes (#83)
+  * New keywords can be added to the header using normal keyword assignment
+    (previously it was necessary to use ``Header.update`` to add new
+    keywords).  For example::
 
-  * ``BinTableHDU.tdump`` and ``BinTableHDU.tcreate`` are deprecated--use
-    ``BinTableHDU.dump`` and ``BinTableHDU.load`` instead.  The new methods
-    output the table data in a slightly different format from previous
-    versions, which places quotes around each value.  This format is
-    compatible with data dumps from previous versions of PyFITS, but not
-    vice-versa due to a parsing bug in older versions.
+        >>> header['NAXIS'] = 2
 
-  * Likewise the ``pyfits.tdump`` and ``pyfits.tcreate`` convenience function
-    versions of these methods have been renamed ``pyfits.tabledump`` and
-    ``pyfits.tableload``.  The old deprecated, but currently retained for
-    backwards compatibility. (r1125)
+    will update the existing 'FOO' keyword if it already exists, or add a new
+    one if it doesn't exist, just like a dict.
 
-  * A new global variable ``pyfits.EXTENSION_NAME_CASE_SENSITIVE`` was added.
-    This serves as a replacement for ``pyfits.setExtensionNameCaseSensitive``
-    which is not deprecated and may be removed in a future version.  To enable
-    case-sensitivity of extension names (i.e. treat 'sci' as distict from
-    'SCI') set ``pyfits.EXTENSION_NAME_CASE_SENSITIVE = True``.  The default
-    is ``False``. (r1139)
+  * It is possible to assign both a value and a comment at the same time using
+    a tuple::
 
-  * The old ``classExtensions`` extension mechanism (which was deprecated in
-    PyFITS 3.0) is removed outright.  To our knowledge it was no longer used
-    anywhere. (r1309)
+        >>> header['NAXIS'] = (2, 'Number of axes')
 
-  * Warning messages from PyFITS issued through the Python warnings API are
-    now output to stderr instead of stdout, as is the default.  PyFITS no
-    longer modifies the default behavior of the warnings module with respect
-    to which stream it outputs to. (r1319)
+  * To add/update a new card and ensure it's added in a specific location, use
+    ``Header.set()``::
 
-- New Features:
+        >>> header.set('NAXIS', 2, 'Number of axes', after='BITPIX')
 
-  * Added support for the proposed FITS extension HDU type.  See
-    http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.
-    FITS HDUs contain an entire FITS file embedded in their data section.
-    `FitsHDU` objects work like other HDU types in PyFITS.  Their ``.data``
-    attribute returns the raw data array.  However, they have a special
-    ``.hdulist`` attribute which processes the data as a FITS file and returns
-    it as an in-memory HDUList object.  FitsHDU objects also support a
-    ``FitsHDU.fromhdulist()`` which returns a new `FitsHDU` object that embeds
-    the supplied HDUList. (#80)
+    This works the same as the old ``Header.update()``.  ``Header.update()``
+    still works in the old way too, but is deprecated.
 
-  * Added a new .is_image attribute on HDU objects, which is True if the HDU
-    data is an 'image' as opposed to a table or something else.  Here the
-    meaning of 'image' is fairly loose, and mostly just means a Primary or Image
-    extension HDU, or possibly a compressed image HDU (#71)
+  * Although ``Card`` objects still exist, it generally is not necessary to
+    work with them directly.  ``Header.ascardlist()``/``Header.ascard`` are
+    deprecated and should not be used.  To directly access the ``Card``
+    objects in a header, use ``Header.cards``.
 
-- Bug Fixes:
+  * To access card comments, it is still possible to either go through the
+    card itself, or through ``Header.comments``.  For example::
 
-  * Fixed ``pyfits.tcreate()`` (now ``pyfits.tableload()``) to be more robust
-    when encountering blank lines in a column definition file (#14)
+       >>> header.cards['NAXIS'].comment
+       Number of axes
+       >>> header.comments['NAXIS']
+       Number of axes
 
-  * Fixed a fairly rare crash that could occur in the handling of CONTINUE
-    cards when using Numpy 1.4 or lower (though 1.4 is the oldest version
-    supported by PyFITS). (r1330)
+  * ``Card`` objects can now be used interchangeably with ``(keyword, value,
+    comment)`` 3-tuples.  They still have ``.value`` and ``.comment``
+    attributes as well.  The ``.key`` attribute has been renamed to
+    ``.keyword`` for consistency, though ``.key`` is still supported (but
+    deprecated).
+
+- Memory mapping is now used by default to access HDU data.  That is,
+  ``pyfits.open()`` uses ``memmap=True`` as the default.  This provides better
+  performance in the majority of use cases--there are only some I/O intensive
+  applications where it might not be desirable.  Enabling mmap by default also
+  enabled finding and fixing a large number of bugs in PyFITS' handling of
+  memory-mapped data (most of these bug fixes were backported to PyFITS
+  3.0.5). (#85)
+
+  * A new ``pyfits.USE_MEMMAP`` global variable was added.  Set
+    ``pyfits.USE_MEMMAP = False`` to change the default memmap setting for
+    opening files.  This is especially useful for controlling the behavior in
+    applications where pyfits is deeply embedded.
+
+  * Likewise, a new ``PYFITS_USE_MEMMAP`` environment variable is supported.
+    Set ``PYFITS_USE_MEMMAP = 0`` in your environment to change the default
+    behavior.
+
+- The ``size()`` method on HDU objects is now a ``.size`` property--this
+  returns the size in bytes of the data portion of the HDU, and in most cases
+  is equivalent to ``hdu.data.nbytes`` (#83)
+
+- ``BinTableHDU.tdump`` and ``BinTableHDU.tcreate`` are deprecated--use
+  ``BinTableHDU.dump`` and ``BinTableHDU.load`` instead.  The new methods
+  output the table data in a slightly different format from previous versions,
+  which places quotes around each value.  This format is compatible with data
+  dumps from previous versions of PyFITS, but not vice-versa due to a parsing
+  bug in older versions.
+
+- Likewise the ``pyfits.tdump`` and ``pyfits.tcreate`` convenience function
+  versions of these methods have been renamed ``pyfits.tabledump`` and
+  ``pyfits.tableload``.  The old deprecated, but currently retained for
+  backwards compatibility. (r1125)
+
+- A new global variable ``pyfits.EXTENSION_NAME_CASE_SENSITIVE`` was added.
+  This serves as a replacement for ``pyfits.setExtensionNameCaseSensitive``
+  which is not deprecated and may be removed in a future version.  To enable
+  case-sensitivity of extension names (i.e. treat 'sci' as distict from 'SCI')
+  set ``pyfits.EXTENSION_NAME_CASE_SENSITIVE = True``.  The default is
+  ``False``. (r1139)
+
+- A new global configuration variable ``pyfits.STRIP_HEADER_WHITESPACE`` was
+  added.  By default, if a string value in a header contains trailing
+  whitespace, that whitespace is automatically removed when the value is read.
+  Now if you set ``pyfits.STRIP_HEADER_WHITESPACE = False`` all whitespace is
+  preserved. (#146)
+
+- The old ``classExtensions`` extension mechanism (which was deprecated in
+  PyFITS 3.0) is removed outright.  To our knowledge it was no longer used
+  anywhere. (r1309)
+
+- Warning messages from PyFITS issued through the Python warnings API are now
+  output to stderr instead of stdout, as is the default.  PyFITS no longer
+  modifies the default behavior of the warnings module with respect to which
+  stream it outputs to. (r1319)
+
+- The ``checksum`` argument to ``pyfits.open()`` now accepts a value of
+  'remove', which causes any existing CHECKSUM/DATASUM keywords to be ignored,
+  and removed when the file is saved.
+
+New Features
+++++++++++++
+
+- Added support for the proposed "FITS" extension HDU type.  See
+  http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.  FITS
+  HDUs contain an entire FITS file embedded in their data section.  `FitsHDU`
+  objects work like other HDU types in PyFITS.  Their ``.data`` attribute
+  returns the raw data array.  However, they have a special ``.hdulist``
+  attribute which processes the data as a FITS file and returns it as an
+  in-memory HDUList object.  FitsHDU objects also support a
+  ``FitsHDU.fromhdulist()`` classmethod which returns a new `FitsHDU` object
+  that embeds the supplied HDUList. (#80)
+
+- Added a new ``.is_image`` attribute on HDU objects, which is True if the HDU
+  data is an 'image' as opposed to a table or something else.  Here the
+  meaning of 'image' is fairly loose, and mostly just means a Primary or Image
+  extension HDU, or possibly a compressed image HDU (#71)
+
+- Added an ``HDUList.fromstring`` classmethod which can parse a FITS file
+  already in memory and instantiate and ``HDUList`` object from it.  This
+  could be useful for integrating PyFITS with other libraries that work on
+  FITS file, such as CFITSIO.  It may also be useful in streaming
+  applications.  The name is a slight misnomer, in that it actually accepts
+  any Python object that implements the buffer interface, which includes
+  ``bytes``, ``bytearray``, ``memoryview``, ``numpy.ndarray``, etc. (#90)
+
+- Added a new ``pyfits.diff`` module which contains facilities for comparing
+  FITS files.  One can use the ``pyfits.diff.FITSDiff`` class to compare two
+  FITS files in their entirety.  There is also a ``pyfits.diff.HeaderDiff``
+  class for just comparing two FITS headers, and other similar interfaces.
+  See the PyFITS Documentation for more details on this interface.  The
+  ``pyfits.diff`` module powers the new ``fitsdiff`` program installed with
+  PyFITS.  After installing PyFITS, run ``fitsdiff --help`` for usage details.
+
+Bug Fixes
++++++++++
+
+- Fixed ``pyfits.tcreate()`` (now ``pyfits.tableload()``) to be more robust
+  when encountering blank lines in a column definition file (#14)
+
+- Fixed a fairly rare crash that could occur in the handling of CONTINUE cards
+  when using Numpy 1.4 or lower (though 1.4 is the oldest version supported by
+  PyFITS). (r1330)
+
+- Fixed ``_BaseHDU.fromstring`` to actually correctly instantiate an HDU
+  object from a string/buffer containing the header and data of that HDU.
+  This allowed for the implementation of ``HDUList.fromstring`` described
+  above. (#90)
+
+- Fixed a rare corner case where, in some use cases, (mildly, recoverably)
+  malformatted float values in headers were not properly returned as floats.
+  (#137)
+
+- Fixed a corollary to the previous bug where float values with a leading zero
+  before the decimal point had the leading zero unnecessarily removed when
+  saving changes to the file (eg. "0.001" would be written back as ".001" even
+  if no changes were otherwise made to the file). (#137)
+
+- When opening a file containing CHECKSUM and/or DATASUM keywords in update
+  mode, the CHECKSUM/DATASUM are updated and preserved even if the file was
+  opened with checksum=False.  This change in behavior prevents checksums from
+  being unintentionally removed. (#148)
 
 
-3.0.6 (unreleased)
+3.0.8 (unreleased)
+---------------------
+
+Changes in Behavior
++++++++++++++++++++
+
+- Prior to this release, image data sections did not work with scaled
+  data--that is, images with non-trivial BSCALE and/or BZERO values.
+  Previously, in order to read such images in sections, it was necessary to
+  manually apply the BSCALE+BZERO to each section.  It's worth noting that
+  sections *did* support pseudo-unsigned ints (flakily).  This change just
+  extends that support for general BSCALE+BZERO values.
+
+Bug Fixes
++++++++++
+
+- Fixed a bug that prevented updates to values in boolean table columns from
+  being saved.  This turned out to be a symptom of a deeper problem that could
+  prevent other table updates from being saved as well. (#139)
+
+- Fixed a corner case in which a keyword comment ending with the string "END"
+  could, in some circumstances, cause headers (and the rest of the file after
+  that point) to be misread. (#142)
+
+- Fixed support for scaled image data and psuedo-unsigned ints in image data
+  sections (``hdu.section``).  Previously this was not supported at all.  At
+  some point support was supposedly added, but it was buggy and incomplete.
+  Now the feature seems to work much better. (#143)
+
+- Fixed the documentation to point out that image data sections *do* support
+  non-contiguous slices (and have for a long time).  The documentation was
+  never updated to reflect this, and misinformed users that only contiguous
+  slices were supported, leading to some confusion. (#144)
+
+- Fixed a bug where creating an ``HDUList`` object containing multiple PRIMARY
+  HDUs caused an infinite recursion when validating the object prior to
+  writing to a file. (#145)
+
+- Fixed a rare but serious case where saving an update to a file that
+  previously had a CHECKSUM and/or DATASUM keyword, but removed the checksum
+  in saving, could cause the file to be slightly corrupted and unreadable.
+  (#147)
+
+
+3.0.7 (2012-04-10)
 ----------------------
 
-- Highlights:
+Changes in Behavior
++++++++++++++++++++
 
-  * The main reason for this release is to fix an issue that was introduced in
-    PyFITS 3.0.5 where merely opening a file containing scaled data (that is,
-    with non-trivial BSCALE and BZERO keywords) in 'update' mode would cause
-    the data to be automatically rescaled--possibly converting the data from
-    ints to floats--as soon as the file is closed, even if the application did
-    not touch the data.  Now PyFITS will only rescale the data in an extension
-    when the data is actually accessed by the application.  So opening a file
-    in 'update' mode in order to modify the header or append new extensions
-    will not cause any change to the data in existing extensions.
+- Slices of GroupData objects now return new GroupData objects instead of
+  extended multi-row _Group objects. This is analogous to how PyFITS 3.0 fixed
+  FITS_rec slicing, and should have been fixed for GroupData at the same time.
+  The old behavior caused bugs where functions internal to Numpy expected that
+  slicing an ndarray would return a new ndarray.  As this is a rare usecase
+  with a rare feature most users are unlikely to be affected by this change.
+
+- The previously internal _Group object for representing individual group
+  records in a GroupData object are renamed Group and are now a public
+  interface.  However, there's almost no good reason to create Group objects
+  directly, so it shouldn't be considered a "new feature".
+
+- An annoyance from PyFITS 3.0.6 was fixed, where the value of the EXTEND
+  keyword was always being set to F if there are not actually any extension
+  HDUs.  It was unnecessary to modify this value.
+
+Bug Fixes
++++++++++
+
+- Fixed GroupData objects to return new GroupData objects when sliced instead
+  of _Group record objects.  See "Changes in behavior" above for more details.
+
+- Fixed slicing of Group objects--previously it was not possible to slice
+  slice them at all.
+
+- Made it possible to assign `np.bool_` objects as header values. (#123)
+
+- Fixed overly strict handling of the EXTEND keyword; see "Changes in
+  behavior" above. (#124)
+
+- Fixed many cases where an HDU's header would be marked as "modified" by
+  PyFITS and rewritten, even when no changes to the header are necessary.
+  (#125)
+
+- Fixed a bug where the values of the PTYPEn keywords in a random groups HDU
+  were forced to be all lower-case when saving the file. (#130)
+
+- Removed an unnecessary inline import in `ExtensionHDU.__setattr__` that was
+  causing some slowdown when opening files containing a large number of
+  extensions, plus a few other small (but not insignficant) performance
+  improvements thanks to Julian Taylor. (#133)
+
+- Fixed a regression where header blocks containing invalid end-of-header
+  padding (i.e. null bytes instead of spaces) couldn't be parsed by PyFITS.
+  Such headers can be parsed again, but a warning is raised, as such headers
+  are not valid FITS. (#136)
+
+- Fixed a memory leak where table data in random groups HDUs weren't being
+  garbage collected. (#138)
+
+
+3.0.6 (2012-02-29)
+------------------
+
+Highlights
+++++++++++
+
+The main reason for this release is to fix an issue that was introduced in
+PyFITS 3.0.5 where merely opening a file containing scaled data (that is, with
+non-trivial BSCALE and BZERO keywords) in 'update' mode would cause the data
+to be automatically rescaled--possibly converting the data from ints to
+floats--as soon as the file is closed, even if the application did not touch
+the data.  Now PyFITS will only rescale the data in an extension when the data
+is actually accessed by the application.  So opening a file in 'update' mode
+in order to modify the header or append new extensions will not cause any
+change to the data in existing extensions.
+
+This release also fixes a few Windows-specific bugs found through more
+extensive Windows testing, and other miscellaneous bugs.
+
+Bug Fixes
++++++++++
 
 - More accurate error messages when opening files containing invalid header
   cards. (#109)

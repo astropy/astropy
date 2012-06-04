@@ -273,6 +273,22 @@ def fileobj_mode(f):
     return mode
 
 
+def fileobj_is_binary(f):
+    """
+    Returns True if the give file or file-like object has a file open in binary
+    mode.  When in doubt, returns True by default.
+    """
+
+    # TODO: In Python 3 it might be more reliable to check if the fileobj is a
+    # text reader or a binary reader
+
+    mode = fileobj_mode(f)
+    if mode:
+        return 'b' in mode
+    else:
+        return True
+
+
 def translate(s, table, deletechars):
     """
     This is a version of string/unicode.translate() that can handle string or
@@ -291,8 +307,29 @@ def translate(s, table, deletechars):
 
 
 def indent(s, shift=1, width=4):
-    return '\n'.join(' ' * (width * shift) + l if l else ''
-                     for l in s.splitlines())
+    indented = '\n'.join(' ' * (width * shift) + l if l else ''
+                         for l in s.splitlines())
+    if s[-1] == '\n':
+        indented += '\n'
+
+    return indented
+
+
+def fill(text, width, *args, **kwargs):
+    """
+    Like :func:`textwrap.wrap` but preserves existing paragraphs which
+    :func:`textwrap.wrap` does not otherwise handle well.  Also handles section
+    headers.
+    """
+
+    paragraphs = text.split('\n\n')
+    def maybe_fill(t):
+        if all(len(l) < width for l in t.splitlines()):
+            return t
+        else:
+            return textwrap.fill(t, width, *args, **kwargs)
+
+    return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
 
 def _array_from_file(infile, dtype, count, sep):
@@ -327,11 +364,7 @@ def _write_string(f, s):
 
     # Assume if the file object doesn't have a specific mode, that the mode is
     # binary
-    mode = fileobj_mode(f)
-    if mode:
-        binmode = 'b' in mode
-    else:
-        binmode = True
+    binmode = fileobj_is_binary(f)
 
     if binmode and isinstance(s, unicode):
         s = encode_ascii(s)

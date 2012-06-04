@@ -11,10 +11,13 @@ import warnings
 
 import numpy as np
 
+from .. import EXTENSION_NAME_CASE_SENSITIVE
+from ..card import Card
 from ..file import _File
 from ..header import Header, HEADER_END_RE, BLOCK_SIZE, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, decode_ascii)
+                    itersubclasses, encode_ascii, decode_ascii,
+                    _get_array_memmap)
 from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty
@@ -97,9 +100,19 @@ class _BaseHDU(object):
     def __init__(self, data=None, header=None, *args, **kwargs):
         self._header = header
         self._file = None
+        self._buffer = None
         self._hdrLoc = None
         self._datLoc = None
         self._datSpan = None
+        self._new = True
+        self._output_checksum = False
+
+        if self._header:
+            if 'DATASUM' in self._header and 'CHECKSUM' not in self._header:
+                self._output_checksum = 'datasum'
+            elif 'CHECKSUM' in self._header:
+                self._output_checksum = True
+
         self.name = ''
 
     @property
@@ -147,9 +160,14 @@ class _BaseHDU(object):
         Creates a new HDU object of the appropriate type from a string
         containing the HDU's entire header and, optionally, its data.
 
+        Note: When creating a new HDU from a string without a backing file
+        object, the data of that HDU may be read-only.  It depends on whether
+        the underlying string was an immutable Python str/bytes object, or some
+        kind of read-write memory buffer such as a `memoryview`.
+
         Parameters
         ----------
-        data : str
+        data : str, bytearray, memoryview, ndarray
            A byte string contining the HDU's header and, optionally, its data.
            If `fileobj` is not specified, and the length of `data` extends
            beyond the header, then the trailing data is taken to be the HDU's
@@ -175,40 +193,44 @@ class _BaseHDU(object):
            Any unrecognized kwargs are simply ignored.
         """
 
-        if isinstance(data, basestring):
-            if data[:8] not in ['SIMPLE  ', 'XTENSION']:
-                raise ValueError('Block does not begin with SIMPLE or '
-                                 'XTENSION')
-
-            # Make sure the end card is present
-            match = HEADER_END_RE.search(data)
-            if not match:
-                if ignore_missing_end:
-                    hdrlen = len(data)
-                else:
-                    raise ValueError('Header missing END card.')
-            else:
-                hdrlen = match.start() + len(match.group())
-                hdrlen += _pad_length(hdrlen)
-
-            header = Header.fromstring(data[:hdrlen])
-        elif isinstance(data, Header):
+        if isinstance(data, Header):
             header = data
             if (not len(header) or
                 header.keys()[0] not in ('SIMPLE', 'XTENSION')):
                 raise ValueError('Block does not begin with SIMPLE or '
                                  'XTENSION')
         else:
-            raise TypeError('Invalid data argument to _BaseHDU.fromstring(): '
-                            'Must be either a string or a Header object.')
+            try:
+                # Test that the given object supports the buffer interface by
+                # ensuring an ndarray can be created from it
+                np.ndarray((), dtype='ubyte', buffer=data)
+            except TypeError:
+                raise TypeError(
+                    'The provided object %r does not contain an underlying '
+                    'memory buffer.  fromstring() requires an object that '
+                    'supports the buffer interface such as bytes, str '
+                    '(in Python 2.x but not in 3.x), buffer, memoryview, '
+                    'ndarray, etc.' % data)
 
-        if not fileobj and isinstance(data, basestring) and len(data) > hdrlen:
-            data = data[hdrlen:]
-        elif fileobj:
-            data = DELAYED
-        else:
-            data = None
+            if data[:8] not in [encode_ascii('SIMPLE  '),
+                                encode_ascii('XTENSION')]:
+                raise ValueError('Block does not begin with SIMPLE or '
+                                 'XTENSION')
 
+            # Make sure the end card is present
+            for match in HEADER_END_RE.finditer(data):
+                endpos = match.start()
+                if endpos % Card.length == 0:
+                    hdrlen = endpos + len(match.group())
+                    hdrlen += _pad_length(hdrlen)
+                    break
+            else:
+                if ignore_missing_end:
+                    hdrlen = len(data)
+                else:
+                    raise ValueError('Header missing END card.')
+
+            header = Header.fromstring(decode_ascii(data[:hdrlen]))
         # Determine the appropriate arguments to pass to the constructor from
         # self._kwargs.  self._kwargs contains any number of optional arguments
         # that may or may not be valid depending on the HDU type
@@ -217,16 +239,21 @@ class _BaseHDU(object):
         new_kwargs = kwargs.copy()
         if not varkwargs:
             # If __init__ accepts arbitrary keyword arguments, then we can go
-            # ahead and pass all keyword argumnets; otherwise we need to delete
+            # ahead and pass all keyword arguments; otherwise we need to delete
             # any that are invalid
             for key in kwargs:
                 if key not in args:
                     del new_kwargs[key]
 
-        hdu = cls(data=data, header=header, **new_kwargs)
+        hdu = cls(data=DELAYED, header=header, **new_kwargs)
 
         size = hdu.size
         hdu._file = fileobj
+
+        if not fileobj and len(data) > hdrlen:
+            # Provide an underlying buffer to read the data from
+            hdu._buffer = data
+
         hdu._hdrLoc = offset                 # beginning of the header area
         if fileobj:
             hdu._datLoc = fileobj.tell()     # beginning of the data area
@@ -237,7 +264,7 @@ class _BaseHDU(object):
         hdu._datSpan = size + _pad_length(size)
 
         # Checksums are not checked on invalid HDU types
-        if checksum and isinstance(hdu, _ValidHDU):
+        if checksum and checksum != 'remove' and isinstance(hdu, _ValidHDU):
             hdu._verify_checksum_datasum(checksum)
 
         return hdu
@@ -283,8 +310,56 @@ class _BaseHDU(object):
         fileobj.seek(hdu._datLoc + hdu._datSpan, os.SEEK_SET)
         return hdu
 
-    def _writeheader(self, fileobj, checksum=False):
-        # NOTE: Right now this assumes fileobj is a _File object
+    def writeto(self, name, output_verify='exception', clobber=False,
+                checksum=False):
+        """
+        Write the HDU to a new file.  This is a convenience method to
+        provide a user easier output interface if only one HDU needs
+        to be written to a file.
+
+        Parameters
+        ----------
+        name : file path, file object or file-like object
+            Output FITS file.  If opened, must be opened for append
+            ("ab+")).
+
+        output_verify : str
+            Output verification option.  Must be one of ``"fix"``,
+            ``"silentfix"``, ``"ignore"``, ``"warn"``, or
+            ``"exception"``.  See :ref:`verify` for more info.
+
+        clobber : bool
+            Overwrite the output file if exists.
+
+        checksum : bool
+            When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
+            to the header of the HDU when written to the file.
+        """
+
+        from .hdulist import HDUList
+
+        hdulist = HDUList([self])
+        hdulist.writeto(name, output_verify, clobber=clobber,
+                        checksum=checksum)
+
+    def _get_raw_data(self, shape, code, offset):
+        """
+        Return raw array from either the HDU's memory buffer or underlying
+        file.
+        """
+
+        if isinstance(shape, int):
+            shape = (shape,)
+
+        if self._buffer:
+            return np.ndarray(shape, dtype=code, buffer=self._buffer,
+                              offset=offset)
+        else:
+            return self._file.readarray(offset=offset, dtype=code, shape=shape)
+
+    # TODO: Rework checksum handling so that it's not necessary to add a
+    # checksum argument here
+    def _prewriteto(self, checksum=False, inplace=False):
         # If the data is unsigned int 16, 32, or 64 add BSCALE/BZERO
         # cards to header
         if self._data_loaded and self.data is not None and \
@@ -297,24 +372,42 @@ class _BaseHDU(object):
                              after='BSCALE')
 
         # Handle checksum
-        if 'CHECKSUM' in self._header:
-            del self._header['CHECKSUM']
 
-        if 'DATASUM' in self._header:
-            del self._header['DATASUM']
+        # If the data is loaded it isn't necessarily 'modified', but we have no
+        # way of knowing for sure
+        modified = self._header._modified or self._data_loaded
 
-        if checksum == 'datasum':
-            self.add_datasum()
-        elif checksum == 'nonstandard_datasum':
-            self.add_datasum(blocking='nonstandard')
-        elif checksum == 'test':
-            self.add_datasum(self._datasum_comment)
-            self.add_checksum(self._checksum_comment, True)
-        elif checksum == 'nonstandard':
-            self.add_checksum(blocking='nonstandard')
-        elif checksum:
-            self.add_checksum(blocking='standard')
+        if checksum == 'remove':
+            if 'CHECKSUM' in self._header:
+                del self._header['CHECKSUM']
 
+            if 'DATASUM' in self._header:
+                del self._header['DATASUM']
+        elif modified or self._new:
+            if checksum == 'datasum':
+                self.add_datasum()
+            elif checksum == 'nonstandard_datasum':
+                self.add_datasum(blocking='nonstandard')
+            elif checksum == 'test':
+                self.add_datasum(self._datasum_comment)
+                self.add_checksum(self._checksum_comment, True)
+            elif checksum == 'nonstandard':
+                self.add_checksum(blocking='nonstandard')
+            elif checksum:
+                self.add_checksum(blocking='standard')
+
+    def _postwriteto(self):
+        # If data is unsigned integer 16, 32 or 64, remove the
+        # BSCALE/BZERO cards
+        if (self._data_loaded and self.data is not None and
+            self._standard and _is_pseudo_unsigned(self.data.dtype)):
+            for keyword in ('BSCALE', 'BZERO'):
+                try:
+                    del self._header[keyword]
+                except KeyError:
+                    pass
+
+    def _writeheader(self, fileobj):
         offset = 0
         if not fileobj.simulateonly:
             try:
@@ -330,16 +423,6 @@ class _BaseHDU(object):
                 size = len(str(self._header))
         else:
             size = len(str(self._header))
-
-        # If data is unsigned integer 16, 32 or 64, remove the
-        # BSCALE/BZERO cards
-        if (self._data_loaded and self.data is not None and
-            self._standard and _is_pseudo_unsigned(self.data.dtype)):
-            for keyword in ('BSCALE', 'BZERO'):
-                try:
-                    del self._header[keyword]
-                except KeyError:
-                    pass
 
         # Update hdrLoc with the new offset
         self._hdrLoc = offset
@@ -376,9 +459,10 @@ class _BaseHDU(object):
 
         # Update datLoc with the new offset
         self._datLoc = offset
+        self._datSpan = size = size + _pad_length(size)
 
         # return both the location and the size of the data area
-        return offset, size + _pad_length(size)
+        return offset, size
 
     def _writedata_internal(self, fileobj):
         """
@@ -397,42 +481,65 @@ class _BaseHDU(object):
     # Though right now this is an internal private method (though still used by
     # HDUList, eventually the plan is to have this be moved into writeto()
     # somehow...
-    def _writeto(self, fileobj, checksum=False):
+    def _writeto(self, fileobj, inplace=False, copy=False):
         # For now fileobj is assumed to be a _File object
-        return (self._writeheader(fileobj, checksum)[0],) + \
-               self._writedata(fileobj)
+        if not inplace or self._new:
+            self._writeheader(fileobj)
+            self._writedata(fileobj)
+            return
 
-    def writeto(self, name, output_verify='exception', clobber=False,
-                checksum=False):
-        """
-        Write the HDU to a new file.  This is a convenience method to
-        provide a user easier output interface if only one HDU needs
-        to be written to a file.
+        hdrloc = self._hdrLoc
+        hdrsize = self._datLoc - self._hdrLoc
+        datloc = self._datLoc
+        datsize = self._datSpan
 
-        Parameters
-        ----------
-        name : file path, file object or file-like object
-            Output FITS file.  If opened, must be opened for append
-            ("ab+")).
+        if self.header._modified:
+            # Seek to the original header location in the file
+            self._file.seek(hdrloc)
+            # This should update hdrloc with he header location in the new file
+            hdrloc, hdrsize = self._writeheader(fileobj)
 
-        output_verify : str
-            Output verification option.  Must be one of ``"fix"``,
-            ``"silentfix"``, ``"ignore"``, ``"warn"``, or
-            ``"exception"``.  See :ref:`verify` for more info.
+            # If the data is to be written below with self._writedata, that
+            # will also properly update the data location; but it should be
+            # updated here too
+            datloc = hdrloc + hdrsize
+        elif copy:
+            # Seek to the original header location in the file
+            self._file.seek(hdrloc)
+            # Before writing, update the hdrloc with the current file position,
+            # which is the hdrloc for the new file
+            hdrloc = fileobj.tell()
+            fileobj.write(self._file.read(hdrsize))
+            # The header size is unchanged, but the data location may be
+            # different from before depending on if previous HDUs were resized
+            datloc = fileobj.tell()
+        if self._data_loaded:
+            if self.data is not None:
+                # Seek through the array's bases for an memmap'd array; we
+                # can't rely on the _File object to give us this info since the
+                # user may have replaced the previous mmap'd array
+                if copy:
+                    # Of course, if we're copying the data to a new file we
+                    # don't care about flushing the original mmap; instead just
+                    # read it into the new file
+                    memmap_array = None
+                else:
+                    memmap_array = _get_array_memmap(self.data)
 
-        clobber : bool
-            Overwrite the output file if exists.
+                if memmap_array is not None:
+                    memmap_array.flush()
+                else:
+                    self._file.seek(self._datLoc)
+                    datloc, datsize = self._writedata(fileobj)
+        elif copy:
+            # Seek to the data location in the original file
+            self._file.seek(self._datLoc)
+            fileobj.write(self._file.read(datsize))
 
-        checksum : bool
-            When `True` adds both ``DATASUM`` and ``CHECKSUM`` cards
-            to the header of the HDU when written to the file.
-        """
+        self._hdrLoc = hdrloc
+        self._datLoc = datloc
+        self._datSpan = datsize + _pad_length(datsize)
 
-        from .hdulist import HDUList
-
-        hdulist = HDUList([self])
-        hdulist.writeto(name, output_verify, clobber=clobber,
-                        checksum=checksum)
 _AllHDU = _BaseHDU  # For backwards-compatibility, though nobody should have
                     # been using this directly
 
@@ -469,6 +576,9 @@ class _CorruptedHDU(_BaseHDU):
 
         # Note: On compressed files this might report a negative size; but the
         # file is corrupt anyways so I'm not too worried about it.
+        if self._buffer is not None:
+            return len(self._buffer) - self._datLoc
+
         return self._file.size - self._datLoc
 
     def _summary(self):
@@ -521,6 +631,9 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         Returns the size (in bytes) of the HDU's data part.
         """
 
+        if self._buffer is not None:
+            return len(self._buffer) - self._datLoc
+
         return self._file.size - self._datLoc
 
     def _writedata(self, fileobj):
@@ -559,8 +672,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
         Return the file data.
         """
 
-        self._file.seek(self._datLoc)
-        return self._file.readarray()
+        return self._get_raw_data(self.size, 'ubyte', self._datLoc)
 
     def _verify(self, option='warn'):
         errs = _ErrList([], unit='Card')
@@ -1101,9 +1213,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             # yet.  We find the data in the file, read it, and calculate the
             # datasum.
             if self.size > 0:
-                raw_data = self._file.readarray(size=self._datSpan,
-                                                offset=self._datLoc,
-                                                dtype='ubyte')
+                raw_data = self._get_raw_data(self._datSpan, 'ubyte',
+                                              self._datLoc)
                 return self._compute_checksum(raw_data, blocking=blocking)
             else:
                 return 0
@@ -1311,8 +1422,6 @@ class ExtensionHDU(_ValidHDU):
         Set an HDU attribute.
         """
 
-        from .. import EXTENSION_NAME_CASE_SENSITIVE
-
         if attr == 'name' and value:
             if not isinstance(value, basestring):
                 raise TypeError("'name' attribute must be a string")
@@ -1409,8 +1518,7 @@ class NonstandardExtHDU(ExtensionHDU):
         Return the file data.
         """
 
-        self._file.seek(self._datLoc)
-        return self._file.readarray()
+        return self._get_raw_data(self.size, 'ubyte', self._datLoc)
 
 # TODO: Mark this as deprecated
 _NonstandardExtHDU = NonstandardExtHDU

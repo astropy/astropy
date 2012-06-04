@@ -6,84 +6,59 @@
 Tables
 ******
 
-.. inheritance-diagram:: Column ColDefs FITS_record FITS_rec GroupData TableHDU BinTableHDU
-
-`BinTableHDU`
-=============
-
+:class:`BinTableHDU`
+====================
 .. autoclass:: BinTableHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`TableHDU`
-==========
-
+:class:`TableHDU`
+=================
 .. autoclass:: TableHDU
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`Column`
-========
-
+:class:`Column`
+===============
 .. autoclass:: Column
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`ColDefs`
-=========
-
+:class:`ColDefs`
+================
 .. autoclass:: ColDefs
    :members:
    :inherited-members:
-   :undoc-members:
    :show-inheritance:
 
-`FITS_record`
-=============
+:class:`FITS_rec`
+=================
+.. autoclass:: FITS_rec
+   :members:
+   :show-inheritance:
 
+:class:`FITS_record`
+====================
 .. autoclass:: FITS_record
    :members:
    :inherited-members:
-   :undoc-members:
-   :show-inheritance:
-
-`FITS_rec`
-==========
-
-.. autoclass:: FITS_rec
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-`GroupData`
-===========
-
-.. autoclass:: GroupData
-   :members:
-   :undoc-members:
    :show-inheritance:
 
 
-Free functions
-==============
+Table Functions
+===============
 
-new_table
----------
-
+:func:`new_table`
+-----------------
 .. autofunction:: new_table
 
-tabledump
----------
-
+:func:`tabledump`
+-----------------
 .. autofunction:: tabledump
 
-tableload
----------
-
+:func:`tableload`
+-----------------
 .. autofunction:: tableload
