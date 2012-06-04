@@ -12,4 +12,6 @@ Working with FITS Files in Astropy
    users_table.rst
    users_verification.rst
    users_unfamiliar.rst
+   users_scripts.rst
+   users_misc.rst
    users_reference.rst

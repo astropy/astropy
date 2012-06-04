@@ -37,6 +37,23 @@ class TestImageFunctions(FitsTestCase):
         assert hdu.name == 'FOO'
         assert hdu.header['EXTNAME'] == 'FOO'
 
+    def test_constructor_copies_header(self):
+       """
+       Regression test for #153.  Ensure that a header from one HDU is copied
+       when used to initialize new HDU.
+       """
+
+       ifd = fits.HDUList(fits.PrimaryHDU())
+       phdr = ifd[0].header
+       phdr['FILENAME'] = 'labq01i3q_rawtag.fits'
+
+       primary_hdu = fits.PrimaryHDU(header=phdr)
+       ofd = fits.HDUList(primary_hdu)
+       ofd[0].header['FILENAME'] = 'labq01i3q_flt.fits'
+
+       # Original header should be unchanged
+       assert phdr['FILENAME'] == 'labq01i3q_rawtag.fits'
+
     @raises(ValueError)
     def test_open(self):
         # The function "open" reads a FITS file into an HDUList object.  There
@@ -469,6 +486,48 @@ class TestImageFunctions(FitsTestCase):
             assert fd[1].header['NAXIS1'] == chdu.header['NAXIS1']
             assert fd[1].header['NAXIS2'] == chdu.header['NAXIS2']
             assert fd[1].header['BITPIX'] == chdu.header['BITPIX']
+
+    def test_section_data_scaled(self):
+        """
+        Regression test for #143.  This is like test_section_data_square but
+        uses a file containing scaled image data, to test that sections can
+        work correctly with scaled data.
+        """
+
+        hdul = fits.open(self.data('scale.fits'))
+        d = hdul[0]
+        dat = hdul[0].data
+        assert (d.section[:, :] == dat[:, :]).all()
+        assert (d.section[0, :] == dat[0, :]).all()
+        assert (d.section[1, :] == dat[1, :]).all()
+        assert (d.section[:, 0] == dat[:, 0]).all()
+        assert (d.section[:, 1] == dat[:, 1]).all()
+        assert (d.section[0, 0] == dat[0, 0]).all()
+        assert (d.section[0, 1] == dat[0, 1]).all()
+        assert (d.section[1, 0] == dat[1, 0]).all()
+        assert (d.section[1, 1] == dat[1, 1]).all()
+        assert (d.section[0:1, 0:1] == dat[0:1, 0:1]).all()
+        assert (d.section[0:2, 0:1] == dat[0:2, 0:1]).all()
+        assert (d.section[0:1, 0:2] == dat[0:1, 0:2]).all()
+        assert (d.section[0:2, 0:2] == dat[0:2, 0:2]).all()
+
+        # Test without having accessed the full data first
+        hdul = fits.open(self.data('scale.fits'))
+        d = hdul[0]
+        assert (d.section[:, :] == dat[:, :]).all()
+        assert (d.section[0, :] == dat[0, :]).all()
+        assert (d.section[1, :] == dat[1, :]).all()
+        assert (d.section[:, 0] == dat[:, 0]).all()
+        assert (d.section[:, 1] == dat[:, 1]).all()
+        assert (d.section[0, 0] == dat[0, 0]).all()
+        assert (d.section[0, 1] == dat[0, 1]).all()
+        assert (d.section[1, 0] == dat[1, 0]).all()
+        assert (d.section[1, 1] == dat[1, 1]).all()
+        assert (d.section[0:1, 0:1] == dat[0:1, 0:1]).all()
+        assert (d.section[0:2, 0:1] == dat[0:2, 0:1]).all()
+        assert (d.section[0:1, 0:2] == dat[0:1, 0:2]).all()
+        assert (d.section[0:2, 0:2] == dat[0:2, 0:2]).all()
+        assert not d._data_loaded
 
     def test_comp_image_hcompression_1_invalid_data(self):
         """

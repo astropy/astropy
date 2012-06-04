@@ -1,12 +1,45 @@
 .. currentmodule:: astropy.io.fits
 
-*************
-Opening Files
-*************
+***************************************
+File Handling and Convenience Functions
+***************************************
 
+:func:`open`
+================
 .. autofunction:: open
 
-.. automodule:: astropy.io.fits.convenience
-   :members: getdata, getheader, getval, setval, delval, writeto, append,
-             update, info
+:func:`writeto`
+===============
+.. autofunction:: writeto
 
+:func:`info`
+============
+.. autofunction:: info
+
+:func:`append`
+==============
+.. autofunction:: append
+
+:func:`update`
+==============
+.. autofunction:: update
+
+:func:`getdata`
+===============
+.. autofunction:: getdata
+
+:func:`getheader`
+=================
+.. autofunction:: getheader
+
+:func:`getval`
+==============
+.. autofunction:: getval
+
+:func:`setval`
+==============
+.. autofunction:: setval
+
+:func:`delval`
+==============
+.. autofunction:: delval

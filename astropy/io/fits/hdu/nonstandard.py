@@ -25,10 +25,6 @@ class FitsHDU(NonstandardExtHDU):
     _extension = 'FITS'
 
     @lazyproperty
-    def data(self):
-        return self._file.readarray(self.size, offset=self._datLoc)
-
-    @lazyproperty
     def hdulist(self):
         self._file.seek(self._datLoc)
         fileobj = io.BytesIO()
@@ -107,7 +103,7 @@ class FitsHDU(NonstandardExtHDU):
         # shouldn't care about fileobjs.  There should be a _BaseHDU.fromfile
         # for that (there is _BaseHDU.readfrom which plays that role, but its
         # semantics are also a little unclear...)
-        return cls.fromstring(str(header), fileobj=_File(bs))
+        return cls.fromstring(header, fileobj=_File(bs))
 
     @classmethod
     def match_header(cls, header):

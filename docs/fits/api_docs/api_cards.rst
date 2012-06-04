@@ -4,8 +4,8 @@
 Cards
 *****
 
-`Card`
-======
+:class:`Card`
+=============
 
 .. autoclass:: Card
    :members:
@@ -13,29 +13,20 @@ Cards
    :undoc-members:
    :show-inheritance:
 
-`CardList`
-==========
+Deprecated Interfaces
+=====================
+
+The following classes and functions are deprecated as of the PyFITS 3.1 header
+refactoring, though they are currently still available for backwards-compatibility.
 
 .. autoclass:: CardList
    :members:
    :undoc-members:
    :show-inheritance:
 
-Free functions
-==============
-
-create_card
------------
-
 .. autofunction:: create_card
 
-create_card_from_string
------------------------
-
 .. autofunction:: create_card_from_string
-
-upper_key
----------
 
 .. autofunction:: upper_key
 
