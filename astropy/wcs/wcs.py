@@ -247,7 +247,7 @@ class WCS(WCSBase):
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = repr(header).encode('latin1')
+                header_string = repr(header.ascard).encode('latin1')
             else:
                 raise TypeError(
                     "header must be a string or an astropy.io.fits.Header "
