@@ -982,7 +982,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     if Inputter is not None:
         reader.inputter = Inputter()
-        reader.outputter = TableOutputter()
+    reader.outputter = TableOutputter()
 
     if Outputter is not None:
         reader.outputter = Outputter()
