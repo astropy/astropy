@@ -1,6 +1,6 @@
-=============================
-`astropy.tools` documentation
-=============================
+=============
+astropy.tools
+=============
 
 The `~astropy.tools` package holds general astronomy functions or algorithms 
 that are likely of use to users, but either not related to functionality in

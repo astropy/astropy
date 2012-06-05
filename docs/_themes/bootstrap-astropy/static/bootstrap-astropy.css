@@ -1,0 +1,670 @@
+/*!
+ * Bootstrap v1.4.0
+ *
+ * Copyright 2011 Twitter, Inc
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Modified by Kyle Barbary for the AstroPy Project.
+ */
+
+@import url("basic.css");
+
+/* Body defaults
+ * ----------------------------------------------------------------------*/
+
+body {
+  background-color: #ffffff;
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+  color: #404040;
+}
+
+/* Hyperlinks
+ * ----------------------------------------------------------------------*/
+
+a {
+  color: #0069d6;
+  text-decoration: none;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+a:hover {
+  color: #00438a;
+  text-decoration: underline;
+}
+
+/* Typography
+ * ----------------------------------------------------------------------*/
+
+p {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+  margin-bottom: 9px;
+}
+p small {
+  font-size: 11px;
+  color: #bfbfbf;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+/*  font-weight: bold;*/
+  color: #404040;
+}
+h1 small,
+h2 small,
+h3 small,
+h4 small,
+h5 small,
+h6 small {
+  color: #bfbfbf;
+}
+h1 {
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-size: 22px;
+  line-height: 33px;
+}
+h1 small {
+  font-size: 18px;
+}
+h2 {
+  font-size: 18px;
+  line-height: 27px;
+  margin-bottom: 10px;
+}
+h2 small {
+  font-size: 14px;
+}
+h3,
+h4,
+h5,
+h6 {
+  line-height: 36px;
+}
+h3 {
+  font-size: 18px;
+}
+h3 small {
+  font-size: 14px;
+}
+h4 {
+  font-size: 16px;
+}
+h4 small {
+  font-size: 12px;
+}
+h5 {
+  font-size: 14px;
+}
+h6 {
+  font-size: 13px;
+  color: #bfbfbf;
+  text-transform: uppercase;
+}
+ul, ol {
+  margin: 0 0 18px 25px;
+}
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  margin-bottom: 0;
+}
+ul {
+  list-style: disc;
+}
+ol {
+  list-style: decimal;
+}
+li {
+  line-height: 18px;
+  color: #808080;
+}
+ul.unstyled {
+  list-style: none;
+  margin-left: 0;
+}
+dl {
+  margin-bottom: 18px;
+}
+dl dt, dl dd {
+  line-height: 18px;
+}
+dl dd {
+  margin-left: 9px;
+}
+hr {
+  margin: 20px 0 19px;
+  border: 0;
+  border-bottom: 1px solid #eee;
+}
+strong {
+  font-style: inherit;
+  font-weight: bold;
+}
+em {
+  font-style: italic;
+  font-weight: inherit;
+  line-height: inherit;
+}
+.muted {
+  color: #bfbfbf;
+}
+
+/*
+blockquote {
+  margin-bottom: 18px;
+  border-left: 5px solid #eee;
+  padding-left: 15px;
+}
+blockquote p {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+  margin-bottom: 0;
+}
+blockquote small {
+  display: block;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 18px;
+  color: #bfbfbf;
+}
+blockquote small:before {
+  content: '\2014 \00A0';
+}
+*/
+
+address {
+  display: block;
+  line-height: 18px;
+  margin-bottom: 18px;
+}
+code, pre {
+  padding: 0 3px 2px;
+  font-family: Monaco, Andale Mono, Courier New, monospace;
+  font-size: 12px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+code {
+  background-color: #fee9cc;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 1px 3px;
+}
+pre {
+  background-color: #eee;
+  display: block;
+  padding: 8.5px;
+  margin: 0 0 18px;
+  line-height: 18px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* sphinx default pre:
+pre {
+    padding: 5px;
+    background-color: #eeffcc;
+    color: #333333;
+    line-height: 120%;
+    border: 1px solid #ac9;
+    border-left: none;
+    border-right: none;
+}
+*/
+
+/* Topbar
+ * ----------------------------------------------------------------------*/
+
+div.topbar {
+  height: 40px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  padding: 0px 20px;
+  background-color: #222;
+  background-color: #222222;
+  background-repeat: repeat-x;
+  background-image: -khtml-gradient(linear, left top, left bottom, from(#333333), to(#222222));
+  background-image: -moz-linear-gradient(top, #333333, #222222);
+  background-image: -ms-linear-gradient(top, #333333, #222222);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #333333), color-stop(100%, #222222));
+  background-image: -webkit-linear-gradient(top, #333333, #222222);
+  background-image: -o-linear-gradient(top, #333333, #222222);
+  background-image: linear-gradient(top, #333333, #222222);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+div.topbar .brand {
+  float: left;
+  display: block;
+  width: 130px;
+  height: 32px;
+  padding: 8px 0px 0px;
+  margin-left: -10px;
+  background: transparent url("astropylogo_docs_32.png") no-repeat 10px 4px;
+  padding-left: 62px;
+}
+
+div.topbar .nav {
+    display: block;
+    float: right;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.topbar form {
+  float: left;
+  width: 280px;
+  text-align: left;
+  margin: 5px 0 0 0;
+  position: relative;
+  filter: alpha(opacity=100);
+  -khtml-opacity: 1;
+  -moz-opacity: 1;
+  opacity: 1;
+}
+
+.topbar input {
+  float: right;
+  background-color: #444;
+  background-color: rgba(255, 255, 255, 0.3);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: normal;
+  font-weight: 13px;
+  line-height: 1;
+  padding: 4px 9px;
+  color: #ffffff;
+  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid #111;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0px rgba(255, 255, 255, 0.25);
+  -moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0px rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0px rgba(255, 255, 255, 0.25);
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+.topbar input:-moz-placeholder {
+  color: #e6e6e6;
+}
+.topbar input::-webkit-input-placeholder {
+  color: #e6e6e6;
+}
+.topbar input:hover {
+  background-color: #bfbfbf;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+.topbar input:focus, .topbar input.focused {
+  outline: 0;
+  background-color: #ffffff;
+  color: #404040;
+  text-shadow: 0 1px 0 #ffffff;
+  border: 0;
+  padding: 5px 10px;
+  -webkit-box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+  -moz-box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Related
+ * ----------------------------------------------------------------------*/
+div.related {
+    height: 21px;
+    width: auto;
+    padding: 0px 20px;
+    position: fixed;
+    top: 40px;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    fontsize: 100%;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+div.related ul {
+    padding: 0;
+}
+
+/* Footer
+ * ----------------------------------------------------------------------*/
+footer {
+  display: block;
+  margin-top: 17px;
+  padding-top: 17px;
+  padding: 0px 20px;
+  border-top: 1px solid #ddd;
+}
+.pull-right {
+  float: right;
+  width: 280px;
+  text-align: right;
+}
+
+
+/* Sphinx sidebar
+ * ----------------------------------------------------------------------*/
+div.sphinxsidebar {
+    border-radius: 3px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+}
+
+div.sphinxsidebar h3 {
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 1.4em;
+    font-weight: normal;
+    margin: 5px 0px 0px 5px;
+    padding: 0;
+    line-height: 1.6em;
+}
+div.sphinxsidebar h4 {
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 1.3em;
+    font-weight: normal;
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+div.sphinxsidebar p {
+}
+div.sphinxsidebar p.topless {
+    margin: 5px 10px 10px 10px;
+}
+div.sphinxsidebar ul {
+    margin: 0px 0px 0px 0px;
+    padding: 0;
+}
+/* No bullets for nested lists */
+div.sphinxsidebar ul ul {
+    margin-left: 15px;
+    list-style-type: none;
+}
+
+/* Make these into hidden one-liners */
+div.sphinxsidebar li,
+div.sphinxsidebar p.topless {
+    white-space: nowrap;
+    overflow: hidden;
+}
+/* ...which become visible when hovered */
+div.sphinxsidebar li:hover,
+div.sphinxsidebar p.topless:hover {
+    overflow: visible;
+}
+/* Sidebar links are unusual */
+div.sphinxsidebar li a,
+div.sphinxsidebar p a {
+    background: #eee; /* In case links overlap main content */
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border: 1px solid transparent; /* prevent things jumping around on hover */
+    padding: 0 5px 0 5px;
+    text-decoration: none; /* we're already putting a border around it */
+}
+
+div.sphinxsidebar li a:hover,
+div.sphinxsidebar p a:hover {
+    border: 1px solid #888;
+}
+
+/* Formatting for current page link*/
+div.sphinxsidebar a.current {
+    color: #404040;
+}
+div.sphinxsidebar a.current:hover {
+    color: #404040;
+    border: 1px solid transparent;
+}
+
+div.sphinxsidebarwrapper {
+    padding: 0px 0px 0px 5px;
+}
+
+
+
+/* document, documentwrapper, body, bodywrapper
+ * --------------------------------------------------------------------- */
+
+div.document {
+    margin-top: 68px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.body {
+    background-color: #ffffff;
+    padding: 0 20px 30px 20px;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 230px;
+}
+
+/*
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6 {
+    font-family: 'Trebuchet MS', sans-serif;
+    background-color: #f2f2f2;
+    font-weight: normal;
+    color: #20435c;
+    border-bottom: 1px solid #ccc;
+    margin: 20px -20px 10px -20px;
+    padding: 3px 0 3px 10px;
+}
+
+div.body h1 { margin-top: 0; font-size: 200%; }
+div.body h2 { font-size: 160%; }
+div.body h3 { font-size: 140%; }
+div.body h4 { font-size: 120%; }
+div.body h5 { font-size: 110%; }
+div.body h6 { font-size: 100%; }
+*/
+
+/*
+div.body p, div.body dd, div.body li {
+    text-align: justify;
+    line-height: 130%;
+}
+*/
+
+/* HEADER LINKS ------------------------------------------------------------- */
+
+a.headerlink {
+    font-size: 0.8em;
+    padding: 0 4px 0 4px;
+    text-decoration: none;
+}
+
+a.headerlink:hover {
+    background-color: #0069d6;
+    color: white;
+    text-docoration: none;
+}
+
+/* The following is a hack to fix the position of anchor links (headerlink).
+Clicking on anchorlinks positions the item at the top of the viewport.
+However, with the fixed topbar, the item appears under the topbar, 
+and is hence not visible. The following is a fix from
+http://nicolasgallagher.com/jump-links-and-viewport-positioning
+and will work for all our div.section anchor links as long as the background
+is the same as the page background. */
+div.section:before {
+  display:block; 
+  content:""; 
+  height:61px; 
+  margin:-61px 0 0; 
+}
+
+/* ADMONITIONS AND WARNINGS ------------------------------------------------- */
+
+/* Shared by admonitions and warnings */
+div.admonition,
+div.warning {
+    padding: 0px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+div.admonition p,
+div.warning p {
+    margin: 0.5em 1em 0.5em 1em;
+    padding: 0;
+}
+div.admonition pre,
+div.warning pre {
+    margin: 0.4em 1em 0.4em 1em;
+}
+div.admonition p.admonition-title,
+div.warning p.admonition-title {
+    margin: 0;
+    padding: 0.1em 0 0.1em 0.5em;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+div.admonition ul, div.admonition ol,
+div.warning ul, div.warning ol {
+    margin: 0.1em 0.5em 0.5em 3em;
+    padding: 0;
+}
+
+/* Admonitions only */
+div.admonition {
+    border: 1px solid #609060;
+    background-color: #e9ffe9;
+}
+div.admonition p.admonition-title {
+    background-color: #70A070;
+}
+
+/* Warnings only */
+div.warning {
+    border: 1px solid #900000;
+    background-color: #ffe9e9;
+}
+div.warning p.admonition-title {
+    background-color: #b04040;
+}
+
+
+/* Other divs and things in the body
+
+
+div.admonition p.admonition-title + p {
+    display: inline;
+}
+
+div.admonition p {
+    margin-bottom: 5px;
+}
+
+div.admonition pre {
+    margin-bottom: 5px;
+}
+
+div.admonition ul, div.admonition ol {
+    margin-bottom: 5px;
+}
+
+div.note {
+    background-color: #eee;
+    border: 1px solid #ccc;
+}
+
+div.seealso {
+    background-color: #ffc;
+    border: 1px solid #ff6;
+}
+
+div.topic {
+    background-color: #eee;
+}
+
+div.warning {
+    background-color: #ffe4e4;
+    border: 1px solid #f66;
+}
+
+p.admonition-title {
+    display: inline;
+}
+
+p.admonition-title:after {
+    content: ":";
+}
+*/
+
+tt {
+    background-color: #ecf0f3;
+    padding: 0 1px 0 1px;
+    font-size: 0.95em;
+}
+
+th {
+    background-color: #dddddd;
+}
+
+.warning tt {
+    background: #efc2c2;
+}
+
+.note tt {
+    background: #d6d6d6;
+}
+
+.viewcode-back {
+    font-family: sans-serif;
+}
+
+div.viewcode-block:target {
+    background-color: #f4debf;
+    border-top: 1px solid #ac9;
+    border-bottom: 1px solid #ac9;
+}
+
+table.docutils {
+    border-spacing: 5px;
+    border-collapse: separate;
+}
