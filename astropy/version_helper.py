@@ -99,7 +99,7 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         try:
             mod = find_current_module(1, finddiff=True)
             path = os.path.abspath(mod.__file__)
-        except ValueError:
+        except (ValueError, AttributeError):
             path = __file__
     if not os.path.isdir(path):
         path = os.path.abspath(os.path.split(path)[0])
