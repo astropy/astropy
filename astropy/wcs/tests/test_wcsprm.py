@@ -9,7 +9,7 @@ import numpy as np
 
 from .. import wcs
 from .. import _wcs
-from ...config import get_data_contents
+from ...config import get_data_contents, get_data_fileobj
 
 
 def b(s):
@@ -668,3 +668,10 @@ def test_detailed_err():
     w = _wcs._Wcsprm()
     w.pc = [[0, 0], [0, 0]]
     w.set()
+
+
+def test_header_parse():
+    from astropy.io import fits
+    hdulist = fits.open(get_data_fileobj('data/header_newlines.fits'))
+    w = wcs.WCS(hdulist[0].header)
+    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
