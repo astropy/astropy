@@ -174,10 +174,23 @@ def get_distutils_option(option, commands):
         the value of the given distutils option. If the option is not set,
         returns None.
     """
+
+    short_display_opts = set(o[1] for o in Distribution.display_options
+                             if o[1])
+    long_display_opts = set(o[0] for o in Distribution.display_options)
+
+    args = []
+    for arg in sys.argv[1:]:
+        if arg.startswith('--') and arg[2:] in long_display_opts:
+            continue
+        elif arg.startswith('-') and arg[1:] in short_display_opts:
+            continue
+        args.append(arg)
+
     # Pre-parse the Distutils command-line options and config files to
     # if the option is set.
     dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                         'script_args': sys.argv[1:]})
+                         'script_args': args})
     try:
         dist.parse_config_files()
         dist.parse_command_line()
