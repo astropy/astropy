@@ -157,6 +157,24 @@ except ImportError as e:
         raise
 
 
+def get_distutils_display_options():
+    """ Returns a set of all the distutils display options in their long and
+    short forms.  These are the setup.py arguments such as --name or --version
+    which print the project's metadata and then exit.
+
+    Returns
+    -------
+    opts : set
+        The long and short form display option arguments, including the - or --
+    """
+
+    short_display_opts = set('-' + o[1] for o in Distribution.display_options
+                             if o[1])
+    long_display_opts = set('--' + o[0] for o in Distribution.display_options)
+
+    return short_display_opts.union(long_display_opts)
+
+
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -175,17 +193,8 @@ def get_distutils_option(option, commands):
         returns None.
     """
 
-    short_display_opts = set(o[1] for o in Distribution.display_options
-                             if o[1])
-    long_display_opts = set(o[0] for o in Distribution.display_options)
-
-    args = []
-    for arg in sys.argv[1:]:
-        if arg.startswith('--') and arg[2:] in long_display_opts:
-            continue
-        elif arg.startswith('-') and arg[1:] in short_display_opts:
-            continue
-        args.append(arg)
+    display_opts = get_distutils_display_options()
+    args = [arg for arg in sys.argv[1:] if arg not in display_opts]
 
     # Pre-parse the Distutils command-line options and config files to
     # if the option is set.

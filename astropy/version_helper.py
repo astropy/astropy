@@ -180,6 +180,7 @@ def _get_version_py_str(packagename, version, release, debug):
 def generate_version_py(packagename, version, release, debug=None):
     """Regenerate the version.py module if necessary."""
 
+    from .setup_helpers import get_distutils_display_options
     from distutils import log
     import imp
     import os
@@ -202,11 +203,19 @@ def generate_version_py(packagename, version, release, debug=None):
         debug = bool(current_debug)
 
     version_py = os.path.join(packagename, 'version.py')
+    display_opts = get_distutils_display_options()
+    argv = set(sys.argv)
 
     if (current_version != version or current_release != release or
         current_debug != debug):
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
+
+        if display_opts.intersection(argv):
+            # Always silence unnecessary log messages when display options are
+            # being used
+            log.set_threshold(log.WARN)
+
         log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:
