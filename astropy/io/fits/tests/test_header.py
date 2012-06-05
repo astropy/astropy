@@ -1504,6 +1504,39 @@ class TestHeaderFunctions(FitsTestCase):
         assert h.cards['FOO'].image.rstrip() == "FOO     = 'Bar      '"
         assert h.cards['QUX'].image.rstrip() == "QUX     = 'Bar        '"
 
+    def test_keep_duplicate_history_in_orig_header(self):
+        """
+        Regression test for #156.
+
+        When creating a new HDU from an existing Header read from an existing
+        FITS file, if the origianl header contains duplicate HISTORY values
+        those duplicates should be preserved just as in the original header.
+
+        This bug occurred due to naivete in Header.extend.
+        """
+
+        history = ['CCD parameters table ...',
+                   '   reference table oref$n951041ko_ccd.fits',
+                   '     INFLIGHT 12/07/2001 25/02/2002',
+                   '     all bias frames'] * 3
+
+        hdu = fits.PrimaryHDU()
+        # Add the history entries twice
+        for item in history:
+            hdu.header['HISTORY'] = item
+
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[0].header['HISTORY'] == history
+
+        new_hdu = fits.PrimaryHDU(header=hdu.header)
+        assert new_hdu.header['HISTORY'] == hdu.header['HISTORY']
+        new_hdu.writeto(self.temp('test2.fits'))
+
+        with fits.open(self.temp('test2.fits')) as hdul:
+            assert hdul[0].header['HISTORY'] == history
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
