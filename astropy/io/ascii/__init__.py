@@ -29,18 +29,16 @@
 
 from __future__ import absolute_import
 
-from .core import (has_numpy,
-                   InconsistentTableError,
+from .core import (InconsistentTableError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,
                    Column, Keyword,
                    BaseInputter, ContinuationLinesInputter,
                    BaseHeader,
                    BaseData,
                    BaseOutputter, NumpyOutputter, TableOutputter,
-                   DictLikeNumpy,
                    BaseReader,
                    BaseSplitter, DefaultSplitter, WhitespaceSplitter,
-                   convert_list, convert_numpy,
+                   convert_numpy,
                    )
 from .basic import (Basic,
                     Rdb,

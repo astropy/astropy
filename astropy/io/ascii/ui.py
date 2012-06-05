@@ -55,14 +55,13 @@ def set_guess(guess):
     global _GUESS
     _GUESS = guess
 
-def get_reader(Reader=None, Inputter=None, Outputter=None, numpy=True, **kwargs):
+def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
     :param Reader: Reader class (default= :class:`Basic`)
     :param Inputter: Inputter class 
     :param Outputter: Outputter class
-    :param numpy: if False use :class:`BaseOutputter` (default=True)
     :param delimiter: column delimiter string
     :param comment: regular expression defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -83,17 +82,15 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, numpy=True, **kwargs)
     # with a default Reader.
     if Reader is None:
         Reader = basic.Basic
-    reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, numpy=numpy, **kwargs)
+    reader = core._get_reader(Reader, Inputter=Inputter, Outputter=Outputter, **kwargs)
     return reader
 
-def read(table, numpy=True, guess=None, **kwargs):
-    """Read the input ``table``.  If ``numpy`` is True (default) return the
-    table in a numpy record array.  Otherwise return the table as a dictionary
-    of column objects using plain python lists to hold the data.  Most of the
-    default behavior for various parameters is determined by the Reader class.
+def read(table, guess=None, **kwargs):
+    """Read the input ``table`` and return the table.  Most of
+    the default behavior for various parameters is determined by the Reader
+    class.
 
     :param table: input table (file name, list of strings, or single newline-separated string)
-    :param numpy: if False use :class:`BaseOutputter` (default=True)
     :param guess: try to guess the table format (default=True)
     :param Reader: Reader class (default= :class:`~asciitable.Basic`)
     :param Inputter: Inputter class
@@ -116,16 +113,13 @@ def read(table, numpy=True, guess=None, **kwargs):
 
     """
 
-    # Provide a simple way to choose between the two common outputters.  If an Outputter is
-    # supplied in kwargs that will take precedence.
+    # Provide a simple way to choose between the two common outputters.  If an
+    # Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    if core.has_numpy and numpy:
-        if core.is_astropy and 'fill_values' not in kwargs:
-            new_kwargs['Outputter'] = core.TableOutputter
-        else:
-            new_kwargs['Outputter'] = core.NumpyOutputter
+    if 'fill_values' not in kwargs:
+        new_kwargs['Outputter'] = core.TableOutputter
     else:
-        new_kwargs['Outputter'] = core.BaseOutputter
+        new_kwargs['Outputter'] = core.NumpyOutputter
     new_kwargs.update(kwargs)
 
     if guess is None:
@@ -137,6 +131,7 @@ def read(table, numpy=True, guess=None, **kwargs):
         dat = reader.read(table)
     return dat
 
+
 def _is_number(x):
     try:
         x = float(x)
@@ -144,7 +139,8 @@ def _is_number(x):
     except ValueError:
         pass
     return False
-    
+
+
 def _guess(table, read_kwargs):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess

@@ -34,26 +34,10 @@ import sys
 import re
 import csv
 import itertools
+import numpy
 
-try:
-    import numpy
-    has_numpy = True
-except ImportError:
-    has_numpy = False
+from ...table import Table
 
-try:
-    from ...table import Table
-    is_astropy = True
-    has_table = True
-except ValueError:
-    is_astropy = False
-    
-if not is_astropy:
-    try:
-        from astropy.table import Table
-        has_table = True
-    except ImportError:
-        has_table = False
 
 class InconsistentTableError(ValueError):
     pass
@@ -590,9 +574,10 @@ class BaseData(object):
             if not hasattr(formatter, '__call__'):
                 formatter = _format_func(formatter)
             col.formatter = formatter
-            
+
         for vals in izip(*self.cols):
             lines.append(self.splitter.join(vals))
+
 
 def _format_func(format_str):
     def func(val):
@@ -653,23 +638,6 @@ class DictLikeNumpy(dict):
         next = __next__
 
 
-def convert_list(python_type):
-    """Return a tuple ``(converter_func, converter_type)``.  The converter
-    function converts a list into a list of the given ``python_type``.  This
-    argument is a function that takes a single argument and returns a single
-    value of the desired type.  In general this will be one of ``int``,
-    ``float`` or ``str``.  The converter type is used to track the generic data
-    type (int, float, str) that is produced by the converter function.
-    """
-    type_map = {int: IntType,
-                float: FloatType,
-                str: StrType}
-    converter_type = type_map.get(python_type, AllType)
-
-    def converter(vals):
-        return [python_type(x) for x in vals]
-    return converter, converter_type
-
 def convert_numpy(numpy_type):
     """Return a tuple ``(converter_func, converter_type)``.  The converter
     function converts a list into a numpy array of the given ``numpy_type``.
@@ -700,15 +668,7 @@ class BaseOutputter(object):
     table data are stored as plain python lists within the column objects.
     """
     converters = {}
-    default_converters = [convert_list(int),
-                          convert_list(float),
-                          convert_list(str)]
-
-    def __call__(self, cols):
-        self._convert_vals(cols)
-        table = DictLikeNumpy((x.name, x.data) for x in cols)
-        table.dtype.names = tuple(x.name for x in cols)
-        return table
+    # Derived classes must define default_converters and __call__
 
     @staticmethod
     def _validate_and_copy(col, converters):
@@ -779,10 +739,9 @@ class NumpyOutputter(BaseOutputter):
     auto_masked_array = True
     default_masked_array = False
 
-    if has_numpy:
-        default_converters = [convert_numpy(numpy.int),
-                              convert_numpy(numpy.float),
-                              convert_numpy(numpy.str)]
+    default_converters = [convert_numpy(numpy.int),
+                          convert_numpy(numpy.float),
+                          convert_numpy(numpy.str)]
 
     def __call__(self, cols):
         self._convert_vals(cols)
@@ -806,15 +765,11 @@ class TableOutputter(BaseOutputter):
     NumpyOutputter.
     """
 
-    if has_numpy:
-        default_converters = [convert_numpy(numpy.int),
-                              convert_numpy(numpy.float),
-                              convert_numpy(numpy.str)]
+    default_converters = [convert_numpy(numpy.int),
+                          convert_numpy(numpy.float),
+                          convert_numpy(numpy.str)]
 
     def __call__(self, cols):
-        if not has_table:
-            raise ValueError('TableOutputter requires astropy')
-        
         self._convert_vals(cols)
         out = Table([x.data for x in cols], names=[x.name for x in cols])
         # To Do: add support for column and table metadata
@@ -838,7 +793,7 @@ class BaseReader(object):
         self.header = BaseHeader()
         self.data = BaseData()
         self.inputter = BaseInputter()
-        self.outputter = BaseOutputter()
+        self.outputter = TableOutputter()
         self.meta = {}                  # Placeholder for storing table metadata 
         self.keywords = []              # Placeholder for storing table Keywords
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
@@ -1016,7 +971,7 @@ extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
 
-def _get_reader(Reader, Inputter=None, Outputter=None, numpy=True, **kwargs):
+def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     """Initialize a table reader allowing for common customizations.  See ui.get_reader()
     for param docs.  This routine is for internal (package) use only and is useful
     because it depends only on the "core" module.
@@ -1027,12 +982,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, numpy=True, **kwargs):
 
     if Inputter is not None:
         reader.inputter = Inputter()
-
-    if has_numpy and numpy:
-        if is_astropy:
-            reader.outputter = TableOutputter()
-        else:
-            reader.outputter = NumpyOutputter()
+        reader.outputter = TableOutputter()
 
     if Outputter is not None:
         reader.outputter = Outputter()

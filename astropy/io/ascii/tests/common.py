@@ -1,17 +1,9 @@
 from __future__ import absolute_import
 
 import os
-try:
-    from ... import ascii as asciitable
-except ValueError:
-    import asciitable
+from ... import ascii
 
-if asciitable.has_numpy:
-    numpy_cases = (True, False)
-else:
-    numpy_cases = (False,)
-
-__all__ = ['has_numpy_and_not_has_numpy', 'has_numpy', 'raises',
+__all__ = ['raises',
            'assert_equal', 'assert_almost_equal', 'assert_true',
            'setup_function', 'teardown_function', 'has_isnan']
 
@@ -28,46 +20,28 @@ except ImportError:
         has_isnan = False
         print('Tests requiring isnan will fail')
 
+
 def setup_function(function):
     os.chdir(TEST_DIR)
+
 
 def teardown_function(function):
     os.chdir(CWD)
 
-def has_numpy_and_not_has_numpy(func):
-    """Perform tests that should work for has_numpy==True and has_numpy==False"""
-    def wrap():
-        for numpy_case in numpy_cases:
-            has_numpy = asciitable.has_numpy
-            asciitable.has_numpy = numpy_case
-            asciitable.core.has_numpy = numpy_case
-            try:
-                func(numpy=numpy_case)
-            finally:
-                asciitable.has_numpy = has_numpy
-                asciitable.core.has_numpy = has_numpy
-    wrap.__name__ = func.__name__
-    return wrap
-
-def has_numpy(func):
-    """Tests that will only succeed if has_numpy == True"""
-    def wrap():
-        for numpy_case in numpy_cases:
-            if numpy_case is True:
-                func(numpy=numpy_case)
-    wrap.__name__ = func.__name__
-    return wrap
 
 # Compatibility functions to convert from nose to py.test
 def assert_equal(a, b):
     assert a == b
 
+
 def assert_almost_equal(a, b):
     assert True
 
+
 def assert_true(a):
     assert a
-    
+
+
 def make_decorator(func):
     """
     Wraps a test decorator so as to properly replicate metadata
@@ -95,6 +69,7 @@ def make_decorator(func):
         return newfunc
     return decorate
 
+
 def raises(*exceptions):
     """Test must raise one of expected exceptions to pass.
 
@@ -112,8 +87,10 @@ def raises(*exceptions):
     you may want to use `assert_raises` instead.
     """
     valid = ' or '.join([e.__name__ for e in exceptions])
+
     def decorate(func):
         name = func.__name__
+
         def newfunc(*arg, **kw):
             try:
                 func(*arg, **kw)
@@ -127,4 +104,3 @@ def raises(*exceptions):
         newfunc = make_decorator(func)(newfunc)
         return newfunc
     return decorate
-

@@ -2,53 +2,44 @@ import re
 import glob
 import math
 
-try:
-    from ... import ascii as asciitable
-except:
-    import asciitable
+import numpy as np
+from ... import ascii as asciitable
 
-if asciitable.has_numpy:
-    import numpy as np
-
-from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+from .common import (raises,
                      assert_equal, assert_almost_equal, assert_true,
                      setup_function, teardown_function, has_isnan)
 
-@has_numpy_and_not_has_numpy
-def test_read_all_files(numpy):
+
+def test_read_all_files():
     for testfile in get_testfiles():
         print('\n\n******** READING %s' % testfile['name'])
-        if testfile.get('requires_numpy') and not asciitable.has_numpy:
-            return
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            table = asciitable.read(testfile['name'], numpy=numpy, **testfile['opts'])
+            table = asciitable.read(testfile['name'], **testfile['opts'])
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
 
-@has_numpy_and_not_has_numpy
-def test_guess_all_files(numpy):
+
+def test_guess_all_files():
     for testfile in get_testfiles():
         if not testfile['opts'].get('guess', True):
             continue
         print('\n\n******** READING %s' % testfile['name'])
-        if testfile.get('requires_numpy') and not asciitable.has_numpy:
-            return
         for filter_read_opts in (['Reader', 'delimiter', 'quotechar'], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = dict((k, v) for k, v in testfile['opts'].items()
                               if k not in filter_read_opts)
-            table = asciitable.read(testfile['name'], numpy=numpy, guess=True, **guess_opts)
+            table = asciitable.read(testfile['name'], guess=True, **guess_opts)
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
 
-@has_numpy
-def test_daophot_header_keywords(numpy):
-    reader = asciitable.get_reader(Reader=asciitable.Daophot, numpy=numpy)
+
+def test_daophot_header_keywords():
+    reader = asciitable.get_reader(Reader=asciitable.Daophot)
     table = reader.read('t/daophot.dat')
     expected_keywords = (('NSTARFILE', 'test.nst.1', 'filename', '%-23s'),
                          ('REJFILE', 'hello world', 'filename', '%-23s'),
@@ -65,81 +56,81 @@ def test_daophot_header_keywords(numpy):
             raise ValueError('Keyword not found')
 
 
-@has_numpy_and_not_has_numpy
+
 @raises(asciitable.InconsistentTableError)
-def test_empty_table_no_header(numpy):
+def test_empty_table_no_header():
     table = asciitable.read('t/no_data_without_header.dat', Reader=asciitable.NoHeader,
-                            numpy=numpy, guess=False)
+                            guess=False)
 
-@has_numpy_and_not_has_numpy
+
 @raises(asciitable.InconsistentTableError)
-def test_wrong_quote(numpy):
-    table = asciitable.read('t/simple.txt', numpy=numpy, guess=False)
+def test_wrong_quote():
+    table = asciitable.read('t/simple.txt', guess=False)
 
-@has_numpy_and_not_has_numpy
+
 @raises(asciitable.InconsistentTableError)
-def test_extra_data_col(numpy):
-    table = asciitable.read('t/bad.txt', numpy=numpy)
+def test_extra_data_col():
+    table = asciitable.read('t/bad.txt')
 
-@has_numpy_and_not_has_numpy
+
 @raises(asciitable.InconsistentTableError)
-def test_extra_data_col2(numpy):
-    table = asciitable.read('t/simple5.txt', delimiter='|', numpy=numpy)
+def test_extra_data_col2():
+    table = asciitable.read('t/simple5.txt', delimiter='|')
 
-@has_numpy_and_not_has_numpy
+
 @raises(IOError)
-def test_missing_file(numpy):
-    table = asciitable.read('does_not_exist', numpy=numpy)
+def test_missing_file():
+    table = asciitable.read('does_not_exist')
 
-@has_numpy_and_not_has_numpy
-def test_set_names(numpy):
+
+def test_set_names():
     names = ('c1','c2','c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
     exclude_names = ('c4', 'c5', 'c6')
-    data = asciitable.read('t/simple3.txt', names=names, delimiter='|', numpy=numpy)
+    data = asciitable.read('t/simple3.txt', names=names, delimiter='|')
     assert_equal(data.dtype.names, names)
 
-@has_numpy_and_not_has_numpy
-def test_set_include_names(numpy):
+
+def test_set_include_names():
     names = ('c1','c2','c3', 'c4', 'c5', 'c6')
     include_names = ('c1', 'c3')
     data = asciitable.read('t/simple3.txt', names=names, include_names=include_names,
-                           delimiter='|', numpy=numpy)
+                           delimiter='|')
     assert_equal(data.dtype.names, include_names)
 
-@has_numpy_and_not_has_numpy
-def test_set_exclude_names(numpy):
+
+def test_set_exclude_names():
     exclude_names = ('Y', 'object')
-    data = asciitable.read('t/simple3.txt', exclude_names=exclude_names, delimiter='|', numpy=numpy)
+    data = asciitable.read('t/simple3.txt', exclude_names=exclude_names, delimiter='|')
     assert_equal(data.dtype.names, ('obsid', 'redshift', 'X', 'rad'))
 
-@has_numpy_and_not_has_numpy
-def test_custom_process_lines(numpy):
+
+def test_custom_process_lines():
     def process_lines(lines):
         bars_at_ends = re.compile(r'^\| | \|$', re.VERBOSE)
         striplines = (x.strip() for x in lines)
         return [bars_at_ends.sub('', x) for x in striplines if len(x) > 0]
-    reader = asciitable.get_reader(delimiter='|', numpy=numpy)
+    reader = asciitable.get_reader(delimiter='|')
     reader.inputter.process_lines = process_lines
     data = reader.read('t/bars_at_ends.txt')
     assert_equal(data.dtype.names, ('obsid', 'redshift', 'X', 'Y', 'object', 'rad'))
     assert_equal(len(data), 3)
 
-@has_numpy_and_not_has_numpy
-def test_custom_process_line(numpy):
+
+def test_custom_process_line():
     def process_line(line):
         line_out = re.sub(r'^\|\s*', '', line.strip())
         return line_out
-    reader = asciitable.get_reader(data_start=2, delimiter='|', numpy=numpy)
+    reader = asciitable.get_reader(data_start=2, delimiter='|')
     reader.header.splitter.process_line = process_line
     reader.data.splitter.process_line = process_line
     data = reader.read('t/nls1_stackinfo.dbout')
     cols = get_testfiles('t/nls1_stackinfo.dbout')['cols']
     assert_equal(data.dtype.names, cols[1:])
 
-@has_numpy_and_not_has_numpy
-def test_custom_splitters(numpy):
-    reader = asciitable.get_reader(numpy=numpy)
+
+def test_custom_splitters():
+    reader = asciitable.get_reader()
     reader.header.splitter = asciitable.BaseSplitter()
     reader.data.splitter = asciitable.BaseSplitter()
     f = 't/test4.dat'
@@ -153,142 +144,125 @@ def test_custom_splitters(numpy):
     assert_equal(data.field('statname')[2], 'chi2modvar')
     assert_almost_equal(data.field('statval')[2], 497.56468441)
     
-@has_numpy_and_not_has_numpy
-def test_start_end(numpy):
-    data = asciitable.read('t/test5.dat', header_start=1, data_start=3, data_end=-5, numpy=numpy)
+
+def test_start_end():
+    data = asciitable.read('t/test5.dat', header_start=1, data_start=3, data_end=-5)
     assert_equal(len(data), 13)
     assert_equal(data.field('statname')[0], 'chi2xspecvar')
     assert_equal(data.field('statname')[-1], 'chi2gehrels')
 
-@has_numpy
-def test_set_converters(numpy):
+
+def test_set_converters():
     converters = {'zabs1.nh': [asciitable.convert_numpy('int32'),
                                asciitable.convert_numpy('float32')],
                   'p1.gamma': [asciitable.convert_numpy('str')]
                   }
-    data = asciitable.read('t/test4.dat', converters=converters, numpy=numpy)
+    data = asciitable.read('t/test4.dat', converters=converters)
     assert_equal(str(data['zabs1.nh'].dtype), 'float32')
     assert_equal(data['p1.gamma'][0], '1.26764544642')
-    
-@has_numpy_and_not_has_numpy
-def test_from_string(numpy):
+
+
+def test_from_string():
     f = 't/simple.txt'
     table = open(f).read()
     testfile = get_testfiles(f)
-    data = asciitable.read(table, numpy=numpy, **testfile['opts'])
+    data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
-    
-@has_numpy_and_not_has_numpy
-def test_from_filelike(numpy):
+
+
+def test_from_filelike():
     f = 't/simple.txt'
     table = open(f)
     testfile = get_testfiles(f)
-    data = asciitable.read(table, numpy=numpy, **testfile['opts'])
+    data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
-    
-@has_numpy_and_not_has_numpy
-def test_from_lines(numpy):
+
+
+def test_from_lines():
     f = 't/simple.txt'
     table = open(f).readlines()
     testfile = get_testfiles(f)
-    data = asciitable.read(table, numpy=numpy, **testfile['opts'])
+    data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
-    
-@has_numpy_and_not_has_numpy
-def test_comment_lines(numpy):
-    table = asciitable.get_reader(Reader=asciitable.Rdb, numpy=numpy)
+
+
+def test_comment_lines():
+    table = asciitable.get_reader(Reader=asciitable.Rdb)
     data = table.read('t/apostrophe.rdb')
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
 
-@has_numpy_and_not_has_numpy
-def test_fill_values(numpy):
-    f = 't/fill_values.txt'
-    testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, fill_values=('a','1'), **testfile['opts'])
-    if numpy:
-        assert_true((data.mask['a']==[False,True]).all())
-        assert_true((data.data['a']==[1,1]).all())
-        assert_true((data.mask['b']==[False,True]).all())
-        assert_true((data.data['b']==[2,1]).all())
-        
-    else:
-        assert_equal(data['a'],[1,1])
-        assert_equal(data['b'],[2,1])
-        
-@has_numpy_and_not_has_numpy
-def test_fill_values_col(numpy):
-    f = 't/fill_values.txt'
-    testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, fill_values=('a','1', 'b'), **testfile['opts'])
-    check_fill_values(numpy, data)
 
-@has_numpy_and_not_has_numpy
-def test_fill_values_include_names(numpy):
+def test_fill_values():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, fill_values=('a','1'),
+    data = asciitable.read(f, fill_values=('a','1'), **testfile['opts'])
+    assert_true((data.mask['a']==[False,True]).all())
+    assert_true((data.data['a']==[1,1]).all())
+    assert_true((data.mask['b']==[False,True]).all())
+    assert_true((data.data['b']==[2,1]).all())
+
+
+def test_fill_values_col():
+    f = 't/fill_values.txt'
+    testfile = get_testfiles(f)
+    data = asciitable.read(f, fill_values=('a','1', 'b'), **testfile['opts'])
+    check_fill_values(data)
+
+
+def test_fill_values_include_names():
+    f = 't/fill_values.txt'
+    testfile = get_testfiles(f)
+    data = asciitable.read(f, fill_values=('a','1'),
                            fill_include_names = ['b'], **testfile['opts'])
-    check_fill_values(numpy, data)
-        
-@has_numpy_and_not_has_numpy
-def test_fill_values_exclude_names(numpy):
+    check_fill_values(data)
+
+
+def test_fill_values_exclude_names():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, fill_values=('a','1'),
+    data = asciitable.read(f, fill_values=('a','1'),
                            fill_exclude_names = ['a'], **testfile['opts'])
-    check_fill_values(numpy, data)
+    check_fill_values(data)
 
-def check_fill_values(numpy, data):
+
+def check_fill_values(data):
     """compare array column by column with expectation """
-    if numpy:
-        assert_true((data.mask['a']==[False,False]).all())
-        assert_true((data.data['a']==['1','a']).all())
-        assert_true((data.mask['b']==[False,True]).all())
-        assert_true((data.data['b']==[2,1]).all())        
-    else:
-        assert_equal(data['a'],['1','a'])
-        assert_equal(data['b'],[2,1])
+    assert_true((data.mask['a']==[False,False]).all())
+    assert_true((data.data['a']==['1','a']).all())
+    assert_true((data.mask['b']==[False,True]).all())
+    assert_true((data.data['b']==[2,1]).all())        
 
-@has_numpy_and_not_has_numpy
-def test_fill_values_list(numpy):
+
+def test_fill_values_list():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, fill_values=[('a','42'),('1','42','a')],
+    data = asciitable.read(f, fill_values=[('a','42'),('1','42','a')],
                            **testfile['opts'])
-    if numpy:
-        assert_true((data.data['a']==[42,42]).all())
-    else:
-        assert_equal(data['a'],[42,42])
+    assert_true((data.data['a']==[42,42]).all())
 
-@has_numpy_and_not_has_numpy
-def test_masking_Cds(numpy):
+
+def test_masking_Cds():
     f = 't/cds.dat'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, numpy=numpy, 
+    data = asciitable.read(f, 
                            **testfile['opts'])
-    if numpy:
-        assert_true(data['AK'].mask[0])
-        assert_true(not data['Fit'].mask[0])
-    else:
-        if has_isnan:
-            from .common import isnan
-            assert_true(isnan(data['AK'][0]))
-            assert_true(not isnan(data['Fit'][0]))
+    assert_true(data['AK'].mask[0])
+    assert_true(not data['Fit'].mask[0])
 
-@has_numpy_and_not_has_numpy
-def test_set_guess_kwarg(numpy):
+
+def test_set_guess_kwarg():
     """Read a file using guess with one of the typical guess_kwargs explicitly set."""
-    data = asciitable.read('t/space_delim_no_header.dat', numpy=numpy, 
+    data = asciitable.read('t/space_delim_no_header.dat',
                            delimiter=',', guess=True)
-    assert(data.dtype.names == ('1 3.4 hello', ))
+    assert(data.dtype.names == ('1 3.4 hello',))
     assert(len(data) == 1)
 
-@has_numpy_and_not_has_numpy
+
 @raises(asciitable.InconsistentTableError)
-def test_read_rdb_wrong_type(numpy):
+def test_read_rdb_wrong_type():
     """Read RDB data with inconstent data type (except failure)"""
     table = """col1\tcol2
 N\tN
