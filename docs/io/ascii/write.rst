@@ -9,108 +9,133 @@ Writing tables
 object using the same class structure and basic user interface as for reading
 tables.  
 
+The |write| function provides a way to write a data table as a formatted ASCII table.  For example::
 
-Input data formats
+  >>> import astropy.io.ascii as ascii
+  >>> x = np.array([1, 2, 3])
+  >>> y = x ** 2
+  >>> ascii.write([x, y], names=['x', 'y'], 'values.dat')
+
+The ``values.dat`` file will then contain::
+
+  x y
+  1 1
+  2 4
+  3 9
+
+All of the input Reader table formats supported by `astropy.io.ascii` for
+reading are also supported for writing.  This provides a great deal of
+flexibility in the format for writing.  The example below writes the data as a
+LaTeX table, using the option to send the output to ``sys.stdout`` instead of a
+file::
+
+  >>> ascii.write(data, sys.stdout, Writer=ascii.Latex)
+  \begin{table}
+  \begin{tabular}{cc}
+  x & y \\
+  1 & 1 \\
+  2 & 4 \\
+  3 & 9 \\
+  \end{tabular}
+  \end{table}
+
+Input data format
 ^^^^^^^^^^^^^^^^^^^
-A number of data formats for the input table are supported:
 
-- `Existing ASCII table with metadata`_ (:class:`~astropy.io.ascii.BaseReader` object)
-- `Data from astropy.io.ascii.read()`_ (:class:`~astropy.io.ascii.DictLikeNumpy` object)
-- `NumPy structured array`_ or record array
-- `Sequence of sequences`_ (row-oriented list of lists)
-- `Dict of sequences`_ (column oriented dictionary of lists)
+The input `table` argument to |write| can be any value that is supported for
+initializing a |Table| object.  This is documented in detail in the
+:ref:`construct_table` section and includes creating a table with a list of
+columns, a dictionary of columns, or from `numpy` arrays (either structured or
+homogeneous).  The sections below show a few examples.
 
-Existing ASCII table with metadata
-+++++++++++++++++++++++++++++++++++
+Table or NumPy structured array
+++++++++++++++++++++++++++++++++
 
-The example below highlights that the :func:`~astropy.io.ascii.get_reader` function
-returns a :class:`~astropy.io.ascii.Reader` object that supports keywords and table
-metadata.  The :class:`~astropy.io.ascii.Reader` object can then be an input to the
-:func:`~astropy.io.ascii.write` function and allow for any associated metadata to be
-written.
-
-Note that in the current release there is no support for actually writing the 
-available keywords or other metadata, but the infrastructure is available and 
-this is the top priority for development.
+An AstroPy |Table| object or a NumPy `structured array`_ (or record array) can
+serve as input to the |write| function.
 
 ::
 
-    # Get a Reader object
-    table = astropy.io.ascii.get_reader(Reader=astropy.io.ascii.Daophot)
+    >>> import astropy.io.ascii as ascii
+    >>> from astropy.table import Table
 
-    # Read a table from a file.  Return a NumPy record array object and also
-    # update column and metadata attributes in the "table" Reader object.
-    data = table.read('t/daophot.dat')
+    >>> data = Table({'a': [1, 2, 3],
+                      'b': [4.0, 5.0, 6.0]},
+                     names=['a', 'b'])
+    >>> ascii.write(data, sys.stdout)
+    a b
+    1 4.0
+    2 5.0
+    3 6.0
 
-    # Write the data in a variety of ways using as input both the NumPy record 
-    # array and the higher-level Reader object.
-    astropy.io.ascii.write(table, "table.dat", Writer=astropy.io.ascii.Tab )
-    astropy.io.ascii.write(table, open("table.dat", "w"), Writer=astropy.io.ascii.NoHeader )
-    astropy.io.ascii.write(table, sys.stdout, Writer=astropy.io.ascii.CommentedHeader )
-    astropy.io.ascii.write(table, sys.stdout, Writer=astropy.io.ascii.Rdb, exclude_names=['CHI'] )
+    >>> data = np.array([(1, 2., 'Hello'), (2, 3., "World")],
+                        dtype=('i4,f4,a10'))
+    >>> ascii.write(data, sys.stdout)
+    f0 f1 f2
+    1 2.0 Hello
+    2 3.0 World
 
-    astropy.io.ascii.write(table, sys.stdout, formats={'XCENTER': '%12.1f',
-                                                 'YCENTER': lambda x: round(x, 1)},
-                                        include_names=['XCENTER', 'YCENTER'])
-
-
-Data from astropy.io.ascii.read()
-++++++++++++++++++++++++++++++++++++++++++++
-
-:mod:`astropy.io.ascii.read` returns a data object that can be an input to the
-|write| function.
+The output of :mod:`astropy.io.ascii.read` is a |Table| or NumPy array data
+object that can be an input to the |write| function.
 
 ::
 
-    data = astropy.io.ascii.get_reader('t/daophot.dat', Reader=astropy.io.ascii.Daophot)
-    astropy.io.ascii.write(data, sys.stdout)
+    >>> data = astropy.io.ascii.read('t/daophot.dat', Reader=astropy.io.ascii.Daophot)
+    >>> astropy.io.ascii.write(data, 'space_delimited_table.dat')
 
-NumPy structured array
-++++++++++++++++++++++++
 
-A NumPy `structured array`_ (or record array) can serve as input to the |write| function.
-
-::
-
-    data = numpy.zeros((2,), dtype=('i4,f4,a10'))
-    data[:] = [(1, 2., 'Hello'), (2, 3., "World")]
-    astropy.io.ascii.write(data, sys.stdout)
-
-Sequence of sequences
+List of lists
 +++++++++++++++++++++++++
 
-A doubly-nested structure of iterable objects (e.g. lists or tuples) can serve as input to |write|.  
-The outer layer represents rows while the inner layer represents columns.
+A list of Python lists (or any iterable object) can be used as input::
 
-::
+    >>> x = [1, 2, 3]
+    >>> y = [4, 5.2, 6.1]
+    >>> z = ['hello', 'world', '!!!']
+    >>> data = [x, y, z]
 
-    data = [[1, 2,   3      ], 
-            [4, 5.2, 6.1    ], 
-            [8, 9,   'hello']]
-    astropy.io.ascii.write(data, 'table.dat')
-    astropy.io.ascii.write(data, 'table.dat', names=['x', 'y', 'z'], exclude_names=['y'])
+    >>> ascii.write(data, sys.stdout)
+    col0 col1 col2
+    1 4.0 hello
+    2 5.2 world
+    3 6.1 !!!
 
-Dict of sequences
+The `data` object does not contain information about the column names so
+|Table| has chosen them automatically.  To specify the names, provide the
+`names` keyword argument.  This example also shows excluding one of the columns
+from the output::
+
+    >>> ascii.write(data, sys.stdout, names=['x', 'y', 'z'], exclude_names=['y'])
+    x z
+    1 hello
+    2 world
+    3 !!!
+
+
+Dict of lists
 +++++++++++++++++++++++
 
 A dictionary containing iterable objects can serve as input to |write|.  Each
 dict key is taken as the column name while the value must be an iterable object
-containing the corresponding column values.  Note the difference in output between
-this example and the previous example.
+containing the corresponding column values.
 
 Since a Python dictionary is not ordered the output column order will be
 unpredictable unless the ``names`` argument is provided.
 
 ::
 
-    data = {'x': [1, 2, 3], 
-            'y': [4, 5.2, 6.1], 
-            'z': [8, 9, 'hello world']}
-    astropy.io.ascii.write(data, 'table.dat', names=['x', 'y', 'z'])
+    >>> data = {'x': [1, 2, 3], 
+                'y': [4, 5.2, 6.1], 
+                'z': ['hello', 'world', '!!!']}
+    >>> ascii.write(data, sys.stdout, names=['x', 'y', 'z'])
+    x y z
+    1 4.0 hello
+    2 5.2 world
+    3 6.1 !!!
 
 
-Commonly used parameters for ``write()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Parameters for ``write()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The |write| function accepts a number of parameters that specify the detailed
 output table format.  Different Reader classes can define different defaults, so the
@@ -128,14 +153,7 @@ of these classes for details.
   - File-like object (from open(), StringIO, etc)
 
 **table** : input table 
-  The are five possible formats for the data table that is to be written:
-
-  - :mod:`astropy.io.ascii` Reader object (returned by :func:`~astropy.io.ascii.get_reader`)
-    which has been used to read a table
-  - Output from :func:`~astropy.io.ascii.read` (:class:`~astropy.io.ascii.DictLikeNumpy`)
-  - NumPy `structured array`_ or record array
-  - List of lists: e.g. ``[[2, 3], [4, 5], [6, 7]]`` (3 rows, 2 columns)
-  - Dict of lists: e.g. ``{'c1': [2, 3, 4], 'c2': [5, 6, 7]}`` (3 rows, 2 columns)
+  Any value that is supported for initializing a |Table| object (see :ref:`construct_table`).
 
 **Writer** : Writer class (default= :class:`~astropy.io.ascii.Basic`)
   This specifies the top-level format of the ASCII table to be written, for
@@ -193,6 +211,3 @@ of these classes for details.
 
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
-
-
-
