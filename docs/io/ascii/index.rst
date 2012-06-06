@@ -7,7 +7,7 @@ Introduction
 --------------
 
 `astropy.io.ascii` provides methods for reading and writing a wide range of ASCII data table
-formats via built-in :ref:`extension_reader_classes`.  The ephemsis is on flexibility and ease of use.
+formats via built-in :ref:`extension_reader_classes`.  The emphasis is on flexibility and ease of use.
 
 The following formats are supported:
 
