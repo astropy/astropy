@@ -149,12 +149,4 @@ The details of using `astropy.table` are provided in the following sections:
    modify_table.rst
    masking.rst
 
-API Reference
-----------------
-
-The API reference is provided in the following sections:
-
-.. toctree::
-   :maxdepth: 2
-
-   table_api.rst
+.. automodapi:: astropy.table
