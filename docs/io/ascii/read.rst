@@ -7,7 +7,7 @@ Reading tables
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function::
 
-  >>> import astropy.io.ascii as ascii
+  >>> from astropy.io import ascii
   >>> data = ascii.read(table)
 
 where ``table`` is the name of a file, a string representation of a table, or a 

@@ -11,7 +11,7 @@ tables.
 
 The |write| function provides a way to write a data table as a formatted ASCII table.  For example::
 
-  >>> import astropy.io.ascii as ascii
+  >>> from astropy.io import ascii
   >>> x = np.array([1, 2, 3])
   >>> y = x ** 2
   >>> ascii.write([x, y], names=['x', 'y'], 'values.dat')
@@ -56,7 +56,7 @@ serve as input to the |write| function.
 
 ::
 
-    >>> import astropy.io.ascii as ascii
+    >>> from astropy.io import ascii
     >>> from astropy.table import Table
 
     >>> data = Table({'a': [1, 2, 3],

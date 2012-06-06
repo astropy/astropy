@@ -35,7 +35,7 @@ FixedWidth
 **Nice, typical fixed format table**
 ::
 
-  >>> import astropy.io.ascii as ascii
+  >>> from astropy.io import ascii
   >>> table = """
   ... # comment (with blank line above)
   ... |  Col1  |  Col2   |

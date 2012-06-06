@@ -42,7 +42,7 @@ function.  Assume you have a file named ``sources.dat`` with the following conte
 
 This table can be read with the following::
 
-  >>> import astropy.io.ascii as ascii
+  >>> from astropy.io import ascii
   >>> data = ascii.read("sources.dat")
   >>> print data
   obsid redshift  X    Y      object  
