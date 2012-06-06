@@ -45,6 +45,8 @@ from . import memory
 from .core import next, izip, any
 from . import latex
 
+from ...table import Table
+
 # Default setting for guess parameter in read()
 _GUESS = True
 def set_guess(guess):
@@ -256,6 +258,7 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
 
+    table = Table(table, names=kwargs.get('names'))
     reader_kwargs = dict((key, val) for key, val in kwargs.items()
                          if key in ('names', 'include_names', 'exclude_names'))
     if not isinstance(table, core.BaseReader) or reader_kwargs:

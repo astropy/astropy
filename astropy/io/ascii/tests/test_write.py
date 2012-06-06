@@ -143,5 +143,4 @@ def test_write_table():
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
-        check_write_table(test_def, table)
         check_write_table(test_def, data)
