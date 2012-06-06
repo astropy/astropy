@@ -674,4 +674,4 @@ def test_header_parse():
     from astropy.io import fits
     hdulist = fits.open(get_data_fileobj('data/header_newlines.fits'))
     w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
+    assert w.wcs.ctype[0] == b'RA---TAN-SIP'
