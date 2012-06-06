@@ -7,7 +7,7 @@ Constructing a table
 ====================
 
 There is great deal of flexibility in the way that a table can be initially
-constructed.  Details on the inputs to the :class:`~astropy.table.Table`
+constructed.  Details on the inputs to the |Table|
 constructor are in the `Initialization Details`_ section.  However, the 
 easiest way to understand how to make a table is by example.
 
@@ -314,7 +314,7 @@ columns by their numerical index or name and supports slicing syntax::
 Initialization Details
 ======================
 
-A table object is created by initializing a :class:`~astropy.table.Table` class
+A table object is created by initializing a |Table| class
 object with the following arguments, all of which are optional:
 
 ``data`` : numpy ndarray, dict, list, or Table

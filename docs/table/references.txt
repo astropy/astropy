@@ -1,5 +1,5 @@
-.. |Row| replace:: :func:`~astropy.table.Row`
-.. |Table| replace:: :func:`~astropy.table.Table`
-.. |Column| replace:: :func:`~astropy.table.Column`
-.. |TableColumns| replace:: :func:`~astropy.table.TableColumns`
+.. |Row| replace:: :func:`~astropy.table.table.Row`
+.. |Table| replace:: :func:`~astropy.table.table.Table`
+.. |Column| replace:: :func:`~astropy.table.table.Column`
+.. |TableColumns| replace:: :func:`~astropy.table.table.TableColumns`
 .. _OrderedDict: http://docs.python.org/library/collections.html#collections.OrderedDict
