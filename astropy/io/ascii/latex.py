@@ -282,10 +282,6 @@ class Latex(core.BaseReader):
         return core.BaseReader.write(self, table=table)
 
 
-LatexReader = Latex
-
-
-
 class AASTexHeader(LatexHeader):
     '''In a `deluxetable` some header keywords differ from standard LaTeX.
     
@@ -377,5 +373,3 @@ class AASTex(Latex):
         # with data and header
         self.header.latex = self.latex
         self.data.latex = self.latex
-
-AASTexReader = AASTex

@@ -265,6 +265,3 @@ class Cds(core.BaseReader):
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""
         raise NotImplementedError
-
-CdsReader = Cds
-

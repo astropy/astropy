@@ -34,8 +34,7 @@ memory.py:
 from . import core
 from . import basic
 from .core import io, next, izip, any
-if core.has_numpy:
-    import numpy
+import numpy
 
 class Memory(core.BaseReader):
     """Read a table from a data object in memory.  Several input data formats are supported:
@@ -81,7 +80,7 @@ class Memory(core.BaseReader):
         self.header = MemoryHeader()
         self.data = MemoryData()
         self.inputter = MemoryInputter()
-        self.outputter = core.BaseOutputter()
+        self.outputter = core.TableOutputter()
         self.meta = {}                  # Placeholder for storing table metadata 
         self.keywords = []              # Table Keywords
 
@@ -125,7 +124,6 @@ class Memory(core.BaseReader):
         """Not available for the Memory class (raises NotImplementedError)"""
         raise NotImplementedError
 
-MemoryReader = Memory
 
 class MemoryInputter(core.BaseInputter):
     """Get the lines from the table input and return an iterable object that contains the data lines.
@@ -260,11 +258,11 @@ class MemoryHeader(core.BaseHeader):
 
         self._set_cols_from_names()
 
-        # ``lines`` could be one of: NumPy recarray, DictLikeNumpy obj, Python
+        # ``lines`` could be one of: NumPy recarray, Python
         # list of lists. If NumPy recarray then set col.type accordingly.  In
         # the other two cases convert the data values to strings so the usual
         # data converter processing will get the correct type.
-        if core.has_numpy and isinstance(lines, numpy.ndarray):
+        if isinstance(lines, numpy.ndarray):
             for col in self.cols:
                 type_name = lines[col.name].dtype.name
                 if 'int' in type_name:
@@ -274,7 +272,7 @@ class MemoryHeader(core.BaseHeader):
                 elif 'str' in type_name:
                     col.type = core.StrType
         else:
-            # lines is a list of lists or DictLikeNumpy.  
+            # lines is a list of lists
             col_types = {}
             col_indexes = [col.index for col in self.cols]
             for vals in lines:
@@ -284,7 +282,7 @@ class MemoryHeader(core.BaseHeader):
                     col_type_set.add(get_val_type(val))
             for col in self.cols:
                 col.type = get_lowest_type(col_types[col.index])
-            
+
 
 class MemorySplitter(core.BaseSplitter):
     """Splitter for data already in memory.  It is assumed that ``lines`` are

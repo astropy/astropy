@@ -69,7 +69,6 @@ class Ipac(core.BaseReader):
         """Not available for the Ipac class (raises NotImplementedError)"""
         raise NotImplementedError
 
-IpacReader = Ipac
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""

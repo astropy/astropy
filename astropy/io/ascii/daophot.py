@@ -56,7 +56,7 @@ class Daophot(core.BaseReader):
 
     The keywords defined in the #K records are available via the Daophot reader object::
 
-      reader = asciitable.get_reader(Reader=asciitable.DaophotReader)
+      reader = asciitable.get_reader(Reader=asciitable.Daophot)
       data = reader.read('t/daophot.dat')
       for keyword in reader.keywords:
           print keyword.name, keyword.value, keyword.units, keyword.format
@@ -73,14 +73,13 @@ class Daophot(core.BaseReader):
     
     def read(self, table):
         output = core.BaseReader.read(self, table)
-        if core.has_numpy:
-            reader = core._get_reader(Reader=basic.NoHeaderReader, comment=r'(?!#K)', 
-                                      names = ['temp1','keyword','temp2','value','unit','format'])
-            headerkeywords = reader.read(self.comment_lines)
+        reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', 
+                                  names = ['temp1','keyword','temp2','value','unit','format'])
+        headerkeywords = reader.read(self.comment_lines)
 
-            for line in headerkeywords:
-                self.keywords.append(core.Keyword(line['keyword'], line['value'], 
-                                                  units=line['unit'], format=line['format']))
+        for line in headerkeywords:
+            self.keywords.append(core.Keyword(line['keyword'], line['value'], 
+                                              units=line['unit'], format=line['format']))
         self.table = output
         self.cols = self.header.cols
 
@@ -89,7 +88,6 @@ class Daophot(core.BaseReader):
     def write(self, table=None):
         raise NotImplementedError
 
-DaophotReader = Daophot
 
 class DaophotHeader(core.BaseHeader):
     """Read the header from a file produced by the IRAF DAOphot routine."""

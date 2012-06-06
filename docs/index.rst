@@ -29,7 +29,7 @@ For discussions and ideas regarding development of the Astropy package, see the 
    wcs/index
    fits/index
    vo/index
-   ascii/index
+   io/ascii/index
    table/index
    tools
    utils/index
