@@ -7,28 +7,26 @@ Reading tables
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function::
 
-  import astropy.io.ascii
-  data = astropy.io.ascii.read(table)
+  >>> from astropy.io import ascii
+  >>> data = ascii.read(table)
 
 where ``table`` is the name of a file, a string representation of a table, or a 
 list of table lines.  By default |read| will try to `guess the table format <#guess-table-format>`_
 by trying all the supported formats.  If this does not work (for unusually
-formatted tables) then one needs give astropy.io.ascii additional hints about the
+formatted tables) then one needs give `astropy.io.ascii` additional hints about the
 format, for example::
 
-   data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')
-   data = astropy.io.ascii.read('t/simple.txt', quotechar="'")
-   data = astropy.io.ascii.read('t/simple4.txt', Reader=astropy.io.ascii.NoHeader, delimiter='|')
-   table = ['col1 col2 col3', '1 2 hi', '3 4.2 there']
-   data = astropy.io.ascii.read(table, delimiter=" ")
+   >>> data = astropy.io.ascii.read('t/nls1_stackinfo.dbout', data_start=2, delimiter='|')
+   >>> data = astropy.io.ascii.read('t/simple.txt', quotechar="'")
+   >>> data = astropy.io.ascii.read('t/simple4.txt', Reader=ascii.NoHeader, delimiter='|')
 
 The |read| function accepts a number of parameters that specify the detailed
 table format.  Different Reader classes can define different defaults, so the
 descriptions below sometimes mention "typical" default values.  This refers to
 the :class:`~astropy.io.ascii.Basic` reader and other similar Reader classes.
 
-Commonly used parameters for ``read()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Parameters for ``read()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **table** : input table 
   There are four ways to specify the table to be read:
@@ -41,23 +39,13 @@ Commonly used parameters for ``read()``
   The first two options are distinguished by the presence of a newline in the string.  
   This assumes that valid file names will not normally contain a newline.
 
-**Reader** : Reader class (default= :class:`~astropy.io.ascii.BasicReader`)
+**Reader** : Reader class (default= :class:`~astropy.io.ascii.Basic`)
   This specifies the top-level format of the ASCII table, for example
   if it is a basic character delimited table, fixed format table, or
   a CDS-compatible table, etc.  The value of this parameter must
   be a Reader class.  For basic usage this means one of the 
   built-in :ref:`extension_reader_classes`.  
 
-**numpy** : return a NumPy record array (default=True)
-  By default the output from |read| is a 
-  `NumPy record array <http://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html>`_ object.
-  This powerful container efficiently supports both column-wise and row access to the
-  table and comes with the full NumPy stack of array manipulation methods.
-
-  If NumPy is not available or desired then set ``numpy=False``.  The output
-  of |read| will then be a dictionary of :class:`~astropy.io.ascii.Column` objects
-  with each key for the corresponding named column.
-  
 **guess**: try to guess table format (default=True)
   If set to True then |read| will try to guess the table format by cycling
   through a number of possible table format permuations and attemping to read
@@ -121,19 +109,22 @@ Commonly used parameters for ``read()``
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
 
-Advanced parameters for ``read()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Outputter**: Outputter class
+  This converts the raw data tables value into the
+  output object that gets returned by |read|.  The default is
+  :class:`~astropy.io.ascii.core.TableOutputter`, which returns a
+  :class:`~astropy.table.Table` object.  The other option is
+  :class:`~astropy.io.ascii.core.NumpyOutputter` which returns a `numpy` record
+  array.  If ``fill_values`` are specified then
+  :class:`~astropy.io.ascii.core.NumpyOutputter` is used and a masked array
+  is returned.
 
-|read| can accept a few more parameters that allow for code-level customization
-of the reading process.  These will be discussed in the `Advanced table reading`_ section.
+**Inputter**: Inputter class
+  This is generally not specified.
 
 **data_Splitter**: Splitter class to split data columns
 
 **header_Splitter**: Splitter class to split header columns
-
-**Inputter**: Inputter class
-
-**Outputter**: Outputter class
 
 .. _replace_bad_or_missing_values:
 
@@ -165,33 +156,35 @@ occurence of ``<old>`` then the first one determines the ``<new>`` value.  For
 instance the following will replace an empty data value in the ``x`` or ``y``
 columns with "1e38" while empty values in any other column will get "-999"::
 
-  astropy.io.ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])
+  >>> ascii.read(table, fill_values=[('', '1e38', 'x', 'y'), ('', '-999')])
 
 The following shows an example where string information needs to be exchanged 
 before the conversion to float values happens. Here ``no_rain`` and ``no_snow`` is replaced by ``0.0``::
 
-  table = ['day  rain     snow',    # column names
-           #---  -------  --------
-           'Mon  3.2      no_snow', 
-           'Tue  no_rain  1.1', 
-           'Wed  0.3      no_snow']
-  astropy.io.ascii.read(table, fill_values=[('no_rain', '0.0'), ('no_snow', '0.0')])
- 
+  >>> table = ['day  rain     snow',    # column names
+               #---  -------  --------
+               'Mon  3.2      no_snow', 
+               'Tue  no_rain  1.1', 
+               'Wed  0.3      no_snow']
+  >>> print ascii.read(table, fill_values=[('no_rain', '0.0'), ('no_snow', '0.0')])
+  [('Mon', 3.2, --) ('Tue', --, 1.1) ('Wed', 0.3, --)]
+
 Sometimes these rules apply only to specific columns in the table. Columns can be selected with
 ``fill_include_names`` or excluded with ``fill_exclude_names``. Also, column names can be
 given directly with fill_values::
 
-  asciidata = ['text,no1,no2', 'text1,1,1.',',2,']
-  astropy.io.ascii.read(asciidata, fill_values = ('', 'nan','no1','no2'), delimiter = ',')
+  >>> asciidata = ['text,no1,no2', 'text1,1,1.',',2,']
+  >>> print ascii.read(asciidata, fill_values = ('', 'nan','no1','no2'), delimiter = ',')
+  [('text1', 1, 1.0) ('', 2, --)]
 
 Here, the empty value ``''`` in column ``no2`` is replaced by ``nan``, but the ``text``
 column remains unaltered. 
 
-If the ``numpy`` module is available, then the default output is a 
-`NumPy masked array <http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_, 
-where all values, which were replaced by ``fill_values`` are masked.  See the
-description of the :class:`~astropy.io.ascii.NumpyOutputter` class for information on 
-disabling masked arrays.
+When ``fill_values`` is specified then |read| returns a `NumPy masked array
+<http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ instead of the
+default `~astropy.table.Table` object.  See the description of the
+:class:`~astropy.io.ascii.core.NumpyOutputter` class for information on disabling
+masked arrays.
 
 Guess table format
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -217,7 +210,7 @@ The order of guessing is shown by this Python code::
   
   for Reader in (Rdb, Tab, Cds, Daophot, Ipac):
       read(Reader=Reader)
-  for Reader in (CommentedHeader, BasicReader, NoHeader):
+  for Reader in (CommentedHeader, Basic, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
               read(Reader=Reader, delimiter=delimiter, quotechar=quotechar)
@@ -235,7 +228,7 @@ The guessing process respects any values of the Reader, delimiter, and
 quotechar parameters that were supplied to the read() function.  Any guesses
 that would conflict are skipped.  For example the call::
 
- dat = astropy.io.ascii.read(table, Reader=NoHeader, quotechar="'")
+ >>> data = astropy.io.ascii.read(table, Reader=NoHeader, quotechar="'")
 
 would only try the four delimiter possibilities, skipping all the conflicting
 Reader and quotechar combinations.
@@ -256,80 +249,35 @@ numeric data types by using converter functions such as the Python ``int`` and
 ``float`` functions.  For example ``int("5.0")`` will fail while float("5.0")
 will succeed and return 5.0 as a Python float.  
 
-Without NumPy
-+++++++++++++++++
-The default set of converters
-for the :class:`~astropy.io.ascii.BaseOutputter` class is defined as such::
-
-  default_converters = [astropy.io.ascii.convert_list(int),
-                        astropy.io.ascii.convert_list(float),
-                        astropy.io.ascii.convert_list(str)]
-
-These take advantage of the :func:`~astropy.io.ascii.convert_list` function which
-returns a 2-element tuple.  The first element is function that will convert 
-a list of values to the desired type.  The second element is an :mod:`astropy.io.ascii` 
-class that specifies the type of data produced.  This element should be one of 
-:class:`~astropy.io.ascii.StrType`, :class:`~astropy.io.ascii.IntType`, or
-:class:`~astropy.io.ascii.FloatType`.  
-
-The conversion code steps through each applicable converter function and tries
-to call the function with a column of string values.  If it succeeds without
-throwing an exception it will then break out, but otherwise move on to the next
-conversion function.
-
-Use the ``converters`` keyword argument in order to force a specific data type
-for a column.  This should be a dictionary with keys corresponding to the
-column names.  Each dictionary value is a list similar to the
-``default_converter``.  For example::
-
-  # col1 is int, col2 is float, col3 is string
-  converters = {'col1': [astropy.io.ascii.convert_list(int)],
-                'col2': [astropy.io.ascii.convert_list(float)],
-                'col3': [astropy.io.ascii.convert_list(str)]}
-  read('file.dat', converters=converters)
-
-Note that it is also possible to specify a list of converter functions that
-will be tried in order::
-
-  converters = {'col1': [astropy.io.ascii.convert_list(float),
-                         astropy.io.ascii.convert_list(str)]}
-  read('file.dat', converters=converters)
-
-With NumPy
-++++++++++++++++
-
-If the ``numpy`` module is available then the
-:class:`~astropy.io.ascii.NumpyOutputter` is selected by default.  In this case  the
-default converters are::
+The default converters are::
 
     default_converters = [astropy.io.ascii.convert_numpy(numpy.int),
                           astropy.io.ascii.convert_numpy(numpy.float),
                           astropy.io.ascii.convert_numpy(numpy.str)]
 
-These take advantage of the :func:`~astropy.io.ascii.convert_numpy` function which
-returns a 2-element tuple ``(converter_func, converter_type)`` as described in
-the previous section.  The type provided to ``convert_numpy()`` must be a valid
-`numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for
-example ``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
+These take advantage of the :func:`~astropy.io.ascii.core.convert_numpy`
+function which returns a 2-element tuple ``(converter_func, converter_type)``
+as described in the previous section.  The type provided to
+:func:`~astropy.io.ascii.core.convert_numpy` must be a valid `numpy type
+<http://docs.scipy.org/doc/numpy/user/basics.types.html>`_, for example
+``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
 ``numpy.float``, ``numpy.float64``, ``numpy.str``.
 
-The converters for each column can be specified with the ``converters``
-keyword::
+The default converters for each column can be overridden with the
+``converters`` keyword::
 
-  converters = {'col1': [astropy.io.ascii.convert_numpy(numpy.uint)],
-                'col2': [astropy.io.ascii.convert_numpy(numpy.float32)]}
-  read('file.dat', converters=converters)
+  >>> converters = {'col1': [astropy.io.ascii.convert_numpy(numpy.uint)],
+                    'col2': [astropy.io.ascii.convert_numpy(numpy.float32)]}
+  >>> ascii.read('file.dat', converters=converters)
 
-Advanced table reading
+Advanced customization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section is not finished.  It will discuss ways of making custom reader
-functions and how to write custom ``Reader``, ``Splitter``, ``Inputter`` and
-``Outputter`` classes.  For now please look at the examples and especially the
-code for the existing :ref:`extension_reader_classes`.
+Here we provide a few examples that demonstrate how to extend the base
+functionality to handle special cases.  To go beyond these simple examples the
+best reference is to read the code for the existing
+:ref:`extension_reader_classes`.
 
-Examples
-+++++++++++++++
 **Define a custom reader functionally**
 ::
 
@@ -380,5 +328,3 @@ Examples
    # Create an RDB reader and override the splitter.process_val function
    rdb_reader = astropy.io.ascii.get_reader(Reader=astropy.io.ascii.Rdb)
    rdb_reader.data.splitter.process_val = process_val
-
-

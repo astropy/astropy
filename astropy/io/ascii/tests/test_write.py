@@ -5,12 +5,9 @@ try:
 except ImportError:
     import io
 
-try:
-    from ... import ascii as asciitable
-except:
-    import asciitable
+from ... import ascii as asciitable
 
-from .common import (has_numpy_and_not_has_numpy, has_numpy, raises,
+from .common import (raises,
                      assert_equal, assert_almost_equal, assert_true,
                      setup_function, teardown_function)
 
@@ -132,6 +129,7 @@ tablefoot
 
 ]
 
+
 def check_write_table(test_def, table):
     out = io.StringIO()
     asciitable.write(table, out, **test_def['kwargs'])
@@ -139,19 +137,10 @@ def check_write_table(test_def, table):
     print('Actual:\n%s' % out.getvalue())
     assert out.getvalue().splitlines() == test_def['out'].splitlines()
 
+
 def test_write_table():
     table = asciitable.get_reader(Reader=asciitable.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
-        check_write_table(test_def, table)
         check_write_table(test_def, data)
-
-def test_write_table_no_numpy():
-    table = asciitable.get_reader(Reader=asciitable.Daophot, numpy=False)
-    data = table.read('t/daophot.dat')
-
-    for test_def in test_defs:
-        check_write_table(test_def, table)
-        check_write_table(test_def, data)
-

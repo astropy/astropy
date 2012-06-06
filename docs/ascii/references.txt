@@ -1,3 +1,0 @@
-.. |read| replace:: :func:`~asciitable.read`
-.. |write| replace:: :func:`~asciitable.write`
-.. _structured array: http://docs.scipy.org/doc/numpy/user/basics.rec.html

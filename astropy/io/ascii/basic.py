@@ -72,9 +72,8 @@ class Basic(core.BaseReader):
         self.data.comment = r'\s*#'
         self.data.write_comment = '# '
 
-BasicReader = Basic
 
-class NoHeader(BasicReader):
+class NoHeader(Basic):
     """Read a table with no header line.  Columns are autonamed using
     header.auto_format which defaults to "col%d".  Otherwise this reader
     the same as the :class:`Basic` class from which it is derived.  Example::
@@ -84,11 +83,10 @@ class NoHeader(BasicReader):
       3 4 world
     """
     def __init__(self):
-        BasicReader.__init__(self)
+        Basic.__init__(self)
         self.header.start_line = None
         self.data.start_line = 0
 
-NoHeaderReader = NoHeader
 
 class CommentedHeaderHeader(core.BaseHeader):
     """Header class for which the column definition line starts with the
@@ -105,6 +103,7 @@ class CommentedHeaderHeader(core.BaseHeader):
 
     def write(self, lines):
         lines.append(self.write_comment + self.splitter.join([x.name for x in self.cols]))
+
 
 class CommentedHeader(core.BaseReader):
     """Read a file where the column names are given in a line that begins with the
@@ -129,9 +128,8 @@ class CommentedHeader(core.BaseReader):
         self.data.comment = r'\s*#'
         self.data.write_comment = '# '
 
-CommentedHeaderReader = CommentedHeader
 
-class Tab(BasicReader):
+class Tab(Basic):
     """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is 
     not stripped from the beginning and end of lines.  By default whitespace is
     still stripped from the beginning and end of individual column values.
@@ -143,7 +141,7 @@ class Tab(BasicReader):
       1 <tab> 2 <tab> 5
     """
     def __init__(self):
-        BasicReader.__init__(self)
+        Basic.__init__(self)
         self.header.splitter.delimiter = '\t'
         self.data.splitter.delimiter = '\t'
         # Don't strip line whitespace since that includes tabs
@@ -153,9 +151,8 @@ class Tab(BasicReader):
         self.data.splitter.process_val = None
         self.data.splitter.skipinitialspace = False
 
-TabReader = Tab
 
-class Rdb(TabReader):
+class Rdb(Tab):
     """Read a tab-separated file with an extra line after the column definition
     line.  The RDB format meets this definition.  Example::
 
@@ -166,7 +163,7 @@ class Rdb(TabReader):
     In this reader the second line is just ignored.
     """
     def __init__(self):
-        TabReader.__init__(self)
+        Tab.__init__(self)
         self.header = RdbHeader()
         self.header.start_line = 0
         self.header.comment = r'\s*#'
@@ -177,7 +174,6 @@ class Rdb(TabReader):
         self.data.header = self.header
         self.data.start_line = 2
 
-RdbReader = Rdb
 
 class RdbHeader(core.BaseHeader):
     col_type_map = {'n': core.NumType,

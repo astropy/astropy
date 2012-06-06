@@ -1,6 +1,6 @@
-.. _construct_table:
-
 .. include:: references.txt
+
+.. _construct_table:
 
 ====================
 Constructing a table
