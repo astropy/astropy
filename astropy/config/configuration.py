@@ -12,6 +12,7 @@ configuration files for Astropy and affiliated packages.
 from __future__ import division
 import textwrap
 from ..extern.configobj import configobj, validate
+from contextlib import contextmanager
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
@@ -182,6 +183,30 @@ class ConfigurationItem(object):
 
         sec[self.name] = value
         sec.comments[self.name] = self._generate_comments()
+
+    @contextmanager
+    def set_temp(self, value):
+        """
+        Sets this item to a specified value only inside a while loop.
+
+        Use as::
+            ITEM = ConfigurationItem('ITEM', 'default', 'description')
+
+            with ITEM.set_temp('newval'):
+                ... do something that wants ITEM's value to be 'newval' ...
+
+             # ITEM is now 'default' after the with block
+
+        Parameters
+        ----------
+        value
+            The value to set this item to inside the with block.
+
+        """
+        initval = self()
+        self.set(value)
+        yield
+        self.set(initval)
 
     def save(self, value=None):
         """ Writes a value for this `ConfigurationItem` to the relevant
