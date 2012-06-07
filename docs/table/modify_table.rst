@@ -81,9 +81,18 @@ The code below shows the basics of modifying a table and its data.
   >>> t.meta['key'] = 'value'
 
 **Reorder columns**
+
+.. note::
+
+  In this example, it is important that `neworder` is a tuple, and not a
+  list, slice, or `~numpy.ndarray`.
+
 ::
 
-  >>> t_acb = t[['a','c','b']]
+  >>> t_acb = t['a','c','b']
+  >>> neworder = ('a','c','b')
+  >>> t_acb = t[neworder]
+
 
 Caveats
 =======
