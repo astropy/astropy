@@ -36,7 +36,7 @@ Reading Tables
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function.  Assume you have a file named ``sources.dat`` with the following contents::
 
-  obsid redshift  X      Y     object     
+  obsid redshift  X      Y     object
   3102  0.32      4167  4085   Q1250+568-A
   877   0.22      4378  3892   "Source 82"
 
@@ -45,7 +45,7 @@ This table can be read with the following::
   >>> from astropy.io import ascii
   >>> data = ascii.read("sources.dat")
   >>> print data
-  obsid redshift  X    Y      object  
+  obsid redshift  X    Y      object
   ----- -------- ---- ---- -----------
    3102     0.32 4167 4085 Q1250+568-A
     877     0.22 4378 3892   Source 82
@@ -57,13 +57,13 @@ supported formats.  If this does not work (for unusually formatted tables) then
 one needs give astropy.io.ascii additional hints about the format, for
 example::
 
-   >>> lines = ['objID                   & osrcid            & xsrcid       ',  
+   >>> lines = ['objID                   & osrcid            & xsrcid       ',
                 '----------------------- & ----------------- & -------------',
                 '              277955213 & S000.7044P00.7513 & XS04861B6_005',
-                '              889974380 & S002.9051P14.7003 & XS03957B7_004']  
+                '              889974380 & S002.9051P14.7003 & XS03957B7_004']
    >>> data = ascii.read(lines, data_start=2, delimiter='&')
    >>> print data
-     objID         osrcid          xsrcid   
+     objID         osrcid          xsrcid
    --------- ----------------- -------------
    277955213 S000.7044P00.7513 XS04861B6_005
    889974380 S002.9051P14.7003 XS03957B7_004
@@ -115,6 +115,10 @@ The details of using `astropy.io.ascii` are provided in the following sections:
    fixed_width_gallery
    base_classes
    extension_classes
+
+
+Reference/API
+-------------
 
 .. automodapi:: astropy.io.ascii
 

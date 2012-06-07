@@ -142,6 +142,9 @@ of the Astropy configuration file::
     log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
 
 
+Reference/API
+-------------
+
 .. automodapi:: astropy.logger
     :no-inheritance-diagram:
 

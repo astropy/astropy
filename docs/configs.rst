@@ -1,19 +1,16 @@
-Configuration system Documentation
-==================================
+Configuration system (`astropy.config`)
+=======================================
+
+Introduction
+------------
 
 The astropy configuration system is designed to give users control of various
 parameters used in astropy or affiliated packages without delving into the
 source code to make those changes.
 
-.. todo::
-    Move this portion of the documentation to a more appropriate place when a
-    doc reorg happens
 
-For Users
----------
-
-The Astropy configuration system is designed to make it easy to see what general
-options are to be used
+Getting Started
+---------------
 
 To see the configuration options, look for your astropy configuration file.
 You can find it by doing::
@@ -40,9 +37,8 @@ want to see your changes immediately in your current Astropy session, just do::
 .. warning::
 
     The above is not true yet, because the setup doesn't automatically
-    populate the configuration files. Hopefully it will be true soon,
-    though. The
-    :func:`astropy.config.configuration._generate_all_config_items`
+    populate the configuration files. Hopefully it will be true soon, though.
+    The :func:`~astropy.config.configuration._generate_all_config_items`
     function will already do this, basically, but there has to be some
     thought about how to make driver scripts that actually do this for
     each user, and coordinate when they get run so that everything is
@@ -57,46 +53,102 @@ want to see your changes immediately in your current Astropy session, just do::
     data download systems will then use those directories and never try to
     access the ``$HOME/.astropy`` directory.
 
-These files are only read when the relevant package is imported, though,
-so any changes you make after starting an astropy session will not be
-detected. You can, however, change configuration items directly. This can
-be accomplished using the `set` method of a `ConfigurationItem` object as the
-following example shows::
 
-    # astropy.config.io.fits has a configuration item that sets whether or not
-    # FITS extension names are case-sensitive
-    >>> from astropy.io import fits
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE  # This item defaults to False
-    False
-    >>> f = fits.open('somefile.fits')  # it's first extension is named "AnExt"
-    >>> f[1].name
-    'ANEXT'
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.set(True)
-    >>> f = fits.open('somefile.fits')
-    >>> f[1].name
-    'AnExt'
+Advanced Usage
+--------------
 
-If you want this setting to persist across later sessions, you can save this
-setting by following the above code with::
+Changing Values at Run-time
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The configuration system is most conveniently used by modifying
+configuration files as described above. Values can also, however, be
+modified in an active python session using the
+:meth:`~astropy.config.configuration.ConfigurationItem.set` method. A run-time
+`ConfigurationItem` object can be used to make these changes. These items
+are found in the same module as the configuration section they are in,
+and usually have the same name as in the configuration files, but in all
+caps. Alternatively, they may be located with the
+:func:`~astropy.config.configuration.get_config_items` function.
 
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.save()
+For example, if there is a part of your configuration file that looks like::
 
-Alternatively, you can directly modify the value of the
-"extension_name_case_sensitive" entry in the "[io.fits]" section of
-``astropy.cfg`` to True, and then update the value in you python session
-by calling the `ConfigurationItem` `reload` method::
+    [config.data]
+    # URL for astropy remote data site.
+    dataurl = http://data.astropy.org/
 
-    >>> fits.EXTENSION_NAME_CASE_SENSITIVE.reload()
+    # Time to wait for remote data query (in seconds).
+    remote_timeout = 3.0
+
+
+You should be able to modify the values at run-time this way::
+
+    >>> from astropy.config.data import DATAURL, REMOTE_TIMEOUT
+    >>> DATAURL()
+    'http://data.astropy.org/'
+    >>> DATAURL.set('http://astropydata.mywebsite.com')
+    >>> DATAURL()
+    'http://astropydata.mywebsite.com'
+    >>> REMOTE_TIMEOUT()
+    3.0
+    >>> REMOTE_TIMEOUT.set(4.5)
+    >>> REMOTE_TIMEOUT()
+    4.5
+
+Or alternatively::
+
+    from astropy.config import get_config_items
+
+    >>> items = get_config_items('astropy.config.data')
+    >>> items['DATAURL'].set('http://astropydata.mywebsite.com')
+    >>> items['REMOTE_TIMEOUT'].set('4.5')
+
+Note that this will *not* permanently change these values in the configuration
+files - just for the current session.  To change the configuration files,
+after you've made your changes, you can do::
+
+    >>> DATAURL.save()
+    >>> REMOTE_TIMEOUT.save()
+
+Or to save all modifications to configuration items in `astropy.config.data`
+(which includes the changes made above), do::
+
+    >>> from astropy.config import save_config
+    >>> save_config('astropy.config.data')
+
+Reloading Configuration
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of modifying the variables in python, you can also modify the
+configuration files and then reload them.  For example, if you modify the
+configuration file to say::
+
+    [config.data]
+    # URL for astropy remote data site.
+    dataurl = http://myotherdata.mywebsite.com/
+
+    # Time to wait for remote data query (in seconds).
+    remote_timeout = 6.3
+
+And then run the following commands::
+
+    >>> DATAURL.reload()
+    >>> REMOTE_TIMEOUT.reload()
+
+This should update the variables with the values from the configuration file::
+
+    >>> DATAURL()
+    'http://myotherdata.mywebsite.com/'
+    >>> REMOTE_TIMEOUT()
+    6.3
 
 Or if you want to reload all astropy configuration at once, use the
 `~astropy.config.configuration.reload_config` function::
 
-    >>> config.reoad_config('astropy')
+    >>> config.reload_config('astropy')
 
 
+Developer Usage
+---------------
 
-For Developers
---------------
 Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
 across sessions of astropy or an affiliated package. Admittedly, this is
@@ -181,5 +233,20 @@ Or, if the option needs to be available as a function parameter::
 
 
 
+See Also
+--------
+
+:doc:`logging` (overview of `astropy.config.logging`)
+
+
+Reference/API
+-------------
+
 .. automodapi:: astropy.config
     :no-inheritance-diagram:
+
+
+
+
+
+
