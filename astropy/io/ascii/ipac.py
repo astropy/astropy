@@ -7,7 +7,7 @@ ipac.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -18,7 +18,7 @@ ipac.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,34 +27,34 @@ ipac.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from . import core
 from . import fixedwidth
 
 class Ipac(core.BaseReader):
-    """Read an IPAC format table:
+    """Read an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
-      \\name=value                                                    
-      \\ Comment                                                      
+      \\name=value
+      \\ Comment
       |  column1 |  column2 | column3 | column4  |    column5       |
       |  double  |  double  |   int   |   double |     char         |
       |   unit   |   unit   |   unit  |    unit  |     unit         |
       |   null   |   null   |   null  |    null  |     null         |
-       2.0978     29.09056   73765     2.06000    B8IVpMnHg          
-    
+       2.0978     29.09056   73765     2.06000    B8IVpMnHg
+
     Or::
-    
+
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
         2.09708   29.09056     73765    2.06000   B8IVpMnHg
-    
+
     Caveats:
-    
+
     * Data type, Units, and Null value specifications are ignored.
     * Keywords are ignored.
-    * The IPAC spec requires the first two header lines but this reader only 
+    * The IPAC spec requires the first two header lines but this reader only
       requires the initial column name definition line
 
     Overcoming these limitations would not be difficult, code contributions
@@ -87,7 +87,7 @@ class IpacHeader(core.BaseHeader):
                     'f': core.FloatType,
                     'r': core.FloatType,
                     'c': core.StrType}
-    
+
     def __init__(self):
         self.splitter = self.__class__.splitter_class()
         self.splitter.process_line = None
@@ -126,7 +126,7 @@ class IpacHeader(core.BaseHeader):
         for i, name in enumerate(header_vals[0]):
             col = core.Column(name=name.strip(' -'), index=i)
             col.start = start
-            col.end = start + len(name) 
+            col.end = start + len(name)
             if len(header_vals) > 1:
                 col.raw_type = header_vals[1][i].strip(' -')
                 col.type = self.get_col_type(col)
@@ -143,7 +143,7 @@ class IpacHeader(core.BaseHeader):
                     self.data.fill_values.append((col.null, fillval, col.name))
             start = col.end + 1
             cols.append(col)
-        
+
         # Standard column name filtering (include or exclude names)
         self.names = [x.name for x in cols]
         names = set(self.names)
@@ -151,7 +151,7 @@ class IpacHeader(core.BaseHeader):
             names.intersection_update(self.include_names)
         if self.exclude_names is not None:
             names.difference_update(self.exclude_names)
-            
+
         # Generate final list of cols and re-index the cols because the
         # FixedWidthSplitter does NOT return the ignored cols (as is the
         # case for typical delimiter-based splitters)
@@ -163,4 +163,4 @@ class IpacData(core.BaseData):
     """IPAC table data reader"""
     splitter_class = fixedwidth.FixedWidthSplitter
     comment = r'[|\\]'
-    
+
