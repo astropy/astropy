@@ -27,15 +27,14 @@ It accepts the following options:
         used with ``:subsections:`` if there is nothing of intereset in
         the package itself.)
 
-    * ``:title: [str]``
-        Specifies the top-level title for the section. Defaults to
-        "Reference/API".
-
-    * ``:headings: [str]``
-        Specifies the characters (all in one string) to use for the
-        heading levels. This *must* have at least 3 characters (any after
-        3 will be ignored). Defaults to "-^_". Note that this must match
-        the rest of the documentation page.
+    * ``:headings: str``
+        Specifies the characters (in one string) used as the heading
+        levels used for the generated section. This must have at least 2
+        characters (any after 2 will be ignored). This also *must* match
+        the rest of the documentation on this page for sphinx to be
+        happy. Defaults to "^_", which matches the Sphinx default scheme
+        assuming the automodapi call is inside a top-level section (which
+        usually uses '-').
 
 
 This extension also adds a sphinx configuration option
@@ -55,11 +54,6 @@ place as ``index.rst``). It defaults to '_generated'
 # actually built.
 
 import re
-
-automod_templ_header = """
-{title}
-{titlehd}
-"""
 
 automod_templ_modheader = """
 {modname} {pkgormod}
@@ -175,15 +169,14 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             subsecs = modops.pop('subsections', None)
             nomain = 'no-main-section' in modops
             modops.pop('no-main-section', None)
-            sectitle = modops.pop('sectitle', 'Reference/API')
-            hds = modops.pop('headings', '-^_')
+            hds = modops.pop('headings', '^_')
 
-            if len(hds) < 3:
-                msg = 'not enough headings (got {0}, need 3), using default -^_'
+            if len(hds) < 2:
+                msg = 'not enough headings (got {0}, need 2), using default ^_'
                 if warnings:
                     app.warn(msg.format(len(hds)), location)
-                hds = '-^_'
-            h1, h2, h3 = hds.lstrip()[:3]
+                hds = '^_'
+            h1, h2 = hds.lstrip()[:2]
 
             #tell sphinx that the remaining args are invalid.
             if len(modops) > 0 and app is not None:
@@ -192,10 +185,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
                 if warnings:
                     app.warn(msg, location)
-
-            #now actually populate the templates
-            newstrs.append(automod_templ_header.format(title=sectitle,
-                titlehd=h1 * len(sectitle)))
 
             # construct the list of modules to document based on the
             # show-subsections argument
@@ -224,24 +213,24 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 ispkg, hascls, hasfuncs = _mod_info(modnm)
 
                 newstrs.append(automod_templ_modheader.format(modname=modnm,
-                    modhds=h2 * len(modnm),
+                    modhds=h1 * len(modnm),
                     pkgormod='Package' if ispkg else 'Module',
-                    pkgormodhds=h2 * (8 if ispkg else 7)))
+                    pkgormodhds=h1 * (8 if ispkg else 7)))
 
                 if hasfuncs:
                     newstrs.append(automod_templ_funcs.format(modname=modnm,
-                        funchds=h3 * 9,
+                        funchds=h2 * 9,
                         toctree=toctreestr))
 
                 if hascls:
                     newstrs.append(automod_templ_classes.format(modname=modnm,
-                        clshds=h3 * 7,
+                        clshds=h2 * 7,
                         toctree=toctreestr))
 
                 if inhdiag and hascls:
                     # add inheritance diagram if any classes are in the module
                     newstrs.append(automod_templ_inh.format(
-                        modname=modnm, clsinhsechds=h3 * 25))
+                        modname=modnm, clsinhsechds=h2 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)

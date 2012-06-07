@@ -53,6 +53,8 @@ See Also (optional)
 Include here any references to related packages, articles, or texts.
 
 
+Reference/API
+-------------
 
 .. automodapi:: packagename
 
