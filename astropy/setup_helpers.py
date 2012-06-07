@@ -157,6 +157,33 @@ except ImportError as e:
         raise
 
 
+def get_distutils_display_options():
+    """ Returns a set of all the distutils display options in their long and
+    short forms.  These are the setup.py arguments such as --name or --version
+    which print the project's metadata and then exit.
+
+    Returns
+    -------
+    opts : set
+        The long and short form display option arguments, including the - or --
+    """
+
+    short_display_opts = set('-' + o[1] for o in Distribution.display_options
+                             if o[1])
+    long_display_opts = set('--' + o[0] for o in Distribution.display_options)
+
+    return short_display_opts.union(long_display_opts)
+
+
+def is_distutils_display_option():
+    """ Returns True if sys.argv contains any of the distutils display options
+    such as --version or --name.
+    """
+
+    display_options = get_distutils_display_options()
+    return bool(set(sys.argv[1:]).intersection(display_options))
+
+
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -174,10 +201,14 @@ def get_distutils_option(option, commands):
         the value of the given distutils option. If the option is not set,
         returns None.
     """
+
+    display_opts = get_distutils_display_options()
+    args = [arg for arg in sys.argv[1:] if arg not in display_opts]
+
     # Pre-parse the Distutils command-line options and config files to
     # if the option is set.
     dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                         'script_args': sys.argv[1:]})
+                         'script_args': args})
     try:
         dist.parse_config_files()
         dist.parse_command_line()
@@ -692,7 +723,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
-    if found_legacy_module:
+    if found_legacy_module and not is_distutils_display_option():
         warn('-' * 60)
         warn("The legacy package '{0}' was found.".format(old_package))
         warn("To install astropy's compatibility layer instead, uninstall")
