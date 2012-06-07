@@ -39,9 +39,6 @@ This comes after
 am_replacer_basic_expected = """
 This comes before
 
-Reference/API
--------------
-
 astropy.sphinx.ext.tests.test_automodapi Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -86,9 +83,6 @@ def test_am_replacer_basic():
 am_replacer_noinh_expected = """
 This comes before
 
-Reference/API
--------------
-
 astropy.sphinx.ext.tests.test_automodapi Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -130,9 +124,6 @@ def test_am_replacer_noinh():
 am_replacer_titleandhdrs_expected = """
 This comes before
 
-Reference/API
-$$$$$$$$$$$$$
-
 astropy.sphinx.ext.tests.test_automodapi Module
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
@@ -171,7 +162,7 @@ def test_am_replacer_titleandhdrs():
     from ..automodapi import automodapi_replace
 
     fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
-    ops = ['', ':title: A new title', ':headings: $&*']
+    ops = ['', ':title: A new title', ':headings: &*']
     ostr = '\n    '.join(ops)
     result = automodapi_replace(am_replacer_str.format(options=ostr), fakeapp)
 
@@ -190,9 +181,6 @@ This comes after
 
 am_replacer_subsections_expected = """
 This comes before
-
-Reference/API
--------------
 
 astropy.sphinx.ext.automodsumm Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
