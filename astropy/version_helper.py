@@ -99,7 +99,7 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         try:
             mod = find_current_module(1, finddiff=True)
             path = os.path.abspath(mod.__file__)
-        except ValueError:
+        except (ValueError, AttributeError):
             path = __file__
     if not os.path.isdir(path):
         path = os.path.abspath(os.path.split(path)[0])
@@ -180,6 +180,7 @@ def _get_version_py_str(packagename, version, release, debug):
 def generate_version_py(packagename, version, release, debug=None):
     """Regenerate the version.py module if necessary."""
 
+    from .setup_helpers import is_distutils_display_option
     from distutils import log
     import imp
     import os
@@ -207,6 +208,12 @@ def generate_version_py(packagename, version, release, debug=None):
         current_debug != debug):
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
+
+        if is_distutils_display_option():
+            # Always silence unnecessary log messages when display options are
+            # being used
+            log.set_threshold(log.WARN)
+
         log.info('Freezing version number to {0}'.format(version_py))
 
         with open(version_py, 'w') as f:
