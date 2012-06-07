@@ -151,6 +151,9 @@ See Also
 :doc:`logging` (overview of `astropy.config.logging`)
 
 
+Reference/API
+-------------
+
 .. automodapi:: astropy.config
     :no-inheritance-diagram:
 

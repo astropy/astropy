@@ -4,10 +4,10 @@
 astropy.nddata documentation
 ============================
 
-The `nddata` subpackage provides the `~astropy.nddata.nddata.NDData` 
-class and related tools to manage n-dimensional array-based data (e.g. 
+The `nddata` subpackage provides the `~astropy.nddata.nddata.NDData`
+class and related tools to manage n-dimensional array-based data (e.g.
 CCD images, IFU Data, grid-based simulation data, ...). This is more than
-just `numpy.ndarray` objects, because it provides metadata that cannot 
+just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 
 .. toctree::
@@ -15,6 +15,9 @@ be easily provided by a single array.
 
    convolution.rst
 
+
+Reference/API
+-------------
 
 .. automodapi:: astropy.nddata
     :no-inheritance-diagram:
