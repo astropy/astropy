@@ -10,14 +10,14 @@ The data values within a |Table| object can be modified in much the same manner
 as for `numpy` structured arrays by accessing columns or rows of data and
 assigning values appropriately.  A key enhancement provided by the |Table| class
 is the ability to easily modify the structure of the table: one can add or
-remove columns, and add new rows of data.   
+remove columns, and add new rows of data.
 
 Quick overview
 ==============
 
 The code below shows the basics of modifying a table and its data.
 
-  
+
 **Make a table**
 ::
 
@@ -25,7 +25,7 @@ The code below shows the basics of modifying a table and its data.
   >>> import numpy as np
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
-  
+
 **Modify data values**
 ::
 
@@ -34,16 +34,16 @@ The code below shows the basics of modifying a table and its data.
   >>> t[1] = (8, 9, 10)           # Set all row values
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:3]['c'] = 100           # Set column 'c' of rows 0, 1, 2
-  
+
 **Add a column or columns**
 ::
 
   >>> t.add_column(Column('d', np.arange(5)))
-  
+
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
   >>> t.add_columns(t2.columns.values())
-  
+
 **Remove columns**
 ::
 
@@ -58,12 +58,12 @@ The code below shows the basics of modifying a table and its data.
 
   >>> t.rename_column('a', 'a_new')
   >>> t['b'].name = 'b_new'
-  
+
 **Add a row of data**
 ::
 
   >>> t.add_row([-8, -9])
-  
+
 **Sort by one more more columns**
 ::
 
@@ -79,6 +79,20 @@ The code below shows the basics of modifying a table and its data.
 ::
 
   >>> t.meta['key'] = 'value'
+
+**Reorder columns**
+
+.. note::
+
+  In this example, it is important that `neworder` is a tuple, and not a
+  list, slice, or `~numpy.ndarray`.
+
+::
+
+  >>> t_acb = t['a','c','b']
+  >>> neworder = ('a','c','b')
+  >>> t_acb = t[neworder]
+
 
 Caveats
 =======
