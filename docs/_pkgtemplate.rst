@@ -46,7 +46,6 @@ be a table of contents referencing those documents:
 Either a toctree or sub-sections should be used, *not* both.
 
 
-
 See Also (optional)
 -------------------
 
@@ -57,7 +56,6 @@ Reference/API
 -------------
 
 .. automodapi:: packagename
-
 
 
 Acknowledgments and Licenses (optional)
