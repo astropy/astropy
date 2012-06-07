@@ -38,10 +38,11 @@ want to see your changes immediately in your current Astropy session, just do::
     reload_config()
 
 .. warning::
+
     The above is not true yet, because the setup doesn't automatically
     populate the configuration files. Hopefully it will be true soon,
-    though.
-    The :func:`astropy.config.configuration._generate_all_config_items`
+    though. The
+    :func:`astropy.config.configuration._generate_all_config_items`
     function will already do this, basically, but there has to be some
     thought about how to make driver scripts that actually do this for
     each user, and coordinate when they get run so that everything is

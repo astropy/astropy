@@ -41,6 +41,7 @@ Turn on PEP8 checking by passing ``--pep8`` to the ``test`` command. This will
 turn off regular testing and enable PEP8 testing.
 
 .. note::
+
     This method of running the tests defaults to the version of `py.test` that
     is bundled with Astropy. To use the locally-installed version, you can set
     the ``ASTROPY_USE_SYSTEM_PYTEST`` environment variable, eg.::
