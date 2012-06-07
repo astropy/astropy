@@ -46,5 +46,8 @@ Using NDData
 
    convolution.rst
 
+Reference/API
+-------------
+
 .. automodapi:: astropy.nddata
     :no-inheritance-diagram:
