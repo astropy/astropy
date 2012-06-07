@@ -34,6 +34,10 @@ For discussions and ideas regarding development of the Astropy package, see the 
    tools
    utils/index
 
+
+
+.. _developer-docs:
+
 Developer Documentation
 -----------------------
 

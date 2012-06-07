@@ -7,7 +7,7 @@ cds.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -18,7 +18,7 @@ cds.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,7 +27,7 @@ cds.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import fnmatch
@@ -55,7 +55,7 @@ class CdsHeader(core.BaseHeader):
 
         :param readme: The ReadMe file to construct header from.
         :type readme: String
-       
+
         CDS tables have their header information in a separate file
         named "ReadMe". The ``get_cols`` method will read the contents
         of the ReadMe file given by ``self.readme`` and set the various
@@ -67,7 +67,7 @@ class CdsHeader(core.BaseHeader):
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a CDS
-        header. 
+        header.
 
         :param lines: list of table lines
         :returns: list of table Columns
@@ -107,7 +107,7 @@ class CdsHeader(core.BaseHeader):
                 raise core.InconsistentTableError("Cant' find table {0} in {1}".format(
                         self.data.table_name, self.readme))
             f.close()
-                       
+
         for i_col_def, line in enumerate(lines):
             if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
                 break
@@ -162,7 +162,7 @@ class CdsHeader(core.BaseHeader):
             names.intersection_update(self.include_names)
         if self.exclude_names is not None:
             names.difference_update(self.exclude_names)
-            
+
         self.cols = [x for x in cols if x.name in names]
         self.n_data_cols = len(self.cols)
 
@@ -170,13 +170,13 @@ class CdsHeader(core.BaseHeader):
         # cols (as is the case for typical delimiter-based splitters)
         for i, col in enumerate(self.cols):
             col.index = i
-            
+
 
 class CdsData(core.BaseData):
     """CDS table data reader
     """
     splitter_class = fixedwidth.FixedWidthSplitter
-    
+
     def process_lines(self, lines):
         """Skip over CDS header by finding the last section delimiter"""
         # If the header has a ReadMe and data has a filename
@@ -197,15 +197,15 @@ class Cds(core.BaseReader):
     Example::
 
       Table: Spitzer-identified YSOs: Addendum
-      ================================================================================
+      = ==============================================================================
       Byte-by-byte Description of file: datafile3.txt
       --------------------------------------------------------------------------------
          Bytes Format Units  Label  Explanations
       --------------------------------------------------------------------------------
          1-  3 I3     ---    Index  Running identification number
-         5-  6 I2     h      RAh    Hour of Right Ascension (J2000) 
-         8-  9 I2     min    RAm    Minute of Right Ascension (J2000) 
-        11- 15 F5.2   s      RAs    Second of Right Ascension (J2000) 
+         5-  6 I2     h      RAh    Hour of Right Ascension (J2000)
+         8-  9 I2     min    RAm    Minute of Right Ascension (J2000)
+        11- 15 F5.2   s      RAs    Second of Right Ascension (J2000)
       --------------------------------------------------------------------------------
         1 03 28 39.09
 
@@ -229,7 +229,7 @@ class Cds(core.BaseReader):
     specified table is taken from the ``readme`` file.  An
     ``InconsistentTableError`` is raised if the ``readme`` file does not
     have header information for the given table.
-    
+
       >>> readme = "t/vizier/ReadMe"
       >>> r = asciitable.get_reader(asciitable.Cds, readme=readme)
       >>> table = r.read("t/vizier/table1.dat")

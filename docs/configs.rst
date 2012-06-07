@@ -38,6 +38,7 @@ want to see your changes immediately in your current Astropy session, just do::
     reload_config()
 
 .. warning::
+
     The above is not true yet, because the setup doesn't automatically
     populate the configuration files. Hopefully it will be true soon,
     though. The
