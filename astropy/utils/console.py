@@ -10,6 +10,10 @@ import math
 import sys
 import time
 
+try:
+    from IPython.zmq.iostream import OutStream
+except ImportError:
+    OutStream = None
 
 from ..config import ConfigurationItem
 
@@ -35,7 +39,11 @@ def isatty(file):
     but some user-defined types may not, so this assumes those are not
     ttys.
     """
-    if hasattr(file, 'isatty'):
+    if (OutStream is not None and
+        isinstance(file, OutStream) and
+        file.name == 'stdout'):
+        return True
+    elif hasattr(file, 'isatty'):
         return file.isatty()
     return False
 
