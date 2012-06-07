@@ -175,6 +175,15 @@ def get_distutils_display_options():
     return short_display_opts.union(long_display_opts)
 
 
+def is_distutils_display_option():
+    """ Returns True if sys.argv contains any of the distutils display options
+    such as --version or --name.
+    """
+
+    display_options = get_distutils_display_options()
+    return bool(set(sys.argv[1:]).intersection(display_options))
+
+
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -714,7 +723,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
-    if found_legacy_module:
+    if found_legacy_module and not is_distutils_display_option():
         warn('-' * 60)
         warn("The legacy package '{0}' was found.".format(old_package))
         warn("To install astropy's compatibility layer instead, uninstall")
