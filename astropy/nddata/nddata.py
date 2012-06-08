@@ -178,3 +178,14 @@ class NDData(object):
         integer dimensions of this object's data
         """
         return self.data.ndim
+
+    def __array__(self):
+        """
+        Implicitly convert this NDData object to a Numpy array so that
+        tools such as matplotlib will automatically know how to plot
+        it.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(self.data, self.mask)
+        else:
+            return self.data
