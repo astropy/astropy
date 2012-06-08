@@ -12,11 +12,17 @@
    {% block attributes %}
    {% if attributes %}
 
-   .. rubric:: Attributes
+   .. rubric:: Attributes Summary
 
    .. autosummary::
    {% for item in attributes %}
       ~{{ name }}.{{ item }}
+   {%- endfor %}
+
+   .. rubric:: Attributes Summary
+
+   {% for item in attributes %}
+   .. autoattribute:: {{ item }}
    {%- endfor %}
    {% endif %}
    {% endblock %}
@@ -43,6 +49,3 @@
    {%- endfor %}
    {% endif %}
    {% endblock %}
-
-
-
