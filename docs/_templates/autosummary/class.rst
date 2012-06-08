@@ -19,7 +19,7 @@
       ~{{ name }}.{{ item }}
    {%- endfor %}
 
-   .. rubric:: Attributes Summary
+   .. rubric:: Attributes Documentation
 
    {% for item in attributes %}
    .. autoattribute:: {{ item }}
