@@ -1,4 +1,4 @@
-.. include:: io/vo/references.txt
+.. include:: references.txt
 
 VOTable XML handling (`astropy.io.vo`)
 ======================================
@@ -298,6 +298,9 @@ See Also
 - `VOTable Format Definition Version 1.2
   <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_
 
+Reference/API
+-------------
+
 .. automodapi:: astropy.io.vo
    :no-main-section:
    :subsections: table, tree, converters, ucd, unit, util, validator, xmlutil
@@ -309,4 +312,4 @@ astropy.io.vo.exceptions Module
 .. toctree::
    :maxdepth: 1
 
-   io/vo/api_exceptions.rst
+   api_exceptions.rst
