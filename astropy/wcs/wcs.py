@@ -59,8 +59,8 @@ else:  # pragma: py2
 
 
 __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
-           'WCSBase', 'DistortionLookupTable', 'Sip',
-           'UnitConverter', 'Wcsprm']
+           'DistortionLookupTable', 'Sip', 'Tabprm', 'UnitConverter',
+           'Wcsprm']
 
 
 if _wcs is not None:
@@ -69,6 +69,7 @@ if _wcs is not None:
     Sip = _wcs.Sip
     UnitConverter = _wcs.UnitConverter
     Wcsprm = _wcs._Wcsprm
+    Tabprm = _wcs.Tabprm
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
         if (key.startswith('WCSSUB') or
@@ -82,6 +83,7 @@ else:
     DistortionLookupTable = object
     Sip = object
     UnitConverter = object
+    Tabprm = object
 
 
 def _parse_keysel(keysel):
@@ -105,6 +107,10 @@ def _parse_keysel(keysel):
 
 
 class FITSFixedWarning(Warning):
+    """
+    The warning raised when the contents of the FITS header have been
+    modified to be standards compliant.
+    """
     pass
 
 
@@ -113,115 +119,110 @@ class WCS(WCSBase):
     WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `Paper IV`_ table-lookup distortions, based on the WCS
     keywords and supplementary data read from a FITS file.
+
+    Parameters
+    ----------
+    header : astropy.io.fits header object, string or None, optional
+        If *header* is not provided or None, the object will be
+        initialized to default values.
+
+    fobj : An astropy.io.fits file (hdulist) object, optional
+        It is needed when header keywords point to a `Paper IV`_
+        Lookup table distortion stored in a different extension.
+
+    key : string, optional
+        The name of a particular WCS transform to use.  This may be
+        either ``' '`` or ``'A'``-``'Z'`` and corresponds to the
+        ``\"a\"`` part of the ``CTYPEia`` cards.  *key* may only be
+        provided if *header* is also provided.
+
+    minerr : float, optional
+        The minimum value a distortion correction must have in order
+        to be applied. If the value of ``CQERRja`` is smaller than
+        *minerr*, the corresponding distortion is not applied.
+
+    relax : bool or int, optional
+        Degree of permissiveness:
+
+        - `False`: Recognize only FITS keywords defined by the
+          published WCS standard.
+
+        - `True`: Admit all recognized informal extensions of the WCS
+          standard.
+
+        - `int`: a bit field selecting specific extensions to accept.
+          See :ref:`relaxread` for details.
+
+    naxis : int or sequence, optional
+        Extracts specific coordinate axes using
+        :meth:`~astropy.wcs.Wcsprm.sub`.  If a header is provided, and
+        *naxis* is not ``None``, *naxis* will be passed to
+        :meth:`~astropy.wcs.Wcsprm.sub` in order to select specific
+        axes from the header.  See :meth:`~astropy.wcs.Wcsprm.sub` for
+        more details about this parameter.
+
+    keysel : sequence of flags, optional
+        A sequence of flags used to select the keyword types
+        considered by wcslib.  When ``None``, only the standard image
+        header keywords are considered (and the underlying wcspih() C
+        function is called).  To use binary table image array or pixel
+        list keywords, *keysel* must be set.
+
+        Each element in the list should be one of the following
+        strings:
+
+        - 'image': Image header keywords
+
+        - 'binary': Binary table image array keywords
+
+        - 'pixel': Pixel list keywords
+
+        Keywords such as ``EQUIna`` or ``RFRQna`` that are common to
+        binary table image arrays and pixel lists (including
+        ``WCSNna`` and ``TWCSna``) are selected by both 'binary' and
+        'pixel'.
+
+    colsel : sequence of int, optional
+        A sequence of table column numbers used to restrict the WCS
+        transformations considered to only those pertaining to the
+        specified columns.  If `None`, there is no restriction.
+
+    fix : bool, optional
+        When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix` on
+        the resulting object to fix any non-standard uses in the
+        header.  `FITSFixedWarning` Warnings will be emitted if any
+        changes were made.
+
+    Raises
+    ------
+    MemoryError
+         Memory allocation failed.
+
+    ValueError
+         Invalid key.
+
+    KeyError
+         Key not found in FITS header.
+
+    AssertionError
+         Lookup table distortion present in the header but *fobj* was
+         not provided.
+
+    Notes
+    -----
+    astropy.wcs supports arbitrary *n* dimensions for the core WCS
+    (the transformations handled by WCSLIB).  However, the Paper IV
+    lookup table and SIP distortions must be two dimensional.
+    Therefore, if you try to create a WCS object where the core WCS
+    has a different number of dimensions than 2 and that object also
+    contains a Paper IV lookup table or SIP distortion, a `ValueError`
+    exception will be raised.  To avoid this, consider using the
+    *naxis* kwarg to select two dimensions from the core WCS.
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=False, naxis=None, keysel=None, colsel=None,
                  fix=True):
-        """
-        Parameters
-        ----------
-        header : astropy.io.fits header object, string or None, optional
-            If *header* is not provided or None, the object will be
-            initialized to default values.
-
-        fobj : An astropy.io.fits file (hdulist) object, optional
-            It is needed when header keywords point to a `Paper IV`_
-            Lookup table distortion stored in a different extension.
-
-        key : string, optional
-            The name of a particular WCS transform to use.  This may
-            be either ``' '`` or ``'A'``-``'Z'`` and corresponds to
-            the ``\"a\"`` part of the ``CTYPEia`` cards.  *key* may
-            only be provided if *header* is also provided.
-
-        minerr : float, optional
-            The minimum value a distortion correction must have in
-            order to be applied. If the value of ``CQERRja`` is
-            smaller than *minerr*, the corresponding distortion is not
-            applied.
-
-        relax : bool or int, optional
-            Degree of permissiveness:
-
-            - `False`: Recognize only FITS keywords defined by the
-              published WCS standard.
-
-            - `True`: Admit all recognized informal extensions of the
-              WCS standard.
-
-            - `int`: a bit field selecting specific extensions to
-              accept.  See :ref:`relaxread` for details.
-
-        naxis : int or sequence, optional
-            Extracts specific coordinate axes using
-            :meth:`~astropy.wcs.Wcsprm.sub`.  If a header is provided,
-            and *naxis* is not ``None``, *naxis* will be passed to
-            :meth:`~astropy.wcs.Wcsprm.sub` in order to select
-            specific axes from the header.  See
-            :meth:`~astropy.wcs.Wcsprm.sub` for more details about
-            this parameter.
-
-        keysel : sequence of flags, optional
-            A sequence of flags used to select the keyword types
-            considered by wcslib.  When ``None``, only the standard
-            image header keywords are considered (and the underlying
-            wcspih() C function is called).  To use binary table image
-            array or pixel list keywords, *keysel* must be set.
-
-            Each element in the list should be one of the following
-            strings:
-
-            - 'image': Image header keywords
-
-            - 'binary': Binary table image array keywords
-
-            - 'pixel': Pixel list keywords
-
-            Keywords such as ``EQUIna`` or ``RFRQna`` that are common
-            to binary table image arrays and pixel lists (including
-            ``WCSNna`` and ``TWCSna``) are selected by both 'binary'
-            and 'pixel'.
-
-        colsel : sequence of int, optional
-            A sequence of table column numbers used to restrict the
-            WCS transformations considered to only those pertaining to
-            the specified columns.  If `None`, there is no
-            restriction.
-
-        fix : bool, optional
-            When `True` (default), call `~astropy.wcs._wcs.Wcsprm.fix`
-            on the resulting object to fix any non-standard uses in
-            the header.  `FITSFixedWarning` Warnings will be emitted
-            if any changes were made.
-
-        Raises
-        ------
-        MemoryError
-             Memory allocation failed.
-
-        ValueError
-             Invalid key.
-
-        KeyError
-             Key not found in FITS header.
-
-        AssertionError
-             Lookup table distortion present in the header but *fobj*
-             not provided.
-
-        Notes
-        -----
-        astropy.wcs supports arbitrary *n* dimensions for the core WCS
-        (the transformations handled by WCSLIB).  However, the Paper
-        IV lookup table and SIP distortions must be two dimensional.
-        Therefore, if you try to create a WCS object where the core
-        WCS has a different number of dimensions than 2 and that
-        object also contains a Paper IV lookup table or SIP
-        distortion, a `ValueError` exception will be raised.  To avoid
-        this, consider using the *naxis* kwarg to select two
-        dimensions from the core WCS.
-        """
         if header is None:
             if naxis is None:
                 naxis = 2
@@ -326,8 +327,8 @@ naxis kwarg.
         """
         Return a shallow copy of the object.
 
-        Convenience method so user doesn't have to import the :mod:`copy`
-        stdlib module.
+        Convenience method so user doesn't have to import the
+        :mod:`copy` stdlib module.
         """
         return copy.copy(self)
 
@@ -335,8 +336,8 @@ naxis kwarg.
         """
         Return a deep copy of the object.
 
-        Convenience method so user doesn't have to import the :mod:`copy`
-        stdlib module.
+        Convenience method so user doesn't have to import the
+        :mod:`copy` stdlib module.
         """
         return copy.deepcopy(self)
 
@@ -361,7 +362,8 @@ naxis kwarg.
         header : astropy.io.fits header object, optional
 
         undistort : bool, optional
-            If `True`, take SIP and distortion lookup table into account
+            If `True`, take SIP and distortion lookup table into
+            account
 
         Returns
         -------

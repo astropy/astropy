@@ -847,7 +847,7 @@ static PyTypeObject WcsType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   #endif
-  "astropy.wcs._Wcs",                 /*tp_name*/
+  "astropy.wcs.WCSBase",                 /*tp_name*/
   sizeof(Wcs),                /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor)Wcs_dealloc,    /*tp_dealloc*/

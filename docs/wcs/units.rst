@@ -1,13 +1,5 @@
 .. include:: references.txt
 
-`UnitConverter`
-```````````````
-
-.. autoclass:: astropy.wcs.UnitConverter
-   :members:
-   :inherited-members:
-   :undoc-members:
-
 .. _fits-unit:
 
 FITS unit specification
