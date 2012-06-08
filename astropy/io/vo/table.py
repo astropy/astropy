@@ -31,10 +31,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
           filename=None,
           _debug_python_based_parser=False):
     """
-    Parses a VOTABLE_ xml file (or file-like object), and returns a
-    `~astropy.io.vo.tree.VOTable` object, with nested
-    `~astropy.io.vo.tree.Resource` instances and
-    `~astropy.io.vo.tree.Table` instances.
+    Parses a VOTABLE_ xml file (or file-like object), and returns a `~astropy.io.vo.tree.VOTable` object.
 
     Parameters
     ----------
@@ -113,9 +110,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
 def parse_single_table(source, **kwargs):
     """
-    Parses a VOTABLE_ xml file (or file-like object), reads only the
-    first TABLE_ element, and returns a `~astropy.io.vo.tree.Table`
-    instance.
+    Parses a VOTABLE_ xml file (or file-like object), reading and returning only the first `~astropy.io.vo.tree.Table` instance.
 
     See `parse` for a description of the keyword arguments.
 

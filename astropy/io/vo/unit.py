@@ -32,9 +32,7 @@ _unit_prefix_regex = u'|'.join(u'(?:{0})'.format(x) for x in unit_prefixes)
 
 def is_unit(s):
     """
-    Returns `True` if *s* is a valid unit string as defined by
-    `Standards for Astronomical Catalogues, Version 2.0
-    <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_
+    Returns `True` if *s* is a valid unit string as defined by `Standards for Astronomical Catalogues, Version 2.0 <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_.
     """
     number = ur'[+\-]?[0-9]+(?:\.[0-9]*)?(?:[+\-][0-9]+)?'
     factor = ur'{0}(?:x{0})?'.format(number)
@@ -50,12 +48,9 @@ def is_unit(s):
 
 def check_unit(unit, attr_name, config={}, pos=None):
     """
-    Raises a `ValueError` if *unit* is not a valid unit as defined by
-    `Standards for Astronomical Catalogues, Version 2.0
-    <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_
+    Raises a `ValueError` if *unit* is not a valid unit as defined by `Standards for Astronomical Catalogues, Version 2.0 <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_.
     """
     if (unit is not None and not is_unit(unit)):
         warn_or_raise(W50, W50, unit, config, pos)
         return False
     return True
-

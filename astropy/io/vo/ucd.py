@@ -15,9 +15,10 @@ __all__ = ['parse_ucd', 'check_ucd']
 
 class UCDWords:
     """
-    A class to manage the list of acceptable UCD words.  Works by
-    reading in a data file exactly as provided by IVOA.  This file
-    resides in data/ucd1p-words.txt.
+    Manages a list of acceptable UCD words.
+
+    Works by reading in a data file exactly as provided by IVOA.  This
+    file resides in data/ucd1p-words.txt.
     """
     def __init__(self):
         self._primary = set()
@@ -158,8 +159,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
 
 def check_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     """
-    Returns False if *ucd* is not a valid `unified content
-    descriptor`_.
+    Returns False if *ucd* is not a valid `unified content descriptor`_.
 
     Parameters
     ----------

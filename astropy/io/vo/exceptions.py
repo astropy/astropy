@@ -160,9 +160,10 @@ def parse_vowarning(line):
 
 class VOWarning(Warning):
     """
-    The base class of all VO warnings and exceptions.  Handles the
-    formatting of the message with a warning or exception code,
-    filename, line and column number.
+    The base class of all VO warnings and exceptions.
+
+    Handles the formatting of the message with a warning or exception
+    code, filename, line and column number.
     """
     default_args = ()
 
@@ -184,39 +185,35 @@ class VOWarning(Warning):
 
 class VOTableChangeWarning(VOWarning, SyntaxWarning):
     """
-    Warning emitted when a change has been made to the input XML file.
+    A change has been made to the input XML file.
     """
     pass
 
 
 class VOTableSpecWarning(VOWarning, SyntaxWarning):
     """
-    Warning emitted when the input XML file violates the spec, but
-    there is an obvious workaround.
+    The input XML file violates the spec, but there is an obvious workaround.
     """
     pass
 
 
 class UnimplementedWarning(VOWarning, SyntaxWarning):
     """
-    Warning emitted when the a feature of VOTABLE is not implemented.
+    A feature of the VOTABLE_ spec is not implemented.
     """
     pass
 
 
 class IOWarning(VOWarning, RuntimeWarning):
     """
-    Warning emitted when a network or IO error occurred, but the
-    system is able to recover using a cached copy of the data or some
-    other fallback.
+    A network or IO error occurred, but was recovered using the cache.
     """
     pass
 
 
 class VOTableSpecError(VOWarning, ValueError):
     """
-    Error raised when the input XML file violates the spec and there
-    is no good workaround.
+    The input XML file violates the spec and there is no good workaround.
     """
     pass
 
