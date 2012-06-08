@@ -22,9 +22,10 @@ __all__ = [
 
 def check_id(ID, name='ID', config={}, pos=None):
     """
-    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if *ID* is not a
-    valid XML ID_.  *name* is the name of the attribute being checked
-    (used only for error messages).
+    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *ID* is not a valid XML ID_.
+
+    *name* is the name of the attribute being checked (used only for
+    error messages).
     """
     if (ID is not None and not xml_check.check_id(ID)):
         warn_or_raise(W02, W02, (name, ID), config, pos)
@@ -34,9 +35,10 @@ def check_id(ID, name='ID', config={}, pos=None):
 
 def fix_id(ID, config={}, pos=None):
     """
-    Given an arbitrary string, create one that can be used as an xml
-    id.  This is rather simplistic at the moment, since it just
-    replaces non-valid characters with underscores.
+    Given an arbitrary string, create one that can be used as an xml id.
+
+    This is rather simplistic at the moment, since it just replaces
+    non-valid characters with underscores.
     """
     if ID is None:
         return None
@@ -51,8 +53,9 @@ _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 
 def check_token(token, attr_name, config={}, pos=None):
     """
-    Raises a `ValueError` if *token* is not a valid XML token, as
-    defined by XML Schema Part 2.
+    Raises a `ValueError` if *token* is not a valid XML token.
+
+    As defined by XML Schema Part 2.
     """
     if (token is not None and not xml_check.check_token(token)):
         return False
@@ -61,9 +64,9 @@ def check_token(token, attr_name, config={}, pos=None):
 
 def check_mime_content_type(content_type, config={}, pos=None):
     """
-    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if
-    *content_type* is not a valid MIME content type (syntactically at
-    least), as defined by RFC 2045.
+    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *content_type* is not a valid MIME content type.
+
+    As defined by RFC 2045 (syntactically, at least).
     """
     if (content_type is not None and
         not xml_check.check_mime_content_type(content_type)):
@@ -74,8 +77,9 @@ def check_mime_content_type(content_type, config={}, pos=None):
 
 def check_anyuri(uri, config={}, pos=None):
     """
-    Raises a `astropy.io.vo.exceptions.VOTableSpecError` if *uri* is
-    not a valid URI as defined in RFC 2396.
+    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *uri* is not a valid URI.
+
+    As defined in RFC 2396.
     """
     if (uri is not None and not xml_check.check_anyuri(uri)):
         warn_or_raise(W05, W05, uri, config, pos)

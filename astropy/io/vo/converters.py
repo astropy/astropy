@@ -22,7 +22,7 @@ from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
 from .util import IS_PY3K
 
 
-__all__ = ['get_converter']
+__all__ = ['get_converter', 'Converter']
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -44,21 +44,21 @@ class Converter(object):
     The base class for all converters.  Each subclass handles
     converting a specific VOTABLE data type to/from the TABLEDATA_ and
     BINARY_ on-disk representations.
+
+    Parameters
+    ----------
+    field : `~astropy.io.vo.table.Field`
+        object describing the datatype
+
+    config : dict
+        The parser configuration dictionary
+
+    pos : tuple
+        The position in the XML file where the FIELD object was
+        found.  Used for error messages.
+
     """
     def __init__(self, field, config={}, pos=None):
-        """
-        Parameters
-        ----------
-        field : `~astropy.io.vo.table.Field`
-            object describing the datatype
-
-        config : dict
-            The parser configuration dictionary
-
-        pos : tuple
-            The position in the XML file where the FIELD object was
-            found.  Used for error messages.
-        """
         pass
 
     @staticmethod
@@ -1094,8 +1094,7 @@ converter_mapping = {
 
 def get_converter(field, config={}, pos=None):
     """
-    Factory function to get an appropriate converter instance for a
-    given field.
+    Get an appropriate converter instance for a given field.
 
     Parameters
     ----------

@@ -28,7 +28,7 @@ For discussions and ideas regarding development of the Astropy package, see the 
    nddata/index
    wcs/index
    fits/index
-   vo/index
+   io/vo/index
    io/ascii/index
    table/index
    tools
@@ -63,4 +63,3 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

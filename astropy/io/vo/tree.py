@@ -416,8 +416,7 @@ class SimpleElementWithContent(SimpleElement):
 
 class Link(SimpleElement, _IDProperty):
     """
-    A class for storing LINK_ elements, which are used to reference
-    external documents and servers through a URI.
+    LINK_ elements: used to reference external documents and servers through a URI.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -506,8 +505,7 @@ class Link(SimpleElement, _IDProperty):
 class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
            _UtypeProperty):
     """
-    A class for storing INFO elements, which contain arbitrary
-    key-value pairs for extensions to the standard.
+    INFO_ elements: arbitrary key-value pairs for extensions to the standard.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -648,8 +646,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
 class Values(Element, _IDProperty):
     """
-    A class to represent the VALUES_ element, used within FIELD_ and
-    PARAM_ elements to define the domain of values.
+    VALUES_ element: used within FIELD_ and PARAM_ elements to define the domain of values.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -920,8 +917,7 @@ class Values(Element, _IDProperty):
 class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             _UtypeProperty, _UcdProperty):
     """
-    A class that represents the FIELD_ element, which describes the
-    datatype of a particular column of data.
+    FIELD_ element: describes the datatype of a particular column of data.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -1277,8 +1273,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
 class Param(Field):
     """
-    A class to represent the PARAM_ element, which are constant-valued
-    columns in the data.
+    PARAM_ element: constant-valued columns in the data.
 
     :class:`Param` objects are a subclass of :class:`Field`, and have
     all of its methods and members.  Additionally, it defines :attr:`value`.
@@ -1332,8 +1327,7 @@ class Param(Field):
 
 class CooSys(SimpleElement):
     """
-    A class representing the COOSYS_ element, which defines a
-    coordinate system.
+    COOSYS_ element: defines a coordinate system.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -1435,8 +1429,7 @@ class CooSys(SimpleElement):
 
 class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
-    A class representing the FIELDref_ element, which is used inside
-    of GROUP_ elements to refer to FIELD_ elements defined elsewhere.
+    FIELDref_ element: used inside of GROUP_ elements to refer to remote FIELD_ elements.
     """
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
@@ -1500,8 +1493,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
 class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
-    A class representing the PARAMref_ element, which is used inside
-    of GROUP_ elements to refer to PARAM_ elements defined elsewhere.
+    PARAMref_ element: used inside of GROUP_ elements to refer to remote PARAM_ elements.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -1565,8 +1557,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
             _UcdProperty, _DescriptionProperty):
     """
-    Stores information about the grouping of FIELD_ and PARAM_
-    elements.
+    GROUP_ element: groups FIELD_ and PARAM_ elements.
 
     This information is currently ignored by the vo package---that is
     the columns in the recarray are always flat---but the grouping
@@ -1704,7 +1695,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             _DescriptionProperty):
     """
-    A class to store a TABLE_ element, which optionally contains data.
+    TABLE_ element: optionally contains data.
 
     It contains the following publicly-accessible members, all of
     which are mutable:
@@ -2521,9 +2512,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                _DescriptionProperty):
     """
-    A class to store the information in a RESOURCE_ element.  Each
-    resource may contain zero-or-more TABLE_ elements and zero-or-more
-    nested RESOURCE_ elements.
+    RESOURCE_ element: Groups TABLE_ and RESOURCE_ elements.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -2737,7 +2726,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
 class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
-    A class to represent the top-level VOTABLE_ element.
+    VOTABLE_ element: represents an entire file.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -2983,7 +2972,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_table_by_id = _lookup_by_id_factory(
         'iter_tables', 'TABLE',
         """
-        Looks up a TABLE element by the given ID.  Used by the table
+        Looks up a TABLE_ element by the given ID.  Used by the table
         "ref" attribute.
         """)
 
@@ -2998,8 +2987,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def iter_fields_and_params(self):
         """
-        Recursively iterate over all FIELD and PARAM elements in the
-        VOTABLE file.
+        Recursively iterate over all FIELD_ and PARAM_ elements in the
+        VOTABLE_ file.
         """
         for resource in self.resources:
             for field in resource.iter_fields_and_params():
@@ -3008,19 +2997,19 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_field_by_id = _lookup_by_id_factory(
         'iter_fields_and_params', 'FIELD',
         """
-        Looks up a FIELD element by the given ID.  Used by the field's
+        Looks up a FIELD_ element by the given ID_.  Used by the field's
         "ref" attribute.
         """)
 
     get_field_by_id_or_name = _lookup_by_id_or_name_factory(
         'iter_fields_and_params', 'FIELD',
         """
-        Looks up a FIELD element by the given ID or name.
+        Looks up a FIELD_ element by the given ID_ or name.
         """)
 
     def iter_values(self):
         """
-        Recursively iterate over all VALUES_ elements in the VOTABLE
+        Recursively iterate over all VALUES_ elements in the VOTABLE_
         file.
         """
         for field in self.iter_fields_and_params():
@@ -3029,13 +3018,13 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_values_by_id = _lookup_by_id_factory(
         'iter_values', 'VALUES',
         """
-        Looks up a VALUES element by the given ID.  Used by the values
+        Looks up a VALUES_ element by the given ID.  Used by the values
         "ref" attribute.
         """)
 
     def iter_groups(self):
         """
-        Recursively iterate over all GROUP elements in the VOTABLE
+        Recursively iterate over all GROUP_ elements in the VOTABLE_
         file.
         """
         for table in self.iter_tables():
@@ -3045,13 +3034,13 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_group_by_id = _lookup_by_id_factory(
         'iter_groups', 'GROUP',
         """
-        Looks up a GROUP element by the given ID.  Used by the group's
+        Looks up a GROUP_ element by the given ID.  Used by the group's
         "ref" attribute
         """)
 
     def iter_coosys(self):
         """
-        Recursively iterate over all COOSYS elements in the VOTABLE
+        Recursively iterate over all COOSYS_ elements in the VOTABLE_
         file.
         """
         for coosys in self.coordinate_systems:
@@ -3062,7 +3051,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     get_coosys_by_id = _lookup_by_id_factory(
         'iter_coosys', 'COOSYS',
-        """Looks up a COOSYS element by the given ID.""")
+        """Looks up a COOSYS_ element by the given ID.""")
 
     def set_all_tables_format(self, format):
         """

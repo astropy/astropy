@@ -103,8 +103,9 @@ stc_reference_frames = set([
 
 def coerce_range_list_param(p, frames=None, numeric=True):
     """
-    Coerces and/or verifies the object *p* into a valid
-    range-list-format parameter as defined in `Section 8.7.2 of Simple
+    Coerces and/or verifies the object *p* into a valid range-list-format parameter.
+
+    As defined in `Section 8.7.2 of Simple
     Spectral Access Protocol
     <http://www.ivoa.net/Documents/REC/DAL/SSA-20080201.html>`_.
 
@@ -223,14 +224,12 @@ if IS_PY3K:  # pragma: py3
 
     def is_callable(o):
         """
-        Abstracts away the different ways to test for a callable object in
-        Python 2.x and 3.x.
+        Returns `True` if `o` is callable.
         """
         return isinstance(o, collections.Callable)
 else:  # pragma: py2
     def is_callable(o):
         """
-        Abstracts away the different ways to test for a callable object in
-        Python 2.x and 3.x.
+        Returns `True` if `o` is callable.
         """
         return callable(o)
