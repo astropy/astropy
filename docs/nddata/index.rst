@@ -38,8 +38,8 @@ You can also use `make_kernel` to generate n-dimensional kernels::
 
 See the documentation below for more information.
 
-Using NDData
-------------
+Using `nddata`
+--------------
 
 .. toctree::
    :maxdepth: 2

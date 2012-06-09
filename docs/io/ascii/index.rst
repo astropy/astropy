@@ -102,8 +102,8 @@ the option to send the output to ``sys.stdout`` instead of a file::
   \end{tabular}
   \end{table}
 
-Using `astropy.io.ascii`
--------------------------
+Using `io.ascii`
+----------------
 
 The details of using `astropy.io.ascii` are provided in the following sections:
 

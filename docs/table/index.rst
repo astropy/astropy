@@ -4,7 +4,7 @@
 
 
 Data Tables (`astropy.table`)
-===============================================
+=============================
 
 Introduction
 ------------
@@ -33,7 +33,7 @@ Getting Started
 The basic workflow for creating a table, accessing table elements,
 and modifying the table is shown below.  These examples show a very simple
 case, while the full `astropy.table` documentation is available from the
-`Using Tables`_ section.
+:ref:`using_astropy_table` section.
 
 First create a simple table with three columns of data named ``a``, ``b``,
 and ``c``.  These columns have integer, float, and string values respectively::
@@ -136,8 +136,10 @@ Lastly, adding a new row of data to the table is as follows::
   >>> len(t)
   4
 
-Using Tables
-------------
+.. _using_astropy_table:
+
+Using `table`
+-------------
 
 The details of using `astropy.table` are provided in the following sections:
 

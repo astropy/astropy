@@ -54,8 +54,8 @@ want to see your changes immediately in your current Astropy session, just do::
     access the ``$HOME/.astropy`` directory.
 
 
-Using `astropy.config`
-----------------------
+Using `config`
+--------------
 
 Changing Values at Run-time
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -147,7 +147,7 @@ Or if you want to reload all astropy configuration at once, use the
 
 
 Developer Usage
----------------
+^^^^^^^^^^^^^^^
 
 Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
