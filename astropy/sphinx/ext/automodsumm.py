@@ -13,7 +13,7 @@ but can be used independently.
 This directive will produce an "autosummary"-style table for public
 attributesof a specified module. See the `sphinx.ext.autosummary`
 extensionfor details on this process. The main difference from the
-`autosummary`directive is that `autosummary` requires manually inputting
+`autosummary` directive is that `autosummary` requires manually inputting
 all attributes that appear in the table, while this captures the entries
 automatically.
 
@@ -27,12 +27,12 @@ options:
     * ``:classes-only:``
         If present, the autosummary table will only contain entries for
         classes. This cannot be used at the same time with
-        ``:functions-only:``.
+        ``:functions-only:`` .
 
     * ``:functions-only:``
         If present, the autosummary table will only contain entries for
         functions. This cannot be used at the same time with
-        ``:classes-only:``.
+        ``:classes-only:`` .
 
 
 ===========================
@@ -40,7 +40,7 @@ options:
 ===========================
 
 This directive will produce an inheritance diagram like that of the
-`sphinx.ext.inheritance_diagram`extension.
+`sphinx.ext.inheritance_diagram` extension.
 
 This directive requires a single argument that must be a module or
 package. It accepts no options.

@@ -9,9 +9,11 @@ automodapi Extension
 
 .. automodule:: astropy.sphinx.ext.automodapi
 
-.. automodsumm:: astropy.sphinx.ext.automodapi
-    :toctree: ../_generated/
 
+automodsumm Extension
+---------------------
+
+.. automodule:: astropy.sphinx.ext.automodsumm
 
 
 Numpydoc Extension
