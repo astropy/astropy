@@ -1,10 +1,12 @@
+.. _utils:
+
 Developer-Oriented Utilities (`astropy.utils`)
 ==============================================
 
 Introduction
 ------------
 
-The `~astropy.utils` package contains general-purpose utilities
+The `astropy.utils` package contains general-purpose utilities
 functions and classes that such as general-purpose data structures,
 version intercompatibility functions. Basically, if it's not
 astronomy-related, but likely useful for other developers, it probably
@@ -28,7 +30,7 @@ only the reference section is currently provided for this subpackage.
 See Also
 --------
 
-* `astropy.tools`
+* :ref:`tools`
     The subpackage for tools that are oriented towards users, rather than
     developers.  It is somewhat more astronomy-specific, while these are more
     general-purpose.
