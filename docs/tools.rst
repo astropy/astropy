@@ -1,27 +1,53 @@
-=============================
-`astropy.tools` documentation
-=============================
+.. _tools:
 
-The `~astropy.tools` package holds general astronomy functions or algorithms
-that are likely of use to users, but either not related to functionality in
-an existing package or of general use across multiple packages.
+Astronomy-Oriented Tools (`astropy.tools`)
+==========================================
 
-.. note::
-    For functions and classes that are more developer-oriented, the correct
-    package is `astropy.utils`.  `astropy.tools` is intended primarily for
-    functionality that is astronomy-specific and/or of use to users.
+Introduction
+------------
+
+The `astropy.tools` package holds smallish general astronomy functions
+or algorithms that are likely of use to users, but either not related to
+functionality in an existing package or of general use across multiple
+packages.
+
+
+
+Getting Started
+---------------
+
+The current tools are fairly self-contained, and include relevant examples in
+their docstrings.  For example, see `~astropy.tools.misc.sigma_clip`.
+
+
+
+.. NOTE TO FUTURE DEVS: When this subpackage gets more populated, it will be
+.. wise to add a section of the form shown below.  Be sure to move this file
+.. to docs/tools/index.rst and update docs/index.rst to tools/index when
+.. that happens.
+
+.. Using packagename
+.. -----------------
+
+.. For more complicated packages that require multiple documents, this
+.. should just be a table of contents referencing those documents:
+
+.. .. toctree::
+..     packagename/subdoc1
+..     packagename/subdoc2
+..     packagename/subdoc3
+
+
+See Also
+--------
+
+* :ref:`utils`
+    The subpackage for utilities that are oriented towards developers, rather than
+    users.  These utilities are more general-purposes, while `astropy.tools` is
+    more astronomy-focused.
 
 
 Reference/API
 -------------
-Below are the reference documentation for the tools sub-packages.  All public
-functions and classes in these packages will be imported into the
-`astropy.tools` package, so the recommended usage is e.g.
-``from astropy.tools import sigma_clip`` or ``import astropy.tools`` instead of
-``from astropy.tools.misc import sigma_clip`` or similar.
 
-`astropy.tools.misc`
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule::  astropy.tools.misc
-    :members:
+.. automodapi:: astropy.tools
