@@ -16,7 +16,5 @@ from .compat.odict import OrderedDict
 from .misc import *
 
 # The location of the online documentation for astropy
-# TODO: For now, this is just the latest version at readthedocs.org
-# In the future this should correspond to the current version
-# of astropy.
-online_docs_root = 'http://astropy.readthedocs.org/en/latest/'
+# This location will normally point to the current released version of astropy
+online_docs_root = 'http://docs.astropy.org'
