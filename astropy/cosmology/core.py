@@ -49,7 +49,7 @@ class CosmologyError(Exception):
 
 class Cosmology(object):
     """ Placeholder for when a more general Cosmology class is
-    implemented. """ 
+    implemented. """
     pass
 
 class FLRWCosmology(Cosmology):
@@ -540,7 +540,7 @@ def get_current():
 
     See Also
     --------
-    `set_current`
+    set_current : sets the current cosmology
     """
     if _current is None:
         warnings.warn('No default cosmology has been specified, '
@@ -573,7 +573,7 @@ def set_current(arg):
 
     See Also
     --------
-    `get_current`
+    get_current : returns the currently-set cosmology
     """
     global _current
     if isinstance(arg, basestring):
