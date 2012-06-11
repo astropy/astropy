@@ -155,8 +155,8 @@ format can be set on a per-table basis using the
   votable.set_all_tables_format('binary')
   votable.to_xml('binary.xml')
 
-Using astropy.io.vo
--------------------
+Using `io.vo`
+-------------
 
 Standard compliance
 ^^^^^^^^^^^^^^^^^^^
