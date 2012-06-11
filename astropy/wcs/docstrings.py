@@ -12,7 +12,8 @@ del division
 from . import _docutil as __
 
 a = """
-``double array[a_order+1][a_order+1]``
+``double array[a_order+1][a_order+1]`` Focal plane transformation
+matrix.
 
 The `SIP`_ ``A_i_j`` matrix used for pixel to focal plane
 transformation.
@@ -22,9 +23,7 @@ creating a new `~astropy.wcs.Sip` object.
 """
 
 a_order = """
-``int`` (read-only)
-
-The order of the polynomial in the `SIP`_ ``A_i_j`` array (``A_ORDER``).
+``int`` (read-only) Order of the polynomial (``A_ORDER``).
 """
 
 all_pix2world = """
@@ -84,16 +83,16 @@ InvalidTransformError
 """.format(__.ORIGIN())
 
 alt = """
-``str``
+``str`` Character code for alternate coordinate descriptions.
 
-Character code for alternate coordinate descriptions.  For example,
-the ``"a"`` in keyword names such as ``CTYPEia``.  This is a space
-character for the primary coordinate description, or one of the 26
-upper-case letters, A-Z.
+For example, the ``"a"`` in keyword names such as ``CTYPEia``.  This
+is a space character for the primary coordinate description, or one of
+the 26 upper-case letters, A-Z.
 """
 
 ap = """
-``double array[ap_order+1][ap_order+1]``
+``double array[ap_order+1][ap_order+1]`` Focal plane to pixel
+transformation matrix.
 
 The `SIP`_ ``AP_i_j`` matrix used for focal plane to pixel
 transformation.  Its values may be changed in place, but it may not be
@@ -101,16 +100,11 @@ resized, without creating a new `~astropy.wcs.Sip` object.
 """
 
 ap_order = """
-``int`` (read-only)
-
-The order of the polynomial in the `SIP`_ ``AP_i_j`` array
-(``AP_ORDER``).
+``int`` (read-only) Order of the polynomial (``AP_ORDER``).
 """
 
 axis_types = """
-``int array[naxis]``
-
-An array of four-digit type codes for each axis.
+``int array[naxis]`` An array of four-digit type codes for each axis.
 
 - First digit (i.e. 1000s):
 
@@ -157,7 +151,8 @@ have its type set to -1 and generate an error.
 """
 
 b = """
-``double array[b_order+1][b_order+1]``
+``double array[b_order+1][b_order+1]`` Pixel to focal plane
+transformation matrix.
 
 The `SIP`_ ``B_i_j`` matrix used for pixel to focal plane
 transformation.  Its values may be changed in place, but it may not be
@@ -165,14 +160,12 @@ resized, without creating a new `~astropy.wcs.Sip` object.
 """
 
 b_order = """
-``int`` (read-only)
-
-The order of the polynomial in the `SIP`_ ``B_i_j`` array
-(``B_ORDER``).
+``int`` (read-only) Order of the polynomial (``B_ORDER``).
 """
 
 bp = """
-``double array[bp_order+1][bp_order+1]``
+``double array[bp_order+1][bp_order+1]`` Focal plane to pixel
+transformation matrix.
 
 The `SIP`_ ``BP_i_j`` matrix used for focal plane to pixel
 transformation.  Its values may be changed in place, but it may not be
@@ -180,16 +173,12 @@ resized, without creating a new `~astropy.wcs.Sip` object.
 """
 
 bp_order = """
-``int`` (read-only)
-
-The order of the polynomial in the `SIP`_ ``BP_i_j`` array
-(``BP_ORDER``).
+``int`` (read-only) Order of the polynomial (``BP_ORDER``).
 """
 
 cd = """
-``double array[naxis][naxis]``
-
-The ``CDi_ja`` linear transformation matrix.
+``double array[naxis][naxis]`` The ``CDi_ja`` linear transformation
+matrix.
 
 For historical compatibility, three alternate specifications of the
 linear transforations are available in wcslib.  The canonical
@@ -212,9 +201,8 @@ to a unity ``PCi_ja`` matrix.
 """
 
 cdelt = """
-``double array[naxis]``
-
-Coordinate increments (``CDELTia``) for each coord axis.
+``double array[naxis]`` Coordinate increments (``CDELTia``) for each
+coord axis.
 
 If a ``CDi_ja`` linear transformation matrix is present, a warning is
 raised and `~astropy.wcs.Wcsprm.cdelt` is ignored.  The ``CDi_ja``
@@ -243,11 +231,10 @@ success : int
 """
 
 cel_offset = """
-``boolean``
+``boolean`` Is there an offset?
 
-If `True`, an offset will be applied to ``(x, y)`` to force ``(x,y) =
-(0,0)`` at the fiducial point, (phi_0, theta_0).  Default is
-`False`.
+If `True`, an offset will be applied to ``(x, y)`` to force ``(x, y) =
+(0, 0)`` at the fiducial point, (phi_0, theta_0).  Default is `False`.
 """
 
 celfix = """
@@ -261,19 +248,17 @@ success : int
 """
 
 cname = """
-``list of strings``
-
-A list of the coordinate axis names, from ``CNAMEia``.
+``list of strings`` A list of the coordinate axis names, from
+``CNAMEia``.
 """
 
 colax = """
-``int array[naxis]``
-
-An array recording the column numbers for each axis in a pixel list.
+``int array[naxis]`` An array recording the column numbers for each
+axis in a pixel list.
 """
 
 colnum = """
-``int``
+``int`` Column of FITS binary table associated with this WCS.
 
 Where the coordinate representation is associated with an image-array
 column in a FITS binary table, this property may be used to record the
@@ -290,9 +275,9 @@ returning an array of the same shape.
 """
 
 coord = """
-``double array[K_M]...[K_2][K_1][M]``
+``double array[K_M]...[K_2][K_1][M]`` The tabular coordinate array.
 
-The tabular coordinate array, with the dimensions::
+Has the dimensions::
 
     (K_M, ... K_2, K_1, M)
 
@@ -318,17 +303,15 @@ The pre-linear transformation distortion lookup table, ``CPDIS2``.
 """
 
 crder = """
-``double array[naxis]``
-
-The random error in each coordinate axis, ``CRDERia``.
+``double array[naxis]`` The random error in each coordinate axis,
+``CRDERia``.
 
 An undefined value is represented by NaN.
 """
 
 crota = """
-``double array[naxis]``
-
-``CROTAia`` keyvalues for each coordinate axis.
+``double array[naxis]`` ``CROTAia`` keyvalues for each coordinate
+axis.
 
 For historical compatibility, three alternate specifications of the
 linear transforations are available in wcslib.  The canonical
@@ -351,36 +334,29 @@ to a unity ``PCi_ja`` matrix.
 """
 
 crpix = """
-``double array[naxis]``
-
-Coordinate reference pixels (``CRPIXja``) for each pixel axis.
+``double array[naxis]`` Coordinate reference pixels (``CRPIXja``) for
+each pixel axis.
 """
 
 crval = """
-``double array[naxis]``
-
-Coordinate reference values (``CRVALia``) for each coordinate axis.
+``double array[naxis]`` Coordinate reference values (``CRVALia``) for
+each coordinate axis.
 """
 
 crval_tabprm = """
-``double array[M]``
-
-Array whose elements contain the index value for the reference pixel
-for each of the tabular coordinate axes.
+``double array[M]`` Index values for the reference pixel for each of
+the tabular coord axes.
 """
 
 csyer = """
-``double array[naxis]``
-
-The systematic error in the coordinate value axes, ``CSYERia``.
+``double array[naxis]`` The systematic error in the coordinate value
+axes, ``CSYERia``.
 
 An undefined value is represented by NaN.
 """
 
 ctype = """
-``list of strings[naxis]``
-
-List of ``CTYPEia`` keyvalues.
+``list of strings[naxis]`` List of ``CTYPEia`` keyvalues.
 
 The `~astropy.wcs.Wcsprm.ctype` keyword values must be in upper case
 and there must be zero or one pair of matched celestial axis types,
@@ -388,11 +364,11 @@ and zero or one spectral axis.
 """
 
 cubeface = """
-``int``
+``int`` Index into the ``pixcrd`` (pixel coordinate) array for the
+``CUBEFACE`` axis.
 
-Index into the ``pixcrd`` (pixel coordinate) array for the
-``CUBEFACE`` axis.  This is used for quadcube projections where the
-cube faces are stored on a separate axis.
+This is used for quadcube projections where the cube faces are stored
+on a separate axis.
 
 The quadcube projections (``TSC``, ``CSC``, ``QSC``) may be
 represented in FITS in either of two ways:
@@ -424,10 +400,10 @@ understood by the lower-level projection routines.
 """
 
 cunit = """
-``list of strings[naxis]``
+``list of strings[naxis]`` List of ``CUNITia`` keyvalues.
 
-List of ``CUNITia`` keyvalues which define the units of measurement of
-the ``CRVALia``, ``CDELTia`` and ``CDi_ja`` keywords.
+These define the units of measurement of the ``CRVALia``, ``CDELTia``
+and ``CDi_ja`` keywords.
 
 As ``CUNITia`` is an optional header keyword,
 `~astropy.wcs.Wcsprm.cunit` may be left blank but otherwise is
@@ -465,9 +441,8 @@ success : int
 """
 
 data = """
-``float array``
-
-The array data for the `~astropy.wcs.DistortionLookupTable`.
+``float array`` The array data for the
+`~astropy.wcs.DistortionLookupTable`.
 """
 
 data_wtbarr = """
@@ -477,10 +452,9 @@ The array data for the BINTABLE.
 """
 
 dateavg = """
-``string``
+``string`` Representative mid-point of the date of observation.
 
-Representative mid-point of the date of observation in ISO format,
-``yyyy-mm-ddThh:mm:ss``.
+In ISO format, ``yyyy-mm-ddThh:mm:ss``.
 
 See also
 --------
@@ -488,10 +462,9 @@ astropy.wcs.Wcsprm.dateobs
 """
 
 dateobs = """
-``string``
+``string`` Start of the date of observation.
 
-Start of the date of observation in ISO format,
-``yyyy-mm-ddThh:mm:ss``.
+In ISO format, ``yyyy-mm-ddThh:mm:ss``.
 
 See also
 --------
@@ -517,7 +490,8 @@ success : int
 """
 
 delta = """
-``double array[M]`` (read-only)
+``double array[M]`` (read-only) Interpolated indices into the coord
+array.
 
 Array of interpolated indices into the coordinate array such that
 Upsilon_m, as defined in Paper III, is equal to
@@ -567,11 +541,11 @@ cdelt : 2-tuple
 """
 
 equinox = """
-``double``
+``double`` The equinox associated with dynamical equatorial or
+ecliptic coordinate systems.
 
-The equinox associated with dynamical equatorial or ecliptic
-coordinate systems, ``EQUINOXa`` (or ``EPOCH`` in older headers).  Not
-applicable to ICRS equatorial or ecliptic coordinates.
+``EQUINOXa`` (or ``EPOCH`` in older headers).  Not applicable to ICRS
+equatorial or ecliptic coordinates.
 
 An undefined value is represented by NaN.
 """
@@ -707,14 +681,14 @@ status : dict
 """
 
 get_offset = """
-get_offset(*x, y*) -> (*x, y*)
+get_offset(x, y) -> (x, y)
 
 Returns the offset as defined in the distortion lookup table.
 
 Returns
 -------
 coordinate : coordinate pair
-    The offset from the distortion table for pixel point (*x, y*).
+    The offset from the distortion table for pixel point (*x*, *y*).
 """
 
 get_cdelt = """
@@ -873,7 +847,7 @@ compatibility.
 """
 
 have = """
-The name of the unit being converted from.
+``string`` The name of the unit being converted from.
 
 This value always uses standard unit names, even if the
 `UnitConverter` was initialized with a non-standard unit name.
@@ -886,10 +860,11 @@ Image axis number.
 """
 
 imgpix_matrix = """
-``double array[2][2]`` (read-only)
+``double array[2][2]`` (read-only) Inverse of the ``CDELT`` or ``PC``
+matrix.
 
-Inverse of the matrix containing the product of the ``CDELTia``
-diagonal matrix and the ``PCi_ja`` matrix.
+Inverse containing the product of the ``CDELTia`` diagonal matrix and
+the ``PCi_ja`` matrix.
 """
 
 is_unity = """
@@ -900,7 +875,8 @@ Returns `True` if the linear transformation matrix
 """
 
 K = """
-``int array[M]`` (read-only)
+``int array[M]`` (read-only) The lengths of the axes of the coordinate
+array.
 
 An array of length `M` whose elements record the lengths of the axes of
 the coordinate array and of each indexing vector.
@@ -916,49 +892,43 @@ Character identifying the wcstab array type:
 """
 
 lat = """
-``int`` (read-only)
-
-The index into the world coordinate array containing latitude values.
+``int`` (read-only) The index into the world coord array containing
+latitude values.
 """
 
 latpole = """
-``double``
-
-The native latitude of the celestial pole, ``LATPOLEa`` (deg).
+``double`` The native latitude of the celestial pole, ``LATPOLEa`` (deg).
 """
 
 lattyp = """
-``string`` (read-only)
+``string`` (read-only) Celestial axis type for latitude.
 
-Celestial axis type for latitude, e.g. "RA", "DEC", "GLON", "GLAT",
-etc. extracted from 'RA--', 'DEC-', 'GLON', 'GLAT', etc. in the first
-four characters of ``CTYPEia`` but with trailing dashes removed.
+For example, "RA", "DEC", "GLON", "GLAT", etc. extracted from "RA--",
+"DEC-", "GLON", "GLAT", etc. in the first four characters of
+``CTYPEia`` but with trailing dashes removed.
 """
 
 lng = """
-``int`` (read-only)
-
-The index into the world coordinate array containing longitude values.
+``int`` (read-only) The index into the world coord array containing
+longitude values.
 """
 
 lngtyp = """
-``string`` (read-only)
+``string`` (read-only) Celestial axis type for longitude.
 
-Celestial axis type for longitude, e.g. "RA", "DEC", "GLON", "GLAT",
-etc. extracted from 'RA--', 'DEC-', 'GLON', 'GLAT', etc. in the first
-four characters of ``CTYPEia`` but with trailing dashes removed.
+For example, "RA", "DEC", "GLON", "GLAT", etc. extracted from "RA--",
+"DEC-", "GLON", "GLAT", etc. in the first four characters of
+``CTYPEia`` but with trailing dashes removed.
 """
 
 lonpole = """
-``double``
+``double`` The native longitude of the celestial pole.
 
-The native longitude of the celestial pole, ``LONPOLEa`` (deg).
+``LONPOLEa`` (deg).
 """
 
 M = """
-``int`` (read-only)
-
-Number of tabular coordinate axes.
+``int`` (read-only) Number of tabular coordinate axes.
 """
 
 m = """
@@ -968,7 +938,7 @@ Array axis number for index vectors.
 """
 
 map = """
-``int array[M]``
+``int array[M]`` Association between axes.
 
 A vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` that defines
 the association between axis *m* in the *M*-dimensional coordinate
@@ -1127,10 +1097,9 @@ example non-oblique cylindrical projections.
 """.format(__.ORIGIN())
 
 mjdavg = """
-``double``
+``double`` Modified Julian Date corresponding to ``DATE-AVG``.
 
-Modified Julian Date ``(MJD = JD - 2400000.5)``, ``MJD-AVG``,
-corresponding to ``DATE-AVG``.
+``(MJD = JD - 2400000.5)``.
 
 An undefined value is represented by NaN.
 
@@ -1140,10 +1109,9 @@ astropy.wcs.Wcsprm.mjdobs
 """
 
 mjdobs = """
-``double``
+``double`` Modified Julian Date corresponding to ``DATE-OBS``.
 
-Modified Julian Date ``(MJD = JD - 2400000.5)``, ``MJD-OBS``,
-corresponding to ``DATE-OBS``.
+``(MJD = JD - 2400000.5)``.
 
 An undefined value is represented by NaN.
 
@@ -1153,16 +1121,14 @@ astropy.wcs.Wcsprm.mjdavg
 """
 
 name = """
-``string``
-
-The name given to the coordinate representation ``WCSNAMEa``.
+``string`` The name given to the coordinate representation
+``WCSNAMEa``.
 """
 
 naxis = """
-``int`` (read-only)
+``int`` (read-only) The number of axes (pixel and coordinate).
 
-The number of axes (pixel and coordinate), given by the ``NAXIS`` or
-``WCSAXESa`` keyvalues.
+Given by the ``NAXIS`` or ``WCSAXESa`` keyvalues.
 
 The number of coordinate axes is determined at parsing time, and can
 not be subsequently changed.
@@ -1186,7 +1152,7 @@ same image.
 """
 
 nc = """
-``int`` (read-only)
+``int`` (read-only) Total number of coord vectors in the coord array.
 
 Total number of coordinate vectors in the coordinate array being the
 product K_1 * K_2 * ... * K_M.
@@ -1199,22 +1165,20 @@ Expected dimensionality of the wcstab array.
 """
 
 obsgeo = """
-``double array[3]``
+``double array[3]`` Location of the observer in a standard terrestrial
+reference frame.
 
-Location of the observer in a standard terrestrial reference frame,
 ``OBSGEO-X``, ``OBSGEO-Y``, ``OBSGEO-Z`` (in meters).
 
 An undefined value is represented by NaN.
 """
 
 offset = """
-``double``
-
-The offset of the unit conversion.
+``double`` The offset of the unit conversion.
 """
 
 p0 = """
-``int array[M]``
+``int array[M]`` Interpolated indices into the coordinate array.
 
 Vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` of interpolated
 indices into the coordinate array such that Upsilon_m, as defined in
@@ -1325,9 +1289,10 @@ ValueError
 """.format(__.ORIGIN())
 
 pc = """
-``double array[naxis][naxis]``
+``double array[naxis][naxis]`` The ``PCi_ja`` (pixel coordinate)
+transformation matrix.
 
-The ``PCi_ja`` (pixel coordinate) transformation matrix.  The order is::
+The order is::
 
   [[PC1_1, PC1_2],
    [PC2_1, PC2_2]]
@@ -1353,12 +1318,11 @@ to a unity ``PCi_ja`` matrix.
 """
 
 phi0 = """
-``double``
+``double`` The native latitude of the fiducial point.
 
-The native latitude of the fiducial point, i.e. the point whose
-celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
-the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
-to a projection-specific default.
+The point whose celestial coordinates are given in ``ref[1:2]``.  If
+undefined (NaN) the initialization routine, `~astropy.wcs.Wcsprm.set`,
+will set this to a projection-specific default.
 
 See also
 --------
@@ -1393,16 +1357,12 @@ ValueError
 """.format(__.ORIGIN())
 
 piximg_matrix = """
-``double array[2][2]`` (read-only)
-
-Matrix containing the product of the ``CDELTia`` diagonal matrix and
-the ``PCi_ja`` matrix.
+``double array[2][2]`` (read-only) Matrix containing the product of
+the ``CDELTia`` diagonal matrix and the ``PCi_ja`` matrix.
 """
 
 power = """
-``double``
-
-The exponent of the unit conversion.
+``double`` The exponent of the unit conversion.
 """
 
 print_contents = """
@@ -1426,23 +1386,18 @@ To get a string of the contents, use `repr`.
 """
 
 radesys = """
-``string``
-
-The equatorial or ecliptic coordinate system type, ``RADESYSa``.
+``string`` The equatorial or ecliptic coordinate system type,
+``RADESYSa``.
 """
 
 restfrq = """
-``double``
-
-Rest frequency (Hz) from ``RESTFRQa``.
+``double`` Rest frequency (Hz) from ``RESTFRQa``.
 
 An undefined value is represented by NaN.
 """
 
 restwav = """
-``double``
-
-Rest wavelength (m) from ``RESTWAVa``.
+``double`` Rest wavelength (m) from ``RESTWAVa``.
 
 An undefined value is represented by NaN.
 """
@@ -1524,13 +1479,11 @@ astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
 """.format(__.ORIGIN())
 
 scale = """
-``double``
-
-The scaling factor for the unit conversion.
+``double`` The scaling factor for the unit conversion.
 """
 
 sense = """
-``int array[M]``
+``int array[M]`` +1 if monotonically increasing, -1 if decreasing.
 
 A vector of length `~astropy.wcs._astropy.wcs.Tabprm.M` whose elements
 indicate whether the corresponding indexing vector is monotonically
@@ -1584,11 +1537,12 @@ InvalidTransformError
 set_tabprm = """
 set()
 
-Allocates memory for work arrays in the Tabprm class and sets up
-the class according to information supplied within it.
+Allocates memory for work arrays.
 
-Note that this routine need not be called directly; it will be invoked by
-functions that need it.
+Also sets up the class according to information supplied within it.
+
+Note that this routine need not be called directly; it will be invoked
+by functions that need it.
 
 Raises
 ------
@@ -1752,15 +1706,11 @@ success : int
 """
 
 spec = """
-``int`` (read-only)
-
-The index containing the spectral axis values.
+``int`` (read-only) The index containing the spectral axis values.
 """
 
 specsys = """
-``string``
-
-Spectral reference frame (standard of rest), ``SPECSYSa``.
+``string`` Spectral reference frame (standard of rest), ``SPECSYSa``.
 
 See also
 --------
@@ -1817,9 +1767,9 @@ InvalidSubimageSpecificationError
 """
 
 ssysobs = """
-``string``
+``string`` Spectral reference frame.
 
-The actual spectral reference frame in which there is no differential
+The spectral reference frame in which there is no differential
 variation in the spectral coordinate across the field-of-view,
 ``SSYSOBSa``.
 
@@ -1829,7 +1779,7 @@ astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.velosys
 """
 
 ssyssrc = """
-``string``
+``string`` Spectral reference frame for redshift.
 
 The spectral reference frame (standard of rest) in which the redshift
 was measured, ``SSYSSRCa``.
@@ -1936,26 +1886,25 @@ number of axes in the input image.
 """
 
 tab = """
-``list of Tabprm``
+``list of Tabprm`` Tabular coordinate objects.
 
 A list of tabular coordinate objects associated with this WCS.
 """
 
 Tabprm = """
 A class to store the information related to tabular coordinates,
-i.e. coordinates that are defined via a lookup table.
+i.e., coordinates that are defined via a lookup table.
 
 This class can not be constructed directly from Python, but instead is
 returned from `~astropy.wcs.Wcsprm.tab`.
 """
 
 theta0 = """
-``double``
+``double``  The native longitude of the fiducial point.
 
-The native longitude of the fiducial point, i.e. the point whose
-celestial coordinates are given in ``ref[1:2]``.  If undefined (NaN)
-the initialization routine, `~astropy.wcs.Wcsprm.set`, will set this
-to a projection-specific default.
+The point whose celestial coordinates are given in ``ref[1:2]``.  If
+undefined (NaN) the initialization routine, `~astropy.wcs.Wcsprm.set`,
+will set this to a projection-specific default.
 
 See also
 --------
@@ -2044,8 +1993,7 @@ the wcstab array.
 UnitConverter = """
 UnitConverter(have, want, translate_units='')
 
-Creates an object for performing conversion from one system of units
-to another.
+An object for converting from one system of units to another.
 
 Use the returned object's `~astropy.wcs.UnitConverter.convert` method
 to convert values from *have* to *want*.
@@ -2170,7 +2118,7 @@ success : int
 """
 
 velangl = """
-``double``
+``double`` Velocity angle.
 
 The angle in degrees that should be used to decompose an observed
 velocity into radial and transverse components.
@@ -2179,7 +2127,7 @@ An undefined value is represented by NaN.
 """
 
 velosys = """
-``double``
+``double`` Relative radial velocity.
 
 The relative radial velocity (m/s) between the observer and the
 selected standard of rest in the direction of the celestial reference
@@ -2193,7 +2141,7 @@ astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
 """
 
 want = """
-The name of the unit being converted to.
+``string`` The name of the unit being converted to.
 
 This value always uses standard unit names, even if the
 `UnitConverter` was initialized with a non-standard unit name.
@@ -2304,9 +2252,7 @@ returned from `~astropy.wcs.Wcsprm.wtb`.
 """
 
 zsource = """
-``double``
-
-The redshift, ``ZSOURCEa``, of the source.
+``double`` The redshift, ``ZSOURCEa``, of the source.
 
 An undefined value is represented by NaN.
 """

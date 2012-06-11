@@ -308,7 +308,7 @@ PyTypeObject PyDistLookupType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
 #endif
-  "wcs.DistortionLookupTable",  /*tp_name*/
+  "astropy.wcs.DistortionLookupTable",  /*tp_name*/
   sizeof(PyDistLookup),         /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor)PyDistLookup_dealloc, /*tp_dealloc*/
