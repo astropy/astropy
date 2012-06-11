@@ -181,9 +181,22 @@ class NDData(object):
 
     def __array__(self):
         """
-        Implicitly convert this NDData object to a Numpy array so that
-        tools such as matplotlib will automatically know how to plot
-        it.
+        This allows code that requests a Numpy array to use an NDData
+        object as a Numpy array.
+
+        For example::
+
+            >>> from astropy.nddata import NDData
+            >>> import numpy as np
+            >>> x = NDData([1,2,3])
+            >>> np.asarray(x)
+            array([1, 2, 3])
+
+        This is useful, for example, when plotting a 2D image using
+        matplotlib::
+
+            >>> from matplotlib import pyplot as plt
+            >>> plt.imshow(x)
         """
         if self.mask is not None:
             return np.ma.masked_array(self.data, self.mask)
