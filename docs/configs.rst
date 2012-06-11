@@ -1,3 +1,5 @@
+.. _astropy_config:
+
 ***************************************
 Configuration system (`astropy.config`)
 ***************************************

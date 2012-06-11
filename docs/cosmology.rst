@@ -1,34 +1,78 @@
-Cosmological Calculations (`astropy.packagename`)
-=================================================
+Cosmological Calculations (`astropy.cosmology`)
+===============================================
 
 Introduction
 ------------
 
-The `astropy.cosmology` package contains classes for representing cosmologies,
-and utility functions for common cosmological calculations.
+The `astropy.cosmology` subpackage contains classes for representing
+cosmologies, and utility functions for calculate many commonly used
+quantities that depend on the cosmological model. This includes
+distances, ages and lookback times corresponding to a measured redshift
+or the transverse separation corresponding to a measure angular
+separation.
+
+An important concept in `astropy.cosmology` is the "current" cosmology.
+This is the specific cosmological model and choice of parameters that are
+currently active in `astropy`. Other parts of Astropy that require
+knowledge of the background cosmology should use this cosmology through
+the `~astropy.cosmology.core.get_current` function, and any functions
+that use this should also provide a ``cosmo=`` keyword that can
+optionally override the default. See `Getting Started`_ for a description of how to change this.
+
+
 
 
 Getting Started
 ---------------
 
-This section needs to be populated.
+To do a calculation defined in one of the convinience functions, you can
+simply call the function with the relevant redshift::
+
+    >>> from astropy import cosmology
+    >>> cosmology.distmod(0.5)
+    WARNING: No default cosmology has been specified, using 7-year WMAP. [astropy.cosmology.core]
+    42.270203330485998
+
+Note that calling these functions without specifying a cosmology will
+cause a warning to appear and the default (WMAP7) will be adopted. You
+can get rid of this by specifying a default cosmology or setting the
+current cosmology directly. The default current cosmology can be changed
+by changing the "default_cosmology" option in the ``[cosmology.core]``
+section of the configuration file to your preferred cosmology (see
+:ref:`astropy_config`). Alternatively, you can use the
+`~astropy.cosmology.core.set_current`. function to specify a cosmology
+for use in the current python session.
+
+Most of the other functionality is implmented as either methods or
+attributes of the current cosmology object. Use
+`~astropy.cosmology.core.get_current` to get this object::
+
+    >>> from astropy.cosmology import get_current
+    >>> cosmo = get_current()
+    >>> cosmo.h
+    0.704
+    >>> cosmo.lookback_time(1)
+    7.788414051773566
+    >>> cosmo.critical_density(0)
+    9.3100031320204701e-30
+    >>> cosmo.critical_density(0.5)
+    1.5324265155305696e-29
+
 
 
 Using `cosmology`
 -----------------
 
-The cosmology package allows you to calculate many commonly used
-quantities that depend on the cosmological model, such as distances,
-ages and lookback times corresponding to a measured redshift or the
-transverse separation corresponding to a measure angular separation.
+Most of the functionality is enabled by the
+`~astropy.cosmology.core.FLRWCosmology` object. This represents a
+homgeneous and isotropic cosmology (a cosmology characterized by the
+Friedmann-Lemaitre-Robertson-Walker metric after the people who solved
+Einstein's field equation for this special case).
 
-Most of the functionality is enabled by the `FLRWCosmology`
-object. This represents a homgeneous and isotropic cosmology (also
-known as a Friedmann-Lemaitre-Robertson-Walker cosmology after the
-people who solved Einstein's field equation for this special case).
-
-To create a new `FLRWCosmology` object with arguments giving the
-hubble parameter, omega matter and omega lambda (all at z=0):
+While `astropy.cosmology` includes a variety of standard cosmologies
+with the parameters already defined (see below), you can create a new
+`FLRWCosmology` object with arguments giving the hubble parameter, omega
+matter and omega lambda (all at z=0):
 
   >>> from astropy.cosmology import FLRWCosmology
   >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ol=0.7)
@@ -59,14 +103,6 @@ defined:
   >>> WMAP5.H(3)                    # Hubble parameter at z = 3 in km/s/Mpc
   301.54148311633674
 
-There is also a 'current' cosmology that will be used by relevant
-astropy functions if no cosmology instance is explicitly passed to
-them. This can be set with `set_current()` or a configuration file
-option (option name 'default_cosmology'), and is accessed with
-`get_current()`. If you don't set the current explicitly, either with
-`set_current()` or with the configuration file option, then
-`get_current()` returns the 7 year WMAP7 cosmology and a warning
-message is printed.
 
 There are also several convenience functions that calculate quantities
 without needing to create a Cosmology object.
@@ -77,19 +113,10 @@ without needing to create a Cosmology object.
   >>> cosmology.arcsec_per_kpc_proper(3)
   0.12687166682195736
 
-These use the current cosmology, unless overridden by a `cosmo=`
-keyword argument. The convenience functions available are:
+These use the current cosmology, unless overridden by a `cosmo=` keyword
+argument. A full list of convinience functions is included below, in the
+`Reference/API`_ section.
 
-     `~astropy.cosmology.kpc_comoving_per_arcmin`
-     `~astropy.cosmology.kpc_proper_per_arcmin`
-     `~astropy.cosmology.arcsec_per_kpc_comoving`
-     `~astropy.cosmology.arcsec_per_kpc_proper`
-     `~astropy.cosmology.distmod`
-
-See their docstrings for more information.
-
-References for most of the quantities calculated in this package are
-given by Hogg (astro-ph/9905116).
 
 
 See Also
@@ -103,9 +130,3 @@ Reference/API
 
 .. automodapi:: astropy.cosmology
 
-
-Acknowledgments and Licenses (optional)
----------------------------------------
-
-Any acknowledgements or licenses needed for this package - remove the
-section if none are necessary.
