@@ -193,7 +193,7 @@ class CdsData(core.BaseData):
 
 
 class Cds(core.BaseReader):
-    """Read a CDS format table: http://vizier.u-strasbg.fr/doc/catstd.htx.
+    """Read a CDS format table.  See http://vizier.u-strasbg.fr/doc/catstd.htx.
     Example::
 
       Table: Spitzer-identified YSOs: Addendum
