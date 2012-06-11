@@ -16,8 +16,8 @@ Short tutorial-like examples of how to do common-tasks - should be
 fairly quick, with any more detailed examples in the next section.
 
 
-Using packagename
------------------
+Using `packagename`
+-------------------
 
 .. THIS SECTION SHOULD BE EITHER
 
