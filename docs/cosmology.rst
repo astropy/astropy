@@ -14,10 +14,9 @@ separation.
 An important concept in `astropy.cosmology` is the "current" cosmology.
 This is the specific cosmological model and choice of parameters that are
 currently active in `astropy`. Other parts of Astropy that require
-knowledge of the background cosmology should use this cosmology through
-the `~astropy.cosmology.core.get_current` function, and any functions
-that use this should also provide a ``cosmo=`` keyword that can
-optionally override the default. See `Getting Started`_ for a description of how to change this.
+knowledge of the background cosmology will use this cosmology in their
+calculations to maintain consistency. See `Getting Started`_ for a
+description of how to change the current cosmology that is in use.
 
 
 
@@ -117,6 +116,25 @@ These use the current cosmology, unless overridden by a `cosmo=` keyword
 argument. A full list of convinience functions is included below, in the
 `Reference/API`_ section.
 
+
+Using `cosmology` inside Astropy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are writing a function for the `astropy` core or an affiliated
+package, it is strongly recommended that you use the the current
+cosmology through the `~astropy.cosmology.core.get_current` function. It
+also also recommended that you provide an override option as follows::
+
+    def myfunc(...,cosmo=None):
+        from astropy.cosmology import get_current
+
+        if cosmo is None:
+            cosmo = get_current()
+
+        ... your code here ...
+
+This ensures that all code consistently uses the current cosmology
+unless explicitly overridden.
 
 
 See Also
