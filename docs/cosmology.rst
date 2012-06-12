@@ -120,10 +120,11 @@ argument. A full list of convinience functions is included below, in the
 Using `cosmology` inside Astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you are writing a function for the `astropy` core or an affiliated
-package, it is strongly recommended that you use the the current
-cosmology through the `~astropy.cosmology.core.get_current` function. It
-also also recommended that you provide an override option as follows::
+If you are writing code for the `astropy` core or an affiliated package,
+it is strongly recommended that you use the the current cosmology
+through the `~astropy.cosmology.core.get_current` function. It also also
+recommended that you provide an override option something like the
+following::
 
     def myfunc(...,cosmo=None):
         from astropy.cosmology import get_current
