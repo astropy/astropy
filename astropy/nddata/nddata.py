@@ -72,6 +72,29 @@ class NDData(object):
         If the `error` or `mask` inputs cannot be broadcast (e.g., match
         shape) onto `data`.
 
+    Notes
+    -----
+    `NDData` objects can be easily converted to a regular Numpy array
+    using `numpy.asarray`
+
+    For example::
+
+        >>> from astropy.nddata import NDData
+        >>> import numpy as np
+        >>> x = NDData([1,2,3])
+        >>> np.asarray(x)
+        array([1, 2, 3])
+
+    If the `NDData` object has a `mask`, `numpy.asarray` will return a
+    Numpy masked array.
+
+    This is useful, for example, when plotting a 2D image using
+    matplotlib::
+
+        >>> from astropy.nddata import NDData
+        >>> from matplotlib import pyplot as plt
+        >>> x = NDData([[1,2,3], [4,5,6]])
+        >>> plt.imshow(x)
     """
     def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
                  units=None, copy=True, validate=True):
@@ -178,3 +201,13 @@ class NDData(object):
         integer dimensions of this object's data
         """
         return self.data.ndim
+
+    def __array__(self):
+        """
+        This allows code that requests a Numpy array to use an NDData
+        object as a Numpy array.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(self.data, self.mask)
+        else:
+            return self.data
