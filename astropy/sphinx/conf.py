@@ -27,9 +27,9 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
     'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
     'sphinx.ext.inheritance_diagram',
     'astropy.sphinx.ext.numpydoc',
+    'astropy.sphinx.ext.astropyautosummary',
     'astropy.sphinx.ext.automodsumm',
     'astropy.sphinx.ext.automodapi'
     ]
