@@ -656,12 +656,16 @@ def test_cd_3d():
     assert w.get_cdelt().shape == (3,)
 
 
-@raises(RuntimeError)
 def test_get_pc():
     header = get_data_contents('data/3d_cd.hdr')
     w = _wcs._Wcsprm(header)
-    w.get_pc()[0, 0] = 42
-
+    pc = w.get_pc()
+    try:
+        pc[0, 0] = 42
+    except (RuntimeError, ValueError):
+        pass
+    else:
+        raise AssertionError()
 
 @raises(_wcs.SingularMatrixError)
 def test_detailed_err():
