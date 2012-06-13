@@ -24,8 +24,8 @@ User Documentation
 
    overview
    install
-   configs
    logging
+   configs
    nddata/index
    wcs/index
    fits/index
