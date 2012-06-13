@@ -4,7 +4,9 @@ Convolution
 Introduction
 ------------
 
-``astropy.nddata`` includes a convolution function that offers improvements compared to the scipy ``astropy.ndimage`` convolution routines, including:
+``astropy.nddata`` includes a convolution function that offers
+improvements compared to the scipy ``astropy.ndimage`` convolution
+routines, including:
 
 * Proper treatment of NaN values
 
@@ -12,7 +14,12 @@ Introduction
 
 * Improved options for the treatment of edges
 
-The following thumbnails show the difference between Scipy's and Astropy's convolve functions on an Astronomical image that contains NaN values. Scipy's function essentially returns NaN for all pixels that are within a kernel of any NaN value, which is often not the desired result.
+* Both direct and Fast Fourier Transform (FFT) versions
+
+The following thumbnails show the difference between Scipy's and
+Astropy's convolve functions on an Astronomical image that contains NaN
+values. Scipy's function essentially returns NaN for all pixels that are
+within a kernel of any NaN value, which is often not the desired result.
 
 .. |original| image:: images/original.png
 .. |scipy| image:: images/scipy.png
@@ -28,13 +35,20 @@ The following thumbnails show the difference between Scipy's and Astropy's convo
 Usage
 -----
 
-The convolution function is imported with::
+Two convolution functions are provided.  They are imported as::
 
-    from astropy.nddata import convolve
+    from astropy.nddata import convolve, convolve_fft
 
-and is used as::
+and are both used as::
 
     result = convolve(image, kernel)
+    result = convolve_fft(image, kernel)
+
+`~astropy.nddata.convolution.convolve.convolve` is implemented as a direct
+convolution algorithm, while `~astropy.nddata.convolution.convolve.convolve_fft`
+uses an FFT.  Thus, the former is better for small kernels, while the latter
+is much more efficient for larger kernels.
+
 
 The input images and kernels should be lists or Numpy arrays with either both 1, 2, or 3 dimensions (and the number of dimensions should be the same for the image and kernel). The result is a Numpy array with the same dimensions as the input image.
 
@@ -88,3 +102,11 @@ and a 3-d array as a list::
                   [[0, 1, 0], [2, 3, 2], [0, 1, 0]], \
                   [[0, 0, 0], [0, 2, 0], [0, 0, 0]]]
     >>> result = convolve(cube, kernel)
+
+You can also use `~astropy.nddata.convolution.make_kernel.make_kernel`
+to generate common n-dimensional kernels::
+
+    >>> make_kernel([3,3], 1, 'boxcar')
+    array([[ 0.  0.  0.]
+           [ 0.  1.  0.]
+           [ 0.  0.  0.]])
