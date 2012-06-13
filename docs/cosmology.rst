@@ -5,8 +5,8 @@ Introduction
 ------------
 
 The `astropy.cosmology` subpackage contains classes for representing
-cosmologies, and utility functions for calculate many commonly used
-quantities that depend on the cosmological model. This includes
+cosmologies, and utility functions for calculating commonly used
+quantities that depend on a cosmological model. This includes
 distances, ages and lookback times corresponding to a measured redshift
 or the transverse separation corresponding to a measure angular
 separation.
@@ -24,7 +24,7 @@ description of how to change the current cosmology that is in use.
 Getting Started
 ---------------
 
-To do a calculation defined in one of the convinience functions, you can
+To do a calculation defined in one of the convenience functions, you can
 simply call the function with the relevant redshift::
 
     >>> from astropy import cosmology
@@ -42,7 +42,7 @@ section of the configuration file to your preferred cosmology (see
 `~astropy.cosmology.core.set_current`. function to specify a cosmology
 for use in the current python session.
 
-Most of the other functionality is implmented as either methods or
+Most of the other functionality is implemented as either methods or
 attributes of the current cosmology object. Use
 `~astropy.cosmology.core.get_current` to get this object::
 
@@ -95,7 +95,7 @@ variables available.  There are several standard cosmologies already
 defined:
 
   >>> from cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> WMAP7.critical_density0       # critical density at z = 0 in g/cm^3
+  >>> WMAP7.critical_density(0)       # critical density at z = 0 in g/cm^3
   9.31000313202047e-30
 
   >>> from cosmology import WMAP5   # WMAP 5-year
@@ -113,8 +113,19 @@ without needing to create a Cosmology object.
   0.12687166682195736
 
 These use the current cosmology, unless overridden by a `cosmo=` keyword
-argument. A full list of convinience functions is included below, in the
+argument. A full list of convenience functions is included below, in the
 `Reference/API`_ section.
+
+.. note::
+    In general it's better to use an explicit cosmology in actual
+    science code, when possible (e.g., ``WMAP7.H(0)`` instead of
+    ``cosmology.H(0)``). The motivation for this is that when you go back
+    to use the code at a later date, the default cosmology may have
+    changed. Use of the convinience functions should generally be
+    reserved for interactive work or cases where the flexibility of
+    quickly changing between different cosmologies is for some reason
+    useful. Alternatively, doing ``cosmology.set_current(WMAP7)`` at the
+    top of your code will ensure that these are always consistent.
 
 
 Using `cosmology` inside Astropy
