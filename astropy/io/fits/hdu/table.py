@@ -228,7 +228,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         size = self._header['NAXIS1'] * self._header['NAXIS2']
         return self._header.get('THEAP', size)
 
-    @deprecated('3.0', alternative='the `.columns` attribute')
+    @deprecated('3.0', alternative='the `~astropy.io.fits.FITS_rec.columns` '
+                                   'attribute')
     def get_coldefs(self):
         """
         Returns the table's column definitions.
