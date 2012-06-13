@@ -40,26 +40,26 @@ am_replacer_basic_expected = """
 This comes before
 
 astropy.sphinx.ext.tests.test_automodapi Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------
 
 .. automodule:: astropy.sphinx.ext.tests.test_automodapi
 
 Functions
-_________
+^^^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: _generated/
 
 Classes
-_______
+^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: _generated/
 
 Class Inheritance Diagram
-_________________________
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automod-diagram:: astropy.sphinx.ext.tests.test_automodapi
     :private-bases:
@@ -84,19 +84,19 @@ am_replacer_noinh_expected = """
 This comes before
 
 astropy.sphinx.ext.tests.test_automodapi Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------
 
 .. automodule:: astropy.sphinx.ext.tests.test_automodapi
 
 Functions
-_________
+^^^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: _generated/
 
 Classes
-_______
+^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
@@ -183,44 +183,44 @@ am_replacer_subsections_expected = """
 This comes before
 
 astropy.sphinx.ext.automodsumm Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 .. automodule:: astropy.sphinx.ext.automodsumm
 
 Functions
-_________
+^^^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.automodsumm
     :functions-only:
     :toctree: _generated/
 
 Classes
-_______
+^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.automodsumm
     :classes-only:
     :toctree: _generated/
 
 Class Inheritance Diagram
-_________________________
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automod-diagram:: astropy.sphinx.ext.automodsumm
     :private-bases:
 
 astropy.sphinx.ext.automodapi Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 .. automodule:: astropy.sphinx.ext.automodapi
 
 Functions
-_________
+^^^^^^^^^
 
 .. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
     :toctree: _generated/
 
 astropy.sphinx.ext.tests Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 .. automodule:: astropy.sphinx.ext.tests
 
