@@ -1,10 +1,11 @@
 .. include:: references.txt
 
+*********************************
 ASCII Tables (`astropy.io.ascii`)
-===================================
+*********************************
 
 Introduction
---------------
+============
 
 `astropy.io.ascii` provides methods for reading and writing a wide range of ASCII data table
 formats via built-in :ref:`extension_reader_classes`.  The emphasis is on flexibility and ease of use.
@@ -28,10 +29,10 @@ structure with independent :ref:`base_class_elements` so that new formats can
 be easily accomodated.
 
 Getting Started
-------------------
+===============
 
 Reading Tables
-^^^^^^^^^^^^^^^
+--------------
 
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function.  Assume you have a file named ``sources.dat`` with the following contents::
@@ -69,7 +70,7 @@ example::
    889974380 S002.9051P14.7003 XS03957B7_004
 
 Writing Tables
-^^^^^^^^^^^^^^^
+--------------
 
 The |write| function provides a way to write a data table as a formatted ASCII
 table.  For example the following writes a table as a simple space-delimited
@@ -103,7 +104,7 @@ the option to send the output to ``sys.stdout`` instead of a file::
   \end{table}
 
 Using `io.ascii`
-----------------
+================
 
 The details of using `astropy.io.ascii` are provided in the following sections:
 
@@ -118,7 +119,7 @@ The details of using `astropy.io.ascii` are provided in the following sections:
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.io.ascii
 

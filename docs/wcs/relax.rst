@@ -3,7 +3,7 @@
 .. _relax:
 
 Relax constants
-```````````````
+===============
 
 .. _relaxread:
 

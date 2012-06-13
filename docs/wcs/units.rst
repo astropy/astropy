@@ -3,7 +3,7 @@
 .. _fits-unit:
 
 FITS unit specification
-```````````````````````
+=======================
 
 Supported units
 ---------------
@@ -189,7 +189,7 @@ sub-strings must be separated by at least one space or a mathematical
 operator (``*`` or ``/``).
 
 Multiplication
-==============
+^^^^^^^^^^^^^^
 
 Multiplicative units can be specified either:
 
@@ -200,7 +200,7 @@ Multiplicative units can be specified either:
   e.g. ``str1 * str2``.
 
 Division
-========
+^^^^^^^^
 
 Units which form the denominator of a compound expression can be
 specified either:
@@ -219,7 +219,7 @@ compound expression must also be preceded by a slash.  For example,
 /str2 /str3`` is equivalent to ``str1 /(str2 * str3)``.
 
 Raising to Powers
-=================
+^^^^^^^^^^^^^^^^^
 
 A unit string raised to the power *y* is specified:
 
@@ -231,7 +231,7 @@ However, if *y* is positive, then the brackets need not be included,
 but a following space is recommended if additional sub-strings follow.
 
 Use of brackets
-===============
+^^^^^^^^^^^^^^^
 
 Any number of pairs of round brackets (``()``) may be used within the
 string for a compound unit in order to prevent ambiguities. As
@@ -242,7 +242,7 @@ compound strings.  (It should be remembered that a maximum of 68
 characters are allowed in the card image of keywords.)
 
 Avoidance of underflows & overflows
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The inclusion of numerical factors within the unit string should
 generally be avoided (by the use of multiples and/or submultiples of
@@ -260,7 +260,7 @@ The following additional guidelines are suggested:
 - only powers of 10 are used as numerical factors
 
 Mathematical Operations & Functions
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A number of mathematical operations are supported.  It should be noted
 that the (round) brackets are mandatory in all cases in which they are

@@ -1,8 +1,9 @@
+************
 Installation
-============
+************
 
 Requirements
-------------
+============
 
 Astropy has the following strict requirements:
 
@@ -17,23 +18,23 @@ Astropy also depends on other projects for optional features.
 TODO: Link to the planned dependency checker/installer tool.
 
 Installing Astropy
-------------------
+==================
 
 Using `pip`
-```````````
+-----------
 
 TODO: Write once we’re up on PyPI.
 
 Binary installers
-`````````````````
+-----------------
 
 TODO: Write about where to obtain binary packages (.dmg, .msi etc.)
 
 Building from source
---------------------
+====================
 
 Prerequisites
-`````````````
+-------------
 
 You will need a compiler suite and the development headers for Python
 and Numpy in order to build Astropy.  Using the package manager for
@@ -44,7 +45,7 @@ The `instructions for building Numpy from source
 resource for setting up your environment to build Python packages.
 
 Obtaining the source
-````````````````````
+--------------------
 
 Source packages
 ^^^^^^^^^^^^^^^
@@ -69,7 +70,7 @@ using this command::
    necessary to install Astropy.
 
 Building and Installing
-```````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Astropy uses the Python `distutils framework
 <http://docs.python.org/install/index.html>`_ for building and
@@ -86,7 +87,7 @@ To install Astropy (from the root of the source tree)::
 .. _builddocs:
 
 Building documentation
-``````````````````````
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
     Building the documentation is in general not necessary unless you
@@ -119,7 +120,7 @@ And the documentation will be generated in the same location, but using the
 *installed* version of Astropy.
 
 Testing Astropy
-```````````````
+^^^^^^^^^^^^^^^
 
 The easiest way to test that your Astropy built correctly is to run
 (from the root of the source tree)::
@@ -127,4 +128,3 @@ The easiest way to test that your Astropy built correctly is to run
     python setup.py test
 
 There are also alternative methods of :ref:`running-tests`.
-

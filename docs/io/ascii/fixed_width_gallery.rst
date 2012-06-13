@@ -3,7 +3,7 @@
 .. _fixed_width_gallery:
 
 Fixed-width Gallery
-=====================
+-------------------
 
 Fixed-width tables are those where each column has the same width for every row
 in the table.  This is commonly used to make tables easy to read for humans or
@@ -27,10 +27,10 @@ Details are available in the class API documentation, but the easiest way to
 understand all the options and their interactions is by example.
 
 Reading 
---------
+^^^^^^^
 
 FixedWidth
-^^^^^^^^^^^
+""""""""""
 
 **Nice, typical fixed format table**
 ::
@@ -134,7 +134,7 @@ keywords to indicate no header line.
         dtype=[('Name', '|S4'), ('Phone', '|S8'), ('TCP', '|S12')])
 
 FixedWidthNoHeader
-^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 **Table with no header row and auto-column naming.  Use the FixedWidthNoHeader
 convenience class.**
@@ -176,7 +176,7 @@ will select the first 6 characters.
         dtype=[('Name', '|S4'), ('Phone', '|S9'), ('TCP', '|S10')])
 
 FixedWidthTwoLine
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""
 
 **Typical fixed format table with two header lines with some cruft**
 ::
@@ -224,10 +224,10 @@ FixedWidthTwoLine
         dtype=[('Col1', '<f8'), ('Col2', '|S9')])
 
 Writing
-----------
+^^^^^^^
 
 FixedWidth
-^^^^^^^^^^^^^^^^^^^
+""""""""""
 
 **Define input values ``dat`` for all write examples.**
 ::
@@ -281,7 +281,7 @@ FixedWidth
   | 2.400    | 's worlds       |    2 |    2 |
 
 FixedWidthNoHeader
-^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 **Write a table as a normal fixed width table.**
 ::
@@ -313,7 +313,7 @@ FixedWidthNoHeader
   2.4  's worlds  2  2
 
 FixedWidthTwoLine
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""
 
 **Write a table as a normal fixed width table.**
 ::

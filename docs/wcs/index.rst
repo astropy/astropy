@@ -1,5 +1,6 @@
+***************************************
 World Coordinate System (`astropy.wcs`)
-=======================================
+***************************************
 
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
 .. _Paper IV: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
@@ -7,7 +8,7 @@ World Coordinate System (`astropy.wcs`)
 .. _ds9: http://hea-www.harvard.edu/RD/ds9/
 
 Introduction
-------------
+============
 
 `astropy.wcs` contains utilities for managing World Coordinate System
 (WCS) transformations in FITS files.  These transformations map the
@@ -21,7 +22,7 @@ Each of these transformations can be used independently or together in
 a standard pipeline.
 
 Getting Started
----------------
+===============
 
 The basic workflow is as follows:
 
@@ -59,11 +60,11 @@ The basic workflow is as follows:
          coordinates.  Commonly used for narrow column correction.
 
 
-Using astropy.wcs
------------------
+Using `astropy.wcs`
+===================
 
 Loading WCS information from a FITS file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
 
 This example loads a FITS file (supplied on the commandline) and uses
 the WCS cards in its primary header to transform.
@@ -72,7 +73,7 @@ the WCS cards in its primary header to transform.
    :language: python
 
 Building a WCS structure programmatically
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 This example, rather than starting from a FITS header, sets WCS values
 programmatically, uses those settings to transform some points, and then
@@ -82,7 +83,7 @@ saves those settings to a new FITS header.
    :language: python
 
 Other information
------------------
+=================
 
 .. toctree::
    :maxdepth: 1
@@ -94,18 +95,18 @@ Other information
 
 
 See Also
---------
+========
 
 - `wcslib`_
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.wcs
 
 
 Acknowledgments and Licenses
-----------------------------
+============================
 
 wcslib is licenced under the `GNU Lesser General Public License
 <http://www.gnu.org/licenses/lgpl.html>`_.

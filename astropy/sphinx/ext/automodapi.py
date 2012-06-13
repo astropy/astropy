@@ -32,9 +32,9 @@ It accepts the following options:
         levels used for the generated section. This must have at least 2
         characters (any after 2 will be ignored). This also *must* match
         the rest of the documentation on this page for sphinx to be
-        happy. Defaults to "^_", which matches the Sphinx default scheme
-        assuming the automodapi call is inside a top-level section (which
-        usually uses '-').
+        happy. Defaults to "-^", which matches the convention used for
+        Python's documentation, assuming the automodapi call is inside a
+        top-level section (which usually uses '=').
 
 
 This extension also adds a sphinx configuration option
@@ -169,13 +169,13 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             subsecs = modops.pop('subsections', None)
             nomain = 'no-main-section' in modops
             modops.pop('no-main-section', None)
-            hds = modops.pop('headings', '^_')
+            hds = modops.pop('headings', '-^')
 
             if len(hds) < 2:
-                msg = 'not enough headings (got {0}, need 2), using default ^_'
+                msg = 'not enough headings (got {0}, need 2), using default -^'
                 if warnings:
                     app.warn(msg.format(len(hds)), location)
-                hds = '^_'
+                hds = '-^'
             h1, h2 = hds.lstrip()[:2]
 
             #tell sphinx that the remaining args are invalid.

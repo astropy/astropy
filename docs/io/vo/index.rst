@@ -1,19 +1,20 @@
 .. include:: references.txt
 
+**************************************
 VOTable XML handling (`astropy.io.vo`)
-======================================
+**************************************
 
 Introduction
-------------
+============
 
 The `astropy.io.vo` subpackage converts VOTable XML files to and from
 Numpy record arrays.
 
 Getting Started
----------------
+===============
 
 Reading a VOTable file
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 To read in a VOTable file, pass a file path to
 `astropy.io.vo.table.parse`::
@@ -99,7 +100,7 @@ or equivalently::
          17.2765703], dtype=object)
 
 Building a new table from scratch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 It is also possible to build a new table, define some field datatypes
 and populate it with data::
@@ -135,7 +136,7 @@ and populate it with data::
   votable.to_xml("new_votable.xml")
 
 Outputting a VOTable file
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 To save a VOTable file, simply call the
 `~astropy.io.vo.tree.VOTableFile.to_xml` method.  It accepts either a
@@ -156,10 +157,10 @@ format can be set on a per-table basis using the
   votable.to_xml('binary.xml')
 
 Using `io.vo`
--------------
+=============
 
 Standard compliance
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 `astropy.io.vo.table` supports the `VOTable Format Definition Version
 1.1
@@ -181,7 +182,7 @@ Output always conforms to the 1.1 or 1.2 spec, depending on the input.
 .. _pedantic-mode:
 
 Pedantic mode
-_____________
+^^^^^^^^^^^^^
 
 Many VOTABLE files in the wild do not conform to the VOTABLE
 specification.  If reading one of these files causes exceptions, you
@@ -202,7 +203,7 @@ These warnings are all of the type
 using the standard Python `warnings` module.
 
 Missing values
-^^^^^^^^^^^^^^
+--------------
 
 Any value in the table may be "missing".  `astropy.io.vo.table` stores
 a parallel array in each `~astropy.io.vo.tree.Table` instance called
@@ -216,7 +217,7 @@ This array is ``False`` anywhere the value is missing.
    at the moment.
 
 Datatype mappings
-^^^^^^^^^^^^^^^^^
+-----------------
 
 The datatype specified by a ``FIELD`` element is mapped to a Numpy
 type according to the following table:
@@ -262,7 +263,7 @@ value may be either an array or scalar depending on the ``arraysize``
 specifier.
 
 Examining field types
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 To look up more information about a field in a table, one can use the
 `~astropy.io.vo.tree.Table.get_field_or_param_by_id` method, which
@@ -281,7 +282,7 @@ example::
    addressed in a future version of `astropy.io.vo`.
 
 Performance considerations
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 File reads will be moderately faster if the ``TABLE`` element includes
 an nrows_ attribute.  If the number of rows is not specified, the
@@ -290,7 +291,7 @@ record array must be resized repeatedly during load.
 .. _nrows: http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC10
 
 See Also
---------
+========
 
 - `VOTable Format Definition Version 1.1
   <http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_
@@ -299,7 +300,7 @@ See Also
   <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.io.vo
    :no-main-section:
@@ -307,7 +308,7 @@ Reference/API
    :no-inheritance-diagram:
 
 astropy.io.vo.exceptions Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 .. toctree::
    :maxdepth: 1

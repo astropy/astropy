@@ -1,10 +1,11 @@
 .. _utils:
 
+**********************************************
 Developer-Oriented Utilities (`astropy.utils`)
-==============================================
+**********************************************
 
 Introduction
-------------
+============
 
 The `astropy.utils` package contains general-purpose utilities
 functions and classes that such as general-purpose data structures,
@@ -28,7 +29,7 @@ only the reference section is currently provided for this subpackage.
     large amount of version-specific code it contains.
 
 See Also
---------
+========
 
 * :ref:`tools`
     The subpackage for tools that are oriented towards users, rather than
@@ -37,7 +38,7 @@ See Also
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.utils
     :no-main-section:
