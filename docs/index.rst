@@ -60,8 +60,9 @@ testing guidelines.
    development/scripts
    development/sphinxext
 
+******************
 Indices and Tables
-------------------
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`
