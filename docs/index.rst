@@ -20,7 +20,7 @@ For discussions and ideas regarding development of the Astropy package, see the 
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    overview
    install
