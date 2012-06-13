@@ -32,9 +32,9 @@ It accepts the following options:
         levels used for the generated section. This must have at least 2
         characters (any after 2 will be ignored). This also *must* match
         the rest of the documentation on this page for sphinx to be
-        happy. Defaults to "^_", which matches the Sphinx default scheme
-        assuming the automodapi call is inside a top-level section (which
-        usually uses '-').
+        happy. Defaults to "-^", which matches the convention used for
+        Python's documentation, assuming the automodapi call is inside a
+        top-level section (which usually uses '=').
 
 
 This extension also adds a sphinx configuration option
