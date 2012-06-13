@@ -87,6 +87,16 @@ if setup_helpers.AstropyBuildSphinx is not None:
     cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
 
 
+# Currently the only entry points installed by Astropy are hooks to
+# zest.releaser for doing Astropy's releases
+entry_points = {}
+for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
+    hook_ep = 'zest.releaser.' + '.'.join(hook)
+    hook_name = 'astropy.release.' + '.'.join(hook)
+    hook_func = 'astropy.utils.releaser:' + '_'.join(hook)
+    entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
+
+
 setup(name='astropy',
       version=version,
       description='Community-developed python astronomy tools',
@@ -105,5 +115,6 @@ setup(name='astropy',
       long_description=astropy.__doc__,
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True
+      use_2to3=True,
+      entry_points=entry_points
       )
