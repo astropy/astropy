@@ -93,7 +93,7 @@ entry_points = {}
 for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
     hook_ep = 'zest.releaser.' + '.'.join(hook)
     hook_name = 'astropy.release.' + '.'.join(hook)
-    hook_func = 'astropy.utils.releaser:' + '_'.join(hook)
+    hook_func = 'astropy.utils.release:' + '_'.join(hook)
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
 
 
