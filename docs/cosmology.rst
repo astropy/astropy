@@ -1,8 +1,9 @@
+***********************************************
 Cosmological Calculations (`astropy.cosmology`)
-===============================================
+***********************************************
 
 Introduction
-------------
+============
 
 The `astropy.cosmology` subpackage contains classes for representing
 cosmologies, and utility functions for calculating commonly used
@@ -22,7 +23,7 @@ description of how to change the current cosmology that is in use.
 
 
 Getting Started
----------------
+===============
 
 To do a calculation defined in one of the convenience functions, you can
 simply call the function with the relevant redshift::
@@ -60,7 +61,7 @@ attributes of the current cosmology object. Use
 
 
 Using `cosmology`
------------------
+=================
 
 Most of the functionality is enabled by the
 `~astropy.cosmology.core.FLRWCosmology` object. This represents a
@@ -129,7 +130,7 @@ argument. A full list of convenience functions is included below, in the
 
 
 Using `cosmology` inside Astropy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 If you are writing code for the `astropy` core or an affiliated package,
 it is strongly recommended that you use the the current cosmology
@@ -150,13 +151,13 @@ unless explicitly overridden.
 
 
 See Also
---------
+========
 
 * Hogg, "Distance measures in cosmology", http://arxiv.org/abs/astroph/9905116
 * NASA's Legacy Archive for Microwave Background Data Analysis, http://lambda.gsfc.nasa.gov/
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.cosmology
 
