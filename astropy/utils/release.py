@@ -17,6 +17,9 @@ def releaser_middle(data):
     if data['name'] != 'astropy':
         return
 
+    import os
+    import sys
+
     from zest.releaser.git import Git
     from zest.releaser.release import Releaser
 
