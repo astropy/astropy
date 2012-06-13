@@ -3,7 +3,7 @@
 .. _extension_reader_classes:
 
 Extension Reader classes
-==========================
+------------------------
 
 The following classes extend the base :class:`~astropy.io.ascii.core.BaseReader` functionality to handle reading and writing
 different table formats.  Some, such as the :class:`~astropy.io.ascii.Basic` Reader class

@@ -1,11 +1,11 @@
 .. _astropy_nddata:
 
-=========================================
+*****************************************
 N-dimensional datasets (`astropy.nddata`)
-=========================================
+*****************************************
 
 Introduction
-------------
+============
 
 `astropy.nddata` provides the `~astropy.nddata.nddata.NDData`
 class and related tools to manage n-dimensional array-based data (e.g.
@@ -14,7 +14,7 @@ just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 
 Getting started
----------------
+===============
 
 At the moment, the `~astropy.nddata.nddata.NDData` class is still under development. You can however already make use of the convolution routines included in `astropy.nddata`::
 
@@ -39,7 +39,7 @@ You can also use `make_kernel` to generate n-dimensional kernels::
 See the documentation below for more information.
 
 Using `nddata`
---------------
+==============
 
 .. toctree::
    :maxdepth: 2
@@ -47,7 +47,7 @@ Using `nddata`
    convolution.rst
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.nddata
     :no-inheritance-diagram:

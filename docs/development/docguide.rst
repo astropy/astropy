@@ -402,7 +402,7 @@ Documenting classes
 ^^^^^^^^^^^^^^^^^^^
 
 Class docstrings
-````````````````
+""""""""""""""""
 
 Use the same sections as outlined above (all except ``Returns`` are
 applicable). The constructor (``__init__``) should also be documented here,
@@ -463,7 +463,7 @@ methods in the Methods section.
 Do not list ``self`` as the first parameter of a method.
 
 Method docstrings
-`````````````````
+"""""""""""""""""
 
 Document these as you would any other function. Do not include ``self`` in
 the list of parameters. If a method has an equivalent function, the function

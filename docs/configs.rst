@@ -1,8 +1,9 @@
+***************************************
 Configuration system (`astropy.config`)
-=======================================
+***************************************
 
 Introduction
-------------
+============
 
 The astropy configuration system is designed to give users control of various
 parameters used in astropy or affiliated packages without delving into the
@@ -10,7 +11,7 @@ source code to make those changes.
 
 
 Getting Started
----------------
+===============
 
 To see the configuration options, look for your astropy configuration file.
 You can find it by doing::
@@ -55,10 +56,11 @@ want to see your changes immediately in your current Astropy session, just do::
 
 
 Using `config`
---------------
+==============
 
 Changing Values at Run-time
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
+
 The configuration system is most conveniently used by modifying
 configuration files as described above. Values can also, however, be
 modified in an active python session using the
@@ -115,7 +117,7 @@ Or to save all modifications to configuration items in `astropy.config.data`
     >>> save_config('astropy.config.data')
 
 Reloading Configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 Instead of modifying the variables in python, you can also modify the
 configuration files and then reload them.  For example, if you modify the
@@ -147,7 +149,7 @@ Or if you want to reload all astropy configuration at once, use the
 
 
 Developer Usage
-^^^^^^^^^^^^^^^
+---------------
 
 Configuration items should be used wherever an option or setting is
 needed that is either tied to a system configuration or should persist
@@ -234,13 +236,13 @@ Or, if the option needs to be available as a function parameter::
 
 
 See Also
---------
+========
 
 :doc:`logging` (overview of `astropy.config.logging`)
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.config
     :no-inheritance-diagram:

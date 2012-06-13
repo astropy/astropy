@@ -1,10 +1,11 @@
 .. _tools:
 
+******************************************
 Astronomy-Oriented Tools (`astropy.tools`)
-==========================================
+******************************************
 
 Introduction
-------------
+============
 
 The `astropy.tools` package holds smallish general astronomy functions
 or algorithms that are likely of use to users, but either not related to
@@ -14,7 +15,7 @@ packages.
 
 
 Getting Started
----------------
+===============
 
 The current tools are fairly self-contained, and include relevant examples in
 their docstrings.  For example, see `~astropy.tools.misc.sigma_clip`.
@@ -39,7 +40,7 @@ their docstrings.  For example, see `~astropy.tools.misc.sigma_clip`.
 
 
 See Also
---------
+========
 
 * :ref:`utils`
     The subpackage for utilities that are oriented towards developers, rather than
@@ -48,6 +49,6 @@ See Also
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.tools

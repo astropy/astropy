@@ -3,7 +3,8 @@
 .. include:: references.txt
 
 Reading tables
-----------------------------
+--------------
+
 The majority of commonly encountered ASCII tables can be easily read with the |read|
 function::
 
