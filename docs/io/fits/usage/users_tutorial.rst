@@ -4,10 +4,10 @@
 Quick Tutorial
 **************
 
-This chapter provides a quick introduction of using `astropy.io.fits`. The goal
+This section provides a quick introduction of using `astropy.io.fits`. The goal
 is to demonstrate the package's basic features without getting into too much
-detail. If you are a first time user or have never used Astropy , this is where
-you should start. Otherwise, it is safe to skip this chapter.
+detail. If you are a first time user or have never used Astropy or PyFITS, this
+is where you should start.
 
 
 Reading and Updating Existing FITS Files
