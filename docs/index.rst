@@ -16,8 +16,9 @@ While no releases have yet occured, development is occuring at the `project's gi
 
 For discussions and ideas regarding development of the Astropy package, see the `astropy-dev mailing list <http://groups.google.com/group/astropy-dev>`_. For broader discussion on python in astronomy and updates/general discussion on the Astropy project, there is also an `astropy mailing list <http://mail.scipy.org/mailman/listinfo/astropy>`_.
 
+******************
 User Documentation
-------------------
+******************
 
 .. toctree::
    :maxdepth: 1
