@@ -32,7 +32,7 @@ For discussions and ideas regarding development of the Astropy package, see the 
    io/ascii/index
    table/index
    tools
-   utils/index
+   utils
 
 
 
