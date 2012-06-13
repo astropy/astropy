@@ -45,7 +45,7 @@ numpy arrays::
     >>> np.all(arr == mydataarray)
     True
 
-If a `mask` is defined, this will result in a `~numpy.ma.core.MaskedArray`, so
+If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
 in all cases a useable `numpy.ndarray` or subclass will result. This allows
 straightforward plotting of `~astropy.nddata.nddata.NDData` objects with
 `matplotlib`::
