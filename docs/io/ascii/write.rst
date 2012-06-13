@@ -49,7 +49,7 @@ columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).  The sections below show a few examples.
 
 Table or NumPy structured array
-++++++++++++++++++++++++++++++++
+"""""""""""""""""""""""""""""""
 
 An AstroPy |Table| object or a NumPy `structured array`_ (or record array) can
 serve as input to the |write| function.
@@ -85,7 +85,7 @@ object that can be an input to the |write| function.
 
 
 List of lists
-+++++++++++++++++++++++++
+"""""""""""""
 
 A list of Python lists (or any iterable object) can be used as input::
 
@@ -113,7 +113,7 @@ from the output::
 
 
 Dict of lists
-+++++++++++++++++++++++
+"""""""""""""
 
 A dictionary containing iterable objects can serve as input to |write|.  Each
 dict key is taken as the column name while the value must be an iterable object

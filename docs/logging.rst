@@ -1,8 +1,9 @@
+****************************
 Logging system Documentation
-============================
+****************************
 
 Overview
---------
+========
 
 The Astropy logging system is designed to give users flexibility in deciding
 which log messages to show, to capture them, and to send them to a file.
@@ -27,7 +28,7 @@ By default, only WARNING and ERROR messages are displayed, and are sent to a
 log file located at ``~/.astropy/astropy.log`` (if the file is writeable).
 
 Configuring the logging system
-------------------------------
+==============================
 
 First, import the logger::
 
@@ -62,7 +63,7 @@ which also allows an overall log file to be specified. See
 `Using the configuration file`_ for more information.
 
 Context managers
-----------------
+================
 
 In some cases, you may want to capture the log messages, for example to check
 whether a specific message was output, or to log the messages from a specific
@@ -108,7 +109,7 @@ For example, ``filter_origin='astropy.wcs'`` will include only messages
 emitted in the ``astropy.wcs`` sub-package.
 
 Using the configuration file
-----------------------------
+============================
 
 Options for the logger can be set in the ``[config.logging_helper]`` section
 of the Astropy configuration file::
@@ -143,7 +144,7 @@ of the Astropy configuration file::
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.logger
     :no-inheritance-diagram:

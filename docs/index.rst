@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+###################################
 Welcome to Astropy's Documentation!
-===================================
+###################################
 
 .. image:: logo/astropy_banner_96.png
 
@@ -38,8 +39,9 @@ For discussions and ideas regarding development of the Astropy package, see the 
 
 .. _developer-docs:
 
+***********************
 Developer Documentation
------------------------
+***********************
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and

@@ -169,13 +169,13 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             subsecs = modops.pop('subsections', None)
             nomain = 'no-main-section' in modops
             modops.pop('no-main-section', None)
-            hds = modops.pop('headings', '^_')
+            hds = modops.pop('headings', '-^')
 
             if len(hds) < 2:
-                msg = 'not enough headings (got {0}, need 2), using default ^_'
+                msg = 'not enough headings (got {0}, need 2), using default -^'
                 if warnings:
                     app.warn(msg.format(len(hds)), location)
-                hds = '^_'
+                hds = '-^'
             h1, h2 = hds.lstrip()[:2]
 
             #tell sphinx that the remaining args are invalid.

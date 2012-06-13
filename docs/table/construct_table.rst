@@ -2,9 +2,8 @@
 
 .. _construct_table:
 
-====================
 Constructing a table
-====================
+--------------------
 
 There is great deal of flexibility in the way that a table can be initially
 constructed.  Details on the inputs to the |Table|
@@ -12,7 +11,7 @@ constructor are in the `Initialization Details`_ section.  However, the
 easiest way to understand how to make a table is by example.
 
 Examples
-========
+--------
 
 Much of the flexibility lies in the types of data structures
 which can be used to initialize the table data.  The examples below show how to
@@ -21,7 +20,7 @@ columns, a dictionary of columns, or from `numpy` arrays (either structured or
 homogeneous).  
 
 Setup
------
+^^^^^
 For the following examples you need to import the |Table| and |Column| classes
 along with the `numpy` package::
 
@@ -29,7 +28,7 @@ along with the `numpy` package::
   >>> import numpy as np
 
 Creating from scratch
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 A Table can be created without any initial input data or even without any
 initial columns.  This is useful for building tables dynamically if the initial
 size, columns, or data are not known.  
@@ -51,8 +50,7 @@ size, columns, or data are not known.
 
 
 List input
-----------
-
+^^^^^^^^^^
 A typical case is where you have a number of data columns with the same length
 defined in different variables.  These might be Python lists or `numpy` arrays
 or a mix of the two.  These can be used to create a |Table| by putting the column
@@ -110,8 +108,7 @@ of different data types to initialize a table::
 Notice that in the third column the existing column name ``'axis'`` is used.
 
 Dictionary input
-----------------
-
+^^^^^^^^^^^^^^^^
 A dictionary of column data can be used to initialize a |Table|.
 
   >>> arr = {'a': [1, 4],
@@ -161,8 +158,7 @@ column where each row element is itself a 2-element array.
 
 
 NumPy structured array
-----------------------
-
+^^^^^^^^^^^^^^^^^^^^^^
 The structured array is the standard mechanism in `numpy` for storing heterogenous
 table data.  Most scientific I/O packages that read table files (e.g.
 `PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
@@ -216,7 +212,7 @@ Likewise the data type for each column can by changed with ``dtypes``::
 
 
 NumPy homogeneous array
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 A normal `numpy` 2-d array (where all elements have the same type) can be
 converted into a |Table|.  In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
@@ -284,8 +280,7 @@ initializing a |Table| object::
    >>> t = Table(col_arr)
 
 Table columns
--------------
-
+^^^^^^^^^^^^^
 A new table can be created by selecting a subset of columns in an existing
 table::
 
@@ -312,7 +307,7 @@ columns by their numerical index or name and supports slicing syntax::
 
 
 Initialization Details
-======================
+----------------------
 
 A table object is created by initializing a |Table| class
 object with the following arguments, all of which are optional:
@@ -332,7 +327,7 @@ The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
 
 data
-------
+^^^^
 
 The |Table| object can be initialized with several different forms
 for the ``data`` argument.
@@ -378,7 +373,7 @@ for the ``data`` argument.
     are provided then the corresponding columns are created.
 
 names
-------
+^^^^^
 
 The ``names`` argument provides a way to specify the table column names or
 override the existing ones.  By default the column names are either taken
@@ -393,7 +388,7 @@ must then contain each of the keys in the ``data`` dict.  If ``names`` is not
 supplied then the order of columns in the output table is not determinate.
 
 dtypes
--------
+^^^^^^
 
 The ``dtypes`` argument provides a way to specify the table column data
 types or override the existing types.  By default the types are either
@@ -408,7 +403,7 @@ must be accompanied by a corresponding ``names`` argument in order to uniquely
 specify the column ordering.
 
 meta
------
+^^^^
 
 The ``meta`` argument is simply an object that contains meta-data associated
 with the table.  It is recommended that this object be a dict or
@@ -417,7 +412,7 @@ the standard library ``copy.deepcopy()`` routine.  By default ``meta`` is
 an empty OrderedDict_.
 
 copy
------
+^^^^
 
 By default the input ``data`` are copied into a new internal ``np.ndarray``
 object in the Table object.  In the case where ``data`` is either an
@@ -432,7 +427,7 @@ information.
 .. _copy_versus_reference:
 
 Copy versus Reference
-=====================
+---------------------
 
 Normally when a new |Table| object is created, the input data are *copied* into
 a new internal array object.  This ensures that if the new table elements are
@@ -479,13 +474,13 @@ the data to a new memory location which would corrupt the input data object.
 
 
 Column and TableColumns classes
-================================
+-------------------------------
 
 There are two classes, |Column| and |TableColumns|, that are useful when
 constructing new tables.
 
 Column
--------
+^^^^^^
 
 A |Column| object can be created as follows, where in all cases the column
 ``name`` is required as the first argument and one can optionally provide
@@ -501,7 +496,7 @@ these values:
     Meta-data associated with the column
 
 Initialization options
-^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 The column data values, shape, and data type are specified in one of two ways:
 
 **Provide a ``data`` value and optionally a ``dtype`` value**
@@ -542,8 +537,7 @@ The column data values, shape, and data type are specified in one of two ways:
 .. _table_format_string:
 
 Format string
-^^^^^^^^^^^^^^
-
+"""""""""""""
 The format string controls the output of column values when a table or column
 is printed or written to an ASCII table.  The format string can be either
 "old-style" or "new-style":
@@ -571,7 +565,7 @@ Note that in either case any Python format string that formats exactly
 one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
 
 TableColumns
-------------
+^^^^^^^^^^^^
 
 Each |Table| object has an attribute ``columns`` which is an ordered dictionary
 that stores all of the |Column| objects in the table (see also the `Column`_

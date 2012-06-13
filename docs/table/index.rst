@@ -3,11 +3,12 @@
 .. include:: references.txt
 
 
+*****************************
 Data Tables (`astropy.table`)
-=============================
+*****************************
 
 Introduction
-------------
+============
 
 `astropy.table` provides functionality for storing and manipulating
 heterogenous tables of data in a way that is familiar to `numpy` users.  A few
@@ -28,7 +29,7 @@ Currently `astropy.table` is used when reading an ASCII table using
 class for other subpackages such as `astropy.io.vo` and `astropy.io.fits`.
 
 Getting Started
-----------------
+===============
 
 The basic workflow for creating a table, accessing table elements,
 and modifying the table is shown below.  These examples show a very simple
@@ -139,7 +140,7 @@ Lastly, adding a new row of data to the table is as follows::
 .. _using_astropy_table:
 
 Using `table`
--------------
+=============
 
 The details of using `astropy.table` are provided in the following sections:
 
@@ -152,6 +153,6 @@ The details of using `astropy.table` are provided in the following sections:
    masking.rst
 
 Reference/API
--------------
+=============
 
 .. automodapi:: astropy.table

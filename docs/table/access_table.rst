@@ -2,15 +2,14 @@
 
 .. include:: references.txt
 
-=============================
 Accessing a table
-=============================
+-----------------
 
 Accessing the table properties and data is straightforward and is generally consistent with
 the basic interface for `numpy` structured arrays.
 
 Quick overview
-==============
+--------------
 
 For the impatient, the code below shows the basics of accessing table data.
 Where relevant there is a comment about what sort of object.  Except where
@@ -70,7 +69,7 @@ the data contained in that object relate to the original table data
 
 
 Details
-================
+-------
 
 For all the following examples it is assumed that the table has been created as below::
 
@@ -92,7 +91,7 @@ For all the following examples it is assumed that the table has been created as 
   12.000  13  14
 
 Accessing properties
----------------------
+^^^^^^^^^^^^^^^^^^^^
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table meta-data, and number of table rows.  The table
@@ -113,7 +112,7 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 
 
 Accessing data
---------------------
+^^^^^^^^^^^^^^
 
 As expected one can access a table column by name and get an element from that
 column with a numerical index::
@@ -195,7 +194,7 @@ structured array by creating a copy or reference with ``np.array``::
 
 
 Formatted printing
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
@@ -244,7 +243,7 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   2970 2971 2972 2973 2974 2975 2976 ...  2994  2995  2996  2997  2998  2999
 
 more() method
-^^^^^^^^^^^^^
+"""""""""""""
 
 In order to browse all rows of a table or column use the Table
 :func:`~astropy.table.table.Table.more` or Column :func:`~astropy.table.table.Column.more`
@@ -263,7 +262,7 @@ supported navigation keys are:
 |  **h** : print this help
 
 pprint() method
-^^^^^^^^^^^^^^^^
+"""""""""""""""
 
 In order to fully control the print output use the Table
 :func:`~astropy.table.table.Table.pprint` or Column
@@ -348,7 +347,7 @@ For columns the syntax and behavior of
   2973.0
 
 pformat() method
-^^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 In order to get the formatted output for manipulation or writing to a file use
 the Table :func:`~astropy.table.table.Table.pformat` or Column
@@ -361,7 +360,7 @@ the Table :func:`~astropy.table.table.Table.pformat` or Column
   ['  col3', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
 Multidimensional columns
-^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""
 
 If a column has more than one dimension then each element of the column is
 itself an array.  In the example below there are 3 rows, each of which is a 

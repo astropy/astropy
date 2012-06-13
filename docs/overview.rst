@@ -1,12 +1,13 @@
+********
 Overview
-========
+********
 
 Here we describe a broad overview of the astropy project and its associated
 modules and packages.
 
 
 `astropy` Package Layout
-------------------------
+========================
 
 Astropy contains the following base-level subpackages:
 
@@ -34,7 +35,7 @@ Astropy contains the following base-level subpackages:
     managing FITS world coordinate systems (WCS).
 
 Affiliated Packages
--------------------
+===================
 
 Astropy also includes the concept of "affiliated packages." An affiliated
 package is an astronomy-related python package that is not included as part of
