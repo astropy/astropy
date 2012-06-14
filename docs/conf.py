@@ -43,7 +43,7 @@ del intersphinx_mapping['astropy']
 
 # General information about the project.
 project = u'Astropy'
-copyright = u'2011, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perry Greenfield'
+copyright = u'2012, The Astropy Team, Erik Tollerud, Thomas Robitaille, and Perry Greenfield'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -86,23 +86,34 @@ templates_path.append('_templates')
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = 'logo/astropylogo.png'
+import sys
+import os
+sys.path.append(os.path.abspath('_themes'))
+html_theme_path = ['_themes']
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'bootstrap-astropy'
+html_sidebars = {'**': ['localtoc.html']}
+
+# The name for this set of Sphinx documents.  If None, it defaults to
+# "<project> v<release> documentation".
+html_title = '{0} v{1}'.format(project, release)
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = 'astropyicon.ico'
+html_favicon = 'astropylogo.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static','logo/astropyicon.ico']
+html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Astropydoc'
 
+html_last_updated_fmt = '%d %b %Y'
 
 # -- Options for LaTeX output --------------------------------------------------
 
