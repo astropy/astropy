@@ -13,30 +13,49 @@ CCD images, IFU Data, grid-based simulation data, ...). This is more than
 just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 
+This subpackage also provides new convolution routines that differ from
+Scipy in that they offer a proper treatment of NaN values.
+
+
 Getting started
 ===============
 
-At the moment, the `~astropy.nddata.nddata.NDData` class is still under development. You can however already make use of the convolution routines included in `astropy.nddata`::
+The `~astropy.nddata.nddata.NDData` class is still under development, and
+many of it's more advanced features are not yet implemented.  It already
+functions as an array container with metadata, however::
 
-    from astropy.nddata import convolve, convolve_fft, make_kernel
+    >>> from astropy.nddata import NDData
+    >>> ndd = NDData(mydataarray, error=myerrorarray)
+    >>> ndd['Exposure time(s)'] = 5
 
-These routines differ from the Scipy convolution routines in that they offer a proper treatment of NaN values. Both functions are used as::
+You can, also make use of the new convolution routines. For example, if your
+data is 1D, you might smooth it by a gaussian kernel by doing::
 
-    result = convolve(image, kernel)
+    >>> from astropy.nddata import convolve, make_kernel
+    >>> kernel = make_kernel((9,), 1.5, 'gaussian')
+    >>> ndd.data = convolve(ndd.data, kernel)
 
-For example, you can smooth a 1D array with a custom kernel using::
+The convolution routines can also be used on bare arrays.
 
-    >>> convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2])
-    array([ 0. ,  3.4,  5. ,  5.6,  5.6,  5.2,  0. ])
+`~astropy.nddata.nddata.NDData` objects can also be easily converted to
+numpy arrays::
 
-You can also use `make_kernel` to generate n-dimensional kernels::
+    >>> import numpy as np
+    >>> arr = np.array(ndd)
+    >>> np.all(arr == mydataarray)
+    True
 
-    >>> make_kernel([3,3], 1, 'boxcar')
-    array([[ 0.  0.  0.]
-           [ 0.  1.  0.]
-           [ 0.  0.  0.]])
+If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
+in all cases a useable `numpy.ndarray` or subclass will result. This allows
+straightforward plotting of `~astropy.nddata.nddata.NDData` objects with 1-
+and 2-dimensional datasets using `matplotlib`::
 
-See the documentation below for more information.
+    >>> from matplotlib import pyplot as plt
+    >>> plt.plot(ndd)
+
+This works because the `matplotlib` plotting functions automatically convert
+their inputs using `numpy.array`.
+
 
 Using `nddata`
 ==============
