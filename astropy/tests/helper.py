@@ -148,7 +148,7 @@ class TestRunner(object):
             insidetestcmd = False
 
         #set up environment variables to fake the config and cache systems,
-        #unless this has already been done by the sphinx command
+        #unless this has already been done by the distutils test command
         if not insidetestcmd:
             oldconfigdir = os.environ.get('XDG_CONFIG_HOME')
             oldcachedir = os.environ.get('XDG_CACHE_HOME')
