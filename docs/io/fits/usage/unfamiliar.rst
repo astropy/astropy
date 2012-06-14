@@ -1,8 +1,7 @@
 .. currentmodule:: astropy.io.fits
 
-*********************
 Less Familiar Objects
-*********************
+---------------------
 
 In this chapter, we'll discuss less frequently used FITS data structures. They
 include ASCII tables, variable length tables, and random access group FITS
@@ -10,7 +9,7 @@ files.
 
 
 ASCII Tables
-============
+^^^^^^^^^^^^
 
 FITS standard supports both binary and ASCII tables. In ASCII tables, all the
 data are stored in a human readable text form, so it takes up more space and
@@ -38,7 +37,7 @@ the original format specifications ('E10.4' and 'I5').
 
 
 Creating an ASCII Table
------------------------
+"""""""""""""""""""""""
 
 Creating an ASCII table from scratch is similar to creating a binary table. The
 difference is in the Column definitions. The columns/fields in an ASCII table
@@ -90,7 +89,7 @@ The default value for tbtype is ``BinTableHDU``.
 
 
 Variable Length Array Tables
-============================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The FITS standard also supports variable length array tables. The basic idea is
 that sometimes it is desirable to have tables with cells in the same field
@@ -131,7 +130,7 @@ row.
 
 
 Creating a Variable Length Array Table
---------------------------------------
+""""""""""""""""""""""""""""""""""""""
 
 Creating a variable length table is almost identical to creating a regular
 table. The only difference is in the creation of field definitions which are
@@ -174,7 +173,7 @@ is regular and the other variable length array.
 
 
 Random Access Groups
-====================
+^^^^^^^^^^^^^^^^^^^^
 
 Another less familiar data structure supported by the FITS standard is the
 random access group. This convention was established before the binary table
@@ -199,7 +198,7 @@ Group HDU is
 
 
 Header and Summary
-------------------
+""""""""""""""""""
 
 Accessing the header of a Random Access Group HDU is no different from any
 other HDU. Just use the .header attribute.
@@ -222,7 +221,7 @@ The content of the HDU can similarly be summarized by using the
 
 
 Data: Group Parameters
-----------------------
+""""""""""""""""""""""
 
 The data part of a random access group HDU is, like other HDUs, in the
 ``.data`` attribute. It includes both parameter(s) and image array(s).
@@ -306,7 +305,7 @@ parameter is shared by more than one parameters:
 
 
 Data: Image Data
-----------------
+""""""""""""""""
 
 The image array of the data portion is accessible by the
 :attr:`~GroupData.data` attribute of the data object. A numpy array is
@@ -320,7 +319,7 @@ returned:
 
 
 Creating a Random Access Group HDU
-----------------------------------
+""""""""""""""""""""""""""""""""""
 
 To create a random access group HDU from scratch, use :meth:`GroupData` to
 encapsulate the data into the group data structure, and use :meth:`GroupsHDU`
@@ -368,7 +367,7 @@ to create the HDU itself:
 
 
 Compressed Image Data
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 A general technique has been developed for storing compressed image data in
 FITS binary tables.  The principle used in this convention is to first divide
@@ -398,7 +397,7 @@ Astropy to work.
 
 
 Header and Summary
-------------------
+""""""""""""""""""
 
 In Astropy, the header of a compressed image HDU appears to the user like any
 image header.  The actual header stored in the FITS file is that of a  binary
@@ -468,7 +467,7 @@ convenience function or method:
 
 
 Data
-----
+""""
 
 As with the header, the data of a compressed image HDU appears to the user as
 standard uncompressed image data.  The actual data is stored in the fits file
@@ -496,7 +495,7 @@ The content of the HDU data may be accessed using the ``.data`` attribute:
 
 
 Creating a Compressed Image HDU
--------------------------------
+"""""""""""""""""""""""""""""""
 
 To create a compressed image HDU from scratch, simply construct a
 :class:`CompImageHDU` object from an uncompressed image data array and its

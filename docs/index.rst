@@ -29,7 +29,7 @@ User Documentation
    configs/index
    nddata/index
    wcs/index
-   fits/index
+   io/fits/index
    io/vo/index
    io/ascii/index
    table/index

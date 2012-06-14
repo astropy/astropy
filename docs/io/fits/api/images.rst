@@ -2,12 +2,11 @@
 
 .. _images:
 
-******
 Images
-******
+------
 
 `ImageHDU`
-==========
+^^^^^^^^^^
 
 .. autoclass:: ImageHDU
    :members:
@@ -15,7 +14,7 @@ Images
    :show-inheritance:
 
 `CompImageHDU`
-==============
+^^^^^^^^^^^^^^
 
 .. autoclass:: CompImageHDU
    :members:

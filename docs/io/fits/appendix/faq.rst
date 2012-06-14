@@ -1,14 +1,13 @@
-##########
 PyFITS FAQ
-##########
+----------
 
 .. contents::
 
 General Questions
-=================
+^^^^^^^^^^^^^^^^^
 
 What is PyFITS?
----------------
+"""""""""""""""
 
 PyFITS_ is a library written in, and for use with the Python_ programming
 language for reading, writing, and manipulating FITS_ formatted files.  It
@@ -31,7 +30,7 @@ the rest of PyFITS functions without this extension module.
 .. _Numpy: http://numpy.scipy.org/
 
 What is the development status of PyFITS?
------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""
 
 PyFITS is written and maintained by the Science Software Branch at the `Space
 Telescope Science Institute`_, and is licensed by AURA_ under a `3-clause BSD
@@ -72,10 +71,10 @@ widely-adopted.
 
 
 Build and Installation Questions
-================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Is PyFITS available on Windows?
--------------------------------
+"""""""""""""""""""""""""""""""
 
 Yes--the majority of PyFITS is pure Python, and can be installed and used on
 any platform that supports Python (>=2.5).  However, PyFITS includes an
@@ -87,7 +86,7 @@ module.  See `How do I install PyFITS from source on Windows?`_ for more
 details.
 
 Where is the Windows installer for version X of PyFITS on version Y of Python?
-------------------------------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Every official PyFITS build for Windows is eventually uploaded to PyPI_.  This
 includes builds for every major Python release from 2.5.x and up, except for
@@ -103,7 +102,7 @@ some automation.
 .. _PyPI: http://pypi.python.org/pypi/pyfits
 
 Why is the PyFITS installation failing on Windows?
---------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The most likely cause of installation failure on Windows is if building/
 installing from source fails due to the lack of a compiler for the optional C
@@ -123,7 +122,7 @@ For other installation errors not mentioned by this FAQ, please contact
 help@stsci.edu with a description of the problem.
 
 How do I install PyFITS from source on Windows?
------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 There are a few options for building/installing PyFITS from source on Windows.
 
@@ -213,7 +212,7 @@ overview of how to set this up: http://seewhatever.de/blog/?p=217
 .. _MinGW: http://www.mingw.org/
 
 Is PyFITS available for Mac OSX?
---------------------------------
+""""""""""""""""""""""""""""""""
 
 Yes, but there is no binary package specifically for OSX (such as a .dmg, for
 example).  For OSX just download, build, and install the source package.  This
@@ -228,7 +227,7 @@ To build PyFITS without the optional compression module, follow the
 instructions in `How do I install PyFITS from source on Windows?`_.
 
 Why is the PyFITS installation failing on OSX Lion (10.7)?
-----------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 There is a common problem that affects all Python packages with C extension
 modules (not just PyFITS) for some users of OSX 10.7.  What usually occurs is
@@ -252,7 +251,7 @@ Lion.  Other, unofficial Python builds such as from `MacPorts`_ may also work.
 .. _MacPorts: http://astrofrog.github.com/macports-python/
 
 How do I find out what version of PyFITS I have installed?
-----------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 To output the PyFITS version from the command line, run::
 
@@ -265,7 +264,7 @@ feature like this will be available soon in standalone versions of PyFITS as
 well.
 
 How do I run the tests for PyFITS?
-----------------------------------
+""""""""""""""""""""""""""""""""""
 
 Currently the best way to run the PyFITS tests is to download the source code,
 either from a source release or from version control, and to run the tests out
@@ -306,7 +305,7 @@ your platform and Python version.
 .. _nose: http://readthedocs.org/docs/nose/en/latest/
 
 How can I build a copy of the PyFITS documentation for my own use?
-------------------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 First of all, it's worth pointing out that the documentation for the latest
 version of PyFITS can always be downloaded in `PDF form
@@ -369,10 +368,10 @@ code::
 
 
 Usage Questions
-===============
+^^^^^^^^^^^^^^^
 
 Something didn't work as I expected.  Did I do something wrong?
----------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Possibly.  But if you followed the documentation and things still did not work
 as expected, it is entirely possible that there is a mistake in the
@@ -390,7 +389,7 @@ platforms, and those tests cover the majority of use-cases (until new
 corner cases are discovered).
 
 PyFITS crashed and output a long string of code.  What do I do?
----------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This listing of code is what is knows as a `stack trace`_ (or in Python
 parlance a "traceback").  When an unhandled exception occurs in the code,
@@ -428,7 +427,7 @@ report it as a bug.
 .. _stack trace: http://en.wikipedia.org/wiki/Stack_trace
 
 Why does opening a file work in CFITSIO, ds9, etc. but not in PyFITS?
----------------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 As mentioned elsewhere in this FAQ, there are many unusual corner cases when
 dealing with FITS files.  It's possible that a file should work, but isn't
@@ -458,7 +457,7 @@ there is a bug in PyFITS.
 .. _online FITS verifier: http://fits.gsfc.nasa.gov/fits_verify.html
 
 How do I turn off the warning messages PyFITS keeps outputting to my console?
------------------------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 PyFITS uses Python's built-in `warnings`_ subsystem for informating about
 exceptional conditions in the code that are recoverable, but that the user may
@@ -499,7 +498,7 @@ subsystem.  Fortunately there are two easy ways to quiet these warnings:
 .. _-W option: http://docs.python.org/using/cmdline.html#cmdoption-W
 
 How can I check if my code is using deprecated PyFITS features?
----------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 PyFITS 3.0 included a major reworking of the code and some of the APIs.  Most
 of the differences are just renaming functions to use a more consistent naming
@@ -530,7 +529,7 @@ would be worth doing this.  PyFITS 3.1 introduces a significant rewrite of the
 Header interface, and contains even more deprecations.
 
 What convention does PyFITS use for indexing, such as of image coordinates?
----------------------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 All arrays and sequences in PyFITS use a zero-based indexing scheme.  For
 example, the first keyword in a header is ``header[0]``, not ``header[1]``.
@@ -570,7 +569,7 @@ ordering, trying to enforce column-major ordering in arrays returned by PyFITS
 is likely to cause more difficulties than it's worth.
 
 How do I open a very large image that won't fit in memory?
-----------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Prior to PyFITS 3.1, when the data portion of an HDU is accessed, the data is
 read into memory in its entirety.  For example::
@@ -617,7 +616,7 @@ for more details on working with sections.
 .. _mmap: http://en.wikipedia.org/wiki/Mmap
 
 How can I create a very large FITS file from scratch?
------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This is a very common issue, but unfortunately PyFITS does not come with any
 built-in facilities for creating large files (larger than will fit in memory)
@@ -702,7 +701,7 @@ this FAQ might provide an example of how to do this.
 .. _PyTables: http://www.pytables.org/moin
 
 How do I create a multi-extension FITS file from scratch?
----------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 When you open a FITS file with ``pyfits.open()``, a ``pyfits.HDUList`` object
 is returned, which holds all the HDUs in the file.  This ``HDUList`` class is
@@ -719,7 +718,7 @@ extensions (a default PRIMARY HDU is prepended automatically if one was not
 provided manually).
 
 Why is an image containing integer data being converted unexpectedly to floats?
--------------------------------------------------------------------------------
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 If the header for your image contains non-trivial values for the optional
 BSCALE and/or BZERO keywords (that is, BSCALE != 1 and/or BZERO != 0), then
@@ -776,7 +775,7 @@ the file::
     dtype('int32')
 
 Why am I losing precision when I assign floating point values in the header?
-----------------------------------------------------------------------------
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The FITS standard allows two formats for storing floating-point numbers in a
 header value.  The "fixed" format requires the ASCII representation of the

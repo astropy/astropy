@@ -1,8 +1,7 @@
 .. currentmodule:: astropy.io.fits
 
-**********
 Table Data
-**********
+----------
 
 In this chapter, we'll discuss the data component in a table HDU. A table will
 always be in an extension HDU, never in a primary HDU.
@@ -15,11 +14,11 @@ ASCII text need to be parsed back into numerical values.
 
 
 Table Data as a Record Array
-============================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 What is a Record Array?
------------------------
+"""""""""""""""""""""""
 
 A record array is an array which contains records (i.e. rows) of heterogeneous
 data types. Record arrays are available through the records module in the numpy
@@ -39,7 +38,7 @@ record has the same (heterogeneous) data structure.
 
 
 Metadata of a Table
--------------------
+"""""""""""""""""""
 
 The data in a FITS table HDU is basically a record array, with added
 attributes. The metadata, i.e. information about the table data, are stored in
@@ -53,7 +52,7 @@ specifications when constructing a record array.
 
 
 Reading a FITS Table
---------------------
+""""""""""""""""""""
 
 Like images, the .data attribute of a table HDU contains the data of the table.
 To recap, the simple example in the Quick Tutorial:
@@ -87,11 +86,11 @@ fields by name rather than by index.
 
 
 Table Operations
-================
+^^^^^^^^^^^^^^^^
 
 
 Selecting Records in a Table
-----------------------------
+""""""""""""""""""""""""""""
 
 Like image data, we can use the same "mask array" idea to pick out desired
 records from a table and make a new table out of it.
@@ -110,7 +109,7 @@ the input table is generated:
 
 
 Merging Tables
---------------
+""""""""""""""
 
 Merging different tables is straightforward in Astropy. Simply merge the column
 definitions of the input tables:
@@ -130,7 +129,7 @@ originally shorter table(s) will be zero (or blank) filled.
 
 
 Appending Tables
-----------------
+""""""""""""""""
 
 Appending one table after another is slightly trickier, since the two tables
 may have different field attributes. Here are two examples. The first is to
@@ -158,7 +157,7 @@ the first table.
 
 
 Scaled Data in Tables
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 A table field's data, like an image, can also be scaled. Scaling in a table has
 a more generalized meaning than in images. In images, the physical data is a
@@ -177,11 +176,11 @@ physical and storage column values.
 
 
 Creating a FITS Table
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 
 Column Creation
----------------
+"""""""""""""""
 
 To create a table from scratch, it is necessary to create individual columns
 first. A :class:`Column` constructor needs the minimal information of column
