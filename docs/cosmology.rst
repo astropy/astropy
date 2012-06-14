@@ -122,7 +122,7 @@ argument. A full list of convenience functions is included below, in the
     science code, when possible (e.g., ``WMAP7.H(0)`` instead of
     ``cosmology.H(0)``). The motivation for this is that when you go back
     to use the code at a later date, the default cosmology may have
-    changed. Use of the convinience functions should generally be
+    changed. Use of the convenience functions should generally be
     reserved for interactive work or cases where the flexibility of
     quickly changing between different cosmologies is for some reason
     useful. Alternatively, doing ``cosmology.set_current(WMAP7)`` at the
