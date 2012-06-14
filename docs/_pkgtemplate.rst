@@ -2,6 +2,11 @@
 A description of the package (`astropy.packagename`)
 ****************************************************
 
+When creating a new subpackage's docuementation, this file should be
+copied to a file "index.rst" in a directory corresponding to the name of
+the package. E.g., ``docs/packagename/index.rst``. And don't forget to
+delete this paragraph.
+
 Introduction
 ============
 
@@ -43,19 +48,17 @@ For more complicated packages that require multiple documents, this
 should just be a table of contents referencing those documents:
 
 .. toctree::
-    packagename/subdoc1
-    packagename/subdoc2
-    packagename/subdoc3
+    subdoc1
+    subdoc2
+    subdoc3
 
 
-Either a toctree or sub-sections should be used, *not* both. If you
-decide to use a multi-file/toctree approach, the main file (the one based
-on this template) should live in that directory as ``index.rst``.
+Either a toctree or sub-sections should be used, *not* both.
 
-For example, if your toctree looks like the above example, you should
-move this document to ``docs/packagename/index.rst``, and the other
-documents should be ``docs/packagename/subdoc1.rst``,
-``docs/packagename/subdoc2.rst``, and ``docs/packagename/subdoc3.rst``.
+For example, if your toctree looks like the above example, this document
+should be ``docs/packagename/index.rst``, and the other documents should
+be ``docs/packagename/subdoc1.rst``, ``docs/packagename/subdoc2.rst``,
+and ``docs/packagename/subdoc3.rst``.
 
 
 See Also (optional)
