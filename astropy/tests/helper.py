@@ -139,7 +139,7 @@ class TestRunner(object):
                     ' --cov-report html --cov astropy'
                     ' --cov-config {0}'.format(tmp.name))
 
-        # check if we're inside the sphinx test command, which sets the
+        # check if we're inside the distutils test command, which sets the
         # _ASTROPY_TEST_ builtin
         try:
             _ASTROPY_TEST_
