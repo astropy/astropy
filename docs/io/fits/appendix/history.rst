@@ -16,7 +16,7 @@ Astropy.
 --------------------
 
 Highlights
-++++++++++
+^^^^^^^^^^
 
 - The ``Header`` object has been significantly reworked, and ``CardList``
   objects are now deprecated (their functionality folded into the ``Header``
@@ -30,7 +30,7 @@ Highlights
   Features below.
 
 API Changes
-+++++++++++
+^^^^^^^^^^^
 
 - The ``Header`` class has been rewritten, and the ``CardList`` class is
   deprecated.  Most of the basic details of working with FITS headers are
@@ -145,7 +145,7 @@ API Changes
   and removed when the file is saved.
 
 New Features
-++++++++++++
+^^^^^^^^^^^^
 
 - Added support for the proposed "FITS" extension HDU type.  See
   http://listmgr.cv.nrao.edu/pipermail/fitsbits/2002-April/001094.html.  FITS
@@ -179,7 +179,7 @@ New Features
   PyFITS.  After installing PyFITS, run ``fitsdiff --help`` for usage details.
 
 Bug Fixes
-+++++++++
+^^^^^^^^^
 
 - Fixed ``pyfits.tcreate()`` (now ``pyfits.tableload()``) to be more robust
   when encountering blank lines in a column definition file (#14)
@@ -212,7 +212,7 @@ Bug Fixes
 ---------------------
 
 Changes in Behavior
-+++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^
 
 - Prior to this release, image data sections did not work with scaled
   data--that is, images with non-trivial BSCALE and/or BZERO values.
@@ -222,7 +222,7 @@ Changes in Behavior
   extends that support for general BSCALE+BZERO values.
 
 Bug Fixes
-+++++++++
+^^^^^^^^^
 
 - Fixed a bug that prevented updates to values in boolean table columns from
   being saved.  This turned out to be a symptom of a deeper problem that could
@@ -266,7 +266,7 @@ Bug Fixes
 ----------------------
 
 Changes in Behavior
-+++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^
 
 - Slices of GroupData objects now return new GroupData objects instead of
   extended multi-row _Group objects. This is analogous to how PyFITS 3.0 fixed
@@ -285,7 +285,7 @@ Changes in Behavior
   HDUs.  It was unnecessary to modify this value.
 
 Bug Fixes
-+++++++++
+^^^^^^^^^
 
 - Fixed GroupData objects to return new GroupData objects when sliced instead
   of _Group record objects.  See "Changes in behavior" above for more details.
@@ -323,7 +323,7 @@ Bug Fixes
 ------------------
 
 Highlights
-++++++++++
+^^^^^^^^^^
 
 The main reason for this release is to fix an issue that was introduced in
 PyFITS 3.0.5 where merely opening a file containing scaled data (that is, with
@@ -339,7 +339,7 @@ This release also fixes a few Windows-specific bugs found through more
 extensive Windows testing, and other miscellaneous bugs.
 
 Bug Fixes
-+++++++++
+^^^^^^^^^
 
 - More accurate error messages when opening files containing invalid header
   cards. (#109)

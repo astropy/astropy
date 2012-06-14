@@ -1,3 +1,5 @@
+.. currentmodule:: astropy.io.fits
+
 **************************************
 FITS File handling (`astropy.io.fits`)
 **************************************
@@ -34,7 +36,7 @@ For the sake of brevity, one may also use `astropy.io.fits` like so:
     >>> from astropy.io import fits
     >>> hdulist = fits.open('input.fits')
 
-The :func:`~astropy.io.fits.open` function has several optional arguments which
+The :func:`open` function has several optional arguments which
 will be discussed in a later chapter. The default mode, as in the above
 example, is "readonly".  The open function returns an object called an
 :class:`HDUList` which is a Python list-like collection of HDU objects. An HDU
@@ -574,7 +576,7 @@ Other Information
 =================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     appendix/faq
     appendix/history
@@ -582,4 +584,15 @@ Other Information
 Reference/API
 =============
 
-.. automodapi:: astropy.io.fits
+.. toctree::
+    :maxdepth: 3
+
+    api/files.rst
+    api/hdulists.rst
+    api/hdus.rst
+    api/headers.rst
+    api/cards.rst
+    api/tables.rst
+    api/images.rst
+    api/diff.rst
+    api/verification.rst

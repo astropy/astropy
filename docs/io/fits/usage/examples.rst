@@ -1,37 +1,32 @@
-****************
-Reference Manual
-****************
-
-**Examples**
-
+Examples
+--------
 
 Converting a 3-color image (JPG) to separate FITS images
-========================================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-.. figure:: ../../_static/images/fits/Hs-2009-14-a-web.jpg
+.. figure:: ../../../_static/images/io/fits/Hs-2009-14-a-web.jpg
    :scale: 100 %
    :align: center
    :alt: Starting image
 
 .. container:: figures
 
-    .. figure:: ../../_static/images/fits/Red.jpg
-       :target: ../../_static/images/fits/Red.jpg
+    .. figure:: ../../../_static/images/io/fits/Red.jpg
+       :target: ../../../_static/images/io/fits/Red.jpg
        :scale: 50
        :alt: Red color information
 
        Red color information
 
-    .. figure:: ../../_static/images/fits/Green.jpg
-       :target: ../../_static/images/fits/Green.jpg
+    .. figure:: ../../../_static/images/io/fits/Green.jpg
+       :target: ../../../_static/images/io/fits/Green.jpg
        :scale: 50
        :alt: Green color information
 
        Green color information
 
-    .. figure:: ../../_static/images/fits/Blue.jpg
-       :target: ../../_static/images/fits/Blue.jpg
+    .. figure:: ../../../_static/images/io/fits/Blue.jpg
+       :target: ../../../_static/images/io/fits/Blue.jpg
        :scale: 50
        :alt: Blue color information
 

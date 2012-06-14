@@ -1,11 +1,10 @@
 .. currentmodule:: astropy.io.fits
 
-*******
 Headers
-*******
+-------
 
 :class:`Header`
-===============
+^^^^^^^^^^^^^^^
 
 .. autoclass:: Header
    :members:

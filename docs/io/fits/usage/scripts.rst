@@ -1,19 +1,18 @@
-******************
 Executable Scripts
-******************
+------------------
 
 Astropy installs a couple of useful utility programs on your system that are
 built with Astropy.
 
 fitscheck
-=========
+^^^^^^^^^
 .. automodule:: astropy.io.fits.scripts.fitscheck
 
 With Astropy installed, please run ``fitscheck --help`` to see the full program
 usage documentation.
 
 fitsdiff
-========
+^^^^^^^^
 
 .. currentmodule:: astropy.io.fits
 
