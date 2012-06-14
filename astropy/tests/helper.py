@@ -225,8 +225,18 @@ class astropy_test(Command, object):
                '{1.coverage!r}))')
         cmd = cmd.format(set_flag, self)
 
-        retcode = subprocess.call([sys.executable, '-c', cmd],
-                                  cwd=new_path, close_fds=False)
+        #override the config locations to not make a new directory nor use
+        #existing cache or config
+        os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
+        os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+
+        try:
+            retcode = subprocess.call([sys.executable, '-c', cmd],
+                                      cwd=new_path, close_fds=False)
+        finally:
+            # kill the temporary dirs
+            shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
+            shutil.rmtree(os.environ['XDG_CACHE_HOME'])
 
         if self.coverage and retcode == 0:
             # Copy the htmlcov from build/lib.../htmlcov to a more
