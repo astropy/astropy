@@ -17,9 +17,7 @@ import parameters
 
 # Many of these adapted from astro-ph/9905116
 
-__all__ = ("FLRWCosmology kpc_comoving_per_arcmin kpc_proper_per_arcmin "
-           "arcsec_per_kpc_comoving arcsec_per_kpc_proper distmod "
-           "get_current set_current WMAP5 WMAP7").split()
+__all__ = ("FLRWCosmology get_current set_current WMAP5 WMAP7").split()
 
 # Constants
 
@@ -35,8 +33,6 @@ Mpc_km = 1e-5 * Mpc
 # Gyr in seconds
 Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
-arcsec_in_radians = 1 / 3600. * pi / 180
-arcmin_in_radians = 1 / 60. * pi / 180
 
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
@@ -585,103 +581,3 @@ def set_current(cosmo):
         raise ValueError(
             "Argument must be a string or cosmology instance. Valid strings:"
             "\n%s" % parameters.available)
-
-
-# convenience functions
-def kpc_comoving_per_arcmin(z, cosmo=None):
-    """ Separation in transverse comoving kpc corresponding to an
-    arcminute at redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    d : ndarray, or float if input scalar
-      The distance in comoving kpc corresponding to an arcmin at each
-      input redshift.
-    """
-    if cosmo is None:
-        cosmo = get_current()
-    return cosmo.comoving_transverse_distance(z) * 1.e3 * arcmin_in_radians
-
-
-def kpc_proper_per_arcmin(z, cosmo=None):
-    """ Separation in transverse proper kpc corresponding to an
-    arcminute at redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    d : ndarray, or float if input scalar
-      The distance in proper kpc corresponding to an arcmin at each
-      input redshift.
-    """
-    if cosmo is None:
-        cosmo = get_current()
-    return cosmo.angular_diameter_distance(z) * 1.e3 * arcmin_in_radians
-
-
-def arcsec_per_kpc_comoving(z, cosmo=None):
-    """ Angular separation in arcsec corresponding to a comoving kpc
-    at redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    theta : ndarray, or float if input scalar
-      The angular separation in arcsec corresponding to a comoving kpc
-      at each input redshift.
-    """
-    if cosmo is None:
-        cosmo = get_current()
-    return 1 / (cosmo.comoving_transverse_distance(z) *
-                1.e3 * arcsec_in_radians)
-
-
-def arcsec_per_kpc_proper(z, cosmo=None):
-    """ Angular separation in arcsec corresponding to a proper kpc at
-    redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    theta : ndarray, or float if input scalar
-      The angular separation in arcsec corresponding to a proper kpc
-      at each input redshift.
-    """
-    if cosmo is None:
-        cosmo = get_current()
-    return 1 / (cosmo.angular_diameter_distance(z) * 1.e3 * arcsec_in_radians)
-
-
-def distmod(z, cosmo=None):
-    """ Distance modulus at redshift `z`.
-
-    Parameters
-    ----------
-    z : array_like
-      Input redshifts.
-
-    Returns
-    -------
-    distmod : ndarray, or float if input scalar
-      Distance modulus at each input redshift.
-    """
-    if cosmo is None:
-        cosmo = get_current()
-    return cosmo.distmod(z)
