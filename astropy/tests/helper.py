@@ -139,6 +139,24 @@ class TestRunner(object):
                     ' --cov-report html --cov astropy'
                     ' --cov-config {0}'.format(tmp.name))
 
+        # check if we're inside the sphinx test command, which sets the
+        # _ASTROPY_TEST_ builtin
+        try:
+            _ASTROPY_TEST_
+            insidetestcmd = True
+        except NameError:
+            insidetestcmd = False
+
+        #set up environment variables to fake the config and cache systems,
+        #unless this has already been done by the sphinx command
+        if not insidetestcmd:
+            oldconfigdir = os.environ.get('XDG_CONFIG_HOME')
+            oldcachedir = os.environ.get('XDG_CACHE_HOME')
+            os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
+            os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+            os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
+            os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+
         try:
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
@@ -149,6 +167,19 @@ class TestRunner(object):
                 if not tmp.closed:
                     tmp.close()
                 os.remove(tmp.name)
+
+            if not insidetestcmd:
+                #wipe the config/cache tmpdirs and restore the envars
+                shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
+                shutil.rmtree(os.environ['XDG_CACHE_HOME'])
+                if oldconfigdir is None:
+                    del os.environ['XDG_CONFIG_HOME']
+                else:
+                    os.environ['XDG_CONFIG_HOME'] = oldconfigdir
+                if oldcachedir is None:
+                    del os.environ['XDG_CACHE_HOME']
+                else:
+                    os.environ['XDG_CACHE_HOME'] = oldcachedir
 
         return result
     run_tests.__doc__ = test.__doc__
@@ -229,6 +260,8 @@ class astropy_test(Command, object):
         #existing cache or config
         os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
         os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
+        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
 
         try:
             retcode = subprocess.call([sys.executable, '-c', cmd],
