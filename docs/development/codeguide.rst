@@ -77,8 +77,8 @@ Data and Configuration
   case, it should always be downloaded using the
   :func:`astropy.config.get_data_fileobj` or
   :func:`astropy.config.get_data_filename` functions. If a specific version of
-  a data file is needed, the hash mechanism described in :doc:`/configs` should
-  be used.
+  a data file is needed, the hash mechanism described in :doc:`/configs/index`
+  should be used.
 
 * All persistent configuration should use the
   `astropy.config.ConfigurationItem` mechanism.  Such configuration items

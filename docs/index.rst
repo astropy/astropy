@@ -26,16 +26,16 @@ User Documentation
    overview
    install
    logging
-   configs
+   configs/index
    nddata/index
    wcs/index
    fits/index
    io/vo/index
    io/ascii/index
    table/index
-   cosmology
-   tools
-   utils
+   cosmology/index
+   tools/index
+   utils/index
 
 
 

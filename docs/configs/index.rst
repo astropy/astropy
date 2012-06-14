@@ -240,7 +240,7 @@ Or, if the option needs to be available as a function parameter::
 See Also
 ========
 
-:doc:`logging` (overview of `astropy.config.logging`)
+:doc:`/logging` (overview of `astropy.config.logging`)
 
 
 Reference/API
