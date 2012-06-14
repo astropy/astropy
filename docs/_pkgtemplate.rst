@@ -1,8 +1,9 @@
+****************************************************
 A description of the package (`astropy.packagename`)
-====================================================
+****************************************************
 
 Introduction
-------------
+============
 
 Include general content that might be useful for understanding the
 package here, as well as general scientific or mathematical background
@@ -10,14 +11,14 @@ that might be necessary for the "big-picture" of this package.
 
 
 Getting Started
----------------
+===============
 
 Short tutorial-like examples of how to do common-tasks - should be
 fairly quick, with any more detailed examples in the next section.
 
 
 Using `packagename`
--------------------
+===================
 
 .. THIS SECTION SHOULD BE EITHER
 
@@ -26,12 +27,12 @@ This section is for the detailed documentation.  For simpler packages, this
 should either by paragraphs or sub-divided into sub-sections like:
 
 Sub-topic 1
-^^^^^^^^^^^
+-----------
 
 Content if needed
 
 A Complex example
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Content if needed
 
@@ -58,19 +59,19 @@ documents should be ``docs/packagename/subdoc1.rst``,
 
 
 See Also (optional)
--------------------
+===================
 
 Include here any references to related packages, articles, or texts.
 
 
 Reference/API
--------------
+=============
 
 .. automodapi:: packagename
 
 
 Acknowledgments and Licenses (optional)
----------------------------------------
+=======================================
 
 Any acknowledgements or licenses needed for this package - remove the
 section if none are necessary.
