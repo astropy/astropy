@@ -49,7 +49,7 @@ class CosmologyError(Exception):
 
 class Cosmology(object):
     """ Placeholder for when a more general Cosmology class is
-    implemented. """ 
+    implemented. """
     pass
 
 class FLRWCosmology(Cosmology):
@@ -540,7 +540,7 @@ def get_current():
 
     See Also
     --------
-    `set_current`
+    set_current : sets the current cosmology
     """
     if _current is None:
         warnings.warn('No default cosmology has been specified, '
@@ -550,36 +550,37 @@ def get_current():
     return _current
 
 
-def set_current(arg):
+def set_current(cosmo):
     """ Set the current cosmology.
 
     Call this with an empty string ('') to get a list of the strings
     that map to available pre-defined cosmologies.
 
+    .. warning::
+        `set_current` is the only way to change the current cosmology at
+        runtime! The current cosmology can also be read from an option
+        in the astropy configuration file when astropy.cosmology is first
+        imported. However, any subsequent changes to the cosmology
+        configuration option using `ConfigurationItem.set
+        <astropy.config.configuration.ConfigurationItem.set>` at run-time
+        will not update the current cosmology.
+
     Parameters
     ----------
-    arg : str or `Cosmology` instance
+    cosmo : str or `Cosmology` instance
       The cosmology to use.
 
-    Notes
-    -----
-    **Warning:** `set_current` is the only way to change the current
-    cosmology at runtime! The current cosmology can also be read from
-    an option in the astropy configuration file when astropy.cosmology
-    is first imported. However, any subsequent changes to the
-    cosmology configuration option using
-    `astropy.config.ConfigurationItem.set()` at run-time will not
-    update the current cosmology.
+
 
     See Also
     --------
-    `get_current`
+    get_current : returns the currently-set cosmology
     """
     global _current
-    if isinstance(arg, basestring):
-        _current = get_cosmology_from_string(arg)
-    elif isinstance(arg, Cosmology):
-        _current = arg
+    if isinstance(cosmo, basestring):
+        _current = get_cosmology_from_string(cosmo)
+    elif isinstance(cosmo, Cosmology):
+        _current = cosmo
     else:
         raise ValueError(
             "Argument must be a string or cosmology instance. Valid strings:"

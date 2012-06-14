@@ -33,6 +33,7 @@ User Documentation
    io/vo/index
    io/ascii/index
    table/index
+   cosmology
    tools
    utils
 
