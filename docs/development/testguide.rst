@@ -140,7 +140,7 @@ Enable PEP8 compliance testing with ``pep8=True`` in the call to
     This method of running the tests defaults to the version of
     `py.test` that is bundled with Astropy. To use the locally-installed
     version, you should set the ``ASTROPY_USE_SYSTEM_PYTEST`` environment
-    variable (see :doc:`../../configs`) or the `py.test` method describe
+    variable (see :doc:`/configs/index`) or the `py.test` method described
     above.
 
 Regression tests
