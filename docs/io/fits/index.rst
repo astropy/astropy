@@ -1,21 +1,29 @@
 .. currentmodule:: astropy.io.fits
 
-**************
-Quick Tutorial
-**************
+**************************************
+FITS File handling (`astropy.io.fits`)
+**************************************
 
-This chapter provides a quick introduction of using `astropy.io.fits`. The goal
-is to demonstrate the package's basic features without getting into too much
-detail. If you are a first time user or have never used Astropy , this is where
-you should start. Otherwise, it is safe to skip this chapter.
+Introduction
+============
 
+The :mod:`astropy.io.fits` package provides access to FITS files. FITS
+(Flexible Image Transport System) is a portable file standard widely used in
+the astronomy community to store images and tables.
+
+Getting Started
+===============
+
+This section provides a quick introduction of using :mod:`astropy.io.fits`. The
+goal is to demonstrate the package's basic features without getting into too
+much detail. If you are a first time user or have never used Astropy or PyFITS,
+this is where you should start.
 
 Reading and Updating Existing FITS Files
-========================================
-
+----------------------------------------
 
 Opening a FITS file
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Once the `astropy.io.fits` package is loaded, we can open an existing FITS
 file:
@@ -28,15 +36,16 @@ For the sake of brevity, one may also use `astropy.io.fits` like so:
     >>> from astropy.io import fits
     >>> hdulist = fits.open('input.fits')
 
-The :func:`open` function has several optional arguments which will be
-discussed in a later chapter. The default mode, as in the above example, is
-"readonly".  The open function returns an object called an :class:`HDUList`
-which is a Python list-like collection of HDU objects. An HDU (Header Data
-Unit) is the highest level component of the FITS file structure. So, after the
-above open call, ``hdulist[0]`` is the primary HDU, ``hdulist[1]``, if any, is
-the first extension HDU, etc.  It should be noted that Astropy is using
-zero-based indexing when referring to HDUs and header cards, though the FITS
-standard (which was designed with FORTRAN in mind) uses one-based indexing.
+The :func:`open` function has several optional arguments which
+will be discussed in a later chapter. The default mode, as in the above
+example, is "readonly".  The open function returns an object called an
+:class:`HDUList` which is a Python list-like collection of HDU objects. An HDU
+(Header Data Unit) is the highest level component of the FITS file structure.
+So, after the above open call, ``hdulist[0]`` is the primary HDU,
+``hdulist[1]``, if any, is the first extension HDU, etc.  It should be noted
+that Astropy is using zero-based indexing when referring to HDUs and header
+cards, though the FITS standard (which was designed with FORTRAN in mind) uses
+one-based indexing.
 
 The :class:`HDUList` has a useful method :meth:`HDUList.info`, which
 summarizes the content of the opened FITS file:
@@ -60,7 +69,7 @@ or may not be accessible depending on whether the data are touched and if they
 are memory-mapped, see later chapters for detail.
 
 Working with large files
-^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""
 
 The :func:`open` function supports a ``memmap=True`` argument that allows the
 array data of each HDU to be accessed with mmap, rather than being read into
@@ -75,7 +84,7 @@ because by that point you're likely to run out of physical memory anyways), but
 
 
 Working With a FITS Header
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As mentioned earlier, each element of an :class:`HDUList` is an HDU object with
 attributes of header and data, which can be used to access the header keywords
@@ -183,7 +192,7 @@ would with a dict:
 
 
 Working With Image Data
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 If an HDU's data is an image, the data attribute of the HDU object will return
 a numpy ndarray object. Refer to the numpy documentation for details on
@@ -249,7 +258,7 @@ a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
 
 Working With Table Data
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are familiar with the record array in numpy, you will find the table
 data is basically a record array with some extra properties. But familiarity
@@ -328,7 +337,7 @@ tools to use. We can reassign (update) the values:
 
 
 Save File Changes
------------------
+^^^^^^^^^^^^^^^^^
 
 As mentioned earlier, after a user opened a file, made a few changes to either
 header or data, the user can use :meth:`HDUList.writeto` to save the changes.
@@ -351,11 +360,10 @@ file opened with update mode.
 
 
 Creating a New FITS File
-========================
-
+------------------------
 
 Creating a New Image File
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 So far we have demonstrated how to read and update an existing FITS file. But
 how about creating a new FITS file from scratch? Such tasks are very easy in
@@ -384,7 +392,7 @@ accomplish the same behavior:
 
 
 Creating a New Table File
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To create a table HDU is a little more involved than image HDU, because a
 table's structure needs more information. First of all, tables can only be an
@@ -447,7 +455,7 @@ each class and method.
 
 
 Convenience Functions
-=====================
+---------------------
 
 `astropy.io.fits` also provides several high level ("convenience") functions.
 Such a convenience function is a "canned" operation to achieve one simple task.
@@ -549,3 +557,42 @@ FITS file:
     2   SCI     ImageHDU      61 (400, 400) Int16
     3   SCI     ImageHDU      61 (400, 400) Int16
     4   SCI     ImageHDU      61 (400, 400) Int16
+
+Using `io.fits`
+===============
+.. toctree::
+   :maxdepth: 2
+
+   usage/headers
+   usage/image
+   usage/table
+   usage/verification
+   usage/unfamiliar
+   usage/scripts
+   usage/misc
+   usage/examples
+
+Other Information
+=================
+
+.. toctree::
+    :maxdepth: 1
+
+    appendix/faq
+    appendix/history
+
+Reference/API
+=============
+
+.. toctree::
+    :maxdepth: 3
+
+    api/files.rst
+    api/hdulists.rst
+    api/hdus.rst
+    api/headers.rst
+    api/cards.rst
+    api/tables.rst
+    api/images.rst
+    api/diff.rst
+    api/verification.rst

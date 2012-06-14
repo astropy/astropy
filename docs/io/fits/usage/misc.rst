@@ -1,14 +1,13 @@
 .. currentmodule:: astropy.io.fits
 
-**********************
 Miscellaneous Features
-**********************
+----------------------
 
 In this chapter, we'll describe some of the miscellaneous features of Astropy.
 
 
 Warning Messages
-================
+^^^^^^^^^^^^^^^^
 
 Astropy uses the Python warnings module to issue warning messages.  The user can
 suppress the warnings using the python command line argument ``-W"ignore"``
@@ -56,7 +55,7 @@ http://docs.python.org/using/cmdline.html#cmdoption-unittest-discover-W
 for more information on the -W argument.
 
 Differs
-=======
+^^^^^^^
 
 The :mod:`astropy.io.fits.diff` module contains several facilities for
 generating and reporting the differences between two FITS files, or two

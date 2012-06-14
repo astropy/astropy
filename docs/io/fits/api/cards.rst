@@ -1,11 +1,10 @@
 .. currentmodule:: astropy.io.fits
 
-*****
 Cards
-*****
+-----
 
 :class:`Card`
-=============
+^^^^^^^^^^^^^
 
 .. autoclass:: Card
    :members:
@@ -14,7 +13,7 @@ Cards
    :show-inheritance:
 
 Deprecated Interfaces
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 The following classes and functions are deprecated as of the PyFITS 3.1 header
 refactoring, though they are currently still available for backwards-compatibility.
