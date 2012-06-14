@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from StringIO import StringIO
-from .. import core
+from .. import core, funcs
 import numpy as np
 import pytest
 
@@ -40,24 +40,33 @@ def test_flat_z1():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
+    #these are all for WMAP7
+    core.set_current(core.WMAP7)
 
     # scalars
-    assert np.allclose(core.arcsec_per_kpc_comoving(3), 0.0317179)
-    assert np.allclose(core.arcsec_per_kpc_proper(3), 0.1268716668)
-    assert np.allclose(core.kpc_comoving_per_arcmin(3), 1891.6753126)
-    assert np.allclose(core.kpc_proper_per_arcmin(3), 472.918828)
-    assert np.allclose(core.distmod(3), 47.075902)
+    assert np.allclose(funcs.arcsec_per_kpc_comoving(3), 0.0317179)
+    assert np.allclose(funcs.arcsec_per_kpc_proper(3), 0.1268716668)
+    assert np.allclose(funcs.kpc_comoving_per_arcmin(3), 1891.6753126)
+    assert np.allclose(funcs.kpc_proper_per_arcmin(3), 472.918828)
+    assert np.allclose(funcs.distmod(3), 47.075902)
+    assert np.allclose(funcs.H(3), 299.80813491298068)
+    assert np.allclose(funcs.scale_factor(3), 0.25)
+    assert np.allclose(funcs.critical_density(3), 1.6884621680232328e-28)
+    assert np.allclose(funcs.lookback_time(3), 11.555469926558361)
+    assert np.allclose(funcs.comoving_distance(3), 6503.100697385924)
+    assert np.allclose(funcs.angular_diameter_distance(3), 1625.775174346481)
+    assert np.allclose(funcs.luminosity_distance(3), 26012.402789543696)
 
     # arrays
-    assert np.allclose(core.arcsec_per_kpc_comoving([0.1,0.5]),
+    assert np.allclose(funcs.arcsec_per_kpc_comoving([0.1,0.5]),
                        [ 0.4946986 ,  0.10876163])
-    assert np.allclose(core.arcsec_per_kpc_proper([0.1,0.5]),
+    assert np.allclose(funcs.arcsec_per_kpc_proper([0.1,0.5]),
                        [0.54416846354697479, 0.16314245192751084])
-    assert np.allclose(core.kpc_comoving_per_arcmin([0.1,0.5]),
+    assert np.allclose(funcs.kpc_comoving_per_arcmin([0.1,0.5]),
                        [ 121.2859701 ,  551.66511804])
-    assert np.allclose(core.kpc_proper_per_arcmin([0.1,0.5]),
+    assert np.allclose(funcs.kpc_proper_per_arcmin([0.1,0.5]),
                        [ 110.25997282,  367.77674536])
-    assert np.allclose(core.distmod([0.1,0.5]),
+    assert np.allclose(funcs.distmod([0.1,0.5]),
                        [ 38.30738567,  42.27020333])
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -226,7 +235,7 @@ def test_age():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distmod():
     assert np.allclose(core.WMAP7.distmod([1,5]), [ 44.124857,  48.40167258])
-    assert np.allclose(core.distmod([1,5], cosmo=core.WMAP7),
+    assert np.allclose(funcs.distmod([1,5], cosmo=core.WMAP7),
                        [ 44.124857,  48.40167258])
 
 @pytest.mark.skipif('not HAS_SCIPY')

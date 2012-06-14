@@ -6,3 +6,4 @@ See the Astropy documentation for detailed usage examples and
 references.
 """
 from core import *
+from funcs import *
