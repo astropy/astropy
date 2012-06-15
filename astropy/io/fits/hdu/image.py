@@ -48,7 +48,8 @@ class _ImageBaseHDU(_ValidHDU):
     }
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
-                 uint=False, **kwargs):
+                 uint=False, scale_back=False, **kwargs):
+
         from .groups import GroupsHDU
 
         super(_ImageBaseHDU, self).__init__(data=data, header=header)
@@ -106,6 +107,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         self._do_not_scale_image_data = do_not_scale_image_data
         self._uint = uint
+        self._scale_back = scale_back
 
         if do_not_scale_image_data:
             self._bzero = 0
@@ -352,8 +354,8 @@ class _ImageBaseHDU(_ValidHDU):
             _zero = bzero
         else:
             if option == 'old':
-                _scale = self._bscale
-                _zero = self._bzero
+                _scale = self._orig_bscale
+                _zero = self._orig_bzero
             elif option == 'minmax':
                 if issubclass(_type, np.floating):
                     _scale = 1
@@ -417,6 +419,9 @@ class _ImageBaseHDU(_ValidHDU):
         return super(_ImageBaseHDU, self)._verify(option)
 
     def _prewriteto(self, checksum=False, inplace=False):
+        if self._scale_back:
+            self.scale(self.NumCode[self._orig_bitpix])
+
         self.update_header()
         if not inplace and not self._data_loaded:
             self._update_header_scale_info()
@@ -756,7 +761,7 @@ class PrimaryHDU(_ImageBaseHDU):
     """
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
-                 uint=False):
+                 uint=False, scale_back=False):
         """
         Construct a primary HDU.
 
@@ -778,11 +783,19 @@ class PrimaryHDU(_ImageBaseHDU):
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, `int16` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as `uint16` data.
+
+        scale_back : bool, optional
+            If `True`, when saving changes to a file that contained scaled
+            image data, restore the data to the original type and reapply the
+            original BSCALE/BZERO values.  This could lead to loss of accuracy
+            if scaling back to integer values after performing floating point
+            operations on the data.
         """
 
         super(PrimaryHDU, self).__init__(
             data=data, header=header,
-            do_not_scale_image_data=do_not_scale_image_data, uint=uint)
+            do_not_scale_image_data=do_not_scale_image_data, uint=uint,
+            scale_back=scale_back)
         self.name = 'PRIMARY'
         self._extver = 1
 
@@ -833,7 +846,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     _extension = 'IMAGE'
 
     def __init__(self, data=None, header=None, name=None,
-                 do_not_scale_image_data=False, uint=False):
+                 do_not_scale_image_data=False, uint=False, scale_back=False):
         """
         Construct an image HDU.
 
@@ -859,11 +872,22 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, `int16` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as `uint16` data.
+
+        scale_back : bool, optional
+            If `True`, when saving changes to a file that contained scaled
+            image data, restore the data to the original type and reapply the
+            original BSCALE/BZERO values.  This could lead to loss of accuracy
+            if scaling back to integer values after performing floating point
+            operations on the data.
         """
+
+        # This __init__ currently does nothing differently from the base class,
+        # and is only explicitly defined for the docstring.
 
         super(ImageHDU, self).__init__(
             data=data, header=header, name=name,
-            do_not_scale_image_data=do_not_scale_image_data, uint=uint)
+            do_not_scale_image_data=do_not_scale_image_data, uint=uint,
+            scale_back=scale_back)
 
     @classmethod
     def match_header(cls, header):

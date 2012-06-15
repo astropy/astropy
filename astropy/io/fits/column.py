@@ -2,7 +2,6 @@
 
 import re
 import sys
-import warnings
 import weakref
 
 import numpy as np
@@ -329,7 +328,7 @@ class Column(object):
         name and format, and be case-insensitive with respect to the column name.
         """
 
-        return id((self.name.lower(), self.format))
+        return hash((self.name.lower(), self.format))
 
     def copy(self):
         """
@@ -1018,7 +1017,10 @@ def _parse_tformat(tform):
     try:
         (repeat, dtype, option) = TFORMAT_RE.match(tform.strip()).groups()
     except:
-        warnings.warn('Format "%s" is not recognized.' % tform)
+        # TODO: Maybe catch this error use a default type (bytes, maybe?) for
+        # unrecognized column types.  As long as we can determine the correct
+        # byte width somehow..
+        raise VerifyError('Format "%s" is not recognized.' % tform)
 
     if repeat == '':
         repeat = 1
@@ -1146,8 +1148,6 @@ def _convert_record2fits(format):
         ntot = int(repeat) * int(option)
 
         output_format = str(ntot) + NUMPY2FITS[dtype]
-    elif isinstance(dtype, _FormatX):
-        warnings.warn('X format')
     elif dtype + option in NUMPY2FITS:  # record format
         if repeat != 1:
             repeat = str(repeat)

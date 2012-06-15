@@ -9,7 +9,7 @@ import warnings
 import numpy as np
 
 from .util import _str_to_num, _is_int, maketrans, translate, _words_group
-from .verify import _Verify, _ErrList, VerifyError
+from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import ENABLE_RECORD_VALUED_KEYWORD_CARDS, STRIP_HEADER_WHITESPACE
 from ...utils import deprecated
@@ -303,6 +303,8 @@ class Card(_Verify):
 
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,8}$')
+    # This will match any printable ASCII character excluding '='
+    _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH )?(?:^[ -<>-~]+ ?)+$', re.I)
 
     # A number sub-string, either an integer or a float in fixed or
     # scientific notation.  One for FSC and one for non-FSC (NFSC) format:
@@ -411,12 +413,19 @@ class Card(_Verify):
         self._value = None
         self._comment = None
         self._image = None
-        self._modified = False
 
         # This attribute is set to False when creating the card from a card
         # image to ensure that the contents of the image get verified at some
         # point
-        self._parsed = True
+        self._verified = True
+
+        # A flag to conveniently mark whether or not this was a valid HIERARCH
+        # card
+        self._hierarch = False
+
+        # If the card could not be parsed according the the FITS standard or
+        # any recognized non-standard conventions, this will be True
+        self._invalid = False
 
         self._field_specifier = None
         if not self._check_if_rvkc(keyword, value):
@@ -469,22 +478,23 @@ class Card(_Verify):
             # pads keywords out with spaces; leading whitespace, however,
             # should be strictly disallowed.
             keyword = keyword.rstrip()
-            if len(keyword) <= 8:
+            keyword_upper = keyword.upper()
+            if len(keyword) <= 8 and self._keywd_FSC_RE.match(keyword_upper):
                 # For keywords with length > 8 they will be HIERARCH cards,
                 # and can have arbitrary case keywords
-                keyword = keyword.upper()
-                if not self._keywd_FSC_RE.match(keyword):
-                    raise ValueError('Illegal keyword name: %r.' % keyword)
-                elif keyword == 'END':
+                if keyword_upper == 'END':
                     raise ValueError("Keyword 'END' not allowed.")
-            else:
+                keyword = keyword_upper
+            elif self._keywd_hierarch_RE.match(keyword):
                 # In prior versions of PyFITS HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
                 # 'HIERARCH '.  Now we will create them automtically for long
                 # keywords, but we still want to support the old behavior too;
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
-                if keyword[:9].upper() == 'HIERARCH ':
+                self._hierarch = True
+
+                if keyword_upper[:9] == 'HIERARCH ':
                     # The user explicitly asked for a HIERARCH card, so don't
                     # bug them about it...
                     keyword = keyword[9:]
@@ -492,8 +502,11 @@ class Card(_Verify):
                     # We'll gladly create a HIERARCH card, but a warning is
                     # also displayed
                     warnings.warn(
-                        'Keyword name %r is greater than 8 characters; a '
-                        'HIERARCH card will be created.' % keyword)
+                        'Keyword name %r is greater than 8 characters or '
+                        'or contains spaces; a HIERARCH card will be created.' %
+                        keyword, VerifyWarning)
+            else:
+                raise ValueError('Illegal keyword name: %r.' % keyword)
             self._keyword = keyword
             self._modified = True
         else:
@@ -524,6 +537,11 @@ class Card(_Verify):
 
     @value.setter
     def value(self, value):
+        if self._invalid:
+            raise ValueError(
+                'The value of invalid/unparseable cards cannot set.  Either '
+                'delete this card from the header or replace it.')
+
         if value is None:
             value = ''
         oldvalue = self._value
@@ -567,6 +585,11 @@ class Card(_Verify):
 
     @value.deleter
     def value(self):
+        if self._invalid:
+            raise ValueError(
+                'The value of invalid/unparseable cards cannot deleted.  '
+                'Either delete this card from the header or replace it.')
+
         if not self.field_specifier:
             self.value = ''
         else:
@@ -576,6 +599,7 @@ class Card(_Verify):
     @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
+
         if self._comment is not None:
             return self._comment
         elif self._image:
@@ -587,6 +611,11 @@ class Card(_Verify):
 
     @comment.setter
     def comment(self, comment):
+        if self._invalid:
+            raise ValueError(
+                'The comment of invalid/unparseable cards cannot set.  Either '
+                'delete this card from the header or replace it.')
+
         if comment is None:
             comment = ''
 
@@ -609,6 +638,11 @@ class Card(_Verify):
 
     @comment.deleter
     def comment(self):
+        if self._invalid:
+            raise ValueError(
+                'The comment of invalid/unparseable cards cannot deleted.  '
+                'Either delete this card from the header or replace it.')
+
         self.comment = ''
 
     @property
@@ -648,8 +682,8 @@ class Card(_Verify):
 
     @property
     def image(self):
-        if self._image and not self._parsed:
-            self.verify('silentfix')
+        if self._image and not self._verified:
+            self.verify('fix')
         if self._image is None or self._modified:
             self._image = self._format_image()
         return self._image
@@ -661,31 +695,30 @@ class Card(_Verify):
 
     @deprecated('3.1', alternative='the `.image` attribute')
     def ascardimage(self, option='silentfix'):
-        if not self._parsed:
+        if not self._verified:
             self.verify(option)
         return self.image
 
     @classmethod
     def fromstring(cls, image):
         """
-        Construct a `Card` object from a (raw) string. It will pad the
-        string if it is not the length of a card image (80 columns).
-        If the card image is longer than 80 columns, assume it
-        contains ``CONTINUE`` card(s).
+        Construct a `Card` object from a (raw) string. It will pad the string
+        if it is not the length of a card image (80 columns).  If the card
+        image is longer than 80 columns, assume it contains ``CONTINUE``
+        card(s).
         """
 
         card = cls()
         card._image = _pad(image)
-        card._parsed = False
+        card._verified = False
         return card
 
     @classmethod
     def normalize_keyword(cls, keyword):
         """
         `classmethod` to convert a keyword value that may contain a
-        field-specifier to uppercase.  The effect is to raise the
-        key to uppercase and leave the field specifier in its original
-        case.
+        field-specifier to uppercase.  The effect is to raise the key to
+        uppercase and leave the field specifier in its original case.
 
         Parameters
         ----------
@@ -702,8 +735,11 @@ class Card(_Verify):
         if match:
             return '.'.join((match.group('keyword').strip().upper(),
                              match.group('field_specifier')))
-        elif len(keyword) > 8:
-            return keyword.strip()
+        elif len(keyword) > 9 and keyword[:9].upper() == 'HIERARCH ':
+            # Remove 'HIERARCH' from HIERARCH keywords; this could lead to
+            # ambiguity if there is actually a keyword card containing
+            # "HIERARCH HIERARCH", but shame on you if you do that.
+            return keyword[9:].strip()
         else:
             return keyword.strip().upper()
 
@@ -769,42 +805,44 @@ class Card(_Verify):
                     return True
 
     def _parse_keyword(self):
-        if self._value is not None and self._comment is not None:
-            self._parsed = False
-
         if self._check_if_rvkc(self._image):
             return self._keyword
 
         keyword = self._image[:8].strip()
         keyword_upper = keyword.upper()
-        if keyword_upper in self._commentary_keywords + ['CONTINUE']:
+        value_indicator = self._image.find('= ')
+
+        special = self._commentary_keywords + ['CONTINUE']
+
+        if keyword_upper in special or 0 <= value_indicator <= 8:
+            # The value indicator should appear in byte 8, but we are flexible
+            # and allow this to be fixed
+            if value_indicator >= 0:
+                keyword = keyword[:value_indicator]
+                keyword_upper = keyword_upper[:value_indicator]
+
             if keyword_upper != keyword:
                 self._modified = True
             return keyword_upper
-        if '=' in self._image:
-            keyword = self._image.split('=', 1)[0].strip()
-        if len(keyword) > 8:
-            if keyword[:8].upper() == 'HIERARCH':
-                return keyword[9:].strip()
-            else:
-                raise VerifyError(
-                    'Invalid keyword value in header:\n    %r\nkeywords '
-                    'longer than 8 characters must be prefixed with the '
-                    'HIERARCH keyword.' % keyword)
+        elif (keyword_upper == 'HIERARCH' and self._image[8] == ' ' and
+              '=' in self._image):
+            # This is valid HIERARCH card as described by the HIERARCH keyword
+            # convention:
+            # http://fits.gsfc.nasa.gov/registry/hierarch_keyword.html
+            return self._image.split('=', 1)[0][9:].rstrip()
         else:
-            keyword_upper = keyword.upper()
-            if keyword_upper != keyword:
-                self._modified = True
-            return keyword_upper
+            warnings.warn('The following header keyword is invalid or follows '
+                          'an unrecognized non-standard convention:\n%s' %
+                          self._image)
+            self._invalid = True
+            return keyword
 
     def _parse_value(self):
         """Extract the keyword value from the card image."""
 
-        if self._keyword is not None and self._comment is not None:
-            self._parsed = False
-
         # for commentary cards, no need to parse further
-        if self.keyword.upper() in self._commentary_keywords:
+        # Likewise for invalid cards
+        if self.keyword.upper() in self._commentary_keywords or self._invalid:
             return self._image[8:].rstrip()
 
         if self._check_if_rvkc(self._image):
@@ -869,11 +907,9 @@ class Card(_Verify):
     def _parse_comment(self):
         """Extract the keyword value from the card image."""
 
-        if self._keyword is not None and self._value is not None:
-            self._parsed = False
-
         # for commentary cards, no need to parse further
-        if self.keyword in Card._commentary_keywords:
+        # likewise for invalid/unparseable cards
+        if self.keyword in Card._commentary_keywords or self._invalid:
             return ''
 
         if len(self._image) > self.length:
@@ -908,7 +944,7 @@ class Card(_Verify):
             keyword, valuecomment = image.split(' ', 1)
         else:
             try:
-                delim_index = image.index('=')
+                delim_index = image.index('= ')
             except ValueError:
                 delim_index = None
 
@@ -919,9 +955,9 @@ class Card(_Verify):
                 valuecomment = image[8:]
             elif delim_index > 10 and image[:9] != 'HIERARCH ':
                 keyword = image[:8]
-                valuecomment = image[10:]
+                valuecomment = image[8:]
             else:
-                keyword, valuecomment = image.split('=', 1)
+                keyword, valuecomment = image.split('= ', 1)
         return keyword.strip(), valuecomment.strip()
 
     def _fix_keyword(self):
@@ -976,10 +1012,10 @@ class Card(_Verify):
         if self.keyword:
             if self.field_specifier:
                 return '%-8s' % self.keyword.split('.', 1)[0]
-            elif len(self.keyword) <= 8:
-                return '%-8s' % self.keyword
-            else:
+            elif self._hierarch:
                 return 'HIERARCH %s ' % self.keyword
+            else:
+                return '%-8s' % self.keyword
         else:
             return ' ' * 8
 
@@ -1061,7 +1097,8 @@ class Card(_Verify):
                 len(value) > (self.length - 10)):
                 output = self._format_long_image()
             else:
-                warnings.warn('Card is too long, comment is truncated.')
+                warnings.warn('Card is too long, comment will be truncated.',
+                              VerifyWarning)
                 output = output[:Card.length]
         return output
 
@@ -1120,16 +1157,24 @@ class Card(_Verify):
         return ''.join(output)
 
     def _verify(self, option='warn'):
+        self._verified = True
+
         errs = _ErrList([])
-        fix_text = 'Fixed card to meet the FITS standard: %s' % self.keyword
+        fix_text = 'Fixed %r card to meet the FITS standard.' % self.keyword
+
+        # Don't try to verify cards that already don't meet any recognizable
+        # standard
+        if self._invalid:
+            return errs
+
         # verify the equal sign position
         if (self.keyword not in self._commentary_keywords and
             (self._image and self._image[:8].upper() != 'HIERARCH' and
              self._image.find('=') != 8)):
             errs.append(self.run_option(
                 option,
-                err_text='Card image is not FITS standard (equal sign not '
-                         'at column 8).',
+                err_text='Card %r is not FITS standard (equal sign not '
+                         'at column 8).' % self.keyword,
                 fix_text=fix_text,
                 fix=self._fix_value))
 
@@ -1147,7 +1192,7 @@ class Card(_Verify):
             # Keyword should be uppercase unless it's a HIERARCH card
                 errs.append(self.run_option(
                     option,
-                    err_text='Card keyword is not upper case.',
+                    err_text='Card keyword %r is not upper case.' % keyword,
                     fix_text=fix_text,
                     fix=self._fix_keyword))
             elif not self._keywd_FSC_RE.match(keyword):
@@ -1162,8 +1207,8 @@ class Card(_Verify):
         if not (m or self.keyword in self._commentary_keywords):
             errs.append(self.run_option(
                 option,
-                err_text='Card image is not FITS standard (invalid value '
-                         'string: %s).' % valuecomment,
+                err_text='Card %r is not FITS standard (invalid value '
+                         'string: %s).' % (self.keyword, valuecomment),
                 fix_text=fix_text,
                 fix=self._fix_value))
 

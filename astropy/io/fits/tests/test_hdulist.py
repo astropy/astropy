@@ -3,6 +3,7 @@
 import glob
 import io
 import os
+import shutil
 import warnings
 
 import numpy as np
@@ -624,3 +625,34 @@ class TestHDUListFunctions(FitsTestCase):
 
         # Test that creating an HDUList from something silly raises a TypeError
         pytest.raises(TypeError, fits.HDUList.fromstring, ['a', 'b', 'c'])
+
+    def test_save_backup(self):
+        """Test for #121--save backup of file before flushing changes."""
+
+        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+
+        with ignore_warnings():
+            with fits.open(self.temp('scale.fits'), mode='update',
+                           save_backup=True) as hdul:
+                # Make some changes to the original file to force its header
+                # and data to be rewritten
+                hdul[0].header['TEST'] = 'TEST'
+                hdul[0].data[0] = 0
+
+        assert os.path.exists(self.temp('scale.fits.bak'))
+        with fits.open(self.data('scale.fits'),
+                       do_not_scale_image_data=True) as hdul1:
+            with fits.open(self.temp('scale.fits.bak'),
+                           do_not_scale_image_data=True) as hdul2:
+                assert hdul1[0].header == hdul2[0].header
+                assert (hdul1[0].data == hdul2[0].data).all()
+
+        with ignore_warnings():
+            with fits.open(self.temp('scale.fits'), mode='update',
+                           save_backup=True) as hdul:
+                # One more time to see if multiple backups are made
+                hdul[0].header['TEST2'] = 'TEST'
+                hdul[0].data[0] = 1
+
+        assert os.path.exists(self.temp('scale.fits.bak'))
+        assert os.path.exists(self.temp('scale.fits.bak.1'))

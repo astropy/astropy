@@ -940,6 +940,7 @@ class TableDataDiff(_BaseDiff):
         # self.diff_columns contains columns with different column definitions,
         # but not different column data. Column data is only compared in
         # columns that have the same definitions
+        self.diff_rows = ()
         self.diff_column_count = ()
         self.diff_columns = ()
 
@@ -1015,6 +1016,14 @@ class TableDataDiff(_BaseDiff):
             for col in self.b.columns:
                 if col.name.lower() in right_only_columns:
                     self.diff_column_names[1].append(col.name)
+
+        # If the tables have a different number of rows, we don't compare the
+        # columns right now.
+        # TODO: It might be nice to optionally compare the first n rows where n
+        # is the minimum of the row counts between the two tables.
+        if len(self.a) != len(self.b):
+            self.diff_rows = (len(self.a), len(self.b))
+            return
 
         # Like in the old fitsdiff, compare tables on a column by column basis
         # The difficulty here is that, while FITS column names are meant to be
@@ -1108,6 +1117,13 @@ class TableDataDiff(_BaseDiff):
                           (name, col_attrs[attr]))
             report_diff_values(self._fileobj, vals[0], vals[1],
                                ind=self._indent + 1)
+
+        if self.diff_rows:
+            self._writeln(' Table rows differ:')
+            self._writeln('  a: %s' % self.diff_rows[0])
+            self._writeln('  b: %s' % self.diff_rows[1])
+            self._writeln(' No further data comparison performed.')
+            return
 
         if not self.diff_values:
             return
