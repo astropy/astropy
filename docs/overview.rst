@@ -23,7 +23,7 @@ The `astropy` package (alternatively known as the "core" package)
 contains various classes, utilities, and a packaging framework intended
 to provide commonly-used astronomy tools. It is divided into a variety of
 sub-packages, which are documented in the remainder of this
-documentation (see `user-docs`_ for documentation of these components).
+documentation (see :ref:`user-docs` for documentation of these components).
 
 The core also provides this documentation, and a variety of utilities
 that simplify starting other python astronomy/astrophysics packages. As
@@ -66,6 +66,6 @@ Community
 =========
 
 Aside from the actual code, Astropy is also a community of
-astrono-associated users and developers that agree that sharing utilities
+astronomy-associated users and developers that agree that sharing utilities
 is healthy for the community and the science it produces. This community
 is of course central to accomplishing anything with the code itself.
