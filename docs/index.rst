@@ -25,8 +25,6 @@ User Documentation
 
    overview
    install
-   logging
-   configs/index
    nddata/index
    wcs/index
    io/fits/index
@@ -36,7 +34,8 @@ User Documentation
    cosmology/index
    tools/index
    utils/index
-
+   configs/index
+   logging
 
 
 .. _developer-docs:
