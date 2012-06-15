@@ -2,56 +2,70 @@
 Overview
 ********
 
-Here we describe a broad overview of the astropy project and its associated
-modules and packages.
+Here we describe a broad overview of the Astropy project and its parts.
+
+Astropy Project Concept
+=======================
+
+The "Astropy Project" is distinct from the `astropy` package. The
+Astropy Project is a process intended to facilitate communication and
+interoperability of python packages/codes in astronomy and astrophysics.
+The project thus encompasses the `astropy` core package (which provides a
+common framework), all "affiliated packages" (described below in
+`Affiliated Packages`), and a general community aimed at bringing
+resources together and not duplicating efforts.
 
 
-`astropy` Package Layout
-========================
+`astropy` Core Package
+======================
 
-Astropy contains the following base-level subpackages:
+The `astropy` package (alternatively known as the "core" package)
+contains various classes, utilities, and a packaging framework intended
+to provide commonly-used astronomy tools. It is divided into a variety of
+sub-packages, which are documented in the remainder of this
+documentation (see :ref:`user-docs` for documentation of these components).
 
+The core also provides this documentation, and a variety of utilities
+that simplify starting other python astronomy/astrophysics packages. As
+described in the following section, these simplify the process of
+creating affiliated packages.
 
-* :mod:`~astropy.config`
-    This subpackage contains configuration and setup utilities, including the 
-    affiliated package install tools.
-* :mod:`~astropy.utils`
-    This subpackage contains utilities of general use for multiple modules or
-    affiliated packages.
-* :mod:`~astropy.version`
-    This subpackage contains the version number information for the package. 
-    Note that the version is also available at the base level of the package as
-    :attr:`astropy.__version__`.
-* :mod:`~astropy.extern`
-    This subpackage contains small python packages that are not unique to 
-    astropy but are convinient to include as part of the astropy source code.
-* :mod:`~astropy.tests`
-    This subpackage contains utilities to run the astropy test suite (the 
-    simplest method is to just call :meth:`astropy.test`), tools for writing 
-    tests, and general tests that are not associated with a particular package.
-* :mod:`~astropy.wcs`
-    This subpackage contains a python wrapper around the 
-    `wcslib <http://www.atnf.csiro.au/people/mcalabre/WCS/>`_ library for 
-    managing FITS world coordinate systems (WCS).
 
 Affiliated Packages
 ===================
 
-Astropy also includes the concept of "affiliated packages." An affiliated
-package is an astronomy-related python package that is not included as part of
-the Astropy source code, but has officially requested to be included in the
-Astropy community. Such a package may be a candidate for eventual inclusion in
-the main `astropy` package. Astropy comes with a tool to install a affiliated
-packages by name, and a single official index with a list and description of
-each package. See the :mod:`~astropy.config` module documentation for details
-regarding this install tool.
+The Astropy project includes the concept of "affiliated packages." An
+affiliated package is an astronomy-related python package that is not
+part of the `astropy` core source code, but has requested to be included
+in the Astropy project. Such a package may be a candidate for eventual
+inclusion in the main `astropy` package (although this is not required).
 
-Affiliated packages do not use the `astropy` namespace, but rather either use
-their package name directly, or `awastropy.packagename` ("affiliated with
-astropy"). These packages may later be merged into the `astropy` package, in
-which case the original package may still be used, but it is recommended that
-users switch to the `astropy.packagename` version as soon as possible.
-Alternatively, some affiliated packages may not wish to ever be merged with the
-`astropy` source code, but rather remain as separate packages that make use of
-other astropy modules or affiliated packages.
+There is a registry of affiliated packages at
+http://affiliated.astropy.org, and in the near future, the `astropy` core
+will include a tool to install affiliated packages by name. See the
+:mod:`~astropy.config` module documentation for details about the
+affiliated package registry and install tool. Note that affiliated
+packages do not use the `astropy` namespace, which is reserved for the
+core. Instead, theyeither use their package name directly, or
+`awastropy.packagename` ("affiliated with astropy").
 
+If you are interested in starting an affiliated package, or have a
+package you are interested in making more compatible with astropy, the
+`astropy` core package includes a variety of features that simplify and
+homogenize package management. Astropy provides a `package template
+<http://github.com/astropy/package-template>`_ that provides a common
+way to organize packages, to make your life simpler. You can use this
+template either with a new package you are starting or an existing
+package to make it more compatible with Astropy and the affiliated
+package installer. See the `usage instructions in the template
+<https://github.com/astropy/package-template/blob/master/README.rst>`_
+for further details.
+
+
+Community
+=========
+
+Aside from the actual code, Astropy is also a community of
+astronomy-associated users and developers that agree that sharing utilities
+is healthy for the community and the science it produces. This community
+is of course central to accomplishing anything with the code itself.
