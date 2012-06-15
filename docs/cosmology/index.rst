@@ -9,15 +9,15 @@ The `astropy.cosmology` subpackage contains classes for representing
 cosmologies, and utility functions for calculating commonly used
 quantities that depend on a cosmological model. This includes
 distances, ages and lookback times corresponding to a measured redshift
-or the transverse separation corresponding to a measure angular
+or the transverse separation corresponding to a measured angular
 separation.
 
 An important concept in `astropy.cosmology` is the "current" cosmology.
 This is the specific cosmological model and choice of parameters that are
-currently active in `astropy`. Other parts of Astropy that require
-knowledge of the background cosmology will use this cosmology in their
-calculations to maintain consistency. See `Getting Started`_ for a
-description of how to change the current cosmology that is in use.
+currently active in `astropy`. Other parts of Astropy that need to
+assume acosmology will use this cosmology in their calculations to
+maintain consistency. See `Getting Started`_ for a description of how to
+change the current cosmology that is in use.
 
 
 
@@ -40,12 +40,12 @@ current cosmology directly. The default current cosmology can be changed
 by changing the "default_cosmology" option in the ``[cosmology.core]``
 section of the configuration file to your preferred cosmology (see
 :ref:`astropy_config`). Alternatively, you can use the
-`~astropy.cosmology.core.set_current`. function to specify a cosmology
+`~astropy.cosmology.core.set_current` function to specify a cosmology
 for use in the current python session.
 
-Most of the other functionality is implemented as either methods or
-attributes of the current cosmology object. Use
-`~astropy.cosmology.core.get_current` to get this object::
+More functionality is available as methods or attributes of the current
+cosmology object. Use `~astropy.cosmology.core.get_current` to get this
+object::
 
     >>> from astropy.cosmology import get_current
     >>> cosmo = get_current()
@@ -65,9 +65,9 @@ Using `cosmology`
 
 Most of the functionality is enabled by the
 `~astropy.cosmology.core.FLRWCosmology` object. This represents a
-homgeneous and isotropic cosmology (a cosmology characterized by the
-Friedmann-Lemaitre-Robertson-Walker metric after the people who solved
-Einstein's field equation for this special case).
+homogenous and isotropic cosmology (a cosmology characterized by the
+Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
+solved Einstein's field equation for this special case).
 
 While `astropy.cosmology` includes a variety of standard cosmologies
 with the parameters already defined (see below), you can create a new
@@ -134,7 +134,7 @@ Using `cosmology` inside Astropy
 
 If you are writing code for the `astropy` core or an affiliated package,
 it is strongly recommended that you use the the current cosmology
-through the `~astropy.cosmology.core.get_current` function. It also also
+through the `~astropy.cosmology.core.get_current` function. It is also
 recommended that you provide an override option something like the
 following::
 
