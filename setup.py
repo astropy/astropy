@@ -31,6 +31,8 @@ version = '0.1.dev'
 # Indicates if this version is a release version
 release = 'dev' not in version
 
+download_base_url = 'http://cloud.github.com/downloads/astropy/astropy'
+
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 setup_helpers.adjust_compiler()
@@ -113,6 +115,7 @@ setup(name='astropy',
       license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
+      download_url='%s/astropy-%s.tar.gz' % (download_base_url, version),
       cmdclass=cmdclassd,
       zip_safe=False,
       use_2to3=True,
