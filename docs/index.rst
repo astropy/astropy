@@ -11,6 +11,8 @@ Welcome to Astropy's Documentation!
 
 Astropy is a community-driven package intended to contain much of the core functionality and some common tools needed for performing astronomy and astrophysics with Python.
 
+.. _user-docs:
+
 ******************
 User Documentation
 ******************
