@@ -156,7 +156,7 @@ For OSX, GPG can be installed from MacPorts using ``sudo port install gnupg``.
 
 To create a new public/private key pair, simply run::
 
-    gpg --gen-key
+    $ gpg --gen-key
 
 This will take you through a few interactive steps.  For the encryption and
 expiry settings, it should be safe to use the default settings (I use a key
@@ -169,18 +169,51 @@ force attacks.
 If you expect to use the same key for some time, it's good to make a backup of
 both your public and private key::
 
-    gpg --export --armor > public.key
-    gpg --export-secret-key --armor > private.key
+    $ gpg --export --armor > public.key
+    $ gpg --export-secret-key --armor > private.key
 
 Back up these files to a trusted location--preferably a write-one physical
 medium that can be stored safely somewhere.  I also back up my keys to a
 trusted online encrypted storage, though some might not find that secure
 enough--it's up to you and what you're comfortable with.
 
+Add your public key to a keyserver
+""""""""""""""""""""""""""""""""""
+Now that you have a public key, you can publish this anywhere you like--in your
+e-mail, in a public code repository, etc.  You can also upload it to a
+dedicated public OpenPGP keyserver.  This will store the public key
+indefinitely (until you manually revoke it), and will be automatically synced
+with other keyservers around the world.  That makes it easy to retrieve your
+public key using the gpg command-line tool.
+
+To do this you will need your public key's keyname.  To find this enter::
+
+    $ gpg --list-keys
+
+This will output something like::
+
+    /path/to/.gnupg/pubring.gpg
+    ---------------------------------------------
+    pub   4096D/1234ABCD 2012-01-01
+    uid                  Your Name <your_email>
+    sub   4096g/567890EF 2012-01-01
+
+The 8 digit hex number on the line starting with "pub"--in this example the
+"1234ABCD" unique keyname for your public key.  To push it to a keyserver
+enter::
+
+    $ gpg --send-keys 1234ABCD
+
+But replace the 1234ABCD with the keyname for your public key.  Most systems
+come configured with a sensible default keyserver, so you shouldn't have to
+specify any more than that.
+
+Create a tag
+""""""""""""
 Now test creating a signed tag in git.  It's safe to experiment with this--you
 can always delete the tag before pushing it to a remote repository::
 
-    git tag -s v0.1 -m "Astropy version 0.1"
+    $ git tag -s v0.1 -m "Astropy version 0.1"
 
 This will ask for the password to unlock your private key in order to sign
 the tag with it.  Confirm that the default signing key selected by git is the
@@ -188,7 +221,7 @@ correct one (it will be if you only have one key).
 
 Once the tag has been created, you can verify it with::
 
-    git tag -v v0.1
+    $ git tag -v v0.1
 
 This should output something like::
 
