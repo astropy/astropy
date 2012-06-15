@@ -15,7 +15,7 @@ Astropy also depends on other projects for optional features.
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
-TODO: Link to the planned dependency checker/installer tool.
+.. TODO: Link to the planned dependency checker/installer tool.
 
 Installing Astropy
 ==================
@@ -23,12 +23,14 @@ Installing Astropy
 Using `pip`
 -----------
 
-TODO: Write once we’re up on PyPI.
+To install Astropy with `pip`, simply run::
+
+    pip install astropy
 
 Binary installers
 -----------------
 
-TODO: Write about where to obtain binary packages (.dmg, .msi etc.)
+No binary installers are available at this time.
 
 Building from source
 ====================
@@ -51,9 +53,7 @@ Source packages
 ^^^^^^^^^^^^^^^
 
 Source tarballs of past releases and the current development branch of
-astropy can be downloaded from here:
-
-   https://github.com/astropy/astropy/downloads
+astropy can be downloaded from https://github.com/astropy/astropy/downloads
 
 Development repository
 ^^^^^^^^^^^^^^^^^^^^^^
