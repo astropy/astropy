@@ -221,26 +221,26 @@ repeat for each release.  The advantage of using an automated or semi-automated
 procedure is that ensures a consistent release process each time.
 
  1. Install virtualenv if you don't already have it.  See the linked virtualenv
-    docuemntation for details.
+    documentation for details.
 
  2. Create and activate a virtualenv::
 
-    virtualenv --system-site-packages --distribute astropy-release
-    source astropy-release/bin/activate
+    $ virtualenv --system-site-packages --distribute astropy-release
+    $ source astropy-release/bin/activate
 
  3. From the root of the Astropy repository, install Astropy into the
     virtualenv::
 
-    python setup.py install astropy
+    $ python setup.py install astropy
 
  4. Install zest.releaser into the virtualenv::
 
-    pip install zest.releaser
+    $ pip install zest.releaser
 
  5. Ensure that all changes to the code have been committed, then start the
     release by running::
 
-    fullrelease
+    $ fullrelease
 
  6. You will be asked to enter the version to be released.  Press enter to
     accept the default (which will normally be correct) or enter a specific
@@ -249,19 +249,22 @@ procedure is that ensures a consistent release process each time.
     version has been updated in setup.py.  Enter 'Y' when asked to commit
     these changes.
 
-  7. You will then be shown the command that will be run to tag the release.
-     Enter 'Y' to confirm and run the command.
+ 7. You will then be shown the command that will be run to tag the release.
+    Enter 'Y' to confirm and run the command.
 
-  8. When asked "Check out the tag (for tweaks or pypi/distutils server
-     upload)" enter 'N': We will be uploading the source to GitHub instead of
-     PyPI, so for now registering on PyPI and uploading the source will be
-     performed manually.
+ 8. When asked "Check out the tag (for tweaks or pypi/distutils server
+    upload)" enter 'N': We will be uploading the source to GitHub instead of
+    PyPI, so for now registering on PyPI and uploading the source will be
+    performed manually.
 
-  9. You will be asked to enter a new development version.  Normally the next
-     logical version will be selected--press enter to accept the default, or
-     enter a specific version string.  Do not add ".dev" to the version, as
-     this will be appended automatically (ignore the message that says ".dev0
-     will be appended"--it will actually be ".dev" without the 0).
+ 9. You will be asked to enter a new development version.  Normally the next
+    logical version will be selected--press enter to accept the default, or
+    enter a specific version string.  Do not add ".dev" to the version, as
+    this will be appended automatically (ignore the message that says ".dev0
+    will be appended"--it will actually be ".dev" without the 0).  For
+    example, if the just-released version was "0.1" the default next version
+    will be "0.2".  If we want the next version to be, say "1.0" then that
+    must be entered manually.
 
  10. You will be shown a diff of CHANGES.rst showing that a new section has
      been added for the new development version, and showing that the version
@@ -272,7 +275,7 @@ procedure is that ensures a consistent release process each time.
 
  12. Check out the tag of the released version.  For example::
 
-     git checkout "v0.1"
+     $ git checkout "v0.1"
 
  13. Create the source distribution with ``python setup.py sdist`` and upload
      it to GitHub.
@@ -284,6 +287,20 @@ procedure is that ensures a consistent release process each time.
 
  16. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
+
+ 17. Create a bug fix branch.  If the version just was released was a "X.Y.0"
+     version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
+     it is good to create a bug fix branch as well.  Starting from the tagged
+     changset, just checkout a new branch and push it to the remote server.
+     For example, after releasing version 0.1, do::
+
+     $ git checkout -b 0.1.x
+     $ git push upstream +0.1.x
+
+     The purpose of this branch is for creating bug fix releases like "0.1.1"
+     and "0.1.2", while allowing development of new features to continue in 
+     the master branch.  Only changesets that fix bugs without making
+     significant API changes should be merged to the bug fix branches.
 
 
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
