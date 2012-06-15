@@ -25,19 +25,17 @@ User Documentation
 
    overview
    install
-   logging
-   configs/index
    nddata/index
-   wcs/index
-   io/fits/index
-   io/vo/index
-   io/ascii/index
    table/index
    cosmology/index
+   io/fits/index
+   io/ascii/index
+   io/vo/index
+   wcs/index
    tools/index
    utils/index
-
-
+   configs/index
+   logging
 
 .. _developer-docs:
 
