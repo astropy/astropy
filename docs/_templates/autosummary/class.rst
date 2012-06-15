@@ -8,6 +8,7 @@
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
+   :show-inheritance:
 
    {% if '__init__' in methods %}
      {{ methods.remove('__init__') }}

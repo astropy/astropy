@@ -358,7 +358,10 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                 except TemplateNotFound:
                     template = template_env.get_template(tmplstr % 'base')
 
-            def get_members(obj, typ, include_public=[]):
+            def get_members_mod(obj, typ, include_public=[]):
+                """
+                typ = None -> all
+                """
                 items = []
                 for name in dir(obj):
                     try:
@@ -366,7 +369,36 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                                                     obj)
                     except AttributeError:
                         continue
-                    if documenter.objtype == typ:
+                    if typ is None or documenter.objtype == typ:
+                        items.append(name)
+                public = [x for x in items
+                          if x in include_public or not x.startswith('_')]
+                return public, items
+
+            def get_members_class(obj, typ, include_public=[], include_base=False):
+                """
+                typ = None -> all
+                include_base -> include attrs that are from a base class
+                """
+                items = []
+
+                # using dir gets all of the attributes, including the elements
+                # from the base class, otherwise use __slots__ or __dict__
+                if include_base:
+                    names = dir(obj)
+                else:
+                    if hasattr(obj, '__slots__'):
+                        names = tuple(getattr(obj, '__slots__'))
+                    else:
+                        names = getattr(obj, '__dict__').keys()
+
+                for name in names:
+                    try:
+                        documenter = get_documenter(safe_getattr(obj, name),
+                                                    obj)
+                    except AttributeError:
+                        continue
+                    if typ is None or documenter.objtype == typ:
                         items.append(name)
                 public = [x for x in items
                           if x in include_public or not x.startswith('_')]
@@ -375,19 +407,19 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             ns = {}
 
             if doc.objtype == 'module':
-                ns['members'] = dir(obj)
+                ns['members'] = get_members_mod(obj, None)
                 ns['functions'], ns['all_functions'] = \
-                                   get_members(obj, 'function')
+                                   get_members_mod(obj, 'function')
                 ns['classes'], ns['all_classes'] = \
-                                 get_members(obj, 'class')
+                                 get_members_mod(obj, 'class')
                 ns['exceptions'], ns['all_exceptions'] = \
-                                   get_members(obj, 'exception')
+                                   get_members_mod(obj, 'exception')
             elif doc.objtype == 'class':
-                ns['members'] = dir(obj)
+                ns['members'] = get_members_class(obj, None)
                 ns['methods'], ns['all_methods'] = \
-                                 get_members(obj, 'method', ['__init__'])
+                                 get_members_class(obj, 'method', ['__init__'])
                 ns['attributes'], ns['all_attributes'] = \
-                                 get_members(obj, 'attribute')
+                                 get_members_class(obj, 'attribute')
 
             parts = name.split('.')
             if doc.objtype in ('method', 'attribute'):
