@@ -43,7 +43,7 @@ del intersphinx_mapping['astropy']
 
 # General information about the project.
 project = u'Astropy'
-copyright = u'2012, The Astropy Collaboration.'
+copyright = u'2012, The Astropy Collaboration'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
