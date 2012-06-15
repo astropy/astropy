@@ -5,7 +5,6 @@ from __future__ import print_function
 
 import os
 import sys
-import inspect
 import logging
 import warnings
 from contextlib import contextmanager
@@ -24,6 +23,7 @@ class LoggingError(Exception):
     This exception is for various errors that occur in the astropy logger,
     typically when activating or deactivating logger-related features.
     """
+
 
 class _AstLogIPYExc(Exception):
     """
@@ -247,8 +247,6 @@ class AstropyLogger(Logger):
         else:
             message = unicode(etype.__name__)
 
-
-
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
         else:
@@ -312,7 +310,7 @@ class AstropyLogger(Logger):
             ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
 
             #and set self._excepthook_orig to a no-op
-            self._excepthook_orig = lambda etype, evalue, tb:None
+            self._excepthook_orig = lambda etype, evalue, tb: None
 
     def disable_exception_logging(self):
         '''
@@ -500,7 +498,7 @@ class AstropyLogger(Logger):
 
         # Set up the main log file handler if requested (but this might fail if
         # configuration directory or log file is not writeable).
-        if LOG_TO_FILE():
+        if LOG_TO_FILE() and not os.environ.get('ASTROPY_TESTS_RUNNING'):
             try:
                 fh = FileHandler(os.path.expanduser(LOG_FILE_PATH()))
             except IOError:
