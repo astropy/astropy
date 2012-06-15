@@ -25,7 +25,6 @@ $(function() {
   // global elements used by the functions.
   // the 'sidebarbutton' element is defined as global after its
   // creation, in the add_sidebar_button function
-  var document = $('.document');
   var bodywrapper = $('.bodywrapper');
   var sidebar = $('.sphinxsidebar');
   var sidebarwrapper = $('.sphinxsidebarwrapper');
@@ -64,7 +63,7 @@ $(function() {
     bodywrapper.css('margin-left', bw_margin_collapsed);
     sidebarbutton.css({
         'margin-left': '-1px',
-        'height': document.height(),
+        'height': bodywrapper.height(),
 	'border-radius': '3px'
     });
     sidebarbutton.find('span').text('»');
@@ -78,7 +77,7 @@ $(function() {
     sidebarwrapper.show();
     sidebarbutton.css({
         'margin-left': ssb_width_expanded - 12,
-        'height': document.height(),
+        'height': bodywrapper.height(),
 	'border-radius': '0px 3px 3px 0px'
     });
     sidebarbutton.find('span').text('«');
@@ -93,9 +92,7 @@ $(function() {
         'width': ssb_width_expanded - 18
     });
     // create the button
-    sidebar.append(
-        '<div id="sidebarbutton"><span>&laquo;</span></div>'
-    );
+    sidebar.append('<div id="sidebarbutton"><span>&laquo;</span></div>');
     var sidebarbutton = $('#sidebarbutton');
 
     // find the height of the viewport to center the '<<' in the page
@@ -104,10 +101,12 @@ $(function() {
  	  viewport_height = window.innerHeight;
     else
 	  viewport_height = $(window).height();
+    var sidebar_offset = sidebar.offset().top;
+    var sidebar_height = Math.max(bodywrapper.height(), sidebar.height());
     sidebarbutton.find('span').css({
         'font-family': '"Lucida Grande",Arial,sans-serif', 
 	'display': 'block',
-	'top': 61 + (Math.min(viewport_height - 61, document.height())) / 2,
+	'top': Math.min(viewport_height/2, sidebar_height/2 + sidebar_offset) - 10,
 	'width': 12,
 	'position': 'fixed',
 	'text-align': 'center'
@@ -122,7 +121,7 @@ $(function() {
         'border-radius': '0px 3px 3px 0px',
         'font-size': '1.2em',
         'cursor': 'pointer',
-        'height': document.height(),
+        'height': sidebar_height,
         'padding-top': '1px',
 	'margin': '-1px',
         'margin-left': ssb_width_expanded - 12

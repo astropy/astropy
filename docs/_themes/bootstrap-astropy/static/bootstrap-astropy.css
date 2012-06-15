@@ -5,7 +5,7 @@
  * Licensed under the Apache License v2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Heavily modified by Kyle Barbary for the AstroPy Project.
+ * Heavily modified by Kyle Barbary for the AstroPy Project for use with Sphinx.
  */
 
 @import url("basic.css");
@@ -121,30 +121,6 @@ em {
   color: #bfbfbf;
 }
 
-/*
-blockquote {
-  margin-bottom: 18px;
-  border-left: 5px solid #eee;
-  padding-left: 15px;
-}
-blockquote p {
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 18px;
-  margin-bottom: 0;
-}
-blockquote small {
-  display: block;
-  font-size: 12px;
-  font-weight: 300;
-  line-height: 18px;
-  color: #bfbfbf;
-}
-blockquote small:before {
-  content: '\2014 \00A0';
-}
-*/
-
 address {
   display: block;
   line-height: 18px;
@@ -180,20 +156,31 @@ pre {
   word-wrap: break-word;
 }
 
-/* sphinx default pre:
-pre {
-    padding: 5px;
-    background-color: #eeffcc;
-    color: #333333;
-    line-height: 120%;
-    border: 1px solid #ac9;
-    border-left: none;
-    border-right: none;
-}
-*/
-
 img {
   margin: 9px 0;
+}
+
+tt {
+    padding: 0 1px 0 1px;
+    font-size: 0.95em;
+}
+th {
+    background-color: #dddddd;
+}
+
+.viewcode-back {
+    font-family: sans-serif;
+}
+
+div.viewcode-block:target {
+    background-color: #f4debf;
+    border-top: 1px solid #ac9;
+    border-bottom: 1px solid #ac9;
+}
+
+table.docutils {
+    border-spacing: 5px;
+    border-collapse: separate;
 }
 
 /* Topbar --------------------------------------------------------------------*/
@@ -217,11 +204,6 @@ div.topbar {
   background-image: -o-linear-gradient(top, #333333, #222222);
   background-image: linear-gradient(top, #333333, #222222);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
-  /*
-  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-  */
 }
 
 div.topbar .brand {
@@ -257,7 +239,6 @@ div.topbar ul li {
     padding: 0px;
 }
 
-
 div.topbar ul li a {
   color: #bfbfbf;
   text-decoration: none;
@@ -282,10 +263,6 @@ div.topbar ul li a.homelink {
   background: transparent url("astropylogo_homelink_20.png") no-repeat 10px 5px;
 }
 
-/*div.topbar ul li a.homelink:hover {
-  background: rgba(255, 255, 255, 0.3) url("astropylogo_homelink_20.png") no-repeat 10px 5px;
-}*/
-
 div.topbar form {
   text-align: left;
   margin: 0 0 0 5px;
@@ -297,7 +274,6 @@ div.topbar form {
 }
 
 div.topbar input {
-  /*float: right; */
   background-color: #444;
   background-color: rgba(255, 255, 255, 0.3);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -360,17 +336,15 @@ div.related {
     vertical-align: middle;
     background-color: #fff;
     border-bottom: 1px solid #bbb;
-/*    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1); 
-*/
 }
 div.related ul {
     padding: 0;
     margin: 0;
 }
 
+
 /* Footer --------------------------------------------------------------------*/
+
 footer {
   display: block;
   margin: 10px 10px 0px;
@@ -384,8 +358,8 @@ footer {
 }
 
 
-/* Sphinx sidebar
- * ----------------------------------------------------------------------*/
+/* Sphinx sidebar ------------------------------------------------------------*/
+
 div.sphinxsidebar {
     font-size: inherit;
     border-radius: 3px;
@@ -427,45 +401,8 @@ div.sphinxsidebar ul ul {
     list-style-type: disc;
 }
 
-
-
-/* No bullets for nested lists */
-/*div.sphinxsidebar ul ul {
-    margin-left: 15px;
-    list-style-type: none;
-}*/
-
-/* Make these into hidden one-liners */
-/*div.sphinxsidebar li,
-div.sphinxsidebar p.topless {
-    white-space: nowrap;
-    overflow: hidden;
-}*/
-
-/* ...which become visible when hovered */
-/*div.sphinxsidebar li:hover,
-div.sphinxsidebar p.topless:hover {
-    overflow: visible;
-}*/
-
-/* Sidebar links are unusual */
-/*div.sphinxsidebar li a,
-div.sphinxsidebar p a {
-    background: #eee; /* In case links overlap main content */
-    /*border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border: 1px solid transparent; /* prevent things jumping around on hover */
-    /*padding: 0 5px 0 5px;
-    text-decoration: none;*/ /* we're already putting a border around it */
-/*} */
-
-/*div.sphinxsidebar li a:hover,
-div.sphinxsidebar p a:hover {
-    border: 1px solid #888;
-}*/
-
-/* If showing the global TOC (toctree), color the current page differently */
+/* If showing the global TOC (toctree),
+   color the current page differently */
 div.sphinxsidebar a.current {
     color: #404040;
 }
@@ -474,8 +411,7 @@ div.sphinxsidebar a.current:hover {
 }
 
 
-/* document, documentwrapper, body, bodywrapper
- * --------------------------------------------------------------------- */
+/* document, documentwrapper, body, bodywrapper ----------------------------- */
 
 div.document {
     margin-top: 72px;
@@ -490,45 +426,15 @@ div.documentwrapper {
 
 div.body {
     background-color: #ffffff;
-    padding: 0 0 30px 20px;
+    padding: 0 0 0px 20px;
 }
 
 div.bodywrapper {
     margin: 0 0 0 230px;
 }
 
-/*
-div.body h1,
-div.body h2,
-div.body h3,
-div.body h4,
-div.body h5,
-div.body h6 {
-    font-family: 'Trebuchet MS', sans-serif;
-    background-color: #f2f2f2;
-    font-weight: normal;
-    color: #20435c;
-    border-bottom: 1px solid #ccc;
-    margin: 20px -20px 10px -20px;
-    padding: 3px 0 3px 10px;
-}
 
-div.body h1 { margin-top: 0; font-size: 200%; }
-div.body h2 { font-size: 160%; }
-div.body h3 { font-size: 140%; }
-div.body h4 { font-size: 120%; }
-div.body h5 { font-size: 110%; }
-div.body h6 { font-size: 100%; }
-*/
-
-/*
-div.body p, div.body dd, div.body li {
-    text-align: justify;
-    line-height: 130%;
-}
-*/
-
-/* HEADER LINKS ------------------------------------------------------------- */
+/* Header links ------------------------------------------------------------- */
 
 a.headerlink {
     font-size: 0.8em;
@@ -542,21 +448,8 @@ a.headerlink:hover {
     text-docoration: none;
 }
 
-/* The following is a hack to fix the position of anchor links (headerlink).
-Clicking on anchorlinks positions the item at the top of the viewport.
-However, with the fixed topbar, the item appears under the topbar, 
-and is hence not visible. The following is a fix from
-http://nicolasgallagher.com/jump-links-and-viewport-positioning
-and will work for all our div.section anchor links as long as the background
-is the same as the page background. */
-/*div.section:before {
-  display:block; 
-  content:""; 
-  height:61px; 
-  margin:-61px 0 0; 
-} */
 
-/* ADMONITIONS AND WARNINGS ------------------------------------------------- */
+/* Admonitions and warnings ------------------------------------------------- */
 
 /* Shared by admonitions and warnings */
 div.admonition,
@@ -605,85 +498,4 @@ div.warning {
 }
 div.warning p.admonition-title {
     background-color: #b04040;
-}
-
-
-/* Other divs and things in the body
-
-
-div.admonition p.admonition-title + p {
-    display: inline;
-}
-
-div.admonition p {
-    margin-bottom: 5px;
-}
-
-div.admonition pre {
-    margin-bottom: 5px;
-}
-
-div.admonition ul, div.admonition ol {
-    margin-bottom: 5px;
-}
-
-div.note {
-    background-color: #eee;
-    border: 1px solid #ccc;
-}
-
-div.seealso {
-    background-color: #ffc;
-    border: 1px solid #ff6;
-}
-
-div.topic {
-    background-color: #eee;
-}
-
-div.warning {
-    background-color: #ffe4e4;
-    border: 1px solid #f66;
-}
-
-p.admonition-title {
-    display: inline;
-}
-
-p.admonition-title:after {
-    content: ":";
-}
-*/
-
-tt {
-    /*background-color: #ecf0f3;*/
-    padding: 0 1px 0 1px;
-    font-size: 0.95em;
-}
-
-th {
-    background-color: #dddddd;
-}
-
-.warning tt {
-    /*background: #efc2c2; */
-}
-
-.note tt {
-    /*background: #d6d6d6;*/
-}
-
-.viewcode-back {
-    font-family: sans-serif;
-}
-
-div.viewcode-block:target {
-    background-color: #f4debf;
-    border-top: 1px solid #ac9;
-    border-bottom: 1px solid #ac9;
-}
-
-table.docutils {
-    border-spacing: 5px;
-    border-collapse: separate;
 }
