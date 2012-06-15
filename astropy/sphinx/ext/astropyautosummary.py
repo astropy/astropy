@@ -82,11 +82,6 @@ class AstropyAutosummary(Autosummary):
 
             items.append((display_name, sig, summary, real_name))
 
-        print '\ninside!'
-        for i in items:
-            print i[0]
-        print '\n'
-
         return items
 
 
