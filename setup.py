@@ -26,10 +26,12 @@ from astropy import setup_helpers
 from astropy.version_helper import get_git_devstr, generate_version_py
 
 #version should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-version = '0.0.dev'
+version = '0.1.dev'
 
 # Indicates if this version is a release version
 release = 'dev' not in version
+
+download_base_url = 'http://cloud.github.com/downloads/astropy/astropy'
 
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
@@ -87,6 +89,16 @@ if setup_helpers.AstropyBuildSphinx is not None:
     cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
 
 
+# Currently the only entry points installed by Astropy are hooks to
+# zest.releaser for doing Astropy's releases
+entry_points = {}
+for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
+    hook_ep = 'zest.releaser.' + '.'.join(hook)
+    hook_name = 'astropy.release.' + '.'.join(hook)
+    hook_func = 'astropy.utils.release:' + '_'.join(hook)
+    entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
+
+
 setup(name='astropy',
       version=version,
       description='Community-developed python astronomy tools',
@@ -103,7 +115,9 @@ setup(name='astropy',
       license='BSD',
       url='http://astropy.org',
       long_description=astropy.__doc__,
+      download_url='%s/astropy-%s.tar.gz' % (download_base_url, version),
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True
+      use_2to3=True,
+      entry_points=entry_points
       )
