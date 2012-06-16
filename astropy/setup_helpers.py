@@ -333,7 +333,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         if ext.name == 'skip_cython':
             del extensions[i]
 
-    if not HAVE_CYTHON:
+    if release or not HAVE_CYTHON:
         # Replace .pyx with C-equivalents, unless c files are missing
         for idx, ext in reversed(list(enumerate(extensions))):
             for jdx, src in enumerate(ext.sources):
