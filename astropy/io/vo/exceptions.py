@@ -444,7 +444,7 @@ class W11(VOTableSpecWarning):
     """
     Earlier versions of the VOTable specification used a ``gref``
     attribute on the ``LINK`` element to specify a `GLU reference
-    <http://simbad3.u-strasbg.fr/glu/glu.htx>`__.  New files should
+    <http://aladin.u-strasbg.fr/glu/>`__.  New files should
     specify a ``glu:`` protocol using the ``href`` attribute.
 
     Since ``vo.table`` does not currently support GLU references, it
