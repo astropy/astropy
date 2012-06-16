@@ -24,8 +24,10 @@ def releaser_middle(data):
     from zest.releaser.release import Releaser
 
     # Copied verbatim from zest.releaser, but with the cmd string modified to
-    # use the -s option to create a signed tag
+    # use the -s option to create a signed tag and add the 'v' in front of the
+    # version number
     def _my_create_tag(self, version):
+        version = 'v' + version
         msg = "Tagging %s" % (version,)
         cmd = 'git tag -s %s -m "%s"' % (version, msg)
         if os.path.isdir('.git/svn'):
