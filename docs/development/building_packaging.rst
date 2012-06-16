@@ -1,6 +1,6 @@
-===============================================
-Building, Cython/C Extensions, and Distribution
-===============================================
+============================================
+Building, Cython/C Extensions, and Releasing
+============================================
 
 The build process currently uses the
 `Distribute <http://packages.python.org/distribute/>`_ package to build and
@@ -158,13 +158,17 @@ To create a new public/private key pair, simply run::
 
     $ gpg --gen-key
 
-This will take you through a few interactive steps.  For the encryption and
-expiry settings, it should be safe to use the default settings (I use a key
-size of 4096 just because what does a couple extra kilobytes hurt?)  Enter your
-full name, preferably including your middle name or middle initial, and an
-e-mail address that you expect to be active for a decent amount of time.
-Finally, choose a very good pass phrase that won't be easily subject to brute
-force attacks.
+This will take you through a few interactive steps. For the encryption
+and expiry settings, it should be safe to use the default settings (I use
+a key size of 4096 just because what does a couple extra kilobytes
+hurt?) Enter your full name, preferably including your middle name or
+middle initial, and an e-mail address that you expect to be active for a
+decent amount of time. Note that this name and e-mail address must match
+the info you provide as your git configuration, so you should either
+choose the same name/e-mail address when you create your key, or update
+your git configuration to match the key info. Finally, choose a very good
+pass phrase that won't be easily subject to brute force attacks.
+
 
 If you expect to use the same key for some time, it's good to make a backup of
 both your public and private key::
@@ -238,6 +242,12 @@ You can use this to verify signed tags from any repository as long as you have
 the signer's public key in your keyring.  In this case you signed the tag
 yourself, so you already have your public key.
 
+Note that if you are planning to do a release following the steps below, you
+will want to delete the tag you just created, because the release script does
+that for you.  You can delete this tag by doing::
+
+    $ git tag -d v0.1
+
 Release Procedure
 ^^^^^^^^^^^^^^^^^
 
@@ -254,74 +264,88 @@ repeat for each release.  The advantage of using an automated or semi-automated
 procedure is that ensures a consistent release process each time.
 
  1. Install virtualenv if you don't already have it.  See the linked virtualenv
-    documentation for details.
+    documentation for details.  Also, make sure that you have `cython`_
+    installed, as you will need it to generate the .c files needed for the
+    release.
 
  2. Create and activate a virtualenv::
 
     $ virtualenv --system-site-packages --distribute astropy-release
     $ source astropy-release/bin/activate
 
- 3. From the root of the Astropy repository, install Astropy into the
+ 3. Obtain a *clean* version of the Astropy repository.  That is, one
+    where you don't have any intermediate build files.  Either use a fresh
+    ``git clone`` or do ``git clean -dfx``.
+
+ 4. Be sure you're the "master" branch, and install Astropy into the
     virtualenv::
 
-    $ python setup.py install astropy
+    $ python setup.py install
 
- 4. Install zest.releaser into the virtualenv::
+    This is necessary for two reasons.  First, the entry points for the
+    releaser scripts need to be availale, and these are in the Astropy
+    package. Second, the build process will generate .c files from the
+    Cython .pyx files, and the .c files are necessary for the source
+    distribution.
+
+ 5. Install zest.releaser into the virtualenv::
 
     $ pip install zest.releaser
 
- 5. Ensure that all changes to the code have been committed, then start the
+ 6. Ensure that all changes to the code have been committed, then start the
     release by running::
 
     $ fullrelease
 
- 6. You will be asked to enter the version to be released.  Press enter to
+ 7. You will be asked to enter the version to be released.  Press enter to
     accept the default (which will normally be correct) or enter a specific
     version string.  A diff will then be shown of CHANGES.rst and setup.py
     showing that a release date has been added to the changelog, and that the
     version has been updated in setup.py.  Enter 'Y' when asked to commit
     these changes.
 
- 7. You will then be shown the command that will be run to tag the release.
+ 8. You will then be shown the command that will be run to tag the release.
     Enter 'Y' to confirm and run the command.
 
- 8. When asked "Check out the tag (for tweaks or pypi/distutils server
+ 9. When asked "Check out the tag (for tweaks or pypi/distutils server
     upload)" enter 'N': We will be uploading the source to GitHub instead of
     PyPI, so for now registering on PyPI and uploading the source will be
     performed manually.
 
- 9. You will be asked to enter a new development version.  Normally the next
-    logical version will be selected--press enter to accept the default, or
-    enter a specific version string.  Do not add ".dev" to the version, as
-    this will be appended automatically (ignore the message that says ".dev0
-    will be appended"--it will actually be ".dev" without the 0).  For
-    example, if the just-released version was "0.1" the default next version
-    will be "0.2".  If we want the next version to be, say "1.0" then that
-    must be entered manually.
+ 10. You will be asked to enter a new development version.  Normally the next
+     logical version will be selected--press enter to accept the default, or
+     enter a specific version string.  Do not add ".dev" to the version, as
+     this will be appended automatically (ignore the message that says ".dev0
+     will be appended"--it will actually be ".dev" without the 0).  For
+     example, if the just-released version was "0.1" the default next version
+     will be "0.2".  If we want the next version to be, say "1.0" then that
+     must be entered manually.
 
- 10. You will be shown a diff of CHANGES.rst showing that a new section has
+ 11. You will be shown a diff of CHANGES.rst showing that a new section has
      been added for the new development version, and showing that the version
      has been updated in setup.py.  Enter 'Y' to commit these changes.
 
- 11. When asked to push the changes to a remote repository, enter 'Y'.  This
+ 12. When asked to push the changes to a remote repository, enter 'Y'.  This
      should complete the portion of the process that's automated at this point.
 
- 12. Check out the tag of the released version.  For example::
+ 13. Check out the tag of the released version.  For example::
 
-     $ git checkout "v0.1"
+     $ git checkout 0.1
 
- 13. Create the source distribution with ``python setup.py sdist`` and upload
-     it to GitHub.
+ 14. Create the source distribution with ``python setup.py sdist``. Copy
+     the produced ``.tar.gz`` somewhere and verify that you can unpack it,
+     build it, and get all the tests to pass. If all looks good, upload the
+     file to the GitHub "downloads" section.
 
- 14. Register the release on PyPI with ``python setup.py register``.
+ 15. Register the release on PyPI with ``python setup.py register``.
 
- 15. Ensure that website and front page of docs are updated to reflect the fact
+ 16. Ensure that website and front page of docs are updated to reflect the fact
      there is now a stable release.
 
- 16. Update Readthedocs so that it builds docs for the corresponding github tag,
+ 17. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
 
- 17. Create a bug fix branch.  If the version just was released was a "X.Y.0"
+ 18. Create a bug fix branch.  If the version just was released was a "X.Y.0"
      version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
      it is good to create a bug fix branch as well.  Starting from the tagged
      changset, just checkout a new branch and push it to the remote server.
@@ -330,8 +354,12 @@ procedure is that ensures a consistent release process each time.
      $ git checkout -b 0.1.x
      $ git push upstream +0.1.x
 
+    .. note::
+        You may need to replace ``upstream`` here with ``astropy`` or
+        whatever remote name you use for the main astropy repository.
+
      The purpose of this branch is for creating bug fix releases like "0.1.1"
-     and "0.1.2", while allowing development of new features to continue in 
+     and "0.1.2", while allowing development of new features to continue in
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
 
@@ -339,6 +367,7 @@ procedure is that ensures a consistent release process each time.
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
 .. _zest.releaser: http://pypi.python.org/pypi/zest.releaser
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _cython: http://www.cython.org/
 
 Future directions
 -----------------
