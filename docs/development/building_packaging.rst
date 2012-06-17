@@ -263,21 +263,28 @@ This may seem like a lot of steps, but most of them won't be necessary to
 repeat for each release.  The advantage of using an automated or semi-automated
 procedure is that ensures a consistent release process each time.
 
- 1. Install virtualenv if you don't already have it.  See the linked virtualenv
+ 1. Update the list of contributors in the ``creditsandlicense.rst`` file. The
+    easiest way to check this is do::
+
+        $ git shortlog -s
+
+    And just add anyone from that list who isn't already credited.
+
+ 2. Install virtualenv if you don't already have it.  See the linked virtualenv
     documentation for details.  Also, make sure that you have `cython`_
     installed, as you will need it to generate the .c files needed for the
     release.
 
- 2. Create and activate a virtualenv::
+ 3. Create and activate a virtualenv::
 
     $ virtualenv --system-site-packages --distribute astropy-release
     $ source astropy-release/bin/activate
 
- 3. Obtain a *clean* version of the Astropy repository.  That is, one
+ 4. Obtain a *clean* version of the Astropy repository.  That is, one
     where you don't have any intermediate build files.  Either use a fresh
     ``git clone`` or do ``git clean -dfx``.
 
- 4. Be sure you're the "master" branch, and install Astropy into the
+ 5. Be sure you're the "master" branch, and install Astropy into the
     virtualenv::
 
     $ python setup.py install
@@ -288,31 +295,31 @@ procedure is that ensures a consistent release process each time.
     Cython .pyx files, and the .c files are necessary for the source
     distribution.
 
- 5. Install zest.releaser into the virtualenv::
+ 6. Install zest.releaser into the virtualenv::
 
     $ pip install zest.releaser
 
- 6. Ensure that all changes to the code have been committed, then start the
+ 7. Ensure that all changes to the code have been committed, then start the
     release by running::
 
     $ fullrelease
 
- 7. You will be asked to enter the version to be released.  Press enter to
+ 8. You will be asked to enter the version to be released.  Press enter to
     accept the default (which will normally be correct) or enter a specific
     version string.  A diff will then be shown of CHANGES.rst and setup.py
     showing that a release date has been added to the changelog, and that the
     version has been updated in setup.py.  Enter 'Y' when asked to commit
     these changes.
 
- 8. You will then be shown the command that will be run to tag the release.
+ 9. You will then be shown the command that will be run to tag the release.
     Enter 'Y' to confirm and run the command.
 
- 9. When asked "Check out the tag (for tweaks or pypi/distutils server
-    upload)" enter 'N': We will be uploading the source to GitHub instead of
-    PyPI, so for now registering on PyPI and uploading the source will be
-    performed manually.
+ 10. When asked "Check out the tag (for tweaks or pypi/distutils server
+     upload)" enter 'N': We will be uploading the source to GitHub instead of
+     PyPI, so for now registering on PyPI and uploading the source will be
+     performed manually.
 
- 10. You will be asked to enter a new development version.  Normally the next
+ 11. You will be asked to enter a new development version.  Normally the next
      logical version will be selected--press enter to accept the default, or
      enter a specific version string.  Do not add ".dev" to the version, as
      this will be appended automatically (ignore the message that says ".dev0
@@ -321,31 +328,31 @@ procedure is that ensures a consistent release process each time.
      will be "0.2".  If we want the next version to be, say "1.0" then that
      must be entered manually.
 
- 11. You will be shown a diff of CHANGES.rst showing that a new section has
+ 12. You will be shown a diff of CHANGES.rst showing that a new section has
      been added for the new development version, and showing that the version
      has been updated in setup.py.  Enter 'Y' to commit these changes.
 
- 12. When asked to push the changes to a remote repository, enter 'Y'.  This
+ 13. When asked to push the changes to a remote repository, enter 'Y'.  This
      should complete the portion of the process that's automated at this point.
 
- 13. Check out the tag of the released version.  For example::
+ 14. Check out the tag of the released version.  For example::
 
      $ git checkout 0.1
 
- 14. Create the source distribution with ``python setup.py sdist``. Copy
+ 15. Create the source distribution with ``python setup.py sdist``. Copy
      the produced ``.tar.gz`` somewhere and verify that you can unpack it,
      build it, and get all the tests to pass. If all looks good, upload the
      file to the GitHub "downloads" section.
 
- 15. Register the release on PyPI with ``python setup.py register``.
+ 16. Register the release on PyPI with ``python setup.py register``.
 
- 16. Ensure that website and front page of docs are updated to reflect the fact
+ 17. Ensure that website and front page of docs are updated to reflect the fact
      there is now a stable release.
 
- 17. Update Readthedocs so that it builds docs for the corresponding github tag,
+ 18. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
 
- 18. Create a bug fix branch.  If the version just was released was a "X.Y.0"
+ 19. Create a bug fix branch.  If the version just was released was a "X.Y.0"
      version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
      it is good to create a bug fix branch as well.  Starting from the tagged
      changset, just checkout a new branch and push it to the remote server.

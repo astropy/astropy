@@ -35,6 +35,7 @@ User Documentation
    utils/index
    configs/index
    logging
+   creditsandlicense
 
 .. _developer-docs:
 
