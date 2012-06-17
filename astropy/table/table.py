@@ -1104,9 +1104,35 @@ class Table(object):
             if len(valid_formats) == 0:
                 raise Exception("Format could not be identified")
             elif len(valid_formats) > 1:
-                raise Exception("Format is ambiguous - options are: " + str(valid_formats))
+                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
             else:
                 format = valid_formats[0]
 
         reader = get_reader(format)
         reader(self, *args, **kwargs)
+
+    def write(self, *args, **kwargs):
+        '''
+        Write a table
+
+        The arguments passed to this method depend on the format
+        '''
+
+        if 'format' in kwargs:
+            format = kwargs.pop('format')
+        else:
+            format = None
+
+        if format is None:
+
+            valid_formats = identify_format(args, kwargs)
+
+            if len(valid_formats) == 0:
+                raise Exception("Format could not be identified")
+            elif len(valid_formats) > 1:
+                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
+            else:
+                format = valid_formats[0]
+
+        writer = get_writer(format)
+        writer(self, *args, **kwargs)
