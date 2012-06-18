@@ -15,7 +15,7 @@ from .table import _TableBaseHDU
 from ..file import PYTHON_MODES, _File
 from ..header import BLOCK_SIZE, _pad_length
 from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
-                    fileobj_mode, ignore_sigint, _get_array_memmap)
+                    fileobj_mode, ignore_sigint, _get_array_memmap, indent)
 from ..verify import _Verify, _ErrList, VerifyError
 
 
