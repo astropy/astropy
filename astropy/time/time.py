@@ -277,8 +277,8 @@ class Time(object):
             subseconds = self.subseconds
 
         if isinstance(self.seconds, np.ndarray):
-            td = covert_seconds_to_timedelta(self.tai.seconds,
-                                             self.tai.subseconds)
+            td = convert_seconds_to_timedelta(self.tai.seconds,
+                                              self.tai.subseconds)
         else:
             td = datetime.timedelta(seconds=int(self.tai.seconds),
                                     microseconds=self.tai.subseconds * 1e6)
