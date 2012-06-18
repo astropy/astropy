@@ -269,10 +269,18 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_illegal_characters_in_key(self):
         """
-        Test that Card constructor disallows illegal characters in the keyword
+        Test that Card constructor allows illegal characters in the keyword,
+        but creates a HIERARCH card.
         """
 
-        pytest.raises(ValueError, fits.Card, 'abc+', 9)
+        # This test used to check that a ValueError was raised, because a
+        # keyword like 'abc+' was simply not allowed.  Now it should create a
+        # HIERARCH card.
+
+        with warnings.catch_warnings(record=True) as w:
+            c = fits.Card('abc+', 9)
+            assert len(w) == 1
+            assert c.image == _pad('HIERARCH abc+ =                    9')
 
     def test_commentary_cards(self):
         # commentary cards
@@ -320,7 +328,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('abc     = (8, 9)')
         assert str(c) == _pad("ABC     =               (8, 9)")
 
-    def test_fixable_non_standard_fits_card(self):
+    def test_fixable_non_standard_fits_card(self, capsys):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring('abc     = +  2.1   e + 12')
         assert c.value == 2100000000000.0
@@ -341,29 +349,37 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('abc     =    ')
         assert str(c) == _pad("ABC     =")
 
-    def test_misalocated_equal_sign(self):
+    def test_mislocated_equal_sign(self, capsys):
         # test mislocated "=" sign
         c = fits.Card.fromstring('xyz= 100')
         assert c.keyword == 'XYZ'
         assert c.value == 100
         assert str(c) == _pad("XYZ     =                  100")
 
-    def test_equal_only_up_to_column_10(self):
+    def test_equal_only_up_to_column_10(self, capsys):
         # the test of "=" location is only up to column 10
-        c = fits.Card.fromstring("histo       =   (1, 2)")
-        assert str(c) == _pad("HISTO   = '=   (1, 2)'")
-        c = fits.Card.fromstring("   history          (1, 2)")
-        assert str(c) == _pad("HISTO   = 'ry          (1, 2)'")
 
-    def test_verify_invalid_equal_sign(self, capsys):
+        # This test used to check if PyFITS rewrote this card to a new format,
+        # something like "HISTO   = '=   (1, 2)".  But since ticket #109 if the
+        # format is completely wrong we don't make any assumptions and the card
+        # should be left alone
+        c = fits.Card.fromstring("histo       =   (1, 2)")
+        assert str(c) == _pad("histo       =   (1, 2)")
+
+        # Likewise this card should just be left in its original form and
+        # we shouldn't guess how to parse it or rewrite it.
+        c = fits.Card.fromstring("   history          (1, 2)")
+        assert str(c) == _pad("   history          (1, 2)")
+
+    def test_verify_invalid_equal_sign(self):
         # verification
         c = fits.Card.fromstring('abc= a6')
         with warnings.catch_warnings(record=True) as w:
             c.verify()
-            err_text1 = ('Card image is not FITS standard (equal sign not at '
-                         'column 8)')
-            err_text2 = ('Card image is not FITS standard (invalid value '
-                         'string: a6')
+            err_text1 = ("Card 'ABC' is not FITS standard (equal sign not at "
+                         "column 8)")
+            err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
+                         "string: a6")
             assert len(w) == 2
             assert err_text1 in str(w[0].message)
             assert err_text2 in str(w[1].message)
@@ -372,7 +388,7 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('abc= a6')
         with warnings.catch_warnings(record=True) as w:
             c.verify('fix')
-            fix_text = 'Fixed card to meet the FITS standard: ABC'
+            fix_text = "Fixed 'ABC' card to meet the FITS standard."
             assert len(w) == 2
             assert fix_text in str(w[0].message)
         assert str(c) == _pad("ABC     = 'a6      '")
@@ -483,7 +499,132 @@ class TestHeaderFunctions(FitsTestCase):
         header['hierarch abcdefghi'] = 10
         assert 'abcdefghi' in header
         assert header['abcdefghi'] == 10
-        assert 'ABCDEFGHI' not in header
+        assert 'ABCDEFGHI' in header
+
+    def test_hierarch_create_and_update(self):
+        """
+        Regression test for #158.  Tests several additional use cases for
+        working with HIERARCH cards.
+        """
+
+        msg = 'a HIERARCH card will be created'
+
+        header = fits.Header()
+        with warnings.catch_warnings(record=True) as w:
+            header.update('HIERARCH BLAH BLAH', 'TESTA')
+            assert len(w) == 0
+            assert 'BLAH BLAH' in header
+            assert header['BLAH BLAH'] == 'TESTA'
+
+            header.update('HIERARCH BLAH BLAH', 'TESTB')
+            assert len(w) == 0
+            assert header['BLAH BLAH'], 'TESTB'
+
+            # Update without explicitly stating 'HIERARCH':
+            header.update('BLAH BLAH', 'TESTC')
+            assert len(w) == 0
+            assert len(header) == 1
+            assert header['BLAH BLAH'], 'TESTC'
+
+            # Test case-insensitivity
+            header.update('HIERARCH blah blah', 'TESTD')
+            assert len(w) == 0
+            assert len(header) == 1
+            assert header['blah blah'], 'TESTD'
+
+            header.update('blah blah', 'TESTE')
+            assert len(w) == 0
+            assert len(header) == 1
+            assert header['blah blah'], 'TESTE'
+
+            # Create a HIERARCH card > 8 characters without explicitly stating
+            # 'HIERARCH'
+            header.update('BLAH BLAH BLAH', 'TESTA')
+            assert len(w) == 1
+            assert msg in str(w[0].message)
+
+            header.update('HIERARCH BLAH BLAH BLAH', 'TESTB')
+            assert len(w) == 1
+            assert header['BLAH BLAH BLAH'], 'TESTB'
+
+            # Update without explicitly stating 'HIERARCH':
+            header.update('BLAH BLAH BLAH', 'TESTC')
+            assert len(w) == 1
+            assert header['BLAH BLAH BLAH'], 'TESTC'
+
+            # Test case-insensitivity
+            header.update('HIERARCH blah blah blah', 'TESTD')
+            assert len(w) == 1
+            assert header['blah blah blah'], 'TESTD'
+
+            header.update('blah blah blah', 'TESTE')
+            assert len(w) == 1
+            assert header['blah blah blah'], 'TESTE'
+
+    def test_short_hierarch_create_and_update(self):
+        """
+        Regression test for #158.  Tests several additional use cases for
+        working with HIERARCH cards, specifically where the keyword is fewer
+        than 8 characters, but contains invalid characters such that it can
+        only be created as a HIERARCH card.
+        """
+
+        msg = 'a HIERARCH card will be created'
+
+        header = fits.Header()
+        with warnings.catch_warnings(record=True) as w:
+            header.update('HIERARCH BLA BLA', 'TESTA')
+            assert len(w) == 0
+            assert 'BLA BLA' in header
+            assert header['BLA BLA'] == 'TESTA'
+
+            header.update('HIERARCH BLA BLA', 'TESTB')
+            assert len(w) == 0
+            assert header['BLA BLA'], 'TESTB'
+
+            # Update without explicitly stating 'HIERARCH':
+            header.update('BLA BLA', 'TESTC')
+            assert len(w) == 0
+            assert header['BLA BLA'], 'TESTC'
+
+            # Test case-insensitivity
+            header.update('HIERARCH bla bla', 'TESTD')
+            assert len(w) == 0
+            assert len(header) == 1
+            assert header['bla bla'], 'TESTD'
+
+            header.update('bla bla', 'TESTE')
+            assert len(w) == 0
+            assert len(header) == 1
+            assert header['bla bla'], 'TESTE'
+
+        header = fits.Header()
+        with warnings.catch_warnings(record=True) as w:
+            # Create a HIERARCH card containing invalid characters without
+            # explicitly stating 'HIERARCH'
+            header.update('BLA BLA', 'TESTA')
+            assert len(w) == 1
+            assert msg in str(w[0].message)
+
+            header.update('HIERARCH BLA BLA', 'TESTB')
+            assert len(w) == 1
+            assert header['BLA BLA'], 'TESTB'
+
+            # Update without explicitly stating 'HIERARCH':
+            header.update('BLA BLA', 'TESTC')
+            assert len(w) == 1
+            assert header['BLA BLA'], 'TESTC'
+
+            # Test case-insensitivity
+            header.update('HIERARCH bla bla', 'TESTD')
+            assert len(w) == 1
+            assert len(header) == 1
+            assert header['bla bla'], 'TESTD'
+
+            header.update('bla bla', 'TESTE')
+            assert len(w) == 1
+            assert len(header) == 1
+            assert header['bla bla'], 'TESTE'
 
     def test_header_setitem_invalid(self):
         header = fits.Header()
@@ -1208,7 +1349,7 @@ class TestHeaderFunctions(FitsTestCase):
 
         # Create a header containing two of the problematic cards in the test
         # case where this came up:
-        hstr = "FOCALLEN= +1.550000000000e+002\nAPERTURE=+0.000000000000e+000"
+        hstr = "FOCALLEN= +1.550000000000e+002\nAPERTURE= +0.000000000000e+000"
         h = fits.Header.fromstring(hstr, sep='\n')
 
         # First the case that *does* work prior to fixing this issue
@@ -1536,6 +1677,45 @@ class TestHeaderFunctions(FitsTestCase):
 
         with fits.open(self.temp('test2.fits')) as hdul:
             assert hdul[0].header['HISTORY'] == history
+
+    def test_invalid_keyword_cards(self):
+        """
+        Test for #109.  Allow opening files with headers containing invalid
+        keywords.
+        """
+
+        # Create a header containing a few different types of BAD headers.
+        c1 = fits.Card.fromstring('CLFIND2D: contour = 0.30')
+        c2 = fits.Card.fromstring('Just some random text.')
+        c3 = fits.Card.fromstring('A' * 80)
+
+        hdu = fits.PrimaryHDU()
+        # This should work with some warnings
+        with warnings.catch_warnings(record=True) as w:
+            hdu.header.append(c1)
+            hdu.header.append(c2)
+            hdu.header.append(c3)
+            assert len(w) == 3
+
+        hdu.writeto(self.temp('test.fits'))
+
+        with warnings.catch_warnings(record=True) as w:
+            with fits.open(self.temp('test.fits')) as hdul:
+                # Merely opening the file should blast some warnings about the
+                # invalid keywords
+                header = hdul[0].header
+                assert 'CLFIND2D' in header
+                assert 'Just som' in header
+                assert 'AAAAAAAA' in header
+
+                assert header['CLFIND2D'] == ': contour = 0.30'
+                assert header['Just som'] == 'e random text.'
+                assert header['AAAAAAAA'] == 'A' * 72
+
+                # It should not be possible to assign to the invalid keywords
+                pytest.raises(ValueError, header.set, 'CLFIND2D', 'foo')
+                pytest.raises(ValueError, header.set, 'Just som', 'foo')
+                pytest.raises(ValueError, header.set, 'AAAAAAAA', 'foo')
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):

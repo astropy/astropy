@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-import sys
 import warnings
 
 from .util import indent
@@ -11,6 +10,12 @@ class VerifyError(Exception):
     Verify exception class.
     """
     pass
+
+
+class VerifyWarning(UserWarning):
+    """
+    Verify warning class.
+    """
 
 
 class _Verify(object):
@@ -63,13 +68,12 @@ class _Verify(object):
         if opt in ['fix', 'silentfix'] and 'Unfixable' in x:
             raise VerifyError('\n' + x)
         if opt not in ['silentfix', 'exception'] and x:
-            sys.stderr.write(u'Output verification result:\n')
+            warnings.warn(u'Output verification result:')
             for line in x.splitlines():
                 # Each line contains a single issue that was fixed--issue a
                 # separate warning for each of those issues
-                warnings.warn(line)
-            sys.stderr.write(u'Note: Astropy uses zero-based indexing for '
-                              'FITS file extensions and header keywords.\n')
+                warnings.warn(line, VerifyWarning)
+            warnings.warn(u'Note: PyFITS uses zero-based indexing.\n')
         if opt == 'exception' and x:
             raise VerifyError('\n' + x)
 

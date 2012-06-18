@@ -767,10 +767,18 @@ class Header(object):
         # Create a temporary card that looks like the one being set; if the
         # temporary card turns out to be a RVKC this will make it easier to
         # deal with the idiosyncrasies thereof
-        new_card = Card(keyword, value, comment)
+        # Don't try to make a temporary card though if they keyword looks like
+        # it might be a HIERARCH card or is otherwise invalid--this step is
+        # only for validating RVKCs.
+        if (len(keyword) <= 8 and Card._keywd_FSC_RE.match(keyword) and
+            keyword not in self._keyword_indices):
+            new_card = Card(keyword, value, comment)
+            new_keyword = new_card.keyword
+        else:
+            new_keyword = keyword
 
-        if (new_card.keyword in self and
-            new_card.keyword not in Card._commentary_keywords):
+        if (new_keyword not in Card._commentary_keywords and
+            new_keyword in self):
             if comment is None:
                 comment = self.comments[keyword]
             if value is None:
@@ -1135,7 +1143,7 @@ class Header(object):
             self._cards.insert(idx, card)
             self._updateindices(idx)
 
-        keyword = card.keyword
+        keyword = Card.normalize_keyword(card.keyword)
         self._keyword_indices[keyword].append(idx)
 
         if not end:
@@ -1369,7 +1377,7 @@ class Header(object):
             # There were already keywords with this same name
             if keyword not in Card._commentary_keywords:
                 warnings.warn(
-                    'A %s keyword already exists in this header.  Inserting '
+                    'A %r keyword already exists in this header.  Inserting '
                     'duplicate keyword.' % keyword)
             self._keyword_indices[keyword].sort()
 
@@ -1496,31 +1504,30 @@ class Header(object):
         is to use the insert(), append(), or extend() methods.
         """
 
-        if not isinstance(card, Card):
-            comment = card[-1]
-            card = Card(*card)
-        else:
-            comment = card.comment
+        keyword, value, comment = card
 
-        keyword = card.keyword
+        # Lookups for existing/known keywords are case-insensitive
+        keyword = keyword.upper()
+        if keyword.startswith('HIERARCH '):
+            keyword = keyword[9:]
 
         if (keyword not in Card._commentary_keywords and
-                keyword in self._keyword_indices):
+            keyword in self._keyword_indices):
             # Easy; just update the value/comment
             idx = self._keyword_indices[keyword][0]
             existing_card = self._cards[idx]
-            existing_card.value = card.value
+            existing_card.value = value
             if comment is not None:
                 # '' should be used to explictly blank a comment
-                existing_card.comment = card.comment
+                existing_card.comment = comment
             if existing_card._modified:
                 self._modified = True
         elif keyword in Card._commentary_keywords:
-            cards = self._splitcommentary(keyword, card.value)
+            cards = self._splitcommentary(keyword, value)
             if keyword in self._keyword_indices:
                 # Append after the last keyword of the same type
                 idx = self.index(keyword, start=len(self) - 1, stop=-1)
-                isblank = not (card.keyword or card.value or card.comment)
+                isblank = not (keyword or value or comment)
                 for c in reversed(cards):
                     self.insert(idx + 1, c, useblanks=(not isblank))
             else:

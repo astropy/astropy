@@ -102,6 +102,24 @@ before and after the data is touched
     >>> print hdu.header['bzero']
     KeyError: "Keyword 'bzero' not found."
 
+.. warning::
+    An important caveat to be aware of when dealing with scaled data in PyFITS,
+    is that when accessing the data via the .data attribute, the data is
+    automatically scaled with the BZERO and BSCALE parameters.  If the file was
+    opened in "update" mode, it will be saved with the rescaled data.  This
+    surprising behavior is a compromise to err on the side of not losing data:
+    If some floating point calculations were made on the data, rescaling it
+    when saving could result in a loss of information.
+
+    To prevent this automatic scaling, open the file with the
+    ``do_not_scale_image_data=True`` argument to ``pyfits.open()``.  This is
+    especially useful for updating some header values, while ensuring that the
+    data is not modified.
+
+    One may also manually reapply scale parameters by using ``hdu.scale()``
+    (see below).  Alternately, one may open files with the ``scale_back=True``
+    argument.  This assures that the original scaling is preserved when saving.
+
 
 Writing Scaled Image Data
 """""""""""""""""""""""""
@@ -111,13 +129,11 @@ scaled data as much as possible. However, Astropy does provide ways to write
 scaled data with the scale(type, option, bscale, bzero) method. Here are a few
 examples:
 
-    # scale the data to Int16 with user specified bscale/bzero
+    >>> # scale the data to Int16 with user specified bscale/bzero
     >>> hdu.scale('int16', bzero=32768)
-
-    # scale the data to Int32 with the min/max of the data range
+    >>> # scale the data to Int32 with the min/max of the data range
     >>> hdu.scale('int32', 'minmax')
-
-    # scale the data, using the original BSCALE/BZERO
+    >>> # scale the data, using the original BSCALE/BZERO
     >>> hdu.scale('int32', 'old')
 
 The first example above shows how to store an unsigned short integer array.
