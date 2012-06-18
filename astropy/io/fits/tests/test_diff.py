@@ -226,8 +226,10 @@ class TestDiff(FitsTestCase):
         c9 = Column('I', format='M', array=[4.0+5.0j, 6.0+7.0j])
         c10 = Column('J', format='PI(2)', array=[[0, 1], [2, 3]])
 
-        ta = new_table([c1, c2, c3, c4, c5, c6, c7, c8, c9, c10])
-        tb = new_table([c1, c2, c3, c4, c5, c6, c7, c8, c9, c10])
+        columns = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10]
+
+        ta = new_table(columns)
+        tb = new_table([c.copy() for c in columns])
 
         diff = TableDataDiff(ta.data, tb.data)
         assert diff.identical
@@ -298,6 +300,35 @@ class TestDiff(FitsTestCase):
         assert diff.diff_column_names == ([], ['A', 'C'])
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
+
+    def test_different_table_rows(self):
+        """
+        Test tables taht are otherwise identical but one has more rows than the
+        other.
+        """
+
+        ca1 = Column('A', format='L', array=[True, False])
+        cb1 = Column('B', format='L', array=[True, False])
+        ca2 = Column('A', format='L', array=[True, False, True])
+        cb2 = Column('B', format='L', array=[True, False, True])
+
+        ta = new_table([ca1, cb1])
+        tb = new_table([ca2, cb2])
+
+        diff = TableDataDiff(ta.data, tb.data)
+
+        assert not diff.identical
+        assert diff.diff_column_count == ()
+        assert len(diff.common_columns) == 2
+        assert diff.diff_rows == (2, 3)
+        assert diff.diff_values == []
+
+        report = diff.report()
+
+        assert 'Table rows differ' in report
+        assert 'a: 2' in report
+        assert 'b: 3' in report
+        assert 'No further data comparison performed.'
 
     def test_different_table_data(self):
         """

@@ -79,10 +79,10 @@ API Changes
        >>> header.comments['NAXIS']
        Number of axes
 
-  * ``Card`` objects can now be used interchangeably with ``(keyword, value,
-    comment)`` 3-tuples.  They still have ``.value`` and ``.comment``
-    attributes as well.  The ``.key`` attribute has been renamed to
-    ``.keyword`` for consistency, though ``.key`` is still supported (but
+  * ``Card`` objects can now be used interchangeably with
+    ``(keyword, value, comment)`` 3-tuples.  They still have ``.value`` and
+    ``.comment`` attributes as well.  The ``.key`` attribute has been renamed
+    to ``.keyword`` for consistency, though ``.key`` is still supported (but
     deprecated).
 
 - Memory mapping is now used by default to access HDU data.  That is,
@@ -178,6 +178,20 @@ New Features
   ``pyfits.diff`` module powers the new ``fitsdiff`` program installed with
   PyFITS.  After installing PyFITS, run ``fitsdiff --help`` for usage details.
 
+- ``pyfits.open()`` now accepts a ``scale_back`` argument.  If set to
+  ``True``, this automatically scales the data using the original BZERO and
+  BSCALE parameters the file had when it was first opened, if any, as well as
+  the original BITPIX.  For example, if the original BITPIX were 16, this
+  would be equivalent to calling ``hdu.scale('int16', 'old')`` just before
+  calling ``flush()`` or ``close()`` on the file.  This option applies to all
+  HDUs in the file. (#120)
+
+- ``pyfits.open()`` now accepts a ``save_backup`` argument.  If set to
+  ``True``, this automatically saves a backup of the original file before
+  flushing any changes to it (this of course only applies to update and append
+  mode).  This may be especially useful when working with scaled image data.
+  (#121)
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -207,8 +221,11 @@ Bug Fixes
   opened with checksum=False.  This change in behavior prevents checksums from
   being unintentionally removed. (#148)
 
+- Fixed a bug where ``ImageHDU.scale(option='old')`` wasn't working at all--it
+  was not restoring the image to its original BSCALE and BZERO values. (#162)
 
-3.0.8 (unreleased)
+
+3.0.8 (2012-06-04)
 ---------------------
 
 Changes in Behavior
@@ -794,8 +811,7 @@ The following enhancements were made:
     >>> print table.field('c2') # this is the data for column 2
     ['abc' 'xy']
     >>> print table['c2'] # this is also the data for column 2
-    array(['abc', 'xy '],
-    dtype='|S3')
+    array(['abc', 'xy '], dtype='\|S3')
     >>> print table[1] # this is the data for row 1
     (2, 'xy', 6.6999997138977054, True)
 

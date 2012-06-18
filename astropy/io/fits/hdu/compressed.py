@@ -291,7 +291,7 @@ class CompImageHDU(BinTableHDU):
             return True
         elif not COMPRESSION_SUPPORTED:
             warnings.warn('Failure matching header to a compressed image '
-                          'HDU.\nThe compression module is not available.\n'
+                          'HDU: The compression module is not available.\n'
                           'The HDU will be treated as a Binary Table HDU.')
             return False
         else:

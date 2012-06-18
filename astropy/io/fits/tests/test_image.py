@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import math
 import os
 import shutil
 import time
@@ -702,8 +703,32 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
 
         hdul = fits.open(self.temp('scale.fits'))
-        assert hdul[0].shape, (42 == 10)
+        assert hdul[0].shape == (42, 10)
         assert hdul[0].data.dtype == np.dtype('>f4')
         assert hdul[0].header['BITPIX'] == -32
         assert 'BZERO' not in hdul[0].header
         assert 'BSCALE' not in hdul[0].header
+
+    def test_scale_back(self):
+        """A simple test for #120--the scale_back feature for image HDUs."""
+
+        shutil.copy(self.data('scale.fits'), self.temp('scale.fits'))
+        with fits.open(self.temp('scale.fits'), mode='update',
+                       scale_back=True) as hdul:
+            orig_bitpix = hdul[0].header['BITPIX']
+            orig_bzero = hdul[0].header['BZERO']
+            orig_bscale = hdul[0].header['BSCALE']
+            orig_data = hdul[0].data.copy()
+            hdul[0].data[0] = 0
+
+        with fits.open(self.temp('scale.fits'),
+                         do_not_scale_image_data=True) as hdul:
+            assert hdul[0].header['BITPIX'] == orig_bitpix
+            assert hdul[0].header['BZERO'] == orig_bzero
+            assert hdul[0].header['BSCALE'] == orig_bscale
+
+            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            assert (hdul[0].data[0] == zero_point).all()
+
+        with fits.open(self.temp('scale.fits')) as hdul:
+            assert (hdul[0].data[1:] == orig_data[1:]).all()
