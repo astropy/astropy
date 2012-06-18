@@ -46,7 +46,7 @@ will include a tool to install affiliated packages by name. See the
 :mod:`~astropy.config` module documentation for details about the
 affiliated package registry and install tool. Note that affiliated
 packages do not use the `astropy` namespace, which is reserved for the
-core. Instead, theyeither use their package name directly, or
+core. Instead, they either use their package name directly, or
 `awastropy.packagename` ("affiliated with astropy").
 
 If you are interested in starting an affiliated package, or have a
