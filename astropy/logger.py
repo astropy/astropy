@@ -57,7 +57,7 @@ LOG_TO_FILE = ConfigurationItem('log_to_file', True,
                                 "Whether to always log messages to a log "
                                 "file")
 
-LOG_FILE_PATH = ConfigurationItem('log_file_path', None,
+LOG_FILE_PATH = ConfigurationItem('log_file_path', '',
                                   "The file to log messages to")
 
 LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'INFO',
@@ -501,7 +501,7 @@ class AstropyLogger(Logger):
             log_file_path = LOG_FILE_PATH()
 
             # "None" as a string because it comes from config
-            if log_file_path == 'None' or _ASTROPY_TEST_:
+            if log_file_path == '' or _ASTROPY_TEST_:
                 log_file_path = os.path.join(
                     config.get_config_dir(), "astropy.log")
             else:
