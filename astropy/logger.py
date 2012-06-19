@@ -10,6 +10,7 @@ import warnings
 from contextlib import contextmanager
 
 from .config import ConfigurationItem
+from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
@@ -56,7 +57,7 @@ LOG_TO_FILE = ConfigurationItem('log_to_file', True,
                                 "Whether to always log messages to a log "
                                 "file")
 
-LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
+LOG_FILE_PATH = ConfigurationItem('log_file_path', None,
                                   "The file to log messages to")
 
 LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'INFO',
@@ -499,8 +500,17 @@ class AstropyLogger(Logger):
         # Set up the main log file handler if requested (but this might fail if
         # configuration directory or log file is not writeable).
         if LOG_TO_FILE() and not os.environ.get('ASTROPY_TESTS_RUNNING'):
+            log_file_path = LOG_FILE_PATH()
+
+            # "None" as a string because it comes from config
+            if log_file_path == 'None' or _ASTROPY_TEST_:
+                log_file_path = os.path.join(
+                    config.get_config_dir(), "astropy.log")
+            else:
+                log_file_path = os.path.expanduser(log_file_path)
+
             try:
-                fh = FileHandler(os.path.expanduser(LOG_FILE_PATH()))
+                fh = FileHandler(log_file_path)
             except IOError:
                 pass
             else:
