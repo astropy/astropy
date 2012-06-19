@@ -16,7 +16,11 @@ class UnitsException(Exception) :
     pass
 
 class UnitBase(object) :
-    """Base class for units"""
+    """Abstract Base class for units
+    
+    Should not be used by users directly
+    """
+    # may use standard library ABC module instead
 
     def __init__(self) :
         raise ValueError, "Cannot directly initialize abstract base class"
@@ -86,10 +90,22 @@ class UnitBase(object) :
         return False
 
     def converter_to(self, other):
-        """return the conversion function between this Unit and another
-        specified unit. This function normally expects a single argument
+        """return the conversion function to convert values from to the specified unit
+        
+        Parameters
+        ----------
+        other: unit object or string that can be converted to a unit object
+        
+        Returns
+        -------
+        A function that normally expects a single argument
         that is a scalar value or an array of values (or anything that may
-        be converted to an array). 
+        be converted to an array). Subclasses may add extra arguments 
+        
+        Raise
+        -----
+        UnitException
+            If units are inconsistent
         """
 
         if isinstance(other, str) :
@@ -101,7 +117,24 @@ class UnitBase(object) :
             raise UnitsException, "Not convertible"
 
     def convert_to(self, other, value):
-        """Convert a value or value array to the specified unit"""
+        """return the converted values in the specified unit
+        
+        Parameters
+        ----------
+        other: unit object or string that can be converted to a unit object
+        value: scalar int or float, or sequence that can be converted to array
+            value(s) in the current unit to be converted to the specified unit
+        
+        Returns
+        -------
+        Converted value(s). Input value sequences are returned as numpy arrays
+        
+        Raise
+        -----
+        UnitException
+            If units are inconsistent
+        """
+
         return self.converter_to(other)(value)
 
     comment  = '''
@@ -136,9 +169,16 @@ class UnitBase(object) :
         '''
     
     def irrep(self) :
-        """Return a unit equivalent to this one (may be identical) but
-        expressed in terms of the currently defined IrreducibleUnit
-        instances."""
+        """Return a unit object composed of only irreducible units
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        New CompositeUnit object containing only irreducible unit objects
+        """
         return self
 
     def _register_unit(self, st) :
@@ -158,7 +198,13 @@ class UnitBase(object) :
 
 
 class IrreducibleUnit(UnitBase) :
+    """Irreducible units all other units of the same kind are defined in terms of
+    
+    Examples are meters, seconds, kilograms, coulombs, etc. There is only 
+    once instance of such a unit per type.
+    """
     def __init__(self, st) :
+        """"""
         self._st_rep = st
         self._register_unit(st)
 
@@ -167,6 +213,12 @@ class IrreducibleUnit(UnitBase) :
         return self._st_rep
 
     def latex(self) :
+        """Generate latex representation of unit name
+
+        Returns
+        -------
+        Latex string
+        """
         return r"\mathrm{"+self._st_rep+"}"
 
     def irrep(self) :
@@ -183,23 +235,45 @@ class NamedUnit(UnitBase) :
         self._register_unit(st)
 
     def __str__(self) :
+        """Return string representation for unit"""
         return self._st_rep
 
     def latex(self) :
+        """Generate latex representation of unit name
+        
+        Prefactors are converted into exponent notation. Named units by default
+        are represented by the string '\mathrm{unit_name}', although this can
+        be overriden be overriden by setting unit_name._latex.
+        
+        Returns
+        -------
+        Latex string
+        """
         if hasattr(self,'_latex') :
             return self._latex
         return r"\mathrm{"+self._st_rep+"}"
 
     def irrep(self) :
+        """Return a unit object composed of only irreducible units
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        New CompositeUnit object containing only irreducible unit objects
+        """
         return self._represents.irrep()
 
 
 class CompositeUnit(UnitBase) :
     def __init__(self, scale, bases, powers) :
-        """Initialize a composite unit.
+        """Create a composite unit using expressions of previously defined units.
 
         Direct use of this function is not recommended. Instead use the
-        factory function Unit(...)."""
+        factory function Unit(...).
+        """
         
         if scale==1. :
             scale = 1
@@ -209,12 +283,16 @@ class CompositeUnit(UnitBase) :
         self._powers = powers
 
     def latex(self) :
-        """Returns a LaTeX representation of this unit.
-
+        """Generate latex representation of unit name
+        
         Prefactors are converted into exponent notation. Named units by default
         are represented by the string '\mathrm{unit_name}', although this can
-        be overriden in the pynbody configuration files or by setting
-        unit_name._latex."""
+        be overriden by setting unit_name._latex.
+        
+        Returns
+        -------
+        Latex string
+        """
         
         if self._scale!=1 :
             x = ("%.2e"%self._scale).split('e')
@@ -240,6 +318,7 @@ class CompositeUnit(UnitBase) :
 
 
     def __str__(self) :
+        """Return string representation for unit"""
         s=None
         if len(self._bases)==0 :
             return "%.2e"%self._scale
@@ -317,9 +396,11 @@ class CompositeUnit(UnitBase) :
 
 
     def copy(self) :
-        """Create a copy which is 'shallow' in the sense that it
-        references exactly the same underlying base units, but where
-        the list of those units can be manipulated separately."""
+        """Create a shallow copy 
+        
+        The returned copy references exactly the same underlying base units, 
+        but where the list of those units can be manipulated separately.
+        """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
     def __copy__(self) :
@@ -332,16 +413,15 @@ class CompositeUnit(UnitBase) :
         return self
 
     def irrep(self) :
-        """Return a new unit which represents this unit expressed
-        solely in terms of IrreducibleUnit bases."""
+        """Return a unit object composed of only irreducible units"""
+
         x = self.copy()
         x._expand(True)
         x._gather()
         return x
 
     def is_dimensionless(self) :
-        """Returns true if this unit actually translates into a scalar
-        quantity."""
+        """True if this unit actually translates into a scalar quantity."""
         x = self.irrep()
         if len(x._powers)==0 :
             return True
@@ -349,11 +429,9 @@ class CompositeUnit(UnitBase) :
     def dimensionless_constant(self) :
         """If this unit is dimensionless, return its scalar quantity.
 
-        Direct use of this function is not recommended. It is generally
-        better to use the ratio function instead.
-        
-        Provide keyword arguments to set values for named IrreducibleUnits --
-        see the ratio function for more information."""
+        Direct use of this method is not recommended. It is generally
+        better to use the convert_to or converter_to methods instead.
+        """
         
         x = self.irrep()
         c = x._scale
@@ -451,19 +529,25 @@ class CompositeUnit(UnitBase) :
         
 def Unit(s) :
     """
-    Class factory for units. Given a string s, creates
-    a Unit object.
+    Class factory function for units. 
+    
+    Given a string s, creates a Unit object.
+    
+    Parameters
+    ----------
+    s : string
+      The string format is:
+          [<scale>] [<unit_name>][**<rational_power>] [[<unit_name>] ... ]
 
-    The string format is:
-      [<scale>] [<unit_name>][**<rational_power>] [[<unit_name>] ... ]
+    Returns
+    -------
+    Unit object
 
-    for example:
-
-      "1.e30 kg"
-
-      "kpc**2"
-
-      "26.2 m s**-1"
+    Examples
+    --------
+    >>> Unit("1.e30 kg")
+    >>> Unit("kpc**2")
+    >>> Unit("26.2 m s**-1")
     """
 
     if isinstance(s, UnitBase):
@@ -504,6 +588,20 @@ def argcondition(value):
     
     Will convert into an array if not a scalar, and can be converted 
     into an array
+    
+    Parameters
+    ----------
+    value: int or float value, or sequence of such values
+        that can be converted into an array if not scalar
+        
+    Returns
+    -------
+    Scalar value or numpy array
+    
+    Raises
+    ------
+    ValueError
+        If value is not as expected
     """
     if isinstance(value, float) or isinstance(value, int):
         return value
