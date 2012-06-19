@@ -23,9 +23,14 @@ class UnitBase(object) :
         pass
 
     def __pow__(self, p) :
-        if isinstance(p, tuple) :
+        if isinstance(p, tuple) and len(p)==2:
             p = Fraction(p[0],p[1])
+        else:
+            # allow two possible floating point fractions, all others illegal
+            if not int(2*p) == 2*p:
+                raise ValueError, "floating values for unit powers must be integers or integers +0.5"               
         return CompositeUnit(1, [self], [p]).simplify()
+        
 
     def __div__(self, m) :
         if isinstance(m, UnitBase) :
