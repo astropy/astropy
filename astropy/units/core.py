@@ -5,10 +5,7 @@ Core units classes and functions
 
 import re, keyword
 import numpy as np
-#dd from . import backcompat
-#dd from .backcompat import fractions
 import fractions
-#dd from . import util
 import functools
 
 Fraction = fractions.Fraction
@@ -40,7 +37,7 @@ class UnitBase(object) :
         return CompositeUnit(m, [self], [-1]).simplify()
 
     def __mul__(self, m) :
-        elif hasattr(m, "units") :
+        if hasattr(m, "units") :
             return m*self
         elif isinstance(m, UnitBase) :
             return CompositeUnit(1, [self, m], [1,1]).simplify()
@@ -83,6 +80,26 @@ class UnitBase(object) :
     def is_dimensionless(self) :
         return False
 
+    def converter_to(self, other):
+        """return the conversion function between this Unit and another
+        specified unit. This function normally expects a single argument
+        that is a scalar value or an array of values (or anything that may
+        be converted to an array). 
+        """
+
+        if isinstance(other, str) :
+            other = Unit(other)
+        try :
+            scale = (self/other).dimensionless_constant()
+            return lambda val: scale * argcondition(val)
+        except UnitsException :
+            raise UnitsException, "Not convertible"
+
+    def convert_to(self, other, value):
+        """Convert a value or value array to the specified unit"""
+        return self.converter_to(other)(value)
+
+    comment  = '''
     def ratio(self, other, **substitutions) :
         """Get the conversion ratio between this Unit and another
         specified unit.
@@ -109,8 +126,9 @@ class UnitBase(object) :
 
     def in_units(self, *a, **kw) :
         """Alias for ratio"""
-
+    
         return self.ratio(*a, **kw)
+        '''
     
     def irrep(self) :
         """Return a unit equivalent to this one (may be identical) but
@@ -323,7 +341,7 @@ class CompositeUnit(UnitBase) :
         if len(x._powers)==0 :
             return True
 
-    def dimensionless_constant(self, **substitutions) :
+    def dimensionless_constant(self) :
         """If this unit is dimensionless, return its scalar quantity.
 
         Direct use of this function is not recommended. It is generally
@@ -334,12 +352,8 @@ class CompositeUnit(UnitBase) :
         
         x = self.irrep()
         c = x._scale
-        for xb, xp in zip(x._bases, x._powers) :
-            if str(xb) in substitutions :
-                c*=substitutions[str(xb)]**xp
-            else :
-                raise UnitsException, "Not dimensionless"
-
+        if x._bases:
+            raise UnitsException, "Not dimensionless"
         return c
 
     def _power_of(self, base) :
@@ -480,6 +494,24 @@ def Unit(s) :
 
     return CompositeUnit(scale, units, powers)
 
+def argcondition(value):
+    """validate value is acceptable for conversion purposes
+    
+    Will convert into an array if not a scalar, and can be converted 
+    into an array
+    """
+    if isinstance(value, float) or isinstance(value, int):
+        return value
+    else:
+        try:
+            avalue = np.array(value)
+            dt = str(avalue.dtype)
+            if not (dt.startswith('int') or dt.startswith('float')):
+                raise ValueError, "Must be convertable to int or float array"
+            return avalue
+        except ValueError:
+            raise ValueError, \
+            "Value not scalar compatible or convertable into a float or integer array"
 
 def takes_arg_in_units(*args, **orig_kwargs) :
     """
