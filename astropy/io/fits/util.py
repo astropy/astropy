@@ -514,9 +514,7 @@ def _tmp_name(input):
     directory of the input file as the base name of the mkstemp() output.
     """
 
-    if input is not None:
-        input = os.path.dirname(input)
-    f, fn = tempfile.mkstemp(dir=input)
+    f, fn = tempfile.mkstemp()
     os.close(f)
     return fn
 
