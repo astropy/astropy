@@ -337,17 +337,21 @@ procedure is that ensures a consistent release process each time.
 
  14. Check out the tag of the released version.  For example::
 
-     $ git checkout 0.1
+     $ git checkout v0.1
 
- 15. Create the source distribution with ``python setup.py sdist``. Copy
-     the produced ``.tar.gz`` somewhere and verify that you can unpack it,
+ 15. Create the source distribution by doing::
+
+     $ python setup.py sdist
+
+     Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
      build it, and get all the tests to pass. If all looks good, upload the
      file to the GitHub "downloads" section.
 
- 16. Register the release on PyPI with ``python setup.py register``.
+ 16. Register the release on PyPI with::
 
- 17. Ensure that website and front page of docs are updated to reflect the fact
-     there is now a stable release.
+     $ python setup.py register
+
+ 17. Update the website to reflect the fact there is now a stable release.
 
  18. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
@@ -358,8 +362,12 @@ procedure is that ensures a consistent release process each time.
      changset, just checkout a new branch and push it to the remote server.
      For example, after releasing version 0.1, do::
 
-     $ git checkout -b 0.1.x
-     $ git push upstream +0.1.x
+     $ git checkout -b v0.1.x
+
+     Then edit ``setup.py`` so that the version is ``'0.1.1.dev'``, and commit
+     that change. Then, do::
+
+     $ git push upstream v0.1.x
 
     .. note::
         You may need to replace ``upstream`` here with ``astropy`` or
