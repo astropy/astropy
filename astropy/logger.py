@@ -287,10 +287,11 @@ class AstropyLogger(Logger):
         except NameError:
             ip = None
 
+        if self.exception_logging_enabled():
+            raise LoggingError("Exception logging has already been enabled")
+
         if ip is None:
             #standard python interpreter
-            if self.exception_logging_enabled():
-                raise LoggingError("Exception logging has already been enabled")
             self._excepthook_orig = sys.excepthook
             sys.excepthook = self._excepthook
         else:
@@ -327,10 +328,11 @@ class AstropyLogger(Logger):
         except NameError:
             ip = None
 
+        if not self.exception_logging_enabled():
+            raise LoggingError("Exception logging has not been enabled")
+
         if ip is None:
             #standard python interpreter
-            if not self.exception_logging_enabled():
-                raise LoggingError("Exception logging has not been enabled")
             if sys.excepthook != self._excepthook:
                 raise LoggingError("Cannot disable exception logging: "
                                    "sys.excepthook was not set by this logger, "
@@ -339,11 +341,7 @@ class AstropyLogger(Logger):
             self._excepthook_orig = None
         else:
             #IPython has its own way of dealing with exceptions
-            if not self.exception_logging_enabled():
-                raise LoggingError("Astropy exception logging has not been "
-                                   "enabled in this IPython session")
-            else:
-                ip.set_custom_exc(tuple(), None)
+            ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
         '''
