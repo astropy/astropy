@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 """
 Core units classes and functions
 """
@@ -7,6 +8,7 @@ import re, keyword
 import numpy as np
 import fractions
 import functools
+
 
 Fraction = fractions.Fraction
 
@@ -44,6 +46,15 @@ class UnitBase(object) :
 
     def __rdiv__(self, m) :
         return CompositeUnit(m, [self], [-1]).simplify()
+        
+    def __truediv__(self, m) :
+        if isinstance(m, UnitBase) :
+            return CompositeUnit(1, [self, m], [1, -1]).simplify()
+        else :
+            return CompositeUnit(1.0/m, [self], [1]).simplify()
+
+    def __rtruediv__(self, m) :
+        return CompositeUnit(m, [self], [-1]).simplify()
 
     def __mul__(self, m) :
         if hasattr(m, "units") :
@@ -61,7 +72,7 @@ class UnitBase(object) :
 
     def __eq__(self, other) :
         try:
-            return self.ratio(other)==1.
+            return self.convert_to(other,1)==1.
         except UnitsException :
             return False
 
@@ -69,16 +80,16 @@ class UnitBase(object) :
         return not (self==other)
 
     def __lt__(self, other) :
-        return self.ratio(other)<1.
+        return self.convert_to(other,1)<1.
 
     def __gt__(self, other) :
-        return self.ratio(other)>1.
+        return self.convert_to(other,1)>1.
 
     def __le__(self, other) :
-        return self.ratio(other)<=1.
+        return self.convert_to(other,1)<=1.
 
     def __ge__(self, other) :
-        return self.ratio(other)>=1.
+        return self.convert_to(other,1)>=1.
 
     def __neg__(self) :
         return self*(-1)
@@ -679,6 +690,9 @@ for irr_unit_name in ['m','s','kg','K','a','h']:
     globals()[irr_unit_name] = IrreducibleUnit(irr_unit_name)
 
 # Times
+minutes = NamedUnit('minutes', 60 * s)
+hr = NamedUnit('hr', 3600 * s)
+
 yr = NamedUnit('yr', 3.1556926e7 * s)
 kyr = NamedUnit('kyr', 1000 * yr)
 Myr = NamedUnit('Myr', 1000 * kyr)
