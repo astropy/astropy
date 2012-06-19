@@ -50,6 +50,32 @@ def releaser_middle(data):
             cmd.append('git svn tag -m "%s" %s' % (msg, version))
         return cmd
 
+    # Similarly copied from zer.releaser to support use of 'v' in front
+    # of the version number
+    def _my_make_tag(self):
+        from zest.releaser import utils
+        from os import system
+
+        if self.data['tag_already_exists']:
+            return
+        cmds = self.vcs.cmd_create_tag(self.data['version'])
+        if not isinstance(cmds, list):
+            cmds = [cmds]
+        if len(cmds) == 1:
+            print "Tag needed to proceed, you can use the following command:"
+        for cmd in cmds:
+            print cmd
+            if utils.ask("Run this command"):
+                print system(cmd)
+            else:
+                # all commands are needed in order to proceed normally
+                print "Please create a tag for %s yourself and rerun." % \
+                        (self.data['version'],)
+                sys.exit()
+        if not self.vcs.tag_exists('v' + self.data['version']):
+            print "\nFailed to create tag %s!" % (self.data['version'],)
+            sys.exit()
+
     # Normally all this does is to return '--formats=zip', which is currently
     # hard-coded as an option to always add to the sdist command; they ought to
     # make this actually optional
@@ -57,6 +83,7 @@ def releaser_middle(data):
         return ''
 
     Git.cmd_create_tag = _my_create_tag
+    Releaser._make_tag = _my_make_tag
     Releaser._sdist_options = _my_sdist_options
 
 
