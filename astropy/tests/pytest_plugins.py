@@ -116,6 +116,25 @@ if SUPPORTS_OPEN_FILE_DETECTION:
             raise AssertionError(u'\n'.join(msg))
 
 
+def pytest_configure():
+    # Replace the builtin open command with one that will raise an
+    # exception if trying to write to a file outside of the /tmp
+    # heirarchy.  This helps to ensure that running the tests has no
+    # unexpected side effects on the filesystem.
+
+    import tempfile
+    tmpdir = tempfile.gettempdir()
+
+    original_open = open
+
+    def restricted_open(filename, mode='r', *args, **kwargs):
+        if (('w' in mode or 'a' in mode) and
+            not os.path.abspath(filename).startswith(tmpdir)):
+            raise IOError("Tried to write to a non-temporary directory")
+        return original_open(filename, mode, *args, **kwargs)
+    __builtins__['open'] = restricted_open
+
+
 def pytest_report_header(config):
 
     from .. import __version__

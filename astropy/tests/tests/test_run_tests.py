@@ -2,6 +2,8 @@
 
 # test helper.run_tests function
 
+import os
+
 from .. import helper
 from ... import _get_test_runner
 
@@ -25,3 +27,14 @@ try:
 except SyntaxError:
     def test_run_after_2to3():
         helper.pytest.fail("Not running the 2to3'd tests!")
+
+
+@helper.raises(IOError)
+def test_restricted_open():
+    filename = os.path.expanduser("~/foo.txt")
+    try:
+        open(filename, "w")
+    except IOError:
+        raise
+    else:
+        os.unlink(filename)
