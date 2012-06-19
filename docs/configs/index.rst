@@ -33,7 +33,7 @@ type of the value that is accepted.  Feel free to edit this as you wish, and
 any of these changes will be reflected when you next start Astropy.  Or, if you
 want to see your changes immediately in your current Astropy session, just do::
 
-    from astropy.config import reload_config()
+    from astropy.config import reload_config
 
     reload_config()
 
@@ -248,9 +248,3 @@ Reference/API
 
 .. automodapi:: astropy.config
     :no-inheritance-diagram:
-
-
-
-
-
-
