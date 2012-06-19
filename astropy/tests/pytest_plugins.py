@@ -129,8 +129,11 @@ def pytest_configure():
 
     def restricted_open(filename, mode='r', *args, **kwargs):
         if (('w' in mode or 'a' in mode) and
-            not os.path.abspath(filename).startswith(tmpdir)):
-            raise IOError("Tried to write to a non-temporary directory")
+            not os.path.abspath(filename).startswith(tmpdir)
+            and not '__pycache__' in filename):
+            raise IOError(
+                "Tried to write to a non-temporary directory '%s'" %
+                filename)
         return original_open(filename, mode, *args, **kwargs)
     __builtins__['open'] = restricted_open
 
