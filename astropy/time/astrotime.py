@@ -569,6 +569,32 @@ class TimeISOT(TimeString):
     str_fmt = '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'
 
 
+class TimeEpochDate(TimeFormat):
+    """Base class for support Besselian and Julian epoch dates (e.g.
+    B1950.0 or J2000.0 etc).
+    """
+    def set_jds(self, val1, val2):
+        self.jd1, self.jd2 = self.epoch_to_jd(val1 + val2)
+
+    @property
+    def vals(self):
+        return self.jd_to_epoch(self.jd1, self.jd2)
+
+
+class TimeBesselianEpoch(TimeEpochDate):
+    """Besselian Epoch year"""
+    name = 'byear'
+    epoch_to_jd = sofa_time.besselian_epoch_jd
+    jd_to_epoch = sofa_time.jd_besselian_epoch
+
+
+class TimeJulianEpoch(TimeEpochDate):
+    """Julian Epoch year"""
+    name = 'jyear'
+    epoch_to_jd = sofa_time.julian_epoch_jd
+    jd_to_epoch = sofa_time.jd_julian_epoch
+
+
 # Set module constant with names of all available time formats
 TIME_FORMATS = {}
 module = sys.modules[__name__]
