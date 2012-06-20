@@ -501,7 +501,13 @@ class AstropyLogger(Logger):
             log_file_path = LOG_FILE_PATH()
 
             # "None" as a string because it comes from config
-            if log_file_path == '' or _ASTROPY_TEST_:
+            try:
+                _ASTROPY_TEST_
+                testing_mode = True
+            except NameError:
+                testing_mode = False
+
+            if log_file_path == '' or testing_mode:
                 log_file_path = os.path.join(
                     config.get_config_dir(), "astropy.log")
             else:
@@ -510,7 +516,10 @@ class AstropyLogger(Logger):
             try:
                 fh = FileHandler(log_file_path)
             except IOError:
-                pass
+                warnings.warn(
+                    "log file {0!r} could not be opened for writing".format(
+                        log_file_path),
+                    RuntimeWarning)
             else:
                 formatter = logging.Formatter(LOG_FILE_FORMAT())
                 fh.setFormatter(formatter)
