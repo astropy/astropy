@@ -1,4 +1,6 @@
 """
+NOTE: long module docstring is temporary in lieu of full astropy subpackage docs.
+
 ========================
 Time class for astronomy
 ========================
@@ -56,6 +58,21 @@ Examples
   array([ 2451179.5,  2455197.5])
   >>> t.jd2
   array([  1.42889802e-06,   0.00000000e+00])
+
+Print available time formats and systems::
+
+  >>> astrotime.TIME_FORMATS
+  {'byear': astrotime.TimeBesselianEpoch,
+   'cxcsec': astrotime.TimeCxcSec,
+   'iso': astrotime.TimeISO,
+   'isot': astrotime.TimeISOT,
+   'jd': astrotime.TimeJD,
+   'jyear': astrotime.TimeJulianEpoch,
+   'mjd': astrotime.TimeMJD,
+   'unix': astrotime.TimeUnix}
+
+  >>> astrotime.TIME_SYSTEMS
+  ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 
 Set system to TAI::
 
