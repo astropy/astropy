@@ -148,6 +148,7 @@ except ImportError:
     pass
 
 
+MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400
 TIME_SYSTEMS = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
@@ -288,11 +289,13 @@ class Time(object):
 
     @property
     def jd1(self):
-        return self._time.jd1
+        vals = self._time.jd1
+        return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def jd2(self):
-        return self._time.jd2
+        vals = self._time.jd2
+        return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def vals(self):
@@ -419,6 +422,22 @@ class TimeJD(TimeFormat):
     @property
     def vals(self):
         return self.jd1 + self.jd2
+
+
+class TimeMJD(TimeFormat):
+    name = 'mjd'
+
+    def set_jds(self, val1, val2):
+        # XXX - this routine and vals should be Cythonized to follow the SOFA
+        # convention of preserving precision by adding to the larger of the two
+        # values in a vectorized operation.  But in most practical cases the
+        # first one is probably biggest.
+        self.jd1 = val1 + MJD_ZERO
+        self.jd2 = val2
+
+    @property
+    def vals(self):
+        return (self.jd1 - MJD_ZERO) + self.jd2
 
 
 class TimeFromEpoch(TimeFormat):
