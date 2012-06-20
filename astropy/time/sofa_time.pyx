@@ -374,6 +374,8 @@ def ut1_tai(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def tt_ut1( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -394,6 +396,8 @@ def tt_ut1(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def ut1_tt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -414,6 +418,8 @@ def ut1_tt(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def tdb_tt( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -434,6 +440,8 @@ def tdb_tt(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def tt_tdb( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -454,6 +462,8 @@ def tt_tdb(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def ut1_utc( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -474,6 +484,8 @@ def ut1_utc(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def utc_ut1( 
     np.ndarray[double, ndim=1] in1,
     np.ndarray[double, ndim=1] in2,
@@ -494,6 +506,8 @@ def utc_ut1(
     return out1, out2
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def d_tdb_tt(np.ndarray[double, ndim=1] in1,
              np.ndarray[double, ndim=1] in2,
              np.ndarray[double, ndim=1] ut,
@@ -540,3 +554,69 @@ def iau_gd2gc(n, elong, phi, height):
         raise ValueError('Error code {}'.format(ret))
 
     return xyz
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def jd_julian_epoch(np.ndarray[double, ndim=1] jd1,
+                    np.ndarray[double, ndim=1] jd2):
+    """ Wrap double iauEpj(double dj1, double dj2)
+    **  Julian Date to Julian Epoch.
+    """
+    assert jd1.shape[0] == jd2.shape[0]
+    cdef unsigned n = jd1.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] epd = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        epd[i] = iauEpj(jd1[i], jd2[i])
+    return epd
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def julian_epoch_jd(np.ndarray[double, ndim=1] epd):
+    """ Wrap void iauEpj2jd(double epj, double *djm0, double *djm)
+    **  Julian Epoch to Julian Date.
+    """
+    cdef unsigned n = epd.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] jd1 = np.empty(n, dtype=np.double)
+    cdef np.ndarray[double, ndim=1] jd2 = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        iauEpj2jd(epd[i], &jd1[i], &jd2[i])
+    return jd1, jd2
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def jd_besselian_epoch(np.ndarray[double, ndim=1] jd1,
+                       np.ndarray[double, ndim=1] jd2):
+    """ Wrap double iauEpb(double dj1, double dj2)
+    **  Julian Date to Besselian Epoch.
+    """
+    assert jd1.shape[0] == jd2.shape[0]
+    cdef unsigned n = jd1.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] epd = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        epd[i] = iauEpb(jd1[i], jd2[i])
+    return epd
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def besselian_epoch_jd(np.ndarray[double, ndim=1] epd):
+    """ Wrap void iauEpb2jd(double epj, double *djm0, double *djm)
+    **  Besselian Epoch to Julian Date.
+    """
+    cdef unsigned n = epd.shape[0]
+    cdef unsigned int i
+    cdef np.ndarray[double, ndim=1] jd1 = np.empty(n, dtype=np.double)
+    cdef np.ndarray[double, ndim=1] jd2 = np.empty(n, dtype=np.double)
+
+    for i in range(n):
+        iauEpb2jd(epd[i], &jd1[i], &jd2[i])
+    return jd1, jd2
