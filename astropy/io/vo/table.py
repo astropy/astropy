@@ -22,7 +22,7 @@ __all__ = ['parse', 'parse_single_table', 'validate']
 
 PEDANTIC = ConfigurationItem(
     'pedantic',
-    True,
+    False,
     'When True, treat fixable violations of the VOTable spec as exceptions.')
 
 
