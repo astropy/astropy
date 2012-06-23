@@ -27,6 +27,7 @@ User Documentation
    nddata/index
    table/index
    cosmology/index
+   time/index
    io/fits/index
    io/ascii/index
    io/vo/index
