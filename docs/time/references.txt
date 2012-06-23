@@ -1,0 +1,2 @@
+.. |Time| replace:: :class:`~astropy.time.astrotime.Time`
+.. _SOFA: http://www.iausofa.org/index.html
