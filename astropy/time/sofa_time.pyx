@@ -4,7 +4,7 @@ import cython
 
 ctypedef np.double_t DOUBLE_T
 
-cdef extern from "sofa.h": 
+cdef extern from "../../cextern/sofa/sofa.h": 
     double iauEpb(double dj1, double dj2)
     double iauEpj(double dj1, double dj2)
     void iauEpj2jd(double epj, double *djm0, double *djm)
