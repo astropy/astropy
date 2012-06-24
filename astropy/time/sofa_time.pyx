@@ -48,29 +48,15 @@ cdef extern from "../../cextern/sofa/sofa.h":
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def cal2jd( 
+    """
+    int iauCal2jd(int iy, int im, int id, double *djm0, double *djm)
+    Calendar date to high-precision JD.
+    """
     np.ndarray[int, ndim=1] iy,
     np.ndarray[int, ndim=1] im,
     np.ndarray[int, ndim=1] id,
     np.ndarray[double, ndim=1] djm0,
     np.ndarray[double, ndim=1] djm):
-    cdef unsigned int i
-    cdef unsigned n = iy.shape[0]
-    for i in range(n):
-        ret = iauCal2jd( iy[i], im[i], id[i], &djm0[i], &djm[i])
-        if ret != 0:
-            raise ValueError('Fail: {}'.format(ret))
-    return
-
-@cython.wraparound(False)
-@cython.boundscheck(False)
-def cal2jd( 
-    np.ndarray[int, ndim=1] iy,
-    np.ndarray[int, ndim=1] im,
-    np.ndarray[int, ndim=1] id,
-    np.ndarray[double, ndim=1] djm0,
-    np.ndarray[double, ndim=1] djm):
-    """
-    """
     cdef unsigned int i
     cdef unsigned n = iy.shape[0]
     for i in range(n):
