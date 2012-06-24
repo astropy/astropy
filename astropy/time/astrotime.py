@@ -34,6 +34,49 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'utc'): ('tai',),
               }
 
+_global_opt = {'precision': 3}
+
+
+def set_opt(**kwargs):
+    """Set default options that affect TimeFormat class behavior.
+
+    Example::
+
+      set_opt(precision=6)
+
+    Parameters
+    ----------
+    precision : int between 0 and 9 inclusive
+        Decimal precision when outputting seconds as floating point
+    """
+    _global_opt.update(**kwargs)
+
+
+class OptDict(dict):
+    """Only a limited set of keys are allowed and the values are
+    validated.  If a special value '__base__' is set to a dictionary
+    then that supplies defaults.
+    """
+    def __setitem__(self, item, val):
+        if item == '__base__':
+            pass
+        elif item == 'precision':
+            if not (isinstance(val, int) and val >= 0 and val < 10):
+                raise ValueError('Precision option must be int '
+                                 'between 0 and 9 inclusive')
+        # elif others
+        else:
+            raise KeyError('{0} is not a valid option key'.format(item))
+        super(OptDict, self).__setitem__(item, val)
+
+    def __getitem__(self, item):
+        if '__base__' in self:
+            base = super(OptDict, self).__getitem__('__base__').copy()
+        else:
+            base = {}
+        base.update(self)
+        return base[item]
+
 
 class Time(object):
     """Represent and manipulate times and dates for astronomy.
@@ -59,18 +102,19 @@ class Time(object):
         Format of input value(s)
     system : str
         Time system of input value(s)
-    precision : int, optional
-        Decimal precision for string output of float seconds
+    opt : dict, optional
+        options
     lat : float, optional
         Earth latitude of observer
     lon : float, optional
         Earth longitutde of observer
     """
     def __init__(self, val, val2=None, format=None, system=None,
-                 precision=3, lat=0.0, lon=0.0):
+                 opt={}, lat=0.0, lon=0.0):
         self.lat = lat
         self.lon = lon
-        self.precision = precision
+        opt['__base__'] = _global_opt
+        self.opt = OptDict(opt)
 
         # Coerce val into a 1-d array
         val, val_ndim = _make_1d_array(val)
@@ -100,9 +144,7 @@ class Time(object):
             raise ValueError('System {0} is not in the allowed systems {1}'
                              .format(system, sorted(TIME_SYSTEMS)))
 
-        self._time = TIME_FORMATS[format](val, val2, system)
-        self._time.precision = self.precision
-        # XXX setting precision here and other places is awkward.  Improve?
+        self._time = TIME_FORMATS[format](val, val2, system, self.opt)
         self._format = format
         self._system = system
 
@@ -116,12 +158,12 @@ class Time(object):
         if hasattr(NewFormat, 'system'):
             system = getattr(NewFormat, 'system')
             new = getattr(self, system)  # self JDs converted to system
-            self._time = NewFormat(new.jd1, new.jd2, system, from_jd=True)
+            self._time = NewFormat(new.jd1, new.jd2, system, self.opt,
+                                   from_jd=True)
         else:
             self._time = NewFormat(self._time.jd1, self._time.jd2,
-                                   self.system, from_jd=True)
+                                   self.system, self.opt, from_jd=True)
 
-        self._time.precision = self.precision
         self._format = format
 
     def __repr__(self):
@@ -176,12 +218,27 @@ class Time(object):
 
             conv_func = getattr(sofa_time, sys1 + '_' + sys2)
             jd1, jd2 = conv_func(*args)
-        self._time = TIME_FORMATS[self.format](jd1, jd2, system,
+        self._time = TIME_FORMATS[self.format](jd1, jd2, system, self.opt,
                                               from_jd=True)
-        self._time.precision = self.precision
         self._system = system
 
     system = property(get_system, set_system)
+
+    def set_opt(self, **kwargs):
+        """Set options that affect TimeFormat class behavior for this Time
+        instance.
+
+        Example::
+
+          t = Time(100.0, format='mjd', system='utc')
+          t.set_opt(precision=1)
+
+        Parameters
+        ----------
+        precision : int between 0 and 9 inclusive
+            Decimal precision when outputting seconds as floating point
+        """
+        self.opt.update(**kwargs)
 
     @property
     def jd1(self):
@@ -198,10 +255,11 @@ class Time(object):
         return self._time.vals
 
     def _get_time_object(self, format):
+        """Turn this into copy??"""
         tm = Time(self._time.jd1, self._time.jd2,
-                  format='jd', system=self.system)
+                  format='jd', system=self.system, opt=self.opt)
         tm.set_format(format)
-        attrs = ('precision', 'is_scalar',
+        attrs = ('is_scalar',
                  '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon')
         for attr in attrs:
@@ -209,7 +267,6 @@ class Time(object):
                 setattr(tm, attr, getattr(self, attr))
             except AttributeError:
                 pass
-        tm._time.precision = tm.precision
         return tm
 
     def __getattr__(self, attr):
@@ -288,7 +345,7 @@ class TimeFormat(object):
     """
     Base class for time representations.
     """
-    def __init__(self, val1, val2, system, from_jd=False):
+    def __init__(self, val1, val2, system, opt, from_jd=False):
         if hasattr(self.__class__, 'system'):
             # This format class has a required time system
             cls_system = getattr(self.__class__, 'system')
@@ -297,6 +354,7 @@ class TimeFormat(object):
                                  .format(self.__class__.__name__, cls_system))
         else:
             self.system = system
+        self.opt = OptDict(opt)
         self.n_times = len(val1)
         if len(val1) != len(val2):
             raise ValueError('Input val1 and val2 must match in length')
@@ -341,11 +399,11 @@ class TimeFromEpoch(TimeFormat):
     epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
-    def __init__(self, val1, val2, system, from_jd=False):
+    def __init__(self, val1, val2, system, opt, from_jd=False):
         epoch = Time(self.epoch_val, self.epoch_val2, system=self.epoch_system,
-                     format=self.epoch_format)
+                     format=self.epoch_format, opt=opt)
         self.epoch = getattr(epoch, self.system)
-        super(TimeFromEpoch, self).__init__(val1, val2, system, from_jd)
+        super(TimeFromEpoch, self).__init__(val1, val2, system, opt, from_jd)
 
     def set_jds(self, val1, val2):
         self.jd1 = self.epoch.jd1 + val2 * self.unit
@@ -390,7 +448,6 @@ class TimeCxcSec(TimeFromEpoch):
 class TimeString(TimeFormat):
     """Base class for string-like time represetations.
     """
-    precision = 3  # default fractional second precision (millisecs)
 
     def set_jds(self, val1, val2):
         """
@@ -429,7 +486,7 @@ class TimeString(TimeFormat):
 
     def str_kwargs(self):
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.system.upper(),
-                                                 self.precision,
+                                                 self.opt['precision'],
                                                  self.jd1, self.jd2)
         for iy, im, id, ihmsf in izip(iys, ims, ids, ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
@@ -440,8 +497,8 @@ class TimeString(TimeFormat):
     @property
     def vals(self):
         str_fmt = self.str_fmt
-        if self.precision > 0:
-            str_fmt += '.{fracsec:0' + str(self.precision) + 'd}'
+        if self.opt['precision'] > 0:
+            str_fmt += '.{fracsec:0' + str(self.opt['precision']) + 'd}'
 
         # Try to optimize this later.  Can't pre-allocate because length of
         # output could change, e.g. year rolls from 999 to 1000.
