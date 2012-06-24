@@ -65,17 +65,20 @@ Format
 ^^^^^^^^^^^
 
 The time format specifies how an instant of time is represented.  The currently
-available formats are::
+available formats are can be found in the ``astrotime.TIME_FORMATS`` dict and are:
 
-  >>> astrotime.TIME_FORMATS
-  {'byear': astrotime.TimeBesselianEpoch,
-   'cxcsec': astrotime.TimeCxcSec,
-   'iso': astrotime.TimeISO,
-   'isot': astrotime.TimeISOT,
-   'jd': astrotime.TimeJD,
-   'jyear': astrotime.TimeJulianEpoch,
-   'mjd': astrotime.TimeMJD,
-   'unix': astrotime.TimeUnix}
+=========  ===================================================
+Format            Class
+=========  ===================================================
+byear      :class:`~astropy.time.astrotime.TimeBesselianEpoch`
+cxcsec     :class:`~astropy.time.astrotime.TimeCxcSec`
+iso        :class:`~astropy.time.astrotime.TimeISO`
+isot       :class:`~astropy.time.astrotime.TimeISOT`
+jd         :class:`~astropy.time.astrotime.TimeJD`
+jyear      :class:`~astropy.time.astrotime.TimeJulianEpoch`
+mjd        :class:`~astropy.time.astrotime.TimeMJD`
+unix       :class:`~astropy.time.astrotime.TimeUnix`
+=========  ===================================================
 
 System
 ^^^^^^^^^
@@ -87,6 +90,36 @@ both" [#]_. See also [#]_ and [#]_.
 
   >>> astrotime.TIME_SYSTEMS
   ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+
+====== =================================
+System        Description
+====== =================================
+tai    International Atomic Time   (TAI)
+tcb    Barycentric Coordinate Time (TCB)
+tcg    Geocentric Coordinate Time  (TCG)
+tdb    Barycentric Dynamical Time  (TDB)
+tt     Terrestrial Time            (TT)
+ut1    Universal Time              (UT1)
+utc    Coordinated Universal Time  (UTC)
+====== =================================
+
+
+
+
+
+
+
+
+ 
+
+
+
+ 
+
+
+
+
+
 
 .. [#] Wikipedia `time standard <http://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools 
