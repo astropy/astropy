@@ -118,7 +118,7 @@ class Time(object):
             new = getattr(self, system)  # self JDs converted to system
             self._time = NewFormat(new.jd1, new.jd2, system, from_jd=True)
         else:
-            self._time = NewFormat(self.jd1, self.jd2,
+            self._time = NewFormat(self._time.jd1, self._time.jd2,
                                    self.system, from_jd=True)
 
         self._time.precision = self.precision
@@ -156,7 +156,7 @@ class Time(object):
             xforms = tuple(reversed(xforms))
 
         # Transform the jd1,2 pairs through the chain of system xforms.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         for sys1, sys2 in izip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
@@ -198,7 +198,7 @@ class Time(object):
         return self._time.vals
 
     def _get_time_object(self, format):
-        tm = Time(self.jd1, self.jd2,
+        tm = Time(self._time.jd1, self._time.jd2,
                   format='jd', system=self.system)
         tm.set_format(format)
         attrs = ('precision', 'is_scalar',
@@ -281,7 +281,7 @@ class Time(object):
         self._delta_tdb_tt = self._match_len(val)
 
     def __len__(self):
-        return len(self.jd1)
+        return len(self._time.jd1)
 
 
 class TimeFormat(object):
