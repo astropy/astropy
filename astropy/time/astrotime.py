@@ -6,7 +6,7 @@ astronomy.
 """
 import sys
 import time
-from itertools import izip
+import itertools
 import numpy as np
 
 try:
@@ -54,7 +54,7 @@ def set_opt(**kwargs):
 
 class OptDict(dict):
     """Only a limited set of keys are allowed and the values are
-    validated.  If a special value '__base__' is set to a dictionary
+    validated.  If a special value ``__base__`` is set to a dictionary
     then that supplies defaults.
     """
     def __setitem__(self, item, val):
@@ -64,7 +64,6 @@ class OptDict(dict):
             if not (isinstance(val, int) and val >= 0 and val < 10):
                 raise ValueError('Precision option must be int '
                                  'between 0 and 9 inclusive')
-        # elif others
         else:
             raise KeyError('{0} is not a valid option key'.format(item))
         super(OptDict, self).__setitem__(item, val)
@@ -107,7 +106,7 @@ class Time(object):
     lat : float, optional
         Earth latitude of observer
     lon : float, optional
-        Earth longitutde of observer
+        Earth longitude of observer
     """
     def __init__(self, val, val2=None, format=None, system=None,
                  opt={}, lat=0.0, lon=0.0):
@@ -202,7 +201,7 @@ class Time(object):
 
         # Transform the jd1,2 pairs through the chain of system xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
-        for sys1, sys2 in izip(xforms[:-1], xforms[1:]):
+        for sys1, sys2 in itertools.izip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
             # the user or computed based on available approximations.  The
@@ -491,7 +490,7 @@ class TimeString(TimeFormat):
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.system.upper(),
                                                  self.opt['precision'],
                                                  self.jd1, self.jd2)
-        for iy, im, id, ihmsf in izip(iys, ims, ids, ihmsfs):
+        for iy, im, id, ihmsf in itertools.izip(iys, ims, ids, ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
             yield {'year': int(iy), 'mon': int(im), 'day': int(id),
                    'hour': int(ihr), 'min': int(imin), 'sec': int(isec),
@@ -555,9 +554,9 @@ class TimeJulianEpoch(TimeEpochDate):
 
 # Set module constant with names of all available time formats
 TIME_FORMATS = {}
-module = sys.modules[__name__]
-for name in dir(module):
-    val = getattr(module, name)
+_module = sys.modules[__name__]
+for name in dir(_module):
+    val = getattr(_module, name)
     try:
         ok = issubclass(val, TimeFormat)
     except:
