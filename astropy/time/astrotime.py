@@ -487,14 +487,27 @@ class TimeString(TimeFormat):
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
+        """Generator that yields a dict of values corresponding to the
+        calendar date and time for the internal JD values.
+        """
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
                                                  self.opt['precision'],
                                                  self.jd1, self.jd2)
+        if '{yday:' in self.str_fmt:
+            from datetime import datetime
+            has_yday = True
+        else:
+            has_yday = False
+            yday = None
+
         for iy, im, id, ihmsf in itertools.izip(iys, ims, ids, ihmsfs):
             ihr, imin, isec, ifracsec = ihmsf
+            if has_yday:
+                yday = datetime(iy, im, id).timetuple().tm_yday
+
             yield {'year': int(iy), 'mon': int(im), 'day': int(id),
                    'hour': int(ihr), 'min': int(imin), 'sec': int(isec),
-                   'fracsec': int(ifracsec)}
+                   'fracsec': int(ifracsec), 'yday': yday}
 
     @property
     def vals(self):
@@ -522,6 +535,13 @@ class TimeISOT(TimeString):
     scale = 'utc'
     strptime_fmt = '%Y-%m-%dT%H:%M:%S'
     str_fmt = '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'
+
+
+class TimeYearDayTime(TimeString):
+    name = 'yday'
+    scale = 'utc'
+    strptime_fmt = '%Y:%j:%H:%M:%S'
+    str_fmt = '{year:d}:{yday:03d}:{hour:02d}:{min:02d}:{sec:02d}'
 
 
 class TimeEpochDate(TimeFormat):
