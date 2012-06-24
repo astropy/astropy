@@ -97,3 +97,14 @@ class TestBasic():
         assert t.tcg.iso == '2006-01-15 21:25:43.322690'
         assert t.tdb.iso == '2006-01-15 21:25:42.683799'
         assert t.tcb.iso == '2006-01-15 21:25:56.893378'
+
+    def test_epoch_transform(self):
+        """Besselian and julian epoch transforms"""
+        jd = 2457073.05631
+        t = atm.Time(jd, format='jd', system='tai')
+        assert np.allclose(t.byear, 2015.1365941021)
+        assert np.allclose(t.jyear, 2015.1349933196)
+        t2 = atm.Time(t.byear, format='byear', system='tai')
+        assert np.allclose(t2.jd, jd)
+        t2 = atm.Time(t.jyear, format='jyear', system='tai')
+        assert np.allclose(t2.jd, jd)
