@@ -149,7 +149,7 @@ in the package later.
 
 Set the output precision which is used for some formats::
 
-  >>> t.precision = 9
+  >>> t.set_opt(precision=9)
   >>> t.iso
   '2010-01-01 00:00:00.000000000'
 
@@ -160,7 +160,8 @@ UTC).  This requires auxilliary information (latitude and longitude).
   >>> lat = 19.48125
   >>> lon = -155.933222
   >>> t = astrotime.Time('2006-01-15 21:24:37.5', format='iso', system='utc',
-  ...                    precision=6, lat=lat, lon=lon)
+  ...                    lat=lat, lon=lon)
+  >>> t.set_opt(precision=6)
   >>> t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the transformation
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
