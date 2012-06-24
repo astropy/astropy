@@ -150,10 +150,10 @@ class Time(object):
         self._format = format
         self._system = system
 
-    def get_format(self):
+    def _get_format(self):
         return self._format
 
-    def set_format(self, format):
+    def _set_format(self, format):
         NewFormat = TIME_FORMATS[format]
         # If the new format class has a "system" class attr then that system is
         # required and the input jd1,2 has to be converted first.
@@ -175,12 +175,12 @@ class Time(object):
     def __str__(self):
         return str(getattr(self, self.format))
 
-    format = property(get_format, set_format)
+    format = property(_get_format)
 
-    def get_system(self):
+    def _get_system(self):
         return self._system
 
-    def set_system(self, system):
+    def _set_system(self, system):
         if system == self._system:
             return
         if system not in TIME_SYSTEMS:
@@ -224,7 +224,7 @@ class Time(object):
                                               from_jd=True)
         self._system = system
 
-    system = property(get_system, set_system)
+    system = property(_get_system)
 
     def set_opt(self, **kwargs):
         """Set options that affect TimeFormat class behavior for this Time
@@ -260,7 +260,7 @@ class Time(object):
         """Turn this into copy??"""
         tm = Time(self._time.jd1, self._time.jd2,
                   format='jd', system=self.system, opt=self.opt)
-        tm.set_format(format)
+        tm._set_format(format)
         attrs = ('is_scalar',
                  '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon')
@@ -274,7 +274,7 @@ class Time(object):
     def __getattr__(self, attr):
         if attr in TIME_SYSTEMS:
             tm = self._get_time_object(format=self.format)
-            tm.set_system(attr)
+            tm._set_system(attr)
             return tm
 
         elif attr in TIME_FORMATS:
