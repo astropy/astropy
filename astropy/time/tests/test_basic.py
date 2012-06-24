@@ -16,7 +16,7 @@ class TestBasic():
         assert np.allclose(t.jd2, np.array([1.42889802e-06, 0.00000000e+00]))
 
         # Set system to TAI
-        t.set_system('tai')
+        t = t.tai
         assert (repr(t) == "<Time object: system='tai' format='iso' "
                 "vals=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>")
         assert np.allclose(t.jd1, np.array([2451179.5, 2455197.5]))
