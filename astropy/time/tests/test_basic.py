@@ -50,7 +50,7 @@ class TestBasic():
         assert t.tai.iso == '2010-01-01 00:00:34.000'
         assert np.allclose(t.utc.jd, 2455197.5)
         assert np.allclose(t.ut1.jd, 2455197.500003867)
-        assert t.tcg.isot == '2010-01-01T00:00:00.000'
+        assert t.tcg.isot == '2010-01-01T00:01:06.910'
         assert np.allclose(t.unix, 1262304000.0)
         assert np.allclose(t.cxcsec, 378691266.184)
 
@@ -108,3 +108,63 @@ class TestBasic():
         assert np.allclose(t2.jd, jd)
         t2 = atm.Time(t.jyear, format='jyear', scale='tai')
         assert np.allclose(t2.jd, jd)
+
+
+class TestSubFormat():
+    """Test input and output subformat functionality"""
+
+    def test_input_subformat(self):
+        """Input subformat selection"""
+        # Heterogeneous input formats with in_subfmt='*' (default)
+        times = ['2000-01-01', '2000-01-01 01:01',
+                 '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
+        t = atm.Time(times, format='iso', scale='tai')
+        assert np.all(t.iso == np.array(['2000-01-01 00:00:00.000',
+                                         '2000-01-01 01:01:00.000',
+                                         '2000-01-01 01:01:01.000',
+                                         '2000-01-01 01:01:01.123']))
+
+        # Heterogeneous input formats with in_subfmt='date_*'
+        times = ['2000-01-01 01:01',
+                 '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
+        t = atm.Time(times, format='iso', scale='tai',
+                     opt={'in_subfmt': 'date_*'})
+        assert np.all(t.iso == np.array(['2000-01-01 01:01:00.000',
+                                         '2000-01-01 01:01:01.000',
+                                         '2000-01-01 01:01:01.123']))
+
+    def test_input_subformat_fail(self):
+        """Failed format matching"""
+        with pytest.raises(ValueError):
+            t = atm.Time('2000-01-01 01:01', format='iso', scale='tai',
+                         opt={'in_subfmt': 'date'})
+
+    def test_bad_input_subformat(self):
+        """Non-existent input subformat"""
+        with pytest.raises(ValueError):
+            t = atm.Time('2000-01-01 01:01', format='iso', scale='tai',
+                         opt={'in_subfmt': 'doesnt exist'})
+
+    def test_output_subformat(self):
+        """Input subformat selection"""
+        # Heterogeneous input formats with in_subfmt='*' (default)
+        times = ['2000-01-01', '2000-01-01 01:01',
+                 '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
+        t = atm.Time(times, format='iso', scale='tai',
+                     opt={'out_subfmt': 'date_hm'})
+        assert np.all(t.iso == np.array(['2000-01-01 00:00',
+                                         '2000-01-01 01:01',
+                                         '2000-01-01 01:01',
+                                         '2000-01-01 01:01']))
+
+    def test_yday_format(self):
+        """Year:Day_of_year format"""
+        # Heterogeneous input formats with in_subfmt='*' (default)
+        times = ['2000-12-01', '2001-12-01 01:01:01.123']
+        t = atm.Time(times, format='iso', scale='tai')
+        t.set_opt(out_subfmt='date_hm')
+        assert np.all(t.yday == np.array(['2000:336:00:00',
+                                          '2001:335:01:01']))
+        t.set_opt(out_subfmt='*')
+        assert np.all(t.yday == np.array(['2000:336:00:00:00.000',
+                                          '2001:335:01:01:01.123']))

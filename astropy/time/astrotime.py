@@ -34,20 +34,28 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'utc'): ('tai',),
               }
 
-_global_opt = {'precision': 3}
+_global_opt = {'precision': 3,
+               'in_subfmt': '*',
+               'out_subfmt': '*'}
 
 
 def set_opt(**kwargs):
     """Set default options that affect TimeFormat class behavior.
 
-    Example::
+    Examples::
 
       set_opt(precision=6)
+      set_opt(in_subfmt='date_hm*')  # require date and at least hour & min
+      set_opt(out_subfmt='date')  # output as date with no time
 
     Parameters
     ----------
     precision : int between 0 and 9 inclusive
         Decimal precision when outputting seconds as floating point
+    in_subfmt : str
+        Unix glob to select subformats for parsing string input times
+    out_subfmt : str
+        Unix glob to select subformat for outputting string times
     """
     _global_opt.update(**kwargs)
 
@@ -58,7 +66,7 @@ class OptDict(dict):
     then that supplies defaults.
     """
     def __setitem__(self, item, val):
-        if item == '__base__':
+        if item in ('__base__', 'in_subfmt', 'out_subfmt'):
             pass
         elif item == 'precision':
             if not (isinstance(val, int) and val >= 0 and val < 10):
@@ -449,6 +457,11 @@ class TimeCxcSec(TimeFromEpoch):
 
 class TimeString(TimeFormat):
     """Base class for string-like time represetations.
+
+    This class assumes that anything following the last decimal point to the
+    right is a fraction of a second.
+
+    This is a reference implementation can be made much faster with effort.
     """
 
     def set_jds(self, val1, val2):
@@ -462,26 +475,36 @@ class TimeString(TimeFormat):
         imin = np.empty(self.n_times, dtype=np.intc)
         dsec = np.empty(self.n_times, dtype=np.double)
 
-        if self.strptime_fmt.endswith('%S'):
-            ends_with_secs = True
+        # Select subformats based on current self.opt['in_subfmt']
+        subfmts = self._select_subfmts(self.opt['in_subfmt'])
 
         for i, timestr in enumerate(val1):
-            if ends_with_secs:
-                try:
-                    idot = timestr.rindex('.')
-                except:
-                    fracsec = 0.0
-                else:
-                    timestr, fracsec = timestr[:idot], timestr[idot:]
-                    fracsec = float(fracsec)
+            # Assume that anything following "." on the right side is a
+            # floating fraction of a second.
+            try:
+                idot = timestr.rindex('.')
+            except:
+                fracsec = 0.0
+            else:
+                timestr, fracsec = timestr[:idot], timestr[idot:]
+                fracsec = float(fracsec)
 
-            tm = time.strptime(timestr, self.strptime_fmt)
-            iy[i] = tm.tm_year
-            im[i] = tm.tm_mon
-            id[i] = tm.tm_mday
-            ihr[i] = tm.tm_hour
-            imin[i] = tm.tm_min
-            dsec[i] = tm.tm_sec + fracsec
+            for _, strptime_fmt, _ in subfmts:
+                try:
+                    tm = time.strptime(timestr, strptime_fmt)
+                except ValueError:
+                    print timestr, strptime_fmt
+                else:
+                    iy[i] = tm.tm_year
+                    im[i] = tm.tm_mon
+                    id[i] = tm.tm_mday
+                    ihr[i] = tm.tm_hour
+                    imin[i] = tm.tm_min
+                    dsec[i] = tm.tm_sec + fracsec
+                    break
+            else:
+                raise ValueError('Time {0} does not match {1} format'
+                                 .format(timestr, self.name))
 
         self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale,
                                               iy, im, id, ihr, imin, dsec)
@@ -493,7 +516,11 @@ class TimeString(TimeFormat):
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
                                                  self.opt['precision'],
                                                  self.jd1, self.jd2)
-        if '{yday:' in self.str_fmt:
+
+        # Get the str_fmt element of the first allowed output subformat
+        _, _, str_fmt = self._select_subfmts(self.opt['out_subfmt'])[0]
+
+        if '{yday:' in str_fmt:
             from datetime import datetime
             has_yday = True
         else:
@@ -511,8 +538,13 @@ class TimeString(TimeFormat):
 
     @property
     def vals(self):
-        str_fmt = self.str_fmt
-        if self.opt['precision'] > 0:
+        # Select the first available subformat based on current
+        # self.opt['out_subfmt']
+        subfmts = self._select_subfmts(self.opt['out_subfmt'])
+        _, _, str_fmt = subfmts[0]
+
+        # XXX ugly hack, fix
+        if self.opt['precision'] > 0 and str_fmt.endswith('{sec:02d}'):
             str_fmt += '.{fracsec:0' + str(self.opt['precision']) + 'd}'
 
         # Try to optimize this later.  Can't pre-allocate because length of
@@ -523,25 +555,55 @@ class TimeString(TimeFormat):
 
         return np.array(outs)
 
+    def _select_subfmts(self, pattern):
+        """Return a list of subformats where name matches ``pattern`` using
+        fnmatch.
+        """
+        from fnmatch import fnmatchcase
+        subfmts = [x for x in self.subfmts if fnmatchcase(x[0], pattern)]
+        if len(subfmts) == 0:
+            raise ValueError('No subformats match {0}'.format(pattern))
+        return subfmts
+
 
 class TimeISO(TimeString):
     name = 'iso'
-    strptime_fmt = '%Y-%m-%d %H:%M:%S'
-    str_fmt = '{year:d}-{mon:02d}-{day:02d} {hour:02d}:{min:02d}:{sec:02d}'
+    subfmts = (('date_hms',
+                '%Y-%m-%d %H:%M:%S',
+                # XXX To Do - use strftime for output ??
+                '{year:d}-{mon:02d}-{day:02d} {hour:02d}:{min:02d}:{sec:02d}'),
+               ('date_hm',
+                '%Y-%m-%d %H:%M',
+                '{year:d}-{mon:02d}-{day:02d} {hour:02d}:{min:02d}'),
+               ('date',
+                '%Y-%m-%d',
+                '{year:d}-{mon:02d}-{day:02d}'))
 
 
 class TimeISOT(TimeString):
     name = 'isot'
-    scale = 'utc'
-    strptime_fmt = '%Y-%m-%dT%H:%M:%S'
-    str_fmt = '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'
+    subfmts = (('date_hms',
+                '%Y-%m-%dT%H:%M:%S',
+                '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
+               ('date_hm',
+                '%Y-%m-%dT%H:%M',
+                '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}'),
+               ('date',
+                '%Y-%m-%d',
+                '{year:d}-{mon:02d}-{day:02d}'))
 
 
 class TimeYearDayTime(TimeString):
     name = 'yday'
-    scale = 'utc'
-    strptime_fmt = '%Y:%j:%H:%M:%S'
-    str_fmt = '{year:d}:{yday:03d}:{hour:02d}:{min:02d}:{sec:02d}'
+    subfmts = (('date_hms',
+                '%Y:%j:%H:%M:%S',
+                '{year:d}:{yday:03d}:{hour:02d}:{min:02d}:{sec:02d}'),
+               ('date_hm',
+                '%Y:%j:%H:%M',
+                '{year:d}:{yday:03d}:{hour:02d}:{min:02d}'),
+               ('date',
+                '%Y:%j',
+                '{year:d}:{yday:03d}'))
 
 
 class TimeEpochDate(TimeFormat):
