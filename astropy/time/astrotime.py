@@ -8,11 +8,11 @@ import sys
 import time
 from itertools import izip
 import numpy as np
+
 try:
-    import sofa_time
+    from . import sofa_time
 except ImportError:
     pass
-
 
 MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400
@@ -111,6 +111,9 @@ class Time(object):
     """
     def __init__(self, val, val2=None, format=None, system=None,
                  opt={}, lat=0.0, lon=0.0):
+        if 'astropy.time.sofa_time' not in sys.modules:
+            raise ImportError('Failed to import astropy.time.sofa_time '
+                              'extension module (check installation)')
         self.lat = lat
         self.lon = lon
         opt['__base__'] = _global_opt
@@ -527,25 +530,27 @@ class TimeEpochDate(TimeFormat):
     B1950.0 or J2000.0 etc).
     """
     def set_jds(self, val1, val2):
-        self.jd1, self.jd2 = self.epoch_to_jd(val1 + val2)
+        epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
+        self.jd1, self.jd2 = epoch_to_jd(val1 + val2)
 
     @property
     def vals(self):
-        return self.jd_to_epoch(self.jd1, self.jd2)
+        jd_to_epoch = getattr(sofa_time, self.jd_to_epoch)
+        return jd_to_epoch(self.jd1, self.jd2)
 
 
 class TimeBesselianEpoch(TimeEpochDate):
     """Besselian Epoch year"""
     name = 'byear'
-    epoch_to_jd = sofa_time.besselian_epoch_jd
-    jd_to_epoch = sofa_time.jd_besselian_epoch
+    epoch_to_jd = 'besselian_epoch_jd'
+    jd_to_epoch = 'jd_besselian_epoch'
 
 
 class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year"""
     name = 'jyear'
-    epoch_to_jd = sofa_time.julian_epoch_jd
-    jd_to_epoch = sofa_time.jd_julian_epoch
+    epoch_to_jd = 'julian_epoch_jd'
+    jd_to_epoch = 'jd_julian_epoch'
 
 
 # Set module constant with names of all available time formats
