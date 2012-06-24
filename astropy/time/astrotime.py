@@ -16,7 +16,7 @@ except ImportError:
 
 MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400
-TIME_SYSTEMS = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -86,7 +86,7 @@ class Time(object):
 
     A Time object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
-    ``format`` and must correspond to the specified time ``system``.  The
+    ``format`` and must correspond to the specified time ``scale``.  The
     optional ``val2`` time input should be supplied only for numeric input
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
@@ -99,8 +99,8 @@ class Time(object):
         Data to initialize table.
     format : str
         Format of input value(s)
-    system : str
-        Time system of input value(s)
+    scale : str
+        Time scale of input value(s)
     opt : dict, optional
         options
     lat : float, optional
@@ -108,7 +108,7 @@ class Time(object):
     lon : float, optional
         Earth longitude of observer
     """
-    def __init__(self, val, val2=None, format=None, system=None,
+    def __init__(self, val, val2=None, format=None, scale=None,
                  opt={}, lat=0.0, lon=0.0):
         if 'astropy.time.sofa_time' not in sys.modules:
             raise ImportError('Failed to import astropy.time.sofa_time '
@@ -136,62 +136,62 @@ class Time(object):
         if val_ndim != val2_ndim:
             raise ValueError('Input val and val2 must have same dimensions')
 
-        # To Do: auto determine format and system if not supplied.  For now
+        # To Do: auto determine format and scale if not supplied.  For now
         # raise exception.
         if format not in TIME_FORMATS:
             raise ValueError('Must supply valid format in {0}'
                              .format(sorted(TIME_FORMATS)))
 
-        if system is not None and system not in TIME_SYSTEMS:
-            raise ValueError('System {0} is not in the allowed systems {1}'
-                             .format(system, sorted(TIME_SYSTEMS)))
+        if scale is not None and scale not in TIME_SCALES:
+            raise ValueError('Scale {0} is not in the allowed scales {1}'
+                             .format(scale, sorted(TIME_SCALES)))
 
-        self._time = TIME_FORMATS[format](val, val2, system, self.opt)
+        self._time = TIME_FORMATS[format](val, val2, scale, self.opt)
         self._format = format
-        self._system = system
+        self._scale = scale
 
     def _get_format(self):
         return self._format
 
     def _set_format(self, format):
         NewFormat = TIME_FORMATS[format]
-        # If the new format class has a "system" class attr then that system is
+        # If the new format class has a "scale" class attr then that scale is
         # required and the input jd1,2 has to be converted first.
-        if hasattr(NewFormat, 'system'):
-            system = getattr(NewFormat, 'system')
-            new = getattr(self, system)  # self JDs converted to system
-            self._time = NewFormat(new.jd1, new.jd2, system, self.opt,
+        if hasattr(NewFormat, 'scale'):
+            scale = getattr(NewFormat, 'scale')
+            new = getattr(self, scale)  # self JDs converted to scale
+            self._time = NewFormat(new.jd1, new.jd2, scale, self.opt,
                                    from_jd=True)
         else:
             self._time = NewFormat(self._time.jd1, self._time.jd2,
-                                   self.system, self.opt, from_jd=True)
+                                   self.scale, self.opt, from_jd=True)
 
         self._format = format
 
     def __repr__(self):
-        return ("<Time object: system='%s' format='%s' vals=%s>" % (
-                self.system, self.format, getattr(self, self.format)))
+        return ("<Time object: scale='%s' format='%s' vals=%s>" % (
+                self.scale, self.format, getattr(self, self.format)))
 
     def __str__(self):
         return str(getattr(self, self.format))
 
     format = property(_get_format)
 
-    def _get_system(self):
-        return self._system
+    def _get_scale(self):
+        return self._scale
 
-    def _set_system(self, system):
-        if system == self._system:
+    def _set_scale(self, scale):
+        if scale == self._scale:
             return
-        if system not in TIME_SYSTEMS:
-            raise ValueError('System {0} is not in the allowed systems {1}'
-                             .format(system, sorted(TIME_SYSTEMS)))
+        if scale not in TIME_SCALES:
+            raise ValueError('Scale {0} is not in the allowed scales {1}'
+                             .format(scale, sorted(TIME_SCALES)))
 
-        # Determine the chain of system transformations to get from the current
-        # system to the new system.  MULTI_HOPS contains a dict of all
+        # Determine the chain of scale transformations to get from the current
+        # scale to the new scale.  MULTI_HOPS contains a dict of all
         # transformations (xforms) that require intermediate xforms.
         # The MULTI_HOPS dict is keyed by (sys1, sys2) in alphabetical order.
-        xform = (self._system, system)
+        xform = (self._scale, scale)
         xform_sort = tuple(sorted(xform))
         multi = MULTI_HOPS.get(xform_sort, ())
         xforms = xform_sort[:1] + multi + xform_sort[-1:]
@@ -199,7 +199,7 @@ class Time(object):
         if xform_sort != xform:
             xforms = tuple(reversed(xforms))
 
-        # Transform the jd1,2 pairs through the chain of system xforms.
+        # Transform the jd1,2 pairs through the chain of scale xforms.
         jd1, jd2 = self._time.jd1, self._time.jd2
         for sys1, sys2 in itertools.izip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
@@ -220,11 +220,11 @@ class Time(object):
 
             conv_func = getattr(sofa_time, sys1 + '_' + sys2)
             jd1, jd2 = conv_func(*args)
-        self._time = TIME_FORMATS[self.format](jd1, jd2, system, self.opt,
+        self._time = TIME_FORMATS[self.format](jd1, jd2, scale, self.opt,
                                               from_jd=True)
-        self._system = system
+        self._scale = scale
 
-    system = property(_get_system)
+    scale = property(_get_scale)
 
     def set_opt(self, **kwargs):
         """Set options that affect TimeFormat class behavior for this Time
@@ -232,7 +232,7 @@ class Time(object):
 
         Example::
 
-          t = Time(100.0, format='mjd', system='utc')
+          t = Time(100.0, format='mjd', scale='utc')
           t.set_opt(precision=1)
 
         Parameters
@@ -259,7 +259,7 @@ class Time(object):
     def _get_time_object(self, format):
         """Turn this into copy??"""
         tm = Time(self._time.jd1, self._time.jd2,
-                  format='jd', system=self.system, opt=self.opt)
+                  format='jd', scale=self.scale, opt=self.opt)
         tm._set_format(format)
         attrs = ('is_scalar',
                  '_delta_ut1_utc', '_delta_tdb_tt',
@@ -272,9 +272,9 @@ class Time(object):
         return tm
 
     def __getattr__(self, attr):
-        if attr in TIME_SYSTEMS:
+        if attr in TIME_SCALES:
             tm = self._get_time_object(format=self.format)
-            tm._set_system(attr)
+            tm._set_scale(attr)
             return tm
 
         elif attr in TIME_FORMATS:
@@ -347,15 +347,15 @@ class TimeFormat(object):
     """
     Base class for time representations.
     """
-    def __init__(self, val1, val2, system, opt, from_jd=False):
-        if hasattr(self.__class__, 'system'):
-            # This format class has a required time system
-            cls_system = getattr(self.__class__, 'system')
-            if (system is not None and system != cls_system):
-                raise ValueError('Class {0} requires system={1} or None'
-                                 .format(self.__class__.__name__, cls_system))
+    def __init__(self, val1, val2, scale, opt, from_jd=False):
+        if hasattr(self.__class__, 'scale'):
+            # This format class has a required time scale
+            cls_scale = getattr(self.__class__, 'scale')
+            if (scale is not None and scale != cls_scale):
+                raise ValueError('Class {0} requires scale={1} or None'
+                                 .format(self.__class__.__name__, cls_scale))
         else:
-            self.system = system
+            self.scale = scale
         self.opt = OptDict(opt)
         self.n_times = len(val1)
         if len(val1) != len(val2):
@@ -401,11 +401,11 @@ class TimeFromEpoch(TimeFormat):
     epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
-    def __init__(self, val1, val2, system, opt, from_jd=False):
-        epoch = Time(self.epoch_val, self.epoch_val2, system=self.epoch_system,
+    def __init__(self, val1, val2, scale, opt, from_jd=False):
+        epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format, opt=opt)
-        self.epoch = getattr(epoch, self.system)
-        super(TimeFromEpoch, self).__init__(val1, val2, system, opt, from_jd)
+        self.epoch = getattr(epoch, self.scale)
+        super(TimeFromEpoch, self).__init__(val1, val2, scale, opt, from_jd)
 
     def set_jds(self, val1, val2):
         self.jd1 = self.epoch.jd1 + val2 * self.unit
@@ -430,9 +430,9 @@ class TimeUnix(TimeFromEpoch):
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
     epoch_val = '1970-01-01 00:00:00'
     epoch_val2 = None
-    epoch_system = 'utc'
+    epoch_scale = 'utc'
     epoch_format = 'iso'
-    system = 'utc'
+    scale = 'utc'
 
 
 class TimeCxcSec(TimeFromEpoch):
@@ -442,9 +442,9 @@ class TimeCxcSec(TimeFromEpoch):
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
     epoch_val = '1998-01-01 00:00:00'
     epoch_val2 = None
-    epoch_system = 'tt'
+    epoch_scale = 'tt'
     epoch_format = 'iso'
-    system = 'tai'
+    scale = 'tai'
 
 
 class TimeString(TimeFormat):
@@ -483,11 +483,11 @@ class TimeString(TimeFormat):
             imin[i] = tm.tm_min
             dsec[i] = tm.tm_sec + fracsec
 
-        self.jd1, self.jd2 = sofa_time.dtf_jd(self.system,
+        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale,
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
-        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.system.upper(),
+        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
                                                  self.opt['precision'],
                                                  self.jd1, self.jd2)
         for iy, im, id, ihmsf in itertools.izip(iys, ims, ids, ihmsfs):
@@ -519,7 +519,7 @@ class TimeISO(TimeString):
 
 class TimeISOT(TimeString):
     name = 'isot'
-    system = 'utc'
+    scale = 'utc'
     strptime_fmt = '%Y-%m-%dT%H:%M:%S'
     str_fmt = '{year:d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'
 
