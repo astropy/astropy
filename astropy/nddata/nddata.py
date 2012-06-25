@@ -31,9 +31,12 @@ class NDData(object):
              representation in subclasses
 
     mask : `~numpy.ndarray`, optional
-        Masking of the data; Should be False/0 (or the empty string) where the
-        data is *valid*.  All other values indicate that the value should be
-        masked. Must be a shape that can be broadcast onto `data`.
+        Masking of the data; Should be ``False`` where the data is *valid* and
+        ``True`` when it is not (as for Numpy masked arrays).
+
+    flags : `~numpy.ndarray`, optional
+        Flags giving information about each pixel. While the flags he values
+        inside the flags array. Flags can be any valid Numpy array type.
 
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
@@ -61,10 +64,6 @@ class NDData(object):
         If True, the array will be *copied* from the provided `data`, otherwise
         it will be referenced if possible (see `numpy.array` :attr:`copy`
         argument for details).
-
-    validate : bool, optional
-        If False, no type or shape-checking or array conversion will occur.
-        Note that if `validate` is False, :attr:`copy` will be ignored.
 
     Raises
     ------
@@ -96,83 +95,87 @@ class NDData(object):
         >>> x = NDData([[1,2,3], [4,5,6]])
         >>> plt.imshow(x)
     """
-    def __init__(self, data, error=None, mask=None, wcs=None, meta=None,
-                 units=None, copy=True, validate=True):
-        if validate:
-            self.data = np.array(data, subok=True, copy=copy)
 
-            if error is None:
-                self.error = None
-            else:
-                self.error = np.array(error, subok=True, copy=copy)
+    def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
+                 meta=None, units=None, copy=True):
 
-            if mask is None:
-                self.mask = None
-            else:
-                self.mask = np.array(mask, subok=True, copy=copy)
+        self.data = np.array(data, subok=True, copy=copy)
 
-            self._validate_mask_and_error()
-
-            self.wcs = wcs
-            self.units = units
-            if meta is None:
-                self.meta = {}
-            else:
-                self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+        if error is None:
+            self.error = None
         else:
-            self.data = data
-            self.error = error
-            self.mask = mask
-            self.wcs = wcs
-            self.meta = meta
-            self.units = units
+            self.error = np.array(error, subok=True, copy=copy)
 
-    def _validate_mask_and_error(self):
-        """
-        Raises ValueError if they don't match (using ~numpy.broadcast)
-        """
-
-        try:
-            if self.mask is not None:
-                np.broadcast(self.data, self.mask)
-            maskmatch = True
-        except ValueError:
-            maskmatch = False
-
-        try:
-            if self.error is not None:
-                np.broadcast(self.data, self.error)
-            errmatch = True
-        except ValueError:
-            errmatch = False
-
-        if not errmatch and not maskmatch:
-            raise ValueError('NDData error and mask do not match data')
-        elif not errmatch:
-            raise ValueError('NDData error does not match data')
-        elif not maskmatch:
-            raise ValueError('NDData mask does not match data')
-
-    @property
-    def boolmask(self):
-        """
-        The mask as a boolean array (or None if the mask is None).
-
-        This mask is True where the data is *valid*, and False where the data
-        should be *masked*.  This is the opposite of the convention used for
-        `mask`, but allows simple retrieval of the unmasked data points as
-        ``ndd.data[ndd.boolmask]``.
-        """
-        if self.mask is None:
-            return None
+        if mask is None:
+            self.mask = None
         else:
-            dtchar = self.mask.dtype.char
-            if dtchar == 'U':
-                return self.mask == u''
-            elif dtchar == 'S':
-                return self.mask == b''
+            self.mask = np.array(mask, subok=True, copy=copy)
+
+        if flags is None:
+            self.flags = None
+        else:
+            self.flags = np.array(flags, subok=True, copy=copy)
+
+        self.wcs = wcs
+        self.units = units
+
+        if meta is None:
+            self.meta = {}
+        else:
+            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+
+    def _get_mask(self):
+        return self._mask
+
+    def _set_mask(self, value):
+        if value is not None:
+            if isinstance(value, np.ndarray):
+                if value.dtype != np.bool_:
+                    raise TypeError("`mask` should be a boolean Numpy array")
+                else:
+                    if value.shape != self.shape:
+                        raise Exception("dimensions of `mask` do not match data")
+                    else:
+                        self._mask = value
             else:
-                return ~self.mask.astype(bool)
+                raise TypeError("`mask` should be a Numpy array")
+        else:
+            self._mask = value
+
+    mask = property(_get_mask, _set_mask)
+
+    def _get_flags(self):
+        return self._flags
+
+    def _set_flags(self, value):
+        if value is not None:
+            if isinstance(value, np.ndarray):
+                if value.shape != self.shape:
+                    raise Exception("dimensions of `flags` do not match data")
+                else:
+                    self._flags = value
+            else:
+                raise TypeError("`flags` should be a Numpy array")
+        else:
+            self._flags = value
+
+    flags = property(_get_flags, _set_flags)
+
+    def _get_error(self):
+        return self._error
+
+    def _set_error(self, value):
+        if value is not None:
+            try:
+                np.broadcast(self.data, value)
+            except ValueError:
+                raise Exception("dimensions of `error` do not match data")
+            else:
+                self._error = value
+        else:
+            self._error = value
+
+    error = property(_get_error, _set_error)
 
     @property
     def shape(self):
