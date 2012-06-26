@@ -16,7 +16,14 @@ except ImportError:
 
 MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400
+
+# These both get filled in at end after TimeFormat subclasses defined
+TIME_FORMATS = {}
+TIME_DELTA_FORMATS = {}
+
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+TIME_DELTA_SCALES = ('tai',)
+
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
@@ -118,11 +125,17 @@ class Time(object):
     """
     def __init__(self, val, val2=None, format=None, scale=None,
                  opt={}, lat=0.0, lon=0.0):
+        self.SCALES = TIME_SCALES
+        self.FORMATS = TIME_FORMATS
+        self.lat = lat
+        self.lon = lon
+        self._init_from_vals(val, val2, format, scale, opt)
+
+    def _init_from_vals(self, val, val2, format, scale, opt):
         if 'astropy.time.sofa_time' not in sys.modules:
             raise ImportError('Failed to import astropy.time.sofa_time '
                               'extension module (check installation)')
-        self.lat = lat
-        self.lon = lon
+
         opt['__base__'] = _global_opt
         self.opt = OptDict(opt)
 
@@ -144,9 +157,9 @@ class Time(object):
         if val_ndim != val2_ndim:
             raise ValueError('Input val and val2 must have same dimensions')
 
-        if scale is not None and scale not in TIME_SCALES:
+        if scale is not None and scale not in self.SCALES:
             raise ValueError('Scale {0} is not in the allowed scales {1}'
-                             .format(scale, sorted(TIME_SCALES)))
+                             .format(scale, sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._format, self._time = self._get_time_fmt(val, val2, format, scale)
@@ -161,15 +174,15 @@ class Time(object):
         available string formats and stop when one matches.
         """
         if format is None and val.dtype.kind == 'S':
-            formats = [(name, cls) for name, cls in TIME_FORMATS.items()
+            formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeString)]
             err_msg = 'any of format classes {0}'.format(
                 [name for name, cls in formats])
-        elif format not in TIME_FORMATS:
+        elif format not in self.FORMATS:
             raise ValueError('Must supply valid format in {0}'
-                             .format(sorted(TIME_FORMATS)))
+                             .format(sorted(self.FORMATS)))
         else:
-            formats = [(format, TIME_FORMATS[format])]
+            formats = [(format, self.FORMATS[format])]
             err_msg = 'format class {0}'.format(format)
 
         for format, FormatClass in formats:
@@ -184,7 +197,7 @@ class Time(object):
         return self._format
 
     def _set_format(self, format):
-        NewFormat = TIME_FORMATS[format]
+        NewFormat = self.FORMATS[format]
         # If the new format class has a "scale" class attr then that scale is
         # required and the input jd1,2 has to be converted first.
         if hasattr(NewFormat, 'scale'):
@@ -213,9 +226,9 @@ class Time(object):
     def _set_scale(self, scale):
         if scale == self._scale:
             return
-        if scale not in TIME_SCALES:
+        if scale not in self.SCALES:
             raise ValueError('Scale {0} is not in the allowed scales {1}'
-                             .format(scale, sorted(TIME_SCALES)))
+                             .format(scale, sorted(self.SCALES)))
 
         # Determine the chain of scale transformations to get from the current
         # scale to the new scale.  MULTI_HOPS contains a dict of all
@@ -250,7 +263,7 @@ class Time(object):
 
             conv_func = getattr(sofa_time, sys1 + '_' + sys2)
             jd1, jd2 = conv_func(*args)
-        self._time = TIME_FORMATS[self.format](jd1, jd2, scale, self.opt,
+        self._time = self.FORMATS[self.format](jd1, jd2, scale, self.opt,
                                               from_jd=True)
         self._scale = scale
 
@@ -288,8 +301,8 @@ class Time(object):
 
     def _get_time_object(self, format):
         """Turn this into copy??"""
-        tm = Time(self._time.jd1, self._time.jd2,
-                  format='jd', scale=self.scale, opt=self.opt)
+        tm = self.__class__(self._time.jd1, self._time.jd2,
+                            format='jd', scale=self.scale, opt=self.opt)
         tm._set_format(format)
         attrs = ('is_scalar',
                  '_delta_ut1_utc', '_delta_tdb_tt',
@@ -302,12 +315,12 @@ class Time(object):
         return tm
 
     def __getattr__(self, attr):
-        if attr in TIME_SCALES:
+        if attr in self.SCALES:
             tm = self._get_time_object(format=self.format)
             tm._set_scale(attr)
             return tm
 
-        elif attr in TIME_FORMATS:
+        elif attr in self.FORMATS:
             tm = self._get_time_object(format=attr)
             return (tm.vals[0].tolist() if self.is_scalar else tm.vals)
 
@@ -371,6 +384,15 @@ class Time(object):
 
     def __len__(self):
         return len(self._time.jd1)
+
+
+class TimeDelta(Time):
+    """Interval of time.
+    """
+    def __init__(self, val, val2=None, format=None, scale=None, opt={}):
+        self.SCALES = TIME_DELTA_SCALES
+        self.FORMATS = TIME_DELTA_FORMATS
+        self._init_from_vals(val, val2, format, 'tai', opt)
 
 
 class TimeFormat(object):
@@ -668,18 +690,52 @@ class TimeJulianEpoch(TimeEpochDate):
     jd_to_epoch = 'jd_julian_epoch'
 
 
+class TimeDeltaFormat(TimeFormat):
+    """
+    Base class for time delta represenations.
+    """
+    pass
+
+
+class TimeDeltaSec(TimeDeltaFormat):
+    name = 'sec'
+
+    def set_jds(self, val1, val2):
+        self.jd1 = val1 / SECS_PER_DAY
+        self.jd2 = val2 / SECS_PER_DAY
+
+    @property
+    def vals(self):
+        return (self.jd1 + self.jd2) * SECS_PER_DAY
+
+
+class TimeDeltaJD(TimeDeltaFormat):
+    name = 'jd'
+
+    def set_jds(self, val1, val2):
+        self.jd1 = val1
+        self.jd2 = val2
+
+    @property
+    def vals(self):
+        return self.jd1 + self.jd2
+
+
 # Set module constant with names of all available time formats
-TIME_FORMATS = {}
 _module = sys.modules[__name__]
 for name in dir(_module):
     val = getattr(_module, name)
     try:
-        ok = issubclass(val, TimeFormat)
+        is_timeformat = issubclass(val, TimeFormat)
+        is_timedeltaformat = issubclass(val, TimeDeltaFormat)
     except:
         pass
     else:
-        if ok and hasattr(val, 'name'):
-            TIME_FORMATS[val.name] = val
+        if hasattr(val, 'name'):
+            if is_timedeltaformat:
+                TIME_DELTA_FORMATS[val.name] = val
+            elif is_timeformat:
+                TIME_FORMATS[val.name] = val
 
 
 def _make_1d_array(val):
