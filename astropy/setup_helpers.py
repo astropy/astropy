@@ -18,6 +18,7 @@ from distutils.dist import Distribution
 from distutils.errors import DistutilsError
 from distutils.core import Extension
 from distutils.log import warn
+from distutils.command.build import build as DistutilsBuild
 
 from .tests.helper import astropy_test
 
@@ -33,6 +34,25 @@ try:
     numpy_includes = get_numpy_include()
 except ImportError:
     numpy_includes = []
+
+
+class AstropyBuild(DistutilsBuild):
+    """
+    A custom 'build' command that adds the following options:
+
+        `--disable-legacy` : Disable installing legacy shims
+    """
+    user_options = DistutilsBuild.user_options + [
+        ('disable-legacy', None,
+         "Don't install legacy shims")]
+
+    boolean_options = DistutilsBuild.boolean_options + ['disable-legacy']
+
+    def initialize_options(self):
+        DistutilsBuild.initialize_options(self)
+        # Set a default value for disable_legacy
+        self.disable_legacy = False
+
 
 try:
     from sphinx.setup_command import BuildDoc
@@ -184,6 +204,7 @@ def is_distutils_display_option():
     return bool(set(sys.argv[1:]).intersection(display_options))
 
 
+cmdclassd = {}
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -209,6 +230,8 @@ def get_distutils_option(option, commands):
     # if the option is set.
     dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
                          'script_args': args})
+    dist.cmdclass.update(cmdclassd)
+
     try:
         dist.parse_config_files()
         dist.parse_command_line()
@@ -301,7 +324,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     setup.py rather than returning new ones.  See Astropy's own
     ``setup.py`` for example usage and the Astropy development docs
     for more details.
-
     """
 
     from astropy.version import release
@@ -700,6 +722,11 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
         file system (useful for adding to distutils' `package_dir` kwarg.
     """
     import imp
+
+    # If legacy shims have been disabled at the commandline, simply do
+    # nothing.
+    if get_distutils_option('disable_legacy', ['build']):
+        return (None, None)
 
     found_legacy_module = True
     try:

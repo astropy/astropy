@@ -62,7 +62,24 @@ cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
              # Use distutils' sdist because it respects package_data.
              # setuptools/distributes sdist requires duplication of
              # information in MANIFEST.in
-             'sdist': sdist.sdist}
+             'sdist': sdist.sdist,
+
+             # Use a custom build command which understands additional
+             # commandline arguments
+             'build': setup_helpers.AstropyBuild
+             }
+
+if setup_helpers.HAVE_CYTHON and not release:
+    from Cython.Distutils import build_ext
+    # Builds Cython->C if in dev mode and Cython is present
+    cmdclassd['build_ext'] = build_ext
+
+if setup_helpers.AstropyBuildSphinx is not None:
+    cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
+
+# Set our custom command class mapping in setup_helpers, so that
+# setup_helpers.get_distutils_option will use the custom classes.
+setup_helpers.cmdclassd = cmdclassd
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
@@ -79,15 +96,6 @@ package_dirs = {}
 # more details.
 setup_helpers.update_package_files('astropy', extensions, package_data,
                                    packagenames, package_dirs)
-
-if setup_helpers.HAVE_CYTHON and not release:
-    from Cython.Distutils import build_ext
-    # Builds Cython->C if in dev mode and Cython is present
-    cmdclassd['build_ext'] = build_ext
-
-if setup_helpers.AstropyBuildSphinx is not None:
-    cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
-
 
 # Currently the only entry points installed by Astropy are hooks to
 # zest.releaser for doing Astropy's releases
