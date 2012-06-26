@@ -109,6 +109,14 @@ class TestBasic():
         t2 = atm.Time(t.jyear, format='jyear', scale='tai')
         assert np.allclose(t2.jd, jd)
 
+    def test_input_validation(self):
+        """Numeric values for string format raises error"""
+        times = [10, 20]
+        with pytest.raises(ValueError):
+            t = atm.Time(times, format='iso', scale='utc')
+        with pytest.raises(ValueError):
+            t = atm.Time('2000:001', format='jd', scale='utc')
+
 
 class TestSubFormat():
     """Test input and output subformat functionality"""

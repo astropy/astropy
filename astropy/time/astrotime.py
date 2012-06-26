@@ -144,19 +144,41 @@ class Time(object):
         if val_ndim != val2_ndim:
             raise ValueError('Input val and val2 must have same dimensions')
 
-        # To Do: auto determine format and scale if not supplied.  For now
-        # raise exception.
-        if format not in TIME_FORMATS:
-            raise ValueError('Must supply valid format in {0}'
-                             .format(sorted(TIME_FORMATS)))
-
         if scale is not None and scale not in TIME_SCALES:
             raise ValueError('Scale {0} is not in the allowed scales {1}'
                              .format(scale, sorted(TIME_SCALES)))
 
-        self._time = TIME_FORMATS[format](val, val2, scale, self.opt)
-        self._format = format
+        # Parse / convert input values into internal jd1, jd2 based on format
+        self._format, self._time = self._get_time_fmt(val, val2, format, scale)
         self._scale = scale
+
+    def _get_time_fmt(self, val, val2, format, scale):
+        """Given the supplied val, val2, format and scale try to instantiate
+        the corresponding TimeFormat class to convert the input values into
+        the internal jd1 and jd2.
+
+        If format is None and the input is a string-type array then guess
+        available string formats and stop when one matches.
+        """
+        if format is None and val.dtype.kind == 'S':
+            formats = [(name, cls) for name, cls in TIME_FORMATS.items()
+                       if issubclass(cls, TimeString)]
+            err_msg = 'any of format classes {0}'.format(
+                [name for name, cls in formats])
+        elif format not in TIME_FORMATS:
+            raise ValueError('Must supply valid format in {0}'
+                             .format(sorted(TIME_FORMATS)))
+        else:
+            formats = [(format, TIME_FORMATS[format])]
+            err_msg = 'format class {0}'.format(format)
+
+        for format, FormatClass in formats:
+            try:
+                return format, FormatClass(val, val2, scale, self.opt)
+            except (ValueError, TypeError):
+                pass
+        else:
+            raise ValueError('Input values did not match {0}'.format(err_msg))
 
     def _get_format(self):
         return self._format
@@ -373,7 +395,13 @@ class TimeFormat(object):
             self.jd1 = val1
             self.jd2 = val2
         else:
+            self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    def _check_val_type(self, val1, val2):
+        if val1.dtype.type != np.double or val2.dtype.type != np.double:
+            raise TypeError('Input values for {0} class must be doubles'
+                             .format(self.name))
 
 
 class TimeJD(TimeFormat):
@@ -464,6 +492,12 @@ class TimeString(TimeFormat):
     This is a reference implementation can be made much faster with effort.
     """
 
+    def _check_val_type(self, val1, val2):
+        if val1.dtype.kind != 'S':
+            raise TypeError('Input values for {0} class must be strings'
+                             .format(self.name))
+            # Note: don't care about val2 for these classes
+
     def set_jds(self, val1, val2):
         """
         Parse the time strings contained in val1 and set jd1, jd2.
@@ -493,7 +527,7 @@ class TimeString(TimeFormat):
                 try:
                     tm = time.strptime(timestr, strptime_fmt)
                 except ValueError:
-                    print timestr, strptime_fmt
+                    pass
                 else:
                     iy[i] = tm.tm_year
                     im[i] = tm.tm_mon
@@ -655,7 +689,7 @@ def _make_1d_array(val):
         val = np.asarray([val])
     elif val_ndim > 1:
         # Maybe lift this restriction later to allow multi-dim in/out?
-        raise ValueError('Input val must be zero or one dimensional')
+        raise TypeError('Input val must be zero or one dimensional')
 
     # Allow only string or float arrays as input (XXX datetime later...)
     if val.dtype.kind == 'i':
