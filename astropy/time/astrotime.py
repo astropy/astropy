@@ -212,7 +212,8 @@ class Time(object):
         self._format = format
 
     def __repr__(self):
-        return ("<Time object: scale='%s' format='%s' vals=%s>" % (
+        return ("<%s object: scale='%s' format='%s' vals=%s>" % (
+                self.__class__.__name__,
                 self.scale, self.format, getattr(self, self.format)))
 
     def __str__(self):
@@ -384,6 +385,60 @@ class Time(object):
 
     def __len__(self):
         return len(self._time.jd1)
+
+    def __sub__(self, other):
+        self_tai = self.tai
+        if not isinstance(other, Time):
+            _unsupported_op_type(self, other)
+
+        other_tai = other.tai
+        jd1 = self_tai.jd1 - other_tai.jd1
+        jd2 = self_tai.jd2 - other_tai.jd2
+
+        # T      - Tdelta = T
+        # Tdelta - Tdelta = Tdelta
+        # T      - T      = Tdelta
+        # Tdelta - T      = error
+        self_delta = isinstance(self, TimeDelta)
+        other_delta = isinstance(other, TimeDelta)
+        self_time = not self_delta  # only 2 possibilities
+        other_time = not other_delta
+        if (self_delta and other_delta) or (self_time and other_time):
+            return TimeDelta(jd1, jd2, format='jd')
+        elif (self_time and other_delta):
+            self_tai._time.jd1 = jd1
+            self_tai._time.jd2 = jd2
+            return getattr(self_tai, self.scale)
+        else:
+            _unsupported_op_type(self, other)
+
+    def __add__(self, other):
+        self_tai = self.tai
+        if not isinstance(other, Time):
+            _unsupported_op_type(self, other)
+
+        other_tai = other.tai
+        jd1 = self_tai.jd1 + other_tai.jd1
+        jd2 = self_tai.jd2 + other_tai.jd2
+
+        # T      + Tdelta = T
+        # Tdelta + Tdelta = Tdelta
+        # T      + T      = error
+        # Tdelta + T      = T
+        self_delta = isinstance(self, TimeDelta)
+        other_delta = isinstance(other, TimeDelta)
+        self_time = not self_delta  # only 2 possibilities
+        other_time = not other_delta
+        if (self_delta and other_delta):
+            return TimeDelta(jd1, jd2, format='jd')
+        elif (self_time and other_delta) or (self_delta and other_time):
+            tai = self_tai if self_time else other_tai
+            scale = self.scale if self_time else other.scale
+            tai._time.jd1 = jd1
+            tai._time.jd2 = jd2
+            return getattr(tai, scale)
+        else:
+            _unsupported_op_type(self, other)
 
 
 class TimeDelta(Time):
@@ -752,3 +807,8 @@ def _make_1d_array(val):
         val = np.asarray(val, dtype=np.float64)
 
     return val, val_ndim
+
+def _unsupported_op_type(left, right):
+    raise TypeError("unsupported operand type(s) for -: "
+                    "'{0}' and '{1}'".format(left.__class__.__name__,
+                                             right.__class__.__name__))
