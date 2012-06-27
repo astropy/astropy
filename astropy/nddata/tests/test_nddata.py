@@ -97,9 +97,3 @@ def test_nddata_conversion():
     nd = NDData([[1, 2, 3], [4, 5, 6]])
     assert nd.size == 6
     assert nd.dtype == np.dtype(int)
-
-
-def test_boolmask():
-    boolmask = np.random.random((10, 10)) > 0.5  # random mask that boolmask should look like
-    nd1 = NDData(np.random.random((10, 10)), mask=~boolmask)  # mask False where valid
-    assert np.all(nd1.boolmask == boolmask)

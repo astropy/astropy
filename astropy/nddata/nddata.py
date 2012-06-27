@@ -207,21 +207,6 @@ class NDData(object):
         """
         return self.data.ndim
 
-    @property
-    def boolmask(self):
-        """
-        The mask as a boolean array (or None if the mask is None).
-
-        This mask is True where the data is *valid*, and False where the data
-        should be *masked*.  This is the opposite of the convention used for
-        `mask`, but allows simple retrieval of the unmasked data points as
-        ``ndd.data[ndd.boolmask]``.
-        """
-        if self.mask is None:
-            return None
-        else:
-            return ~self.mask
-
     def __array__(self):
         """
         This allows code that requests a Numpy array to use an NDData
