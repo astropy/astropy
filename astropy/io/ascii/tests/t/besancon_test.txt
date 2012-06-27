@@ -1,0 +1,100 @@
+1                   ******************************************************************************************
+                    *                                                                                        *
+                    *      BESANCON MODEL OF STELLAR POPULATION SYNTHESIS 2003-12
+                    *             
+                    * 
+                    ******************************************************************************************
+
+
+  (l =    10.6; b =   -0.4)  Distance  0.0 a  50.0 kpc;  Solid angle      0.111  square degree
+  Adaptive step in distance  (20,30,50)
+  SELECTIONS :
+      Absolute magnitude:    -7.00 - 20.00
+      Apparent magnitudes Band   V  :  8.00- 25.00
+                          Band   B  :-99.00- 99.00
+                          Band   U  :-99.00- 99.00
+                          Band   R  :-99.00- 99.00
+                          Band   I  :-99.00- 99.00
+                          Band   J  :  5.00- 25.00
+                          Band   H  :  5.00- 25.00
+                          Band   K  :  5.00- 19.00
+                          Band   L  :-99.00- 99.00
+                          Band   12 :-99.00- 99.00
+                          Band   15 :-99.00- 99.00
+
+      Selection in age: from .00E9Gyr to Bulge
+      Spectral types: O0.0 - D5.0  Luminosity class    : 1 - 7  logTeff: 3.00 -  6.00  Log g:        -3.00-        8.00
+      Colour :  J-H      -99.00 -  99.00 Step    10.00
+                H-K      -99.00 -  99.00 Step    10.00
+                J-K      -99.00 -  99.00 Step    10.00
+                V-K      -99.00 -  99.00 Step    10.00
+
+      No kinematics                           
+   Computation mode :
+      Poisson drawings (ran1) for N <=  6
+      Photometric error laws:   V : 0.000000E+00+mag*0.000000E+00+mag^2*0.000000E+00
+                                J : 0.000000E+00+mag*0.000000E+00+mag^2*0.000000E+00
+                                H : 0.000000E+00+mag*0.000000E+00+mag^2*0.000000E+00
+                                K : 0.000000E+00+mag*0.000000E+00+mag^2*0.000000E+00
+      System:  Johnson-Cousins-IRAS VBURIJHKL+12+25  0.323  0.257  0.300  0.412  0.718  0.824  0.892  0.949  0.972  0.986
+      Creation of a catalogue of simulated stars
+  
+   Evolution model parameters 
+     Nb of tracks : 881 (with masses)                                               
+     Low masses from Vandenberg                                                     
+     Masses >1Msun Schaller et al.                                                  
+     Type of disc luminosity function: Hipparcos                                    
+     Integration time (Gyr):  10.000                                                
+          SFR : SFR consta    , nu : 0.400                                          
+          IMF : IMF 0.6 (<1Msun), 2.0 (>1Msun)                                      
+     Bolometric corrections : Flower                                                
+     Grid :   mag(sup, inf)=(-11.000 , 17.00 ) 10.000                               
+          LogTeff(sup, inf)=(  3.400 ,  5.50 )100.000                               
+       WD disc Wood 10Gyr Bergeron colors                                           
+     Pop   2  bv923m3.lf   hb3m3.lf     Age= 11.0Gyr  x=-0.5  WD IMF Salpeter 12Gyr 
+     Pop   3  bv923m4.lf   hb3m4.lf     Age= 14.0Gyr  x=-0.5  WD IMF2 14Gyr halo DA 
+     #  Bulbe : BC95, IMF x= 1.35 Y=0.28 Z=0.02 Age 10.0 Gyr                        
+  
+        Simulation of the stellar content of the Galaxy                       
+  
+  DENSITY LAWS (distances in pc, densities in M0/PC3)
+      Disc density law: Einasto; bulge Dwek G2; with warp and flare 
+      Distance Sun - Galactic Center : 8500.00  Disc outer truncation :14000.00
+      Sun position z_0  :15.00 Warp: starting position   8400.00 pc, angle  1.57080 radians, slope  0.18000 Flare: slope    0.5450E-06 starting position   9500.00 pc
+      Disc scale length: Young disc: 5000.0 3000.0; Old disc: 2530.0 1320.0
+      Disc excentricities : 0.0140 0.0268 0.0375 0.0551 0.0696 0.0785 0.0791
+      Thick disc: Modified exponential    800.00 2500.00  400.00 density correction   1.000 White dwarfs: 0.50609E-03/pc3
+      Spheroid: excentricity: 0.7600 exponent:  2.440 density correction   1.000 Halo white dwarfs: 0.28286E-03/pc3
+      Interstellar matter: Einasto law: excentricity and scale lengths in pc 0.0140  7222.0  5777.0
+      Disc mass density as a fct of age in M/pc3 :.003999  .007902  .006224  .004020  .005814  .004928  .006590
+      Stellar densities in */pc3 for Mv<8 (disc, Th.Disc, Spheroid) :.154E-01  .103E-02  .794E-05  . White dwarfs:.660E-02  .506E-03  .283E-03
+      Interstellar matter ( M/pc3) :.0210
+  
+      bulge Dwek G2;    1.590/ 0.424/ 0.42(kpc)  alpha (deg) 78.90 gamma  91.27 beta   3.50 Normalisation    0.2544E+11 x   1.0000 Cutoff   2.54kpc
+
+  METALLICITIES     .15E9  1. E9  2. E9  3. E9  5. E9  7. E9  10.E9  Th.D.  Spher  Bulge
+      [FE/H]         0.01   0.03   0.03   0.01  -0.07  -0.14  -0.37  -0.78  -1.78   0.00
+      Dispersion     0.12   0.12   0.10   0.11   0.18   0.17   0.20   0.30   0.50   0.40
+      Gradient -    -0.07  -0.07  -0.07  -0.07  -0.07  -0.07  -0.07   0.00   0.00   0.00
+      Gradient |     0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00
+  Absorption at s.n. : 0.70 mag./kpc   0 clouds
+  Dist    Mv  CL Typ  LTef  logg Age Mass  J-H    H-K    J-K    V-K    V   [Fe/H] l           b         Av   Mbol
+  0.091 10.20  5 7.20 3.559  4.85  7 0.48  0.601  0.223  0.824  4.175 15.133  0.02  10.62000  -0.38000  0.056  8.671
+  0.111 15.20  5 7.90 3.465  5.14  4 0.13  0.617  0.287  0.904  6.074 20.568 -0.11  10.62000  -0.38000  0.070 13.353
+  0.151 14.80  5 7.90 3.473  5.09  1 0.13  0.581  0.335  0.917  6.155 20.710  0.21  10.62000  -0.38000  0.098 12.985
+  0.151  9.10  5 7.00 3.585  4.77  4 0.58  0.668  0.161  0.829  3.671 15.113  0.11  10.62000  -0.38000  0.098  7.666
+  0.151 16.00  5 7.80 3.446  5.25  4 0.10  0.585  0.388  0.973  7.100 22.007  0.18  10.62000  -0.38000  0.098  0.000
+  0.151 14.60  6 9.00 3.741  8.00  2 0.60  0.280  0.087  0.367  1.738 20.653  0.17  10.62000  -0.38000  0.098  0.000
+  0.171 14.80  5 7.90 3.473  5.12  5 0.14  0.615  0.307  0.922  5.931 21.059  0.00  10.62000  -0.38000  0.112 12.985
+  0.171 12.80  5 7.50 3.509  5.03  2 0.22  0.600  0.282  0.882  5.073 19.105  0.01  10.62000  -0.38000  0.112 11.144
+  0.171  8.30  5 6.90 3.607  4.68  2 0.65  0.653  0.139  0.792  3.592 14.560 -0.02  10.62000  -0.38000  0.112  6.930
+  0.171 16.00  5 7.80 3.446  5.25  2 0.10  0.626  0.254  0.881  6.595 22.238 -0.26  10.62000  -0.38000  0.112  0.000
+  0.171 18.00  5 7.90 3.401  5.31  5 0.09  0.655  0.455  1.110  8.098 24.302  0.20  10.62000  -0.38000  0.112  0.000
+ 49.990  6.80  5 6.40 3.660  4.61  6 0.76  0.646  0.141  0.787  3.181 17.102 -0.07  10.62000  -0.38000  0.622  5.695
+ 49.995  6.80  5 6.40 3.660  4.61  6 0.76  0.646  0.141  0.787  3.181 17.102 -0.07  10.62000  -0.38000  0.622  5.695
+  Dist    Mv  CL Typ  LTef  logg Age Mass  J-H    H-K    J-K    V-K    V   [Fe/H] l           b         Av   Mbol
+  Star density before selection    34935208.927 after  theorical selection   34935205.961 Nb of stars generated     34935276
+  Stars ejected by selection in mag :   34225345.0 in color :          0.0 in mu :          0.0 in Vrad :          0.0 total :   34225344.0 released stars:       709932
+
+
+  TOTAL NUMBER OF STARS :    13

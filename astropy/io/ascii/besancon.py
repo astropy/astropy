@@ -43,23 +43,19 @@ class BesanconFixed(fixedwidth.FixedWidth):
     """
 
     def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True,
-            header_line=80):
-        super(BesanconFixed,self).__init__(col_starts=col_starts,
-                col_ends=col_ends, delimiter_pad=delimiter_pad,
-                bookend=bookend)
+            header_line=80, footer_line=-6):
+        core.BaseReader.__init__(self)
 
         self.header = BesanconFixedWidthHeader()
+        self.data = BesanconFixedWidthData()
 
         self.data.header = self.header
         self.header.data = self.data
 
-        # the first header line is at line 80, but fixedwidth ignores blank lines?
-        # also, the header's widths do not match the data widths
-        self.header.start_line = header_line
-        self.header.position_line = header_line
-        # this is a silly hack, I have NO idea why it's 71 and not 81
-        self.data.start_line = header_line - 9 #71
-        self.data.end_line = -6 # there are 6 lines at the end that should be excluded
+        # These should NOT be necessary - BesaconFixedWidthHeader.get_cols should find these
+        # however, they're not set early enough, apparently
+        self.header.header_line = header_line
+        self.header.footer_line = footer_line
 
         self.header.splitter.delimiter = ' '
         self.header.splitter.delimiter = ' '
@@ -71,14 +67,24 @@ class BesanconFixed(fixedwidth.FixedWidth):
 
 class BesanconFixedWidthHeader(fixedwidth.FixedWidthHeader):
     def get_cols(self, lines):
-        super(BesanconFixedWidthHeader,self).get_cols(lines)
-        self.names = lines[self.position_line].split()
+        #super(BesanconFixedWidthHeader,self).get_cols(lines)
+
+        header_inds = [ii for ii,L in enumerate(lines) if "  Dist    Mv  CL" in L]
+        self.header_line = header_inds[0]
+        self.footer_line = header_inds[1]
+        self.data.start_line = header_inds[0]+1
+        self.data.end_line = header_inds[1]-1
+        self.names = lines[self.header_line].split()
 
         data_lines = self.data.process_lines(lines)
-        vals, starts, ends = self.get_fixedwidth_params(data_lines[0])
-        self.n_data_cols = len(self.cols)
+        vals1, starts1, ends1 = self.get_fixedwidth_params(lines[self.header_line+1])
+        vals2, starts2, ends2 = self.get_fixedwidth_params(lines[self.footer_line-1])
+
+        starts = [min(s1,s2) for s1,s2 in zip(starts1,starts2)]
+        ends = [max(e1,e2) for e1,e2 in zip(ends1,ends2)]
 
         self._set_cols_from_names()
+        self.n_data_cols = len(self.cols)
         
         # Set column start and end positions.  Also re-index the cols because
         # the FixedWidthSplitter does NOT return the ignored cols (as is the
@@ -88,6 +94,14 @@ class BesanconFixedWidthHeader(fixedwidth.FixedWidthHeader):
             col.end = ends[col.index]
             col.index = i
 
+    def process_lines(self, lines):
+        """Strip out comment lines from list of ``lines``
+        (unlike the normal process_lines, does NOT exclude blank lines)
+
+        :param lines: all lines in table
+        :returns: list of lines
+        """
+        return lines[self.header_line+1:self.footer_line]
             
 class BesanconFixedWidthData(fixedwidth.FixedWidthData):
     def process_lines(self, lines):
@@ -97,8 +111,4 @@ class BesanconFixedWidthData(fixedwidth.FixedWidthData):
         :param lines: all lines in table
         :returns: list of lines
         """
-        if self.comment:
-            re_comment = re.compile(self.comment)
-            return [x for x in lines if not re_comment.match(x)]
-        else:
-            return [x for x in lines]
+        return lines[self.header.header_line+1:self.header.footer_line]
