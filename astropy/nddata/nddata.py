@@ -134,7 +134,7 @@ class NDData(object):
                     raise TypeError("`mask` should be a boolean Numpy array")
                 else:
                     if value.shape != self.shape:
-                        raise Exception("dimensions of `mask` do not match data")
+                        raise ValueError("dimensions of `mask` do not match data")
                     else:
                         self._mask = value
             else:
@@ -150,8 +150,10 @@ class NDData(object):
     def _set_flags(self, value):
         if value is not None:
             if isinstance(value, np.ndarray):
-                if value.shape != self.shape:
-                    raise Exception("dimensions of `flags` do not match data")
+                try:
+                    np.broadcast(self.data, value)
+                except ValueError:
+                    raise ValueError("dimensions of `flags` do not match data")
                 else:
                     self._flags = value
             else:
@@ -169,7 +171,7 @@ class NDData(object):
             try:
                 np.broadcast(self.data, value)
             except ValueError:
-                raise Exception("dimensions of `error` do not match data")
+                raise ValueError("dimensions of `error` do not match data")
             else:
                 self._error = value
         else:
@@ -204,6 +206,21 @@ class NDData(object):
         integer dimensions of this object's data
         """
         return self.data.ndim
+
+    @property
+    def boolmask(self):
+        """
+        The mask as a boolean array (or None if the mask is None).
+
+        This mask is True where the data is *valid*, and False where the data
+        should be *masked*.  This is the opposite of the convention used for
+        `mask`, but allows simple retrieval of the unmasked data points as
+        ``ndd.data[ndd.boolmask]``.
+        """
+        if self.mask is None:
+            return None
+        else:
+            return ~self.mask
 
     def __array__(self):
         """
