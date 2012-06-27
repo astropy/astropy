@@ -17,7 +17,7 @@ from ..file import PYTHON_MODES, _File
 from ..header import BLOCK_SIZE, _pad_length
 from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
                     fileobj_mode, ignore_sigint, _get_array_memmap, indent)
-from ..verify import _Verify, _ErrList, VerifyError
+from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
