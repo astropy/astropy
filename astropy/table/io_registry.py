@@ -5,7 +5,7 @@ _writers = {}
 _identifiers = {}
 
 
-def register_reader(table_format, function, override=False):
+def register_reader(table_format, function, force=False):
     '''
     Register a table reader function.
 
@@ -16,7 +16,7 @@ def register_reader(table_format, function, override=False):
         specify the table type when reading.
     function : function
         The function to read in a table.
-    override : bool
+    force : bool
         Whether to override any existing function if already present.
     '''
 
@@ -26,7 +26,7 @@ def register_reader(table_format, function, override=False):
         raise Exception("Type {0:s} is already defined".format(table_format))
 
 
-def register_writer(table_format, function, override=False):
+def register_writer(table_format, function, force=False):
     '''
     Register a table writer function.
 
@@ -37,7 +37,7 @@ def register_writer(table_format, function, override=False):
         specify the table type when writing.
     function : function
         The function to write in a table.
-    override : bool
+    force : bool
         Whether to override any existing function if already present.
     '''
 
@@ -47,7 +47,7 @@ def register_writer(table_format, function, override=False):
         raise Exception("Type {0:s} is already defined".format(table_format))
 
 
-def register_identifier(table_format, identifier, override=False):
+def register_identifier(table_format, identifier, force=False):
     '''
     Associate an identifier function with a specific table type
 
@@ -64,7 +64,7 @@ def register_identifier(table_format, identifier, override=False):
         arguments passed to `Table.read` or `Table.write`. The function should
         return True if the input can be identified as being of format
         `table_format`, and False otherwise.
-    override : bool
+    force : bool
         Whether to override any existing function if already present.
 
     Examples
