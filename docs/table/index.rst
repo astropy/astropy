@@ -151,6 +151,7 @@ The details of using `astropy.table` are provided in the following sections:
    access_table.rst
    modify_table.rst
    masking.rst
+   io.rst
 
 Reference/API
 =============

@@ -1085,7 +1085,8 @@ class Table(object):
         '''
         self._data[:] = self._data[::-1].copy()
 
-    def read(self, *args, **kwargs):
+    @classmethod
+    def read(cls, *args, **kwargs):
         '''
         Read a table
 
@@ -1109,7 +1110,7 @@ class Table(object):
                 format = valid_formats[0]
 
         reader = get_reader(format)
-        reader(self, *args, **kwargs)
+        reader(*args, **kwargs)
 
     def write(self, *args, **kwargs):
         '''

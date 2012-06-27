@@ -1,3 +1,5 @@
+__all__ = ['register_reader', 'register_writer', 'register_identifier', 'identify_format', 'get_reader', 'get_writer']
+
 _readers = {}
 _writers = {}
 _identifiers = {}
