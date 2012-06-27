@@ -58,7 +58,9 @@ LOG_TO_FILE = ConfigurationItem('log_to_file', True,
                                 "file")
 
 LOG_FILE_PATH = ConfigurationItem('log_file_path', '',
-                                  "The file to log messages to")
+                                  "The file to log messages to. When '', "
+                                  "it defaults to a file 'astropy.log' in "
+                                  "the astropy config directory.")
 
 LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'INFO',
                                    "Threshold for logging messages to "
