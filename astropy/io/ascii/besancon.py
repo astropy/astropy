@@ -123,7 +123,7 @@ class BesanconHeader(core.BaseHeader):
             col.index = i
 
 class BesanconData(core.BaseData):
-    """Besacon table data reader"""
+    """Besancon table data reader"""
     splitter_class = core.BaseSplitter
     comment = r'#'
 
@@ -133,10 +133,4 @@ class BesanconData(core.BaseData):
         :param lines: all lines in table
         :returns: list of lines
         """
-        nonblank_lines = (x for x in lines if x.strip())
-        if self.comment:
-            re_comment = re.compile(self.comment)
-            lines = [x for x in nonblank_lines if not re_comment.match(x)]
-        else:
-            lines = [x for x in nonblank_lines]
         return lines[:-6]
