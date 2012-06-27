@@ -30,107 +30,75 @@ besancon.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from . import core
+from . import fixedwidth
 import re
 
-class Besancon(core.BaseReader):
-    """Read a Besancon galaxy model.  See:
-    http://model.obs-besancon.fr/::
+__all__ = ['BesanconFixed']
 
+class BesanconFixed(fixedwidth.FixedWidth):
     """
-    def __init__(self):
-        core.BaseReader.__init__(self)
-        self.header = BesanconHeader()
-        self.data = BesanconData()
+    Read data from a Besancon galactic model table file.  Assumes a
+    fixed-length header; it is possible that different parameters in the model
+    will result in different length headers
+    """
 
-    def write(self, table=None):
-        """Not available for the Besancon class (raises NotImplementedError)"""
-        raise NotImplementedError
+    def __init__(self, col_starts=None, col_ends=None, delimiter_pad=' ', bookend=True,
+            header_line=80):
+        super(BesanconFixed,self).__init__(col_starts=col_starts,
+                col_ends=col_ends, delimiter_pad=delimiter_pad,
+                bookend=bookend)
 
+        self.header = BesanconFixedWidthHeader()
 
-class BesanconHeader(core.BaseHeader):
-    """Besancon table header"""
-    comment = r'#'
-    splitter_class = core.BaseSplitter
+        self.data.header = self.header
+        self.header.data = self.data
 
-    def __init__(self):
-        self.splitter = self.__class__.splitter_class()
-        self.splitter.process_line = None
-        self.splitter.process_val = None
-        self.splitter.delimiter = ' '
+        # the first header line is at line 80, but fixedwidth ignores blank lines?
+        # also, the header's widths do not match the data widths
+        self.header.start_line = header_line
+        self.header.position_line = header_line
+        # this is a silly hack, I have NO idea why it's 71 and not 81
+        self.data.start_line = header_line - 9 #71
+        self.data.end_line = -6 # there are 6 lines at the end that should be excluded
 
-    def process_lines(self, lines):
-        """Generator to yield Besancon header lines, i.e. those starting and ending with
-        delimiter character."""
-        delim = self.splitter.delimiter
-        for linenum,line in enumerate(lines):
-            if linenum >= 81:
-                break
-            yield line.strip(delim)
+        self.header.splitter.delimiter = ' '
+        self.header.splitter.delimiter = ' '
+        self.header.start_line = 0
+        self.header.comment = r'\s*#'
+        self.header.write_comment = '# '
+        self.header.col_starts = col_starts
+        self.header.col_ends = col_ends
 
+class BesanconFixedWidthHeader(fixedwidth.FixedWidthHeader):
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines``.
+        super(BesanconFixedWidthHeader,self).get_cols(lines)
+        self.names = lines[self.position_line].split()
 
-        Based on the previously set Header attributes find or create the column names.
-        Sets ``self.cols`` with the list of Columns.  This list only includes the actual
-        requested columns after filtering by the include_names and exclude_names
-        attributes.  See ``self.names`` for the full list.
+        data_lines = self.data.process_lines(lines)
+        vals, starts, ends = self.get_fixedwidth_params(data_lines[0])
+        self.n_data_cols = len(self.cols)
 
-        :param lines: list of table lines
-        :returns: list of table Columns
-        """
-        header_lines = list(self.process_lines(lines))  # generator returning valid header lines
-        header_vals = [vals for vals in self.splitter(header_lines)]
-        #if len(header_vals) == 0:
-        #    raise ValueError('At least one header line beginning and ending with delimiter required')
-        #elif len(header_vals) > 4:
-        #    raise ValueError('More than four header lines were found')
-
-        # Generate column definitions
-        cols = (header_lines[-1].split())
-        start = 1
-        for ii, name in enumerate(cols):
-            col = core.Column(name=name, index=ii)
-            #col.start = start
-            #col.end = start + len(name)
-            #if len(header_vals) > 1:
-            #    col.raw_type = header_vals[1][i].strip(' -')
-            #    col.type = self.get_col_type(col)
-            #if len(header_vals) > 2:
-            #    col.units = header_vals[2][i].strip() # Can't strip dashes here
-            #if len(header_vals) > 3:
-            #    null = header_vals[3][i].strip()
-            #    if null.lower() != 'null':
-            #        col.null = null  # Can't strip dashes here
-            fillval = 'nan'
-            col.type = core.FloatType
-            col.null = 'null'
-            self.data.fill_values.append((col.null, fillval, col.name))
-            cols.append(col)
-
-        # Standard column name filtering (include or exclude names)
-        self.names = [x.name for x in cols]
-        names = set(self.names)
-        if self.include_names is not None:
-            names.intersection_update(self.include_names)
-        if self.exclude_names is not None:
-            names.difference_update(self.exclude_names)
-
-        # Generate final list of cols and re-index the cols because the
-        # FixedWidthSplitter does NOT return the ignored cols (as is the
+        self._set_cols_from_names()
+        
+        # Set column start and end positions.  Also re-index the cols because
+        # the FixedWidthSplitter does NOT return the ignored cols (as is the
         # case for typical delimiter-based splitters)
-        self.cols = [x for x in cols if x.name in names]
         for i, col in enumerate(self.cols):
+            col.start = starts[col.index]
+            col.end = ends[col.index]
             col.index = i
 
-class BesanconData(core.BaseData):
-    """Besancon table data reader"""
-    splitter_class = core.BaseSplitter
-    comment = r'#'
-
+            
+class BesanconFixedWidthData(fixedwidth.FixedWidthData):
     def process_lines(self, lines):
-        """Strip out comment lines and blank lines from list of ``lines``
+        """Strip out comment lines from list of ``lines``
+        (unlike the normal process_lines, does NOT exclude blank lines)
 
         :param lines: all lines in table
         :returns: list of lines
         """
-        return lines[:-6]
+        if self.comment:
+            re_comment = re.compile(self.comment)
+            return [x for x in lines if not re_comment.match(x)]
+        else:
+            return [x for x in lines]
