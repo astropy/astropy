@@ -1,6 +1,7 @@
 from copy import copy
 
 import pytest
+import numpy as np
 
 from ..io_registry import _readers, _writers, _identifiers
 from .. import Table, register_reader, register_writer, \
@@ -187,6 +188,16 @@ def test_read_invalid_return():
     with pytest.raises(TypeError) as exc:
         table.read(format='test')
     assert exc.value.args[0] == "reader should return a Table instance"
+
+
+def test_read_basic():
+    data = np.array(zip([1, 2, 3], ['a', 'b', 'c']), dtype=[('A', int), ('B', '|S1')])
+    register_reader('test', lambda x: Table(x))
+    t = table.read(data, format='test')
+    assert t.keys() == ['A', 'B']
+    for i in range(3):
+        assert t['A'][i] == data['A'][i]
+        assert t['B'][i] == data['B'][i]
 
 
 def teardown_function(function):
