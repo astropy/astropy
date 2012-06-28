@@ -42,8 +42,9 @@ del intersphinx_mapping['astropy']
 # -- General configuration -----------------------------------------------------
 
 # General information about the project.
-project = u'Astropy'
-copyright = u'2012, The Astropy Collaboration'
+project = u'AstroPy'
+author = u'The AstroPy Collaboration'
+copyright = u'2012, ' + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -131,10 +132,8 @@ htmlhelp_basename = 'Astropydoc'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-  ('index', 'Astropy.tex', u'Astropy Documentation',
-   u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration', 'manual'),
-]
+latex_documents = [('index', project + '.tex', project + u' Documentation',
+                    author, 'manual')]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -145,10 +144,8 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'astropy', u'Astropy Documentation',
-     [u'Erik Tollerud, Thomas Robitaille, Perry Greenfield, and the Astropy Collaboration'], 1)
-]
+man_pages = [('index', project.lower(), project + u' Documentation',
+              [author], 1)]
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
