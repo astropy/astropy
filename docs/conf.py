@@ -12,8 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-#some of the docs require the autodoc special-members option, in 1.1
-needs_sphinx = '1.1'
+# If your documentation needs a minimal Sphinx version, state it here.
+#needs_sphinx = '1.1'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
