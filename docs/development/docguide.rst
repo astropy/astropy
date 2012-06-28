@@ -578,3 +578,36 @@ on how to use Sphinx_ to build the manual.
 .. _SciPy: http://www.scipy.org
 .. _numpy-discussion list: http://www.scipy.org/Mailing_Lists
 .. _Sphinx: http://sphinx.pocoo.org
+
+
+Sphinx Documentation Themes
+---------------------------
+
+A custom Sphinx HTML theme is included in the astropy source tree and
+installed along with astropy. This allows the theme to be used by
+default from both astropy and affiliated packages. This is done by
+setting the theme in the global astropy sphinx configuration, which is
+imported in the sphinx configuration of both `astropy` and affiliated
+packages.
+
+Using a different theme for `astropy` or affiliated packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A different theme can be used by overriding a few sphinx
+configuration variables set in the global configuration. 
+
+* To use a different theme, set `html_theme` to the name of a desired
+  builtin Sphinx theme or a custom theme in
+  `package-name/docs/conf.py` (where `package-name` is "astropy" or
+  the name of the affiliated package).
+
+* To use a custom theme, additionally: place the theme in
+  `package-name/docs/_themes` and add `'_themes'` to the
+  `html_theme_path` variable. See the Sphinx_ documentation for more
+  details on theming.
+ 
+Adding more custom themes to astropy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Additional custom themes can be included in the astropy source tree by
+placing them in the directory `astropy/astropy/sphinx/themes`.
