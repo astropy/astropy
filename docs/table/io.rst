@@ -9,42 +9,55 @@ No built-in readers/writers have been implemented at this time.
 Creating a custom reader/writer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following example demonstrates how to create a reader for the Table class. First, we can create a highly simplistic FITS reader which just reads the data as a structured array::
+The following example demonstrates how to create a reader for the
+Table class. First, we can create a highly simplistic FITS reader
+which just reads the data as a structured array::
 
-    from astropy.table import Table
+    from astropy import table
 
     def fits_reader(filename, hdu=1):
         from astropy.io import fits
         data = fits.open(filename)[hdu].data
-        return Table(data)
+        return table.Table(data)
 
 and then register it with astropy.table::
 
-    from astropy.table import register_reader
-    register_reader('fits', fits_reader)
+    table.register_reader('fits', fits_reader)
 
-Reader functions can take any arguments except ``format`` (since this is
-reserved for the ``Table.read`` method) and should return a ``Table``
-object.
+Reader functions can take any arguments except ``format`` (since this
+is reserved for the ``table.read`` function) and should return a
+``Table`` object.
 
 We can then read in a FITS table with::
 
-    t = Table.read('catalog.fits', format='fits')
+    t = table.read('catalog.fits', format='fits')
 
-In practice, it would be nice to have the ``Table`` class automatically identify that this file was a FITS file, so we can construct a function that can recognize FITS files, which we refer to here as an *identifier* function. An identifier function should take two arguments, which are the positional and keyword arguments passed to ``Table.read`` respectively (and are therefore a list and a dictionary). We can write a simplistic function that only looks at filenames (but in practice, this function could even look at the first few bytes of the file for example). The only requirement is that it return a boolean indicating whether the input matches that expected for the format::
+In practice, it would be nice to have the ``read`` method
+automatically identify that this file was a FITS file, so we can
+construct a function that can recognize FITS files, which we refer to
+here as an *identifier* function. An identifier function should take
+two arguments, which are the positional and keyword arguments passed
+to ``table.read`` respectively (and are therefore a list and a
+dictionary). We can write a simplistic function that only looks at
+filenames (but in practice, this function could even look at the first
+few bytes of the file for example). The only requirement is that it
+return a boolean indicating whether the input matches that expected
+for the format::
 
     def fits_identify(args, kwargs):
-       return isinstance(args[0], basestring) and \
-              args[0].lower().split('.')[-1] in ['fits', 'fit']
+        return isinstance(args[0], basestring) and \
+               args[0].lower().split('.')[-1] in ['fits', 'fit']
 
 We then register this identifier function with ``astropy.table``::
 
-    from astropy.table import register_identifier
-    register_identifier('fits', fits_identify)
+    table.register_identifier('fits', fits_identify)
 
 And we can then do::
 
-    t = Table.read('catalog.fits')
+    t = table.read('catalog.fits')
 
-If multiple formats match the current input, then an exception is raised, and similarly if no format matches the current input. In that case, the format should be explicitly given with the ``format=`` keyword argument.
+If multiple formats match the current input, then an exception is
+raised, and similarly if no format matches the current input. In that
+case, the format should be explicitly given with the ``format=``
+keyword argument.
 
