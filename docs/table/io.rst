@@ -61,3 +61,24 @@ raised, and similarly if no format matches the current input. In that
 case, the format should be explicitly given with the ``format=``
 keyword argument.
 
+Similarly, it is possible to create custom writers. To go with our simplistic FITS reader above, we can write a simplistic FITS writer::
+
+   def fits_writer(table, filename, clobber=False):
+       import numpy as np
+       from astropy.io import fits
+       fits.writeto(filename, np.array(table), clobber=clobber)
+
+We then register the writer::
+
+   table.register_writer('fits', fits_writer)
+
+And we can then write the file out to a FITS file::
+
+   t.write('catalog_new.fits', format='fits')
+
+If we have registered the identifier as above, we can simply do::
+
+   t.write('catalog_new.fits')
+
+
+
