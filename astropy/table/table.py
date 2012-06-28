@@ -1136,4 +1136,7 @@ def read(*args, **kwargs):
             format = valid_formats[0]
 
     reader = get_reader(format)
-    reader(*args, **kwargs)
+    table = reader(*args, **kwargs)
+    if not isinstance(table, Table):
+        raise TypeError("reader should return a Table instance")
+    return table

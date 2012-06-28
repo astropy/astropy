@@ -20,10 +20,10 @@ def register_reader(table_format, function, force=False):
         Whether to override any existing function if already present.
     '''
 
-    if not table_format in _readers or override:
+    if not table_format in _readers or force:
         _readers[table_format] = function
     else:
-        raise Exception("Type {0:s} is already defined".format(table_format))
+        raise Exception("Reader for format {0:s} is already defined".format(table_format))
 
 
 def register_writer(table_format, function, force=False):
@@ -41,10 +41,10 @@ def register_writer(table_format, function, force=False):
         Whether to override any existing function if already present.
     '''
 
-    if not table_format in _writers or override:
+    if not table_format in _writers or force:
         _writers[table_format] = function
     else:
-        raise Exception("Type {0:s} is already defined".format(table_format))
+        raise Exception("Writer for format {0:s} is already defined".format(table_format))
 
 
 def register_identifier(table_format, identifier, force=False):
@@ -76,14 +76,13 @@ def register_identifier(table_format, identifier, force=False):
     >>> register_identifier('ipac', lambda args, kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
     '''
 
-    if not table_format in _identifiers or override:
+    if not table_format in _identifiers or force:
         _identifiers[table_format] = identifier
     else:
         raise Exception("Identifier for format %s is already defined" % table_format)
 
 
 def identify_format(args, kwargs):
-
     # Loop through identifiers to see which formats match
     valid_formats = []
     for table_format in _identifiers:
@@ -97,11 +96,11 @@ def get_reader(table_format):
     if table_format in _readers:
         return _readers[table_format]
     else:
-        raise Exception("No reader function defined for format '{0}'".format(table_format))
+        raise Exception("No reader defined for format '{0}'".format(table_format))
 
 
 def get_writer(table_format):
     if table_format in _writers:
         return _writers[table_format]
     else:
-        raise Exception("No writer function defined for format '{0}'".format(table_format))
+        raise Exception("No writer defined for format '{0}'".format(table_format))
