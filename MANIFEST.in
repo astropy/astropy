@@ -10,6 +10,7 @@ recursive-include licenses *
 recursive-include cextern *
 recursive-include scripts *
 recursive-include astropy/wcs/src/wcslib *
+recursive-include astropy/sphinx/themes *
 
 exclude *.pyc *.o
 prune docs/_build
