@@ -80,6 +80,3 @@ And we can then write the file out to a FITS file::
 If we have registered the identifier as above, we can simply do::
 
    t.write('catalog_new.fits')
-
-
-
