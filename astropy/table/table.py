@@ -8,7 +8,7 @@ from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
 from ..utils.console import color_print
-
+from  .io_registry import get_reader, get_writer, identify_format
 # Python 2 and 3 source compatibility
 try:
     unicode
@@ -1084,3 +1084,59 @@ class Table(object):
         in place and there are no function arguments.
         '''
         self._data[:] = self._data[::-1].copy()
+
+    @classmethod
+    def read(cls, *args, **kwargs):
+        '''
+        Read a table
+
+        The arguments passed to this method depend on the format
+        '''
+
+        if 'format' in kwargs:
+            format = kwargs.pop('format')
+        else:
+            format = None
+
+        if format is None:
+
+            valid_formats = identify_format('read', args, kwargs)
+
+            if len(valid_formats) == 0:
+                raise Exception("Format could not be identified")
+            elif len(valid_formats) > 1:
+                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
+            else:
+                format = valid_formats[0]
+
+        reader = get_reader(format)
+        table = reader(*args, **kwargs)
+        if not isinstance(table, cls):
+            raise TypeError("reader should return a {0:s} instance".format(cls.__name__))
+        return table
+
+    def write(self, *args, **kwargs):
+        '''
+        Write a table
+
+        The arguments passed to this method depend on the format
+        '''
+
+        if 'format' in kwargs:
+            format = kwargs.pop('format')
+        else:
+            format = None
+
+        if format is None:
+
+            valid_formats = identify_format('write', args, kwargs)
+
+            if len(valid_formats) == 0:
+                raise Exception("Format could not be identified")
+            elif len(valid_formats) > 1:
+                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
+            else:
+                format = valid_formats[0]
+
+        writer = get_writer(format)
+        writer(self, *args, **kwargs)
