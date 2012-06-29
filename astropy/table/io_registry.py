@@ -1,4 +1,7 @@
-__all__ = ['register_reader', 'register_writer', 'register_identifier', 'identify_format', 'get_reader', 'get_writer']
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+__all__ = ['register_reader', 'register_writer', 'register_identifier',
+           'identify_format', 'get_reader', 'get_writer']
 
 _readers = {}
 _writers = {}
