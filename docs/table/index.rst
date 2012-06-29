@@ -157,3 +157,5 @@ Reference/API
 =============
 
 .. automodapi:: astropy.table
+
+.. automodapi:: astropy.table.io_registry
