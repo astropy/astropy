@@ -17,9 +17,9 @@ Reading a VOTable file
 ----------------------
 
 To read in a VOTable file, pass a file path to
-`astropy.io.vo.table.parse`::
+`~astropy.io.vo.table.parse`::
 
-  from astropy.io.vo.table import parse
+  from astropy.io.vo import parse
   votable = parse("votable.xml")
 
 ``votable`` is a `~astropy.io.vo.tree.VOTableFile` object, which can
@@ -39,8 +39,8 @@ resources in the ``VOTABLE`` file::
       pass
 
 However, if the nested structure of the resources is not important,
-one can use `~astropy.io.vo.tree.VOTable.iter_tables` to return a flat
-list of all tables::
+one can use `~astropy.io.vo.tree.VOTableFile.iter_tables` to return a
+flat list of all tables::
 
   for table in votable.iter_tables():
     # ... do something with the table ...
@@ -48,7 +48,7 @@ list of all tables::
 
 Finally, if there is expected to be only one table in the file, it
 might be simplest to just use
-`~astropy.io.vo.tree.VOTable.get_first_table`::
+`~astropy.io.vo.tree.VOTableFile.get_first_table`::
 
   table = votable.get_first_table()
 
@@ -211,10 +211,10 @@ a parallel array in each `~astropy.io.vo.tree.Table` instance called
 This array is ``False`` anywhere the value is missing.
 
 .. note::
-   In the future, the ``array`` and ``mask`` members will likely be
-   combined into a single masked record array.  There are
-   implementation bugs in current versions of Numpy that prevent this
-   at the moment.
+   In the future, the `~astropy.io.vo.tree.Table.array` and
+   `~astropy.io.vo.tree.Table.mask` members will likely be combined
+   into a single masked record array.  There are implementation bugs
+   in current versions of Numpy that prevent this at the moment.
 
 Datatype mappings
 -----------------
@@ -266,9 +266,8 @@ Examining field types
 ---------------------
 
 To look up more information about a field in a table, one can use the
-`~astropy.io.vo.tree.Table.get_field_or_param_by_id` method, which
-returns the `~astropy.io.vo.tree.Field` object with the given ID.  For
-example::
+`~astropy.io.vo.tree.Table.get_field_by_id` method, which returns the
+`~astropy.io.vo.tree.Field` object with the given ID.  For example::
 
   >>> field = table.get_field_or_param_by_id('Dec')
   >>> field.datatype
@@ -279,7 +278,8 @@ example::
 .. note::
    Field descriptors should not be mutated -- they will have no effect
    on the record arrays storing the data.  This shortcoming will be
-   addressed in a future version of `astropy.io.vo`.
+   addressed in a future version of `astropy.io.vo` that makes better
+   use of `astropy.table`.
 
 Performance considerations
 --------------------------
@@ -303,8 +303,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.io.vo
-   :no-main-section:
-   :subsections: table, tree, converters, ucd, unit, util, validator, xmlutil
+   :subsections: tree, converters, ucd, unit, util, validator, xmlutil
    :no-inheritance-diagram:
 
 astropy.io.vo.exceptions Module
