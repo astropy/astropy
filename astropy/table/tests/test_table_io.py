@@ -13,12 +13,9 @@ _IDENTIFIERS_ORIGINAL = copy(_identifiers)
 
 
 def setup_function(function):
-    for key in _readers.keys():
-        _readers.pop(key)
-    for key in _writers.keys():
-        _writers.pop(key)
-    for key in _identifiers.keys():
-        _identifiers.pop(key)
+    _readers.clear()
+    _writers.clear()
+    _identifiers.clear()
 
 
 def empty_reader(*args, **kwargs):
@@ -220,9 +217,6 @@ def test_read_basic():
 
 
 def teardown_function(function):
-    for key in _READERS_ORIGINAL:
-        _readers[key] = _READERS_ORIGINAL[key]
-    for key in _WRITERS_ORIGINAL:
-        _writers[key] = _WRITERS_ORIGINAL[key]
-    for key in _IDENTIFIERS_ORIGINAL:
-        _identifiers[key] = _IDENTIFIERS_ORIGINAL[key]
+    _readers.update(_READERS_ORIGINAL)
+    _writers.update(_WRITERS_ORIGINAL)
+    _identifiers.update(_IDENTIFIERS_ORIGINAL)
