@@ -610,4 +610,6 @@ Adding more custom themes to astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Additional custom themes can be included in the astropy source tree by
-placing them in the directory `astropy/astropy/sphinx/themes`.
+placing them in the directory `astropy/astropy/sphinx/themes`, and
+editing `astropy/astropy/sphinx/setup_package.py` to include the theme
+(so that it is installed).
