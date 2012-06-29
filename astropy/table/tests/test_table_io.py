@@ -26,7 +26,7 @@ def empty_reader(*args, **kwargs):
 
 
 def empty_writer(table, *args, **kwargs):
-    return Table()
+    pass
 
 
 def empty_identifier(args, kwargs):
@@ -180,8 +180,8 @@ def test_identifier_origin():
 
     io_registry.register_identifier('test1', lambda o, x, y: o == 'read')
     io_registry.register_identifier('test2', lambda o, x, y: o == 'write')
-    io_registry.register_reader('test1', lambda: Table())
-    io_registry.register_writer('test2', lambda x: None)
+    io_registry.register_reader('test1', empty_reader)
+    io_registry.register_writer('test2', empty_writer)
 
     # There should not be too many formats defined
     Table.read()
