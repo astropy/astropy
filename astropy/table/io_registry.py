@@ -82,11 +82,11 @@ def register_identifier(table_format, identifier, force=False):
         raise Exception("Identifier for format %s is already defined" % table_format)
 
 
-def identify_format(args, kwargs):
+def identify_format(origin, args, kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for table_format in _identifiers:
-        if _identifiers[table_format](args, kwargs):
+        if _identifiers[table_format](origin, args, kwargs):
             valid_formats.append(table_format)
 
     return valid_formats
