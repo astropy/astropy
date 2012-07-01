@@ -13,6 +13,12 @@ _excepthook = sys.__excepthook__
 _showwarning = warnings.showwarning
 
 
+try:
+    ip = get_ipython()
+except NameError:
+    ip = None
+
+
 def setup_function(function):
 
     # Reset hooks to original values
@@ -138,6 +144,9 @@ def test_exception_logging_enable_twice():
     assert e.value.args[0] == 'Exception logging has already been enabled'
 
 
+# You can't really override the exception handler in IPython this way, so
+# this test doesn't really make sense in the IPython context.
+@pytest.mark.skipif("ip is not None")
 def test_exception_logging_overridden():
     log.enable_exception_logging()
     sys.excepthook = lambda: None
