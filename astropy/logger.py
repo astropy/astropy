@@ -10,6 +10,7 @@ import warnings
 from contextlib import contextmanager
 
 from .config import ConfigurationItem
+from . import config
 from .utils.compat import inspect_getmodule
 from .utils.console import color_print
 from .utils.misc import find_current_module
@@ -56,8 +57,10 @@ LOG_TO_FILE = ConfigurationItem('log_to_file', True,
                                 "Whether to always log messages to a log "
                                 "file")
 
-LOG_FILE_PATH = ConfigurationItem('log_file_path', '~/.astropy/astropy.log',
-                                  "The file to log messages to")
+LOG_FILE_PATH = ConfigurationItem('log_file_path', '',
+                                  "The file to log messages to. When '', "
+                                  "it defaults to a file 'astropy.log' in "
+                                  "the astropy config directory.")
 
 LOG_FILE_LEVEL = ConfigurationItem('log_file_level', 'INFO',
                                    "Threshold for logging messages to "
@@ -286,10 +289,11 @@ class AstropyLogger(Logger):
         except NameError:
             ip = None
 
+        if self.exception_logging_enabled():
+            raise LoggingError("Exception logging has already been enabled")
+
         if ip is None:
             #standard python interpreter
-            if self.exception_logging_enabled():
-                raise LoggingError("Exception logging has already been enabled")
             self._excepthook_orig = sys.excepthook
             sys.excepthook = self._excepthook
         else:
@@ -326,10 +330,11 @@ class AstropyLogger(Logger):
         except NameError:
             ip = None
 
+        if not self.exception_logging_enabled():
+            raise LoggingError("Exception logging has not been enabled")
+
         if ip is None:
             #standard python interpreter
-            if not self.exception_logging_enabled():
-                raise LoggingError("Exception logging has not been enabled")
             if sys.excepthook != self._excepthook:
                 raise LoggingError("Cannot disable exception logging: "
                                    "sys.excepthook was not set by this logger, "
@@ -338,11 +343,7 @@ class AstropyLogger(Logger):
             self._excepthook_orig = None
         else:
             #IPython has its own way of dealing with exceptions
-            if not self.exception_logging_enabled():
-                raise LoggingError("Astropy exception logging has not been "
-                                   "enabled in this IPython session")
-            else:
-                ip.set_custom_exc(tuple(), None)
+            ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
         '''
@@ -499,10 +500,28 @@ class AstropyLogger(Logger):
         # Set up the main log file handler if requested (but this might fail if
         # configuration directory or log file is not writeable).
         if LOG_TO_FILE() and not os.environ.get('ASTROPY_TESTS_RUNNING'):
+            log_file_path = LOG_FILE_PATH()
+
+            # "None" as a string because it comes from config
             try:
-                fh = FileHandler(os.path.expanduser(LOG_FILE_PATH()))
+                _ASTROPY_TEST_
+                testing_mode = True
+            except NameError:
+                testing_mode = False
+
+            if log_file_path == '' or testing_mode:
+                log_file_path = os.path.join(
+                    config.get_config_dir(), "astropy.log")
+            else:
+                log_file_path = os.path.expanduser(log_file_path)
+
+            try:
+                fh = FileHandler(log_file_path)
             except IOError:
-                pass
+                warnings.warn(
+                    "log file {0!r} could not be opened for writing".format(
+                        log_file_path),
+                    RuntimeWarning)
             else:
                 formatter = logging.Formatter(LOG_FILE_FORMAT())
                 fh.setFormatter(formatter)
