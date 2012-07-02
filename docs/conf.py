@@ -42,8 +42,8 @@ del intersphinx_mapping['astropy']
 # -- General configuration -----------------------------------------------------
 
 # General information about the project.
-project = u'AstroPy'
-author = u'The AstroPy Collaboration'
+project = u'Astropy'
+author = u'The Astropy Developers'
 copyright = u'2012, ' + author
 
 # The version info for the project you're documenting, acts as replacement for
