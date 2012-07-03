@@ -12,7 +12,7 @@ is the ability to easily modify the structure of the table: one can add or
 remove columns, and add new rows of data.
 
 Quick overview
---------------
+^^^^^^^^^^^^^^
 
 The code below shows the basics of modifying a table and its data.
 
@@ -94,7 +94,7 @@ The code below shows the basics of modifying a table and its data.
 
 
 Caveats
--------
+^^^^^^^
 
 Modifying the table data and properties is fairly straightforward.  There are
 only a few things to keep in mind:

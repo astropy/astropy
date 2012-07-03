@@ -9,7 +9,7 @@ Accessing the table properties and data is straightforward and is generally cons
 the basic interface for `numpy` structured arrays.
 
 Quick overview
---------------
+^^^^^^^^^^^^^^
 
 For the impatient, the code below shows the basics of accessing table data.
 Where relevant there is a comment about what sort of object.  Except where
@@ -18,27 +18,27 @@ update table data or properties.
 In cases where is returned and how
 the data contained in that object relate to the original table data
 (i.e. whether it is a copy or reference, see :ref:`copy_versus_reference`).
-  
+
 **Make table**
 ::
-  
+
   from astropy.table import Table
   import numpy as np
-  
+
   arr = np.arange(15).reshape(5, 3)
   t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
-  
+
 **Table properties**
 ::
-  
+
   t.columns   # Dict of table columns
   t.colnames  # List of column names
   t.meta      # Dict of meta-data
   len(t)      # Number of table rows
-  
+
 **Access table data**
 ::
-  
+
   t['a']       # Column 'a'
   t['a'][1]    # Row 1 of column 'a'
   t[1]         # Row obj for with row 1 values
@@ -69,20 +69,20 @@ the data contained in that object relate to the original table data
 
 
 Details
--------
+^^^^^^^
 
 For all the following examples it is assumed that the table has been created as below::
 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
-  
+
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
   >>> t['a'].format = "%6.3f"  # print as a float with 3 digits after decimal point
   >>> t['a'].units = 'm sec^-1'
   >>> t['a'].description = 'unladen swallow velocity'
   >>> print t
-    a     b   c 
+    a     b   c
   ------ --- ---
    0.000   1   2
    3.000   4   5
@@ -91,7 +91,7 @@ For all the following examples it is assumed that the table has been created as 
   12.000  13  14
 
 Accessing properties
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table meta-data, and number of table rows.  The table
@@ -100,19 +100,19 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 
   >>> t.columns
   <TableColumns names=('a','b','c')>
-  
+
   >>> t.colnames
   ['a', 'b', 'c']
-  
+
   >>> t.meta  # Dict of meta-data
   {'keywords': {'key1': 'val1'}}
-  
+
   >>> len(t)
   5
 
 
 Accessing data
-^^^^^^^^^^^^^^
+""""""""""""""
 
 As expected one can access a table column by name and get an element from that
 column with a numerical index::
@@ -123,7 +123,7 @@ column with a numerical index::
 
   >>> t['a'][1]  # Row 1 of column 'a'
   3
-  
+
 When a table column is printed, either with ``print`` or via the ``str()``
 built-in function, it is formatted according to the ``format`` attribute (see
 :ref:`table_format_string`)::
@@ -137,15 +137,15 @@ Likewise a table row and a column from that row can be selected::
   <Row 1 of table
    values=(3, 4, 5)
    dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')]>
-  
+
   >>> t[1]['a']  # Column 'a' of row 1
   3
-  
+
 A |Row| object has the same columns and meta-data as its parent table::
 
   >>> t[1].columns
   <TableColumns names=('a','b','c')>
-  
+
   >>> t[1].colnames
   ['a', 'b', 'c']
 
@@ -156,9 +156,9 @@ meta-data and column definitions are copied.
 
   >>> t[2:5]  # Table object with rows 2:5 (reference)
   <Table rows=3 names=('a','b','c')>
-  array([(6, 7, 8), (9, 10, 11), (12, 13, 14)], 
+  array([(6, 7, 8), (9, 10, 11), (12, 13, 14)],
         dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')])
-  
+
 It is possible to select table rows with an array of indexes or by providing
 specifying multiple column names.  This returns a copy of the original table
 for the selected rows.  ::
@@ -169,14 +169,14 @@ for the selected rows.  ::
    3.000   4   5
    9.000  10  11
   12.000  13  14
-  
+
   >>> print t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
     a     b   c
   ------ --- ---
    3.000   4   5
    9.000  10  11
   12.000  13  14
-  
+
   >>> print t['a', 'c']  # Table with cols 'a', 'c' (copy)
     a     c
   ------ ---
@@ -194,7 +194,7 @@ structured array by creating a copy or reference with ``np.array``::
 
 
 Formatted printing
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 The values in a table or column can be printed or retrieved as a formatted
 table using one of several methods:
@@ -205,7 +205,7 @@ table using one of several methods:
   through table values.
 - Table :func:`~astropy.table.table.Table.pprint` or Column
   :func:`~astropy.table.table.Column.pprint` methods to print a formatted version of
-  the table to the screen.  
+  the table to the screen.
 - Table :func:`~astropy.table.table.Table.pformat` or Column
   :func:`~astropy.table.table.Column.pformat` methods to return the formatted table
   or column as a list of fixed-width strings.  This could be used as a quick
@@ -243,7 +243,7 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
   2970 2971 2972 2973 2974 2975 2976 ...  2994  2995  2996  2997  2998  2999
 
 more() method
-"""""""""""""
+'''''''''''''
 
 In order to browse all rows of a table or column use the Table
 :func:`~astropy.table.table.Table.more` or Column :func:`~astropy.table.table.Column.more`
@@ -262,7 +262,7 @@ supported navigation keys are:
 |  **h** : print this help
 
 pprint() method
-"""""""""""""""
+'''''''''''''''
 
 In order to fully control the print output use the Table
 :func:`~astropy.table.table.Table.pprint` or Column
@@ -278,7 +278,7 @@ meaning as shown below::
   >>> t['col29'].units = 'kg sec m**-2'
 
   >>> t.pprint(max_lines=8, max_width=40)
-      col0         col1    ... col29 
+      col0         col1    ... col29
   ------------ ----------- ... ------
   0.000000e+00    1.000000 ...   29.0
   3.000000e+01   31.000000 ...   59.0
@@ -288,7 +288,7 @@ meaning as shown below::
   2.970000e+03 2971.000000 ... 2999.0
 
   >>> t.pprint(max_lines=8, max_width=40, show_units=True)
-      col0     ...    col29    
+      col0     ...    col29
      km**2     ... kg sec m**-2
   ------------ ... ------------
   0.000000e+00 ...         29.0
@@ -315,7 +315,7 @@ table in this example one sees 6 lines of wrapped output like the following::
 
       col0         col1     col2   col3   col4   col5   col6   col7   col8   col
   9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20
-    col21  col22  col23  col24  col25  col26  col27  col28  col29 
+    col21  col22  col23  col24  col25  col26  col27  col28  col29
   ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ----
   -- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ -----
   - ------ ------ ------ ------ ------ ------ ------ ------ ------
@@ -337,7 +337,7 @@ For columns the syntax and behavior of
 ``max_width`` keyword argument::
 
   >>> t['col3'].pprint(max_lines=8)
-   col3 
+   col3
   ------
      3.0
     33.0
@@ -347,7 +347,7 @@ For columns the syntax and behavior of
   2973.0
 
 pformat() method
-""""""""""""""""
+''''''''''''''''
 
 In order to get the formatted output for manipulation or writing to a file use
 the Table :func:`~astropy.table.table.Table.pformat` or Column
@@ -360,10 +360,10 @@ the Table :func:`~astropy.table.table.Table.pformat` or Column
   ['  col3', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
 Multidimensional columns
-""""""""""""""""""""""""
+''''''''''''''''''''''''
 
 If a column has more than one dimension then each element of the column is
-itself an array.  In the example below there are 3 rows, each of which is a 
+itself an array.  In the example below there are 3 rows, each of which is a
 ``2 x 2`` array.  The formatted output for such a column shows only the first
 and last value of each row element and indicates the array dimensions in the
 column name header::
@@ -371,11 +371,11 @@ column name header::
   >>> from astropy.table import Table, Column
   >>> import numpy as np
   >>> t = Table()
-  >>> arr = [ np.array([[ 1,  2],   
-  ...                   [10, 20]]), 
-  ...         np.array([[ 3,  4],   
-  ...                   [30, 40]]), 
-  ...         np.array([[ 5,  6],   
+  >>> arr = [ np.array([[ 1,  2],
+  ...                   [10, 20]]),
+  ...         np.array([[ 3,  4],
+  ...                   [30, 40]]),
+  ...         np.array([[ 5,  6],
   ...                   [50, 60]]) ]
   >>> t.add_column(Column('a', arr))
   >>> t['a'].shape

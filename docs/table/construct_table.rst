@@ -7,20 +7,20 @@ Constructing a table
 
 There is great deal of flexibility in the way that a table can be initially
 constructed.  Details on the inputs to the |Table|
-constructor are in the `Initialization Details`_ section.  However, the 
+constructor are in the `Initialization Details`_ section.  However, the
 easiest way to understand how to make a table is by example.
 
 Examples
---------
+^^^^^^^^
 
 Much of the flexibility lies in the types of data structures
 which can be used to initialize the table data.  The examples below show how to
 create a table from scratch with no initial data, create a table with a list of
 columns, a dictionary of columns, or from `numpy` arrays (either structured or
-homogeneous).  
+homogeneous).
 
 Setup
-^^^^^
+"""""
 For the following examples you need to import the |Table| and |Column| classes
 along with the `numpy` package::
 
@@ -28,12 +28,12 @@ along with the `numpy` package::
   >>> import numpy as np
 
 Creating from scratch
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 A Table can be created without any initial input data or even without any
 initial columns.  This is useful for building tables dynamically if the initial
-size, columns, or data are not known.  
+size, columns, or data are not known.
 
-.. Note:: 
+.. Note::
    Adding columns or rows requires making a new copy of the entire
    table table each time, so in the case of large tables this may be slow.
 
@@ -50,7 +50,7 @@ size, columns, or data are not known.
 
 
 List input
-^^^^^^^^^^
+""""""""""
 A typical case is where you have a number of data columns with the same length
 defined in different variables.  These might be Python lists or `numpy` arrays
 or a mix of the two.  These can be used to create a |Table| by putting the column
@@ -66,7 +66,7 @@ keyword or they will be auto-generated as ``col<N>``.
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
   >>> t
   <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
+  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
 
 **Make a new table using columns from the first table**
@@ -76,7 +76,7 @@ and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
   >>> Table([t['c'], t['a']])
   <Table rows=2 names=('c','a')>
-  array([('x', 1), ('y', 4)], 
+  array([('x', 1), ('y', 4)],
         dtype=[('c', '|S1'), ('a', '<i8')])
 
 **Make a new table using expressions involving columns**
@@ -87,7 +87,7 @@ new table with modified column values::
 
   >>> Table([t['a']**2, t['b'] + 10])
   <Table rows=2 names=('a','b')>
-  array([(1, 12.0), (16, 15.0)], 
+  array([(1, 12.0), (16, 15.0)],
         dtype=[('a', '<i8'), ('b', '<f8')])
 
 
@@ -102,22 +102,22 @@ of different data types to initialize a table::
   >>> arr = (a, b, c)
   >>> Table(arr)  # Data column named "c" has a name "axis" that table
   <Table rows=2 names=('col0','col1','axis')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
+  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
         dtype=[('col0', '<i8'), ('col1', '<i8', (2,)), ('axis', '|S1')])
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
 Dictionary input
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 A dictionary of column data can be used to initialize a |Table|.
 
   >>> arr = {'a': [1, 4],
   ...        'b': [2.0, 5.0],
   ...        'c': ['x', 'y']}
-  >>> 
+  >>>
   >>> Table(arr)
   <Table rows=2 names=('a','c','b')>
-  array([(1, 'x', 2.0), (4, 'y', 5.0)], 
+  array([(1, 'x', 2.0), (4, 'y', 5.0)],
         dtype=[('a', '<i8'), ('c', '|S1'), ('b', '<f8')])
 
 **Specify the column order and optionally the data types**
@@ -125,7 +125,7 @@ A dictionary of column data can be used to initialize a |Table|.
 
   >>> Table(arr, names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
   <Table rows=2 names=('a','b','c')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')], 
+  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
         dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S2')])
 
 **Different types of column data**
@@ -137,7 +137,7 @@ The input column data can be any data type that can initialize a |Column| object
              'c': Column('axis', ['x', 'y'])}
   >>> Table(arr, names=('a', 'b', 'c'))
   <Table rows=2 names=('a','b','c')>
-  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')], 
+  array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
         dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', '|S1')])
 
 Notice that the key ``'c'`` takes precendence over the existing column name
@@ -158,24 +158,24 @@ column where each row element is itself a 2-element array.
 
 
 NumPy structured array
-^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 The structured array is the standard mechanism in `numpy` for storing heterogenous
 table data.  Most scientific I/O packages that read table files (e.g.
 `PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
 `vo.table <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_,
-`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_) 
+`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_)
 will return the table in an object that is based on the structured array.
 A structured array can be created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
   ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
-  
+
 From ``arr`` it is simple to create the corresponding |Table| object::
 
   >>> Table(arr)
   <Table rows=2 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
+  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S2')])
 
 Note that in the above example and most the following ones we are creating a
@@ -192,7 +192,7 @@ The column names can be changed from the original values by providing the
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
   <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y')], 
+  array([(1, 2.0, 'x'), (4, 5.0, 'y')],
         dtype=[('a_new', '<i8'), ('b_new', '<f8'), ('c_new', '|S2')])
 
 **New data types**
@@ -201,18 +201,18 @@ Likewise the data type for each column can by changed with ``dtypes``::
 
   >>> Table(arr, dtypes=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a','b','c')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')], 
+  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
         dtype=[('a', '<f4'), ('b', '<i4'), ('c', '|S4')])
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtypes=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1.0, 2, 'x'), (4.0, 5, 'y')], 
+  array([(1.0, 2, 'x'), (4.0, 5, 'y')],
         dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', '|S4')])
 
 
 
 NumPy homogeneous array
-^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
 A normal `numpy` 2-d array (where all elements have the same type) can be
 converted into a |Table|.  In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
@@ -225,7 +225,7 @@ generated as ``col<N>`` where ``<N>`` is the column number.
   ...                 [4, 5, 6]])
   >>> Table(arr)
   <Table rows=2 names=('col0','col1','col2')>
-  array([(1, 2, 3), (4, 5, 6)], 
+  array([(1, 2, 3), (4, 5, 6)],
         dtype=[('col0', '<i8'), ('col1', '<i8'), ('col2', '<i8')])
 
 **Column names and types specified**
@@ -233,7 +233,7 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtypes=('f4', 'i4', 'S4'))
   <Table rows=2 names=('a_new','b_new','c_new')>
-  array([(1.0, 2, '3'), (4.0, 5, '6')], 
+  array([(1.0, 2, '3'), (4.0, 5, '6')],
         dtype=[('a_new', '<f4'), ('b_new', '<i4'), ('c_new', '|S4')])
 
 **Referencing the original data**
@@ -250,23 +250,23 @@ that |Table| objects are created.  Any data input that looks like a Python list
 (including a tuple) is considered to be a list of columns.  In contrast an
 homogeneous `numpy` array input is interpreted as a list of rows::
 
-  >>> arr = [[1, 2, 3], 
+  >>> arr = [[1, 2, 3],
   ...        [4, 5, 6]]
   >>> np_arr = np.array(arr)
 
   >>> Table(arr)    # Two columns, three rows
   <Table rows=3 names=('col0','col1')>
-  array([(1, 4), (2, 5), (3, 6)], 
+  array([(1, 4), (2, 5), (3, 6)],
         dtype=[('col0', '<i8'), ('col1', '<i8')])
 
   >>> Table(np_arr)  # Three columns, two rows
   <Table rows=2 names=('col0','col1','col2')>
-  array([(1, 2, 3), (4, 5, 6)], 
+  array([(1, 2, 3), (4, 5, 6)],
         dtype=[('col0', '<i8'), ('col1', '<i8'), ('col2', '<i8')])
 
 This dichotomy is needed to support flexible list input while retaining the
 natural interpretation of 2-d `numpy` arrays where the first index corresponds
-to data "rows" and the second index corresponds to data "columns".  
+to data "rows" and the second index corresponds to data "columns".
 
 If you have a Python list which is structured as a list of data rows, use the
 following trick to effectively transpose into a list of columns for
@@ -280,7 +280,7 @@ initializing a |Table| object::
    >>> t = Table(col_arr)
 
 Table columns
-^^^^^^^^^^^^^
+"""""""""""""
 A new table can be created by selecting a subset of columns in an existing
 table::
 
@@ -288,7 +288,7 @@ table::
   >>> t2 = t['c', 'b', 'a']  # Makes a copy of the data
   >>> print t2
   <Table rows=0 names=('c','b','a')>
-  array([], 
+  array([],
         dtype=[('c', '<f8'), ('b', '<f8'), ('a', '<f8')])
 
 An alternate way to use the ``columns`` attribute (explained in the
@@ -297,17 +297,17 @@ columns by their numerical index or name and supports slicing syntax::
 
   >>> Table(t.columns[0:2])
   <Table rows=0 names=('a','b')>
-  array([], 
+  array([],
         dtype=[('a', '<f8'), ('b', '<f8')])
-  
+
   >>> Table([t.columns[0], t.columns['c']])
   <Table rows=0 names=('a','c')>
-  array([], 
+  array([],
         dtype=[('a', '<f8'), ('c', '<f8')])
 
 
 Initialization Details
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 A table object is created by initializing a |Table| class
 object with the following arguments, all of which are optional:
@@ -327,7 +327,7 @@ The following subsections provide further detail on the values and options for
 each of the keyword arguments that can be used to create a new |Table| object.
 
 data
-^^^^
+""""
 
 The |Table| object can be initialized with several different forms
 for the ``data`` argument.
@@ -373,7 +373,7 @@ for the ``data`` argument.
     are provided then the corresponding columns are created.
 
 names
-^^^^^
+"""""
 
 The ``names`` argument provides a way to specify the table column names or
 override the existing ones.  By default the column names are either taken
@@ -388,7 +388,7 @@ must then contain each of the keys in the ``data`` dict.  If ``names`` is not
 supplied then the order of columns in the output table is not determinate.
 
 dtypes
-^^^^^^
+""""""
 
 The ``dtypes`` argument provides a way to specify the table column data
 types or override the existing types.  By default the types are either
@@ -403,7 +403,7 @@ must be accompanied by a corresponding ``names`` argument in order to uniquely
 specify the column ordering.
 
 meta
-^^^^
+""""
 
 The ``meta`` argument is simply an object that contains meta-data associated
 with the table.  It is recommended that this object be a dict or
@@ -412,7 +412,7 @@ the standard library ``copy.deepcopy()`` routine.  By default ``meta`` is
 an empty OrderedDict_.
 
 copy
-^^^^
+""""
 
 By default the input ``data`` are copied into a new internal ``np.ndarray``
 object in the Table object.  In the case where ``data`` is either an
@@ -427,7 +427,7 @@ information.
 .. _copy_versus_reference:
 
 Copy versus Reference
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 Normally when a new |Table| object is created, the input data are *copied* into
 a new internal array object.  This ensures that if the new table elements are
@@ -474,13 +474,13 @@ the data to a new memory location which would corrupt the input data object.
 
 
 Column and TableColumns classes
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are two classes, |Column| and |TableColumns|, that are useful when
 constructing new tables.
 
 Column
-^^^^^^
+""""""
 
 A |Column| object can be created as follows, where in all cases the column
 ``name`` is required as the first argument and one can optionally provide
@@ -496,7 +496,8 @@ these values:
     Meta-data associated with the column
 
 Initialization options
-""""""""""""""""""""""
+''''''''''''''''''''''
+
 The column data values, shape, and data type are specified in one of two ways:
 
 **Provide a ``data`` value and optionally a ``dtype`` value**
@@ -537,7 +538,8 @@ The column data values, shape, and data type are specified in one of two ways:
 .. _table_format_string:
 
 Format string
-"""""""""""""
+'''''''''''''
+
 The format string controls the output of column values when a table or column
 is printed or written to an ASCII table.  The format string can be either
 "old-style" or "new-style":
@@ -553,7 +555,7 @@ This corresponds to syntax like ``"%.4f" % value`` as documented in
 
 **New-style**
 
-This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in 
+This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
 <http://docs.python.org/library/string.html#format-string-syntax>`_.
 
@@ -565,7 +567,7 @@ Note that in either case any Python format string that formats exactly
 one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
 
 TableColumns
-^^^^^^^^^^^^
+""""""""""""
 
 Each |Table| object has an attribute ``columns`` which is an ordered dictionary
 that stores all of the |Column| objects in the table (see also the `Column`_
@@ -584,7 +586,7 @@ So now look at the ways to select columns from a |TableColumns| object:
 ::
 
   >>> t = Table(names=('a', 'b', 'c', 'd'))
-  
+
   >>> t.columns['d', 'c', 'b']
   <TableColumns names=('d','c','b')>
 
@@ -593,7 +595,7 @@ So now look at the ways to select columns from a |TableColumns| object:
 
   >>> t.columns[0:2]  # Select first two columns
   <TableColumns names=('a','b')>
-  
+
   >>> t.columns[::-1]  # Reverse column order
   <TableColumns names=('d','c','b','a')>
 
@@ -603,7 +605,7 @@ So now look at the ways to select columns from a |TableColumns| object:
   >>> t.columns[1]  # Choose columns by index
   <Column name='b' units=None format=None description=None>
   array([], dtype=float64)
-  
+
   >>> t.columns['b']  # Choose column by name
   <Column name='b' units=None format=None description=None>
   array([], dtype=float64)
