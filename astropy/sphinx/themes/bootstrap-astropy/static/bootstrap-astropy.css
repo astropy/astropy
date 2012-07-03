@@ -213,7 +213,7 @@ div.topbar .brand {
   height: 32px;
   padding: 8px 0px 0px 62px;
   margin-left: -10px;
-  background: transparent url("astropylogo_docs_32.png") no-repeat 10px 4px;
+  background: transparent url("astropy_docs_32.png") no-repeat 10px 4px;
 }
 div.topbar .brand:hover, div.topbar ul li a.homelink:hover {
   background-color: #333;
@@ -260,7 +260,7 @@ div.topbar ul li a.homelink {
   display: block;
   height: 20px;
   padding: 5px 0px;
-  background: transparent url("astropylogo_homelink_20.png") no-repeat 10px 5px;
+  background: transparent url("astropy_linkout_20.png") no-repeat 10px 5px;
 }
 
 div.topbar form {
