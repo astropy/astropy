@@ -192,6 +192,11 @@ def get_distutils_display_options():
                              if o[1])
     long_display_opts = set('--' + o[0] for o in Distribution.display_options)
 
+    # Include -h and --help which are not explicitly listed in
+    # Distribution.display_options (as they are handled by optparse)
+    short_display_opts.add('-h')
+    long_display_opts.add('--help')
+
     return short_display_opts.union(long_display_opts)
 
 
