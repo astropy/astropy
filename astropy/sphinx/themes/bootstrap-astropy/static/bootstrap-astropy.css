@@ -499,3 +499,32 @@ div.warning {
 div.warning p.admonition-title {
     background-color: #b04040;
 }
+
+
+/* Figures ------------------------------------------------------------------ */
+
+.figure.align-center {
+    clear: none;
+}
+
+/* This is a div for containing multiple figures side-by-side, for use with
+ * .. container:: figures */
+div.figures {
+    border: 1px solid #CCCCCC;
+    background-color: #F8F8F8;
+    margin: 1em;
+    text-align: center;
+}
+
+div.figures .figure {
+    clear: none;
+    float: none;
+    display: inline-block;
+    border: none;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+.field-list th {
+    white-space: nowrap;
+}
