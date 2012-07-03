@@ -1,4 +1,4 @@
-.. _advanced-workflow:
+.. _development-workflow:
 
 =======================
 Workflow for Developers
