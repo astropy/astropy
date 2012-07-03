@@ -93,7 +93,7 @@ default_role = 'obj'
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -124,11 +124,6 @@ html_last_updated_fmt = '%d %b %Y'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
-
-html_style = 'astropy.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
