@@ -1,84 +1,99 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
+import numpy as np
 
-def test_nddata_basic():
-    from numpy.random import randn, rand
-    from numpy import ones, dtype
-    from ..nddata import NDData
-    from pytest import raises
+from ..nddata import NDData
 
-    with raises(TypeError):
+np.random.seed(12345)
+
+
+def test_nddata_empty():
+
+    with pytest.raises(TypeError) as exc:
         NDData()  # empty initializer should fail
-
-    nd1 = NDData(randn(10, 10))
-    assert nd1.shape == (10, 10)
-    assert nd1.size == 100
-    assert nd1.dtype == dtype(float)
-
-    # now one with error and masks
-    nd2 = NDData(randn(10, 10), rand(10, 10) / 5, ones((10, 10), dtype=bool))
-
-    with raises(ValueError):
-        #mismatched error shape
-        nd3 = NDData(randn(10, 10), rand(10, 9))
-
-    with raises(ValueError):
-        #mismatched mask shape
-        nd4 = NDData(randn(10, 10), mask=ones((10, 9), dtype=float))
+    assert exc.value.args[0] == '__init__() takes at least 2 arguments (1 given)'
 
 
-def test_nddata_copy_conv():
-    from numpy.random import randn
-    from numpy import dtype
-    from ..nddata import NDData
+def test_nddata_simple():
 
-    a = randn(10, 10)
+    nd = NDData(np.random.random((10, 10)))
+    assert nd.shape == (10, 10)
+    assert nd.size == 100
+    assert nd.dtype == np.dtype(float)
 
-    #check that copy works as expected
-    ndcopy = NDData(a, copy=True)
-    ndref = NDData(a, copy=False)
+
+def test_nddata_error_valid_scalar():
+    NDData(np.random.random((10, 10)), error=1.)
+
+
+def test_nddata_error_valid_1d():
+    NDData(np.random.random((10, 10)), error=np.ones((10,)))
+
+
+def test_nddata_error_valid_2d():
+    NDData(np.random.random((10, 10)), error=np.ones((10, 10)))
+
+
+def test_nddata_error_valid_3d():
+    NDData(np.random.random((10, 10)), error=np.ones((3, 10, 10)))
+
+
+def test_nddata_error_invalid():
+    with pytest.raises(ValueError) as exc:
+        NDData(np.random.random((10, 10)), error=np.ones((3, 10)))
+    assert exc.value.args[0] == 'dimensions of `error` do not match data'
+
+
+def test_nddata_mask_valid():
+    NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
+
+
+def test_nddata_mask_invalid_1():
+    with pytest.raises(ValueError) as exc:
+        NDData(np.random.random((10, 10)), mask=np.random.random((10)) > 0.5)
+    assert exc.value.args[0] == 'dimensions of `mask` do not match data'
+
+def test_nddata_mask_invalid_2():
+    with pytest.raises(ValueError) as exc:
+        NDData(np.random.random((10, 10)), mask=np.random.random((5, 5)) > 0.5)
+    assert exc.value.args[0] == 'dimensions of `mask` do not match data'
+
+
+def test_nddata_mask_invalid_3():
+    with pytest.raises(ValueError) as exc:
+        NDData(np.random.random((10, 10)), mask=np.random.random((3, 10, 10)) > 0.5)
+    assert exc.value.args[0] == 'dimensions of `mask` do not match data'
+
+
+def test_nddata_flags_valid_1d():
+    NDData(np.random.random((10, 10)), flags=np.ones((10,)))
+
+
+def test_nddata_flags_valid_2d():
+    NDData(np.random.random((10, 10)), flags=np.ones((10, 10)))
+
+
+def test_nddata_flags_valid_3d():
+    NDData(np.random.random((10, 10)), flags=np.ones((3, 10, 10)))
+
+
+def test_nddata_flags_invalid():
+    with pytest.raises(ValueError) as exc:
+        NDData(np.random.random((10, 10)), flags=np.ones((3, 10)))
+    assert exc.value.args[0] == 'dimensions of `flags` do not match data'
+
+
+def test_nddata_copy():
+    a = np.ones((10, 10))
+    nd_copy = NDData(a, copy=True)
+    nd_ref = NDData(a, copy=False)
     a[0, 0] = 0
-    assert ndref.data[0, 0] == 0
-    assert ndcopy.data[0, 0] != 0
-
-    #conversion
-    nd3 = NDData([[1, 2, 3], [4, 5, 6]])
-    assert nd3.size == 6
-    assert nd3.dtype == dtype(int)
+    assert nd_ref.data[0, 0] == 0
+    assert nd_copy.data[0, 0] == 1
 
 
-def test_boolmask():
-    from numpy.random import rand, randn
-    from numpy import array, arange, all
-    from ..nddata import NDData
-    import random
-    import string
-
-    a = randn(10, 10)
-    bm = randn(10, 10) > 0  # random mask that boolmask should look like
-
-    nd1 = NDData(randn(10, 10), mask=~bm)  # mask False where valid
-    assert all(nd1.boolmask == bm)
-
-    #scalar mask 0 where valid
-    im = arange(100).reshape((10, 10)) + 1
-    im[bm] = 0
-    nd2 = NDData(randn(10, 10), mask=im)
-    assert all(nd2.boolmask == bm)
-
-    #generate a list of random strings
-    strlst = []
-    for N in rand(100) * 9 + 1:
-        sl = [random.choice(string.ascii_letters) for x in range(int(N))]
-        strlst.append(''.join(sl))
-
-    #string mask '' where valid
-    strmsk = array(strlst).reshape((10, 10))
-    strmsk[bm] = ''
-    nd3 = NDData(randn(10, 10), mask=strmsk)
-    assert all(nd3.boolmask == bm)
-    #do it with unicode too for goo measure
-    umsk = array([unicode(s) for s in strlst]).reshape((10, 10))
-    umsk[bm] = ''
-    nd3 = NDData(randn(10, 10), mask=umsk)
-    assert all(nd3.boolmask == bm)
+def test_nddata_conversion():
+    nd = NDData([[1, 2, 3], [4, 5, 6]])
+    assert nd.size == 6
+    assert nd.dtype == np.dtype(int)
