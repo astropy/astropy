@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1200"
+   height="220"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.1 r9760"
+   sodipodi:docname="astropylogo_navbar.svg"
+   inkscape:export-filename="/home/kyle/Projects/AstroPy Logo/astropylogo_topnav.png"
+   inkscape:export-xdpi="21.749151"
+   inkscape:export-ydpi="21.749151">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3804">
+      <stop
+         style="stop-color:#ffa900;stop-opacity:1;"
+         offset="0"
+         id="stop3806" />
+      <stop
+         style="stop-color:#fd0000;stop-opacity:1;"
+         offset="1"
+         id="stop3808" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient5252"
+       osb:paint="solid">
+      <stop
+         style="stop-color:#4d4d4d;stop-opacity:1;"
+         offset="0"
+         id="stop5254" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3767">
+      <stop
+         id="stop3800"
+         offset="0"
+         style="stop-color:#ffa900;stop-opacity:1;" />
+      <stop
+         id="stop3775"
+         offset="1"
+         style="stop-color:#fd0000;stop-opacity:1;" />
+    </linearGradient>
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3934"
+       is_visible="true" />
+    <filter
+       id="filter3014"
+       inkscape:label="Diffuse light"
+       inkscape:menu="ABCs"
+       inkscape:menu-tooltip="Basic diffuse bevel to use for building textures"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3016"
+         stdDeviation="6"
+         in="SourceGraphic"
+         result="result0" />
+      <feDiffuseLighting
+         id="feDiffuseLighting3018"
+         diffuseConstant="1"
+         surfaceScale="10"
+         result="result5">
+        <feDistantLight
+           id="feDistantLight3020"
+           elevation="25"
+           azimuth="235" />
+      </feDiffuseLighting>
+      <feComposite
+         id="feComposite3022"
+         in2="SourceGraphic"
+         k1="1"
+         in="result5"
+         result="result4"
+         operator="arithmetic"
+         k2="0"
+         k3="0.6" />
+    </filter>
+    <filter
+       id="filter3844"
+       inkscape:label="Diffuse light"
+       inkscape:menu="ABCs"
+       inkscape:menu-tooltip="Basic diffuse bevel to use for building textures"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3846"
+         stdDeviation="6"
+         in="SourceGraphic"
+         result="result0" />
+      <feDiffuseLighting
+         id="feDiffuseLighting3848"
+         diffuseConstant="1"
+         surfaceScale="10"
+         result="result5">
+        <feDistantLight
+           id="feDistantLight3850"
+           elevation="25"
+           azimuth="235" />
+      </feDiffuseLighting>
+      <feComposite
+         id="feComposite3852"
+         in2="SourceGraphic"
+         k1="1"
+         in="result5"
+         result="result4"
+         operator="arithmetic"
+         k2="0"
+         k3="0.6" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3767"
+       id="linearGradient3798"
+       x1="195.5511"
+       y1="163.12114"
+       x2="83.651718"
+       y2="298.258"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="repeat" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#838383"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="376.60377"
+     inkscape:cy="78.053905"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:snap-global="true"
+     inkscape:snap-grids="true"
+     inkscape:window-width="1870"
+     inkscape:window-height="1176"
+     inkscape:window-x="50"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     fit-margin-top="5"
+     fit-margin-left="5"
+     fit-margin-right="5"
+     fit-margin-bottom="5"
+     showborder="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(2.5547457,54.766869)">
+    <path
+       sodipodi:type="arc"
+       style="fill:url(#linearGradient3798);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-opacity:1"
+       id="path3837"
+       sodipodi:cx="140.91628"
+       sodipodi:cy="233.12846"
+       sodipodi:rx="80.322945"
+       sodipodi:ry="68.372307"
+       d="m 221.23922,233.12846 c 0,37.76099 -35.96181,68.37231 -80.32294,68.37231 -44.361142,0 -80.32295,-30.61132 -80.32295,-68.37231 0,-37.76098 35.961808,-68.3723 80.32295,-68.3723 44.36113,0 80.32294,30.61132 80.32294,68.3723 z"
+       transform="matrix(1.0651076,-0.90408718,0.89013474,1.0731629,-250.16148,-67.548145)"
+       mask="none"
+       clip-path="none" />
+    <path
+       sodipodi:type="spiral"
+       style="fill:none;stroke:#ffffff;stroke-width:14.33045673;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path5413"
+       sodipodi:cx="238.396"
+       sodipodi:cy="198.78328"
+       sodipodi:expansion="0.40000001"
+       sodipodi:revolution="0.74833119"
+       sodipodi:radius="60.381268"
+       sodipodi:argument="-6.0698166"
+       sodipodi:t0="0"
+       d="m 238.396,198.78328 c 32.61949,7.06756 15.40308,37.20961 -8.24653,38.06088 -26.00022,0.93589 -44.08994,-24.61831 -41.97511,-48.94224 2.67817,-30.80329 32.53302,-51.80129 62.38812,-48.26147"
+       transform="matrix(-0.71212781,-0.99456325,-0.9777811,0.72852659,474.31246,145.67479)" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3007"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#476dd5;fill-opacity:1;stroke:none;font-family:Sans"
+       transform="matrix(3.6810943,0,0,3.6466025,-849.54633,-672.25399)"
+       inkscape:export-filename="/home/kyle/Projects/AstroPy Logo/astropylogo_words_17.png"
+       inkscape:export-xdpi="9.712635"
+       inkscape:export-ydpi="9.712635"><flowRegion
+         id="flowRegion3009"><rect
+           id="rect3011"
+           width="168.01541"
+           height="58.036911"
+           x="292.94424"
+           y="170.77602"
+           style="fill:#476dd5;fill-opacity:1" /></flowRegion><flowPara
+         id="flowPara3013"
+         style="font-size:51.85861588px;font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Myriad Pro;-inkscape-font-specification:Myriad Pro Semi-Bold"><flowSpan
+           style="font-size:51.85861588000000211px;fill:#ffffff"
+           id="flowSpan2996">astro</flowSpan><flowSpan
+           style="font-size:51.85861588px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ff5000;fill-opacity:1;font-family:Myriad Pro;-inkscape-font-specification:Myriad Pro Light"
+           id="flowSpan2998">py</flowSpan></flowPara><flowPara
+         style="font-size:46.39981461px;font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Myriad Pro;-inkscape-font-specification:Myriad Pro Semi-Bold"
+         id="flowPara3777">A</flowPara><flowPara
+         style="font-size:46.39981461px;font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:Myriad Pro;-inkscape-font-specification:Myriad Pro Semi-Bold"
+         id="flowPara3779" /></flowRoot>    <path
+       sodipodi:type="arc"
+       style="fill:#ffffff;fill-opacity:1;stroke:none"
+       id="path3819"
+       sodipodi:cx="122.22845"
+       sodipodi:cy="337.67926"
+       sodipodi:rx="22.223356"
+       sodipodi:ry="12.626906"
+       d="m 144.4518,337.67926 c 0,6.97365 -9.94973,12.62691 -22.22335,12.62691 -12.27362,0 -22.22336,-5.65326 -22.22336,-12.62691 0,-6.97365 9.94974,-12.62691 22.22336,-12.62691 12.27362,0 22.22335,5.65326 22.22335,12.62691 z"
+       transform="matrix(1.0512298,0.82294962,-0.97239782,0.94168108,304.90482,-361.44933)" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:2.36031604;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 136.88413,-13.10567 13.09858,22.1959915 20.1541,-20.0243955 -25.57713,-10.690029 z"
+       id="path3853"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
+    <g
+       id="g3804"
+       transform="matrix(0.95039189,0,0,0.93299787,-2.487134,-0.56516029)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3855-7"
+         d="m 142.07904,-24.83606 -2.29208,-13.70422 0.18559,0.452199 0,0"
+         style="fill:none;stroke:#ffffff;stroke-width:3.72635746;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3855-7-0"
+         d="m 127.81295,-26.11257 15.12343,0.663566 -0.4755,0.06597 0,0"
+         style="fill:none;stroke:#ffffff;stroke-width:4.02542162;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3855-7-05"
+         d="m 150.77669,-18.240009 -9.57586,-7.57806 0.46343,0.302121 0,0"
+         style="fill:none;stroke:#ffffff;stroke-width:4.06302309;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    </g>
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:17.45736313;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 67.476992,131.73602 c 3.410653,2.96251 14.804165,7.71706 18.766169,12.74152 4.041356,5.12504 3.407665,10.98393 3.371624,14.32634"
+       id="path3942"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csc" />
+    <path
+       sodipodi:type="spiral"
+       style="fill:none;stroke:#ffffff;stroke-width:13.93870544;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path2987-5"
+       sodipodi:cx="238.396"
+       sodipodi:cy="198.78328"
+       sodipodi:expansion="0.40000001"
+       sodipodi:revolution="0.75884885"
+       sodipodi:radius="60.719246"
+       sodipodi:argument="-6.0698166"
+       sodipodi:t0="0"
+       d="m 238.396,198.78328 c 32.61946,7.06755 15.40307,37.20957 -8.24652,38.06085 -26.0002,0.93588 -44.0899,-24.61829 -41.97507,-48.9422 2.70006,-31.05511 32.97695,-52.07076 63.01891,-48.18321 1.11735,0.14459 2.2306,0.32088 3.33799,0.52843"
+       transform="matrix(0.95949998,0.82835015,0.79893463,-0.95307413,-285.3304,56.888018)" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3781"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       transform="translate(-2.5547457,-54.766869)"><flowRegion
+         id="flowRegion3783"><rect
+           id="rect3785"
+           width="565.68542"
+           height="52.527931"
+           x="237.38585"
+           y="157.37054" /></flowRegion><flowPara
+         id="flowPara3787"
+         style="-inkscape-font-specification:Myriad Pro;font-family:Myriad Pro;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:72px">Community</flowPara></flowRoot>  </g>
+</svg>
