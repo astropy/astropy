@@ -1,7 +1,7 @@
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- `astropy.table` I/O infrastructure for custom readers/writers implemented
 
 
 0.1 (2012-06-19)
