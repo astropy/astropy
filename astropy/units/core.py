@@ -537,98 +537,7 @@ class CompositeUnit(UnitBase) :
 
         return candidate
         '''
-class EquivalenceUnit(UnitBase):
-    """Class to handle equivalence relations between dissimilar units
-    
-    Must be subclassed
-    
-    This works by containing (not inheriting) an instance of a specific unit,
-    and having a list of equivalent units that are acceptable for conversions.
-    The first of these is the one used as the basis for all conversions.
-    Should there be more than two equivalent types, the first is the 
-    intermediate unit used to convert from the others.
-    
-    This class is only used to convert between dissimilar units with implicit
-    relations. It cannot be used as part of other composite units. Towards
-    that end, the functionality of that class for arithmetic operations with
-    other unit classes is disabled. (Operations with scalars is permitted.)
-    """
-    
-    def __init__(eunit, name=None):
-        raise NotImplementedError, "object initialization must be handled by subclass"
-    def __str__(self):
-        return str(self.eunit)
-    def __repr__(self):
-        return "EquivalenceUnit(%s)" % str(self.eunit) # not right
-    def _equivalent(self, nunit):
-        """which of the internal representations is given unit is compatible with, if any
-        
-        returns index of the equivalency, negative if none
-        """
-        for i, eunit in self.elist:
-            try:
-                eunit.convert_to(nunit)
-                return i
-            except ValueError:
-                pass
-        return -1
-            
-    def convert_to(nunit, value, *args, **kwds):
-        raise NotImplementedError, "Must be defined by subclass"
-    
-    def converter_to(nunit):
-        raise NotImplementedError, "Must be defined by subclass"
-        
-    def __pow__(self, p) :
-        raise NotImplementedError, "powers not permitted for equivalence units"
-        
-    def __div__(self, m) :
-        try:
-            factor = float(m)
-        except ValueError:
-            raise ValueError, "can only divide by scalars"
-        return self__class__(self.eunit/float)
 
-    def __rdiv__(self, m) :
-        raise NotImplementedError, "inverse not permitted for equivalence units"
-        
-    def __truediv__(self, m) :
-        try:
-            factor = float(m)
-        except ValueError:
-            raise ValueError, "can only divide by scalars"
-        return self.__class__(self.eunit/float)
-
-    def __rtruediv__(self, m) :
-        raise NotImplementedError, "inverse not permitted for equivalence units"
-
-    def __mul__(self, m) :
-        try:
-            factor = float(m)
-        except ValueError:
-            raise ValueError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
-
-    def __rmul__(self, m) :
-        try:
-            factor = float(m)
-        except ValueError:
-            raise ValueError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
-    
-
-class SpectralUnit(EquivalenceUnit):
-    """Handles spectral wavelength, frequency, and energy equivalences
-    
-    Allows conversions between wavelength units, frequency units and
-    energy units as they relate to light. 
-    
-    These special units may not be combined with any others. They exist
-    purely for conversion between the specified unit representations.
-    """
-    def __init__(self, eunit):
-        pass
-        
 def unit(s) :
     """
     Class factory function for units. 
@@ -705,6 +614,7 @@ def argcondition(value):
     ValueError
         If value is not as expected
     """
+    print (type(value))
     if isinstance(value, float) or isinstance(value, int):
         return value
     else:
@@ -789,6 +699,10 @@ kyr = Unit('kyr', 1000 * yr)
 Myr = Unit('Myr', 1000 * kyr)
 Gyr = Unit('Gyr', 1000 * Myr)
 
+# Frequency
+
+Hz = Unit('Hz', 1 / s)
+
 # Distances
 cm = Unit('cm', 0.01 * m)
 km = Unit('km', 1000 * m)
@@ -819,3 +733,126 @@ MeV = Unit('MeV', 1000 * keV)
 # Pressures
 Pa = Unit('Pa', J * m**-3)
 dyn = Unit('dyn', erg * cm**-3)
+
+class EquivalenceUnit(UnitBase):
+    """Class to handle equivalence relations between dissimilar units
+    
+    Must be subclassed
+    
+    This works by containing (not inheriting) an instance of a specific unit,
+    and having a list of equivalent units that are acceptable for conversions.
+    The first of these is the one used as the basis for all conversions.
+    Should there be more than two equivalent types, the first is the 
+    intermediate unit used to convert from the others.
+    
+    This class is only used to convert between dissimilar units with implicit
+    relations. It cannot be used as part of other composite units. Towards
+    that end, the functionality of that class for arithmetic operations with
+    other unit classes is disabled. (Operations with scalars is permitted.)
+    """
+    
+    def __init__(eunit, name=None):
+        raise NotImplementedError, "object initialization must be handled by subclass"
+    def __str__(self):
+        return str(self.eunit)
+    def __repr__(self):
+        return "EquivalenceUnit(%s)" % str(self.eunit) # not right
+    def _equivalent(self, nunit):
+        """which of the internal representations is given unit is compatible with, if any
+        
+        returns index of the equivalency, negative if none
+        """
+        for i, eunit in enumerate(self.elist):
+            try:
+                eunit.converter_to(nunit)
+                return i
+            except UnitsException:
+                pass
+        return -1
+            
+    def convert_to(self, nunit, value, *args, **kwds):
+        return self.converter_to(nunit, value, args, kwds)
+    
+    # doesn't handle extra args or keywords yet!
+    def converter_to(self, nunit, *args, **kwds):
+        """will need to override if conversion requires associated values"""
+        to_index = self._equivalent(self.eunit)
+        if isinstance(nunit, self.__class__):
+            nunit = nunit.eunit
+        from_index = self._equivalent(nunit)
+        if from_index < 0:
+            raise UnitException, "not permitted to convert to specified type"
+        return lambda value: \
+            self._from_standard[from_index](nunit, self._to_standard[to_index](value))
+     
+    def __pow__(self, p) :
+        raise NotImplementedError, "powers not permitted for equivalence units"
+        
+    def __div__(self, m) :
+        try:
+            factor = float(m)
+        except ValueError:
+            raise ValueError, "can only divide by scalars"
+        return self__class__(self.eunit/float)
+
+    def __rdiv__(self, m) :
+        raise NotImplementedError, "inverse not permitted for equivalence units"
+        
+    def __truediv__(self, m) :
+        try:
+            factor = float(m)
+        except ValueError:
+            raise ValueError, "can only divide by scalars"
+        return self.__class__(self.eunit/float)
+
+    def __rtruediv__(self, m) :
+        raise NotImplementedError, "inverse not permitted for equivalence units"
+
+    def __mul__(self, m) :
+        try:
+            factor = float(m)
+        except ValueError:
+            raise ValueError, "can only multiply by scalars"
+        return self.__class__(factor*self.eunit)
+
+    def __rmul__(self, m) :
+        try:
+            factor = float(m)
+        except ValueError:
+            raise ValueError, "can only multiply by scalars"
+        return self.__class__(factor*self.eunit)
+
+# todo: these eventually must come from the Constants module    
+c = 2.99792458e8
+h = 6.62606957e-34
+
+class SpectralUnit(EquivalenceUnit):
+    """Handles spectral wavelength, frequency, and energy equivalences
+    
+    Allows conversions between wavelength units, frequency units and
+    energy units as they relate to light. 
+    
+    These special units may not be combined with any others. They exist
+    purely for conversion between the specified unit representations.
+    """
+    def __init__(self, eunit):
+        self.elist = [m, Hz, J]
+        if self._equivalent(eunit) < 0:
+            raise ValueError, "unit is not one of the acceptable types"
+        self.eunit = eunit
+        self._to_standard = [
+            lambda value: self.eunit.converter_to(m)(value),
+            lambda value: c / self.eunit.converter_to(Hz)(value) ,
+            lambda value: h * c / self.eunit.converter_to(J)(value)
+        ]
+        self._from_standard = [
+            lambda nunit, value: m.converter_to(nunit)(value),
+            lambda nunit, value: Hz.converter_to(nunit)(c / value),
+            lambda nunit, value: J.converter_to(nunit)(h * c / value)
+        ]
+
+    def _converter_to_standard(self):
+        raise NotImplementedError, "Must be defined by subclass"
+
+    def _converter_from_standard(self, nunit):
+           raise NotImplementedError, "Must be defined by subclass"
