@@ -236,7 +236,7 @@ class IrreducibleUnit(UnitBase) :
         return CompositeUnit(1, [self], [1])
 
 
-class NamedUnit(UnitBase) :
+class Unit(UnitBase) :
     def __init__(self, st, represents) :
         self._st_rep = st
         if isinstance(represents, str) :
@@ -363,7 +363,7 @@ class CompositeUnit(UnitBase) :
 
 
         for i,(b,p) in enumerate(zip(self._bases, self._powers)) :
-            if isinstance(b,NamedUnit) and expand_to_irrep :
+            if isinstance(b,Unit) and expand_to_irrep :
                 b = b._represents.irrep()
 
             if isinstance(b,CompositeUnit) :
@@ -781,41 +781,41 @@ for irr_unit_name in ['m','s','kg','K','a','h']:
     globals()[irr_unit_name] = IrreducibleUnit(irr_unit_name)
 
 # Times
-minutes = NamedUnit('minutes', 60 * s)
-hr = NamedUnit('hr', 3600 * s)
+minutes = Unit('minutes', 60 * s)
+hr = Unit('hr', 3600 * s)
 
-yr = NamedUnit('yr', 3.1556926e7 * s)
-kyr = NamedUnit('kyr', 1000 * yr)
-Myr = NamedUnit('Myr', 1000 * kyr)
-Gyr = NamedUnit('Gyr', 1000 * Myr)
+yr = Unit('yr', 3.1556926e7 * s)
+kyr = Unit('kyr', 1000 * yr)
+Myr = Unit('Myr', 1000 * kyr)
+Gyr = Unit('Gyr', 1000 * Myr)
 
 # Distances
-cm = NamedUnit('cm', 0.01 * m)
-km = NamedUnit('km', 1000 * m)
-au = NamedUnit('au', 1.49598e11 * m)
-pc = NamedUnit('pc', 3.08568025e16 * m)
-kpc = NamedUnit('kpc', 1000 * pc)
-Mpc = NamedUnit('Mpc', 1000 * kpc)
-Gpc = NamedUnit('Gpc', 1000 * Mpc)
+cm = Unit('cm', 0.01 * m)
+km = Unit('km', 1000 * m)
+au = Unit('au', 1.49598e11 * m)
+pc = Unit('pc', 3.08568025e16 * m)
+kpc = Unit('kpc', 1000 * pc)
+Mpc = Unit('Mpc', 1000 * kpc)
+Gpc = Unit('Gpc', 1000 * Mpc)
 
 # Masses
-Msol = NamedUnit('Msol', 1.98892e30 * kg)
+Msol = Unit('Msol', 1.98892e30 * kg)
 _registry['Msol']._latex = r'M_{\odot}'
-g = NamedUnit('g', 1.0e-3 * kg)
-m_p = NamedUnit('m_p', 1.67262158e-27 * kg)
+g = Unit('g', 1.0e-3 * kg)
+m_p = Unit('m_p', 1.67262158e-27 * kg)
 _registry['m_p']._latex = 'm_p'
-m_e = NamedUnit('m_e', 9.10938188e-31 * kg)
+m_e = Unit('m_e', 9.10938188e-31 * kg)
 _registry['m_e']._latex = 'm_e'
 # Forces
-N = NamedUnit('N', kg * m * s**-2)
+N = Unit('N', kg * m * s**-2)
 
 # Energies
-J = NamedUnit('J', N * m)
-erg = NamedUnit('erg', 1.0e-7 * J)
-eV = NamedUnit('eV', 1.60217646e-19 * J)
-keV = NamedUnit('keV', 1000 * eV)
-MeV = NamedUnit('MeV', 1000 * keV)
+J = Unit('J', N * m)
+erg = Unit('erg', 1.0e-7 * J)
+eV = Unit('eV', 1.60217646e-19 * J)
+keV = Unit('keV', 1000 * eV)
+MeV = Unit('MeV', 1000 * keV)
 
 # Pressures
-Pa = NamedUnit('Pa', J * m**-3)
-dyn = NamedUnit('dyn', erg * cm**-3)
+Pa = Unit('Pa', J * m**-3)
+dyn = Unit('dyn', erg * cm**-3)
