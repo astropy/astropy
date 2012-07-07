@@ -71,16 +71,23 @@ try:
 
         description = 'Build Sphinx documentation for Astropy environment'
         user_options = BuildDoc.user_options[:]
-        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '
-                                                'before building new ones'))
+        user_options.append(('clean-docs', 'l', 'Completely clean previously '
+                                                'builds, including auotmodapi-'
+                                                'generated files before '
+                                                'building new ones'))
+
+        user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
+                                                    'conf.py says to use it'))
         boolean_options = BuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
+        boolean_options.append('no-intersphinx')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
         def initialize_options(self):
             BuildDoc.initialize_options(self)
             self.clean_docs = False
+            self.no_intersphinx = False
 
         def finalize_options(self):
             from os.path import isdir
@@ -160,6 +167,14 @@ try:
                 else:
                     subproccode[i] = repr(val)
             subproccode = ''.join(subproccode)
+
+            if self.no_intersphinx:
+                #the confoverrides variable in sphinx.setup_command.BuildDoc can
+                #be used to override the conf.py ... but this could well break
+                #if future versions of sphinx change the internals of BuildDoc,
+                #so remain vigilant!
+                subproccode = subproccode.replace('confoverrides = {}',
+                    'confoverrides = {\'intersphinx_mapping\':{}}')
 
             log.debug('Starting subprocess of {0} with python code:\n{1}\n'
                       '[CODE END])'.format(sys.executable, subproccode))
