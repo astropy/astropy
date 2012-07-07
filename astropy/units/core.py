@@ -39,6 +39,8 @@ class UnitBase(object) :
         
 
     def __div__(self, m) :
+        if isinstance(m, EquivalenceUnit):
+            raise TypeError, "cannot combine equivalence unit types with any others"
         if isinstance(m, UnitBase) :
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
         else :
@@ -48,6 +50,8 @@ class UnitBase(object) :
         return CompositeUnit(m, [self], [-1]).simplify()
         
     def __truediv__(self, m) :
+        if isinstance(m, EquivalenceUnit):
+            raise TypeError, "cannot combine equivalence unit types with any others"
         if isinstance(m, UnitBase) :
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
         else :
@@ -57,6 +61,8 @@ class UnitBase(object) :
         return CompositeUnit(m, [self], [-1]).simplify()
 
     def __mul__(self, m) :
+        if isinstance(m, EquivalenceUnit):
+            raise TypeError, "cannot combine equivalence unit types with any others"
         if hasattr(m, "units") :
             return m*self
         elif isinstance(m, UnitBase) :
@@ -68,7 +74,7 @@ class UnitBase(object) :
         return CompositeUnit(m, [self], [1]).simplify()
 
     def __repr__(self) :
-        return 'Unit("'+str(self)+'")'
+        return 'unit("'+str(self)+'")'
 
     def __eq__(self, other) :
         try:
@@ -574,7 +580,6 @@ def unit(s) :
     units = []
     powers = []
 
-
     for com in x :
         if "**" in com or "^" in com :
             s = com.split("**" if "**" in com else "^")
@@ -591,8 +596,14 @@ def unit(s) :
 
         units.append(u)
         powers.append(p)
-
-    return CompositeUnit(scale, units, powers)
+        if len(units) > 1:
+            for u in units:
+                if isinstance(u, EquivalenceUnit):
+                    raise TypeError, "cannot combine equivalence units with any others"
+    if len(units) == 1 and isinstance(units[0],EquivalenceUnit):
+        return units[0]
+    else:
+        return CompositeUnit(scale, units, powers)
 
 def argcondition(value):
     """validate value is acceptable for conversion purposes
@@ -614,7 +625,6 @@ def argcondition(value):
     ValueError
         If value is not as expected
     """
-    print (type(value))
     if isinstance(value, float) or isinstance(value, int):
         return value
     else:
@@ -751,12 +761,12 @@ class EquivalenceUnit(UnitBase):
     other unit classes is disabled. (Operations with scalars is permitted.)
     """
     
-    def __init__(eunit, name=None):
+    def __init__(self, st, represents):
         raise NotImplementedError, "object initialization must be handled by subclass"
     def __str__(self):
-        return str(self.eunit)
+        return self._st_rep
     def __repr__(self):
-        return "EquivalenceUnit(%s)" % str(self.eunit) # not right
+        return "%s(%s)" % (self.__class__.__name__, str(self.eunit))
     def _equivalent(self, nunit):
         """which of the internal representations is given unit is compatible with, if any
         
@@ -771,7 +781,7 @@ class EquivalenceUnit(UnitBase):
         return -1
             
     def convert_to(self, nunit, value, *args, **kwds):
-        return self.converter_to(nunit, value, args, kwds)
+        return self.converter_to(nunit, value, args, kwds)(value)
     
     # doesn't handle extra args or keywords yet!
     def converter_to(self, nunit, *args, **kwds):
@@ -791,8 +801,8 @@ class EquivalenceUnit(UnitBase):
     def __div__(self, m) :
         try:
             factor = float(m)
-        except ValueError:
-            raise ValueError, "can only divide by scalars"
+        except TypeError:
+            raise TypeError, "can only divide by scalars"
         return self__class__(self.eunit/float)
 
     def __rdiv__(self, m) :
@@ -801,8 +811,8 @@ class EquivalenceUnit(UnitBase):
     def __truediv__(self, m) :
         try:
             factor = float(m)
-        except ValueError:
-            raise ValueError, "can only divide by scalars"
+        except TypeError:
+            raise TypeError, "can only divide by scalars"
         return self.__class__(self.eunit/float)
 
     def __rtruediv__(self, m) :
@@ -811,15 +821,15 @@ class EquivalenceUnit(UnitBase):
     def __mul__(self, m) :
         try:
             factor = float(m)
-        except ValueError:
-            raise ValueError, "can only multiply by scalars"
+        except TypeError:
+            raise TypeError, "can only multiply by scalars"
         return self.__class__(factor*self.eunit)
 
     def __rmul__(self, m) :
         try:
             factor = float(m)
-        except ValueError:
-            raise ValueError, "can only multiply by scalars"
+        except TypeError:
+            raise TypeError, "can only multiply by scalars"
         return self.__class__(factor*self.eunit)
 
 # todo: these eventually must come from the Constants module    
@@ -835,11 +845,16 @@ class SpectralUnit(EquivalenceUnit):
     These special units may not be combined with any others. They exist
     purely for conversion between the specified unit representations.
     """
-    def __init__(self, eunit):
+    def __init__(self, st, represents):
+        self._st_rep = st
+        if isinstance(represents, str) :
+            represents = unit(represents)
+        self._represents = represents
+        self._register_unit(st)
         self.elist = [m, Hz, J]
-        if self._equivalent(eunit) < 0:
+        if self._equivalent(represents) < 0:
             raise ValueError, "unit is not one of the acceptable types"
-        self.eunit = eunit
+        self.eunit = represents
         self._to_standard = [
             lambda value: self.eunit.converter_to(m)(value),
             lambda value: c / self.eunit.converter_to(Hz)(value) ,
@@ -851,8 +866,3 @@ class SpectralUnit(EquivalenceUnit):
             lambda nunit, value: J.converter_to(nunit)(h * c / value)
         ]
 
-    def _converter_to_standard(self):
-        raise NotImplementedError, "Must be defined by subclass"
-
-    def _converter_from_standard(self, nunit):
-           raise NotImplementedError, "Must be defined by subclass"
