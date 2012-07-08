@@ -12,7 +12,10 @@ def test_nddata_empty():
 
     with pytest.raises(TypeError) as exc:
         NDData()  # empty initializer should fail
-    assert exc.value.args[0] == '__init__() takes at least 2 arguments (1 given)'
+    if isinstance(exc.value, basestring):
+        assert exc.value == '__init__() takes at least 2 arguments (1 given)'
+    else:
+        assert exc.value.args[0] == '__init__() takes at least 2 arguments (1 given)'
 
 
 def test_nddata_simple():
