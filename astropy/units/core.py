@@ -153,6 +153,10 @@ class UnitBase(object) :
         """
 
         return self.converter_to(other)(value)
+    
+    def scale_to(self, other):
+        """return scale factor for converting current units value to new units value"""
+        return self.convert_to(other,1)
 
     comment  = '''
     def ratio(self, other, **substitutions) :
@@ -198,13 +202,19 @@ class UnitBase(object) :
         """
         return self
 
-    def _register_unit(self, st) :
-        if st in _registry :
-            raise UnitsException, "Unit with this name already exists"
-        if "**" in st or "^" in st or " " in st :
-            # will cause problems for simple string parser in unit() factory
-            raise UnitsException, "Unit names cannot contain '**' or '^' or spaces"
-        _registry[st]=self
+    def _register_unit(self, var=False) :
+        if not self._st_rep:
+            raise UnitsException, "unit has no string representation"
+        namelist = [self._st_rep] + self._aliases
+        for st in namelist:
+            if st in _registry :
+                raise UnitsException, "Unit with this name already exists"
+            if "**" in st or "^" in st or " " in st :
+                # will cause problems for simple string parser in unit() factory
+                raise UnitsException, "Unit names cannot contain '**' or '^' or spaces"
+            _registry[st] = self
+            if var:
+                globals()[st] = self
 
     def __deepcopy__(self, memo) :
         # This may look odd, but the units conversion will be very
@@ -222,8 +232,18 @@ class IrreducibleUnit(UnitBase) :
     """
     def __init__(self, st) :
         """"""
-        self._st_rep = st
-        self._register_unit(st)
+        if isinstance(st, str):
+            self._aliases = []
+            self._st_rep = st
+        else:
+            if len(st) == 0:
+                raise ValueError, "alias list must have at least one entry"
+            try:
+                self._st_rep = st[0]
+                self._aliases = st[1:]
+            except IndexError:
+                raise ValueError, "name argument must be a string or a list of strings"
+        self._register_unit()
 
 
     def __str__(self) :
@@ -243,13 +263,26 @@ class IrreducibleUnit(UnitBase) :
 
 
 class Unit(UnitBase) :
-    def __init__(self, st, represents) :
-        self._st_rep = st
+    def __init__(self, st, represents, var=False) :
+        """Create a named unit. 
+        
+        if var is True, create variables in namespace for each alias
+        """
+        if isinstance(st, str):
+            self._aliases = []
+            self._st_rep = st
+        else:
+            if len(st) == 0:
+                raise ValueError, "alias list must have at least one entry"
+            try:
+                self._st_rep = st[0]
+                self._aliases = st[1:]
+            except IndexError:
+                raise ValueError, "name argument must be a string or a list of strings"
         if isinstance(represents, str) :
-            represents = unit(represents)
-            
+            represents = unit(represents)           
         self._represents = represents
-        self._register_unit(st)
+        self._register_unit(var)
 
     def __str__(self) :
         """Return string representation for unit"""
@@ -544,6 +577,95 @@ class CompositeUnit(UnitBase) :
         return candidate
         '''
 
+class EquivalenceUnit(UnitBase):
+    """Class to handle equivalence relations between dissimilar units
+
+    Must be subclassed
+
+    This works by containing (not inheriting) an instance of a specific unit,
+    and having a list of equivalent units that are acceptable for conversions.
+    The first of these is the one used as the basis for all conversions.
+    Should there be more than two equivalent types, the first is the 
+    intermediate unit used to convert from the others.
+
+    This class is only used to convert between dissimilar units with implicit
+    relations. It cannot be used as part of other composite units. Towards
+    that end, the functionality of that class for arithmetic operations with
+    other unit classes is disabled. (Operations with scalars is permitted.)
+    """
+
+    def __init__(self, st, represents):
+        raise NotImplementedError, "object initialization must be handled by subclass"
+    def __str__(self):
+        return self._st_rep
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, str(self.eunit))
+    def _equivalent(self, nunit):
+        """which of the internal representations is given unit is compatible with, if any
+
+        returns index of the equivalency, negative if none
+        """
+        for i, eunit in enumerate(self.elist):
+            try:
+                eunit.converter_to(nunit)
+                return i
+            except UnitsException:
+                pass
+        return -1
+
+    def convert_to(self, nunit, value, *args, **kwds):
+        return self.converter_to(nunit, value, args, kwds)(value)
+
+    # doesn't handle extra args or keywords yet!
+    def converter_to(self, nunit, *args, **kwds):
+        """will need to override if conversion requires associated values"""
+        to_index = self._equivalent(self.eunit)
+        if isinstance(nunit, self.__class__):
+            nunit = nunit.eunit
+        from_index = self._equivalent(nunit)
+        if from_index < 0:
+            raise UnitException, "not permitted to convert to specified type"
+        return lambda value: \
+            self._from_standard[from_index](nunit, self._to_standard[to_index](value))
+
+    def __pow__(self, p) :
+        raise NotImplementedError, "powers not permitted for equivalence units"
+
+    def __div__(self, m) :
+        try:
+            factor = float(m)
+        except TypeError:
+            raise TypeError, "can only divide by scalars"
+        return self__class__(self.eunit/float)
+
+    def __rdiv__(self, m) :
+        raise NotImplementedError, "inverse not permitted for equivalence units"
+
+    def __truediv__(self, m) :
+        try:
+            factor = float(m)
+        except TypeError:
+            raise TypeError, "can only divide by scalars"
+        return self.__class__(self.eunit/float)
+
+    def __rtruediv__(self, m) :
+        raise NotImplementedError, "inverse not permitted for equivalence units"
+
+    def __mul__(self, m) :
+        try:
+            factor = float(m)
+        except TypeError:
+            raise TypeError, "can only multiply by scalars"
+        return self.__class__(factor*self.eunit)
+
+    def __rmul__(self, m) :
+        try:
+            factor = float(m)
+        except TypeError:
+            raise TypeError, "can only multiply by scalars"
+        return self.__class__(factor*self.eunit)
+
+
 def unit(s) :
     """
     Class factory function for units. 
@@ -697,140 +819,73 @@ def takes_arg_in_units(*args, **orig_kwargs) :
 
     return decorator_fn
 
-for irr_unit_name in ['m','s','kg','K','a','h']:
-    globals()[irr_unit_name] = IrreducibleUnit(irr_unit_name)
+for irr_unit_name in [['m','meter'],['s','second'],['kg','kilogram'],['K','Kelvin'],'a','h']:
+    if isinstance(irr_unit_name, str):
+        globals()[irr_unit_name] = IrreducibleUnit(irr_unit_name)
+    else:
+        irrunit = IrreducibleUnit(irr_unit_name[0])
+        for irrname in irr_unit_name:
+            globals()[irrname] = irrunit
+            
 
-# Times
-minutes = Unit('minutes', 60 * s)
-hr = Unit('hr', 3600 * s)
+# Times,var=True)
+Unit('minutes', 60 * s,var=True)
+Unit(['ms','millisecond'], 0.001 * s,var=True)
+Unit(['us','microsecond'], 0.001 * ms,var=True)
+Unit(['ps','picosecond'], 0.001 * us,var=True)
+Unit(['fs','femptosecond'], 0.001 * ps,var=True)
 
-yr = Unit('yr', 3.1556926e7 * s)
-kyr = Unit('kyr', 1000 * yr)
-Myr = Unit('Myr', 1000 * kyr)
-Gyr = Unit('Gyr', 1000 * Myr)
+hr = Unit('hr', 3600 * s,var=True)
+
+Unit(['yr','year'], 3.1556926e7 * s,var=True)
+Unit(['Kyr','Kyear','kiloyear'], 1000 * yr,var=True)
+Unit(['Myr','Myear','megayear'], 1000 * Kyr,var=True)
+Unit(['Gyr','Gyear','gigayear'], 1000 * Myr,var=True)
 
 # Frequency
 
-Hz = Unit('Hz', 1 / s)
+Unit(['Hz','Hertz','hertz'], 1 / s,var=True)
+Unit(['KHz','KHertz','kilohertz'], 1000 * Hz,var=True)
+Unit(['MHz','MHertz','megahertz'], 1000 * KHz,var=True)
+Unit(['GHz','GHertz','gigahertz'], 1000 * MHz,var=True)
 
 # Distances
-cm = Unit('cm', 0.01 * m)
-km = Unit('km', 1000 * m)
-au = Unit('au', 1.49598e11 * m)
-pc = Unit('pc', 3.08568025e16 * m)
-kpc = Unit('kpc', 1000 * pc)
-Mpc = Unit('Mpc', 1000 * kpc)
-Gpc = Unit('Gpc', 1000 * Mpc)
+
+Unit(['mm','millimeter'], 0.001 * m,var=True)
+Unit(['cm','centimeter'], 0.01 * m,var=True)
+Unit(['km','kilometer'], 1000 * m,var=True)
+Unit(['au','astronomical_unit'], 1.49598e11 * m,var=True)
+Unit(['pc','parsec'], 3.08568025e16 * m,var=True)
+Unit(['Kpc','Kparsec','kiloparsec'], 1000 * pc,var=True)
+Unit(['Mpc','Mparsec','megaparsec'], 1000 * Kpc,var=True)
+Unit(['Gpc','Gparsec','gigaparsec'], 1000 * Mpc,var=True)
+Unit(['um','micron'], 0.001 * mm,var=True)
+Unit(['nm','nanometer'], 0.001 * um,var=True)
+Unit(['A','Angstrom','angstrom'], 0.1 * nm,var=True)
+Unit(['pm','picometer'], 0.001 * nm,var=True)
 
 # Masses
-Msol = Unit('Msol', 1.98892e30 * kg)
+Unit('Msol', 1.98892e30 * kg,var=True)
 _registry['Msol']._latex = r'M_{\odot}'
-g = Unit('g', 1.0e-3 * kg)
-m_p = Unit('m_p', 1.67262158e-27 * kg)
+Unit(['g','gram'], 1.0e-3 * kg,var=True)
+Unit('m_p', 1.67262158e-27 * kg,var=True)
 _registry['m_p']._latex = 'm_p'
-m_e = Unit('m_e', 9.10938188e-31 * kg)
+Unit('m_e', 9.10938188e-31 * kg,var=True)
 _registry['m_e']._latex = 'm_e'
 # Forces
-N = Unit('N', kg * m * s**-2)
+Unit(['N','Newton','newton'], kg * m * s**-2,var=True)
 
 # Energies
-J = Unit('J', N * m)
-erg = Unit('erg', 1.0e-7 * J)
-eV = Unit('eV', 1.60217646e-19 * J)
-keV = Unit('keV', 1000 * eV)
-MeV = Unit('MeV', 1000 * keV)
+Unit(['J','Joule','joule'], N * m,var=True)
+Unit('erg', 1.0e-7 * J,var=True)
+Unit(['eV','electron_volt'], 1.60217646e-19 * J,var=True)
+Unit(['KeV','Kelectron_volt','kilo_electron_volt'], 1000 * eV,var=True)
+Unit(['MeV','Melectron_volt','mega_electron_volt'], 1000 * KeV,var=True)
 
 # Pressures
-Pa = Unit('Pa', J * m**-3)
-dyn = Unit('dyn', erg * cm**-3)
+Pa = Unit('Pa', J * m**-3,var=True)
+dyn = Unit('dyn', erg * cm**-3,var=True)
 
-class EquivalenceUnit(UnitBase):
-    """Class to handle equivalence relations between dissimilar units
-    
-    Must be subclassed
-    
-    This works by containing (not inheriting) an instance of a specific unit,
-    and having a list of equivalent units that are acceptable for conversions.
-    The first of these is the one used as the basis for all conversions.
-    Should there be more than two equivalent types, the first is the 
-    intermediate unit used to convert from the others.
-    
-    This class is only used to convert between dissimilar units with implicit
-    relations. It cannot be used as part of other composite units. Towards
-    that end, the functionality of that class for arithmetic operations with
-    other unit classes is disabled. (Operations with scalars is permitted.)
-    """
-    
-    def __init__(self, st, represents):
-        raise NotImplementedError, "object initialization must be handled by subclass"
-    def __str__(self):
-        return self._st_rep
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, str(self.eunit))
-    def _equivalent(self, nunit):
-        """which of the internal representations is given unit is compatible with, if any
-        
-        returns index of the equivalency, negative if none
-        """
-        for i, eunit in enumerate(self.elist):
-            try:
-                eunit.converter_to(nunit)
-                return i
-            except UnitsException:
-                pass
-        return -1
-            
-    def convert_to(self, nunit, value, *args, **kwds):
-        return self.converter_to(nunit, value, args, kwds)(value)
-    
-    # doesn't handle extra args or keywords yet!
-    def converter_to(self, nunit, *args, **kwds):
-        """will need to override if conversion requires associated values"""
-        to_index = self._equivalent(self.eunit)
-        if isinstance(nunit, self.__class__):
-            nunit = nunit.eunit
-        from_index = self._equivalent(nunit)
-        if from_index < 0:
-            raise UnitException, "not permitted to convert to specified type"
-        return lambda value: \
-            self._from_standard[from_index](nunit, self._to_standard[to_index](value))
-     
-    def __pow__(self, p) :
-        raise NotImplementedError, "powers not permitted for equivalence units"
-        
-    def __div__(self, m) :
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only divide by scalars"
-        return self__class__(self.eunit/float)
-
-    def __rdiv__(self, m) :
-        raise NotImplementedError, "inverse not permitted for equivalence units"
-        
-    def __truediv__(self, m) :
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only divide by scalars"
-        return self.__class__(self.eunit/float)
-
-    def __rtruediv__(self, m) :
-        raise NotImplementedError, "inverse not permitted for equivalence units"
-
-    def __mul__(self, m) :
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
-
-    def __rmul__(self, m) :
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
 
 # todo: these eventually must come from the Constants module    
 c = 2.99792458e8
@@ -845,12 +900,22 @@ class SpectralUnit(EquivalenceUnit):
     These special units may not be combined with any others. They exist
     purely for conversion between the specified unit representations.
     """
-    def __init__(self, st, represents):
-        self._st_rep = st
+    def __init__(self, st, represents, var=False):
+        if isinstance(st, str):
+            self._aliases = []
+            self._st_rep = st
+        else:
+            if len(st) == 0:
+                raise ValueError, "alias list must have at least one entry"
+            try:
+                self._st_rep = st[0]
+                self._aliases = st[1:]
+            except IndexError:
+                raise ValueError, "name argument must be a string or a list of strings"
         if isinstance(represents, str) :
             represents = unit(represents)
         self._represents = represents
-        self._register_unit(st)
+        self._register_unit(var)
         self.elist = [m, Hz, J]
         if self._equivalent(represents) < 0:
             raise ValueError, "unit is not one of the acceptable types"
@@ -866,3 +931,17 @@ class SpectralUnit(EquivalenceUnit):
             lambda nunit, value: J.converter_to(nunit)(h * c / value)
         ]
 
+
+SpectralUnit(['sp_A','sp_Angstrom','sp_angstrom'],A,var=True)
+SpectralUnit(['sp_nm','sp_nanometer'],nm,var=True)
+SpectralUnit(['sp_um','sp_micron'],um,var=True)
+SpectralUnit(['sp_m','sp_meter'],m,var=True)
+SpectralUnit(['sp_mm','sp_millimeter'],mm,var=True)
+SpectralUnit(['sp_cm','sp_centimeter'],cm,var=True)
+SpectralUnit(['sp_Hz','sp_Hertz','sp_hertz'],Hz,var=True)
+SpectralUnit(['sp_KHz','sp_KHertz','sp_kilohertz'],KHz,var=True)
+SpectralUnit(['sp_MHz','sp_MHertz','sp_megahertz'],MHz,var=True)
+SpectralUnit(['sp_GHz','sp_GHertz','sp_gigahertz'],GHz,var=True)
+SpectralUnit(['sp_eV','sp_electron_volt'],eV,var=True)
+SpectralUnit(['sp_KeV','sp_Kelectron_volt','sp_kilo_electron_volt'],KeV,var=True)
+SpectralUnit(['sp_MeV','sp_Melectron_volt','sp_mega_electron_volt'],MeV,var=True)
