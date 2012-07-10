@@ -553,6 +553,14 @@ def adjust_compiler():
     to.
     """
 
+    from distutils import ccompiler, sysconfig
+    import subprocess
+    import re
+
+    compiler_mapping = [
+        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
+        ]
+
     global _adjusted_compiler
     if _adjusted_compiler:
         return
@@ -561,19 +569,24 @@ def adjust_compiler():
     _adjusted_compiler = True
 
     if 'CC' in os.environ:
-        return
+
+        # Check that CC is not set to llvm-gcc-4.2
+        c_compiler = os.environ['CC']
+
+        process = subprocess.Popen(
+            shlex.split(c_compiler) + ['--version'], stdout=subprocess.PIPE)
+
+        output = process.communicate()[0].strip()
+        version = output.split()[0]
+
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                print("Compiler specified by CC environment variable ({0:s}: {1:s}) will fail to compile Astropy. Please set CC={2:s} and try again".format(c_compiler, version, fixed))
+                sys.exit(1)
 
     if get_distutils_option(
         'compiler', ['build', 'build_ext', 'build_clib']) is not None:
         return
-
-    from distutils import ccompiler, sysconfig
-    import subprocess
-    import re
-
-    compiler_mapping = [
-        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
-        ]
 
     compiler_type = ccompiler.get_default_compiler()
 
