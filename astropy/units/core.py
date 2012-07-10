@@ -9,26 +9,32 @@ import numpy as np
 import fractions
 import functools
 
-
+def lprint(text):
+    print(text)
+    return 1
+def vprint(t,x):
+    print(t,x)
+    return x
+    
 Fraction = fractions.Fraction
 
 _registry = {}
 
-class UnitsException(Exception) :
+class UnitsException(Exception):
     pass
 
-class UnitBase(object) :
+class UnitBase(object):
     """Abstract Base class for units
     
     Should not be used by users directly
     """
     # may use standard library ABC module instead
 
-    def __init__(self) :
+    def __init__(self):
         raise ValueError, "Cannot directly initialize abstract base class"
         pass
 
-    def __pow__(self, p) :
+    def __pow__(self, p):
         if isinstance(p, tuple) and len(p)==2:
             p = Fraction(p[0],p[1])
         else:
@@ -38,72 +44,72 @@ class UnitBase(object) :
         return CompositeUnit(1, [self], [p]).simplify()
         
 
-    def __div__(self, m) :
+    def __div__(self, m):
         if isinstance(m, EquivalenceUnit):
             raise TypeError, "cannot combine equivalence unit types with any others"
-        if isinstance(m, UnitBase) :
+        if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
         else :
             return CompositeUnit(1.0/m, [self], [1]).simplify()
 
-    def __rdiv__(self, m) :
+    def __rdiv__(self, m):
         return CompositeUnit(m, [self], [-1]).simplify()
         
-    def __truediv__(self, m) :
+    def __truediv__(self, m):
         if isinstance(m, EquivalenceUnit):
             raise TypeError, "cannot combine equivalence unit types with any others"
-        if isinstance(m, UnitBase) :
+        if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
         else :
             return CompositeUnit(1.0/m, [self], [1]).simplify()
 
-    def __rtruediv__(self, m) :
+    def __rtruediv__(self, m):
         return CompositeUnit(m, [self], [-1]).simplify()
 
-    def __mul__(self, m) :
+    def __mul__(self, m):
         if isinstance(m, EquivalenceUnit):
             raise TypeError, "cannot combine equivalence unit types with any others"
-        if hasattr(m, "units") :
+        if hasattr(m, "units"):
             return m*self
-        elif isinstance(m, UnitBase) :
+        elif isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1,1]).simplify()
         else :
             return CompositeUnit(m, [self], [1]).simplify()
 
-    def __rmul__(self, m) :
+    def __rmul__(self, m):
         return CompositeUnit(m, [self], [1]).simplify()
 
-    def __repr__(self) :
+    def __repr__(self):
         return 'unit("'+str(self)+'")'
 
-    def __eq__(self, other) :
+    def __eq__(self, other):
         try:
             return self.convert_to(other,1)==1.
         except UnitsException :
             return False
 
-    def __ne__(self, other) :
+    def __ne__(self, other):
         return not (self==other)
 
-    def __lt__(self, other) :
+    def __lt__(self, other):
         return self.convert_to(other,1)<1.
 
-    def __gt__(self, other) :
+    def __gt__(self, other):
         return self.convert_to(other,1)>1.
 
-    def __le__(self, other) :
+    def __le__(self, other):
         return self.convert_to(other,1)<=1.
 
-    def __ge__(self, other) :
+    def __ge__(self, other):
         return self.convert_to(other,1)>=1.
 
-    def __neg__(self) :
+    def __neg__(self):
         return self*(-1)
 
-    def simplify(self) :
+    def simplify(self):
         return self
 
-    def is_dimensionless(self) :
+    def is_dimensionless(self):
         return False
 
     def converter_to(self, other):
@@ -125,7 +131,7 @@ class UnitBase(object) :
             If units are inconsistent
         """
 
-        if isinstance(other, str) :
+        if isinstance(other, str):
             other = unit(other)
         try :
             scale = (self/other).dimensionless_constant()
@@ -159,7 +165,7 @@ class UnitBase(object) :
         return self.convert_to(other,1)
 
     comment  = '''
-    def ratio(self, other, **substitutions) :
+    def ratio(self, other, **substitutions):
         """Get the conversion ratio between this Unit and another
         specified unit.
 
@@ -176,20 +182,20 @@ class UnitBase(object) :
         3.1028701506345152e-08
         """
 
-        if isinstance(other, str) :
+        if isinstance(other, str):
             other = unit(other)
         try :
             return (self/other).dimensionless_constant(**substitutions)
         except UnitsException :
             raise UnitsException, "Not convertible"
 
-    def in_units(self, *a, **kw) :
+    def in_units(self, *a, **kw):
         """Alias for ratio"""
     
         return self.ratio(*a, **kw)
         '''
     
-    def irrep(self) :
+    def irrep(self):
         """Return a unit object composed of only irreducible units
         
         Parameters
@@ -202,7 +208,7 @@ class UnitBase(object) :
         """
         return self
 
-    def _register_unit(self, var=False) :
+    def _register_unit(self, var=False):
         if not self._st_rep:
             raise UnitsException, "unit has no string representation"
         namelist = [self._st_rep] + self._aliases
@@ -216,7 +222,7 @@ class UnitBase(object) :
             if var:
                 globals()[st] = self
 
-    def __deepcopy__(self, memo) :
+    def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
         # physical unit corresponds to only one instance
@@ -224,13 +230,13 @@ class UnitBase(object) :
 
 
 
-class IrreducibleUnit(UnitBase) :
+class IrreducibleUnit(UnitBase):
     """Irreducible units all other units of the same kind are defined in terms of
     
     Examples are meters, seconds, kilograms, coulombs, etc. There is only 
     once instance of such a unit per type.
     """
-    def __init__(self, st) :
+    def __init__(self, st):
         """"""
         if isinstance(st, str):
             self._aliases = []
@@ -246,10 +252,10 @@ class IrreducibleUnit(UnitBase) :
         self._register_unit()
 
 
-    def __str__(self) :
+    def __str__(self):
         return self._st_rep
 
-    def latex(self) :
+    def latex(self):
         """Generate latex representation of unit name
 
         Returns
@@ -258,12 +264,12 @@ class IrreducibleUnit(UnitBase) :
         """
         return r"\mathrm{"+self._st_rep+"}"
 
-    def irrep(self) :
+    def irrep(self):
         return CompositeUnit(1, [self], [1])
 
 
-class Unit(UnitBase) :
-    def __init__(self, st, represents, var=False) :
+class Unit(UnitBase):
+    def __init__(self, st, represents, var=False):
         """Create a named unit. 
         
         if var is True, create variables in namespace for each alias
@@ -279,16 +285,16 @@ class Unit(UnitBase) :
                 self._aliases = st[1:]
             except IndexError:
                 raise ValueError, "name argument must be a string or a list of strings"
-        if isinstance(represents, str) :
+        if isinstance(represents, str):
             represents = unit(represents)           
         self._represents = represents
         self._register_unit(var)
 
-    def __str__(self) :
+    def __str__(self):
         """Return string representation for unit"""
         return self._st_rep
 
-    def latex(self) :
+    def latex(self):
         """Generate latex representation of unit name
         
         Prefactors are converted into exponent notation. Named units by default
@@ -299,11 +305,11 @@ class Unit(UnitBase) :
         -------
         Latex string
         """
-        if hasattr(self,'_latex') :
+        if hasattr(self,'_latex'):
             return self._latex
         return r"\mathrm{"+self._st_rep+"}"
 
-    def irrep(self) :
+    def irrep(self):
         """Return a unit object composed of only irreducible units
         
         Parameters
@@ -317,8 +323,8 @@ class Unit(UnitBase) :
         return self._represents.irrep()
 
 
-class CompositeUnit(UnitBase) :
-    def __init__(self, scale, bases, powers) :
+class CompositeUnit(UnitBase):
+    def __init__(self, scale, bases, powers):
         """Create a composite unit using expressions of previously defined units.
 
         Direct use of this function is not recommended. Instead use the
@@ -332,7 +338,7 @@ class CompositeUnit(UnitBase) :
         self._bases = bases
         self._powers = powers
 
-    def latex(self) :
+    def latex(self):
         """Generate latex representation of unit name
         
         Prefactors are converted into exponent notation. Named units by default
@@ -354,7 +360,7 @@ class CompositeUnit(UnitBase) :
         else :
             s = ""
 
-        for b,p in zip(self._bases, self._powers) :
+        for b,p in zip(self._bases, self._powers):
             if s!="" :
                 s+=r"\,"+b.latex()
             else :
@@ -367,7 +373,7 @@ class CompositeUnit(UnitBase) :
         return s
 
 
-    def __str__(self) :
+    def __str__(self):
         """Return string representation for unit"""
         s=None
         if len(self._bases)==0 :
@@ -376,7 +382,7 @@ class CompositeUnit(UnitBase) :
         if self._scale!=1 :
             s = "%.2e"%self._scale
 
-        for b,p in zip(self._bases, self._powers) :
+        for b,p in zip(self._bases, self._powers):
             if s is not None :
                 s+=" "+str(b)
             else :
@@ -384,13 +390,13 @@ class CompositeUnit(UnitBase) :
 
             if p!=1 :
                 s+="**"
-                if isinstance(p,Fraction) :
+                if isinstance(p,Fraction):
                     s+=str(p)
                 else :
                     s+=str(p)
         return s
 
-    def _expand(self, expand_to_irrep=False) :
+    def _expand(self, expand_to_irrep=False):
         """Internal routine to expand any pointers to composite units
         into direct pointers to the base units. If expand_to_irrep is
         True, everything is expressed in irreducible units.
@@ -401,27 +407,27 @@ class CompositeUnit(UnitBase) :
 
 
 
-        for i,(b,p) in enumerate(zip(self._bases, self._powers)) :
+        for i,(b,p) in enumerate(zip(self._bases, self._powers)):
             if isinstance(b,Unit) and expand_to_irrep :
                 b = b._represents.irrep()
 
-            if isinstance(b,CompositeUnit) :
+            if isinstance(b,CompositeUnit):
                 if expand_to_irrep :
                     b = b.irrep()
 
                 trash.append(i)
                 self._scale*=b._scale**p
-                for b_sub, p_sub in zip(b._bases, b._powers) :
+                for b_sub, p_sub in zip(b._bases, b._powers):
                     self._bases.append(b_sub)
                     self._powers.append(p_sub*p)
 
         trash.sort()
-        for offset,i in enumerate(trash) :
+        for offset,i in enumerate(trash):
             del self._bases[i-offset]
             del self._powers[i-offset]
 
 
-    def _gather(self) :
+    def _gather(self):
         """Internal routine to gather together powers of the same base
         units, then order the base units by their power (descending)"""
 
@@ -445,7 +451,7 @@ class CompositeUnit(UnitBase) :
 
 
 
-    def copy(self) :
+    def copy(self):
         """Create a shallow copy 
         
         The returned copy references exactly the same underlying base units, 
@@ -453,16 +459,16 @@ class CompositeUnit(UnitBase) :
         """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def __copy__(self) :
+    def __copy__(self):
         """For compatibility with python copy module"""
         return self.copy()
 
-    def simplify(self) :
+    def simplify(self):
         self._expand()
         self._gather()
         return self
 
-    def irrep(self) :
+    def irrep(self):
         """Return a unit object composed of only irreducible units"""
 
         x = self.copy()
@@ -470,13 +476,13 @@ class CompositeUnit(UnitBase) :
         x._gather()
         return x
 
-    def is_dimensionless(self) :
+    def is_dimensionless(self):
         """True if this unit actually translates into a scalar quantity."""
         x = self.irrep()
         if len(x._powers)==0 :
             return True
 
-    def dimensionless_constant(self) :
+    def dimensionless_constant(self):
         """If this unit is dimensionless, return its scalar quantity.
 
         Direct use of this method is not recommended. It is generally
@@ -489,14 +495,14 @@ class CompositeUnit(UnitBase) :
             raise UnitsException, "Not dimensionless"
         return c
 
-    def _power_of(self, base) :
+    def _power_of(self, base):
         if base in self._bases :
             return self._powers[self._bases.index(base)]
         else :
             return 0
             
     bozo = '''
-    def dimensional_project(self, basis_units) :
+    def dimensional_project(self, basis_units):
         """Work out how to express the dimensions of this unit relative to the
         specified list of basis units.
 
@@ -530,8 +536,8 @@ class CompositeUnit(UnitBase) :
 
         matrix = np.zeros((len(bases),len(vec_irrep)),dtype=Fraction)
 
-        for base_i, base in enumerate(bases) :
-            for vec_i, vec in enumerate(vec_irrep) :
+        for base_i, base in enumerate(bases):
+            for vec_i, vec in enumerate(vec_irrep):
                 matrix[base_i,vec_i] = vec._power_of(base)
 
 
@@ -569,7 +575,7 @@ class CompositeUnit(UnitBase) :
         # by M^T), we could get a spurious solution. Check this is not the case...
 
 
-        if any(np.dot(matrix, candidate)!=my_powers) :
+        if any(np.dot(matrix, candidate)!=my_powers):
             # Spurious solution, meaning the base vectors did not span the
             # units required in the first place.
             raise UnitsException, "Basis units do not span dimensions of specified unit"
@@ -614,9 +620,8 @@ class EquivalenceUnit(UnitBase):
         return -1
 
     def convert_to(self, nunit, value, *args, **kwds):
-        return self.converter_to(nunit, value, args, kwds)(value)
+        return self.converter_to(nunit, value, *args, **kwds)(value, *args, **kwds)
 
-    # doesn't handle extra args or keywords yet!
     def converter_to(self, nunit, *args, **kwds):
         """will need to override if conversion requires associated values"""
         to_index = self._equivalent(self.eunit)
@@ -624,41 +629,42 @@ class EquivalenceUnit(UnitBase):
             nunit = nunit.eunit
         from_index = self._equivalent(nunit)
         if from_index < 0:
-            raise UnitException, "not permitted to convert to specified type"
-        return lambda value: \
-            self._from_standard[from_index](nunit, self._to_standard[to_index](value))
+            raise UnitsException, "not permitted to convert to specified type"
+        return lambda value, *args, **kwds: \
+            self._from_standard[from_index](nunit, self._to_standard[to_index]
+                          (value, *args, **kwds), *args, **kwds)
 
-    def __pow__(self, p) :
+    def __pow__(self, p):
         raise NotImplementedError, "powers not permitted for equivalence units"
 
-    def __div__(self, m) :
+    def __div__(self, m):
         try:
             factor = float(m)
         except TypeError:
             raise TypeError, "can only divide by scalars"
         return self__class__(self.eunit/float)
 
-    def __rdiv__(self, m) :
+    def __rdiv__(self, m):
         raise NotImplementedError, "inverse not permitted for equivalence units"
 
-    def __truediv__(self, m) :
+    def __truediv__(self, m):
         try:
             factor = float(m)
         except TypeError:
             raise TypeError, "can only divide by scalars"
         return self.__class__(self.eunit/float)
 
-    def __rtruediv__(self, m) :
+    def __rtruediv__(self, m):
         raise NotImplementedError, "inverse not permitted for equivalence units"
 
-    def __mul__(self, m) :
+    def __mul__(self, m):
         try:
             factor = float(m)
         except TypeError:
             raise TypeError, "can only multiply by scalars"
         return self.__class__(factor*self.eunit)
 
-    def __rmul__(self, m) :
+    def __rmul__(self, m):
         try:
             factor = float(m)
         except TypeError:
@@ -666,7 +672,7 @@ class EquivalenceUnit(UnitBase):
         return self.__class__(factor*self.eunit)
 
 
-def unit(s) :
+def unit(s):
     """
     Class factory function for units. 
     
@@ -696,7 +702,7 @@ def unit(s) :
     try:
         scale = float(x[0])
         del x[0]
-    except (ValueError, IndexError) :
+    except (ValueError, IndexError):
         scale = 1.0
 
     units = []
@@ -760,7 +766,7 @@ def argcondition(value):
             raise ValueError, \
             "Value not scalar compatible or convertable into a float or integer array"
 
-def takes_arg_in_units(*args, **orig_kwargs) :
+def takes_arg_in_units(*args, **orig_kwargs):
     """
     
     Returns a decorator to create a function which auto-converts input
@@ -771,7 +777,7 @@ def takes_arg_in_units(*args, **orig_kwargs) :
     .. code-block:: python
 
         @takes_arg_in_units((2, "Msol"), (1, "kpc"), ("blob", "erg"))
-        def my_function(arg0, arg1, arg2, blob=22) :
+        def my_function(arg0, arg1, arg2, blob=22):
            print "Arg 2 is",arg2,"Msol"
            print "Arg 1 is",arg1,"kpc"
            print "blob is",blob,"ergs"
@@ -789,9 +795,9 @@ def takes_arg_in_units(*args, **orig_kwargs) :
     kwargs = filter(lambda x: hasattr(x[0],'__len__'), args)
     args = filter(lambda x: not hasattr(x[0], '__len__'), args)
     
-    def decorator_fn(x) :
+    def decorator_fn(x):
         @functools.wraps
-        def wrapper_fn(*fn_args, **fn_kwargs) :
+        def wrapper_fn(*fn_args, **fn_kwargs):
             context = {}
             if context_arg is not None :
                 context = fn_args[context_arg].conversion_context()
@@ -800,17 +806,17 @@ def takes_arg_in_units(*args, **orig_kwargs) :
 
             for arg_num, arg_units in args :
 
-                if isinstance(fn_args[arg_num],str) :
+                if isinstance(fn_args[arg_num],str):
                     fn_args[arg_num] = unit(fn_args[arg_num])
 
-                if hasattr(fn_args[arg_num], "in_units") :
+                if hasattr(fn_args[arg_num], "in_units"):
                     fn_args[arg_num] = fn_args[arg_num].in_units(arg_units,**context)
 
             for arg_name, arg_units in kwargs :
-                if isinstance(fn_kwargs[arg_name],str) :
+                if isinstance(fn_kwargs[arg_name],str):
                     fn_kwargs[arg_name] = unit(fn_kwargs[arg_name])
 
-                if hasattr(fn_kwargs[arg_name], "in_units") :
+                if hasattr(fn_kwargs[arg_name], "in_units"):
                     fn_kwargs[arg_name] = fn_kwargs[arg_name].in_units(arg_units, **context)
 
             return x(*fn_args, **fn_kwargs)
@@ -883,12 +889,20 @@ Unit(['KeV','Kelectron_volt','kilo_electron_volt'], 1000 * eV,var=True)
 Unit(['MeV','Melectron_volt','mega_electron_volt'], 1000 * KeV,var=True)
 
 # Pressures
-Pa = Unit('Pa', J * m**-3,var=True)
-dyn = Unit('dyn', erg * cm**-3,var=True)
+Unit('Pa', J * m**-3,var=True)
+Unit('dyn', erg * cm**-3,var=True)
 
+# Spectral density
+
+Unit(['flam','flambda'],erg/angstrom/cm**2/s,var=True)
+Unit(['fnu'],erg/Hz/cm**2/s,var=True)
+Unit(['Jy','Jansky','jansky'],10**-23*fnu,var=True)
+Unit(['mJy','mJansky','millijansky'],0.001*Jy,var=True)
+Unit(['suJy','uJansky','microjansky'],0.001*mJy,var=True)
 
 # todo: these eventually must come from the Constants module    
 c = 2.99792458e8
+c_Aps = c * 10**10
 h = 6.62606957e-34
 
 class SpectralUnit(EquivalenceUnit):
@@ -899,6 +913,9 @@ class SpectralUnit(EquivalenceUnit):
     
     These special units may not be combined with any others. They exist
     purely for conversion between the specified unit representations.
+    
+    Note to python novices: use of "lambda" in the code has nothing
+    to do with wavelength; see the python lambda statement
     """
     def __init__(self, st, represents, var=False):
         if isinstance(st, str):
@@ -912,7 +929,7 @@ class SpectralUnit(EquivalenceUnit):
                 self._aliases = st[1:]
             except IndexError:
                 raise ValueError, "name argument must be a string or a list of strings"
-        if isinstance(represents, str) :
+        if isinstance(represents, str):
             represents = unit(represents)
         self._represents = represents
         self._register_unit(var)
@@ -922,7 +939,7 @@ class SpectralUnit(EquivalenceUnit):
         self.eunit = represents
         self._to_standard = [
             lambda value: self.eunit.converter_to(m)(value),
-            lambda value: c / self.eunit.converter_to(Hz)(value) ,
+            lambda value: c / self.eunit.converter_to(Hz)(value),
             lambda value: h * c / self.eunit.converter_to(J)(value)
         ]
         self._from_standard = [
@@ -930,7 +947,6 @@ class SpectralUnit(EquivalenceUnit):
             lambda nunit, value: Hz.converter_to(nunit)(c / value),
             lambda nunit, value: J.converter_to(nunit)(h * c / value)
         ]
-
 
 SpectralUnit(['sp_A','sp_Angstrom','sp_angstrom'],A,var=True)
 SpectralUnit(['sp_nm','sp_nanometer'],nm,var=True)
@@ -945,3 +961,59 @@ SpectralUnit(['sp_GHz','sp_GHertz','sp_gigahertz'],GHz,var=True)
 SpectralUnit(['sp_eV','sp_electron_volt'],eV,var=True)
 SpectralUnit(['sp_KeV','sp_Kelectron_volt','sp_kilo_electron_volt'],KeV,var=True)
 SpectralUnit(['sp_MeV','sp_Melectron_volt','sp_mega_electron_volt'],MeV,var=True)
+
+class SpectralDensityUnit(EquivalenceUnit):
+    """Handles spectral density regards wavelength and frequency
+
+    These special units may not be combined with any others. They exist
+    purely for conversion between the specified unit representations.
+    
+    Note to python novices: use of "lambda" in the code has nothing
+    to do with wavelength; see the python lambda statement
+    """
+    def __init__(self, st, represents, var=False):
+        if isinstance(st, str):
+            self._aliases = []
+            self._st_rep = st
+        else:
+            if len(st) == 0:
+                raise ValueError, "alias list must have at least one entry"
+            try:
+                self._st_rep = st[0]
+                self._aliases = st[1:]
+            except IndexError:
+                raise ValueError, "name argument must be a string or a list of strings"
+        if isinstance(represents, str):
+            represents = unit(represents)
+        self._represents = represents
+        self._register_unit(var)
+        self.elist = [erg/angstrom/cm**2/s, erg/Hz/cm**2/s]
+        if self._equivalent(represents) < 0:
+            raise ValueError, "unit is not one of the acceptable types"
+        self.eunit = represents
+        self._to_standard = [
+            lambda value, sunit, sp: (
+                self.eunit.converter_to(self.elist[0])(value)
+                ),
+            lambda value, sunit, sp: (
+                c_Aps * self.eunit.converter_to(self.elist[1])(value)
+                  / (sunit.converter_to(sp_A)(sp))**2
+                )
+        ]
+        self._from_standard = [
+            lambda nunit, value, sunit, sp: (
+                self.elist[0].converter_to(nunit)(value)
+                ),
+            lambda nunit, value, sunit, sp: (
+                self.elist[1].converter_to(nunit)(value) * (sunit.converter_to(sp_A)(sp)**2 / c_Aps)
+                ),
+        ]
+        
+SpectralDensityUnit(['sd_A','sd_Angstrom','sd_angstrom','sd_flam','sd_flambda'],flambda,var=True)
+SpectralDensityUnit(['sd_nm','sd_nanometer'],0.1*flambda,var=True)
+SpectralDensityUnit(['sd_um','sd_micron'],0.0001*flambda,var=True)
+SpectralDensityUnit(['sd_Hz','sd_Hertz','sd_hertz','sd_fnu'],fnu,var=True)
+SpectralDensityUnit(['sd_Jy','sd_Jansky','sd_jansky'],Jy,var=True)
+SpectralDensityUnit(['sd_mJy','sd_mJansky','sd_milli_jansky'],0.001*Jy,var=True)
+SpectralDensityUnit(['sd_uJy','sd_uJansky','sd_micro_jansky'],0.001*mJy,var=True)
+
