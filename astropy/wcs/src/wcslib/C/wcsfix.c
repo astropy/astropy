@@ -223,6 +223,28 @@ next: ;
 
 /*--------------------------------------------------------------------------*/
 
+static int parse_date(const char *buf, int *hour, int *minute, double *sec)
+
+{
+  char ctmp[72];
+
+  if (sscanf(buf, "%2d:%2d:%s", hour, minute, ctmp) < 3 ||
+      wcsutil_str2double(ctmp, "%lf", sec)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+static void write_date(char *buf, int hour, int minute, double sec)
+
+{
+  char ctmp[72];
+
+  wcsutil_double2str(ctmp, "%04.1f", sec);
+  sprintf(buf, "T%.2d:%.2d:%s", hour, minute, ctmp);
+}
+
 int datfix(struct wcsprm *wcs)
 
 {
@@ -295,7 +317,7 @@ int datfix(struct wcsprm *wcs)
       }
 
       if (dateobs[10] == 'T') {
-        if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) < 3) {
+        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
           return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
@@ -303,10 +325,10 @@ int datfix(struct wcsprm *wcs)
         hour = 0;
         minute = 0;
         sec = 0.0;
-        if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
+        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
           dateobs[10] = 'T';
         } else {
-          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
+          write_date(dateobs+10, hour, minute, sec);
         }
       }
 
@@ -318,7 +340,7 @@ int datfix(struct wcsprm *wcs)
       }
 
       if (dateobs[10] == 'T') {
-        if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) < 3) {
+        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
           return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
             "Invalid parameter value: invalid time '%s'", dateobs+11);
         }
@@ -326,10 +348,10 @@ int datfix(struct wcsprm *wcs)
         hour = 0;
         minute = 0;
         sec = 0.0;
-        if (sscanf(dateobs+11, "%2d:%2d:%lf", &hour, &minute, &sec) == 3) {
+        if (parse_date(dateobs+11, &hour, &minute, &sec)) {
           dateobs[10] = 'T';
         } else {
-          sprintf(dateobs+10, "T%.2d:%.2d:%04.1f", hour, minute, sec);
+          write_date(dateobs+10, hour, minute, sec);
         }
       }
 

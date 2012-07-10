@@ -212,6 +212,37 @@
 * Function return value:
 *             char *    The address of hext.
 *
+* wcsutil_double2str() - Translate double to string ignoring the locale
+* ---------------------------------------------------------------------
+* wcsutil_double2str() converts a double to a string, but unlike sprintf
+* it ignores the locale and will always use a '.' as a decimal separator.
+*
+* Returned:
+*   buf       char *    The buffer to write the string into.
+*
+* Given:
+*   format    char *    The formatting directive, such as "%f".  This
+*                       may be any of the forms accepted by sprintf, but
+*                       should only include a formatting directive and
+*                       nothing else.
+*
+*   value     double    The value to convert to a string.
+*
+* wcsutil_str2double() - Translate string to a double, ignoring the locale
+* ------------------------------------------------------------------------
+* wcsutil_str2double converts a string to a double, but unlike sscanf, it
+* ignores the locale and always expects a '.' as a decimal separator.
+*
+* Given:
+*   buf       char *    The string containing the value
+*
+*   format    char *    The formatting directive, such as "%lf".  This
+*                       may be any of the forms accepted by sscanf, but
+*                       should only include a single formatting directive.
+*
+* Returned:
+*   value     double *  The double value parsed from the string.
+*
 *===========================================================================*/
 
 #ifndef WCSLIB_WCSUTIL
@@ -225,5 +256,7 @@ void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
 char *wcsutil_fptr2str(int (*func)(void), char hext[]);
+int wcsutil_str2double(const char *buf, const char *format, double *value);
+void wcsutil_double2str(char *buf, const char *format, double value);
 
 #endif /* WCSLIB_WCSUTIL */

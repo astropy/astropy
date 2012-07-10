@@ -118,6 +118,7 @@ STRING	'([^']|'')*'
 #include "wcs.h"
 #include "wcshdr.h"
 #include "wcsmath.h"
+#include "wcsutil.h"
 
 			/* Codes used for keyvalue data types. */
 #define INTEGER 0
@@ -1885,7 +1886,7 @@ int wcsbth_final(struct wcsbth_alts *alts, int *nwcs, struct wcsprm **wcs);
 	      if (special) {
 	        special(wptr);
 	      } else {
-	        sscanf(yytext, "%lf", (double *)wptr);
+                  wcsutil_str2double(yytext, "%lf", (double *)wptr);
 	      }
 	
 	      /* Flag the presence of PC, or CD and/or CROTA. */
@@ -2509,7 +2510,7 @@ int wcsbth_epoch(void *wptr)
   /* If EQUINOXa is currently undefined then set it from EPOCHa. */
   equinox = (double *)wptr;
   if (undefined(*equinox)) {
-    sscanf(yytext, "%lf", equinox);
+    wcsutil_str2double(yytext, "%lf", equinox);
   }
 
   return 0;
@@ -2528,7 +2529,7 @@ int wcsbth_vsource(void *wptr)
   /* If ZSOURCEa is currently undefined then set it from VSOURCEa. */
   zsource = (double *)wptr;
   if (undefined(*zsource)) {
-    sscanf(yytext, "%lf", &vsource);
+    wcsutil_str2double(yytext, "%lf", &vsource);
 
     /* Convert relativistic Doppler velocity to redshift. */
     beta = vsource/c;
