@@ -95,6 +95,9 @@ def arcsec_per_kpc_proper(z, cosmo=None):
 def distmod(z, cosmo=None):
     """ Distance modulus at redshift `z`.
 
+    The distance modulus is defined as the (apparent magnitude -
+    absolute magnitude for an object at redshift `z`).
+
     Parameters
     ----------
     z : array_like
@@ -110,7 +113,7 @@ def distmod(z, cosmo=None):
     return cosmo.distmod(z)
 
 
-def H(z=0, cosmo=None):
+def H(z, cosmo=None):
     """ Hubble parameter (km/s/Mpc) at redshift `z`.
 
     Parameters
@@ -128,8 +131,10 @@ def H(z=0, cosmo=None):
     return cosmo.H(z)
 
 
-def scale_factor(z=0, cosmo=None):
+def scale_factor(z, cosmo=None):
     """ Scale factor at redshift `z`.
+
+    The scale factor is defined as `a = 1 / (1 + z)`.
 
     Parameters
     ----------
@@ -146,7 +151,7 @@ def scale_factor(z=0, cosmo=None):
     return cosmo.scale_factor(z)
 
 
-def critical_density(z=0, cosmo=None):
+def critical_density(z, cosmo=None):
     """ Critical density in grams per cubic cm at redshift `z`.
 
     Parameters
@@ -164,8 +169,11 @@ def critical_density(z=0, cosmo=None):
     return cosmo.critical_density(z)
 
 
-def lookback_time(z=0, cosmo=None):
+def lookback_time(z, cosmo=None):
     """ Lookback time in Gyr to redshift `z`.
+
+    The lookback time is the difference between the age of the
+    Universe now and the age at redshift `z`.
 
     Parameters
     ----------
@@ -182,8 +190,11 @@ def lookback_time(z=0, cosmo=None):
     return cosmo.lookback_time(z)
 
 
-def comoving_distance(z=0, cosmo=None):
+def comoving_distance(z, cosmo=None):
     """ Comoving distance in Mpc at redshift `z`.
+
+    The comoving distance along the line-of-sight between two objects
+    remains constant with time for objects in the Hubble flow.
 
     Parameters
     ----------
@@ -200,8 +211,12 @@ def comoving_distance(z=0, cosmo=None):
     return cosmo.comoving_distance(z)
 
 
-def angular_diameter_distance(z=0, cosmo=None):
+def angular_diameter_distance(z, cosmo=None):
     """ Angular diameter distance in Mpc at a given redshift.
+
+    This gives the proper (sometimes called 'physical') transverse
+    distance corresponding to an angle of 1 radian for an object at
+    redshift `z`.
 
     Parameters
     ----------
@@ -218,8 +233,11 @@ def angular_diameter_distance(z=0, cosmo=None):
     return cosmo.angular_diameter_distance(z)
 
 
-def luminosity_distance(z=0, cosmo=None):
-    """ Angular diameter distance in Mpc at a given redshift.
+def luminosity_distance(z, cosmo=None):
+    """ Luminosity distance in Mpc at redshift `z`.
+
+    This is the distance to use when converting between the bolometric
+    flux from an object at redshift `z` and its bolometric luminosity.
 
     Parameters
     ----------
