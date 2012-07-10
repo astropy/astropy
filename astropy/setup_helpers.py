@@ -581,7 +581,7 @@ def adjust_compiler():
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
-                print("Compiler specified by CC environment variable ({0:s}: {1:s}) will fail to compile Astropy. Please set CC={2:s} and try again".format(c_compiler, version, fixed))
+                print("Compiler specified by CC environment variable ({0:s}: {1:s}) will fail to compile Astropy. Please set CC={2:s} and try again. You can do this for example by doing:\n\n    CC={2:s} python setup.py <command>\n\nwhere <command> is the command you ran.".format(c_compiler, version, fixed))
                 sys.exit(1)
 
     if get_distutils_option(
