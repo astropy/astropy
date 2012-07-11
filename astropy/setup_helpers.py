@@ -554,7 +554,6 @@ def adjust_compiler():
     """
 
     from distutils import ccompiler, sysconfig
-    import subprocess
     import re
 
     compiler_mapping = [
@@ -573,11 +572,7 @@ def adjust_compiler():
         # Check that CC is not set to llvm-gcc-4.2
         c_compiler = os.environ['CC']
 
-        process = subprocess.Popen(
-            shlex.split(c_compiler) + ['--version'], stdout=subprocess.PIPE)
-
-        output = process.communicate()[0].strip()
-        version = output.split()[0]
+        version = get_compiler_version(c_compiler)
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
@@ -598,14 +593,24 @@ def adjust_compiler():
         # compiler as returned by ccompiler.new_compiler()
         c_compiler = sysconfig.get_config_var('CC')
 
-        process = subprocess.Popen(
-            shlex.split(c_compiler) + ['--version'], stdout=subprocess.PIPE)
-        output = process.communicate()[0].strip()
-        version = output.split()[0]
+        version = get_compiler_version(c_compiler)
+
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
                 os.environ['CC'] = fixed
                 break
+
+def get_compiler_version(compiler):
+
+    import subprocess
+
+    process = subprocess.Popen(
+    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
+
+    output = process.communicate()[0].strip()
+    version = output.split()[0]
+
+    return version
 
 
 def is_in_build_mode():
