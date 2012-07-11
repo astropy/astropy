@@ -8,13 +8,6 @@ import re, keyword
 import numpy as np
 import fractions
 import functools
-
-def lprint(text):
-    print(text)
-    return 1
-def vprint(t,x):
-    print(t,x)
-    return x
     
 Fraction = fractions.Fraction
 
@@ -127,7 +120,7 @@ class UnitBase(object):
         
         Raise
         -----
-        UnitException
+        UnitsException
             If units are inconsistent
         """
 
@@ -825,14 +818,49 @@ def takes_arg_in_units(*args, **orig_kwargs):
 
     return decorator_fn
 
-for irr_unit_name in [['m','meter'],['s','second'],['kg','kilogram'],['K','Kelvin'],'a','h']:
+for irr_unit_name in [['m','meter'],['s','second'],['kg','kilogram'],['K','Kelvin'],'a','h','coulomb']:
     if isinstance(irr_unit_name, str):
-        globals()[irr_unit_name] = IrreducibleUnit(irr_unit_name)
+        irrunit = IrreducibleUnit(irr_unit_name)
+        globals()[irr_unit_name] = irrunit
+        _registry[irrname] = irrunit
     else:
         irrunit = IrreducibleUnit(irr_unit_name[0])
         for irrname in irr_unit_name:
             globals()[irrname] = irrunit
-            
+            _registry[irrname] = irrunit
+
+def list_like(u):
+    """List all the units that are the same type as the specified unit.
+    
+    Any aliases are noted as such.
+    Equivalance units are excluded currently"""
+    likedict = {}
+    irraliases = []
+    for ukey in _registry:
+        try:
+            tunit = _registry[ukey]
+            tunit.converter_to(u)
+            if tunit._st_rep == ukey and not isinstance(tunit, EquivalenceUnit):
+                likedict[ukey] = tunit
+            if isinstance(tunit, IrreducibleUnit) and tunit._st_rep != ukey:
+                irraliases.append(ukey)
+        except UnitsException:
+            pass
+    if len(likedict) == 0:
+        print("No similar units found")
+    else:
+        print("Primary name | Unit definition | Aliases" )
+        for ukey in likedict:
+            uv = likedict[ukey]
+            if isinstance(uv, IrreducibleUnit):
+                udef = "irreducible"
+                ualiases =irraliases
+            else:
+                udef = uv._represents
+                ualiases = uv._aliases
+            print("%-15s %-15s %s" % (uv._st_rep,udef,ualiases)) 
+                
+               
 
 # Times,var=True)
 Unit('minutes', 60 * s,var=True)
@@ -841,8 +869,11 @@ Unit(['us','microsecond'], 0.001 * ms,var=True)
 Unit(['ps','picosecond'], 0.001 * us,var=True)
 Unit(['fs','femptosecond'], 0.001 * ps,var=True)
 
-hr = Unit('hr', 3600 * s,var=True)
-
+Unit(['hr','hour'], 3600 * s,var=True)
+Unit(['day'],24*hr,var=True)
+Unit(['sday','sideral_day'],86164.09053*s,var=True)
+Unit(['wk','week'], 7*day,var=True)
+Unit(['fortnight'], 2*wk,var=True)
 Unit(['yr','year'], 3.1556926e7 * s,var=True)
 Unit(['Kyr','Kyear','kiloyear'], 1000 * yr,var=True)
 Unit(['Myr','Myear','megayear'], 1000 * Kyr,var=True)
@@ -869,6 +900,10 @@ Unit(['um','micron'], 0.001 * mm,var=True)
 Unit(['nm','nanometer'], 0.001 * um,var=True)
 Unit(['A','Angstrom','angstrom'], 0.1 * nm,var=True)
 Unit(['pm','picometer'], 0.001 * nm,var=True)
+Unit(['inch'], 2.54 * cm,var=True)
+Unit(['ft','foot'], 12*inch,var=True)
+Unit(['yd','yard'], 3*ft,var=True)
+Unit(['mi','mile'], 5280*ft,var=True)
 
 # Masses
 Unit('Msol', 1.98892e30 * kg,var=True)
@@ -878,16 +913,43 @@ Unit('m_p', 1.67262158e-27 * kg,var=True)
 _registry['m_p']._latex = 'm_p'
 Unit('m_e', 9.10938188e-31 * kg,var=True)
 _registry['m_e']._latex = 'm_e'
+Unit(['oz','ounce'],28.349523125*g,var=True) # well, force actually, but who uses it that way?
+Unit(['lb','pound'],16*oz,var=True)
+Unit(['ton'],2000*lb,var=True)
+
+# Charge
+Unit(['e'],coulomb/6.24150965e18,var=True)
+# Current
+Unit(['amp','ampere'],coulomb/s,var=True)
+Unit(['ma','milliamp','milliampere'],0.001*amp,var=True)
 # Forces
 Unit(['N','Newton','newton'], kg * m * s**-2,var=True)
+# Areas
+Unit(['barn'],10**-28*m**2,var=True)
+Unit(['acre'],43560*ft**2,var=True)
 
+# Volumes
+Unit(['l','liter'],1000*cm**3,var=True)
+Unit(['ml','milliliter','cc'],cm**3,var=True)
+Unit(['gallon'],liter/0.264172052,var=True)
+Unit(['quart'],gallon/4,var=True)
+Unit(['pint'],quart/2,var=True)
+Unit(['cup'],pint/2,var=True)
+Unit(['foz','fluid_oz','fluid_ounce'],cup/8,var=True)
+Unit(['tbsp','tablespoon'],foz/2,var=True)
+Unit(['tsp','teaspoon'],tbsp/3,var=True)
 # Energies
 Unit(['J','Joule','joule'], N * m,var=True)
 Unit('erg', 1.0e-7 * J,var=True)
 Unit(['eV','electron_volt'], 1.60217646e-19 * J,var=True)
 Unit(['KeV','Kelectron_volt','kilo_electron_volt'], 1000 * eV,var=True)
 Unit(['MeV','Melectron_volt','mega_electron_volt'], 1000 * KeV,var=True)
-
+Unit(['BTU','btu'],1.05505585e10*erg,var=True)
+Unit(['cal','calorie'],41840000*erg,var=True)
+Unit(['kcal','Cal','Calorie','kilocal','kilocalorie'],1000*cal,var=True)
+# Power
+Unit(['W','Watt','watt'],J/s,var=True)
+Unit(['hp','horsepower'],W/0.00134102209,var=True)
 # Pressures
 Unit('Pa', J * m**-3,var=True)
 Unit('dyn', erg * cm**-3,var=True)
