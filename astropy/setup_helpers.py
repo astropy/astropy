@@ -935,8 +935,9 @@ def add_external_library(library):
 
 def use_system_library(library):
     """
-    Returns `True` if the build configuration indicates that the given library
-    should use the system copy of the library rather than the internal one.
+    Returns `True` if the build configuration indicates that the given
+    library should use the system copy of the library rather than the
+    internal one.
 
     For the given library `foo`, this will be `True` if
     `--use-system-foo` or `--use-system-libraries` was provided at the
