@@ -4,7 +4,9 @@ Introduction to ``astropy.units``
 `astropy.units` is a Python package to handle defining and converting
  between units
 
-
+It was adopted from the pynbody units module (with a number of
+changes; so do not expect it to behave in the same way or use
+the same names for everything)
 
 Using `astropy.units`
 ---------------------
@@ -13,83 +15,177 @@ Standard units are defined in the module as object instances.
 Of course, any redefinition of any the unit instances will break 
 unit behavior.
 
-All units are defined in term of basic unit classes. The following 
-classes are currently implemented:
+All units are defined in term of basic 'irreducible' units. The following 
+irreducible units are currently implemented:
 
-Length
-Time
-Mass (well, not yet)
-Charge (well, not yet)
+Length (meter)
+Time (second)
+Mass (kilogram)
 
-Units that involve combinations of fundamental units are CompoundUnits.
+Units that involve combinations of fundamental units are instances of 
+CompositeUnits. In most cases, one does not need to worry about the 
+various kinds of unit classes unless one wants to design a more complex
+case (such as spectral units).
 
-Examples of use
----------------
+There are many units already predefined in the module. One may use the 
+following function to list all the existing predefined units of a given 
+type:
+
+  >>> u.list_like(u.g)
+  u.list_like(u.g)
+  Primary name | Unit definition | Aliases
+  Msol            1.99e+30 kg     []
+  m_p             1.67e-27 kg     []
+  kg              irreducible     ['kilogram']
+  g               1.00e-03 kg     ['gram']
+  m_e             9.11e-31 kg     []
+  
+Examples of defining new units
+------------------------------
 
   >>> from astropy import units as u
   >>> speed_unit = u.cm / u.s
+  >>> speed_unit = u.unit("cm s^-1")
+  >>> fluxunit = u.unit("erg cm^-2 s^-1")
+  >>> fluxunit = u.Unit("bozos", erg/cm**2/s)
+  
+Note the last example give a name 'bozos' to the unit that can be referred
+to by other machinery (currently doesn't work outside the module package).
+
+Unit Conversion
+---------------
+
+There are three ways of handling conversions between units
+
+Direct Conversion
+.................
+
+In this case, one give a unit both the new unit to convert to, 
+and the value or values to be converted; the value(s) in the new
+units is(are) returned.
+
+  >>> u.pc.convert_to(u.m, 3.26)
+  1.0059317615e+17
+  
+This converts 3.26 parsecs to meters. The first argument is the new unit
+desired, the second is the value to be converted.
+
+Arrays are permitted as arguments.
+
+  >>> u.hr.convert_to(u.s, [1,2,5,10.1])
+  array([  3600.,   7200.,  18000.,  36360.])
+
+Obtaining The Conversion Scale Factor
+.....................................
+
+One can obtain the needed scale factor for converting between two units
+instead.
+
+ >>> u.hr.scale_to(u.s)
+ 3600
+ 
+Obtaining a Conversion Function
+...............................
+
+Finally, one may obtain a function that can be used to convert to the 
+new unit. Normally this may seem like overkill when all one needs to 
+do is multiply by a scale factor, but there are cases where it is not
+quite as simple as multiplying by a scale factor. (e.g., see 
+the section on spectral units.)
 
 Conversion to different units involves obtaining a conversion function
 and then applying it to the value, or values to be converted.
 
-  >>> speed_unit.convert(u.miles/u.hour)(100.)
+  >>> speed_unit = u.cm/u.s
+  >>> speed_converter = speed_unit.converter_to(u.mile/u.hour)
+  >>> speed_converter(100.)
   2.2366936292054402
+  >>> speed_converter([1000,2000])
+  array([ 22.36936292,  44.73872584])
+
+Incompatible Conversions
+........................
 
 If you attempt to convert to a incompatible unit, an exception will result:
 
-  >>> speed_unit.convert(u.miles)(100.)
+  >>> speed_unit.scale_to(u.miles)
   ...
-  ValueError: new unit is inconsistent
+  UnitsException: Not convertible
+  
 
 Users are free to define new units, either fundamental or compound
 
 e.g.:
 
-  >>> fortnight = 14 * u.days + "fortnight"
+  >>> bakers_fortnight = u.Unit('bakers_fortnight',13 * u.day) 
 
 The addition of a string gives the new unit a name that will show up when
 the unit is printed.
 
-Using repr:
-
-  >>> fortnight
-  Time(scale=1.209600e+06, name='fortnight')
-
-In this case, one sees it is created using the Time object using a scale
-factor of 1209600. Implicit is that Time objects use intrinsic units of 
-seconds.
-
-Using print:
-
-  >>> print fortnight
-  Units: fortnight
 
 Creating a new fundamental unit is simple
+ 
+  >>> titter = u.IrreducibleUnit('titter')
+  >>> chuckle = u.Unit('chuckle',5 * titter)
+  >>> laugh = u.Unit('laugh',4 * chuckle)
+  >>> guffaw = u.Unit('guffaw',3 * laugh)
+  >>> rofl = u.Unit('rofl',4 * guffaw)
+  >>> death_by_laughing = u.Unit('death_by_laughing',10 * rofl)
+  >>> rofl.scale_to(titter)
+  240
 
-  class Humor(unit.Unit):
-  	  """
-  	  Standard class for all humor units
-  	  
-  	  Intrinsic humor unit is a titter
-  	  """
-  	  def __init__(self, name=", scale=1.0):
-  	  	  self.name = name
-  	  	  self.scale = scale
-  	  	  self.intrinsic = "titter"
+Equivalence Units
+-----------------
+
+The unit module has machinery for supporting equivalences between 
+different units in certain contexts. Namely when equations can 
+uniquely relate a value in one unit to a different unit. A good
+example is the equivalence between wavelength, frequency and energy
+for specifying a wavelength of radiation. Normally these units are
+not convertable, but when understood as representing light, they
+are convertable. This won't describe the means of adding new kinds
+of such units, but will describe using two cases already implemented.
+
+Spectral Units
+..............
+
+There is a special unit class called SpectralUnit that handles unit
+equivalences between wavelength, frequency, and energy. The unit module
+defines special spectral units in these terms, all of which have 'sp_'
+prepended, e.g., sp_nm for spectral nanometers. These units can be 
+converted to other forms. Examples are the easiest way to show how it
+works.
+
+  >>> u.sp_nm.convert_to(u.sp_Hz, [1000, 2000])
+  array([  2.99792458e+14,   1.49896229e+14])
+  >>> u.sp_nm.convert_to(u.sp_eV, [1000,2000])
+  array([ 1.23984201,  0.61992101])
   
-titter = Humor(name="titter")
-chuckle = 5 * titter + "chuckle"
-laugh = 4 * chuckle + "laugh"
-guffaw = 3 * laugh + "guffaw"
-rofl = 4 * guffaw + "rofl"
-death_by_laughing = 10 * rofl "death_by_laughing"
 
-  >>> silly_unit = chuckle
-  >>> silly_unit.convert(titter)(3)
-  15
+Note that one can convert to an ordinary unit
 
+  >>> u.sp_nm.converter_to(u.Hz)(1000)
+  299792457999999.94
+  
+Unlike ordinary units, one cannot form composite units with these
+(other than applying simple scaling factors). For example:
 
-Special unit cases
-------------------
+  >>> u.sp_nm * u.m
+  TypeError: can only multiply by scalars
+  
 
-Blah, blah blah
+Spectral Flux Density Units
+...........................
+
+There is also support for Spectral Flux Density Units. Their use is
+more complex, since it is necessary to also supply the location in the 
+spectrum for which the conversions will be done, and the units of those
+spectral locations. The class that handles this unit is SpectralDensityUnit
+and all the predefined units of this type are prefixed with 'sd_'
+
+  >>> u.sd_flam.convert_to(u.fnu,1,u.sp_A,3500)
+  4.086160166177361e-12
+  >>> u.sd_flam.converter_to(u.Jy)(0.0001,u.sp_eV,2.2)
+  105941625.20578358
+  
+
