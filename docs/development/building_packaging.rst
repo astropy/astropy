@@ -62,6 +62,17 @@ process:
     Once an option has been added, its value can be looked up using
     `astropy.setup_helpers.get_distutils_build_option`.
 
+* :func:`get_external_libraries`
+    This function declares that the package uses libraries that are
+    included in the astropy distribution that may also be distributed
+    elsewhere on the users system.  It should return a list of library
+    names.  For each library, a new build option is created,
+    `--use-system-X` which allows the user to request to use the
+    system's copy of the library.  The package would typically call
+    `astropy.setup_helpers.use_system_library` from its
+    `get_extensions` function to determine if the package should use
+    the system library or the included one.
+
 The `astropy.setup_helpers` modules includes a :func:`update_package_files`
 function which automatically searches the given source path for
 ``setup_package.py`` modules and calls each of the above functions, if they

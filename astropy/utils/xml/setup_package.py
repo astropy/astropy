@@ -5,12 +5,8 @@ import sys
 from astropy import setup_helpers
 
 
-def get_build_options():
-    return [
-        ('use-system-expat',
-         "Use the system expat library",
-         True)
-         ]
+def get_external_libraries():
+    return ['expat']
 
 
 def get_extensions(build_type='release'):
@@ -23,7 +19,7 @@ def get_extensions(build_type='release'):
     libraries = []
     library_dirs = []
 
-    if setup_helpers.get_distutils_build_option('use_system_expat'):
+    if setup_helpers.use_system_library('expat'):
         setup_helpers.pkg_config(
             ['expat'], ['expat'], include_dirs, library_dirs, libraries)
     else:

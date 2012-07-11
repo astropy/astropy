@@ -39,17 +39,12 @@ except ImportError:
 
 class AstropyBuild(DistutilsBuild):
     """
-    A custom 'build' command that adds the following options:
-
-        `--disable-legacy` : Disable installing legacy shims
+    A custom 'build' command that allows for adding extra build
+    options.
     """
-    user_options = DistutilsBuild.user_options + [
-        ('disable-legacy', None,
-         "Don't install legacy shims")]
-
-    boolean_options = DistutilsBuild.boolean_options + ['disable-legacy']
-
-    custom_options = ['disable-legacy']
+    user_options = DistutilsBuild.user_options[:]
+    boolean_options = DistutilsBuild.boolean_options[:]
+    custom_options = []
 
     def initialize_options(self):
         DistutilsBuild.initialize_options(self)
@@ -57,6 +52,39 @@ class AstropyBuild(DistutilsBuild):
         # were added.
         for option in self.custom_options:
             setattr(self, option.replace('-', '_'), None)
+
+    @classmethod
+    def add_build_option(cls, name, doc, is_bool=False):
+        """
+        Add a build option.
+
+        Parameters
+        ----------
+        name : str
+            The name of the build option
+
+        doc : str
+            A short description of the option, for the `--help` message.
+
+        is_bool : bool, optional
+            When `True`, the option is a boolean option and doesn't
+            require an associated value.
+        """
+        if name in cls.custom_options:
+            return
+
+        if is_bool:
+            cls.boolean_options.append(name)
+        else:
+            name = name + '='
+        cls.user_options.append((name, None, doc))
+        cls.custom_options.append(name)
+
+
+for option in [
+        ('disable-legacy', "Don't install legacy shims", True),
+        ('use-system-libraries', "Use system libraries whenever possible", True)]:
+    AstropyBuild.add_build_option(*option)
 
 
 try:
@@ -379,18 +407,11 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         if hasattr(setuppkg, 'get_build_options'):
             options = setuppkg.get_build_options()
             for option in options:
-                if len(option) == 2:
-                    option, doc = option
-                    option += '='
-                elif len(option) == 3:
-                    option, doc, is_bool = option
-                    if is_bool:
-                        AstropyBuild.boolean_options.append(option)
-                    else:
-                        option += '='
-                AstropyBuild.user_options.append(
-                    (option, None, doc))
-                AstropyBuild.custom_options.append(option)
+                AstropyBuild.add_build_option(*option)
+        if hasattr(setuppkg, 'get_external_libraries'):
+            libraries = setuppkg.get_external_libraries()
+            for library in libraries:
+                add_external_library(library)
 
     for setuppkg in iter_setup_packages(srcdir):
         # get_extensions must include any Cython extensions by their .pyx
@@ -894,3 +915,43 @@ def pkg_config(
     else:
         for token in output.split():
             locals()[flag_map.get(token[:2])].append(token[2:])
+
+
+def add_external_library(library):
+    """
+    Add a build option for selecting the internal or system copy of a library.
+
+    Parameters
+    ----------
+    library : str
+        The name of the library.  If the library is `foo`, the build
+        option will be called `--use-system-foo`.
+    """
+    AstropyBuild.add_build_option(
+        'use-system-{0}'.format(library),
+        'Use the system {0} library'.format(library),
+        is_bool=True)
+
+
+def use_system_library(library):
+    """
+    Returns `True` if the build configuration indicates that the given library
+    should use the system copy of the library rather than the internal one.
+
+    For the given library `foo`, this will be `True` if
+    `--use-system-foo` or `--use-system-libraries` was provided at the
+    commandline or in `setup.cfg`.
+
+    Parameters
+    ----------
+    library : str
+        The name of the library
+
+    Returns
+    -------
+    use_system : bool
+        `True` if the build should use the system copy of the library.
+    """
+    return (
+        get_distutils_build_option('use_system_{0}'.format(library)) or
+        get_distutils_build_option('use_system_libraries'))
