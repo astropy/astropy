@@ -46,9 +46,9 @@ process:
     this function should call `astropy.setup_helpers.add_legacy_alias`
     to generate a legacy module and then return what it returns.
 
-* :func:`get_extra_build_options`
-    This function allows for the addition of extra build options.
-    It should return a list of tuples, where each element has:
+* :func:`get_build_options`
+    This function allows a package to add extra build options.  It
+    should return a list of tuples, where each element has:
 
     - *name*: The name of the option as it would appear on the
       commandline or in the `setup.cfg` file.
