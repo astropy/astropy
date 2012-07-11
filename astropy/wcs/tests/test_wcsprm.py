@@ -1,9 +1,9 @@
 from __future__ import print_function
 
-import os
-import sys
+import locale
+import re
 
-from astropy.tests.helper import raises
+from astropy.tests.helper import raises, pytest
 from numpy.testing import assert_array_equal
 import numpy as np
 
@@ -667,6 +667,7 @@ def test_get_pc():
     else:
         raise AssertionError()
 
+
 @raises(_wcs.SingularMatrixError)
 def test_detailed_err():
     w = _wcs._Wcsprm()
@@ -679,3 +680,21 @@ def test_header_parse():
     hdulist = fits.open(get_data_fileobj('data/header_newlines.fits'))
     w = wcs.WCS(hdulist[0].header)
     assert w.wcs.ctype[0] == b'RA---TAN-SIP'
+
+
+def test_locale():
+    orig_locale = locale.getlocale(locale.LC_NUMERIC)[0]
+
+    try:
+        locale.setlocale(locale.LC_NUMERIC, 'fr_FR')
+    except:
+        pytest.xfail(
+            "Can't set to 'fr_FR' locale, perhaps because it is not installed "
+            "on this system")
+
+    try:
+        header = get_data_contents('data/locale.hdr')
+        w = _wcs._Wcsprm(header)
+        assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
+    finally:
+        locale.setlocale(locale.LC_NUMERIC, orig_locale)
