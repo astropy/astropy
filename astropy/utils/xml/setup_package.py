@@ -13,7 +13,7 @@ def get_extensions(build_type='release'):
     XML_DIR = 'astropy/utils/xml/src'
 
     source_files = [join(XML_DIR, "iterparse.c")]
-    include_dirs = [XML_DIR]
+    include_dirs = []
     extra_link_args = []
     defines = []
     libraries = []
@@ -25,11 +25,9 @@ def get_extensions(build_type='release'):
     else:
         EXPAT_DIR = 'cextern/expat/lib'
         source_files.extend([
-            join(EXPAT_DIR, "xmlparse.c"),
-            join(EXPAT_DIR, "xmlrole.c"),
-            join(EXPAT_DIR, "xmltok.c"),
-            join(EXPAT_DIR, "xmltok_impl.c")])
-        include_dirs.append(EXPAT_DIR)
+            join(EXPAT_DIR, fn) for fn in
+            ["xmlparse.c", "xmlrole.c", "xmltok.c", "xmltok_impl.c"]])
+        include_dirs.extend([XML_DIR, EXPAT_DIR])
         if sys.platform.startswith('linux'):
             # This is to ensure we only export the Python entry point
             # symbols and the linker won't try to use the system expat in
