@@ -82,8 +82,10 @@ class AstropyBuild(DistutilsBuild):
 
 
 for option in [
-        ('disable-legacy', "Don't install legacy shims", True),
-        ('use-system-libraries', "Use system libraries whenever possible", True)]:
+        ('disable-legacy',
+         "Don't install legacy shims", True),
+        ('use-system-libraries',
+         "Use system libraries whenever possible", True)]:
     AstropyBuild.add_build_option(*option)
 
 
