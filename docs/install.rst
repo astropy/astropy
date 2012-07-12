@@ -13,6 +13,7 @@ Astropy has the following strict requirements:
 
 Astropy also depends on other projects for optional features.
 
+- `scipy <http://www.scipy.org/>`_: To power a variety of features.
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
 .. TODO: Link to the planned dependency checker/installer tool.
@@ -32,6 +33,20 @@ Binary installers
 
 No binary installers are available at this time.
 
+
+Testing Astropy
+---------------
+
+The easiest way to test your installed version of astropy is running
+correctly is to use the :func:`astropy.test` function::
+
+    import astropy
+    astropy.test()
+
+The tests should run and print out any failures, which you can report at
+the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+
+
 Building from source
 ====================
 
@@ -46,8 +61,8 @@ The `instructions for building Numpy from source
 <http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
-Obtaining the source
---------------------
+Obtaining the source packages
+-----------------------------
 
 Source packages
 ^^^^^^^^^^^^^^^
@@ -70,7 +85,7 @@ using this command::
    necessary to install Astropy.
 
 Building and Installing
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 Astropy uses the Python `distutils framework
 <http://docs.python.org/install/index.html>`_ for building and
@@ -87,7 +102,7 @@ To install Astropy (from the root of the source tree)::
 .. _builddocs:
 
 Building documentation
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 .. note::
     Building the documentation is in general not necessary unless you
@@ -119,11 +134,11 @@ Alternatively, you can do::
 And the documentation will be generated in the same location, but using the
 *installed* version of Astropy.
 
-Testing Astropy
-^^^^^^^^^^^^^^^
+Testing your Astropy build
+--------------------------
 
-The easiest way to test that your Astropy built correctly is to run
-(from the root of the source tree)::
+The easiest way to test that your Astropy built correctly (without
+installing astropy) is to run this from the root of the source tree::
 
     python setup.py test
 
