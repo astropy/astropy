@@ -99,6 +99,27 @@ To install Astropy (from the root of the source tree)::
 
     python setup.py install
 
+External C libraries
+^^^^^^^^^^^^^^^^^^^^
+
+The Astropy source ships with the C source code of a number of
+libraries.  By default, these internal copies are used to build
+Astropy.  However, if you wish to use the system-wide installation of
+one of those libraries, you can pass one or more of the
+`--use-system-X` flags to the `setup.py build` command.
+
+For example, to build Astropy using the system `libexpat`, use::
+
+    python setup.py build --use-system-expat
+
+To build using all of the system libraries, use::
+
+    python setup.py build --use-system-libraries
+
+To see which system libraries Astropy knows how to build against, use::
+
+    python setup.py build --help
+
 .. _builddocs:
 
 Building documentation
