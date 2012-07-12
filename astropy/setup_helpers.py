@@ -81,6 +81,11 @@ class AstropyBuild(DistutilsBuild):
         cls.custom_options.append(name)
 
 
+# Need to set the name here so that the commandline options
+# are presented as being related to the "build" command.
+AstropyBuild.__name__ = 'build'
+
+
 for option in [
         ('disable-legacy',
          "Don't install legacy shims", True),
