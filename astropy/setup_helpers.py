@@ -379,8 +379,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     package_dirs collections by iterating through all packages in
     ``srcdir`` and locating a ``setup_package.py`` module.  This
     module can contain the following functions: ``get_extensions()``,
-    ``get_package_data()``, ``get_legacy_alias()``, and
-    ``get_build_options()``.
+    ``get_package_data()``, ``get_legacy_alias()``,
+    ``get_build_options()``, and ``get_external_libraries()``.
 
     Each of those functions take no arguments.  ``get_extensions``
     returns a list of `distutils.extension.Extension` objects.
@@ -388,7 +388,9 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     ``package_data`` argument to ``setup()``.  ``get_legacy_alias()``
     should call `add_legacy_alias` and return its result.
     ``get_build_options()`` returns a list of tuples describing the
-    extra build options to add.
+    extra build options to add.  ``get_external_libraries()`` returns
+    a list of libraries that can optionally be built using external
+    dependencies.
 
     The purpose of this function is to allow subpackages to update the
     arguments to the package's ``setup()`` function in its setup.py
