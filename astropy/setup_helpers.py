@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import imp
 import os
 import shutil
+import subprocess
 import sys
 import re
 import shlex
@@ -38,20 +39,59 @@ except ImportError:
 
 class AstropyBuild(DistutilsBuild):
     """
-    A custom 'build' command that adds the following options:
-
-        `--disable-legacy` : Disable installing legacy shims
+    A custom 'build' command that allows for adding extra build
+    options.
     """
-    user_options = DistutilsBuild.user_options + [
-        ('disable-legacy', None,
-         "Don't install legacy shims")]
-
-    boolean_options = DistutilsBuild.boolean_options + ['disable-legacy']
+    user_options = DistutilsBuild.user_options[:]
+    boolean_options = DistutilsBuild.boolean_options[:]
+    custom_options = []
 
     def initialize_options(self):
         DistutilsBuild.initialize_options(self)
-        # Set a default value for disable_legacy
-        self.disable_legacy = False
+        # Create member variables for all of the custom options that
+        # were added.
+        for option in self.custom_options:
+            setattr(self, option.replace('-', '_'), None)
+
+    @classmethod
+    def add_build_option(cls, name, doc, is_bool=False):
+        """
+        Add a build option.
+
+        Parameters
+        ----------
+        name : str
+            The name of the build option
+
+        doc : str
+            A short description of the option, for the `--help` message.
+
+        is_bool : bool, optional
+            When `True`, the option is a boolean option and doesn't
+            require an associated value.
+        """
+        if name in cls.custom_options:
+            return
+
+        if is_bool:
+            cls.boolean_options.append(name)
+        else:
+            name = name + '='
+        cls.user_options.append((name, None, doc))
+        cls.custom_options.append(name)
+
+
+# Need to set the name here so that the commandline options
+# are presented as being related to the "build" command.
+AstropyBuild.__name__ = 'build'
+
+
+for option in [
+        ('disable-legacy',
+         "Don't install legacy shims", True),
+        ('use-system-libraries',
+         "Use system libraries whenever possible", True)]:
+    AstropyBuild.add_build_option(*option)
 
 
 try:
@@ -185,6 +225,8 @@ try:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
 
+    AstropyBuildSphinx.__name__ = 'build_sphinx'
+
 except ImportError as e:
     if 'sphinx' in e.args[0]:  # Sphinx not present
         AstropyBuildSphinx = None
@@ -276,6 +318,23 @@ def get_distutils_option(option, commands):
         return None
 
 
+def get_distutils_build_option(option):
+    """ Returns the value of the given distutils build option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build option. If the option
+        is not set, returns None.
+    """
+    return get_distutils_option(option, ['build', 'build_ext', 'build_clib'])
+
+
 def get_compiler_option():
     """ Determines the compiler that will be used to build extension modules.
 
@@ -288,8 +347,7 @@ def get_compiler_option():
 
     """
 
-    compiler = get_distutils_option('compiler',
-                                    ['build', 'build_ext', 'build_clib'])
+    compiler = get_distutils_build_option('compiler')
     if compiler is None:
         import distutils.ccompiler
         return distutils.ccompiler.get_default_compiler()
@@ -308,8 +366,7 @@ def get_debug_option():
 
     """
 
-    debug = bool(get_distutils_option(
-        'debug', ['build', 'build_ext', 'build_clib']))
+    debug = bool(get_distutils_build_option('debug'))
 
     try:
         from astropy.version import debug as current_debug
@@ -328,14 +385,19 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     """ Extends existing extensions, package_data, packagenames and
     package_dirs collections by iterating through all packages in
     ``srcdir`` and locating a ``setup_package.py`` module.  This
-    module can contain any of three functions: ``get_extensions()``,
-    ``get_package_data()``, and ``get_legacy_alias()``.
+    module can contain the following functions: ``get_extensions()``,
+    ``get_package_data()``, ``get_legacy_alias()``,
+    ``get_build_options()``, and ``get_external_libraries()``.
 
     Each of those functions take no arguments.  ``get_extensions``
     returns a list of `distutils.extension.Extension` objects.
     ``get_package_data()`` returns a dict formatted as required by the
     ``package_data`` argument to ``setup()``.  ``get_legacy_alias()``
     should call `add_legacy_alias` and return its result.
+    ``get_build_options()`` returns a list of tuples describing the
+    extra build options to add.  ``get_external_libraries()`` returns
+    a list of libraries that can optionally be built using external
+    dependencies.
 
     The purpose of this function is to allow subpackages to update the
     arguments to the package's ``setup()`` function in its setup.py
@@ -348,14 +410,25 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
 
     from astropy.version import release
 
-    # For each of the setup_package.py modules, extract any information that is
-    # needed to install them.
+    # For each of the setup_package.py modules, extract any
+    # information that is needed to install them.  The build options
+    # are extracted first, so that their values will be available in
+    # subsequent calls to `get_extensions`, etc.
+    for setuppkg in iter_setup_packages(srcdir):
+        if hasattr(setuppkg, 'get_build_options'):
+            options = setuppkg.get_build_options()
+            for option in options:
+                AstropyBuild.add_build_option(*option)
+        if hasattr(setuppkg, 'get_external_libraries'):
+            libraries = setuppkg.get_external_libraries()
+            for library in libraries:
+                add_external_library(library)
+
     for setuppkg in iter_setup_packages(srcdir):
         # get_extensions must include any Cython extensions by their .pyx
         # filename.
         if hasattr(setuppkg, 'get_extensions'):
             extensions.extend(setuppkg.get_extensions())
-
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
         if hasattr(setuppkg, 'get_legacy_alias'):
@@ -579,8 +652,7 @@ def adjust_compiler():
                 print("Compiler specified by CC environment variable ({0:s}: {1:s}) will fail to compile Astropy. Please set CC={2:s} and try again. You can do this for example by doing:\n\n    CC={2:s} python setup.py <command>\n\nwhere <command> is the command you ran.".format(c_compiler, version, fixed))
                 sys.exit(1)
 
-    if get_distutils_option(
-        'compiler', ['build', 'build_ext', 'build_clib']) is not None:
+    if get_distutils_build_option('compiler'):
         return
 
     compiler_type = ccompiler.get_default_compiler()
@@ -763,7 +835,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     # If legacy shims have been disabled at the commandline, simply do
     # nothing.
-    if get_distutils_option('disable_legacy', ['build']):
+    if get_distutils_build_option('disable_legacy'):
         return (None, None)
 
     found_legacy_module = True
@@ -811,3 +883,87 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
         os.path.join(shim_dir, '__init__.py'), content)
 
     return (old_package, shim_dir)
+
+
+def pkg_config(
+        packages, default_libraries, include_dirs, library_dirs,
+        libraries):
+    """
+    Uses pkg-config to update a set of distutils Extension arguments
+    to include the flags necessary to link against the given packages.
+
+    If the pkg-config lookup fails, default_libraries is applied to
+    libraries.
+
+    Parameters
+    ----------
+    packages : list of str
+        A list of pkg-config packages to look up.
+
+    default_libraries : list of str
+        A list of library names to use if the pkg-config lookup fails.
+
+    include_dirs : list of str
+        A list of include directories that will be updated to include
+        the results from pkg-config.
+
+    library_dirs : list of str
+        A list of library directories that will be updated to include
+        the results from pkg-config.
+
+    libraries : list of str
+        A list of library names that will be updated to include the
+        results from pkg-config, or if pkg-config fails, updated from
+        *default_libraries*.
+    """
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    command = "pkg-config --libs --cflags {0}".format(' '.join(packages)),
+
+    try:
+        output = subprocess.check_output(command, shell=True)
+    except subprocess.CalledProcessError:
+        libraries.extend(default_libraries)
+    else:
+        for token in output.split():
+            locals()[flag_map.get(token[:2])].append(token[2:])
+
+
+def add_external_library(library):
+    """
+    Add a build option for selecting the internal or system copy of a library.
+
+    Parameters
+    ----------
+    library : str
+        The name of the library.  If the library is `foo`, the build
+        option will be called `--use-system-foo`.
+    """
+    AstropyBuild.add_build_option(
+        'use-system-{0}'.format(library),
+        'Use the system {0} library'.format(library),
+        is_bool=True)
+
+
+def use_system_library(library):
+    """
+    Returns `True` if the build configuration indicates that the given
+    library should use the system copy of the library rather than the
+    internal one.
+
+    For the given library `foo`, this will be `True` if
+    `--use-system-foo` or `--use-system-libraries` was provided at the
+    commandline or in `setup.cfg`.
+
+    Parameters
+    ----------
+    library : str
+        The name of the library
+
+    Returns
+    -------
+    use_system : bool
+        `True` if the build should use the system copy of the library.
+    """
+    return (
+        get_distutils_build_option('use_system_{0}'.format(library)) or
+        get_distutils_build_option('use_system_libraries'))
