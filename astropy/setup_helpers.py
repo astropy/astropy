@@ -225,6 +225,8 @@ try:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
 
+    AstropyBuildSphinx.__name__ = 'build_sphinx'
+
 except ImportError as e:
     if 'sphinx' in e.args[0]:  # Sphinx not present
         AstropyBuildSphinx = None
