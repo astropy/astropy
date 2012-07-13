@@ -120,6 +120,13 @@ To see which system libraries Astropy knows how to build against, use::
 
     python setup.py build --help
 
+As with all distutils commandline options, they may also be provided
+in a `setup.cfg` in the same directory as `setup.py`.  For example, to
+use the system `libexpat`, add the following to the `setup.cfg` file::
+
+    [build]
+    use_system_expat=1
+
 .. _builddocs:
 
 Building documentation
