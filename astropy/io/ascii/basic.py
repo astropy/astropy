@@ -106,8 +106,11 @@ class CommentedHeaderHeader(core.BaseHeader):
 
 
 class CommentedHeader(core.BaseReader):
-    """Read a file where the column names are given in a line that begins with the
-    header comment character.  The default delimiter is the <space> character.::
+    """Read a file where the column names are given in a line that begins with
+    the header comment character. `header_start` can be used to specify the
+    line index of column names, and it can be a negative index (for example -1
+    for the last commented line).  The default delimiter is the <space>
+    character.::
 
       # col1 col2 col3
       # Comment line
