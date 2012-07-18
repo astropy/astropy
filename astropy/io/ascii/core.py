@@ -329,10 +329,21 @@ def _replace_tab_with_space(line, escapechar, quotechar):
     return ''.join(newline)
 
 def _get_line_index(line_or_func, lines):
+    """Return the appropriate line index, depending on ``line_or_func`` which
+    can be either a function, a positive or negative int, or None.
+    """
+
     if hasattr(line_or_func, '__call__'):
         return line_or_func(lines)
+    elif line_or_func:
+        if line_or_func >= 0:
+            return line_or_func
+        else:
+            n_lines = sum(1 for line in lines)
+            return n_lines + line_or_func
     else:
         return line_or_func
+
 
 class BaseHeader(object):
     """Base table header reader

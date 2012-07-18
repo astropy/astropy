@@ -19,6 +19,7 @@ def get_package_data():
                                    't/cds/multi/lhs2065.dat',
                                    't/cds2.dat',
                                    't/commented_header.dat',
+                                   't/commented_header2.dat',
                                    't/continuation.dat',
                                    't/daophot.dat',
                                    't/fill_values.txt',
