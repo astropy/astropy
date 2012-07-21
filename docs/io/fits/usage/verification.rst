@@ -215,7 +215,7 @@ Unfixable Cards:
 
 We'll summarize the verification with a "life-cycle" example:
 
-    >>> h = astropy.io.fits.PrimaryHDU() # create a PrimaryHDU
+    >>> h = fits.PrimaryHDU() # create a PrimaryHDU
     # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow '.'
     # in the keyword), if using the update() method - doesn't work!
     >>> h['P.I.'] = 'Hubble'
@@ -223,7 +223,7 @@ We'll summarize the verification with a "life-cycle" example:
     # Have to do it the hard way (so a user will not do this by accident)
     # First, create a card image and give verbatim card content (including
     # the proper spacing, but no need to add the trailing blanks)
-    >>> c = astropy.io.fits.Card.fromstring("P.I. = 'Hubble'")
+    >>> c = fits.Card.fromstring("P.I. = 'Hubble'")
     # then append it to the header
     >>> h.header.append(c)
     # Now if we try to write to a FITS file, the default output verification
@@ -241,7 +241,7 @@ We'll summarize the verification with a "life-cycle" example:
     >>> h.writeto('pi.fits', output_verify='ignore')
     # Now reading a non-standard FITS file
     # astropy.io.fits is magnanimous in reading non-standard FITS files
-    >>> hdus = astropy.io.fits.open('pi.fits')
+    >>> hdus = fits.open('pi.fits')
     >>> hdus[0].header
     SIMPLE =            T / conforms to FITS standard
     BITPIX =            8 / array data type
@@ -296,16 +296,16 @@ header by supplying the checksum keyword argument with a value of 'datasum'.
 Here are some examples:
 
      >>> # Open the file pix.fits verifying the checksum values for all HDUs
-     >>> hdul = astropy.io.fits.open('pix.fits', checksum=True)
+     >>> hdul = fits.open('pix.fits', checksum=True)
      >>>
      >>> # Open the file in.fits where checksum verification fails for the
      >>> # primary HDU
-     >>> hdul = astropy.io.fits.open('in.fits', checksum=True)
+     >>> hdul = fits.open('in.fits', checksum=True)
      Warning:  Checksum verification failed for HDU #0.
      >>>
      >>> # Create file out.fits containing an HDU constructed from data and
      >>> # header containing both CHECKSUM and DATASUM cards.
-     >>> astropy.io.fits.writeto('out.fits', data, header, checksum=True)
+     >>> fits.writeto('out.fits', data, header, checksum=True)
      >>>
      >>> # Create file out.fits containing all the HDUs in the HDULIST
      >>> # hdul with each HDU header containing only the DATASUM card
@@ -318,4 +318,4 @@ Here are some examples:
      >>> # Append a new HDU constructed from array data to the end of
      >>> # the file existingfile.fits with only the appended HDU
      >>> # containing both CHECKSUM and DATASUM cards.
-     >>> astropy.io.fits.append('existingfile.fits', data, checksum=True)
+     >>> fits.append('existingfile.fits', data, checksum=True)
