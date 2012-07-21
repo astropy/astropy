@@ -22,7 +22,7 @@ an existing HDU's header and the data value from  a numpy array. If the
 defaults (``None``) are used, the new HDU will have the minimal required
 keywords for an HDU of that type:
 
-    >>> hdu = astropy.io.fits.PrimaryHDU()
+    >>> hdu = fits.PrimaryHDU()
     >>> hdu.header # show the all of the header cards
     SIMPLE = T / conforms to FITS standard
     BITPIX = 8 / array data type
@@ -46,7 +46,7 @@ Value Access, Updating, and Creating
 As shown in the Quick Tutorial, keyword values can be accessed via keyword name
 or index of an HDU's header attribute. Here is a quick summary:
 
-    >>> hdulist = astropy.io.fits.open('input.fits') # open a FITS file
+    >>> hdulist = fits.open('input.fits') # open a FITS file
     >>> prihdr = hdulist[0].header # the primary HDU header
     >>> print prihdr[3] # get the 4th keyword's value
     10
@@ -221,12 +221,12 @@ to the header.
 A new Card object is created with the :class:`Card` constructor:
 ``Card(key, value, comment)``. For example:
 
-    >>> c1 = astropy.io.fits.Card('TEMP', 80.0, 'temperature, floating value')
-    >>> c2 = astropy.io.fits.Card('DETECTOR', 1) # comment is optional
-    >>> c3 = astropy.io.fits.Card('MIR_REVR', True,
-    ...                           'mirror reversed? Boolean value)
-    >>> c4 = astropy.io.fits.Card('ABC', 2+3j, 'complex value')
-    >>> c5 = astropy.io.fits.Card('OBSERVER', 'Hubble', 'string value')
+    >>> c1 = fits.Card('TEMP', 80.0, 'temperature, floating value')
+    >>> c2 = fits.Card('DETECTOR', 1) # comment is optional
+    >>> c3 = fits.Card('MIR_REVR', True,
+    ...                'mirror reversed? Boolean value)
+    >>> c4 = fits.Card('ABC', 2+3j, 'complex value')
+    >>> c5 = fits.Card('OBSERVER', 'Hubble', 'string value')
 
     >>> print c1; print c2; print c3; print c4; print c5 # show the card images
     TEMP = 80.0 / temperature, floating value
@@ -248,8 +248,8 @@ Cards can be verified with :meth:`Card.verify`. The non-standard card ``c2`` in
 the example below is flagged by such verification. More about verification in
 Astropy will be discussed in a later chapter.
 
-    >>> c1 = astropy.io.fits.Card.fromstring('ABC = 3.456D023')
-    >>> c2 = astropy.io.fits.Card.fromstring("P.I. ='Hubble'")
+    >>> c1 = fits.Card.fromstring('ABC = 3.456D023')
+    >>> c2 = fits.Card.fromstring("P.I. ='Hubble'")
     >>> print c1; print c2
     ABC = 3.456D023
     P.I. ='Hubble'
@@ -279,7 +279,7 @@ keyword. Astropy does support this convention, even though it is not a FITS
 standard. The examples below show the use of CONTINUE is automatic for long
 string values.
 
-    >>> header = astropy.io.fits.Header()
+    >>> header = fits.Header()
     >>> header['abc'] = 'abcdefg' * 20
     >>> header
     ABC = 'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcd&'
@@ -325,15 +325,15 @@ case-sensitive.
 
 Examples follow:
 
-    >>> c = astropy.io.fits.Card('abcdefghi', 10)
+    >>> c = fits.Card('abcdefghi', 10)
     Keyword name 'abcdefghi' is greater than 8 characters; a HIERARCH card will
     be created.
     >>> print c
     HIERARCH abcdefghi = 10
-    >>> c = astropy.io.fits.Card('hierarch abcdefghi', 10)
+    >>> c = fits.Card('hierarch abcdefghi', 10)
     >>> print c
     HIERARCH abcdefghi = 10
-    >>> h = astropy.io.fits.PrimaryHDU()
+    >>> h = fits.PrimaryHDU()
     >>> h.header['hierarch abcdefghi'] =  99
     >>> h.header['abcdefghi']
     99

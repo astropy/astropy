@@ -31,7 +31,7 @@ the numpy array of its data will have the shape of (400, 300).
 
 Here is a summary of reading and updating image data values:
 
-    >>> f = astropy.io.fits.open('image.fits') # open a FITS file
+    >>> f = fits.open('image.fits') # open a FITS file
     >>> scidata = f[1].data # assume the first extension is an image
     >>> print scidata[1,4] # get the pixel value at x=5, y=2
     >>> scidata[30:40, 10:20] # get values of the subsection
@@ -88,7 +88,7 @@ For integer data type, the scaled data will always be single precision floating
 point (numpy.float32). Here is an example of what happens to such a file,
 before and after the data is touched
 
-    >>> f = astropy.io.fits.open('scaled_uint16.fits')
+    >>> f = fits.open('scaled_uint16.fits')
     >>> hdu = f[1]
     >>> print hdu.header['bitpix'], hdu.header['bzero']
     16 32768
@@ -112,7 +112,7 @@ before and after the data is touched
     when saving could result in a loss of information.
 
     To prevent this automatic scaling, open the file with the
-    ``do_not_scale_image_data=True`` argument to ``pyfits.open()``.  This is
+    ``do_not_scale_image_data=True`` argument to ``fits.open()``.  This is
     especially useful for updating some header values, while ensuring that the
     data is not modified.
 
@@ -147,7 +147,7 @@ files, i.e. calls of :meth:`~HDUList.writeto`, :meth:`~HDUList.flush`, or
 an example of what happens to the :attr:`~ImageHDU.data` attribute after the
 :meth:`~ImageHDU.scale` call:
 
-    >>> hdu = astropy.io.fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
+    >>> hdu = fits.PrimaryHDU(numpy.array([0., 1, 2, 3]))
     >>> print hdu.data
     [ 0. 1. 2. 3.]
     >>> hdu.scale('int16', bzero=32768)
@@ -181,9 +181,9 @@ such cases it may be necessary to use sections.
 Here is an example of getting the median image from 3 input images of the size
 5000x5000:
 
-    >>> f1 = astropy.io.fits.open('file1.fits')
-    >>> f2 = astropy.io.fits.open('file2.fits')
-    >>> f3 = astropy.io.fits.open('file3.fits')
+    >>> f1 = fits.open('file1.fits')
+    >>> f2 = fits.open('file2.fits')
+    >>> f3 = fits.open('file3.fits')
     >>> output = numpy.zeros(5000 * 5000)
     >>> for i in range(50):
     ... j = i * 100
