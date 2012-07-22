@@ -107,22 +107,39 @@ a cosmology.
   0.12687166682195736
 
 These functions will perform calculations using the "current"
-cosmology, a specific cosmology that is currently active in
-`astropy`. Other parts of Astropy that need to assume a cosmology will
-use this in their calculations if they aren't explicitly given a
-cosmology. If you haven't set a current cosmology using one of the
-methods below, the convenience functions will use WMAP7 and print
-a warning message letting you know this.
-
-The current cosmology can be set to one of the pre-defined cosmologies
-by using the "default_cosmology" option in the ``[cosmology.core]``
-section of the configuration file (see
-:ref:`astropy_config`). Alternatively, you can use the
-`~astropy.cosmology.core.set_current` function to specify a cosmology
-for use in the current Python session. Finally, a cosmology can be
-explicitly given when you call the function using the `cosmo` keyword
+cosmology. This is a specific cosmology that is currently active in
+`astropy` and it's described further in the following section. They
+can also be explicitly given a cosmology using the `cosmo` keyword
 argument. A full list of convenience functions is included below, in
 the `Reference/API`_ section.
+
+
+The "Current" Cosmology
+=======================
+
+Sometimes it's useful for Astropy functions to assume a default
+cosmology so that the desired cosmology doesn't have to be specified
+every time the function is called.  The convenience functions from the
+previous section are one such example. For these cases it's possible
+to specify a "current" cosmology.
+
+You can set the current cosmology to a pre-defined value by using the
+"default_cosmology" option in the ``[cosmology.core]`` section of the
+configuration file (see :ref:`astropy_config`). Alternatively, you can
+use the `~astropy.cosmology.core.set_current` function to set a
+cosmology for the current Python session.
+
+If you haven't set a current cosmology using one of the methods
+described above, then the cosmology module will use `WMAP7` and print
+a warning message letting you know this. For example, if you call a
+convenience function without setting the current cosmology or using
+the `cosmo=` keyword you see the following message:
+
+  >>> from astropy import cosmology
+  >>> cosmology.lookback_time(1)          # lookback time in Gyr at z=1
+  WARNING: No default cosmology has been specified, using 7-year WMAP. 
+  [astropy.cosmology.core]
+  7.788414051773566
 
 .. note::
 
@@ -162,8 +179,10 @@ unless explicitly overridden.
 See Also
 ========
 
-* Hogg, "Distance measures in cosmology", http://arxiv.org/abs/astroph/9905116
-* NASA's Legacy Archive for Microwave Background Data Analysis, http://lambda.gsfc.nasa.gov/
+* Hogg, "Distance measures in cosmology",
+  http://arxiv.org/abs/astroph/9905116
+* NASA's Legacy Archive for Microwave Background Data Analysis,
+  http://lambda.gsfc.nasa.gov/
 
 Range of validity and reliability
 =================================
@@ -174,7 +193,9 @@ calculations in refereed papers. You can check the range of redshifts
 over which the code is regularly tested in the module
 `astropy.cosmology.tests.test_cosmology`. Note that the energy density
 due to radiation is assumed to be negligible, which is valid for
-redshifts less than about 10.
+redshifts less than about 10. If you find any bugs, please let us know
+by `opening an issue at the github repository
+<https://github.com/astropy/astropy/issues>`_!
 
 Reference/API
 =============

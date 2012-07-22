@@ -96,7 +96,7 @@ def distmod(z, cosmo=None):
     """ Distance modulus at redshift `z`.
 
     The distance modulus is defined as the (apparent magnitude -
-    absolute magnitude for an object at redshift `z`).
+    absolute magnitude) for an object at redshift `z`.
 
     Parameters
     ----------
