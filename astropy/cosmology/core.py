@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 import warnings
-from math import sqrt, pi
+from math import sqrt, pi, exp
 
 import numpy as np
 
@@ -58,10 +58,15 @@ class FLRWCosmology(Cosmology):
       Hubble parameter at z=0 in km/s/Mpc
     Om : float
       Omega matter; matter density / critical density at z=0
-    Ol : float
-      Omega lambda; dark energy density / critical density at z=0
+    Ode : float
+      Omega dark energy; dark energy density / critical density at z=0
     Ok : float
-      Omega_k, the curvature density at z=0. Defined as 1 - Om - Ol
+      Omega_k, the curvature density at z=0. Defined as 1 - Om - Ode
+    w0 : float
+      Dark energy equation of state parameter at z=0
+    wa : float
+      First order term in scale factor (a) of dark energy equation of
+      state --> w(a) = w0 + wa (1-a)
     h : float
       Dimensionless Hubble parameter (H0 = 100*h km/s/Mpc).
       Often used to quote cosmological values independently of H0.
@@ -80,21 +85,24 @@ class FLRWCosmology(Cosmology):
     Examples
     --------
     >>> from astro.cosmology import FLRWCosmology
-    >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ol=0.7)
+    >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ode=0.7)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om, Ol, name='FLRWCosmology'):
+    def __init__(self, H0, Om, Ode, w0=-1.0, wa=0.0,
+                 name='FLRWCosmology'):
 
         # all densities are in units of the critical density
-        self.Om = float(Om)
-        self.Ol = float(Ol)
-        Ok = 1 - self.Om - self.Ol
+        object.__setattr__(self,'Om',float(Om))
+        object.__setattr__(self,'Ode',float(Ode))
+        Ok = 1 - self.Om - self.Ode
         if abs(Ok) < 1e-5:
             Ok = 0
         self.Ok = Ok
+        self.w0 = float(w0)
+        self.wa = float(wa)
         self.name = name
 
         # Hubble parameter at z=0, km/s/Mpc
@@ -112,30 +120,82 @@ class FLRWCosmology(Cosmology):
         self.critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
     def __repr__(self):
-        s = "%s(H0=%.3g, Om=%.3g, Ol=%.3g, Ok=%.3g)" % (
-            self.name, self.H0, self.Om, self.Ol, self.Ok)
-        return s
+        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, Ok=%.3g)" % \
+            (self.name, self.H0, self.Om, self.Ode, self.Ok)
+
+    def __getattr__(self,name) :
+        """Overloaded for Ol access"""
+        #Note we don't get here unless it couldn't find .<whatever>
+        # through normal means
+        if (name == 'Ol') :
+            return self.Ode
+        else :
+            errmsg = "'FLRWCosmology' object has no attribute %s" % name
+            raise AttributeError(errmsg)
+
+
+    def __setattr__(self,name,value) :
+        """Overloaded for Ol access to keep backwards compatability"""
+        if name == 'Ol' :
+            object.__setattr__(self,'Ode',value)
+            Ok = 1 - self.Om - self.Ode
+            if abs(Ok) < 1e-5:
+                Ok = 0
+            self.Ok = Ok
+        if name == 'Om' or name == 'Ode' :
+            object.__setattr__(self,name,value)
+            Ok = 1 - self.Om - self.Ode
+            if abs(Ok) < 1e-5:
+                Ok = 0
+            self.Ok = Ok
+        else :
+            object.__setattr__(self,name,value)
 
     def _efunc(self, z):
         """ Function used to calculate the hubble parameter as a
-        function of redshift. Eqn 14 from Hogg."""
+        function of redshift. Eqn 14 from Hogg, modified for 
+        dark energy eos as in Linder PRL 2003."""
         if isiterable(z):
             z = np.asarray(z)
         zp1 = 1. + z
-        return np.sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
+        if (abs(self.wa) < 1e-5) :
+            if (abs(self.w0+1) < 1e-5) :
+                #Cosmological constant
+                return np.sqrt(zp1**2 * (self.Om*zp1+self.Ok) + self.Ode)
+            else :
+                #Dark energy constant, but not cosmo constant
+                return np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
+                               self.Ode*zp1**(3*(1+self.w0)))
+        else :
+            #General form from Linder PRL 2003
+            return np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
+                               self.Ode*zp1**(3*(1+self.w0+self.wa))*\
+                               exp(-3*self.wa*z/zp1))
 
     def _inv_efunc(self, z):
         """ Integrand of the comoving distance.
         """
         zp1 = 1. + z
-        return 1. / np.sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
+        #For efficiency, don't just call _efunc for this one
+        if (abs(self.wa) < 1e-5) :
+            if (abs(self.w0+1) < 1e-5) :
+                #Cosmological constant
+                return 1.0/np.sqrt(zp1**2 * (self.Om*zp1+self.Ok) + self.Ode)
+            else :
+                #Dark energy constant, but not cosmo constant
+                return 1.0/np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
+                                   self.Ode*zp1**(3*(1+self.w0)))
+        else :
+            #General form from Linder et al. PRL 2003
+            return 1.0/np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
+                               self.Ode*zp1**(3*(1+self.w0+self.wa))*\
+                                   exp(-3*self.wa*z/zp1))
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
         Eqn 30 from Hogg."""
-        zp1 = 1. + z
-        return 1. / (zp1*np.sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol))
+        return 1.0/( (1.0+z)*self._efunc(z) )
 
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
@@ -143,7 +203,7 @@ class FLRWCosmology(Cosmology):
         See Hogg 1999 section 11.
         """
         zp1 = 1. + z
-        return zp1**2 / np.sqrt(self.Om*zp1**3 + self.Ok*zp1**2 + self.Ol)
+        return zp1**2 / self._efunc(z)
 
     def H(self, z):
         """ Hubble parameter (km/s/Mpc) at redshift `z`.
@@ -496,7 +556,7 @@ class FLRWCosmology(Cosmology):
 
 for key in parameters.available:
     par = getattr(parameters, key)
-    cosmo = FLRWCosmology(par['H0'], par['Om'], par['Ol'], name=key)
+    cosmo = FLRWCosmology(par['H0'], par['Om'], par['Ode'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
