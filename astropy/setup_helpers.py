@@ -522,12 +522,17 @@ def get_numpy_include_path():
     """
     Gets the path to the numpy headers.
     """
-    import numpy
+
+    try:
+        import numpy
+    except ImportError:
+        return []
 
     try:
         numpy_include = numpy.get_include()
     except AttributeError:
         numpy_include = numpy.get_numpy_include()
+
     return numpy_include
 
 

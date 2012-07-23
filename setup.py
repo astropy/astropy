@@ -54,7 +54,10 @@ scripts.remove(os.path.join('scripts', 'README.rst'))
 # dependency for us, since some of the subpackages need to be able to
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
-setup_helpers.check_numpy()
+try:
+    import numpy
+except ImportError:
+    print("WARNING: Numpy is not installed - you may run into issues if you are trying to build Astropy")
 
 # This dictionary stores the command classes used in setup below
 cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
@@ -105,7 +108,6 @@ for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
     hook_name = 'astropy.release.' + '.'.join(hook)
     hook_func = 'astropy.utils.release:' + '_'.join(hook)
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
-
 
 setup(name='astropy',
       version=version,
