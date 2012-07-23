@@ -57,7 +57,7 @@ Reading a FITS Table
 Like images, the .data attribute of a table HDU contains the data of the table.
 To recap, the simple example in the Quick Tutorial:
 
-    >>> f = astropy.io.fits.open('bright_stars.fits') # open a FITS file
+    >>> f = fits.open('bright_stars.fits') # open a FITS file
     >>> tbdata = f[1].data # assume the first extension is a table
     >>> print tbdata[:2] # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
@@ -114,11 +114,11 @@ Merging Tables
 Merging different tables is straightforward in Astropy. Simply merge the column
 definitions of the input tables:
 
-    >>> t1 = astropy.io.fits.open('table1.fits')
-    >>> t2 = astropy.io.fits.open('table2.fits')
+    >>> t1 = fits.open('table1.fits')
+    >>> t2 = fits.open('table2.fits')
     # the column attribute is the column definitions
     >>> t = t1[1].columns + t2[1].columns
-    >>> hdu = astropy.io.fits.new_table(t)
+    >>> hdu = fits.new_table(t)
     >>> hdu.writeto('newtable.fits')
 
 The number of fields in the output table will be the sum of numbers of fields
@@ -137,15 +137,15 @@ append by field indices, the second one is to append by field names. In both
 cases, the output table will inherit column attributes (name, format, etc.) of
 the first table.
 
-    >>> t1 = astropy.io.fits.open('table1.fits')
-    >>> t2 = astropy.io.fits.open('table2.fits')
+    >>> t1 = fits.open('table1.fits')
+    >>> t2 = fits.open('table2.fits')
     # one way to find the number of records
     >>> nrows1 = t1[1].data.shape[0]
     # another way to find the number of records
     >>> nrows2 = t2[1].header['naxis2']
     # total number of rows in the table to be generated
     >>> nrows = nrows1 + nrows2
-    >>> hdu = astropy.io.fits.new_table(t1[1].columns, nrows=nrows)
+    >>> hdu = fits.new_table(t1[1].columns, nrows=nrows)
     # first case, append by the order of fields
     >>> for i in range(len(t1[1].columns)):
     ... hdu.data.field(i)[nrows1:]=t2[1].data.field(i)
@@ -233,7 +233,7 @@ header keywords and descriptions:
 Here are a few Columns using various combination of these arguments:
 
     >>> import numpy as np
-    >>> from astropy.io.fits import Column
+    >>> from fits import Column
     >>> counts = np.array([312, 334, 308, 317])
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
     >>> c1 = Column(name='target', format='10A', array=names)
@@ -255,12 +255,12 @@ dimension number must be before the letter code, not after.
 After the columns are constructed, the :func:`new_table` function can be used to
 construct a table HDU. We can either go through the column definition object:
 
-    >>> coldefs = astropy.io.fits.ColDefs([c1, c2, c3, c4, c5])
-    >>> tbhdu = astropy.io.fits.new_table(coldefs)
+    >>> coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
+    >>> tbhdu = fits.new_table(coldefs)
 
 or directly use the :func:`new_table` function:
 
-    >>> tbhdu = astropy.io.fits.new_table([c1, c2, c3, c4, c5])
+    >>> tbhdu = fits.new_table([c1, c2, c3, c4, c5])
 
 A look of the newly created HDU's header will show that relevant keywords are
 properly populated:
@@ -302,7 +302,7 @@ any copying.  First, create the Columns as before, but without using the
 
 Then call :func:`new_table`:
 
-    >>> tbhdu = astropy.io.fits.new_table([c1, c2, c3, c4, c5])
+    >>> tbhdu = fits.new_table([c1, c2, c3, c4, c5])
 
 This will create a new table HDU as before, with the correct column
 definitions, but an empty data section.  Now simply assign your array directly

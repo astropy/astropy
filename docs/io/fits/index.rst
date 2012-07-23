@@ -25,13 +25,7 @@ Reading and Updating Existing FITS Files
 Opening a FITS file
 ^^^^^^^^^^^^^^^^^^^
 
-Once the `astropy.io.fits` package is loaded, we can open an existing FITS
-file:
-
-    >>> import astropy.io.fits
-    >>> hdulist = astropy.io.fits.open('input.fits')
-
-For the sake of brevity, one may also use `astropy.io.fits` like so:
+Once the `astropy.io.fits` package is loaded using the standard convention\ [#f1]_, we can open an existing FITS file:
 
     >>> from astropy.io import fits
     >>> hdulist = fits.open('input.fits')
@@ -267,7 +261,7 @@ with record arrays is not a prerequisite for this Guide.
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute:
 
-    >>> hdulist = astropy.io.fits.open('table.fits')
+    >>> hdulist = fits.open('table.fits')
     >>> tbdata = hdulist[1].data # assuming the first extension is a table
 
 To see the first row of the table:
@@ -354,7 +348,7 @@ also be used to write all the changes made since :func:`open`, back to the
 original file. The :meth:`~HDUList.close` method will do the same for a FITS
 file opened with update mode.
 
-    >>> f = astropy.io.fits.open('original.fits', mode='update')
+    >>> f = fits.open('original.fits', mode='update')
     ... # making changes in data and/or header
     >>> f.flush() # changes are written back to original.fits
 
@@ -377,12 +371,12 @@ First, we create a numpy object for the data part:
 
 Next, we create a :class:`PrimaryHDU` object to encapsulate the data:
 
-    >>> hdu = astropy.io.fits.PrimaryHDU(n)
+    >>> hdu = fits.PrimaryHDU(n)
 
 We then create a HDUList to contain the newly created primary HDU, and write to
 a new file:
 
-    >>> hdulist = astropy.io.fits.HDUList([hdu])
+    >>> hdulist = fits.HDUList([hdu])
     >>> hdulist.writeto('new.fits')
 
 That's it! In fact, Astropy even provides a shortcut for the last two lines to
@@ -404,21 +398,21 @@ constructing the :class:`Column` objects and their data. Suppose we have two
 columns, the first containing strings, and the second containing floating point
 numbers:
 
-    >>> import astropy.io.fits
+    >>> from astropy.io import fits
     >>> import numpy as np
     >>> a1 = np.array(['NGC1001', 'NGC1002', 'NGC1003'])
     >>> a2 = np.array([11.1, 12.3, 15.2])
-    >>> col1 = astropy.io.fits.Column(name='target', format='20A', array=a1)
-    >>> col2 = astropy.io.fits.Column(name='V_mag', format='E', array=a2)
+    >>> col1 = fits.Column(name='target', format='20A', array=a1)
+    >>> col2 = fits.Column(name='V_mag', format='E', array=a2)
 
 Next, create a :class:`ColDefs` (column-definitions) object for all columns:
 
-    >>> cols = astropy.io.fits.ColDefs([col1, col2])
+    >>> cols = fits.ColDefs([col1, col2])
 
 Now, create a new binary table HDU object by using the :func:`new_table()`
 function:
 
-    >>> tbhdu = astropy.io.fits.new_table(cols)
+    >>> tbhdu = fits.new_table(cols)
 
 This function returns (in this case) a :class:`BinTableHDU`.
 
@@ -431,12 +425,12 @@ Of course, you can do this more concisely:
 
 As before, we create a :class:`PrimaryHDU` object to encapsulate the data:
 
-    >>> hdu = astropy.io.fits.PrimaryHDU(n)
+    >>> hdu = fits.PrimaryHDU(n)
 
 We then create a HDUList containing both the primary HDU and the newly created
 table extension, and write to a new file:
 
-    >>> thdulist = astropy.io.fits.HDUList([hdu, tbhdu])
+    >>> thdulist = fits.HDUList([hdu, tbhdu])
     >>> thdulist.writeto('table.fits')
 
 If this will be the only extension of the new FITS file and you only have a
@@ -521,12 +515,12 @@ both data and header, otherwise only data is returned.
 The functions introduced above are for reading. The next few functions
 demonstrate convenience functions for writing:
 
-    >>> astropy.io.fits.writeto('out.fits', data, header)
+    >>> fits.writeto('out.fits', data, header)
 
 The :func:`writeto` function uses the provided data and an optional header to
 write to an output FITS file.
 
-    >>> astropy.io.fits.append('out.fits', data, header)
+    >>> fits.append('out.fits', data, header)
 
 The :func:`append` function will use the provided data and the optional header
 to append to an existing FITS file. If the specified output file does not
@@ -549,7 +543,7 @@ also be keyword arguments.
 Finally, the :func:`info` function will print out information of the specified
 FITS file:
 
-    >>> astropy.io.fits.info('test0.fits')
+    >>> fits.info('test0.fits')
     Filename: test0.fits
     No. Name    Type       Cards Dimensions Format
     0   PRIMARY PrimaryHDU   138 ()         Int16
@@ -596,3 +590,9 @@ Reference/API
     api/images.rst
     api/diff.rst
     api/verification.rst
+
+
+.. rubric:: Footnotes
+
+.. [#f1]  For legacy code only that already depends on PyFITS, it's acceptable to continue using "from astropy.io import fits as pyfits".
+
