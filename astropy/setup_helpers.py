@@ -29,12 +29,6 @@ try:
 except ImportError:
     HAVE_CYTHON = False
 
-try:
-    from numpy import get_include as get_numpy_include
-    numpy_includes = get_numpy_include()
-except ImportError:
-    numpy_includes = []
-
 
 class AstropyBuild(DistutilsBuild):
     """
@@ -191,6 +185,13 @@ except ImportError as e:
     else:
         raise
 
+
+def in_whitelisted_command():
+    """
+    Checks whether we are using a command that does not require building, and
+    therefore does not require any dependencies (e.g. Numpy and Cython).
+    """
+    return sys.argv[1] in ['clean', 'setopt', 'saveopts', 'alias', 'egg_info']
 
 def get_distutils_display_options():
     """ Returns a set of all the distutils display options in their long and
@@ -367,7 +368,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
     extensions.extend(get_cython_extensions(srcdir, extensions,
-                                            [numpy_includes]))
+                                            [get_numpy_include_path()]))
 
     # Now remove extensions that have the special name 'skip_cython', as they
     # exist Only to indicate that the cython extensions shouldn't be built
@@ -375,7 +376,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         if ext.name == 'skip_cython':
             del extensions[i]
 
-    if release or not HAVE_CYTHON:
+    if not in_whitelisted_command() and (release or not HAVE_CYTHON):
         # Replace .pyx with C-equivalents, unless c files are missing
         for idx, ext in reversed(list(enumerate(extensions))):
             for jdx, src in enumerate(ext.sources):
@@ -523,10 +524,10 @@ def get_numpy_include_path():
     Gets the path to the numpy headers.
     """
 
-    try:
-        import numpy
-    except ImportError:
+    if in_whitelisted_command():
         return []
+    else:
+        import numpy
 
     try:
         numpy_include = numpy.get_include()
