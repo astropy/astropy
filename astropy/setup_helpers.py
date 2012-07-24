@@ -191,7 +191,13 @@ def in_whitelisted_command():
     Checks whether we are using a command that does not require building, and
     therefore does not require any dependencies (e.g. Numpy and Cython).
     """
-    return sys.argv[1] in ['clean', 'setopt', 'saveopts', 'alias', 'egg_info']
+
+    for arg in sys.argv[1:]:
+        if not arg.startswith('-') and \
+           arg not in ['clean', 'setopt', 'saveopts', 'alias', 'egg_info']:
+            return False
+
+    return True
 
 def get_distutils_display_options():
     """ Returns a set of all the distutils display options in their long and
