@@ -15,7 +15,8 @@ import parameters
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
 # Kramer (robanhk@gmail.com).
 
-# Many of these adapted from astro-ph/9905116
+# Many of these adapted from Hogg 1999, astro-ph/9905116
+# and Linder 2003, PRL 90, 91301
 
 __all__ = ("FLRWCosmology get_current set_current WMAP5 WMAP7").split()
 
@@ -66,7 +67,7 @@ class FLRWCosmology(Cosmology):
       Dark energy equation of state parameter at z=0
     wa : float
       First order term in scale factor (a) of dark energy equation of
-      state --> w(a) = w0 + wa (1-a)
+      state --> w(a) = w0 + wa (1-a) where a = 1/(1+z)
     h : float
       Dimensionless Hubble parameter (H0 = 100*h km/s/Mpc).
       Often used to quote cosmological values independently of H0.
@@ -95,9 +96,9 @@ class FLRWCosmology(Cosmology):
                  name='FLRWCosmology'):
 
         # all densities are in units of the critical density
-        object.__setattr__(self,'Om',float(Om))
-        object.__setattr__(self,'Ode',float(Ode))
-        Ok = 1 - self.Om - self.Ode
+        self.Om = float(Om)
+        self.Ode = float(Ode)
+        Ok = 1. - self.Om - self.Ode
         if abs(Ok) < 1e-5:
             Ok = 0
         self.Ok = Ok
@@ -123,83 +124,56 @@ class FLRWCosmology(Cosmology):
         return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, Ok=%.3g)" % \
             (self.name, self.H0, self.Om, self.Ode, self.Ok)
 
-    def __getattr__(self,name) :
-        """Overloaded for Ol access"""
-        #Note we don't get here unless it couldn't find .<whatever>
-        # through normal means
-        if (name == 'Ol') :
-            return self.Ode
-        else :
-            errmsg = "'FLRWCosmology' object has no attribute %s" % name
-            raise AttributeError(errmsg)
-
-
-    def __setattr__(self,name,value) :
-        """Overloaded for Ol access to keep backwards compatability"""
-        if name == 'Ol' :
-            object.__setattr__(self,'Ode',value)
-            Ok = 1 - self.Om - self.Ode
-            if abs(Ok) < 1e-5:
-                Ok = 0
-            self.Ok = Ok
-        if name == 'Om' or name == 'Ode' :
-            object.__setattr__(self,name,value)
-            Ok = 1 - self.Om - self.Ode
-            if abs(Ok) < 1e-5:
-                Ok = 0
-            self.Ok = Ok
-        else :
-            object.__setattr__(self,name,value)
-
     def _efunc(self, z):
-        """ Function used to calculate the hubble parameter as a
-        function of redshift. Eqn 14 from Hogg, modified for 
-        dark energy eos as in Linder PRL 2003."""
+        """ Function used to calculate H(z), the Hubble parameter."""
+        #Eqn 14 from Hogg 99, modified for dark energy eos as in Linder 03
         if isiterable(z):
             z = np.asarray(z)
         zp1 = 1. + z
-        if (abs(self.wa) < 1e-5) :
-            if (abs(self.w0+1) < 1e-5) :
-                #Cosmological constant
-                return np.sqrt(zp1**2 * (self.Om*zp1+self.Ok) + self.Ode)
+        Om, Ode, Ok, w0, wa = self.Om, self.Ode, self.Ok, self.w0, self.wa
+        if abs(wa) < 1e-5 :
+            if abs(w0+1) < 1e-5 :
+                #Cosmological constant, or at least close enough
+                return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
             else :
-                #Dark energy constant, but not cosmo constant
-                return np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
-                               self.Ode*zp1**(3*(1+self.w0)))
+                #Dark energy constant, but not cosmological constant
+                return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                               Ode * zp1**(3 * (1 + w0)))
         else :
-            #General form from Linder PRL 2003
-            return np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
-                               self.Ode*zp1**(3*(1+self.w0+self.wa))*\
-                               exp(-3*self.wa*z/zp1))
-
+            #General form from Linder 2003, PRL 90, 91301 in the discussion
+            #after eq (7)
+            return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                           Ode * zp1**(3 * (1 + w0 + wa)) *
+                           exp(-3 * wa * z / zp1))
+                               
     def _inv_efunc(self, z):
         """ Integrand of the comoving distance.
         """
         zp1 = 1. + z
         #For efficiency, don't just call _efunc for this one
-        if (abs(self.wa) < 1e-5) :
-            if (abs(self.w0+1) < 1e-5) :
-                #Cosmological constant
-                return 1.0/np.sqrt(zp1**2 * (self.Om*zp1+self.Ok) + self.Ode)
+        #See comments for _efunc for explanation of these formulae
+        Om, Ode, Ok, w0, wa = self.Om, self.Ode, self.Ok, self.w0, self.wa
+        if abs(wa) < 1e-5 :
+            if abs(w0+1) < 1e-5 :
+                return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
             else :
-                #Dark energy constant, but not cosmo constant
-                return 1.0/np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
-                                   self.Ode*zp1**(3*(1+self.w0)))
+                return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                                   Ode * zp1**(3 * (1 + w0)))
         else :
-            #General form from Linder et al. PRL 2003
-            return 1.0/np.sqrt(zp1**2 * (self.Om*zp1 + self.Ok) +
-                               self.Ode*zp1**(3*(1+self.w0+self.wa))*\
-                                   exp(-3*self.wa*z/zp1))
+            return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                               Ode * zp1**(3 * (1 + w0 + wa)) *
+                               exp(-3 * wa * z / zp1))
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
-        Eqn 30 from Hogg."""
+        Eqn 30 from Hogg 1999.
+        """
         return 1.0/( (1.0+z)*self._efunc(z) )
 
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
-
+        
         See Hogg 1999 section 11.
         """
         zp1 = 1. + z
