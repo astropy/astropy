@@ -11,8 +11,8 @@ but can be used independently.
 =======================
 
 This directive will produce an "autosummary"-style table for public
-attributesof a specified module. See the `sphinx.ext.autosummary`
-extensionfor details on this process. The main difference from the
+attributes of a specified module. See the `sphinx.ext.autosummary`
+extension for details on this process. The main difference from the
 `autosummary` directive is that `autosummary` requires manually inputting
 all attributes that appear in the table, while this captures the entries
 automatically.
@@ -375,7 +375,8 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                           if x in include_public or not x.startswith('_')]
                 return public, items
 
-            def get_members_class(obj, typ, include_public=[], include_base=False):
+            def get_members_class(obj, typ, include_public=[],
+                                  include_base=False):
                 """
                 typ = None -> all
                 include_base -> include attrs that are from a base class
