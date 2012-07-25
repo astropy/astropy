@@ -413,7 +413,7 @@ class FLRWCosmology(Cosmology):
 
         This is used to calculate the number of objects with some
         cross section of absorption and number density intersecting a
-        sightline along per unit redshift path.
+        sightline per unit redshift path.
 
         Parameters
         ----------
@@ -431,13 +431,17 @@ class FLRWCosmology(Cosmology):
         Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
         from scipy.integrate import quad
-        return quad(self._xfunc, 0, z)[0]
+        if not isiterable(z):
+            return quad(self._xfunc, 0, z)[0]
+
+        out = [quad(self._xfunc, 0, redshift)[0] for redshift in z]
+        return np.array(out)
 
     def distmod(self, z):
         """ Distance modulus at redshift `z`.
 
         The distance modulus is defined as the (apparent magnitude -
-        absolute magnitude for an object at redshift `z`).
+        absolute magnitude) for an object at redshift `z`.
 
         Parameters
         ----------
