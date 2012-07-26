@@ -59,9 +59,14 @@ You can create a new `FLRWCosmology` object with arguments giving the
 hubble parameter, omega matter and omega lambda (all at z=0):
 
   >>> from astropy.cosmology import FLRWCosmology
-  >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ol=0.7)
+  >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ode=0.7)
   >>> cosmo
-  FLRWCosmology(H0=70, Om=0.3, Ol=0.7, Ok=0)
+  FLRWCosmology(H0=70, Om=0.3, Ode=0.7, Ok=0)
+
+Additional arguments (w0, wa) can be used to optionally specify the 
+dark energy equation of state using the common w(z) = w0 + wa z/(1+z) 
+expansion.  The default values (w0=-1,wa=0) represent a cosmological
+constant.
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are `FLRWCosmology` instances, and have the same methods. So

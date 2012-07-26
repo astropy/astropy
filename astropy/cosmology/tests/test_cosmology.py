@@ -39,6 +39,28 @@ def test_flat_z1():
                        [7.841, 7.84178, 7.843],  rtol=1e-3)
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_w0walumdist_mathematica() :
+    """Tests a few varying dark energy EOS models against a mathematica
+    computation"""
+
+    cosmo = core.FLRWCosmology(H0=70, Om=0.2, Ode=0.8, w0=-1.1, wa=0.2)
+    assert np.allclose(cosmo.luminosity_distance(0.2),1004.0, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(0.4),2268.62, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(0.9),6265.76,rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(1.2),9061.84,rtol=1e-4)
+    cosmo.Om = 0.3
+    cosmo.Ode = 1.0-cosmo.Om
+    cosmo.w0 = -0.9
+    cosmo.wa = 0.0
+    assert np.allclose(cosmo.luminosity_distance(0.2),971.667, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(0.4),2141.67, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(1.2),8107.41, rtol=1e-4)
+    cosmo.wa = -0.5
+    assert np.allclose(cosmo.luminosity_distance(0.2),974.087, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(0.4),2157.08, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(1.2),8274.08, rtol=1e-4)
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
     #these are all for WMAP7
     core.set_current(core.WMAP7)
