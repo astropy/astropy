@@ -20,6 +20,7 @@ from distutils.errors import DistutilsError
 from distutils.core import Extension
 from distutils.log import warn
 from distutils.command.build import build as DistutilsBuild
+from distutils.command.build_ext import build_ext as DistutilsBuildExt
 
 from .tests.helper import astropy_test
 
@@ -46,18 +47,6 @@ class AstropyBuild(DistutilsBuild):
         # were added.
         for option in self.custom_options:
             setattr(self, option.replace('-', '_'), None)
-
-    def run(self):
-        # For extensions that require 'numpy' in their include dirs, replace
-        # 'numpy' with the actual paths
-        np_include = get_numpy_include_path()
-        for extension in self.extensions:
-            if 'numpy' in extension.include_dirs:
-                idx = extension.include_dirs.index('numpy')
-                extension.include_dirs[idx] = np_include
-                extension.include_dirs.remove('numpy')
-
-        DistutilsBuild.run(self)
 
     @classmethod
     def add_build_option(cls, name, doc, is_bool=False):
@@ -90,6 +79,28 @@ class AstropyBuild(DistutilsBuild):
 # Need to set the name here so that the commandline options
 # are presented as being related to the "build" command.
 AstropyBuild.__name__ = 'build'
+
+
+class AstropyBuildExt(DistutilsBuildExt):
+    """
+    A custom 'build_ext' command that allows for manipulating some of the
+    C extension options at build time.
+    """
+
+    def run(self):
+        # For extensions that require 'numpy' in their include dirs, replace
+        # 'numpy' with the actual paths
+        np_include = get_numpy_include_path()
+        for extension in self.extensions:
+            if 'numpy' in extension.include_dirs:
+                idx = extension.include_dirs.index('numpy')
+                extension.include_dirs[idx] = np_include
+                extension.include_dirs.remove('numpy')
+
+        DistutilsBuildExt.run(self)
+
+
+AstropyBuildExt.__name__ = 'build_ext'
 
 
 for option in [
