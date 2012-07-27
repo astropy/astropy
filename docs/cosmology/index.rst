@@ -16,12 +16,14 @@ angular separation.
 Getting Started
 ===============
 
-There are many functions available to calculate cosmological
-quantities. They generally take a redshift as input. For example, to
-find the number of transverse proper kpc corresponding to an arcminute
-at z=3:
+There are many functions available to calculate cosmological quantities.
+They generally take a redshift as input. For example, the two cases
+below give you the value of the hubble constant at z=0 (i.e., `H0`), and
+the number of transverse proper kpc corresponding to an arcminute at z=3:
 
   >>> from astropy import cosmology
+  >>> cosmology.H(0)
+  70.4
   >>> cosmology.kpc_proper_per_arcmin(3)
   472.91882815884907
 
@@ -132,7 +134,7 @@ message:
 
   >>> from astropy import cosmology
   >>> cosmology.lookback_time(1)          # lookback time in Gyr at z=1
-  WARNING: No default cosmology has been specified, using 7-year WMAP. 
+  WARNING: No default cosmology has been specified, using 7-year WMAP.
   [astropy.cosmology.core]
   7.788414051773566
 
