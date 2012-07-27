@@ -49,13 +49,6 @@ packagenames = find_packages()
 scripts = glob.glob(os.path.join('scripts', '*'))
 scripts.remove(os.path.join('scripts', 'README.rst'))
 
-# Check that Numpy is installed.
-# NOTE: We cannot use setuptools/distribute/packaging to handle this
-# dependency for us, since some of the subpackages need to be able to
-# access numpy at build time, and they are configured before
-# setuptools has a chance to check and resolve the dependency.
-setup_helpers.check_numpy()
-
 # This dictionary stores the command classes used in setup below
 cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 

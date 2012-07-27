@@ -53,6 +53,18 @@ class AstropyBuild(DistutilsBuild):
         for option in self.custom_options:
             setattr(self, option.replace('-', '_'), None)
 
+    def run(self):
+        # For extensions that require 'numpy' in their include dirs, replace
+        # 'numpy' with the actual paths
+        np_include = get_numpy_include_path()
+        for extension in self.extensions:
+            if 'numpy' in extension.include_dirs:
+                idx = extension.include_dirs.index('numpy')
+                extension.include_dirs[idx] = np_include
+                extension.include_dirs.remove('numpy')
+
+        DistutilsBuild.run(self)
+
     @classmethod
     def add_build_option(cls, name, doc, is_bool=False):
         """
@@ -583,10 +595,18 @@ def check_numpy():
     Check that Numpy is installed and it is of the minimum version we
     require.
     """
-    import numpy
 
-    major, minor, rest = numpy.__version__.split(".", 2)
-    if (int(major), int(minor)) < (1, 4):
+    requirement_met = False
+
+    try:
+        import numpy
+    except ImportError:
+        pass
+    else:
+        major, minor, rest = numpy.__version__.split(".", 2)
+        requirement_met = (int(major), int(minor)) < (1, 4)
+
+    if not requirement_met:
         msg = "numpy version 1.4 or later must be installed to build astropy"
         raise ImportError(msg)
 
@@ -595,7 +615,8 @@ def get_numpy_include_path():
     """
     Gets the path to the numpy headers.
     """
-    import numpy
+
+    check_numpy()
 
     try:
         numpy_include = numpy.get_include()

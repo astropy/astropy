@@ -205,7 +205,7 @@ def get_extensions():
     source_files = []
     libraries = []
     include_dirs = [
-        setup_helpers.get_numpy_include_path(),
+        'numpy',
         join(WCSROOT, "include")]
 
     library_dirs = []
