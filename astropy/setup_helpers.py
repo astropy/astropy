@@ -81,11 +81,19 @@ class AstropyBuild(DistutilsBuild):
 AstropyBuild.__name__ = 'build'
 
 
-class AstropyBuildExt(DistutilsBuildExt):
+def wrap_build_ext(basecls=DistutilsBuildExt):
     """
-    A custom 'build_ext' command that allows for manipulating some of the
-    C extension options at build time.
+    Creates a custom 'build_ext' command that allows for manipulating some of
+    the C extension options at build time.  We use a function to build the
+    class since the base class for build_ext may be different depending on
+    certain build-time parameters (for example, we may use Cython's build_ext
+    instead of the default version in distutils).
+
+    Uses the default distutils.command.build_ext by default.
     """
+
+    attrs = basecls.__dict__
+    orig_run = attrs['run']
 
     def run(self):
         # For extensions that require 'numpy' in their include dirs, replace
@@ -94,13 +102,14 @@ class AstropyBuildExt(DistutilsBuildExt):
         for extension in self.extensions:
             if 'numpy' in extension.include_dirs:
                 idx = extension.include_dirs.index('numpy')
-                extension.include_dirs[idx] = np_include
+                extension.include_dirs.insert(idx, np_include)
                 extension.include_dirs.remove('numpy')
 
-        DistutilsBuildExt.run(self)
+        orig_run(self)
 
+    attrs['run'] = run
 
-AstropyBuildExt.__name__ = 'build_ext'
+    return type('build_ext', (basecls, object), attrs)
 
 
 for option in [

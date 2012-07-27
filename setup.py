@@ -59,14 +59,15 @@ cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 
              # Use a custom build command which understands additional
              # commandline arguments
-             'build': setup_helpers.AstropyBuild,
-             'build_ext': setup_helpers.AstropyBuildExt
+             'build': setup_helpers.AstropyBuild
              }
 
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
     # Builds Cython->C if in dev mode and Cython is present
-    cmdclassd['build_ext'] = build_ext
+    cmdclassd['build_ext'] = setup_helpers.wrap_build_ext(build_ext)
+else:
+    cmdclassd['build_ext'] = setup_helpers.wrap_build_ext()
 
 if setup_helpers.AstropyBuildSphinx is not None:
     cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
