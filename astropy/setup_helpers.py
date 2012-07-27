@@ -598,7 +598,7 @@ def check_numpy():
         pass
     else:
         major, minor, rest = numpy.__version__.split(".", 2)
-        requirement_met = (int(major), int(minor)) < (1, 4)
+        requirement_met = (int(major), int(minor)) >= (1, 4)
 
     if not requirement_met:
         msg = "numpy version 1.4 or later must be installed to build astropy"
