@@ -445,8 +445,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
-    extensions.extend(get_cython_extensions(srcdir, extensions,
-                                            [get_numpy_include_path()]))
+    extensions.extend(get_cython_extensions(srcdir, extensions, ['numpy']))
 
     # Now remove extensions that have the special name 'skip_cython', as they
     # exist Only to indicate that the cython extensions shouldn't be built
