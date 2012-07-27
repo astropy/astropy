@@ -603,13 +603,15 @@ def check_numpy():
         msg = "numpy version 1.4 or later must be installed to build astropy"
         raise ImportError(msg)
 
+    return numpy
+
 
 def get_numpy_include_path():
     """
     Gets the path to the numpy headers.
     """
 
-    check_numpy()
+    numpy = check_numpy()
 
     try:
         numpy_include = numpy.get_include()
