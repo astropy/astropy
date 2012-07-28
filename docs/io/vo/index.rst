@@ -303,7 +303,27 @@ Reference/API
 =============
 
 .. automodapi:: astropy.io.vo
-   :subsections: tree, converters, ucd, unit, util, validator, xmlutil
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.tree
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.converters
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.ucd
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.unit
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.util
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.validator
+   :no-inheritance-diagram:
+
+.. automodapi:: astropy.io.vo.xmlutil
    :no-inheritance-diagram:
 
 astropy.io.vo.exceptions Module

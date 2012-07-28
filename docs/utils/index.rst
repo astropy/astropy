@@ -40,15 +40,30 @@ See Also
 Reference/API
 =============
 
-.. automodapi:: astropy.utils
-    :no-main-section:
-    :subsections: collections, console, misc
+.. automodapi:: astropy.utils.misc
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.collections
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.console
     :no-inheritance-diagram:
 
 XML
 ---
 
-.. automodapi:: astropy.utils.xml
-    :no-main-section:
-    :subsections: check, iterparser, validate, writer
+.. automodapi:: astropy.utils.xml.check
     :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.xml.iterparser
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.xml.validate
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.xml.writer
+    :no-inheritance-diagram:
+
+
+
+

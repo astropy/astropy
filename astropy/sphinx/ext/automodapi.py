@@ -17,10 +17,6 @@ It accepts the following options:
         If present, the inheritance diagram will not be shown even if
         the module/package has classes.
 
-    * ``:subsections: mod1[,mod2,subpkg3]``
-        If present, this generates separate documentation sections for
-        the requested submodules or subpackages.
-
     * ``:no-main-section:``
         If present, the documentation and summary table for the main
         module or package will not be generated (this would generally be
@@ -153,7 +149,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
         newstrs = [spl[0]]
         for grp in range(len(spl) // 3):
-            basemodnm = spl[grp * 3 + 1]
+            modnm = spl[grp * 3 + 1]
 
             #find where this is in the document for warnings
             if docname is None:
@@ -166,7 +162,6 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             inhdiag = 'no-inheritance-diagram' not in modops
             modops.pop('no-inheritance-diagram', None)
-            subsecs = modops.pop('subsections', None)
             nomain = 'no-main-section' in modops
             modops.pop('no-main-section', None)
             hds = modops.pop('headings', '-^')
@@ -186,51 +181,27 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if warnings:
                     app.warn(msg, location)
 
-            # construct the list of modules to document based on the
-            # show-subsections argument
-            modnames = [] if nomain else [basemodnm]
-            if subsecs is not None:
-                for ss in subsecs.replace(' ', '').split(','):
-                    submodnm = basemodnm + '.' + ss
-                    try:
-                        __import__(submodnm)
-                        mod = sys.modules[submodnm]
-                        if ismodule(mod):
-                            modnames.append(mod.__name__)
-                        else:
-                            msg = ('Attempted to add documentation section for '
-                                   '{0}, which is neither module nor package. '
-                                   'Skipping.')
-                            if warnings:
-                                app.warn(msg.format(submodnm), location)
-                    except ImportError:
-                        msg = ('Attempted to add documentation section for '
-                               '{0}, which is not importable. Skipping.')
-                        if warnings:
-                            app.warn(msg.format(submodnm), location)
+            ispkg, hascls, hasfuncs = _mod_info(modnm)
 
-            for modnm in modnames:
-                ispkg, hascls, hasfuncs = _mod_info(modnm)
+            newstrs.append(automod_templ_modheader.format(modname=modnm,
+                modhds=h1 * len(modnm),
+                pkgormod='Package' if ispkg else 'Module',
+                pkgormodhds=h1 * (8 if ispkg else 7)))
 
-                newstrs.append(automod_templ_modheader.format(modname=modnm,
-                    modhds=h1 * len(modnm),
-                    pkgormod='Package' if ispkg else 'Module',
-                    pkgormodhds=h1 * (8 if ispkg else 7)))
+            if hasfuncs:
+                newstrs.append(automod_templ_funcs.format(modname=modnm,
+                    funchds=h2 * 9,
+                    toctree=toctreestr))
 
-                if hasfuncs:
-                    newstrs.append(automod_templ_funcs.format(modname=modnm,
-                        funchds=h2 * 9,
-                        toctree=toctreestr))
+            if hascls:
+                newstrs.append(automod_templ_classes.format(modname=modnm,
+                    clshds=h2 * 7,
+                    toctree=toctreestr))
 
-                if hascls:
-                    newstrs.append(automod_templ_classes.format(modname=modnm,
-                        clshds=h2 * 7,
-                        toctree=toctreestr))
-
-                if inhdiag and hascls:
-                    # add inheritance diagram if any classes are in the module
-                    newstrs.append(automod_templ_inh.format(
-                        modname=modnm, clsinhsechds=h2 * 25))
+            if inhdiag and hascls:
+                # add inheritance diagram if any classes are in the module
+                newstrs.append(automod_templ_inh.format(
+                    modname=modnm, clsinhsechds=h2 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)
