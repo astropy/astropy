@@ -261,5 +261,5 @@ def test_angular_diameter_distance_z1z2():
 def test_absorption_distance():
     assert np.allclose(core.WMAP7.absorption_distance([1,3]),
                        [ 1.72576635,  7.98685853])
-    assert np.allclose(core.WMAP7.absorption_distance([3), 7.98685853)
+    assert np.allclose(core.WMAP7.absorption_distance(3), 7.98685853)
 
