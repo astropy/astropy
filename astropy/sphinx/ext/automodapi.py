@@ -17,11 +17,9 @@ It accepts the following options:
         If present, the inheritance diagram will not be shown even if
         the module/package has classes.
 
-    * ``:no-main-section:``
-        If present, the documentation and summary table for the main
-        module or package will not be generated (this would generally be
-        used with ``:subsections:`` if there is nothing of intereset in
-        the package itself.)
+    * ``:no-main-docstr:``
+        If present, the docstring for the module/package will not be generated.
+        The function and class tables will still be used, however.
 
     * ``:headings: str``
         Specifies the characters (in one string) used as the heading
@@ -55,7 +53,7 @@ automod_templ_modheader = """
 {modname} {pkgormod}
 {modhds}{pkgormodhds}
 
-.. automodule:: {modname}
+{automoduleline}
 """
 
 automod_templ_classes = """
@@ -162,8 +160,8 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             inhdiag = 'no-inheritance-diagram' not in modops
             modops.pop('no-inheritance-diagram', None)
-            nomain = 'no-main-section' in modops
-            modops.pop('no-main-section', None)
+            nomain = 'no-main-docstr' in modops
+            modops.pop('no-main-docstr', None)
             hds = modops.pop('headings', '-^')
 
             if len(hds) < 2:
@@ -183,10 +181,17 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             ispkg, hascls, hasfuncs = _mod_info(modnm)
 
+            #add automodule directive only if no-main-docstr isn't present
+            if nomain:
+                automoduleline = ''
+            else:
+                automoduleline = '.. automodule:: {modname}'.format(modname=modnm)
+
             newstrs.append(automod_templ_modheader.format(modname=modnm,
                 modhds=h1 * len(modnm),
                 pkgormod='Package' if ispkg else 'Module',
-                pkgormodhds=h1 * (8 if ispkg else 7)))
+                pkgormodhds=h1 * (8 if ispkg else 7),
+                automoduleline=automoduleline))
 
             if hasfuncs:
                 newstrs.append(automod_templ_funcs.format(modname=modnm,
