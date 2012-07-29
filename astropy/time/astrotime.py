@@ -95,10 +95,6 @@ class OptDict(dict):
 class Time(object):
     """Represent and manipulate times and dates for astronomy.
 
-    Specific emphasis is placed on supporting time scales (e.g. UTC, TAI, UT1)
-    and time representations (e.g. JD, MJD, ISO 8601) that are used in
-    astronomy.
-
     A Time object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
     ``format`` and must correspond to the specified time ``scale``.  The
@@ -193,7 +189,10 @@ class Time(object):
         else:
             raise ValueError('Input values did not match {0}'.format(err_msg))
 
-    def _get_format(self):
+    @property
+    def format(self):
+        """Time format
+        """
         return self._format
 
     def _set_format(self, format):
@@ -219,9 +218,10 @@ class Time(object):
     def __str__(self):
         return str(getattr(self, self.format))
 
-    format = property(_get_format)
-
-    def _get_scale(self):
+    @property
+    def scale(self):
+        """Time scale
+        """
         return self._scale
 
     def _set_scale(self, scale):
@@ -268,8 +268,6 @@ class Time(object):
                                               from_jd=True)
         self._scale = scale
 
-    scale = property(_get_scale)
-
     def set_opt(self, **kwargs):
         """Set options that affect TimeFormat class behavior for this Time
         instance.
@@ -288,16 +286,22 @@ class Time(object):
 
     @property
     def jd1(self):
+        """First of the two doubles that internally store time value(s) in JD
+        """
         vals = self._time.jd1
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def jd2(self):
+        """Second of the two doubles that internally store time value(s) in JD
+        """
         vals = self._time.jd2
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def vals(self):
+        """Time values expressed the current format
+        """
         return self._time.vals
 
     def _get_time_object(self, format):
@@ -345,8 +349,7 @@ class Time(object):
 
     # SOFA DUT arg = UT1 - UTC
     def get_delta_ut1_utc(self, jd1, jd2):
-        """
-        Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
+        """Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         seconds. It can be obtained from tables published by the IERS.
         XXX - get that table when needed and interpolate or whatever.
         """
@@ -442,7 +445,31 @@ class Time(object):
 
 
 class TimeDelta(Time):
-    """Interval of time.
+    """Represent the time difference between two times.
+
+    A Time object is initialized with one or more times in the ``val``
+    argument.  The input times in ``val`` must conform to the specified
+    ``format`` and must correspond to the specified time ``scale``.  The
+    optional ``val2`` time input should be supplied only for numeric input
+    formats (e.g. JD) where very high precision (better than 64-bit precision)
+    is required.
+
+    Parameters
+    ----------
+    val : numpy ndarray, list, str, or number
+        Data to initialize table.
+    val2 : numpy ndarray, list, str, or number; optional
+        Data to initialize table.
+    format : str, optional
+        Format of input value(s)
+    scale : str, optional
+        Time scale of input value(s)
+    opt : dict, optional
+        options
+    lat : float, optional
+        Earth latitude of observer
+    lon : float, optional
+        Earth longitude of observer
     """
     def __init__(self, val, val2=None, format=None, scale=None, opt={}):
         self.SCALES = TIME_DELTA_SCALES

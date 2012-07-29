@@ -253,7 +253,7 @@ In most situations one also needs to specify the `time scale`_ via the
 so a simple example would be::
 
   >>> t = Time('2010-01-01 00:00:00', scale='utc')
-  >>> t2 = Time(100.0, format='mjd', scale='tt')
+  >>> t2 = Time(50100.0, format='mjd', scale='tt')
 
 val2
 ^^^^^^^^^^^
