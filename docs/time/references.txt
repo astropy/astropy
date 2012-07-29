@@ -1,2 +1,3 @@
 .. |Time| replace:: :class:`~astropy.time.astrotime.Time`
+.. |TimeDelta| replace:: :class:`~astropy.time.astrotime.TimeDelta`
 .. _SOFA: http://www.iausofa.org/index.html

@@ -112,9 +112,9 @@ class Time(object):
         Data to initialize table.
     val2 : numpy ndarray, list, str, or number; optional
         Data to initialize table.
-    format : str
+    format : str, optional
         Format of input value(s)
-    scale : str
+    scale : str, optional
         Time scale of input value(s)
     opt : dict, optional
         options
