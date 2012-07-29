@@ -86,6 +86,7 @@ UNITSTR \[[-+*/^(). 0-9a-zA-Z]+\]
 #include <string.h>
 
 #include "fitshdr.h"
+#include "wcsutil.h"
 
 #define YY_DECL int fitshdr(const char header[], int nkeyrec, int nkeyids, \
                             struct fitskeyid keyids[], int *nreject, \
@@ -122,7 +123,7 @@ const char *fitshdr_errmsg[] = {
 %}
 
 %%
-	char *cptr, ctmp[72];
+	char *cptr, ctmp[72], ctmp2[72];
 	int  blank, continuation, end, j, k, keyno;
 	double dtmp;
 	struct fitskey *kptr;
@@ -266,7 +267,7 @@ const char *fitshdr_errmsg[] = {
 
 <VALUE>{INT64} {
 	  /* 64-bit signed integer keyvalue (up to 18 digits). */
-	  if (sscanf(yytext, "%lf", &dtmp) < 1) {
+	  if (wcsutil_str2double(yytext, "%lf", &dtmp)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	
@@ -349,7 +350,7 @@ const char *fitshdr_errmsg[] = {
 <VALUE>{FLOAT} {
 	  /* Float keyvalue. */
 	  kptr->type = 5;
-	  if (sscanf(yytext, "%lf", &(kptr->keyvalue.f)) < 1) {
+	  if (wcsutil_str2double(yytext, "%lf", &(kptr->keyvalue.f))) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	  }
@@ -372,8 +373,15 @@ const char *fitshdr_errmsg[] = {
 <VALUE>{FCOMPLX} {
 	  /* Floating point complex keyvalue. */
 	  kptr->type = 7;
-	  if (sscanf(yytext, "(%lf,%lf)", kptr->keyvalue.c,
-	      kptr->keyvalue.c+1) < 2) {
+          if (sscanf(yytext, "(%s,%s)", ctmp, ctmp2) < 2) {
+	    kptr->status |= FITSHDR_KEYVALUE;
+	    BEGIN(ERROR);
+          }
+          if (wcsutil_str2double(ctmp, "%lf", kptr->keyvalue.c)) {
+	    kptr->status |= FITSHDR_KEYVALUE;
+	    BEGIN(ERROR);
+          }
+          if (wcsutil_str2double(ctmp2, "%lf", kptr->keyvalue.c+1)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
 	  }

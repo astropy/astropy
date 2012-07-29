@@ -73,6 +73,7 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
+#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -102,8 +103,6 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
-
-#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -161,15 +160,7 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k.
- * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
- * Ditto for the __ia64__ case accordingly.
- */
-#define YY_BUF_SIZE 32768
-#else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -3982,7 +3973,7 @@ char *wcsutrntext;
 #line 1 "wcsutrn.l"
 /*============================================================================
 
-  WCSLIB 4.10 - an implementation of the FITS WCS standard.
+  WCSLIB 4.13 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -4010,7 +4001,7 @@ char *wcsutrntext;
 
   Author: Mark Calabretta, Australia Telescope National Facility
   http://www.atnf.csiro.au/~mcalabre/index.html
-  $Id: wcsutrn.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
+  $Id: wcsutrn.l,v 4.13.1.1 2012/03/14 07:40:37 cal103 Exp cal103 $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -4044,7 +4035,7 @@ char *wcsutrntext;
 jmp_buf wcsutrn_abort_jmp_env;
 #define exit(status) longjmp(wcsutrn_abort_jmp_env, status)
 
-#line 4048 "wcsutrn.c"
+#line 4039 "wcsutrn.c"
 
 #define INITIAL 0
 #define NEXT 1
@@ -4127,12 +4118,7 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k */
-#define YY_READ_BUF_SIZE 16384
-#else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -4249,7 +4235,7 @@ YY_DECL
 	fprintf(stderr, "\n%s ->\n", unitstr);
 #endif
 
-#line 4253 "wcsutrn.c"
+#line 4239 "wcsutrn.c"
 
 	if ( !(yy_init) )
 		{
@@ -4663,7 +4649,7 @@ YY_RULE_SETUP
 #line 341 "wcsutrn.l"
 ECHO;
 	YY_BREAK
-#line 4667 "wcsutrn.c"
+#line 4653 "wcsutrn.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -5398,8 +5384,8 @@ YY_BUFFER_STATE wcsutrn_scan_string (yyconst char * yystr )
 
 /** Setup the input buffer state to scan the given bytes. The next call to wcsutrnlex() will
  * scan from a @e copy of @a bytes.
- * @param yybytes the byte buffer to scan
- * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
+ * @param bytes the byte buffer to scan
+ * @param len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */

@@ -111,6 +111,7 @@ STRING	'([^']|'')*'
 #include "wcs.h"
 #include "wcshdr.h"
 #include "wcsmath.h"
+#include "wcsutil.h"
 
 #define INTEGER 0
 #define FLOAT   1
@@ -152,7 +153,7 @@ jmp_buf wcspih_abort_jmp_env;
 	/* Keyword indices, as used in the WCS papers, e.g. PCi_ja, PVi_ma. */
 	char a;
 	int  i, j, m;
-	
+
 	char *cptr, *errmsg, errtxt[80], *hptr, *keep;
 	int  altlin, alts[27], ialt, idx, ipx, ix, jx, naxis, *npptr,
 	     nps[27], npv[27], pass, status, valtype, voff;
@@ -160,7 +161,7 @@ jmp_buf wcspih_abort_jmp_env;
 	void *vptr, *wptr;
 	struct wcsprm *wcsp;
 	int yylex_destroy(void);
-	
+
 	naxis = 0;
 	for (ialt = 0; ialt < 27; ialt++) {
 	  alts[ialt] = 0;
@@ -169,40 +170,40 @@ jmp_buf wcspih_abort_jmp_env;
 	  epoch[ialt]   = UNDEFINED;
 	  vsource[ialt] = UNDEFINED;
 	}
-	
+
 	/* Parameters used to implement YY_INPUT. */
 	wcspih_hdr = header;
 	wcspih_nkeyrec = nkeyrec;
-	
+
 	/* Our handle on the input stream. */
 	hptr = header;
 	keep = 0x0;
 	*nreject = 0;
-	
+
 	/* Keyword parameters. */
 	i = j = m = 0;
 	a = ' ';
-	
+
 	/* For decoding the keyvalue. */
 	valtype = -1;
 	idx     = -1;
 	vptr    = 0x0;
-	
+
 	/* For keywords that require special handling. */
 	altlin = 0;
 	npptr  = 0x0;
-	
+
 	/* The data structures produced. */
 	*nwcs = 0;
 	*wcs  = 0x0;
-	
+
 	pass = 1;
-	
+
 	/* Return here via longjmp() invoked by yy_fatal_error(). */
 	if (setjmp(wcspih_abort_jmp_env)) {
 	  return 3;
 	}
-	
+
 	BEGIN(INITIAL);
 
 
@@ -210,7 +211,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  if (pass == 1) {
 	    sscanf(yytext, "NAXIS   = %d", &naxis);
 	  }
-	
+
 	  if (naxis < 0) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Negative value of NAXIS ignored: %d", naxis);
@@ -366,7 +367,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^EPOCH{ALT}"  " {
 	  sscanf(yytext, "EPOCH%c", &a);
-	
+
 	  if (a == ' ' || relax & WCSHDR_EPOCHa) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -375,14 +376,14 @@ jmp_buf wcspih_abort_jmp_env;
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-	
+
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "EPOCH keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -441,11 +442,11 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (pass == 2) vptr = (*wcs)->radesys;
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "RADECSYS is non-standard, use RADESYSa";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -483,18 +484,18 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^VELREF{ALT}" " {
 	  sscanf(yytext, "VELREF%c", &a);
-	
+
 	  if (a == ' ' || relax & WCSHDR_VELREFa) {
 	    valtype = INTEGER;
 	    if (pass == 2) vptr = &((*wcs)->velref);
-	
+
 	    unput(a);
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "VELREF keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -502,7 +503,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^VSOURCE{ALT} {
 	  sscanf(yytext, "VSOURCE%c", &a);
-	
+
 	  if (relax & WCSHDR_VSOURCE) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -511,14 +512,14 @@ jmp_buf wcspih_abort_jmp_env;
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-	
+
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Deprecated VSOURCEa keyword rejected";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -578,7 +579,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (a != ' ') {
 	      wcsp += alts[a-'A'+1];
 	    }
-	
+
 	    idx = (i-1)*(wcsp->naxis) + j - 1;
 	  }
 	  BEGIN(VALUE);
@@ -605,13 +606,13 @@ jmp_buf wcspih_abort_jmp_env;
 	      idx = (i-1)*((*wcs)->naxis) + j - 1;
 	    }
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Defunct form of %si_ja keyword",
 	                     (altlin==1) ? "PC" : "CD");
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -627,11 +628,11 @@ jmp_buf wcspih_abort_jmp_env;
 	  if (a == ' ' || relax & WCSHDR_CROTAia) {
 	    idx = i - 1;
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "CROTAn keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -651,7 +652,7 @@ jmp_buf wcspih_abort_jmp_env;
 <CCCCCCCa>{ALT} |
 <CCCCCCCC>. {
 	  idx = -1;
-	
+
 	  if (YY_START == CCCCCCCa) {
 	    sscanf(yytext, "%c", &a);
 	  } else {
@@ -696,11 +697,11 @@ jmp_buf wcspih_abort_jmp_env;
 	    a = ' ';
 	    idx = -1;
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Defunct PROJPn keyword rejected";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -721,12 +722,12 @@ jmp_buf wcspih_abort_jmp_env;
 	        sprintf(errmsg, "Parameter number exceeds 99");
 	      }
 	      BEGIN(ERROR);
-	
+
 	    } else {
 	      /* Pretend we don't recognize it. */
 	      BEGIN(DISCARD);
 	    }
-	
+
 	  } else {
 	    if (valtype == INTEGER) {
 	      BEGIN(INTEGER_VAL);
@@ -752,7 +753,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -762,26 +763,26 @@ jmp_buf wcspih_abort_jmp_env;
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((int **)wptr) + idx;
 	        }
-	
+
 	        /* Read the keyvalue. */
 	        sscanf(yytext, "%d", (int *)wptr);
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null int pointer";
 	      BEGIN(ERROR);
@@ -798,7 +799,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -808,38 +809,38 @@ jmp_buf wcspih_abort_jmp_env;
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((double **)wptr) + idx;
-	
+
 	        } else if (npptr == npv) {
 	          ipx = (*wcs+ialt)->npv++;
 	          (*wcs+ialt)->pv[ipx].i = i;
 	          (*wcs+ialt)->pv[ipx].m = m;
 	          wptr = &((*wcs+ialt)->pv[ipx].value);
 	        }
-	
+
 	        /* Read the keyvalue. */
-	        sscanf(yytext, "%lf", (double *)wptr);
-	
+	        wcsutil_str2double(yytext, "%lf", (double *)wptr);
+
 	        /* Flag the presence of PCi_ja, or CDi_ja and/or CROTAia. */
 	        if (altlin) {
 	          (*wcs+ialt)->altlin |= altlin;
 	          altlin = 0;
 	        }
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null float pointer";
 	      BEGIN(ERROR);
@@ -856,7 +857,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -866,50 +867,50 @@ jmp_buf wcspih_abort_jmp_env;
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((char (**)[72])wptr) + idx;
-	
+
 	        } else if (npptr == nps) {
 	          ipx = (*wcs+ialt)->nps++;
 	          (*wcs+ialt)->ps[ipx].i = i;
 	          (*wcs+ialt)->ps[ipx].m = m;
 	          wptr = (*wcs+ialt)->ps[ipx].value;
 	        }
-	
+
 	        /* Read the keyvalue. */
 	        cptr = (char *)wptr;
 	        strcpy(cptr, yytext+1);
-	
+
 	        /* Squeeze out repeated quotes. */
 	        ix = 0;
 	        for (jx = 0; jx < 72; jx++) {
 	          if (ix < jx) {
 	            cptr[ix] = cptr[jx];
 	          }
-	
+
 	          if (cptr[jx] == '\0') {
 	            if (ix) cptr[ix-1] = '\0';
 	            break;
 	          } else if (cptr[jx] == '\'' && cptr[jx+1] == '\'') {
 	            jx++;
 	          }
-	
+
 	          ix++;
 	        }
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null string pointer";
 	      BEGIN(ERROR);
@@ -937,7 +938,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (ctrl < 0) {
 	      /* Preserve discards. */
 	      keep = wcspih_hdr - 80;
-	
+
 	    } else if (ctrl > 2) {
 	      fprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
 	    }
@@ -952,7 +953,7 @@ jmp_buf wcspih_abort_jmp_env;
 	      /* Preserve rejects. */
 	      keep = wcspih_hdr - 80;
 	    }
-	
+
 	    if (abs(ctrl%10) > 1) {
 	      fprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
 	        errmsg);
@@ -968,7 +969,7 @@ jmp_buf wcspih_abort_jmp_env;
 	    }
 	    hptr += 80;
 	  }
-	
+
 	  i = j = m = 0;
 	  a = ' ';
 	  valtype = -1;
@@ -986,7 +987,7 @@ jmp_buf wcspih_abort_jmp_env;
 	      yylex_destroy();
 	      return status;
 	    }
-	
+
 	    if (abs(ctrl%10) > 2) {
 	      if (*nwcs == 1) {
 	        fprintf(stderr, "Found one coordinate representation.\n");
@@ -995,28 +996,28 @@ jmp_buf wcspih_abort_jmp_env;
 	          *nwcs);
 	      }
 	    }
-	
+
 	    wcspih_hdr = header;
 	    wcspih_nkeyrec = nkeyrec;
 	    *nreject = 0;
-	
+
 	    pass = 2;
 	    i = j = m = 0;
 	    a = ' ';
 	    valtype = -1;
-	
+
 	    yyrestart(yyin);
-	
+
 	  } else {
 	    yylex_destroy();
-	
+
 	    if (ctrl < 0) {
 	      *hptr = '\0';
 	    } else if (ctrl == 1) {
 	      fprintf(stderr, "%d WCS keyrecords were rejected.\n",
 	        *nreject);
 	    }
-	
+
 	    return wcspih_final(alts, epoch, vsource, nwcs, wcs);
 	  }
 	}

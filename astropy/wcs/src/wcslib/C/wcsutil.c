@@ -31,6 +31,8 @@
   $Id: wcsutil.c,v 4.10 2012/02/05 23:41:44 cal103 Exp $
 *===========================================================================*/
 
+#include <ctype.h>
+#include <locale.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -183,4 +185,73 @@ char *wcsutil_fptr2str(int (*func)(void), char hext[])
   }
 
   return hext;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
+
+{
+  struct lconv *locale_data = localeconv();
+  const char *decimal_point = locale_data->decimal_point;
+
+  if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+    char *out = outbuf;
+    size_t decimal_point_len = strlen(decimal_point);
+
+    for ( ; *inbuf; ++inbuf) {
+      if (*inbuf == '.') {
+        strncpy(out, decimal_point, decimal_point_len);
+        out += decimal_point_len;
+      } else {
+        *out++ = *inbuf;
+      }
+    }
+
+    *out = '\0';
+
+    return outbuf;
+  } else {
+    return inbuf;
+  }
+}
+
+int wcsutil_str2double(const char *buf, const char *format, double *value)
+
+{
+  char ctmp[72];
+  return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value) < 1;
+}
+
+/*--------------------------------------------------------------------------*/
+
+static void wcsutil_locale_to_dot(char *buf)
+
+{
+  struct lconv *locale_data = localeconv();
+  const char *decimal_point = locale_data->decimal_point;
+
+  if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+    size_t decimal_point_len = strlen(decimal_point);
+    char *inbuf = buf;
+    char *outbuf = buf;
+
+    for ( ; *inbuf; ++inbuf) {
+      if (strncmp(inbuf, decimal_point, decimal_point_len) == 0) {
+        *outbuf++ = '.';
+        inbuf += decimal_point_len - 1;
+      } else {
+        *outbuf++ = *inbuf;
+      }
+    }
+
+    *outbuf = '\0';
+  }
+}
+
+void wcsutil_double2str(char *buf, const char *format, double value)
+
+{
+  sprintf(buf, format, value);
+  wcsutil_locale_to_dot(buf);
 }

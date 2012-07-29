@@ -100,6 +100,7 @@ ADD_UNIT  {ADD_ALL}|{ADD_SUP}|{ADD_SUB}|{ADD_NONE}
 #include "wcserr.h"
 #include "wcsmath.h"
 #include "wcsunits.h"
+#include "wcsutil.h"
 
 #define YY_DECL int wcsulexe(const char unitstr[], int *func, double *scale, \
                              double units[], struct wcserr **err)
@@ -119,6 +120,7 @@ jmp_buf wcsulex_abort_jmp_env;
 	int status   = 0;
 	int func_r, i, j;
 	double dexp, expon, factor, factor_r, types[WCSUNITS_NTYPE];
+        char ctmp[72];
 	YY_BUFFER_STATE buf;
 	void add(double *factor, double types[], double *expon, double *scale,
 	    double units[]);
@@ -866,7 +868,8 @@ sqrt" "*"(" {
 	}
 
 <EXPON>" "*"("" "*{FLOAT}" "*")" {
-	  sscanf(yytext, " (%lf)", &dexp);
+          sscanf(yytext, " (%s)", ctmp);
+          wcsutil_str2double(ctmp, "%lf", &dexp);
 	  expon *= dexp;
 	  add(&factor, types, &expon, scale, units);
 	  operator = 0;
