@@ -258,6 +258,7 @@ def test_angular_diameter_distance_z1z2():
     assert np.allclose(core.WMAP7.angular_diameter_distance_z1z2(z1, z2),
                        results)
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_absorption_distance():
     assert np.allclose(core.WMAP7.absorption_distance([1,3]),
                        [ 1.72576635,  7.98685853])
