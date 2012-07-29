@@ -81,32 +81,32 @@ Time Format
 ^^^^^^^^^^^
 
 The time format specifies how an instant of time is represented.  The currently
-available formats are can be found in the ``astrotime.TIME_FORMATS`` dict and
+available formats are can be found in the ``astropy.time.TIME_FORMATS`` dict and
 are listed in the table below.  Each of these formats is implemented as a class
-that derives from the base :class:`~astropy.time.astrotime.TimeFormat` class.
+that derives from the base :class:`~astropy.time.core.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
 =========  ===================================================
 Format            Class
 =========  ===================================================
-byear      :class:`~astropy.time.astrotime.TimeBesselianEpoch`
-cxcsec     :class:`~astropy.time.astrotime.TimeCxcSec`
-iso        :class:`~astropy.time.astrotime.TimeISO`
-isot       :class:`~astropy.time.astrotime.TimeISOT`
-jd         :class:`~astropy.time.astrotime.TimeJD`
-jyear      :class:`~astropy.time.astrotime.TimeJulianEpoch`
-mjd        :class:`~astropy.time.astrotime.TimeMJD`
-unix       :class:`~astropy.time.astrotime.TimeUnix`
-yday       :class:`~astropy.time.astrotime.TimeYearDayTime`
+byear      :class:`~astropy.time.core.TimeBesselianEpoch`
+cxcsec     :class:`~astropy.time.core.TimeCxcSec`
+iso        :class:`~astropy.time.core.TimeISO`
+isot       :class:`~astropy.time.core.TimeISOT`
+jd         :class:`~astropy.time.core.TimeJD`
+jyear      :class:`~astropy.time.core.TimeJulianEpoch`
+mjd        :class:`~astropy.time.core.TimeMJD`
+unix       :class:`~astropy.time.core.TimeUnix`
+yday       :class:`~astropy.time.core.TimeYearDayTime`
 =========  ===================================================
 
 Subformat
 """"""""""
 
-The time format classes :class:`~astropy.time.astrotime.TimeISO`,
-:class:`~astropy.time.astrotime.TimeISO`, and
-:class:`~astropy.time.astrotime.TimeYearDayTime` support the concept of
+The time format classes :class:`~astropy.time.core.TimeISO`,
+:class:`~astropy.time.core.TimeISO`, and
+:class:`~astropy.time.core.TimeYearDayTime` support the concept of
 subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
 
@@ -338,7 +338,7 @@ certain subformat::
   >>> t = Time('2000:002:03:04', scale='utc', opt={'in_subfmt': 'date_hm'})
   >>> t = Time('2000:002', scale='utc', opt={'in_subfmt': 'date_hm'})
   ERROR: ValueError: Input values did not match any of format classes
-  ['iso', 'isot', 'yday'] [astropy.time.astrotime]
+  ['iso', 'isot', 'yday']
 
 out_subfmt
 """""""""""
@@ -496,8 +496,8 @@ The available time formats are:
 =========  ===================================================
 Format            Class
 =========  ===================================================
-sec        :class:`~astropy.time.astrotime.TimeDeltaSec`
-jd         :class:`~astropy.time.astrotime.TimeDeltaJD`
+sec        :class:`~astropy.time.core.TimeDeltaSec`
+jd         :class:`~astropy.time.core.TimeDeltaJD`
 =========  ===================================================
 
 Examples
@@ -527,7 +527,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
 Reference/API
 =============
 
-.. automodapi:: astropy.time.astrotime
+.. automodapi:: astropy.time.core
 
 
 Acknowledgments and Licenses

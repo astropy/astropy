@@ -1,1 +1,1 @@
-from .astrotime import *
+from .core import *
