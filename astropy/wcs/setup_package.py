@@ -198,37 +198,59 @@ MSVC, do not support string literals greater than 256 characters.
 def get_extensions():
     from astropy.version import debug
 
-    write_wcsconfig_h()
     generate_c_docstrings()
 
     ######################################################################
-    # WCSLIB
-    wcslib_path = join(WCSROOT, "src", "wcslib")  # Path to wcslib
-    wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
-    wcslib_files = [  # List of wcslib files to compile
-        'flexed/wcsbth.c',
-        'flexed/wcspih.c',
-        'flexed/wcsulex.c',
-        'flexed/wcsutrn.c',
-        'cel.c',
-        'lin.c',
-        'log.c',
-        'prj.c',
-        'spc.c',
-        'sph.c',
-        'spx.c',
-        'tab.c',
-        'wcs.c',
-        'wcserr.c',
-        'wcsfix.c',
-        'wcshdr.c',
-        'wcsprintf.c',
-        'wcsunits.c',
-        'wcsutil.c']
-    wcslib_files = [join(wcslib_cpath, x) for x in wcslib_files]
+    # DISTUTILS SETUP
+    source_files = []
+    libraries = []
+    include_dirs = [
+        setup_helpers.get_numpy_include_path(),
+        join(WCSROOT, "include")]
 
-    ######################################################################
-    # ASTROPY.WCS-SPECIFIC AND WRAPPER SOURCE FILES
+    library_dirs = []
+    define_macros = [
+        ('ECHO', None),
+        ('WCSTRIG_MACRO', None),
+        ('ASTROPY_WCS_BUILD', None),
+        ('_GNU_SOURCE', None),
+        ('WCSVERSION', WCSVERSION)]
+    undef_macros = []
+    extra_compile_args = []
+    extra_link_args = []
+
+    if (not setup_helpers.use_system_library('wcslib') or
+        sys.platform == 'win32'):
+        write_wcsconfig_h()
+
+        wcslib_path = join("cextern", "wcslib")  # Path to wcslib
+        wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
+        wcslib_files = [  # List of wcslib files to compile
+            'flexed/wcsbth.c',
+            'flexed/wcspih.c',
+            'flexed/wcsulex.c',
+            'flexed/wcsutrn.c',
+            'cel.c',
+            'lin.c',
+            'log.c',
+            'prj.c',
+            'spc.c',
+            'sph.c',
+            'spx.c',
+            'tab.c',
+            'wcs.c',
+            'wcserr.c',
+            'wcsfix.c',
+            'wcshdr.c',
+            'wcsprintf.c',
+            'wcsunits.c',
+            'wcsutil.c']
+        source_files.extend(join(wcslib_cpath, x) for x in wcslib_files)
+        include_dirs.append(wcslib_cpath)
+    else:
+        setup_helpers.pkg_config(
+            ['wcs'], ['wcs'], include_dirs, library_dirs, libraries)
+
     astropy_wcs_files = [  # List of astropy.wcs files to compile
         'distortion.c',
         'distortion_wrap.c',
@@ -245,20 +267,7 @@ def get_extensions():
         'wcslib_tabprm_wrap.c',
         'wcslib_units_wrap.c',
         'wcslib_wtbarr_wrap.c']
-    astropy_wcs_files = [join(WCSROOT, 'src', x) for x in astropy_wcs_files]
-
-    ######################################################################
-    # DISTUTILS SETUP
-    libraries = []
-    define_macros = [
-        ('ECHO', None),
-        ('WCSTRIG_MACRO', None),
-        ('ASTROPY_WCS_BUILD', None),
-        ('_GNU_SOURCE', None),
-        ('WCSVERSION', WCSVERSION)]
-    undef_macros = []
-    extra_compile_args = []
-    extra_link_args = []
+    source_files.extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 
     if debug:
         define_macros.append(('DEBUG', None))
@@ -288,16 +297,14 @@ def get_extensions():
 
     return [
         Extension('astropy.wcs._wcs',
-                  wcslib_files + astropy_wcs_files,
-                  include_dirs=[
-                      setup_helpers.get_numpy_include_path(),
-                      wcslib_cpath,
-                      join(WCSROOT, "include")],
+                  source_files,
+                  include_dirs=include_dirs,
                   define_macros=define_macros,
                   undef_macros=undef_macros,
                   extra_compile_args=extra_compile_args,
                   extra_link_args=extra_link_args,
-                  libraries=libraries)]
+                  libraries=libraries,
+                  library_dirs=library_dirs)]
 
 
 def get_package_data():
@@ -310,3 +317,7 @@ def get_package_data():
 
 def get_legacy_alias():
     return setup_helpers.add_legacy_alias('pywcs', 'astropy.wcs', '1.11')
+
+
+def get_external_libraries():
+    return ['wcslib']
