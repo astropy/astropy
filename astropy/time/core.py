@@ -94,6 +94,11 @@ class Time(object):
         self._init_from_vals(val, val2, format, scale)
 
     def _init_from_vals(self, val, val2, format, scale):
+        """Set the internal _format, _scale, and _time attrs from user
+        inputs.  This handles coercion into the correct shapes and
+        some basic input validation.
+        """
+
         if 'astropy.time.sofa_time' not in sys.modules:
             raise ImportError('Failed to import astropy.time.sofa_time '
                               'extension module (check installation)')
@@ -132,6 +137,7 @@ class Time(object):
         If format is None and the input is a string-type array then guess
         available string formats and stop when one matches.
         """
+
         if format is None and val.dtype.kind == 'S':
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeString)]
@@ -155,7 +161,7 @@ class Time(object):
 
     @property
     def format(self):
-        """Time format
+        """Time format.
         """
         return self._format
 
@@ -169,11 +175,14 @@ class Time(object):
 
     @property
     def scale(self):
-        """Time scale
+        """Time scale.
         """
         return self._scale
 
     def _set_scale(self, scale):
+        """This is the key routine that actually does time scale conversions.
+        """
+
         if scale == self._scale:
             return
         if scale not in self.SCALES:
@@ -218,7 +227,7 @@ class Time(object):
                                                from_jd=True)
         self._scale = scale
 
-    # Precision
+    # Precision property
     def _get_precision(self):
         return self._precision
 
@@ -232,7 +241,7 @@ class Time(object):
     """Decimal precision when outputting seconds as floating point (int value
     between 0 and 9 inclusive)."""
 
-    # In_subfmt
+    # In_subfmt property
     def _get_in_subfmt(self):
         return self._in_subfmt
 
@@ -244,7 +253,7 @@ class Time(object):
     in_subfmt = property(_get_in_subfmt, _set_in_subfmt)
     """Unix glob to select subformats for parsing string input times"""
 
-    # Out_subfmt
+    # Out_subfmt property
     def _get_out_subfmt(self):
         return self._out_subfmt
 
@@ -258,21 +267,21 @@ class Time(object):
 
     @property
     def jd1(self):
-        """First of the two doubles that internally store time value(s) in JD
+        """First of the two doubles that internally store time value(s) in JD.
         """
         vals = self._time.jd1
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def jd2(self):
-        """Second of the two doubles that internally store time value(s) in JD
+        """Second of the two doubles that internally store time value(s) in JD.
         """
         vals = self._time.jd2
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def vals(self):
-        """Time values expressed the current format
+        """Time values expressed the current format.
         """
         return self._time.vals
 
@@ -332,10 +341,13 @@ class Time(object):
         return tm
 
     def _getAttributeNames(self):
-        """Add dynamic attribute names for IPython completer"""
+        """Add dynamic attribute names for IPython completer.
+        """
         return list(self.SCALES) + self.FORMATS.keys()
 
     def __getattr__(self, attr):
+        """Get dynamic attributes to output format or do timescale conversion.
+        """
         # The following is needed for the IPython completer
         if attr == 'trait_names':
             return []
@@ -354,9 +366,8 @@ class Time(object):
             return self.__getattribute__(attr)
 
     def _match_len(self, val):
-        """Ensure that `val` is matched to length of self.
-        If val has length 1 then broadcast, otherwise cast to double
-        and make sure length matches.
+        """Ensure that `val` is matched to length of self.  If val has length 1
+        then broadcast, otherwise cast to double and make sure length matches.
         """
         val, ndim = _make_1d_array(val)
         if len(val) == 1:
@@ -467,12 +478,11 @@ class Time(object):
 class TimeDelta(Time):
     """Represent the time difference between two times.
 
-    A Time object is initialized with one or more times in the ``val``
+    A TimeDelta object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
-    ``format`` and must correspond to the specified time ``scale``.  The
-    optional ``val2`` time input should be supplied only for numeric input
-    formats (e.g. JD) where very high precision (better than 64-bit precision)
-    is required.
+    ``format``.  The optional ``val2`` time input should be supplied only for
+    numeric input formats (e.g. JD) where very high precision (better than
+    64-bit precision) is required.
 
     Parameters
     ----------
@@ -482,16 +492,16 @@ class TimeDelta(Time):
         Data to initialize table.
     format : str, optional
         Format of input value(s)
-    scale : str, optional
-        Time scale of input value(s)
-    lat : float, optional
-        Earth latitude of observer
-    lon : float, optional
-        Earth longitude of observer
     """
+    SCALES = TIME_DELTA_SCALES
+    """List of time delta scales"""
+
+    FORMATS = TIME_DELTA_FORMATS
+    """Dict of time delta formats"""
+
     def __init__(self, val, val2=None, format=None, scale=None):
-        self.SCALES = TIME_DELTA_SCALES
-        self.FORMATS = TIME_DELTA_FORMATS
+        # Note: scale is not used but is needed because of the inheritance
+        # from Time.
         self._init_from_vals(val, val2, format, 'tai')
 
 
@@ -541,19 +551,29 @@ class TimeFormat(object):
             self.set_jds(val1, val2)
 
     def _check_val_type(self, val1, val2):
+        """Input value validation, typically overridden by derived classes.
+        """
         if val1.dtype.type != np.double or val2.dtype.type != np.double:
             raise TypeError('Input values for {0} class must be doubles'
                              .format(self.name))
 
     def set_jds(self, val1, val2):
+        """Set internal jd1 and jd2 from val1 and val2.  Must be provided
+        by derived classes.
+        """
         raise NotImplementedError
 
     @property
     def vals(self):
+        """Return time representation from internal jd1 and jd2.  Must be
+        provided by by derived classes.
+        """
         raise NotImplementedError
 
 
 class TimeJD(TimeFormat):
+    """Julian Date time format.
+    """
     name = 'jd'
 
     def set_jds(self, val1, val2):
@@ -566,6 +586,8 @@ class TimeJD(TimeFormat):
 
 
 class TimeMJD(TimeFormat):
+    """Modified Julian Date time format.
+    """
     name = 'mjd'
 
     def set_jds(self, val1, val2):
@@ -650,8 +672,7 @@ class TimeString(TimeFormat):
             # Note: don't care about val2 for these classes
 
     def set_jds(self, val1, val2):
-        """
-        Parse the time strings contained in val1 and set jd1, jd2.
+        """Parse the time strings contained in val1 and set jd1, jd2.
         """
         iy = np.empty(self.n_times, dtype=np.intc)
         im = np.empty(self.n_times, dtype=np.intc)
@@ -752,6 +773,15 @@ class TimeString(TimeFormat):
 
 
 class TimeISO(TimeString):
+    """ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
+
+    The allowed subformats are:
+
+    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+    - 'date_hm': date + hours, mins
+    - 'date': date
+    """
+
     name = 'iso'
     subfmts = (('date_hms',
                 '%Y-%m-%d %H:%M:%S',
@@ -766,6 +796,17 @@ class TimeISO(TimeString):
 
 
 class TimeISOT(TimeString):
+    """ISO 8601 compliant date-time format "YYYY-MM-DDTHH:MM:SS.sss...".
+    This is the same as TimeISO except for a "T" instead of space between
+    the date and time.
+
+    The allowed subformats are:
+
+    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+    - 'date_hm': date + hours, mins
+    - 'date': date
+    """
+
     name = 'isot'
     subfmts = (('date_hms',
                 '%Y-%m-%dT%H:%M:%S',
@@ -779,6 +820,16 @@ class TimeISOT(TimeString):
 
 
 class TimeYearDayTime(TimeString):
+    """Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".  The
+    day-of-year (DOY) goes from 001 to 365 (366 in leap years).
+
+    The allowed subformats are:
+
+    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+    - 'date_hm': date + hours, mins
+    - 'date': date
+    """
+
     name = 'yday'
     subfmts = (('date_hms',
                 '%Y:%j:%H:%M:%S',
@@ -792,8 +843,8 @@ class TimeYearDayTime(TimeString):
 
 
 class TimeEpochDate(TimeFormat):
-    """Base class for support Besselian and Julian epoch dates (e.g.
-    B1950.0 or J2000.0 etc).
+    """Base class for support Besselian and Julian epoch dates (e.g.  B1950.0
+    or J2000.0 etc).
     """
     def set_jds(self, val1, val2):
         epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
@@ -806,27 +857,28 @@ class TimeEpochDate(TimeFormat):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year"""
+    """Besselian Epoch year (e.g. B1950.0)."""
     name = 'byear'
     epoch_to_jd = 'besselian_epoch_jd'
     jd_to_epoch = 'jd_besselian_epoch'
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year"""
+    """Julian Epoch year (e.g. J2000.0)."""
     name = 'jyear'
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
 
 
 class TimeDeltaFormat(TimeFormat):
-    """
-    Base class for time delta represenations.
+    """Base class for time delta representations.
     """
     pass
 
 
 class TimeDeltaSec(TimeDeltaFormat):
+    """Time delta in SI seconds.
+    """
     name = 'sec'
 
     def set_jds(self, val1, val2):
@@ -839,6 +891,8 @@ class TimeDeltaSec(TimeDeltaFormat):
 
 
 class TimeDeltaJD(TimeDeltaFormat):
+    """Time delta in Julian days (86400 SI seconds).
+    """
     name = 'jd'
 
     def set_jds(self, val1, val2):
@@ -868,6 +922,13 @@ for name in dir(_module):
 
 
 def _make_1d_array(val):
+    """Take ``val`` and convert/reshape to a 1-d array.
+
+    Returns
+    -------
+    val, val_ndim: ndarray, int
+        Array version of ``val`` and the number of dims in original.
+    """
     val = np.asarray(val)
     val_ndim = val.ndim  # remember original ndim
     if val.ndim == 0:
@@ -881,6 +942,7 @@ def _make_1d_array(val):
         val = np.asarray(val, dtype=np.float64)
 
     return val, val_ndim
+
 
 def _unsupported_op_type(left, right):
     raise TypeError("unsupported operand type(s) for -: "
