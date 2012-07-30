@@ -41,6 +41,19 @@ A Complex example
 
 Content if needed
 
+Sub-sub topic 1
+^^^^^^^^^^^^^^^^
+
+Content if needed (note the use of ^^^^ at this level).
+
+Sub-sub-sub topic 1
+"""""""""""""""""""
+
+Content if needed (note the use of """"" at this level).
+This is probably the deepest level that is practical.  However,
+just in case, the next levels of detail should use the +, :, and ~
+characters respectively.
+
 
 .. OR IF MORE COMPLICATED,
 
@@ -59,6 +72,9 @@ For example, if your toctree looks like the above example, this document
 should be ``docs/packagename/index.rst``, and the other documents should
 be ``docs/packagename/subdoc1.rst``, ``docs/packagename/subdoc2.rst``,
 and ``docs/packagename/subdoc3.rst``.
+
+In the "more complicated" case of using ``subdoc.rst`` files, each of those
+should likewise use the section character header order of ``* = - ^ " + : ~``.
 
 
 See Also (optional)
