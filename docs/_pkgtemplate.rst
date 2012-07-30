@@ -73,6 +73,9 @@ should be ``docs/packagename/index.rst``, and the other documents should
 be ``docs/packagename/subdoc1.rst``, ``docs/packagename/subdoc2.rst``,
 and ``docs/packagename/subdoc3.rst``.
 
+In the "more complicated" case of using ``subdoc.rst`` files, each of those
+should likewise use the section character header order of ``* = - ^ " + : ~``.
+
 
 See Also (optional)
 ===================
