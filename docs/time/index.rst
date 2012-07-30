@@ -68,7 +68,7 @@ In `astropy.time` a "time" is a single instant of time which is
 independent of the way the time is represented (the "format") and the time
 "scale" which specifies the offset and scaling relation of the unit of time.
 There is no distinction made between a "date" and a "time" since both concepts
-(as loosely defined in common usage) are just different represenations of a
+(as loosely defined in common usage) are just different representations of a
 moment in time.
 
 Once a |Time| object is created it cannot be altered internally.  In code lingo
@@ -81,7 +81,7 @@ Time Format
 ^^^^^^^^^^^
 
 The time format specifies how an instant of time is represented.  The currently
-available formats are can be found in the ``astropy.time.TIME_FORMATS`` dict and
+available formats are can be found in the ``Time.FORMATS`` dict and
 are listed in the table below.  Each of these formats is implemented as a class
 that derives from the base :class:`~astropy.time.core.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
@@ -134,7 +134,7 @@ measuring time: either the rate at which time passes; or points in time; or
 both" [#]_. See also [#]_ and [#]_.
 ::
 
-  >>> astrotime.TIME_SCALES
+  >>> Time.SCALES
   ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 
 ====== =================================
@@ -221,24 +221,24 @@ Creating a Time object
 
 The allowed |Time| arguments to create a time object are listed below:
 
-val : numpy ndarray, list, str, or number
+**val** : numpy ndarray, list, str, or number
     Data to initialize table.
-val2 : numpy ndarray, list, str, or number; optional
+**val2** : numpy ndarray, list, str, or number; optional
     Data to initialize table.
-format : str, optional
+**format** : str, optional
     Format of input value(s)
-scale : str, optional
+**scale** : str, optional
     Time scale of input value(s)
-opt : dict, optional
-    options
-lat : float, optional
+**precision** : int between 0 and 9 inclusive
+    Decimal precision when outputting seconds as floating point
+**in_subfmt** : str
+    Unix glob to select subformats for parsing string input times
+**out_subfmt** : str
+    Unix glob to select subformats for outputting string times
+**lat** : float, optional
     Earth latitude of observer
-lon : float, optional
+**lon** : float, optional
     Earth longitude of observer
-
-.. note:: The API for the ``opt``, ``lat``, and ``lon`` arguments is subject
-   to change as of this writing.
-
 
 val
 ^^^^^^^^^^^
@@ -285,40 +285,27 @@ The ``scale`` argument sets the `time scale`_ and is required.
 
 XXX should not be required for TimeFromEpoch or other formats that have a fixed scale.
 
-opt
-^^^^^^^^^
-
-The ``opt`` argument is a dictionary of additional options that control
-the behavior of the time format classes.  The allowed keys for setting ``opt``
-are currently:
-
-``precision``: int between 0 and 9 inclusive
-    Decimal precision when outputting seconds as floating point
-``in_subfmt``: str
-    Unix glob to select subformats for parsing string input times
-``out_subfmt``: str
-    Unix glob to select subformats for outputting string times
-
 precision
-"""""""""""
+^^^^^^^^^^
 
 The ``precision`` setting affects string formats when outputting a value that
 includes seconds.  There is no effect when inputting time values from strings.
 The default precision is 3.  Note that the limit of 9 digits is driven by the
 way that SOFA handles fractional seconds.  In practice this should should not
-be an issue.  ::
+be an issue.
+::
 
-  >>> t = Time('2010-01-01 00:00:00', scale='utc', opt={'precision': 3})
+  >>> t = Time('2010-01-01 00:00:00', scale='utc', precision=3)
   >>> t.iso
   '2010-01-01 00:00:00.000'
-  >>> t.opt['precision'] = 0
+  >>> t.precision = 0
   >>> t.iso
   '2010-01-01 00:00:00'
 
 in_subfmt
-"""""""""""
+^^^^^^^^^^^
 
-The ``in_subfmt`` option provides a mechanism to select one or more
+The ``in_subfmt`` argument provides a mechanism to select one or more
 `subformat`_ values from the available subformats for string input.  Multiple
 allowed subformats can be selected using Unix-style wildcard characters, in
 particular ``*`` and ``?``, as documented in the Python `fnmatch
@@ -332,25 +319,26 @@ heterogeous subformat::
   <Time object: scale='utc' format='yday'
    vals=['2000:001:00:00:00.000' '2000:002:03:04:00.000' '2001:003:04:05:06.789']>
 
-One can explicitly specify in the ``in_subfmt`` in order to strictly require a
+One can explicitly specify ``in_subfmt`` in order to strictly require a
 certain subformat::
 
-  >>> t = Time('2000:002:03:04', scale='utc', opt={'in_subfmt': 'date_hm'})
-  >>> t = Time('2000:002', scale='utc', opt={'in_subfmt': 'date_hm'})
+  >>> t = Time('2000:002:03:04', scale='utc', in_subfmt='date_hm')
+  >>> t = Time('2000:002', scale='utc', in_subfmt='date_hm')
   ERROR: ValueError: Input values did not match any of format classes
   ['iso', 'isot', 'yday']
 
 out_subfmt
-"""""""""""
+^^^^^^^^^^^
 
-The ``out_subfmt`` option is similar to ``in_subfmt`` except that the first
+The ``out_subfmt`` argument is similar to ``in_subfmt`` except that it applies
+to output formatting.  In the case of multiple matching subformats the first
 matching subformat is used.
 
-  >>> Time('2000-01-01 02:03:04', scale='utc', opt={'out_subfmt': 'date'}).iso
+  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date').iso
   '2000-01-01'
-  >>> Time('2000-01-01 02:03:04', scale='utc', opt={'out_subfmt': 'date_hms'}).iso
+  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date_hms').iso
   '2000-01-01 02:03:04.000'
-  >>> Time('2000-01-01 02:03:04', scale='utc', opt={'out_subfmt': 'date*'}).iso
+  >>> Time('2000-01-01 02:03:04', scale='utc', out_subfmt='date*').iso
   '2000-01-01 02:03:04.000'
 
 lat and lon
@@ -414,7 +402,7 @@ Examples::
   <Time object: scale='tai' format='iso' vals=2010-01-01 00:00:34.000>
 
 In this process the ``format`` and other object attributes like ``lat``,
-``lon``, and ``opt`` are also propagated to the new object.
+``lon``, and ``precision`` are also propagated to the new object.
 
 
 As noted in the `Time object basics` section, a |Time| object is immutable and
@@ -456,8 +444,7 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   >>> lat = 19.48125
   >>> lon = -155.933222
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-  ...          lat=lat, lon=lon)
-  >>> t.set_opt(precision=6)
+  ...          lat=lat, lon=lon, precision=6)
   >>> t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the transformation
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
@@ -513,6 +500,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> dt.sec
   2678400.0
 
+  >>> from astropy.time import TimeDelta
   >>> dt2 = TimeDelta(50.0, format='sec')
   >>> t3 = t2 + dt2  # Add a TimeDelta to a Time
   >>> t3.iso

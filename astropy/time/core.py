@@ -74,11 +74,15 @@ class Time(object):
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
 
+    SCALES = TIME_SCALES
+    """List of time scales"""
+
+    FORMATS = TIME_FORMATS
+    """Dict of time formats"""
+
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0):
-        self.SCALES = TIME_SCALES
-        self.FORMATS = TIME_FORMATS
         self.lat = lat
         self.lon = lon
         if precision is not None:
