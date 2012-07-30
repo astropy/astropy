@@ -41,56 +41,6 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'utc'): ('tai',),
               }
 
-_global_opt = {'precision': 3,
-               'in_subfmt': '*',
-               'out_subfmt': '*'}
-
-
-def set_opt(**kwargs):
-    """Set default options that affect TimeFormat class behavior.
-
-    Examples::
-
-      set_opt(precision=6)
-      set_opt(in_subfmt='date_hm*')  # require date and at least hour & min
-      set_opt(out_subfmt='date')  # output as date with no time
-
-    Parameters
-    ----------
-    precision : int between 0 and 9 inclusive
-        Decimal precision when outputting seconds as floating point
-    in_subfmt : str
-        Unix glob to select subformats for parsing string input times
-    out_subfmt : str
-        Unix glob to select subformat for outputting string times
-    """
-    _global_opt.update(**kwargs)
-
-
-class OptDict(dict):
-    """Only a limited set of keys are allowed and the values are
-    validated.  If a special value ``__base__`` is set to a dictionary
-    then that supplies defaults.
-    """
-    def __setitem__(self, item, val):
-        if item in ('__base__', 'in_subfmt', 'out_subfmt'):
-            pass
-        elif item == 'precision':
-            if not (isinstance(val, int) and val >= 0 and val < 10):
-                raise ValueError('Precision option must be int '
-                                 'between 0 and 9 inclusive')
-        else:
-            raise KeyError('{0} is not a valid option key'.format(item))
-        super(OptDict, self).__setitem__(item, val)
-
-    def __getitem__(self, item):
-        if '__base__' in self:
-            base = super(OptDict, self).__getitem__('__base__').copy()
-        else:
-            base = {}
-        base.update(self)
-        return base[item]
-
 
 class Time(object):
     """Represent and manipulate times and dates for astronomy.
@@ -119,21 +69,30 @@ class Time(object):
     lon : float, optional
         Earth longitude of observer
     """
+
+    _precision = 3  # Precision when for seconds as floating point
+    _in_subfmt = '*'  # Select subformat for inputting string times
+    _out_subfmt = '*'  # Select subformat for outputting string times
+
     def __init__(self, val, val2=None, format=None, scale=None,
-                 opt={}, lat=0.0, lon=0.0):
+                 precision=None, in_subfmt=None, out_subfmt=None,
+                 lat=0.0, lon=0.0):
         self.SCALES = TIME_SCALES
         self.FORMATS = TIME_FORMATS
         self.lat = lat
         self.lon = lon
-        self._init_from_vals(val, val2, format, scale, opt)
+        if precision is not None:
+            self.precision = precision
+        if in_subfmt is not None:
+            self.in_subfmt = in_subfmt
+        if out_subfmt is not None:
+            self.out_subfmt = out_subfmt
+        self._init_from_vals(val, val2, format, scale)
 
-    def _init_from_vals(self, val, val2, format, scale, opt):
+    def _init_from_vals(self, val, val2, format, scale):
         if 'astropy.time.sofa_time' not in sys.modules:
             raise ImportError('Failed to import astropy.time.sofa_time '
                               'extension module (check installation)')
-
-        opt['__base__'] = _global_opt
-        self.opt = OptDict(opt)
 
         # Coerce val into a 1-d array
         val, val_ndim = _make_1d_array(val)
@@ -183,7 +142,8 @@ class Time(object):
 
         for format, FormatClass in formats:
             try:
-                return format, FormatClass(val, val2, scale, self.opt)
+                return format, FormatClass(val, val2, scale, self.precision,
+                                           self.in_subfmt, self.out_subfmt)
             except (ValueError, TypeError):
                 pass
         else:
@@ -194,21 +154,6 @@ class Time(object):
         """Time format
         """
         return self._format
-
-    def _set_format(self, format):
-        NewFormat = self.FORMATS[format]
-        # If the new format class has a "scale" class attr then that scale is
-        # required and the input jd1,2 has to be converted first.
-        if hasattr(NewFormat, 'scale'):
-            scale = getattr(NewFormat, 'scale')
-            new = getattr(self, scale)  # self JDs converted to scale
-            self._time = NewFormat(new.jd1, new.jd2, scale, self.opt,
-                                   from_jd=True)
-        else:
-            self._time = NewFormat(self._time.jd1, self._time.jd2,
-                                   self.scale, self.opt, from_jd=True)
-
-        self._format = format
 
     def __repr__(self):
         return ("<%s object: scale='%s' format='%s' vals=%s>" % (
@@ -264,25 +209,48 @@ class Time(object):
 
             conv_func = getattr(sofa_time, sys1 + '_' + sys2)
             jd1, jd2 = conv_func(*args)
-        self._time = self.FORMATS[self.format](jd1, jd2, scale, self.opt,
-                                              from_jd=True)
+        self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
+                                               self.in_subfmt, self.out_subfmt,
+                                               from_jd=True)
         self._scale = scale
 
-    def set_opt(self, **kwargs):
-        """Set options that affect TimeFormat class behavior for this Time
-        instance.
+    # Precision
+    def _get_precision(self):
+        return self._precision
 
-        Example::
+    def _set_precision(self, val):
+        if not isinstance(val, int) or val < 0 or val > 9:
+            raise ValueError('precision attribute must be an int between '
+                             '0 and 9')
+        self._precision = val
 
-          t = Time(100.0, format='mjd', scale='utc')
-          t.set_opt(precision=1)
+    precision = property(_get_precision, _set_precision)
+    """Decimal precision when outputting seconds as floating point (int value
+    between 0 and 9 inclusive)."""
 
-        Parameters
-        ----------
-        precision : int between 0 and 9 inclusive
-            Decimal precision when outputting seconds as floating point
-        """
-        self.opt.update(**kwargs)
+    # In_subfmt
+    def _get_in_subfmt(self):
+        return self._in_subfmt
+
+    def _set_in_subfmt(self, val):
+        if not isinstance(val, basestring):
+            raise ValueError('in_subfmt attribute must be a string')
+        self._in_subfmt = val
+
+    in_subfmt = property(_get_in_subfmt, _set_in_subfmt)
+    """Unix glob to select subformats for parsing string input times"""
+
+    # Out_subfmt
+    def _get_out_subfmt(self):
+        return self._out_subfmt
+
+    def _set_out_subfmt(self, val):
+        if not isinstance(val, basestring):
+            raise ValueError('out_subfmt attribute must be a string')
+        self._out_subfmt = val
+
+    out_subfmt = property(_get_out_subfmt, _set_out_subfmt)
+    """Unix glob to select subformats for outputting times"""
 
     @property
     def jd1(self):
@@ -307,9 +275,8 @@ class Time(object):
     def _get_time_object(self, format):
         """Turn this into copy??"""
         tm = self.__class__(self._time.jd1, self._time.jd2,
-                            format='jd', scale=self.scale, opt=self.opt)
-        tm._set_format(format)
-        attrs = ('is_scalar',
+                            format='jd', scale=self.scale)
+        attrs = ('is_scalar', '_precision', '_in_subfmt', '_out_subfmt',
                  '_delta_ut1_utc', '_delta_tdb_tt',
                  'lat', 'lon')
         for attr in attrs:
@@ -317,6 +284,26 @@ class Time(object):
                 setattr(tm, attr, getattr(self, attr))
             except AttributeError:
                 pass
+
+        # Now create the _time object for the given new format
+
+        NewFormat = tm.FORMATS[format]
+        # If the new format class has a "scale" class attr then that scale is
+        # required and the input jd1,2 has to be converted first.
+        if hasattr(NewFormat, 'scale'):
+            scale = getattr(NewFormat, 'scale')
+            new = getattr(tm, scale)  # self JDs converted to scale
+            tm._time = NewFormat(new._time.jd1, new._time.jd2, scale,
+                                   tm.precision,
+                                   tm.in_subfmt, tm.out_subfmt,
+                                   from_jd=True)
+        else:
+            tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
+                                   tm.scale, tm.precision,
+                                   tm.in_subfmt, tm.out_subfmt,
+                                   from_jd=True)
+        tm._format = format
+
         return tm
 
     def __getattr__(self, attr):
@@ -464,24 +451,40 @@ class TimeDelta(Time):
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s)
-    opt : dict, optional
-        options
     lat : float, optional
         Earth latitude of observer
     lon : float, optional
         Earth longitude of observer
     """
-    def __init__(self, val, val2=None, format=None, scale=None, opt={}):
+    def __init__(self, val, val2=None, format=None, scale=None):
         self.SCALES = TIME_DELTA_SCALES
         self.FORMATS = TIME_DELTA_FORMATS
-        self._init_from_vals(val, val2, format, 'tai', opt)
+        self._init_from_vals(val, val2, format, 'tai')
 
 
 class TimeFormat(object):
     """
     Base class for time representations.
+
+    Parameters
+    ----------
+    val1 : numpy ndarray, list, str, or number
+        Data to initialize table.
+    val2 : numpy ndarray, list, str, or number; optional
+        Data to initialize table.
+    scale : str
+        Time scale of input value(s)
+    precision : int
+        Precision for seconds as floating point
+    in_subfmt : str
+        Select subformat for inputting string times
+    out_subfmt : str
+        Select subformat for outputting string times
+    from_jd : bool
+        If true then val1, val2 are jd1, jd2
     """
-    def __init__(self, val1, val2, scale, opt, from_jd=False):
+    def __init__(self, val1, val2, scale, precision,
+                 in_subfmt, out_subfmt, from_jd=False):
         if hasattr(self.__class__, 'scale'):
             # This format class has a required time scale
             cls_scale = getattr(self.__class__, 'scale')
@@ -490,7 +493,9 @@ class TimeFormat(object):
                                  .format(self.__class__.__name__, cls_scale))
         else:
             self.scale = scale
-        self.opt = OptDict(opt)
+        self.precision = precision
+        self.in_subfmt = in_subfmt
+        self.out_subfmt = out_subfmt
         self.n_times = len(val1)
         if len(val1) != len(val2):
             raise ValueError('Input val1 and val2 must match in length')
@@ -506,6 +511,13 @@ class TimeFormat(object):
         if val1.dtype.type != np.double or val2.dtype.type != np.double:
             raise TypeError('Input values for {0} class must be doubles'
                              .format(self.name))
+
+    def set_jds(self, val1, val2):
+        raise NotImplementedError
+
+    @property
+    def vals(self):
+        raise NotImplementedError
 
 
 class TimeJD(TimeFormat):
@@ -541,11 +553,13 @@ class TimeFromEpoch(TimeFormat):
     epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
-    def __init__(self, val1, val2, scale, opt, from_jd=False):
+    def __init__(self, val1, val2, scale, precision,
+                 in_subfmt, out_subfmt, from_jd=False):
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
-                     format=self.epoch_format, opt=opt)
+                     format=self.epoch_format)
         self.epoch = getattr(epoch, self.scale)
-        super(TimeFromEpoch, self).__init__(val1, val2, scale, opt, from_jd)
+        super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
+                                            in_subfmt, out_subfmt, from_jd)
 
     def set_jds(self, val1, val2):
         self.jd1 = self.epoch.jd1 + val2 * self.unit
@@ -613,8 +627,8 @@ class TimeString(TimeFormat):
         imin = np.empty(self.n_times, dtype=np.intc)
         dsec = np.empty(self.n_times, dtype=np.double)
 
-        # Select subformats based on current self.opt['in_subfmt']
-        subfmts = self._select_subfmts(self.opt['in_subfmt'])
+        # Select subformats based on current self.in_subfmt
+        subfmts = self._select_subfmts(self.in_subfmt)
 
         for i, timestr in enumerate(val1):
             # Assume that anything following "." on the right side is a
@@ -652,11 +666,11 @@ class TimeString(TimeFormat):
         calendar date and time for the internal JD values.
         """
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
-                                                 self.opt['precision'],
+                                                 self.precision,
                                                  self.jd1, self.jd2)
 
         # Get the str_fmt element of the first allowed output subformat
-        _, _, str_fmt = self._select_subfmts(self.opt['out_subfmt'])[0]
+        _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
 
         if '{yday:' in str_fmt:
             from datetime import datetime
@@ -677,13 +691,13 @@ class TimeString(TimeFormat):
     @property
     def vals(self):
         # Select the first available subformat based on current
-        # self.opt['out_subfmt']
-        subfmts = self._select_subfmts(self.opt['out_subfmt'])
+        # self.out_subfmt
+        subfmts = self._select_subfmts(self.out_subfmt)
         _, _, str_fmt = subfmts[0]
 
         # XXX ugly hack, fix
-        if self.opt['precision'] > 0 and str_fmt.endswith('{sec:02d}'):
-            str_fmt += '.{fracsec:0' + str(self.opt['precision']) + 'd}'
+        if self.precision > 0 and str_fmt.endswith('{sec:02d}'):
+            str_fmt += '.{fracsec:0' + str(self.precision) + 'd}'
 
         # Try to optimize this later.  Can't pre-allocate because length of
         # output could change, e.g. year rolls from 999 to 1000.

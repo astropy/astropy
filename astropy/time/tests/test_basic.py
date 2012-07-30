@@ -60,20 +60,20 @@ class TestBasic():
         options."""
 
         t = atm.Time('2010-01-01 00:00:00', format='iso', scale='utc')
-        # Uses initial global opt precision=3
+        # Uses initial class-defined precision=3
         assert t.iso == '2010-01-01 00:00:00.000'
 
-        # Set global precision = 5
-        atm.set_opt(precision=5)
+        # Set global precision = 5  XXX this uses private var, FIX THIS
+        atm.Time._precision = 5
         assert t.iso == '2010-01-01 00:00:00.00000'
 
         # Set instance precision to 9
-        t.set_opt(precision=9)
+        t.precision = 9
         assert t.iso == '2010-01-01 00:00:00.000000000'
         assert t.tai.utc.iso == '2010-01-01 00:00:00.000000000'
 
         # Restore global to original default of 3, instance is still at 9
-        atm.set_opt(precision=3)
+        atm.Time._precision = 3
         assert t.iso == '2010-01-01 00:00:00.000000000'
 
         # Make a new time instance and confirm precision = 3
@@ -88,7 +88,7 @@ class TestBasic():
         lat = 19.48125
         lon = -155.933222
         t = atm.Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-                     opt={'precision': 6}, lat=lat, lon=lon)
+                     precision=6, lat=lat, lon=lon)
         t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the xform
         assert t.utc.iso == '2006-01-15 21:24:37.500000'
         assert t.ut1.iso == '2006-01-15 21:24:37.834100'
@@ -113,9 +113,9 @@ class TestBasic():
         """Numeric values for string format raises error"""
         times = [10, 20]
         with pytest.raises(ValueError):
-            t = atm.Time(times, format='iso', scale='utc')
+            atm.Time(times, format='iso', scale='utc')
         with pytest.raises(ValueError):
-            t = atm.Time('2000:001', format='jd', scale='utc')
+            atm.Time('2000:001', format='jd', scale='utc')
 
 
 class TestSubFormat():
@@ -136,7 +136,7 @@ class TestSubFormat():
         times = ['2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = atm.Time(times, format='iso', scale='tai',
-                     opt={'in_subfmt': 'date_*'})
+                     in_subfmt='date_*')
         assert np.all(t.iso == np.array(['2000-01-01 01:01:00.000',
                                          '2000-01-01 01:01:01.000',
                                          '2000-01-01 01:01:01.123']))
@@ -144,14 +144,14 @@ class TestSubFormat():
     def test_input_subformat_fail(self):
         """Failed format matching"""
         with pytest.raises(ValueError):
-            t = atm.Time('2000-01-01 01:01', format='iso', scale='tai',
-                         opt={'in_subfmt': 'date'})
+            atm.Time('2000-01-01 01:01', format='iso', scale='tai',
+                     in_subfmt='date')
 
     def test_bad_input_subformat(self):
         """Non-existent input subformat"""
         with pytest.raises(ValueError):
-            t = atm.Time('2000-01-01 01:01', format='iso', scale='tai',
-                         opt={'in_subfmt': 'doesnt exist'})
+            atm.Time('2000-01-01 01:01', format='iso', scale='tai',
+                     in_subfmt='doesnt exist')
 
     def test_output_subformat(self):
         """Input subformat selection"""
@@ -159,7 +159,7 @@ class TestSubFormat():
         times = ['2000-01-01', '2000-01-01 01:01',
                  '2000-01-01 01:01:01', '2000-01-01 01:01:01.123']
         t = atm.Time(times, format='iso', scale='tai',
-                     opt={'out_subfmt': 'date_hm'})
+                     out_subfmt='date_hm')
         assert np.all(t.iso == np.array(['2000-01-01 00:00',
                                          '2000-01-01 01:01',
                                          '2000-01-01 01:01',
@@ -170,9 +170,9 @@ class TestSubFormat():
         # Heterogeneous input formats with in_subfmt='*' (default)
         times = ['2000-12-01', '2001-12-01 01:01:01.123']
         t = atm.Time(times, format='iso', scale='tai')
-        t.set_opt(out_subfmt='date_hm')
+        t.out_subfmt = 'date_hm'
         assert np.all(t.yday == np.array(['2000:336:00:00',
                                           '2001:335:01:01']))
-        t.set_opt(out_subfmt='*')
+        t.out_subfmt = '*'
         assert np.all(t.yday == np.array(['2000:336:00:00:00.000',
                                           '2001:335:01:01:01.123']))

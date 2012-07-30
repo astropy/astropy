@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 
 import astropy.time as atm
 
@@ -16,7 +15,7 @@ class TestGuess():
     def test_guess2(self):
         times = ['1999-01-01 00:00:00.123456789', '2010-01 00:00:00']
         with pytest.raises(ValueError):
-            t = atm.Time(times, scale='utc')
+            atm.Time(times, scale='utc')
 
     def test_guess3(self):
         times = ['1999:001:00:00:00.123456789', '2010:001']
@@ -27,4 +26,4 @@ class TestGuess():
     def test_guess4(self):
         times = [10, 20]
         with pytest.raises(ValueError):
-            t = atm.Time(times, scale='utc')
+            atm.Time(times, scale='utc')
