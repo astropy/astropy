@@ -272,26 +272,47 @@ class Time(object):
         """
         return self._time.vals
 
-    def _get_time_object(self, format):
-        """Turn this into copy??"""
+    def copy(self, format=None):
+        """Return a copy the Time object, optionally changing the format.
+
+        If ``format`` is supplied then the time format of the returned
+        Time object will be set accordingly, otherwise it will be unchanged
+        from the original.
+
+        Parameters
+        ----------
+        format : str, optional
+            Time format of the copy.
+
+        Returns
+        -------
+        tm: Time object
+            Copy of this object
+        """
         tm = self.__class__(self._time.jd1, self._time.jd2,
                             format='jd', scale=self.scale)
-        attrs = ('is_scalar', '_precision', '_in_subfmt', '_out_subfmt',
-                 '_delta_ut1_utc', '_delta_tdb_tt',
-                 'lat', 'lon')
+
+        # Optional or non-arg attributes
+        attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
+                 'lat', 'lon', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
                 setattr(tm, attr, getattr(self, attr))
             except AttributeError:
                 pass
 
-        # Now create the _time object for the given new format
+        if format is None:
+            format = self.format
+
+        # Make the new internal _time object corresponding to the format
+        # in the copy.  If the format is unchanged this process is lightweight
+        # and does not create any new arrays.
 
         NewFormat = tm.FORMATS[format]
         # If the new format class has a "scale" class attr then that scale is
         # required and the input jd1,2 has to be converted first.
         if hasattr(NewFormat, 'scale'):
-            scale = getattr(NewFormat, 'scale')
+            scale = NewFormat.scale
             new = getattr(tm, scale)  # self JDs converted to scale
             tm._time = NewFormat(new._time.jd1, new._time.jd2, scale,
                                    tm.precision,
@@ -308,12 +329,12 @@ class Time(object):
 
     def __getattr__(self, attr):
         if attr in self.SCALES:
-            tm = self._get_time_object(format=self.format)
+            tm = self.copy()
             tm._set_scale(attr)
             return tm
 
         elif attr in self.FORMATS:
-            tm = self._get_time_object(format=attr)
+            tm = self.copy(format=attr)
             return (tm.vals[0].tolist() if self.is_scalar else tm.vals)
 
         else:
