@@ -331,7 +331,15 @@ class Time(object):
 
         return tm
 
+    def _getAttributeNames(self):
+        """Add dynamic attribute names for IPython completer"""
+        return list(self.SCALES) + self.FORMATS.keys()
+
     def __getattr__(self, attr):
+        # The following is needed for the IPython completer
+        if attr == 'trait_names':
+            return []
+
         if attr in self.SCALES:
             tm = self.copy()
             tm._set_scale(attr)
