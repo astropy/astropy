@@ -419,18 +419,18 @@ above require an additional delta time value that is model or
 observation-dependent.  See `SOFA Time Scale and Calendar Tools
 <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ for further details.
 
-The two methods :func:`~astropy.time.Time.set_delta_ut1_utc` and
-:func:`~astropy.time.Time.set_delta_tdb_tt` provide a way to set
+The two attributes :func:`~astropy.time.Time.delta_ut1_utc` and
+:func:`~astropy.time.Time.delta_tdb_tt` provide a way to set
 these delta times explicitly.  As an example::
 
   >>> t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
-  >>> t.set_delta_ut1_utc(0.334)  # Explicitly set one part of the transformation
+  >>> t.delta_ut1_utc = 0.334  # Explicitly set one part of the transformation
   >>> t.ut1.iso    # ISO representation of time in UT1 scale
  '2010-01-01 00:00:00.334'
 
 In the case of the TDB to TT offset, most users need only provide the ``lat``
 and ``lon`` values when creating the |Time| object.  If the
-:func:`~astropy.time.Time.set_delta_tdb_tt` method is not explicitly called
+:func:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set
 then the SOFA C-library routine ``iauDtdb`` will be used to compute the
 TDB to TT offset.  Note that ``lat`` and ``lon`` are initialized to 0.0 by
 default, so those defaults will be used if they are not provided.
@@ -445,7 +445,7 @@ TT, UT1, UTC).  This requires auxilliary information (latitude and longitude).
   >>> lon = -155.933222
   >>> t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
   ...          lat=lat, lon=lon, precision=6)
-  >>> t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the transformation
+  >>> t.delta_ut1_utc = 0.3341  # Explicitly set one part of the transformation
   >>> t.utc.iso
   '2006-01-15 21:24:37.500000'
   >>> t.ut1.iso

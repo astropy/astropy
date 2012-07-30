@@ -5,6 +5,7 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 import sys
+import warnings
 import time
 import itertools
 import numpy as np
@@ -211,7 +212,7 @@ class Time(object):
             # sys1, sys2 though the property applies for both xform directions.
             args = [jd1, jd2]
             for sys12 in ((sys1, sys2), (sys2, sys1)):
-                dt_method = 'get_delta_{0}_{1}'.format(*sys12)
+                dt_method = '_get_delta_{0}_{1}'.format(*sys12)
                 try:
                     get_dt = getattr(self, dt_method)
                 except AttributeError:
@@ -378,23 +379,44 @@ class Time(object):
             raise ValueError('Attribute length must match Time object length')
         return val
 
-    # SOFA DUT arg = UT1 - UTC
-    def get_delta_ut1_utc(self, jd1, jd2):
-        """Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
-        seconds. It can be obtained from tables published by the IERS.
-        XXX - get that table when needed and interpolate or whatever.
+    # Property for SOFA DUT arg = UT1 - UTC
+    def _get_delta_ut1_utc(self, jd1=None, jd2=None):
+        """Get SOFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
+        jd2 args because it gets called that way when converting time scales.
+        The current code ignores these, but when the IERS table is interpolated
+        by this module they will be used.
         """
+
+        # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
+        # seconds. It can be obtained from tables published by the IERS.
+        # XXX - get that table when needed and interpolate or whatever.
         if not hasattr(self, '_delta_ut1_utc'):
-            self._delta_ut1_utc = np.zeros(len(self), dtype=np.double)
+            # Exception until the IERS table is available to the package
+            raise ValueError('Must set the delta_ut1_utc attribute in '
+                             'order to do the scale transform.')
 
         return self._delta_ut1_utc
 
-    def set_delta_ut1_utc(self, val):
+    def _set_delta_ut1_utc(self, val):
         self._delta_ut1_utc = self._match_len(val)
 
-    # SOFA DTR arg = TDB - TT
-    def get_delta_tdb_tt(self, jd1, jd2):
+    delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
+
+    # Property for SOFA DTR arg = TDB - TT
+    def _get_delta_tdb_tt(self, jd1=None, jd2=None):
         if not hasattr(self, '_delta_tdb_tt'):
+            # If jd1 and jd2 are not provided (which is the case for property
+            # attribute access) then require that the time scale is TT or TDB.
+            # Otherwise the computations here are not correct.
+            if jd1 is None or jd2 is None:
+                if self.scale not in ('tt', 'tdb'):
+                    raise ValueError('Accessing the delta_tdb_tt attribute '
+                                     'is only possible for TT or TDB time '
+                                     'scales')
+                else:
+                    jd1 = self._time.jd1
+                    jd2 = self._time.jd2
+
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UTC.  Since TT and TDB are
             # pretty close (few msec?), assume TT.
@@ -414,8 +436,10 @@ class Time(object):
 
         return self._delta_tdb_tt
 
-    def set_delta_tdb_tt(self, val):
+    def _set_delta_tdb_tt(self, val):
         self._delta_tdb_tt = self._match_len(val)
+
+    delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
 
     def __len__(self):
         return len(self._time.jd1)

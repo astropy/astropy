@@ -43,7 +43,7 @@ class TestBasic():
         This will be included in the package later."""
 
         t = atm.Time('2010-01-01 00:00:00', format='iso', scale='utc')
-        t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the xform
+        t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert np.allclose(t.jd, 2455197.5)
         assert t.iso == '2010-01-01 00:00:00.000'
         assert t.tt.iso == '2010-01-01 00:01:06.184'
@@ -89,7 +89,7 @@ class TestBasic():
         lon = -155.933222
         t = atm.Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
                      precision=6, lat=lat, lon=lon)
-        t.set_delta_ut1_utc(0.3341)  # Explicitly set one part of the xform
+        t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert t.utc.iso == '2006-01-15 21:24:37.500000'
         assert t.ut1.iso == '2006-01-15 21:24:37.834100'
         assert t.tai.iso == '2006-01-15 21:25:10.500000'
