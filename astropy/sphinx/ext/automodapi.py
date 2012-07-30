@@ -17,6 +17,12 @@ It accepts the following options:
         If present, the inheritance diagram will not be shown even if
         the module/package has classes.
 
+    * ``:skip: str``
+        This option results in the
+        specified object being skipped, that is the object will *not* be
+        included in the generated documentation. This option may appear
+        any number of times to skip multiple objects.
+
     * ``:no-main-docstr:``
         If present, the docstring for the module/package will not be generated.
         The function and class tables will still be used, however.
@@ -29,6 +35,7 @@ It accepts the following options:
         happy. Defaults to "-^", which matches the convention used for
         Python's documentation, assuming the automodapi call is inside a
         top-level section (which usually uses '=').
+
 
 
 This extension also adds a sphinx configuration option

@@ -304,6 +304,12 @@ Reference/API
 
 .. automodapi:: astropy.io.vo
    :no-inheritance-diagram:
+   :skip: VOWarning
+   :skip: VOTableChangeWarning
+   :skip: VOTableSpecWarning
+   :skip: UnimplementedWarning
+   :skip: IOWarning
+   :skip: VOTableSpecError
 
 .. automodapi:: astropy.io.vo.tree
    :no-inheritance-diagram:
