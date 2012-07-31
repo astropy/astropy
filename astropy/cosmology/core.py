@@ -19,9 +19,9 @@ import parameters
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["FLRWCosmology","LambdaCDMCosmology","wCDMCosmology",
-           "w0waCDMCosmology","get_current","set_current",
-           "WMAP5","WMAP7"]
+__all__ = ["FLRWCosmology","LambdaCDMCosmology","FlatLambdaCDMCosmology",
+           "wCDMCosmology","w0waCDMCosmology","w0wzCDMCosmology",
+           "get_current","set_current","WMAP5","WMAP7"]
 
 # Constants
 
