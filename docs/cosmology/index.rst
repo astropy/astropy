@@ -53,20 +53,21 @@ Most of the functionality is enabled by the
 `~astropy.cosmology.core.FLRWCosmology` object. This represents a
 homogenous and isotropic cosmology (a cosmology characterized by the
 Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
-solved Einstein's field equation for this special case).
+solved Einstein's field equation for this special case).  However,
+you can't work with this class directly, as you must specify a
+dark energy model by using one of its subclasses instead,
+such as `~astropy.cosmology.core.LambdaCDMCosmology`.
 
 You can create a new `FLRWCosmology` object with arguments giving the
 hubble parameter, omega matter and omega lambda (all at z=0):
+=============================================================
 
-  >>> from astropy.cosmology import FLRWCosmology
-  >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ode=0.7)
+  >>> from astropy.cosmology import LambdaCDMCosmology
+  >>> cosmo = LambdaCDMCosmology(H0=70, Om=0.3, Ode=0.7)
   >>> cosmo
   FLRWCosmology(H0=70, Om=0.3, Ode=0.7, Ok=0)
 
-Additional arguments (w0, wa) can be used to optionally specify the 
-dark energy equation of state using the common w(z) = w0 + wa z/(1+z) 
-expansion.  The default values (w0=-1,wa=0) represent a cosmological
-constant.
+A number of additional dark energy models are provided (described below).
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are `FLRWCosmology` instances, and have the same methods. So
@@ -177,12 +178,24 @@ following::
 This ensures that all code consistently uses the current cosmology
 unless explicitly overridden.
 
+Dark energy models
+------------------
+
+A number of additional cosmological models are provided.  Currently,
+these revolve around different models for the dark energy equation of
+state.  `LambdaCDMCosmology` assumes that dark energy is a cosmological
+constant, and should be the most common case.  `wCDMCosmology` assumes
+a constant dark energy equation of state parameterized by w.  Two
+forms of a variable dark energy equation of state are provided: the
+simple first order linear expansion w(z) = w0 + wz * z, and the
+common CPL form: w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z).
 
 See Also
 ========
 
 * Hogg, "Distance measures in cosmology",
   http://arxiv.org/abs/astroph/9905116
+* Linder, "Exploring the Expansion History of the Universe", http://arxiv.org/abs/astro-ph/0208512
 * NASA's Legacy Archive for Microwave Background Data Analysis,
   http://lambda.gsfc.nasa.gov/
 
