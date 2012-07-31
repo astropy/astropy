@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 import warnings
-from math import sqrt, pi, exp
+from math import sqrt, pi, exp, log
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -212,12 +212,12 @@ class FLRWCosmology(Cosmology):
         zp1 = 1.0 + z
 
         if not isiterable(z) :
-            ival = quad(self._w_integral,0,math.log(1+z))[0]
+            ival = quad(self._w_integral,0,log(1+z))[0]
         else:
-            ival = np.array([quad(self._w_integral,0,math.log(1+redshift))[0]
+            ival = np.array([quad(self._w_integral,0,log(1+redshift))[0]
                              for redshift in z])
 
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode * ival)
+        return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode * np.exp(3. * ival))
 
     def _inv_efunc(self, z):
         """Inverse of _efunc"""
