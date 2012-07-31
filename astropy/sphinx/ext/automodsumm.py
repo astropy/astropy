@@ -34,6 +34,11 @@ options:
         functions. This cannot be used at the same time with
         ``:classes-only:`` .
 
+    * ``:skip: obj1, [obj2, obj3, ...]``
+        If present, specifies that the listed objects should be skipped
+        and not have their documentation generated, nor be includded in
+        the summary table.
+
 
 ===========================
 `automod-diagram` directive
@@ -60,6 +65,17 @@ from ...utils.misc import find_mod_objs
 from .astropyautosummary import AstropyAutosummary
 
 
+def _str_list_converter(argument):
+    """
+    A directive option conversion function that converts the option into a list
+    of strings. Used for 'skip' option.
+    """
+    if argument is None:
+        return []
+    else:
+        return [s.strip() for s in argument.split(',')]
+
+
 class Automodsumm(AstropyAutosummary):
     required_arguments = 1
     optional_arguments = 0
@@ -68,6 +84,7 @@ class Automodsumm(AstropyAutosummary):
     option_spec = dict(Autosummary.option_spec)
     option_spec['functions-only'] = flag
     option_spec['classes-only'] = flag
+    option_spec['skip'] = _str_list_converter
 
     def run(self):
         from inspect import isclass, isfunction
@@ -86,21 +103,35 @@ class Automodsumm(AstropyAutosummary):
             # Be sure to respect functions-only and classes-only.
             funconly = 'functions-only' in self.options
             clsonly = 'classes-only' in self.options
+
+            skipmap = {}
+            if 'skip' in self.options:
+                skipnames = set(self.options['skip'])
+                for lnm, fqnm in zip(localnames, fqns):
+                    if lnm in skipnames:
+                        skipnames.remove(lnm)
+                        skipmap[fqnm] = lnm
+                if len(skipnames) > 0:
+                    self.warn('Tried to skip objects {objs} in module {mod}, '
+                              'but they were not present.  Ignoring.'.format(
+                              objs=skipnames, mod=self.arguments[0]))
+
             if funconly and not clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if isfunction(obj):
+                    if nm not in skipmap and isfunction(obj):
                         cont.append('~' + nm)
             elif clsonly:
                 cont = []
                 for nm, obj in zip(fqns, objs):
-                    if isclass(obj):
+                    if nm not in skipmap and isclass(obj):
                         cont.append('~' + nm)
             else:
                 if clsonly and funconly:
                     self.warning('functions-only and classes-only both '
                                  'defined. Skipping.')
-                cont = ['~' + objname for objname in fqns]
+                cont = ['~' + nm for nm in fqns if nm not in skipmap]
+
             self.content = cont
 
             #can't use super because Sphinx/docutils has trouble
