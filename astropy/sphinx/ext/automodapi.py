@@ -164,7 +164,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
             #initialize default options
             toskip = []
-            inhdiag = nomain = False
+            inhdiag = maindocstr = True
             hds = '-^'
 
             #look for actual options
@@ -173,9 +173,9 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
                 if opname == 'skip':
                     toskip.append(args.strip())
                 elif opname == 'no-inheritance-diagram':
-                    inhdiag = True
+                    inhdiag = False
                 elif opname == 'no-main-docstr':
-                    nomain = True
+                    maindocstr = False
                 elif opname == 'headings':
                     hds = args
                 else:
@@ -199,10 +199,10 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
 
             #add automodule directive only if no-main-docstr isn't present
-            if nomain:
-                automodline = ''
-            else:
+            if maindocstr:
                 automodline = '.. automodule:: {modname}'.format(modname=modnm)
+            else:
+                automodline = ''
 
             newstrs.append(automod_templ_modheader.format(modname=modnm,
                 modhds=h1 * len(modnm),
