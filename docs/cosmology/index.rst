@@ -60,7 +60,6 @@ such as `~astropy.cosmology.core.LambdaCDMCosmology`.
 
 You can create a new `FLRWCosmology` object with arguments giving the
 hubble parameter, omega matter and omega lambda (all at z=0):
-=============================================================
 
   >>> from astropy.cosmology import LambdaCDMCosmology
   >>> cosmo = LambdaCDMCosmology(H0=70, Om=0.3, Ode=0.7)
@@ -178,17 +177,29 @@ following::
 This ensures that all code consistently uses the current cosmology
 unless explicitly overridden.
 
-Dark energy models
-------------------
+Specifying a dark energy model
+==============================
 
-A number of additional cosmological models are provided.  Currently,
-these revolve around different models for the dark energy equation of
-state.  `LambdaCDMCosmology` assumes that dark energy is a cosmological
-constant, and should be the most common case.  `wCDMCosmology` assumes
-a constant dark energy equation of state parameterized by w.  Two
-forms of a variable dark energy equation of state are provided: the
-simple first order linear expansion w(z) = w0 + wz * z, and the
-common CPL form: w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z).
+In addition to the standard `LambdaCDMCosmology` model described
+above, a number of additional dark energy models are provided.
+`LambdaCDMCosmology` assumes that dark energy is a cosmological
+constant, and should be the most commonly used case.  `wCDMCosmology`
+assumes a constant dark energy equation of state parameterized by w.
+Two forms of a variable dark energy equation of state are provided:
+the simple first order linear expansion w(z) = w0 + wz * z by
+`w0wzCDMCosmology`, and the common CPL form by `w0waCDMCosmology`: 
+w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z).
+
+Users can specify their own equation of state by sub-classing
+`FRLWCosmology`.  The only requirement is to provide a get_w
+function which returns the equation of state at an arbitrary redshift.
+`FRLWCosmology` can then compute all the other quantities.  However,
+this computation may not take full advantage of particular forms
+of the dark energy equation of state to evaluate some of the intermediate
+expressions analytically.  For simple forms, such as the ones implemented
+by the above classes, it is advisable to override _efunc and 
+_inv_efunc as well.
+
 
 See Also
 ========

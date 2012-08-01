@@ -194,7 +194,7 @@ class FLRWCosmology(Cosmology):
         A value E such that H(z) = H_0 * E
 
         For most popular forms of w(z), this should be overridden
-        to allow more efficient computation
+        to allow more efficient computation.
         """
 
         # This allows for an arbitrary w(z) following eq (5) of
@@ -202,7 +202,17 @@ class FLRWCosmology(Cosmology):
         # because it involves a numerical integration.  Most forms of w(z)
         # in common use are chosen to make this integral analytic, and
         # subclasses should probably take advantage of that if possible
-        # by overloading this function.  See, for example, w0waCDMCosmology
+        # by overloading this function.  
+        #
+        # In particular, the integral that needs to be evaluated is
+        #   I = \int_{0}^{\log(1+z)} d \log(1+z') [ 1 + w(z') ]
+        # The code below does this numerically, but if there is an 
+        # analytic expression for this integral, it is probably worth
+        # your while to make that explicit.  In that case, _efunc should 
+        # return sqrt( (1+z)^3 Om + (1+z) Ok + Ode * exp(3 * I) )
+        # and _inv_efunc one over that expression.
+        #
+        # See w0waCDMCosmology for an example.
 
         from scipy.integrate import quad
 
