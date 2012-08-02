@@ -20,8 +20,8 @@ import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRWCosmology","LambdaCDMCosmology","FlatLambdaCDMCosmology",
-           "wCDMCosmology","w0waCDMCosmology","w0wzCDMCosmology",
-           "get_current","set_current","WMAP5","WMAP7"]
+           "wCDMCosmology","w0waCDMCosmology","wpwaCDMCosmology",
+           "w0wzCDMCosmology","get_current","set_current","WMAP5","WMAP7"]
 
 # Constants
 
@@ -108,7 +108,7 @@ class FLRWCosmology(Cosmology):
         # Hubble time in Gyr
         self.hubble_time = 1. / H0_s / Gyr
         # Hubble distance in Mpc
-        self.hubble_distance = c_kms / self.H0
+        self.hubble_distance = c_kms / self._H0
 
         # critical density at z=0 (grams per cubic cm)
         self.critical_density0 = 3. * H0_s**2 / (8. * pi * G)
@@ -126,7 +126,7 @@ class FLRWCosmology(Cosmology):
 
     @H0.setter
     def H0(self, value):
-        self._H0 = value
+        self._H0 = float(value)
         self.h = self._H0 / 100.
         H0_s = self._H0 / Mpc_km
         self.hubble_time = 1. / H0_s / Gyr
@@ -139,7 +139,7 @@ class FLRWCosmology(Cosmology):
 
     @Om.setter
     def Om(self, value):
-        self._Om = value
+        self._Om = float(value)
         self._Ok = 1.0 - self._Om - self._Ode
 
     @property
@@ -148,7 +148,7 @@ class FLRWCosmology(Cosmology):
 
     @Ode.setter
     def Ode(self, value):
-        self._Ode = value
+        self._Ode = float(value)
         self._Ok = 1.0 - self._Om - self._Ode
 
     @property
@@ -160,7 +160,7 @@ class FLRWCosmology(Cosmology):
         # This one is tricky because there is no unique way to update
         # Om/Ode when Ok changes -- we arbitrarily decide to update
         # Ode when the user changes Ok by hand
-        self._Ok = value
+        self._Ok = float(value)
         self._Ode = 1.0 - self._Ok - self._Om
 
     @abstractmethod
@@ -660,7 +660,7 @@ class FlatLambdaCDMCosmology(FLRWCosmology):
 
     @Om.setter
     def Om(self, value):
-        self._Om = value
+        self._Om = float(value)
         self._Ode = 1.0 - self._Om
 
     @property
@@ -669,7 +669,7 @@ class FlatLambdaCDMCosmology(FLRWCosmology):
 
     @Ode.setter
     def Ode(self, value):
-        self._Ode = value
+        self._Ode = float(value)
         self._Om = 1.0 - self._Ode
 
     @property
@@ -678,7 +678,7 @@ class FlatLambdaCDMCosmology(FLRWCosmology):
 
     @Ok.setter
     def Ok(self):
-        pass
+        raise CosmologyError("Can't set Ok for FlatLambdaCDMCosmology")
 
     def _efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -802,7 +802,7 @@ class wCDMCosmology(FLRWCosmology):
 
     Examples
     --------
-    >>> from astro.cosmology import LambdaCDMCosmology
+    >>> from astro.cosmology import wCDMCosmology
     >>> cosmo = wCDMCosmology(H0=70, Om=0.3, Ode=0.7, w=-0.9)
 
     The comoving distance in Mpc at redshift z:
@@ -885,7 +885,7 @@ class w0waCDMCosmology(FLRWCosmology):
 
     Examples
     --------
-    >>> from astro.cosmology import LambdaCDMCosmology
+    >>> from astro.cosmology import w0waCDMCosmology
     >>> cosmo = w0waCDMCosmology(H0=70, Om=0.3, Ode=0.7, w0=-0.9, wa=0.2)
 
     The comoving distance in Mpc at redshift z:
@@ -988,6 +988,128 @@ class w0waCDMCosmology(FLRWCosmology):
 
 FLRWCosmology.register(w0waCDMCosmology)
 
+class wpwaCDMCosmology(FLRWCosmology):
+    """FLRW cosmology with a CPL dark energy equation of state, a pivot
+    redshift, and curvature.
+
+    The equation for the dark energy equation of state uses the
+    CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
+    D10, 213 (2001) and Linder PRL 90, 91301 (2003), but modified
+    to have a pivot redshift as in the findings of the Dark Energy
+    Task Force (Albrecht et al. arXiv:0901.0721 (2009))
+    w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )
+
+    Examples
+    --------
+    >>> from astro.cosmology import wpwaCDMCosmology
+    >>> cosmo = wpwaCDMCosmology(H0=70,Om=0.3,Ode=0.7,wp=-0.9,wa=0.2,zp=0.4)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> dc = cosmo.comoving_distance(z)
+    """
+
+    def __init__(self, H0, Om, Ode, wp=-1., wa=0., zp=0, 
+                 name='wpwaCDMCosmology'):
+        FLRWCosmology.__init__(self, H0, Om, Ode, name=name)
+        self.wp = float(wp)
+        self.wa = float(wa)
+        self.zp = float(zp)
+
+    def __repr__(self):
+        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, wp=%.3g, wa=%.3g, zp=%.3g)" % \
+            (self.name, self._H0, self._Om, self._Ode, self.wp, self.wa,
+             self.zp)
+
+    def get_w(self, z):
+        """Returns dark energy equation of state at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        w : ndarray, or float if input scalar
+          Dark energy equation of state, P(z)/rho(z).
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+
+        apiv = 1.0 / (1.0 + self.zp)
+        return self.wp + self.wa * (apiv - 1.0 / (1. + z))
+
+    def _efunc(self, z):
+        """ Function used to calculate H(z), the Hubble parameter.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        A value E such that H(z) = H_0 * E
+        """
+        
+        if isiterable(z):
+            z = np.asarray(z)
+        Om, Ode, Ok, wp, wa = self.Om, self.Ode, self.Ok, self.wp, self.wa
+        zp1 = 1.0 + z
+
+        if abs(wa) < 1e-5 :
+            if abs(wp+1) < 1e-5 :
+                #Cosmological constant, or at least close enough
+                return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
+            else :
+                #Dark energy constant, but not cosmological constant
+                return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                               Ode * zp1**(3 * (1 + wp)))
+        else :
+            #General form from Linder 2003, PRL 90, 91301 in the discussion
+            #after eq (7), but modified for w(z) = w_p + w_a (a_p - a)
+            apiv = 1.0 / (1.0 + self.zp)
+            return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                           Ode * zp1**(3 * (1 + wp + apiv*wa)) *
+                           exp(-3 * wa * z / zp1))
+                               
+    def _inv_efunc(self, z):
+        """ Function used to calculate 1.0/H(z)
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        A value E such that H(z) = H_0 / E
+        """
+
+        #For efficiency, don't just call _efunc for this one
+        #See comments for _efunc for explanation of these formulae
+        if isiterable(z):
+            z = np.asarray(z)
+        Om, Ode, Ok, wp, wa = self.Om, self.Ode, self.Ok, self.wp, self.wa
+        zp1 = 1.0 + z
+
+        if abs(wa) < 1e-5 :
+            if abs(wp+1) < 1e-5 :
+                return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
+            else :
+                return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                                   Ode * zp1**(3 * (1 + wp)))
+        else :
+            apiv = 1.0 / (1.0 + self.zp)
+            return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
+                               Ode * zp1**(3 * (1 + wp + apiv*wa)) *
+                               exp(-3 * wa * z / zp1))
+
+
+FLRWCosmology.register(wpwaCDMCosmology)
+
 
 class w0wzCDMCosmology(FLRWCosmology):
     """FLRW cosmology with a variable dark energy equation of state
@@ -1002,7 +1124,7 @@ class w0wzCDMCosmology(FLRWCosmology):
 
     Examples
     --------
-    >>> from astro.cosmology import LambdaCDMCosmology
+    >>> from astro.cosmology import wawzCDMCosmology
     >>> cosmo = wawzCDMCosmology(H0=70, Om=0.3, Ode=0.7, w0=-0.9, wz=0.2)
 
     The comoving distance in Mpc at redshift z:

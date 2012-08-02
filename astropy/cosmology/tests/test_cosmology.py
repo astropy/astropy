@@ -39,26 +39,33 @@ def test_flat_z1():
                        [7.841, 7.84178, 7.843],  rtol=1e-3)
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_w0walumdist_mathematica():
+def test_varyde_lumdist_mathematica():
     """Tests a few varying dark energy EOS models against a mathematica
     computation"""
 
+    #w0wa models
+    z = np.array([0.2,0.4,0.9,1.2])
     cosmo = core.w0waCDMCosmology(H0=70, Om=0.2, Ode=0.8, w0=-1.1, wa=0.2)
-    assert np.allclose(cosmo.luminosity_distance(0.2),1004.0, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(0.4),2268.62, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(0.9),6265.76,rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(1.2),9061.84,rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [1004.0,2268.62,6265.76,9061.84], rtol=1e-4)
     cosmo.Om = 0.3
     cosmo.Ode = 1.0-cosmo.Om
     cosmo.w0 = -0.9
     cosmo.wa = 0.0
-    assert np.allclose(cosmo.luminosity_distance(0.2),971.667, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(0.4),2141.67, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(1.2),8107.41, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [971.667,2141.67,5685.96,8107.41], rtol=1e-4)
     cosmo.wa = -0.5
-    assert np.allclose(cosmo.luminosity_distance(0.2),974.087, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(0.4),2157.08, rtol=1e-4)
-    assert np.allclose(cosmo.luminosity_distance(1.2),8274.08, rtol=1e-4)
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [974.087,2157.08,5783.92,8274.08], rtol=1e-4)
+
+    #wpwa models
+    cosmo = core.wpwaCDMCosmology(H0=70, Om=0.2, Ode=0.8, wp=-1.1, 
+                                  wa=0.2, zp=0.5)
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [1010.81,2294.45,6369.45,9218.95], rtol=1e-4)
+    cosmo.zp = 0.9
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [1013.68,2305.3,6412.37,9283.33], rtol=1e-4)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
@@ -263,6 +270,11 @@ def test_wz():
     cosmo = core.w0waCDMCosmology(H0=70, Om=0.3, Ode=0.70,w0=-1,wa=-0.5)
     assert np.allclose(cosmo.get_w([0.0,0.5,1.0,1.5,2.3]),
                        [-1,-1.16666667,-1.25, -1.3, -1.34848485])
+    cosmo = core.wpwaCDMCosmology(H0=70, Om=0.3, Ode=0.70,wp=-0.9,
+                                  wa=0.2,zp=0.5)
+    assert np.allclose(cosmo.get_w([0.1,0.2,0.5,1.5,2.5,11.5]),
+                       [-0.94848485,-0.93333333,-0.9,-0.84666667,-0.82380952,
+                         -0.78266667])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_age():

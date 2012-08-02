@@ -187,8 +187,10 @@ constant, and should be the most commonly used case.  `wCDMCosmology`
 assumes a constant dark energy equation of state parameterized by w.
 Two forms of a variable dark energy equation of state are provided:
 the simple first order linear expansion w(z) = w0 + wz * z by
-`w0wzCDMCosmology`, and the common CPL form by `w0waCDMCosmology`: 
-w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z).
+`w0wzCDMCosmology`, as well as the common CPL form by
+`w0waCDMCosmology`: w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z)
+and its generalization to include a pivot redshift by
+`wpwaCDMCosmology`: w(z) = wp + wa * (a_p - a).
 
 Users can specify their own equation of state by sub-classing
 `FRLWCosmology`.  The only requirement is to provide a get_w
