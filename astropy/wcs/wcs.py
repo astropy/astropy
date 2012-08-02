@@ -46,6 +46,7 @@ try:
 except ImportError:
     _wcs = None
 from ..utils import deprecated
+from .. import log
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -210,14 +211,40 @@ class WCS(WCSBase):
 
     Notes
     -----
-    astropy.wcs supports arbitrary *n* dimensions for the core WCS
-    (the transformations handled by WCSLIB).  However, the Paper IV
-    lookup table and SIP distortions must be two dimensional.
-    Therefore, if you try to create a WCS object where the core WCS
-    has a different number of dimensions than 2 and that object also
-    contains a Paper IV lookup table or SIP distortion, a `ValueError`
-    exception will be raised.  To avoid this, consider using the
-    *naxis* kwarg to select two dimensions from the core WCS.
+
+    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
+       (the transformations handled by WCSLIB).  However, the Paper IV
+       lookup table and SIP distortions must be two dimensional.
+       Therefore, if you try to create a WCS object where the core WCS
+       has a different number of dimensions than 2 and that object
+       also contains a Paper IV lookup table or SIP distortion, a
+       `ValueError` exception will be raised.  To avoid this, consider
+       using the *naxis* kwarg to select two dimensions from the core
+       WCS.
+
+    2. The number of coordinate axes in the transformation is not
+       determined directly from the ``NAXIS`` keyword but instead from
+       the highest of:
+
+           - ``NAXIS`` keyword
+
+           - ``WCSAXESa`` keyword
+
+           - The highest axis number if any parameterized WCS keyword.
+             The keyvalue, as well as the keyword, must be
+             syntactically valid otherwise it will not be considered.
+
+       If none of these keyword types is present, i.e. if the header
+       only contains auxiliary WCS keywords for a particular
+       coordinate representation, then no coordinate description is
+       constructed for it.
+
+       The number of axes, which is set as the `naxis` member, may
+       differ for different coordinate representations of the same
+       image.
+
+    3. When the header includes duplicate keywords, in most cases the
+       last encountered is used.
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
@@ -286,6 +313,14 @@ To use core WCS in conjunction with Paper IV lookup tables or SIP
 distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
 """.format(wcsprm.naxis))
+
+            header = fits.Header.fromstring(header_string)
+            header_naxis = header.get('NAXIS', None)
+            if header_naxis is not None and header_naxis < wcsprm.naxis:
+                log.info(
+                    "The WCS transformation has more axes ({0:d}) than the "
+                    "image it is associated with ({1:d})".format(
+                        wcsprm.naxis, header_naxis))
 
         if fix:
             fixes = wcsprm.fix()
@@ -1296,11 +1331,12 @@ naxis kwarg.
         f.close()
 
     def get_naxis(self, header=None):
-        self.naxis1 = 0.0
-        self.naxis2 = 0.0
+        for i in range(1, self.naxis + 1):
+            setattr(self, 'naxis{0:d}'.format(i), 1.0)
         if header != None and not isinstance(header, string_types):
-            self.naxis1 = header.get('NAXIS1', 0.0)
-            self.naxis2 = header.get('NAXIS2', 0.0)
+            for i in range(1, self.naxis + 1):
+                setattr(self, 'naxis{0:d}'.format(i),
+                        header.get('NAXIS{0:d}'.format(i), 1.0))
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
