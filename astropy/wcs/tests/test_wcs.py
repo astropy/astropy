@@ -212,9 +212,8 @@ def test_fixes():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         run()
-        # assert len(w) == 3
+        assert len(w) == 2
         for item in w:
-            print item.message
             assert issubclass(item.category, wcs.FITSFixedWarning)
             if 'unitfix' in str(item.message):
                 assert 'Hz' in str(item.message)
