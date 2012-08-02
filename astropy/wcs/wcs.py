@@ -271,11 +271,11 @@ class WCS(WCSBase):
                             "argument 1 and a FITS file object to argument 2")
                     fobj = fits.open(header)
                     header = fobj[0].header
-                    header_string = repr(header.ascard).encode('latin1')
+                    header_string = header.tostring()
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = repr(header.ascard).encode('latin1')
+                header_string = header.tostring()
             else:
                 raise TypeError(
                     "header must be a string or an astropy.io.fits.Header "
