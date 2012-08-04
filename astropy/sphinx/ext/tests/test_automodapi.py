@@ -50,6 +50,7 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: _generated/
+    {empty}
 
 Classes
 ^^^^^^^
@@ -57,6 +58,7 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: _generated/
+    {empty}
 
 Class Inheritance Diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,7 +67,7 @@ Class Inheritance Diagram
     :private-bases:
 
 This comes after
-"""
+""".format(empty='')  # necessary for editors that remove empty-line whitespace
 
 
 def test_am_replacer_basic():
@@ -94,6 +96,7 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: _generated/
+    {empty}
 
 Classes
 ^^^^^^^
@@ -101,10 +104,11 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: _generated/
+    {empty}
 
 
 This comes after
-"""
+""".format(empty='')  # necessary for editors that remove empty-line whitespace
 
 
 def test_am_replacer_noinh():
@@ -135,6 +139,7 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :functions-only:
     :toctree: _generated/
+    {empty}
 
 Classes
 *******
@@ -142,6 +147,7 @@ Classes
 .. automodsumm:: astropy.sphinx.ext.tests.test_automodapi
     :classes-only:
     :toctree: _generated/
+    {empty}
 
 Class Inheritance Diagram
 *************************
@@ -151,7 +157,7 @@ Class Inheritance Diagram
 
 
 This comes after
-"""
+""".format(empty='')  # necessary for editors that remove empty-line whitespace
 
 
 def test_am_replacer_titleandhdrs():
@@ -169,43 +175,60 @@ def test_am_replacer_titleandhdrs():
     assert result == am_replacer_titleandhdrs_expected
 
 
-am_replacer_ss_str = """
+am_replacer_nomain_str = """
 This comes before
 
-.. automodapi:: astropy.sphinx.ext
-    :subsections: automodsumm,automodapi,tests,falsemod
-    :no-main-section:
+.. automodapi:: astropy.sphinx.ext.automodapi
+    :no-main-docstr:
 
 This comes after
 """
 
-am_replacer_subsections_expected = """
+am_replacer_nomain_expected = """
 This comes before
 
-astropy.sphinx.ext.automodsumm Module
--------------------------------------
+astropy.sphinx.ext.automodapi Module
+------------------------------------
 
-.. automodule:: astropy.sphinx.ext.automodsumm
+
 
 Functions
 ^^^^^^^^^
 
-.. automodsumm:: astropy.sphinx.ext.automodsumm
+.. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
     :toctree: _generated/
+    {empty}
 
-Classes
-^^^^^^^
 
-.. automodsumm:: astropy.sphinx.ext.automodsumm
-    :classes-only:
-    :toctree: _generated/
+This comes after
+""".format(empty='')  # necessary for editors that remove empty-line whitespace
 
-Class Inheritance Diagram
-^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automod-diagram:: astropy.sphinx.ext.automodsumm
-    :private-bases:
+def test_am_replacer_nomain():
+    """
+    Tests replacing an ".. automodapi::" with "no-main-docstring" .
+    """
+    from ..automodapi import automodapi_replace
+
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    result = automodapi_replace(am_replacer_nomain_str, fakeapp)
+
+    assert result == am_replacer_nomain_expected
+
+
+am_replacer_skip_str = """
+This comes before
+
+.. automodapi:: astropy.sphinx.ext.automodapi
+    :skip: something1
+    :skip: something2
+
+This comes after
+"""
+
+am_replacer_skip_expected = """
+This comes before
 
 astropy.sphinx.ext.automodapi Module
 ------------------------------------
@@ -218,29 +241,45 @@ Functions
 .. automodsumm:: astropy.sphinx.ext.automodapi
     :functions-only:
     :toctree: _generated/
+    :skip: something1,something2
 
-astropy.sphinx.ext.tests Module
--------------------------------
 
-.. automodule:: astropy.sphinx.ext.tests
+This comes after
+""".format(empty='')  # necessary for editors that remove empty-line whitespace
 
+
+def test_am_replacer_skip():
+    """
+    Tests using the ":skip: option in an ".. automodapi::" .
+    """
+    from ..automodapi import automodapi_replace
+
+    fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
+    result = automodapi_replace(am_replacer_skip_str, fakeapp)
+
+    assert result == am_replacer_skip_expected
+
+
+am_replacer_invalidop_str = """
+This comes before
+
+.. automodapi:: astropy.sphinx.ext.automodapi
+    :invalid-option:
 
 This comes after
 """
 
 
-def test_am_replacer_subsections():
+def test_am_replacer_invalidop():
     """
-    Tests replacing an ".. automodapi::" with "subsections" and
-    "no-main-section" options.
+    Tests that a sphinx warning is produced with an invalid option.
     """
     from ..automodapi import automodapi_replace
 
     fakeapp = FakeApp(automodapi_toctreedirnm='_generated/')
-    result = automodapi_replace(am_replacer_ss_str, fakeapp)
+    automodapi_replace(am_replacer_invalidop_str, fakeapp)
 
-    expected_warnings = [('Attempted to add documentation section for '
-      'astropy.sphinx.ext.falsemod, which is not importable. Skipping.', None)]
+    expected_warnings = [('Found additional options invalid-option in '
+                          'automodapi.', None)]
 
     assert fakeapp.warnings == expected_warnings
-    assert result == am_replacer_subsections_expected
