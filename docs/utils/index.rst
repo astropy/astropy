@@ -51,18 +51,24 @@ Reference/API
 
 XML
 ---
+The ``astropy.utils.xml.*`` modules provide various
+`XML <http://www.w3.org/XML/>`_ processing tools.
 
 .. automodapi:: astropy.utils.xml.check
     :no-inheritance-diagram:
+    :headings: ^"
 
 .. automodapi:: astropy.utils.xml.iterparser
     :no-inheritance-diagram:
+    :headings: ^"
 
 .. automodapi:: astropy.utils.xml.validate
     :no-inheritance-diagram:
+    :headings: ^"
 
 .. automodapi:: astropy.utils.xml.writer
     :no-inheritance-diagram:
+    :headings: ^"
 
 
 
