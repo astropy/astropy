@@ -17,15 +17,15 @@ It accepts the following options:
         If present, the inheritance diagram will not be shown even if
         the module/package has classes.
 
-    * ``:subsections: mod1[,mod2,subpkg3]``
-        If present, this generates separate documentation sections for
-        the requested submodules or subpackages.
+    * ``:skip: str``
+        This option results in the
+        specified object being skipped, that is the object will *not* be
+        included in the generated documentation. This option may appear
+        any number of times to skip multiple objects.
 
-    * ``:no-main-section:``
-        If present, the documentation and summary table for the main
-        module or package will not be generated (this would generally be
-        used with ``:subsections:`` if there is nothing of intereset in
-        the package itself.)
+    * ``:no-main-docstr:``
+        If present, the docstring for the module/package will not be generated.
+        The function and class tables will still be used, however.
 
     * ``:headings: str``
         Specifies the characters (in one string) used as the heading
@@ -35,6 +35,7 @@ It accepts the following options:
         happy. Defaults to "-^", which matches the convention used for
         Python's documentation, assuming the automodapi call is inside a
         top-level section (which usually uses '=').
+
 
 
 This extension also adds a sphinx configuration option
@@ -59,7 +60,7 @@ automod_templ_modheader = """
 {modname} {pkgormod}
 {modhds}{pkgormodhds}
 
-.. automodule:: {modname}
+{automoduleline}
 """
 
 automod_templ_classes = """
@@ -69,6 +70,7 @@ Classes
 .. automodsumm:: {modname}
     :classes-only:
     {toctree}
+    {skips}
 """
 
 automod_templ_funcs = """
@@ -78,6 +80,7 @@ Functions
 .. automodsumm:: {modname}
     :functions-only:
     {toctree}
+    {skips}
 """
 
 automod_templ_inh = """
@@ -132,9 +135,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         The string with automodapi entries replaced with the correct
         sphinx markup.
     """
-    import sys
     from os import sep
-    from inspect import ismodule
 
     spl = _automodapirex.split(sourcestr)
     if len(spl) > 1:  # automodsumm is in this document
@@ -153,7 +154,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
 
         newstrs = [spl[0]]
         for grp in range(len(spl) // 3):
-            basemodnm = spl[grp * 3 + 1]
+            modnm = spl[grp * 3 + 1]
 
             #find where this is in the document for warnings
             if docname is None:
@@ -161,76 +162,70 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
             else:
                 location = (docname, spl[0].count('\n'))
 
-            #findall yields an optionname, arguments tuple
-            modops = dict(_automodapiargsrex.findall(spl[grp * 3 + 2]))
+            #initialize default options
+            toskip = []
+            inhdiag = maindocstr = True
+            hds = '-^'
 
-            inhdiag = 'no-inheritance-diagram' not in modops
-            modops.pop('no-inheritance-diagram', None)
-            subsecs = modops.pop('subsections', None)
-            nomain = 'no-main-section' in modops
-            modops.pop('no-main-section', None)
-            hds = modops.pop('headings', '-^')
+            #look for actual options
+            unknownops = []
+            for opname, args in _automodapiargsrex.findall(spl[grp * 3 + 2]):
+                if opname == 'skip':
+                    toskip.append(args.strip())
+                elif opname == 'no-inheritance-diagram':
+                    inhdiag = False
+                elif opname == 'no-main-docstr':
+                    maindocstr = False
+                elif opname == 'headings':
+                    hds = args
+                else:
+                    unknownops.append(opname)
 
+            # get the two heading chars
             if len(hds) < 2:
-                msg = 'not enough headings (got {0}, need 2), using default -^'
+                msg = 'Not enough headings (got {0}, need 2), using default -^'
                 if warnings:
                     app.warn(msg.format(len(hds)), location)
                 hds = '-^'
             h1, h2 = hds.lstrip()[:2]
 
             #tell sphinx that the remaining args are invalid.
-            if len(modops) > 0 and app is not None:
-                opsstrs = ','.join(modops.keys())
+            if len(unknownops) > 0 and app is not None:
+                opsstrs = ','.join(unknownops)
                 msg = 'Found additional options ' + opsstrs + ' in automodapi.'
-
                 if warnings:
                     app.warn(msg, location)
 
-            # construct the list of modules to document based on the
-            # show-subsections argument
-            modnames = [] if nomain else [basemodnm]
-            if subsecs is not None:
-                for ss in subsecs.replace(' ', '').split(','):
-                    submodnm = basemodnm + '.' + ss
-                    try:
-                        __import__(submodnm)
-                        mod = sys.modules[submodnm]
-                        if ismodule(mod):
-                            modnames.append(mod.__name__)
-                        else:
-                            msg = ('Attempted to add documentation section for '
-                                   '{0}, which is neither module nor package. '
-                                   'Skipping.')
-                            if warnings:
-                                app.warn(msg.format(submodnm), location)
-                    except ImportError:
-                        msg = ('Attempted to add documentation section for '
-                               '{0}, which is not importable. Skipping.')
-                        if warnings:
-                            app.warn(msg.format(submodnm), location)
+            ispkg, hascls, hasfuncs = _mod_info(modnm, toskip)
 
-            for modnm in modnames:
-                ispkg, hascls, hasfuncs = _mod_info(modnm)
+            #add automodule directive only if no-main-docstr isn't present
+            if maindocstr:
+                automodline = '.. automodule:: {modname}'.format(modname=modnm)
+            else:
+                automodline = ''
 
-                newstrs.append(automod_templ_modheader.format(modname=modnm,
-                    modhds=h1 * len(modnm),
-                    pkgormod='Package' if ispkg else 'Module',
-                    pkgormodhds=h1 * (8 if ispkg else 7)))
+            newstrs.append(automod_templ_modheader.format(modname=modnm,
+                modhds=h1 * len(modnm),
+                pkgormod='Package' if ispkg else 'Module',
+                pkgormodhds=h1 * (8 if ispkg else 7),
+                automoduleline=automodline))
 
-                if hasfuncs:
-                    newstrs.append(automod_templ_funcs.format(modname=modnm,
-                        funchds=h2 * 9,
-                        toctree=toctreestr))
+            if hasfuncs:
+                newstrs.append(automod_templ_funcs.format(modname=modnm,
+                    funchds=h2 * 9,
+                    toctree=toctreestr,
+                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
 
-                if hascls:
-                    newstrs.append(automod_templ_classes.format(modname=modnm,
-                        clshds=h2 * 7,
-                        toctree=toctreestr))
+            if hascls:
+                newstrs.append(automod_templ_classes.format(modname=modnm,
+                    clshds=h2 * 7,
+                    toctree=toctreestr,
+                    skips=':skip: ' + ','.join(toskip) if toskip else ''))
 
-                if inhdiag and hascls:
-                    # add inheritance diagram if any classes are in the module
-                    newstrs.append(automod_templ_inh.format(
-                        modname=modnm, clsinhsechds=h2 * 25))
+            if inhdiag and hascls:
+                # add inheritance diagram if any classes are in the module
+                newstrs.append(automod_templ_inh.format(
+                    modname=modnm, clsinhsechds=h2 * 25))
 
             newstrs.append(spl[grp * 3 + 3])
         return ''.join(newstrs)
@@ -238,7 +233,7 @@ def automodapi_replace(sourcestr, app, dotoctree=True, docname=None,
         return sourcestr
 
 
-def _mod_info(modname):
+def _mod_info(modname, toskip=[]):
     """
     Determines if a module is a module or a package and whether or not
     it has classes or functions.
@@ -250,11 +245,13 @@ def _mod_info(modname):
     from ...utils.misc import find_mod_objs
 
     hascls = hasfunc = False
-    for obj in find_mod_objs(modname, onlylocals=True)[2]:
-        hascls = hascls or isclass(obj)
-        hasfunc = hasfunc or isfunction(obj)
-        if hascls and hasfunc:
-            break
+
+    for localnm, fqnm, obj in zip(*find_mod_objs(modname, onlylocals=True)):
+        if localnm not in toskip:
+            hascls = hascls or isclass(obj)
+            hasfunc = hasfunc or isfunction(obj)
+            if hascls and hasfunc:
+                break
 
     #find_mod_objs has already imported modname
     pkg = sys.modules[modname]
