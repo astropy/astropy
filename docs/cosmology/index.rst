@@ -45,31 +45,34 @@ the 5-year WMAP parameters:
 A full list of the pre-defined cosmologies is given by
 `cosmology.parameters.available`.
 
+An important point is that the cosmological parameters of each
+instance are immutable -- that is, if you want to change, say,
+`Om`, you need to make a new instance of the class.
 
 Using `cosmology`
 =================
 
 Most of the functionality is enabled by the
-`~astropy.cosmology.core.FLRWCosmology` object. This represents a
+`~astropy.cosmology.core.FLRW` object. This represents a
 homogenous and isotropic cosmology (a cosmology characterized by the
 Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
 solved Einstein's field equation for this special case).  However,
 you can't work with this class directly, as you must specify a
 dark energy model by using one of its subclasses instead,
-such as `~astropy.cosmology.core.LambdaCDMCosmology`.
+such as `~astropy.cosmology.core.LambdaCDM`.
 
-You can create a new `FLRWCosmology` object with arguments giving the
-hubble parameter, omega matter and omega lambda (all at z=0):
+You can create a new `LambdaCDM` object with arguments giving the
+hubble parameter, omega matter and omega dark energy(all at z=0):
 
-  >>> from astropy.cosmology import LambdaCDMCosmology
-  >>> cosmo = LambdaCDMCosmology(H0=70, Om=0.3, Ode=0.7)
+  >>> from astropy.cosmology import LambdaCDM
+  >>> cosmo = LambdaCDM(H0=70, Om=0.3, Ode=0.7)
   >>> cosmo
-  FLRWCosmology(H0=70, Om=0.3, Ode=0.7, Ok=0)
+  LambdaCDM(H0=70, Om=0.3, Ode=0.7, Ok=0)
 
 A number of additional dark energy models are provided (described below).
 
 The pre-defined cosmologies described in the `Getting Started`_
-section are `FLRWCosmology` instances, and have the same methods. So
+section are instances of `LambdaCDM`, and have the same methods. So
 we can find the luminosity distance in Mpc to redshift 4 by:
 
   >>> cosmo.luminosity_distance(4)
@@ -85,7 +88,7 @@ They also accept arrays of redshifts:
   >>> cosmo.age([0.5, 1, 1.5])
   array([ 8.42634607,  5.75164698,  4.20073196])	
 
-See the `FLRWCosmology` object docstring for all the methods and
+See the `FLRW` and `LambdaCDM` object docstring for all the methods and
 attributes available. There are also a variety of standard cosmologies
 with the parameters already defined:
 
@@ -97,7 +100,7 @@ with the parameters already defined:
   >>> WMAP5.H(3)                    # Hubble parameter at z = 3 in km/s/Mpc
   301.54148311633674
 
-In addition to the `FLRWCosmology` object, there are convenience
+In addition to the `LambdaCDM` object, there are convenience
 functions that calculate quantities without needing to explicitly give
 a cosmology.
 
@@ -180,27 +183,20 @@ unless explicitly overridden.
 Specifying a dark energy model
 ==============================
 
-In addition to the standard `LambdaCDMCosmology` model described
+In addition to the standard `LambdaCDM` model described
 above, a number of additional dark energy models are provided.
-`LambdaCDMCosmology` assumes that dark energy is a cosmological
-constant, and should be the most commonly used case.  `wCDMCosmology`
+`LambdaCDM` assumes that dark energy is a cosmological
+constant, and should be the most commonly used case.  `wCDM`
 assumes a constant dark energy equation of state parameterized by w.
 Two forms of a variable dark energy equation of state are provided:
-the simple first order linear expansion w(z) = w0 + wz * z by
-`w0wzCDMCosmology`, as well as the common CPL form by
-`w0waCDMCosmology`: w(z) = w0 + wa * (1 - a) = w0 + wz * z / (1 + z)
+the simple first order linear expansion :math:`w(z) = w_0 + w_z z` by
+`w0wzCDM`, as well as the common CPL form by
+`w0waCDM`: :math:`w(z) = w_0 + w_a (1 - a) = w_0 + w_a * z / (1 + z)`
 and its generalization to include a pivot redshift by
-`wpwaCDMCosmology`: w(z) = wp + wa * (a_p - a).
+`wpwaCDM`: :math:`w(z) = w_p + w_a (a_p - a)`.
 
 Users can specify their own equation of state by sub-classing
-`FRLWCosmology`.  The only requirement is to provide a get_w
-function which returns the equation of state at an arbitrary redshift.
-`FRLWCosmology` can then compute all the other quantities.  However,
-this computation may not take full advantage of particular forms
-of the dark energy equation of state to evaluate some of the intermediate
-expressions analytically.  For simple forms, such as the ones implemented
-by the above classes, it is advisable to override _efunc and 
-_inv_efunc as well.
+`FRLW`.  See the provided subclasses for examples.
 
 
 See Also
