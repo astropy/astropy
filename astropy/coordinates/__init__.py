@@ -6,3 +6,6 @@ of astronomical objects. It also contains a framework for conversions
 between coordinate systems.
 """
 
+from core import *
+from conversions import *
+from coordsystems import *
