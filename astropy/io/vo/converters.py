@@ -977,7 +977,7 @@ class BooleanArray(NumericArray):
     """
     Handles an array of boolean values.
     """
-    vararray_type = VarArray
+    vararray_type = ArrayVarArray
 
     def __init__(self, field, base, arraysize, config={}, pos=None):
         NumericArray.__init__(self, field, base, arraysize, config, pos)
@@ -1014,7 +1014,7 @@ class Boolean(Converter):
     """
     format = 'b1'
     array_type = BooleanArray
-    vararray_type = VarArray
+    vararray_type = ScalarVarArray
     default = False
     binary_question_mark = b'?'
     binary_true = b'T'
