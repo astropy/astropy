@@ -171,7 +171,7 @@ class FLRW(Cosmology):
         # inside an integral
 
         z = exp(ln1pz)-1.0
-        return 1.0 + self.get_w(z)
+        return 1.0 + self.dark_energy_eos(z)
 
     @abstractmethod
     def efunc(self, z):
@@ -188,7 +188,9 @@ class FLRW(Cosmology):
 
         This must be overridden by subclasses. For most popular
         forms of w(z) it takes on a relatively simple form.  However,
-        this can be called to handle more complicated models.
+        the version implemented here can be called directly by subclasses
+        to handle more complicated models where only dark_energy_eos
+        is specified.
         """
 
         # This allows for an arbitrary w(z) following eq (5) of
