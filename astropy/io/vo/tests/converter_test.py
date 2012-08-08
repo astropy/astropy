@@ -1,5 +1,6 @@
 # THIRD-PARTY
 import numpy as np
+from numpy.testing import assert_array_equal
 
 # LOCAL
 from .. import converters
@@ -168,6 +169,16 @@ def test_boolean():
     c.parse('YES')
 
 
+def test_boolean_array():
+    config = {'pedantic': True}
+    field = tree.Field(
+        None, name='c', datatype='boolean', arraysize='*',
+        config=config)
+    c = converters.get_converter(field, config=config)
+    r, mask = c.parse('TRUE FALSE T F 0 1')
+    assert_array_equal(r, [True, False, True, False, False, True])
+
+
 @raises(exceptions.E06)
 def test_invalid_type():
     config = {'pedantic': True}
@@ -175,5 +186,3 @@ def test_invalid_type():
         None, name='c', datatype='foobar',
         config=config)
     c = converters.get_converter(field, config=config)
-
-
