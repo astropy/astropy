@@ -618,6 +618,8 @@ class FLRW(Cosmology):
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
 
+    This has no additional attributes beyond those of FLRW.
+
     Examples
     --------
     >>> from astro.cosmology import LambdaCDM
@@ -691,6 +693,14 @@ class LambdaCDM(FLRW):
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy equation of state
     and curvature.
+
+    This has one additional attribute beyond those of FLRW.
+
+    Attributes
+    ----------
+    w : float
+      Dark energy equation of state (P/rho) at current epoch. -1 is a
+      cosmological constant.
 
     Examples
     --------
@@ -780,6 +790,15 @@ class w0waCDM(FLRW):
     D10, 213 (2001) and Linder PRL 90, 91301 (2003):
     :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`
 
+    This has two additional attributes beyond those of FLRW.
+
+    Attributes
+    ----------
+    w0 : float
+      Dark energy equation of state (P/rho) at current epoch.
+    wa : float
+      Negative derivative of the dark energy equation of state with
+      respect to the scale factor.
 
     Examples
     --------
@@ -889,6 +908,19 @@ class wpwaCDM(FLRW):
     to have a pivot redshift as in the findings of the Dark Energy
     Task Force (Albrecht et al. arXiv:0901.0721 (2009)):
     :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`
+
+    This has three additional attributes beyond those of FLRW.
+
+    Attributes
+    ----------
+    wp : float
+      Dark energy equation of state (P/rho) at the pivot redshift
+    wa : float
+      Negative derivative of the dark energy equation of state with
+      respect to the scale factor.
+    zp : float
+      Pivot redshift
+
 
     Examples
     --------
@@ -1007,6 +1039,14 @@ class w0wzCDM(FLRW):
 
     This form is not recommended for z > 1.
 
+    This has two additional attributes beyond those of FLRW.
+
+    Attributes
+    ----------
+    w0 : float
+      Dark energy equation of state (P/rho) at current epoch.
+    wz : float
+      Derivative of the dark energy equation of state with respect to z.
 
     Examples
     --------
