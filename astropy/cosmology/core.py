@@ -277,7 +277,7 @@ class FLRW(Cosmology):
     def scale_factor(self, z):
         """ Scale factor at redshift `z`.
 
-        The scale factor is defined as math::`a = 1 / (1 + z)`.
+        The scale factor is defined as :math:`a = 1 / (1 + z)`.
 
         Parameters
         ----------
@@ -778,7 +778,7 @@ class w0waCDM(FLRW):
     The equation for the dark energy equation of state uses the
     CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
     D10, 213 (2001) and Linder PRL 90, 91301 (2003):
-    math::`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`
+    :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`
 
 
     Examples
@@ -888,7 +888,7 @@ class wpwaCDM(FLRW):
     D10, 213 (2001) and Linder PRL 90, 91301 (2003), but modified
     to have a pivot redshift as in the findings of the Dark Energy
     Task Force (Albrecht et al. arXiv:0901.0721 (2009)):
-    math::`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`
+    :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`
 
     Examples
     --------
@@ -1003,7 +1003,7 @@ class w0wzCDM(FLRW):
     and curvature.
 
     The equation for the dark energy equation of state uses the
-    simple form: math::`w(z) = w_0 + w_z * z`
+    simple form: :math:`w(z) = w_0 + w_z z`
 
     This form is not recommended for z > 1.
 

@@ -255,19 +255,19 @@ def test_current():
 
 def test_wz():
     cosmo = core.LambdaCDM(H0=70, Om=0.3, Ode=0.70)
-    assert np.allclose(cosmo.get_w([0.1,0.2,0.5,1.5,2.5,11.5]),
+    assert np.allclose(cosmo.dark_energy_eos([0.1,0.2,0.5,1.5,2.5,11.5]),
                        [-1.,-1,-1,-1,-1,-1])
     cosmo = core.wCDM(H0=70, Om=0.3, Ode=0.70,w=-0.5)
-    assert np.allclose(cosmo.get_w([0.1,0.2,0.5,1.5,2.5,11.5]),
+    assert np.allclose(cosmo.dark_energy_eos([0.1,0.2,0.5,1.5,2.5,11.5]),
                        [-0.5,-0.5,-0.5,-0.5,-0.5,-0.5])
     cosmo = core.w0wzCDM(H0=70, Om=0.3, Ode=0.70,w0=-1,wz=0.5)
-    assert np.allclose(cosmo.get_w([0.0,0.5,1.0,1.5,2.3]),
+    assert np.allclose(cosmo.dark_energy_eos([0.0,0.5,1.0,1.5,2.3]),
                        [-1.0,-0.75,-0.5,-0.25,0.15])
     cosmo = core.w0waCDM(H0=70, Om=0.3, Ode=0.70,w0=-1,wa=-0.5)
-    assert np.allclose(cosmo.get_w([0.0,0.5,1.0,1.5,2.3]),
+    assert np.allclose(cosmo.dark_energy_eos([0.0,0.5,1.0,1.5,2.3]),
                        [-1,-1.16666667,-1.25, -1.3, -1.34848485])
     cosmo = core.wpwaCDM(H0=70, Om=0.3, Ode=0.70,wp=-0.9,
-                                  wa=0.2,zp=0.5)
+                         wa=0.2,zp=0.5)
     assert np.allclose(cosmo.dark_energy_eos([0.1,0.2,0.5,1.5,2.5,11.5]),
                        [-0.94848485,-0.93333333,-0.9,-0.84666667,-0.82380952,
                          -0.78266667])
