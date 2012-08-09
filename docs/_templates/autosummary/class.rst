@@ -11,7 +11,7 @@
    :show-inheritance:
 
    {% if '__init__' in methods %}
-     {{ methods.remove('__init__') }}
+     {% set caught_result = methods.remove('__init__') %}
    {% endif %}
 
    {% block attributes_summary %}
