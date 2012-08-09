@@ -6,6 +6,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 from __future__ import absolute_import
 
+import errno
 import imp
 import os
 import shutil
@@ -96,6 +97,8 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
     orig_run = attrs['run']
 
     def run(self):
+        from astropy.version import release
+
         # For extensions that require 'numpy' in their include dirs, replace
         # 'numpy' with the actual paths
         np_include = get_numpy_include_path()
@@ -104,6 +107,27 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
                 idx = extension.include_dirs.index('numpy')
                 extension.include_dirs.insert(idx, np_include)
                 extension.include_dirs.remove('numpy')
+
+            if release or not HAVE_CYTHON:
+                # Replace .pyx with C-equivalents, unless c files are missing
+                for jdx, src in enumerate(extension.sources):
+                    if src.endswith('.pyx'):
+                        pyxfn = src
+                        cfn = src[:-4] + '.c'
+                    elif src.endswith('.c'):
+                        pyxfn = src[:-2] + '.pyx'
+                        cfn = src
+                    if os.path.isfile(pyxfn):
+                        if os.path.isfile(cfn):
+                            extension.sources[jdx] = cfn
+                        else:
+                            msg = (
+                                'Could not find C file {0} for Cython file '
+                                '{1} when building extension {2}. '
+                                'Cython must be installed to build from a '
+                                'git checkout'.format(cfn, pyxfn,
+                                                      extension.name))
+                            raise IOError(errno.ENOENT, msg, cfn)
 
         orig_run(self)
 
@@ -434,8 +458,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     for more details.
     """
 
-    from astropy.version import release
-
     # For each of the setup_package.py modules, extract any
     # information that is needed to install them.  The build options
     # are extracted first, so that their values will be available in
@@ -472,26 +494,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     for i, ext in reversed(list(enumerate(extensions))):
         if ext.name == 'skip_cython':
             del extensions[i]
-
-    if release or not HAVE_CYTHON:
-        # Replace .pyx with C-equivalents, unless c files are missing
-        for idx, ext in reversed(list(enumerate(extensions))):
-            for jdx, src in enumerate(ext.sources):
-                if src.endswith('.pyx'):
-                    pyxfn = src
-                    cfn = src[:-4] + '.c'
-                elif src.endswith('.c'):
-                    pyxfn = src[:-2] + '.pyx'
-                    cfn = src
-                if os.path.isfile(pyxfn):
-                    if os.path.isfile(cfn):
-                        ext.sources[jdx] = cfn
-                    else:
-                        raise IOError(
-                            'Could not find C file {0} for Cython file {1} '
-                            'when building extension {2}. '
-                            'Cython must be installed to build from a git '
-                            'checkout'.format(cfn, pyxfn, ext.name))
 
     # On Microsoft compilers, we need to pass the '/MANIFEST'
     # commandline argument.  This was the default on MSVC 9.0, but is
