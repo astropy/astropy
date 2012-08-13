@@ -230,7 +230,7 @@ class WCS(WCSBase):
 
            - ``WCSAXESa`` keyword
 
-           - The highest axis number if any parameterized WCS keyword.
+           - The highest axis number in any parameterized WCS keyword.
              The keyvalue, as well as the keyword, must be
              syntactically valid otherwise it will not be considered.
 
