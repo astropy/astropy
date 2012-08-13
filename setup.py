@@ -54,28 +54,34 @@ scripts.remove(os.path.join('scripts', 'README.rst'))
 # dependency for us, since some of the subpackages need to be able to
 # access numpy at build time, and they are configured before
 # setuptools has a chance to check and resolve the dependency.
-setup_helpers.check_numpy()
+if not setup_helpers.in_whitelisted_command():
 
-# This dictionary stores the command classes used in setup below
-cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
+    setup_helpers.check_numpy()
 
-             # Use distutils' sdist because it respects package_data.
-             # setuptools/distributes sdist requires duplication of
-             # information in MANIFEST.in
-             'sdist': sdist.sdist,
+    # This dictionary stores the command classes used in setup below
+    cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 
-             # Use a custom build command which understands additional
-             # commandline arguments
-             'build': setup_helpers.AstropyBuild
-             }
+                 # Use distutils' sdist because it respects package_data.
+                 # setuptools/distributes sdist requires duplication of
+                 # information in MANIFEST.in
+                 'sdist': sdist.sdist,
 
-if setup_helpers.HAVE_CYTHON and not release:
-    from Cython.Distutils import build_ext
-    # Builds Cython->C if in dev mode and Cython is present
-    cmdclassd['build_ext'] = build_ext
+                 # Use a custom build command which understands additional
+                 # commandline arguments
+                 'build': setup_helpers.AstropyBuild
+                 }
 
-if setup_helpers.AstropyBuildSphinx is not None:
-    cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
+    if setup_helpers.HAVE_CYTHON and not release:
+        from Cython.Distutils import build_ext
+        # Builds Cython->C if in dev mode and Cython is present
+        cmdclassd['build_ext'] = build_ext
+
+    if setup_helpers.AstropyBuildSphinx is not None:
+        cmdclassd['build_sphinx'] = setup_helpers.AstropyBuildSphinx
+
+else:
+
+    cmdclassd = {}
 
 # Set our custom command class mapping in setup_helpers, so that
 # setup_helpers.get_distutils_option will use the custom classes.
@@ -105,7 +111,6 @@ for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
     hook_name = 'astropy.release.' + '.'.join(hook)
     hook_func = 'astropy.utils.release:' + '_'.join(hook)
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
-
 
 setup(name='astropy',
       version=version,
