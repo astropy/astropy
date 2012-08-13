@@ -6,6 +6,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 from __future__ import absolute_import
 
+import errno
 import imp
 import os
 import shutil
@@ -20,6 +21,7 @@ from distutils.errors import DistutilsError
 from distutils.core import Extension
 from distutils.log import warn
 from distutils.command.build import build as DistutilsBuild
+from distutils.command.build_ext import build_ext as DistutilsBuildExt
 
 from .tests.helper import astropy_test
 
@@ -29,12 +31,6 @@ try:
     HAVE_CYTHON = True
 except ImportError:
     HAVE_CYTHON = False
-
-try:
-    from numpy import get_include as get_numpy_include
-    numpy_includes = get_numpy_include()
-except ImportError:
-    numpy_includes = []
 
 
 class AstropyBuild(DistutilsBuild):
@@ -84,6 +80,60 @@ class AstropyBuild(DistutilsBuild):
 # Need to set the name here so that the commandline options
 # are presented as being related to the "build" command.
 AstropyBuild.__name__ = 'build'
+
+
+def wrap_build_ext(basecls=DistutilsBuildExt):
+    """
+    Creates a custom 'build_ext' command that allows for manipulating some of
+    the C extension options at build time.  We use a function to build the
+    class since the base class for build_ext may be different depending on
+    certain build-time parameters (for example, we may use Cython's build_ext
+    instead of the default version in distutils).
+
+    Uses the default distutils.command.build_ext by default.
+    """
+
+    attrs = basecls.__dict__
+    orig_run = attrs['run']
+
+    def run(self):
+        from astropy.version import release
+
+        # For extensions that require 'numpy' in their include dirs, replace
+        # 'numpy' with the actual paths
+        np_include = get_numpy_include_path()
+        for extension in self.extensions:
+            if 'numpy' in extension.include_dirs:
+                idx = extension.include_dirs.index('numpy')
+                extension.include_dirs.insert(idx, np_include)
+                extension.include_dirs.remove('numpy')
+
+            if release or not HAVE_CYTHON:
+                # Replace .pyx with C-equivalents, unless c files are missing
+                for jdx, src in enumerate(extension.sources):
+                    if src.endswith('.pyx'):
+                        pyxfn = src
+                        cfn = src[:-4] + '.c'
+                    elif src.endswith('.c'):
+                        pyxfn = src[:-2] + '.pyx'
+                        cfn = src
+                    if os.path.isfile(pyxfn):
+                        if os.path.isfile(cfn):
+                            extension.sources[jdx] = cfn
+                        else:
+                            msg = (
+                                'Could not find C file {0} for Cython file '
+                                '{1} when building extension {2}. '
+                                'Cython must be installed to build from a '
+                                'git checkout'.format(cfn, pyxfn,
+                                                      extension.name))
+                            raise IOError(errno.ENOENT, msg, cfn)
+
+        orig_run(self)
+
+    attrs['run'] = run
+
+    return type('build_ext', (basecls, object), attrs)
 
 
 for option in [
@@ -408,8 +458,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     for more details.
     """
 
-    from astropy.version import release
-
     # For each of the setup_package.py modules, extract any
     # information that is needed to install them.  The build options
     # are extracted first, so that their values will be available in
@@ -439,34 +487,13 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
-    extensions.extend(get_cython_extensions(srcdir, extensions,
-                                            [numpy_includes]))
+    extensions.extend(get_cython_extensions(srcdir, extensions, ['numpy']))
 
     # Now remove extensions that have the special name 'skip_cython', as they
     # exist Only to indicate that the cython extensions shouldn't be built
     for i, ext in reversed(list(enumerate(extensions))):
         if ext.name == 'skip_cython':
             del extensions[i]
-
-    if release or not HAVE_CYTHON:
-        # Replace .pyx with C-equivalents, unless c files are missing
-        for idx, ext in reversed(list(enumerate(extensions))):
-            for jdx, src in enumerate(ext.sources):
-                if src.endswith('.pyx'):
-                    pyxfn = src
-                    cfn = src[:-4] + '.c'
-                elif src.endswith('.c'):
-                    pyxfn = src[:-2] + '.pyx'
-                    cfn = src
-                if os.path.isfile(pyxfn):
-                    if os.path.isfile(cfn):
-                        ext.sources[jdx] = cfn
-                    else:
-                        raise IOError(
-                            'Could not find C file {0} for Cython file {1} '
-                            'when building extension {2}. '
-                            'Cython must be installed to build from a git '
-                            'checkout'.format(cfn, pyxfn, ext.name))
 
     # On Microsoft compilers, we need to pass the '/MANIFEST'
     # commandline argument.  This was the default on MSVC 9.0, but is
@@ -583,19 +610,30 @@ def check_numpy():
     Check that Numpy is installed and it is of the minimum version we
     require.
     """
-    import numpy
 
-    major, minor, rest = numpy.__version__.split(".", 2)
-    if (int(major), int(minor)) < (1, 4):
+    requirement_met = False
+
+    try:
+        import numpy
+    except ImportError:
+        pass
+    else:
+        major, minor, rest = numpy.__version__.split(".", 2)
+        requirement_met = (int(major), int(minor)) >= (1, 4)
+
+    if not requirement_met:
         msg = "numpy version 1.4 or later must be installed to build astropy"
         raise ImportError(msg)
+
+    return numpy
 
 
 def get_numpy_include_path():
     """
     Gets the path to the numpy headers.
     """
-    import numpy
+
+    numpy = check_numpy()
 
     try:
         numpy_include = numpy.get_include()

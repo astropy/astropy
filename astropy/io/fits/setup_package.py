@@ -19,7 +19,7 @@ def get_extensions():
             'astropy.io.fits.compression',
             [os.path.relpath(x) for x in
              glob(os.path.join(os.path.dirname(__file__), 'src/*.c'))],
-            include_dirs=[setup_helpers.get_numpy_include_path()],
+            include_dirs=['numpy'],  # Will be replaced with the proper path
             extra_compile_args=extra_compile_args)
     ]
 
