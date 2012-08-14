@@ -45,7 +45,7 @@ try:
     from . import _wcs
 except ImportError:
     _wcs = None
-from ..utils import deprecated
+from ..utils import deprecated, deprecated_attribute
 from .. import log
 
 if _wcs is not None:
@@ -332,7 +332,7 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
-        self.get_naxis(header)
+        self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
     def __copy__(self):
@@ -384,7 +384,7 @@ naxis kwarg.
     if _wcs is not None:
         sub.__doc__ = _wcs._Wcsprm.sub.__doc__
 
-    def calcFootprint(self, header=None, undistort=True):
+    def calcFootprint(self, header=None, undistort=True, axes=None):
         """
         Calculates the footprint of the image on the sky.
 
@@ -400,22 +400,31 @@ naxis kwarg.
             If `True`, take SIP and distortion lookup table into
             account
 
+        axes : length 2 sequence ints, optional
+            If provided, use the given sequence as the shape of the
+            image.  Otherwise, use the ``NAXIS1`` and ``NAXIS2``
+            keywords from the header that was used to create this
+            `WCS` object.
+
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
         """
-        if header is None:
-            try:
-                # classes that inherit from WCS and define naxis1/2
-                # do not require a header parameter
-                naxis1 = self.naxis1
-                naxis2 = self.naxis2
-            except AttributeError:
-                print("Need a valid header in order to calculate footprint\n")
-                return None
+        if axes is not None:
+            naxis1, naxis2 = axes
         else:
-            naxis1 = header.get('NAXIS1', None)
-            naxis2 = header.get('NAXIS2', None)
+            if header is None:
+                try:
+                    # classes that inherit from WCS and define naxis1/2
+                    # do not require a header parameter
+                    naxis1 = self._naxis1
+                    naxis2 = self._naxis2
+                except AttributeError:
+                    print("Need a valid header in order to calculate footprint\n")
+                    return None
+            else:
+                naxis1 = header.get('NAXIS1', None)
+                naxis2 = header.get('NAXIS2', None)
 
         corners = np.zeros(shape=(4, 2), dtype=np.float64)
         if naxis1 is None or naxis2 is None:
@@ -1330,13 +1339,19 @@ naxis kwarg.
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
+    naxis1 = deprecated_attribute('naxis1', '0.2')
+    naxis2 = deprecated_attribute('naxis2', '0.2')
+
+    @deprecated('0.2', message='This method should not be public')
     def get_naxis(self, header=None):
-        for i in range(1, self.naxis + 1):
-            setattr(self, 'naxis{0:d}'.format(i), 1.0)
+        return self._get_naxis(header=header)
+
+    def _get_naxis(self, header=None):
+        self._naxis1 = 0
+        self._naxis2 = 0
         if header != None and not isinstance(header, string_types):
-            for i in range(1, self.naxis + 1):
-                setattr(self, 'naxis{0:d}'.format(i),
-                        header.get('NAXIS{0:d}'.format(i), 1.0))
+            self.naxis1 = header.get('NAXIS1', 0)
+            self.naxis2 = header.get('NAXIS2', 0)
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)

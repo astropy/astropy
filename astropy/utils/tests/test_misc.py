@@ -3,6 +3,7 @@ from .. import misc
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
+import warnings
 
 
 def test_pkg_finder():
@@ -172,3 +173,32 @@ def test_isiterable():
     assert misc.isiterable([1, 2, 3]) is True
     assert misc.isiterable(array(2)) is False
     assert misc.isiterable(array([1, 2, 3])) is True
+
+
+def test_deprecated_attribute():
+    class DummyClass:
+        def __init__(self):
+            self._foo = 42
+
+        def set_private(self):
+            self._foo = 100
+
+        foo = misc.deprecated_attribute('foo', '0.2')
+
+    dummy = DummyClass()
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.resetwarnings()
+        warnings.simplefilter('always')
+        x = dummy.foo
+
+    assert len(w) == 1
+    assert str(w[0].message) == ("The foo attribute is deprecated and may be "
+                                 "removed in a future version.")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.resetwarnings()
+        warnings.simplefilter('always')
+        dummy.set_private()
+
+    assert len(w) == 0

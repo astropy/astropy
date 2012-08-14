@@ -243,11 +243,3 @@ def test_backward_compatible():
     data = np.random.rand(100, 2)
     assert np.all(w.wcs_pix2world(data, 0) == w.wcs_pix2sky(data, 0))
     assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
-
-
-def test_extra_axes():
-    header = get_data_filename('data/extra_axes.hdr')
-    w = wcs.WCS(header)
-
-    assert w.naxis == 4
-    assert w.naxis4 == 1
