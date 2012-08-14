@@ -123,8 +123,8 @@ class Time(object):
             raise ValueError('Input val and val2 must have same dimensions')
 
         if scale is not None and scale not in self.SCALES:
-            raise ValueError('Scale {0} is not in the allowed scales {1}'
-                             .format(scale, sorted(self.SCALES)))
+            raise ScaleValueError("Scale {0} is not in the allowed scales {1}"
+                                  .format(repr(scale), sorted(self.SCALES)))
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._format, self._time = self._get_time_fmt(val, val2, format, scale)
@@ -145,11 +145,11 @@ class Time(object):
             err_msg = 'any of format classes {0}'.format(
                 [name for name, cls in formats])
         elif format not in self.FORMATS:
-            raise ValueError('Must supply valid format in {0}'
-                             .format(sorted(self.FORMATS)))
+            raise ValueError("Format {0} is not in the allowed formats {1}"
+                             .format(repr(format), sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
-            err_msg = 'format class {0}'.format(format)
+            err_msg = 'the format class {0}'.format(format)
 
         for format, FormatClass in formats:
             try:
@@ -187,8 +187,8 @@ class Time(object):
         if scale == self._scale:
             return
         if scale not in self.SCALES:
-            raise ValueError('Scale {0} is not in the allowed scales {1}'
-                             .format(scale, sorted(self.SCALES)))
+            raise ValueError("Scale {0} is not in the allowed scales {1}"
+                             .format(repr(scale), sorted(self.SCALES)))
 
         # Determine the chain of scale transformations to get from the current
         # scale to the new scale.  MULTI_HOPS contains a dict of all
@@ -325,8 +325,8 @@ class Time(object):
         NewFormat = tm.FORMATS[format]
         # If the new format class has a "scale" class attr then that scale is
         # required and the input jd1,2 has to be converted first.
-        if hasattr(NewFormat, 'scale'):
-            scale = NewFormat.scale
+        if hasattr(NewFormat, 'required_scale'):
+            scale = NewFormat.required_scale
             new = getattr(tm, scale)  # self JDs converted to scale
             tm._time = NewFormat(new._time.jd1, new._time.jd2, scale,
                                    tm.precision,
@@ -552,14 +552,7 @@ class TimeFormat(object):
     """
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
-        if hasattr(self.__class__, 'scale'):
-            # This format class has a required time scale
-            cls_scale = getattr(self.__class__, 'scale')
-            if (scale is not None and scale != cls_scale):
-                raise ValueError('Class {0} requires scale={1} or None'
-                                 .format(self.__class__.__name__, cls_scale))
-        else:
-            self.scale = scale
+        self.scale = scale  # validation of scale done later with _check_scale
         self.precision = precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
@@ -574,12 +567,51 @@ class TimeFormat(object):
             self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
 
+    def _get_scale(self):
+        self._scale = self._check_scale(self._scale)
+        return self._scale
+
+    # Use property.setter here!
+    def _set_scale(self, val):
+        self._scale = val
+
+    scale = property(_get_scale, _set_scale)
+
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes.
         """
         if val1.dtype.type != np.double or val2.dtype.type != np.double:
             raise TypeError('Input values for {0} class must be doubles'
                              .format(self.name))
+
+    def _check_scale(self, scale):
+        """Return a validated scale value.
+
+        If there is a class attribute 'scale' then that defines the default /
+        required time scale for this format.  In this case if a scale value was
+        provided that needs to match the class default, otherwise return
+        the class default.
+
+        Otherwise just make sure that scale is in the allowed list of
+        scales.  Provide a different error message if None (no value) was
+        supplied.
+        """
+        if hasattr(self.__class__, 'required_scale'):
+            # This format class has a required time scale
+            cls_scale = getattr(self.__class__, 'required_scale')
+            if (scale is not None and scale != cls_scale):
+                raise ScaleValueError('Class {0} requires scale={1} or None'
+                                 .format(self.__class__.__name__, cls_scale))
+            scale = cls_scale
+        else:
+            if scale not in TIME_SCALES:
+                if scale is None:
+                    raise ScaleValueError("No scale value supplied but it is "
+                                        "required for class {0}"
+                                        .format(self.__class__.__name__))
+                raise ScaleValueError("Scale value '{0}' not in allowed values {1}"
+                                    .format(scale, TIME_SCALES))
+        return scale
 
     def set_jds(self, val1, val2):
         """Set internal jd1 and jd2 from val1 and val2.  Must be provided
@@ -634,6 +666,7 @@ class TimeFromEpoch(TimeFormat):
     """
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
+        self.scale = scale
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
         self.epoch = getattr(epoch, self.scale)
@@ -665,7 +698,7 @@ class TimeUnix(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'utc'
     epoch_format = 'iso'
-    scale = 'utc'
+    required_scale = 'utc'
 
 
 class TimeCxcSec(TimeFromEpoch):
@@ -677,7 +710,7 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'tt'
     epoch_format = 'iso'
-    scale = 'tai'
+    required_scale = 'tai'
 
 
 class TimeString(TimeFormat):
@@ -871,6 +904,7 @@ class TimeEpochDate(TimeFormat):
     or J2000.0 etc).
     """
     def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate of scale.
         epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(val1 + val2)
 
@@ -926,6 +960,10 @@ class TimeDeltaJD(TimeDeltaFormat):
     @property
     def vals(self):
         return self.jd1 + self.jd2
+
+
+class ScaleValueError(Exception):
+    pass
 
 
 # Set module constant with names of all available time formats

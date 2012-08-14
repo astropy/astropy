@@ -98,6 +98,18 @@ class TestBasic():
         assert t.tdb.iso == '2006-01-15 21:25:42.683799'
         assert t.tcb.iso == '2006-01-15 21:25:56.893378'
 
+    def test_creating_all_formats(self):
+        """Create a time object using each defined format"""
+        atm.Time(100.0, format='cxcsec')
+        atm.Time(100.0, format='unix')
+        atm.Time(1950.0, format='byear', scale='tai')
+        atm.Time(2000.0, format='jyear', scale='tai')
+        atm.Time('2000-01-01 12:23:34.0', format='iso', scale='tai')
+        atm.Time('2000-01-01T12:23:34.0', format='isot', scale='tai')
+        atm.Time(2400000.5, 51544.0333981, format='jd', scale='tai')
+        atm.Time(0.0, 51544.0333981, format='mjd', scale='tai')
+        atm.Time('2000:001:12:23:34.0', format='yday', scale='tai')
+
     def test_epoch_transform(self):
         """Besselian and julian epoch transforms"""
         jd = 2457073.05631
@@ -176,3 +188,24 @@ class TestSubFormat():
         t.out_subfmt = '*'
         assert np.all(t.yday == np.array(['2000:336:00:00:00.000',
                                           '2001:335:01:01:01.123']))
+
+    def test_scale_input(self):
+        """Test for issues related to scale input"""
+        # Check case where required scale is defined by the TimeFormat.
+        # The first two should succeed, the third should fail
+        atm.Time(100.0, format='cxcsec')
+        atm.Time(100.0, format='cxcsec', scale='tai')
+        with pytest.raises(atm.ScaleValueError):
+            atm.Time(100.0, format='cxcsec', scale='utc')
+
+        # Check that bad scale is caught when format is specified
+        with pytest.raises(atm.ScaleValueError):
+            atm.Time(1950.0, format='byear')
+        with pytest.raises(atm.ScaleValueError):
+            atm.Time(1950.0, format='byear', scale='bad scale')
+
+        # Check that bad scale is caught when format is auto-determined
+        with pytest.raises(atm.ScaleValueError):
+            atm.Time('2000:001:00:00:00')
+        with pytest.raises(atm.ScaleValueError):
+            atm.Time('2000:001:00:00:00', scale='bad scale')
