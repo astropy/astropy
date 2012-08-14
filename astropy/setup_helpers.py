@@ -93,7 +93,7 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
     Uses the default distutils.command.build_ext by default.
     """
 
-    attrs = basecls.__dict__
+    attrs = dict(basecls.__dict__)
     orig_run = attrs['run']
 
     def run(self):
