@@ -1,16 +1,16 @@
 import pytest
 import numpy as np
 
-import astropy.time as atm
+from astropy.time import Time, TimeDelta
 
 
 class TestTimeDelta():
     """Test TimeDelta class"""
 
     def setup(self):
-        self.t = atm.Time('2010-01-01', scale='utc')
-        self.t2 = atm.Time('2010-01-02 00:00:01', scale='utc')
-        self.dt = atm.TimeDelta(100.0, format='sec')
+        self.t = Time('2010-01-01', scale='utc')
+        self.t2 = Time('2010-01-02 00:00:01', scale='utc')
+        self.dt = TimeDelta(100.0, format='sec')
 
     def test_sub(self):
         # time - time

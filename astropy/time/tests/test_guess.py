@@ -1,6 +1,6 @@
 import pytest
 
-import astropy.time as atm
+from astropy.time import Time
 
 
 class TestGuess():
@@ -8,22 +8,22 @@ class TestGuess():
 
     def test_guess1(self):
         times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
-        t = atm.Time(times, scale='utc')
+        t = Time(times, scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='iso' "
                 "vals=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>")
 
     def test_guess2(self):
         times = ['1999-01-01 00:00:00.123456789', '2010-01 00:00:00']
         with pytest.raises(ValueError):
-            atm.Time(times, scale='utc')
+            Time(times, scale='utc')
 
     def test_guess3(self):
         times = ['1999:001:00:00:00.123456789', '2010:001']
-        t = atm.Time(times, scale='utc')
+        t = Time(times, scale='utc')
         assert (repr(t) == "<Time object: scale='utc' format='yday' "
                 "vals=['1999:001:00:00:00.123' '2010:001:00:00:00.000']>")
 
     def test_guess4(self):
         times = [10, 20]
         with pytest.raises(ValueError):
-            atm.Time(times, scale='utc')
+            Time(times, scale='utc')
