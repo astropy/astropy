@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from astropy.time import Time, ScaleValueError
+from astropy.time import Time, ScaleValueError, sofa_time
 
 class TestBasic():
     """Basic tests stemming from initial example and API reference"""
@@ -231,3 +231,27 @@ class TestSubFormat():
             Time('2000:001:00:00:00')
         with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+class TestSofaErrors():
+    """Test that sofa_time.pyx handles sofa status return values correctly"""
+
+    def test_bad_time(self):
+        iy = np.array([2000], dtype=np.intc)
+        im = np.array([2000], dtype=np.intc) # bad month
+        id = np.array([2000], dtype=np.intc) # bad day
+        djm0 = np.array([0], dtype=np.double)
+        djm = np.array([0], dtype=np.double)
+        with pytest.raises(ValueError):  # bad month, fatal error
+            sofa_time.cal2jd(iy, im, id, djm0, djm)
+
+        # Set month to a good value so now the bad day just gives a warning
+        im[0] = 2
+        sofa_time.cal2jd(iy, im, id, djm0, djm)
+        assert np.allclose(djm0, [2400000.5])
+        assert np.allclose(djm, [ 53574.])
+        
+        # How do you test for warnings in pytest?  Test that dubious year for
+        # UTC works.
+        
+        
+
