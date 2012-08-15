@@ -122,13 +122,36 @@ class TestBasic():
         assert np.allclose(t2.jd, jd)
 
     def test_input_validation(self):
-        """Numeric values for string format raises error"""
+        """Wrong input type raises error"""
         times = [10, 20]
         with pytest.raises(ValueError):
             atm.Time(times, format='iso', scale='utc')
         with pytest.raises(ValueError):
             atm.Time('2000:001', format='jd', scale='utc')
+        with pytest.raises(ValueError):
+            atm.Time([50000.0], ['bad'], format='mjd', scale='tai')
+        with pytest.raises(ValueError):
+            atm.Time(50000.0, 'bad', format='mjd', scale='tai')
 
+class TestVal2():
+    """Tests related to val2"""
+
+    def test_val2_ignored(self):
+        """Test that val2 is ignored for string input"""
+        t = atm.Time('2001:001', 'ignored', scale='utc')
+        assert t.yday == '2001:001:00:00:00.000'
+
+    def test_val2(self):
+        """Various tests of the val2 input"""
+        t = atm.Time([0.0, 50000.0], [50000.0, 0.0], format='mjd', scale='tai')
+        assert t.mjd[0] == t.mjd[1]
+        assert t.jd[0] == t.jd[1]
+
+    def test_val_matches_val2(self):
+        with pytest.raises(ValueError):
+            atm.Time([0.0, 50000.0], [0.0], format='mjd', scale='tai')
+        with pytest.raises(ValueError):
+            atm.Time([0.0], 0.0, format='mjd', scale='tai')
 
 class TestSubFormat():
     """Test input and output subformat functionality"""
