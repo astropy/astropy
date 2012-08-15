@@ -86,3 +86,9 @@ class TestRow():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
+
+    def test_format_row(self):
+        """Test formatting row"""
+        table = self.t
+        row = table[0]
+        assert format(row, "") == "<Row 0 of table\n values=(1, 4)\n dtype=[('a', '<i8'), ('b', '<i8')]>"
