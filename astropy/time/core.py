@@ -674,6 +674,7 @@ class TimeJD(TimeFormat):
     name = 'jd'
 
     def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
         self.jd1 = val1
         self.jd2 = val2
 
@@ -692,6 +693,7 @@ class TimeMJD(TimeFormat):
         # convention of preserving precision by adding to the larger of the two
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.
+        self._check_scale(self._scale)  # Validate scale.
         self.jd1 = val1 + MJD_ZERO
         self.jd2 = val2
 
@@ -981,6 +983,7 @@ class TimeDeltaSec(TimeDeltaFormat):
     name = 'sec'
 
     def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
         self.jd1 = val1 / SECS_PER_DAY
         self.jd2 = val2 / SECS_PER_DAY
 
@@ -995,6 +998,7 @@ class TimeDeltaJD(TimeDeltaFormat):
     name = 'jd'
 
     def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
         self.jd1 = val1
         self.jd2 = val2
 
