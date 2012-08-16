@@ -46,17 +46,20 @@ angular coordinates (e.g. RA, Dec) are subclasses of Angle.
 '''
 # Creating Angles
 # ---------------
-angle = Angle(54.12412, unit=u.DEGREE)
-angle = Angle("54.12412", unit=u.DEGREE)
-angle = Angle("54:07:26.832", unit=u.DEGREE)
+angle = Angle(54.12412, unit=u.degree)
+angle = Angle("54.12412", unit=u.degree)
+angle = Angle("54:07:26.832", unit=u.degree)
 angle = Angle("54.12412 deg")
 angle = Angle("54.12412 degrees")
 angle = Angle("54.12412°") # because we like Unicode
+angle = Angle((54,7,26.832), unit=unit=u.degree) 
+# (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not* because of the need to eventually support arrays of coordinates
 
-angle = Angle(3.60827466667, unit=u.HOUR)
-angle = Angle("3:36:29.7888000120", unit=u.HOUR)
+angle = Angle(3.60827466667, unit=u.hour)
+angle = Angle("3:36:29.7888000120", unit=u.hour)
+angle = Angle((3,36,29.7888000120), unit=u.hour) #as above, *must* be a tuple
 
-angle = Angle(0.944644098745, unit=u.RADIAN)
+angle = Angle(0.944644098745, unit=u.radian)
 
 angle = Angle(54.12412)
 #raises an exception because this is ambiguous
@@ -68,8 +71,8 @@ a scalar is also permitted. A negative operator is also valid.
 All of these operate in a single dimension. Attempting to
 multiply or divide two Angle objects will raise an exception.
 '''
-a1 = Angle(3.60827466667, unit=u.HOUR)
-a2 = Angle("54:07:26.832", unit=u.DEGREE)
+a1 = Angle(3.60827466667, unit=u.hour)
+a2 = Angle("54:07:26.832", unit=u.degree)
 a3 = a1 + a2 # creates new Angle object
 a4 = a1 - a2
 a5 = -a1
@@ -91,32 +94,32 @@ As Angle objects are intended to be immutable (the angle value anyway), this pro
 upon creation. The units given in the "bounds" keyword must match the units
 specified in the scalar.
 '''
-a1 = Angle(13343, unit=u.DEGREE)
+a1 = Angle(13343, unit=u.degree)
 print(a1.degrees)
 # 23
 
-a2 = Angle(-50, unit=u.DEGREE)
+a2 = Angle(-50, unit=u.degree)
 print(a2.degrees)
 # -50
 
-a3 = Angle(-361, unit=u.DEGREE)
+a3 = Angle(-361, unit=u.degree)
 print (a3.degrees)
 # -1
 
 # custom bounds
 
-a4 = Angle(66, unit=u.DEGREE, bounds=(-45,45))
+a4 = Angle(66, unit=u.degree, bounds=(-45,45))
 # RangeError
 
-a5 = Angle(390, unit=u.DEGREE, bounds=(-75,75))
+a5 = Angle(390, unit=u.degree, bounds=(-75,75))
 print(a5.degrees)
 # 30, no RangeError because while 390>75, 30 is within the bounds
 
-a6 = Angle(390, unit=u.DEGREE, bounds=(-720, 720))
+a6 = Angle(390, unit=u.degree, bounds=(-720, 720))
 print(a6.degrees)
 # 390
 
-a7 = Angle(1020, unit=u.DEGREE, bounds=None)
+a7 = Angle(1020, unit=u.degree, bounds=None)
 print(a7.degrees)
 # 1020
 
@@ -132,9 +135,9 @@ print(a9.degrees)
 # 60
 
 #To get the default bounds back, you need to create a new object with the equivalent angle
-a9 = Angle(a5.degrees + a5.degrees, unit=u.DEGREE) 
+a9 = Angle(a5.degrees + a5.degrees, unit=u.degree) 
 
-a10 = Angle(a5.degrees + a6.degrees, unit=u.DEGREE, bounds=[-180,180])
+a10 = Angle(a5.degrees + a6.degrees, unit=u.degree, bounds=[-180,180])
 print(a10.degrees)
 # 60 - if they don't match and you want to combine, just re-assign the bounds yourself
 
@@ -145,7 +148,7 @@ print(a11.degrees)
 
 # Converting units
 # ----------------
-angle = Angle("54.12412", unit=u.DEGREE)
+angle = Angle("54.12412", unit=u.degree)
 
 print("Angle in hours: {0}.".format(angle.hours))
 # Angle in hours: 3.60827466667.
@@ -172,29 +175,29 @@ def string(self, unit=DEGREE, decimal=False, sep=" ", precision=5, pad=False):
 The "decimal" parameter defaults to False since if you need to print the
 Angle as a decimal, there's no need to use the "to_string" method (see above).
 '''
-print("Angle as HMS: {0}".format(angle.to_string(unit=u.HOUR)))
+print("Angle as HMS: {0}".format(angle.to_string(unit=u.hour)))
 # Angle as HMS: 3 36 29.78880
 
-print("Angle as HMS: {0}".format(angle.to_string(unit=u.HOUR, sep=":")))
+print("Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":")))
 # Angle as HMS: 3:36:29.78880
 
-print("Angle as HMS: {0}".format(angle.to_string(unit=u.HOUR, sep=":", precision=2)))
+print("Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":", precision=2)))
 # Angle as HMS: 3:36:29.79
 
 # Note that you can provide one, two, or three separators passed as a tuple or list
 #
-print("Angle as HMS: {0}".format(angle.string(unit=u.HOUR, sep=("h","m","s"), precision=4)))
+print("Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=("h","m","s"), precision=4)))
 # Angle as HMS: 3h36m29.7888s
 
-print("Angle as HMS: {0}".format(angle.string(unit=u.HOUR, sep=["-","|"], precision=4)))
+print("Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=["-","|"], precision=4)))
 # Angle as HMS: 3-36|29.7888
 
-print("Angle as HMS: {0}".format(angle.string(unit=u.HOUR, sep="-", precision=4)))
+print("Angle as HMS: {0}".format(angle.string(unit=u.hour, sep="-", precision=4)))
 # Angle as HMS: 3-36-29.7888
 
 # The "pad" parameter will add leading zeros to numbers less than 10.
 #
-print("Angle as HMS: {0}".format(angle.string(unit=u.HOUR, precision=4, pad=True)))
+print("Angle as HMS: {0}".format(angle.string(unit=u.hour, precision=4, pad=True)))
 # Angle as HMS: 03 36 29.7888
 
 # RA/Dec Objects
@@ -213,12 +216,12 @@ ra = RA("4:08:15.162342") # error - hours or degrees?
 ra = RA("26:34:65.345634") # unambiguous
 
 # Units can be specified
-ra = RA("4:08:15.162342", unit=u.HOUR)
+ra = RA("4:08:15.162342", unit=u.hour)
 
 # Where RA values are commonly found in hours or degrees, declination is nearly always
 # specified in degrees, so this is the default.
 dec = Dec("-41:08:15.162342")
-dec = Dec("-41:08:15.162342", unit=u.DEGREE) # same as above
+dec = Dec("-41:08:15.162342", unit=u.degree) # same as above
 
 # The Dec object will have bounds hard-coded at [-90,90] degrees.
 
@@ -231,7 +234,6 @@ it will be easy to subclass to create custom user-made coordinates with conversi
 standard coordinates.
 '''
 from astropy.coordinates import ICRSCoordinate, GalacticCoordinate, HorizontalCoordinate, Coordinate
-from astropy.coordinates import GALACTIC, EQUATORIAL #constants, not classes
 
 # A coordinate in the ICRS standard frame (~= J2000)
 c = ICRSCoordinate(ra, dec) #ra and dec are RA and Dec objects, or Angle objects
@@ -246,11 +248,11 @@ print(dec.degrees)
 # string in the initializer. This can lead to ambiguities particularly when both
 # are different units. The solution is to accept an array for the "unit" keyword
 # that one would expect to sent to Angle:
-c = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.HOUR])
+c = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.hour])
 # The first element in 'units' refers to the first coordinate.
 # DEGREE is assumed for the second coordinate
 
-c = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.HOUR, u.DEGREE])
+c = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.hour, u.degree])
 # Both can be specified and should be when there is ambiguity.
 
 
@@ -279,21 +281,22 @@ less magical to create an object from a function. Demitri prefers an abstract cl
 (Coordinate) that will return a new object that is subclassed from Coordinate, as
 it's a more object-oriented solution and Demitri doesn't like functions in Python.
 '''
-#Note: `Coordinate` as used below would be `coordinate` if a function were used
-c = Coordinate(ra=ra, dec=dec) # equatorial coordinate system - returns ICRSCoordinate object
-c = Coordinate(l=158.558650, b=-43.350066, unit=u.DEGREE) # galactic coordinates - returns GalacticCoordinate object
 
-c = Coordinate(a1=139.686111, a2=4.875278, unit=u.DEGREE, system=GALACTIC)
-c = Coordinate(a1=139.686111, a2=4.875278, unit=u.DEGREE, system=EQUATORIAL)
+#Note: `Coordinate` as used below would be `coordinate` if a function were used
+c = Coordinate(ra="12:43:53", dec=-23, angle1_unit=u.hour, angle2_unit=u.degree)
+# The ra and dec keywords imply equatorial coordinates, which will default to ICRS
+# hence this returns an ICRSCoordinate
+c = Coordinate(l=158.558650, b=-43.350066, angle1_unit=u.degree, angle2_unit=u.degree) 
+# l and b are for galactic coordinates, so this returns a GalacticCoordinate object
 
 # Any acceptable input for RA() is accepted in Coordinate, etc.
-c = Coordinate(ra="24:08:15.162342", dec=-41.432345)
+c = Coordinate(ra="24:08:15.162342", dec=-41.432345, angle1_unit=u.hour, angle2_unit=u.degree)
 
 # Mismatched keywords produce an error
-c = Coordinate(ra="24:08:15.162342", b=-43.350066) # error
+c = Coordinate(ra="24:08:15.162342", b=-43.350066, angle1_unit=u.hour, angle2_unit=u.degree) # error
 
-# Angle objects also accepted
-ra = RA("4:08:15.162342", unit=u.HOUR)
+# Angle objects also accepted, and thus do not require units
+ra = RA("4:08:15.162342", unit=u.hour)
 dec = Dec("-41:08:15.162342")
 c = Coordinate(ra=ra, dec=dec)
 
@@ -315,7 +318,7 @@ print(c.galactic.l, c.galactic.b) #the `galactic` result will be cached to speed
 gal = c.convert_to(GalacticCoordinate)
 
 # can still convert back to equatorial using the shorthand
-print(gal.equatorial.ra.to_string(unit=u.HOUR, sep=":", precision=2))
+print(gal.equatorial.ra.to_string(unit=u.hour, sep=":", precision=2))
 # 4:08:15.16
 
 horiz = c.convert_to(HorizontalCoordinate)
@@ -338,8 +341,8 @@ mycoord2 = c.convert_to(CustomCoordinate)
 Angular separations between two points on a sphere are supported via the 
 `separation` method.
 '''
-c1 = Coordinate(ra=0, dec=0, unit=u.DEGREE)
-c2 = Coordinate(ra=0, dec=1, unit=u.DEGREE)
+c1 = Coordinate(ra=0, dec=0, unit=u.degree)
+c2 = Coordinate(ra=0, dec=1, unit=u.degree)
 
 sep = c2.separation(c1)
 #returns an AngularSeparation object (a subclass of Angle)
@@ -353,14 +356,14 @@ c1 + c2
 c1 - c2
 # TypeError - these operations have ambiguous interpretations for points on a sphere
 
-c3 = Coordinate(l=0, b=0, unit=u.DEGREE) #Galactic Coordinates
+c3 = Coordinate(l=0, b=0, unit=u.degree) #Galactic Coordinates
 
 # if there is a defined conversion between the relevant coordinate systems, it will
 # be automatically performed to get the right angular separation
 print c3.separation(c1).degrees
 # 62.8716627659 - distance from the north galactic pole to celestial pole
 
-c4 = CustomCoordinate(0, 0, unit=u.DEGREE)
+c4 = CustomCoordinate(0, 0, unit=u.degree)
 c4.separation(c1) 
 # raises an error if no conversion from the custom to equatorial 
 # coordinates is available
@@ -391,7 +394,7 @@ print(distance(<cosmology>).z) # custom cosmology possible
 c.distance = Distance(12, u.PARSECS)
 
 # Coordinate objects can be initialized with a distance using special syntax
-c1 = Coordinate(l=158.558650, b=-43.350066, unit=u.DEGREE, distance=12 * u.KPC)
+c1 = Coordinate(l=158.558650, b=-43.350066, unit=u.degree, distance=12 * u.KPC)
 
 # Coordinate objects can be instantiated with cartesian coordinates
 # Internally they will immediately be converted to two angles + a distance
