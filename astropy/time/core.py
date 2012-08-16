@@ -56,9 +56,9 @@ class Time(object):
     Parameters
     ----------
     val : numpy ndarray, list, str, or number
-        Data to initialize table.
+        Value(s) to initialize the time or times
     val2 : numpy ndarray, list, str, or number; optional
-        Data to initialize table.
+        Value(s) to initialize the time or times
     format : str, optional
         Format of input value(s)
     scale : str, optional
@@ -66,9 +66,9 @@ class Time(object):
     opt : dict, optional
         options
     lat : float, optional
-        Earth latitude of observer
+        Earth latitude of observer (decimal degrees)
     lon : float, optional
-        Earth longitude of observer
+        Earth longitude of observer (decimal degrees)
     copy : bool, optional
         Make a copy of the input values
     """
@@ -184,6 +184,7 @@ class Time(object):
 
     def _set_scale(self, scale):
         """This is the key routine that actually does time scale conversions.
+        This is not public and not connected to the read-only scale property.
         """
 
         if scale == self._scale:
@@ -230,43 +231,40 @@ class Time(object):
                                                from_jd=True)
         self._scale = scale
 
-    # Precision property
-    def _get_precision(self):
+    @property
+    def precision(self):
+        """Decimal precision when outputting seconds as floating point (int
+        value between 0 and 9 inclusive)."""
         return self._precision
 
-    def _set_precision(self, val):
+    @precision.setter
+    def precision(self, val):
         if not isinstance(val, int) or val < 0 or val > 9:
             raise ValueError('precision attribute must be an int between '
                              '0 and 9')
         self._precision = val
 
-    precision = property(_get_precision, _set_precision)
-    """Decimal precision when outputting seconds as floating point (int value
-    between 0 and 9 inclusive)."""
-
-    # In_subfmt property
-    def _get_in_subfmt(self):
+    @property
+    def in_subfmt(self):
+        """Unix glob to select subformats for parsing string input times"""
         return self._in_subfmt
 
-    def _set_in_subfmt(self, val):
+    @in_subfmt.setter
+    def in_subfmt(self, val):
         if not isinstance(val, basestring):
             raise ValueError('in_subfmt attribute must be a string')
         self._in_subfmt = val
 
-    in_subfmt = property(_get_in_subfmt, _set_in_subfmt)
-    """Unix glob to select subformats for parsing string input times"""
-
-    # Out_subfmt property
-    def _get_out_subfmt(self):
+    @property
+    def out_subfmt(self):
+        """Unix glob to select subformats for outputting times"""
         return self._out_subfmt
 
-    def _set_out_subfmt(self, val):
+    @out_subfmt.setter
+    def out_subfmt(self, val):
         if not isinstance(val, basestring):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
-
-    out_subfmt = property(_get_out_subfmt, _set_out_subfmt)
-    """Unix glob to select subformats for outputting times"""
 
     @property
     def jd1(self):
@@ -437,6 +435,8 @@ class Time(object):
     def _set_delta_ut1_utc(self, val):
         self._delta_ut1_utc = self._match_len(val)
 
+    # Note can't use @property because _get_delta_tdb_tt is explicitly
+    # called with the optional jd1 and jd2 args.
     delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
 
     # Property for SOFA DTR arg = TDB - TT
@@ -476,6 +476,8 @@ class Time(object):
     def _set_delta_tdb_tt(self, val):
         self._delta_tdb_tt = self._match_len(val)
 
+    # Note can't use @property because _get_delta_tdb_tt is explicitly
+    # called with the optional jd1 and jd2 args.
     delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
 
     def __len__(self):
@@ -604,15 +606,15 @@ class TimeFormat(object):
             self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
 
-    def _get_scale(self):
+    @property
+    def scale(self):
+        """Time scale"""
         self._scale = self._check_scale(self._scale)
         return self._scale
 
-    # Use property.setter here!
-    def _set_scale(self, val):
+    @scale.setter
+    def scale(self, val):
         self._scale = val
-
-    scale = property(_get_scale, _set_scale)
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes.
