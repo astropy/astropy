@@ -10,6 +10,14 @@ import time
 import itertools
 import numpy as np
 
+__all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeString',
+           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
+           'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
+           'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
+           'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
+           'TIME_DELTA_SCALES']
+
 try:
     from . import sofa_time
 except ImportError:
