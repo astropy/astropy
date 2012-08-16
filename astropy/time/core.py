@@ -69,6 +69,8 @@ class Time(object):
         Earth latitude of observer
     lon : float, optional
         Earth longitude of observer
+    copy : bool, optional
+        Make a copy of the input values
     """
 
     _precision = 3  # Precision when for seconds as floating point
@@ -83,7 +85,7 @@ class Time(object):
 
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 lat=0.0, lon=0.0):
+                 lat=0.0, lon=0.0, copy=False):
         self.lat = lat
         self.lon = lon
         if precision is not None:
@@ -92,9 +94,9 @@ class Time(object):
             self.in_subfmt = in_subfmt
         if out_subfmt is not None:
             self.out_subfmt = out_subfmt
-        self._init_from_vals(val, val2, format, scale)
+        self._init_from_vals(val, val2, format, scale, copy)
 
-    def _init_from_vals(self, val, val2, format, scale):
+    def _init_from_vals(self, val, val2, format, scale, copy):
         """Set the internal _format, _scale, and _time attrs from user
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
@@ -105,14 +107,14 @@ class Time(object):
                               'extension module (check installation)')
 
         # Coerce val into a 1-d array
-        val, val_ndim = _make_1d_array(val)
+        val, val_ndim = _make_1d_array(val, copy)
 
         # If val2 is None then replace with zeros of the same length
         if val2 is None:
             val2 = np.zeros(len(val), dtype=np.double)
             val2_ndim = val_ndim
         else:
-            val2, val2_ndim = _make_1d_array(val2)
+            val2, val2_ndim = _make_1d_array(val2, copy)
 
         # Consistency checks
         if len(val) != len(val2):
@@ -287,11 +289,16 @@ class Time(object):
         return self._time.vals
 
     def copy(self, format=None):
-        """Return a copy the Time object, optionally changing the format.
+        """Return a fully independent copy the Time object, optionally changing
+        the format.
 
-        If ``format`` is supplied then the time format of the returned
-        Time object will be set accordingly, otherwise it will be unchanged
-        from the original.
+        If ``format`` is supplied then the time format of the returned Time
+        object will be set accordingly, otherwise it will be unchanged from the
+        original.
+
+        In this method a full copy of the internal time arrays will be made.
+        The internal time arrays are normally not changeable by the user so in
+        most cases the ``replicate()`` method should be used.
 
         Parameters
         ----------
@@ -303,8 +310,38 @@ class Time(object):
         tm: Time object
             Copy of this object
         """
+        return self.replicate(format, copy=True)
+
+    def replicate(self, format=None, copy=False):
+        """Return a replica of the Time object, optionally changing the format.
+
+        If ``format`` is supplied then the time format of the returned Time
+        object will be set accordingly, otherwise it will be unchanged from the
+        original.
+
+        If ``copy`` is set to True then a full copy of the internal time arrays
+        will be made.  By default the replica will use a reference to the
+        original arrays when possible to save memory.  The internal time arrays
+        are normally not changeable by the user so in most cases it should not
+        be necessary to set ``copy`` to True.
+
+        The convenience method copy() is available in which ``copy`` is True
+        by default.
+
+        Parameters
+        ----------
+        format : str, optional
+            Time format of the replica.
+        copy : bool, optional
+            Return a true copy instead of using references where possible.
+
+        Returns
+        -------
+        tm: Time object
+            Replica of this object
+        """
         tm = self.__class__(self._time.jd1, self._time.jd2,
-                            format='jd', scale=self.scale)
+                            format='jd', scale=self.scale, copy=copy)
 
         # Optional or non-arg attributes
         attrs = ('is_scalar', '_delta_ut1_utc', '_delta_tdb_tt',
@@ -354,12 +391,12 @@ class Time(object):
             return []
 
         if attr in self.SCALES:
-            tm = self.copy()
+            tm = self.replicate()
             tm._set_scale(attr)
             return tm
 
         elif attr in self.FORMATS:
-            tm = self.copy(format=attr)
+            tm = self.replicate(format=attr)
             return (tm.vals[0].tolist() if self.is_scalar else tm.vals)
 
         else:
@@ -370,7 +407,7 @@ class Time(object):
         """Ensure that `val` is matched to length of self.  If val has length 1
         then broadcast, otherwise cast to double and make sure length matches.
         """
-        val, ndim = _make_1d_array(val)
+        val, ndim = _make_1d_array(val, copy=True)  # be conservative and copy
         if len(val) == 1:
             oval = val
             val = np.empty(len(self), dtype=np.double)
@@ -523,10 +560,10 @@ class TimeDelta(Time):
     FORMATS = TIME_DELTA_FORMATS
     """Dict of time delta formats"""
 
-    def __init__(self, val, val2=None, format=None, scale=None):
+    def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         # Note: scale is not used but is needed because of the inheritance
         # from Time.
-        self._init_from_vals(val, val2, format, 'tai')
+        self._init_from_vals(val, val2, format, 'tai', copy)
 
 
 class TimeFormat(object):
@@ -983,15 +1020,16 @@ for name in dir(_module):
                 TIME_FORMATS[val.name] = val
 
 
-def _make_1d_array(val):
-    """Take ``val`` and convert/reshape to a 1-d array.
+def _make_1d_array(val, copy=False):
+    """Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is True
+    then copy input values.
 
     Returns
     -------
     val, val_ndim: ndarray, int
         Array version of ``val`` and the number of dims in original.
     """
-    val = np.asarray(val)
+    val = np.array(val, copy=copy)
     val_ndim = val.ndim  # remember original ndim
     if val.ndim == 0:
         val = np.asarray([val])

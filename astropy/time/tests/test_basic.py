@@ -252,6 +252,54 @@ class TestSofaErrors():
         
         # How do you test for warnings in pytest?  Test that dubious year for
         # UTC works.
-        
-        
 
+
+class TestCopyReplicate():
+    """Test issues related to copying and replicating data"""
+
+    def test_mutable_input(self):
+        """By default if JDs are provided with copy=False then internals are
+        mutable."""
+        jds = np.array([2450000.5], dtype=np.double)
+        t = Time(jds, format='jd', scale='tai')
+        assert np.allclose(t.jd, jds)
+        jds[0] = 2459009.5
+        assert np.allclose(t.jd, jds)
+
+        t = Time(jds, format='jd', scale='tai', copy=True)
+        assert np.allclose(t.jd, jds)
+        jds[0] = 2458654
+        assert not np.allclose(t.jd, jds)
+
+        # MJD does not suffer from this mutability
+        mjds = np.array([50000.0], dtype=np.double)
+        t = Time(mjds, format='mjd', scale='tai')
+        assert np.allclose(t.jd, [2450000.5])
+        mjds[0] = 0.0
+        assert np.allclose(t.jd, [2450000.5])
+
+    def test_replicate(self):
+        """Test replicate method"""
+        t = Time('2000:001', format='yday', scale='tai')
+        t_yday = t.yday
+        t2 = t.replicate()
+        assert t.yday == t2.yday
+        assert t.format == t2.format
+        assert t.scale == t2.scale
+        # This is not allowed publicly, but here we hack the internal time values
+        # to show that t and t2 are sharing references.
+        t2._time.jd1 += 100.0
+        assert t.yday == t2.yday
+        assert t.yday != t_yday  # prove that it changed
+
+    def test_copy(self):
+        """Test copy method"""
+        t = Time('2000:001', format='yday', scale='tai')
+        t_yday = t.yday
+        t2 = t.copy()
+        assert t.yday == t2.yday
+        # This is not allowed publicly, but here we hack the internal time values
+        # to show that t and t2 are not sharing references.
+        t2._time.jd1 += 100.0
+        assert t.yday != t2.yday
+        assert t.yday == t_yday  # prove that it did not change
