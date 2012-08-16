@@ -18,10 +18,8 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
 
-try:
+if not _ASTROPY_SETUP_:
     from . import sofa_time
-except ImportError:
-    pass
 
 MJD_ZERO = 2400000.5
 SECS_PER_DAY = 86400
@@ -109,10 +107,6 @@ class Time(object):
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
-
-        if 'astropy.time.sofa_time' not in sys.modules:
-            raise ImportError('Failed to import astropy.time.sofa_time '
-                              'extension module (check installation)')
 
         # Coerce val into a 1-d array
         val, val_ndim = _make_1d_array(val, copy)
