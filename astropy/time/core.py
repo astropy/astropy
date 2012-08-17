@@ -973,11 +973,10 @@ class TimeYearDayTime(TimeString):
 
 class TimeEpochDate(TimeFormat):
     """
-    Base class for support Besselian and Julian epoch dates (e.g.  B1950.0
-    or J2000.0 etc).
+    Base class for support floating point Besselian and Julian epoch dates
     """
     def set_jds(self, val1, val2):
-        self._check_scale(self._scale)  # Validate of scale.
+        self._check_scale(self._scale)  # validate scale.
         epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
         self.jd1, self.jd2 = epoch_to_jd(val1 + val2)
 
@@ -988,17 +987,69 @@ class TimeEpochDate(TimeFormat):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year (e.g. B1950.0)"""
+    """Besselian Epoch year as floating point value(s) like 1950.0"""
     name = 'byear'
     epoch_to_jd = 'besselian_epoch_jd'
     jd_to_epoch = 'jd_besselian_epoch'
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year (e.g. J2000.0)"""
+    """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
+
+
+class TimeEpochDateString(TimeString):
+    """
+    Base class to support string Besselian and Julian epoch dates
+    such as 'B1950.0' or 'J2000.0' respectively.
+    """
+    def set_jds(self, val1, val2):
+        years = np.empty(len(val1), dtype=np.double)
+        epoch_prefix = self.epoch_prefix
+
+        for i, time_str in enumerate(val1):
+            try:
+                epoch_type, year_str = time_str[0], time_str[1:]
+                year = float(year_str)
+                if epoch_type.upper() != epoch_prefix:
+                    raise ValueError
+            except (IndexError, ValueError) as err:
+                print err
+                raise ValueError('Time {0} does not match {1} format'
+                                 .format(time_str, self.name))
+            else:
+                years[i] = year
+
+        self._check_scale(self._scale)  # validate scale.
+        epoch_to_jd = getattr(sofa_time, self.epoch_to_jd)
+        self.jd1, self.jd2 = epoch_to_jd(years)
+
+    @property
+    def vals(self):
+        jd_to_epoch = getattr(sofa_time, self.jd_to_epoch)
+        years = jd_to_epoch(self.jd1, self.jd2)
+        # Use old-style format since it is a factor of 2 faster
+        str_fmt = self.epoch_prefix + '%.' + str(self.precision) + 'f'
+        outs = [str_fmt % year for year in years]
+        return np.array(outs)
+
+
+class TimeBesselianEpochString(TimeEpochDateString):
+    """Besselian Epoch year as string value(s) like 'B1950.0'"""
+    name = 'byear_str'
+    epoch_to_jd = 'besselian_epoch_jd'
+    jd_to_epoch = 'jd_besselian_epoch'
+    epoch_prefix = 'B'
+
+
+class TimeJulianEpochString(TimeEpochDateString):
+    """Julian Epoch year as string value(s) like 'J2000.0'"""
+    name = 'jyear_str'
+    epoch_to_jd = 'julian_epoch_jd'
+    jd_to_epoch = 'jd_julian_epoch'
+    epoch_prefix = 'J'
 
 
 class TimeDeltaFormat(TimeFormat):

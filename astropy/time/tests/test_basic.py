@@ -3,6 +3,7 @@ import numpy as np
 
 from astropy.time import Time, ScaleValueError, sofa_time
 
+
 class TestBasic():
     """Basic tests stemming from initial example and API reference"""
 
@@ -103,6 +104,8 @@ class TestBasic():
         Time(100.0, format='unix')
         Time(1950.0, format='byear', scale='tai')
         Time(2000.0, format='jyear', scale='tai')
+        Time('B1950.0', format='byear_str', scale='tai')
+        Time('J2000.0', format='jyear_str', scale='tai')
         Time('2000-01-01 12:23:34.0', format='iso', scale='tai')
         Time('2000-01-01T12:23:34.0', format='isot', scale='tai')
         Time(2400000.5, 51544.0333981, format='jd', scale='tai')
@@ -112,13 +115,19 @@ class TestBasic():
     def test_epoch_transform(self):
         """Besselian and julian epoch transforms"""
         jd = 2457073.05631
-        t = Time(jd, format='jd', scale='tai')
+        t = Time(jd, format='jd', scale='tai', precision=6)
         assert np.allclose(t.byear, 2015.1365941021)
         assert np.allclose(t.jyear, 2015.1349933196)
+        assert t.byear_str == 'B2015.136594'
+        assert t.jyear_str == 'J2015.134993'
         t2 = Time(t.byear, format='byear', scale='tai')
         assert np.allclose(t2.jd, jd)
         t2 = Time(t.jyear, format='jyear', scale='tai')
         assert np.allclose(t2.jd, jd)
+
+        t = Time('J2015.134993', scale='tai', precision=6)
+        assert np.allclose(t.jd, jd)
+        assert t.byear_str == 'B2015.136594'
 
     def test_input_validation(self):
         """Wrong input type raises error"""

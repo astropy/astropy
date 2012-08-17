@@ -87,19 +87,21 @@ that derives from the base :class:`~astropy.time.core.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
-=========  ===================================================
+=========  ====================================================
 Format            Class
-=========  ===================================================
+=========  ====================================================
 byear      :class:`~astropy.time.core.TimeBesselianEpoch`
+byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`
 cxcsec     :class:`~astropy.time.core.TimeCxcSec`
 iso        :class:`~astropy.time.core.TimeISO`
 isot       :class:`~astropy.time.core.TimeISOT`
 jd         :class:`~astropy.time.core.TimeJD`
 jyear      :class:`~astropy.time.core.TimeJulianEpoch`
+jyear_str  :class:`~astropy.time.core.TimeJulianEpochString`
 mjd        :class:`~astropy.time.core.TimeMJD`
 unix       :class:`~astropy.time.core.TimeUnix`
 yday       :class:`~astropy.time.core.TimeYearDayTime`
-=========  ===================================================
+=========  ====================================================
 
 Subformat
 """"""""""
@@ -281,26 +283,26 @@ required unless the format can be unambiguously determined from the input times.
 scale
 ^^^^^^^^^^^
 
-The ``scale`` argument sets the `time scale`_ and is required.
-
-XXX should not be required for TimeFromEpoch or other formats that have a fixed scale.
+The ``scale`` argument sets the `time scale`_ and is required except for time
+formats such as 'cxcsec' (:class:`~astropy.time.core.TimeCxcSec`) and 'unix'
+(:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
+in SI seconds since a fixed instant in time which is independent of time scale.
 
 precision
 ^^^^^^^^^^
 
 The ``precision`` setting affects string formats when outputting a value that
-includes seconds.  There is no effect when inputting time values from strings.
-The default precision is 3.  Note that the limit of 9 digits is driven by the
-way that SOFA handles fractional seconds.  In practice this should should not
-be an issue.
-::
+includes seconds.  It must be an integer between 0 and 9.  There is no effect
+when inputting time values from strings.  The default precision is 3.  Note
+that the limit of 9 digits is driven by the way that SOFA handles fractional
+seconds.  In practice this should should not be an issue.  ::
 
-  >>> t = Time('2010-01-01 00:00:00', scale='utc', precision=3)
-  >>> t.iso
-  '2010-01-01 00:00:00.000'
+  >>> t = Time('B1950.0', scale='utc', precision=3)
+  >>> t.byear_str
+  'B1950.000'
   >>> t.precision = 0
-  >>> t.iso
-  '2010-01-01 00:00:00'
+  >>> t.byear_str
+  'B1950'
 
 in_subfmt
 ^^^^^^^^^^^
