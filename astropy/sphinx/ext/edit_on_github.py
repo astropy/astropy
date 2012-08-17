@@ -120,7 +120,9 @@ def doctree_read(app, doctree):
                 onlynode = addnodes.only(expr='html')
                 onlynode += nodes.reference('', refuri=path)
                 onlynode[0] += nodes.inline(
-                    '', docstring_message, classes=['edit-on-github'])
+                    '', '', nodes.raw('', '&nbsp;', format='html'),
+                    nodes.Text(docstring_message),
+                    classes=['edit-on-github', 'viewcode-link'])
                 signode += onlynode
 
 
@@ -129,7 +131,9 @@ def setup(app):
     app.add_config_value('edit_on_github_branch', 'master', True)
     app.add_config_value('edit_on_github_source_root', 'lib', True)
     app.add_config_value('edit_on_github_doc_root', 'doc', True)
-    app.add_config_value('edit_on_github_docstring_message', '[edit on github]', True)
-    app.add_config_value('edit_on_github_page_message', '[edit this page on github]', True)
+    app.add_config_value('edit_on_github_docstring_message',
+                         '[edit on github]', True)
+    app.add_config_value('edit_on_github_page_message',
+                         '[edit this page on github]', True)
 
     app.connect('doctree-read', doctree_read)
