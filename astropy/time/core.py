@@ -278,25 +278,31 @@ class Time(object):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
+    def _shaped_like_input(self, vals):
+        return (vals[0].tolist() if self.is_scalar else vals)
+
     @property
     def jd1(self):
         """
         First of the two doubles that internally store time value(s) in JD
         """
-        vals = self._time.jd1
-        return (vals[0].tolist() if self.is_scalar else vals)
+        return self._shaped_like_input(self._time.jd1)
 
     @property
     def jd2(self):
         """
         Second of the two doubles that internally store time value(s) in JD
         """
-        vals = self._time.jd2
-        return (vals[0].tolist() if self.is_scalar else vals)
+        return self._shaped_like_input(self._time.jd2)
+
+    @property
+    def val(self):
+        """Time value(s) in current format"""
+        return self._shaped_like_input(self._time.vals)
 
     @property
     def vals(self):
-        """Time values expressed the current format"""
+        """Time values in current format as a numpy array"""
         return self._time.vals
 
     def copy(self, format=None):
