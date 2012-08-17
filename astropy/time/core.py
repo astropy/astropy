@@ -173,9 +173,9 @@ class Time(object):
         return self._format
 
     def __repr__(self):
-        return ("<%s object: scale='%s' format='%s' vals=%s>" % (
-                self.__class__.__name__,
-                self.scale, self.format, getattr(self, self.format)))
+        return ("<{0} object: scale='{1}' format='{2}' vals={3}>"
+                .format(self.__class__.__name__, self.scale, self.format,
+                        getattr(self, self.format)))
 
     def __str__(self):
         return str(getattr(self, self.format))
@@ -252,7 +252,10 @@ class Time(object):
 
     @property
     def in_subfmt(self):
-        """Unix glob to select subformats for parsing string input times"""
+        """
+        Unix wildcard pattern to select subformats for parsing string input
+        times
+        """
         return self._in_subfmt
 
     @in_subfmt.setter
@@ -263,7 +266,9 @@ class Time(object):
 
     @property
     def out_subfmt(self):
-        """Unix glob to select subformats for outputting times"""
+        """
+        Unix wildcard pattern to select subformats for outputting times
+        """
         return self._out_subfmt
 
     @out_subfmt.setter
