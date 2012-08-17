@@ -5,10 +5,10 @@ given cosmology.
 Each cosmology has the following parameters defined:
 
     ==========  =====================================
-    Oc          Omega cold dark matter
-    Ob          Omega baryon
-    Om          Omega matter
-    Ode         Omega dark energy
+    Oc0         Omega cold dark matter at z=0
+    Ob0         Omega baryon at z=0
+    Om0         Omega matter at z=0
+    Ode0        Omega dark energy at z=0
     w0          Equation of state of dark energy at z=0 (Pressure/density)
     wa          a derivative of equation of state
     H0          Hubble parameter at z=0 in km/s/Mpc
@@ -36,12 +36,12 @@ and assume dark enegy is the cosmological constant (w0 = -1, wa = 0).
 # Komatsu et al. 2011, WMAP + BAO + H0 ML (table 1).
 
 WMAP7 = dict(
-    Oc  = 0.226,
-    Ob  = 0.0455,
-    Om  = 0.272,
-    Ode = 0.728,
-    w0  = -1.0,
-    wa  = 0.0,
+    Oc0  = 0.226,
+    Ob0  = 0.0455,
+    Om0  = 0.272,
+    Ode0 = 0.728,
+    w0 = -1.0,
+    wa = 0.0,
     H0 = 70.4,
     n = 0.967,
     sigma8 = 0.810,
@@ -55,12 +55,12 @@ WMAP7 = dict(
 # Komatsu et al. 2009 WMAP + BAO + SN ML (table 1).
 
 WMAP5 = dict(
-    Oc  = 0.231,
-    Ob  = 0.0459,
-    Om  = 0.277,
-    Ode = 0.723,
-    w0  = -1.0,
-    wa  = 0.0,
+    Oc0  = 0.231,
+    Ob0  = 0.0459,
+    Om0  = 0.277,
+    Ode0 = 0.723,
+    w0 = -1.0,
+    wa = 0.0,
     H0 = 70.2,
     n = 0.962,
     sigma8 = 0.817,

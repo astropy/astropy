@@ -62,10 +62,10 @@ dark energy model by using one of its subclasses instead,
 such as `~astropy.cosmology.core.LambdaCDM`.
 
 You can create a new `LambdaCDM` object with arguments giving the
-hubble parameter, omega matter and omega dark energy(all at z=0):
+hubble parameter, omega matter and omega dark energy (all at z=0):
 
   >>> from astropy.cosmology import LambdaCDM
-  >>> cosmo = LambdaCDM(H0=70, Om=0.3, Ode=0.7)
+  >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
   >>> cosmo
   LambdaCDM(H0=70, Om=0.3, Ode=0.7, Ok=0)
 
@@ -183,17 +183,16 @@ unless explicitly overridden.
 Specifying a dark energy model
 ==============================
 
-In addition to the standard `LambdaCDM` model described
-above, a number of additional dark energy models are provided.
-`LambdaCDM` assumes that dark energy is a cosmological
-constant, and should be the most commonly used case.  `wCDM`
-assumes a constant dark energy equation of state parameterized by w.
-Two forms of a variable dark energy equation of state are provided:
-the simple first order linear expansion :math:`w(z) = w_0 + w_z z` by
-`w0wzCDM`, as well as the common CPL form by
-`w0waCDM`: :math:`w(z) = w_0 + w_a (1 - a) = w_0 + w_a * z / (1 + z)`
-and its generalization to include a pivot redshift by
-`wpwaCDM`: :math:`w(z) = w_p + w_a (a_p - a)`.
+In addition to the standard `LambdaCDM` model described above, a
+number of additional dark energy models are provided.  `LambdaCDM`
+assumes that dark energy is a cosmological constant, and should be the
+most commonly used case.  `wCDM` assumes a constant dark energy
+equation of state parameterized by :math:`w_0`. Two forms of a
+variable dark energy equation of state are provided: the simple first
+order linear expansion :math:`w(z) = w_0 + w_z z` by `w0wzCDM`, as
+well as the common CPL form by `w0waCDM`: :math:`w(z) = w_0 + w_a (1 -
+a) = w_0 + w_a * z / (1 + z)` and its generalization to include a
+pivot redshift by `wpwaCDM`: :math:`w(z) = w_p + w_a (a_p - a)`.
 
 Users can specify their own equation of state by sub-classing
 `FRLW`.  See the provided subclasses for examples.

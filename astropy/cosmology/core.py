@@ -64,12 +64,12 @@ class FLRW(Cosmology):
     ----------
     H0 : float
       Hubble parameter at z=0 in km/s/Mpc
-    Om : float
+    Om0 : float
       Omega matter; matter density / critical density at z=0
-    Ode : float
+    Ode0 : float
       Omega dark energy; dark energy density / critical density at z=0
-    Ok : float
-      Omega_k, the curvature density at z=0. Defined as 1 - Om - Ode
+    Ok0 : float
+      Omega_k, the curvature density at z=0. Defined as 1 - Om0 - Ode0
     h : float
       Dimensionless Hubble parameter (H0 = 100*h km/s/Mpc).
       Often used to quote cosmological values independently of H0.
@@ -91,79 +91,141 @@ class FLRW(Cosmology):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om, Ode, name='FLRW'):
+    def __init__(self, H0, Om0, Ode0, name='FLRW'):
 
         # all densities are in units of the critical density
-        self.__Om = float(Om)
-        self.__Ode = float(Ode)
-        self.__Ok = 1.0 - self.__Om - self.__Ode
+        self._Om0 = float(Om0)
+        self._Ode0 = float(Ode0)
+        self._Ok0 = 1.0 - self._Om0 - self._Ode0
         self.name = name
 
         # Hubble parameter at z=0, km/s/Mpc
-        self.__H0 = float(H0)
+        self._H0 = float(H0)
         # H0 in s^-1
-        H0_s = self.__H0 / Mpc_km
+        H0_s = self._H0 / Mpc_km
         # 100 km/s/Mpc * h = H0 (so h is dimensionless)
-        self.__h = self.__H0 / 100.
+        self._h = self._H0 / 100.
         # Hubble time in Gyr
-        self.__hubble_time = 1. / H0_s / Gyr
+        self._hubble_time = 1. / H0_s / Gyr
         # Hubble distance in Mpc
-        self.__hubble_distance = c_kms / self.__H0
+        self._hubble_distance = c_kms / self._H0
 
         # critical density at z=0 (grams per cubic cm)
-        self.__critical_density0 = 3. * H0_s**2 / (8. * pi * G)
+        self._critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, Ok=%.3g)" % \
-            (self.name, self.__H0, self.__Om, self.__Ode, self.__Ok)
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g)" % \
+            (self.name, self._H0, self._Om0, self._Ode0, self._Ok0)
 
     #Set up a set of properties for H0, Om, Ode, Ok for user access.
     #Note that we don't let these be set (so, obj.Om = value fails)
 
     @property
     def H0(self):
-        return self.__H0
+        return self._H0
 
     @property
-    def Om(self):
-        return self.__Om
+    def Om0(self):
+        return self._Om0
 
     @property
-    def Ode(self):
-        return self.__Ode
+    def Ode0(self):
+        return self._Ode0
 
     @property
-    def Ok(self):
-        return self.__Ok
+    def Ok0(self):
+        return self._Ok0
 
     @property
     def h(self):
-        return self.__h
+        return self._h
 
     @property
     def hubble_time(self):
-        return self.__hubble_time
+        return self._hubble_time
 
     @property
     def hubble_distance(self):
-        return self.__hubble_distance
+        return self._hubble_distance
 
     @property
     def critical_density0(self):
-        return self.__critical_density0
+        return self._critical_density0
 
     @abstractmethod
-    def dark_energy_eos(self,z):
-        """ Return the dark energy equation of state at redshift z.
+    def w(self, z):
+        """ Return the dark energy equation of state at redshift `z`.
 
         The dark energy equation of state is Pressure/density
         in units where c=1.
 
         This must be overridden by subclasses.
         """
-        raise NotImplementedError("dark_energy_eos is not implemented")
+        raise NotImplementedError("w(z) is not implemented")
 
-    def _w_integral(self, ln1pz):
+    def Om(self, z):
+        """ Return the density parameter for non-relativistic matter 
+        at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+          The density of non-relativistic matter relative to the critical
+          density at each redshift.
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Om0 * (1. + z)**3 * self.inv_efunc(z)**2
+
+    def Ok(self, z):
+        """ Return the equivalent density parameter for curvature
+        at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+          The equivalent density parameter for curvature at each redshift.
+        """
+
+        if self._Ok0 == 0:
+            #Common enough case to be worth checking
+            return np.zeros_like(z)
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Ok0 * (1. + z)**2 * self.inv_efunc(z)**2
+
+    def Ode(self, z):
+        """ Return the density parameter for non-relativistic matter 
+        at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+          The density of non-relativistic matter relative to the critical
+          density at each redshift.
+        """
+
+        if self._Ode0 == 0:
+            return np.zeros_like(z)
+
+        return self._Ode0 * self.de_density(z) * self.inv_efunc(z)**2
+
+
+    def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral"""
         
         #See Linder 2003, PRL 90, 91301 eq (5)
@@ -171,9 +233,51 @@ class FLRW(Cosmology):
         # inside an integral
 
         z = exp(ln1pz)-1.0
-        return 1.0 + self.dark_energy_eos(z)
+        return 1.0 + self.w(z)
 
-    @abstractmethod
+    def de_density(self, z):
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        A value I such that :math:`\rho(z) = \rho_0 I`
+        
+        It will generally helpful for subclasses to overload this method if
+        the integral can be done analytically for the particular dark
+        energy equation of state that they implement.
+        """
+
+        # This allows for an arbitrary w(z) following eq (5) of
+        # Linder 2003, PRL 90, 91301.  The equation that has to be
+        # integrated is
+        #
+        #   I = \exp \left( 3 \int_{a}^1 \frac{ da^{\prime} }{ a^{\prime} }
+        #      \left[ 1 + w\left( a^{\prime} \right) \right] \right)
+        #
+        # The code here does this numerically.  However, most popular
+        # forms of w(z) are designed to make this integral analytic,
+        # so it is probably a good idea for subclasses to overload this 
+        # method if an analytic form is available.
+        # 
+        # The integral we actually use (the one given in Linder)
+        # is rewritten in terms of z, but it's the same thing.
+
+        from scipy.integrate import quad
+
+        if isiterable(z):
+            z = np.asarray(z)
+            ival = np.array([quad(self._w_integrand,0,log(1+redshift))[0]
+                             for redshift in z])
+            return np.exp(3 * ival)
+        else:
+            ival = quad(self._w_integrand,0,log(1+z))[0]
+            return exp(3 * ival)
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
@@ -186,52 +290,28 @@ class FLRW(Cosmology):
         -------
         A value E such that :math:`H(z) = H_0 E`
 
-        This must be overridden by subclasses. For most popular
-        forms of w(z) it takes on a relatively simple form.  However,
-        the version implemented here can be called directly by subclasses
-        to handle more complicated models where only dark_energy_eos
-        is specified.
+        It is not necessary to override this method, but if de_density
+        takes a particularly simple form, it may be advantageous to.
         """
-
-        # This allows for an arbitrary w(z) following eq (5) of
-        # Linder 2003, PRL 90, 91301.  However, it is quite inefficient
-        # because it involves a numerical integration.  Most forms of w(z)
-        # in common use are chosen to make this integral analytic, and
-        # subclasses should probably take advantage of that if possible
-        # by overloading this function.  
-        #
-        # In particular, the integral that needs to be evaluated is
-        #   I = \int_{0}^{\log(1+z)} d \log(1+z') [ 1 + w(z') ]
-        # The code below does this numerically, but if there is an 
-        # analytic expression for this integral, it is probably worth
-        # your while to make that explicit.  In that case, efunc should 
-        # return sqrt( (1+z)^3 Om + (1+z) Ok + Ode * exp(3 * I) )
-        # and inv_efunc one over that expression.
-        #
-        # See w0waCDM for an example.
-
-        from scipy.integrate import quad
 
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self.__Om, self.__Ode, self.__Ok
+        Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         zp1 = 1.0 + z
 
-        if not isiterable(z) :
-            ival = quad(self._w_integral,0,log(1+z))[0]
-        else:
-            ival = np.array([quad(self._w_integral,0,log(1+redshift))[0]
-                             for redshift in z])
+        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0 * self.de_density(z))
 
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode * np.exp(3. * ival))
-
-    @abstractmethod
     def inv_efunc(self, z):
         """Inverse of efunc"""
 
-        # For efficiency, it is probably a good idea to also overload
-        # this for specific dark energy models, as is the case for efunc
-        return 1.0 / self.efunc(z)
+        #Avoid the function overhead by repeating code
+        if isiterable(z):
+            z = np.asarray(z)
+        Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
+        zp1 = 1.0 + z
+
+        return 1.0/np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
+                               Ode0 * self.de_density(z))
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
@@ -272,7 +352,7 @@ class FLRW(Cosmology):
           Hubble parameter in km/s/Mpc at each input redshift.
         """
 
-        return self.__H0 * self.efunc(z)
+        return self._H0 * self.efunc(z)
 
     def scale_factor(self, z):
         """ Scale factor at redshift `z`.
@@ -295,6 +375,7 @@ class FLRW(Cosmology):
 
         return 1. / (1. + z)
 
+
     def lookback_time(self, z):
         """ Lookback time in Gyr to redshift `z`.
 
@@ -314,10 +395,10 @@ class FLRW(Cosmology):
 
         from scipy.integrate import quad
         if not isiterable(z):
-            return self.hubble_time * quad(self._tfunc, 0, z)[0]
+            return self._hubble_time * quad(self._tfunc, 0, z)[0]
 
         out = np.array([quad(self._tfunc, 0, redshift)[0] for redshift in z])
-        return self.hubble_time * np.array(out)
+        return self._hubble_time * np.array(out)
 
     def age(self, z):
         """ Age of the universe in Gyr at redshift `z`.
@@ -335,10 +416,10 @@ class FLRW(Cosmology):
 
         from scipy.integrate import quad
         if not isiterable(z):
-            return self.hubble_time * quad(self._tfunc, z, np.inf)[0]
+            return self._hubble_time * quad(self._tfunc, z, np.inf)[0]
 
         out = [quad(self._tfunc, redshift, np.inf)[0] for redshift in z]
-        return self.hubble_time * np.array(out)
+        return self._hubble_time * np.array(out)
 
     def critical_density(self, z):
         """ Critical density in grams per cubic cm at redshift `z`.
@@ -354,7 +435,7 @@ class FLRW(Cosmology):
           Critical density in g/cm^3 at each input redshift.
         """
 
-        return self.critical_density0 * (self.efunc(z))**2
+        return self._critical_density0 * (self.efunc(z))**2
 
     def comoving_distance(self, z):
         """ Comoving line-of-sight distance in Mpc at a given
@@ -377,10 +458,10 @@ class FLRW(Cosmology):
 
         from scipy.integrate import quad
         if not isiterable(z):
-            return self.hubble_distance * quad(self.inv_efunc, 0, z)[0]
+            return self._hubble_distance * quad(self.inv_efunc, 0, z)[0]
 
         out = [quad(self.inv_efunc, 0, redshift)[0] for redshift in z]
-        return self.hubble_distance * np.array(out)
+        return self._hubble_distance * np.array(out)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -406,16 +487,16 @@ class FLRW(Cosmology):
         texts.
         """
 
-        Ok = self.Ok
+        Ok0 = self._Ok0
         dc = self.comoving_distance(z)
-        if Ok == 0:
+        if Ok0 == 0:
             return dc
-        sqrtOk = sqrt(abs(Ok))
-        dh = self.hubble_distance
-        if Ok > 0:
-            return dh / sqrtOk * np.sinh(sqrtOk * dc / dh)
+        sqrtOk0 = sqrt(abs(Ok0))
+        dh = self._hubble_distance
+        if Ok0 > 0:
+            return dh / sqrtOk0 * np.sinh(sqrtOk0 * dc / dh)
         else:
-            return dh / sqrtOk * np.sin(sqrtOk * dc / dh)
+            return dh / sqrtOk0 * np.sin(sqrtOk0 * dc / dh)
 
     def angular_diameter_distance(self, z):
         """ Angular diameter distance in Mpc at a given redshift.
@@ -497,9 +578,9 @@ class FLRW(Cosmology):
         """
 
         # does not work for negative curvature
-        Ok = self.Ok
-        if Ok < 0:
-            raise CosmologyError('Ok must be >= 0 to use this method.')
+        Ok0 = self._Ok0
+        if Ok0 < 0:
+            raise CosmologyError('Ok0 must be >= 0 to use this method.')
 
         outscalar = False
         if not isiterable(z1) and not isiterable(z2):
@@ -520,10 +601,10 @@ class FLRW(Cosmology):
 
         dm1 = self.comoving_transverse_distance(z1)
         dm2 = self.comoving_transverse_distance(z2)
-        dh_2 = self.hubble_distance**2
+        dh_2 = self._hubble_distance**2
 
-        out = 1. / (1. + z2) * (dm2*np.sqrt(1. + Ok*dm1**2 / dh_2) -
-                                dm1*np.sqrt(1. + Ok*dm2**2 / dh_2))
+        out = 1. / (1. + z2) * (dm2*np.sqrt(1. + Ok0*dm1**2 / dh_2) -
+                                dm1*np.sqrt(1. + Ok0*dm2**2 / dh_2))
 
         if outscalar:
             return out[0]
@@ -599,20 +680,20 @@ class FLRW(Cosmology):
           Comoving volume in Mpc^3 at each input redshift.
         """
 
-        Ok = self.Ok
-        if Ok == 0:
+        Ok0 = self._Ok0
+        if Ok0 == 0:
             return 4. / 3. * pi * self.comoving_distance(z)**3
 
-        dh = self.hubble_distance
+        dh = self._hubble_distance
         dm = self.comoving_transverse_distance(z)
-        term1 = 4. * pi * dh**3 / (2. * Ok)
-        term2 = dm / dh * sqrt(1 + Ok * (dm / dh)**2)
-        term3 = sqrt(abs(Ok)) * dm / dh
+        term1 = 4. * pi * dh**3 / (2. * Ok0)
+        term2 = dm / dh * sqrt(1 + Ok0 * (dm / dh)**2)
+        term3 = sqrt(abs(Ok0)) * dm / dh
 
-        if Ok > 0:
-            return term1 * (term2 - 1. / sqrt(abs(Ok)) * np.arcsinh(term3))
+        if Ok0 > 0:
+            return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsinh(term3))
         else:
-            return term1 * (term2 - 1. / sqrt(abs(Ok)) * np.arcsin(term3))
+            return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsin(term3))
 
 
 class LambdaCDM(FLRW):
@@ -623,17 +704,17 @@ class LambdaCDM(FLRW):
     Examples
     --------
     >>> from astro.cosmology import LambdaCDM
-    >>> cosmo = LambdaCDM(H0=70, Om=0.3, Ode=0.7)
+    >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om, Ode, name='LambdaCDM'):
-        FLRW.__init__(self, H0, Om, Ode, name=name)
+    def __init__(self, H0, Om0, Ode0, name='LambdaCDM'):
+        FLRW.__init__(self, H0, Om0, Ode0, name=name)
 
-    def dark_energy_eos(self, z):
+    def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
 
         Parameters
@@ -649,6 +730,10 @@ class LambdaCDM(FLRW):
 
         return -1.0*np.ones_like(z)
     
+    def de_density(self, z):
+        """ Density evolution factor for dark energy"""
+        return np.ones_like(z)
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
@@ -664,11 +749,13 @@ class LambdaCDM(FLRW):
 
         if isiterable(z):
             z = np.asarray(z)
-        #Note that here -- and later -- name mangling requires
-        # the _FLRW leader to properties defined by that class
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
+
+        #We override this because it takes a particularly simple
+        # form for a cosmological constant
+        Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         zp1 = 1.0 + z
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
+
+        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0)
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -685,9 +772,10 @@ class LambdaCDM(FLRW):
         
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
+        Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         zp1 = 1.0 + z
-        return 1.0 / np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode)
+
+        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0)
 
 
 class wCDM(FLRW):
@@ -698,34 +786,34 @@ class wCDM(FLRW):
 
     Attributes
     ----------
-    w : float
-      Dark energy equation of state (P/rho) at current epoch. -1 is a
+    w0 : float
+      Dark energy equation of state (P/rho). -1 is a
       cosmological constant.
 
     Examples
     --------
     >>> from astro.cosmology import wCDM
-    >>> cosmo = wCDM(H0=70, Om=0.3, Ode=0.7, w=-0.9)
+    >>> cosmo = wCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om, Ode, w=-1., name='wCDM'):
-        FLRW.__init__(self, H0, Om, Ode, name=name)
-        self.__w = float(w)
+    def __init__(self, H0, Om0, Ode0, w0=-1., name='wCDM'):
+        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        self._w0 = float(w0)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, w=%.3g)" % \
-            (self.name, self._FLRW__H0, self._FLRW__Om, 
-             self._FLRW__Ode, self.__w)
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g)" % \
+            (self.name, self._H0, self._Om0, 
+             self._Ode0, self._Ok0, self._w0)
 
     @property
-    def w(self):
-        return self.__w
+    def w0(self):
+        return self._w0
 
-    def dark_energy_eos(self, z):
+    def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
 
         Parameters
@@ -739,8 +827,15 @@ class wCDM(FLRW):
           Dark energy equation of state, :math:`w(z)=P(z)/rho(z)`
         """
 
-        return self.__w*np.ones_like(z)
+        return self._w0*np.ones_like(z)
     
+    def de_density(self, z):
+        """ Density evolution factor for dark energy"""
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return (1.0 + z)**(3 * (1 + self._w0))
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
@@ -756,10 +851,10 @@ class wCDM(FLRW):
         
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w = self.__w
+        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
         zp1 = 1.0 + z
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode * zp1**(3*(1 + w)))
+        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
+                           Ode0 * zp1**(3 * (1 + w0)))
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -776,10 +871,10 @@ class wCDM(FLRW):
         
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w = self.__w
+        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         zp1 = 1.0 + z
-        return 1.0 / np.sqrt(zp1**2 * (Om * zp1 + Ok) + Ode * zp1**(3*(1 + w)))
+        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
+                                 Ode0 * zp1**(3 * (1 + w0)))
 
 
 class w0waCDM(FLRW):
@@ -803,32 +898,32 @@ class w0waCDM(FLRW):
     Examples
     --------
     >>> from astro.cosmology import w0waCDM
-    >>> cosmo = w0waCDM(H0=70, Om=0.3, Ode=0.7, w0=-0.9, wa=0.2)
+    >>> cosmo = w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.2)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om, Ode, w0=-1., wa=0., name='w0waCDM'):
-        FLRW.__init__(self, H0, Om, Ode, name=name)
-        self.__w0 = float(w0)
-        self.__wa = float(wa)
+    def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., name='w0waCDM'):
+        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        self._w0 = float(w0)
+        self._wa = float(wa)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, w0=%.3g, wa=%.3g)" % \
-            (self.name, self._FLRW__H0, self._FLRW__Om, self._FLRW__Ode, 
-             self.__w0, self.__wa)
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g, wa=%.3g)" %\
+            (self.name, self._H0, self._Om0, self._Ode0, self._Ok0,
+             self._w0, self._wa)
 
     @property
     def w0(self):
-        return self.__w0
+        return self._w0
 
     @property
     def wa(self):
-        return self.__wa
+        return self._wa
 
-    def dark_energy_eos(self, z):
+    def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
 
         Parameters
@@ -845,57 +940,15 @@ class w0waCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
 
-        return self.__w0 + self.__wa * z / (1.0 + z)
+        return self._w0 + self._wa * z / (1.0 + z)
 
-    def efunc(self, z):
-        """ Function used to calculate H(z), the Hubble parameter.
-        
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 E`
-        """
-        
+    def de_density(self, z):
+        """ Density evolution factor for dark energy"""
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w0, wa = self.__w0, self.__wa
         zp1 = 1.0 + z
-
-        #General form from Linder 2003, PRL 90, 91301 in the discussion
-        #after eq (7)
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                       Ode * zp1**(3 * (1 + w0 + wa)) *
-                       exp(-3 * wa * z / zp1))
-                               
-    def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
-
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 / E`
-        """
-
-        #For efficiency, don't just call efunc for this one
-        #See comments for efunc for explanation of these formulae
-        if isiterable(z):
-            z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w0, wa = self.__w0, self.__wa
-        zp1 = 1.0 + z
-
-        return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                           Ode * zp1**(3 * (1 + w0 + wa)) *
-                           exp(-3 * wa * z / zp1))
+        return zp1**(3 * (1 + self._w0 + self._wa)) * \
+            exp(-3 * self._wa * z / zp1)
 
 
 class wpwaCDM(FLRW):
@@ -925,38 +978,39 @@ class wpwaCDM(FLRW):
     Examples
     --------
     >>> from astro.cosmology import wpwaCDM
-    >>> cosmo = wpwaCDM(H0=70,Om=0.3,Ode=0.7,wp=-0.9,wa=0.2,zp=0.4)
+    >>> cosmo = wpwaCDM(H0=70,Om0=0.3,Ode0=0.7,wp=-0.9,wa=0.2,zp=0.4)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om, Ode, wp=-1., wa=0., zp=0, 
+    def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, 
                  name='wpwaCDM'):
-        FLRW.__init__(self, H0, Om, Ode, name=name)
-        self.__wp = float(wp)
-        self.__wa = float(wa)
-        self.__zp = float(zp)
+        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        self._wp = float(wp)
+        self._wa = float(wa)
+        self._zp = float(zp)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, wp=%.3g, wa=%.3g, zp=%.3g)" % \
-            (self.name, self._FLRW__H0, self._FLRW__Om, 
-             self._FLRW__Ode, self.__wp, self.__wa, self.__zp)
+        str = "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, wp=%.3g, "+\
+            "wa=%.3g, zp=%.3g)"
+        return str % (self.name, self._H0, self._Om0, self._Ode0, 
+                      self._Ok0, self._wp, self._wa, self._zp)
 
     @property
     def wp(self):
-        return self.__wp
+        return self._wp
 
     @property
     def wa(self):
-        return self.__wa
+        return self._wa
 
     @property
     def zp(self):
-        return self.__zp
+        return self._zp
 
-    def dark_energy_eos(self, z):
+    def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
 
         Parameters
@@ -973,61 +1027,18 @@ class wpwaCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
 
-        apiv = 1.0 / (1.0 + self.__zp)
-        return self.__wp + self.__wa * (apiv - 1.0 / (1. + z))
+        apiv = 1.0 / (1.0 + self._zp)
+        return self._wp + self._wa * (apiv - 1.0 / (1. + z))
 
-    def efunc(self, z):
-        """ Function used to calculate H(z), the Hubble parameter.
-        
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
+    def de_density(self, z):
+        """ Density evolution factor for dark energy"""
 
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 E`
-        """
-        
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        wp, wa, zp = self.__wp, self.__wa, self.__zp
         zp1 = 1.0 + z
-
-        #General form from Linder 2003, PRL 90, 91301 in the discussion
-        #after eq (7), but modified for w(z) = w_p + w_a (a_p - a)
-        apiv = 1.0 / (1.0 + zp)
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                       Ode * zp1**(3 * (1 + wp + apiv*wa)) *
-                       exp(-3 * wa * z / zp1))
-                               
-    def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
-
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 / E`
-        """
-
-        #For efficiency, don't just call efunc for this one
-        #See comments for efunc for explanation of these formulae
-        if isiterable(z):
-            z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        wp, wa, zp = self.__wp, self.__wa, self.__zp
-        zp1 = 1.0 + z
-
-        apiv = 1.0 / (1.0 + zp)
-        return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                           Ode * zp1**(3 * (1 + wp + apiv*wa)) *
-                           exp(-3 * wa * z / zp1))
-
+        apiv = 1.0 / (1.0 + self._zp)
+        return zp1**(3 * (1 + self._wp + apiv * self._wa)) * \
+            exp(-3 * self._wa * z / zp1)
 
 
 class w0wzCDM(FLRW):
@@ -1051,32 +1062,32 @@ class w0wzCDM(FLRW):
     Examples
     --------
     >>> from astro.cosmology import wawzCDM
-    >>> cosmo = wawzCDM(H0=70, Om=0.3, Ode=0.7, w0=-0.9, wz=0.2)
+    >>> cosmo = wawzCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wz=0.2)
 
     The comoving distance in Mpc at redshift z:
 
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om, Ode, w0=-1., wz=0., name='w0wzCDM'):
-        FLRW.__init__(self, H0, Om, Ode, name=name)
-        self.__w0 = float(w0)
-        self.__wz = float(wz)
+    def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., name='w0wzCDM'):
+        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        self._w0 = float(w0)
+        self._wz = float(wz)
 
     def __repr__(self):
-        return "%s(H0=%.3g, Om=%.3g, Ode=%.3g, w0=%.3g, wz=%.3g)" % \
-            (self.name, self._FLRW__H0, self._FLRW__Om, 
-             self._FLRW__Ode, self.__w0, self.__wz)
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g)" % \
+            (self.name, self._H0, self._Om0, 
+             self._Ode0, self._w0, self._wz)
 
     @property
     def w0(self):
-        return self.__w0
+        return self._w0
 
     @property
     def wz(self):
-        return self.__wz
+        return self._wz
 
-    def dark_energy_eos(self, z):
+    def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
 
         Parameters
@@ -1093,60 +1104,15 @@ class w0wzCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
 
-        return self.__w0 + self.__wz * z
+        return self._w0 + self._wz * z
 
+    def de_density(self, z):
+        """ Density evolution factor for dark energy"""
 
-    def efunc(self, z):
-        """ Function used to calculate H(z), the Hubble parameter.
-        
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 E`
-        """
-        
         if isiterable(z):
             z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w0, wz = self.__w0, self.__wz
         zp1 = 1.0 + z
-
-        #General form from Linder 2003, PRL 90, 91301 in the discussion
-        #after eq (5)
-        return np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                       Ode * zp1**(3 * (1 + w0 - wz)) *
-                       exp(-3 * wz * z))
-                               
-    def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
-
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        A value E such that :math:`H(z) = H_0 / E`
-        """
-
-        #For efficiency, don't just call efunc for this one
-        #See comments for efunc for explanation of these formulae
-        if isiterable(z):
-            z = np.asarray(z)
-        Om, Ode, Ok = self._FLRW__Om, self._FLRW__Ode, self._FLRW__Ok
-        w0, wz = self.__w0, self.__wz
-        zp1 = 1.0 + z
-
-        return 1.0/np.sqrt(zp1**2 * (Om * zp1 + Ok) +
-                           Ode * zp1**(3 * (1 + w0 - wz)) *
-                           exp(-3 * wz * z))
-
-
+        return zp1**(3 * (1 + self._w0 - self._wz)) * exp(-3 * self._wz * z)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM instance with the same
@@ -1156,7 +1122,7 @@ class w0wzCDM(FLRW):
 
 for key in parameters.available:
     par = getattr(parameters, key)
-    cosmo = LambdaCDM(par['H0'], par['Om'], par['Ode'], name=key)
+    cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
