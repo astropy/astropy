@@ -441,7 +441,7 @@ class Row(object):
         return self.data.dtype
 
     def __repr__(self):
-        return "<Row {0} of table\n values={1}\n dtype={2}>".format(
+        return "<Row {0} of table\n values={1!r}\n dtype={2}>".format(
             self.index, self.data, self.dtype)
 
 
