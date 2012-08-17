@@ -1038,9 +1038,7 @@ class ScaleValueError(Exception):
 
 
 # Set module constant with names of all available time formats
-_module = sys.modules[__name__]
-for name in dir(_module):
-    val = getattr(_module, name)
+for name, val in locals().items():
     try:
         is_timeformat = issubclass(val, TimeFormat)
         is_timedeltaformat = issubclass(val, TimeDeltaFormat)
