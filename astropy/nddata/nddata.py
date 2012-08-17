@@ -5,38 +5,35 @@ __all__ = ['NDData']
 
 import numpy as np
 
+from .flag_collection import FlagCollection
+from .nderror import IncompatibleErrors, NDError
+
 
 class NDData(object):
-    """A Superclass for array-based data in Astropy.
+    '''A Superclass for array-based data in Astropy.
 
-    The key distinction from raw numpy arrays is the presence of
-    additional metadata such as error arrays, bad pixel masks, units
-    and/or a coordinate system.
+    The key distinction from raw numpy arrays is the presence of additional
+    metadata such as errors, a mask, units, flags, and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray`
         The actual data contained in this `NDData` object.
 
-    error : `~numpy.ndarray`, optional
-        Error of the data. This should be interpreted as a 1-sigma error (e.g,
-        square root of the variance), under the assumption of Gaussian errors.
-        Must be a shape that can be broadcast onto `data`.
-
-         .. warning::
-             The physical interpretation of the `error` array may change in the
-             future, as it has not been intensively discussed. For now assume
-             the above description holds, using an `error` property if
-             necessary, but feel free to use the most convinient internal
-             representation in subclasses
+    error : `~astropy.nddata.NDError`, optional
+        Errors on the data.
 
     mask : `~numpy.ndarray`, optional
-        Masking of the data; Should be ``False`` where the data is *valid* and
-        ``True`` when it is not (as for Numpy masked arrays).
+        Mask for the data, given as a boolean Numpy array with a shape
+        matching that of the data. The values should be ``False`` where the
+        data is *valid* and ``True`` when it is not (as for Numpy masked
+        arrays).
 
-    flags : `~numpy.ndarray`, optional
-        Flags giving information about each pixel. While the flags he values
-        inside the flags array. Flags can be any valid Numpy array type.
+    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
+        Flags giving information about each pixel. These can be specified
+        either as a Numpy array of any type with a shape matching that of the
+        data, or as a `~astropy.nddata.FlagCollection` instance which has a
+        shape matching that of the data.
 
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
@@ -94,125 +91,214 @@ class NDData(object):
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
         >>> plt.imshow(x)
-    """
+    '''
 
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
         self.data = np.array(data, subok=True, copy=copy)
 
-        if error is None:
-            self.error = None
-        else:
-            self.error = np.array(error, subok=True, copy=copy)
-
-        if mask is None:
-            self.mask = None
-        else:
-            self.mask = np.array(mask, subok=True, copy=copy)
-
-        if flags is None:
-            self.flags = None
-        else:
-            self.flags = np.array(flags, subok=True, copy=copy)
-
+        self.error = error
+        self.mask = mask
+        self.flags = flags
         self.wcs = wcs
-        self.units = units
 
         if meta is None:
             self.meta = {}
         else:
             self.meta = dict(meta)  # makes a *copy* of the passed-in meta
 
-    def _get_mask(self):
+        self.units = units
+
+    @property
+    def mask(self):
         return self._mask
 
-    def _set_mask(self, value):
+    @mask.setter
+    def mask(self, value):
         if value is not None:
             if isinstance(value, np.ndarray):
                 if value.dtype != np.bool_:
-                    raise TypeError("`mask` should be a boolean Numpy array")
+                    raise TypeError("mask should be a boolean Numpy array")
                 else:
                     if value.shape != self.shape:
-                        raise ValueError("dimensions of `mask` do not match data")
+                        raise ValueError("dimensions of mask do not match data")
                     else:
                         self._mask = value
             else:
-                raise TypeError("`mask` should be a Numpy array")
+                raise TypeError("mask should be a Numpy array")
         else:
             self._mask = value
 
-    mask = property(_get_mask, _set_mask)
-
-    def _get_flags(self):
+    @property
+    def flags(self):
         return self._flags
 
-    def _set_flags(self, value):
+    @flags.setter
+    def flags(self, value):
         if value is not None:
             if isinstance(value, np.ndarray):
-                try:
-                    np.broadcast(self.data, value)
-                except ValueError:
-                    raise ValueError("dimensions of `flags` do not match data")
+                if value.shape != self.shape:
+                    raise ValueError("dimensions of flags do not match data")
+                else:
+                    self._flags = value
+            elif isinstance(value, FlagCollection):
+                if value.shape != self.shape:
+                    raise ValueError("dimensions of FlagCollection does not match data")
                 else:
                     self._flags = value
             else:
-                raise TypeError("`flags` should be a Numpy array")
+                raise TypeError("flags should be a Numpy array or a FlagCollection instance")
         else:
             self._flags = value
 
-    flags = property(_get_flags, _set_flags)
-
-    def _get_error(self):
+    @property
+    def error(self):
         return self._error
 
-    def _set_error(self, value):
+    @error.setter
+    def error(self, value):
         if value is not None:
-            try:
-                np.broadcast(self.data, value)
-            except ValueError:
-                raise ValueError("dimensions of `error` do not match data")
-            else:
+            if isinstance(value, NDError):
                 self._error = value
+            else:
+                raise TypeError("error should be an instance of a NDError object")
         else:
             self._error = value
 
-    error = property(_get_error, _set_error)
-
     @property
     def shape(self):
-        """
+        '''
         shape tuple of this object's data.
-        """
+        '''
         return self.data.shape
 
     @property
     def size(self):
-        """
+        '''
         integer size of this object's data.
-        """
+        '''
         return self.data.size
 
     @property
     def dtype(self):
-        """
+        '''
         `numpy.dtype` of this object's data.
-        """
+        '''
         return self.data.dtype
 
     @property
     def ndim(self):
-        """
+        '''
         integer dimensions of this object's data
-        """
+        '''
         return self.data.ndim
 
     def __array__(self):
-        """
+        '''
         This allows code that requests a Numpy array to use an NDData
         object as a Numpy array.
-        """
+        '''
         if self.mask is not None:
             return np.ma.masked_array(self.data, self.mask)
         else:
             return self.data
+
+    # At the moment, the units are required to be the same for addition and
+    # subtraction. Once the units framework is implemented, we no longer have
+    # to have this requirement, and can also add methods for multiplication
+    # and division.
+
+    def add(self, data):
+        '''
+        Add datasets together
+
+        Parameters
+        ----------
+        data : `~astropy.nddata.NDData`
+            The second operand in the operation a + b
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Notes
+        -----
+        This method requires the datasets to have identical WCS properties,
+        identical units, and identical shapes. Flags and meta-data get set to
+        None in the resulting dataset. Errors are propagated. Values masked in
+        either dataset before the operation are masked in the resulting
+        dataset.
+        '''
+
+        if self.wcs != data.wcs:
+            raise ValueError("WCS properties do not match")
+
+        if self.units != data.units:
+            raise ValueError("data units do not match")
+
+        if self.shape != data.shape:
+            raise ValueError("data shapes do not match")
+
+        result = self.__class__(self.data + data.data)  # in case we are dealing with an inherited type
+
+        try:
+            result.error = self.error.propagate_add(data, data.error)
+        except IncompatibleErrors:
+            raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {0:s} for addition".format(self.error.__class__, data.error.__class__))
+
+        result.mask = self.mask & data.mask
+        result.flags = None
+        result.wcs = self.wcs
+        result.meta = None
+        result.units = self.units
+
+        return result
+
+    def subtract(self, data):
+        '''
+        Subtract one dataset from another
+
+        Parameters
+        ----------
+        data : `~astropy.nddata.NDData`
+            The second operand in the operation a - b
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Notes
+        -----
+        This method requires the datasets to have identical WCS properties,
+        identical units, and identical shapes. Flags and meta-data get set to
+        None in the resulting dataset. Errors are propagated. Values masked in
+        either dataset before the operation are masked in the resulting
+        dataset.
+        '''
+
+        if self.wcs != data.wcs:
+            raise ValueError("WCS properties do not match")
+
+        if self.units != data.units:
+            raise ValueError("data units do not match")
+
+        if self.shape != data.shape:
+            raise ValueError("data shapes do not match")
+
+        result = self.__class__(self.data - data.data)  # in case we are dealing with an inherited type
+
+        try:
+            result.error = self.error.propagate_subtract(data, data.error)
+        except IncompatibleErrors:
+            raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {0:s} for subtraction".format(self.error.__class__, data.error.__class__))
+
+        result.mask = self.mask & data.mask
+        result.flags = None
+        result.wcs = self.wcs
+        result.meta = None
+        result.units = self.units
+
+        return result

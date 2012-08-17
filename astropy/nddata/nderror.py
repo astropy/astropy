@@ -1,6 +1,10 @@
 import abc
 
-__all__ = ['NDError']
+__all__ = ['IncompatibleErrors', 'NDError']
+
+
+class IncompatibleErrors(Exception):
+    pass
 
 
 class NDError(object):
@@ -8,7 +12,7 @@ class NDError(object):
     This is the base class for error classes used with NDData. It is
     implemented as an abstract class and should never be directly
     instantiated.
-    
+
     Classes inheriting from NDData should implement an __init__ method that
     takes the parent NDData object as the first argument, and should overload
     the ``propagate_*`` methods, keeping the call signature the same.
@@ -36,6 +40,11 @@ class NDError(object):
         -------
         result : NDError instance
             The resulting error
+
+        Raises
+        ------
+        IncompatibleErrors
+            Raised if the method does not know how to add the errors
         '''
         pass
 
@@ -43,7 +52,7 @@ class NDError(object):
     def propagate_subtract(self, data, error):
         '''
         Propagate errors for subtraction.
-        
+
         Parameters
         ----------
         data : NDData instance
@@ -55,6 +64,11 @@ class NDError(object):
         -------
         result : NDError instance
             The resulting error
+
+        Raises
+        ------
+        IncompatibleErrors
+            Raised if the method does not know how to add the errors
         '''
         pass
 
