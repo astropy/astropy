@@ -29,10 +29,12 @@ edit_on_github_doc_root:
     directory.
 
 edit_on_github_docstring_message:
-    The phrase displayed in the links to edit a docstring.
+    The phrase displayed in the links to edit a docstring.  Defaults
+    to "[edit on github]".
 
 edit_on_github_page_message:
-    The phrase displayed in the links to edit a RST page.
+    The phrase displayed in the links to edit a RST page.  Defaults
+    to "[edit this page on github]".
 
 edit_on_github_skip_regex:
     When the path to the .rst file matches this regular expression,
