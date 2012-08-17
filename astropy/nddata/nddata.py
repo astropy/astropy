@@ -10,7 +10,7 @@ from .nderror import IncompatibleErrors, NDError
 
 
 class NDData(object):
-    '''A Superclass for array-based data in Astropy.
+    """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of additional
     metadata such as errors, a mask, units, flags, and/or a coordinate system.
@@ -91,7 +91,7 @@ class NDData(object):
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
         >>> plt.imshow(x)
-    '''
+    """
 
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
@@ -169,37 +169,37 @@ class NDData(object):
 
     @property
     def shape(self):
-        '''
+        """
         shape tuple of this object's data.
-        '''
+        """
         return self.data.shape
 
     @property
     def size(self):
-        '''
+        """
         integer size of this object's data.
-        '''
+        """
         return self.data.size
 
     @property
     def dtype(self):
-        '''
+        """
         `numpy.dtype` of this object's data.
-        '''
+        """
         return self.data.dtype
 
     @property
     def ndim(self):
-        '''
+        """
         integer dimensions of this object's data
-        '''
+        """
         return self.data.ndim
 
     def __array__(self):
-        '''
+        """
         This allows code that requests a Numpy array to use an NDData
         object as a Numpy array.
-        '''
+        """
         if self.mask is not None:
             return np.ma.masked_array(self.data, self.mask)
         else:
@@ -211,7 +211,7 @@ class NDData(object):
     # and division.
 
     def add(self, operand):
-        '''
+        """
         Add datasets together
 
         Parameters
@@ -231,7 +231,7 @@ class NDData(object):
         None in the resulting dataset. Errors are propagated. Values masked in
         either dataset before the operation are masked in the resulting
         dataset.
-        '''
+        """
 
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
@@ -273,7 +273,7 @@ class NDData(object):
         return result
 
     def subtract(self, operand):
-        '''
+        """
         Subtract datasets together
 
         Parameters
@@ -293,7 +293,7 @@ class NDData(object):
         None in the resulting dataset. Errors are propagated. Values masked in
         either dataset before the operation are masked in the resulting
         dataset.
-        '''
+        """
 
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
