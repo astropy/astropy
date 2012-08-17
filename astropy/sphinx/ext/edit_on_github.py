@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This extension makes it easy to edit documentation on github.
 
@@ -68,6 +68,7 @@ def import_object(modname, name):
 
 
 def doctree_read(app, doctree):
+    # Get the configuration parameters
     if app.config.edit_on_github_project == 'REQUIRED':
         raise ValueError(
             "The edit_on_github_project configuration variable must be "
@@ -86,6 +87,7 @@ def doctree_read(app, doctree):
     docstring_message = app.config.edit_on_github_docstring_message
     page_message = app.config.edit_on_github_page_message
 
+    # Handle the "edit this page" link
     doc_path = os.path.relpath(doctree.get('source'), app.builder.srcdir)
     if not re.match(app.config.edit_on_github_skip_regex, doc_path):
         path = url + doc_root + doc_path
@@ -99,6 +101,7 @@ def doctree_read(app, doctree):
             '', page_message, classes=['edit-on-github'])
         doctree += section
 
+    # Handle the docstring-editing links
     for objnode in doctree.traverse(addnodes.desc):
         if objnode.get('domain') != 'py':
             continue
