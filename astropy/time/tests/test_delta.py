@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from astropy.time import Time, TimeDelta
+from astropy.time import Time, TimeDelta, OperandTypeError
 
 
 class TestTimeDelta():
@@ -29,12 +29,12 @@ class TestTimeDelta():
         assert np.allclose(dt2.sec, 86301.0)
 
         # delta_time - time
-        with pytest.raises(TypeError):
+        with pytest.raises(OperandTypeError):
             dt - self.t
 
     def test_add(self):
         # time + time
-        with pytest.raises(TypeError):
+        with pytest.raises(OperandTypeError):
             self.t2 + self.t
 
         # time + delta_time

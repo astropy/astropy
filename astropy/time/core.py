@@ -15,6 +15,7 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
+           'OperandTypeError',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
 
@@ -506,7 +507,7 @@ class Time(object):
     def __sub__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
-            _unsupported_op_type(self, other)
+            raise OperandTypeError(self, other)
 
         other_tai = other.tai
         jd1 = self_tai.jd1 - other_tai.jd1
@@ -527,12 +528,12 @@ class Time(object):
             self_tai._time.jd2 = jd2
             return getattr(self_tai, self.scale)
         else:
-            _unsupported_op_type(self, other)
+            raise OperandTypeError(self, other)
 
     def __add__(self, other):
         self_tai = self.tai
         if not isinstance(other, Time):
-            _unsupported_op_type(self, other)
+            raise OperandTypeError(self, other)
 
         other_tai = other.tai
         jd1 = self_tai.jd1 + other_tai.jd1
@@ -555,7 +556,7 @@ class Time(object):
             tai._time.jd2 = jd2
             return getattr(tai, scale)
         else:
-            _unsupported_op_type(self, other)
+            raise OperandTypeError(self, other)
 
 
 class TimeDelta(Time):
@@ -1077,7 +1078,8 @@ def _make_1d_array(val, copy=False):
     return val, val_ndim
 
 
-def _unsupported_op_type(left, right):
-    raise TypeError("unsupported operand type(s) for -: "
-                    "'{0}' and '{1}'".format(left.__class__.__name__,
-                                             right.__class__.__name__))
+class OperandTypeError(TypeError):
+    def __init__(self, left, right):
+        self.value = ("unsupported operand type(s) for -: "
+                      "'{0}' and '{1}'".format(left.__class__.__name__,
+                                               right.__class__.__name__))
