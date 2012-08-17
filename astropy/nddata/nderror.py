@@ -2,7 +2,7 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociation', 'IncompatibleErrors', 'NDError']
+__all__ = ['MissingDataAssociation', 'IncompatibleErrors', 'NDError', 'StandardDeviationError']
 
 
 class IncompatibleErrors(Exception):
