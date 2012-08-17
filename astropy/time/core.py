@@ -501,7 +501,7 @@ class Time(object):
     """TDB - TT time scale offset"""
 
     def __len__(self):
-        return len(self._time.jd1)
+        return len(self._time)
 
     def __sub__(self, other):
         self_tai = self.tai
@@ -616,7 +616,6 @@ class TimeFormat(object):
         self.precision = precision
         self.in_subfmt = in_subfmt
         self.out_subfmt = out_subfmt
-        self.n_times = len(val1)
         if len(val1) != len(val2):
             raise ValueError('Input val1 and val2 must match in length')
 
@@ -626,6 +625,9 @@ class TimeFormat(object):
         else:
             self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    def __len__(self):
+        return len(self.jd1)
 
     @property
     def scale(self):
@@ -669,7 +671,8 @@ class TimeFormat(object):
                     raise ScaleValueError("No scale value supplied but it is "
                                         "required for class {0}"
                                         .format(self.__class__.__name__))
-                raise ScaleValueError("Scale value '{0}' not in allowed values {1}"
+                raise ScaleValueError("Scale value '{0}' not in "
+                                      "allowed values {1}"
                                     .format(scale, TIME_SCALES))
         return scale
 
@@ -793,12 +796,13 @@ class TimeString(TimeFormat):
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
-        iy = np.empty(self.n_times, dtype=np.intc)
-        im = np.empty(self.n_times, dtype=np.intc)
-        id = np.empty(self.n_times, dtype=np.intc)
-        ihr = np.empty(self.n_times, dtype=np.intc)
-        imin = np.empty(self.n_times, dtype=np.intc)
-        dsec = np.empty(self.n_times, dtype=np.double)
+        n_times = len(val1)  # val1,2 already checked to have same len
+        iy = np.empty(n_times, dtype=np.intc)
+        im = np.empty(n_times, dtype=np.intc)
+        id = np.empty(n_times, dtype=np.intc)
+        ihr = np.empty(n_times, dtype=np.intc)
+        imin = np.empty(n_times, dtype=np.intc)
+        dsec = np.empty(n_times, dtype=np.double)
 
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
