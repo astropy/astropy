@@ -33,9 +33,15 @@ edit_on_github_docstring_message:
 
 edit_on_github_page_message:
     The phrase displayed in the links to edit a RST page.
+
+edit_on_github_skip_regex:
+    When the path to the .rst file matches this regular expression,
+    no "edit this page on github" link will be added.  Default to
+    "_.*".
 """
 import inspect
 import os
+import re
 import sys
 
 from docutils import nodes
@@ -79,16 +85,17 @@ def doctree_read(app, doctree):
     page_message = app.config.edit_on_github_page_message
 
     doc_path = os.path.relpath(doctree.get('source'), app.builder.srcdir)
-    path = url + doc_root + doc_path
-    section = nodes.section()
-    para = nodes.paragraph()
-    section += para
-    onlynode = addnodes.only(expr='html')
-    para += onlynode
-    onlynode += nodes.reference('', refuri=path)
-    onlynode[0] += nodes.inline(
-        '', page_message, classes=['edit-on-github'])
-    doctree += section
+    if not re.match(app.config.edit_on_github_skip_regex, doc_path):
+        path = url + doc_root + doc_path
+        section = nodes.section()
+        para = nodes.paragraph()
+        section += para
+        onlynode = addnodes.only(expr='html')
+        para += onlynode
+        onlynode += nodes.reference('', refuri=path)
+        onlynode[0] += nodes.inline(
+            '', page_message, classes=['edit-on-github'])
+        doctree += section
 
     for objnode in doctree.traverse(addnodes.desc):
         if objnode.get('domain') != 'py':
@@ -135,5 +142,7 @@ def setup(app):
                          '[edit on github]', True)
     app.add_config_value('edit_on_github_page_message',
                          '[edit this page on github]', True)
+    app.add_config_value('edit_on_github_skip_regex',
+                         '_.*', True)
 
     app.connect('doctree-read', doctree_read)
