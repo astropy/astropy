@@ -222,7 +222,7 @@ class FLRW(Cosmology):
         if self._Ode0 == 0:
             return np.zeros_like(z)
 
-        return self._Ode0 * self.de_density(z) * self.inv_efunc(z)**2
+        return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z)**2
 
 
     def _w_integrand(self, ln1pz):
@@ -235,7 +235,7 @@ class FLRW(Cosmology):
         z = exp(ln1pz)-1.0
         return 1.0 + self.w(z)
 
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
         
         Parameters
@@ -290,7 +290,7 @@ class FLRW(Cosmology):
         -------
         A value E such that :math:`H(z) = H_0 E`
 
-        It is not necessary to override this method, but if de_density
+        It is not necessary to override this method, but if de_density_scale
         takes a particularly simple form, it may be advantageous to.
         """
 
@@ -299,7 +299,8 @@ class FLRW(Cosmology):
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0 * self.de_density(z))
+        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+                       Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
         """Inverse of efunc"""
@@ -310,8 +311,8 @@ class FLRW(Cosmology):
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         zp1 = 1.0 + z
 
-        return 1.0/np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
-                               Ode0 * self.de_density(z))
+        return 1.0/np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+                           Ode0 * self.de_density_scale(z))
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
@@ -730,7 +731,7 @@ class LambdaCDM(FLRW):
 
         return -1.0*np.ones_like(z)
     
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Density evolution factor for dark energy"""
         return np.ones_like(z)
 
@@ -829,7 +830,7 @@ class wCDM(FLRW):
 
         return self._w0*np.ones_like(z)
     
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Density evolution factor for dark energy"""
 
         if isiterable(z):
@@ -853,8 +854,8 @@ class wCDM(FLRW):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
         zp1 = 1.0 + z
-        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
-                           Ode0 * zp1**(3 * (1 + w0)))
+        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+                       Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -873,8 +874,8 @@ class wCDM(FLRW):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         zp1 = 1.0 + z
-        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + \
-                                 Ode0 * zp1**(3 * (1 + w0)))
+        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + 
+                             Ode0 * zp1**(3 * (1 + w0)))
 
 
 class w0waCDM(FLRW):
@@ -942,7 +943,7 @@ class w0waCDM(FLRW):
 
         return self._w0 + self._wa * z / (1.0 + z)
 
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Density evolution factor for dark energy"""
         if isiterable(z):
             z = np.asarray(z)
@@ -1030,7 +1031,7 @@ class wpwaCDM(FLRW):
         apiv = 1.0 / (1.0 + self._zp)
         return self._wp + self._wa * (apiv - 1.0 / (1. + z))
 
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Density evolution factor for dark energy"""
 
         if isiterable(z):
@@ -1106,7 +1107,7 @@ class w0wzCDM(FLRW):
 
         return self._w0 + self._wz * z
 
-    def de_density(self, z):
+    def de_density_scale(self, z):
         """ Density evolution factor for dark energy"""
 
         if isiterable(z):
