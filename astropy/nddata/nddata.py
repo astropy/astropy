@@ -161,6 +161,7 @@ class NDData(object):
         if value is not None:
             if isinstance(value, NDError):
                 self._error = value
+                self._error.parent = self
             else:
                 raise TypeError("error should be an instance of a NDError object")
         else:
@@ -209,13 +210,13 @@ class NDData(object):
     # to have this requirement, and can also add methods for multiplication
     # and division.
 
-    def add(self, data):
+    def add(self, operand):
         '''
         Add datasets together
 
         Parameters
         ----------
-        data : `~astropy.nddata.NDData`
+        operand : `~astropy.nddata.NDData`
             The second operand in the operation a + b
 
         Returns
@@ -232,23 +233,38 @@ class NDData(object):
         dataset.
         '''
 
-        if self.wcs != data.wcs:
+        if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if self.units != data.units:
-            raise ValueError("data units do not match")
+        if self.units != operand.units:
+            raise ValueError("operand units do not match")
 
-        if self.shape != data.shape:
-            raise ValueError("data shapes do not match")
+        if self.shape != operand.shape:
+            raise ValueError("operand shapes do not match")
 
-        result = self.__class__(self.data + data.data)  # in case we are dealing with an inherited type
+        result = self.__class__(self.data + operand.data)  # in case we are dealing with an inherited type
 
-        try:
-            result.error = self.error.propagate_add(data, data.error)
-        except IncompatibleErrors:
-            raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {0:s} for addition".format(self.error.__class__, data.error.__class__))
+        if self.error is None and operand.error is None:
+            result.error = None
+        elif self.error is None:
+            result.error = operand.error
+        elif operand.error is None:
+            result.error = self.error
+        else:  # both self and operand have errors
+            try:
+                result.error = self.error.propagate_add(operand, result)
+            except IncompatibleErrors:
+                raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for addition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
-        result.mask = self.mask & data.mask
+        if self.mask is None and operand.mask is None:
+            result.mask = None
+        elif self.mask is None:
+            result.mask = operand.mask
+        elif operand.mask is None:
+            result.mask = self.mask
+        else:  # combine masks as for Numpy masked arrays
+            result.mask = self.mask & operand.mask
+
         result.flags = None
         result.wcs = self.wcs
         result.meta = None
@@ -256,14 +272,14 @@ class NDData(object):
 
         return result
 
-    def subtract(self, data):
+    def subtract(self, operand):
         '''
-        Subtract one dataset from another
+        Subtract datasets together
 
         Parameters
         ----------
-        data : `~astropy.nddata.NDData`
-            The second operand in the operation a - b
+        operand : `~astropy.nddata.NDData`
+            The second operand in the operation a + b
 
         Returns
         -------
@@ -279,23 +295,38 @@ class NDData(object):
         dataset.
         '''
 
-        if self.wcs != data.wcs:
+        if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if self.units != data.units:
-            raise ValueError("data units do not match")
+        if self.units != operand.units:
+            raise ValueError("operand units do not match")
 
-        if self.shape != data.shape:
-            raise ValueError("data shapes do not match")
+        if self.shape != operand.shape:
+            raise ValueError("operand shapes do not match")
 
-        result = self.__class__(self.data - data.data)  # in case we are dealing with an inherited type
+        result = self.__class__(self.data - operand.data)  # in case we are dealing with an inherited type
 
-        try:
-            result.error = self.error.propagate_subtract(data, data.error)
-        except IncompatibleErrors:
-            raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {0:s} for subtraction".format(self.error.__class__, data.error.__class__))
+        if self.error is None and operand.error is None:
+            result.error = None
+        elif self.error is None:
+            result.error = operand.error
+        elif operand.error is None:
+            result.error = self.error
+        else:  # both self and operand have errors
+            try:
+                result.error = self.error.propagate_subtract(operand, result)
+            except IncompatibleErrors:
+                raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for subtractition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
-        result.mask = self.mask & data.mask
+        if self.mask is None and operand.mask is None:
+            result.mask = None
+        elif self.mask is None:
+            result.mask = operand.mask
+        elif operand.mask is None:
+            result.mask = self.mask
+        else:  # combine masks as for Numpy masked arrays
+            result.mask = self.mask & operand.mask
+
         result.flags = None
         result.wcs = self.wcs
         result.meta = None
