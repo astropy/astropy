@@ -50,7 +50,8 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
 
 
 class Time(object):
-    """Represent and manipulate times and dates for astronomy.
+    """
+    Represent and manipulate times and dates for astronomy.
 
     A Time object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
@@ -61,9 +62,9 @@ class Time(object):
 
     Parameters
     ----------
-    val : numpy ndarray, list, str, or number
+    val : sequence, str, or number
         Value(s) to initialize the time or times
-    val2 : numpy ndarray, list, str, or number; optional
+    val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times
     format : str, optional
         Format of input value(s)
@@ -103,7 +104,8 @@ class Time(object):
         self._init_from_vals(val, val2, format, scale, copy)
 
     def _init_from_vals(self, val, val2, format, scale, copy):
-        """Set the internal _format, _scale, and _time attrs from user
+        """
+        Set the internal _format, _scale, and _time attrs from user
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
@@ -135,7 +137,8 @@ class Time(object):
         self._scale = scale
 
     def _get_time_fmt(self, val, val2, format, scale):
-        """Given the supplied val, val2, format and scale try to instantiate
+        """
+        Given the supplied val, val2, format and scale try to instantiate
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
@@ -166,8 +169,7 @@ class Time(object):
 
     @property
     def format(self):
-        """Time format.
-        """
+        """Time format"""
         return self._format
 
     def __repr__(self):
@@ -180,12 +182,12 @@ class Time(object):
 
     @property
     def scale(self):
-        """Time scale.
-        """
+        """Time scale"""
         return self._scale
 
     def _set_scale(self, scale):
-        """This is the key routine that actually does time scale conversions.
+        """
+        This is the key routine that actually does time scale conversions.
         This is not public and not connected to the read-only scale property.
         """
 
@@ -235,8 +237,10 @@ class Time(object):
 
     @property
     def precision(self):
-        """Decimal precision when outputting seconds as floating point (int
-        value between 0 and 9 inclusive)."""
+        """
+        Decimal precision when outputting seconds as floating point (int
+        value between 0 and 9 inclusive).
+        """
         return self._precision
 
     @precision.setter
@@ -270,26 +274,28 @@ class Time(object):
 
     @property
     def jd1(self):
-        """First of the two doubles that internally store time value(s) in JD.
+        """
+        First of the two doubles that internally store time value(s) in JD
         """
         vals = self._time.jd1
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def jd2(self):
-        """Second of the two doubles that internally store time value(s) in JD.
+        """
+        Second of the two doubles that internally store time value(s) in JD
         """
         vals = self._time.jd2
         return (vals[0].tolist() if self.is_scalar else vals)
 
     @property
     def vals(self):
-        """Time values expressed the current format.
-        """
+        """Time values expressed the current format"""
         return self._time.vals
 
     def copy(self, format=None):
-        """Return a fully independent copy the Time object, optionally changing
+        """
+        Return a fully independent copy the Time object, optionally changing
         the format.
 
         If ``format`` is supplied then the time format of the returned Time
@@ -313,7 +319,8 @@ class Time(object):
         return self.replicate(format, copy=True)
 
     def replicate(self, format=None, copy=False):
-        """Return a replica of the Time object, optionally changing the format.
+        """
+        Return a replica of the Time object, optionally changing the format.
 
         If ``format`` is supplied then the time format of the returned Time
         object will be set accordingly, otherwise it will be unchanged from the
@@ -379,12 +386,14 @@ class Time(object):
         return tm
 
     def _getAttributeNames(self):
-        """Add dynamic attribute names for IPython completer.
+        """
+        Add dynamic attribute names for IPython completer.
         """
         return list(self.SCALES) + self.FORMATS.keys()
 
     def __getattr__(self, attr):
-        """Get dynamic attributes to output format or do timescale conversion.
+        """
+        Get dynamic attributes to output format or do timescale conversion.
         """
         # The following is needed for the IPython completer
         if attr == 'trait_names':
@@ -404,7 +413,8 @@ class Time(object):
             return self.__getattribute__(attr)
 
     def _match_len(self, val):
-        """Ensure that `val` is matched to length of self.  If val has length 1
+        """
+        Ensure that `val` is matched to length of self.  If val has length 1
         then broadcast, otherwise cast to double and make sure length matches.
         """
         val, ndim = _make_1d_array(val, copy=True)  # be conservative and copy
@@ -418,7 +428,8 @@ class Time(object):
 
     # Property for SOFA DUT arg = UT1 - UTC
     def _get_delta_ut1_utc(self, jd1=None, jd2=None):
-        """Get SOFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
+        """
+        Get SOFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
         The current code ignores these, but when the IERS table is interpolated
         by this module they will be used.
@@ -440,6 +451,7 @@ class Time(object):
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
     delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
+    """UT1 - UTC time scale offset"""
 
     # Property for SOFA DTR arg = TDB - TT
     def _get_delta_tdb_tt(self, jd1=None, jd2=None):
@@ -481,6 +493,7 @@ class Time(object):
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
     delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
+    """TDB - TT time scale offset"""
 
     def __len__(self):
         return len(self._time.jd1)
@@ -541,7 +554,8 @@ class Time(object):
 
 
 class TimeDelta(Time):
-    """Represent the time difference between two times.
+    """
+    Represent the time difference between two times.
 
     A TimeDelta object is initialized with one or more times in the ``val``
     argument.  The input times in ``val`` must conform to the specified
@@ -619,14 +633,14 @@ class TimeFormat(object):
         self._scale = val
 
     def _check_val_type(self, val1, val2):
-        """Input value validation, typically overridden by derived classes.
-        """
+        """Input value validation, typically overridden by derived classes"""
         if val1.dtype.type != np.double or val2.dtype.type != np.double:
             raise TypeError('Input values for {0} class must be doubles'
                              .format(self.name))
 
     def _check_scale(self, scale):
-        """Return a validated scale value.
+        """
+        Return a validated scale value.
 
         If there is a class attribute 'scale' then that defines the default /
         required time scale for this format.  In this case if a scale value was
@@ -655,22 +669,23 @@ class TimeFormat(object):
         return scale
 
     def set_jds(self, val1, val2):
-        """Set internal jd1 and jd2 from val1 and val2.  Must be provided
+        """
+        Set internal jd1 and jd2 from val1 and val2.  Must be provided
         by derived classes.
         """
         raise NotImplementedError
 
     @property
     def vals(self):
-        """Return time representation from internal jd1 and jd2.  Must be
+        """
+        Return time representation from internal jd1 and jd2.  Must be
         provided by by derived classes.
         """
         raise NotImplementedError
 
 
 class TimeJD(TimeFormat):
-    """Julian Date time format.
-    """
+    """Julian Date time format"""
     name = 'jd'
 
     def set_jds(self, val1, val2):
@@ -684,8 +699,7 @@ class TimeJD(TimeFormat):
 
 
 class TimeMJD(TimeFormat):
-    """Modified Julian Date time format.
-    """
+    """Modified Julian Date time format"""
     name = 'mjd'
 
     def set_jds(self, val1, val2):
@@ -703,7 +717,8 @@ class TimeMJD(TimeFormat):
 
 
 class TimeFromEpoch(TimeFormat):
-    """Base class for times that represent the interval from a particular
+    """
+    Base class for times that represent the interval from a particular
     epoch as a floating point multiple of a unit time interval (e.g. seconds
     or days).
     """
@@ -727,7 +742,8 @@ class TimeFromEpoch(TimeFormat):
 
 
 class TimeUnix(TimeFromEpoch):
-    """Unix time: seconds from 1970-01-01 00:00:00 UTC.
+    """
+    Unix time: seconds from 1970-01-01 00:00:00 UTC.
 
     NOTE: this quantity is not exactly unix time and differs from the strict
     POSIX definition by up to 1 second on days with a leap second.  POSIX
@@ -745,8 +761,7 @@ class TimeUnix(TimeFromEpoch):
 
 
 class TimeCxcSec(TimeFromEpoch):
-    """Chandra X-ray Center seconds from 1998-01-01 00:00:00 TT.
-    """
+    """Chandra X-ray Center seconds from 1998-01-01 00:00:00 TT"""
     name = 'cxcsec'
     unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
     epoch_val = '1998-01-01 00:00:00'
@@ -757,14 +772,14 @@ class TimeCxcSec(TimeFromEpoch):
 
 
 class TimeString(TimeFormat):
-    """Base class for string-like time represetations.
+    """
+    Base class for string-like time represetations.
 
     This class assumes that anything following the last decimal point to the
     right is a fraction of a second.
 
     This is a reference implementation can be made much faster with effort.
     """
-
     def _check_val_type(self, val1, val2):
         if val1.dtype.kind != 'S':
             raise TypeError('Input values for {0} class must be strings'
@@ -772,8 +787,7 @@ class TimeString(TimeFormat):
             # Note: don't care about val2 for these classes
 
     def set_jds(self, val1, val2):
-        """Parse the time strings contained in val1 and set jd1, jd2.
-        """
+        """Parse the time strings contained in val1 and set jd1, jd2"""
         iy = np.empty(self.n_times, dtype=np.intc)
         im = np.empty(self.n_times, dtype=np.intc)
         id = np.empty(self.n_times, dtype=np.intc)
@@ -816,7 +830,8 @@ class TimeString(TimeFormat):
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
-        """Generator that yields a dict of values corresponding to the
+        """
+        Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
         iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
@@ -862,7 +877,8 @@ class TimeString(TimeFormat):
         return np.array(outs)
 
     def _select_subfmts(self, pattern):
-        """Return a list of subformats where name matches ``pattern`` using
+        """
+        Return a list of subformats where name matches ``pattern`` using
         fnmatch.
         """
         from fnmatch import fnmatchcase
@@ -873,7 +889,8 @@ class TimeString(TimeFormat):
 
 
 class TimeISO(TimeString):
-    """ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
+    """
+    ISO 8601 compliant date-time format "YYYY-MM-DD HH:MM:SS.sss...".
 
     The allowed subformats are:
 
@@ -896,7 +913,8 @@ class TimeISO(TimeString):
 
 
 class TimeISOT(TimeString):
-    """ISO 8601 compliant date-time format "YYYY-MM-DDTHH:MM:SS.sss...".
+    """
+    ISO 8601 compliant date-time format "YYYY-MM-DDTHH:MM:SS.sss...".
     This is the same as TimeISO except for a "T" instead of space between
     the date and time.
 
@@ -920,7 +938,8 @@ class TimeISOT(TimeString):
 
 
 class TimeYearDayTime(TimeString):
-    """Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".  The
+    """
+    Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".  The
     day-of-year (DOY) goes from 001 to 365 (366 in leap years).
 
     The allowed subformats are:
@@ -943,7 +962,8 @@ class TimeYearDayTime(TimeString):
 
 
 class TimeEpochDate(TimeFormat):
-    """Base class for support Besselian and Julian epoch dates (e.g.  B1950.0
+    """
+    Base class for support Besselian and Julian epoch dates (e.g.  B1950.0
     or J2000.0 etc).
     """
     def set_jds(self, val1, val2):
@@ -958,28 +978,26 @@ class TimeEpochDate(TimeFormat):
 
 
 class TimeBesselianEpoch(TimeEpochDate):
-    """Besselian Epoch year (e.g. B1950.0)."""
+    """Besselian Epoch year (e.g. B1950.0)"""
     name = 'byear'
     epoch_to_jd = 'besselian_epoch_jd'
     jd_to_epoch = 'jd_besselian_epoch'
 
 
 class TimeJulianEpoch(TimeEpochDate):
-    """Julian Epoch year (e.g. J2000.0)."""
+    """Julian Epoch year (e.g. J2000.0)"""
     name = 'jyear'
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
 
 
 class TimeDeltaFormat(TimeFormat):
-    """Base class for time delta representations.
-    """
+    """Base class for time delta representations"""
     pass
 
 
 class TimeDeltaSec(TimeDeltaFormat):
-    """Time delta in SI seconds.
-    """
+    """Time delta in SI seconds"""
     name = 'sec'
 
     def set_jds(self, val1, val2):
@@ -993,8 +1011,7 @@ class TimeDeltaSec(TimeDeltaFormat):
 
 
 class TimeDeltaJD(TimeDeltaFormat):
-    """Time delta in Julian days (86400 SI seconds).
-    """
+    """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
 
     def set_jds(self, val1, val2):
@@ -1029,7 +1046,8 @@ for name in dir(_module):
 
 
 def _make_1d_array(val, copy=False):
-    """Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is True
+    """
+    Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is True
     then copy input values.
 
     Returns
