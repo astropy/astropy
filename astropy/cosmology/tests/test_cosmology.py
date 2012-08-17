@@ -11,7 +11,6 @@ except ImportError:
 else:
     HAS_SCIPY = True
 
-
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_flat_z1():
     """ Test a flat cosmology at z=1 against several other on-line
@@ -37,6 +36,30 @@ def test_flat_z1():
                        [6729.2, 6729.6, 6729.5976], rtol=1e-4)
     assert np.allclose(cosmo.lookback_time(z),
                        [7.841, 7.84178, 7.843],  rtol=1e-3)
+
+
+#This class is to test whether the routines work correctly
+# if one only overloads w(z)
+class test_cos(core.FLRW):
+    def __init__(self):
+        core.FLRW.__init__(self, 70.0, 0.27, 0.73, name="test_cos")
+        self._w0 = -0.9
+    
+    def w(self,z):
+        return self._w0*np.ones_like(z)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_subclass():
+    #This is the comparison object
+    z = [0.2, 0.4, 0.6, 0.9]
+    cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9)
+    #Values taken from Ned Wrights advanced cosmo calcluator, Aug 17 2012
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
+    #Now try the subclass that only gives w(z)
+    cosmo = test_cos()
+    assert np.allclose(cosmo.luminosity_distance(z),
+                       [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_varyde_lumdist_mathematica():
