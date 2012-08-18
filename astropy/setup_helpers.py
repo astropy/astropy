@@ -137,8 +137,8 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
 
 
 for option in [
-        ('disable-legacy',
-         "Don't install legacy shims", True),
+        ('enable-legacy',
+         "Install legacy shims", True),
         ('use-system-libraries',
          "Use system libraries whenever possible", True)]:
     AstropyBuild.add_build_option(*option)
@@ -472,6 +472,25 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
             for library in libraries:
                 add_external_library(library)
 
+    # Check if all the legacy packages are needed
+    if get_distutils_build_option('enable_legacy'):
+        installed = []
+        for setuppkg in iter_setup_packages(srcdir):
+            if hasattr(setuppkg, 'get_legacy_alias'):
+                pkg, dir = setuppkg.get_legacy_alias()
+                if dir is None:
+                    installed.append(pkg)
+        if len(installed) > 0:
+            print('-' * 60)
+            print("The compatibility packages cannot be installed because the\n"
+                  "following legacy packages are already installed:\n")
+            for pkg in installed:
+                print("    * {0:s}".format(pkg))
+            print("\nThe compatibility packages can only installed if none of"
+                  " the\ncorresponding legacy packages are present.")
+            print('-' * 60)
+            sys.exit(1)
+
     for setuppkg in iter_setup_packages(srcdir):
         # get_extensions must include any Cython extensions by their .pyx
         # filename.
@@ -479,11 +498,12 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
             extensions.extend(setuppkg.get_extensions())
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
-        if hasattr(setuppkg, 'get_legacy_alias'):
-            pkg, dir = setuppkg.get_legacy_alias()
-            if pkg is not None:
-                packagenames.append(pkg)
-                package_dirs[pkg] = dir
+        if get_distutils_build_option('enable_legacy'):
+            if hasattr(setuppkg, 'get_legacy_alias'):
+                pkg, dir = setuppkg.get_legacy_alias()
+                if dir is not None:
+                    packagenames.append(pkg)
+                    package_dirs[pkg] = dir
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
@@ -871,10 +891,10 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     """
     import imp
 
-    # If legacy shims have been disabled at the commandline, simply do
+    # If legacy shims have not been enabled at the commandline, simply do
     # nothing.
-    if get_distutils_build_option('disable_legacy'):
-        return (None, None)
+    if not get_distutils_build_option('enable_legacy'):
+        return (old_package, None)
 
     found_legacy_module = True
     try:
@@ -899,15 +919,9 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     shim_dir = os.path.join(get_legacy_alias_dir(), old_package)
 
     if found_legacy_module and not is_distutils_display_option():
-        warn('-' * 60)
-        warn("The legacy package '{0}' was found.".format(old_package))
-        warn("To install astropy's compatibility layer instead, uninstall")
-        warn("'{0}' and then reinstall astropy.".format(old_package))
-        warn('-' * 60)
-
         if os.path.isdir(shim_dir):
             shutil.rmtree(shim_dir)
-        return (None, None)
+        return (old_package, None)
 
     if extras:
         extras = '\n'.join('{0} = {1!r}'.format(*v) for v in extras.items())
