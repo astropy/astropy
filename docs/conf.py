@@ -131,8 +131,13 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 
 extensions += ['astropy.sphinx.ext.edit_on_github']
 
-from astropy import version
+# Don't import the module as "version" or it will override the
+# "version" configuration parameter
+from astropy import version as versionmod
 edit_on_github_project = "astropy/astropy"
-edit_on_github_branch = version.githash
+if 'dev' in versionmod.version:
+    edit_on_github_branch = "master"
+else:
+    edit_on_github_branch = "v" + versionmod.version
 edit_on_github_source_root = ""
 edit_on_github_doc_root = "docs"
