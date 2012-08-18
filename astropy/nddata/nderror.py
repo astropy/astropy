@@ -42,7 +42,7 @@ class NDError(object):
         self._parent = value
 
     @abc.abstractmethod
-    def propagate_add(self, operand, final_data):
+    def propagate_add(self, operand, result):
         '''
         Propagate errors for addition.
 
@@ -50,12 +50,12 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_operand : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
 
         Raises
@@ -66,7 +66,7 @@ class NDError(object):
         pass
 
     @abc.abstractmethod
-    def propagate_subtract(self, operand, final_data):
+    def propagate_subtract(self, operand, result):
         '''
         Propagate errors for subtraction.
 
@@ -74,12 +74,12 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_operand : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
 
         Raises
@@ -90,7 +90,7 @@ class NDError(object):
         pass
 
     @abc.abstractmethod
-    def propagate_multiply(self, operand, final_data):
+    def propagate_multiply(self, operand, result):
         '''
         Propagate errors for mutliplication.
 
@@ -98,18 +98,18 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_operand : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
         '''
         pass
 
     @abc.abstractmethod
-    def propagate_divide(self, operand, final_data):
+    def propagate_divide(self, operand, result):
         '''
         Propagate errors for division.
 
@@ -117,12 +117,12 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_operand : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
         '''
         pass
@@ -171,7 +171,7 @@ class StandardDeviationError(NDError):
                 pass
         self._array = value
 
-    def propagate_add(self, operand, final_data):
+    def propagate_add(self, operand, result):
         '''
         Propagate errors for addition.
 
@@ -179,12 +179,12 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_data : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
 
         Raises
@@ -202,12 +202,12 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result = StandardDeviationError(parent=final_data)
-        result.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
+        result_error = StandardDeviationError(parent=result)
+        result_error.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
 
-        return result
+        return result_error
 
-    def propagate_subtract(self, operand, final_data):
+    def propagate_subtract(self, operand, result):
         '''
         Propagate errors for subtraction.
 
@@ -215,12 +215,12 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_data : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
 
         Raises
@@ -238,12 +238,12 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result = StandardDeviationError(parent=final_data)
-        result.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
+        result_error = StandardDeviationError(parent=result)
+        result_error.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
 
-        return result
+        return result_error
 
-    def propagate_multiply(self, operand, final_data):
+    def propagate_multiply(self, operand, result):
         '''
         Propagate errors for mutliplication.
 
@@ -251,12 +251,12 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_data : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
         '''
 
@@ -269,14 +269,14 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result = StandardDeviationError(parent=final_data)
-        result.array = np.sqrt((self.array / self.data) ** 2
+        result_error = StandardDeviationError(parent=result)
+        result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (operand.error.array / operand.data) ** 2) \
-                               * final_data.data
+                               * result.data
 
-        return result
+        return result_error
 
-    def propagate_divide(self, operand, final_data):
+    def propagate_divide(self, operand, result):
         '''
         Propagate errors for division.
 
@@ -284,12 +284,12 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        final_data : NDData instance
+        result : NDData instance
             The data object that is the result of the addition
 
         Returns
         -------
-        result : NDError instance
+        result_error : NDError instance
             The resulting error
         '''
         if not isinstance(operand.error, StandardDeviationError):
@@ -301,9 +301,9 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result = StandardDeviationError(parent=final_data)
-        result.array = np.sqrt((self.array / self.data) ** 2
+        result_error = StandardDeviationError(parent=result)
+        result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (operand.error.array / operand.data) ** 2) \
-                               * final_data.data
+                               * result.data
 
-        return result
+        return result_error
