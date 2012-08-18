@@ -13,7 +13,7 @@ import textwrap
 import warnings
 
 __all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'isiterable',
-           'deprecated', 'lazyproperty']
+           'deprecated', 'lazyproperty', 'deprecated_attribute']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -408,29 +408,33 @@ class lazyproperty(object):
 
 
 # TODO: Provide a class deprecation marker as well.
-def deprecated(since, message='', name='', alternative='', pending=False):
+def deprecated(since, message='', name='', alternative='', pending=False,
+               obj_type='function'):
     """
     Used to mark a function as deprecated.
 
-    To mark an attribute as deprecated, replace that attribute with a
-    depcrecated property.
+    To mark an attribute as deprecated, use `deprecated_attribute`.
 
     Parameters
     ------------
     since : str
-        The release at which this API became deprecated.  This is required.
+        The release at which this API became deprecated.  This is
+        required.
 
     message : str, optional
-        Override the default deprecation message.  The format specifier
-        %(func)s may be used for the name of the function, and %(alternative)s
-        may be used in the deprecation message to insert the name of an
-        alternative to the deprecated function.
+        Override the default deprecation message.  The format
+        specifier `%(func)s` may be used for the name of the function,
+        and `%(alternative)s` may be used in the deprecation message
+        to insert the name of an alternative to the deprecated
+        function.  `%(obj_type)` may be used to insert a friendly name
+        for the type of object being deprecated.
 
     name : str, optional
-        The name of the deprecated function; if not provided the name is
-        automatically determined from the passed in function, though this is
-        useful in the case of renamed functions, where the new function is just
-        assigned to the name of the deprecated function.  For example::
+        The name of the deprecated function; if not provided the name
+        is automatically determined from the passed in function,
+        though this is useful in the case of renamed functions, where
+        the new function is just assigned to the name of the
+        deprecated function.  For example::
 
             def new_function():
                 ...
@@ -473,16 +477,20 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         altmessage = ''
         if not message or type(message) == type(deprecate):
             if pending:
-                message = ('The %(func)s function will be deprecated in a '
+                message = ('The %(func)s %(obj_type)s will be deprecated in a '
                            'future version.')
             else:
-                message = ('The %(func)s function is deprecated and may '
+                message = ('The %(func)s %(obj_type)s is deprecated and may '
                            'be removed in a future version.')
             if alternative:
                 altmessage = '\n        Use %s instead.' % alternative
 
-        message = ((message % {'func': name, 'alternative': alternative}) +
-                   altmessage)
+        message = ((message % {
+            'func': name,
+            'name': name,
+            'alternative': alternative,
+            'obj_type': obj_type}) +
+            altmessage)
 
         @functools.wraps(func)
         def deprecated_func(*args, **kwargs):
@@ -520,3 +528,66 @@ def deprecated(since, message='', name='', alternative='', pending=False):
         return deprecate(message)
 
     return deprecate
+
+
+def deprecated_attribute(name, since, message=None, alternative=None,
+                         pending=False):
+    """
+    Used to mark a public attribute as deprecated.  This creates a
+    property that will warn when the given attribute name is accessed.
+    To prevent the warning (i.e. for internal code), use the private
+    name for the attribute by prepending an underscore
+    (i.e. `self._name`).
+
+    Parameters
+    ----------
+    name : str
+        The name of the deprecated attribute.
+
+    since : str
+        The release at which this API became deprecated.  This is
+        required.
+
+    message : str, optional
+        Override the default deprecation message.  The format
+        specifier `%(name)s` may be used for the name of the attribute,
+        and `%(alternative)s` may be used in the deprecation message
+        to insert the name of an alternative to the deprecated
+        function.
+
+    alternative : str, optional
+        An alternative attribute that the user may use in place of the
+        deprecated attribute.  The deprecation warning will tell the
+        user about this alternative if provided.
+
+    pending : bool, optional
+        If True, uses a PendingDeprecationWarning instead of a
+        DeprecationWarning.
+
+    Example
+    -------
+
+    ::
+
+        class MyClass:
+            # Mark the old_name as deprecated
+            old_name = misc.deprecated_attribute('old_name', '0.1')
+
+            def method(self):
+                self._old_name = 42
+    """
+    private_name = '_' + name
+
+    @deprecated(since, name=name, obj_type='attribute')
+    def get(self):
+        return getattr(self, private_name)
+
+    @deprecated(since, name=name, obj_type='attribute')
+    def set(self, val):
+        setattr(self, private_name, val)
+
+    @deprecated(since, name=name, obj_type='attribute')
+    def delete(self):
+        delattr(self, private_name)
+
+    return property(get, set, delete)

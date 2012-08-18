@@ -45,7 +45,8 @@ try:
     from . import _wcs
 except ImportError:
     _wcs = None
-from ..utils import deprecated
+from ..utils import deprecated, deprecated_attribute
+from .. import log
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -210,14 +211,40 @@ class WCS(WCSBase):
 
     Notes
     -----
-    astropy.wcs supports arbitrary *n* dimensions for the core WCS
-    (the transformations handled by WCSLIB).  However, the Paper IV
-    lookup table and SIP distortions must be two dimensional.
-    Therefore, if you try to create a WCS object where the core WCS
-    has a different number of dimensions than 2 and that object also
-    contains a Paper IV lookup table or SIP distortion, a `ValueError`
-    exception will be raised.  To avoid this, consider using the
-    *naxis* kwarg to select two dimensions from the core WCS.
+
+    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
+       (the transformations handled by WCSLIB).  However, the Paper IV
+       lookup table and SIP distortions must be two dimensional.
+       Therefore, if you try to create a WCS object where the core WCS
+       has a different number of dimensions than 2 and that object
+       also contains a Paper IV lookup table or SIP distortion, a
+       `ValueError` exception will be raised.  To avoid this, consider
+       using the *naxis* kwarg to select two dimensions from the core
+       WCS.
+
+    2. The number of coordinate axes in the transformation is not
+       determined directly from the ``NAXIS`` keyword but instead from
+       the highest of:
+
+           - ``NAXIS`` keyword
+
+           - ``WCSAXESa`` keyword
+
+           - The highest axis number in any parameterized WCS keyword.
+             The keyvalue, as well as the keyword, must be
+             syntactically valid otherwise it will not be considered.
+
+       If none of these keyword types is present, i.e. if the header
+       only contains auxiliary WCS keywords for a particular
+       coordinate representation, then no coordinate description is
+       constructed for it.
+
+       The number of axes, which is set as the `naxis` member, may
+       differ for different coordinate representations of the same
+       image.
+
+    3. When the header includes duplicate keywords, in most cases the
+       last encountered is used.
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
@@ -244,11 +271,11 @@ class WCS(WCSBase):
                             "argument 1 and a FITS file object to argument 2")
                     fobj = fits.open(header)
                     header = fobj[0].header
-                    header_string = repr(header.ascard).encode('latin1')
+                    header_string = header.tostring()
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = repr(header.ascard).encode('latin1')
+                header_string = header.tostring()
             else:
                 raise TypeError(
                     "header must be a string or an astropy.io.fits.Header "
@@ -287,6 +314,14 @@ distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
 """.format(wcsprm.naxis))
 
+            header = fits.Header.fromstring(header_string)
+            header_naxis = header.get('NAXIS', None)
+            if header_naxis is not None and header_naxis < wcsprm.naxis:
+                log.info(
+                    "The WCS transformation has more axes ({0:d}) than the "
+                    "image it is associated with ({1:d})".format(
+                        wcsprm.naxis, header_naxis))
+
         if fix:
             fixes = wcsprm.fix()
             for key, val in fixes.iteritems():
@@ -297,7 +332,7 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
-        self.get_naxis(header)
+        self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
 
     def __copy__(self):
@@ -349,7 +384,7 @@ naxis kwarg.
     if _wcs is not None:
         sub.__doc__ = _wcs._Wcsprm.sub.__doc__
 
-    def calcFootprint(self, header=None, undistort=True):
+    def calcFootprint(self, header=None, undistort=True, axes=None):
         """
         Calculates the footprint of the image on the sky.
 
@@ -365,22 +400,31 @@ naxis kwarg.
             If `True`, take SIP and distortion lookup table into
             account
 
+        axes : length 2 sequence ints, optional
+            If provided, use the given sequence as the shape of the
+            image.  Otherwise, use the ``NAXIS1`` and ``NAXIS2``
+            keywords from the header that was used to create this
+            `WCS` object.
+
         Returns
         -------
         coord : (4, 2) array of (*x*, *y*) coordinates.
         """
-        if header is None:
-            try:
-                # classes that inherit from WCS and define naxis1/2
-                # do not require a header parameter
-                naxis1 = self.naxis1
-                naxis2 = self.naxis2
-            except AttributeError:
-                print("Need a valid header in order to calculate footprint\n")
-                return None
+        if axes is not None:
+            naxis1, naxis2 = axes
         else:
-            naxis1 = header.get('NAXIS1', None)
-            naxis2 = header.get('NAXIS2', None)
+            if header is None:
+                try:
+                    # classes that inherit from WCS and define naxis1/2
+                    # do not require a header parameter
+                    naxis1 = self._naxis1
+                    naxis2 = self._naxis2
+                except AttributeError:
+                    print("Need a valid header in order to calculate footprint\n")
+                    return None
+            else:
+                naxis1 = header.get('NAXIS1', None)
+                naxis2 = header.get('NAXIS2', None)
 
         corners = np.zeros(shape=(4, 2), dtype=np.float64)
         if naxis1 is None or naxis2 is None:
@@ -1295,12 +1339,19 @@ naxis kwarg.
         f.write(') # color={0}, width={1:d} \n'.format(color, width))
         f.close()
 
+    naxis1 = deprecated_attribute('naxis1', '0.2')
+    naxis2 = deprecated_attribute('naxis2', '0.2')
+
+    @deprecated('0.2', message='This method should not be public')
     def get_naxis(self, header=None):
-        self.naxis1 = 0.0
-        self.naxis2 = 0.0
+        return self._get_naxis(header=header)
+
+    def _get_naxis(self, header=None):
+        self._naxis1 = 0
+        self._naxis2 = 0
         if header != None and not isinstance(header, string_types):
-            self.naxis1 = header.get('NAXIS1', 0.0)
-            self.naxis2 = header.get('NAXIS2', 0.0)
+            self.naxis1 = header.get('NAXIS1', 0)
+            self.naxis2 = header.get('NAXIS2', 0)
 
     def rotateCD(self, theta):
         _theta = np.deg2rad(theta)
