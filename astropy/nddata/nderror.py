@@ -42,7 +42,7 @@ class NDError(object):
         self._parent = value
 
     @abc.abstractmethod
-    def propagate_add(self, operand, result):
+    def propagate_add(self, operand, result_data):
         '''
         Propagate errors for addition.
 
@@ -50,8 +50,8 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -66,7 +66,7 @@ class NDError(object):
         pass
 
     @abc.abstractmethod
-    def propagate_subtract(self, operand, result):
+    def propagate_subtract(self, operand, result_data):
         '''
         Propagate errors for subtraction.
 
@@ -74,8 +74,8 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -90,7 +90,7 @@ class NDError(object):
         pass
 
     @abc.abstractmethod
-    def propagate_multiply(self, operand, result):
+    def propagate_multiply(self, operand, result_data):
         '''
         Propagate errors for mutliplication.
 
@@ -98,8 +98,8 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -109,7 +109,7 @@ class NDError(object):
         pass
 
     @abc.abstractmethod
-    def propagate_divide(self, operand, result):
+    def propagate_divide(self, operand, result_data):
         '''
         Propagate errors for division.
 
@@ -117,8 +117,8 @@ class NDError(object):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -171,7 +171,7 @@ class StandardDeviationError(NDError):
                 pass
         self._array = value
 
-    def propagate_add(self, operand, result):
+    def propagate_add(self, operand, result_data):
         '''
         Propagate errors for addition.
 
@@ -179,8 +179,8 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -202,12 +202,12 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result_error = StandardDeviationError(parent=result)
+        result_error = StandardDeviationError()
         result_error.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
 
         return result_error
 
-    def propagate_subtract(self, operand, result):
+    def propagate_subtract(self, operand, result_data):
         '''
         Propagate errors for subtraction.
 
@@ -215,8 +215,8 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -238,12 +238,12 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result_error = StandardDeviationError(parent=result)
+        result_error = StandardDeviationError()
         result_error.array = np.sqrt(self.array ** 2 + operand.error.array ** 2)
 
         return result_error
 
-    def propagate_multiply(self, operand, result):
+    def propagate_multiply(self, operand, result_data):
         '''
         Propagate errors for mutliplication.
 
@@ -251,8 +251,8 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -269,14 +269,14 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result_error = StandardDeviationError(parent=result)
+        result_error = StandardDeviationError()
         result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (operand.error.array / operand.data) ** 2) \
-                               * result.data
+                               * result_data
 
         return result_error
 
-    def propagate_divide(self, operand, result):
+    def propagate_divide(self, operand, result_data):
         '''
         Propagate errors for division.
 
@@ -284,8 +284,8 @@ class StandardDeviationError(NDError):
         ----------
         operand : NDData instance
             The data for the second operand in a + b
-        result : NDData instance
-            The data object that is the result of the addition
+        result_data : `~numpy.ndarray` instance
+            The data array that is the result of the addition
 
         Returns
         -------
@@ -301,9 +301,9 @@ class StandardDeviationError(NDError):
         if operand.error.array is None:
             raise ValueError("standard deviation values are not set in operand")
 
-        result_error = StandardDeviationError(parent=result)
+        result_error = StandardDeviationError()
         result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (operand.error.array / operand.data) ** 2) \
-                               * result.data
+                               * result_data
 
         return result_error

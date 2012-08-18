@@ -252,7 +252,7 @@ class NDData(object):
             result.error = self.error
         else:  # both self and operand have errors
             try:
-                result.error = self.error.propagate_add(operand, result)
+                result.error = self.error.propagate_add(operand, result.data)
             except IncompatibleErrors:
                 raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for addition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
@@ -314,7 +314,7 @@ class NDData(object):
             result.error = self.error
         else:  # both self and operand have errors
             try:
-                result.error = self.error.propagate_subtract(operand, result)
+                result.error = self.error.propagate_subtract(operand, result.data)
             except IncompatibleErrors:
                 raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for subtractition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
