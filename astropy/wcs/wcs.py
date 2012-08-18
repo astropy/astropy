@@ -280,8 +280,16 @@ class WCS(WCSBase):
                 raise TypeError(
                     "header must be a string or an astropy.io.fits.Header "
                     "object")
+
+            if isinstance(header_string, unicode):
+                header_bytes = header_string.encode('ascii')
+                header_string = header_string
+            else:
+                header_bytes = header_string
+                header_string = header_string.decode('ascii')
+
             try:
-                wcsprm = _wcs._Wcsprm(header=header_string, key=key,
+                wcsprm = _wcs._Wcsprm(header=header_bytes, key=key,
                                       relax=relax, keysel=keysel_flags,
                                       colsel=colsel)
             except _wcs.NoWcsKeywordsFoundError:
