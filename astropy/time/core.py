@@ -15,7 +15,8 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
-           'OperandTypeError',
+           'OperandTypeError', 'TimeEpochDateString',
+           'TimeBesselianEpochString', 'TimeJulianEpochString',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
 
