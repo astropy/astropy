@@ -5,8 +5,11 @@ A description of astropy.units
 Introduction
 ============
 
-`astropy.units` is a Python package to handle defining and converting
- between units
+This is a proposed API for a physical units package. Most, but not
+all, of what is proposed here is implemented.
+
+``astropy.units`` is a Python package to handle defining and converting
+between physical units
 
 Getting Started
 ===============
@@ -19,8 +22,8 @@ Getting Started
   >>> speed_converter([1.,1000.,5000.])
   array([  2.23693629e-02,   2.23693629e+01,   1.11846815e+02])
 
-Using `astropy.units`
-=====================
+Using ``astropy.units``
+=======================
 
 Standard units are defined in the module as object instances. 
 Of course, any redefinition of any the unit instances will break 
@@ -32,6 +35,7 @@ irreducible units are currently implemented:
 Length (meter)
 Time (second)
 Mass (kilogram)
+Charge (coulomb)
 
 Units that involve combinations of fundamental units are instances of 
 CompositeUnits. In most cases, one does not need to worry about the 
