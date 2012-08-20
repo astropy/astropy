@@ -449,7 +449,7 @@ class Time(object):
 
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It can be obtained from tables published by the IERS.
-        # XXX - get that table when needed and interpolate or whatever.
+        # TODO - get that table when needed and interpolate or whatever.
         if not hasattr(self, '_delta_ut1_utc'):
             # Exception until the IERS table is available to the package
             raise ValueError('Must set the delta_ut1_utc attribute in '
@@ -485,7 +485,7 @@ class Time(object):
             # pretty close (few msec?), assume TT.
             njd1, njd2 = sofa_time.tt_tai(jd1, jd2)
             njd1, njd2 = sofa_time.tai_utc(njd1, njd2)
-            # XXX actually need to go to UT1 which needs DUT.
+            # TODO: actually need to go to UT1 which needs DUT.
             ut = njd1 + njd2
 
             # Compute geodetic params needed for d_tdb_tt()
@@ -718,7 +718,7 @@ class TimeMJD(TimeFormat):
     name = 'mjd'
 
     def set_jds(self, val1, val2):
-        # XXX - this routine and vals should be Cythonized to follow the SOFA
+        # TODO - this routine and vals should be Cythonized to follow the SOFA
         # convention of preserving precision by adding to the larger of the two
         # values in a vectorized operation.  But in most practical cases the
         # first one is probably biggest.
@@ -880,7 +880,7 @@ class TimeString(TimeFormat):
         subfmts = self._select_subfmts(self.out_subfmt)
         _, _, str_fmt = subfmts[0]
 
-        # XXX ugly hack, fix
+        # TODO: fix this ugly hack
         if self.precision > 0 and str_fmt.endswith('{sec:02d}'):
             str_fmt += '.{fracsec:0' + str(self.precision) + 'd}'
 
