@@ -128,7 +128,7 @@ use the system `libexpat`, add the following to the `setup.cfg` file::
     use_system_expat=1
 
 Compatibility packages
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. warning:: This feature is still experimental, and you may run into
              unexpected issues with other packages, so we strongly
