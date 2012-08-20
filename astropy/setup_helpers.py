@@ -480,6 +480,9 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                 pkg, dir = setuppkg.get_legacy_alias()
                 if dir is None:
                     installed.append(pkg)
+                else:
+                    packagenames.append(pkg)
+                    package_dirs[pkg] = dir
         if len(installed) > 0:
             print('-' * 60)
             print("The compatibility packages cannot be installed because the\n"
@@ -498,12 +501,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
             extensions.extend(setuppkg.get_extensions())
         if hasattr(setuppkg, 'get_package_data'):
             package_data.update(setuppkg.get_package_data())
-        if get_distutils_build_option('enable_legacy'):
-            if hasattr(setuppkg, 'get_legacy_alias'):
-                pkg, dir = setuppkg.get_legacy_alias()
-                if dir is not None:
-                    packagenames.append(pkg)
-                    package_dirs[pkg] = dir
 
     # Locate any .pyx files not already specified, and add their extensions in.
     # The default include dirs include numpy to facilitate numerical work.
