@@ -222,7 +222,7 @@ There is also support for Spectral Flux Density Units. Their use is
 more complex, since it is necessary to also supply the location in the 
 spectrum for which the conversions will be done, and the units of those
 spectral locations. The class that handles this unit is SpectralDensityUnit
-and all the predefined units of this type are prefixed with 'sd_'
+and all the predefined units of this type are prefixed with "sd_"
 
   >>> u.sd_flam.convert_to(u.fnu,1,u.sp_A,3500)
   4.086160166177361e-12
