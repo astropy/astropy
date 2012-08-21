@@ -60,26 +60,6 @@ class FLRW(Cosmology):
     examples of this class, but must work with one of its
     subclasses such as `LambdaCDM` or `wCDM`.
 
-    Attributes
-    ----------
-    H0 : float
-      Hubble parameter at z=0 in km/s/Mpc
-    Om0 : float
-      Omega matter; matter density / critical density at z=0
-    Ode0 : float
-      Omega dark energy; dark energy density / critical density at z=0
-    Ok0 : float
-      Omega_k, the curvature density at z=0. Defined as 1 - Om0 - Ode0
-    h : float
-      Dimensionless Hubble parameter (H0 = 100*h km/s/Mpc).
-      Often used to quote cosmological values independently of H0.
-    hubble_time : float
-      Hubble time in Gyr.
-    hubble_distance : float
-      Hubble distance in Mpc.
-    critical_density0 : float
-      Critical density in g cm^-3 at z=0.
-
     Notes
     -----
     Class instances are static -- you can't change the values
@@ -92,6 +72,28 @@ class FLRW(Cosmology):
     __metaclass__ = ABCMeta
 
     def __init__(self, H0, Om0, Ode0, name='FLRW'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of dark energy in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -122,42 +124,65 @@ class FLRW(Cosmology):
 
     @property
     def H0(self):
+        """ Return the Hubble constant in [km/sec/Mpc] at z=0"""
         return self._H0
 
     @property
     def Om0(self):
+        """ Omega matter; matter density/critical density at z=0"""
         return self._Om0
 
     @property
     def Ode0(self):
+        """ Omega dark energy; dark energy density/critical density at z=0"""
         return self._Ode0
 
     @property
     def Ok0(self):
+        """ Omega curvature; the effective curvature density/critical density 
+        at z=0"""
         return self._Ok0
 
     @property
     def h(self):
+        """ Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]"""
         return self._h
 
     @property
     def hubble_time(self):
+        """ Hubble time in [Gyr]"""
         return self._hubble_time
 
     @property
     def hubble_distance(self):
+        """ Hubble distance in [Mpc]"""
         return self._hubble_distance
 
     @property
     def critical_density0(self):
+        """ Critical density in [g cm^-3] at z=0"""
         return self._critical_density0
 
     @abstractmethod
     def w(self, z):
-        """ Return the dark energy equation of state at redshift `z`.
+        """ The dark energy equation of state.
 
-        The dark energy equation of state is Pressure/density
-        in units where c=1.
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        w : ndarray, or float if input scalar
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
 
         This must be overridden by subclasses.
         """
@@ -174,6 +199,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
+        Om: ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
         """
@@ -193,6 +219,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
+        Ok: ndarray, or float if input scalar
           The equivalent density parameter for curvature at each redshift.
         """
 
@@ -215,6 +242,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
+        Ode: ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
         """
@@ -226,7 +254,7 @@ class FLRW(Cosmology):
 
 
     def _w_integrand(self, ln1pz):
-        """ Internal convenience function for w(z) integral"""
+        """ Internal convenience function for w(z) integral."""
         
         #See Linder 2003, PRL 90, 91301 eq (5)
         #Assumes scalar input, since this should only be called
@@ -245,7 +273,18 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        A value I such that :math:`\rho(z) = \rho_0 I`
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and is given by
+
+        .. math::
+
+            I = \\exp \\left( 3 \int_{a}^1 \\frac{ da^{\\prime} }{ a^{\\prime} }
+            \\left[ 1 + w\\left( a^{\\prime} \\right) \\right] \\right)
         
         It will generally helpful for subclasses to overload this method if
         the integral can be done analytically for the particular dark
@@ -253,19 +292,15 @@ class FLRW(Cosmology):
         """
 
         # This allows for an arbitrary w(z) following eq (5) of
-        # Linder 2003, PRL 90, 91301.  The equation that has to be
-        # integrated is
-        #
-        #   I = \exp \left( 3 \int_{a}^1 \frac{ da^{\prime} }{ a^{\prime} }
-        #      \left[ 1 + w\left( a^{\prime} \right) \right] \right)
-        #
-        # The code here does this numerically.  However, most popular
+        # Linder 2003, PRL 90, 91301.  The code here evaluates
+        # the integral numerically.  However, most popular
         # forms of w(z) are designed to make this integral analytic,
         # so it is probably a good idea for subclasses to overload this 
         # method if an analytic form is available.
         # 
         # The integral we actually use (the one given in Linder)
-        # is rewritten in terms of z, but it's the same thing.
+        # is rewritten in terms of z, so looks slightly different than the
+        # one in the documentation string, but it's the same thing.
 
         from scipy.integrate import quad
 
@@ -288,7 +323,12 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        A value E such that :math:`H(z) = H_0 E`
+        E : ndarray, or float if input scalar
+          The redshift scaling of the Hubble constant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 E`.
 
         It is not necessary to override this method, but if de_density_scale
         takes a particularly simple form, it may be advantageous to.
@@ -713,6 +753,28 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, name='LambdaCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of the cosmological constant in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
         FLRW.__init__(self, H0, Om0, Ode0, name=name)
 
     def w(self, z):
@@ -726,7 +788,14 @@ class LambdaCDM(FLRW):
         Returns
         -------
         w : ndarray, or float if input scalar
-          Dark energy equation of state, P(z)/rho(z).
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
         """
 
         return -1.0*np.ones_like(z)
@@ -745,7 +814,12 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        A value E such that :math:`H(z) = H_0 E`
+        E : ndarray, or float if input scalar
+          The redshift scaling of the Hubble consant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 E`.
         """
 
         if isiterable(z):
@@ -768,7 +842,12 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        A value E such that :math:`H(z) = H_0 / E`
+        E : ndarray, or float if input scalar
+          The inverse redshift scaling of the Hubble constant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
         """
         
         if isiterable(z):
@@ -785,12 +864,6 @@ class wCDM(FLRW):
 
     This has one additional attribute beyond those of FLRW.
 
-    Attributes
-    ----------
-    w0 : float
-      Dark energy equation of state (P/rho). -1 is a
-      cosmological constant.
-
     Examples
     --------
     >>> from astro.cosmology import wCDM
@@ -802,6 +875,33 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., name='wCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of dark energy in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        w0: (float)
+          Dark energy equation of state at all redshifts.  
+          This is pressure/density for dark energy in units where c=1.
+          A cosmological constant has w0=-1.0.
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
         FLRW.__init__(self, H0, Om0, Ode0, name=name)
         self._w0 = float(w0)
 
@@ -812,6 +912,7 @@ class wCDM(FLRW):
 
     @property
     def w0(self):
+        """ Dark energy equation of state"""
         return self._w0
 
     def w(self, z):
@@ -825,7 +926,14 @@ class wCDM(FLRW):
         Returns
         -------
         w : ndarray, or float if input scalar
-          Dark energy equation of state, :math:`w(z)=P(z)/rho(z)`
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
         """
 
         return self._w0*np.ones_like(z)
@@ -847,7 +955,12 @@ class wCDM(FLRW):
 
         Returns
         -------
-        A value E such that :math:`H(z) = H_0 E`
+        E : ndarray, or float if input scalar
+          The redshift scaling of the Hubble consant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 E`.
         """
         
         if isiterable(z):
@@ -867,7 +980,12 @@ class wCDM(FLRW):
 
         Returns
         -------
-        A value E such that :math:`H(z) = H_0 / E`
+        E : ndarray, or float if input scalar
+          The inverse redshift scaling of the Hubble constant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
         """
         
         if isiterable(z):
@@ -884,17 +1002,7 @@ class w0waCDM(FLRW):
     The equation for the dark energy equation of state uses the
     CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
     D10, 213 (2001) and Linder PRL 90, 91301 (2003):
-    :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`
-
-    This has two additional attributes beyond those of FLRW.
-
-    Attributes
-    ----------
-    w0 : float
-      Dark energy equation of state (P/rho) at current epoch.
-    wa : float
-      Negative derivative of the dark energy equation of state with
-      respect to the scale factor.
+    :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
 
     Examples
     --------
@@ -907,6 +1015,37 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., name='w0waCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of dark energy in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        w0: (float)
+          Dark energy equation of state at z=0 (a=1).
+          This is pressure/density for dark energy in units where c=1.
+          
+        wa: (float)
+          Negative derivative of the dark energy equation of state
+          with respect to the scale factor.  A cosmological constant has 
+          w0=-1.0 and wa=0.0.
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
         FLRW.__init__(self, H0, Om0, Ode0, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
@@ -918,10 +1057,12 @@ class w0waCDM(FLRW):
 
     @property
     def w0(self):
+        """ Dark energy equation of state at z=0"""
         return self._w0
 
     @property
     def wa(self):
+        """ Negative derivative of dark energy equation of state w.r.t. a"""
         return self._wa
 
     def w(self, z):
@@ -935,7 +1076,14 @@ class w0waCDM(FLRW):
         Returns
         -------
         w : ndarray, or float if input scalar
-          Dark energy equation of state, :math:`w(z) = P(z)/rho(z)`
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
         """
 
         if isiterable(z):
@@ -961,20 +1109,7 @@ class wpwaCDM(FLRW):
     D10, 213 (2001) and Linder PRL 90, 91301 (2003), but modified
     to have a pivot redshift as in the findings of the Dark Energy
     Task Force (Albrecht et al. arXiv:0901.0721 (2009)):
-    :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`
-
-    This has three additional attributes beyond those of FLRW.
-
-    Attributes
-    ----------
-    wp : float
-      Dark energy equation of state (P/rho) at the pivot redshift
-    wa : float
-      Negative derivative of the dark energy equation of state with
-      respect to the scale factor.
-    zp : float
-      Pivot redshift
-
+    :math:`w(a) = w_p + w_a (a_p - a) = w_p + w_a( 1/(1+zp) - 1/(1+z) )`.
 
     Examples
     --------
@@ -988,6 +1123,40 @@ class wpwaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, 
                  name='wpwaCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of dark energy in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        wp: (float)
+          Dark energy equation of state at the pivot redshift zp.
+          This is pressure/density for dark energy in units where c=1.
+          
+        wa: (float)
+          Negative derivative of the dark energy equation of state
+          with respect to the scale factor.  A cosmological constant 
+          has w0=-1.0 and wa=0.0.
+
+        zp: (float)
+          Pivot redshift -- the redshift where w(z) = wp
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
         FLRW.__init__(self, H0, Om0, Ode0, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
@@ -1001,14 +1170,17 @@ class wpwaCDM(FLRW):
 
     @property
     def wp(self):
+        """ Dark energy equation of state at the pivot redshift zp"""
         return self._wp
 
     @property
     def wa(self):
+        """ Negative derivative of dark energy equation of state w.r.t. a"""
         return self._wa
 
     @property
     def zp(self):
+        """ The pivot redshift, where w(z) = wp"""
         return self._zp
 
     def w(self, z):
@@ -1022,7 +1194,14 @@ class wpwaCDM(FLRW):
         Returns
         -------
         w : ndarray, or float if input scalar
-          Dark energy equation of state, :math:`w(z) = P(z)/rho(z)`
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
         """
 
         if isiterable(z):
@@ -1047,18 +1226,9 @@ class w0wzCDM(FLRW):
     and curvature.
 
     The equation for the dark energy equation of state uses the
-    simple form: :math:`w(z) = w_0 + w_z z`
+    simple form: :math:`w(z) = w_0 + w_z z`.
 
     This form is not recommended for z > 1.
-
-    This has two additional attributes beyond those of FLRW.
-
-    Attributes
-    ----------
-    w0 : float
-      Dark energy equation of state (P/rho) at current epoch.
-    wz : float
-      Derivative of the dark energy equation of state with respect to z.
 
     Examples
     --------
@@ -1071,6 +1241,37 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., name='w0wzCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0: (float)
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0: (float)
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Ode0: (float)
+          Omega dark energy: density of dark energy in units
+          of the critical density at z=0.
+
+        Ok0: (float)
+          Omega curvature: equivalent curvature density in units
+          of the critical density at z=0.
+
+        w0: (float)
+          Dark energy equation of state at z=0.  
+          This is pressure/density for dark energy in units where c=1.
+          A cosmological constant has w0=-1.0.
+
+        wz: (float)
+          Derivative of the dark energy equation of state with respect to
+          redshift.
+
+        name: (string)
+          Optional name for this cosmological object.
+        """
         FLRW.__init__(self, H0, Om0, Ode0, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
@@ -1082,10 +1283,12 @@ class w0wzCDM(FLRW):
 
     @property
     def w0(self):
+        """ Dark energy equation of state at z=0"""
         return self._w0
 
     @property
     def wz(self):
+        """ Derivative of the dark energy equation of state w.r.t. z"""
         return self._wz
 
     def w(self, z):
@@ -1099,7 +1302,14 @@ class w0wzCDM(FLRW):
         Returns
         -------
         w : ndarray, or float if input scalar
-          Dark energy equation of state, :math:w(z) = P(z)/rho(z)`
+          The dark energy equation of state
+          
+        Notes
+        ------
+        The dark energy equation of state is defined as 
+        :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
+        pressure at redshift z and :math:`\\rho(z)` is the density
+        at redshift z, both in units where c=1.
         """
 
         if isiterable(z):
