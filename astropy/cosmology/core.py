@@ -795,13 +795,31 @@ class LambdaCDM(FLRW):
         The dark energy equation of state is defined as 
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
-        at redshift z, both in units where c=1.
+        at redshift z, both in units where c=1.  Here this is
+        :math:`w(z) = -1`.
         """
 
         return -1.0*np.ones_like(z)
     
     def de_density_scale(self, z):
-        """ Density evolution factor for dark energy"""
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and in this case is given by :math:`I = 1`.
+        """
+
         return np.ones_like(z)
 
     def efunc(self, z):
@@ -933,13 +951,31 @@ class wCDM(FLRW):
         The dark energy equation of state is defined as 
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
-        at redshift z, both in units where c=1.
+        at redshift z, both in units where c=1.  Here this is
+        :math:`w(z) = w_0`.
         """
 
         return self._w0*np.ones_like(z)
     
     def de_density_scale(self, z):
-        """ Density evolution factor for dark energy"""
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and in this case is given by 
+        :math:`I = \\left(1 + z\\right)^{3\\left(1 + w_0\\right)}`
+        """
 
         if isiterable(z):
             z = np.asarray(z)
@@ -1083,7 +1119,8 @@ class w0waCDM(FLRW):
         The dark energy equation of state is defined as 
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
-        at redshift z, both in units where c=1.
+        at redshift z, both in units where c=1.  Here this is
+        :math:`w(z) = w_0 + w_a (1 - a) = w_0 + w_a \\frac{z}{1+z}`.
         """
 
         if isiterable(z):
@@ -1092,7 +1129,29 @@ class w0waCDM(FLRW):
         return self._w0 + self._wa * z / (1.0 + z)
 
     def de_density_scale(self, z):
-        """ Density evolution factor for dark energy"""
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and in this case is given by 
+
+        .. math::
+
+          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 + w_a\\right)}
+          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+
+        """
         if isiterable(z):
             z = np.asarray(z)
         zp1 = 1.0 + z
@@ -1201,7 +1260,9 @@ class wpwaCDM(FLRW):
         The dark energy equation of state is defined as 
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
-        at redshift z, both in units where c=1.
+        at redshift z, both in units where c=1.  Here this is
+        :math:`w(z) = w_p + w_a (a_p - a)` where :math:`a = 1/1+z`
+        and :math:`a_p = 1 / 1 + z_p`.
         """
 
         if isiterable(z):
@@ -1211,7 +1272,30 @@ class wpwaCDM(FLRW):
         return self._wp + self._wa * (apiv - 1.0 / (1. + z))
 
     def de_density_scale(self, z):
-        """ Density evolution factor for dark energy"""
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and in this case is given by 
+
+        .. math::
+
+          a_p = \\frac{1}{1 + z_p}
+
+          I = \\left(1 + z\\right)^{3 \\left(1 + w_p + a_p w_a\\right)}
+          \exp \\left(-3 w_a \\frac{z}{1+z}\\right)
+        """
 
         if isiterable(z):
             z = np.asarray(z)
@@ -1266,8 +1350,7 @@ class w0wzCDM(FLRW):
           A cosmological constant has w0=-1.0.
 
         wz: (float)
-          Derivative of the dark energy equation of state with respect to
-          redshift.
+          Derivative of the dark energy equation of state with respect to z.
 
         name: (string)
           Optional name for this cosmological object.
@@ -1309,7 +1392,8 @@ class w0wzCDM(FLRW):
         The dark energy equation of state is defined as 
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
-        at redshift z, both in units where c=1.
+        at redshift z, both in units where c=1.  Here this is given by
+        :math:`w(z) = w_0 + w_z z`.
         """
 
         if isiterable(z):
@@ -1318,7 +1402,28 @@ class w0wzCDM(FLRW):
         return self._w0 + self._wz * z
 
     def de_density_scale(self, z):
-        """ Density evolution factor for dark energy"""
+        """ Evaluates the redshift dependence of the dark energy density.
+        
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The scaling of the energy density of dark energy with redshift.
+
+        Notes
+        -----
+        The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
+        and in this case is given by 
+
+        .. math::
+
+          I = \\left(1 + z\\right)^{3 \\left(1 + w_0 - w_z\\right)}
+          \exp \\left(-3 w_z z\\right)
+        """
 
         if isiterable(z):
             z = np.asarray(z)
