@@ -564,8 +564,8 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         If True, uses a PendingDeprecationWarning instead of a
         DeprecationWarning.
 
-    Example
-    -------
+    Examples
+    --------
 
     ::
 
