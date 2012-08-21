@@ -148,7 +148,7 @@ class Time(object):
         available string formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind == 'S':
+        if format is None and val.dtype.kind in ('S', 'U'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeString)]
             err_msg = 'any of format classes {0}'.format(
@@ -797,7 +797,7 @@ class TimeString(TimeFormat):
     This is a reference implementation can be made much faster with effort.
     """
     def _check_val_type(self, val1, val2):
-        if val1.dtype.kind != 'S':
+        if val1.dtype.kind not in ('S', 'U'):
             raise TypeError('Input values for {0} class must be strings'
                              .format(self.name))
             # Note: don't care about val2 for these classes
@@ -843,7 +843,7 @@ class TimeString(TimeFormat):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale,
+        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
@@ -851,7 +851,8 @@ class TimeString(TimeFormat):
         Generator that yields a dict of values corresponding to the
         calendar date and time for the internal JD values.
         """
-        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper(),
+        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
                                                  self.precision,
                                                  self.jd1, self.jd2)
 
@@ -1023,7 +1024,6 @@ class TimeEpochDateString(TimeString):
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
             except (IndexError, ValueError) as err:
-                print err
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:

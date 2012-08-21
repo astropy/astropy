@@ -290,7 +290,7 @@ def jd_dtf(scale, ndp,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def dtf_jd(scale, 
+def dtf_jd(scale,
               np.ndarray[int, ndim=1] iy,
               np.ndarray[int, ndim=1] im,
               np.ndarray[int, ndim=1] id,

@@ -15,8 +15,8 @@ class TestTimeDelta():
     def test_sub(self):
         # time - time
         dt = self.t2 - self.t
-        assert (repr(dt) == "<TimeDelta object: scale='tai' format='jd' "
-                "vals=1.00001157407>")
+        assert (repr(dt).startswith("<TimeDelta object: scale='tai' "
+                                    "format='jd' vals=1.00001157407"))
         assert np.allclose(dt.jd, 1.00001157407)
         assert np.allclose(dt.sec, 86401.0)
 
