@@ -61,8 +61,9 @@ you can't work with this class directly, as you must specify a
 dark energy model by using one of its subclasses instead,
 such as `~astropy.cosmology.core.LambdaCDM`.
 
-You can create a new `LambdaCDM` object with arguments giving the
-hubble parameter, omega matter and omega dark energy (all at z=0):
+You can create a new `~astropy.cosmology.core.LambdaCDM` object with
+arguments giving the hubble parameter, omega matter and omega dark
+energy (all at z=0):
 
   >>> from astropy.cosmology import LambdaCDM
   >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
@@ -72,8 +73,9 @@ hubble parameter, omega matter and omega dark energy (all at z=0):
 A number of additional dark energy models are provided (described below).
 
 The pre-defined cosmologies described in the `Getting Started`_
-section are instances of `LambdaCDM`, and have the same methods. So
-we can find the luminosity distance in Mpc to redshift 4 by:
+section are instances of `~astropy.cosmology.core.LambdaCDM`, and have
+the same methods. So we can find the luminosity distance in Mpc to
+redshift 4 by:
 
   >>> cosmo.luminosity_distance(4)
   35851.83207231648
@@ -88,9 +90,10 @@ They also accept arrays of redshifts:
   >>> cosmo.age([0.5, 1, 1.5])
   array([ 8.42634607,  5.75164698,  4.20073196])	
 
-See the `FLRW` and `LambdaCDM` object docstring for all the methods and
-attributes available. There are also a variety of standard cosmologies
-with the parameters already defined:
+See the `~astropy.cosmology.core.FLRW` and
+`~astropy.cosmology.core.LambdaCDM` object docstring for all the
+methods and attributes available. There are also a variety of standard
+cosmologies with the parameters already defined:
 
   >>> from cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.critical_density(0)       # critical density at z = 0 in g/cm^3
@@ -100,9 +103,9 @@ with the parameters already defined:
   >>> WMAP5.H(3)                    # Hubble parameter at z = 3 in km/s/Mpc
   301.54148311633674
 
-In addition to the `LambdaCDM` object, there are convenience
-functions that calculate quantities without needing to explicitly give
-a cosmology.
+In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
+are convenience functions that calculate quantities without needing to
+explicitly give a cosmology.
 
   >>> from astropy import cosmology
   >>> cosmology.kpc_proper_per_arcmin(3)
@@ -183,19 +186,23 @@ unless explicitly overridden.
 Specifying a dark energy model
 ==============================
 
-In addition to the standard `LambdaCDM` model described above, a
-number of additional dark energy models are provided.  `LambdaCDM`
-assumes that dark energy is a cosmological constant, and should be the
-most commonly used case.  `wCDM` assumes a constant dark energy
-equation of state parameterized by :math:`w_0`. Two forms of a
+In addition to the standard `~astropy.cosmology.core.LambdaCDM` model
+described above, a number of additional dark energy models are
+provided.  `~astropy.cosmology.core.LambdaCDM` assumes that dark
+energy is a cosmological constant, and should be the most commonly
+used case.  `~astropy.cosmology.core.wCDM` assumes a constant dark
+energy equation of state parameterized by :math:`w_0`. Two forms of a
 variable dark energy equation of state are provided: the simple first
-order linear expansion :math:`w(z) = w_0 + w_z z` by `w0wzCDM`, as
-well as the common CPL form by `w0waCDM`: :math:`w(z) = w_0 + w_a (1 -
-a) = w_0 + w_a * z / (1 + z)` and its generalization to include a
-pivot redshift by `wpwaCDM`: :math:`w(z) = w_p + w_a (a_p - a)`.
+order linear expansion :math:`w(z) = w_0 + w_z z` by
+`~astropy.cosmology.core.w0wzCDM`, as well as the common CPL form by
+`~astropy.cosmology.core.w0waCDM`: :math:`w(z) = w_0 + w_a (1 - a) =
+w_0 + w_a z / (1 + z)` and its generalization to include a pivot
+redshift by `~astropy.cosmology.core.wpwaCDM`: :math:`w(z) = w_p + w_a
+(a_p - a)`.
 
 Users can specify their own equation of state by sub-classing
-`FRLW`.  See the provided subclasses for examples.
+`~astropy.cosmology.core.FLRW`.  See the provided subclasses for
+examples.
 
 
 See Also
