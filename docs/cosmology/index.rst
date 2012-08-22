@@ -68,7 +68,7 @@ energy (all at z=0):
   >>> from astropy.cosmology import LambdaCDM
   >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
   >>> cosmo
-  LambdaCDM(H0=70, Om=0.3, Ode=0.7, Ok=0)
+  LambdaCDM(H0=70, Om0=0.3, Ode0=0.7, Ok0=0)
 
 A number of additional dark energy models are provided (described below).
 
