@@ -11,9 +11,11 @@ import sys
 import time
 
 try:
-    from IPython.zmq.iostream import OutStream
-except ImportError:
+    get_ipython()
+except NameError:
     OutStream = None
+else:
+    from IPython.zmq.iostream import OutStream
 
 from ..config import ConfigurationItem
 
