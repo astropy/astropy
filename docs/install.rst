@@ -161,8 +161,13 @@ will then be equivalent to::
     from astropy.io import vo
     from astropy import wcs as pywcs
 
-Note that in order to install the compatibility packages none of the
+In order to install the compatibility packages none of the
 original packages should be present.
+
+.. note:: If you are interested in testing out existing code with Astropy
+          without modifying the import statements, but don't want to
+          uninstall existing packages, you can use `virtualenv
+          <http://www.virtualenv.org/>`_ to set up a clean environment.
 
 .. _builddocs:
 
