@@ -21,6 +21,7 @@ from distutils.errors import DistutilsError
 from distutils.core import Extension
 from distutils.log import warn
 from distutils.command.build import build as DistutilsBuild
+from distutils.command.install import install as DistutilsInstall
 from distutils.command.build_ext import build_ext as DistutilsBuildExt
 
 from .tests.helper import astropy_test
@@ -77,9 +78,53 @@ class AstropyBuild(DistutilsBuild):
         cls.custom_options.append(name)
 
 
+class AstropyInstall(DistutilsInstall):
+    """
+    A custom 'install' command that allows for adding extra install
+    options.
+    """
+    user_options = DistutilsInstall.user_options[:]
+    boolean_options = DistutilsInstall.boolean_options[:]
+    custom_options = []
+
+    def initialize_options(self):
+        DistutilsInstall.initialize_options(self)
+        # Create member variables for all of the custom options that
+        # were added.
+        for option in self.custom_options:
+            setattr(self, option.replace('-', '_'), None)
+
+    @classmethod
+    def add_install_option(cls, name, doc, is_bool=False):
+        """
+        Add a install option.
+
+        Parameters
+        ----------
+        name : str
+            The name of the install option
+
+        doc : str
+            A short description of the option, for the `--help` message.
+
+        is_bool : bool, optional
+            When `True`, the option is a boolean option and doesn't
+            require an associated value.
+        """
+        if name in cls.custom_options:
+            return
+
+        if is_bool:
+            cls.boolean_options.append(name)
+        else:
+            name = name + '='
+        cls.user_options.append((name, None, doc))
+        cls.custom_options.append(name)
+
 # Need to set the name here so that the commandline options
 # are presented as being related to the "build" command.
 AstropyBuild.__name__ = 'build'
+AstropyInstall.__name__ = 'install'
 
 
 def wrap_build_ext(basecls=DistutilsBuildExt):
@@ -142,6 +187,7 @@ for option in [
         ('use-system-libraries',
          "Use system libraries whenever possible", True)]:
     AstropyBuild.add_build_option(*option)
+    AstropyInstall.add_install_option(*option)
 
 
 try:
@@ -385,6 +431,23 @@ def get_distutils_build_option(option):
     return get_distutils_option(option, ['build', 'build_ext', 'build_clib'])
 
 
+def get_distutils_install_option(option):
+    """ Returns the value of the given distutils install option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build option. If the option
+        is not set, returns None.
+    """
+    return get_distutils_option(option, ['install'])
+
+
 def get_compiler_option():
     """ Determines the compiler that will be used to build extension modules.
 
@@ -473,7 +536,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                 add_external_library(library)
 
     # Check if all the legacy packages are needed
-    if get_distutils_build_option('enable_legacy'):
+    if get_distutils_build_option('enable_legacy') or \
+       get_distutils_install_option('enable_legacy'):
         installed = []
         for setuppkg in iter_setup_packages(srcdir):
             if hasattr(setuppkg, 'get_legacy_alias'):
@@ -890,7 +954,8 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     # If legacy shims have not been enabled at the commandline, simply do
     # nothing.
-    if not get_distutils_build_option('enable_legacy'):
+    if not get_distutils_build_option('enable_legacy') and \
+       not get_distutils_install_option('enable_legacy'):
         return (old_package, None)
 
     found_legacy_module = True
