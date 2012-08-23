@@ -230,9 +230,10 @@ class NDData(object):
         -----
         This method requires the datasets to have identical WCS properties,
         identical units, and identical shapes. Flags and meta-data get set to
-        None in the resulting dataset. Errors are propagated. Values masked in
-        either dataset before the operation are masked in the resulting
-        dataset.
+        None in the resulting dataset. Errors are propagated, although this
+        feature is experimental, and errors are assumed to be uncorrelated.
+        Values masked in either dataset before the operation are masked in
+        the resulting dataset.
         """
 
         if self.wcs != operand.wcs:
@@ -296,9 +297,10 @@ class NDData(object):
         -----
         This method requires the datasets to have identical WCS properties,
         identical units, and identical shapes. Flags and meta-data get set to
-        None in the resulting dataset. Errors are propagated. Values masked in
-        either dataset before the operation are masked in the resulting
-        dataset.
+        None in the resulting dataset. Errors are propagated, although this
+        feature is experimental, and errors are assumed to be uncorrelated.
+        Values masked in either dataset before the operation are masked in
+        the resulting dataset.
         """
 
         if self.wcs != operand.wcs:

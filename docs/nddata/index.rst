@@ -102,11 +102,14 @@ Arithmetic
 
 Provided that the WCS, units, and shape match, two
 `~astropy.nddata.nddata.NDData` can be added or subtracted from each other,
-with proper error propagation, creating a new `~astropy.nddata.nddata.NDData`
+with error propagation, creating a new `~astropy.nddata.nddata.NDData`
 object::
 
     ndd3 = ndd1.add(ndd2)
     ndd4 = ndd1.subtract(ndd2)
+
+.. warn:: error propagation is still experimental, and does not take into
+          account correlated errors.
 
 Convolution
 -----------
