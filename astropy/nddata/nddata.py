@@ -210,7 +210,7 @@ class NDData(object):
     # to have this requirement, and can also add methods for multiplication
     # and division.
 
-    def add(self, operand):
+    def add(self, operand, propagate_errors=True):
         """
         Add datasets together
 
@@ -218,6 +218,8 @@ class NDData(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a + b
+        propagate_errors : bool
+            Whether to propagate errors
 
         Returns
         -------
@@ -244,7 +246,9 @@ class NDData(object):
 
         result = self.__class__(self.data + operand.data)  # in case we are dealing with an inherited type
 
-        if self.error is None and operand.error is None:
+        if not propagate_errors:
+            result.error = None
+        elif self.error is None and operand.error is None:
             result.error = None
         elif self.error is None:
             result.error = operand.error
@@ -272,7 +276,7 @@ class NDData(object):
 
         return result
 
-    def subtract(self, operand):
+    def subtract(self, operand, propagate_errors=True):
         """
         Subtract datasets together
 
@@ -280,6 +284,8 @@ class NDData(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a + b
+        propagate_errors : bool
+            Whether to propagate errors
 
         Returns
         -------
@@ -306,7 +312,9 @@ class NDData(object):
 
         result = self.__class__(self.data - operand.data)  # in case we are dealing with an inherited type
 
-        if self.error is None and operand.error is None:
+        if not propagate_errors:
+            result.error = None
+        elif self.error is None and operand.error is None:
             result.error = None
         elif self.error is None:
             result.error = operand.error

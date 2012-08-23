@@ -190,7 +190,7 @@ class StandardDeviationError(NDError):
         Raises
         ------
         IncompatibleErrors
-            Raised if the method does not know how to add the errors
+            Raised if the method does not know how to propagate the errors
         '''
 
         if not isinstance(operand.error, StandardDeviationError):
@@ -226,7 +226,7 @@ class StandardDeviationError(NDError):
         Raises
         ------
         IncompatibleErrors
-            Raised if the method does not know how to add the errors
+            Raised if the method does not know how to propagate the errors
         '''
 
         if not isinstance(operand.error, StandardDeviationError):
@@ -258,6 +258,11 @@ class StandardDeviationError(NDError):
         -------
         result_error : NDError instance
             The resulting error
+
+        Raises
+        ------
+        IncompatibleErrors
+            Raised if the method does not know how to propagate the errors
         '''
 
         if not isinstance(operand.error, StandardDeviationError):
@@ -291,7 +296,13 @@ class StandardDeviationError(NDError):
         -------
         result_error : NDError instance
             The resulting error
+
+        Raises
+        ------
+        IncompatibleErrors
+            Raised if the method does not know how to propagate the errors
         '''
+
         if not isinstance(operand.error, StandardDeviationError):
             raise IncompatibleErrors
 
