@@ -148,6 +148,10 @@ If you build Astropy with::
     python setup.py build --enable-legacy
     python setup.py install
 
+or simply::
+
+    python setup.py install --enable-legacy
+
 then you will be able to import these modules from your scripts as if
 the original packages had been installed. Using::
 
