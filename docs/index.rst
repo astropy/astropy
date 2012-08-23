@@ -25,9 +25,9 @@ User Documentation
    overview
    install
    nddata/index
+   time/index
    table/index
    cosmology/index
-   time/index
    io/fits/index
    io/ascii/index
    io/vo/index
