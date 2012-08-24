@@ -56,7 +56,7 @@ class Ipac(core.BaseReader):
         The rules regarding characters below the pipe (`|`) symbols have
         changed over time, and the user can set which rule to follow using
         this parameter. The most recent definition is that no characters
-        should be present under the pipe symbol (`definition='strict').
+        should be present under the pipe symbol (`definition='between').
         However, some tables contain characters under the pipe symbol which
         belong either to the column before (`definiton='left'`) or after
         (`definition='right'`) the pipe symbol. The default is
@@ -107,10 +107,10 @@ class IpacHeader(core.BaseHeader):
         self.splitter.process_line = None
         self.splitter.process_val = None
         self.splitter.delimiter = '|'
-        if definition in ['strict', 'left', 'right']:
+        if definition in ['between', 'left', 'right']:
             self.ipac_definition = definition
         else:
-            raise ValueError("definition should be one of strict/left/right")
+            raise ValueError("definition should be one of between/left/right")
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
@@ -162,8 +162,7 @@ class IpacHeader(core.BaseHeader):
             start = col.end + 1
             cols.append(col)
 
-            # Correct column start/end based on definition (default assumes
-            # 'strict')
+            # Correct column start/end based on definition
             if self.ipac_definition == 'right':
                 col.start -= 1
             elif self.ipac_definition == 'left':
