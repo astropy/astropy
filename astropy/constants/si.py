@@ -5,6 +5,9 @@ available (with approximate values) are:
 """
 # This docstring is extended by __init__.py
 
+# TODO: Clean up these unit strings so they comply with the string
+# format defined in astropy.units.
+
 import numpy as np
 from .constant import Constant
 

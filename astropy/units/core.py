@@ -1,219 +1,45 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Core units classes and functions
 """
-# requires python 2.6 or later
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-import re, keyword
+from fractions import Fraction
+import re
+import textwrap
+
 import numpy as np
-import fractions
-import functools
-    
-Fraction = fractions.Fraction
 
-_registry = {}
+from . import format as unit_format
+
+# TODO: Support functional units, e.g. log(x), ln(x)
+
+__all__ = [
+    'UnitsException', 'UnitBase', 'NamedUnit',
+    'IrreducibleUnit', 'UnitClass', 'Unit', 'def_unit',
+    'CompositeUnit', 'PrefixUnit', 'get_equivalent_units',
+    'print_equivalent_units']
+
 
 class UnitsException(Exception):
+    """
+    The base class for unit-specific exceptions.
+    """
     pass
 
+
 class UnitBase(object):
-    """Abstract Base class for units
-    
-    Should not be used by users directly
     """
-    # may use standard library ABC module instead
+    Abstract base class for units.
 
-    def __init__(self):
-        raise ValueError, "Cannot directly initialize abstract base class"
-        pass
+    Most of the arithmetic operations on units are defined in this
+    base class.
 
-    def __pow__(self, p):
-        if isinstance(p, tuple) and len(p)==2:
-            p = Fraction(p[0],p[1])
-        else:
-            # allow two possible floating point fractions, all others illegal
-            if not int(2*p) == 2*p:
-                raise ValueError, "floating values for unit powers must be integers or integers +0.5"               
-        return CompositeUnit(1, [self], [p]).simplify()
-        
-
-    def __div__(self, m):
-        if isinstance(m, EquivalenceUnit):
-            raise TypeError, "cannot combine equivalence unit types with any others"
-        if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, -1]).simplify()
-        else :
-            return CompositeUnit(1.0/m, [self], [1]).simplify()
-
-    def __rdiv__(self, m):
-        return CompositeUnit(m, [self], [-1]).simplify()
-        
-    def __truediv__(self, m):
-        if isinstance(m, EquivalenceUnit):
-            raise TypeError, "cannot combine equivalence unit types with any others"
-        if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, -1]).simplify()
-        else :
-            return CompositeUnit(1.0/m, [self], [1]).simplify()
-
-    def __rtruediv__(self, m):
-        return CompositeUnit(m, [self], [-1]).simplify()
-
-    def __mul__(self, m):
-        if isinstance(m, EquivalenceUnit):
-            raise TypeError, "cannot combine equivalence unit types with any others"
-        if hasattr(m, "units"):
-            return m*self
-        elif isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1,1]).simplify()
-        else :
-            return CompositeUnit(m, [self], [1]).simplify()
-
-    def __rmul__(self, m):
-        return CompositeUnit(m, [self], [1]).simplify()
-
-    def __repr__(self):
-        return 'unit("'+str(self)+'")'
-
-    def __eq__(self, other):
-        try:
-            return self.convert_to(other,1)==1.
-        except UnitsException :
-            return False
-
-    def __ne__(self, other):
-        return not (self==other)
-
-    def __lt__(self, other):
-        return self.convert_to(other,1)<1.
-
-    def __gt__(self, other):
-        return self.convert_to(other,1)>1.
-
-    def __le__(self, other):
-        return self.convert_to(other,1)<=1.
-
-    def __ge__(self, other):
-        return self.convert_to(other,1)>=1.
-
-    def __neg__(self):
-        return self*(-1)
-
-    def simplify(self):
-        return self
-
-    def is_dimensionless(self):
-        return False
-
-    def converter_to(self, other):
-        """return the conversion function to convert values from to the specified unit
-        
-        Parameters
-        ----------
-        other: unit object or string that can be converted to a unit object
-        
-        Returns
-        -------
-        A function that normally expects a single argument
-        that is a scalar value or an array of values (or anything that may
-        be converted to an array). Subclasses may add extra arguments 
-        
-        Raise
-        -----
-        UnitsException
-            If units are inconsistent
-        """
-
-        if isinstance(other, str):
-            other = unit(other)
-        try :
-            scale = (self/other).dimensionless_constant()
-            return lambda val: scale * argcondition(val)
-        except UnitsException :
-            raise UnitsException, "Not convertible"
-
-    def convert_to(self, other, value):
-        """return the converted values in the specified unit
-        
-        Parameters
-        ----------
-        other: unit object or string that can be converted to a unit object
-        value: scalar int or float, or sequence that can be converted to array
-            value(s) in the current unit to be converted to the specified unit
-        
-        Returns
-        -------
-        Converted value(s). Input value sequences are returned as numpy arrays
-        
-        Raise
-        -----
-        UnitException
-            If units are inconsistent
-        """
-
-        return self.converter_to(other)(value)
-    
-    def scale_to(self, other):
-        """return scale factor for converting current units value to new units value"""
-        return self.convert_to(other,1)
-
-    comment  = '''
-    def ratio(self, other, **substitutions):
-        """Get the conversion ratio between this Unit and another
-        specified unit.
-
-        Keyword arguments, if specified, give numerical substitutions
-        for the named unit. This is most useful for specifying values
-        for cosmological quantities like 'a' and 'h', but can also
-        be used for any IrreducibleUnit.
-
-        >>> unit()"1 Mpc a").ratio("kpc", a=0.25)
-        250.0
-        >>> unit("1 Mpc").ratio("Msol")
-        UnitsException: not convertible
-        >>> unit("1 Mpc").ratio("Msol", kg=25.0, m=50.0)
-        3.1028701506345152e-08
-        """
-
-        if isinstance(other, str):
-            other = unit(other)
-        try :
-            return (self/other).dimensionless_constant(**substitutions)
-        except UnitsException :
-            raise UnitsException, "Not convertible"
-
-    def in_units(self, *a, **kw):
-        """Alias for ratio"""
-    
-        return self.ratio(*a, **kw)
-        '''
-    
-    def irrep(self):
-        """Return a unit object composed of only irreducible units
-        
-        Parameters
-        ----------
-        None
-        
-        Returns
-        -------
-        New CompositeUnit object containing only irreducible unit objects
-        """
-        return self
-
-    def _register_unit(self, var=False):
-        if not self._st_rep:
-            raise UnitsException, "unit has no string representation"
-        namelist = [self._st_rep] + self._aliases
-        for st in namelist:
-            if st in _registry :
-                raise UnitsException, "Unit with this name already exists"
-            if "**" in st or "^" in st or " " in st :
-                # will cause problems for simple string parser in unit() factory
-                raise UnitsException, "Unit names cannot contain '**' or '^' or spaces"
-            _registry[st] = self
-            if var:
-                globals()[st] = self
+    Should not be used by users directly.
+    """
+    _registry = {}
+    _namespace = {}
 
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
@@ -221,526 +47,856 @@ class UnitBase(object):
         # physical unit corresponds to only one instance
         return self
 
-
-
-class IrreducibleUnit(UnitBase):
-    """Irreducible units all other units of the same kind are defined in terms of
-    
-    Examples are meters, seconds, kilograms, coulombs, etc. There is only 
-    once instance of such a unit per type.
-    """
-    def __init__(self, st):
-        """"""
-        if isinstance(st, str):
-            self._aliases = []
-            self._st_rep = st
-        else:
-            if len(st) == 0:
-                raise ValueError, "alias list must have at least one entry"
-            try:
-                self._st_rep = st[0]
-                self._aliases = st[1:]
-            except IndexError:
-                raise ValueError, "name argument must be a string or a list of strings"
-        self._register_unit()
-
-
-    def __str__(self):
-        return self._st_rep
-
-    def latex(self):
-        """Generate latex representation of unit name
+    def _repr_latex_(self):
+        """
+        Generate latex representation of unit name.  This is used by
+        the IPython notebook to print a unit with a nice layout.
 
         Returns
         -------
         Latex string
         """
-        return r"\mathrm{"+self._st_rep+"}"
-
-    def irrep(self):
-        return CompositeUnit(1, [self], [1])
-
-
-class Unit(UnitBase):
-    def __init__(self, st, represents, var=False):
-        """Create a named unit. 
-        
-        if var is True, create variables in namespace for each alias
-        """
-        if isinstance(st, str):
-            self._aliases = []
-            self._st_rep = st
-        else:
-            if len(st) == 0:
-                raise ValueError, "alias list must have at least one entry"
-            try:
-                self._st_rep = st[0]
-                self._aliases = st[1:]
-            except IndexError:
-                raise ValueError, "name argument must be a string or a list of strings"
-        if isinstance(represents, str):
-            represents = unit(represents)           
-        self._represents = represents
-        self._register_unit(var)
+        return unit_format.Latex().to_string(self)
 
     def __str__(self):
         """Return string representation for unit"""
-        return self._st_rep
+        return unit_format.Generic().to_string(self)
 
-    def latex(self):
-        """Generate latex representation of unit name
-        
-        Prefactors are converted into exponent notation. Named units by default
-        are represented by the string '\mathrm{unit_name}', although this can
-        be overriden be overriden by setting unit_name._latex.
-        
+    def __repr__(self):
+        return 'Unit("' + str(self) + '")'
+
+    def to_string(self, format='generic'):
+        """
+        Output the unit in the given format as a string.
+
+        Parameters
+        ----------
+        format : `astropy.format.Base` instance or str
+            The name of a format or a formatter object.  If not
+            provided, defaults to the generic format.
+        """
+        f = unit_format.get_format(format)
+        return f.to_string(self)
+
+    @staticmethod
+    def _set_namespace(d):
+        """
+        Set the namespace that units will be registered to.  This is
+        called from the standard_units module so that newly created
+        units will be added to that module's namespace.
+        """
+        UnitBase._namespace = d
+
+    def __pow__(self, p):
+        if isinstance(p, tuple) and len(p) == 2:
+            p = Fraction(p[0], p[1])
+        else:
+            # allow two possible floating point fractions, all others illegal
+            if not int(2 * p) == 2 * p:
+                raise ValueError(
+                    "floating values for unit powers must be integers or "
+                    "integers + 0.5")
+        return CompositeUnit(1, [self], [p]).simplify()
+
+    def __div__(self, m):
+        # Strictly speaking, we should be using old-style division here.
+        # However, I think it's less surprising for this to behave the
+        # same way whether __future__ division is being used or not
+        if isinstance(m, UnitBase):
+            return CompositeUnit(1, [self, m], [1, -1]).simplify()
+        else:
+            return CompositeUnit(1.0 / m, [self], [1]).simplify()
+
+    def __rdiv__(self, m):
+        return CompositeUnit(m, [self], [-1]).simplify()
+
+    def __truediv__(self, m):
+        if isinstance(m, UnitBase):
+            return CompositeUnit(1, [self, m], [1, -1]).simplify()
+        else:
+            return CompositeUnit(1.0 / m, [self], [1]).simplify()
+
+    def __rtruediv__(self, m):
+        return CompositeUnit(m, [self], [-1]).simplify()
+
+    def __mul__(self, m):
+        if isinstance(m, UnitBase):
+            return CompositeUnit(1, [self, m], [1, 1]).simplify()
+        else:
+            return CompositeUnit(m, [self], [1]).simplify()
+
+    def __rmul__(self, m):
+        return CompositeUnit(m, [self], [1]).simplify()
+
+    def __eq__(self, other):
+        other = Unit(other)
+        try:
+            return np.allclose(self.to(other, 1), 1.0)
+        except UnitsException:
+            return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        other = Unit(other)
+        return self.to(other, 1) < 1.
+
+    def __gt__(self, other):
+        other = Unit(other)
+        return self.to(other, 1) > 1.
+
+    def __le__(self, other):
+        other = Unit(other)
+        return self.to(other, 1) <= 1.
+
+    def __ge__(self, other):
+        other = Unit(other)
+        return self.to(other, 1) >= 1.
+
+    def __neg__(self):
+        return self * -1.
+
+    def simplify(self):
+        """
+        Compresses a possibly composite unit down to a single
+        instance.
+        """
+        return self
+
+    def is_dimensionless(self):
+        """
+        Returns `True` if this unit translates into a scalar quantity
+        without a unit.
+
+        Examples
+        --------
+        >>> ((2 * u.m) / (3 * u.m)).is_dimensionless()
+        True
+        >>> (2 * u.m).is_dimensionless()
+        False
+        """
+        return False
+
+    def is_equivalent(self, other, equivs=[]):
+        """
+        Returns `True` if this unit is equivalent to `other`.
+
+        Parameters
+        ----------
+        other : unit object or string
+           The unit to convert to.
+
+        equivs : list of equivalence pairs, optional
+           A list of equivalence pairs to try if the units are not
+           directly convertible.  See :ref:`equivalencies`.
+
         Returns
         -------
-        Latex string
+        bool
         """
-        if hasattr(self,'_latex'):
-            return self._latex
-        return r"\mathrm{"+self._st_rep+"}"
+        other = Unit(other)
 
-    def irrep(self):
-        """Return a unit object composed of only irreducible units
-        
+        try:
+            (self / other).dimensionless_constant()
+        except UnitsException:
+            for equiv in equivs:
+                a = equiv[0]
+                b = equiv[1]
+                if (self.is_equivalent(a) and
+                    other.is_equivalent(b)):
+                    return True
+                elif (self.is_equivalent(b) and
+                      other.is_equivalent(a)):
+                    return True
+            return False
+        else:
+            return True
+
+    def _apply_equivalences(self, unit, other, equivs):
+        """
+        Internal function (used from `get_converter`) to apply
+        equivalence pairs.
+        """
+        def make_converter(scale1, func, scale2):
+            def convert(v):
+                return func(_condition_arg(v) * scale1) * scale2
+            return convert
+
+        for equiv in equivs:
+            if len(equiv) == 2:
+                funit, tunit = equiv
+                a, b = lambda x: x
+            if len(equiv) == 3:
+                funit, tunit, a = equiv
+                b = a
+            elif len(equiv) == 4:
+                funit, tunit, a, b = equiv
+            else:
+                raise ValueError("Invalid equivalence entry")
+            if (unit.is_equivalent(funit) and
+                other.is_equivalent(tunit)):
+                scale1 = (unit / funit).dimensionless_constant()
+                scale2 = (tunit / other).dimensionless_constant()
+                return make_converter(scale1, a, scale2)
+            elif (other.is_equivalent(funit) and
+                  unit.is_equivalent(tunit)):
+                scale1 = (unit / tunit).dimensionless_constant()
+                scale2 = (funit / other).dimensionless_constant()
+                return make_converter(scale1, b, scale2)
+
+        raise UnitsException(
+            "'{0}' and '{1}' are not convertible".format(
+                unit, other))
+
+    def get_converter(self, other, equivs=[]):
+        """
+        Return the conversion function to convert values from `self`
+        to the specified unit.
+
+        Parameters
+        ----------
+        other : unit object or string
+           The unit to convert to.
+
+        equivs : list of equivalence pairs, optional
+           A list of equivalence pairs to try if the units are not
+           directly convertible.  See :ref:`equivalencies`.
+
+        Returns
+        -------
+        func : callable
+            A callable that normally expects a single argument that is
+            a scalar value or an array of values (or anything that may
+            be converted to an array).
+
+        Raises
+        ------
+        UnitsException
+            If units are inconsistent
+        """
+        other = Unit(other)
+
+        try:
+            scale = (self / other).dimensionless_constant()
+        except UnitsException:
+            return self._apply_equivalences(
+                self, other, equivs)
+        return lambda val: scale * _condition_arg(val)
+
+    def to(self, other, value = 1.0, equivs=[]):
+        """
+        Return the converted values in the specified unit.
+
+        Parameters
+        ----------
+        other : unit object or string
+            The unit to convert to.
+
+        value : scalar int or float, or sequence that can be converted to array, optional
+            Value(s) in the current unit to be converted to the
+            specified unit.  If not provided, defaults to 1.0
+
+        equivs : list of equivalence pairs, optional
+           A list of equivalence pairs to try if the units are not
+           directly convertible.  See :ref:`equivalencies`.
+
+        Returns
+        -------
+        values : scalar or array
+            Converted value(s). Input value sequences are returned as
+            numpy arrays.
+
+        Raises
+        ------
+        UnitException
+            If units are inconsistent
+        """
+        return self.get_converter(other, equivs=equivs)(value)
+
+    def decompose(self):
+        """
+        Return a unit object composed of only irreducible units.
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
-        New CompositeUnit object containing only irreducible unit objects
+        unit : CompositeUnit object
+            New object containing only irreducible unit objects.
         """
-        return self._represents.irrep()
+        return self
+
+
+class NamedUnit(UnitBase):
+    """
+    The base class of units that have a name.
+
+    Parameters
+    ----------
+    st : str or list of str
+        The name of the unit.  If a list, the first element is the
+        canonical (short) name, and the rest of the elements are
+        aliases.
+
+    var : boolean, optional
+        When `True`, also register the unit in the standard unit
+        namespace.  Default is `False`.
+
+    doc : str, optional
+        A docstring describing the unit.
+
+    format : dict, optional
+        A mapping to format-specific representations of this unit.
+        For example, for the ``Ohm`` unit, it might be nice to have it
+        displayed as ``\\Omega`` by the ``latex`` formatter.  In that
+        case, `format` argument should be set to::
+
+            {'latex': r'\\Omega'}
+
+    Raises
+    ------
+    ValueError
+        If any of the given unit names are already in the registry.
+
+    ValueError
+        If any of the given unit names are not valid Python tokens.
+    """
+    def __init__(self, st, var=False, doc=None, format=None):
+        UnitBase.__init__(self)
+
+        if isinstance(st, (bytes, unicode)):
+            self._names = [st]
+        else:
+            if len(st) == 0:
+                raise ValueError(
+                    "st list must have at least one entry")
+            self._names = st[:]
+
+        if format is None:
+            format = {}
+        self._format = format
+
+        if doc is None:
+            doc = self._generate_doc()
+
+        if len(self.aliases):
+            doc += "\n\n**Aliases:** {0}\n\n".format(
+                ', '.join(self.aliases))
+
+        doc = textwrap.dedent(doc)
+        doc = textwrap.fill(doc)
+
+        self.__doc__ = doc
+
+        self._register_unit(var)
+
+    def _generate_doc(self):
+        """
+        Generate a docstring for the unit if the user didn't supply
+        one.  This is only used from the constructor and may be
+        overridden in subclasses.
+        """
+        names = self.names
+        if len(self.names) > 1:
+            return "{0} ({1})".format(*names[:2])
+        else:
+            return names[0]
+
+    def get_format_name(self, format):
+        """
+        Get a name for this unit that is specific to a particular
+        format.
+
+        Uses the dictionary passed into the `format` kwarg in the
+        constructor.
+
+        Parameters
+        ----------
+        format : str
+            The name of the format
+
+        Returns
+        -------
+        name : str
+            The name of the unit for the given format.
+        """
+        return self._format.get(format, self.name)
+
+    @property
+    def names(self):
+        """
+        Returns all of the names associated with this unit.
+        """
+        return self._names
+
+    @property
+    def name(self):
+        """
+        Returns the canonical (short) name associated with this unit.
+        """
+        return self._names[0]
+
+    @property
+    def aliases(self):
+        """
+        Returns the alias (long) names for this unit.
+        """
+        return self._names[1:]
+
+    def _register_unit(self, var):
+        """
+        Registers the unit in the registry, and optionally in another
+        namespace.  It is registered under all of the names and
+        aliases given to the constructor.
+
+        The namespace used is set with `UnitBase._set_namespace`.
+
+        Parameters
+        ----------
+        var : bool
+            When `True`, register the unit in the external namespace
+            as well as the central registry.
+        """
+        if not self._names:
+            raise UnitsException("unit has no string representation")
+
+        for st in self._names:
+            if st in self._registry:
+                raise ValueError(
+                    "Unit with name {0!r} already exists".format(st))
+
+            if not re.match("^[A-Za-z_]+$", st):
+                # will cause problems for simple string parser in
+                # unit() factory
+                raise ValueError(
+                    "Invalid unit name {0!r}".format(st))
+
+            self._registry[st] = self
+
+            if var:
+                if st in self._namespace:
+                    raise ValueError(
+                        "Object with name {0!r} already exists "
+                        "in namespace".format(st))
+                self._namespace[st] = self
+
+
+class IrreducibleUnit(NamedUnit):
+    """
+    Irreducible units are the units that all other units are defined
+    in terms of.
+
+    Examples are meters, seconds, kilograms, amperes, etc.  There is
+    only once instance of such a unit per type.
+    """
+    def decompose(self):
+        return CompositeUnit(1, [self], [1])
+    decompose.__doc__ = UnitBase.decompose.__doc__
+
+
+class UnitClass(NamedUnit):
+    """
+    A named unit that is equivalent to another unit.
+
+    Parameters
+    ----------
+    st : str or list of str
+        The name of the unit.  If a list, the first element is the
+        canonical (short) name, and the rest of the elements are
+        aliases.
+
+    represents : UnitBase instance
+        The unit that this named unit represents.
+
+    var : boolean, optional
+        When `True`, also register the unit in the standard unit
+        namespace.  Default is `False`.
+
+    doc : str, optional
+        A docstring describing the unit.
+
+    format : dict, optional
+        A mapping to format-specific representations of this unit.
+        For example, for the ``Ohm`` unit, it might be nice to have it
+        displayed as ``\\Omega`` by the ``latex`` formatter.  In that
+        case, `format` argument should be set to::
+
+            {'latex': r'\\Omega'}
+
+    Raises
+    ------
+    ValueError
+        If any of the given unit names are already in the registry.
+
+    ValueError
+        If any of the given unit names are not valid Python tokens.
+    """
+
+    def __init__(self, st, represents, var=False, doc=None,
+                 format=None):
+        represents = Unit(represents)
+        self._represents = represents
+
+        NamedUnit.__init__(self, st, var=var, doc=doc, format=format)
+
+    def _generate_doc(self):
+        return "{0} represents {1}.".format(
+            NamedUnit._generate_doc(self), str(self._represents))
+
+    def decompose(self):
+        return self._represents.decompose()
+    decompose.__doc__ = UnitBase.decompose.__doc__
+
+
+class PrefixUnit(UnitClass):
+    """
+    A unit that is simply a SI-prefixed version of another unit.
+
+    For example, `mm` is a `PrefixUnit` of ``.001 * m``.
+
+    The constructor is the same as for `UnitClass`.
+    """
+    pass
 
 
 class CompositeUnit(UnitBase):
+    """
+    Create a composite unit using expressions of previously defined
+    units.
+
+    Direct use of this class is not recommended. Instead use the
+    factory function `Unit(...)` and arithmetic operators to compose
+    units.
+
+    Parameters
+    ----------
+    scale : number
+        A scaling factor for the unit.
+
+    bases : sequence of `UnitBase`
+        A sequence of units this unit is composed of.
+
+    powers : sequence of numbers
+        A sequence of powers (in parallel with `bases`) for each
+        of the base units.
+    """
     def __init__(self, scale, bases, powers):
-        """Create a composite unit using expressions of previously defined units.
-
-        Direct use of this function is not recommended. Instead use the
-        factory function unit(...).
-        """
-        
-        if scale==1. :
+        if scale == 1.:
             scale = 1
-
         self._scale = scale
+        for base in bases:
+            if not isinstance(base, UnitBase):
+                raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
         self._powers = powers
 
-    def latex(self):
-        """Generate latex representation of unit name
-        
-        Prefactors are converted into exponent notation. Named units by default
-        are represented by the string '\mathrm{unit_name}', although this can
-        be overriden by setting unit_name._latex.
-        
-        Returns
-        -------
-        Latex string
+    @property
+    def scale(self):
         """
-        
-        if self._scale!=1 :
-            x = ("%.2e"%self._scale).split('e')
-            s = x[0]
-            ex = x[1].lstrip('0+')
-            if len(ex)>0 and ex[0]=='-':
-                ex = '-'+(ex[1:]).lstrip('0')
-            if ex!='' : s+=r"\times 10^{"+ex+"}"
-        else :
-            s = ""
+        Return the scale of the composite unit.
+        """
+        return self._scale
 
-        for b,p in zip(self._bases, self._powers):
-            if s!="" :
-                s+=r"\,"+b.latex()
-            else :
-                s = b.latex()
+    @property
+    def bases(self):
+        """
+        Return the bases of the composite unit.
+        """
+        return self._bases
 
-            if p!=1 :
-                s+="^{"
-                s+=str(p)
-                s+="}"
-        return s
+    @property
+    def powers(self):
+        """
+        Return the powers of the composite unit.
+        """
+        return self._powers
 
-
-    def __str__(self):
-        """Return string representation for unit"""
-        s=None
-        if len(self._bases)==0 :
-            return "%.2e"%self._scale
-
-        if self._scale!=1 :
-            s = "%.2e"%self._scale
-
-        for b,p in zip(self._bases, self._powers):
-            if s is not None :
-                s+=" "+str(b)
-            else :
-                s = str(b)
-
-            if p!=1 :
-                s+="**"
-                if isinstance(p,Fraction):
-                    s+=str(p)
-                else :
-                    s+=str(p)
-        return s
-
-    def _expand(self, expand_to_irrep=False):
-        """Internal routine to expand any pointers to composite units
-        into direct pointers to the base units. If expand_to_irrep is
-        True, everything is expressed in irreducible units.
-        A _gather will normally be necessary to sanitize the unit
-        after an _expand."""
-
+    def _expand(self, expand_to_decompose=False):
+        """
+        Internal routine to expand any pointers to composite units
+        into direct pointers to the base units. If `expand_to_decompose`
+        is `True`, everything is expressed in irreducible units.  A
+        `_gather` will normally be necessary to sanitize the unit
+        after an `_expand`.
+        """
         trash = []
 
+        for i, (b, p) in enumerate(zip(self._bases, self._powers)):
+            if isinstance(b, UnitClass) and expand_to_decompose:
+                b = b._represents.decompose()
 
-
-        for i,(b,p) in enumerate(zip(self._bases, self._powers)):
-            if isinstance(b,Unit) and expand_to_irrep :
-                b = b._represents.irrep()
-
-            if isinstance(b,CompositeUnit):
-                if expand_to_irrep :
-                    b = b.irrep()
+            if isinstance(b, CompositeUnit):
+                if expand_to_decompose:
+                    b = b.decompose()
 
                 trash.append(i)
-                self._scale*=b._scale**p
+                self._scale *= b._scale ** p
                 for b_sub, p_sub in zip(b._bases, b._powers):
                     self._bases.append(b_sub)
-                    self._powers.append(p_sub*p)
+                    self._powers.append(p_sub * p)
 
         trash.sort()
-        for offset,i in enumerate(trash):
-            del self._bases[i-offset]
-            del self._powers[i-offset]
-
+        for offset, i in enumerate(trash):
+            del self._bases[i - offset]
+            del self._powers[i - offset]
 
     def _gather(self):
-        """Internal routine to gather together powers of the same base
-        units, then order the base units by their power (descending)"""
-
-        trash = []
-        bases = list(set(self._bases))
-        powers = [sum([p for bi,p in zip(self._bases, self._powers)
-                       if bi is b]) \
-                  for b in bases]
-
-        bp = sorted(filter(lambda x : x[0]!=0,
-                           zip(powers, bases)),
-                    reverse=True,
-                    key=lambda x: x[0])
-                    # Py2 only: cmp=lambda x, y: cmp(x[0], y[0]))
-
-        if len(bp)!=0 :
-            self._powers, self._bases = map(list,zip(*bp))
-        else :
-            self._powers, self._bases = [],[]
-
-
-
-
-    def copy(self):
-        """Create a shallow copy 
-        
-        The returned copy references exactly the same underlying base units, 
-        but where the list of those units can be manipulated separately.
         """
-        return CompositeUnit(self._scale, self._bases[:], self._powers[:])
+        Internal routine to gather together powers of the same base
+        units, then order the base units by their power (descending).
+        """
+        bases = list(set(self._bases))
+        powers = [
+            sum([p for bi, p in zip(self._bases, self._powers) if bi is b])
+            for b in bases]
+
+        bp = sorted(
+            filter(lambda x: x[0] != 0, zip(powers, bases)),
+            reverse=True,
+            key=lambda x: x[0])
+
+        if len(bp) != 0:
+            self._powers, self._bases = map(list, zip(*bp))
+        else:
+            self._powers, self._bases = [], []
 
     def __copy__(self):
-        """For compatibility with python copy module"""
-        return self.copy()
+        """
+        For compatibility with python copy module.
+        """
+        return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
     def simplify(self):
         self._expand()
         self._gather()
         return self
+    simplify.__doc__ = UnitBase.simplify.__doc__
 
-    def irrep(self):
-        """Return a unit object composed of only irreducible units"""
-
-        x = self.copy()
+    def decompose(self):
+        x = CompositeUnit(self.scale, self.bases[:], self.powers[:])
         x._expand(True)
         x._gather()
         return x
+    decompose.__doc__ = UnitBase.decompose.__doc__
 
     def is_dimensionless(self):
-        """True if this unit actually translates into a scalar quantity."""
-        x = self.irrep()
-        if len(x._powers)==0 :
-            return True
+        x = self.decompose()
+        return (len(x.powers) == 0)
+    is_dimensionless.__doc__ = UnitBase.is_dimensionless.__doc__
 
     def dimensionless_constant(self):
-        """If this unit is dimensionless, return its scalar quantity.
+        """
+        If this unit is dimensionless, return its scalar quantity.
 
         Direct use of this method is not recommended. It is generally
-        better to use the convert_to or converter_to methods instead.
+        better to use the `to` or `get_converter` methods
+        instead.
         """
-        
-        x = self.irrep()
-        c = x._scale
-        if x._bases:
-            raise UnitsException, "Not dimensionless"
+        x = self.decompose()
+        c = x.scale
+        if len(x.bases):
+            raise UnitsException(
+                "'{0}' is not dimensionless".format(self.to_string()))
         return c
 
-    def _power_of(self, base):
-        if base in self._bases :
-            return self._powers[self._bases.index(base)]
-        else :
-            return 0
-            
-    bozo = '''
-    def dimensional_project(self, basis_units):
-        """Work out how to express the dimensions of this unit relative to the
-        specified list of basis units.
 
-        This is used by the framework when making inferences about sensible units to
-        use in various situations.
-        
-        For example, you can represent a length as an energy divided by a force:
-
-           >>> ynit("23 kpc").dimensional_project(["J", "N"])
-           array([1, -1], dtype=object)
-
-        However it's not possible to represent a length by energy alone:
-
-           >>> unit("23 kpc").dimensional_project(["J"])
-           UnitsException: Basis units do not span dimensions of specified unit
-
-        This function also doesn't know what to do if the result is ambiguous:
-
-           >>> unit("23 kpc").dimensional_project(["J", "N", "kpc"])
-           UnitsException: Basis units are not linearly independent
-        
-        """
-
-        vec_irrep = [Unit(x).irrep() for x in basis_units]
-        me_irrep = self.irrep()
-        bases = set(me_irrep._bases)
-        for vec in vec_irrep :
-            bases.update(vec._bases)
-
-        bases = list(bases)
-
-        matrix = np.zeros((len(bases),len(vec_irrep)),dtype=Fraction)
-
-        for base_i, base in enumerate(bases):
-            for vec_i, vec in enumerate(vec_irrep):
-                matrix[base_i,vec_i] = vec._power_of(base)
-
-
-        # The matrix calculated above describes the transformation M
-        # such that v = M.d where d is the sought-after powers of the
-        # specified base vectors, and v is the powers in terms of the
-        # base units in the list bases.
-        #
-        # To invert, since M is possibly rectangular, we use the
-        # solution to the least-squares problem [minimize (v-M.d)^2]
-        # which is d = (M^T M)^(-1) M^T v.
-        #
-        # If the solution to that does not solve v = M.d, there is no
-        # admissable solution to v=M.d, i.e. the supplied base vectors do not span
-        # the requires space.
-        #
-        # If (M^T M) is singular, the vectors are not linearly independent, so any
-        # solution would not be unique.
-
-
-
-        M_T_M = np.dot(matrix.transpose(),matrix)
-
-        try :
-            M_T_M_inv = util.rational_matrix_inv(M_T_M)
-        except np.linalg.linalg.LinAlgError :
-            raise UnitsException, "Basis units are not linearly independent"
-
-        my_powers = [me_irrep._power_of(base) for base in bases]
-
-
-        candidate= np.dot(M_T_M_inv, np.dot(matrix.transpose(), my_powers))
-
-        # Because our method involves a loss of information (multiplying
-        # by M^T), we could get a spurious solution. Check this is not the case...
-
-
-        if any(np.dot(matrix, candidate)!=my_powers):
-            # Spurious solution, meaning the base vectors did not span the
-            # units required in the first place.
-            raise UnitsException, "Basis units do not span dimensions of specified unit"
-
-        return candidate
-        '''
-
-class EquivalenceUnit(UnitBase):
-    """Class to handle equivalence relations between dissimilar units
-
-    Must be subclassed
-
-    This works by containing (not inheriting) an instance of a specific unit,
-    and having a list of equivalent units that are acceptable for conversions.
-    The first of these is the one used as the basis for all conversions.
-    Should there be more than two equivalent types, the first is the 
-    intermediate unit used to convert from the others.
-
-    This class is only used to convert between dissimilar units with implicit
-    relations. It cannot be used as part of other composite units. Towards
-    that end, the functionality of that class for arithmetic operations with
-    other unit classes is disabled. (Operations with scalars is permitted.)
+def Unit(s, format=None):
     """
+    A factory function to create units.  Given a number of different
+    ways to construct, always returns a `UnitBase` instance.
 
-    def __init__(self, st, represents):
-        raise NotImplementedError, "object initialization must be handled by subclass"
-    def __str__(self):
-        return self._st_rep
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, str(self.eunit))
-    def _equivalent(self, nunit):
-        """which of the internal representations is given unit is compatible with, if any
+    This factory may be called in a number of forms:
 
-        returns index of the equivalency, negative if none
-        """
-        for i, eunit in enumerate(self.elist):
-            try:
-                eunit.converter_to(nunit)
-                return i
-            except UnitsException:
-                pass
-        return -1
+    - From a string::
 
-    def convert_to(self, nunit, value, *args, **kwds):
-        return self.converter_to(nunit, value, *args, **kwds)(value, *args, **kwds)
+        Unit(s, format=None)
 
-    def converter_to(self, nunit, *args, **kwds):
-        """will need to override if conversion requires associated values"""
-        to_index = self._equivalent(self.eunit)
-        if isinstance(nunit, self.__class__):
-            nunit = nunit.eunit
-        from_index = self._equivalent(nunit)
-        if from_index < 0:
-            raise UnitsException, "not permitted to convert to specified type"
-        return lambda value, *args, **kwds: \
-            self._from_standard[from_index](nunit, self._to_standard[to_index]
-                          (value, *args, **kwds), *args, **kwds)
+      Construct from a string representing a (possibly compount) unit.
+      The optional `format` keyword argument specifies the format the
+      string is in, by default ``"generic"``.  For a description of
+      the available formats, see `astropy.units.format`.
 
-    def __pow__(self, p):
-        raise NotImplementedError, "powers not permitted for equivalence units"
+    - From a number::
 
-    def __div__(self, m):
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only divide by scalars"
-        return self__class__(self.eunit/float)
+        Unit(number)
 
-    def __rdiv__(self, m):
-        raise NotImplementedError, "inverse not permitted for equivalence units"
+      Creates a dimensionless unit.
 
-    def __truediv__(self, m):
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only divide by scalars"
-        return self.__class__(self.eunit/float)
+    - From a `UnitBase` instance::
 
-    def __rtruediv__(self, m):
-        raise NotImplementedError, "inverse not permitted for equivalence units"
+        Unit(unit)
 
-    def __mul__(self, m):
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
-
-    def __rmul__(self, m):
-        try:
-            factor = float(m)
-        except TypeError:
-            raise TypeError, "can only multiply by scalars"
-        return self.__class__(factor*self.eunit)
-
-
-def unit(s):
-    """
-    Class factory function for units. 
-    
-    Given a string s, creates a Unit object.
-    
-    Parameters
-    ----------
-    s : string
-      The string format is:
-          [<scale>] [<unit_name>][**<rational_power>] [[<unit_name>] ... ]
+      Returns the given unit unchanged.
 
     Returns
     -------
-    Unit object
-
-    Examples
-    --------
-    >>> unit("1.e30 kg")
-    >>> unit("kpc**2")
-    >>> unit("26.2 m s**-1")
+    `UnitBase` object
     """
-
     if isinstance(s, UnitBase):
         return s
 
-    x = s.split()
-    try:
-        scale = float(x[0])
-        del x[0]
-    except (ValueError, IndexError):
-        scale = 1.0
+    elif isinstance(s, (bytes, str)):
+        if format is None:
+            format = 'generic'
 
-    units = []
-    powers = []
+        f = unit_format.get_format(format)
+        return f.parse(s)
 
-    for com in x :
-        if "**" in com or "^" in com :
-            s = com.split("**" if "**" in com else "^")
-            try :
-                u = _registry[s[0]]
-            except KeyError :
-                raise ValueError, "Unknown unit "+s[0]
-            p = Fraction(s[1])
-            if p.denominator is 1 :
-                p = p.numerator
-        else :
-            u = _registry[com]
-            p = 1
+    elif isinstance(s, (int, float, np.floating, np.integer)):
+        return CompositeUnit(s, [], [])
 
-        units.append(u)
-        powers.append(p)
-        if len(units) > 1:
-            for u in units:
-                if isinstance(u, EquivalenceUnit):
-                    raise TypeError, "cannot combine equivalence units with any others"
-    if len(units) == 1 and isinstance(units[0],EquivalenceUnit):
-        return units[0]
+
+si_prefixes = [
+    (['Y'], ['yotta'], 1e24),
+    (['Z'], ['zetta'], 1e21),
+    (['E'], ['exa'], 1e18),
+    (['P'], ['peta'], 1e15),
+    (['T'], ['tera'], 1e12),
+    (['G'], ['giga'], 1e9),
+    (['M'], ['mega'], 1e6),
+    (['k'], ['kilo'], 1e3),
+    (['h'], ['hecto'], 1e2),
+    (['da'], ['deka', 'deca'], 1e1),
+    (['d'], ['deci'], 1e-1),
+    (['c'], ['centi'], 1e-2),
+    (['m'], ['milli'], 1e-3),
+    (['u'], ['micro'], 1e-6),
+    (['n'], ['nano'], 1e-9),
+    (['p'], ['pico'], 1e-12),
+    (['f'], ['femto'], 1e-15),
+    (['a'], ['atto'], 1e-18),
+    (['z'], ['zepto'], 1e-21),
+    (['y'], ['yocto'], 1e-24)
+    ]
+
+
+def _add_prefixes(u, excludes=[], var=False):
+    """
+    Set up all of the standard metric prefixes for a unit.  This
+    function should not be used directly, but instead use the
+    `prefixes` kwarg on `def_unit`.
+
+    Parameters
+    ----------
+    excludes : list of str, optional
+        Any prefixes to exclude from creation to avoid namespace
+        collisions.
+
+    var : bool, optional
+        When `True`, also register the unit in the standard unit
+        namespace.  Default is `False`.
+    """
+    for short, long, factor in si_prefixes:
+        exclude = False
+        for prefix in short:
+            if prefix in excludes:
+                exclude = True
+        if exclude:
+            continue
+
+        names = []
+        format = {}
+        for prefix in short:
+            names.append(prefix + u.name)
+
+            # This is a hack to use Greek mu as a prefix
+            # for some formatters.
+            if prefix == 'u':
+                format['latex'] = r'\mu' + u.get_format_name('latex')
+                format['unicode'] = 'μ' + u.get_format_name('unicode')
+
+            for key, val in u._format.items():
+                format.setdefault(key, prefix + val)
+
+        for prefix in long:
+            for alias in u.aliases:
+                names.append(prefix + alias)
+
+        PrefixUnit(names, factor * u, var=var, format=format)
+
+
+def def_unit(s, represents=None, var=None, doc=None,
+             format={}, prefixes=False, exclude_prefixes=[]):
+    """
+    Factory function for defining new units.
+
+    Parameters
+    ----------
+    names : str or list of str
+        The name of the unit.  If a list, the first element is the
+        canonical (short) name, and the rest of the elements are
+        aliases.
+
+    represents : UnitBase instance, optional
+        The unit that this named unit represents.  If not provided,
+        a new `IrreducibleUnit` is created.
+
+    var : boolean, optional
+        When `True`, also register the unit in the standard unit
+        namespace.  Default is `False`.
+
+    doc : str, optional
+        A docstring describing the unit.
+
+    format : dict, optional
+        A mapping to format-specific representations of this unit.
+        For example, for the ``Ohm`` unit, it might be nice to
+        have it displayed as ``\\Omega`` by the ``latex``
+        formatter.  In that case, `format` argument should be set
+        to::
+
+            {'latex': r'\\Omega'}
+
+    prefixes : bool, optional
+        When `True`, generate all of the SI prefixed versions of the
+        unit as well.  For example, for a given unit `m`, will generate
+        `mm`, `cm`, `km`, etc.  Default is `False`.  This function
+        always returns the base unit object, even if multiple scaled
+        versions of the unit were created.
+
+    exclude_prefixes : list of str, optional
+        If any of the SI prefixes need to be excluded, they may be
+        listed here.  For example, `Pa` can be interpreted either as
+        "petaannum" or "Pascal".  Therefore, when defining the
+        prefixes for `a`, `exclude_prefixes` should be set to
+        ``["P"]``.
+
+    Returns
+    -------
+    `UnitBase` object
+    """
+    if var is None:
+        var = False
+    if represents is not None:
+        result = UnitClass(s, represents, var=var, doc=doc,
+                           format=format)
     else:
-        return CompositeUnit(scale, units, powers)
+        result = IrreducibleUnit(s, var=var, doc=doc, format=format)
 
-def argcondition(value):
-    """validate value is acceptable for conversion purposes
-    
-    Will convert into an array if not a scalar, and can be converted 
+    if prefixes:
+        _add_prefixes(result, excludes=exclude_prefixes, var=var)
+    return result
+
+
+def _condition_arg(value):
+    """
+    Validate value is acceptable for conversion purposes.
+
+    Will convert into an array if not a scalar, and can be converted
     into an array
-    
+
     Parameters
     ----------
     value: int or float value, or sequence of such values
         that can be converted into an array if not scalar
-        
+
     Returns
     -------
     Scalar value or numpy array
-    
+
     Raises
     ------
     ValueError
@@ -753,329 +909,90 @@ def argcondition(value):
             avalue = np.array(value)
             dt = str(avalue.dtype)
             if not (dt.startswith('int') or dt.startswith('float')):
-                raise ValueError, "Must be convertable to int or float array"
+                raise ValueError("Must be convertable to int or float array")
             return avalue
         except ValueError:
-            raise ValueError, \
-            "Value not scalar compatible or convertable into a float or integer array"
+            raise ValueError(
+                "Value not scalar compatible or convertable into a float or "
+                "integer array")
 
-def takes_arg_in_units(*args, **orig_kwargs):
+
+def get_equivalent_units(u, equivs=[]):
     """
-    
-    Returns a decorator to create a function which auto-converts input
-    to given units.
+    Return a list of all the units that are the same type as the
+    specified unit.
 
-    **Usage:**
-    
-    .. code-block:: python
+    Parameters
+    ----------
+    u : Unit instance or string
+        The `Unit` to find similar units to.
 
-        @takes_arg_in_units((2, "Msol"), (1, "kpc"), ("blob", "erg"))
-        def my_function(arg0, arg1, arg2, blob=22):
-           print "Arg 2 is",arg2,"Msol"
-           print "Arg 1 is",arg1,"kpc"
-           print "blob is",blob,"ergs"
+    equivs : list of equivalence pairs, optional
+        A list of equivalence pairs to also list.  See
+        :ref:`equivalencies`.
 
-
-
-    >>> My_function(22, "1.e30 kg", 23, blob="12 J")
-    Input 3 is 0.5 Msol
-    Input 2 is 23 kpc
-
+    Returns
+    -------
+    units : list of `UnitBase`
     """
+    u = Unit(u)
 
-    context_arg = orig_kwargs.get('context_arg',None)
-    
-    kwargs = filter(lambda x: hasattr(x[0],'__len__'), args)
-    args = filter(lambda x: not hasattr(x[0], '__len__'), args)
-    
-    def decorator_fn(x):
-        @functools.wraps
-        def wrapper_fn(*fn_args, **fn_kwargs):
-            context = {}
-            if context_arg is not None :
-                context = fn_args[context_arg].conversion_context()
-                
-            fn_args = list(fn_args)
+    units = [u]
+    for equiv in equivs:
+        funit, tunit = equiv[:2]
+        if u.is_equivalent(funit):
+            units.append(tunit)
+        elif u.is_equivalent(tunit):
+            units.append(funit)
 
-            for arg_num, arg_units in args :
+    equivs = set()
+    for ukey in UnitBase._registry:
+        tunit = UnitBase._registry[ukey]
+        for u in units:
+            try:
+                tunit.get_converter(u)
+            except UnitsException:
+                pass
+            else:
+                if (tunit.name == ukey and
+                    not isinstance(tunit, PrefixUnit)):
+                    equivs.add(tunit)
 
-                if isinstance(fn_args[arg_num],str):
-                    fn_args[arg_num] = unit(fn_args[arg_num])
+    return equivs
 
-                if hasattr(fn_args[arg_num], "in_units"):
-                    fn_args[arg_num] = fn_args[arg_num].in_units(arg_units,**context)
 
-            for arg_name, arg_units in kwargs :
-                if isinstance(fn_kwargs[arg_name],str):
-                    fn_kwargs[arg_name] = unit(fn_kwargs[arg_name])
+def print_equivalent_units(u, equivs=[]):
+    """
+    Print the units that are the same type as the specified unit.
 
-                if hasattr(fn_kwargs[arg_name], "in_units"):
-                    fn_kwargs[arg_name] = fn_kwargs[arg_name].in_units(arg_units, **context)
+    Parameters
+    ----------
+    u : Unit instance or string
+        The `Unit` to find similar units to.
 
-            return x(*fn_args, **fn_kwargs)
+    equivs : list of equivalence pairs, optional
+        A list of equivalence pairs to also list.  See
+        :ref:`equivalencies`.
+    """
+    equivs = get_equivalent_units(u, equivs=equivs)
 
-        return wrapper_fn
-
-    return decorator_fn
-
-for irr_unit_name in [['m','meter'],['s','second'],['kg','kilogram'],['K','Kelvin'],'a','h','coulomb']:
-    if isinstance(irr_unit_name, str):
-        irrunit = IrreducibleUnit(irr_unit_name)
-        globals()[irr_unit_name] = irrunit
-        _registry[irrname] = irrunit
-    else:
-        irrunit = IrreducibleUnit(irr_unit_name[0])
-        for irrname in irr_unit_name:
-            globals()[irrname] = irrunit
-            _registry[irrname] = irrunit
-
-def list_like(u):
-    """List all the units that are the same type as the specified unit.
-    
-    Any aliases are noted as such.
-    Equivalance units are excluded currently"""
-    likedict = {}
-    irraliases = []
-    for ukey in _registry:
-        try:
-            tunit = _registry[ukey]
-            tunit.converter_to(u)
-            if tunit._st_rep == ukey and not isinstance(tunit, EquivalenceUnit):
-                likedict[ukey] = tunit
-            if isinstance(tunit, IrreducibleUnit) and tunit._st_rep != ukey:
-                irraliases.append(ukey)
-        except UnitsException:
-            pass
-    if len(likedict) == 0:
+    if len(equivs) == 0:
         print("No similar units found")
     else:
-        print("Primary name | Unit definition | Aliases" )
-        for ukey in likedict:
-            uv = likedict[ukey]
-            if isinstance(uv, IrreducibleUnit):
-                udef = "irreducible"
-                ualiases =irraliases
-            else:
-                udef = uv._represents
-                ualiases = uv._aliases
-            print("%-15s %-15s %s" % (uv._st_rep,udef,ualiases)) 
-                
-               
+        lines = []
+        for u in equivs:
+            irred = u.decompose().to_string()
+            if irred == u.name:
+                irred = "irreducible"
+            lines.append((u.name, irred, ', '.join(u.aliases)))
 
-# Times,var=True)
-Unit('minutes', 60 * s,var=True)
-Unit(['ms','millisecond'], 0.001 * s,var=True)
-Unit(['us','microsecond'], 0.001 * ms,var=True)
-Unit(['ps','picosecond'], 0.001 * us,var=True)
-Unit(['fs','femptosecond'], 0.001 * ps,var=True)
+        lines.sort()
+        lines.insert(0, ('Primary name', 'Unit definition', 'Aliases'))
+        widths = [0, 0, 0]
+        for line in lines:
+            for i, col in enumerate(line):
+                widths[i] = max(widths[i], len(col))
 
-Unit(['hr','hour'], 3600 * s,var=True)
-Unit(['day'],24*hr,var=True)
-Unit(['sday','sideral_day'],86164.09053*s,var=True)
-Unit(['wk','week'], 7*day,var=True)
-Unit(['fortnight'], 2*wk,var=True)
-Unit(['yr','year'], 3.1556926e7 * s,var=True)
-Unit(['Kyr','Kyear','kiloyear'], 1000 * yr,var=True)
-Unit(['Myr','Myear','megayear'], 1000 * Kyr,var=True)
-Unit(['Gyr','Gyear','gigayear'], 1000 * Myr,var=True)
-
-# Frequency
-
-Unit(['Hz','Hertz','hertz'], 1 / s,var=True)
-Unit(['KHz','KHertz','kilohertz'], 1000 * Hz,var=True)
-Unit(['MHz','MHertz','megahertz'], 1000 * KHz,var=True)
-Unit(['GHz','GHertz','gigahertz'], 1000 * MHz,var=True)
-
-# Distances
-
-Unit(['mm','millimeter'], 0.001 * m,var=True)
-Unit(['cm','centimeter'], 0.01 * m,var=True)
-Unit(['km','kilometer'], 1000 * m,var=True)
-Unit(['au','astronomical_unit'], 1.49598e11 * m,var=True)
-Unit(['pc','parsec'], 3.08568025e16 * m,var=True)
-Unit(['Kpc','Kparsec','kiloparsec'], 1000 * pc,var=True)
-Unit(['Mpc','Mparsec','megaparsec'], 1000 * Kpc,var=True)
-Unit(['Gpc','Gparsec','gigaparsec'], 1000 * Mpc,var=True)
-Unit(['um','micron'], 0.001 * mm,var=True)
-Unit(['nm','nanometer'], 0.001 * um,var=True)
-Unit(['A','Angstrom','angstrom'], 0.1 * nm,var=True)
-Unit(['pm','picometer'], 0.001 * nm,var=True)
-Unit(['inch'], 2.54 * cm,var=True)
-Unit(['ft','foot'], 12*inch,var=True)
-Unit(['yd','yard'], 3*ft,var=True)
-Unit(['mi','mile'], 5280*ft,var=True)
-
-# Masses
-Unit('Msol', 1.98892e30 * kg,var=True)
-_registry['Msol']._latex = r'M_{\odot}'
-Unit(['g','gram'], 1.0e-3 * kg,var=True)
-Unit('m_p', 1.67262158e-27 * kg,var=True)
-_registry['m_p']._latex = 'm_p'
-Unit('m_e', 9.10938188e-31 * kg,var=True)
-_registry['m_e']._latex = 'm_e'
-Unit(['oz','ounce'],28.349523125*g,var=True) # well, force actually, but who uses it that way?
-Unit(['lb','pound'],16*oz,var=True)
-Unit(['ton'],2000*lb,var=True)
-
-# Charge
-Unit(['e'],coulomb/6.24150965e18,var=True)
-# Current
-Unit(['amp','ampere'],coulomb/s,var=True)
-Unit(['ma','milliamp','milliampere'],0.001*amp,var=True)
-# Forces
-Unit(['N','Newton','newton'], kg * m * s**-2,var=True)
-# Areas
-Unit(['barn'],10**-28*m**2,var=True)
-Unit(['acre'],43560*ft**2,var=True)
-
-# Volumes
-Unit(['l','liter'],1000*cm**3,var=True)
-Unit(['ml','milliliter','cc'],cm**3,var=True)
-Unit(['gallon'],liter/0.264172052,var=True)
-Unit(['quart'],gallon/4,var=True)
-Unit(['pint'],quart/2,var=True)
-Unit(['cup'],pint/2,var=True)
-Unit(['foz','fluid_oz','fluid_ounce'],cup/8,var=True)
-Unit(['tbsp','tablespoon'],foz/2,var=True)
-Unit(['tsp','teaspoon'],tbsp/3,var=True)
-# Energies
-Unit(['J','Joule','joule'], N * m,var=True)
-Unit('erg', 1.0e-7 * J,var=True)
-Unit(['eV','electron_volt'], 1.60217646e-19 * J,var=True)
-Unit(['KeV','Kelectron_volt','kilo_electron_volt'], 1000 * eV,var=True)
-Unit(['MeV','Melectron_volt','mega_electron_volt'], 1000 * KeV,var=True)
-Unit(['BTU','btu'],1.05505585e10*erg,var=True)
-Unit(['cal','calorie'],41840000*erg,var=True)
-Unit(['kcal','Cal','Calorie','kilocal','kilocalorie'],1000*cal,var=True)
-# Power
-Unit(['W','Watt','watt'],J/s,var=True)
-Unit(['hp','horsepower'],W/0.00134102209,var=True)
-# Pressures
-Unit('Pa', J * m**-3,var=True)
-Unit('dyn', erg * cm**-3,var=True)
-
-# Spectral density
-
-Unit(['flam','flambda'],erg/angstrom/cm**2/s,var=True)
-Unit(['fnu'],erg/Hz/cm**2/s,var=True)
-Unit(['Jy','Jansky','jansky'],10**-23*fnu,var=True)
-Unit(['mJy','mJansky','millijansky'],0.001*Jy,var=True)
-Unit(['suJy','uJansky','microjansky'],0.001*mJy,var=True)
-
-# todo: these eventually must come from the Constants module    
-c = 2.99792458e8
-c_Aps = c * 10**10
-h = 6.62606957e-34
-
-class SpectralUnit(EquivalenceUnit):
-    """Handles spectral wavelength, frequency, and energy equivalences
-    
-    Allows conversions between wavelength units, frequency units and
-    energy units as they relate to light. 
-    
-    These special units may not be combined with any others. They exist
-    purely for conversion between the specified unit representations.
-    
-    Note to python novices: use of "lambda" in the code has nothing
-    to do with wavelength; see the python lambda statement
-    """
-    def __init__(self, st, represents, var=False):
-        if isinstance(st, str):
-            self._aliases = []
-            self._st_rep = st
-        else:
-            if len(st) == 0:
-                raise ValueError, "alias list must have at least one entry"
-            try:
-                self._st_rep = st[0]
-                self._aliases = st[1:]
-            except IndexError:
-                raise ValueError, "name argument must be a string or a list of strings"
-        if isinstance(represents, str):
-            represents = unit(represents)
-        self._represents = represents
-        self._register_unit(var)
-        self.elist = [m, Hz, J]
-        if self._equivalent(represents) < 0:
-            raise ValueError, "unit is not one of the acceptable types"
-        self.eunit = represents
-        self._to_standard = [
-            lambda value: self.eunit.converter_to(m)(value),
-            lambda value: c / self.eunit.converter_to(Hz)(value),
-            lambda value: h * c / self.eunit.converter_to(J)(value)
-        ]
-        self._from_standard = [
-            lambda nunit, value: m.converter_to(nunit)(value),
-            lambda nunit, value: Hz.converter_to(nunit)(c / value),
-            lambda nunit, value: J.converter_to(nunit)(h * c / value)
-        ]
-
-SpectralUnit(['sp_A','sp_Angstrom','sp_angstrom'],A,var=True)
-SpectralUnit(['sp_nm','sp_nanometer'],nm,var=True)
-SpectralUnit(['sp_um','sp_micron'],um,var=True)
-SpectralUnit(['sp_m','sp_meter'],m,var=True)
-SpectralUnit(['sp_mm','sp_millimeter'],mm,var=True)
-SpectralUnit(['sp_cm','sp_centimeter'],cm,var=True)
-SpectralUnit(['sp_Hz','sp_Hertz','sp_hertz'],Hz,var=True)
-SpectralUnit(['sp_KHz','sp_KHertz','sp_kilohertz'],KHz,var=True)
-SpectralUnit(['sp_MHz','sp_MHertz','sp_megahertz'],MHz,var=True)
-SpectralUnit(['sp_GHz','sp_GHertz','sp_gigahertz'],GHz,var=True)
-SpectralUnit(['sp_eV','sp_electron_volt'],eV,var=True)
-SpectralUnit(['sp_KeV','sp_Kelectron_volt','sp_kilo_electron_volt'],KeV,var=True)
-SpectralUnit(['sp_MeV','sp_Melectron_volt','sp_mega_electron_volt'],MeV,var=True)
-
-class SpectralDensityUnit(EquivalenceUnit):
-    """Handles spectral density regards wavelength and frequency
-
-    These special units may not be combined with any others. They exist
-    purely for conversion between the specified unit representations.
-    
-    Note to python novices: use of "lambda" in the code has nothing
-    to do with wavelength; see the python lambda statement
-    """
-    def __init__(self, st, represents, var=False):
-        if isinstance(st, str):
-            self._aliases = []
-            self._st_rep = st
-        else:
-            if len(st) == 0:
-                raise ValueError, "alias list must have at least one entry"
-            try:
-                self._st_rep = st[0]
-                self._aliases = st[1:]
-            except IndexError:
-                raise ValueError, "name argument must be a string or a list of strings"
-        if isinstance(represents, str):
-            represents = unit(represents)
-        self._represents = represents
-        self._register_unit(var)
-        self.elist = [erg/angstrom/cm**2/s, erg/Hz/cm**2/s]
-        if self._equivalent(represents) < 0:
-            raise ValueError, "unit is not one of the acceptable types"
-        self.eunit = represents
-        self._to_standard = [
-            lambda value, sunit, sp: (
-                self.eunit.converter_to(self.elist[0])(value)
-                ),
-            lambda value, sunit, sp: (
-                c_Aps * self.eunit.converter_to(self.elist[1])(value)
-                  / (sunit.converter_to(sp_A)(sp))**2
-                )
-        ]
-        self._from_standard = [
-            lambda nunit, value, sunit, sp: (
-                self.elist[0].converter_to(nunit)(value)
-                ),
-            lambda nunit, value, sunit, sp: (
-                self.elist[1].converter_to(nunit)(value) * (sunit.converter_to(sp_A)(sp)**2 / c_Aps)
-                ),
-        ]
-        
-SpectralDensityUnit(['sd_A','sd_Angstrom','sd_angstrom','sd_flam','sd_flambda'],flambda,var=True)
-SpectralDensityUnit(['sd_nm','sd_nanometer'],0.1*flambda,var=True)
-SpectralDensityUnit(['sd_um','sd_micron'],0.0001*flambda,var=True)
-SpectralDensityUnit(['sd_Hz','sd_Hertz','sd_hertz','sd_fnu'],fnu,var=True)
-SpectralDensityUnit(['sd_Jy','sd_Jansky','sd_jansky'],Jy,var=True)
-SpectralDensityUnit(['sd_mJy','sd_mJansky','sd_milli_jansky'],0.001*Jy,var=True)
-SpectralDensityUnit(['sd_uJy','sd_uJansky','sd_micro_jansky'],0.001*mJy,var=True)
-
+        f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+        for line in lines:
+            print(f.format(*line))

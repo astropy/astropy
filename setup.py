@@ -44,6 +44,7 @@ generate_version_py('astropy', version, release,
 
 # Use the find_packages tool to locate all packages and modules
 packagenames = find_packages()
+packagenames = setup_helpers.filter_packages(packagenames)
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = glob.glob(os.path.join('scripts', '*'))
