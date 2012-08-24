@@ -11,6 +11,19 @@ from ...table import io_registry
 __all__ = []
 
 
+# IPAC
+# ====
+
+def read_ipac(filename, **kwargs):
+    return read(filename, Reader=Ipac, **kwargs)
+
+io_registry.register_reader('ipac', read_ipac)
+
+def is_ipac(origin, args, kwargs):
+    return args[0].endswith('.tbl')
+
+io_registry.register_identifier('ipac', is_ipac)
+
 # CDS
 # ===
 
@@ -35,11 +48,12 @@ io_registry.register_reader('daophot', read_daophot)
 def read_latex(filename, **kwargs):
     return read(filename, Reader=Latex, **kwargs)
 
+io_registry.register_reader('latex', read_latex)
+
 
 def write_latex(table, filename, **kwargs):
     write(table, filename, Writer=Latex, **kwargs)
 
-io_registry.register_reader('latex', read_latex)
 io_registry.register_writer('latex', write_latex)
 
 
@@ -55,11 +69,11 @@ io_registry.register_identifier('latex', is_latex)
 def read_rdb(filename, **kwargs):
     return read(filename, Reader=Rdb, **kwargs)
 
+io_registry.register_reader('rdb', read_rdb)
 
 def write_rdb(table, filename, **kwargs):
     write(table, filename, Writer=Rdb, **kwargs)
 
-io_registry.register_reader('rdb', read_rdb)
 io_registry.register_writer('rdb', write_rdb)
 
 
