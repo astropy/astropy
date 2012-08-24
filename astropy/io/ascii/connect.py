@@ -11,6 +11,22 @@ from ...table import io_registry
 __all__ = []
 
 
+# Generic
+# =======
+
+
+def read_asciitable(filename, **kwargs):
+    return read(filename, **kwargs)
+
+io_registry.register_reader('ascii', read_asciitable)
+
+
+def write_asciitable(table, filename, **kwargs):
+    return write(table, filename, **kwargs)
+
+io_registry.register_writer('ascii', write_asciitable)
+
+
 # IPAC
 # ====
 
@@ -19,6 +35,7 @@ def read_ipac(filename, **kwargs):
 
 io_registry.register_reader('ipac', read_ipac)
 
+
 def is_ipac(origin, args, kwargs):
     return args[0].endswith('.tbl')
 
@@ -26,6 +43,7 @@ io_registry.register_identifier('ipac', is_ipac)
 
 # CDS
 # ===
+
 
 def read_cds(filename, **kwargs):
     return read(filename, Reader=Cds, **kwargs)
@@ -70,6 +88,7 @@ def read_rdb(filename, **kwargs):
     return read(filename, Reader=Rdb, **kwargs)
 
 io_registry.register_reader('rdb', read_rdb)
+
 
 def write_rdb(table, filename, **kwargs):
     write(table, filename, Writer=Rdb, **kwargs)
