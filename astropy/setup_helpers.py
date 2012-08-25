@@ -1071,6 +1071,10 @@ def add_external_library(library):
         'use-system-{0}'.format(library),
         'Use the system {0} library'.format(library),
         is_bool=True)
+    AstropyInstall.add_install_option(
+        'use-system-{0}'.format(library),
+        'Use the system {0} library'.format(library),
+        is_bool=True)
 
 
 def use_system_library(library):
