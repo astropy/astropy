@@ -447,6 +447,23 @@ def get_distutils_install_option(option):
     """
     return get_distutils_option(option, ['install'])
 
+def get_distutils_build_or_install_option(option):
+    """ Returns the value of the given distutils build or install option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build or install option. If the
+        option is not set, returns None.
+    """
+    return get_distutils_option(option, ['build', 'build_ext', 'build_clib',
+                                         'install'])
+
 
 def get_compiler_option():
     """ Determines the compiler that will be used to build extension modules.
@@ -536,8 +553,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                 add_external_library(library)
 
     # Check if all the legacy packages are needed
-    if get_distutils_build_option('enable_legacy') or \
-       get_distutils_install_option('enable_legacy'):
+    if get_distutils_build_or_install_option('enable_legacy'):
         installed = []
         for setuppkg in iter_setup_packages(srcdir):
             if hasattr(setuppkg, 'get_legacy_alias'):
@@ -954,8 +970,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     # If legacy shims have not been enabled at the commandline, simply do
     # nothing.
-    if not get_distutils_build_option('enable_legacy') and \
-       not get_distutils_install_option('enable_legacy'):
+    if not get_distutils_build_or_install_option('enable_legacy'):
         return (old_package, None)
 
     found_legacy_module = True
@@ -1079,5 +1094,5 @@ def use_system_library(library):
         `True` if the build should use the system copy of the library.
     """
     return (
-        get_distutils_build_option('use_system_{0}'.format(library)) or
-        get_distutils_build_option('use_system_libraries'))
+     get_distutils_build_or_install_option('use_system_{0}'.format(library))
+     or get_distutils_build_or_install_option('use_system_libraries'))
