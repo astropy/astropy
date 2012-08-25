@@ -12,6 +12,13 @@ def test_read_generic(filename):
     Table.read(os.path.join(ROOT, filename), format='ascii')
 
 
+def test_write_generic(tmpdir):
+    t = Table()
+    t.add_column(Column('a', [1,2,3]))
+    t.add_column(Column('b', ['a', 'b', 'c']))
+    t.write(str(tmpdir.join("test")), format='ascii')
+
+
 def test_read_ipac():
     Table.read(os.path.join(ROOT, 't/ipac.dat'), format='ipac')
 
