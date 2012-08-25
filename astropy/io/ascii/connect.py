@@ -31,6 +31,8 @@ io_registry.register_writer('ascii', write_asciitable)
 def read_ipac(filename, **kwargs):
     from .ipac import Ipac
     from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
     return read(filename, Reader=Ipac, **kwargs)
 
 io_registry.register_reader('ipac', read_ipac)
@@ -48,6 +50,8 @@ io_registry.register_identifier('ipac', is_ipac)
 def read_cds(filename, **kwargs):
     from .cds import Cds
     from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
     return read(filename, Reader=Cds, **kwargs)
 
 io_registry.register_reader('cds', read_cds)
@@ -59,6 +63,8 @@ io_registry.register_reader('cds', read_cds)
 def read_daophot(filename, **kwargs):
     from .daophot import Daophot
     from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
     return read(filename, Reader=Daophot, **kwargs)
 
 io_registry.register_reader('daophot', read_daophot)
@@ -70,6 +76,8 @@ io_registry.register_reader('daophot', read_daophot)
 def read_latex(filename, **kwargs):
     from .latex import Latex
     from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
     return read(filename, Reader=Latex, **kwargs)
 
 io_registry.register_reader('latex', read_latex)
@@ -95,6 +103,8 @@ io_registry.register_identifier('latex', is_latex)
 def read_rdb(filename, **kwargs):
     from .basic import Rdb
     from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
     return read(filename, Reader=Rdb, **kwargs)
 
 io_registry.register_reader('rdb', read_rdb)
