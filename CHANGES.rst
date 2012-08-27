@@ -8,6 +8,12 @@
 - Besancon Galaxy models (http://model.obs-besancon.fr) reader implemented in `astropy.ascii`
 
 
+0.1.1 (unreleased)
+------------------
+
+- Bug fixes (TODO: Update me)
+
+
 0.1 (2012-06-19)
 ----------------
 
