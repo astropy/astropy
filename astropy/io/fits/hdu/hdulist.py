@@ -558,7 +558,7 @@ class HDUList(list, _Verify):
             for hdu in self:
                 if verbose:
                     try:
-                        extver = str(hdu.header['extver'])
+                        extver = str(hdu._header['extver'])
                     except KeyError:
                         extver = ''
 
@@ -910,7 +910,7 @@ class HDUList(list, _Verify):
 
             # reset the modification attributes after updating
             for hdu in self:
-                hdu.header._modified = False
+                hdu._header._modified = False
         finally:
             for hdu in self:
                 hdu._postwriteto()
@@ -1021,7 +1021,7 @@ class HDUList(list, _Verify):
         self._resize = False
         self._truncate = False
         for hdu in self:
-            hdu.header._modified = False
+            hdu._header._modified = False
             hdu._new = False
             hdu._file = ffo
 
@@ -1038,7 +1038,7 @@ class HDUList(list, _Verify):
             # determine if any of the HDU is resized
             for hdu in self:
                 # Header:
-                nbytes = len(str(hdu.header))
+                nbytes = len(str(hdu._header))
                 if nbytes != (hdu._datLoc - hdu._hdrLoc):
                     self._resize = True
                     self._truncate = False
@@ -1050,7 +1050,7 @@ class HDUList(list, _Verify):
                 if not hdu._data_loaded or hdu.data is None:
                     continue
 
-                nbytes = hdu.data.nbytes
+                nbytes = hdu.size
                 nbytes = nbytes + _pad_length(nbytes)
                 if nbytes != hdu._datSpan:
                     self._resize = True

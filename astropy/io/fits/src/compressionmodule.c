@@ -414,6 +414,7 @@ PyObject* compression_compressData(PyObject* self, PyObject* args)
    PyObject*       tileSizeObj;
    PyObject*       zvalObj;
    PyObject*       outList;
+   PyObject*       outStr;
    PyObject*       outScale;
    PyObject*       outZero;
    PyObject*       outUncompressed;
@@ -675,9 +676,14 @@ PyObject* compression_compressData(PyObject* self, PyObject* args)
 
          for ( i = 0; i < ntiles; i++)
          {
-            PyList_Append(outList, PyString_FromStringAndSize(
-                          (const char*)((theFile.Fptr)->data[i]),
-                          (theFile.Fptr)->dataLen[i]));
+            outStr = PyString_FromStringAndSize(
+                (const char*)((theFile.Fptr)->data[i]),
+                (theFile.Fptr)->dataLen[i]);
+
+            PyList_Append(outList, outStr);
+
+            Py_DECREF(outStr);
+
             free((theFile.Fptr)->data[i]);
 
             if (cn_zscale > 0)

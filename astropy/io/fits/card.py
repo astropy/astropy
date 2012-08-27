@@ -829,6 +829,7 @@ class Card(_Verify):
             # This is valid HIERARCH card as described by the HIERARCH keyword
             # convention:
             # http://fits.gsfc.nasa.gov/registry/hierarch_keyword.html
+            self._hierarch = True
             return self._image.split('=', 1)[0][9:].rstrip()
         else:
             warnings.warn('The following header keyword is invalid or follows '

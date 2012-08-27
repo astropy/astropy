@@ -4,6 +4,7 @@ from __future__ import division  # confidence high
 import os
 import shutil
 import tempfile
+import warnings
 
 from ... import fits
 
@@ -20,6 +21,10 @@ class FitsTestCase(object):
         fits.EXTENSION_NAME_CASE_SENSITIVE.set(False)
         fits.STRIP_HEADER_WHITESPACE.set(True)
         fits.USE_MEMMAP.set(True)
+
+        # Ignore deprecation warnings--this only affects Python 2.5 and 2.6,
+        # since deprecation warnings are ignored by defualt on 2.7
+        warnings.simplefilter('ignore', DeprecationWarning)
 
     def teardown(self):
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):

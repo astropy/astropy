@@ -165,7 +165,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
                 self._header['NAXIS1'] = self.data.itemsize
                 self._header['NAXIS2'] = self.data.shape[0]
-                self._header['TFIELDS'] = self.data._nfields
+                self._header['TFIELDS'] = len(self.data._coldefs)
 
                 self.columns = self.data._coldefs
                 self.update()
@@ -267,7 +267,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         if self._data_loaded and self.data is not None:
             self.data._scale_back()
             # check TFIELDS and NAXIS2
-            self._header['TFIELDS'] = self.data._nfields
+            self._header['TFIELDS'] = len(self.data._coldefs)
             self._header['NAXIS2'] = self.data.shape[0]
 
             # calculate PCOUNT, for variable length tables

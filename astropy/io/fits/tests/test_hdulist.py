@@ -5,6 +5,7 @@ import io
 import os
 import shutil
 import warnings
+import sys
 
 import numpy as np
 
@@ -621,6 +622,10 @@ class TestHDUListFunctions(FitsTestCase):
                         assert (hdul[idx].data == hdul2[idx].data).all()
 
         for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
+            if sys.platform == 'win32' and filename == 'zerowidth.fits':
+                # Running this test on this file causes a crash in some
+                # versions of Numpy on Windows.  See PyFITS ticket #174
+                continue
             test_fromstring(filename)
 
         # Test that creating an HDUList from something silly raises a TypeError

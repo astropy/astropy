@@ -12,8 +12,14 @@ Astropy.
    :local:
 
 
-3.1.0 (unreleased)
---------------------
+3.2 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+3.1 (2012-08-08)
+----------------
 
 Highlights
 ^^^^^^^^^^
@@ -192,6 +198,14 @@ New Features
   mode).  This may be especially useful when working with scaled image data.
   (#121)
 
+Changes in Behavior
+^^^^^^^^^^^^^^^^^^^
+
+- Warnings from PyFITS are not output to stderr by default, instead of stdout
+  as it has been for some time.  This is contrary to most users' expectations
+  and makes it more difficult for them to separate output from PyFITS from the
+  desired output for their scripts. (r1319)
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -223,6 +237,43 @@ Bug Fixes
 
 - Fixed a bug where ``ImageHDU.scale(option='old')`` wasn't working at all--it
   was not restoring the image to its original BSCALE and BZERO values. (#162)
+
+- Fixed a bug when writing out files containing zero-width table columns,
+  where the TFIELDS keyword would be updated incorrectly, leaving the table
+  largely unreadable.  This fix will be backported to the 3.0.x series in
+  version 3.0.10.  (#174)
+
+
+3.0.9 (2012-08-06)
+------------------
+
+This is a bug fix release for the 3.0.x series.
+
+Bug Fixes
+^^^^^^^^^
+
+- Fixed ``Header.values()``/``Header.itervalues()`` and ``Header.items()``/
+  ``Header.iteritems()`` to correctly return the different values for
+  duplicate keywords (particularly commentary keywords like HISTORY and
+  COMMENT).  This makes the old Header implementation slightly more compatible
+  with the new implementation in PyFITS 3.1. (#127)
+
+  .. note::
+      This fix did not change the existing behavior from earlier PyFITS
+      versions where ``Header.keys()`` returns all keywords in the header with
+      duplicates removed.  PyFITS 3.1 changes that behavior, so that
+      ``Header.keys()`` includes duplicates.
+
+- Fixed a bug where ``ImageHDU.scale(option='old')`` wasn't working at all--it
+  was not restoring the image to its original BSCALE and BZERO values. (#162)
+
+- Fixed a bug where opening a file containing compressed image HDUs in
+  'update' mode and then immediately closing it without making any changes
+  caused the file to be rewritten unncessarily. (#167)
+
+- Fixed two memory leaks that could occur when writing compressed image data,
+  or in some cases when opening files containing compressed image HDUs in
+  'update' mode. (#168)
 
 
 3.0.8 (2012-06-04)
@@ -2173,6 +2224,7 @@ Changes since 0.7.6:
 
 
 0.7.6 (2002-11-22)
+------------------
 
 **NOTE:** This version will only work with numarray Version 0.4.
 

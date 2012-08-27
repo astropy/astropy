@@ -1578,12 +1578,19 @@ class TestTableFunctions(FitsTestCase):
         assert 'ORBPARM' not in tbhdu.data.names
         # Verify that some of the data columns are still correctly accessible
         # by name
+        assert tbhdu.data[0]['ANNAME'] == 'VLA:_W16'
         assert comparefloats(
             tbhdu.data[0]['STABXYZ'],
             np.array([499.85566663, -1317.99231554, -735.18866164],
                      dtype=np.float64))
         assert tbhdu.data[0]['NOSTA'] == 1
         assert tbhdu.data[0]['MNTSTA'] == 0
+        assert tbhdu.data[-1]['ANNAME'] == 'VPT:_OUT'
+        assert comparefloats(
+            tbhdu.data[-1]['STABXYZ'],
+            np.array([0.0, 0.0, 0.0], dtype=np.float64))
+        assert tbhdu.data[-1]['NOSTA'] == 29
+        assert tbhdu.data[-1]['MNTSTA'] == 0
         hdul.writeto(self.temp('newtable.fits'))
         hdul.close()
         hdul = fits.open(self.temp('newtable.fits'))
@@ -1591,12 +1598,19 @@ class TestTableFunctions(FitsTestCase):
         # Verify that the previous tests still hold after writing
         assert 'ORBPARM' in tbhdu.columns.names
         assert 'ORBPARM' not in tbhdu.data.names
+        assert tbhdu.data[0]['ANNAME'] == 'VLA:_W16'
         assert comparefloats(
             tbhdu.data[0]['STABXYZ'],
             np.array([499.85566663, -1317.99231554, -735.18866164],
                      dtype=np.float64))
         assert tbhdu.data[0]['NOSTA'] == 1
         assert tbhdu.data[0]['MNTSTA'] == 0
+        assert tbhdu.data[-1]['ANNAME'] == 'VPT:_OUT'
+        assert comparefloats(
+            tbhdu.data[-1]['STABXYZ'],
+            np.array([0.0, 0.0, 0.0], dtype=np.float64))
+        assert tbhdu.data[-1]['NOSTA'] == 29
+        assert tbhdu.data[-1]['MNTSTA'] == 0
         hdul.close()
 
     def test_string_column_padding(self):

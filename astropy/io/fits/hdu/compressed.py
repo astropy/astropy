@@ -1346,9 +1346,10 @@ class CompImageHDU(BinTableHDU):
         zvalList = []
 
         # Check to see that the image_header matches the image data
-        if self._header.get('NAXIS', 0) != len(self.data.shape) or \
-           self._header.get('BITPIX', 0) != \
-           _ImageBaseHDU.ImgCode[self.data.dtype.name]:
+        image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
+
+        if (self.header.get('NAXIS', 0) != len(self.data.shape) or
+            self.header.get('BITPIX', 0) != image_bitpix):
             self.updateHeaderData(self.header)
 
         # Create lists to hold the number of pixels along each axis of
@@ -1697,7 +1698,8 @@ class CompImageHDU(BinTableHDU):
     # TODO: Fix this class so that it doesn't actually inherit from
     # BinTableHDU, but instead has an internal BinTableHDU reference
     def _prewriteto(self, checksum=False, inplace=False):
-        self.updateCompressedData()
+        if self._data_loaded and self.data is not None:
+            self.updateCompressedData()
         # Doesn't call the super's _prewriteto, since it calls
         # self.data._scale_back(), which is meaningless here.
         return ExtensionHDU._prewriteto(self, checksum=checksum,

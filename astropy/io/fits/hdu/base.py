@@ -493,7 +493,7 @@ class _BaseHDU(object):
         datloc = self._datLoc
         datsize = self._datSpan
 
-        if self.header._modified:
+        if self._header._modified:
             # Seek to the original header location in the file
             self._file.seek(hdrloc)
             # This should update hdrloc with he header location in the new file
