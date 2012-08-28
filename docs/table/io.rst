@@ -62,7 +62,6 @@ supported by `astropy.io.ascii`:
 
 In addition, the following file extensions are automatically recognized and do not require the ``format=`` argument to be specified:
 
-    * ``.tbl`` is recognized as ``format='ipac'``
     * ``.tex`` is recognized as ``format='latex'``
     * ``.rdb`` is recognized as ``format='rdb'``
 

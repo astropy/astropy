@@ -38,11 +38,6 @@ def read_ipac(filename, **kwargs):
 io_registry.register_reader('ipac', read_ipac)
 
 
-def is_ipac(origin, args, kwargs):
-    return args[0].endswith('.tbl')
-
-io_registry.register_identifier('ipac', is_ipac)
-
 # CDS
 # ===
 
