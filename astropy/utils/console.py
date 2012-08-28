@@ -15,7 +15,10 @@ try:
 except NameError:
     OutStream = None
 else:
-    from IPython.zmq.iostream import OutStream
+    try:
+        from IPython.zmq.iostream import OutStream
+    except ImportError:
+        OutStream = None
 
 from ..config import ConfigurationItem
 
