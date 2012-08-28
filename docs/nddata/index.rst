@@ -100,16 +100,23 @@ deviation errors on the pixel values, you can do::
 Arithmetic
 ----------
 
-Provided that the WCS, units, and shape match, two
-`~astropy.nddata.nddata.NDData` can be added or subtracted from each other,
-with error propagation, creating a new `~astropy.nddata.nddata.NDData`
-object::
+Provided that the world coordinate system (WCS), units, and shape match, two
+:class:`~astropy.nddata.nddata.NDData` instances can be added or subtracted from each
+other, with error propagation, creating a new
+:class:`~astropy.nddata.nddata.NDData` object::
 
     ndd3 = ndd1.add(ndd2)
     ndd4 = ndd1.subtract(ndd2)
 
-.. warn:: error propagation is still experimental, and does not take into
-          account correlated errors.
+The purpose of the :meth:`~astropy.nddata.nddata.NDData.add` and
+:meth:`~astropy.nddata.nddata.NDData.subtract` methods is to allow the
+combination of two data objects that have common WCS, units, and shape, with
+consistent behavior for masks and flags, and with a framework to propagate
+uncertainties. These methods are intended for use by sub-classes and functions
+that deal with more complex combinations.
+
+.. warning:: Error propagation is still experimental, and does not take into
+             account correlated errors.
 
 Convolution
 -----------
