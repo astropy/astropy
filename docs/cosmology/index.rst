@@ -25,7 +25,7 @@ the number of transverse proper kpc corresponding to an arcminute at z=3:
   >>> cosmology.H(0)
   70.4
   >>> cosmology.kpc_proper_per_arcmin(3)
-  472.91882815884907
+  472.8071851564037
 
 All the functions available are listed in the `Reference/API`_
 section. These will use the "current" cosmology to calculate the
@@ -40,7 +40,7 @@ the 5-year WMAP parameters:
 
   >>> from astropy.cosmology import WMAP5
   >>> WMAP5.comoving_distance(4)
-  7352.203452009956
+  7329.328120760829
 
 A full list of the pre-defined cosmologies is given by
 `cosmology.parameters.available`.
@@ -59,59 +59,73 @@ Friedmann-Lemaitre-Robertson-Walker metric, named after the people who
 solved Einstein's field equation for this special case).  However,
 you can't work with this class directly, as you must specify a
 dark energy model by using one of its subclasses instead,
-such as `~astropy.cosmology.core.LambdaCDM`.
+such as `~astropy.cosmology.core.FlatLambdaCDM`.
 
-You can create a new `~astropy.cosmology.core.LambdaCDM` object with
-arguments giving the hubble parameter, omega matter and omega dark
-energy (all at z=0):
+You can create a new `~astropy.cosmology.core.FlatLambdaCDM` object with
+arguments giving the hubble parameter and omega matter (both at z=0):
 
-  >>> from astropy.cosmology import LambdaCDM
-  >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo
-  LambdaCDM(H0=70, Om0=0.3, Ode0=0.7, Ok0=0)
+  LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
 
 A number of additional dark energy models are provided (described below).
+Note that photons and neutrinos are included in these models, so
+for some values of Om0 it may appear that Om0 + Ode0 is not quite one.
 
 The pre-defined cosmologies described in the `Getting Started`_
-section are instances of `~astropy.cosmology.core.LambdaCDM`, and have
+section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
 the same methods. So we can find the luminosity distance in Mpc to
 redshift 4 by:
 
   >>> cosmo.luminosity_distance(4)
-  35851.83207231648
+  35842.35374316948
 
 or the age of the universe at z = 0 in Gyr:
 
   >>> cosmo.age(0)
-  13.46698402784007
+  13.461701807287566
 
 They also accept arrays of redshifts:
 
   >>> cosmo.age([0.5, 1, 1.5])
-  array([ 8.42634607,  5.75164698,  4.20073196])	
+  array([ 8.42128059,  5.74698062,  4.1964541 ])
 
 See the `~astropy.cosmology.core.FLRW` and
-`~astropy.cosmology.core.LambdaCDM` object docstring for all the
-methods and attributes available. There are also a variety of standard
-cosmologies with the parameters already defined:
+`~astropy.cosmology.core.FlatLambdaCDM` object docstring for all the
+methods and attributes available. In addition to flat Universes,
+non-flat varieties are supported such as
+`~astropy.cosmology.core.LambdaCDM`.  There are also a variety of
+standard cosmologies with the parameters already defined:
 
-  >>> from cosmology import WMAP7   # WMAP 7-year cosmology
+  >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.critical_density(0)       # critical density at z = 0 in g/cm^3
   9.31000313202047e-30
 
-  >>> from cosmology import WMAP5   # WMAP 5-year
+  >>> from astropy.cosmology import WMAP5   # WMAP 5-year
   >>> WMAP5.H(3)                    # Hubble parameter at z = 3 in km/s/Mpc
-  301.54148311633674
+  301.71804314602889
+
+You can see how the density parameters evolve with redshift as well
+
+  >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
+  >>> WMAP7.Om([0,1.0,2.0]), WMAP7.Ode([0.,1.0,2.0])
+  (array([ 0.272     ,  0.74898525,  0.9090524 ]),
+   array([ 0.72791572,  0.25055062,  0.09010261]))
+
+Note that these don't quite add up to one even though WMAP7 assumes a
+flat Universe because photons and nuetrinos are included.
 
 In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
-are convenience functions that calculate quantities without needing to
-explicitly give a cosmology.
+are convenience functions that calculate some of these quantities
+without needing to explicitly give a cosmology - but there are more
+methods available if you work directly with the cosmology object.
 
   >>> from astropy import cosmology
   >>> cosmology.kpc_proper_per_arcmin(3)
-  472.91882815884907
+  472.8071851564037
   >>> cosmology.arcsec_per_kpc_proper(3)
-  0.12687166682195736
+  0.12690162477152736
 
 These functions will perform calculations using the "current"
 cosmology. This is a specific cosmology that is currently active in
@@ -147,7 +161,7 @@ message:
   >>> cosmology.lookback_time(1)          # lookback time in Gyr at z=1
   WARNING: No default cosmology has been specified, using 7-year WMAP.
   [astropy.cosmology.core]
-  7.788414051773566
+  7.787767002228743
 
 .. note::
 
@@ -161,7 +175,6 @@ message:
     useful. Alternatively, putting (for example)
     ``cosmology.set_current(WMAP7)`` at the top of your code will
     ensure that the right cosmology is always used.
-
 
 Using `cosmology` inside Astropy
 --------------------------------
@@ -186,9 +199,10 @@ unless explicitly overridden.
 Specifying a dark energy model
 ==============================
 
-In addition to the standard `~astropy.cosmology.core.LambdaCDM` model
+In addition to the standard `~astropy.cosmology.core.FlatLambdaCDM` model
 described above, a number of additional dark energy models are
-provided.  `~astropy.cosmology.core.LambdaCDM` assumes that dark
+provided.  `~astropy.cosmology.core.FlatLambdaCDM` 
+and `~astropy.cosmology.core.FlatLambdaCDM` assume that dark
 energy is a cosmological constant, and should be the most commonly
 used case.  `~astropy.cosmology.core.wCDM` assumes a constant dark
 energy equation of state parameterized by :math:`w_0`. Two forms of a
@@ -204,6 +218,46 @@ Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.core.FLRW`.  See the provided subclasses for
 examples.
 
+Relativistic Species
+====================
+The cosmology classes include the contribution to the energy density
+from both photons and nuetrinos.  By default neutrinos are assumed
+to be massless.  The treatment of massive neutrinos is taken from the
+WMAP7 analysis paper (Komatsu et al. 2011), and is exact but assumes
+that all neutrino species have the same mass.  
+
+  >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
+  >>> z = [0,1.0,2.0]
+  >>> WMAP7.Ogamma(z), WMAP7.Onu(z), WMAP7.Orelativistic(z)
+  (array([  4.98569503e-05,   2.74574414e-04,   4.99881402e-04]),
+   array([  3.44204408e-05,   1.89561782e-04,   3.45110122e-04]),
+   array([  8.42773911e-05,   4.64136197e-04,   8.44991525e-04]))
+
+Note that :math:`\\Omega_{\\nu}` includes the kinetic energy of the
+neutrinos, so is not zero even for massless neutrinos (which is the
+case for the WMAP7 cosmology).  Also note that Orelativistic, for simplicity,
+includes both photons and neutrinos even when the neutrino masses are
+large enough that they become non-relativisitic; the treatement used
+is still accurate in this case.
+
+If you want to exclude photons and neutrinos from your calculations,
+simply set the CMB Temperature to 0:
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0.0)
+  >>> cos.Orelativistic([0,1,2])
+  array([0, 0, 0])
+
+Neutrinos can be removed (while leaving photons) by setting Neff=0:
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
+  >>> cos.Ogamma([0,1,2]),cos.Onu([0,1,2])
+  (array([  4.98569503e-05,   2.74623219e-04,   5.00051845e-04]),
+   array([ 0.,  0.,  0.]))
+
+While these examples used `~astropy.cosmology.core.FlatLambdaCDM`,
+the above examples also apply for all of the other cosmology classes.
 
 See Also
 ========
@@ -213,6 +267,9 @@ See Also
 * Linder, "Exploring the Expansion History of the Universe", http://arxiv.org/abs/astro-ph/0208512
 * NASA's Legacy Archive for Microwave Background Data Analysis,
   http://lambda.gsfc.nasa.gov/
+* Komatsu et al., "Seven-year Wilkinson Microwave Anisotropy Probe (WMAP)
+   Observations: Cosmological Interpretation",
+   http://lambda.gsfc.nasa.gov/product/map/current/map_bibliography.cfm
 
 Range of validity and reliability
 =================================

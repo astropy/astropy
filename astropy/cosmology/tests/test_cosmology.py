@@ -16,7 +16,7 @@ def test_flat_z1():
     """ Test a flat cosmology at z=1 against several other on-line
     calculators.
     """
-    cosmo = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73)
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
     z = 1
 
     # Test values were taken from the following web cosmology
@@ -42,7 +42,7 @@ def test_flat_z1():
 # if one only overloads w(z)
 class test_cos(core.FLRW):
     def __init__(self):
-        core.FLRW.__init__(self, 70.0, 0.27, 0.73, name="test_cos")
+        core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
         self._w0 = -0.9
     
     def w(self,z):
@@ -52,7 +52,7 @@ class test_cos(core.FLRW):
 def test_subclass():
     #This is the comparison object
     z = [0.2, 0.4, 0.6, 0.9]
-    cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9)
+    cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9, Tcmb0=0.0)
     #Values taken from Ned Wrights advanced cosmo calcluator, Aug 17 2012
     assert np.allclose(cosmo.luminosity_distance(z),
                        [975.5, 2158.2, 3507.3, 5773.1], rtol=1e-3)
@@ -68,28 +68,31 @@ def test_varyde_lumdist_mathematica():
 
     #w0wa models
     z = np.array([0.2,0.4,0.9,1.2])
-    cosmo = core.w0waCDM(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2)
+    cosmo = core.w0waCDM(H0=70, Om0=0.2, Ode0=0.8, w0=-1.1, wa=0.2, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z),
                        [1004.0,2268.62,6265.76,9061.84], rtol=1e-4)
-    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0)
+    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z),
                        [971.667,2141.67,5685.96,8107.41], rtol=1e-4)
-    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5)
+    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5, Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z),
                        [974.087,2157.08,5783.92,8274.08], rtol=1e-4)
 
     #wpwa models
-    cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5)
+    cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5,
+                         Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z),
                        [1010.81,2294.45,6369.45,9218.95], rtol=1e-4)
-    cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9)
+    cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9,
+                         Tcmb0=0.0)
     assert np.allclose(cosmo.luminosity_distance(z),
                        [1013.68,2305.3,6412.37,9283.33], rtol=1e-4)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
-    #these are all for WMAP7
-    core.set_current(core.WMAP7)
+    #these are all for WMAP7 with Tcmb = 0
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    core.set_current(tcos)
 
     # scalars
     assert np.allclose(funcs.arcsec_per_kpc_comoving(3), 0.0317179)
@@ -120,9 +123,9 @@ def test_convenience():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_volume():
 
-    c_flat = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73)
-    c_open = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0)
-    c_closed = core.LambdaCDM(H0=70, Om0=2, Ode0=0.0)
+    c_flat = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
+    c_open = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.0, Tcmb0=0.0)
+    c_closed = core.LambdaCDM(H0=70, Om0=2, Ode0=0.0, Tcmb0=0.0)
 
     redshifts = 0.5, 1, 2, 3, 5, 9
 
@@ -250,25 +253,26 @@ def test_flat_open_closed_icosmo():
 """
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_flat), unpack=1)
-    cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
+    cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70, Tcmb0=0.0)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_open), unpack=1)
-    cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.1)
+    cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.1, Tcmb0=0.0)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
     redshifts, dm, da, dl = np.loadtxt(StringIO(cosmo_closed), unpack=1)
-    cosmo = core.LambdaCDM(H0=70, Om0=2, Ode0=0.1)
+    cosmo = core.LambdaCDM(H0=70, Om0=2, Ode0=0.1, Tcmb0=0.0)
     assert np.allclose(cosmo.comoving_transverse_distance(redshifts), dm)
     assert np.allclose(cosmo.angular_diameter_distance(redshifts), da)
     assert np.allclose(cosmo.luminosity_distance(redshifts), dl)
 
 
 def test_current():
+    core.set_current('WMAP7')
     cosmo = core.get_current()
     assert cosmo == core.WMAP7
     core.set_current('WMAP5')
@@ -297,22 +301,30 @@ def test_wz():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_age():
-    assert np.allclose(core.WMAP7.age([1,5]), [ 5.97113193,  1.20553129])
+    #WMAP7 but with Omega_relativisitic = 0
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    assert np.allclose(tcos.age([1,5]), [ 5.97113193,  1.20553129])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distmod():
-    assert np.allclose(core.WMAP7.distmod([1,5]), [ 44.124857,  48.40167258])
-    assert np.allclose(funcs.distmod([1,5], cosmo=core.WMAP7),
+    #WMAP7 but with Omega_relativisitic = 0
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    core.set_current(tcos)
+    assert np.allclose(tcos.distmod([1,5]), [ 44.124857,  48.40167258])
+    assert np.allclose(funcs.distmod([1,5], cosmo=tcos),
                        [ 44.124857,  48.40167258])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_critical_density():
-    assert np.allclose(core.WMAP7.critical_density([1,5]),
-                       [  2.70362491e-29, 5.53758986e-28])
+    #WMAP7 but with Omega_relativisitic = 0
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    assert np.allclose(tcos.critical_density([1,5]),
+                       [2.70362491e-29, 5.53758986e-28])
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
-    assert (core.WMAP7.angular_diameter_distance_z1z2(1, 2) ==
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    assert (tcos.angular_diameter_distance_z1z2(1, 2) ==
             646.22968662822018)
     z1 = 0, 0, 1, 0.5, 1
     z2 = 2, 1, 2, 2.5, 1.1
@@ -322,12 +334,13 @@ def test_angular_diameter_distance_z1z2():
                1159.0970895962193,
                115.72768186186921)
 
-    assert np.allclose(core.WMAP7.angular_diameter_distance_z1z2(z1, z2),
+    assert np.allclose(tcos.angular_diameter_distance_z1z2(z1, z2),
                        results)
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_absorption_distance():
-    assert np.allclose(core.WMAP7.absorption_distance([1,3]),
+    tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
+    assert np.allclose(tcos.absorption_distance([1,3]),
                        [ 1.72576635,  7.98685853])
-    assert np.allclose(core.WMAP7.absorption_distance(3), 7.98685853)
+    assert np.allclose(tcos.absorption_distance(3), 7.98685853)
 
