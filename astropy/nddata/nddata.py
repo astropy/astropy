@@ -279,12 +279,12 @@ class NDData(object):
 
     def subtract(self, operand, propagate_errors=True):
         """
-        Subtract datasets together
+        Subtract datasets from each other
 
         Parameters
         ----------
         operand : `~astropy.nddata.NDData`
-            The second operand in the operation a + b
+            The second operand in the operation a - b
         propagate_errors : bool
             Whether to propagate errors
 
