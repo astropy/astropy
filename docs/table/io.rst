@@ -3,8 +3,8 @@
 Reading and writing Table objects
 ---------------------------------
 
-About
-^^^^^
+Introduction
+^^^^^^^^^^^^
 
 The :class:`~astropy.table.table.Table` class includes two methods,
 :meth:`~astropy.table.table.Table.read` and
@@ -33,7 +33,12 @@ and as for the :meth:`~astropy.table.table.Table.read` method, the format can
 be automatically identified from the extension.
 
 Any additional arguments specified will be passed to the format-specific
-read/write functions (see e.g. see `Built-in readers/writers`_).
+read/write functions (see e.g. see `Built-in readers/writers`_) - for
+example, in the following case::
+
+    t = Table.read('photometry.dat', format='ascii', data_start=2, delimiter='|')
+
+the ``data_start`` and ``delimiter`` arguments are passed to :func:`astropy.io.ascii.ui.read`.
 
 Built-in readers/writers
 ^^^^^^^^^^^^^^^^^^^^^^^^
