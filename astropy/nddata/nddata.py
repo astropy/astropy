@@ -212,7 +212,7 @@ class NDData(object):
 
     def add(self, operand, propagate_errors=True):
         """
-        Add datasets together
+        Add another dataset (`operand`) to this dataset.
 
         Parameters
         ----------
@@ -279,7 +279,7 @@ class NDData(object):
 
     def subtract(self, operand, propagate_errors=True):
         """
-        Subtract datasets from each other
+        Subtract another dataset (`operand`) from this dataset.
 
         Parameters
         ----------
