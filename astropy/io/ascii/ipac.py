@@ -106,7 +106,7 @@ class IpacHeader(core.BaseHeader):
         if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
         else:
-            raise ValueError("definition should be one of between/left/right")
+            raise ValueError("definition should be one of ignore/left/right")
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
