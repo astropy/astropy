@@ -1,10 +1,76 @@
+.. _table_io:
+
 Reading and writing Table objects
 ---------------------------------
+
+Introduction
+^^^^^^^^^^^^
+
+The :class:`~astropy.table.table.Table` class includes two methods,
+:meth:`~astropy.table.table.Table.read` and
+:meth:`~astropy.table.table.Table.write`, that make it possible to read from
+and write to files. A number of formats are automatically supported (see
+`Built-in readers/writers`_) and new file formats and extensions can be
+registered with the :class:`~astropy.table.table.Table` class (see `Creating a
+custom reader/writer`_). The :meth:`~astropy.table.table.Table.read` method should be used as::
+
+    t = Table.read(filename, format='format')
+
+where ``'format'`` is the format of the file to read in, e.g.::
+
+    t = Table.read('photometry.dat', format='daophot')
+
+For certain file formats, the format can be automatically detected, for
+example from the filename extension::
+
+    t = Table.read('table.tex')
+
+Similarly, for writing, the format can be explicitly specified::
+
+    t.write(filename, format='format')
+
+and as for the :meth:`~astropy.table.table.Table.read` method, the format can
+be automatically identified from the extension.
+
+Any additional arguments specified will be passed to the format-specific
+read/write functions (see e.g. see `Built-in readers/writers`_) - for
+example, in the following case::
+
+    t = Table.read('photometry.dat', format='ascii', data_start=2, delimiter='|')
+
+the ``data_start`` and ``delimiter`` arguments are passed to :func:`astropy.io.ascii.ui.read`.
 
 Built-in readers/writers
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-No built-in readers/writers have been implemented at this time.
+At this time, :meth:`~astropy.table.table.Table.read` and
+:meth:`~astropy.table.table.Table.write` can be used to read and write formats
+supported by `astropy.io.ascii`:
+
+    * ``format='ascii'`` can be used to interface to the bare ``read`` and
+      ``write`` functions from `~astropy.io.ascii`, e.g.::
+
+         t = Table.read('table.tex', format='ascii')
+
+         from astropy.io.ascii import Rdb
+         t.write('table.rdb', format='ascii', Writer=Rdb)
+
+    * ``format='ipac'`` can be used to read IPAC tables
+
+    * ``format='cds'`` can be used to read CDS/Machine readable tables
+
+    * ``format='daophot'`` can be used to read DAOPhot tables
+
+    * ``format='latex'`` can be used to read and write Latex tables
+
+    * ``format='rdb'`` can be used to read and write RDB tables
+
+In addition, the following file extensions are automatically recognized and do not require the ``format=`` argument to be specified:
+
+    * ``.tex`` is recognized as ``format='latex'``
+    * ``.rdb`` is recognized as ``format='rdb'``
+
+In future, FITS and VO tables will also be supported.
 
 Creating a custom reader/writer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
