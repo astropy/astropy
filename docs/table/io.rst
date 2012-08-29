@@ -52,8 +52,8 @@ supported by `astropy.io.ascii`:
 
          t = Table.read('table.tex', format='ascii')
 
-         from astropy.io.ascii import Ipac
-         t.write('table.tbl', format='ascii', Writer=Ipac)
+         from astropy.io.ascii import Rdb
+         t.write('table.rdb', format='ascii', Writer=Rdb)
 
     * ``format='ipac'`` can be used to read IPAC tables
 
