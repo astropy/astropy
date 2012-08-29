@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from ..nddata import NDData
-from ..nderror import StandardDeviationError, IncompatibleErrors, NDError
+from ..nderror import StandardDeviationError, IncompatibleErrorsException, NDError
 
 np.random.seed(12345)
 
@@ -141,7 +141,7 @@ def test_nddata_add_errors_mismatch():
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)), error=e2)
-    with pytest.raises(IncompatibleErrors) as exc:
+    with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.add(d2)
     assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for addition'
 
@@ -193,6 +193,6 @@ def test_nddata_subtract_errors_mismatch():
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
-    with pytest.raises(IncompatibleErrors) as exc:
+    with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.subtract(d2)
     assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for subtractition'

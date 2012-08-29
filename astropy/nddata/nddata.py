@@ -6,7 +6,7 @@ __all__ = ['NDData']
 import numpy as np
 
 from .flag_collection import FlagCollection
-from .nderror import IncompatibleErrors, NDError
+from .nderror import IncompatibleErrorsException, NDError
 
 
 class NDData(object):
@@ -161,7 +161,7 @@ class NDData(object):
         if value is not None:
             if isinstance(value, NDError):
                 self._error = value
-                self._error.parent = self
+                self._error.parent_nddata = self
             else:
                 raise TypeError("error should be an instance of a NDError object")
         else:
@@ -259,8 +259,8 @@ class NDData(object):
         else:  # both self and operand have errors
             try:
                 result.error = self.error.propagate_add(operand, result.data)
-            except IncompatibleErrors:
-                raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for addition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
+            except IncompatibleErrorsException:
+                raise IncompatibleErrorsException("Cannot propagate errors of type {0:s} with errors of type {1:s} for addition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
         if self.mask is None and operand.mask is None:
             result.mask = None
@@ -327,8 +327,8 @@ class NDData(object):
         else:  # both self and operand have errors
             try:
                 result.error = self.error.propagate_subtract(operand, result.data)
-            except IncompatibleErrors:
-                raise IncompatibleErrors("Cannot propagate errors of type {0:s} with errors of type {1:s} for subtractition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
+            except IncompatibleErrorsException:
+                raise IncompatibleErrorsException("Cannot propagate errors of type {0:s} with errors of type {1:s} for subtractition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
 
         if self.mask is None and operand.mask is None:
             result.mask = None
