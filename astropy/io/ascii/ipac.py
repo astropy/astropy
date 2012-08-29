@@ -50,6 +50,15 @@ class Ipac(core.BaseReader):
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
         2.09708   29.09056     73765    2.06000   B8IVpMnHg
 
+    Parameters
+    ----------
+    definition : str, optional
+        Specify the convention for characters in the data table that occur directly 
+        below the pipe (`|`) symbol in the header column definition:
+          'ignore' :  any character beneath a pipe symbol is ignored (default)
+          'right' : character is associated with the column to the right
+          'left' : character is associated with the column to the left
+
     Caveats:
 
     * Data type, Units, and Null value specifications are ignored.
@@ -60,9 +69,9 @@ class Ipac(core.BaseReader):
     Overcoming these limitations would not be difficult, code contributions
     welcome from motivated users.
     """
-    def __init__(self):
+    def __init__(self, definition='ignore'):
         core.BaseReader.__init__(self)
-        self.header = IpacHeader()
+        self.header = IpacHeader(definition=definition)
         self.data = IpacData()
 
     def write(self, table=None):
@@ -75,6 +84,7 @@ class IpacHeader(core.BaseHeader):
     comment = r'\\'
     splitter_class = core.BaseSplitter
     col_type_map = {'int': core.IntType,
+                    'integer': core.IntType,
                     'long': core.IntType,
                     'double': core.FloatType,
                     'float': core.FloatType,
@@ -88,11 +98,15 @@ class IpacHeader(core.BaseHeader):
                     'r': core.FloatType,
                     'c': core.StrType}
 
-    def __init__(self):
+    def __init__(self, definition='ignore'):
         self.splitter = self.__class__.splitter_class()
         self.splitter.process_line = None
         self.splitter.process_val = None
         self.splitter.delimiter = '|'
+        if definition in ['ignore', 'left', 'right']:
+            self.ipac_definition = definition
+        else:
+            raise ValueError("definition should be one of ignore/left/right")
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
@@ -144,6 +158,12 @@ class IpacHeader(core.BaseHeader):
             start = col.end + 1
             cols.append(col)
 
+            # Correct column start/end based on definition
+            if self.ipac_definition == 'right':
+                col.start -= 1
+            elif self.ipac_definition == 'left':
+                col.end += 1
+
         # Standard column name filtering (include or exclude names)
         self.names = [x.name for x in cols]
         names = set(self.names)
@@ -163,4 +183,3 @@ class IpacData(core.BaseData):
     """IPAC table data reader"""
     splitter_class = fixedwidth.FixedWidthSplitter
     comment = r'[|\\]'
-
