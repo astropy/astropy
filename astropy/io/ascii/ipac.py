@@ -53,15 +53,11 @@ class Ipac(core.BaseReader):
     Parameters
     ----------
     definition : str, optional
-        The rules regarding characters below the pipe (`|`) symbols have
-        changed over time, and the user can set which rule to follow using
-        this parameter. The most recent definition is that no characters
-        should be present under the pipe symbol (`definition='between').
-        However, some tables contain characters under the pipe symbol which
-        belong either to the column before (`definiton='left'`) or after
-        (`definition='right'`) the pipe symbol. The default is
-        `definition='right'`, but note that this will also parse tables with
-        no characters under the pipe symbol.
+        Specify the convention for characters in the data table that occur directly 
+        below the pipe (`|`) symbol in the header column definition:
+          'ignore' :  any character beneath a pipe symbol is ignored (default)
+          'right' : character is associated with the column to the right
+          'left' : character is associated with the column to the left
 
     Caveats:
 
@@ -73,7 +69,7 @@ class Ipac(core.BaseReader):
     Overcoming these limitations would not be difficult, code contributions
     welcome from motivated users.
     """
-    def __init__(self, definition='right'):
+    def __init__(self, definition='ignore'):
         core.BaseReader.__init__(self)
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
@@ -102,12 +98,12 @@ class IpacHeader(core.BaseHeader):
                     'r': core.FloatType,
                     'c': core.StrType}
 
-    def __init__(self, definition='right'):
+    def __init__(self, definition='ignore'):
         self.splitter = self.__class__.splitter_class()
         self.splitter.process_line = None
         self.splitter.process_val = None
         self.splitter.delimiter = '|'
-        if definition in ['between', 'left', 'right']:
+        if definition in ['ignore', 'left', 'right']:
             self.ipac_definition = definition
         else:
             raise ValueError("definition should be one of between/left/right")

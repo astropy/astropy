@@ -8,14 +8,14 @@ ABBBBBBABBBBBBBA
 '''
 
 def test_ipac_default():
-    # default should be right
+    # default should be ignore
     table = read(DATA, Reader=Ipac)
-    assert table['a'][0] == 'ABBBBBB'
-    assert table['b'][0] == 'ABBBBBBB'
+    assert table['a'][0] == 'BBBBBB'
+    assert table['b'][0] == 'BBBBBBB'
 
 
-def test_ipac_between():
-    table = read(DATA, Reader=Ipac, definition='between')
+def test_ipac_ignore():
+    table = read(DATA, Reader=Ipac, definition='ignore')
     assert table['a'][0] == 'BBBBBB'
     assert table['b'][0] == 'BBBBBBB'
     
