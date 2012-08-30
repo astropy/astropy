@@ -75,8 +75,8 @@ deviation errors on the pixel values, you can do::
     >>> from astropy.nddata import StandardDeviationError
     >>> ndd.error = StandardDeviationError(np.ones((12, 12, 12)) * 0.1)
 
-.. note:: For information on creating your own error classes, see
-          :doc:`subclassing`.
+.. note:: For information on creating your own error classes,
+          see :doc:`subclassing`.
 
 Arithmetic
 ----------
