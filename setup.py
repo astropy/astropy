@@ -59,7 +59,12 @@ cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 
              # Use a custom build command which understands additional
              # commandline arguments
-             'build': setup_helpers.AstropyBuild
+             'build': setup_helpers.AstropyBuild,
+
+             # Use a custom install command which understands additional
+             # commandline arguments
+             'install': setup_helpers.AstropyInstall
+
              }
 
 if setup_helpers.HAVE_CYTHON and not release:
