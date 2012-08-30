@@ -6,17 +6,17 @@ __all__ = ['MissingDataAssociationException', 'IncompatibleErrorsException', 'ND
 
 
 class IncompatibleErrorsException(Exception):
-   """
-   This exception should be used to indicate cases in which errors with two different classes can not be propagated.
-   """
-   pass
+    """
+    This exception should be used to indicate cases in which errors with two different classes can not be propagated.
+    """
+    pass
 
 
 class MissingDataAssociationException(Exception):
-   """
-   This exception should be used to indicate that an error instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
-   """
-   pass
+    """
+    This exception should be used to indicate that an error instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
+    """
+    pass
 
 
 class NDError(object):
@@ -139,21 +139,19 @@ class StandardDeviationError(NDError):
     A class for standard deviation errors
     '''
 
-    def __init__(self, array=None, parent_nddata=None):
-
-        # First initialize internal values to None
-        self._parent_nddata = None
-        self._array = None
-
+    def __init__(self, array=None):
         self.array = array
-        self.parent_nddata = parent_nddata
 
     @property
     def parent_nddata(self):
-        if self._parent_nddata is None:
+        try:
+            if self._parent_nddata is None:
+                raise MissingDataAssociationException("Error is not associated with an NDData object")
+            else:
+                return self._parent_nddata
+        except AttributeError:
             raise MissingDataAssociationException("Error is not associated with an NDData object")
-        else:
-            return self._parent_nddata
+
 
     @parent_nddata.setter
     def parent_nddata(self, value):
