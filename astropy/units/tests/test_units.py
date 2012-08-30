@@ -2,12 +2,12 @@
 Regression tests for the units package
 """
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, unicode_literals, division, print_function
 import pytest
 from numpy.testing import assert_allclose
 from astropy.tests.helper import raises
 
-from astropy import units as u
+from ... import units as u
 
 
 def test_getting_started():

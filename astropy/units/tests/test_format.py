@@ -1,5 +1,11 @@
-from astropy.units import format
-from astropy import units as u
+"""
+Regression tests for the units.format package
+"""
+
+from __future__ import absolute_import, unicode_literals, division, print_function
+
+from ... import units as u
+from .. import format
 
 
 def test_unit_grammar():
