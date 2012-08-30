@@ -11,18 +11,22 @@ should provide methods with the following API::
 
        def propagate_add(self, other_nddata, result_data):
            ...
+           result_error = MyError(...)
            return result_error
 
        def propagate_subtract(self, other_nddata, result_data):
            ...
+           result_error = MyError(...)
            return result_error
 
        def propagate_multiply(self, other_nddata, result_data):
            ...
+           result_error = MyError(...)
            return result_error
 
        def propagate_divide(self, other_nddata, result_data):
            ...
+           result_error = MyError(...)
            return result_error
 
 The error class will have an attribute ``self.parent_nddata`` that is set to
