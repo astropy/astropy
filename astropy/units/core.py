@@ -341,7 +341,7 @@ class NamedUnit(UnitBase):
         canonical (short) name, and the rest of the elements are
         aliases.
 
-    var : boolean, optional
+    register : boolean, optional
         When `True`, also register the unit in the standard unit
         namespace.  Default is `False`.
 
@@ -364,7 +364,7 @@ class NamedUnit(UnitBase):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
-    def __init__(self, st, var=False, doc=None, format=None):
+    def __init__(self, st, register=False, doc=None, format=None):
         UnitBase.__init__(self)
 
         if isinstance(st, (bytes, unicode)):
@@ -391,7 +391,7 @@ class NamedUnit(UnitBase):
 
         self.__doc__ = doc
 
-        self._register_unit(var)
+        self._register_unit(register)
 
     def _generate_doc(self):
         """
@@ -446,7 +446,7 @@ class NamedUnit(UnitBase):
         """
         return self._names[1:]
 
-    def _register_unit(self, var):
+    def _register_unit(self, register):
         """
         Registers the unit in the registry, and optionally in another
         namespace.  It is registered under all of the names and
@@ -456,7 +456,7 @@ class NamedUnit(UnitBase):
 
         Parameters
         ----------
-        var : bool
+        register : bool
             When `True`, register the unit in the external namespace
             as well as the central registry.
         """
@@ -476,7 +476,7 @@ class NamedUnit(UnitBase):
 
             self._registry[st] = self
 
-            if var:
+            if register:
                 if st in self._namespace:
                     raise ValueError(
                         "Object with name {0!r} already exists "
@@ -511,7 +511,7 @@ class UnitClass(NamedUnit):
     represents : UnitBase instance
         The unit that this named unit represents.
 
-    var : boolean, optional
+    register : boolean, optional
         When `True`, also register the unit in the standard unit
         namespace.  Default is `False`.
 
@@ -535,12 +535,12 @@ class UnitClass(NamedUnit):
         If any of the given unit names are not valid Python tokens.
     """
 
-    def __init__(self, st, represents, var=False, doc=None,
+    def __init__(self, st, represents, register=False, doc=None,
                  format=None):
         represents = Unit(represents)
         self._represents = represents
 
-        NamedUnit.__init__(self, st, var=var, doc=doc, format=format)
+        NamedUnit.__init__(self, st, register=register, doc=doc, format=format)
 
     def _generate_doc(self):
         return "{0} represents {1}.".format(
@@ -773,7 +773,7 @@ si_prefixes = [
     ]
 
 
-def _add_prefixes(u, excludes=[], var=False):
+def _add_prefixes(u, excludes=[], register=False):
     """
     Set up all of the standard metric prefixes for a unit.  This
     function should not be used directly, but instead use the
@@ -785,7 +785,7 @@ def _add_prefixes(u, excludes=[], var=False):
         Any prefixes to exclude from creation to avoid namespace
         collisions.
 
-    var : bool, optional
+    register : bool, optional
         When `True`, also register the unit in the standard unit
         namespace.  Default is `False`.
     """
@@ -815,10 +815,10 @@ def _add_prefixes(u, excludes=[], var=False):
             for alias in u.aliases:
                 names.append(prefix + alias)
 
-        PrefixUnit(names, factor * u, var=var, format=format)
+        PrefixUnit(names, factor * u, register=register, format=format)
 
 
-def def_unit(s, represents=None, var=None, doc=None,
+def def_unit(s, represents=None, register=None, doc=None,
              format={}, prefixes=False, exclude_prefixes=[]):
     """
     Factory function for defining new units.
@@ -834,7 +834,7 @@ def def_unit(s, represents=None, var=None, doc=None,
         The unit that this named unit represents.  If not provided,
         a new `IrreducibleUnit` is created.
 
-    var : boolean, optional
+    register : boolean, optional
         When `True`, also register the unit in the standard unit
         namespace.  Default is `False`.
 
@@ -868,16 +868,16 @@ def def_unit(s, represents=None, var=None, doc=None,
     -------
     `UnitBase` object
     """
-    if var is None:
-        var = False
+    if register is None:
+        register = False
     if represents is not None:
-        result = UnitClass(s, represents, var=var, doc=doc,
+        result = UnitClass(s, represents, register=register, doc=doc,
                            format=format)
     else:
-        result = IrreducibleUnit(s, var=var, doc=doc, format=format)
+        result = IrreducibleUnit(s, register=register, doc=doc, format=format)
 
     if prefixes:
-        _add_prefixes(result, excludes=exclude_prefixes, var=var)
+        _add_prefixes(result, excludes=exclude_prefixes, register=register)
     return result
 
 

@@ -12,3 +12,7 @@ if anyone else had contributed code to units besides Andrew Pontzen.
 
 from .core import *
 from .standard_units import *
+
+# After importing standard_units, set the unit namespace to this
+# top-level module so that new units are added here.
+UnitBase._set_namespace(globals())

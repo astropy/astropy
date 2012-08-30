@@ -141,3 +141,12 @@ def test_get_equivalent_units():
 @raises(ValueError)
 def test_unknown_unit():
     u.Unit("foo")
+
+
+def test_register():
+    try:
+        u.def_unit("foo", u.m ** 3, register=True)
+        assert hasattr(u, 'foo')
+    finally:
+        if hasattr(u, 'foo'):
+            del u.foo
