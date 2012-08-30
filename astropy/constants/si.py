@@ -78,19 +78,22 @@ Ryd = Constant(10973731.568539, 0.000055,
 # DISTANCE
 
 # Astronomical Unit
-au = Constant(1.4959787066e11, 0.00000000005e11,
+au = Constant(1.49597870700e11, 0.0,
               "Astronomical Unit",
-              "Allen's Astrophysical Quantities 4th Ed.", 'm')
+              "IAU 2012 Resolution B2", 'm')
 
 # Parsec
-pc = Constant(3.0856776e16, 0.00000005e16,
+
+pc = Constant(au / np.tan(np.radians(1./3600.)),
+              au.error / np.tan(np.radians(1./3600.)),
               "Parsec",
-              "Allen's Astrophysical Quantities 4th Ed.", 'm')
+              "Derived from au", 'm')
 
 # Kiloparsec
-kpc = Constant(3.0856776e19, 0.00000005e19,
+kpc = Constant(1000. * au / np.tan(np.radians(1./3600.)),
+               1000. * au.error / np.tan(np.radians(1./3600.)),
               "Kiloparsec",
-              "Allen's Astrophysical Quantities 4th Ed.", 'm')
+              "Derived from au", 'm')
 
 # SOLAR QUANTITIES
 
