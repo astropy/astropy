@@ -17,7 +17,7 @@ from . import format as unit_format
 
 __all__ = [
     'UnitsException', 'UnitBase', 'NamedUnit',
-    'IrreducibleUnit', 'UnitClass', 'Unit', 'def_unit',
+    'IrreducibleUnit', 'Unit', 'Unit', 'def_unit',
     'CompositeUnit', 'PrefixUnit', 'get_equivalent_units',
     'print_equivalent_units']
 
@@ -497,9 +497,67 @@ class IrreducibleUnit(NamedUnit):
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
-class UnitClass(NamedUnit):
+class _UnitMetaClass(type):
     """
-    A named unit that is equivalent to another unit.
+    This metaclass exists because the Unit constructor should
+    sometimes return instances that already exist.  This "overrides"
+    the constructor before the new instance is actually created, so we
+    can return an existing one.
+    """
+    def __call__(self, s, represents=None, format=None, register=False,
+                 doc=None):
+        if represents is not None:
+            # This has the effect of calling the real __new__ and
+            # __init__ on the Unit class.
+            return super(_UnitMetaClass, self).__call__(
+                s, represents, format=format, register=register, doc=doc)
+            raise TypeError("Can not convert {0!r} to a unit".format(s))
+
+        elif isinstance(s, UnitBase):
+            return s
+
+        elif isinstance(s, (bytes, unicode)):
+            if format is None:
+                format = 'generic'
+
+            f = unit_format.get_format(format)
+            return f.parse(s)
+
+        elif isinstance(s, (int, float, np.floating, np.integer)):
+            return CompositeUnit(s, [], [])
+
+
+class Unit(NamedUnit):
+    """
+    There are a number of different ways to construct a Unit, but
+    always returns a `UnitBase` instance.  If the arguments refer to
+    an already-existing unit, that existing unit instance is returned,
+    rather than a new one.
+
+
+    - From a string::
+
+        Unit(s, format=None)
+
+      Construct from a string representing a (possibly compount) unit.
+      The optional `format` keyword argument specifies the format the
+      string is in, by default ``"generic"``.  For a description of
+      the available formats, see `astropy.units.format`.
+
+    - From a number::
+
+        Unit(number)
+
+      Creates a dimensionless unit.
+
+    - From a `UnitBase` instance::
+
+        Unit(unit)
+
+      Returns the given unit unchanged.
+
+    - The last form, which creates a new `Unit` is described in detail
+      below.
 
     Parameters
     ----------
@@ -534,6 +592,7 @@ class UnitClass(NamedUnit):
     ValueError
         If any of the given unit names are not valid Python tokens.
     """
+    __metaclass__ = _UnitMetaClass
 
     def __init__(self, st, represents, register=False, doc=None,
                  format=None):
@@ -551,13 +610,13 @@ class UnitClass(NamedUnit):
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
-class PrefixUnit(UnitClass):
+class PrefixUnit(Unit):
     """
     A unit that is simply a SI-prefixed version of another unit.
 
     For example, `mm` is a `PrefixUnit` of ``.001 * m``.
 
-    The constructor is the same as for `UnitClass`.
+    The constructor is the same as for `Unit`.
     """
     pass
 
@@ -625,7 +684,7 @@ class CompositeUnit(UnitBase):
         trash = []
 
         for i, (b, p) in enumerate(zip(self._bases, self._powers)):
-            if isinstance(b, UnitClass) and expand_to_decompose:
+            if isinstance(b, Unit) and expand_to_decompose:
                 b = b._represents.decompose()
 
             if isinstance(b, CompositeUnit):
@@ -703,55 +762,6 @@ class CompositeUnit(UnitBase):
         return c
 
 
-def Unit(s, format=None):
-    """
-    A factory function to create units.  Given a number of different
-    ways to construct, always returns a `UnitBase` instance.
-
-    This factory may be called in a number of forms:
-
-    - From a string::
-
-        Unit(s, format=None)
-
-      Construct from a string representing a (possibly compount) unit.
-      The optional `format` keyword argument specifies the format the
-      string is in, by default ``"generic"``.  For a description of
-      the available formats, see `astropy.units.format`.
-
-    - From a number::
-
-        Unit(number)
-
-      Creates a dimensionless unit.
-
-    - From a `UnitBase` instance::
-
-        Unit(unit)
-
-      Returns the given unit unchanged.
-
-    Returns
-    -------
-    `UnitBase` object
-    """
-    if isinstance(s, UnitBase):
-        return s
-
-    elif isinstance(s, (bytes, unicode)):
-        if format is None:
-            format = 'generic'
-
-        f = unit_format.get_format(format)
-        return f.parse(s)
-
-    elif isinstance(s, (int, float, np.floating, np.integer)):
-        return CompositeUnit(s, [], [])
-
-    else:
-        raise TypeError("Can not convert {0!r} to a unit".format(s))
-
-
 si_prefixes = [
     (['Y'], ['yotta'], 1e24),
     (['Z'], ['zetta'], 1e21),
@@ -822,7 +832,7 @@ def _add_prefixes(u, excludes=[], register=False):
 
 
 def def_unit(s, represents=None, register=None, doc=None,
-             format={}, prefixes=False, exclude_prefixes=[]):
+             format=None, prefixes=False, exclude_prefixes=[]):
     """
     Factory function for defining new units.
 
@@ -874,8 +884,8 @@ def def_unit(s, represents=None, register=None, doc=None,
     if register is None:
         register = False
     if represents is not None:
-        result = UnitClass(s, represents, register=register, doc=doc,
-                           format=format)
+        result = Unit(s, represents, register=register, doc=doc,
+                      format=format)
     else:
         result = IrreducibleUnit(s, register=register, doc=doc, format=format)
 
