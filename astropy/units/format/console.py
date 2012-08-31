@@ -45,16 +45,13 @@ class Console(base.Base):
         return ' '.join(out)
 
     def _format_exponential_notation(self, val):
+        m, ex = utils.split_mantissa_exponent(val)
+
         parts = []
+        if m:
+            parts.append(m)
 
-        x = "{0:.2e}".format(val).split('e')
-        if x[0] != '1.00':
-            parts.append(x[0])
-
-        ex = x[1].lstrip("0+")
-        if len(ex) > 0 and ex[0] == '-':
-            ex = '-' + ex[1:].lstrip('0')
-        if ex != '':
+        if ex:
             parts.append("10{0}".format(
                 self._format_superscript(ex)))
 

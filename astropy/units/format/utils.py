@@ -31,3 +31,23 @@ def get_grouped_by_powers(unit):
         else:
             raise ValueError("Unit with 0 power")
     return positive, negative
+
+
+def split_mantissa_exponent(v):
+    """
+    Given a number, split it into its mantissa and base 10 exponent
+    parts, each as strings.
+    """
+    parts = []
+
+    x = "{0:.2e}".format(val).split('e')
+    if x[0] != '1.00':
+        m = x[0]
+    else:
+        m = ''
+
+    ex = x[1].lstrip("0+")
+    if len(ex) > 0 and ex[0] == '-':
+        ex = '-' + ex[1:].lstrip('0')
+
+    return m, ex
