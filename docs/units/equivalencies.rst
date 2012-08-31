@@ -32,8 +32,7 @@ Length and frequency are not normally convertible, so
   UnitsException: 'nm' and 'Hz' are not convertible
 
 However, when passing the result of `sp` as the third argument to the
-`to`, function, wavelength, frequency and energy can be
-converted.
+`to` method, wavelength, frequency and energy can be converted.
 
   >>> u.nm.to(u.Hz, [1000, 2000], u.sp())
   array([  2.99792458e+14,   1.49896229e+14])
