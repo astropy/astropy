@@ -23,8 +23,9 @@ def get_format(format=None):
 
     Parameters
     ----------
-    format : str or `astropy.units.format.Base` instance
-        The name of the format, or the format instance itself.
+    format : str or `astropy.units.format.Base` instance or subclass
+        The name of the format, or the format instance or subclass
+        itself.
 
     Returns
     -------
