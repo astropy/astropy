@@ -298,10 +298,11 @@ conversions is `spectral_density` (aliased to `sd`).  This function
 takes as its arguments the unit and value for the spectral location.
 For example::
 
-  >>> u.flam.to(u.fnu, 1, u.sd(u.AA, 3500))
-  4.086160166177361e-12
-  >>> u.flam.get_converter(u.Jy, u.sd(u.eV, 2.2))(0.0001)
-  105941625.20578358
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1., u.sd(u.AA, 3500))
+  1.0000000000000001e-23
+
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1., u.sd(u.AA, 3500))
+  2.4472853714285712e-08
 
 Writing new equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^
