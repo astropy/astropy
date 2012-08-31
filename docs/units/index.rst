@@ -111,9 +111,6 @@ method::
 
 .. TODO: Add function and description to factor units into high-level pieces
 
-Defining new units
-------------------
-
 Converting units to and from strings
 ------------------------------------
 
