@@ -14,6 +14,8 @@ Getting Started
 ===============
 
   >>> from astropy import units as u
+  >>> u.pc.to(u.m, 1)
+  3.0856776e+16
   >>> speed_unit = u.cm / u.s
   >>> speed_unit.to(u.mile / u.hour, 1)
   0.02236936292054402
