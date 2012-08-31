@@ -189,7 +189,7 @@ class UnitBase(object):
 
         equivs : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`equivalencies`.
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Returns
         -------
@@ -266,7 +266,7 @@ class UnitBase(object):
 
         equivs : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`equivalencies`.
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Returns
         -------
@@ -304,7 +304,7 @@ class UnitBase(object):
 
         equivs : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`equivalencies`.
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Returns
         -------
@@ -387,10 +387,6 @@ class NamedUnit(UnitBase):
         if doc is None:
             doc = self._generate_doc()
 
-        if len(self.aliases):
-            doc += "\n\n**Aliases:** {0}\n\n".format(
-                ', '.join(self.aliases))
-
         doc = textwrap.dedent(doc)
         doc = textwrap.fill(doc)
 
@@ -406,7 +402,7 @@ class NamedUnit(UnitBase):
         """
         names = self.names
         if len(self.names) > 1:
-            return "{0} ({1})".format(*names[:2])
+            return "{1} ({0})".format(*names[:2])
         else:
             return names[0]
 
@@ -534,11 +530,12 @@ class _UnitMetaClass(type):
 
 class Unit(NamedUnit):
     """
+    The main unit class.
+
     There are a number of different ways to construct a Unit, but
     always returns a `UnitBase` instance.  If the arguments refer to
     an already-existing unit, that existing unit instance is returned,
     rather than a new one.
-
 
     - From a string::
 
@@ -605,10 +602,6 @@ class Unit(NamedUnit):
         self._represents = represents
 
         NamedUnit.__init__(self, st, register=register, doc=doc, format=format)
-
-    def _generate_doc(self):
-        return "{0} represents {1}.".format(
-            NamedUnit._generate_doc(self), str(self._represents))
 
     def decompose(self):
         return self._represents.decompose()
@@ -949,7 +942,7 @@ def get_equivalent_units(u, equivs=[]):
 
     equivs : list of equivalence pairs, optional
         A list of equivalence pairs to also list.  See
-        :ref:`equivalencies`.
+        :ref:`unit_equivalencies`.
 
     Returns
     -------
@@ -992,7 +985,7 @@ def print_equivalent_units(u, equivs=[]):
 
     equivs : list of equivalence pairs, optional
         A list of equivalence pairs to also list.  See
-        :ref:`equivalencies`.
+        :ref:`unit_equivalencies`.
     """
     equivs = get_equivalent_units(u, equivs=equivs)
 
