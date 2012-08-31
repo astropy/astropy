@@ -5,6 +5,7 @@ Handles the "VOUnit" unit format.
 import warnings
 
 from . import generic
+from . import utils
 
 
 class VOUnit(generic.Generic):
@@ -87,3 +88,29 @@ class VOUnit(generic.Generic):
                 DeprecationWarning)
 
         return name
+
+    def to_string(self, unit):
+        from .. import core
+
+        if isinstance(unit, core.CompositeUnit):
+            s = ''
+            if unit.scale != 1:
+                m, ex = utils.split_mantissa_exponent(unit.scale)
+                if m:
+                    s += m + ' '
+                if ex:
+                    s += ' 10'
+                    if not ex.startswith('-'):
+                        s += '+'
+                    s += ex
+            else:
+                s = ''
+
+            pairs = zip(unit.bases, unit.powers)
+            pairs.sort(key=lambda x: x[1])
+
+            s += self._format_unit_list(pairs)
+        elif isinstance(unit, core.NamedUnit):
+            s = self._get_unit_name(unit)
+
+        return s

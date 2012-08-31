@@ -123,6 +123,10 @@ class Generic(Base):
         factor << (
             (unsigned_integer + signed_integer) |
             (unsigned_integer + p.Suppress(power) + numeric_power) |
+            (floating_point + p.Suppress(p.White()) +
+             unsigned_integer + signed_integer) |
+            (floating_point + p.Suppress(p.White()) +
+             unsigned_integer + p.Suppress(power) + numeric_power) |
             (floating_point)
             )
 
@@ -160,6 +164,11 @@ class Generic(Base):
 
     @classmethod
     @_trace
+    def _parse_signed_integer(cls, s, loc, toks):
+        return int(toks[0])
+
+    @classmethod
+    @_trace
     def _parse_integer(cls, s, loc, toks):
         return int(toks[0])
 
@@ -173,8 +182,10 @@ class Generic(Base):
     def _parse_factor(cls, s, loc, toks):
         if len(toks) == 1:
             return toks[0]
-        else:
+        elif len(toks) == 2:
             return toks[0] ** float(toks[1])
+        elif len(toks) == 3:
+            return float(toks[0]) * toks[1] ** float(toks[2])
 
     @classmethod
     @_trace
@@ -253,7 +264,7 @@ class Generic(Base):
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                s = '{0:.2e} '.format(unit.scale)
+                s = '{0:e} '.format(unit.scale)
             else:
                 s = ''
 

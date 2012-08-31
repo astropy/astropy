@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose
 from ... import units as u
 from .. import core
 from .. import format
+from ... import wcs
 
 
 def test_unit_grammar():
@@ -47,6 +48,19 @@ def test_roundtrip():
             yield _test_roundtrip, val
 
 
+def test_roundtrip_vo_unit():
+    def _test_roundtrip_vo_unit(unit):
+        a = core.Unit(unit.to_string('vounit'), format='vounit')
+        b = core.Unit(unit.decompose().to_string('vounit'), format='vounit')
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+
+    x = format.VOUnit()
+    for key, val in x._units.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_roundtrip_vo_unit, val
+
+
 def test_fits_units_available():
     format.Fits()
 
@@ -58,3 +72,18 @@ def test_vo_units_available():
 def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\ cm^{2}}}$'
+
+
+def test_wcs_parse():
+    """
+    Tests that the output of to_string('fits') is also parsed by
+    wcslib.  Even if we deprecated access to wcslib's unit parser, we
+    may want to keep it around and hidden for this test.
+    """
+    def _test_wcs_parse(unit):
+        fits_string = unit.decompose().to_string('fits')
+        wcs.UnitConverter(fits_string, fits_string)
+
+    for key, val in u.__dict__.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_wcs_parse, val

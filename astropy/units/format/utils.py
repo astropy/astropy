@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Utilities used by a number of the formats.
+Utilities shared by the different formats.
 """
 
 
@@ -38,10 +38,8 @@ def split_mantissa_exponent(v):
     Given a number, split it into its mantissa and base 10 exponent
     parts, each as strings.
     """
-    parts = []
-
-    x = "{0:.2e}".format(v).split('e')
-    if x[0] != '1.00':
+    x = "{0:.4e}".format(v).split('e')
+    if x[0] != '1.' + '0' * (len(x[0]) - 2):
         m = x[0]
     else:
         m = ''

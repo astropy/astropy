@@ -35,7 +35,7 @@ def_unit(['micron'], um, register=True,
 
 def_unit(['AA', 'Angstrom', 'angstrom'], 0.1 * nm, register=True, prefixes=True,
          doc="ångström: 10 ** -10 m",
-         format={'latex': r'\AA', 'unicode': 'Å'})
+         format={'latex': r'\AA', 'unicode': 'Å', 'vounit': 'angstrom'})
 
 def_unit(['solRad'], _si.R_sun * m, register=True,
          doc="Solar radius")

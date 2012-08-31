@@ -96,3 +96,18 @@ class Fits(generic.Generic):
                 DeprecationWarning)
 
         return name
+
+    def to_string(self, unit):
+        from .. import core
+
+        # The FITS standard only allows powers of 10 as a multiplier.
+
+        if isinstance(unit, core.CompositeUnit):
+            pairs = zip(unit.bases, unit.powers)
+            pairs.sort(key=lambda x: x[1])
+
+            s = self._format_unit_list(pairs)
+        elif isinstance(unit, core.NamedUnit):
+            s = self._get_unit_name(unit)
+
+        return s
