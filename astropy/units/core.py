@@ -738,7 +738,7 @@ def Unit(s, format=None):
     if isinstance(s, UnitBase):
         return s
 
-    elif isinstance(s, (bytes, str)):
+    elif isinstance(s, (bytes, unicode)):
         if format is None:
             format = 'generic'
 
@@ -747,6 +747,9 @@ def Unit(s, format=None):
 
     elif isinstance(s, (int, float, np.floating, np.integer)):
         return CompositeUnit(s, [], [])
+
+    else:
+        raise TypeError("Can not convert {0!r} to a unit".format(s))
 
 
 si_prefixes = [

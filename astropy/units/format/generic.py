@@ -226,7 +226,7 @@ class Generic(Base):
             return toks[1] ** -2.0
 
     def parse(self, s):
-        if not hasattr(Generic, '_unit_namespace'):
+        if '_unit_namespace' not in Generic.__dict__:
             from astropy.units import standard_units as u
             Generic._unit_namespace = u
 

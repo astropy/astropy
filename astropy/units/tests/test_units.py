@@ -59,7 +59,7 @@ def test_composite():
 
     assert u.m / 4.0 == 0.25 * u.m
 
-    #assert u.hz.convert(1000 * u.hz)(1) == 0.001
+    assert u.Hz.to(1000 * u.Hz, 1) == 0.001
 
 
 def test_str():
