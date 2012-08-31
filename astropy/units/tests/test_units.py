@@ -112,7 +112,10 @@ def test_spectraldensity():
 
 
 def test_spectraldensity2():
-    a = u.flam.to(u.fnu, 1, u.sd(u.AA, 3500))
+    flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
+    fnu = u.erg / u.Hz / u.cm ** 2 / u.s
+
+    a = flambda.to(fnu, 1, u.sd(u.AA, 3500))
     assert_allclose(a, 4.086160166177361e-12)
 
 

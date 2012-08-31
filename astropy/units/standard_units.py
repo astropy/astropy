@@ -282,12 +282,8 @@ def_unit(['pix', 'pixel'], register=True)
 ###########################################################################
 # SPECTRAL DENSITY
 
-def_unit(['flam', 'flambda'], erg / angstrom / cm ** 2 / s, register=True,
-         prefixes=True,
-         format={'latex': r'f_{\lambda}', 'unicode': 'fλ'})
-def_unit(['fnu'], erg / Hz / cm ** 2 / s, register=True, prefixes=True,
-         format={'latex': r'f_{\nu}', 'unicode': 'fν'})
-def_unit(['Jy', 'Jansky', 'jansky'], 10 ** -23 * fnu, register=True, prefixes=True)
+def_unit(['Jy', 'Jansky', 'jansky'], 10 ** -23 * erg / Hz / cm ** 2 / s,
+         register=True, prefixes=True)
 def_unit(['R', 'Rayleigh', 'rayleigh'],
      (1e10 / (4 * _numpy.pi)) * ph * m ** -2 * s ** -1 * sr ** -1,
      register=True, prefixes=True)
@@ -341,12 +337,10 @@ def spectral_density(sunit, sfactor):
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
     """
-    fnu_side = ((1.0 / sunit.to(AA, sfactor, sp()) ** 2) *
-                (fnu / (_si.c * 10 ** 10)))
-    hz_side = ((1.0 / sunit.to(AA, sfactor, sp()) ** 2) *
-                (Hz / (_si.c * 10 ** 10)))
-
     c_Aps = _si.c * 10 ** 10
+
+    flambda = erg / angstrom / cm ** 2 / s
+    fnu = erg / Hz / cm ** 2 / s
 
     def converter(x):
         return x * (sunit.to(AA, sfactor, sp()) ** 2 / c_Aps)
@@ -361,12 +355,6 @@ def spectral_density(sunit, sfactor):
         (flambda, Hz, converter, iconverter)
         ]
 
-    return [
-        (AA, fnu_side),
-        (AA, hz_side),
-        (flambda, fnu_side),
-        (flambda, hz_side)
-    ]
 sd = spectral_density
 
 
