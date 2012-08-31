@@ -200,13 +200,15 @@ class UnitBase(object):
         try:
             (self / other).dimensionless_constant()
         except UnitsException:
+            unit = self.decompose()
+            other = other.decompose()
             for equiv in equivs:
                 a = equiv[0]
                 b = equiv[1]
-                if (self.is_equivalent(a) and
+                if (unit.is_equivalent(a) and
                     other.is_equivalent(b)):
                     return True
-                elif (self.is_equivalent(b) and
+                elif (unit.is_equivalent(b) and
                       other.is_equivalent(a)):
                     return True
             return False
@@ -222,6 +224,9 @@ class UnitBase(object):
             def convert(v):
                 return func(_condition_arg(v) * scale1) * scale2
             return convert
+
+        unit = self.decompose()
+        other = other.decompose()
 
         for equiv in equivs:
             if len(equiv) == 2:
@@ -284,7 +289,7 @@ class UnitBase(object):
                 self, other, equivs)
         return lambda val: scale * _condition_arg(val)
 
-    def to(self, other, value = 1.0, equivs=[]):
+    def to(self, other, value=1.0, equivs=[]):
         """
         Return the converted values in the specified unit.
 
@@ -684,13 +689,13 @@ class CompositeUnit(UnitBase):
         trash = []
 
         for i, (b, p) in enumerate(zip(self._bases, self._powers)):
-            if isinstance(b, Unit) and expand_to_decompose:
-                b = b._represents.decompose()
-
-            if isinstance(b, CompositeUnit):
-                if expand_to_decompose:
+            if expand_to_decompose:
+                if isinstance(b, Unit) and expand_to_decompose:
+                    b = b._represents.decompose()
+                elif isinstance(b, CompositeUnit):
                     b = b.decompose()
 
+            if isinstance(b, CompositeUnit):
                 trash.append(i)
                 self._scale *= b._scale ** p
                 for b_sub, p_sub in zip(b._bases, b._powers):
@@ -701,6 +706,8 @@ class CompositeUnit(UnitBase):
         for offset, i in enumerate(trash):
             del self._bases[i - offset]
             del self._powers[i - offset]
+
+        return len(trash)
 
     def _gather(self):
         """
@@ -736,8 +743,8 @@ class CompositeUnit(UnitBase):
 
     def decompose(self):
         x = CompositeUnit(self.scale, self.bases[:], self.powers[:])
-        x._expand(True)
-        x._gather()
+        if x._expand(True):
+            x._gather()
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
@@ -961,14 +968,14 @@ def get_equivalent_units(u, equivs=[]):
     equivs = set()
     for ukey in UnitBase._registry:
         tunit = UnitBase._registry[ukey]
-        for u in units:
-            try:
-                tunit.get_converter(u)
-            except UnitsException:
-                pass
-            else:
-                if (tunit.name == ukey and
-                    not isinstance(tunit, PrefixUnit)):
+        if (tunit.name == ukey and
+            not isinstance(tunit, PrefixUnit)):
+            for u in units:
+                try:
+                    tunit.get_converter(u)
+                except UnitsException:
+                    pass
+                else:
                     equivs.add(tunit)
 
     return equivs
