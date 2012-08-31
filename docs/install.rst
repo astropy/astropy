@@ -127,6 +127,52 @@ use the system `libexpat`, add the following to the `setup.cfg` file::
     [build]
     use_system_expat=1
 
+Compatibility packages
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. warning:: This feature is still experimental, and you may run into
+             unexpected issues with other packages, so we strongly
+             recommend simply updating your code to use Astropy if
+             possible, rather than rely on these compatibility packages.
+
+Optionally, it is possible to install 'compatibility' packages that
+emulate the behavior of previous packages that have now been
+incorporated into Astropy. These are:
+
+* `PyFITS <http://www.stsci.edu/institute/software_hardware/pyfits/>`_
+* `vo <https://trac.assembla.com/astrolib/>`_
+* `PyWCS <https://trac.assembla.com/astrolib/>`_
+
+If you build Astropy with::
+
+    python setup.py build --enable-legacy
+    python setup.py install
+
+or simply::
+
+    python setup.py install --enable-legacy
+
+then you will be able to import these modules from your scripts as if
+the original packages had been installed. Using::
+
+    import pyfits
+    import vo
+    import pywcs
+
+will then be equivalent to::
+
+    from astropy.io import fits as pyfits
+    from astropy.io import vo
+    from astropy import wcs as pywcs
+
+In order to install the compatibility packages none of the
+original packages should be present.
+
+.. note:: If you are interested in testing out existing code with Astropy
+          without modifying the import statements, but don't want to
+          uninstall existing packages, you can use `virtualenv
+          <http://www.virtualenv.org/>`_ to set up a clean environment.
+
 .. _builddocs:
 
 Building documentation
