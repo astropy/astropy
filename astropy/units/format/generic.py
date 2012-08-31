@@ -75,7 +75,7 @@ class Generic(Base):
         unsigned_integer = p.Regex(r'\d+')
         signed_integer = p.Regex(r'[+-]\d+')
         integer = p.Regex(r'[+-]?\d+')
-        floating_point = p.Regex(r'[+-]?((\d+\.?\d*)|(\.\d+))')
+        floating_point = p.Regex(r'[+-]?((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?')
 
         division_product_of_units = p.Forward()
         factor = p.Forward()
@@ -107,7 +107,7 @@ class Generic(Base):
              p.StringEnd()))
 
         product_of_units << (
-            (unit_expression + p.Suppress(product) + unit_expression) |
+            (unit_expression + p.Suppress(product) + product_of_units) |
             (unit_expression))
 
         function << (
@@ -226,6 +226,9 @@ class Generic(Base):
             return toks[1] ** -2.0
 
     def parse(self, s):
+        if DEBUG:
+            print("parse", s)
+
         if '_unit_namespace' not in Generic.__dict__:
             from astropy.units import standard_units as u
             Generic._unit_namespace = u

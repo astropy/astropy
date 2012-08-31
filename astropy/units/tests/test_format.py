@@ -4,7 +4,10 @@ Regression tests for the units.format package
 
 from __future__ import absolute_import, unicode_literals, division, print_function
 
+from numpy.testing import assert_allclose
+
 from ... import units as u
+from .. import core
 from .. import format
 
 
@@ -30,6 +33,18 @@ def test_unit_grammar():
     for strings, unit in data:
         for s in strings:
             yield _test_unit_grammar, s, unit
+
+
+def test_roundtrip():
+    def _test_roundtrip(unit):
+        a = core.Unit(unit.to_string('generic'), format='generic')
+        b = core.Unit(unit.decompose().to_string('generic'), format='generic')
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+
+    for key, val in u.__dict__.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_roundtrip, val
 
 
 def test_fits_units_available():

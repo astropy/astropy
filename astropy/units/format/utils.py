@@ -40,7 +40,7 @@ def split_mantissa_exponent(v):
     """
     parts = []
 
-    x = "{0:.2e}".format(val).split('e')
+    x = "{0:.2e}".format(v).split('e')
     if x[0] != '1.00':
         m = x[0]
     else:

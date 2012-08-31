@@ -507,7 +507,7 @@ class _UnitMetaClass(type):
     """
     def __call__(self, s, represents=None, format=None, register=False,
                  doc=None):
-        if represents is not None:
+        if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
             return super(_UnitMetaClass, self).__call__(
