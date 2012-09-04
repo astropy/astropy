@@ -128,6 +128,11 @@ class UnitBase(object):
     def __rmul__(self, m):
         return CompositeUnit(m, [self], [1]).simplify()
 
+    def __hash__(self):
+        # Since this class defines __eq__, it will become unhashable
+        # on Python 3.x, so we need to define our own hash.
+        return id(self)
+
     def __eq__(self, other):
         other = Unit(other)
         try:

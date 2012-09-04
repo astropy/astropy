@@ -9,7 +9,7 @@ from .generic import Generic
 from .console import Console
 from .fits import Fits
 from .latex import Latex
-from .unicode import Unicode
+from .unicode_format import Unicode
 from .vounit import VOUnit
 
 __all__ = [
