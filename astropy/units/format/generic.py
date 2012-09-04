@@ -145,12 +145,11 @@ class Generic(Base):
         frac << (
             integer + p.Suppress(division) + integer)
 
-        main.leaveWhitespace()
-
         # Set actions
         for key, val in locals().items():
             if isinstance(val, p.ParserElement):
                 val.setName(key)
+                val.leaveWhitespace()
             method_name = "_parse_{0}".format(key)
             if hasattr(cls, method_name):
                 val.setParseAction(getattr(cls, method_name))
