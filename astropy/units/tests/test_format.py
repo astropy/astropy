@@ -61,6 +61,20 @@ def test_roundtrip_vo_unit():
             yield _test_roundtrip_vo_unit, val
 
 
+def test_roundtrip_fits():
+    def _test_roundtrip_fits(unit):
+        try:
+            s = unit.to_string('fits')
+        except ValueError:
+            return
+        a = core.Unit(s, format='fits')
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+
+    for key, val in u.__dict__.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_roundtrip_fits, val
+
+
 def test_fits_units_available():
     format.Fits()
 
@@ -81,7 +95,10 @@ def test_wcs_parse():
     may want to keep it around and hidden for this test.
     """
     def _test_wcs_parse(unit):
-        fits_string = unit.decompose().to_string('fits')
+        try:
+            fits_string = unit.decompose().to_string('fits')
+        except ValueError:
+            return
         wcs.UnitConverter(fits_string, fits_string)
 
     for key, val in u.__dict__.items():
