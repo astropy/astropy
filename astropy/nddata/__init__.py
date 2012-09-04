@@ -11,6 +11,8 @@ be easily provided by a single array.
 from astropy import setup_helpers
 
 from .nddata import *
+from .nderror import *
+from .flag_collection import *
 
 if not setup_helpers.is_in_build_mode():
     from .convolution.convolve import convolve,convolve_fft
