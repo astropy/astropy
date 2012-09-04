@@ -234,6 +234,10 @@ class Generic(Base):
         # TODO: Add support for more functions here
         if toks[0] == 'sqrt':
             return toks[1] ** -2.0
+        else:
+            raise ValueError(
+                s, loc, "{0!r} is not a recognized function".format(
+                    toks[0]))
 
     def parse(self, s):
         if DEBUG:
