@@ -13,8 +13,6 @@ import numpy as _numpy
 
 UnitBase._set_namespace(globals())
 
-# TODO: Finish the docstrings
-
 ###########################################################################
 # LENGTH
 
