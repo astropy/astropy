@@ -6,8 +6,7 @@ This package defines all of the built-in units for `astropy.units`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from astropy.constants import cgs as _cgs
-from astropy.constants import si as _si
+from ..constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy
