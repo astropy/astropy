@@ -15,11 +15,12 @@ try:
 except NameError:
     unicode = basestring = str
 
-AUTO_COLNAME = 'col{0}'
-
+AUTO_COLNAME = ConfigurationItem('auto_column_name', 'col{0}', 
+    'The template that determines the name of a column if it cannot be '
+    'determined. Uses new-style (format method) string formatting')
 
 def _auto_names(n_cols):
-    return [AUTO_COLNAME.format(i) for i in range(n_cols)]
+    return [AUTO_COLNAME().format(i) for i in range(n_cols)]
 
 
 class TableColumns(OrderedDict):
