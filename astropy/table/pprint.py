@@ -19,13 +19,13 @@ def _get_pprint_size(max_lines=None, max_width=None):
     """Get the output size (number of lines and character width) for Column and
     Table pformat/pprint methods.
 
-    If no value of ``max_lines`` is supplied then the height of the screen
-    terminal is used to set ``max_lines``.  If the terminal height cannot be
+    If no value of `max_lines` is supplied then the height of the screen
+    terminal is used to set `max_lines`.  If the terminal height cannot be
     determined then the default will be determined using the
     `astropy.table.pprint.MAX_LINES` configuration item. If a negative value
-    of ``max_lines`` is supplied then there is no line limit applied.
+    of `max_lines` is supplied then there is no line limit applied.
 
-    The Same applies for max_width except the configuration item is
+    The same applies for max_width except the configuration item is
     `astropy.table.pprint.MAX_COLUMNS`.
 
     Parameters

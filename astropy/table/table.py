@@ -277,11 +277,11 @@ class Column(np.ndarray):
     def pformat(self, max_lines=None, show_name=True, show_units=False):
         """Return a list of formatted string representation of column values.
 
-        If no value of ``max_lines`` is supplied then the height of the screen
-        terminal is used to set ``max_lines``.  If the terminal height cannot
-        be determined then a default of ``astropy.table.MAX_LINES`` is used.
-        If a negative value of ``max_lines`` is supplied then there is no line
-        limit applied.
+        If no value of `max_lines` is supplied then the height of the screen
+        terminal is used to set `max_lines`.  If the terminal height cannot be
+        determined then the default will be determined using the
+        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
+        value of `max_lines` is supplied then there is no line limit applied.
 
         Parameters
         ----------
@@ -306,11 +306,11 @@ class Column(np.ndarray):
     def pprint(self, max_lines=None, show_name=True, show_units=False):
         """Print a formatted string representation of column values.
 
-        If no value of ``max_lines`` is supplied then the height of the screen
-        terminal is used to set ``max_lines``.  If the terminal height cannot
-        be determined then a default of ``astropy.table.MAX_LINES`` is used.
-        If a negative value of ``max_lines`` is supplied then there is no line
-        limit applied.
+        If no value of `max_lines` is supplied then the height of the screen
+        terminal is used to set `max_lines`.  If the terminal height cannot be
+        determined then the default will be determined using the
+        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
+        value of `max_lines` is supplied then there is no line limit applied.
 
         Parameters
         ----------
@@ -700,13 +700,13 @@ class Table(object):
         """Print a formatted string representation of the table.
 
         If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot
-        be determined then the default is taken from the configuration item
-         `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
-        is supplied then there is no line limit applied.
+        terminal is used to set `max_lines`.  If the terminal height cannot be
+        determined then the default will be determined using the
+        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
+        value of `max_lines` is supplied then there is no line limit applied.
 
-        The Same applies for max_width except the default is
-        `astropy.table.pprint.MAX_COLUMNS`.
+        The same applies for max_width except the configuration item is
+    `astropy.table.pprint.MAX_COLUMNS`.
 
         Parameters
         ----------
@@ -738,13 +738,12 @@ class Table(object):
 
         If no value of ``max_lines`` is supplied then the height of the screen
         terminal is used to set ``max_lines``.  If the terminal height cannot
-        be determined then a default of ``astropy.table.pprint.MAX_LINES`` is
-        used.  If a negative value of ``max_lines`` is supplied then there is
-        no line limit applied.
+        be determined then the default is taken from the configuration item
+         `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        is supplied then there is no line limit applied.
 
         The Same applies for max_width except the default is
-        ``astropy.table.pprint.MAX_WIDTH``.
-
+        `astropy.table.pprint.MAX_COLUMNS`.
         Parameters
         ----------
         max_lines : int or None
