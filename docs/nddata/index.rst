@@ -9,53 +9,53 @@ Introduction
 
 `astropy.nddata` provides the `~astropy.nddata.nddata.NDData`
 class and related tools to manage n-dimensional array-based data (e.g.
-CCD images, IFU Data, grid-based simulation data, ...). This is more than
+CCD images, IFU data, grid-based simulation data, ...). This is more than
 just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 
 This subpackage also provides new convolution routines that differ from
 Scipy in that they offer a proper treatment of NaN values.
 
+.. note:: The `~astropy.nddata.nddata.NDData` class is still under
+          development, and support for WCS and units is not yet implemented.
 
 Getting started
 ===============
 
-The `~astropy.nddata.nddata.NDData` class is still under development, and
-many of it's more advanced features are not yet implemented.  It already
-functions as an array container with metadata, however::
+An `~astropy.nddata.nddata.NDData` object can be instantiated by passing it an
+n-dimensional Numpy array::
 
     >>> from astropy.nddata import NDData
-    >>> ndd = NDData(mydataarray, error=myerrorarray)
-    >>> ndd['Exposure time(s)'] = 5
+    >>> array = np.random.random((12, 12, 12))  # a random 3-dimensional array
+    >>> ndd = NDData(array)
 
-You can, also make use of the new convolution routines. For example, if your
-data is 1D, you might smooth it by a gaussian kernel by doing::
+This object has a few attributes in common with Numpy:
 
-    >>> from astropy.nddata import convolve, make_kernel
-    >>> kernel = make_kernel((9,), 1.5, 'gaussian')
-    >>> ndd.data = convolve(ndd.data, kernel)
+    >>> ndd.ndim
+    3
+    >>> ndd.shape
+    (12, 12, 12)
+    >>> ndd.dtype
+    dtype('float64')
 
-The convolution routines can also be used on bare arrays.
+The underlying Numpy array can be accessed via the `data` attribute::
 
-`~astropy.nddata.nddata.NDData` objects can also be easily converted to
-numpy arrays::
+    >>> ndd.data
+    array([[[ 0.05621944,  0.85569765,  0.71609697, ...,  0.76049288,
+    ...
 
-    >>> import numpy as np
-    >>> arr = np.array(ndd)
-    >>> np.all(arr == mydataarray)
-    True
+Values can be masked using the `mask` attribute, which should be a boolean
+Numpy array with the same dimensions as the data, e.g.::
 
-If a `mask` is defined, this will result in a `~numpy.ma.MaskedArray`, so
-in all cases a useable `numpy.ndarray` or subclass will result. This allows
-straightforward plotting of `~astropy.nddata.nddata.NDData` objects with 1-
-and 2-dimensional datasets using `matplotlib`::
+     >>> ndd.mask = ndd.data > 0.9
 
-    >>> from matplotlib import pyplot as plt
-    >>> plt.plot(ndd)
+A mask value of `True` indicates a value that should be ignored, while a mask
+value of `False` indicates a valid value.
 
-This works because the `matplotlib` plotting functions automatically convert
-their inputs using `numpy.array`.
-
+Similarly, attributes are available to store generic meta-data, flags, and
+errors, and the `~astropy.nddata.nddata.NDData` class includes methods to
+combine datasets with arithmetic operations (which include error propagation).
+These are described in :doc:`nddata`.
 
 Using `nddata`
 ==============
@@ -63,7 +63,9 @@ Using `nddata`
 .. toctree::
    :maxdepth: 2
 
+   nddata.rst
    convolution.rst
+   subclassing.rst
 
 Reference/API
 =============
