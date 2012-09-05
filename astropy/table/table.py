@@ -16,7 +16,7 @@ try:
 except NameError:
     unicode = basestring = str
 
-AUTO_COLNAME = ConfigurationItem('auto_column_name', 'col{0}', 
+AUTO_COLNAME = ConfigurationItem('auto_column_name', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
 
@@ -699,14 +699,14 @@ class Table(object):
                show_units=False):
         """Print a formatted string representation of the table.
 
-        If no value of ``max_lines`` is supplied then the height of the screen
-        terminal is used to set ``max_lines``.  If the terminal height cannot
-        be determined then a default of ``astropy.table.pprint.MAX_LINES`` is
-        used.  If a negative value of ``max_lines`` is supplied then there is
-        no line limit applied.
+        If no value of `max_lines` is supplied then the height of the screen
+        terminal is used to set `max_lines`.  If the terminal height cannot
+        be determined then the default is taken from the configuration item
+         `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        is supplied then there is no line limit applied.
 
         The Same applies for max_width except the default is
-        ``astropy.table.pprint.MAX_WIDTH``.
+        `astropy.table.pprint.MAX_COLUMNS`.
 
         Parameters
         ----------
