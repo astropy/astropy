@@ -766,6 +766,19 @@ class Table(object):
                                          show_name, show_units)
         return lines
 
+    def psave(self, fn, show_name=True, show_units=False):
+        """ Save the contents of this table as in the text format `pprint`
+        and `pformat` produce.
+
+        Needs full docstring
+        """
+        lines, n_header = _pformat_table(self, -1, -1, show_name, show_units)
+
+        with open(fn, 'w') as f:
+            for l in lines:
+                f.write(l)
+                f.write('\n')
+
     def more(self, max_lines=None, max_width=None, show_name=True,
                show_units=False):
         """Interactively browse table with a paging interface.
