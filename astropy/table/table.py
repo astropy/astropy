@@ -8,6 +8,7 @@ from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
 from ..utils.console import color_print
+from ..config import ConfigurationItem
 from  .io_registry import get_reader, get_writer, identify_format
 # Python 2 and 3 source compatibility
 try:

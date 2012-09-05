@@ -4,6 +4,7 @@ from itertools import izip
 
 from .. import log
 from ..utils.console import Getch, color_print
+from ..config import ConfigurationItem
 
 _format_funcs = {None: lambda format_, val: str(val)}
 
@@ -20,8 +21,8 @@ def _get_pprint_size(max_lines=None, max_width=None):
 
     If no value of ``max_lines`` is supplied then the height of the screen
     terminal is used to set ``max_lines``.  If the terminal height cannot be
-    determined then the default will be determined using the 
-    `astropy.table.pprint.MAX_LINES` configuration item. If a negative value 
+    determined then the default will be determined using the
+    `astropy.table.pprint.MAX_LINES` configuration item. If a negative value
     of ``max_lines`` is supplied then there is no line limit applied.
 
     The Same applies for max_width except the configuration item is

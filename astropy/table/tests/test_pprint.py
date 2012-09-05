@@ -51,10 +51,10 @@ class TestPprint():
         """
         arr = np.arange(4000, dtype=np.float).reshape(100, 40)
         lines = Table(arr).pformat()
-        assert len(lines) == pprint.MAX_LINES
+        assert len(lines) == pprint.MAX_LINES()
         for line in lines:
-            assert (len(line) > pprint.MAX_WIDTH - 10 and
-                    len(line) <= pprint.MAX_WIDTH)
+            assert (len(line) > pprint.MAX_COLUMNS() - 10 and
+                    len(line) <= pprint.MAX_COLUMNS())
 
     def test_format1(self):
         """Basic test of formatting"""
@@ -173,12 +173,12 @@ class TestFormat():
 
     def test_column_format_with_threshold(self):
         import astropy.table.pprint
-        MAX_LINES = pprint.MAX_LINES
-        pprint.MAX_LINES = 6
+        MAX_LINES_val = pprint.MAX_LINES()
+        pprint.MAX_LINES.set(6)
         t = Table([np.arange(20)], names=['a'])
         t['a'].format = '%{0:}'
         assert str(t['a']) == ' a \n---\n %0\n %1\n...\n%19'
         t['a'].format = '{ %4.2f }'
         assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
                               ' { 1.00 }\n      ...\n{ 19.00 }'
-        pprint.MAX_LINES = MAX_LINES
+        pprint.MAX_LINES.set(MAX_LINES_val)
