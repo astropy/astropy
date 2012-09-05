@@ -11,7 +11,7 @@ _format_funcs = {None: lambda format_, val: str(val)}
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
     'the pretty-printer to use if it cannot determine the terminal size. '
     'Negative numbers mean no limit.')
-MAX_COLUMNS = ConfigurationItem('max_columns', 80, 'Maximum number of columns '
+MAX_WIDTH = ConfigurationItem('max_columns', 80, 'Maximum number of columns '
     'for the pretty-printer to use if it cannot determine the terminal size. '
     'Negative numbers mean no limit.')
 
@@ -26,7 +26,7 @@ def _get_pprint_size(max_lines=None, max_width=None):
     of `max_lines` is supplied then there is no line limit applied.
 
     The same applies for max_width except the configuration item is
-    `astropy.table.pprint.MAX_COLUMNS`.
+    `astropy.table.pprint.MAX_WIDTH`.
 
     Parameters
     ----------
@@ -55,7 +55,7 @@ def _get_pprint_size(max_lines=None, max_width=None):
             if width > 10:
                 width -= 1
         except:
-            lines, width = MAX_LINES(), MAX_COLUMNS()
+            lines, width = MAX_LINES(), MAX_WIDTH()
 
     if max_lines is None:
         max_lines = lines

@@ -53,8 +53,8 @@ class TestPprint():
         lines = Table(arr).pformat()
         assert len(lines) == pprint.MAX_LINES()
         for line in lines:
-            assert (len(line) > pprint.MAX_COLUMNS() - 10 and
-                    len(line) <= pprint.MAX_COLUMNS())
+            assert (len(line) > pprint.MAX_WIDTH() - 10 and
+                    len(line) <= pprint.MAX_WIDTH())
 
     def test_format1(self):
         """Basic test of formatting"""
