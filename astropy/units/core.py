@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from fractions import Fraction
 import re
+import sys
 import textwrap
 
 import numpy as np
@@ -128,10 +129,11 @@ class UnitBase(object):
     def __rmul__(self, m):
         return CompositeUnit(m, [self], [1]).simplify()
 
-    def __hash__(self):
-        # Since this class defines __eq__, it will become unhashable
-        # on Python 3.x, so we need to define our own hash.
-        return id(self)
+    if sys.version_info[0] >= 3:
+        def __hash__(self):
+            # Since this class defines __eq__, it will become unhashable
+            # on Python 3.x, so we need to define our own hash.
+            return id(self)
 
     def __eq__(self, other):
         other = Unit(other)
@@ -676,56 +678,28 @@ class CompositeUnit(UnitBase):
         """
         return self._powers
 
-    def _expand(self, expand_to_decompose=False):
-        """
-        Internal routine to expand any pointers to composite units
-        into direct pointers to the base units. If `expand_to_decompose`
-        is `True`, everything is expressed in irreducible units.  A
-        `_gather` will normally be necessary to sanitize the unit
-        after an `_expand`.
-        """
-        trash = []
+    def _expand_and_gather(self, decompose=False):
+        bases = {}
+        scale = self.scale
 
-        for i, (b, p) in enumerate(zip(self._bases, self._powers)):
-            if expand_to_decompose:
-                if isinstance(b, Unit) and expand_to_decompose:
-                    b = b._represents.decompose()
-                elif isinstance(b, CompositeUnit):
-                    b = b.decompose()
+        for i, (b, p) in enumerate(zip(self.bases, self.powers)):
+            if decompose:
+                b = b.decompose()
 
             if isinstance(b, CompositeUnit):
-                trash.append(i)
-                self._scale *= b._scale ** p
-                for b_sub, p_sub in zip(b._bases, b._powers):
-                    self._bases.append(b_sub)
-                    self._powers.append(p_sub * p)
+                scale *= b.scale ** p
+                for b_sub, p_sub in zip(b.bases, b.powers):
+                    bases[b_sub] = p_sub * p + bases.get(b_sub, 0)
 
-        trash.sort()
-        for offset, i in enumerate(trash):
-            del self._bases[i - offset]
-            del self._powers[i - offset]
+            else:
+                bases[b] = p + bases.get(b, 0)
 
-        return len(trash)
+        bases = [(b, p) for (b, p) in bases.items() if p != 0]
+        bases.sort(key=lambda x: x[1], reverse=True)
 
-    def _gather(self):
-        """
-        Internal routine to gather together powers of the same base
-        units, then order the base units by their power (descending).
-        """
-        bases = list(set(self._bases))
-        powers = [
-            sum([p for bi, p in zip(self._bases, self._powers) if bi is b])
-            for b in bases]
-
-        bp = sorted(
-            filter(lambda x: x[0] != 0, zip(powers, bases)),
-            reverse=True,
-            key=lambda x: x[0])
-
-        if len(bp) != 0:
-            self._powers, self._bases = map(list, zip(*bp))
-        else:
-            self._powers, self._bases = [], []
+        self._bases = [x[0] for x in bases]
+        self._powers = [x[1] for x in bases]
+        self._scale = scale
 
     def __copy__(self):
         """
@@ -734,15 +708,13 @@ class CompositeUnit(UnitBase):
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
     def simplify(self):
-        self._expand()
-        self._gather()
+        self._expand_and_gather()
         return self
     simplify.__doc__ = UnitBase.simplify.__doc__
 
     def decompose(self):
-        x = CompositeUnit(self.scale, self.bases[:], self.powers[:])
-        if x._expand(True):
-            x._gather()
+        x = CompositeUnit(self.scale, self.bases, self.powers)
+        x._expand_and_gather(True)
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
