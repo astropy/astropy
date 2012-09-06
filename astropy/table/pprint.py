@@ -4,24 +4,29 @@ from itertools import izip
 
 from .. import log
 from ..utils.console import Getch, color_print
+from ..config import ConfigurationItem
 
 _format_funcs = {None: lambda format_, val: str(val)}
-MAX_LINES = 25
-MAX_WIDTH = 80
 
+MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
+    'the pretty-printer to use if it cannot determine the terminal size. '
+    'Negative numbers mean no limit.')
+MAX_WIDTH = ConfigurationItem('max_width', 80, 'Maximum number of characters '
+    'for the pretty-printer to use per line if it cannot determine the '
+    'terminal size.  Negative numbers mean no limit.')
 
 def _get_pprint_size(max_lines=None, max_width=None):
     """Get the output size (number of lines and character width) for Column and
     Table pformat/pprint methods.
 
-    If no value of ``max_lines`` is supplied then the height of the screen
-    terminal is used to set ``max_lines``.  If the terminal height cannot be
-    determined then a default of ``astropy.table.pprint.MAX_LINES`` is used.
-    If a negative value of ``max_lines`` is supplied then there is no line
-    limit applied.
+    If no value of `max_lines` is supplied then the height of the screen
+    terminal is used to set `max_lines`.  If the terminal height cannot be
+    determined then the default will be determined using the
+    `astropy.table.pprint.MAX_LINES` configuration item. If a negative value
+    of `max_lines` is supplied then there is no line limit applied.
 
-    The Same applies for max_width except the default is
-    ``astropy.table.pprint.MAX_WIDTH``.
+    The same applies for max_width except the configuration item is
+    `astropy.table.pprint.MAX_WIDTH`.
 
     Parameters
     ----------
@@ -50,7 +55,7 @@ def _get_pprint_size(max_lines=None, max_width=None):
             if width > 10:
                 width -= 1
         except:
-            lines, width = MAX_LINES, MAX_WIDTH
+            lines, width = MAX_LINES(), MAX_WIDTH()
 
     if max_lines is None:
         max_lines = lines
