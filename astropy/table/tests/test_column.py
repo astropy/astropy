@@ -37,13 +37,13 @@ class TestColumn():
 
     def test_format(self):
         """Show that the formatted output from str() works"""
-        MAX_LINES = pprint.MAX_LINES
-        pprint.MAX_LINES = 7
+        MAX_LINES_val = pprint.MAX_LINES()
+        pprint.MAX_LINES.set(7)
         c1 = Column(name='a', data=np.arange(2000), dtype=float,
                     format='%6.2f')
         assert str(c1) == ('   a   \n-------\n   0.00\n'
                            '   1.00\n    ...\n1998.00\n1999.00')
-        pprint.MAX_LINES = MAX_LINES
+        pprint.MAX_LINES.set(MAX_LINES_val)
 
     def test_convert_numpy_array(self):
         d = Column('a', [1, 2, 3], dtype='i8')
