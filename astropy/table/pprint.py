@@ -11,9 +11,9 @@ _format_funcs = {None: lambda format_, val: str(val)}
 MAX_LINES = ConfigurationItem('max_lines', 25, 'Maximum number of lines for '
     'the pretty-printer to use if it cannot determine the terminal size. '
     'Negative numbers mean no limit.')
-MAX_WIDTH = ConfigurationItem('max_columns', 80, 'Maximum number of columns '
-    'for the pretty-printer to use if it cannot determine the terminal size. '
-    'Negative numbers mean no limit.')
+MAX_WIDTH = ConfigurationItem('max_width', 80, 'Maximum number of characters '
+    'for the pretty-printer to use per line if it cannot determine the '
+    'terminal size.  Negative numbers mean no limit.')
 
 def _get_pprint_size(max_lines=None, max_width=None):
     """Get the output size (number of lines and character width) for Column and
