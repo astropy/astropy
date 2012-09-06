@@ -7,6 +7,7 @@
 - `astropy.table` I/O infrastructure for custom readers/writers implemented
 - Besancon Galaxy models (http://model.obs-besancon.fr) reader implemented in `astropy.ascii`
 - new `astropy.time` sub-package
+- The value of the astronomical unit (au) has been updated to that adopted by IAU 2012 Resolution B2, and the values of the pc and kpc constants have been updated to reflect this.
 
 
 0.1.1 (unreleased)
