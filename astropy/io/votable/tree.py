@@ -502,6 +502,20 @@ class Link(SimpleElement, _IDProperty):
     def href(self):
         self._href = None
 
+    def to_table_column(self, column):
+        meta = {}
+        for key in self._attr_list:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+
+        column.meta.setdefault('links', [])
+        column.meta['links'].append(meta)
+
+    @classmethod
+    def from_table_column(cls, d):
+        return cls(**d)
+
 
 class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
            _UtypeProperty):
@@ -931,6 +945,46 @@ class Values(Element, _IDProperty):
                         name=name,
                         value=value)
 
+    def to_table_column(self, column):
+        # Have the ref filled in here
+        ref = self.ref
+
+        meta = {}
+        for key in [u'ID', u'null']:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+        if self.min is not None:
+            meta['min'] = {
+                'value': self.min,
+                'inclusive': self.min_inclusive}
+        if self.max is not None:
+            meta['max'] = {
+                'value': self.max,
+                'inclusive': self.max_inclusive}
+        if len(self.options):
+            meta['options'] = dict(self.options)
+
+        column.meta['values'] = meta
+
+    def from_table_column(self, column):
+        if not 'values' in column.meta:
+            return
+
+        meta = column.meta['values']
+        for key in [u'ID', u'null']:
+            val = meta.get(key, None)
+            if val is not None:
+                setattr(self, key, val)
+        if 'min' in meta:
+            self.min = meta['min']['value']
+            self.min_inclusive = meta['min']['inclusive']
+        if 'max' in meta:
+            self.max = meta['max']['value']
+            self.max_inclusive = meta['max']['inclusive']
+        if 'options' in meta:
+            self._options = meta['options'].items()
+
 
 class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             _UtypeProperty, _UcdProperty):
@@ -1300,6 +1354,57 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                 self.values.to_xml(w, **kwargs)
             for link in self.links:
                 link.to_xml(w, **kwargs)
+
+    def to_table_column(self, column):
+        """
+        Sets the attributes of a given `astropy.table.Column` instance
+        to match the information in this `Field`.
+        """
+        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+            val = getattr(self, key, None)
+            if val is not None:
+                column.meta[key] = val
+        if not self.values.is_defaults():
+            self.values.to_table_column(column)
+        for link in self.links:
+            link.to_table_column(column)
+        if self.description is not None:
+            column.description = self.description
+        if self.unit is not None:
+            # TODO: Use units framework when it's available
+            column.units = self.unit
+        if isinstance(self.converter, converters.FloatingPoint):
+            column.format = self.converter.output_format
+
+    @classmethod
+    def from_table_column(cls, votable, column):
+        """
+        Restores a `Field` instance from a given
+        `astropy.table.Column` instance.
+        """
+        kwargs = {}
+        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+            val = column.meta.get(key, None)
+            if val is not None:
+                kwargs[key] = val
+        # TODO: Use the unit framework when available
+        if column.units is not None:
+            kwargs['unit'] = column.units
+        kwargs['name'] = column.name
+        result = converters.table_column_to_votable_datatype(column)
+        kwargs.update(result)
+
+        field = cls(votable, **kwargs)
+
+        if column.description is not None:
+            field.description = column.description
+        field.values.from_table_column(column)
+        if 'links' in column.meta:
+            for link in column.meta['links']:
+                field.links.append(Link.from_table_column(link))
+
+        # TODO: Parse format into precision and width
+        return field
 
 
 class Param(Field):
@@ -2463,7 +2568,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             except Exception as e:
                                 vo_reraise(e,
                                            additional="(in row %d, col '%s')" %
-                                           (row, fields[i].ID))
+                                           (row, self.fields[i].ID))
                             write(td % val)
                         else:
                             write(td_empty)
@@ -2497,6 +2602,58 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
                 w._flush()
                 w.write(base64.b64encode(data.getvalue()).decode('ascii'))
+
+    def to_table(self):
+        """
+        Convert this VO Table to an `astropy.table.Table` instance.
+
+        The mask is thrown out by this operation.
+
+        Variable-length array fields may not be restored identically
+        when round-tripping through the `astropy.table.Table`
+        instance.
+        """
+        from ...table import Table
+
+        meta = {}
+        for key in [u'ID', u'name', u'ref', u'ucd', u'utype', u'description']:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+
+        table = Table(self.array, meta=meta)
+
+        for field in self.fields:
+            column = table[field.ID]
+            field.to_table_column(column)
+
+        return table
+
+    @classmethod
+    def from_table(cls, votable, table):
+        """
+        Create a `Table` instance from a given `astropy.table.Table`
+        instance.
+        """
+        kwargs = {}
+        for key in [u'ID', u'name', u'ref', u'ucd', u'utype']:
+            val = table.meta.get(key)
+            if val is not None:
+                kwargs[key] = val
+        new_table = cls(votable, **kwargs)
+        if 'description' in table.meta:
+            new_table.description = table.meta['description']
+
+        for colname in table.colnames:
+            column = table[colname]
+            new_table.fields.append(Field.from_table_column(votable, column))
+
+        # Create a dummy mask
+        new_table.create_arrays(len(table))
+
+        new_table.array = np.asarray(table)
+
+        return new_table
 
     def iter_fields_and_params(self):
         """
@@ -2538,6 +2695,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         Looks up a GROUP element by the given ID.  Used by the group's
         "ref" attribute
         """)
+
 
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
@@ -3090,3 +3248,16 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """
         for table in self.iter_tables():
             table.format = format
+
+    @classmethod
+    def from_table(cls, table):
+        """
+        Create a `VOTableFile` instance from a given
+        `astropy.table.Table` instance.
+        """
+        votable_file = cls()
+        resource = Resource()
+        votable = Table.from_table(votable_file, table)
+        resource.tables.append(votable)
+        votable_file.resources.append(resource)
+        return votable_file

@@ -17,7 +17,7 @@ from ...utils.xml import iterparser
 from ...config import ConfigurationItem
 
 
-__all__ = ['parse', 'parse_single_table', 'validate']
+__all__ = ['parse', 'parse_single_table', 'writeto', 'validate']
 
 
 PEDANTIC = ConfigurationItem(
@@ -127,6 +127,27 @@ def parse_single_table(source, **kwargs):
     votable = parse(source, **kwargs)
 
     return votable.get_first_table()
+
+
+def writeto(table, file):
+    """
+    Writes a table to a VOTABLE_ xml file.
+
+    Parameters
+    ----------
+    table : `astropy.io.vo.VOTableFile` or `astropy.table.Table` instance.
+
+    file : str or writable file-like object
+        Path or file object to write to
+    """
+    from ...table import Table
+    if isinstance(table, Table):
+        table = tree.VOTableFile.from_table(table)
+    elif not isinstance(table, tree.VOTableFile):
+        raise TypeError(
+            "first argument must be astropy.io.vo.VOTableFile or "
+            "astropy.table.Table instance")
+    table.to_xml(file, _debug_python_based_parser=True)
 
 
 def validate(filename, output=sys.stdout, xmllint=False):

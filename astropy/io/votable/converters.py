@@ -22,7 +22,7 @@ from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
 from .util import IS_PY3K
 
 
-__all__ = ['get_converter', 'Converter']
+__all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -291,7 +291,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return u''
-        return xml_escape_cdata(value)
+        return xml_escape_cdata(unicode(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -583,6 +583,10 @@ class FloatingPoint(Numeric):
             if value.strip() != '':
                 vo_warn(W30, value, config, pos)
             return self.null, True
+
+    @property
+    def output_format(self):
+        return self._output_format
 
     def output(self, value, mask):
         if mask:
@@ -1148,3 +1152,143 @@ def get_converter(field, config={}, pos=None):
                 field, converter, arraysize, config)
 
     return converter
+
+
+numpy_dtype_to_field_mapping = {
+    np.float64().dtype.num    : 'double',
+    np.float32().dtype.num    : 'float',
+    np.bool_().dtype.num      : 'bit',
+    np.uint8().dtype.num      : 'unsignedByte',
+    np.int16().dtype.num      : 'short',
+    np.int32().dtype.num      : 'int',
+    np.int64().dtype.num      : 'long',
+    np.complex64().dtype.num  : 'floatComplex',
+    np.complex128().dtype.num : 'doubleComplex',
+    np.str_().dtype.num       : 'char',
+    np.unicode_().dtype.num   : 'unicodeChar'
+}
+
+
+def _all_bytes(column):
+    for x in column:
+        if not isinstance(x, bytes):
+            return False
+    return True
+
+
+def _all_unicode(column):
+    for x in column:
+        if not isinstance(x, unicode):
+            return False
+    return True
+
+
+def _all_matching_dtype(column):
+    first_dtype = False
+    first_shape = ()
+    for x in column:
+        if not isinstance(x, np.ndarray) or len(x) == 0:
+            continue
+
+        if first_dtype is False:
+            first_dtype = x.dtype
+            first_shape = x.shape[1:]
+        elif first_dtype != x.dtype:
+            return False, ()
+        elif first_shape != x.shape[1:]:
+            first_shape = ()
+    return first_dtype, first_shape
+
+
+def numpy_to_votable_dtype(dtype, shape):
+    """
+    Converts a numpy dtype and shape to a dictionary of attributes for
+    a VOTable FIELD element and correspond to that type.
+
+    Parameters
+    ----------
+    dtype : Numpy dtype instance
+
+    shape : tuple
+
+    Returns
+    -------
+    attributes : dict
+       A dict containing 'datatype' and 'arraysize' keys that can be
+       set on a VOTable FIELD element.
+    """
+    if dtype.num not in numpy_dtype_to_field_mapping:
+        raise TypeError(
+            "{0!r} can not be represented in VOTable".format(dtype))
+
+    if dtype.char == 'S':
+        return {'datatype': 'char',
+                'arraysize': str(dtype.itemsize)}
+    elif dtype.char == 'U':
+        return {'datatype': 'unicodeChar',
+                'arraysize': str(dtype.itemsize // 4)}
+    else:
+        result = {
+            'datatype': numpy_dtype_to_field_mapping[dtype.num]}
+        if len(shape):
+            result['arraysize'] = 'x'.join(str(x) for x in shape)
+
+        return result
+
+
+def table_column_to_votable_datatype(column):
+    """
+    Given a `astropy.table.Column` instance, returns the attributes
+    necessary to create a VOTable FIELD element that corresponds to
+    the type of the column.
+
+    This necessarily must perform some heuristics to determine the
+    type of variable length arrays fields, since they are not directly
+    supported by Numpy.
+
+    If the column has dtype of "object", it performs the following
+    tests:
+
+       - If all elements are byte or unicode strings, it creates a
+         variable-length byte or unicode field, respectively.
+
+       - If all elements are numpy arrays of the same dtype and with a
+         consistent shape in all but the first dimension, it creates a
+         variable length array of fixed sized arrays.  If the dtypes
+         match, but the shapes do not, a variable length array is
+         created.
+
+    If the dtype of the input is not understood, it sets the data type
+    to the most inclusive: a variable length unicodeChar array.
+
+    Parameters
+    ----------
+    column : `astropy.table.Column` instance
+
+    Returns
+    -------
+    attributes : dict
+       A dict containing 'datatype' and 'arraysize' keys that can be
+       set on a VOTable FIELD element.
+    """
+    if column.dtype.char == 'O':
+        if isinstance(column[0], bytes):
+            if _all_bytes(column[1:]):
+                return {'datatype': 'char', 'arraysize': '*'}
+        elif isinstance(column[0], unicode):
+            if _all_unicode(column[1:]):
+                return {'datatype': 'unicodeChar', 'arraysize': '*'}
+        elif isinstance(column[0], np.ndarray):
+            dtype, shape = _all_matching_dtype(column)
+            if dtype is not False:
+                result = numpy_to_votable_dtype(dtype, shape)
+                if 'arraysize' not in result:
+                    result['arraysize'] = '*'
+                else:
+                    result['arraysize'] += '*'
+                return result
+
+        # All bets are off, do the most generic thing
+        return {'datatype': 'unicodeChar', 'arraysize': '*'}
+
+    return numpy_to_votable_dtype(column.dtype, column.shape[1:])

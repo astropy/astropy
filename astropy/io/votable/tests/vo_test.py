@@ -7,11 +7,9 @@ from __future__ import absolute_import, print_function
 # STDLIB
 import difflib
 from distutils import version
-import glob
 import io
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 import warnings
