@@ -707,7 +707,7 @@ class Table(object):
         value of `max_lines` is supplied then there is no line limit applied.
 
         The same applies for max_width except the configuration item is
-    `astropy.table.pprint.MAX_WIDTH`.
+        `astropy.table.pprint.MAX_WIDTH`.
 
         Parameters
         ----------
