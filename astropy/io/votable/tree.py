@@ -2607,11 +2607,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         """
         Convert this VO Table to an `astropy.table.Table` instance.
 
-        The mask is thrown out by this operation.
+        .. warning::
 
-        Variable-length array fields may not be restored identically
-        when round-tripping through the `astropy.table.Table`
-        instance.
+            The mask is thrown out by this operation, since masking is
+            not currently supported by `astropy.table.Table`.
+
+            Variable-length array fields may not be restored
+            identically when round-tripping through the
+            `astropy.table.Table` instance.
         """
         from ...table import Table
 
