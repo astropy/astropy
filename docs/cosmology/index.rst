@@ -221,32 +221,27 @@ examples.
 Relativistic Species
 ====================
 The cosmology classes include the contribution to the energy density
-from both photons and nuetrinos.  By default neutrinos are assumed
-to be massless.  The treatment of massive neutrinos is taken from the
-WMAP7 analysis paper (Komatsu et al. 2011), and is exact but assumes
-that all neutrino species have the same mass.  
+from both photons and massless nuetrinos.  The two parameters
+controlling the proporties of these species are Tcmb0 (the temperature
+of the CMB at z=0) and Neff, the effective number of neutrino species.
+Both have standard default values (2.725 and 3.04, respectively; the
+reason that Neff is not 3 has to do with a small bump in the neutrino
+energy spectrum due to electron-positron annihilation).
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> z = [0,1.0,2.0]
-  >>> WMAP7.Ogamma(z), WMAP7.Onu(z), WMAP7.Orelativistic(z)
-  (array([  4.98569503e-05,   2.74574414e-04,   4.99881402e-04]),
-   array([  3.44204408e-05,   1.89561782e-04,   3.45110122e-04]),
-   array([  8.42773911e-05,   4.64136197e-04,   8.44991525e-04]))
-
-Note that :math:`\\Omega_{\\nu}` includes the kinetic energy of the
-neutrinos, so is not zero even for massless neutrinos (which is the
-case for the WMAP7 cosmology).  Also note that Orelativistic, for simplicity,
-includes both photons and neutrinos even when the neutrino masses are
-large enough that they become non-relativisitic; the treatement used
-is still accurate in this case.
+  >>> WMAP7.Ogamma(z), WMAP7.Onu(z)
+  (array([  4.98569503e-05,   2.74574414e-04]),
+   array([  3.44204408e-05,   1.89561782e-04]),
+   array([  8.42773911e-05,   4.64136197e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
 simply set the CMB Temperature to 0:
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0.0)
-  >>> cos.Orelativistic([0,1,2])
-  array([0, 0, 0])
+  >>> cos.Ogamma0, cos.Onu0
+  (0.0, 0.0)
 
 Neutrinos can be removed (while leaving photons) by setting Neff=0:
 
@@ -267,9 +262,6 @@ See Also
 * Linder, "Exploring the Expansion History of the Universe", http://arxiv.org/abs/astro-ph/0208512
 * NASA's Legacy Archive for Microwave Background Data Analysis,
   http://lambda.gsfc.nasa.gov/
-* Komatsu et al., "Seven-year Wilkinson Microwave Anisotropy Probe (WMAP)
-   Observations: Cosmological Interpretation",
-   http://lambda.gsfc.nasa.gov/product/map/current/map_bibliography.cfm
 
 Range of validity and reliability
 =================================

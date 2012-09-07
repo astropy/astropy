@@ -40,9 +40,6 @@ Mpc_km = 1e-5 * Mpc
 #  to be exactly 365.25 days of 86400 seconds each.
 Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
-# Boltzman constant in [eV K^-1]
-k_B_evK = k_B / q_e
-
 #Radiation parameter over c^2
 a_B_c2 = 4 * sigma_sb / c**3
 
@@ -79,8 +76,7 @@ class FLRW(Cosmology):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, m_nu = 0.0,
-                 name='FLRW'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, name='FLRW'):
         """ Initializer.
 
         Parameters
@@ -102,9 +98,6 @@ class FLRW(Cosmology):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
@@ -114,7 +107,6 @@ class FLRW(Cosmology):
         self._Ode0 = float(Ode0)
         self._Tcmb0 = float(Tcmb0)
         self._Neff = float(Neff)
-        self._m_nu = float(m_nu)
         self.name = name
 
         # Hubble parameter at z=0, km/s/Mpc
@@ -132,30 +124,23 @@ class FLRW(Cosmology):
         self._critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
         # Compute photon density, Tcmb, neutrino parameters
-        # To avoid divide by zero, Tcmb0=0, which removes both
-        # photons and neutrinos, is handled as a special case
+        # Tcmb0=0 removes both photons and neutrinos, is handled 
+        # as a special case for efficiency
         if self._Tcmb0 > 0:
             # Compute photon density from Tcmb
             self._Ogamma0 = a_B_c2 * self._Tcmb0**4 / self._critical_density0
 
-            # Compute Neutrino temperature
-            # The relation with Tcmb0 is (4/11)^(1/3) -- see,
-            # for example, Weinberg 'Cosmology', page 154, eq (3.1.21)
-            self._Tnu0 = 0.7137658555036082 * self._Tcmb0
-
-            #Compute Neutrino Omega and total relativistic component
-            self._nu_y = self._m_nu / (k_B_evK * self._Tnu0)
-            self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
-            self._Or0 = self._Ogamma0 + self._Onu0
+            #Compute Neutrino Omega 
+            # The constant in front is 7/8 (4/11)^4/3 -- see any
+            #  cosmology book for an explanation; the 7/8 is FD vs. BE
+            #  statistics, the 4/11 is the temperature effect
+            self._Onu0 = 0.2271073 * self._Neff * self._Ogamma0
         else:
             self._Ogamma0 = 0.0
-            self._Tnu0 = 0.0
-            self._nu_y = 0.0
             self._Onu0 = 0.0
-            self._Or0 = 0.0
 
         #Compute curvature density
-        self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Or0
+        self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g)" % \
@@ -196,11 +181,6 @@ class FLRW(Cosmology):
         return self._Neff
 
     @property
-    def m_nu(self):
-        """ Rest mass of each neutrino species, in eV"""
-        return self._m_nu
-
-    @property
     def h(self):
         """ Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]"""
         return self._h
@@ -229,12 +209,6 @@ class FLRW(Cosmology):
     def Onu0(self):
         """ Omega nu; the density/critical density of neutrinos at z=0"""
         return self._Onu0
-
-    @property
-    def Or0(self):
-        """ Omega relativistic; the density/critical density of 
-        relativistic species (photons, neutrinos) at z=0"""
-        return self._Or0
 
     @abstractmethod
     def w(self, z):
@@ -365,40 +339,15 @@ class FLRW(Cosmology):
           kinetic energy, so is not equal to the commonly used
           :math:`\\sum \\frac{m_{\\nu}}{94 eV}` even at zero redshift.
         """
-        return self.Ogamma(z) * self.nu_relative_density(z)
 
-    def Orelativistic(self, z):
-        """ Return the density parameter for relativistic species
-        (photons and nuetrinos) at redshift `z`.
-
-        Parameters
-        ----------
-        z : array_like
-          Input redshifts.
-
-        Returns
-        -------
-        Or: ndarray, or float if input scalar
-          The density of relativistic species relative to the critical
-          density at each redshift.
-
-        Notes
-        -----
-        In principle, for sufficiently massive neutrinos, they will
-        not be relativistic at all redshifts.  However, for most practical
-        cosmologies they will be at all redshifts of interest, and hence
-        it is convenient to include them here.
-        """
-
-        if self._Or0 == 0:
+        if self._Onu0 == 0:
             #Common enough case to be worth checking (although it clearly
             # doesn't represent any real universe)
             return np.zeros_like(z)
+
         if isiterable(z):
             z = np.asarray(z)
-        
-        corrfac = 1.0 + self.nu_relative_density(0.0)
-        return self._Ogamma0 * (1. + z)**4 * corrfac * self.inv_efunc(z)**2
+        return self._Onu0 * (1. + z)**4 * self.inv_efunc(z)**2
 
     def Tcmb(self, z):
         """ Return the CMB temperature at redshift `z`.
@@ -427,57 +376,6 @@ class FLRW(Cosmology):
 
         z = exp(ln1pz)-1.0
         return 1.0 + self.w(z)
-
-    def nu_relative_density(self, z):
-        """ Neutrino density function relative to the energy density in
-        photons.
-
-        Parameters
-        ----------
-        z : array like
-           Redshift
-
-        Returns
-        -------
-         f : ndarray, or float if z is scalar
-           The neutrino density scaling factor relative to the density
-           in photons at each redshift
-
-        Notes
-        -----
-        The density in neutrinos is given by
-
-        .. math::
-
-          \\rho_{\\nu} \\left(a\\right) = 0.2271 \\, N_{eff} \\,
-          f\\left(m_{\\nu} a / T_{\\nu 0} \\right) \\,
-          \\rho_{\\gamma} \\left( a \\right)
-
-        where
-
-        .. math::
-
-          f \\left(y\\right) = \\frac{120}{7 \\pi^4}
-          \\int_0^{\\infty} \\, dx \\frac{x^2 \\sqrt{x^2 + y^2}}
-          {e^x + 1}
-
-        assuming that all neutrino species have the same mass.
-        Note that f has the asymptotic behavior :math:`f(0) = 1`.
-        This method returns :math:`0.2271 N_{eff} f` using an
-        analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
-        """
-
-        #See Komatsu et al. 2011, eq 26 and the surrounding discussion
-        prefac = 0.2271 * self._Neff
-        if (self._m_nu <= 0.0):
-            return prefac * np.ones_like(z)
-        else:
-            if isiterable(z):
-                z = np.asarray(z)
-
-            p = 1.83
-            curr_nu_y = self._nu_y / (1.0 + z)
-            return prefac * (1.0 + (0.3173 * curr_nu_y)**p)**(1.0 / p)
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
@@ -554,14 +452,10 @@ class FLRW(Cosmology):
             z = np.asarray(z)
 
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
@@ -571,14 +465,10 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return 1.0/np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+        return 1.0/np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                            Ode0 * self.de_density_scale(z))
 
     def _tfunc(self, z):
@@ -978,7 +868,7 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, m_nu = 0.0,
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
                  name='LambdaCDM'):
         """ Initializer.
 
@@ -1001,13 +891,10 @@ class LambdaCDM(FLRW):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
@@ -1078,14 +965,10 @@ class LambdaCDM(FLRW):
         #We override this because it takes a particularly simple
         # form for a cosmological constant
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -1108,14 +991,10 @@ class LambdaCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return 1.0 / np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
 class FlatLambdaCDM(LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
@@ -1131,8 +1010,7 @@ class FlatLambdaCDM(LambdaCDM):
 
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om0, Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='FlatLambdaCDM'):
+    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, name='FlatLambdaCDM'):
         """ Initializer.
 
         Parameters
@@ -1150,15 +1028,12 @@ class FlatLambdaCDM(LambdaCDM):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
         #Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Or0
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
     def __repr__(self):
@@ -1190,14 +1065,10 @@ class FlatLambdaCDM(LambdaCDM):
         #We override this because it takes a particularly simple
         # form for a cosmological constant
         Om0, Ode0 = self._Om0, self._Ode0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return np.sqrt(zp1**3 * (Or * zp1 + Om0) + Ode0)
+        return np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + Ode0)
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -1220,14 +1091,10 @@ class FlatLambdaCDM(LambdaCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0 = self._Om0, self._Ode0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return 1.0 / np.sqrt(zp1**3 * (Or * zp1 + Om0) + Ode0)
+        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + Ode0)
 
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy equation of state
@@ -1246,7 +1113,7 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='wCDM'):
+                 Neff=3.04, name='wCDM'):
         """ Initializer.
 
         Parameters
@@ -1273,13 +1140,10 @@ class wCDM(FLRW):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
 
     def __repr__(self):
@@ -1361,14 +1225,10 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
@@ -1392,14 +1252,10 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return 1.0 / np.sqrt(zp1**2 * ((Or * zp1 + Om0) * zp1 + Ok0) + 
+        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + 
                              Ode0 * zp1**(3 * (1 + w0)))
 
 
@@ -1420,7 +1276,7 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='FlatwCDM'):
+                 Neff=3.04, name='FlatwCDM'):
         """ Initializer.
 
         Parameters
@@ -1443,16 +1299,13 @@ class FlatwCDM(wCDM):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
         #Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Or0
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
     def __repr__(self):
@@ -1481,14 +1334,10 @@ class FlatwCDM(wCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return np.sqrt(zp1**3 * (Or * zp1 + Om0) +
+        return np.sqrt(zp1**3 * (Or0 * zp1 + Om0) +
                        Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
@@ -1512,14 +1361,10 @@ class FlatwCDM(wCDM):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
-        Ogamma0 = self._Ogamma0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        if self._m_nu > 0.0:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Or0
-        return 1.0 / np.sqrt(zp1**3 * (Or * zp1 + Om0) + 
+        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + 
                              Ode0 * zp1**(3 * (1 + w0)))
     
 
@@ -1543,7 +1388,7 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='w0waCDM'):
+                 Neff=3.04, name='w0waCDM'):
         """ Initializer.
 
         Parameters
@@ -1574,13 +1419,10 @@ class w0waCDM(FLRW):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -1679,7 +1521,7 @@ class wpwaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, 
-                 Tcmb0=2.725, Neff=3.04, m_nu=0.0, name='wpwaCDM'):
+                 Tcmb0=2.725, Neff=3.04, name='wpwaCDM'):
         """ Initializer.
 
         Parameters
@@ -1713,13 +1555,10 @@ class wpwaCDM(FLRW):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -1828,7 +1667,7 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=0.0, name='w0wzCDM'):
+                 Neff=3.04, name='w0wzCDM'):
         """ Initializer.
 
         Parameters
@@ -1862,20 +1701,16 @@ class w0wzCDM(FLRW):
         Neff: (float)
           Effective number of Neutrino species (def: 3.04)
 
-        m_nu: (float)
-          Mass of each neutrino species, in eV (def: 0.0)
-
         name: (string)
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
 
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g)" % \
-            (self.name, self._H0, self._Om0, 
-             self._Ode0, self._w0, self._wz)
+            (self.name, self._H0, self._Om0, self._Ode0, self._w0, self._wz)
 
     @property
     def w0(self):
@@ -1953,7 +1788,7 @@ for key in parameters.available:
     par = getattr(parameters, key)
     if par['flat']:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'],m_nu=par['m_nu'], name=key)
+                              Neff=par['Neff'], name=key)
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'], 
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],

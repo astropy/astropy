@@ -14,7 +14,6 @@ Each cosmology has the following parameters defined:
     n           Density perturbation spectral index
     Tcmb0       Current temperature of the CMB
     Neff        Effective number of neutrino species
-    m_nu        Mass (in eV) of each neutrino species
     sigma8      Density perturbation amplitude
     tau         Ionisation optical depth
     z_reion     Redshift of hydrogen reionisation
@@ -49,7 +48,6 @@ WMAP7 = dict(
     t0 = 13.76,
     Tcmb0 = 2.725,
     Neff = 3.04,
-    m_nu = 0.0,
     flat = True,
     reference = ("Komatsu et al. 2011, ApJS, 192, 18. "
                  "Table 1 (WMAP + BAO + H0 ML)")
@@ -69,7 +67,6 @@ WMAP5 = dict(
     t0 = 13.72,
     Tcmb0 = 2.725,
     Neff = 3.04,
-    m_nu = 0.0,
     flat = True,
     reference = ("Komatsu et al. 2009, ApJS, 180, 330. "
                  "Table 1 (WMAP + BAO + SN ML)")
