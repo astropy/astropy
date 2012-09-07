@@ -324,7 +324,7 @@ class FLRW(Cosmology):
         return self._Ogamma0 * (1. + z)**4 * self.inv_efunc(z)**2
 
     def Onu(self, z):
-        """ Return the density parameter for neutrinos at redshift `z`.
+        """ Return the density parameter for massless neutrinos at redshift `z`.
 
         Parameters
         ----------
@@ -335,9 +335,8 @@ class FLRW(Cosmology):
         -------
         Onu: ndarray, or float if input scalar
           The energy density of photons relative to the critical
-          density at each redshift.  Note that this includes their
-          kinetic energy, so is not equal to the commonly used
-          :math:`\\sum \\frac{m_{\\nu}}{94 eV}` even at zero redshift.
+          density at each redshift.  Note that this includes only
+          their relativistic energy, since they are assumed massless.
         """
 
         if self._Onu0 == 0:
