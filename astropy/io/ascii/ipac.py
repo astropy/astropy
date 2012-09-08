@@ -60,6 +60,8 @@ class Ipac(core.BaseReader):
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
 
+    Notes
+    -----
     Caveats:
 
     * Data type, Units, and Null value specifications are ignored.
@@ -69,6 +71,7 @@ class Ipac(core.BaseReader):
 
     Overcoming these limitations would not be difficult, code contributions
     welcome from motivated users.
+
     """
     def __init__(self, definition='ignore'):
         core.BaseReader.__init__(self)
