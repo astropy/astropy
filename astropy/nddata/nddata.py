@@ -220,7 +220,7 @@ class NDData(object):
             The second operand in the operation a + b
         propagate_errors : bool
             Whether to propagate errors following the propagation rules
-            defined by the class used for the `error`attribute.
+            defined by the class used for the `error` attribute.
 
         Returns
         -------
@@ -288,7 +288,7 @@ class NDData(object):
             The second operand in the operation a - b
         propagate_errors : bool
             Whether to propagate errors following the propagation rules
-            defined by the class used for the `error`attribute.
+            defined by the class used for the `error` attribute.
 
         Returns
         -------
