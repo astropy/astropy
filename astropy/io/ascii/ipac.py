@@ -53,11 +53,12 @@ class Ipac(core.BaseReader):
     Parameters
     ----------
     definition : str, optional
-        Specify the convention for characters in the data table that occur directly 
-        below the pipe (`|`) symbol in the header column definition:
-          'ignore' :  any character beneath a pipe symbol is ignored (default)
-          'right' : character is associated with the column to the right
-          'left' : character is associated with the column to the left
+        Specify the convention for characters in the data table that occur
+        directly below the pipe (`|`) symbol in the header column definition:
+
+          * 'ignore' - Any character beneath a pipe symbol is ignored (default)
+          * 'right' - Character is associated with the column to the right
+          * 'left' - Character is associated with the column to the left
 
     Caveats:
 
