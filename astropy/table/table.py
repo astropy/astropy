@@ -701,10 +701,10 @@ class Table(object):
         """Print a formatted string representation of the table.
 
         If no value of `max_lines` is supplied then the height of the screen
-        terminal is used to set `max_lines`.  If the terminal height cannot be
-        determined then the default will be determined using the
-        `astropy.table.pprint.MAX_LINES` configuration item. If a negative
-        value of `max_lines` is supplied then there is no line limit applied.
+        terminal is used to set `max_lines`.  If the terminal height cannot
+        be determined then the default is taken from the configuration item
+        `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        is supplied then there is no line limit applied.
 
         The same applies for max_width except the configuration item is
         `astropy.table.pprint.MAX_WIDTH`.
@@ -737,14 +737,15 @@ class Table(object):
         """Return a list of lines for the formatted string representation of
         the table.
 
-        If no value of ``max_lines`` is supplied then the height of the screen
-        terminal is used to set ``max_lines``.  If the terminal height cannot
+        If no value of `max_lines` is supplied then the height of the screen
+        terminal is used to set `max_lines`.  If the terminal height cannot
         be determined then the default is taken from the configuration item
-         `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
+        `astropy.table.pprint.MAX_LINES`.  If a negative value of `max_lines`
         is supplied then there is no line limit applied.
 
-        The Same applies for max_width except the default is
+        The same applies for max_width except the configuration item  is
         `astropy.table.pprint.MAX_WIDTH`.
+
         Parameters
         ----------
         max_lines : int or None
