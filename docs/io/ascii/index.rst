@@ -28,9 +28,11 @@ The :mod:`astropy.io.ascii` package is built on a modular and extensible class
 structure with independent :ref:`base_class_elements` so that new formats can
 be easily accomodated.
 
-.. note:: It is also possible to use the functionality from
-          :mod:`astropy.io.ascii` through a higher-level interface in the
-          :mod:`astropy.table` package. See :ref:`table_io` for more details.
+.. note::
+
+    It is also possible to use the functionality from
+    :mod:`astropy.io.ascii` through a higher-level interface in the
+    :mod:`astropy.table` package. See :ref:`table_io` for more details.
 
 Getting Started
 ===============
