@@ -7,7 +7,6 @@ from pytest import raises
 # the temporary module in coordinates
 #from ...units import Units as u
 from .. import fakeunits as u
-from .. import Angle
 
 # notes from the original api document:
 '''
@@ -41,6 +40,7 @@ def test_create_angles():
     """
     Tests creating and accessing Angle objects
     """
+    from .. import Angle
 
     ''' The "angle" is a fundamental object. The internal
     representation is stored in radians, but this is transparent to the user.
@@ -81,6 +81,7 @@ def test_angle_ops():
     """
     Tests operations on Angle objects
     """
+    from .. import Angle
 
     '''
     Angles can be added and subtracted. Multiplication and division by
@@ -111,7 +112,7 @@ def test_angle_bounds():
     Tests setting and obeying of bounds for Angle objects, as well as
     how operations interact with bounds
     """
-    from .. import RangeError
+    from .. import Angle, RangeError
 
     '''
     By default the Angle object can accept any value, but will return
@@ -178,6 +179,8 @@ def test_angle_convert():
     """
     from math import abs
 
+    from .. import Angle
+
     angle = Angle("54.12412", unit=u.degree)
 
     assert abs(angle.hours - 3.60827466667) < 1e-11
@@ -199,6 +202,7 @@ def test_angle_formatting():
     """
     Tests string formatting for Angle objects
     """
+    from .. import Angle
 
     '''
     The string method of Angle has this signature:
@@ -294,7 +298,7 @@ def test_create_coordinate():
     '''
     from math import abs
 
-    from .. import RA, Dec, ICRSCoordinate, GalacticCoordinate
+    from .. import Angle, RA, Dec, ICRSCoordinate, GalacticCoordinate
     from .. import HorizontalCoordinate
     from ...time import Time
 
