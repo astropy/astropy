@@ -1,10 +1,1 @@
-{% if referencefile %}
-.. include:: {{ referencefile }}
-{% endif %}
-
-{{ objname }}
-{{ underline }}
-
-.. currentmodule:: {{ module }}
-
-.. auto{{ objtype }}:: {{ objname }}
+{% extends "autosummary_core/base.rst" %}
