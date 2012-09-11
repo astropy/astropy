@@ -87,6 +87,10 @@ else:
     Tabprm = object
 
 
+# Additional relax bit flags
+WCSHDO_SIP = 0x10000
+
+
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -307,7 +311,9 @@ class WCS(WCSBase):
                 wcsprm = wcsprm.sub(naxis)
             self.naxis = wcsprm.naxis
 
-            det2im = self._read_det2im_kw(header, fobj)
+            header = fits.Header.fromstring(header_string)
+
+            det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
             sip = self._read_sip_kw(header)
@@ -322,7 +328,6 @@ distortion, you must select or reduce these to 2 dimensions using the
 naxis kwarg.
 """.format(wcsprm.naxis))
 
-            header = fits.Header.fromstring(header_string)
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:
                 log.info(
@@ -451,7 +456,7 @@ naxis kwarg.
         else:
             return self.wcs_pix2world(corners, 1)
 
-    def _read_det2im_kw(self, header, fobj):
+    def _read_det2im_kw(self, header, fobj, err=0.0):
         """
         Create a `Paper IV`_ type lookup table for detector to image
         plane correction.
@@ -465,6 +470,10 @@ naxis kwarg.
             return (None, None)
 
         if not isinstance(fobj, fits.HDUList):
+            return (None, None)
+
+        d_error = header.get('D2IMERR', 0.0)
+        if d_error < err:
             return (None, None)
 
         try:
@@ -599,21 +608,46 @@ naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header.update('{0}{1:d}'.format(dist, num), 'LOOKUP')
-            hdulist[0].header.update('{0}{1:d}.EXTVER'.format(d_kw, num),
-                                     len(hdulist))
-            hdulist[0].header.update('{0}{1:d}.AXIS.{1:d}'.format(d_kw, num),
-                                     num)
+            hdulist[0].header.update(
+                '{0}{1:d}'.format(dist, num),
+                ('LOOKUP', 'Prior distortion function type'))
+            hdulist[0].header.update(
+                '{0}{1:d}.EXTVER'.format(d_kw, num),
+                (num, 'Version number of WCSDVARR extension'))
+            hdulist[0].header.update(
+                '{0}{1:d}.NAXES'.format(d_kw, num),
+                (len(cpdis.data.shape),
+                 'Number of independent variables in distortion function'))
+
+            for i in range(cpdis.data.ndim):
+                hdulist[0].header.update(
+                    '{0}{1:d}.AXIS.{2:d}'.format(d_kw, num, i + 1),
+                    (i + 1, 'Axis number of the jth independent variable in a '
+                     'distortion function'))
 
             image = fits.ImageHDU(cpdis.data, name='WCSDVARR')
             header = image.header
 
-            header.update('CRPIX1', cpdis.crpix[0])
-            header.update('CRPIX2', cpdis.crpix[1])
-            header.update('CRVAL1', cpdis.crval[0])
-            header.update('CRVAL2', cpdis.crval[1])
-            header.update('CDELT1', cpdis.cdelt[0])
-            header.update('CDELT2', cpdis.cdelt[1])
+            header.update(
+                'CRPIX1',
+                (cpdis.crpix[0], 'Coordinate system reference pixel'))
+            header.update(
+                'CRPIX2',
+                (cpdis.crpix[1], 'Coordinate system reference pixel'))
+            header.update(
+                'CRVAL1',
+                (cpdis.crval[0], 'Coordinate system value at reference pixel'))
+            header.update(
+                'CRVAL2',
+                (cpdis.crval[1], 'Coordinate system value at reference pixel'))
+            header.update(
+                'CDELT1',
+                (cpdis.cdelt[0], 'Coordinate increment along axis'))
+            header.update(
+                'CDELT2',
+                (cpdis.cdelt[1], 'Coordinate increment along axis'))
+            image.update_ext_version(
+                int(hdulist[0].header['{0}{1:d}.EXTVER'.format(d_kw, num)]))
 
             hdulist.append(image)
 
@@ -1297,13 +1331,19 @@ naxis kwarg.
           8. Keyword order may be changed.
         """
 
+        do_sip = (relax is True or
+                  relax == WCSHDO_all or
+                  (relax & WCSHDO_SIP))
+        if relax not in (True, False):
+            relax &= ~WCSHDO_SIP
+
         if self.wcs is not None:
             header_string = self.wcs.to_header(relax)
             header = fits.Header.fromstring(header_string)
         else:
             header = fits.Header()
 
-        if self.sip is not None:
+        if do_sip and self.sip is not None:
             for key, val in self._write_sip_kw().items():
                 header.update(key, val)
 
