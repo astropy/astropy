@@ -253,6 +253,20 @@ def test_cunit_invalid2():
     w.cunit = [b('foo'), b('bar')]
 
 
+def test_unit():
+    from astropy import units as u
+    w = wcs.WCS()
+    w.set_unit(0, u.erg)
+
+
+@raises(ValueError)
+def test_unit2():
+    from astropy import units as u
+    w = wcs.WCS()
+    myunit = u.def_unit("FOOBAR")
+    w.set_unit(0, myunit)
+
+
 def test_cylfix():
     # TODO: We need some data with broken cylindrical projections to
     # test with.  For now, this is just a smoke test.

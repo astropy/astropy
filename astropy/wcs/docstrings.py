@@ -2003,16 +2003,21 @@ a units specification where it does not create ambiguity (e.g. not
 between a metric prefix and a basic unit string), including in strings
 like ``"log (m ** 2)"`` which is formally disallowed.
 
+.. note:: Deprecated in Astropy 0.2
+
+   `UnitConverter` will be removed in a future version of astropy.
+   The `astropy.units` package should be used instead.
+
 Parameters
 ----------
 
 have : string
-    :ref:`fits-unit` to convert from, with or without surrounding
+    FITS unit string to convert from, with or without surrounding
     square brackets (for inline specifications); text following the
     closing bracket is ignored.
 
 want : string
-    :ref:`fits-unit` to convert to, with or without surrounding square
+    FITS unit string to convert to, with or without surrounding square
     brackets (for inline specifications); text following the closing
     bracket is ignored.
 
@@ -2036,8 +2041,6 @@ ctrl : string, optional
 
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
-
-    See :ref:`fits-unit` for more information.
 
 Raises
 ------
@@ -2108,8 +2111,6 @@ translate_units : string, optional
 
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
-
-    See :ref:`fits-unit` for more information.
 
 Returns
 -------

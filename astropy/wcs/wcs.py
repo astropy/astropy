@@ -78,6 +78,10 @@ if _wcs is not None:
             key.startswith('WCSHDO')):
             locals()[key] = val
             __all__.append(key)
+
+    UnitConverter = deprecated(
+        '0.2', name='UnitConverter', alternative='astropy.units')(
+            UnitConverter)
 else:
     WCSBase = object
     Wcsprm = object
@@ -1536,6 +1540,39 @@ naxis kwarg.
 
         return (__WCS_unpickle__,
                 (self.__class__, self.__dict__, buffer.getvalue(),))
+
+    def get_unit(self, axis):
+        """
+        Get an `astropy.units.Unit` instance for the given axis.
+
+        Parameters
+        ----------
+        axis : int
+            Axis number
+
+        Returns
+        -------
+        unit : `astropy.units.Units` instance
+            Unit created from the value of ``CUNITia``.
+        """
+        from astropy import units as u
+        return u.Unit(self.wcs.cunit[axis].decode('ascii'), format='fits')
+
+    def set_unit(self, axis, unit):
+        """
+        Set the unit for a given axis.
+
+        Parameters
+        ----------
+        axis : int
+            Axis number
+
+        unit : `astropy.units.Unit` instance or string
+            The unit to set for the given axis
+        """
+        from astropy import units as u
+        unit = u.Unit(unit, format='fits')
+        self.wcs.cunit[axis] = unit.to_string(format='fits').encode('ascii')
 
 
 def __WCS_unpickle__(cls, dct, fits_data):
