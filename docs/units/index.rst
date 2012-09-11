@@ -8,7 +8,12 @@ Introduction
 ============
 
 ``astropy.units`` is a Python package to handle defining and converting
-between physical units
+between physical units.
+
+Unlike some other unit-related Python packages, `astropy.units` does
+not aim to provide operations on unitized values.  Instead, it just
+handles the unit description that must be associated with values by
+some other means.
 
 Getting Started
 ===============
