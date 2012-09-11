@@ -159,3 +159,6 @@ def test_in_units():
     speed_unit = u.cm / u.s
     x = speed_unit.in_units(u.mile / u.hour, 1)
 
+
+def test_null_unit():
+    assert (u.m / u.m) == u.Unit()

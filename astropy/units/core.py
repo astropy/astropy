@@ -515,7 +515,7 @@ class _UnitMetaClass(type):
     the constructor before the new instance is actually created, so we
     can return an existing one.
     """
-    def __call__(self, s, represents=None, format=None, register=False,
+    def __call__(self, s=None, represents=None, format=None, register=False,
                  doc=None):
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
@@ -528,6 +528,10 @@ class _UnitMetaClass(type):
             return s
 
         elif isinstance(s, (bytes, unicode)):
+            if len(s.strip()) == 0:
+                # Return the NULL unit
+                return CompositeUnit(1.0, [], [])
+
             if format is None:
                 format = 'generic'
 
@@ -536,6 +540,10 @@ class _UnitMetaClass(type):
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
             return CompositeUnit(s, [], [])
+
+        elif s is None:
+                # Return the NULL unit
+                return CompositeUnit(1.0, [], [])
 
 
 class Unit(NamedUnit):
@@ -567,6 +575,12 @@ class Unit(NamedUnit):
         Unit(unit)
 
       Returns the given unit unchanged.
+
+    - From `None`::
+
+        Unit()
+
+      Returns the null unit.
 
     - The last form, which creates a new `Unit` is described in detail
       below.
