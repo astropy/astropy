@@ -194,8 +194,8 @@ class Generic(Base):
     @classmethod
     @_trace
     def _parse_unit(cls, s, loc, toks):
-        if hasattr(cls._unit_namespace, toks[0]):
-            return getattr(cls._unit_namespace, toks[0])
+        if toks[0] in cls._unit_namespace:
+            return cls._unit_namespace[toks[0]]
         raise ValueError(
             s, loc, "{0!r} is not a recognized unit".format(toks[0]))
 
@@ -244,8 +244,12 @@ class Generic(Base):
             print("parse", s)
 
         if '_unit_namespace' not in Generic.__dict__:
-            from astropy.units import standard_units as u
-            Generic._unit_namespace = u
+            from ... import units as u
+            ns = {}
+            for key, val in u.__dict__.items():
+                if isinstance(val, u.UnitBase):
+                   ns[key] = val
+            Generic._unit_namespace = ns
 
         return self._parser.parseString(s, parseAll=True)[0]
 
@@ -272,7 +276,8 @@ class Generic(Base):
                 s = ''
 
             if len(unit.bases):
-                positives, negatives = utils.get_grouped_by_powers(unit)
+                positives, negatives = utils.get_grouped_by_powers(
+                    unit.bases, unit.powers)
                 if len(positives):
                     s += self._format_unit_list(positives)
                 elif s == '':

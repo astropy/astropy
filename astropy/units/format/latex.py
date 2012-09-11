@@ -54,12 +54,13 @@ class Latex(base.Base):
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                s = self._format_exponential_notation(unit.scale)
+                s = self._format_exponential_notation(unit.scale) + r'\ '
             else:
                 s = ''
 
             if len(unit.bases):
-                positives, negatives = utils.get_grouped_by_powers(unit)
+                positives, negatives = utils.get_grouped_by_powers(
+                    unit.bases, unit.powers)
                 if len(negatives):
                     if len(positives):
                         positives = self._format_unit_list(positives)

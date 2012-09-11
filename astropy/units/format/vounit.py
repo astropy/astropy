@@ -2,6 +2,8 @@
 """
 Handles the "VOUnit" unit format.
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import warnings
 
 from . import generic
@@ -25,14 +27,13 @@ class VOUnit(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-        from astropy.units import standard_units as u
+        from ... import units as u
         names = {}
         deprecated_names = set()
 
-        bases = [
-            'm', 's', 'A', 'K', 'mol', 'cd', 'g', 'rad', 'sr',
-            'Hz', 'N', 'Pa', 'J', 'W', 'C', 'V', 'S', 'F',
-            'Wb', 'T', 'H', 'lm', 'lx', 'Ohm']
+        bases = ['m', 's', 'A', 'K', 'mol', 'cd', 'g', 'rad', 'sr',
+                'Hz', 'N', 'Pa', 'J', 'W', 'C', 'V', 'S', 'F',
+                'Wb', 'T', 'H', 'lm', 'lx', 'Ohm']
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
@@ -92,6 +93,9 @@ class VOUnit(generic.Generic):
     def to_string(self, unit):
         from .. import core
 
+        # Remove units that aren't known to the format
+        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+
         if isinstance(unit, core.CompositeUnit):
             s = ''
             if unit.scale != 1:
@@ -107,7 +111,7 @@ class VOUnit(generic.Generic):
                 s = ''
 
             pairs = zip(unit.bases, unit.powers)
-            pairs.sort(key=lambda x: x[1])
+            pairs.sort(key=lambda x: x[1], reverse=True)
 
             s += self._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):

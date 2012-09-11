@@ -5,6 +5,7 @@ Regression tests for the units.format package
 from __future__ import absolute_import, unicode_literals, division, print_function
 
 from numpy.testing import assert_allclose
+from astropy.tests.helper import raises
 
 from ... import units as u
 from .. import core
@@ -104,3 +105,16 @@ def test_wcs_parse():
     for key, val in u.__dict__.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_wcs_parse, val
+
+
+def test_flatten_to_known():
+    myunit = u.def_unit("FOOBAR", u.erg / u.Hz)
+    assert myunit.to_string('fits') == 'erg Hz-1'
+    myunit2 = myunit * u.bit ** 3
+    assert myunit2.to_string('fits') == 'bit3 erg Hz-1'
+
+
+@raises(ValueError)
+def test_flatten_impossible():
+    myunit = u.def_unit("FOOBAR")
+    myunit.to_string('fits')

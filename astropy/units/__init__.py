@@ -8,8 +8,12 @@ code under a BSD license.
 """
 
 from .core import *
-from .standard_units import *
+from .si import *
+from .astrophys import *
+from .cgs import *
+from .imperial import *
+from .equivalencies import *
 
-# After importing standard_units, set the unit namespace to this
-# top-level module so that new units are added here.
+# After importing the unit definitions above, set the unit namespace
+# to this top-level module so that new units are added here.
 UnitBase._set_namespace(globals())

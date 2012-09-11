@@ -70,7 +70,16 @@ Reference/API
 
 .. automodapi:: astropy.units.format
 
-.. automodapi:: astropy.units.standard_units
+.. automodapi:: astropy.units.si
+
+.. automodapi:: astropy.units.cgs
+
+.. automodapi:: astropy.units.astrophys
+
+.. automodapi:: astropy.units.imperial
+
+.. automodapi:: astropy.units.equivalencies
+
 
 Acknowledgments
 ===============

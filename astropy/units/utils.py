@@ -7,6 +7,8 @@ package.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from . import core
+
 
 def _get_first_sentence(s):
     """
@@ -23,7 +25,8 @@ def _get_first_sentence(s):
 def generate_unit_summary(namespace):
     """
     Generates a summary of units from a given namespace.  This is used
-    to generate the docstring for the `standard_units` module.
+    to generate the docstring for the modules that define the actual
+    units.
 
     Parameters
     ----------
@@ -81,7 +84,7 @@ def generate_unit_summary(namespace):
         doc = _get_first_sentence(unit.__doc__).strip()
         represents = ''
         if isinstance(unit, core.Unit):
-            represents = str(unit._represents)
+            represents = ":math:`{0}`".format(unit._represents.to_string('latex'))
         aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
         docstring.write("""
    * - ``{0}``

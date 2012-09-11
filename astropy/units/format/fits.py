@@ -2,9 +2,12 @@
 """
 Handles the "FITS" unit format.
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import warnings
 
 from . import generic
+from . import utils
 
 
 class Fits(generic.Generic):
@@ -25,7 +28,7 @@ class Fits(generic.Generic):
 
     @staticmethod
     def _generate_unit_names():
-        from astropy.units import standard_units as u
+        from ... import units as u
         names = {}
         deprecated_names = set()
 
@@ -100,14 +103,17 @@ class Fits(generic.Generic):
     def to_string(self, unit):
         from .. import core
 
+        # Remove units that aren't known to the format
+        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1.0:
                 raise ValueError(
                     "The FITS unit format is not able to represent scale. "
-                    "Multiply your data by {0:f}.".format(unit.scale))
+                    "Multiply your data by {0:e}.".format(unit.scale))
 
             pairs = zip(unit.bases, unit.powers)
-            pairs.sort(key=lambda x: abs(x[1]))
+            pairs.sort(key=lambda x: x[1], reverse=True)
 
             s = self._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):

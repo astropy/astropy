@@ -39,7 +39,7 @@ class UnitBase(object):
 
     Should not be used by users directly.
     """
-    _registry = {}
+    _registry = []
     _namespace = {}
 
     def __deepcopy__(self, memo):
@@ -80,11 +80,16 @@ class UnitBase(object):
         return f.to_string(self)
 
     @staticmethod
+    def _get_namespace():
+        """
+        Get the namespace that units will be registered to.
+        """
+        return UnitBase._namespace
+
+    @staticmethod
     def _set_namespace(d):
         """
-        Set the namespace that units will be registered to.  This is
-        called from the standard_units module so that newly created
-        units will be added to that module's namespace.
+        Set the namespace that units will be registered to.
         """
         UnitBase._namespace = d
 
@@ -475,17 +480,13 @@ class NamedUnit(UnitBase):
             raise UnitsException("unit has no string representation")
 
         for st in self._names:
-            if st in self._registry:
-                raise ValueError(
-                    "Unit with name {0!r} already exists".format(st))
-
             if not re.match("^[A-Za-z_]+$", st):
                 # will cause problems for simple string parser in
                 # unit() factory
                 raise ValueError(
                     "Invalid unit name {0!r}".format(st))
 
-            self._registry[st] = self
+            self._registry.append(self)
 
             if register:
                 if st in self._namespace:
@@ -812,7 +813,7 @@ def _add_prefixes(u, excludes=[], register=False):
             # This is a hack to use Greek mu as a prefix
             # for some formatters.
             if prefix == 'u':
-                format['latex'] = r'\mu' + u.get_format_name('latex')
+                format['latex'] = r'\mu ' + u.get_format_name('latex')
                 format['unicode'] = 'μ' + u.get_format_name('unicode')
 
             for key, val in u._format.items():
@@ -953,10 +954,8 @@ def get_equivalent_units(u, equivs=[]):
             units.append(funit)
 
     equivs = set()
-    for ukey in UnitBase._registry:
-        tunit = UnitBase._registry[ukey]
-        if (tunit.name == ukey and
-            not isinstance(tunit, PrefixUnit)):
+    for tunit in UnitBase._registry:
+        if not isinstance(tunit, PrefixUnit):
             for u in units:
                 try:
                     tunit.get_converter(u)
