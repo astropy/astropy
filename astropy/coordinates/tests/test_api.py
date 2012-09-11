@@ -210,20 +210,20 @@ def test_angle_formatting():
                pad=False):
 
     The "decimal" parameter defaults to False since if you need to print the
-    Angle as a decimal, there's no need to use the "to_string" method (see
+    Angle as a decimal, there's no need to use the "format" method (see
     above).
     '''
 
     angle = Angle("54.12412", unit=u.degree)
 
     res = 'Angle as HMS: 3 36 29.78880'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour)) == res
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.78880'
-    print("Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":")))
+    print("Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")))
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {0}".format(angle.to_string(unit=u.hour, sep=":",
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
@@ -414,7 +414,7 @@ def test_convert_api():
     gal = c.convert_to(GalacticCoordinate)
 
     # can still convert back to equatorial using the shorthand
-    assert gal.equatorial.ra.to_string(unit=u.hour, sep=":",
+    assert gal.equatorial.ra.format(unit=u.hour, sep=":",
                                        precision=2) == '4:08:15.16'
 
     with raises(ConvertError):
