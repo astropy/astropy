@@ -87,6 +87,10 @@ else:
     Tabprm = object
 
 
+# Additional relax bit flags
+WCSHDO_SIP = 0x10000
+
+
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -1327,13 +1331,19 @@ naxis kwarg.
           8. Keyword order may be changed.
         """
 
+        do_sip = (relax is True or
+                  relax == WCSHDO_all or
+                  (relax | WCSHDO_SIP))
+        if relax not in (True, False):
+            relax &= ~WCSHDO_SIP
+
         if self.wcs is not None:
             header_string = self.wcs.to_header(relax)
             header = fits.Header.fromstring(header_string)
         else:
             header = fits.Header()
 
-        if self.sip is not None:
+        if do_sip and self.sip is not None:
             for key, val in self._write_sip_kw().items():
                 header.update(key, val)
 
