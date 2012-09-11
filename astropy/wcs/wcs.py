@@ -1333,7 +1333,7 @@ naxis kwarg.
 
         do_sip = (relax is True or
                   relax == WCSHDO_all or
-                  (relax | WCSHDO_SIP))
+                  (relax & WCSHDO_SIP))
         if relax not in (True, False):
             relax &= ~WCSHDO_SIP
 
