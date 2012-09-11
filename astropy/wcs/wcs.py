@@ -461,10 +461,6 @@ naxis kwarg.
         Create a `Paper IV`_ type lookup table for detector to image
         plane correction.
         """
-        d_error = header.get('D2IMERR', 0.0)
-        if d_error < err:
-            return (None, None)
-
         cpdis = [None, None]
         crpix = [0., 0.]
         crval = [0., 0.]
@@ -474,6 +470,10 @@ naxis kwarg.
             return (None, None)
 
         if not isinstance(fobj, fits.HDUList):
+            return (None, None)
+
+        d_error = header.get('D2IMERR', 0.0)
+        if d_error < err:
             return (None, None)
 
         try:
