@@ -70,6 +70,7 @@ Reference/API
 Acknowledgments
 ===============
 
-astropy.units was adopted from the pynbody units module (with a
-multitude of changes; so do not expect it to behave in the same way or
-use the same names).
+This code is adapted from the `pynbody
+<http://code.google.com/p/pynbody/>`_ units module written by Andrew
+Pontzen, who has granted the Astropy project permission to use the
+code under a BSD license.
