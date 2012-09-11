@@ -153,3 +153,9 @@ def test_register():
     finally:
         if hasattr(u, 'foo'):
             del u.foo
+
+
+def test_in_units():
+    speed_unit = u.cm / u.s
+    x = speed_unit.in_units(u.mile / u.hour, 1)
+

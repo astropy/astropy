@@ -326,6 +326,9 @@ class UnitBase(object):
         """
         return self.get_converter(other, equivs=equivs)(value)
 
+    # Alias for pynbody backward compatibility
+    in_units = to
+
     def decompose(self):
         """
         Return a unit object composed of only irreducible units.
