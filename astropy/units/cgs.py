@@ -78,6 +78,9 @@ def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * si.C * si.m,
          register=True,
          doc="Debye: CGS unit of electric dipole moment")
 
+def_unit(['Fr', 'Franklin', 'statcolomb', 'statC', 'esu'],
+         si.g ** Fraction(1, 2) * si.cm ** Fraction(3, 2) * si.s ** -1,
+         register=True)
 
 ###########################################################################
 # MAGNETIC

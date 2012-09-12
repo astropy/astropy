@@ -39,3 +39,11 @@ def test_h():
     assert cgs.h.name
     assert cgs.h.origin
     assert cgs.h.units
+
+
+def test_units():
+    for key, val in si.__dict__.items() + cgs.__dict__.items():
+        if isinstance(val, Constant):
+            # Getting the unit forces the unit parser to run and we
+            # can catch any syntax errors in the unit this way.
+            val.units

@@ -270,6 +270,9 @@ class Generic(Base):
         for base, power in units:
             if power == 1:
                 out.append(self._get_unit_name(base))
+            elif isinstance(power, Fraction):
+                out.append('{0}({1})'.format(
+                    self._get_unit_name(base), power))
             else:
                 out.append('{0}{1}'.format(
                     self._get_unit_name(base), power))
