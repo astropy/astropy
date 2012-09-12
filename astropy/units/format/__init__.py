@@ -6,15 +6,18 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from .base import Base
 from .generic import Generic
+from .cds import CDS
 from .console import Console
 from .fits import Fits
 from .latex import Latex
 from .unicode_format import Unicode
 from .vounit import VOUnit
 
+from astropy.extern.pyparsing import ParseException
+
 __all__ = [
-    'Generic', 'Console', 'Fits', 'Latex', 'Unicode', 'VOUnit',
-    'get_format']
+    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'VOUnit',
+    'get_format', 'ParseException']
 
 
 def get_format(format=None):

@@ -9,7 +9,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 </DESCRIPTION>
 <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
 <PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.000000" arraysize="0"/>
-<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="deg" ucd="phys.size;instr.tel">
+<PARAM datatype="float" name="INPUT" value="0.000000,0.000000" arraysize="*" unit="km/h" ucd="phys.size;instr.tel">
   <DESCRIPTION>This is the most interesting parameter in the world, and it drinks Dos Equis</DESCRIPTION>
 </PARAM>
 <INFO name="QUERY_STATUS" value="OK"/>

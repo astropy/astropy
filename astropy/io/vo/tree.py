@@ -30,7 +30,6 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     W41, W42, W43, W44, W45, E06, E08, E09, E10, E11, E12, E13,
     E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
-from .unit import check_unit
 from . import util
 from . import xmlutil
 
@@ -633,15 +632,31 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        if unit is not None and not self._config.get('version_1_2_or_later'):
+        if unit is None:
+            self._unit = None
+            return
+
+        from astropy import units as u
+
+        if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
                           self._config, self._pos)
-        check_unit(unit, 'unit', self._config, self._pos)
+        try:
+            unit = u.Unit(unit, format='cds')
+        except ValueError as e:
+            vo_reraise(e, self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
     def unit(self):
         self._unit = None
+
+    def to_xml(self, w, **kwargs):
+        attrib = w.object_attrs(self, self._attr_list)
+        if 'unit' in attrib:
+            attrib['unit'] = self.unit.to_string('cds')
+        w.element(self._element_name, self._content,
+                  attrib=attrib)
 
 
 class Values(Element, _IDProperty):
@@ -1155,7 +1170,16 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        check_unit(unit, 'unit', self._config, self._pos)
+        if unit is None:
+            self._unit = None
+            return
+
+        from astropy import units as u
+
+        try:
+            unit = u.Unit(unit, format='cds')
+        except ValueError as e:
+            vo_reraise(e, self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
@@ -1261,8 +1285,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         return self
 
     def to_xml(self, w, **kwargs):
-        with w.tag(self._element_name,
-                   attrib=w.object_attrs(self, self._attr_list)):
+        attrib = w.object_attrs(self, self._attr_list)
+        if 'unit' in attrib:
+            attrib['unit'] = self.unit.to_string('cds')
+        with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element(u'DESCRIPTION', self.description, wrap=True)
             if not self.values.is_defaults():
