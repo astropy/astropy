@@ -88,7 +88,7 @@ class TestAttrEqual():
     def test_9(self):
         c1 = Column(name='a', dtype=int, units='mJy', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
-        c2 = Column(name='a', dtype=int, units='ergs/cm^2/s/Hz', format='%i',
+        c2 = Column(name='a', dtype=int, units='erg.cm-2.s-1.Hz-1', format='%i',
                     description='test column', meta={'c': 8, 'd': 12})
         assert not c1.attrs_equal(c2)
 

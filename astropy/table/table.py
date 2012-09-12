@@ -108,7 +108,7 @@ class Column(np.ndarray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
+    units : str, `astropy.units.UnitBase` instance or None
         Physical units
     format : str or None
         Format string for outputting column values.  This can be an
@@ -360,6 +360,22 @@ class Column(np.ndarray):
         """
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,
                      show_units=show_units)
+
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        if units is None:
+            self._units = None
+        else:
+            from astropy import units as u
+            self._units = u.Unit(units)
+
+    @units.deleter
+    def units(self):
+        self._units = None
 
     def __str__(self):
         lines, n_header = _pformat_col(self)
