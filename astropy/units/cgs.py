@@ -9,10 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from fractions import Fraction
 
-import numpy as _numpy
-
 from . import si
-from ..constants import si as _si
 from .core import UnitBase, def_unit
 
 
