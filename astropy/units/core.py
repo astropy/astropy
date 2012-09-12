@@ -331,8 +331,11 @@ class UnitBase(object):
         """
         return self.get_converter(other, equivs=equivs)(value)
 
-    # Alias for pynbody backward compatibility
-    in_units = to
+    def in_units(self, other, value=1.0, equivs=[]):
+        """
+        Alias for `to` for backward compatibility with pynbody.
+        """
+        return self.to(other, value=value, equivs=equivs)
 
     def decompose(self):
         """
