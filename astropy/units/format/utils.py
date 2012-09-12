@@ -94,7 +94,7 @@ def decompose_to_known_units(unit, func):
         return unit
 
 
-DEBUG = True
+DEBUG = False
 
 
 def _trace(func):
