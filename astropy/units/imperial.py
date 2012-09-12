@@ -7,11 +7,8 @@ available in the `astropy.units` namespace.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..constants import si as _si
 from .core import UnitBase, def_unit
 from . import si
-
-import numpy as _numpy
 
 UnitBase._set_namespace(globals())
 
