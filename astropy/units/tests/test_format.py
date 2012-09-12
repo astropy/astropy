@@ -61,7 +61,7 @@ def test_cds_grammar():
 
 
 def test_cds_grammar_fail():
-    @raises(format.ParseException)
+    @raises(ValueError)
     def _test_cds_grammar_fail(s):
         print(s)
         format.CDS().parse(s)

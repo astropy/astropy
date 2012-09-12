@@ -13,11 +13,9 @@ from .latex import Latex
 from .unicode_format import Unicode
 from .vounit import VOUnit
 
-from astropy.extern.pyparsing import ParseException
-
 __all__ = [
     'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'VOUnit',
-    'get_format', 'ParseException']
+    'get_format']
 
 
 def get_format(format=None):

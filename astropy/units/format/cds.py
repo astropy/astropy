@@ -204,15 +204,18 @@ class CDS(Base):
         return toks[0] * toks[1]
 
     def parse(self, s):
-        from astropy.extern.pyparsing import ParseException
+        from astropy.extern import pyparsing
 
         if utils.DEBUG:
             print("parse", s)
 
         if ' ' in s:
-            raise ParseException('CDS unit must not contain whitespace')
+            raise ValueError('CDS unit must not contain whitespace')
 
-        return self._parser.parseString(s, parseAll=True)[0]
+        try:
+            return self._parser.parseString(s, parseAll=True)[0]
+        except pyparsing.ParseException as e:
+            raise ValueError(e.message)
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
