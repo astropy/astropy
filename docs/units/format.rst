@@ -1,7 +1,7 @@
 Unit formats
 ============
 
-Units can be created from strings using the `Unit` factory function::
+Units can be created from strings using the `Unit` class::
 
   >>> u.Unit("m")
   Unit("m")

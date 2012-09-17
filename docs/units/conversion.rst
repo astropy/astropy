@@ -6,15 +6,13 @@ There are two ways of handling conversions between units.
 Direct Conversion
 -----------------
 
-In this case, one give a unit both the new unit to convert to,
-and the value or values to be converted; the value(s) in the new
-units is(are) returned.
+In this case, given a source and destination unit, the value(s) in the
+new units is(are) returned.
 
   >>> u.pc.to(u.m, 3.26)
   1.0059317615e+17
 
-This converts 3.26 parsecs to meters. The first argument is the new
-unit desired, the second is the value to be converted.
+This converts 3.26 parsecs to meters.
 
 Arrays are permitted as arguments.
 

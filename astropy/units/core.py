@@ -37,7 +37,7 @@ class UnitBase(object):
     Most of the arithmetic operations on units are defined in this
     base class.
 
-    Should not be used by users directly.
+    Should not be instantiated by users directly.
     """
     _registry = []
     _namespace = {}
@@ -877,7 +877,9 @@ def def_unit(s, represents=None, register=None, doc=None,
 
     Returns
     -------
-    `UnitBase` object
+    unit : `UnitBase` object
+        The newly-defined unit, or a matching unit that was already
+        defined.
     """
     if register is None:
         register = False
@@ -945,6 +947,7 @@ def get_equivalent_units(u, equivs=[]):
     Returns
     -------
     units : list of `UnitBase`
+        A list of unit objects that match `u`.
     """
     u = Unit(u)
 
@@ -982,6 +985,12 @@ def print_equivalent_units(u, equivs=[]):
     equivs : list of equivalence pairs, optional
         A list of equivalence pairs to also list.  See
         :ref:`unit_equivalencies`.
+
+    See also
+    --------
+    `get_equivalent_units` :
+        To get a list of equivalent units, rather than printing to the
+        console.
     """
     equivs = get_equivalent_units(u, equivs=equivs)
 

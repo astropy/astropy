@@ -20,14 +20,26 @@ Getting Started
 
   >>> from astropy import units as u
   >>> # Convert from parsec to meter
-  >>> u.pc.to(u.m, 1)
+  >>> u.pc.to(u.m)
   3.0856776e+16
   >>> speed_unit = u.cm / u.s
   >>> speed_unit.to(u.mile / u.hour, 1)
   0.02236936292054402
-  >>> speed_converter = speed_unit.get_converter("mile hour^-1")
-  >>> speed_converter([1., 1000., 5000.])
+  >>> speed_unit.to([1., 1000., 5000.])
   array([  2.23693629e-02,   2.23693629e+01,   1.11846815e+02])
+
+`astropy.units` also handles equivalencies, such as that between
+wavelength and frequency.  For that, equivalence objects are passed to
+the `to` conversion method::
+
+  # Wavelength to frequency doesn't normally work
+  >>> u.nm.to(u.Hz, [1000, 2000])
+  UnitsException: 'nm' and 'Hz' are not convertible
+  # ...but by passing an equivalency unit, it does
+  >>> u.nm.to(u.Hz, [1000, 2000], u.sp())
+  array([  2.99792458e+14,   1.49896229e+14])
+  >>> u.nm.to(u.eV, [1000, 2000], u.sp())
+  array([ 1.23984201,  0.61992101])
 
 Using `astropy.units`
 =====================

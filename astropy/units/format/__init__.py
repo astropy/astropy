@@ -30,6 +30,7 @@ def get_format(format=None):
     Returns
     -------
     format : `astropy.units.format.Base` instance
+        The requested formatter.
     """
     if isinstance(format, type) and issubclass(format, Base):
         return format()
