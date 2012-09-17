@@ -29,13 +29,13 @@ Getting Started
   array([  2.23693629e-02,   2.23693629e+01,   1.11846815e+02])
 
 `astropy.units` also handles equivalencies, such as that between
-wavelength and frequency.  For that, equivalence objects are passed to
-the `to` conversion method::
+wavelength and frequency.  To use that feature, equivalence objects
+are passed to the `to` conversion method::
 
   # Wavelength to frequency doesn't normally work
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' and 'Hz' are not convertible
-  # ...but by passing an equivalency unit, it does
+  # ...but by passing an equivalency unit (sp()), it does...
   >>> u.nm.to(u.Hz, [1000, 2000], u.sp())
   array([  2.99792458e+14,   1.49896229e+14])
   >>> u.nm.to(u.eV, [1000, 2000], u.sp())
