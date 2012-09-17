@@ -19,14 +19,16 @@ UnitBase._set_namespace(globals())
 ##########################################################################
 # ACCELERATION
 
-def_unit(['Gal', 'gal'], si.cm / si.s ** 2, register=True, prefixes=True)
+def_unit(['Gal', 'gal'], si.cm / si.s ** 2, register=True, prefixes=True,
+         doc="Gal: CGS unit of acceleration")
 
 
 ##########################################################################
 # ENERGY
 
 # Use CGS definition of erg
-def_unit(['erg'], si.g * si.cm ** 2 / si.s ** 2, register=True, prefixes=True)
+def_unit(['erg'], si.g * si.cm ** 2 / si.s ** 2, register=True, prefixes=True,
+         "erg: CGS unit of energy")
 
 
 ##########################################################################
@@ -41,28 +43,32 @@ def_unit(['dyn', 'dyne'], si.g * si.cm / si.s ** 2, register=True,
 # PRESSURE
 
 def_unit(['Ba', 'Barye', 'barye'], si.g / (si.cm * si.s ** 2), register=True,
-         prefixes=True)
+         prefixes=True,
+         doc="Barye: CGS unit of pressure")
 
 
 ##########################################################################
 # DYNAMIC VISCOSITY
 
 def_unit(['P', 'poise'], si.g / (si.cm * si.s), register=True,
-         prefixes=True)
+         prefixes=True,
+         doc="poise: CGS unit of dynamic viscosity")
 
 
 ##########################################################################
 # KINEMATIC VISCOSITY
 
 def_unit(['St', 'stokes'], si.cm ** 2 / si.s, register=True,
-         prefixes=True)
+         prefixes=True,
+         doc="stokes: CGS unit of kinematic viscosity")
 
 
 ##########################################################################
 # WAVENUMBER
 
 def_unit(['k', 'Kayser', 'kayser'], si.cm ** -1, register=True,
-         prefixes=True)
+         prefixes=True,
+         doc="kayser: CGS unit of wavenumber")
 
 
 ###########################################################################
