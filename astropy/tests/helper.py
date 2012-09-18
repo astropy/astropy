@@ -307,7 +307,6 @@ class raises:
 if [int(x) for x in np.__version__.split(".", 2)[:2]] < (1, 5):
     def assert_allclose(actual, desired, rtol=1e-7, atol=0,
                         err_msg='', verbose=True):
-        import numpy as np
         from numpy.testing.utils import assert_array_compare
         def compare(x, y):
             return np.allclose(x, y, rtol=rtol, atol=atol)
