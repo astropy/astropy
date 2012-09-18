@@ -1,12 +1,26 @@
 0.2 (unreleased)
 ----------------
 
-- `astropy.cosmology` update to include cosmologies with variable dark energy equations of state. (This includes some API incompatibilities with the older Cosmology objects)
-- Astropy doc themes moved into `astropy.sphinx` to allow affilated packages to access them
-- Added option to disable building of "legacy" packages (pyfits, vo, etc.)
-- `astropy.table` I/O infrastructure for custom readers/writers implemented
-- new `astropy.time` sub-package
-- The value of the astronomical unit (au) has been updated to that adopted by IAU 2012 Resolution B2, and the values of the pc and kpc constants have been updated to reflect this.
+- New `astropy.units` sub-package
+
+- `astropy.cosmology` update to include cosmologies with variable dark
+  energy equations of state. (This includes some API incompatibilities
+  with the older Cosmology objects)
+
+- Astropy doc themes moved into `astropy.sphinx` to allow affilated
+  packages to access them
+
+- Added option to disable building of "legacy" packages (pyfits, vo,
+  etc.)
+
+- `astropy.table` I/O infrastructure for custom readers/writers
+  implemented
+
+- New `astropy.time` sub-package
+
+- The value of the astronomical unit (au) has been updated to that
+  adopted by IAU 2012 Resolution B2, and the values of the pc and kpc
+  constants have been updated to reflect this.
 
 
 0.1.1 (unreleased)
@@ -23,7 +37,7 @@
 
   - Fixed a bug where ``ImageHDU.scale(option='old')`` wasn't working at
     all--it was not restoring the image to its original BSCALE and BZERO
-    values. 
+    values.
 
   - Fixed a bug when writing out files containing zero-width table columns,
     where the TFIELDS keyword would be updated incorrectly, leaving the table
