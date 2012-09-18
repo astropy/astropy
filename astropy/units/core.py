@@ -18,9 +18,8 @@ from . import format as unit_format
 
 __all__ = [
     'UnitsException', 'UnitBase', 'NamedUnit',
-    'IrreducibleUnit', 'Unit', 'Unit', 'def_unit',
-    'CompositeUnit', 'PrefixUnit', 'get_equivalent_units',
-    'print_equivalent_units']
+    'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
+    'PrefixUnit', 'get_equivalent_units', 'print_equivalent_units']
 
 
 class UnitsException(Exception):
