@@ -1098,5 +1098,18 @@ def use_system_library(library):
         `True` if the build should use the system copy of the library.
     """
     return (
-     get_distutils_build_or_install_option('use_system_{0}'.format(library))
-     or get_distutils_build_or_install_option('use_system_libraries'))
+        get_distutils_build_or_install_option('use_system_{0}'.format(library))
+        or get_distutils_build_or_install_option('use_system_libraries'))
+
+
+def filter_packages(packagenames):
+    """
+    Removes some packages from the package list that shouldn't be
+    installed on the current version of Python.
+    """
+    if sys.version_info[0] >= 3:
+        exclude = '_py2'
+    else:
+        exclude = '_py3'
+
+    return [x for x in packagenames if not x.endswith(exclude)]

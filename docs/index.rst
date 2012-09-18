@@ -25,6 +25,7 @@ User Documentation
    overview
    install
    nddata/index
+   units/index
    time/index
    table/index
    cosmology/index
