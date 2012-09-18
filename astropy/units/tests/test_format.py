@@ -131,6 +131,10 @@ def test_vo_units_available():
     format.VOUnit()
 
 
+def test_cds_units_available():
+    format.CDS()
+
+
 def test_latex():
     fluxunit = u.erg / (u.cm ** 2 * u.s)
     assert fluxunit.to_string('latex') == r'$\mathrm{\frac{erg}{s\ cm^{2}}}$'
