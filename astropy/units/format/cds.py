@@ -204,7 +204,7 @@ class CDS(Base):
         return toks[0] * toks[1]
 
     def parse(self, s):
-        from astropy.extern import pyparsing
+        from astropy.extern import pyparsing as p
 
         if utils.DEBUG:
             print("parse", s)
@@ -214,8 +214,8 @@ class CDS(Base):
 
         try:
             return self._parser.parseString(s, parseAll=True)[0]
-        except pyparsing.ParseException as e:
-            raise ValueError(e.message)
+        except p.ParseException as e:
+            raise ValueError("{0} in {1:r}".format(str(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
