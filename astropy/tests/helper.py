@@ -304,7 +304,7 @@ class raises:
 
 
 # assert_allclose doesn't exist in Numpy 1.4, so recreate it here
-if [int(x) for x in np.__version__.split(".", 2)[:2]] < (1, 5):
+if tuple([int(x) for x in np.__version__.split(".", 2)[:2]]) < (1, 5):
     def assert_allclose(actual, desired, rtol=1e-7, atol=0,
                         err_msg='', verbose=True):
         from numpy.testing.utils import assert_array_compare
@@ -315,4 +315,4 @@ if [int(x) for x in np.__version__.split(".", 2)[:2]] < (1, 5):
         assert_array_compare(compare, actual, desired, err_msg=str(err_msg),
                              verbose=verbose, header=header)
 else:
-    from numpy.tests.utils import assert_allclose
+    from numpy.testing.utils import assert_allclose
