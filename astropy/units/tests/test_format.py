@@ -64,14 +64,11 @@ def test_roundtrip_vo_unit():
 
 def test_roundtrip_fits():
     def _test_roundtrip_fits(unit):
-        try:
-            s = unit.to_string('fits')
-        except ValueError:
-            return
+        s = unit.to_string('fits')
         a = core.Unit(s, format='fits')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    for key, val in u.__dict__.items():
+    for key, val in format.Fits()._units.items():
         if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_fits, val
 
