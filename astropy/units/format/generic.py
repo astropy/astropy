@@ -260,7 +260,7 @@ class Generic(Base):
         try:
             return self._parser.parseString(s, parseAll=True)[0]
         except p.ParseException as e:
-            raise ValueError("{0} in {1:r}".format(str(e), s))
+            raise ValueError("{0} in {1!r}".format(str(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')
