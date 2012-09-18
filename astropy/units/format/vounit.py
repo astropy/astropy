@@ -65,7 +65,8 @@ class VOUnit(generic.Generic):
 
         if unit not in cls._units:
             raise ValueError(
-                "Unit {0!r} not supported by the VOUnit standard.".format(unit))
+                "Unit {0!r} not supported by the VOUnit "
+                "standard.".format(unit))
 
         if unit in cls._deprecated_units:
             warnings.warn(

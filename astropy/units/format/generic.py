@@ -194,9 +194,11 @@ class Generic(Base):
     @classmethod
     @_trace
     def _parse_unit(cls, s, loc, toks):
+        from astropy.extern import pyparsing as p
+
         if toks[0] in cls._unit_namespace:
             return cls._unit_namespace[toks[0]]
-        raise ValueError(
+        raise p.ParseException(
             s, loc, "{0!r} is not a recognized unit".format(toks[0]))
 
     @classmethod
@@ -231,15 +233,19 @@ class Generic(Base):
     @classmethod
     @_trace
     def _parse_function(cls, s, loc, toks):
+        from astropy.extern import pyparsing as p
+
         # TODO: Add support for more functions here
         if toks[0] == 'sqrt':
             return toks[1] ** -2.0
         else:
-            raise ValueError(
+            raise p.ParseException(
                 s, loc, "{0!r} is not a recognized function".format(
                     toks[0]))
 
     def parse(self, s):
+        from astropy.extern import pyparsing as p
+
         if DEBUG:
             print("parse", s)
 
@@ -251,7 +257,10 @@ class Generic(Base):
                    ns[key] = val
             Generic._unit_namespace = ns
 
-        return self._parser.parseString(s, parseAll=True)[0]
+        try:
+            return self._parser.parseString(s, parseAll=True)[0]
+        except p.ParseException as e:
+            raise ValueError("{0} in {1:r}".format(str(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')
