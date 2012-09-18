@@ -636,7 +636,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from astropy import units as u
+        from ... import units as u
 
         if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
@@ -1174,7 +1174,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             self._unit = None
             return
 
-        from astropy import units as u
+        from ... import units as u
 
         try:
             unit = u.Unit(unit, format='cds')
