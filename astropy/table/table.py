@@ -363,6 +363,13 @@ class Column(np.ndarray):
 
     @property
     def units(self):
+        """
+        The units associated with this column.  May be a string or a
+        `astropy.units.UnitBase` instance.
+
+        Setting the `units` property does not change the values of the
+        data.  To perform a unit conversion, use `convert_units_to`.
+        """
         return self._units
 
     @units.setter
@@ -376,6 +383,28 @@ class Column(np.ndarray):
     @units.deleter
     def units(self):
         self._units = None
+
+    def convert_units_to(self, new_units):
+        """
+        Converts the values of the column in-place from the current
+        unit to the given unit.
+
+        To change the units associated with this column without
+        actually changing the data values, simply set the `units`
+        property.
+
+        Parameters
+        ----------
+        new_units : str or `astropy.units.UnitBase` instance
+            The unit to convert to.
+
+        Raises
+        ------
+        astropy.units.UnitException
+            If units are inconsistent
+        """
+        self.data[:] = self.units.to(new_units, self.data)
+        self.units = new_units
 
     def __str__(self):
         lines, n_header = _pformat_col(self)

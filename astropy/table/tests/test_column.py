@@ -55,6 +55,11 @@ class TestColumn():
         np_data = np.array(d, dtype='i4')
         assert np.all(np_data == d)
 
+    def test_convert_units(self):
+        d = Column('a', [1, 2, 3], dtype="f8", units="m")
+        d.convert_units_to("km")
+        assert np.all(d.data == [0.001, 0.002, 0.003])
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
