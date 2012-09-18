@@ -1,5 +1,7 @@
 from __future__ import with_statement
 
+import os
+import time
 import shutil
 
 import numpy as np
@@ -9,6 +11,7 @@ from . import FitsTestCase
 from .test_table import comparerecords
 from ....io import fits
 from ....tests.helper import pytest
+
 
 class TestGroupsFunctions(FitsTestCase):
     def test_open(self):
@@ -34,6 +37,30 @@ class TestGroupsFunctions(FitsTestCase):
             assert len(ghdu.data[0]) == len(parameters) + 1
             assert ghdu.data[0].data.shape == naxes[::-1]
             assert ghdu.data[0].parnames == parameters
+
+    def test_open_groups_in_update_mode(self):
+        """
+        Test that opening a file containing a groups HDU in update mode and
+        then immediately closing it does not result in any unnecessary file
+        modifications.
+
+        Similar to
+        test_image.TestImageFunctions.test_open_scaled_in_update_mode().
+        """
+
+        # Copy the original file before making any possible changes to it
+        shutil.copy(self.data('random_groups.fits'),
+                    self.temp('random_groups.fits'))
+        mtime = os.stat(self.temp('random_groups.fits')).st_mtime
+
+        time.sleep(1)
+
+        fits.open(self.temp('random_groups.fits'), mode='update',
+                  memmap=False).close()
+
+        # Ensure that no changes were made to the file merely by immediately
+        # opening and closing it.
+        assert mtime == os.stat(self.temp('random_groups.fits')).st_mtime
 
     def test_parnames_round_trip(self):
         """

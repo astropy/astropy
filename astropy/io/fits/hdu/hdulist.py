@@ -16,7 +16,7 @@ from .table import _TableBaseHDU
 from ..file import PYTHON_MODES, _File
 from ..header import BLOCK_SIZE, _pad_length
 from ..util import (_is_int, _tmp_name, isfile, fileobj_name, fileobj_closed,
-                    fileobj_mode, ignore_sigint, _get_array_memmap, indent)
+                    fileobj_mode, ignore_sigint, _get_array_mmap, indent)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 
@@ -943,7 +943,7 @@ class HDUList(list, _Verify):
             if sys.platform.startswith('win'):
                 # Collect a list of open mmaps to the data; this well be used
                 # later.  See below.
-                mmaps = [(idx, _get_array_memmap(hdu.data), hdu.data)
+                mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
                          for idx, hdu in enumerate(self) if hdu._data_loaded]
 
             hdulist.__file.close()
@@ -953,9 +953,9 @@ class HDUList(list, _Verify):
                 # Close all open mmaps to the data.  This is only necessary on
                 # Windows, which will not allow a file to be renamed or deleted
                 # until all handles to that file have been closed.
-                for idx, map, arr in mmaps:
-                    if map is not None:
-                        map.base.close()
+                for idx, mmap, arr in mmaps:
+                    if mmap is not None:
+                        mmap.close()
 
             os.remove(self.__file.name)
 
@@ -976,7 +976,7 @@ class HDUList(list, _Verify):
                 # Need to update the _file attribute and close any open mmaps
                 # on each HDU
                 if (hdu._data_loaded and
-                    _get_array_memmap(hdu.data) is not None):
+                    _get_array_mmap(hdu.data) is not None):
                     del hdu.data
                 hdu._file = ffo
 

@@ -18,6 +18,32 @@ Astropy.
 - Nothing changed yet.
 
 
+3.1.1 (unreleased)
+------------------
+
+This is a bug fix release for the 3.1.x series.
+
+Bug Fixes
+^^^^^^^^^
+
+- Fixed an issue where opening files containing random groups HDUs in update
+  mode could cause an unnecessary rewrite of the file even if none of the
+  data is modified. (#179)
+
+
+3.0.10 (unreleased)
+-------------------
+
+This is a bug fix release for the 3.0.x series.
+
+Bug Fixes
+^^^^^^^^^
+
+- Fixed an issue where opening files containing random groups HDUs in update
+  mode could cause an unnecessary rewrite of the file even if none of the
+  data is modified.  This fix was backported from 3.1.1. (#179)
+
+
 3.1 (2012-08-08)
 ----------------
 

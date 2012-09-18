@@ -22,6 +22,18 @@
   adopted by IAU 2012 Resolution B2, and the values of the pc and kpc
   constants have been updated to reflect this.
 
+Bug Fixes
+^^^^^^^^^
+- `astropy.io.fits`
+  - Fixed an issue where opening a FITS file containing a random group HDU in
+    update mode could result in an unnecessary rewriting of the file even if
+    no changes were made. This corresponds to PyFITS ticket #179.
+
+  - Fixed a minor string formatting issue.
+
+  - Fixed a bug that could cause a deadlock in the filesystem on OSX when
+    reading the data from certain types of FITS files. This only occurred
+    when used in conjunction with Numpy 1.7. [#369]
 
 0.1.1 (unreleased)
 ------------------

@@ -17,7 +17,7 @@ from ..file import _File
 from ..header import Header, HEADER_END_RE, BLOCK_SIZE, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
                     itersubclasses, encode_ascii, decode_ascii,
-                    _get_array_memmap)
+                    _get_array_mmap)
 from ..verify import _Verify, _ErrList
 
 from ....utils import lazyproperty
@@ -522,12 +522,12 @@ class _BaseHDU(object):
                     # Of course, if we're copying the data to a new file we
                     # don't care about flushing the original mmap; instead just
                     # read it into the new file
-                    memmap_array = None
+                    array_mmap = None
                 else:
-                    memmap_array = _get_array_memmap(self.data)
+                    array_mmap = _get_array_mmap(self.data)
 
-                if memmap_array is not None:
-                    memmap_array.flush()
+                if array_mmap is not None:
+                    array_mmap.flush()
                 else:
                     self._file.seek(self._datLoc)
                     datloc, datsize = self._writedata(fileobj)

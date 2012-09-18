@@ -2,6 +2,7 @@
 
 import functools
 import itertools
+import mmap
 import os
 import signal
 import tempfile
@@ -10,8 +11,6 @@ import threading
 import warnings
 
 import numpy as np
-
-from numpy import memmap as Memmap
 
 
 def itersubclasses(cls, _seen=None):
@@ -515,17 +514,17 @@ def _tmp_name(input):
     return fn
 
 
-def _get_array_memmap(array):
+def _get_array_mmap(array):
     """
-    If the array has a numpy.memmap as one of its bases, return the memmap
-    base; otherwise return None.
+    If the array has an mmap.mmap at base of its base chain, return the mmap
+    object; otherwise return None.
     """
 
-    if isinstance(array, Memmap):
+    if isinstance(array, mmap.mmap):
         return array
 
     base = array
     while hasattr(base, 'base') and base.base is not None:
-        if isinstance(base.base, Memmap):
+        if isinstance(base.base, mmap.mmap):
             return base.base
         base = base.base
