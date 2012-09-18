@@ -988,7 +988,7 @@ def print_equivalent_units(u, equivs=[]):
 
     See also
     --------
-    `get_equivalent_units` :
+    get_equivalent_units :
         To get a list of equivalent units, rather than printing to the
         console.
     """
