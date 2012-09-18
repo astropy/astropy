@@ -19,7 +19,6 @@ typedef struct {
   Py_ssize_t size;
   Py_ssize_t maxsize;
   char (*array)[72];
-  str_verify_fn verify;
 } PyStrListProxy;
 
 static void
@@ -81,8 +80,7 @@ PyStrListProxy_New(
     /*@shared@*/ PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,
-    char (*array)[72],
-    str_verify_fn verify) {
+    char (*array)[72]) {
 
   PyStrListProxy* self = NULL;
 
@@ -100,7 +98,6 @@ PyStrListProxy_New(
   self->size = size;
   self->maxsize = maxsize;
   self->array = array;
-  self->verify = verify;
   return (PyObject*)self;
 }
 
@@ -156,18 +153,16 @@ PyStrListProxy_setitem(
     return -1;
   }
 
-  if (self->verify && !self->verify(value)) {
-    return -1;
-  }
-
   strncpy(self->array[index], value, self->maxsize);
 
   return 0;
 }
 
-/*@null@*/ static PyObject*
-PyStrListProxy_repr(
-    PyStrListProxy* self) {
+/*@null@*/ PyObject*
+str_list_proxy_repr(
+    char (*array)[72],
+    Py_ssize_t size,
+    Py_ssize_t maxsize) {
 
   char*       buffer  = NULL;
   char*       wp      = NULL;
@@ -182,7 +177,7 @@ PyStrListProxy_repr(
   char        next_char = '\0';
 
   /* Overallocating to allow for escaped characters */
-  buffer = malloc((size_t)self->size*self->maxsize*2 + 2);
+  buffer = malloc((size_t)size*maxsize*2 + 2);
   if (buffer == NULL) {
     PyErr_SetString(PyExc_MemoryError, "Could not allocate memory.");
     return NULL;
@@ -191,10 +186,10 @@ PyStrListProxy_repr(
   wp = buffer;
   *wp++ = '[';
 
-  for (i = 0; i < self->size; ++i) {
+  for (i = 0; i < size; ++i) {
     *wp++ = '\'';
-    rp = self->array[i];
-    for (j = 0; j < self->maxsize && *rp != '\0'; ++j) {
+    rp = array[i];
+    for (j = 0; j < maxsize && *rp != '\0'; ++j) {
       /* Check if this character should be escaped */
       e = escapes;
       next_char = *rp++;
@@ -215,7 +210,7 @@ PyStrListProxy_repr(
     *wp++ = '\'';
 
     /* Add a comma for all but the last one */
-    if (i != self->size - 1) {
+    if (i != size - 1) {
       *wp++ = ',';
       *wp++ = ' ';
     }
@@ -231,6 +226,13 @@ PyStrListProxy_repr(
   #endif
   free(buffer);
   return result;
+}
+
+/*@null@*/ static PyObject*
+PyStrListProxy_repr(
+    PyStrListProxy* self) {
+
+  return str_list_proxy_repr(self->array, self->size, self->maxsize);
 }
 
 static PySequenceMethods PyStrListProxy_sequence_methods = {

@@ -400,7 +400,8 @@ understood by the lower-level projection routines.
 """
 
 cunit = """
-``list of strings[naxis]`` List of ``CUNITia`` keyvalues.
+``list of astropy.UnitBase[naxis]`` List of ``CUNITia`` keyvalues as
+`astropy.units.UnitBase` instances.
 
 These define the units of measurement of the ``CRVALia``, ``CDELTia``
 and ``CDi_ja`` keywords.

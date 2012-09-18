@@ -12,6 +12,7 @@
 #include "sip_wrap.h"
 #include "docstrings.h"
 #include "astropy_wcs_api.h"
+#include "unit_list_proxy.h"
 
 #include <structmember.h> /* from Python */
 
@@ -969,6 +970,7 @@ struct module_state {
 
   if (_setup_api(m)                 ||
       _setup_str_list_proxy_type(m) ||
+      _setup_unit_list_proxy_type(m)||
       _setup_wcsprm_type(m)         ||
       _setup_tabprm_type(m)         ||
       _setup_units_type(m)          ||
