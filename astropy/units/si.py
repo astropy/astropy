@@ -24,7 +24,7 @@ def_unit(['micron'], um, register=True,
          doc="micron: alias for micrometer (um)",
          format={'latex': r'\mu', 'unicode': 'μ'})
 
-def_unit(['AA', 'Angstrom', 'angstrom'], 0.1 * nm, register=True, prefixes=True,
+def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, register=True,
          doc="ångström: 10 ** -10 m",
          format={'latex': r'\AA', 'unicode': 'Å', 'vounit': 'angstrom'})
 
