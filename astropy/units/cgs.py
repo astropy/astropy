@@ -28,7 +28,7 @@ def_unit(['Gal', 'gal'], si.cm / si.s ** 2, register=True, prefixes=True,
 
 # Use CGS definition of erg
 def_unit(['erg'], si.g * si.cm ** 2 / si.s ** 2, register=True, prefixes=True,
-         "erg: CGS unit of energy")
+         doc="erg: CGS unit of energy")
 
 
 ##########################################################################
@@ -74,7 +74,8 @@ def_unit(['k', 'Kayser', 'kayser'], si.cm ** -1, register=True,
 ###########################################################################
 # ELECTRICAL
 
-def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * si.C * si.m, register=True,
+def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * si.C * si.m,
+         register=True,
          doc="Debye: CGS unit of electric dipole moment")
 
 
