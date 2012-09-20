@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Light-weight physical units module.
+This subpackage contains classes and functions for defining and converting
+between different physical units.
 
 This code is adapted from the `pynbody
 <http://code.google.com/p/pynbody/>`_ units module written by Andrew
