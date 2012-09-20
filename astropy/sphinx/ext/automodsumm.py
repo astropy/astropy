@@ -481,7 +481,10 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
             # astropy.config.logging_helper (which is at
             # astropy/config/logging_helper.py) then the reference file is set
             # to ../config/references.txt
-            mod_name_dir = mod_name.replace('.', '/').split('/', 1)[1]
+            if '.' in mod_name:
+                mod_name_dir = mod_name.replace('.', '/').split('/', 1)[1]
+            else:
+                mod_name_dir = mod_name
             if not os.path.isdir(os.path.join(path, '..', mod_name_dir)) \
                and os.path.isdir(os.path.join(path, '..', mod_name_dir.rsplit('/', 1)[0])):
                 mod_name_dir = mod_name_dir.rsplit('/', 1)[0]
