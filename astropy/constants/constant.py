@@ -57,8 +57,12 @@ class Constant(float):
         # defined in terms of constants.  Therefore, we have to create
         # the unit objects in the getter, not the setter.
         from astropy import units as u
-        return u.Unit(self._units)
+
+        if self._unitobj is None:
+            self._unitobj = u.Unit(self._units)
+        return self._unitobj
 
     @units.setter
     def units(self, unit):
         self._units = unit
+        self._unitobj = None
