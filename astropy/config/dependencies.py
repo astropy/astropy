@@ -6,14 +6,16 @@
 def requires_optional_dependencies(*module_name_list):
     """ A docstring
     """
+    from functools import wraps
 
     if len(module_name_list) == 1:
-        module_name_list.split(',')
+        module_name_list[0].split(',')
 
     # This is the decorator that will be applied to the function.
     def real_decorator(fcn):
         # This is the hook that you pass through on the way into
         # the decorated function.
+        @wraps(fcn)
         def fn_hook(*args, **kwargs):
 
             # If we have not successfully imported the optional
