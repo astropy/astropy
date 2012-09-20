@@ -51,12 +51,3 @@ def requires_optional_dependencies(*module_name_list):
     return real_decorator
 
 
-
-
-## example usage
-@requires_optional_dependencies('numpy', 'matplotlib', 'pylab')
-def plotting(a):
-    pylab.plot(a)
-
-plotting( [1,2,1,1.5] )
-pylab.show()
