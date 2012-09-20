@@ -18,8 +18,9 @@ class Constant(float):
         The uncertainty in the value of this constant.
     origin : str
         The source used for the value of this constant.
-    units : `astropy.units.UnitBase` instance or str
-        A string describing the units
+    units : `astropy.units.UnitBase` instance
+        The units of this constant. Can be set either as a string or
+        `astropy.units.UnitBase`.
     """
 
     def __init__(self, value, error, name, origin, units):
