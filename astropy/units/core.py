@@ -488,14 +488,14 @@ class NamedUnit(UnitBase):
                 raise ValueError(
                     "Invalid unit name {0!r}".format(st))
 
-            self._registry.append(self)
-
             if register:
                 if st in self._namespace:
                     raise ValueError(
                         "Object with name {0!r} already exists "
                         "in namespace".format(st))
                 self._namespace[st] = self
+
+        self._registry.append(self)
 
 
 class IrreducibleUnit(NamedUnit):
