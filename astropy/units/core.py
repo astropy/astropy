@@ -9,6 +9,7 @@ from fractions import Fraction
 import re
 import sys
 import textwrap
+import warnings
 
 import numpy as np
 
@@ -17,12 +18,19 @@ from . import format as unit_format
 # TODO: Support functional units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsException', 'UnitBase', 'NamedUnit',
+    'UnitsException', 'UnitsWarning', 'UnitBase', 'NamedUnit',
     'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
     'PrefixUnit', 'get_equivalent_units', 'print_equivalent_units']
 
 
 class UnitsException(Exception):
+    """
+    The base class for unit-specific exceptions.
+    """
+    pass
+
+
+class UnitsWarning(Warning):
     """
     The base class for unit-specific exceptions.
     """
@@ -511,6 +519,55 @@ class IrreducibleUnit(NamedUnit):
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
+class InvalidUnit(IrreducibleUnit):
+    """
+    A unit that did not parse correctly.  This allows for
+    roundtripping it as a string, but no unit operations actually work
+    on it.
+
+    Parameters
+    ----------
+    st : str
+        The name of the unit.
+    """
+    def __init__(self, st):
+        IrreducibleUnit.__init__(self, st)
+
+    def __str__(self):
+        return self.name
+
+    def to_string(self, format='generic'):
+        return self.name
+
+    def _register_unit(self, register):
+        pass
+
+    def _invalid_operator(self, *args, **kwargs):
+        raise ValueError(
+            "The unit {0!r} is unknown, so all arithmetic operations "
+            "with it are invalid.")
+
+    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
+      __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _invalid_operator
+
+    def __eq__(self, other):
+        return isinstance(other, InvalidUnit) and self.name == other.name
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def is_equivalent(self, other, equivs=[]):
+        return self == other
+
+    def get_converter(self, other, equivs=[]):
+        raise ValueError(
+            "The unit {0!r} is unknown.  It can not be converted "
+            "to other units.")
+
+    def get_format_name(self):
+        return self.name
+
+
 class _UnitMetaClass(type):
     """
     This metaclass exists because the Unit constructor should
@@ -539,7 +596,14 @@ class _UnitMetaClass(type):
                 format = 'generic'
 
             f = unit_format.get_format(format)
-            return f.parse(s)
+            try:
+                return f.parse(s)
+            except ValueError as e:
+                warnings.warn(
+                    "'{0}' did not parse using format '{1}'. {2}".format(
+                        s, format, str(e)),
+                    UnitsWarning)
+                return InvalidUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
             return CompositeUnit(s, [], [])
