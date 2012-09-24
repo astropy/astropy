@@ -374,11 +374,8 @@ class Column(np.ndarray):
 
     @units.setter
     def units(self, units):
-        if units is None:
-            self._units = None
-        else:
-            from astropy import units as u
-            self._units = u.Unit(units)
+        from astropy import units as u
+        self._units = u.Unit(units)
 
     @units.deleter
     def units(self):
