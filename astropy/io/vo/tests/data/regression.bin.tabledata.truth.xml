@@ -26,7 +26,7 @@
    This is a resource description
   </DESCRIPTION>
   <PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="0 0"/>
-  <PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" value=""/>
+  <PARAM ID="empty_value" arraysize="*" datatype="char" name="empty_value" unit="foo" value=""/>
   <LINK href="http://www.foo.com/"/>
   <TABLE ID="main_table" nrows="5">
    <DESCRIPTION>
