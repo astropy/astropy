@@ -36,6 +36,10 @@ edit_on_github_page_message:
     The phrase displayed in the links to edit a RST page.  Defaults
     to "[edit this page on github]".
 
+edit_on_github_help_message:
+    The phrase displayed as a tooltip on the edit links.  Defaults to
+    "Push the Edit button on the next page"
+
 edit_on_github_skip_regex:
     When the path to the .rst file matches this regular expression,
     no "edit this page on github" link will be added.  Default to
@@ -96,7 +100,8 @@ def doctree_read(app, doctree):
         section += para
         onlynode = addnodes.only(expr='html')
         para += onlynode
-        onlynode += nodes.reference('', refuri=path)
+        onlynode += nodes.reference(
+            reftitle=app.config.edit_on_github_help_message, refuri=path)
         onlynode[0] += nodes.inline(
             '', page_message, classes=['edit-on-github'])
         doctree += section
@@ -130,7 +135,9 @@ def doctree_read(app, doctree):
                 path = '%s%s%s.py%s' % (
                     url, source_root, modname.replace('.', '/'), anchor)
                 onlynode = addnodes.only(expr='html')
-                onlynode += nodes.reference('', refuri=path)
+                onlynode += nodes.reference(
+                    reftitle=app.config.edit_on_github_help_message,
+                    refuri=path)
                 onlynode[0] += nodes.inline(
                     '', '', nodes.raw('', '&nbsp;', format='html'),
                     nodes.Text(docstring_message),
@@ -147,6 +154,8 @@ def setup(app):
                          '[edit on github]', True)
     app.add_config_value('edit_on_github_page_message',
                          '[edit this page on github]', True)
+    app.add_config_value('edit_on_github_help_message',
+                         'Push the Edit button on the next page', True)
     app.add_config_value('edit_on_github_skip_regex',
                          '_.*', True)
 
