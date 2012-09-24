@@ -612,8 +612,8 @@ class _UnitMetaClass(type):
             return CompositeUnit(s, [], [])
 
         elif s is None:
-                # Return the NULL unit
-                return CompositeUnit(1.0, [], [])
+            # Return the NULL unit
+            return CompositeUnit(1.0, [], [])
 
 
 class Unit(NamedUnit):
