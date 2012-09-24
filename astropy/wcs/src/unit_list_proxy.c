@@ -213,12 +213,16 @@ PyUnitListProxy_setitem(
   }
   Py_DECREF(value);
 
-  bytes_value = PyUnicode_AsASCIIString(unicode_value);
-  if (bytes_value == NULL) {
+  if (PyUnicode_Check(unicode_value)) {
+    bytes_value = PyUnicode_AsASCIIString(unicode_value);
+    if (bytes_value == NULL) {
+      Py_DECREF(unicode_value);
+      return -1;
+    }
     Py_DECREF(unicode_value);
-    return -1;
+  } else {
+    bytes_value = unicode_value;
   }
-  Py_DECREF(unicode_value);
 
   strncpy(self->array[index], PyBytes_AsString(bytes_value), MAXSIZE);
   Py_DECREF(bytes_value);

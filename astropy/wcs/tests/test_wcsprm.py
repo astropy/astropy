@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import locale
 import re
+import warnings
 
 from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
@@ -244,13 +245,13 @@ def test_cunit():
     assert w.cunit[1] == u.km
 
 
-@raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    w.cunit[0] = 'foo'
+    with warnings.catch_warnings(record=True) as warn_list:
+        w.cunit[0] = 'foo'
+    assert 'foo' in str(warn_list[0].message)
 
 
-@raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
     w.cunit = ['foo', 'bar']
