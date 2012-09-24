@@ -8,7 +8,7 @@
 # Note that not all possible configuration values are present in this file.
 #
 # All configuration values have a default. Some values are defined in
-# the global Astropy configuration which is loaded here before anything else. 
+# the global Astropy configuration which is loaded here before anything else.
 # See astropy.sphinx.conf for which values are set there.
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -125,3 +125,19 @@ latex_documents = [('index', project + '.tex', project + u' Documentation',
 # (source start file, name, description, authors, manual section).
 man_pages = [('index', project.lower(), project + u' Documentation',
               [author], 1)]
+
+
+# -- Options for the edit_on_github extension ----------------------------------------
+
+extensions += ['astropy.sphinx.ext.edit_on_github']
+
+# Don't import the module as "version" or it will override the
+# "version" configuration parameter
+from astropy import version as versionmod
+edit_on_github_project = "astropy/astropy"
+if 'dev' in versionmod.version:
+    edit_on_github_branch = "master"
+else:
+    edit_on_github_branch = "v" + versionmod.version
+edit_on_github_source_root = ""
+edit_on_github_doc_root = "docs"
