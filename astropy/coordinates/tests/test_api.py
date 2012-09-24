@@ -6,7 +6,7 @@ from pytest import raises
 # the commented unts import should work once units are merged, but for now use
 # the temporary module in coordinates
 #from ...units import Units as u
-from .. import fakeunits as u
+from ... import units as u
 
 # notes from the original api document:
 '''
