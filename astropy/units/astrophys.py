@@ -23,7 +23,7 @@ UnitBase._set_namespace(globals())
 ###########################################################################
 # LENGTH
 
-def_unit(['AU'], _si.au * si.m, register=True, prefixes=True,
+def_unit(['AU', 'au'], _si.au * si.m, register=True, prefixes=True,
          doc="astronomical unit: approximately the mean Earth--Sun "
          "distance.")
 
