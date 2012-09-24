@@ -877,20 +877,22 @@ def _add_prefixes(u, excludes=[], register=False):
         names = []
         format = {}
         for prefix in short:
-            names.append(prefix + u.name)
+            for alias in [u.name] + [x for x in u.aliases if len(x) <= 2]:
+                names.append(prefix + alias)
 
-            # This is a hack to use Greek mu as a prefix
-            # for some formatters.
-            if prefix == 'u':
-                format['latex'] = r'\mu ' + u.get_format_name('latex')
-                format['unicode'] = 'μ' + u.get_format_name('unicode')
+                # This is a hack to use Greek mu as a prefix
+                # for some formatters.
+                if prefix == 'u':
+                    format['latex'] = r'\mu ' + u.get_format_name('latex')
+                    format['unicode'] = 'μ' + u.get_format_name('unicode')
 
-            for key, val in u._format.items():
-                format.setdefault(key, prefix + val)
+                for key, val in u._format.items():
+                    format.setdefault(key, prefix + val)
 
         for prefix in long:
             for alias in u.aliases:
-                names.append(prefix + alias)
+                if len(alias) > 2:
+                    names.append(prefix + alias)
 
         PrefixUnit(names, factor * u, register=register, format=format)
 
