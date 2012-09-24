@@ -553,6 +553,7 @@ class UnrecognizedUnit(IrreducibleUnit):
       _unrecognized_operator
 
     def __eq__(self, other):
+        other = Unit(other)
         return isinstance(other, UnrecognizedUnit) and self.name == other.name
 
     def __ne__(self, other):
