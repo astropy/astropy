@@ -49,13 +49,8 @@ class NDData(object):
         of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
 
-    units : undefined, optional
+    units : `astropy.units.UnitBase` instance or str, optional
         The units of the data.
-
-        .. warning::
-            The units scheme is under development. For now, just supply a
-            string when relevant - the units system will likely be compatible
-            with providing strings to initialize itself.
 
     copy : bool, optional
         If True, the array will be *copied* from the provided `data`, otherwise
@@ -168,6 +163,15 @@ class NDData(object):
             self._error = value
 
     @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, value):
+        from .. import units as u
+        self._units = u.Unit(value)
+
+    @property
     def shape(self):
         """
         shape tuple of this object's data.
@@ -205,19 +209,14 @@ class NDData(object):
         else:
             return self.data
 
-    # At the moment, the units are required to be the same for addition and
-    # subtraction. Once the units framework is implemented, we no longer have
-    # to have this requirement, and can also add methods for multiplication
-    # and division.
-
-    def add(self, operand, propagate_errors=True):
+    def _combine(self, operand, propagate_errors, name, operation):
         """
-        Add another dataset (`operand`) to this dataset.
+        {name} another dataset (`operand`) to this dataset.
 
         Parameters
         ----------
         operand : `~astropy.nddata.NDData`
-            The second operand in the operation a + b
+            The second operand in the operation a {operator} b
         propagate_errors : bool
             Whether to propagate errors following the propagation rules
             defined by the class used for the `error` attribute.
@@ -229,24 +228,27 @@ class NDData(object):
 
         Notes
         -----
-        This method requires the datasets to have identical WCS properties,
-        identical units, and identical shapes. Flags and meta-data get set to
-        None in the resulting dataset. Errors are propagated, although this
-        feature is experimental, and errors are assumed to be uncorrelated.
-        Values masked in either dataset before the operation are masked in
-        the resulting dataset.
+        This method requires the datasets to have identical WCS
+        properties, equivalent units, and identical shapes. Flags and
+        meta-data get set to None in the resulting dataset. The unit
+        in the result is the same as the unit in `self`. Errors are
+        propagated, although this feature is experimental, and errors
+        are assumed to be uncorrelated.  Values masked in either
+        dataset before the operation are masked in the resulting
+        dataset.
         """
-
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if self.units != operand.units:
+        if not self.units.is_equivalent(operand.units):
             raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
-        result = self.__class__(self.data + operand.data)  # in case we are dealing with an inherited type
+        operand_data = operand.units.to(self.units, operand.data)
+        data = operation(self.data, operand_data)
+        result = self.__class__(data)  # in case we are dealing with an inherited type
 
         if not propagate_errors:
             result.error = None
@@ -260,7 +262,12 @@ class NDData(object):
             try:
                 result.error = self.error.propagate_add(operand, result.data)
             except IncompatibleErrorsException:
-                raise IncompatibleErrorsException("Cannot propagate errors of type {0:s} with errors of type {1:s} for addition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
+                raise IncompatibleErrorsException(
+                    "Cannot propagate errors of type {0:s} with errors of "
+                    "type {1:s} for {2:s}".format(
+                        self.error.__class__.__name__,
+                        operand.error.__class__.__name__,
+                        name))
 
         if self.mask is None and operand.mask is None:
             result.mask = None
@@ -277,71 +284,23 @@ class NDData(object):
         result.units = self.units
 
         return result
+
+    def add(self, operand, propagate_errors=True):
+        return self._combine(
+            operand, propagate_errors, "addition", np.add)
+    add.__doc__ = _combine.__doc__.format(name="Add", operator="+")
 
     def subtract(self, operand, propagate_errors=True):
-        """
-        Subtract another dataset (`operand`) from this dataset.
+        return self._combine(
+            operand, propagate_errors, "subtraction", np.subtract)
+    subtract.__doc__ = _combine.__doc__.format(name="Subtract", operator="-")
 
-        Parameters
-        ----------
-        operand : `~astropy.nddata.NDData`
-            The second operand in the operation a - b
-        propagate_errors : bool
-            Whether to propagate errors following the propagation rules
-            defined by the class used for the `error` attribute.
+    def multiply(self, operand, propagate_errors=True):
+        return self._combine(
+            operand, propagate_errors, "multiplication", np.multiply)
+    multiply.__doc__ = _combine.__doc__.format(name="Multiply", operator="*")
 
-        Returns
-        -------
-        result : `~astropy.nddata.NDData`
-            The resulting dataset
-
-        Notes
-        -----
-        This method requires the datasets to have identical WCS properties,
-        identical units, and identical shapes. Flags and meta-data get set to
-        None in the resulting dataset. Errors are propagated, although this
-        feature is experimental, and errors are assumed to be uncorrelated.
-        Values masked in either dataset before the operation are masked in
-        the resulting dataset.
-        """
-
-        if self.wcs != operand.wcs:
-            raise ValueError("WCS properties do not match")
-
-        if self.units != operand.units:
-            raise ValueError("operand units do not match")
-
-        if self.shape != operand.shape:
-            raise ValueError("operand shapes do not match")
-
-        result = self.__class__(self.data - operand.data)  # in case we are dealing with an inherited type
-
-        if not propagate_errors:
-            result.error = None
-        elif self.error is None and operand.error is None:
-            result.error = None
-        elif self.error is None:
-            result.error = operand.error
-        elif operand.error is None:
-            result.error = self.error
-        else:  # both self and operand have errors
-            try:
-                result.error = self.error.propagate_subtract(operand, result.data)
-            except IncompatibleErrorsException:
-                raise IncompatibleErrorsException("Cannot propagate errors of type {0:s} with errors of type {1:s} for subtractition".format(self.error.__class__.__name__, operand.error.__class__.__name__))
-
-        if self.mask is None and operand.mask is None:
-            result.mask = None
-        elif self.mask is None:
-            result.mask = operand.mask
-        elif operand.mask is None:
-            result.mask = self.mask
-        else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
-
-        result.flags = None
-        result.wcs = self.wcs
-        result.meta = None
-        result.units = self.units
-
-        return result
+    def divide(self, operand, propagate_errors=True):
+        return self._combine(
+            operand, propagate_errors, "division", np.divide)
+    divide.__doc__ = _combine.__doc__.format(name="Divide", operator="/")
