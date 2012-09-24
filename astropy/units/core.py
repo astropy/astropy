@@ -519,7 +519,7 @@ class IrreducibleUnit(NamedUnit):
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
-class InvalidUnit(IrreducibleUnit):
+class UnrecognizedUnit(IrreducibleUnit):
     """
     A unit that did not parse correctly.  This allows for
     roundtripping it as a string, but no unit operations actually work
@@ -542,16 +542,17 @@ class InvalidUnit(IrreducibleUnit):
     def _register_unit(self, register):
         pass
 
-    def _invalid_operator(self, *args, **kwargs):
+    def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
-            "The unit {0!r} is unknown, so all arithmetic operations "
+            "The unit {0!r} is unrecognized, so all arithmetic operations "
             "with it are invalid.")
 
     __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
-      __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _invalid_operator
+      __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
+      _unrecognized_operator
 
     def __eq__(self, other):
-        return isinstance(other, InvalidUnit) and self.name == other.name
+        return isinstance(other, UnrecognizedUnit) and self.name == other.name
 
     def __ne__(self, other):
         return not (self == other)
@@ -561,7 +562,7 @@ class InvalidUnit(IrreducibleUnit):
 
     def get_converter(self, other, equivs=[]):
         raise ValueError(
-            "The unit {0!r} is unknown.  It can not be converted "
+            "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.")
 
     def get_format_name(self):
@@ -603,7 +604,7 @@ class _UnitMetaClass(type):
                     "'{0}' did not parse using format '{1}'. {2}".format(
                         s, format, str(e)),
                     UnitsWarning)
-                return InvalidUnit(s)
+                return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
             return CompositeUnit(s, [], [])
