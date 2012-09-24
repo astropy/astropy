@@ -8,9 +8,9 @@ import pytest
 COLS = [Column('a', [1, 2, 3], description='da',
                format='fa', meta={'ma': 1}, units='ua'),
         Column('b', [4, 5, 6], description='db',
-               format='fb', meta={'mb': 1}, units='uF'),
+               format='fb', meta={'mb': 1}, units='uFOO'),
         Column('c', [7, 8, 9], description='dc',
-               format='fc', meta={'mc': 1}, units='uF')]
+               format='fc', meta={'mc': 1}, units='uFOO')]
 DATA = Table(COLS)
 
 
@@ -46,7 +46,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].units == 'uF'
+        assert self.tc[1].units == 'uFOO'
         assert self.tc[1].attrs_equal(COLS[1])
         assert isinstance(self.tc[1], Column)
 
