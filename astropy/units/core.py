@@ -248,6 +248,9 @@ class UnitBase(object):
                 return func(_condition_arg(v) * scale1) * scale2
             return convert
 
+        orig_unit = unit
+        orig_other = other
+
         unit = self.decompose()
         other = other.decompose()
 
@@ -273,9 +276,22 @@ class UnitBase(object):
                 scale2 = (funit / other).dimensionless_constant()
                 return make_converter(scale1, b, scale2)
 
+        def get_err_str(orig_unit, unit):
+            orig_unit_str = orig_unit.to_string('unscaled')
+            unit_str = unit.to_string('unscaled')
+            if orig_unit_str != unit_str:
+                unit_str = "'{0}' (i.e. '{1}')".format(
+                    orig_unit_str, unit_str)
+            else:
+                unit_str = "'{0}'".format(unit_str)
+            return unit_str
+
+        unit_str = get_err_str(orig_unit, unit)
+        other_str = get_err_str(orig_other, other)
+
         raise UnitsException(
-            "'{0}' and '{1}' are not convertible".format(
-                unit, other))
+            "{0} and {1} are not convertible".format(
+                unit_str, other_str))
 
     def get_converter(self, other, equivs=[]):
         """
