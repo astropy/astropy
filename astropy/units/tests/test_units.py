@@ -4,6 +4,9 @@ Regression tests for the units package
 """
 
 from __future__ import absolute_import, unicode_literals, division, print_function
+
+import warnings
+
 import pytest
 from astropy.tests.helper import raises, assert_allclose
 
@@ -141,9 +144,26 @@ def test_get_equivalent_units():
     assert u.J in u.get_equivalent_units(u.Hz, u.sp())
 
 
-@raises(ValueError)
 def test_unknown_unit():
-    u.Unit("foo")
+    with warnings.catch_warnings(record=True) as warning_lines:
+        warnings.resetwarnings()
+        warnings.simplefilter("always", u.UnitsWarning, append=True)
+        u.Unit("FOO")
+
+    print(dir(warning_lines[0]))
+    assert warning_lines[0].category == u.UnitsWarning
+    assert 'FOO' in str(warning_lines[0].message)
+
+
+def test_unknown_unit2():
+    with warnings.catch_warnings(record=True) as warning_lines:
+        warnings.resetwarnings()
+        warnings.simplefilter("always", u.UnitsWarning, append=True)
+        assert u.Unit("m/s/kg").to_string() == 'm/s/kg'
+
+    print(dir(warning_lines[0]))
+    assert warning_lines[0].category == u.UnitsWarning
+    assert 'm/s/kg' in str(warning_lines[0].message)
 
 
 def test_register():
@@ -152,6 +172,7 @@ def test_register():
         assert hasattr(u, 'foo')
     finally:
         if hasattr(u, 'foo'):
+            del u.UnitBase._registry[u.UnitBase._registry.index(u.foo)]
             del u.foo
 
 
