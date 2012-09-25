@@ -137,13 +137,11 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
 
     Uses the default distutils.command.build_ext by default.
     """
-
     attrs = dict(basecls.__dict__)
     orig_run = attrs['run']
 
     def run(self):
         from astropy.version import release
-
         # For extensions that require 'numpy' in their include dirs, replace
         # 'numpy' with the actual paths
         np_include = get_numpy_include_path()
@@ -153,16 +151,19 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
                 extension.include_dirs.insert(idx, np_include)
                 extension.include_dirs.remove('numpy')
 
-            if release or not HAVE_CYTHON:
-                # Replace .pyx with C-equivalents, unless c files are missing
-                for jdx, src in enumerate(extension.sources):
-                    if src.endswith('.pyx'):
-                        pyxfn = src
-                        cfn = src[:-4] + '.c'
-                    elif src.endswith('.c'):
-                        pyxfn = src[:-2] + '.pyx'
-                        cfn = src
-                    if os.path.isfile(pyxfn):
+            # Replace .pyx with C-equivalents, unless c files are missing
+            for jdx, src in enumerate(extension.sources):
+                if src.endswith('.pyx'):
+                    pyxfn = src
+                    cfn = src[:-4] + '.c'
+                elif src.endswith('.c'):
+                    pyxfn = src[:-2] + '.pyx'
+                    cfn = src
+
+                if os.path.isfile(pyxfn):
+                    if HAVE_CYTHON and not release:
+                        extension.sources[jdx] = pyxfn
+                    else:
                         if os.path.isfile(cfn):
                             extension.sources[jdx] = cfn
                         else:
