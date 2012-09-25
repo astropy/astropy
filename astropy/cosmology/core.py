@@ -71,8 +71,7 @@ class FLRW(Cosmology):
     of the parameters.  That is, all of the attributes above are
     read only.
 
-    The nuetrino treatment assumes all neutrino species have the same
-    mass.
+    The nuetrino treatment assumes all neutrino species are massless.
     """
     __metaclass__ = ABCMeta
 
