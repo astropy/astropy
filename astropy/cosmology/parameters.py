@@ -8,11 +8,12 @@ Each cosmology has the following parameters defined:
     Oc0         Omega cold dark matter at z=0
     Ob0         Omega baryon at z=0
     Om0         Omega matter at z=0
-    Ode0        Omega dark energy at z=0
-    w0          Equation of state of dark energy at z=0 (Pressure/density)
-    wa          a derivative of equation of state
+    flat        Is this assumed flat?  If not, Ode0 must be specifiec
+    Ode0        Omega dark energy at z=0 if flat is False
     H0          Hubble parameter at z=0 in km/s/Mpc
     n           Density perturbation spectral index
+    Tcmb0       Current temperature of the CMB
+    Neff        Effective number of neutrino species
     sigma8      Density perturbation amplitude
     tau         Ionisation optical depth
     z_reion     Redshift of hydrogen reionisation
@@ -39,15 +40,15 @@ WMAP7 = dict(
     Oc0  = 0.226,
     Ob0  = 0.0455,
     Om0  = 0.272,
-    Ode0 = 0.728,
-    w0 = -1.0,
-    wa = 0.0,
     H0 = 70.4,
     n = 0.967,
     sigma8 = 0.810,
     tau = 0.085,
     z_reion = 10.3,
     t0 = 13.76,
+    Tcmb0 = 2.725,
+    Neff = 3.04,
+    flat = True,
     reference = ("Komatsu et al. 2011, ApJS, 192, 18. "
                  "Table 1 (WMAP + BAO + H0 ML)")
     )
@@ -58,15 +59,15 @@ WMAP5 = dict(
     Oc0  = 0.231,
     Ob0  = 0.0459,
     Om0  = 0.277,
-    Ode0 = 0.723,
-    w0 = -1.0,
-    wa = 0.0,
     H0 = 70.2,
     n = 0.962,
     sigma8 = 0.817,
     tau = 0.088,
     z_reion = 11.3,
     t0 = 13.72,
+    Tcmb0 = 2.725,
+    Neff = 3.04,
+    flat = True,
     reference = ("Komatsu et al. 2009, ApJS, 180, 330. "
                  "Table 1 (WMAP + BAO + SN ML)")
     )
