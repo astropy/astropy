@@ -5,6 +5,7 @@ __all__ = ['NDData']
 
 import numpy as np
 
+from ..units import Unit
 from .flag_collection import FlagCollection
 from .nderror import IncompatibleErrorsException, NDError
 
@@ -168,8 +169,10 @@ class NDData(object):
 
     @units.setter
     def units(self, value):
-        from .. import units as u
-        self._units = u.Unit(value)
+        if value is None:
+            self._units = None
+        else:
+            self._units = Unit(value)
 
     @property
     def shape(self):
@@ -240,13 +243,18 @@ class NDData(object):
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if not self.units.is_equivalent(operand.units):
-            raise ValueError("operand units do not match")
+        if not (self.units is None and operand.units is None):
+            if (self.units is None or operand.units is None
+                or not self.units.is_equivalent(operand.units)):
+                raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
-        operand_data = operand.units.to(self.units, operand.data)
+        if self.units is not None:
+            operand_data = operand.units.to(self.units, operand.data)
+        else:
+            operand_data = operand.data
         data = operation(self.data, operand_data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
@@ -342,6 +350,8 @@ class NDData(object):
         UnitsException
             If units are inconsistent.
         """
+        if self.units is None:
+            raise ValueError("No units specified on source data")
         data = self.units.to(unit, self.data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
