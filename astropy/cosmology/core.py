@@ -6,7 +6,9 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from ..constants.cgs import pc, G, c
+from ..constants.cgs import pc, G, c, sigma_sb
+from ..constants.si import e as q_e
+from ..constants.si import k_B
 from ..config import ConfigurationItem
 from ..utils.misc import isiterable
 
@@ -19,8 +21,9 @@ import parameters
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["FLRW", "LambdaCDM", "wCDM", "w0waCDM", "wpwaCDM", 
-           "w0wzCDM","get_current", "set_current", "WMAP5", "WMAP7"]
+__all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM","get_current", 
+           "set_current", "WMAP5", "WMAP7"]
 
 # Constants
 
@@ -37,6 +40,8 @@ Mpc_km = 1e-5 * Mpc
 #  to be exactly 365.25 days of 86400 seconds each.
 Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
+#Radiation parameter over c^2
+a_B_c2 = 4 * sigma_sb / c**3
 
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
@@ -66,39 +71,41 @@ class FLRW(Cosmology):
     of the parameters.  That is, all of the attributes above are
     read only.
 
-    The energy density from radiation, omega_r, is ignored (valid
-    for redshifts < ~10).  
+    The neutrino treatment assumes all neutrino species are massless.
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, H0, Om0, Ode0, name='FLRW'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, name='FLRW'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name : string
           Optional name for this cosmological object.
         """
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
         self._Ode0 = float(Ode0)
-        self._Ok0 = 1.0 - self._Om0 - self._Ode0
+        self._Tcmb0 = float(Tcmb0)
+        self._Neff = float(Neff)
         self.name = name
 
         # Hubble parameter at z=0, km/s/Mpc
@@ -115,12 +122,31 @@ class FLRW(Cosmology):
         # critical density at z=0 (grams per cubic cm)
         self._critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
+        # Compute photon density, Tcmb, neutrino parameters
+        # Tcmb0=0 removes both photons and neutrinos, is handled 
+        # as a special case for efficiency
+        if self._Tcmb0 > 0:
+            # Compute photon density from Tcmb
+            self._Ogamma0 = a_B_c2 * self._Tcmb0**4 / self._critical_density0
+
+            #Compute Neutrino Omega 
+            # The constant in front is 7/8 (4/11)^4/3 -- see any
+            #  cosmology book for an explanation; the 7/8 is FD vs. BE
+            #  statistics, the 4/11 is the temperature effect
+            self._Onu0 = 0.2271073 * self._Neff * self._Ogamma0
+        else:
+            self._Ogamma0 = 0.0
+            self._Onu0 = 0.0
+
+        #Compute curvature density
+        self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
+
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g)" % \
             (self.name, self._H0, self._Om0, self._Ode0, self._Ok0)
 
-    #Set up a set of properties for H0, Om, Ode, Ok for user access.
-    #Note that we don't let these be set (so, obj.Om = value fails)
+    #Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
+    #Note that we don't let these be set (so, obj.Om0 = value fails)
 
     @property
     def H0(self):
@@ -144,6 +170,16 @@ class FLRW(Cosmology):
         return self._Ok0
 
     @property
+    def Tcmb0(self):
+        """ Temperature of the CMB in Kelvin at z=0"""
+        return self._Tcmb0
+
+    @property
+    def Neff(self):
+        """ Number of effective neutrino species"""
+        return self._Neff
+
+    @property
     def h(self):
         """ Dimensionless Hubble constant: h = H_0 / 100 [km/sec/Mpc]"""
         return self._h
@@ -162,6 +198,16 @@ class FLRW(Cosmology):
     def critical_density0(self):
         """ Critical density in [g cm^-3] at z=0"""
         return self._critical_density0
+
+    @property
+    def Ogamma0(self):
+        """ Omega gamma; the density/critical density of photons at z=0"""
+        return self._Ogamma0
+
+    @property
+    def Onu0(self):
+        """ Omega nu; the density/critical density of neutrinos at z=0"""
+        return self._Onu0
 
     @abstractmethod
     def w(self, z):
@@ -199,7 +245,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Om: ndarray, or float if input scalar
+        Om : ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
         """
@@ -219,7 +265,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Ok: ndarray, or float if input scalar
+        Ok : ndarray, or float if input scalar
           The equivalent density parameter for curvature at each redshift.
         """
 
@@ -242,7 +288,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Ode: ndarray, or float if input scalar
+        Ode : ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
         """
@@ -252,6 +298,72 @@ class FLRW(Cosmology):
 
         return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z)**2
 
+    def Ogamma(self, z):
+        """ Return the density parameter for photons at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Ogamma : ndarray, or float if input scalar
+          The energy density of photons relative to the critical
+          density at each redshift.
+        """
+
+        if self._Ogamma0 == 0:
+            #Common enough case to be worth checking (although it clearly
+            # doesn't represent any real universe)
+            return np.zeros_like(z)
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Ogamma0 * (1. + z)**4 * self.inv_efunc(z)**2
+
+    def Onu(self, z):
+        """ Return the density parameter for massless neutrinos at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Onu : ndarray, or float if input scalar
+          The energy density of photons relative to the critical
+          density at each redshift.  Note that this includes only
+          their relativistic energy, since they are assumed massless.
+        """
+
+        if self._Onu0 == 0:
+            #Common enough case to be worth checking (although it clearly
+            # doesn't represent any real universe)
+            return np.zeros_like(z)
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Onu0 * (1. + z)**4 * self.inv_efunc(z)**2
+
+    def Tcmb(self, z):
+        """ Return the CMB temperature at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Tcmb : ndarray, or float if z is scalar
+          The temperature of the CMB in K.
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Tcmb0 * (1.0 + z)
 
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
@@ -336,27 +448,53 @@ class FLRW(Cosmology):
 
         if isiterable(z):
             z = np.asarray(z)
+
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
-        """Inverse of efunc"""
+        """Inverse of efunc
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The redshift scaling of the inverse Hubble constant.
+        """
 
         #Avoid the function overhead by repeating code
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0/np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+        return 1.0/np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                            Ode0 * self.de_density_scale(z))
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The integrand for the lookback time
+
+        References
+        ----------
         Eqn 30 from Hogg 1999.
         """
 
@@ -370,6 +508,18 @@ class FLRW(Cosmology):
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
         
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        X : ndarray, or float if input scalar
+          The integrand for the absorption distance
+
+        References
+        ----------
         See Hogg 1999 section 11.
         """
 
@@ -736,7 +886,6 @@ class FLRW(Cosmology):
         else:
             return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsin(term3))
 
-
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
 
@@ -752,30 +901,33 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, name='LambdaCDM'):
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+                 name='LambdaCDM'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of the cosmological constant in units
           of the critical density at z=0.
 
-        Ok0: (float)
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift `z`.
@@ -846,9 +998,10 @@ class LambdaCDM(FLRW):
         #We override this because it takes a particularly simple
         # form for a cosmological constant
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0)
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
     def inv_efunc(self, z):
         """ Function used to calculate 1.0/H(z)
@@ -871,10 +1024,110 @@ class LambdaCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + Ode0)
+        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
+class FlatLambdaCDM(LambdaCDM):
+    """FLRW cosmology with a cosmological constant and no curvature.
+
+    This has no additional attributes beyond those of FLRW.
+
+    Examples
+    --------
+    >>> from astro.cosmology import FlatLambdaCDM
+    >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> dc = cosmo.comoving_distance(z)
+    """
+    def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, name='FlatLambdaCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0 : float
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0 : float
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
+          Optional name for this cosmological object.
+        """
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        #Do some twiddling after the fact to get flatness
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
+        self._Ok0 = 0.0
+
+    def __repr__(self):
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g)" % \
+            (self.name, self._H0, self._Om0, self._Ode0)
+
+
+    def efunc(self, z):
+        """ Function used to calculate H(z), the Hubble parameter.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The redshift scaling of the Hubble consant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 E`.
+        """
+
+        if isiterable(z):
+            z = np.asarray(z)
+
+        #We override this because it takes a particularly simple
+        # form for a cosmological constant
+        Om0, Ode0 = self._Om0, self._Ode0
+        Or0 = self._Ogamma0 + self._Onu0
+        zp1 = 1.0 + z
+
+        return np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + Ode0)
+
+    def inv_efunc(self, z):
+        """ Function used to calculate 1.0/H(z)
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The inverse redshift scaling of the Hubble constant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        """
+        
+        if isiterable(z):
+            z = np.asarray(z)
+        Om0, Ode0 = self._Om0, self._Ode0
+        Or0 = self._Ogamma0 + self._Onu0
+        zp1 = 1.0 + z
+
+        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + Ode0)
 
 class wCDM(FLRW):
     """FLRW cosmology with a constant dark energy equation of state
@@ -892,35 +1145,38 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, w0=-1., name='wCDM'):
+    def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
+                 Neff=3.04, name='wCDM'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
-
-        w0: (float)
+        w0 : float
           Dark energy equation of state at all redshifts.  
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        name: (string)
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
 
     def __repr__(self):
@@ -1002,8 +1258,10 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
-        return np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) +
+
+        return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                        Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
@@ -1027,11 +1285,121 @@ class wCDM(FLRW):
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
+        Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
-        return 1.0 / np.sqrt(zp1**2 * (Om0 * zp1 + Ok0) + 
+
+        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + 
                              Ode0 * zp1**(3 * (1 + w0)))
 
 
+class FlatwCDM(wCDM):
+    """FLRW cosmology with a constant dark energy equation of state
+    and no spatial curvature.
+
+    This has one additional attribute beyond those of FLRW.
+
+    Examples
+    --------
+    >>> from astro.cosmology import FlatwCDM
+    >>> cosmo = FlatwCDM(H0=70, Om0=0.3, w0=-0.9)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> dc = cosmo.comoving_distance(z)
+    """
+
+    def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
+                 Neff=3.04, name='FlatwCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0 : float
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0 : float
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        w0 : float
+          Dark energy equation of state at all redshifts.  
+          This is pressure/density for dark energy in units where c=1.
+          A cosmological constant has w0=-1.0.
+
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name: string
+          Optional name for this cosmological object.
+        """
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        self._w0 = float(w0)
+        #Do some twiddling after the fact to get flatness
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
+        self._Ok0 = 0.0
+
+    def __repr__(self):
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g)" % \
+            (self.name, self._H0, self._Om0, 
+             self._Ode0, self._w0)
+
+    def efunc(self, z):
+        """ Function used to calculate H(z), the Hubble parameter.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The redshift scaling of the Hubble consant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 E`.
+        """
+        
+        if isiterable(z):
+            z = np.asarray(z)
+        Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
+        Or0 = self._Ogamma0 + self._Onu0
+        zp1 = 1.0 + z
+
+        return np.sqrt(zp1**3 * (Or0 * zp1 + Om0) +
+                       Ode0 * zp1**(3.0 * (1 + w0)))
+
+    def inv_efunc(self, z):
+        """ Function used to calculate 1.0/H(z)
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The inverse redshift scaling of the Hubble constant.
+
+        Notes
+        -----
+        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        """
+        
+        if isiterable(z):
+            z = np.asarray(z)
+        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
+        Or0 = self._Ogamma0 + self._Onu0
+        zp1 = 1.0 + z
+
+        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + 
+                             Ode0 * zp1**(3 * (1 + w0)))
+    
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
 
@@ -1050,39 +1418,42 @@ class w0waCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., name='w0waCDM'):
+    def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
+                 Neff=3.04, name='w0waCDM'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
-
-        w0: (float)
+        w0 : float
           Dark energy equation of state at z=0 (a=1).
           This is pressure/density for dark energy in units where c=1.
           
-        wa: (float)
+        wa : float
           Negative derivative of the dark energy equation of state
           with respect to the scale factor.  A cosmological constant has 
           w0=-1.0 and wa=0.0.
 
-        name: (string)
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -1158,6 +1529,65 @@ class w0waCDM(FLRW):
         return zp1**(3 * (1 + self._w0 + self._wa)) * \
             exp(-3 * self._wa * z / zp1)
 
+class Flatw0waCDM(w0waCDM):
+    """FLRW cosmology with a CPL dark energy equation of state and no curvature.
+
+    The equation for the dark energy equation of state uses the
+    CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
+    D10, 213 (2001) and Linder PRL 90, 91301 (2003):
+    :math:`w(z) = w_0 + w_a (1-a) = w_0 + w_a z / (1+z)`.
+
+    Examples
+    --------
+    >>> from astro.cosmology import Flatw0waCDM
+    >>> cosmo = Flatw0waCDM(H0=70, Om0=0.3, w0=-0.9, wa=0.2)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> dc = cosmo.comoving_distance(z)
+    """
+    def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725, 
+                 Neff=3.04, name='Flatw0waCDM'):
+        """ Initializer.
+
+        Parameters
+        ----------
+        H0 : float
+          Hubble constant in [km/sec/Mpc] at z=0
+
+        Om0 : float
+          Omega matter: density of non-relativistic matter in units
+          of the critical density at z=0.
+
+        w0 : float
+          Dark energy equation of state at z=0 (a=1).
+          This is pressure/density for dark energy in units where c=1.
+          
+        wa : float
+          Negative derivative of the dark energy equation of state
+          with respect to the scale factor.  A cosmological constant has 
+          w0=-1.0 and wa=0.0.
+
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
+          Optional name for this cosmological object.
+        """
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
+        #Do some twiddling after the fact to get flatness
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
+        self._Ok0 = 0.0
+        self._w0 = float(w0)
+        self._wa = float(wa)
+
+    def __repr__(self):
+        return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g)" %\
+            (self.name, self._H0, self._Om0, self._Ode0, self._w0, self._wa)
+    
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -1181,42 +1611,44 @@ class wpwaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, 
-                 name='wpwaCDM'):
+                 Tcmb0=2.725, Neff=3.04, name='wpwaCDM'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
-          Omega curvature: equivalent curvature density in units
-          of the critical density at z=0.
-
-        wp: (float)
+        wp : float
           Dark energy equation of state at the pivot redshift zp.
           This is pressure/density for dark energy in units where c=1.
           
-        wa: (float)
+        wa : float
           Negative derivative of the dark energy equation of state
           with respect to the scale factor.  A cosmological constant 
           has w0=-1.0 and wa=0.0.
 
-        zp: (float)
+        zp : float
           Pivot redshift -- the redshift where w(z) = wp
 
-        name: (string)
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -1304,7 +1736,6 @@ class wpwaCDM(FLRW):
         return zp1**(3 * (1 + self._wp + apiv * self._wa)) * \
             exp(-3 * self._wa * z / zp1)
 
-
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy equation of state
     and curvature.
@@ -1324,45 +1755,51 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., name='w0wzCDM'):
+    def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
+                 Neff=3.04, name='w0wzCDM'):
         """ Initializer.
 
         Parameters
         ----------
-        H0: (float)
+        H0 : float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0 : float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0 : float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
+        Ok0 : float
           Omega curvature: equivalent curvature density in units
           of the critical density at z=0.
 
-        w0: (float)
+        w0 : float
           Dark energy equation of state at z=0.  
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        wz: (float)
+        wz : float
           Derivative of the dark energy equation of state with respect to z.
 
-        name: (string)
+        Tcmb0 : float
+          Temperature of the CMB in Kelvin at z=0 (def: 2.725)
+          
+        Neff : float
+          Effective number of Neutrino species (def: 3.04)
+
+        name : string
           Optional name for this cosmological object.
         """
-        FLRW.__init__(self, H0, Om0, Ode0, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
 
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wz=%.3g)" % \
-            (self.name, self._H0, self._Om0, 
-             self._Ode0, self._w0, self._wz)
+            (self.name, self._H0, self._Om0, self._Ode0, self._w0, self._wz)
 
     @property
     def w0(self):
@@ -1431,14 +1868,20 @@ class w0wzCDM(FLRW):
         return zp1**(3 * (1 + self._w0 - self._wz)) * exp(-3 * self._wz * z)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a LambdaCDM instance with the same
-# name as the parameter set in the current module's namespace.
+# parameters module and creates a LambdaCDM or FlatLambdaCDM instance 
+# with the same name as the parameter set in the current module's namespace.
 # Note this assumes all the cosmologies in parameters are LambdaCDM,
 # which is true at least as of this writing.        
 
 for key in parameters.available:
     par = getattr(parameters, key)
-    cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'], name=key)
+    if par['flat']:
+        cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
+                              Neff=par['Neff'], name=key)
+    else:
+        cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'], 
+                          Tcmb0=par['Tcmb0'], Neff=par['Neff'],
+                          m_nu=par['m_nu'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
 
