@@ -209,7 +209,7 @@ class NDData(object):
         else:
             return self.data
 
-    def _combine(self, operand, propagate_errors, name, operation):
+    def _arithmetic(self, operand, propagate_errors, name, operation):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -286,21 +286,21 @@ class NDData(object):
         return result
 
     def add(self, operand, propagate_errors=True):
-        return self._combine(
+        return self._arithmetic(
             operand, propagate_errors, "addition", np.add)
-    add.__doc__ = _combine.__doc__.format(name="Add", operator="+")
+    add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
     def subtract(self, operand, propagate_errors=True):
-        return self._combine(
+        return self._arithmetic(
             operand, propagate_errors, "subtraction", np.subtract)
-    subtract.__doc__ = _combine.__doc__.format(name="Subtract", operator="-")
+    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
 
     def multiply(self, operand, propagate_errors=True):
-        return self._combine(
+        return self._arithmetic(
             operand, propagate_errors, "multiplication", np.multiply)
-    multiply.__doc__ = _combine.__doc__.format(name="Multiply", operator="*")
+    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
 
     def divide(self, operand, propagate_errors=True):
-        return self._combine(
+        return self._arithmetic(
             operand, propagate_errors, "division", np.divide)
-    divide.__doc__ = _combine.__doc__.format(name="Divide", operator="/")
+    divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
