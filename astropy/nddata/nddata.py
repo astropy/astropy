@@ -250,7 +250,7 @@ class NDData(object):
         data = operation(self.data, operand_data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
-        if not propagate_errors:
+        if propagate_errors is None:
             result.error = None
         elif self.error is None and operand.error is None:
             result.error = None
@@ -260,7 +260,8 @@ class NDData(object):
             result.error = self.error
         else:  # both self and operand have errors
             try:
-                result.error = self.error.propagate_add(operand, result.data)
+                method = getattr(self.error, propagate_errors)
+                result.error = method(operand, result.data)
             except IncompatibleErrorsException:
                 raise IncompatibleErrorsException(
                     "Cannot propagate errors of type {0:s} with errors of "
@@ -286,21 +287,37 @@ class NDData(object):
         return result
 
     def add(self, operand, propagate_errors=True):
+        if propagate_errors:
+            propagate_errors = "propagate_add"
+        else:
+            propagate_errors = None
         return self._arithmetic(
             operand, propagate_errors, "addition", np.add)
     add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
     def subtract(self, operand, propagate_errors=True):
+        if propagate_errors:
+            propagate_errors = "propagate_subtract"
+        else:
+            propagate_errors = None
         return self._arithmetic(
             operand, propagate_errors, "subtraction", np.subtract)
     subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
 
     def multiply(self, operand, propagate_errors=True):
+        if propagate_errors:
+            propagate_errors = "propagate_multiply"
+        else:
+            propagate_errors = None
         return self._arithmetic(
             operand, propagate_errors, "multiplication", np.multiply)
     multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
 
     def divide(self, operand, propagate_errors=True):
+        if propagate_errors:
+            propagate_errors = "propagate_divide"
+        else:
+            propagate_errors = None
         return self._arithmetic(
             operand, propagate_errors, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
