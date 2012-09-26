@@ -190,3 +190,8 @@ def test_nddata_subtract_errors_mismatch():
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.subtract(d2)
     assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for subtractition'
+def test_convert_units_to():
+    d = NDData(np.ones((5, 5)))
+    d.units = 'km'
+    d1 = d.convert_units_to('m')
+    assert np.all(d1 == np.array(1000.0))

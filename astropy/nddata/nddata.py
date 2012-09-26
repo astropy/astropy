@@ -304,3 +304,35 @@ class NDData(object):
         return self._arithmetic(
             operand, propagate_errors, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
+
+    def convert_units_to(self, unit):
+        """
+        Returns a new `NDData` object whose values have been converted
+        to a new unit.
+
+        Parameters
+        ----------
+        unit : `astropy.units.UnitBase` instance or str
+            The unit to convert to.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Raises
+        ------
+        UnitsException
+            If units are inconsistent.
+        """
+        data = self.units.to(unit, self.data)
+        result = self.__class__(data)  # in case we are dealing with an inherited type
+
+        result.error = self.error
+        result.mask = self.mask
+        result.flags = None
+        result.wcs = self.wcs
+        result.meta = self.meta
+        result.units = unit
+
+        return result
