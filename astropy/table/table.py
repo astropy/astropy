@@ -4,6 +4,7 @@ import collections
 
 import numpy as np
 
+from ..units import Unit
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
@@ -374,8 +375,10 @@ class Column(np.ndarray):
 
     @units.setter
     def units(self, units):
-        from astropy import units as u
-        self._units = u.Unit(units)
+        if units is None:
+            self._units = None
+        else:
+            self._units = Unit(units)
 
     @units.deleter
     def units(self):
@@ -400,6 +403,8 @@ class Column(np.ndarray):
         astropy.units.UnitException
             If units are inconsistent
         """
+        if self.units is None:
+            raise ValueError("No units set on column")
         self.data[:] = self.units.to(new_units, self.data)
         self.units = new_units
 
