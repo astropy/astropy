@@ -71,7 +71,7 @@ class FLRW(Cosmology):
     of the parameters.  That is, all of the attributes above are
     read only.
 
-    The nuetrino treatment assumes all neutrino species are massless.
+    The neutrino treatment assumes all neutrino species are massless.
     """
     __metaclass__ = ABCMeta
 
@@ -80,24 +80,24 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
 
@@ -457,7 +457,18 @@ class FLRW(Cosmology):
                        Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
-        """Inverse of efunc"""
+        """Inverse of efunc
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        E : ndarray, or float if input scalar
+          The redshift scaling of the inverse Hubble constant.
+        """
 
         #Avoid the function overhead by repeating code
         if isiterable(z):
@@ -472,6 +483,18 @@ class FLRW(Cosmology):
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        I : ndarray, or float if input scalar
+          The integrand for the lookback time
+
+        References
+        ----------
         Eqn 30 from Hogg 1999.
         """
 
@@ -485,6 +508,18 @@ class FLRW(Cosmology):
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
         
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        X : ndarray, or float if input scalar
+          The integrand for the absorption distance
+
+        References
+        ----------
         See Hogg 1999 section 11.
         """
 
@@ -872,24 +907,24 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of the cosmological constant in units
           of the critical density at z=0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
@@ -1013,20 +1048,20 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
@@ -1116,29 +1151,29 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        w0: (float)
+        w0: float
           Dark energy equation of state at all redshifts.  
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
@@ -1279,25 +1314,25 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        w0: (float)
+        w0: float
           Dark energy equation of state at all redshifts.  
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, name=name)
@@ -1391,33 +1426,33 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        w0: (float)
+        w0: float
           Dark energy equation of state at z=0 (a=1).
           This is pressure/density for dark energy in units where c=1.
           
-        wa: (float)
+        wa: float
           Negative derivative of the dark energy equation of state
           with respect to the scale factor.  A cosmological constant has 
           w0=-1.0 and wa=0.0.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
@@ -1524,36 +1559,36 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        wp: (float)
+        wp: float
           Dark energy equation of state at the pivot redshift zp.
           This is pressure/density for dark energy in units where c=1.
           
-        wa: (float)
+        wa: float
           Negative derivative of the dark energy equation of state
           with respect to the scale factor.  A cosmological constant 
           has w0=-1.0 and wa=0.0.
 
-        zp: (float)
+        zp: float
           Pivot redshift -- the redshift where w(z) = wp
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)
@@ -1670,36 +1705,36 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        H0: (float)
+        H0: float
           Hubble constant in [km/sec/Mpc] at z=0
 
-        Om0: (float)
+        Om0: float
           Omega matter: density of non-relativistic matter in units
           of the critical density at z=0.
 
-        Ode0: (float)
+        Ode0: float
           Omega dark energy: density of dark energy in units
           of the critical density at z=0.
 
-        Ok0: (float)
+        Ok0: float
           Omega curvature: equivalent curvature density in units
           of the critical density at z=0.
 
-        w0: (float)
+        w0: float
           Dark energy equation of state at z=0.  
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
-        wz: (float)
+        wz: float
           Derivative of the dark energy equation of state with respect to z.
 
-        Tcmb0: (float)
+        Tcmb0: float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
           
-        Neff: (float)
+        Neff: float
           Effective number of Neutrino species (def: 3.04)
 
-        name: (string)
+        name: string
           Optional name for this cosmological object.
         """
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, name=name)

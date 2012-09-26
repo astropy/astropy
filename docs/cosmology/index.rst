@@ -71,7 +71,7 @@ arguments giving the hubble parameter and omega matter (both at z=0):
 
 A number of additional dark energy models are provided (described below).
 Note that photons and neutrinos are included in these models, so
-for some values of Om0 it may appear that Om0 + Ode0 is not quite one.
+Om0 + Ode0 is not quite one.
 
 The pre-defined cosmologies described in the `Getting Started`_
 section are instances of `~astropy.cosmology.core.FlatLambdaCDM`, and have
@@ -114,7 +114,7 @@ You can see how the density parameters evolve with redshift as well
    array([ 0.72791572,  0.25055062,  0.09010261]))
 
 Note that these don't quite add up to one even though WMAP7 assumes a
-flat Universe because photons and nuetrinos are included.
+flat Universe because photons and neutrinos are included.
 
 In addition to the `~astropy.cosmology.core.LambdaCDM` object, there
 are convenience functions that calculate some of these quantities
@@ -221,7 +221,7 @@ examples.
 Relativistic Species
 ====================
 The cosmology classes include the contribution to the energy density
-from both photons and massless nuetrinos.  The two parameters
+from both photons and massless neutrinos.  The two parameters
 controlling the proporties of these species are Tcmb0 (the temperature
 of the CMB at z=0) and Neff, the effective number of neutrino species.
 Both have standard default values (2.725 and 3.04, respectively; the
