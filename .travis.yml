@@ -1,0 +1,42 @@
+language: python
+
+python:
+    - 2.7
+    - 2.6
+    - 3.2
+    - 3.1
+env:
+    #NUMPY_VERSION=999.9 guarantees the latest version
+    - NUMPY_VERSION=999.9 #INSTALL_SCIPY=false
+    - NUMPY_VERSION=1.5.1 #INSTALL_SCIPY=false
+    - NUMPY_VERSION=1.4.1 #INSTALL_SCIPY=false
+    
+matrix:
+    exclude:
+        - python: 3.2
+          env: NUMPY_VERSION=1.5.1 #INSTALL_SCIPY=false
+        - python: 3.1 
+          env: NUMPY_VERSION=1.5.1 #INSTALL_SCIPY=false
+        - python: 3.2 
+          env: NUMPY_VERSION=1.4.1 #INSTALL_SCIPY=false
+        - python: 3.1 
+          env: NUMPY_VERSION=1.4.1 #INSTALL_SCIPY=false
+    #Uncomment this and all the other INSTALL_SCIPY stuff to get a build with scipy present
+    #include:
+    #    - python: 2.7 
+    #      env: NUMPY_VERSION=999.9 INSTALL_SCIPY=true
+    #allow_failures:
+    #    - python: 2.7
+    #      env: NUMPY_VERSION=999.9 INSTALL_SCIPY=true
+
+
+before_install:
+   #we do this to make sure we get the dependencies so pip works below
+   - sudo apt-get update -qq
+   - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
+install: 
+   - pip -q install "numpy<=$NUMPY_VERSION" --use-mirrors
+   - pip -q install Cython --use-mirrors
+   #- if $INSTALL_SCIPY;then pip -q install scipy --use-mirrors;fi
+   - python setup.py build
+script:  python setup.py test
