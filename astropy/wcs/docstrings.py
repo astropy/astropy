@@ -1,7 +1,10 @@
 from __future__ import division  # confidence high
-del division
+if 'division' in locals():
+    del division
 # We don't want the "division" symbol in the namespace, since it
-# should have only docstrings
+# should have only docstrings.  However, after 2to3, the
+# __future__ statement disappears, so we should be sure it's actually
+# there to prevent error on import
 
 # It gets to be really tedious to type long docstrings in ANSI C
 # syntax (since multi-line string literals are not valid).
