@@ -10,7 +10,7 @@ np.random.seed(12345)
 
 
 class FakeErrors(NDError):
-    
+
     def propagate_add(self, data, final_data):
         pass
 
@@ -25,14 +25,8 @@ class FakeErrors(NDError):
 
 
 def test_nddata_empty():
-
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
-    if isinstance(exc.value, basestring):
-        assert exc.value.startswith('__init__() takes at least')
-    else:
-        assert exc.value.args[0].startswith('__init__() takes at least')
-
 
 def test_nddata_simple():
     nd = NDData(np.random.random((10, 10)))
