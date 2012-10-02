@@ -1,11 +1,9 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
 from pytest import raises
 
-# the commented unts import should work once units are merged, but for now use
-# the temporary module in coordinates
-#from ...units import Units as u
 from ... import units as u
 
 # notes from the original api document:
@@ -96,16 +94,24 @@ def test_angle_ops():
     -a1
 
     # division and multiplication have no unambiguous meaning here
-    with raises(TypeError):
+    with raises(NotImplementedError):
         a1 / a2
 
-    with raises(TypeError):
+    with raises(NotImplementedError):
         a1 * a2
 
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
     assert a1 == a3
     assert a1 is not a3
 
+    a4 = abs(-a1)
+    assert a4 == a1
+    
+    a5 = Angle(5.0, unit=u.hour)
+    assert a5 > a1
+    assert a5 >= a1
+    assert a1 < a5
+    assert a1 <= a5
 
 def test_angle_bounds():
     """
@@ -177,7 +183,6 @@ def test_angle_convert():
     """
     Test unit conversion of Angle objects
     """
-    from math import abs
 
     from .. import Angle
 
@@ -296,7 +301,6 @@ def test_create_coordinate():
     be implemented, and it will be easy to subclass to create custom user-made
     coordinates with conversions to standard coordinates.
     '''
-    from math import abs
 
     from .. import Angle, RA, Dec, ICRSCoordinate, GalacticCoordinate
     from .. import HorizontalCoordinate
@@ -389,7 +393,6 @@ def test_convert_api():
     """
     Tests the basic coordinate conversion functionality.
     """
-    from math import abs
 
     from .. import Angle, RA, Dec, Coordinate, GalacticCoordinate
     from .. import HorizontalCoordinate, ConvertError, BaseCoordinate
@@ -486,7 +489,6 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from math import abs
     from .. import Distance, Coordinate, ICRSCoordinates, CartesianPoint
     from ...comology import WMAP5
 
@@ -563,3 +565,17 @@ def test_distances():
     assert csum.ra.d == 0
     assert csum.dec.d == 0
     assert csum.distance.pc == 0
+
+def test_angle_arrays():
+	"""
+	Test arrays values with Angle objects.
+	"""
+	
+	from .. import Angle
+
+	# Tests incomplete
+	a1 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree)
+	
+	a2 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
+	
+	
