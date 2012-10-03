@@ -11,6 +11,7 @@ from types import *
 import numpy as np
 
 import conversions as convert
+from errors import *
 from .. import units as u
 
 __all__ = ['Angle', 'RA', 'Dec']
@@ -218,7 +219,7 @@ class Angle(object):
             raise ValueError("An {0} object can only be subtracted from another "
                              "{0} object.".format(type(self).__name__))
         if isinstance(other, type(self)):
-            return Angle(self.radians + other.radians, unit=u.radian)
+            return Angle(self.radians + other.radians, unit=u.radian, bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be added to another "
                                       "{0} object.".format(type(self).__name__))
@@ -229,7 +230,7 @@ class Angle(object):
             raise ValueError("An {0} object can only be subtracted from another "
                              "{0} object.".format(type(self).__name__))
         if isinstance(other, type(self)):
-            return Angle(self.radians - other.radians, unit=u.radian)
+            return Angle(self.radians - other.radians, unit=u.radian, bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be subtracted from another "
                                       "{0} object.".format(type(self).__name__))
@@ -252,10 +253,17 @@ class Angle(object):
         return Angle(-self.radians, unit=u.radian)
 
     def __eq__(self, other):
-        return self.radians == other.radians
-    
+        # Ref: http://stackoverflow.com/questions/3049101/floating-point-equality-in-python-and-in-general
+        #return self.radians == other.radians
+        #return abs(self.radians - other.radians) < 1e-11
+        #
+        # abs(x - y) <= nulps * spacing(max(abs(x), abs(y)))
+        print(abs(self.radians - other.radians), np.spacing(max(abs(self.radians), abs(other.radians))))
+        return abs(self.radians - other.radians) <= 4 * np.spacing(max(abs(self.radians), abs(other.radians)))
+        
     def __ne__(self, other):
-        return not self.radians == other.radians
+        #return not self.radians == other.radians
+        return not self.__eq__(other) #abs(self.radians - other.radians) < 1e-11
 
     def __lt__(self, other):
         return self.radians < other.radians
@@ -276,7 +284,7 @@ class RA(Angle):
     """ Represents a J2000 Right Ascension 
     
         Accepts a right ascension angle value. The angle parameter accepts degrees, 
-        hours, or radians. There is no default unit.
+        hours, or radians.
         Degrees and hours both accept either a string like '15:23:14.231,' or a
         decimal representation of the value, e.g. 15.387.
         
@@ -290,10 +298,45 @@ class RA(Angle):
     """
     
     def __init__(self, angle, unit=None):
+        
+        bounds = (0,360)
+    
+        if unit == u.hour:
+            decimal_hours = convert.parseHours(angle)
+            self._radians = math.radians(decimal_hours * 15.)
+        elif unit == u.degree:
+            decimal_degrees = convert.parseDegrees(angle)
+            self._radians = math.radians(decimal_degrees)
+        elif unit == u.radian:
+            self._radian = convert.parseRadians(angle)
+        elif unit == None:
+            if isinstance(angle, str):
+                # Try to  deduce the units from hints in the string.
+                if "d" in angle or "°" in angle:
+                    # If in the form "12d32m53s", look for the "d" and assume degrees.
+                    self._radian = math.radians(convert.parseDegrees(angle))
+                    unit = u.degrees
+                elif "h" in angle:
+                    # Same for "12h32m53s" for hours.
+                    self._radian = math.radians(convert.parseHours(angle)*15.0)
+                    unit = u.hours
+                else:
+                    # could be in a form: "54:43:26" -
+                    # if so AND the resulting decimal value is > 24 or < -24, assume degrees
+                    decimal_value = convert.parseDegrees(angle)
+                    if -24.0 < decimal_value < 24.0:
+                        raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+                    else:
+                        self._radians = math.radians(decimal_value)
+                        unit = u.radian
+            else:
+                raise Exception("not yet implmented")
         if unit == None:
             raise ValueError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
+            
+
     
-        super(RA, self).__init__(angle, unit)
+        super(RA, self).__init__(self._radians, unit=unit, bounds=bounds)
     
     def hourAngle(self, lst, unit=None):
         """ Given a Local Sidereal Time (LST), calculate the hour angle for this RA
@@ -351,4 +394,6 @@ class Dec(Angle):
                 The units of the specified declination
             
         """
+        self.bounds = (-90,90)
+        
         super(Dec, self).__init__(angle, unit)

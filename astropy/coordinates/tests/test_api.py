@@ -119,7 +119,8 @@ def test_angle_bounds():
     how operations interact with bounds
     """
     from .. import Angle, RangeError
-
+    import numpy.testing as npt
+    
     '''
     By default the Angle object can accept any value, but will return
     values in [-360,360] (retaining the sign that was specified).
@@ -131,13 +132,13 @@ def test_angle_bounds():
     '''
 
     a1 = Angle(13343, unit=u.degree)
-    assert a1.degrees == 23
+    npt.assert_almost_equal(a1.degrees, 23)
 
     a2 = Angle(-50, unit=u.degree)
     assert a2.degrees == -50
 
     a3 = Angle(-361, unit=u.degree)
-    assert a3.degrees == -1
+    npt.assert_almost_equal(a3.degrees, -1)
 
     # custom bounds
 
@@ -145,7 +146,7 @@ def test_angle_bounds():
         Angle(66, unit=u.degree, bounds=(-45, 45))
 
     a4 = Angle(390, unit=u.degree, bounds=(-75, 75))
-    assert a4.degrees == 30
+    npt.assert_almost_equal(a4.degrees, 30)
     # no RangeError because while 390>75, 30 is within the bounds
 
     a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
@@ -163,14 +164,16 @@ def test_angle_bounds():
     a7 = a4 + a4
     assert a7.bounds == (-75, 75)
     # if the bounds match, there is no error and the bound is kept
-    assert a7.degrees == 60
+    npt.assert_almost_equal(a7.degrees, 60)
 
+    a8 = a4 - a4
+    assert a8.bounds == (-75, 75)
     # To get the default bounds back, you need to create a new object with the
     # equivalent angle
     Angle(a4.degrees + a4.degrees, unit=u.degree)
 
     a9 = Angle(a4.degrees + a5.degrees, unit=u.degree, bounds=[-180, 180])
-    assert a9.degrees == 60
+    npt.assert_almost_equal(a9.degrees, 60)
     # if they don't match and you want to combine, just re-assign the bounds
     # yourself
 
@@ -270,8 +273,16 @@ def test_radec():
 
     with raises(ValueError):
         ra = RA("4:08:15.162342")  # error - hours or degrees?
-    ra = RA("26:34:65.345634")  # unambiguous b/c hours don't go past 24
+    with raises(ValueError):
+        ra = RA("-4:08:15.162342")  # same, should check sign
 
+    ra = RA("26:34:65.345634")  # unambiguous b/c hours don't go past 24
+    ra = RA("-54:43:53.24533")  # same, should check sign
+    
+    ra = RA((56,64,52.52))		# can accept tuples
+    with raises(ValueError):
+	    ra = RA([56,64,52.2])	# ...but not arrays (yet)
+    
     # Units can be specified
     ra = RA("4:08:15.162342", unit=u.hour)
 
