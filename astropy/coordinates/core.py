@@ -308,17 +308,17 @@ class RA(Angle):
             decimal_degrees = convert.parseDegrees(angle)
             self._radians = math.radians(decimal_degrees)
         elif unit == u.radian:
-            self._radian = convert.parseRadians(angle)
+            self._radians = convert.parseRadians(angle)
         elif unit == None:
             if isinstance(angle, str):
                 # Try to  deduce the units from hints in the string.
                 if "d" in angle or "°" in angle:
                     # If in the form "12d32m53s", look for the "d" and assume degrees.
-                    self._radian = math.radians(convert.parseDegrees(angle))
+                    self._radians = math.radians(convert.parseDegrees(angle))
                     unit = u.degrees
                 elif "h" in angle:
                     # Same for "12h32m53s" for hours.
-                    self._radian = math.radians(convert.parseHours(angle)*15.0)
+                    self._radians = math.radians(convert.parseHours(angle)*15.0)
                     unit = u.hours
                 else:
                     # could be in a form: "54:43:26" -
@@ -375,7 +375,7 @@ class RA(Angle):
         if not isinstance(ha, Angle):
             ha = Angle(ha, unit)
             
-        return Angle(ha.radians + self.radians, units="radians")
+        return Angle(ha.radians + self.radians, units=u.radian)
 
 class Dec(Angle):
     """ Represents a J2000 Declination """
@@ -385,6 +385,7 @@ class Dec(Angle):
             hours, or radians and the default units are hours.
             Degrees and hours both accept either a string like '15:23:14.231,' or a
             decimal representation of the value, e.g. 15.387.
+            Bounds are fixed at [-90,90]
         
             Parameters
             ----------
@@ -394,6 +395,5 @@ class Dec(Angle):
                 The units of the specified declination
             
         """
-        self.bounds = (-90,90)
-        
-        super(Dec, self).__init__(angle, unit)
+
+        super(Dec, self).__init__(angle, unit=unit, bounds=bounds)
