@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
@@ -44,7 +45,7 @@ def parseDegrees(degrees, outputDMS=False):
         
         Parameters
         ----------
-        degrees : float, str
+        degrees : float, int, str
             If a string, accepts values in these formats:
                 * [+|-]DD:MM:SS.sss (string), e.g. +12:52:32.423 or -12:52:32.423
                 * DD.dddd (float, string), e.g. 12.542326
@@ -62,63 +63,68 @@ def parseDegrees(degrees, outputDMS=False):
     x = degrees
     
     if isinstance(x, float) or isinstance(x, int):
-        parsedDegrees = x
-        parsedDMS = degreesToDMS(parsedDegrees)
+        parsedDegrees = float(x)
+        #parsedDMS = degreesToDMS(parsedDegrees)
     
     elif isinstance(x, str):
         x = x.strip()
         
+        string_parsed = False
+        
+        # See if the string is just a float or int value.
         try:
             parsedDegrees = float(x)
-            parsedDMS = degreesToDMS(parsedDegrees)
+            string_parsed = True
         except ValueError:
-        
-            string_parsed = False
-            div = '[:|/|\t|\-|\sDdMmSs]{1,2}' # accept these as (one or more repeated) delimiters: :, whitespace, /
+            pass
 
-            # First look for a pattern where d,m,s is specified
+        if not string_parsed:
+            # Look for a pattern where d,m,s is specified
+            div = '[:|/|\t|\-|\sDdMmSs]{1,2}' # accept these as (one or more repeated) delimiters: :, whitespace, /
             pattr = '^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + div + '(\d{1,2}[\.0-9]+)' + '[Ss]{0,1}' + '$'
     
             try:
                 elems = re.search(pattr, x).groups()
+                parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), float(elems[2]))
                 string_parsed = True
             except:
                 pass # try again below
-                #raise ValueError("convert.parseDegrees: Invalid input string! ('{0}')".format(x))
-            
-            if string_parsed:
-                parsedDMS = (int(elems[0]), int(elems[1]), float(elems[2]))
-                parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), float(elems[2]))
+        
+        if not string_parsed:
+            # look for a pattern where only d,m is specified
+            pattr = '^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + '[Mm]{0,1}' + '$'
+            try:
+                elems = re.search(pattr, x).groups()
+                parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), 0.0)
+                string_parsed = True
+            except:
+                pass
 
-            else:
-
-				# look for a pattern where only d,m is specified
-				pattr = '^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + '[Mm]{0,1}' + '$'
-				
-				try:
-					elems = re.search(pattr, x).groups()
-					string_parsed = True
-				except:
-					raise ValueError("convert.parseDegrees: Invalid input string! ('{0}')".format(x))
-	
-				parsedDMS = (int(elems[0]), int(elems[1]), 0.0)
-				parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), 0.0)
+        if not string_parsed:
+            # look for a '°' symbol
+            if '°' in x:
+                x = x.replace('°', '')
+                try:
+                    parsedDegrees = float(x)
+                    string_parsed = True
+                except ValueError:
+                    pass
+                    
+        if not string_parsed:
+            raise ValueError("convert.parseDegrees: Invalid input string! ('{0}')".format(x))
 
     elif isinstance(x, core.Angle):
         parsedDegrees = x.degrees
-        parsedDMS = degreesToDMS(parsedDegrees)
+        #parsedDMS = degreesToDMS(parsedDegrees)
         
     elif isinstance(x, tuple):
         parsedDegrees = dmsToDegrees(*x)
-        parsedDMS = x
+        #parsedDMS = x
         
     else:
         raise ValueError("convert.parseDegrees: could not parse value of {0}.".format(type(x)))
     
-    if outputDMS:
-        return parsedDMS
-    else:
-        return parsedDegrees
+    return degreesToDMS(parsedDegrees) if outputDMS else parsedDegrees
 
 def parseHours(hours, outputHMS=False):
     """ Parses an input "hour" value to decimal hours or an hour, minute, second tuple.
@@ -177,8 +183,8 @@ def parseHours(hours, outputHMS=False):
                 pattr = '^([+-]{0,1}\d{1,2})' + div + '(\d{1,2})' + '[Mm]{0,1}' + '$'
                 
                 try:
-                	elems = re.search(pattr, x).groups()
-                	string_parsed = True
+                    elems = re.search(pattr, x).groups()
+                    string_parsed = True
                 except:
                     raise ValueError("convert.parseHours: Invalid input string, can't parse to HMS. ({0})".format(x))
 

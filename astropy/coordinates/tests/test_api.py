@@ -5,6 +5,7 @@ from __future__ import print_function
 from pytest import raises
 
 from ... import units as u
+from ..errors import *
 
 # notes from the original api document:
 '''
@@ -70,6 +71,9 @@ def test_create_angles():
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
+    with raises(IllegalUnitsError):
+    	a13 = Angle(12.34, unit="not a unit")
+
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
     assert a10 == a11 == a12
@@ -99,6 +103,9 @@ def test_angle_ops():
 
     with raises(NotImplementedError):
         a1 * a2
+
+    (a1 * 2).hours == 2 * 3.60827466667
+    (a1 / 3.123456).hours == 3.60827466667 / 3.123456
 
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
     assert a1 == a3
@@ -181,6 +188,8 @@ def test_angle_bounds():
     a10 = a6 - a6
     a10.degrees == 0
 
+    with raises(AttributeError):
+	    a10.bounds = (0,34)
 
 def test_angle_convert():
     """
@@ -225,13 +234,13 @@ def test_angle_formatting():
     angle = Angle("54.12412", unit=u.degree)
 
     res = 'Angle as HMS: 3 36 29.78880'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour)) == res
+    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.78880'
-    print("Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")))
+    print("Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=":")))
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":",
+    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
@@ -260,6 +269,7 @@ def test_radec():
     Tests creation/operations of RA and Dec objects
     """
     from .. import RA, Dec
+    import numpy.testing as npt
     '''
     RA and Dec are objects that are subclassed from Angle. As with Angle, RA
     and Dec can parse any unambiguous format (tuples, formatted strings, etc.).
@@ -273,15 +283,21 @@ def test_radec():
 
     with raises(ValueError):
         ra = RA("4:08:15.162342")  # error - hours or degrees?
-    with raises(ValueError):
+    with raises(RangeError):
         ra = RA("-4:08:15.162342")  # same, should check sign
 
     ra = RA("26:34:65.345634")  # unambiguous b/c hours don't go past 24
-    ra = RA("-54:43:53.24533")  # same, should check sign
+    npt.assert_almost_equal(ra.degrees, 26.5848182317)
+    
+    with raises(ValueError):
+	    ra = RA("garbage containing a d and no units")
+    
+    ra = RA("12h43m23s")
+    npt.assert_almost_equal(ra.hours, 12.7230555556)
     
     ra = RA((56,64,52.52))		# can accept tuples
     with raises(ValueError):
-	    ra = RA([56,64,52.2])	# ...but not arrays (yet)
+        ra = RA([56,64,52.2])	# ...but not arrays (yet)
     
     # Units can be specified
     ra = RA("4:08:15.162342", unit=u.hour)
