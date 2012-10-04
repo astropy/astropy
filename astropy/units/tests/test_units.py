@@ -8,7 +8,8 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 import warnings
 
 import pytest
-from astropy.tests.helper import raises, assert_allclose
+from ...tests.helper import raises
+from ...tests.compat import assert_allclose
 
 from ... import units as u
 
