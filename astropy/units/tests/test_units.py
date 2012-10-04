@@ -167,6 +167,11 @@ def test_unknown_unit2():
     assert 'm/s/kg' in str(warning_lines[0].message)
 
 
+@raises(ValueError)
+def test_unknown_unit3():
+    u.Unit("FOO", strict=True)
+
+
 def test_register():
     try:
         u.def_unit("foo", u.m ** 3, register=True)

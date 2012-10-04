@@ -579,7 +579,7 @@ class _UnitMetaClass(type):
     can return an existing one.
     """
     def __call__(self, s=None, represents=None, format=None, register=False,
-                 doc=None):
+                 doc=None, strict=False):
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
@@ -602,6 +602,8 @@ class _UnitMetaClass(type):
             try:
                 return f.parse(s)
             except ValueError as e:
+                if strict:
+                    raise
                 warnings.warn(
                     "'{0}' did not parse using format '{1}'. {2}".format(
                         s, format, str(e)),
@@ -627,12 +629,18 @@ class Unit(NamedUnit):
 
     - From a string::
 
-        Unit(s, format=None)
+        Unit(s, format=None, strict=False)
 
-      Construct from a string representing a (possibly compount) unit.
+      Construct from a string representing a (possibly compound) unit.
+
       The optional `format` keyword argument specifies the format the
       string is in, by default ``"generic"``.  For a description of
       the available formats, see `astropy.units.format`.
+
+      The optional `strict` keyword controls what happens when an
+      unrecognized unit string is passed in.  When `strict` is `False`
+      (default), an `UnrecognizedUnit` instance is returned.  When
+      `strict` is `True`, a `ValueError` is raised.
 
     - From a number::
 
@@ -695,7 +703,8 @@ class Unit(NamedUnit):
         represents = Unit(represents)
         self._represents = represents
 
-        NamedUnit.__init__(self, st, register=register, doc=doc, format=format)
+        NamedUnit.__init__(self, st, register=register, doc=doc,
+                           format=format)
 
     def decompose(self):
         return self._represents.decompose()
