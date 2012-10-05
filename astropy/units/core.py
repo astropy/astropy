@@ -217,6 +217,9 @@ class UnitBase(object):
         """
         other = Unit(other)
 
+        if isinstance(other, UnrecognizedUnit):
+            return False
+
         try:
             (self / other).dimensionless_constant()
         except UnitsException:
@@ -546,7 +549,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
             "The unit {0!r} is unrecognized, so all arithmetic operations "
-            "with it are invalid.")
+            "with it are invalid.".format(self.name))
 
     __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
       __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
