@@ -149,7 +149,7 @@ def test_unknown_unit():
     with warnings.catch_warnings(record=True) as warning_lines:
         warnings.resetwarnings()
         warnings.simplefilter("always", u.UnitsWarning, append=True)
-        u.Unit("FOO")
+        u.Unit("FOO", parse_strict='warn')
 
     print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
@@ -160,16 +160,17 @@ def test_unknown_unit2():
     with warnings.catch_warnings(record=True) as warning_lines:
         warnings.resetwarnings()
         warnings.simplefilter("always", u.UnitsWarning, append=True)
-        assert u.Unit("m/s/kg").to_string() == 'm/s/kg'
+        assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
 
     print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
     assert 'm/s/kg' in str(warning_lines[0].message)
 
 
-@raises(ValueError)
 def test_unknown_unit3():
-    u.Unit("FOO", strict=True)
+    unit = u.Unit("FOO", parse_strict='silent')
+    assert isinstance(unit, u.UnrecognizedUnit)
+    assert unit.name == "FOO"
 
 
 def test_register():
@@ -189,3 +190,8 @@ def test_in_units():
 
 def test_null_unit():
     assert (u.m / u.m) == u.Unit()
+
+
+def test_unrecognized_equivalency():
+    assert u.m.is_equivalent('foo') == False
+    assert u.m.is_equivalent('foot') == True
