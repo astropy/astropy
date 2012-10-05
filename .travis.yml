@@ -39,4 +39,4 @@ install:
    - pip -q install Cython --use-mirrors
    #- if $INSTALL_SCIPY;then pip -q install scipy --use-mirrors;fi
    - python setup.py build
-script:  python setup.py egg_info;python setup.py test
+script:  python setup.py egg_info test
