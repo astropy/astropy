@@ -18,7 +18,7 @@ import conversions as convert
 from errors import *
 from .. import units as u
 
-__all__ = ['Angle', 'RA', 'Dec', 'Coordinate', 'ICRSCoordinate', 'GalacticCoordinate']
+__all__ = ['Angle', 'RA', 'Dec', 'Coordinate', 'ICRSCoordinates', 'GalacticCoordinates']
 
 twopi = math.pi * 2.0 # no need to calculate this all the time
 
@@ -124,10 +124,10 @@ class Angle(object):
                             unit = u.radian
                             angle = angle.replace(unitStr, "")
                 if unit == None:
-                	if "h" in angle:
-                		unit = u.hour
-                	elif "d" in angle or "°" in angle:
-                		unit = u.degree
+                    if "h" in angle:
+                        unit = u.hour
+                    elif "d" in angle or "°" in angle:
+                        unit = u.degree
 
         if unit == None:
             raise ValueError("The unit parameter should be an object from the "
@@ -191,8 +191,8 @@ class Angle(object):
     
     @property
     def bounds(self):
-    	"""" Returns the angle's bounds, an immutable property. """
-    	return self._bounds
+        """" Returns the angle's bounds, an immutable property. """
+        return self._bounds
     
     @property
     def degrees(self):
@@ -236,21 +236,21 @@ class Angle(object):
         """
         
         if isinstance(unit, u.Unit):
-        	pass # great!
+            pass # great!
         elif isinstance(unit, str):
-        	unit = unit.lower()
-        	if unit == "degrees":
-        		unit = u.degree
-        	elif unit == "hours":
-        		unit = u.hour
-        	elif unit == "radians":
-        		unit = u.radian
-        	else:
-        		raise IllegalUnitsError("The unit value provided was not one "
-        								"of u.degree, u.hour, u.radian'.")
+            unit = unit.lower()
+            if unit == "degrees":
+                unit = u.degree
+            elif unit == "hours":
+                unit = u.hour
+            elif unit == "radians":
+                unit = u.radian
+            else:
+                raise IllegalUnitsError("The unit value provided was not one "
+                                        "of u.degree, u.hour, u.radian'.")
         else:
-        		raise IllegalUnitsError("The unit value provided was not one "
-        								"of u.degree, u.hour, u.radian'.")
+                raise IllegalUnitsError("The unit value provided was not one "
+                                        "of u.degree, u.hour, u.radian'.")
         
         if unit == u.degree:
             if decimal:
@@ -301,21 +301,21 @@ class Angle(object):
     
     # Multiplication
     def __mul__(self, other):
-    	if isinstance(other, type(self)):
-	        raise NotImplementedError("Multiplication is not supported between two {0} "
-	                                  "objects ".format(type(self).__name__))
+        if isinstance(other, type(self)):
+            raise NotImplementedError("Multiplication is not supported between two {0} "
+                                      "objects ".format(type(self).__name__))
         elif type(other) in [float, int]:
-	        return Angle(self.radians*other, unit=u.radian) 
+            return Angle(self.radians*other, unit=u.radian) 
         else:
             raise NotImplementedError("An {0} object can only be multiplied by a float or integer.".format(type(self).__name__))
     
     # Division
     def __div__(self, other):
-    	if isinstance(other, type(self)):
-	        raise NotImplementedError("Division is not supported between two {0} "
-	                                  "objects.".format(type(self).__name__))
+        if isinstance(other, type(self)):
+            raise NotImplementedError("Division is not supported between two {0} "
+                                      "objects.".format(type(self).__name__))
         elif type(other) in [float, int]:
-	        return Angle(self.radians/other, unit=u.radian)
+            return Angle(self.radians/other, unit=u.radian)
         else:
             raise NotImplementedError("An {0} object can only be divided by a float or integer.".format(type(self).__name__))
     
@@ -332,13 +332,13 @@ class Angle(object):
         #return abs(self.radians - other.radians) < 1e-11
         #
         if isinstance(other, type(self)):
-	        # abs(x - y) <= nulps * spacing(max(abs(x), abs(y)))
-	        #print(abs(self.radians - other.radians), np.spacing(max(abs(self.radians), abs(other.radians))))
-	        return abs(self.radians - other.radians) <= 4 * np.spacing(max(abs(self.radians), abs(other.radians)))
+            # abs(x - y) <= nulps * spacing(max(abs(x), abs(y)))
+            #print(abs(self.radians - other.radians), np.spacing(max(abs(self.radians), abs(other.radians))))
+            return abs(self.radians - other.radians) <= 4 * np.spacing(max(abs(self.radians), abs(other.radians)))
         else:
              raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                  	   "object.".format(type(self).__name__))
-	    
+                                       "object.".format(type(self).__name__))
+        
     def __ne__(self, other):
         #return not self.radians == other.radians
         return not self.__eq__(other) #abs(self.radians - other.radians) < 1e-11
@@ -348,28 +348,28 @@ class Angle(object):
             return self.radians < other.radians
         else:
              raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                  	   "object.".format(type(self).__name__))
+                                       "object.".format(type(self).__name__))
     
     def __gt__(self, other):
         if isinstance(other, type(self)):
             return self.radians > other.radians
         else:
              raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                  	   "object.".format(type(self).__name__))
+                                       "object.".format(type(self).__name__))
     
     def __ge__(self, other):
         if isinstance(other, type(self)):
             return self.radians >= other.radians
         else:
              raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                  	   "object.".format(type(self).__name__))
+                                       "object.".format(type(self).__name__))
         
     def __le__(self, other):
         if isinstance(other, type(self)):
             return self.radians <= other.radians
         else:
              raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                  	   "object.".format(type(self).__name__))
+                                       "object.".format(type(self).__name__))
     
     def __abs__(self):
         return Angle(abs(self.radians), unit=u.radian)
@@ -409,7 +409,7 @@ class RA(Angle):
             pass # to Angle initializer
             #self._radians = convert.parseRadians(angle)
         elif unit == None:
-        	# Try to figure out the unit if we can.
+            # Try to figure out the unit if we can.
             if isinstance(angle, str):
                 # Try to deduce the units from hints in the string.
                 # Further, enforce absolute bounds here, i.e. don't let
@@ -418,9 +418,9 @@ class RA(Angle):
                     # If in the form "12d32m53s", look for the "d" and assume degrees.
                     angle = math.radians(convert.parseDegrees(angle))
                     if 0 < angle < twopi:
-                    	unit = u.radian
+                        unit = u.radian
                     else:
-                    	raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
+                        raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
                 elif "h" in angle:
                     # Same for "12h32m53s" for hours.
                     #self._radians = math.radians(convert.parseHours(angle)*15.0)
@@ -434,12 +434,12 @@ class RA(Angle):
                     elif 0 <= decimal_value <= 24.0:
                         raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
                     elif decimal_value < 0:
-                    	raise RangeError("No units were specified; could not assume any since the value was less than zero.")
+                        raise RangeError("No units were specified; could not assume any since the value was less than zero.")
             elif isinstance(angle, tuple):
-            	if len(angle) == 3 and 0 <= angle[0] < 24.0:
-            		raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
-            	else:
-            		unit = u.degree
+                if len(angle) == 3 and 0 <= angle[0] < 24.0:
+                    raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+                else:
+                    unit = u.degree
             else:
                 raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
         if unit == None:
@@ -509,49 +509,47 @@ class Dec(Angle):
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90,90))
 
 class Coordinate(object):
-	"""
-	Document me.
-	
-	Abstract superclass for all 'coordinate' classes.
-	"""
-	__meta__ = ABCMeta
-	
-		
+    """
+    Document me.
+    
+    Abstract superclass for all 'coordinate' classes.
+    """
+    __meta__ = ABCMeta
+    
+        
 class ICRSCoordinates(Coordinate):
-	"""
-	RA/Dec coordinate class.
-	"""
-	def __init__(self, coordinates, units=None):
-		
-		# determine units
-		if units is not None:
-			if isinstance(units, u.Unit):
-				pass # great!
-			elif isinstance(units, tuple):
-				if len(units) == 0 or len(units) > 2:
-					raise ValueError("The units parameter only accepts tuples with one or two values.")
-				else:
-					# validate them
-					for a in units:
-						if not isinstance(a, u.Unit):
-							raise ValueError("Units must be specified as u.degree, u.hour, etc.")
-				# units are valid
-		else:
-			#units were None - try to determine units from coordinate object
-			if isinstance(coordinates, tuple):
-				if len(coordinates) != 2:
-					raise ValueError("Two coordinate values must be provided - '{0}' found.".format(len(coordinates)))
-				else:
-					# we have two values - the goal is to end up with two Angle
-					# objects.
-					
-		   
-			
+    """
+    RA/Dec coordinate class.
+    """
+    def __init__(self, coordinates, units=None):
+        
+        # determine units
+        if units is not None:
+            if isinstance(units, u.Unit):
+                pass # great!
+            elif isinstance(units, tuple):
+                if len(units) == 0 or len(units) > 2:
+                    raise ValueError("The units parameter only accepts tuples with one or two values.")
+                else:
+                    # validate them
+                    for a in units:
+                        if not isinstance(a, u.Unit):
+                            raise ValueError("Units must be specified as u.degree, u.hour, etc.")
+                # units are valid
+        else:
+            #units were None - try to determine units from coordinate object
+            if isinstance(coordinates, tuple):
+                if len(coordinates) != 2:
+                    raise ValueError("Two coordinate values must be provided - '{0}' found.".format(len(coordinates)))
+                else:
+                    # we have two values - the goal is to end up with two Angle
+                    # objects.
+                    pass
 
-class GalacticCoordinates(Coordinates):
-	"""	
-	Galactic coordinate (l,b) class.
-	"""
-	
-	
-	
+
+class GalacticCoordinates(Coordinate):
+    """ 
+    Galactic coordinate (l,b) class.
+    """
+    pass
+    
