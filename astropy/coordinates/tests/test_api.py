@@ -197,23 +197,26 @@ def test_angle_convert():
     """
 
     from .. import Angle
+    import numpy.testing as npt
 
     angle = Angle("54.12412", unit=u.degree)
 
-    assert abs(angle.hours - 3.60827466667) < 1e-11
-    assert abs(angle.radians - 0.944644098745) < 1e-12
-    assert angle.degrees == 54.12412
+    npt.assert_almost_equal(angle.hours, 3.60827466667)
+    npt.assert_almost_equal(angle.radians, 0.944644098745)
+    npt.assert_almost_equal(angle.degrees, 54.12412)
 
     assert isinstance(angle.hms, tuple)
     assert angle.hms[0] == 3
     assert angle.hms[1] == 36
-    assert (angle.hms[2] - 29.78879999999947) < 1e-13
+    npt.assert_almost_equal(angle.hms[2], 29.78879999999947)
 
     assert isinstance(angle.dms, tuple)
     assert angle.dms[0] == 54
     assert angle.dms[1] == 7
-    assert (angle.dms[2] - 26.831999999992036) < 1e-13
+    npt.assert_almost_equal(angle.dms[2], 26.831999999992036)
 
+    assert isinstance(angle.dms[0], float)
+    assert isinstance(angle.hms[0], float)
 
 def test_angle_formatting():
     """
@@ -262,6 +265,41 @@ def test_angle_formatting():
     res = 'Angle as HMS: 03 36 29.7888'
     assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, precision=4,
                                                   pad=True)) == res
+
+    # Same as above, in degrees
+    
+    angle = Angle("3 36 29.78880", unit=u.degree)
+    
+    res = 'Angle as DMS: 3 36 29.78880'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree)) == res
+
+    res = 'Angle as DMS: 3:36:29.78880'
+    print("Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=":")))
+
+    res = 'Angle as DMS: 3:36:29.79'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=":",
+                                      precision=2)) == res
+
+    # Note that you can provide one, two, or three separators passed as a
+    # tuple or list
+
+    res = 'Angle as DMS: 3d36m29.7888s'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree,
+                                                   sep=("d", "m", "s"),
+                                                   precision=4)) == res
+
+    res = 'Angle as DMS: 3-36|29.7888'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=["-", "|"],
+                                                   precision=4)) == res
+
+    res = 'Angle as DMS: 3-36-29.7888'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep="-",
+                                                    precision=4)) == res
+
+    res = 'Angle as DMS: 03 36 29.7888'
+    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, precision=4,
+                                                  pad=True)) == res
+
 
 
 def test_radec():
@@ -351,10 +389,10 @@ def test_create_coordinate():
     # sequence for the "unit" keyword  that one would expect to sent to Angle.
     # The first element in 'units' refers to the first coordinate.
     # DEGREE is assumed for the second coordinate, unless specified
-    c1 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.hour])
+    c1 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=(u.hour))
 
     # Both can be specified and should be when there is ambiguity.
-    c2 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=[u.hour, u.degree])
+    c2 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
 
     assert c1 == c2
 

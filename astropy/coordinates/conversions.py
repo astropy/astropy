@@ -326,7 +326,7 @@ def hoursToHMS(h):
     
     checkHMSRanges(h,m,s) # throws exception if out of range
     
-    return (int(sign*h), int(m), s)
+    return (float(sign*h), int(m), s)
 
 def radiansToDegrees(r):
     """ Convert an angle in Radians to Degrees """
@@ -349,4 +349,51 @@ def radiansToDMS(r):
     """ Convert an angle in Radians to an degree,arcminute,arcsecond tuple """
     degrees = math.degrees(r)
     return degreesToDMS(degrees)  
+
+def hoursToString(h, precision=5, pad=False, sep=("h", "m", "s")):
+    """ Takes a decimal hour value and returns a string formatted as hms with separator
+        specified by the 'sep' parameter. 
+        
+        More detailed description here!
+    """
+    if pad:
+        hPad = ":02"
+    else:
+        hPad = ""
+        
+    if len(sep) == 1:
+        literal = "{0" + hPad + "}"+ str(sep) + "{1:02d}" + str(sep) + "{2:0" + str(precision+3) + "." + str(precision) + "f}"
+    elif len(sep) == 2:
+        literal = "{0" + hPad + "}"+ str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision+3) + "." + str(precision) + "f}"
+    elif len(sep) == 3:
+        literal = "{0" + hPad + "}"+ str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision+3) + "." + str(precision) + "f}" + str(sep[2])
+    else:
+        raise ValueError("Invalid separator specification for converting angle to string.")
+    
+    (h,m,s) = hoursToHMS(h)
+    h = "-{0}".format(int(h)) if math.copysign(1,h) == -1 else int(h)
+    return literal.format(h,m,s)
+
+def degreesToString(d, precision=5, pad=False, sep=":"):
+    """ Takes a decimal hour value and returns a string formatted as dms with separator
+        specified by the 'sep' parameter. 
+    """
+    if pad:
+        dPad = ":02"
+    else:
+        dPad = ""
+        
+    if len(sep) == 1:
+        literal = "{0" + dPad + "}" + str(sep) + "{1:02d}" + str(sep) + "{2:0" + str(precision+3) + "." + str(precision) + "f}"
+    elif len(sep) == 2:
+        literal = "{0" + dPad + "}"+ str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision+3) + "." + str(precision) + "f}"
+    elif len(sep) == 3:
+        literal = "{0" + dPad + "}"+ str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision+3) + "." + str(precision) + "f}" + str(sep[2])
+    else:
+        raise ValueError("Invalid separator specification for converting angle to string.")
+
+    d,m,s = degreesToDMS(d)
+    d = "-{0}".format(int(d)) if math.copysign(1,d) == -1 else int(d)
+    return literal.format(d,m,s)
+
 

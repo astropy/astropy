@@ -8,13 +8,17 @@ coordinates in astropy.
 
 import math
 from types import *
+from abc import ABCMeta
+#from abc import abstractmethod
+#from abc import abstractproperty
+
 import numpy as np
 
 import conversions as convert
 from errors import *
 from .. import units as u
 
-__all__ = ['Angle', 'RA', 'Dec']
+__all__ = ['Angle', 'RA', 'Dec', 'Coordinate', 'ICRSCoordinate', 'GalacticCoordinate']
 
 twopi = math.pi * 2.0 # no need to calculate this all the time
 
@@ -99,7 +103,7 @@ class Angle(object):
                 unit = u.radian
                 
             else: # single value
-                if type(angle) == str:
+                if isinstance(angle, str):
                     angle = angle.lower()
                 else:
                     raise ValueError("Could not parse the angle value '{0}' "
@@ -231,25 +235,39 @@ class Angle(object):
                 or 11-21:17.124 would be sep="-:"
         """
         
-        if not isinstance(unit, u.Unit):
-            unit = u.Unit(unit)
+        if isinstance(unit, u.Unit):
+        	pass # great!
+        elif isinstance(unit, str):
+        	unit = unit.lower()
+        	if unit == "degrees":
+        		unit = u.degree
+        	elif unit == "hours":
+        		unit = u.hour
+        	elif unit == "radians":
+        		unit = u.radian
+        	else:
+        		raise IllegalUnitsError("The unit value provided was not one "
+        								"of u.degree, u.hour, u.radian'.")
+        else:
+        		raise IllegalUnitsError("The unit value provided was not one "
+        								"of u.degree, u.hour, u.radian'.")
         
-        if lowUnits == "degrees":
+        if unit == u.degree:
             if decimal:
                 return ("{0:0." + str(precision) + "f}").format(self.degrees)
             else:
                 return convert.degreesToString(self.degrees, precision=precision, sep=sep, pad=pad)
                 
-        elif lowUnits == "radians":
+        elif unit == u.radian:
             return str(self.radians)
                 
-        elif lowUnits == "hours":
+        elif unit == u.hour:
             if decimal:
                 return ("{0:0." + str(precision) + "f}").format(self.hours)
             else:
                 return convert.hoursToString(self.hours, precision=precision, sep=sep, pad=pad)
         else:
-            raise IllegalUnitsError(units)
+            raise IllegalUnitsError(unit)
 
     # ----------------------------------------------------------------------------
     # Emulating numeric types
@@ -418,7 +436,7 @@ class RA(Angle):
                     elif decimal_value < 0:
                     	raise RangeError("No units were specified; could not assume any since the value was less than zero.")
             elif isinstance(angle, tuple):
-            	if len(angle) == 3 and -24.0 < angle[0] < 24.0:
+            	if len(angle) == 3 and 0 <= angle[0] < 24.0:
             		raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
             	else:
             		unit = u.degree
@@ -489,3 +507,51 @@ class Dec(Angle):
         """
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90,90))
+
+class Coordinate(object):
+	"""
+	Document me.
+	
+	Abstract superclass for all 'coordinate' classes.
+	"""
+	__meta__ = ABCMeta
+	
+		
+class ICRSCoordinates(Coordinate):
+	"""
+	RA/Dec coordinate class.
+	"""
+	def __init__(self, coordinates, units=None):
+		
+		# determine units
+		if units is not None:
+			if isinstance(units, u.Unit):
+				pass # great!
+			elif isinstance(units, tuple):
+				if len(units) == 0 or len(units) > 2:
+					raise ValueError("The units parameter only accepts tuples with one or two values.")
+				else:
+					# validate them
+					for a in units:
+						if not isinstance(a, u.Unit):
+							raise ValueError("Units must be specified as u.degree, u.hour, etc.")
+				# units are valid
+		else:
+			#units were None - try to determine units from coordinate object
+			if isinstance(coordinates, tuple):
+				if len(coordinates) != 2:
+					raise ValueError("Two coordinate values must be provided - '{0}' found.".format(len(coordinates)))
+				else:
+					# we have two values - the goal is to end up with two Angle
+					# objects.
+					
+		   
+			
+
+class GalacticCoordinates(Coordinates):
+	"""	
+	Galactic coordinate (l,b) class.
+	"""
+	
+	
+	
