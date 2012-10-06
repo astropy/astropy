@@ -18,7 +18,7 @@ import conversions as convert
 from errors import *
 from .. import units as u
 
-__all__ = ['Angle', 'RA', 'Dec', 'Coordinate', 'ICRSCoordinates', 'GalacticCoordinates']
+__all__ = ['Angle', 'RA', 'Dec', 'Coordinate', 'ICRSCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates']
 
 twopi = math.pi * 2.0 # no need to calculate this all the time
 
@@ -550,6 +550,13 @@ class ICRSCoordinates(Coordinate):
 class GalacticCoordinates(Coordinate):
     """ 
     Galactic coordinate (l,b) class.
+    """
+    pass
+    
+
+class HorizontalCoordinates(Coordinate):
+    """ 
+    Horizontal coordinate (az,el) class.
     """
     pass
     

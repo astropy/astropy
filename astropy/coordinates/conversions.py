@@ -12,6 +12,7 @@ import math
 import datetime as py_datetime
 
 import core
+from errors import *
 
 __all__ = ['parseDegrees']
 
@@ -23,12 +24,12 @@ def _checkHourRange(hrs):
 def _checkMinuteRange(min):
     ''' Checks that the given value is in the range [0,60). '''
     if not 0 <= min < 60:
-        raise IllegalMinuteError("Error: minutes not in range [0,60) ({0}).".format(min))
+        raise IllegalMinuteError(min) #"Error: minutes not in range [0,60) ({0}).".format(min))
 
 def _checkSecondRange(sec):
     ''' Checks that the given value is in the range [0,60). '''
     if not 0 <= sec < 60:
-        raise IllegalSecondError("Error: seconds not in range [0,60) ({0}).".format(sec))
+        raise IllegalSecondError(sec)#"Error: seconds not in range [0,60) ({0}).".format(sec))
 
 def checkHMSRanges(h, m, s):
     _checkHourRange(h)
@@ -65,7 +66,7 @@ def parseDegrees(degrees, outputDMS=False):
     if isinstance(x, float) or isinstance(x, int):
         parsedDegrees = float(x)
         #parsedDMS = degreesToDMS(parsedDegrees)
-    
+
     elif isinstance(x, str):
         x = x.strip()
         
@@ -87,9 +88,11 @@ def parseDegrees(degrees, outputDMS=False):
                 elems = re.search(pattr, x).groups()
                 parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), float(elems[2]))
                 string_parsed = True
-            except:
-                pass # try again below
-        
+            except AttributeError:
+                # regular expression did not match - try again below
+                # make sure to let things like IllegalMinuteError, etc. through
+                pass
+                
         if not string_parsed:
             # look for a pattern where only d,m is specified
             pattr = '^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + '[Mm]{0,1}' + '$'
@@ -97,7 +100,9 @@ def parseDegrees(degrees, outputDMS=False):
                 elems = re.search(pattr, x).groups()
                 parsedDegrees = dmsToDegrees(int(elems[0]), int(elems[1]), 0.0)
                 string_parsed = True
-            except:
+            except AttributeError:
+                # regular expression did not match - try again below
+                # make sure to let things like IllegalMinuteError, etc. through
                 pass
 
         if not string_parsed:
@@ -174,8 +179,9 @@ def parseHours(hours, outputHMS=False):
                 #raise ValueError("convert.parseHours: Invalid input string, can't parse to HMS. ({0})".format(x))
             
             if string_parsed:
-                parsedHours = hmsToHours(elems[0], elems[1], elems[2])
-                parsedHMS = (int(elems[0]), int(elems[1]), float(elems[2]))
+                h, m, s = float(elems[0]), int(elems[1]), float(elems[2])
+                parsedHours = hmsToHours(h, m, s)
+                parsedHMS = (h, m, s)
             
             else:
                 
@@ -187,9 +193,9 @@ def parseHours(hours, outputHMS=False):
                     string_parsed = True
                 except:
                     raise ValueError("convert.parseHours: Invalid input string, can't parse to HMS. ({0})".format(x))
-
-                parsedHours = hmsToHours(elems[0], elems[1], 0.)
-                parsedHMS = (int(elems[0]), int(elems[1]), 0.)
+                h, m, s = float(elems[0]), int(elems[1]), 0.0
+                parsedHours = hmsToHours(h, m, s)
+                parsedHMS = (h, m, s)
 
     elif isinstance(x, core.Angle):
         parsedHours = x.hours
@@ -274,7 +280,10 @@ def degreesToDMS(d):
 def dmsToDegrees(d, m, s):
     """ Convert degrees, arcminute, arcsecond to a float degrees value. """
 
-    # determine sign
+    _checkMinuteRange(m)
+    _checkSecondRange(s)
+
+   # determine sign
     sign = math.copysign(1.0, d)
 
     try:
@@ -288,6 +297,9 @@ def dmsToDegrees(d, m, s):
 
 def hmsToHours(h, m, s):
     """ Convert hour, minute, second to a float hour value. """
+
+    checkHMSRanges(h, m, s);
+
     try:
         h = int(h)
         m = int(m)

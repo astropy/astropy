@@ -77,7 +77,28 @@ def test_create_angles():
     #ensure the above angles that should match do
     assert a1 == a2 == a3 == a4 == a5 == a6 == a7
     assert a10 == a11 == a12
+    
+    # check for illegal ranges / values
+    with raises(IllegalSecondError):
+        a = Angle("12 32 99", unit=u.degree)
 
+    with raises(IllegalMinuteError):
+        a = Angle("12 99 23", unit=u.degree)
+
+    with raises(IllegalSecondError):
+        a = Angle("12 32 99", unit=u.hour)
+
+    with raises(IllegalMinuteError):
+        a = Angle("12 99 23", unit=u.hour)
+
+    with raises(IllegalHourError):
+        a = Angle("99 25 51.0", unit=u.hour)
+    
+    with raises(ValueError):
+        a = Angle("12 25 51.0xxx", unit=u.hour)
+
+    with raises(ValueError):
+        a = Angle("12h34321m32.2s")
 
 def test_angle_ops():
     """
@@ -367,8 +388,8 @@ def test_create_coordinate():
     coordinates with conversions to standard coordinates.
     '''
 
-    from .. import Angle, RA, Dec, ICRSCoordinate, GalacticCoordinate
-    from .. import HorizontalCoordinate
+    from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates
+    from .. import HorizontalCoordinates
     from ...time import Time
 
     ra = RA("4:08:15.162342", unit=u.hour)
@@ -378,10 +399,15 @@ def test_create_coordinate():
     c = ICRSCoordinate(ra, dec)
     #both strings below are unambiguous
     c = ICRSCoordinate("54.12412 deg", "-41:08:15.162342")
-
+    
     assert isinstance(c.dec, Dec)
     # dec is a Dec object
     assert abs(dec.degrees - -41.137545095) < 1e-8
+
+    # We should be really robust in what we accept.
+    c = ICRSCoordinate("12 34 56  -56 23 21")
+    
+    
 
     # It would be convenient to accept both (e.g. ra, dec) coordinates as a
     # single string in the initializer. This can lead to ambiguities
