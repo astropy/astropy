@@ -390,24 +390,31 @@ def test_create_coordinate():
 
     from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates
     from .. import HorizontalCoordinates
-    from ...time import Time
+    #from ...time import Time
 
     ra = RA("4:08:15.162342", unit=u.hour)
     dec = Dec("-41:08:15.162342", unit=u.degree)
 
     # ra and dec are RA and Dec objects, or Angle objects
-    c = ICRSCoordinate(ra, dec)
+    c = ICRSCoordinates(ra, dec)
     #both strings below are unambiguous
-    c = ICRSCoordinate("54.12412 deg", "-41:08:15.162342")
+    c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342")
     
     assert isinstance(c.dec, Dec)
     # dec is a Dec object
     assert abs(dec.degrees - -41.137545095) < 1e-8
 
     # We should be really robust in what we accept.
-    c = ICRSCoordinate("12 34 56  -56 23 21")
+    c = ICRSCoordinates("12 34 56  -56 23 21")
     
+    c = Coordinate(ra=RA("54.12412 deg"), dec="-41:08:15.162342")
+    assert isinstance(c, ICRSCoordinates)
+
+    c = Coordinate(ra="12h43m322")
+
+    c = Coordinate(dec="12 32 54")
     
+    c = Coordinate(ra="12h43m322", dec="12 32 54", az="12.4311")
 
     # It would be convenient to accept both (e.g. ra, dec) coordinates as a
     # single string in the initializer. This can lead to ambiguities
@@ -415,19 +422,19 @@ def test_create_coordinate():
     # sequence for the "unit" keyword  that one would expect to sent to Angle.
     # The first element in 'units' refers to the first coordinate.
     # DEGREE is assumed for the second coordinate, unless specified
-    c1 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=(u.hour))
+    c1 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour))
 
     # Both can be specified and should be when there is ambiguity.
-    c2 = ICRSCoordinate('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
+    c2 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
 
     assert c1 == c2
 
     # Other types of coordinate systems have their own classes
     l = Angle(123.4)
     b = Angle(76.5)
-    c = GalacticCoordinate(l, b)  # only accepts Angle objects *not RA/Dec
+    c = GalacticCoordinates(l, b)  # only accepts Angle objects *not RA/Dec
     with raises(TypeError):
-        GalacticCoordinate(ra, dec)
+        GalacticCoordinates(ra, dec)
 
     assert isinstance(c.l, Angle)  # *not* RA or Dec
     assert isinstance(c.b, Angle)  # *not* RA or Dec
@@ -436,7 +443,7 @@ def test_create_coordinate():
     alt = Angle(20.5)
     az = Angle(45)
     timeobj = Time('J2000')
-    HorizontalCoordinate(alt, az, epoch=timeobj)
+    HorizontalCoordinates(alt, az, epoch=timeobj)
 
 
 def test_coord_factory():

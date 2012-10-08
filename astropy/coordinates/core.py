@@ -398,6 +398,9 @@ class RA(Angle):
         # After this block, the normal Angle initializer handles most of the
         # validation/creation.
         
+        if isinstance(angle, type(self)):
+            return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0,360))
+                    
         if unit == u.hour:
             pass # to Angle initializer
             #self._radians = math.radians(decimal_hours * 15.)
@@ -505,6 +508,9 @@ class Dec(Angle):
                 The units of the specified declination
             
         """
+        if isinstance(angle, type(self)):
+            return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90,90))
+
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90,90))
 
@@ -512,16 +518,23 @@ class Coordinate(object):
     """
     Document me.
     
-    Abstract superclass for all 'coordinate' classes.
+    Abstract superclass for all 'coordinate' classes. This is also a factory class
+    that will instantiate the appropriate subclass.
     """
     __meta__ = ABCMeta
     
+    def __init__(self, coordinates, units=None, ra=None, dec=None, az=None, el=None, l=None, b=None):
+        """
+        Document me.
+        """
         
-class ICRSCoordinates(Coordinate):
-    """
-    RA/Dec coordinate class.
-    """
-    def __init__(self, coordinates, units=None):
+        # first see if the keywords suggest what kind of coordinate is being requested.
+        if ra != None or dec != None:
+            if None in [ra, dec]:
+                raise ValueError("When an RA or Dec value is provided, the other coordinate must also be given.")
+            for kw in [az, el, l, b]: # no others should be provided
+                if kw == None:
+                    raise ValueError("")
         
         # determine units
         if units is not None:
@@ -545,6 +558,42 @@ class ICRSCoordinates(Coordinate):
                     # we have two values - the goal is to end up with two Angle
                     # objects.
                     pass
+
+        
+class ICRSCoordinates(Coordinate):
+    """
+    RA/Dec coordinate class.
+    """
+    def __init__(self, *args, ra=None, dec=None):
+        
+        _ra = None
+        _dec = None
+        
+        if len(args) > 0:
+            # First try to see if RA, Dec objects were provided in the args.
+            for arg in args:
+                if isinstance(arg, RA):
+                    _ra = arg
+                elif isinstance(arg, Dec):
+                    _dec = arg
+            
+            if None not in [_ra, _dec]:
+                self.ra = _ra
+                self.dec = _dec
+                return
+            elif (_ra and not _dec) or (not _ra and _dec):
+                raise ValueError("When an RA or Dec value is provided, the other coordinate must also be given.")
+
+            # see if the whole coordinate might be parseable from arg[0]
+        
+        
+        try:
+            if isinstance(args[0], )
+        except IndexError:
+            raise ValueError("Not enough parameters were provided.")
+        
+        self.ra = RA(ra)
+        self.dec = Dec(dec)
 
 
 class GalacticCoordinates(Coordinate):
