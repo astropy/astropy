@@ -211,6 +211,14 @@ class StandardDeviationError(NDError):
 
         return result_error
 
+    def __getitem__(self, item):
+        '''
+            Slice the standard deviation array using standard numpy slicing
+        '''
+
+        new_array = self.array[item]
+        self.__class__(new_array)
+
     def propagate_subtract(self, other_nddata, result_data):
         '''
         Propagate errors for subtraction.

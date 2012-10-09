@@ -92,6 +92,8 @@ class NDData(object):
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
+        #TODO change constructor to also accept an nddata object (keywords overwrite current data)
+
         self.data = np.array(data, subok=True, copy=copy)
 
         self.error = error
@@ -212,34 +214,35 @@ class NDData(object):
         else:
             return self.data
 
-    def _slice(self, start, stop, step):
-        new_data = self.data[slice(start=start, stop=stop, step=step)]
+    def __getitem__(self, item):
+
+        new_data = self.data[item]
 
         if self.error is not None:
-            new_error = self.error._slice(start=start, stop=stop, step=step)
+            new_error = self.error[item]
         else:
             new_error = None
 
         if self.mask is not None:
-            new_mask = self.mask[slice(start=start, stop=stop, step=step)]
+            new_mask = self.mask[item]
         else:
             new_mask = None
 
         if self.flags is not None:
-            if isinstance(flags, np.ndarray):
-                new_flags = self.flags[slice(start=start, stop=stop, step=step)]
+            if isinstance(self.flags, np.ndarray):
+                new_flags = self.flags[item]
             else:
-                return NotImplementedError('Slicing complex Flags is currently not implemented')
+                raise NotImplementedError('Slicing complex Flags is currently not implemented')
         else:
             new_flags = None
 
         if self.wcs is not None:
-            new_wcs = self.wcs._slice(start, stop, step)
+            raise NotImplementedError('Slicing for WCS is not currently implemented')
         else:
             new_wcs = None
 
         return self.__class__(new_data, error=new_error, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, units=self.units, copy=True)
+            meta=self.meta, units=self.units, copy=False)
 
 
 
