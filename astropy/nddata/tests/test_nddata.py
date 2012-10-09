@@ -5,6 +5,7 @@ import numpy as np
 
 from ..nddata import NDData
 from ..nderror import StandardDeviationError, IncompatibleErrorsException, NDError
+from ...tests.helper import raises
 
 np.random.seed(12345)
 
@@ -197,3 +198,8 @@ def test_convert_units_to():
     d.units = 'km'
     d1 = d.convert_units_to('m')
     assert np.all(d1 == np.array(1000.0))
+
+
+@raises(ValueError)
+def test_invalid_unit():
+    d = NDData(np.ones((5, 5)), units="NotAValidUnit")
