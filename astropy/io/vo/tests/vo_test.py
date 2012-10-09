@@ -720,7 +720,7 @@ def test_validate():
         truth = fd.readlines()
 
     truth = truth[1:]
-    output = output[1:]
+    output = output[1:-1]
 
     for line in difflib.unified_diff(truth, output):
         if IS_PY3K:
@@ -791,5 +791,3 @@ def _run_test_from_scratch_example():
     table.array[1] = ('test2.xml', [[0.5, 0.3], [0.2, 0.1]])
 
     assert table.array[0][0] == 'test1.xml'
-
-

@@ -27,10 +27,9 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     warn_unknown_attrs,
     W06, W07, W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20,
     W21, W22, W26, W27, W28, W29, W32, W33, W35, W36, W37, W38, W40,
-    W41, W42, W43, W44, W45, E06, E08, E09, E10, E11, E12, E13,
+    W41, W42, W43, W44, W45, W50, E06, E08, E09, E10, E11, E12, E13,
     E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
-from .unit import check_unit
 from . import util
 from . import xmlutil
 
@@ -633,15 +632,32 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        if unit is not None and not self._config.get('version_1_2_or_later'):
+        if unit is None:
+            self._unit = None
+            return
+
+        from ... import units as u
+
+        if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
                           self._config, self._pos)
-        check_unit(unit, 'unit', self._config, self._pos)
+
+        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        if isinstance(unit, u.UnrecognizedUnit):
+            warn_or_raise(W50, W50, (unit.to_string(),),
+                          self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
     def unit(self):
         self._unit = None
+
+    def to_xml(self, w, **kwargs):
+        attrib = w.object_attrs(self, self._attr_list)
+        if 'unit' in attrib:
+            attrib['unit'] = self.unit.to_string('cds')
+        w.element(self._element_name, self._content,
+                  attrib=attrib)
 
 
 class Values(Element, _IDProperty):
@@ -1155,7 +1171,17 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     @unit.setter
     def unit(self, unit):
-        check_unit(unit, 'unit', self._config, self._pos)
+        if unit is None:
+            self._unit = None
+            return
+
+        from ... import units as u
+
+        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        if isinstance(unit, u.UnrecognizedUnit):
+            warn_or_raise(
+                W50, W50, (unit.to_string(),),
+                self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
@@ -1261,8 +1287,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         return self
 
     def to_xml(self, w, **kwargs):
-        with w.tag(self._element_name,
-                   attrib=w.object_attrs(self, self._attr_list)):
+        attrib = w.object_attrs(self, self._attr_list)
+        if 'unit' in attrib:
+            attrib['unit'] = self.unit.to_string('cds')
+        with w.tag(self._element_name, attrib=attrib):
             if self.description is not None:
                 w.element(u'DESCRIPTION', self.description, wrap=True)
             if not self.values.is_defaults():
