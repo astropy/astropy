@@ -189,7 +189,7 @@ def test_in_units():
 
 
 def test_null_unit():
-    assert (u.m / u.m) == u.Unit()
+    assert (u.m / u.m) == u.Unit(1)
 
 
 def test_unrecognized_equivalency():

@@ -634,8 +634,7 @@ class _UnitMetaClass(type):
             return CompositeUnit(s, [], [])
 
         elif s is None:
-            # Return the NULL unit
-            return CompositeUnit(1.0, [], [])
+            raise ValueError("None is not a valid Unit")
 
 
 class Unit(NamedUnit):
