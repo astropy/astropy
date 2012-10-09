@@ -8,7 +8,7 @@ __all__ = ['RangeError', 'IllegalUnitsError', 'IllegalHourError', 'IllegalMinute
 class RangeError(Exception):
 	pass
 
-class IllegalUnitsError:
+class IllegalUnitsError(Exception):
     """
     Usage:
         if units not in VALIDUNITS:
@@ -20,7 +20,7 @@ class IllegalUnitsError:
         return "The units specified must be one of the following: {0}. You specified: \'{1}\'".format(",".join(globals.VALIDUNITS), self.units)
 
 	
-class IllegalHourError:
+class IllegalHourError(Exception):
     """
     Usage:
         if not 0 <= hr < 24:
@@ -31,7 +31,7 @@ class IllegalHourError:
     def __str__(self):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.second)
 
-class IllegalMinuteError:
+class IllegalMinuteError(Exception):
     """
     Usage:
         if not 0 <= min < 60:
@@ -42,7 +42,7 @@ class IllegalMinuteError:
     def __str__(self):
         return "An invalid value for 'minute' was found ('{0}'); must be in the range [0,60).".format(self.minute)
 
-class IllegalSecondError:
+class IllegalSecondError(Exception):
     """
     Usage:
         if not 0 <= sec < 60:
@@ -52,4 +52,8 @@ class IllegalSecondError:
         self.second = second
     def __str__(self):
         return "An invalid value for 'seconds' was found ('{0}'); must be in the range [0,60).".format(self.second)
-
+        
+class CoordinatesConversionError(Exception):
+	"""
+	"""
+	pass
