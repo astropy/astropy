@@ -361,17 +361,17 @@ class UnitBase(object):
         return self
 
     @property
-    def ptype(self):
+    def physical_type(self):
         """
         Return the physical type on the unit.
 
         Example
         -------
-        >>> u.m.ptype
+        >>> u.m.physical_type
         'length'
         """
         from . import physical
-        return physical.get_ptype(self)
+        return physical.get_physical_type(self)
 
 
 class NamedUnit(UnitBase):

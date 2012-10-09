@@ -13,7 +13,7 @@ from . import si
 from . import astrophys
 
 
-__all__ = ['def_ptype', 'get_ptype']
+__all__ = ['def_physical_type', 'get_physical_type']
 
 
 _physical_unit_mapping = {}
@@ -42,7 +42,7 @@ def _tuple_repr(unit):
     return r
 
 
-def def_ptype(unit, name):
+def def_physical_type(unit, name):
     """
     Adds a new physical unit mapping.
 
@@ -62,7 +62,7 @@ def def_ptype(unit, name):
     _physical_unit_mapping[r] = name
 
 
-def get_ptype(unit):
+def get_physical_type(unit):
     """
     Given a unit, returns the name of the physical quantity it
     represents.  If it represents an unknown physical quantity,
@@ -117,4 +117,4 @@ for unit, name in [
     (astrophys.Jy, 'spectral flux density'),
     (astrophys.R, 'photon flux'),
     ]:
-    def_ptype(unit, name)
+    def_physical_type(unit, name)
