@@ -212,6 +212,40 @@ class NDData(object):
         else:
             return self.data
 
+    def _slice(self, start, stop, step):
+        new_data = self.data[slice(start=start, stop=stop, step=step)]
+
+        if self.error is not None:
+            new_error = self.error._slice(start=start, stop=stop, step=step)
+        else:
+            new_error = None
+
+        if self.mask is not None:
+            new_mask = self.mask[slice(start=start, stop=stop, step=step)]
+        else:
+            new_mask = None
+
+        if self.flags is not None:
+            if isinstance(flags, np.ndarray):
+                new_flags = self.flags[slice(start=start, stop=stop, step=step)]
+            else:
+                return NotImplementedError('Slicing complex Flags is currently not implemented')
+        else:
+            new_flags = None
+
+        if self.wcs is not None:
+            new_wcs = self.wcs._slice(start, stop, step)
+        else:
+            new_wcs = None
+
+        return self.__class__(new_data, error=new_error, mask=new_mask, flags=new_flags, wcs=new_wcs,
+            meta=self.meta, units=self.units, copy=True)
+
+
+
+
+
+
     def _arithmetic(self, operand, propagate_errors, name, operation):
         """
         {name} another dataset (`operand`) to this dataset.
