@@ -40,7 +40,7 @@ __doc__ += """\
 """
 
 # update the si cand cgs module doctrings.
-for module in si,cgs:
+for module in si, cgs:
     module.__doc__ += """
 ========== ============== ================ =========================
    Name        Value            Unit       Description
@@ -49,7 +49,7 @@ for module in si,cgs:
     for nm, val in sorted(module.__dict__.items()):
         if isinstance(val, Constant):
             module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm, val.real, val.units, val.name)
+                nm, val.real, val._units, val.name)
 
     module.__doc__ += """\
 ========== ============== ================ =========================

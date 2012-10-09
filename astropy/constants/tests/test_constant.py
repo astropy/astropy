@@ -39,3 +39,14 @@ def test_h():
     assert cgs.h.name
     assert cgs.h.origin
     assert cgs.h.units
+
+
+def test_units():
+    from ... import units as u
+
+    for key, val in si.__dict__.items() + cgs.__dict__.items():
+        if isinstance(val, Constant):
+            # Getting the unit forces the unit parser to run.  Confirm
+            # that none of the constants defined in astropy have
+            # invalid units.
+            assert not isinstance(val.units, u.UnrecognizedUnit)

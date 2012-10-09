@@ -36,7 +36,7 @@ c = Constant(2.99792458e8, 0.,
 # Gravitional constant
 G = Constant(6.67384e-11, 0.00080e-11,
              "Gravitational constant",
-             'CODATA 2010', 'm^3/kg/s^2')
+             'CODATA 2010', 'm3.kg-1.s-2')
 
 # Proton mass
 m_p = Constant(1.672621777e-27, 0.000000074e-27,
@@ -56,7 +56,7 @@ m_e = Constant(9.10938291e-31, 0.00000040e-31,
 # Stefan-Boltzmann constant
 sigma_sb = Constant(5.670373e-8, 0.000021e-8,
                     "Stefan-Boltzmann constant",
-                    'CODATA 2010', 'W/m^2/K^4')
+                    'CODATA 2010', 'W.m-2.K-4')
 
 # Electron charge
 e = Constant(1.602176565e-19, 0.000000035e-19,
@@ -66,17 +66,17 @@ e = Constant(1.602176565e-19, 0.000000035e-19,
 # Avogadro's number
 N_A = Constant(6.02214129e23, 0.00000027e23,
                "Avogadro's number",
-               'CODATA 2010', '/mol')
+               'CODATA 2010', 'mol-1')
 
 # Gas constant
 R = Constant(8.3144621, 0.0000075,
              "Gas constant",
-             'CODATA 2010', 'J/mol/K')
+             'CODATA 2010', 'J.mol-1.K-1')
 
 # Rydberg constant
 Ryd = Constant(10973731.568539, 0.000055,
                'Rydberg constant',
-               'CODATA 2010', 'm^-1')
+               'CODATA 2010', 'm-1')
 
 # DISTANCE
 
