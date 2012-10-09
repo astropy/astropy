@@ -38,6 +38,42 @@ def test_unit_grammar():
             yield _test_unit_grammar, s, unit
 
 
+def test_cds_grammar():
+    def _test_cds_grammar(s, unit):
+        print(s)
+        unit2 = format.CDS().parse(s)
+        assert unit2 == unit
+
+    data = [
+        (["0.1nm"], u.AA),
+        (["mW/m2"], u.erg / u.cm ** 2 / u.s),
+        (["km/s", "km.s-1"], u.km / u.s),
+        (["10pix/nm"], 10 * u.pix / u.nm),
+        (["1.5x10+11m"], 1.5e11 * u.m),
+        (["m2"], u.m ** 2),
+        (["10+21m"], u.m * 1e21),
+        (["2.54cm"], u.cm * 2.54),
+        (["20%"], 0.20)]
+
+    for strings, unit in data:
+        for s in strings:
+            yield _test_cds_grammar, s, unit
+
+
+def test_cds_grammar_fail():
+    @raises(ValueError)
+    def _test_cds_grammar_fail(s):
+        print(s)
+        format.CDS().parse(s)
+
+    data = ['0.1 nm', 'solMass(3/2)', 'km / s', 'km s-1',
+            'pix0.1nm', 'pix/(0.1nm)', 'km*s', 'km**2']
+
+    for s in data:
+        yield _test_cds_grammar_fail, s
+
+
+
 def test_roundtrip():
     def _test_roundtrip(unit):
         a = core.Unit(unit.to_string('generic'), format='generic')
@@ -74,12 +110,29 @@ def test_roundtrip_fits():
             yield _test_roundtrip_fits, val
 
 
+def test_roundtrip_cds():
+    def _test_roundtrip_cds(unit):
+        a = core.Unit(unit.to_string('cds'), format='cds')
+        b = core.Unit(unit.decompose().to_string('cds'), format='cds')
+        assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
+        assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
+
+    x = format.CDS()
+    for key, val in x._units.items():
+        if isinstance(val, core.Unit) and not isinstance(val, core.PrefixUnit):
+            yield _test_roundtrip_cds, val
+
+
 def test_fits_units_available():
     format.Fits()
 
 
 def test_vo_units_available():
     format.VOUnit()
+
+
+def test_cds_units_available():
+    format.CDS()
 
 
 def test_latex():

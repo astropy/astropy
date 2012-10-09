@@ -38,14 +38,15 @@ formats:
     in the VO.  Again, based on the FITS syntax, but the collection of
     supported units is different.
 
+  - ``"cds"``: `Standards for astronomical catalogues from Centre de
+    Données astronomiques de Strasbourg
+    <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_: This is the
+    standard used, for example, by VOTable versions 1.2 and earlier.
+
 .. These are to-be-implemented
 
   - OGIP Units: A standard for storing units in `OGIP FITS files
     <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
-
-  - `Standards for astronomical catalogues
-    <http://cds.u-strasbg.fr/doc/catstd-3.2.htx>`_: This is the
-    standard used, for example, by VOTable versions 1.2 and earlier.
 
 `astropy.units` also is able to write units in the following formats:
 
