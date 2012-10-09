@@ -276,18 +276,18 @@ class UnitBase(object):
                 scale2 = (funit / other).dimensionless_constant()
                 return make_converter(scale1, b, scale2)
 
-        def get_err_str(orig_unit, unit):
-            orig_unit_str = orig_unit.to_string('unscaled')
+        def get_err_str(unit):
             unit_str = unit.to_string('unscaled')
-            if orig_unit_str != unit_str:
-                unit_str = "'{0}' (i.e. '{1}')".format(
-                    orig_unit_str, unit_str)
+            physical_type = unit.physical_type
+            if physical_type != 'unknown':
+                unit_str = "'{0}' ({1})".format(
+                    unit_str, physical_type)
             else:
                 unit_str = "'{0}'".format(unit_str)
             return unit_str
 
-        unit_str = get_err_str(orig_unit, unit)
-        other_str = get_err_str(orig_other, other)
+        unit_str = get_err_str(orig_unit)
+        other_str = get_err_str(orig_other)
 
         raise UnitsException(
             "{0} and {1} are not convertible".format(

@@ -206,11 +206,11 @@ def test_convertible_exception():
     try:
         u.AA.to(u.h * u.s ** 2)
     except u.UnitsException as e:
-        assert "'Angstrom' (i.e. 'm')" in e.message
+        assert "length" in e.message
 
 
 def test_convertible_exception2():
     try:
         u.m.to(u.s)
     except u.UnitsException as e:
-        assert 'i.e.' not in e.message
+        assert 'time' not in e.message
