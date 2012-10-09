@@ -245,13 +245,13 @@ def test_cunit():
     assert w.cunit[1] == u.km
 
 
+@raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    with warnings.catch_warnings(record=True) as warn_list:
-        w.cunit[0] = 'foo'
-    assert 'foo' in str(warn_list[0].message)
+    w.cunit[0] = 'foo'
 
 
+@raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
     w.cunit = ['foo', 'bar']
@@ -263,10 +263,9 @@ def test_unit():
     assert w.wcs.cunit[0] == u.erg
 
 
-@raises(ValueError)
 def test_unit2():
     w = wcs.WCS()
-    myunit = u.def_unit("FOOBAR")
+    myunit = u.Unit("FOOBAR", parse_strict="warn")
     w.wcs.cunit[0] = myunit
 
 
