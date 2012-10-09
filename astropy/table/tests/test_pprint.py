@@ -42,7 +42,7 @@ class TestPprint():
         self.tb['col0'].format = '%e'
         self.tb['col1'].format = '%.6f'
         self.tb['col0'].units = 'km**2'
-        self.tb['col19'].units = 'kg sec m**-2'
+        self.tb['col19'].units = 'kg s m**-2'
         self.ts = Table(SMALL_ARR)
 
     def test_format0(self):
@@ -71,14 +71,15 @@ class TestPprint():
     def test_format2(self):
         """Include the units header row"""
         lines = self.tb.pformat(max_lines=8, max_width=40, show_units=True)
-        assert lines == ['    col0     ...    col19    ',
-                         '   km**2     ... kg sec m**-2',
-                         '------------ ... ------------',
-                         '0.000000e+00 ...         19.0',
-                         '2.000000e+01 ...         39.0',
-                         '         ... ...          ...',
-                         '1.960000e+03 ...       1979.0',
-                         '1.980000e+03 ...       1999.0']
+        print(lines)
+        assert lines == ['    col0         col1    ...    col19   ',
+                         '    km2                  ... kg s / (m2)',
+                         '------------ ----------- ... -----------',
+                         '0.000000e+00    1.000000 ...        19.0',
+                         '2.000000e+01   21.000000 ...        39.0',
+                         '         ...         ... ...         ...',
+                         '1.960000e+03 1961.000000 ...      1979.0',
+                         '1.980000e+03 1981.000000 ...      1999.0']
 
     def test_format3(self):
         """Do not include the name header row"""

@@ -147,7 +147,10 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         max_lines -= 1
     if show_units:
         i_centers.append(len(col_strs))
-        col_strs.append(col.units or '')
+        if col.units is not None:
+            col_strs.append(col.units.to_string())
+        else:
+            col_strs.append('')
         max_lines -= 1
     if show_units or show_name:
         i_dashes = len(col_strs)
