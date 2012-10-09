@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+__all__ = ['Constant']
+
+
 class Constant(float):
     """A physical or astronomical constant.
 
@@ -15,13 +18,9 @@ class Constant(float):
         The uncertainty in the value of this constant.
     origin : str
         The source used for the value of this constant.
-    units : str
-        A string describing the units
-
-    .. warning ::
-        The `units` attribute will be replaced when the Astropy units package
-        is implemented. Don't count on it being a simple string in the future.
-
+    units : `astropy.units.UnitBase` instance
+        The units of this constant. Can be set either as a string or
+        `astropy.units.UnitBase`.
     """
 
     def __init__(self, value, error, name, origin, units):
@@ -51,3 +50,20 @@ class Constant(float):
         s += "  Units = {0}\n".format(self.units)
         s += "  Origin = {0}".format(self.origin)
         return s
+
+    @property
+    def units(self):
+        # There is a necessary cyclical dependency between
+        # astropy.units and astropy.constants, since some units are
+        # defined in terms of constants.  Therefore, we have to create
+        # the unit objects in the getter, not the setter.
+        from astropy import units as u
+
+        if self._unitobj is None:
+            self._unitobj = u.Unit(self._units)
+        return self._unitobj
+
+    @units.setter
+    def units(self, unit):
+        self._units = unit
+        self._unitobj = None

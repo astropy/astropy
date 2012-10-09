@@ -28,7 +28,7 @@ c = Constant(si.c * 1.e2, si.c.error * 1.e2,
 
 # Gravitional constant [CODATA]
 G = Constant(si.G * 1.e3, si.G.error * 1.e3,
-             si.G.name, si.G.origin, 'cm^3/g/s^2')
+             si.G.name, si.G.origin, 'cm3.g-1.s-2')
 
 # Proton mass [CODATA]
 m_p = Constant(si.m_p * 1.e3, si.m_p.error * 1.e3,
@@ -45,7 +45,7 @@ m_e = Constant(si.m_e * 1.e3, si.m_e.error * 1.e3,
 # Stefan-Boltzmann constant
 sigma_sb = Constant(si.sigma_sb * 1.e3, si.sigma_sb.error * 1.e3,
                     si.sigma_sb.name, si.sigma_sb.origin,
-                    'erg/cm^2/K^4/s')
+                    'erg.cm-2.K-4.s-1')
 
 # Electron charge
 e = Constant(si.e * si.c * 10., si.e.error * si.c * 10.,
@@ -53,15 +53,15 @@ e = Constant(si.e * si.c * 10., si.e.error * si.c * 10.,
 
 # Avogadro's number
 N_A = Constant(si.N_A, si.N_A.error,
-               si.N_A.name, si.N_A.origin, '/mol')
+               si.N_A.name, si.N_A.origin, 'mol-1')
 
 # Gas constant
 R = Constant(si.R * 1.e7, si.R.error * 1.e7,
-             si.R.name, si.R.origin, 'erg/K/mol')
+             si.R.name, si.R.origin, 'erg.K-1.mol-1')
 
 # Rydberg constant
 Ryd = Constant(si.Ryd * 1.e-2, si.Ryd.error * 1.e-2,
-               si.Ryd.name, si.Ryd.origin, 'cm^-1')
+               si.Ryd.name, si.Ryd.origin, 'cm-1')
 
 # DISTANCE
 
