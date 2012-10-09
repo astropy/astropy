@@ -40,15 +40,12 @@ PyArrayReadOnlyProxy_New(
     int typenum,
     const void* data);
 
-typedef int (*str_verify_fn)(char *);
-
 /*@null@*/ PyObject *
 PyStrListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,
-    char (*array)[72],
-    str_verify_fn verify
+    char (*array)[72]
     );
 
 int
@@ -302,18 +299,6 @@ set_int_array(
     int* dest);
 
 static INLINE PyObject*
-get_str_list_verified(
-    /*@unused@*/ const char* propname,
-    char (*array)[72],
-    Py_ssize_t len,
-    Py_ssize_t maxlen,
-    PyObject* owner,
-    str_verify_fn verify) {
-
-  return PyStrListProxy_New(owner, len, maxlen, array, verify);
-}
-
-static INLINE PyObject*
 get_str_list(
     /*@unused@*/ const char* propname,
     char (*array)[72],
@@ -321,28 +306,16 @@ get_str_list(
     Py_ssize_t maxlen,
     PyObject* owner) {
 
-  return get_str_list_verified(propname, array, len, maxlen, owner, NULL);
+  return PyStrListProxy_New(owner, len, maxlen, array);
 }
 
 int
-set_str_list_verified(
-    const char* propname,
-    PyObject* value,
-    Py_ssize_t len,
-    Py_ssize_t maxlen,
-    char (*dest)[72],
-    str_verify_fn verify);
-
-static INLINE int
 set_str_list(
     const char* propname,
     PyObject* value,
     Py_ssize_t len,
     Py_ssize_t maxlen,
-    char (*dest)[72]) {
-
-  return set_str_list_verified(propname, value, len, maxlen, dest, NULL);
-}
+    char (*dest)[72]);
 
 PyObject*
 get_pscards(
