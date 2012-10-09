@@ -17,6 +17,10 @@ Validation report for /home/mdboom/Work/builds/astropy/build/lib.linux-x86_64-2.
 <PARAM ID="awesome" datatype="float" name="INPUT" value="0.000000,0.0…
 ^
 
+21: W50: Invalid unit string 'foo'
+<PARAM ID="empty_value" name="empty_value" arraysize="*" datatype="ch…
+^
+
 22: W11: The gref attribute on LINK is deprecated in VOTable 1.1
 <LINK href="http://www.foo.com/" gref="DECPRECATED">
 ^
@@ -196,4 +200,3 @@ Validation report for /home/mdboom/Work/builds/astropy/build/lib.linux-x86_64-2.
 267: W46: char value is too long for specified length of 4
   <TD>ab cd</TD>
       ^
-

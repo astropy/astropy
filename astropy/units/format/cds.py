@@ -34,7 +34,7 @@ class CDS(Base):
         from ... import units as u
         names = {}
 
-        names['%'] = u.Unit() * 0.01
+        names['%'] = u.Unit(0.01)
 
         bases = [
             'A', 'C', 'cd', 'eV', 'F', 'g', 'H', 'Hz', 'J', 'K',

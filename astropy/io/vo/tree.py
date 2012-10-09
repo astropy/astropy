@@ -27,7 +27,7 @@ from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
     warn_unknown_attrs,
     W06, W07, W08, W09, W10, W11, W12, W13, W15, W17, W18, W19, W20,
     W21, W22, W26, W27, W28, W29, W32, W33, W35, W36, W37, W38, W40,
-    W41, W42, W43, W44, W45, E06, E08, E09, E10, E11, E12, E13,
+    W41, W42, W43, W44, W45, W50, E06, E08, E09, E10, E11, E12, E13,
     E14, E15, E16, E17, E18, E19, E20, E21)
 from . import ucd as ucd_mod
 from . import util
@@ -641,10 +641,11 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
         if not self._config.get('version_1_2_or_later'):
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
                           self._config, self._pos)
-        try:
-            unit = u.Unit(unit, format='cds')
-        except ValueError as e:
-            vo_reraise(e, self._config, self._pos)
+
+        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        if isinstance(unit, u.UnrecognizedUnit):
+            warn_or_raise(W50, W50, (unit.to_string(),),
+                          self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
@@ -1176,10 +1177,11 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
         from ... import units as u
 
-        try:
-            unit = u.Unit(unit, format='cds')
-        except ValueError as e:
-            vo_reraise(e, self._config, self._pos)
+        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        if isinstance(unit, u.UnrecognizedUnit):
+            warn_or_raise(
+                W50, W50, (unit.to_string(),),
+                self._config, self._pos)
         self._unit = unit
 
     @unit.deleter
