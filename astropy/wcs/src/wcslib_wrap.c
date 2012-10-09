@@ -3155,7 +3155,7 @@ PyTypeObject PyWcsprmType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   #endif
-  "astropy.wcs._Wcsprm",              /*tp_name*/
+  "astropy.wcs.Wcsprm",              /*tp_name*/
   sizeof(PyWcsprm),             /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor)PyWcsprm_dealloc, /*tp_dealloc*/
@@ -3210,7 +3210,7 @@ _setup_wcsprm_type(
   wcserr_enable(1);
 
   return (
-    PyModule_AddObject(m, "_Wcsprm", (PyObject *)&PyWcsprmType) ||
+    PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||
     CONSTANT(WCSSUB_LONGITUDE) ||
     CONSTANT(WCSSUB_LATITUDE)  ||
     CONSTANT(WCSSUB_CUBEFACE)  ||

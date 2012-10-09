@@ -620,7 +620,7 @@ keysel : sequence of flags
 
 Returns
 -------
-wcs_list : list of `~astropy.wcs._astropy.wcs._Wcsprm` objects
+wcs_list : list of `~astropy.wcs._astropy.wcs.Wcsprm` objects
 """
 
 fix = """
@@ -2177,7 +2177,7 @@ det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
 Wcsprm = """
 Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 
-`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_, and
+`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
 provides access to the core WCS transformations that it supports.
 
 The FITS header parsing enforces correct FITS "keyword = value" syntax
@@ -2188,7 +2188,7 @@ Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
 
 Parameters
 ----------
-header : An astropy.io.fits header, string, or `None`.
+header : An `astropy.io.fits.Header`, string, or `None`.
   If ``None``, the object will be initialized to default values.
 
 key : string, optional
