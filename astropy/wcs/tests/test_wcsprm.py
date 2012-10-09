@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import locale
 import re
+import warnings
 
 from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
@@ -11,6 +12,7 @@ import pytest
 from .. import wcs
 from .. import _wcs
 from ...config import get_data_contents, get_data_fileobj
+from ... import units as u
 
 
 def b(s):
@@ -237,20 +239,34 @@ def test_cubeface():
 
 def test_cunit():
     w = _wcs.Wcsprm()
-    assert list(w.cunit) == [b(''), b('')]
-    w.cunit = [b('m'), b('km')]
+    assert list(w.cunit) == [u.Unit(''), u.Unit('')]
+    w.cunit = [u.m, 'km']
+    assert w.cunit[0] == u.m
+    assert w.cunit[1] == u.km
 
 
 @raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    w.cunit[0] = b('foo')
+    w.cunit[0] = 'foo'
 
 
 @raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
-    w.cunit = [b('foo'), b('bar')]
+    w.cunit = ['foo', 'bar']
+
+
+def test_unit():
+    w = wcs.WCS()
+    w.wcs.cunit[0] = u.erg
+    assert w.wcs.cunit[0] == u.erg
+
+
+def test_unit2():
+    w = wcs.WCS()
+    myunit = u.Unit("FOOBAR", parse_strict="warn")
+    w.wcs.cunit[0] = myunit
 
 
 def test_cylfix():

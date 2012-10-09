@@ -78,6 +78,10 @@ if _wcs is not None:
             key.startswith('WCSHDO')):
             locals()[key] = val
             __all__.append(key)
+
+    UnitConverter = deprecated(
+        '0.2', name='UnitConverter', alternative='astropy.units')(
+            UnitConverter)
 else:
     WCSBase = object
     Wcsprm = object

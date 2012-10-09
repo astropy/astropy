@@ -1,7 +1,11 @@
 0.2 (unreleased)
 ----------------
 
-- New `astropy.units` sub-package
+- New `astropy.units` sub-package.  This has the following effects on
+  other subpackages:
+
+  - In `astropy.wcs`, the `wcs.cunit` list now takes and returns
+    `astropy.units.Unit` objects.
 
 - `astropy.cosmology` update to include cosmologies with variable dark
   energy equations of state. (This includes some API incompatibilities
