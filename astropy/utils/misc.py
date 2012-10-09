@@ -209,6 +209,15 @@ def isiterable(obj):
         return False
 
 
+def dict_soft_update(d, u):
+    """
+    Like dict.update, except if the values in *u* are None, *d* is not updated.
+    """
+    for key, val in u.iteritems():
+        if val is not None:
+            d[key] = val
+
+
 class lazyproperty(object):
     """
     Works similarly to property(), but computes the value only once.
