@@ -149,7 +149,7 @@ class UnitBase(object):
             return id(self)
 
     def __eq__(self, other):
-        other = Unit(other)
+        other = Unit(other, parse_strict='silent')
         try:
             return np.allclose(self.to(other, 1), 1.0)
         except UnitsException:
@@ -570,7 +570,7 @@ class UnrecognizedUnit(IrreducibleUnit):
             "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.")
 
-    def get_format_name(self):
+    def get_format_name(self, format):
         return self.name
 
 
@@ -589,19 +589,6 @@ class _UnitMetaClass(type):
             return super(_UnitMetaClass, self).__call__(
                 s, represents, format=format, register=register, doc=doc)
             raise TypeError("Can not convert {0!r} to a unit".format(s))
-
-        elif isinstance(s, UnrecognizedUnit):
-            if parse_strict == 'raise':
-                raise ValueError(
-                    "'{0}' is an unrecognized unit".format(s.name))
-            elif parse_strict == 'warn':
-                warnings.warn(
-                    "'{0}' is an unrecognized unit".format(s.name),
-                    UnitsWarning)
-            elif parse_strict != 'silent':
-                raise ValueError(
-                    "'parse_strict' must be 'warn', 'raise' or 'silent'")
-            return s
 
         elif isinstance(s, UnitBase):
             return s

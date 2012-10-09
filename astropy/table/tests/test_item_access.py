@@ -4,13 +4,17 @@ https://github.com/astropy/astropy/wiki/Table-item-access-definition
 from .. import Table, Column
 import numpy as np
 import pytest
+from ... import units as u
+from ...tests.helper import raises
+
 
 COLS = [Column('a', [1, 2, 3], description='da',
                format='fa', meta={'ma': 1}, units='ua'),
         Column('b', [4, 5, 6], description='db',
-               format='fb', meta={'mb': 1}, units='uFOO'),
+               format='fb', meta={'mb': 1}, units='uF'),
         Column('c', [7, 8, 9], description='dc',
-               format='fc', meta={'mc': 1}, units='uFOO')]
+               format='fc', meta={'mc': 1},
+               units=u.Unit('UnrecognizedUnit', parse_strict='silent'))]
 DATA = Table(COLS)
 
 
@@ -46,9 +50,11 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].units == 'uFOO'
+        assert self.tc[1].units == 'uF'
         assert self.tc[1].attrs_equal(COLS[1])
         assert isinstance(self.tc[1], Column)
+
+        assert self.tc[2].units == 'UnrecognizedUnit'
 
         self.tc[1][1] = 0
         assert self.t['b'][1] == 0
@@ -151,3 +157,9 @@ class TestTableItems(BaseTestItems):
         """Select column name that does not exist"""
         with pytest.raises(ValueError):
             self.t['a', 1]
+
+
+@raises(ValueError)
+def test_invalid_unit():
+    Column('c', [7, 8, 9], description='dc',
+           format='fc', meta={'mc': 1}, units="UnrecognizedUnit")
