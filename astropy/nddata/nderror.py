@@ -139,8 +139,11 @@ class StandardDeviationError(NDError):
     A class for standard deviation errors
     '''
 
-    def __init__(self, array=None):
-        self.array = array
+    def __init__(self, array=None, copy=True):
+        if array is None:
+            self.array = None
+        else:
+            self.array = np.array(array, copy=copy, subok=True)
 
     @property
     def parent_nddata(self):
@@ -210,6 +213,14 @@ class StandardDeviationError(NDError):
         result_error.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
 
         return result_error
+
+    def __getitem__(self, item):
+        '''
+            Slice the standard deviation array using standard numpy slicing
+        '''
+
+        new_array = self.array[item]
+        return self.__class__(new_array, copy=False)
 
     def propagate_subtract(self, other_nddata, result_data):
         '''

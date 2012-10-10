@@ -203,3 +203,21 @@ def test_convert_units_to():
 @raises(ValueError)
 def test_invalid_unit():
     d = NDData(np.ones((5, 5)), units="NotAValidUnit")
+
+def test_simple_slicing():
+    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    d1 = NDData(np.ones((5, 5)), error=e1)
+    assert d1.shape == (5,5)
+    d2 = d1[2:3, 2:3]
+    assert d2.shape == (1,1)
+
+def test_slicing_reference():
+    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    d1 = NDData(np.ones((5, 5)), error=e1)
+    d2 = d1[2:3, 2:3]
+    #asserting that the new nddata contains references to the original nddata
+    assert d2.data.base is d1.data
+    assert d2.error.array.base is d1.error.array
+
+
+
