@@ -6,8 +6,11 @@ __all__ = ['NDData']
 import numpy as np
 
 from ..units import Unit
+from ..logger import log
+
 from .flag_collection import FlagCollection
 from .nderror import IncompatibleErrorsException, NDError
+
 
 
 class NDData(object):
@@ -18,7 +21,7 @@ class NDData(object):
 
     Parameters
     -----------
-    data : `~numpy.ndarray`
+    data : `~numpy.ndarray` or '~astropy.nddata.NDData'
         The actual data contained in this `NDData` object.
 
     error : `~astropy.nddata.NDError`, optional
@@ -92,21 +95,47 @@ class NDData(object):
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
-        #TODO change constructor to also accept an nddata object (keywords overwrite current data)
+        if isinstance(self.data, self.__class__):
+            self.data = np.array(data.data, subok=True, copy=copy)
 
-        self.data = np.array(data, subok=True, copy=copy)
+            if error is not None:
+                self.error = error
+                log.warn("Overwriting NDData's current error being overwritten with specified error")
 
-        self.error = error
-        self.mask = mask
-        self.flags = flags
-        self.wcs = wcs
+            if error is not None:
+                self.mask = mask
+                log.warn("Overwriting NDData's current mask being overwritten with specified mask")
 
-        if meta is None:
-            self.meta = {}
+            if flags is not None:
+                self.flags = flags
+                log.warn("Overwriting NDData's current flags being overwritten with specified flag")
+
+            if wcs is not None:
+                self.wcs = wcs
+                log.warn("Overwriting NDData's current error being overwritten with specified error")
+
+            if meta is not None:
+                self.meta = meta
+                log.warn("Overwriting NDData's current error being overwritten with specified error")
+
+            if units is not None:
+                raise ValueError('To convert to different unit please use .to')
+
         else:
-            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+            self.data = np.array(data, subok=True, copy=copy)
 
-        self.units = units
+            self.error = error
+            self.mask = mask
+            self.flags = flags
+            self.wcs = wcs
+
+            if meta is None:
+                self.meta = {}
+            else:
+                #TODO is this sensible what about isinstance(meta, dict) is True otherwise raise hell
+                self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+
+            self.units = units
 
     @property
     def mask(self):
