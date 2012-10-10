@@ -52,7 +52,48 @@ def isatty(file):
         return file.isatty()
     return False
 
-
+def color_text(text, color):
+    """
+    Returns a string wrapped in ANSI color codes for coloring the
+    text in a terminal::
+    
+        colored_text = color_text('Here is a message', 'blue')
+    
+    This won't actually effect the text until it is printed to the
+    terminal.
+    
+    Parameters
+    ----------
+    text : str
+        The string to return, bounded by the color codes.
+    color : str
+        An ANSI terminal color name. Must be one of:
+        black, red, green, brown, blue, magenta, cyan, lightgrey,
+        default, darkgrey, lightred, lightgreen, yellow, lightblue,
+        lightmagenta, lightcyan, white, or '' (the empty string).
+    """
+    color_mapping = {
+        'black': '0;30',
+        'red': '0;31',
+        'green': '0;32',
+        'brown': '0;33',
+        'blue': '0;34',
+        'magenta': '0;35',
+        'cyan': '0;36',
+        'lightgrey': '0;37',
+        'default': '0;39',
+        'darkgrey': '1;30',
+        'lightred': '1;31',
+        'lightgreen': '1;32',
+        'yellow': '1;33',
+        'lightblue': '1;34',
+        'lightmagenta': '1;35',
+        'lightcyan': '1;36',
+        'white': '1;37'}
+    
+    color_code = color_mapping.get(color, '0;39')
+    return u'\033[{0}m{1}\033[0m'.format(color_code, text)
+    
 def color_print(*args, **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
@@ -81,24 +122,6 @@ def color_print(*args, **kwargs):
         The ending of the message.  Defaults to ``\\n``.  The end will
         be printed after resetting any color or font state.
     """
-    color_mapping = {
-        'black': '0;30',
-        'red': '0;31',
-        'green': '0;32',
-        'brown': '0;33',
-        'blue': '0;34',
-        'magenta': '0;35',
-        'cyan': '0;36',
-        'lightgrey': '0;37',
-        'default': '0;39',
-        'darkgrey': '1;30',
-        'lightred': '1;31',
-        'lightgreen': '1;32',
-        'yellow': '1;33',
-        'lightblue': '1;34',
-        'lightmagenta': '1;35',
-        'lightcyan': '1;36',
-        'white': '1;37'}
 
     file = kwargs.get('file', sys.stdout)
     end = kwargs.get('end', u'\n')
@@ -118,9 +141,7 @@ def color_print(*args, **kwargs):
             if color == u'' or color is None:
                 write(msg)
             else:
-                color_code = color_mapping.get(color, '0;39')
-                write(u'\033[{0}m{1}\033[0m'.format(
-                    color_code, msg))
+                write(color_text(msg, color))
 
         write(end)
     else:
