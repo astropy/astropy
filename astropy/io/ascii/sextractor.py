@@ -1,6 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
-
-sextractor.py:
+""" sextractor.py:
   Classes to read SExtractor table format
 
 Built on daophot.py:
@@ -59,7 +57,7 @@ class SExtractor(core.BaseReader):
         self.inputter = core.ContinuationLinesInputter()
         self.data.splitter.delimiter = ' '
         self.data.start_line = 0
-        self.data.comment = r'\s*#'
+        self.data.comment = r'\s*#' # Comments embedded in the data start with #
     
     def read(self, table):
         output = core.BaseReader.read(self, table)
