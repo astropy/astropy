@@ -231,7 +231,7 @@ class NDData(object):
         if self.flags is not None:
             if isinstance(self.flags, np.ndarray):
                 new_flags = self.flags[item]
-            else:
+            elif isinstance(self.flags, FlagCollection):
                 raise NotImplementedError('Slicing complex Flags is currently not implemented')
         else:
             new_flags = None

@@ -140,7 +140,10 @@ class StandardDeviationError(NDError):
     '''
 
     def __init__(self, array=None, copy=True):
-        self.array = np.ndarray(array, copy=copy, subok=True)
+        if array is None:
+            self.array = None
+        else:
+            self.array = np.array(array, copy=copy, subok=True)
 
     @property
     def parent_nddata(self):
@@ -215,6 +218,7 @@ class StandardDeviationError(NDError):
         '''
             Slice the standard deviation array using standard numpy slicing
         '''
+
         new_array = self.array[item]
         self.__class__(new_array, copy=False)
 
