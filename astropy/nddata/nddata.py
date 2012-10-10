@@ -100,23 +100,23 @@ class NDData(object):
 
             if error is not None:
                 self.error = error
-                log.warn("Overwriting NDData's current error being overwritten with specified error")
+                log.info("Overwriting NDData's current error being overwritten with specified error")
 
             if error is not None:
                 self.mask = mask
-                log.warn("Overwriting NDData's current mask being overwritten with specified mask")
+                log.info("Overwriting NDData's current mask being overwritten with specified mask")
 
             if flags is not None:
                 self.flags = flags
-                log.warn("Overwriting NDData's current flags being overwritten with specified flag")
+                log.info("Overwriting NDData's current flags being overwritten with specified flag")
 
             if wcs is not None:
                 self.wcs = wcs
-                log.warn("Overwriting NDData's current error being overwritten with specified error")
+                log.info("Overwriting NDData's current error being overwritten with specified error")
 
             if meta is not None:
                 self.meta = meta
-                log.warn("Overwriting NDData's current error being overwritten with specified error")
+                log.info("Overwriting NDData's current error being overwritten with specified error")
 
             if units is not None:
                 raise ValueError('To convert to different unit please use .to')
