@@ -243,7 +243,7 @@ class Generic(Base):
 
     def _format_unit_list(self, units):
         out = []
-        units.sort()
+        units.sort(key=lambda x: self._get_unit_name(x[0]).lower())
 
         for base, power in units:
             if power == 1:
