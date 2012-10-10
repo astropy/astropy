@@ -92,7 +92,6 @@ Other information
    :maxdepth: 1
 
    relax
-   units
    history
 
 
