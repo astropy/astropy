@@ -35,7 +35,7 @@ import re
 from . import core
 from . import basic
 
-class Daophot(core.BaseReader):
+class SExtractor(core.BaseReader):
     """Read a SExtractor file. 
        SExtractor is a package for faint-galaxy photometry.
        Bertin & Arnouts 1996, A&A Supp. 317, 393.
@@ -47,36 +47,15 @@ class Daophot(core.BaseReader):
       # 2 ALPHA_J2000
       # 3 DELTA_J2000
       # 4 FLUX_RADIUS
-      # 7 MAG_AUTO  -- note the skipped numbers since flux_radius has 3 columns
+      # 7 MAG_AUTO  
 
-      #K MERGERAD   = INDEF                   scaleunit  %-23.7g  
-      #K IRAF = NOAO/IRAFV2.10EXPORT version %-23s
-      #K USER = davis name %-23s
-      #K HOST = tucana computer %-23s
-      #
-      #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    \\
-      #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       \\
-      #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
-      #
-      #N         SHARPNESS   CHI         PIER  PERROR                                \\
-      #U         ##          ##          ##    perrors                               \\
-      #F         %-23.3f     %-12.3f     %-6d  %-13s
-      #
-      14       138.538   256.405   15.461      0.003         34.85955       4        \\
-      -0.032      0.802       0     No_error
-
-    The keywords defined in the #K records are available via the Daophot reader object::
-
-      reader = asciitable.get_reader(Reader=asciitable.Daophot)
-      data = reader.read('t/daophot.dat')
-      for keyword in reader.keywords:
-          print keyword.name, keyword.value, keyword.units, keyword.format
-    
+      note the skipped numbers since flux_radius has 3 columns
+      The three FLUX_RADIUS columns will be named FLUX_RADIUS, FLUX_RADIUS_1, FLUX_RADIUS_2
     """
     
     def __init__(self):
         core.BaseReader.__init__(self)
-        self.header = SextractorHeader()
+        self.header = SExtractorHeader()
         self.inputter = core.ContinuationLinesInputter()
         self.data.splitter.delimiter = ' '
         self.data.start_line = 0
@@ -101,7 +80,7 @@ class Daophot(core.BaseReader):
 
 
 class SExtractorHeader(core.BaseHeader):
-    """Read the header from a file produced by the IRAF DAOphot routine."""
+    """Read the header from a file produced by SExtractor."""
     def __init__(self):
         core.BaseHeader.__init__(self)
         self.comment = r'^\s*#\s*\S\D.*' # Find lines that dont have "# digit"
@@ -131,17 +110,17 @@ class SExtractorHeader(core.BaseHeader):
                     colname = words[1]   # second string is the column name
                     columns[colnumber] = colname
         # Handle skipped column numbers
-        colnumbers = sorted(columns.iterkeys()):
+        colnumbers = sorted(columns.iterkeys())
         previous_column = 0
         for n in colnumbers:
-            if k != previous_column + 1:
-                for c in range(previous_column+1,k):
+            if n != previous_column + 1:
+                for c in range(previous_column+1,n):
                     column_name = columns[previous_column]+"_%d" % (c-previous_column)
                     columns[c] = column_name
             previous_column = n
 
         # Add the columns in order to self.names
-        colnumbers = sorted(columns.iterkeys()):
+        colnumbers = sorted(columns.iterkeys())
         self.names = []
         for n in colnumbers:
             self.names.append(columns[n])
