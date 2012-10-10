@@ -61,13 +61,6 @@ class SExtractor(core.BaseReader):
     
     def read(self, table):
         output = core.BaseReader.read(self, table)
-        reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', 
-                                  names = ['temp1','keyword','temp2','value','unit','format'])
-        headerkeywords = reader.read(self.comment_lines)
-
-        for line in headerkeywords:
-            self.keywords.append(core.Keyword(line['keyword'], line['value'], 
-                                              units=line['unit'], format=line['format']))
         self.table = output
         self.cols = self.header.cols
 
