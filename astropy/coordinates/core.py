@@ -18,12 +18,13 @@ import conversions as convert
 from errors import *
 from .. import units as u
 
-__all__ = ['Angle', 'RA', 'Dec', 'Coordinates', 'ICRSCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates']
+__all__ = ['Angle', 'RA', 'Dec', 'Coordinates', 'ICRSCoordinates',
+           'GalacticCoordinates', 'HorizontalCoordinates', 'CoordinatesBase']
 
 twopi = math.pi * 2.0 # no need to calculate this all the time
 
 class Angle(object):
-    """ This class represents an Angle. 
+    """ This class represents an angle. 
         
         Units must be specified by the units parameter.
         Degrees and hours both accept either a string like '15:23:14.231,' or a
@@ -32,12 +33,19 @@ class Angle(object):
         Parameters
         ----------
         angle : float, int, str
-            The angle value
-        units : {'degrees', 'radians', 'hours'}
+            The angle value.
+        unit : `~astropy.units` (preferred), str
+            The unit of the value specified for the angle. It is preferred that
+            the unit be an object from the `~astropy.units` package, e.g.
+            "from astropy import units as u; u.degree". Also accepts any string that the Unit class
+            maps to "degrees", "radians", "hours".
+        bounds : tuple
+            A tuple indicating the upper and lower value that the new angle object may
+            have.
 
     """
     
-    def __init__(self, angle, unit=None, bounds=[-360,360]):
+    def __init__(self, angle, unit=None, bounds=(-360,360)):
         
         self._bounds = bounds
         
@@ -327,19 +335,11 @@ class Angle(object):
         return Angle(-self.radians, unit=u.radian)
 
     def __eq__(self, other):
-        # Ref: http://stackoverflow.com/questions/3049101/floating-point-equality-in-python-and-in-general
-        #return self.radians == other.radians
-        #return abs(self.radians - other.radians) < 1e-11
-        #
-        if isinstance(other, type(self)):
-            # abs(x - y) <= nulps * spacing(max(abs(x), abs(y)))
-            #print(abs(self.radians - other.radians), np.spacing(max(abs(self.radians), abs(other.radians))))
-            return abs(self.radians - other.radians) <= 4 * np.spacing(max(abs(self.radians), abs(other.radians)))
-        elif (other == None):
+        if (other == None):
             return False
         else:
-             raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                       "object.".format(type(self).__name__))
+             raise NotImplementedError("To compare {0} objects, compare their "
+                                       "float values directly.".format(type(self).__name__))
         
     def __ne__(self, other):
         #return not self.radians == other.radians
@@ -376,21 +376,27 @@ class Angle(object):
     def __abs__(self):
         return Angle(abs(self.radians), unit=u.radian)
     
-class RA(Angle):
-    """ Represents a J2000 Right Ascension 
+    def __repr__(self):
+        return "<{0}.{1} {2:.5f} deg>".format(__name__, type(self).__name__, self.degrees)
     
-        Accepts a right ascension angle value. The angle parameter accepts degrees, 
-        hours, or radians.
-        Degrees and hours both accept either a string like '15:23:14.231,' or a
-        decimal representation of the value, e.g. 15.387.
+class RA(Angle):
+    """ An object that represents a J2000 right ascension angle.
+    
+        This object can be created from a numeric value along with a unit. If the
+        value specified is greater than "24", then a unit of degrees is assumed. Bounds
+        are fixed to [0,360] degrees.
         
         Parameters
         ----------
-        angle : float, int
+        angle : float, int, str
             The angle value
-        unit : an instance of astropy.Unit or an equivalent string
-            The unit of the angle value
-    
+        unit : `~astropy.units` (preferred), str
+            The unit of the value specified for the angle. It is preferred that
+            the unit be an object from the `~astropy.units` package, e.g.
+            "from astropy import units as u; u.degree". Also accepts any string that the Unit class
+            maps to "degrees", "radians", "hours". If not unit value is provided and
+            the value of the angle is greater than "24.0", then the units are assumed
+            to be degrees, otherwise, an exception is raised.
     """
     
     def __init__(self, angle, unit=None):
@@ -415,7 +421,12 @@ class RA(Angle):
             #self._radians = convert.parseRadians(angle)
         elif unit == None:
             # Try to figure out the unit if we can.
-            if isinstance(angle, str):
+            if isinstance(angle, float) or isinstance(angle, int):
+                if angle > 24:
+                    unit = u.degree
+                else:
+                    raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+            elif isinstance(angle, str):
                 # Try to deduce the units from hints in the string.
                 # Further, enforce absolute bounds here, i.e. don't let
                 # Angle +-2π to see if the angle falls in the bounds.
@@ -454,37 +465,37 @@ class RA(Angle):
         super(RA, self).__init__(angle, unit=unit, bounds=(0,360))
         
     def hourAngle(self, lst, unit=None):
-        """ Given a Local Sidereal Time (LST), calculate the hour angle for this RA
+        """ Given a local sidereal time (LST), returns the hour angle for this RA.
         
             Parameters
             ----------
-            lst : float, str, `Angle`
-                A Local Sidereal Time (LST)
+            lst : float, str, `~astropy.coordinates.angle`
+                A local sidereal time (LST)
             unit : str
-                The units of the LST, if not an `Angle` object or datetime.datetime object
+                The units of the LST, if not an `~astropy.coordinates.angle` object or datetime.datetime object
                 .. note::
-                    * if lst is **not** an `Angle`-like object, you can specify the units by passing a `unit` parameter into the call
+                    * if lst is **not** an `~astropy.coordinates.angle`-like object, you can specify the units by passing a `unit` parameter into the call
                     * this function currently returns an `Angle` object
         """
         # TODO : this should return an HA() object, and accept an Angle or LST object
         if not isinstance(lst, Angle):
-            lst = Angle(lst, units)
+            lst = Angle(lst, unit=unit)
         
         return Angle(lst.radians - self.radians, unit=u.radian)
     
     def lst(self, hourAngle, unit=u.hour):
-        """ Given an Hour Angle, calculate the Local Sidereal Time (LST) for this RA
+        """
+        Given an hour angle, calculate the local sidereal time (LST), returning an `~astropy.coordinates.Angle` object.
     
-            Parameters
-            ----------
-            ha :  float, str, `Angle`
-                An Hour Angle
-            units : str
-                The units of the ha, if not an `Angle` object
-            
-            .. note:: if ha is *not* an Angle object, you can specify the units by passing a 'units' parameter into the call
-                'units' can be radians, degrees, or hours
-                this function always returns an Angle object
+        Parameters
+        ----------
+        ha :  float, str, `~astropy.coordinates.angle`
+            An hour angle
+        unit : `~astropy.units` (preferred), str
+            The unit of the value specified for the hour angle if it cannot be determined
+            from the value provided. It is preferred that the unit be an object from the
+            `~astropy.units` package, e.g. "from astropy import units as u; u.degree".
+            Also accepts any string that the Unit class maps to "degrees", "radians", "hours".
         """
         # TODO : I guess this should return an HA() object, and accept an Angle or LST object
         if not isinstance(ha, Angle):
@@ -496,19 +507,20 @@ class Dec(Angle):
     """ Represents a J2000 Declination """
     
     def __init__(self, angle, unit=u.degree):
-        """ Accepts a Declination angle value. The angle parameter accepts degrees, 
-            hours, or radians and the default units are hours.
-            Degrees and hours both accept either a string like '15:23:14.231,' or a
-            decimal representation of the value, e.g. 15.387.
-            Bounds are fixed at [-90,90]
+        """
+        Accepts a value representing a declination angle.
         
-            Parameters
-            ----------
-            angle : float, int
-                The angular value
-            units : str 
-                The units of the specified declination
-            
+        This object can be created from a numeric value along with a unit, or else a 
+        string in any commonly represented format, e.g. "12 43 23.53", "-32d52m29s".
+        Unless otherwise specified via the 'unit' parameter, degrees are assumed.
+        Bounds are fixed to [-90,90] degrees.
+    
+        Parameters
+        ----------
+        angle : float, int
+            The angular value
+        units : str 
+            The units of the specified declination
         """
         if isinstance(angle, type(self)):
             return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90,90))
@@ -530,27 +542,34 @@ class CoordinatesBase(object):
     @abstractproperty
     def angle2(self):
         pass
+    
+    @abstractproperty
+    def galactic(self):
+        pass
 
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            angle1_eq = abs(self.angle1.radians - other.angle1.radians) <= 4 * np.spacing(max(abs(self.angle1.radians), abs(other.angle1.radians)))
-            angle2_eq = abs(self.angle2.radians - other.angle2.radians) <= 4 * np.spacing(max(abs(self.angle2.radians), abs(other.angle2.radians)))
-            return angle1_eq and angle2_eq
-        #elif isinstance(other, type(GalacticCoordinates)):
-            ## TODO: support comparisons to other coordinate systems.
-        #elif isinstance(other, type(HorizontalCoordinates)):
-            ## TODO
-        elif (other == None):
-            return False
-        else:
-            raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                      "object.".format(type(self).__name__))
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    @abstractproperty
+    def icrs(self):
+        pass
+        
+    @abstractproperty
+    def horizontal(self):
+        pass
+    
 
 class ICRSCoordinates(CoordinatesBase):
     """
-    RA/Dec coordinate class.
+    Object representing a coordinate in the ICRS system.
+    
+    Parameters
+    ----------
+    ra : `~astropy.coordinates.angle`, float, int, str
+    dec : `~astropy.coordinates.angle`, float, int, str
+    unit : tuple
+        If the units cannot be determined from the angle values provided, they must
+        be specified as a tuple in the 'unit' parameter. The first value in the tuple
+        is paired with the first angle provided, and the second with the second angle.
+        (If the unit is specified in the first angle but not the second, the first
+        value in the tuple may be 'None'.)
     """
     def __init__(self, *args, **kwargs):
         
@@ -687,7 +706,19 @@ class ICRSCoordinates(CoordinatesBase):
     @property
     def angle2(self):
         return self.dec
+
+    @abstractproperty
+    def icrs(self):
+        return self
+
+    @abstractproperty
+    def galactic(self):
+        raise NotImplementedError()
         
+    @abstractproperty
+    def horizontal(self):
+        raise NotImplementedError()
+
 class GalacticCoordinates(CoordinatesBase):
     """ 
     Galactic coordinate (l,b) class.
@@ -725,27 +756,29 @@ class GalacticCoordinates(CoordinatesBase):
             raise ValueError("The angle values can only be specified as keyword arguments "
                              "(e.g. l=x, b=y) or as a single value (e.g. a string) "
                              "not a combination.")
-        if len(args) > 0:
+                             
+        if len(args) == 0 and len(kwargs) > 0:
+            # only "l" and "b" accepted as keyword arguments
+            try:
+                _l = kwargs["l"]
+                _b = kwargs["b"]
+            except KeyError:
+                raise ValueError("When values are supplied as keyword arguments, both "
+                                 "'l' and 'b' must be specified.")
+            if isinstance(_l, Angle):
+                self.l = _l
+            if isinstance(_b, Angle):
+                self.b = _b
+
+        elif len(args) > 0:
             # make sure someone isn't using RA/Dec objects
             for arg in args:
                 if isinstance(arg, RA) or isinstance(arg, Dec):
                     raise TypeError("The class {0} doesn't accept RA or Dec values; "
                                      "use Angle objects instead.".format(type(self).__name__))
-            if len(args) == 0 and len(kwargs) > 0:
-                # only "l" and "b" accepted as keyword arguments
-                try:
-                    _l = kwargs["l"]
-                    _b = kwargs["b"]
-                except KeyError:
-                    raise ValueError("When values are supplied as keyword arguments, both "
-                                     "'l' and 'b' must be specified.")
-                if isinstance(_ra, Angle):
-                    self.l = _l
-                if isinstance(_dec, Angle):
-                    self.b = _b
     
-            elif len(args) == 1 and len(kwargs) == 0:
-                # need to try to parge the coordinate from a single argument
+            if len(args) == 1 and len(kwargs) == 0:
+                # need to try to parse the coordinate from a single argument
                 x = args[0]
                 if isinstance(args[0], str):
                     parsed = False
@@ -769,7 +802,6 @@ class GalacticCoordinates(CoordinatesBase):
                         while i < len(values) and not parsed:
                             try:
                                 self.l = Angle(" ".join(x.values[0:i]))
-                                print " ".join(x.values[0:i])
                                 parsed = True
                             except:
                                 i += 1
@@ -806,6 +838,18 @@ class GalacticCoordinates(CoordinatesBase):
     def angle2(self):
         return self.b
 
+    @abstractproperty
+    def icrs(self):
+        raise NotImplementedError()
+
+    @abstractproperty
+    def galactic(self):
+        return self
+
+    @abstractproperty
+    def horizontal(self):
+        raise NotImplementedError()
+
 class HorizontalCoordinates(CoordinatesBase):
     """ 
     Horizontal coordinate (az,el) class.
@@ -818,12 +862,48 @@ class HorizontalCoordinates(CoordinatesBase):
     def angle2(self):
         return self.el
 
+    @abstractproperty
+    def icrs(self):
+        raise NotImplementedError()
+
+    @abstractproperty
+    def galactic(self):
+        raise NotImplementedError()
+        
+    @abstractproperty
+    def horizontal(self):
+        return self
+
 class Coordinates(object):
     """
-    Document me.
+    A convenience factory class to create coordinate objects.
     
-    This is a factory class that will instantiate the appropriate CoordinateBase subclass.
-    A "Coordinates" object cannot be created on its own.
+    This class can be used to create coordinate objects. The coordinate system is chosen
+    based on the keywords used. For example, using the 'l' and 'b' keywords will return
+    a `~astropy.coordinates.GalacticCoordinates` object. A "Coordinates" object cannot be
+    created on its own.
+    
+    Parameters
+    ----------
+    ra : `~astropy.coordinates.Angle`, str, float, int
+        A right ascension value; must be paired with a "dec" value. Returns an ICRSCoordinate.
+    dec : `~astropy.coordinates.Angle`, str, float, int
+        Must be paired with an 'ra' value.
+    l : `~astropy.coordinates.Angle`, str, float, int
+        Galactic latitude
+    b : `~astropy.coordinates.Angle`, str, float, int
+        Galactic longitude
+    az : `~astropy.coordinates.Angle`, str, float, int
+        An azimuth value in the horizontal coordinate system
+    el : `~astropy.coordinates.Angle`, str, float, int
+        An elevation value, must be paired with an 'az' value
+    
+    unit : `~astropy.units.Unit`, str, tuple
+        Units must be provided for each of the angles provided. If the unit value can be
+        determined from the Angle objects directly, `unit` does not need to be specified.
+        If `unit` is a single value, it is applied to both of the given angles. If one angle
+        requires a unit and the other does not, use `None` as a placeholder.
+    
     """
     __meta__ = ABCMeta
     
@@ -832,8 +912,14 @@ class Coordinates(object):
         """
         Document me.
         """
-        units = kwargs["units"] if "units" in kwargs.keys() else list()
-        
+        #units = kwargs["unit"] if "unit" in kwargs.keys() else list()
+        try:
+            units = kwargs["unit"]
+            if isinstance(units, u.Unit) or isinstance(units, str):
+                units = (units, units)
+        except KeyError:
+            units = list()
+            
         # first see if the keywords suggest what kind of coordinate is being requested.
         if "ra" in kwargs.keys() or "dec" in kwargs.keys():
             try:

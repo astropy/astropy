@@ -29,7 +29,7 @@ class IllegalHourError(Exception):
     def __init__(self, hour):
         self.hour = hour
     def __str__(self):
-        return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.second)
+        return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
 
 class IllegalMinuteError(Exception):
     """

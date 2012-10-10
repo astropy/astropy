@@ -3,9 +3,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains the functionality for converting between
-coordinate systems for astropy (aside from that which is actually
-part of the core classes themselves). 
+This module contains utility functions that are for internal use of
+astropy.coordinates.core. Mainly they are conversions from one format
+of data to another.
 """
 import re
 import math
@@ -19,7 +19,7 @@ __all__ = ['parseDegrees']
 def _checkHourRange(hrs):
     ''' Checks that the given value is in the range (-24,24). '''
     if not -24 < hrs < 24:
-        raise IllegalHourError("Error: hours not in range (-24,24) ({0}).".format(hrs))
+        raise IllegalHourError(hrs)
 
 def _checkMinuteRange(min):
     ''' Checks that the given value is in the range [0,60). '''
@@ -107,8 +107,8 @@ def parseDegrees(degrees, outputDMS=False):
 
         if not string_parsed:
             # look for a '°' symbol
-            if '°' in x:
-                x = x.replace('°', '')
+            for unitStr in ["degrees", "degree", "deg", "d", "°"]:
+                x = x.replace(unitStr, '')
                 try:
                     parsedDegrees = float(x)
                     string_parsed = True
