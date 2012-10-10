@@ -8,7 +8,6 @@ from astropy.tests.helper import raises
 from .. import console
 
 def test_color_text():
-    # This stuff is hard to test, at least smoke test it
     assert console.color_text("foo", "green") == u'\033[0;32mfoo\033[0m'
 
 def test_color_print():
