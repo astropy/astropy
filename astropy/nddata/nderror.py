@@ -220,7 +220,7 @@ class StandardDeviationError(NDError):
         '''
 
         new_array = self.array[item]
-        self.__class__(new_array, copy=False)
+        return self.__class__(new_array, copy=False)
 
     def propagate_subtract(self, other_nddata, result_data):
         '''
