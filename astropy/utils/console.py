@@ -52,7 +52,7 @@ def isatty(file):
         return file.isatty()
     return False
 
-def color_text(text, color):
+def _color_text(text, color):
     """
     Returns a string wrapped in ANSI color codes for coloring the
     text in a terminal::
@@ -141,7 +141,7 @@ def color_print(*args, **kwargs):
             if color == u'' or color is None:
                 write(msg)
             else:
-                write(color_text(msg, color))
+                write(_color_text(msg, color))
 
         write(end)
     else:
@@ -151,7 +151,6 @@ def color_print(*args, **kwargs):
                 msg = msg.decode('ascii')
             write(msg)
         write(end)
-
 
 def strip_ansi_codes(s):
     """
