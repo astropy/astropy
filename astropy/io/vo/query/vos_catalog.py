@@ -9,7 +9,7 @@ from __future__ import division, absolute_import
 # LOCAL
 from .. import table
 from . import webquery
-from ...voexceptions import vo_warn, W24, W25
+from ..voexceptions import vo_warn, W24, W25
 
 BASEURL = 'http://stsdas.stsci.edu/astrolib/vo_databases/'
 
