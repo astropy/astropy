@@ -243,6 +243,8 @@ class Generic(Base):
 
     def _format_unit_list(self, units):
         out = []
+        units.sort()
+
         for base, power in units:
             if power == 1:
                 out.append(self._get_unit_name(base))
