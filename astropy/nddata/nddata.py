@@ -92,6 +92,8 @@ class NDData(object):
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
+        #TODO change constructor to also accept an nddata object (keywords overwrite current data)
+
         self.data = np.array(data, subok=True, copy=copy)
 
         self.error = error
@@ -211,6 +213,41 @@ class NDData(object):
             return np.ma.masked_array(self.data, self.mask)
         else:
             return self.data
+
+    def __getitem__(self, item):
+
+        new_data = self.data[item]
+
+        if self.error is not None:
+            new_error = self.error[item]
+        else:
+            new_error = None
+
+        if self.mask is not None:
+            new_mask = self.mask[item]
+        else:
+            new_mask = None
+
+        if self.flags is not None:
+            if isinstance(self.flags, np.ndarray):
+                new_flags = self.flags[item]
+            elif isinstance(self.flags, FlagCollection):
+                raise NotImplementedError('Slicing complex Flags is currently not implemented')
+        else:
+            new_flags = None
+
+        if self.wcs is not None:
+            raise NotImplementedError('Slicing for WCS is not currently implemented')
+        else:
+            new_wcs = None
+
+        return self.__class__(new_data, error=new_error, mask=new_mask, flags=new_flags, wcs=new_wcs,
+            meta=self.meta, units=self.units, copy=False)
+
+
+
+
+
 
     def _arithmetic(self, operand, propagate_errors, name, operation):
         """
