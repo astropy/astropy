@@ -26,7 +26,7 @@ class NDData(object):
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values should be ``False`` where the
+        matching that of the data. The values must be ``False`` where the
         data is *valid* and ``True`` when it is not (as for Numpy masked
         arrays).
 
@@ -117,14 +117,14 @@ class NDData(object):
         if value is not None:
             if isinstance(value, np.ndarray):
                 if value.dtype != np.bool_:
-                    raise TypeError("mask should be a boolean Numpy array")
+                    raise TypeError("mask must be a boolean Numpy array")
                 else:
                     if value.shape != self.shape:
                         raise ValueError("dimensions of mask do not match data")
                     else:
                         self._mask = value
             else:
-                raise TypeError("mask should be a Numpy array")
+                raise TypeError("mask must be a Numpy array")
         else:
             self._mask = value
 
@@ -161,7 +161,7 @@ class NDData(object):
                 self._error = value
                 self._error.parent_nddata = self
             else:
-                raise TypeError("error should be an instance of a NDError object")
+                raise TypeError("error must be an instance of a NDError object")
         else:
             self._error = value
 
