@@ -95,7 +95,7 @@ class NDData(object):
     def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
-        if isinstance(self.data, self.__class__):
+        if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=copy)
 
             if error is not None:

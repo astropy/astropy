@@ -220,4 +220,15 @@ def test_slicing_reference():
     assert d2.error.array.base is d1.error.array
 
 
+def test_initializing_from_nddata():
+    d1 = NDData(np.ones((5, 5)))
+    d2 = NDData(d1, copy=False)
 
+    assert d1.data is d2.data
+
+
+def test_initializing_from_nderror():
+    e1 = StandardDeviationError(np.ones((5, 5)) * 3)
+    e2 = StandardDeviationError(e1, copy=False)
+
+    assert e1.array is e2.array
