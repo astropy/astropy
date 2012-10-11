@@ -499,6 +499,14 @@ class Row(object):
         self._index = index
         self._data = table._data[index]
 
+        # MaskedArray __getitem__ has a strange behavior where if a
+        # row mask is all False then it returns a np.void which
+        # has no mask attribute. This makes it impossible to then set
+        # the mask.  Here we recast back to mvoid.
+        if self._table.masked and isinstance(self._data, np.void):
+            self._data = ma.core.mvoid(self._data,
+                                       mask=self._table._mask[index])
+
     def __getitem__(self, item):
         return self.data[item]
 
