@@ -511,6 +511,10 @@ class Row(object):
     def __ne__(self, other):
         return self.data != other
 
+    @property
+    def _mask(self):
+        return self._data.mask
+
     def __array__(self, dtype=None):
         """Support converting Row to np.array via np.array(table).
 
@@ -660,6 +664,10 @@ class Table(object):
         # Finally do the real initialization
         init_func(data, names, dtypes, n_cols, copy)
 
+    @property
+    def _mask(self):
+        return self._data.mask
+
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
 
@@ -677,7 +685,8 @@ class Table(object):
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        return self._data
+        return self._data.data if self.masked else self._data
+
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
         """Make sure that names and dtypes are boths iterable and have
