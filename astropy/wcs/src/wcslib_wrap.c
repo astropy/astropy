@@ -9,6 +9,7 @@
 #include "wcslib_tabprm_wrap.h"
 #include "wcslib_wtbarr_wrap.h"
 #include "wcslib_units_wrap.h"
+#include "unit_list_proxy.h"
 #include <structmember.h> /* from Python */
 
 #include <wcs.h>
@@ -2237,23 +2238,6 @@ PyWcsprm_set_cubeface(
   return set_int("cubeface", value, &self->x.cubeface);
 }
 
-static int
-unit_verify(char* val) {
-
-  int status, func;
-  double scale, units[WCSUNITS_NTYPE];
-  struct wcserr *err = NULL;
-
-  status = wcsulexe(val, &func, &scale, units, &err);
-  if (status == 0) {
-    return 1;
-  } else {
-    wcserr_units_to_python_exc(err);
-    free(err);
-    return 0;
-  }
-}
-
 /*@null@*/ static PyObject*
 PyWcsprm_get_cunit(
     PyWcsprm* self,
@@ -2263,9 +2247,8 @@ PyWcsprm_get_cunit(
     return NULL;
   }
 
-  return get_str_list_verified(
-    "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, 68, (PyObject*)self,
-    unit_verify);
+  return get_unit_list(
+    "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self);
 }
 
 static int
@@ -2280,9 +2263,8 @@ PyWcsprm_set_cunit(
 
   note_change(self);
 
-  return set_str_list_verified(
-    "cunit", value, (Py_ssize_t)self->x.naxis, 0, self->x.cunit,
-    unit_verify);
+  return set_unit_list(
+    (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
 }
 
 /*@null@*/ static PyObject*
@@ -3155,7 +3137,7 @@ PyTypeObject PyWcsprmType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
   #endif
-  "astropy.wcs._Wcsprm",              /*tp_name*/
+  "astropy.wcs.Wcsprm",              /*tp_name*/
   sizeof(PyWcsprm),             /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor)PyWcsprm_dealloc, /*tp_dealloc*/
@@ -3210,7 +3192,7 @@ _setup_wcsprm_type(
   wcserr_enable(1);
 
   return (
-    PyModule_AddObject(m, "_Wcsprm", (PyObject *)&PyWcsprmType) ||
+    PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||
     CONSTANT(WCSSUB_LONGITUDE) ||
     CONSTANT(WCSSUB_LATITUDE)  ||
     CONSTANT(WCSSUB_CUBEFACE)  ||

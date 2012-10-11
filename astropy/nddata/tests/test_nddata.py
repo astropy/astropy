@@ -5,6 +5,7 @@ import numpy as np
 
 from ..nddata import NDData
 from ..nderror import StandardDeviationError, IncompatibleErrorsException, NDError
+from ...tests.helper import raises
 
 np.random.seed(12345)
 
@@ -70,7 +71,7 @@ def test_nddata_error_init_invalid_shape_2():
 def test_nddata_error_invalid_type(error):
     with pytest.raises(TypeError) as exc:
         NDData(np.ones((5, 5)), error=error)
-    assert exc.value.args[0] == 'error should be an instance of a NDError object'
+    assert exc.value.args[0] == 'error must be an instance of a NDError object'
 
 
 def test_nddata_copy():
@@ -189,4 +190,34 @@ def test_nddata_subtract_errors_mismatch():
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.subtract(d2)
-    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for subtractition'
+    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for subtraction'
+
+
+def test_convert_units_to():
+    d = NDData(np.ones((5, 5)))
+    d.units = 'km'
+    d1 = d.convert_units_to('m')
+    assert np.all(d1 == np.array(1000.0))
+
+
+@raises(ValueError)
+def test_invalid_unit():
+    d = NDData(np.ones((5, 5)), units="NotAValidUnit")
+
+def test_simple_slicing():
+    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    d1 = NDData(np.ones((5, 5)), error=e1)
+    assert d1.shape == (5,5)
+    d2 = d1[2:3, 2:3]
+    assert d2.shape == (1,1)
+
+def test_slicing_reference():
+    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    d1 = NDData(np.ones((5, 5)), error=e1)
+    d2 = d1[2:3, 2:3]
+    #asserting that the new nddata contains references to the original nddata
+    assert d2.data.base is d1.data
+    assert d2.error.array.base is d1.error.array
+
+
+

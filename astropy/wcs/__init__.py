@@ -24,7 +24,4 @@ from __future__ import division  # confidence high
 if not _ASTROPY_SETUP_:
     from .wcs import *
 
-    class Wcsprm(Wcsprm):
-        pass
-
     pass

@@ -15,6 +15,7 @@ from .astrophys import *
 from .cgs import *
 from .imperial import *
 from .equivalencies import *
+from .physical import *
 
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.

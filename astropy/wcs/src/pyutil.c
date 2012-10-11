@@ -553,13 +553,12 @@ set_int_array(
 /* set_str_list is inlined */
 
 int
-set_str_list_verified(
+set_str_list(
     const char* propname,
     PyObject* value,
     Py_ssize_t len,
     Py_ssize_t maxlen,
-    char (*dest)[72],
-    str_verify_fn verify) {
+    char (*dest)[72]) {
 
   PyObject*  str      = NULL;
   char*      str_char = NULL;
@@ -635,18 +634,6 @@ set_str_list_verified(
       return -1;
     }
 
-    if (verify) {
-      #if PY3K
-      str_char = PyBytes_AsString(str);
-      #else
-      str_char = PyString_AsString(str);
-      #endif
-      if (!verify(str_char)) {
-        Py_DECREF(str);
-        return -1;
-      }
-    }
-
     Py_DECREF(str);
   }
 
@@ -683,6 +670,7 @@ set_str_list_verified(
 
   return 0;
 }
+
 
 /*@null@*/ PyObject*
 get_pscards(
@@ -940,5 +928,3 @@ parse_unsafe_unit_conversion_spec(
 
   return 0;
 }
-
-

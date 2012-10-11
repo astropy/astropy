@@ -56,7 +56,9 @@ def isatty(file):
 def color_print(*args, **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
-    sequences::
+    sequences.
+
+    ::
 
        color_print('This is the color ', 'default', 'GREEN', 'green')
 

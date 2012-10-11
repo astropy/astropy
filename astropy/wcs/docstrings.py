@@ -400,7 +400,8 @@ understood by the lower-level projection routines.
 """
 
 cunit = """
-``list of strings[naxis]`` List of ``CUNITia`` keyvalues.
+``list of astropy.UnitBase[naxis]`` List of ``CUNITia`` keyvalues as
+`astropy.units.UnitBase` instances.
 
 These define the units of measurement of the ``CRVALia``, ``CDELTia``
 and ``CDi_ja`` keywords.
@@ -620,7 +621,7 @@ keysel : sequence of flags
 
 Returns
 -------
-wcs_list : list of `~astropy.wcs._astropy.wcs._Wcsprm` objects
+wcs_list : list of `~astropy.wcs._astropy.wcs.Wcsprm` objects
 """
 
 fix = """
@@ -2003,16 +2004,21 @@ a units specification where it does not create ambiguity (e.g. not
 between a metric prefix and a basic unit string), including in strings
 like ``"log (m ** 2)"`` which is formally disallowed.
 
+.. note:: Deprecated in Astropy 0.2
+
+   `UnitConverter` will be removed in a future version of astropy.
+   The `astropy.units` package should be used instead.
+
 Parameters
 ----------
 
 have : string
-    :ref:`fits-unit` to convert from, with or without surrounding
+    FITS unit string to convert from, with or without surrounding
     square brackets (for inline specifications); text following the
     closing bracket is ignored.
 
 want : string
-    :ref:`fits-unit` to convert to, with or without surrounding square
+    FITS unit string to convert to, with or without surrounding square
     brackets (for inline specifications); text following the closing
     bracket is ignored.
 
@@ -2036,8 +2042,6 @@ ctrl : string, optional
 
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
-
-    See :ref:`fits-unit` for more information.
 
 Raises
 ------
@@ -2109,8 +2113,6 @@ translate_units : string, optional
     Thus ``''`` doesn't do any unsafe translations, whereas ``'shd'``
     does all of them.
 
-    See :ref:`fits-unit` for more information.
-
 Returns
 -------
 success : int
@@ -2177,7 +2179,7 @@ det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
 Wcsprm = """
 Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 
-`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_, and
+`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
 provides access to the core WCS transformations that it supports.
 
 The FITS header parsing enforces correct FITS "keyword = value" syntax
@@ -2188,7 +2190,7 @@ Sect. 5.2.1), integer (Sect. 5.2.3), and floating-point values
 
 Parameters
 ----------
-header : An astropy.io.fits header, string, or `None`.
+header : An `astropy.io.fits.Header`, string, or `None`.
   If ``None``, the object will be initialized to default values.
 
 key : string, optional

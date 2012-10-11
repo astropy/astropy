@@ -69,7 +69,7 @@ if _wcs is not None:
     DistortionLookupTable = _wcs.DistortionLookupTable
     Sip = _wcs.Sip
     UnitConverter = _wcs.UnitConverter
-    Wcsprm = _wcs._Wcsprm
+    Wcsprm = _wcs.Wcsprm
     Tabprm = _wcs.Tabprm
     # Copy all the constants from the C extension into this module's namespace
     for key, val in _wcs.__dict__.items():
@@ -78,6 +78,10 @@ if _wcs is not None:
             key.startswith('WCSHDO')):
             locals()[key] = val
             __all__.append(key)
+
+    UnitConverter = deprecated(
+        '0.2', name='UnitConverter', alternative='astropy.units')(
+            UnitConverter)
 else:
     WCSBase = object
     Wcsprm = object
@@ -257,7 +261,7 @@ class WCS(WCSBase):
         if header is None:
             if naxis is None:
                 naxis = 2
-            wcsprm = _wcs._Wcsprm(header=None, key=key,
+            wcsprm = _wcs.Wcsprm(header=None, key=key,
                                   relax=relax, naxis=naxis)
             self.naxis = wcsprm.naxis
             # Set some reasonable defaults.
@@ -293,7 +297,7 @@ class WCS(WCSBase):
                 header_string = header_string.decode('ascii')
 
             try:
-                wcsprm = _wcs._Wcsprm(header=header_bytes, key=key,
+                wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
                                       relax=relax, keysel=keysel_flags,
                                       colsel=colsel)
             except _wcs.NoWcsKeywordsFoundError:
@@ -301,7 +305,7 @@ class WCS(WCSBase):
                 # WCS.  That isn't an error -- we want a "default"
                 # (identity) core Wcs transformation in that case.
                 if colsel is None:
-                    wcsprm = _wcs._Wcsprm(header=None, key=key,
+                    wcsprm = _wcs.Wcsprm(header=None, key=key,
                                           relax=relax, keysel=keysel_flags,
                                           colsel=colsel)
                 else:
@@ -395,7 +399,7 @@ naxis kwarg.
         copy.naxis = copy.wcs.naxis
         return copy
     if _wcs is not None:
-        sub.__doc__ = _wcs._Wcsprm.sub.__doc__
+        sub.__doc__ = _wcs.Wcsprm.sub.__doc__
 
     def calcFootprint(self, header=None, undistort=True, axes=None):
         """
@@ -1428,7 +1432,7 @@ naxis kwarg.
 
     def get_axis_types(self):
         """
-        Similar to `self.wcsprm.axis_types <_wcs._Wcsprm.axis_types>`
+        Similar to `self.wcsprm.axis_types <_wcs.Wcsprm.axis_types>`
         but provides the information in a more Python-friendly format.
 
         Returns

@@ -4,6 +4,8 @@ Utilities shared by the different formats.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import functools
+
 
 def get_grouped_by_powers(bases, powers):
     """
@@ -90,3 +92,26 @@ def decompose_to_known_units(unit, func):
                 return decompose_to_known_units(unit._represents, func)
             raise
         return unit
+
+
+DEBUG = False
+
+
+def _trace(func):
+    """
+    A utility decorator to help debug the parser.
+    """
+    def run(self, s, loc, toks):
+        if DEBUG:
+            print(func.__name__, toks, end=' ')
+            try:
+                result = func(self, s, loc, toks)
+            except Exception as e:
+                print("Exception: ", e.message)
+                raise
+            print(result)
+        else:
+            return func(self, s, loc, toks)
+        return result
+
+    return functools.update_wrapper(run, func)

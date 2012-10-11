@@ -25,7 +25,7 @@ Getting Started
   >>> speed_unit = u.cm / u.s
   >>> speed_unit.to(u.mile / u.hour, 1)
   0.02236936292054402
-  >>> speed_unit.to([1., 1000., 5000.])
+  >>> speed_unit.to(u.mile / u.hour, [1., 1000., 5000.])
   array([  2.23693629e-02,   2.23693629e+01,   1.11846815e+02])
 
 `astropy.units` also handles equivalencies, such as that between

@@ -22,7 +22,12 @@ see the "What's New" section of the documentation for more details.
 
 - New ``astropy.time`` sub-package. [#332]
 
-- New ``astropy.units`` sub-package
+- New ``astropy.units`` sub-package.  This has the following effects on
+  other subpackages:
+
+  - In ``astropy.wcs``, the ``wcs.cunit`` list now takes and returns
+    ``astropy.units.Unit`` objects.
+
 
 
 Other Changes and Additions

@@ -4,6 +4,7 @@ import collections
 
 import numpy as np
 
+from ..units import Unit
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
@@ -108,7 +109,7 @@ class Column(np.ndarray):
         Number of row elements in column data
     description : str or None
         Full description of column
-    units : str or None
+    units : str, `astropy.units.UnitBase` instance or None
         Physical units
     format : str or None
         Format string for outputting column values.  This can be an
@@ -360,6 +361,52 @@ class Column(np.ndarray):
         """
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,
                      show_units=show_units)
+
+    @property
+    def units(self):
+        """
+        The units associated with this column.  May be a string or a
+        `astropy.units.UnitBase` instance.
+
+        Setting the `units` property does not change the values of the
+        data.  To perform a unit conversion, use `convert_units_to`.
+        """
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        if units is None:
+            self._units = None
+        else:
+            self._units = Unit(units)
+
+    @units.deleter
+    def units(self):
+        self._units = None
+
+    def convert_units_to(self, new_units):
+        """
+        Converts the values of the column in-place from the current
+        unit to the given unit.
+
+        To change the units associated with this column without
+        actually changing the data values, simply set the `units`
+        property.
+
+        Parameters
+        ----------
+        new_units : str or `astropy.units.UnitBase` instance
+            The unit to convert to.
+
+        Raises
+        ------
+        astropy.units.UnitException
+            If units are inconsistent
+        """
+        if self.units is None:
+            raise ValueError("No units set on column")
+        self.data[:] = self.units.to(new_units, self.data)
+        self.units = new_units
 
     def __str__(self):
         lines, n_header = _pformat_col(self)

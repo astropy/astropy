@@ -151,7 +151,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
         `None`, the return value will be a string.
     """
     import textwrap
-    from . import converters, unit, xmlutil
+    from . import converters, xmlutil
     from ...utils.console import print_code_line, color_print
 
     return_as_str = False
@@ -165,7 +165,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
     # infrastructure to keep track of warnings that have already been
     # seen.  Since we want to get every single warning out of this, we
     # have to delete all of them first.
-    for module in (exceptions, converters, tree, unit, xmlutil):
+    for module in (exceptions, converters, tree, xmlutil):
         if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__
 

@@ -135,9 +135,9 @@ extensions += ['astropy.sphinx.ext.edit_on_github']
 # "version" configuration parameter
 from astropy import version as versionmod
 edit_on_github_project = "astropy/astropy"
-if 'dev' in versionmod.version:
-    edit_on_github_branch = "master"
-else:
+if versionmod.release:
     edit_on_github_branch = "v" + versionmod.version
+else:
+    edit_on_github_branch = "master"
 edit_on_github_source_root = ""
 edit_on_github_doc_root = "docs"

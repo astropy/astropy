@@ -149,7 +149,7 @@ class UnitBase(object):
             return id(self)
 
     def __eq__(self, other):
-        other = Unit(other)
+        other = Unit(other, parse_strict='silent')
         try:
             return np.allclose(self.to(other, 1), 1.0)
         except UnitsException:
@@ -215,7 +215,10 @@ class UnitBase(object):
         -------
         bool
         """
-        other = Unit(other)
+        other = Unit(other, parse_strict='silent')
+
+        if isinstance(other, UnrecognizedUnit):
+            return False
 
         try:
             (self / other).dimensionless_constant()
@@ -359,6 +362,19 @@ class UnitBase(object):
             New object containing only irreducible unit objects.
         """
         return self
+
+    @property
+    def physical_type(self):
+        """
+        Return the physical type on the unit.
+
+        Example
+        -------
+        >>> u.m.physical_type
+        'length'
+        """
+        from . import physical
+        return physical.get_physical_type(self)
 
 
 class NamedUnit(UnitBase):
@@ -546,14 +562,14 @@ class UnrecognizedUnit(IrreducibleUnit):
     def _unrecognized_operator(self, *args, **kwargs):
         raise ValueError(
             "The unit {0!r} is unrecognized, so all arithmetic operations "
-            "with it are invalid.")
+            "with it are invalid.".format(self.name))
 
     __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
       __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
       _unrecognized_operator
 
     def __eq__(self, other):
-        other = Unit(other)
+        other = Unit(other, parse_strict='silent')
         return isinstance(other, UnrecognizedUnit) and self.name == other.name
 
     def __ne__(self, other):
@@ -567,7 +583,7 @@ class UnrecognizedUnit(IrreducibleUnit):
             "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.")
 
-    def get_format_name(self):
+    def get_format_name(self, format):
         return self.name
 
 
@@ -579,7 +595,7 @@ class _UnitMetaClass(type):
     can return an existing one.
     """
     def __call__(self, s=None, represents=None, format=None, register=False,
-                 doc=None):
+                 doc=None, parse_strict='raise'):
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
@@ -602,18 +618,23 @@ class _UnitMetaClass(type):
             try:
                 return f.parse(s)
             except ValueError as e:
-                warnings.warn(
-                    "'{0}' did not parse using format '{1}'. {2}".format(
-                        s, format, str(e)),
-                    UnitsWarning)
+                if parse_strict == 'raise':
+                    raise
+                elif parse_strict == 'warn':
+                    warnings.warn(
+                        "'{0}' did not parse using format '{1}'. {2}".format(
+                            s, format, str(e)),
+                            UnitsWarning)
+                elif parse_strict != 'silent':
+                    raise ValueError(
+                        "'parse_strict' must be 'warn', 'raise' or 'silent'")
                 return UnrecognizedUnit(s)
 
         elif isinstance(s, (int, float, np.floating, np.integer)):
             return CompositeUnit(s, [], [])
 
         elif s is None:
-            # Return the NULL unit
-            return CompositeUnit(1.0, [], [])
+            raise ValueError("None is not a valid Unit")
 
 
 class Unit(NamedUnit):
@@ -627,12 +648,23 @@ class Unit(NamedUnit):
 
     - From a string::
 
-        Unit(s, format=None)
+        Unit(s, format=None, parse_strict='silent')
 
-      Construct from a string representing a (possibly compount) unit.
+      Construct from a string representing a (possibly compound) unit.
+
       The optional `format` keyword argument specifies the format the
       string is in, by default ``"generic"``.  For a description of
       the available formats, see `astropy.units.format`.
+
+      The optional `parse_strict` keyword controls what happens when an
+      unrecognized unit string is passed in.  It may be one of the following:
+
+         - ``'raise'``: (default) raise a ValueError exception.
+
+         - ``'warn'``: emit a Warning, and return an
+           `UnrecognizedUnit` instance.
+
+         - ``'silent'``: return an `UnrecognizedUnit` instance.
 
     - From a number::
 
@@ -695,7 +727,8 @@ class Unit(NamedUnit):
         represents = Unit(represents)
         self._represents = represents
 
-        NamedUnit.__init__(self, st, register=register, doc=doc, format=format)
+        NamedUnit.__init__(self, st, register=register, doc=doc,
+                           format=format)
 
     def decompose(self):
         return self._represents.decompose()

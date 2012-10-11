@@ -320,9 +320,6 @@ Reference/API
 .. automodapi:: astropy.io.vo.ucd
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.unit
-   :no-inheritance-diagram:
-
 .. automodapi:: astropy.io.vo.util
    :no-inheritance-diagram:
 

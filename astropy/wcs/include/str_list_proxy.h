@@ -22,9 +22,14 @@ PyStrListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,
-    char (*array)[72],
-    str_verify_fn verify
+    char (*array)[72]
     );
+
+/*@null@*/ PyObject*
+str_list_proxy_repr(
+    char (*array)[72],
+    Py_ssize_t size,
+    Py_ssize_t maxsize);
 
 int
 _setup_str_list_proxy_type(

@@ -68,7 +68,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         >>> from astropy.tools.alg import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> data,mask = sigma_clip(randvar,2,1)
+        >>> data,mask = sigma_clip(randvar, 2, 1)
 
     This will clipping on a similar distribution, but for 3 sigma relative to
     the sample *mean*, will clip until converged, and produces a
@@ -78,9 +78,10 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> maskedarr = sigma_clip(randvar,3,None,mean,maout=True)
+        >>> maskedarr = sigma_clip(randvar, 3, None, mean, maout=True)
 
     """
+
     data = np.array(data, copy=False)
     oldshape = data.shape
     data = data.ravel()
