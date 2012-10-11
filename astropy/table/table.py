@@ -306,7 +306,7 @@ class BaseColumn(object):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
-class Column(np.ndarray, BaseColumn):
+class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.
 
     Parameters
@@ -421,7 +421,7 @@ class Column(np.ndarray, BaseColumn):
                       description=self.description, meta=deepcopy(self.meta))
 
 
-class MaskedColumn(ma.MaskedArray, BaseColumn):
+class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     def __new__(cls, name, data=None,
                  dtype=None, shape=(), length=0,
