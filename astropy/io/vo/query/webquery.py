@@ -41,7 +41,7 @@ ftp://legacy.gsfc.nasa.gov/heasarc/software/web_batch/webquery.pl
 :Organization: Space Telescope Science Institute
 
 """
-from __future__ import division, absolute_import, print_function
+from __future__ import print_function, division
 
 # STDLIB
 import socket

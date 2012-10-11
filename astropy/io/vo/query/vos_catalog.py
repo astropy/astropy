@@ -4,7 +4,7 @@ Common utilities for accessing VO simple services.
 
 # TODO docstrings
 
-from __future__ import division, absolute_import
+from __future__ import print_function, division
 
 # LOCAL
 from .. import table
@@ -17,7 +17,9 @@ __dbversion__ = 1
 
 
 #  until here - modify to read XML from web query
-
+#
+# http://docs.astropy.org/en/v0.1/_generated/astropy.config.data.get_data_fileobj.html#astropy.config.data.get_data_fileobj
+# db_cache = cache.Cache('~/.vodb', BASEURL)
 
 
 # TODO:

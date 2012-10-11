@@ -5,7 +5,7 @@ Based on the `Simple Cone Search Version 1.03 Recommendation
 <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_.
 
 """
-from __future__ import division, absolute_import
+from __future__ import print_function, division
 
 # ASTROPY
 from ...utils.misc import dict_soft_update
