@@ -604,14 +604,9 @@ class Table(object):
     def __init__(self, data=None, masked=None, names=None, dtypes=None,
                  meta=None, copy=True):
 
-        # Check that mask is a boolean
-        if type(masked) != bool and masked is not None:
-            raise TypeError('Mask argument should be a boolean or None')
-        else:
-            self._masked = masked
-
         # Set up a placeholder empty table
         self._data = None
+        self.masked = masked
         self.columns = TableColumns()
         self.meta = OrderedDict() if meta is None else deepcopy(meta)
 
@@ -672,6 +667,10 @@ class Table(object):
         # Finally do the real initialization
         init_func(data, names, dtypes, n_cols, copy)
 
+        # Whatever happens above, the masked property should be set to a boolean
+        if type(self.masked) != bool:
+            raise TypeError("masked property has not been set to True or False")
+
     @property
     def _mask(self):
         return self._data.mask
@@ -717,14 +716,13 @@ class Table(object):
             raise ValueError('Cannot use copy=False with a list data input')
 
         if self.masked is None:
-            col_class = Column
             for col in data:
                 if isinstance(col, (MaskedColumn, ma.MaskedArray)):
                     col_class = MaskedColumn
                     self.masked = True
                     break
-            else:
-                self.masked = False
+            col_class = Column
+            self.masked = False
         else:
             col_class = MaskedColumn if self.masked else Column
 
@@ -1016,6 +1014,16 @@ class Table(object):
     @property
     def masked(self):
         return self._masked
+
+    @masked.setter
+    def masked(self, masked):
+        if hasattr(self, '_masked') and self._masked in [True, False]:
+            raise Exception("Cannot change masked attribute once it is set to True or False")
+        else:
+            if masked in [True, False, None]:
+                self._masked = masked
+            else:
+                raise ValueError("masked should be one of True, False, None")
 
     @property
     def dtype(self):
