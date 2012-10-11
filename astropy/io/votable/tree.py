@@ -15,6 +15,7 @@ else:
 
 # THIRD-PARTY
 import numpy as np
+from numpy import ma
 
 # LOCAL
 from .. import fits
@@ -2561,15 +2562,20 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     array_row = array[row]
                     mask_row = mask[row]
                     for i, output in fields:
+                        data = array_row[i]
                         masked = mask_row[i]
-                        if not np.all(masked) or write_null_values:
+                        if (not np.all(masked) or
+                            write_null_values):
                             try:
-                                val = output(array_row[i], masked)
+                                val = output(data, masked)
                             except Exception as e:
                                 vo_reraise(e,
                                            additional="(in row %d, col '%s')" %
                                            (row, self.fields[i].ID))
-                            write(td % val)
+                            if len(val):
+                                write(td % val)
+                            else:
+                                write(td_empty)
                         else:
                             write(td_empty)
                     write(tr_end)
@@ -2625,6 +2631,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 meta[key] = val
 
         table = Table(self.array, meta=meta)
+        table.mask = self.mask
 
         for field in self.fields:
             column = table[field.ID]
@@ -2651,10 +2658,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             column = table[colname]
             new_table.fields.append(Field.from_table_column(votable, column))
 
-        # Create a dummy mask
-        new_table.create_arrays(len(table))
-
         new_table.array = np.asarray(table)
+        new_table.mask = table.mask
 
         return new_table
 

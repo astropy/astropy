@@ -12,6 +12,7 @@ from struct import pack as struct_pack
 
 # THIRD-PARTY
 import numpy as np
+from numpy import ma
 
 # ASTROPY
 from ...utils.xml.writer import xml_escape_cdata
@@ -37,6 +38,22 @@ files in the wild use them.
 _zero_int = b'\0\0\0\0'
 _empty_bytes = b''
 _zero_byte = b'\0'
+
+
+def _make_masked_array(data, mask):
+    """
+    Masked arrays of zero length that also have a mask of zero length
+    cause problems in Numpy (at least in 1.6.2).  This function
+    creates a masked array from data and a mask, unless it is zero
+    length.
+    """
+    # np.ma doesn't like setting mask to []
+    if len(data):
+        return ma.array(
+            np.array(data),
+            mask=np.array(mask, dtype='bool'))
+    else:
+        return ma.array(np.array(data))
 
 
 class Converter(object):
@@ -357,7 +374,7 @@ class VarArray(Array):
 
     def output(self, value, mask):
         output = self._base.output
-        result = [output(x, m) for x, m in np.broadcast(value, mask)]
+        result = [output(x, m) for x, m in np.broadcast(value, value.mask)]
         return u' '.join(result)
 
     def binparse(self, read):
@@ -370,8 +387,8 @@ class VarArray(Array):
             val, mask = binparse(read)
             result.append(val)
             result_mask.append(mask)
-        return (np.array(result),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(result, result_mask), False
 
     def binoutput(self, value, mask):
         if value is None or len(value) == 0:
@@ -380,7 +397,7 @@ class VarArray(Array):
         length = len(value)
         result = [self._write_length(length)]
         binoutput = self._base.binoutput
-        for x, m in zip(value, mask):
+        for x, m in zip(value, value.mask):
             result.append(binoutput(x, m))
         return _empty_bytes.join(result)
 
@@ -392,7 +409,7 @@ class ArrayVarArray(VarArray):
     """
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         items = self._base._items
@@ -405,7 +422,8 @@ class ArrayVarArray(VarArray):
             value, mask = parse_parts(parts[i:i+items], config, pos)
             result.append(value)
             result_mask.append(mask)
-        return np.array(result), np.array(result_mask, dtype='bool')
+
+        return _make_masked_array(result, result_mask), False
 
 
 class ScalarVarArray(VarArray):
@@ -414,7 +432,7 @@ class ScalarVarArray(VarArray):
     """
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
 
@@ -425,8 +443,8 @@ class ScalarVarArray(VarArray):
             value, mask = parse(x, config, pos)
             result.append(value)
             result_mask.append(mask)
-        return (np.array(result, dtype=self._base.format),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(result, result_mask), False
 
 
 class NumericArray(Array):
@@ -732,7 +750,7 @@ class ComplexArrayVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         items = self._base._items
@@ -745,7 +763,8 @@ class ComplexArrayVarArray(VarArray):
             value, mask = parse_parts(parts[i:i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
-        return np.array(result), np.array(result_mask, dtype='bool')
+
+        return _make_masked_array(result, result_mask), False
 
 
 class ComplexVarArray(VarArray):
@@ -757,7 +776,7 @@ class ComplexVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         parse_parts = self._base.parse_parts
@@ -768,8 +787,9 @@ class ComplexVarArray(VarArray):
             value, mask = parse_parts(value, config, pos)
             result.append(value)
             result_mask.append(mask)
-        return (np.array(result, dtype=self._base.format),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(
+            np.array(result, dtype=self._base.format), result_mask), False
 
 
 class ComplexArray(NumericArray):

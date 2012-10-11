@@ -363,8 +363,8 @@ class TestParse:
             for a0, b0 in zip(a, b):
                 assert issubclass(a0.dtype.type, np.int64)
                 assert_array_equal(a0, b0)
-        assert self.mask['array'][3][0][0]
-        assert self.mask['array'][4][0][1]
+        assert self.array['array'][3].mask[0][0]
+        assert self.array['array'][4].mask[0][1]
 
     def test_bit(self):
         assert issubclass(self.array['bit'].dtype.type,
@@ -435,9 +435,9 @@ class TestParse:
         match_mask = [[False, False, False],
                       [False, False, False, False, False],
                       [False, False, False, False, False],
-                      True, True]
-        for a, b in zip(self.mask['bitvararray'], match_mask):
-            assert_array_equal(a, b)
+                      False, False]
+        for a, b in zip(self.array['bitvararray'], match_mask):
+            assert_array_equal(a.mask, b)
 
     def test_bitvararray2(self):
         assert issubclass(self.array['bitvararray2'].dtype.type,
@@ -553,7 +553,7 @@ class TestParse:
         assert len(self.array['doublearray'][0]) == 0
         assert_array_equal(self.array['doublearray'][1],
                            [0, 1, np.inf, -np.inf, np.nan, 0, -1])
-        assert_array_equal(self.mask['doublearray'][1],
+        assert_array_equal(self.array['doublearray'][1].mask,
                            [False, False, False, False, False, False, True])
 
     def test_bit_array2(self):
