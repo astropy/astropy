@@ -1,8 +1,10 @@
+import abc
 import sys
 from copy import deepcopy
 import collections
 
 import numpy as np
+from numpy import ma
 
 from ..units import Unit
 from ..utils import OrderedDict, isiterable
@@ -92,104 +94,9 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
-class Column(np.ndarray):
-    """Define a data column for use in a Table object.
+class BaseColumn(object):
 
-    Parameters
-    ----------
-    name : str
-        Column name and key for reference within Table
-    data : list, ndarray or None
-        Column data values
-    dtype : numpy.dtype compatible value
-        Data type for column
-    shape : tuple or ()
-        Dimensions of a single row element in the column data
-    length : int or 0
-        Number of row elements in column data
-    description : str or None
-        Full description of column
-    units : str, `astropy.units.UnitBase` instance or None
-        Physical units
-    format : str or None
-        Format string for outputting column values.  This can be an
-        "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string.
-    meta : dict-like or None
-        Meta-data associated with the column
-
-    Examples
-    --------
-    A Column can be created in two different ways:
-
-    - Provide a ``data`` value and optionally a ``dtype`` value
-
-      Examples::
-
-        col = Column('name', data=[1, 2, 3])         # shape=(3,)
-        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-        col = Column('name', data=[1, 2, 3], dtype=float)
-        col = Column('name', np.array([1, 2, 3]))
-        col = Column('name', ['hello', 'world'])
-
-      The ``dtype`` argument can be any value which is an acceptable
-      fixed-size data-type initializer for the numpy.dtype() method.  See
-      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
-      Examples include:
-
-      - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
-      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
-
-      If no ``dtype`` value is provide then the type is inferred using
-      ``np.array(data)``.  When ``data`` is provided then the ``shape``
-      and ``length`` arguments are ignored.
-
-    - Provide zero or more of ``dtype``, ``shape``, ``length``
-
-      Examples::
-
-        col = Column('name')
-        col = Column('name', dtype=int, length=10, shape=(3,4))
-
-      The default ``dtype`` is ``np.float64`` and the default ``length`` is
-      zero.  The ``shape`` argument is the array shape of a single cell in the
-      column.  The default ``shape`` is () which means a single value in each
-      element.
-    """
-
-    def __new__(cls, name, data=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
-
-        if data is None:
-            dtype = (np.dtype(dtype).str, shape)
-            self_data = np.zeros(length, dtype=dtype)
-        elif isinstance(data, Column):
-            self_data = np.asarray(data.data, dtype=dtype)
-            if description is None:
-                description = data.description
-            if units is None:
-                units = units or data.units
-            if format is None:
-                format = data.format
-            if meta is None:
-                meta = deepcopy(data.meta)
-        else:
-            self_data = np.asarray(data, dtype=dtype)
-
-        self = self_data.view(cls)
-        self._name = name
-        self.units = units
-        self.format = format
-        self.description = description
-        self.parent_table = None
-
-        self.meta = OrderedDict()
-        if meta is not None:
-            self.meta.update(meta)
-
-        return self
+    __metaclass__ = abc.ABCMeta
 
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
@@ -219,21 +126,6 @@ class Column(np.ndarray):
     name = property(_get_name, _set_name)
 
     @property
-    def data(self):
-        return self.view(np.ndarray)
-
-    def copy(self, data=None, copy_data=True):
-        """Return a copy of the current Column instance.
-        """
-        if data is None:
-            data = self.view(np.ndarray)
-            if copy_data:
-                data = data.copy()
-
-        return Column(self.name, data, units=self.units, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
-
-    @property
     def descr(self):
         """Array-interface compliant full description of the column.
 
@@ -244,11 +136,13 @@ class Column(np.ndarray):
 
     def __repr__(self):
         if self.name:
+            print "HERE1"
             out = "<Column name={0} units={1} format={2} " \
                 "description={3}>\n{4}".format(
                 repr(self.name), repr(self.units),
                 repr(self.format), repr(self.description), repr(self.data))
         else:
+            print "HERE2"
             out = repr(self.data)
         return out
 
@@ -268,7 +162,7 @@ class Column(np.ndarray):
         equal: boolean
             True if all attributes are equal
         """
-        if not isinstance(col, Column):
+        if not isinstance(col, self.__class__):
             raise ValueError('Comparison `col` must be a Column object')
 
         attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
@@ -412,6 +306,171 @@ class Column(np.ndarray):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
+class Column(np.ndarray, BaseColumn):
+    """Define a data column for use in a Table object.
+
+    Parameters
+    ----------
+    name : str
+        Column name and key for reference within Table
+    data : list, ndarray or None
+        Column data values
+    dtype : numpy.dtype compatible value
+        Data type for column
+    shape : tuple or ()
+        Dimensions of a single row element in the column data
+    length : int or 0
+        Number of row elements in column data
+    description : str or None
+        Full description of column
+    units : str or None
+        Physical units
+    format : str or None
+        Format string for outputting column values.  This can be an
+        "old-style" (``format % value``) or "new-style" (`str.format`)
+        format specification string.
+    meta : dict-like or None
+        Meta-data associated with the column
+
+    Examples
+    --------
+    A Column can be created in two different ways:
+
+    - Provide a ``data`` value and optionally a ``dtype`` value
+
+      Examples::
+
+        col = Column('name', data=[1, 2, 3])         # shape=(3,)
+        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
+        col = Column('name', data=[1, 2, 3], dtype=float)
+        col = Column('name', np.array([1, 2, 3]))
+        col = Column('name', ['hello', 'world'])
+
+      The ``dtype`` argument can be any value which is an acceptable
+      fixed-size data-type initializer for the numpy.dtype() method.  See
+      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      Examples include:
+
+      - Python non-string type (float, int, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+
+      If no ``dtype`` value is provide then the type is inferred using
+      ``np.array(data)``.  When ``data`` is provided then the ``shape``
+      and ``length`` arguments are ignored.
+
+    - Provide zero or more of ``dtype``, ``shape``, ``length``
+
+      Examples::
+
+        col = Column('name')
+        col = Column('name', dtype=int, length=10, shape=(3,4))
+
+      The default ``dtype`` is ``np.float64`` and the default ``length`` is
+      zero.  The ``shape`` argument is the array shape of a single cell in the
+      column.  The default ``shape`` is () which means a single value in each
+      element.
+    """
+
+    def __new__(cls, name, data=None,
+                 dtype=None, shape=(), length=0,
+                 description=None, units=None, format=None, meta=None):
+
+        if data is None:
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = np.zeros(length, dtype=dtype)
+        elif isinstance(data, Column):
+            self_data = np.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if units is None:
+                units = units or data.units
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
+        else:
+            self_data = np.asarray(data, dtype=dtype)
+
+        self = self_data.view(cls)
+        self._name = name
+        self.units = units
+        self.format = format
+        self.description = description
+        self.parent_table = None
+
+        self.meta = OrderedDict()
+        if meta is not None:
+            self.meta.update(meta)
+
+        return self
+
+    @property
+    def data(self):
+        return self.view(np.ndarray)
+
+    def copy(self, data=None, copy_data=True):
+        """Return a copy of the current Column instance.
+        """
+        if data is None:
+            data = self.view(np.ndarray)
+            if copy_data:
+                data = data.copy()
+
+        return Column(self.name, data, units=self.units, format=self.format,
+                      description=self.description, meta=deepcopy(self.meta))
+
+
+class MaskedColumn(ma.MaskedArray, BaseColumn):
+
+    def __new__(cls, name, data=None,
+                 dtype=None, shape=(), length=0,
+                 description=None, units=None, format=None, meta=None):
+
+        if data is None:
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = ma.zeros(length, dtype=dtype)
+        elif isinstance(data, MaskedColumn):
+            self_data = ma.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if units is None:
+                units = units or data.units
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
+        else:
+            self_data = ma.asarray(data, dtype=dtype)
+
+        self = self_data.view(cls)
+        self._name = name
+        self.units = units
+        self.format = format
+        self.description = description
+        self.parent_table = None
+
+        self.meta = OrderedDict()
+        if meta is not None:
+            self.meta.update(meta)
+
+        return self
+
+    @property
+    def data(self):
+        return self.view(ma.MaskedArray)
+
+    def copy(self, data=None, copy_data=True):
+        """Return a copy of the current Column instance.
+        """
+        if data is None:
+            data = self.view(ma.MaskedArray)
+            if copy_data:
+                data = data.copy()
+
+        return MaskedColumn(self.name, data, units=self.units, format=self.format,
+                      description=self.description, meta=deepcopy(self.meta))
+
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -513,6 +572,8 @@ class Table(object):
     ----------
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
+    mask : numpy ndarray, dict, list, optional
+        The mask to initialize the table
     names : list, optional
         Specify column names
     dtypes : list, optional
@@ -524,8 +585,8 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, names=None, dtypes=None, meta=None,
-                 copy=True):
+    def __init__(self, data=None, mask=None, names=None, dtypes=None,
+                 meta=None, copy=True):
 
         # Set up a placeholder empty table
         self._data = None
@@ -923,6 +984,12 @@ class Table(object):
             return 0
         else:
             return len(self._data)
+
+    def create_mask(self):
+        if isinstance(self._data, ma.MaskedArray):
+            raise Exception("data array is already masked")
+        else:
+            self._data = ma.array(self._data)
 
     def index_column(self, name):
         """
