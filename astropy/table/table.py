@@ -606,7 +606,7 @@ class Table(object):
 
         # Check that mask is a boolean
         if type(masked) != bool and masked is not None:
-            raise TypeError('mask should be a boolean or None')
+            raise TypeError('Mask argument should be a boolean or None')
         else:
             self.masked = masked
 
@@ -721,7 +721,10 @@ class Table(object):
             for col in data:
                 if isinstance(col, (MaskedColumn, ma.MaskedArray)):
                     col_class = MaskedColumn
+                    self.masked = True
                     break
+            else:
+                self.masked = False
         else:
             col_class = MaskedColumn if self.masked else Column
 
@@ -755,8 +758,13 @@ class Table(object):
             dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtypes).ravel()
             columns = TableColumns()
+            if self.masked is None and isinstance(data, ma.MaskedArray):
+                col_class = MaskedColumn
+                self.masked = True
+            else:
+                col_class = MaskedColumn if self.masked else Column
             for name in names:
-                columns[name] = Column(name, self._data[name])
+                columns[name] = col_class(name, self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
 
