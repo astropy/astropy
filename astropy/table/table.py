@@ -422,14 +422,14 @@ class Column(BaseColumn, np.ndarray):
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
 
-    def __new__(cls, name, data=None,
+    def __new__(cls, name, data=None, mask=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = ma.zeros(length, dtype=dtype)
-        elif isinstance(data, MaskedColumn):
+        elif isinstance(data, (Column, MaskedColumn)):
             self_data = ma.asarray(data.data, dtype=dtype)
             if description is None:
                 description = data.description
@@ -443,6 +443,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             self_data = ma.asarray(data, dtype=dtype)
 
         self = self_data.view(MaskedColumn)
+        self.mask = mask
         self._name = name
         self.units = units
         self.format = format
@@ -588,8 +589,14 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, mask=None, names=None, dtypes=None,
+    def __init__(self, data=None, masked=None, names=None, dtypes=None,
                  meta=None, copy=True):
+
+        # Check that mask is a boolean
+        if type(masked) != bool and masked is not None:
+            raise TypeError('mask should be a boolean or None')
+        else:
+            self.masked = masked
 
         # Set up a placeholder empty table
         self._data = None
@@ -692,13 +699,22 @@ class Table(object):
         if not copy:
             raise ValueError('Cannot use copy=False with a list data input')
 
+        if self.masked is None:
+            col_class = Column
+            for col in data:
+                if isinstance(col, (MaskedColumn, ma.MaskedArray)):
+                    col_class = MaskedColumn
+                    break
+        else:
+            col_class = MaskedColumn if self.masked else Column
+
         cols = []
         def_names = _auto_names(n_cols)
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
-            if isinstance(col, Column):
-                col = Column((name or col.name), col, dtype=dtype)
+            if isinstance(col, (Column, MaskedColumn)):
+                col = col_class((name or col.name), col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = Column((name or def_name), col, dtype=dtype)
+                col = col_class((name or def_name), col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -763,7 +779,8 @@ class Table(object):
 
         names = [col.name for col in cols]
         dtypes = [col.descr for col in cols]
-        data = np.empty(lengths.pop(), dtype=dtypes)
+        empty_init = ma.empty if self.masked else np.empty
+        data = empty_init(lengths.pop(), dtype=dtypes)
         for col in cols:
             data[col.name] = col.data
 
@@ -972,6 +989,14 @@ class Table(object):
         return self.columns[item]
 
     @property
+    def masked(self):
+        return self._masked
+
+    @masked.setter
+    def masked(self, masked):
+        self._masked = masked
+
+    @property
     def dtype(self):
         return self._data.dtype
 
@@ -993,6 +1018,7 @@ class Table(object):
             raise Exception("data array is already masked")
         else:
             self._data = ma.array(self._data)
+
 
     def index_column(self, name):
         """
