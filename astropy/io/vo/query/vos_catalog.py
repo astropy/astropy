@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Common utilities for accessing VO simple services.
 """
@@ -7,9 +8,10 @@ Common utilities for accessing VO simple services.
 from __future__ import print_function, division
 
 # LOCAL
-from .. import table
 from . import webquery
+from .. import table
 from ..voexceptions import vo_warn, W24, W25
+from astropy.config import get_config_dir
 
 BASEURL = 'http://stsdas.stsci.edu/astrolib/vo_databases/'
 
@@ -19,7 +21,7 @@ __dbversion__ = 1
 #  until here - modify to read XML from web query
 #
 # http://docs.astropy.org/en/v0.1/_generated/astropy.config.data.get_data_fileobj.html#astropy.config.data.get_data_fileobj
-# db_cache = cache.Cache('~/.vodb', BASEURL)
+# db_cache = cache.Cache(get_config_dir(), BASEURL)
 
 
 # TODO:
@@ -46,7 +48,7 @@ __dbversion__ = 1
 #        they are tried in order.
 
 
-class VOSCatalog:
+class VOSCatalog(object):
     """
     A class to represent VO Service Catalog.
 
@@ -62,7 +64,7 @@ class VOSCatalog:
         """Get catalog URL."""
         return self._tree['url']
 
-class VOSDatabase:
+class VOSDatabase(object):
     def __init__(self, tree):
         self._tree = tree
 

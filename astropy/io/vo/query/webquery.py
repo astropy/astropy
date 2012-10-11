@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """webquery: Get the output of a specified URL.
 
@@ -51,6 +52,10 @@ import urllib
 import urllib2
 
 URLLIB2_HAS_TIMEOUT = (sys.hexversion >= 0x02060000)
+
+class WebQueryError(Exception):
+    pass
+
 
 def webquery_open(args=(), **kw):
     """
@@ -255,7 +260,7 @@ def webget(url, file=None, timeout=None, method='GET', **keywords):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(__doc__, file=sys.stderr)
+        raise WebQueryError(__doc__)
     else:
         arglist = []
         for arg in sys.argv[1:]:
