@@ -368,8 +368,8 @@ class UnitBase(object):
         """
         Return the physical type on the unit.
 
-        Example
-        -------
+        Examples
+        --------
         >>> u.m.physical_type
         'length'
         """
