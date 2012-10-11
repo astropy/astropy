@@ -136,13 +136,12 @@ class BaseColumn(object):
 
     def __repr__(self):
         if self.name:
-            print "HERE1"
-            out = "<Column name={0} units={1} format={2} " \
-                "description={3}>\n{4}".format(
+            out = "<{0} name={1} units={2} format={3} " \
+                "description={4}>\n{5}".format(
+                self.__class__.__name__,
                 repr(self.name), repr(self.units),
                 repr(self.format), repr(self.description), repr(self.data))
         else:
-            print "HERE2"
             out = repr(self.data)
         return out
 
@@ -443,7 +442,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         else:
             self_data = ma.asarray(data, dtype=dtype)
 
-        self = self_data.view(cls)
+        self = self_data.view(MaskedColumn)
         self._name = name
         self.units = units
         self.format = format
@@ -455,6 +454,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             self.meta.update(meta)
 
         return self
+
+    def __array_finalize__(self, obj):
+        BaseColumn.__array_finalize__(self, obj)
+        ma.MaskedArray.__array_finalize__(self, obj)
 
     @property
     def data(self):
