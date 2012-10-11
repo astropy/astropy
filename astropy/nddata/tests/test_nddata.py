@@ -71,7 +71,7 @@ def test_nddata_error_init_invalid_shape_2():
 def test_nddata_error_invalid_type(error):
     with pytest.raises(TypeError) as exc:
         NDData(np.ones((5, 5)), error=error)
-    assert exc.value.args[0] == 'error should be an instance of a NDError object'
+    assert exc.value.args[0] == 'error must be an instance of a NDError object'
 
 
 def test_nddata_copy():
