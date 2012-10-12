@@ -72,14 +72,15 @@ def test_create_angles():
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
-    with raises(IllegalUnitsError):
+    with raises(ValueError):
     	a13 = Angle(12.34, unit="not a unit")
 
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
+
+    a15 = Angle("5h4m3s") # single digits, no decimal
     
     #ensure the above angles that should match do
-    with raises(NotImplementedError):
-        a1 == a2 == a3 == a4 == a5 == a6 == a7
+    a1 == a2 == a3 == a4 == a5 == a6 == a7
     npt.assert_almost_equal(a1.radians, a2.radians)
     npt.assert_almost_equal(a2.degrees, a3.degrees)
     npt.assert_almost_equal(a3.radians, a4.radians)
@@ -595,7 +596,7 @@ def test_separations():
     Test angular separation functionality
     """
 
-    from .. import Coordinates, CoordinateBase, ConvertError, AngularSeparation
+    from .. import Coordinates, CoordinatesBase, ConvertError, AngularSeparation
 
     '''
     Angular separations between two points on a sphere are supported via the

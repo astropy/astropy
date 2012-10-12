@@ -14,7 +14,7 @@ from abc import abstractproperty
 
 import numpy as np
 
-import conversions as convert
+import angle_utilities as util
 from errors import *
 from .. import units as u
 
@@ -57,12 +57,12 @@ class Angle(object):
         if isinstance(angle, list):
             raise TypeError("Angles as lists are not yet supported.")
         
-        self.isArray = type(angle) in [list, np.ndarray]
+        self.is_array = type(angle) in [list, np.ndarray]
         
         if angle == None:
             raise ValueError("The Angle class requires a unit")
 
-        #angle_type = type(angle[0]) if self.isArray else type(angle)
+        #angle_type = type(angle[0]) if self.is_array else type(angle)
         
         # -------------------------------
         # unit validation and angle value
@@ -73,7 +73,7 @@ class Angle(object):
             unit = u.Unit(unit)
         elif unit == None:
             # try to determine unit from the "angle" value
-            if self.isArray:
+            if self.is_array:
                 try:
                     angle = [x.lower() for x in angle]
                 except AttributeError:
@@ -89,21 +89,21 @@ class Angle(object):
                         if unitStr in a:
                             a_unit = u.radian
                             a = angle.replace(unitStr, "")
-                            angle[idx] = math.radians(convert.parseDegrees(a))
+                            angle[idx] = math.radians(util.parse_degrees(a))
                             break
                     if unit == None:
                         for unitStr in ["hours", "hour", "hr"]:
                             if unitStr in a:
                                 a_unit = u.radian
                                 a = angle.replace(unitStr, "")
-                                angle[idx] = math.radians(convert.parseHours(a)*15.)
+                                angle[idx] = math.radians(util.parse_hours(a)*15.)
                                 break
                     if unit == None:
                         for unitStr in ["radians", "radian", "rad"]:
                             if unitStr in angle:
                                 a_unit = u.radian
                                 a = angle.replace(unitStr, "")
-                                angle[idx] = convert.parseRadians(a)
+                                angle[idx] = util.parse_radians(a)
                                 break
                     if a_unit == None:
                         raise ValueError("Could not parse the angle value '{0}' "
@@ -142,17 +142,17 @@ class Angle(object):
                              "astropy.unit module (e.g. 'from astropy import units as u',"
                              "then use 'u.degree').")
         
-        if self.isArray:
+        if self.is_array:
             pass # already performed conversions to radians above
         else:
             if unit == u.degree:
-                self._radians = math.radians(convert.parseDegrees(angle))
+                self._radians = math.radians(util.parse_degrees(angle))
             elif unit == u.radian:
                 self._radians = float(angle)
             elif unit == u.hour:
-                self._radians = convert.hoursToRadians(convert.parseHours(angle))
+                self._radians = util.hours_to_radians(util.parse_hours(angle))
             else:
-                raise IllegalUnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         # ---------------
         # bounds checking
@@ -215,17 +215,17 @@ class Angle(object):
     @property
     def hours(self):
         """ Returns the angle's value in hours (read-only property). """
-        return convert.radiansToHours(self.radians)
+        return util.radians_to_hours(self.radians)
 
     @property
     def hms(self):
         """ Returns the angle's value in hours, and print as an (h,m,s) tuple (read-only property). """
-        return convert.radiansToHMS(self.radians)
+        return util.radians_to_hms(self.radians)
 
     @property
     def dms(self):
         """ Returns the angle's value in degrees, and print as an (d,m,s) tuple (read-only property). """
-        return convert.radiansToDMS(self.radians)
+        return util.radians_to_dms(self.radians)
 
     def string(self, unit=u.degree, decimal=False, sep=" ", precision=5, pad=False): 
         """ Returns a string representation of the angle.
@@ -254,17 +254,15 @@ class Angle(object):
             elif unit == "radians":
                 unit = u.radian
             else:
-                raise IllegalUnitsError("The unit value provided was not one "
-                                        "of u.degree, u.hour, u.radian'.")
+                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
         else:
-                raise IllegalUnitsError("The unit value provided was not one "
-                                        "of u.degree, u.hour, u.radian'.")
+                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
         
         if unit == u.degree:
             if decimal:
                 return ("{0:0." + str(precision) + "f}").format(self.degrees)
             else:
-                return convert.degreesToString(self.degrees, precision=precision, sep=sep, pad=pad)
+                return util.degrees_to_string(self.degrees, precision=precision, sep=sep, pad=pad)
                 
         elif unit == u.radian:
             return str(self.radians)
@@ -273,9 +271,9 @@ class Angle(object):
             if decimal:
                 return ("{0:0." + str(precision) + "f}").format(self.hours)
             else:
-                return convert.hoursToString(self.hours, precision=precision, sep=sep, pad=pad)
+                return util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
         else:
-            raise IllegalUnitsError(unit)
+            raise ValueError(unit)
 
     # ----------------------------------------------------------------------------
     # Emulating numeric types
@@ -335,7 +333,9 @@ class Angle(object):
         return Angle(-self.radians, unit=u.radian)
 
     def __eq__(self, other):
-        if (other == None):
+        if isinstance(other, Angle):
+            return self.radians == other.radians
+        if other == None:
             return False
         else:
              raise NotImplementedError("To compare {0} objects, compare their "
@@ -414,11 +414,11 @@ class RA(Angle):
             #self._radians = math.radians(decimal_hours * 15.)
         elif unit == u.degree:
             pass # to Angle initializer
-            #decimal_degrees = convert.parseDegrees(angle)
+            #decimal_degrees = util.parse_degrees(angle)
             #self._radians = math.radians(decimal_degrees)
         elif unit == u.radian:
             pass # to Angle initializer
-            #self._radians = convert.parseRadians(angle)
+            #self._radians = util.parse_radians(angle)
         elif unit == None:
             # Try to figure out the unit if we can.
             if isinstance(angle, float) or isinstance(angle, int):
@@ -432,19 +432,19 @@ class RA(Angle):
                 # Angle +-2π to see if the angle falls in the bounds.
                 if "d" in angle or "°" in angle:
                     # If in the form "12d32m53s", look for the "d" and assume degrees.
-                    angle = math.radians(convert.parseDegrees(angle))
+                    angle = math.radians(util.parse_degrees(angle))
                     if 0 < angle < twopi:
                         unit = u.radian
                     else:
                         raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
                 elif "h" in angle:
                     # Same for "12h32m53s" for hours.
-                    #self._radians = math.radians(convert.parseHours(angle)*15.0)
+                    #self._radians = math.radians(util.parse_hours(angle)*15.0)
                     unit = u.hour
                 else:
                     # could be in a form: "54:43:26" -
                     # if so AND the resulting decimal value is > 24 or < -24, assume degrees
-                    decimal_value = convert.parseDegrees(angle)
+                    decimal_value = util.parse_degrees(angle)
                     if decimal_value > 24:
                         unit = u.degree
                     elif 0 <= decimal_value <= 24.0:
@@ -464,7 +464,7 @@ class RA(Angle):
         # By here, the unit should be defined.
         super(RA, self).__init__(angle, unit=unit, bounds=(0,360))
         
-    def hourAngle(self, lst, unit=None):
+    def hour_angle(self, lst, unit=None):
         """ Given a local sidereal time (LST), returns the hour angle for this RA.
         
             Parameters
@@ -483,7 +483,7 @@ class RA(Angle):
         
         return Angle(lst.radians - self.radians, unit=u.radian)
     
-    def lst(self, hourAngle, unit=u.hour):
+    def lst(self, hour_angle, unit=u.hour):
         """
         Given an hour angle, calculate the local sidereal time (LST), returning an `~astropy.coordinates.Angle` object.
     
@@ -504,24 +504,23 @@ class RA(Angle):
         return Angle(ha.radians + self.radians, units=u.radian)
 
 class Dec(Angle):
-    """ Represents a J2000 Declination """
+    """
+    Represents a J2000 declination value.
+    
+    This object can be created from a numeric value along with a unit, or else a 
+    string in any commonly represented format, e.g. "12 43 23.53", "-32d52m29s".
+    Unless otherwise specified via the 'unit' parameter, degrees are assumed.
+    Bounds are fixed to [-90,90] degrees.
+
+    Parameters
+    ----------
+    angle : float, int, str
+        The angle value
+    units : `~astropy.units` (preferred), str 
+        The units of the specified angle
+    """
     
     def __init__(self, angle, unit=u.degree):
-        """
-        Accepts a value representing a declination angle.
-        
-        This object can be created from a numeric value along with a unit, or else a 
-        string in any commonly represented format, e.g. "12 43 23.53", "-32d52m29s".
-        Unless otherwise specified via the 'unit' parameter, degrees are assumed.
-        Bounds are fixed to [-90,90] degrees.
-    
-        Parameters
-        ----------
-        angle : float, int
-            The angular value
-        units : str 
-            The units of the specified declination
-        """
         if isinstance(angle, type(self)):
             return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90,90))
 
@@ -707,21 +706,32 @@ class ICRSCoordinates(CoordinatesBase):
     def angle2(self):
         return self.dec
 
-    @abstractproperty
+    @property
     def icrs(self):
         return self
 
-    @abstractproperty
+    @property
     def galactic(self):
         raise NotImplementedError()
         
-    @abstractproperty
+    @property
     def horizontal(self):
         raise NotImplementedError()
 
 class GalacticCoordinates(CoordinatesBase):
     """ 
     Galactic coordinate (l,b) class.
+    
+    Parameters
+    ----------
+    l : `~astropy.coordinates.angle`, float, int, str
+        galactic latitude
+    b : `~astropy.coordinates.angle`, float, int, str
+        galactic longitude
+    unit : tuple
+        Units associated with the l and b values provided. Only needed if the unit cannot be
+        unambiguously determined from the given values.
+
     """
     def __init__(self, *args, **kwargs):
         
@@ -838,15 +848,15 @@ class GalacticCoordinates(CoordinatesBase):
     def angle2(self):
         return self.b
 
-    @abstractproperty
+    @property
     def icrs(self):
         raise NotImplementedError()
 
-    @abstractproperty
+    @property
     def galactic(self):
         return self
 
-    @abstractproperty
+    @property
     def horizontal(self):
         raise NotImplementedError()
 
@@ -862,15 +872,15 @@ class HorizontalCoordinates(CoordinatesBase):
     def angle2(self):
         return self.el
 
-    @abstractproperty
+    @property
     def icrs(self):
         raise NotImplementedError()
 
-    @abstractproperty
+    @property
     def galactic(self):
         raise NotImplementedError()
         
-    @abstractproperty
+    @property
     def horizontal(self):
         return self
 
@@ -885,25 +895,18 @@ class Coordinates(object):
     
     Parameters
     ----------
-    ra : `~astropy.coordinates.Angle`, str, float, int
-        A right ascension value; must be paired with a "dec" value. Returns an ICRSCoordinate.
-    dec : `~astropy.coordinates.Angle`, str, float, int
-        Must be paired with an 'ra' value.
-    l : `~astropy.coordinates.Angle`, str, float, int
-        Galactic latitude
-    b : `~astropy.coordinates.Angle`, str, float, int
-        Galactic longitude
-    az : `~astropy.coordinates.Angle`, str, float, int
-        An azimuth value in the horizontal coordinate system
-    el : `~astropy.coordinates.Angle`, str, float, int
-        An elevation value, must be paired with an 'az' value
+    (ra, dec) : `~astropy.coordinates.Angle`, str, float, int
+        Right ascension and declination values. Returns an ICRSCoordinate object.
+    (l, b) : `~astropy.coordinates.Angle`, str, float, int
+        Galactic latitude and longitude. Returns a GalacticCoordinates object.
+    (az, el) : `~astropy.coordinates.Angle`, str, float, int
+        Azimuth and elevation values. Returns a HorizontaolCoordinates object.
     
     unit : `~astropy.units.Unit`, str, tuple
         Units must be provided for each of the angles provided. If the unit value can be
         determined from the Angle objects directly, `unit` does not need to be specified.
         If `unit` is a single value, it is applied to both of the given angles. If one angle
         requires a unit and the other does not, use `None` as a placeholder.
-    
     """
     __meta__ = ABCMeta
     

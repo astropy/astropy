@@ -3,28 +3,22 @@
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates. '''
 
-__all__ = ['RangeError', 'IllegalUnitsError', 'IllegalHourError', 'IllegalMinuteError', 'IllegalSecondError']
+__all__ = ['RangeError', 'IllegalHourError', 'IllegalMinuteError', 'IllegalSecondError']
 
 class RangeError(Exception):
 	pass
 
-class IllegalUnitsError(Exception):
-    """
-    Usage:
-        if units not in VALIDUNITS:
-            raise IllegalUnitsError("")
-    """
-    def __init__(self, units):
-        self.units = units
-    def __str__(self):
-        return "The units specified must be one of the following: {0}. You specified: \'{1}\'".format(",".join(globals.VALIDUNITS), self.units)
-
-	
 class IllegalHourError(Exception):
     """
+    Returned when an hour value is not in the range [0,24).
+    
     Usage:
         if not 0 <= hr < 24:
             raise IllegalHourError(hour)
+
+    Parameters
+    ----------
+    hour : int, float
     """
     def __init__(self, hour):
         self.hour = hour
@@ -33,9 +27,15 @@ class IllegalHourError(Exception):
 
 class IllegalMinuteError(Exception):
     """
+    Returned when an minute value is not in the range [0,60).
+
     Usage:
         if not 0 <= min < 60:
             raise IllegalMinuteError(minute)
+
+    Parameters
+    ----------
+    minute : int, float
     """
     def __init__(self, minute):
         self.minute = minute
@@ -44,14 +44,20 @@ class IllegalMinuteError(Exception):
 
 class IllegalSecondError(Exception):
     """
+    Returned when an second value (time) is not in the range [0,60).
+
     Usage:
         if not 0 <= sec < 60:
             raise IllegalSecondError(second)
+    
+    Parameters
+    ----------
+    second : int, float
     """
     def __init__(self, second):
         self.second = second
     def __str__(self):
-        return "An invalid value for 'seconds' was found ('{0}'); must be in the range [0,60).".format(self.second)
+        return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
         
 class CoordinatesConversionError(Exception):
 	"""
