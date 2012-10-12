@@ -37,7 +37,7 @@ import itertools
 import numpy
 
 from ...table import Table
-
+from ...utils.misc import get_fileobj
 
 class InconsistentTableError(ValueError):
     pass
@@ -149,25 +149,13 @@ class BaseInputter(object):
         :returns: list of lines
         """
         try:
-            if hasattr(table, 'read'):
-                table = table.read()
-            elif '\n' not in table and '\r' not in table + '':
 
-                # Read in first few characters from file to determine compression
-                header = open(table, 'rb').read(4)
-
-                if header[:2] == '\x1f\x8b':  # gzip compression
-                    import gzip
-                    table = gzip.GzipFile(table)
-                elif header[:3] == 'BZh':  # bzip compression
-                    import bz2
-                    table = bz2.BZ2File(table)
-                else:
-                    table = open(table, 'r')
-
-                table = table.read()
+            if ('\n' not in table and '\r' not in table + '') or hasattr(table, 'read'):
+                with get_fileobj(table) as file_obj:
+                    table = file_obj.read()
 
             lines = table.splitlines()
+
         except TypeError:
             try:
                 # See if table supports indexing, slicing, and iteration

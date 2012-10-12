@@ -11,9 +11,83 @@ import functools
 import sys
 import textwrap
 import warnings
+import contextlib
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'NumpyRNGContext']
+
+
+@contextlib.contextmanager
+def get_fileobj(name_or_obj):
+    """
+    Given a filename or a file object, return a file object.
+
+    This supports passing filenames, URLs, and file objects, any of which can
+    be compressed in gzip or bzip2.
+
+    Parameters
+    ----------
+    name_or_obj : str or file-like
+        The filename of the file to access (if given as a string), or the file
+        object to access.
+    """
+
+    # Get a file object to the content
+    if isinstance(name_or_obj, basestring):
+        import re
+        if re.match('(http|https|ftp)://.*', name_or_obj):
+            import urllib
+            fileobj = urllib.urlopen(name_or_obj)
+        else:
+            fileobj = open(name_or_obj, 'rb')
+    else:
+        fileobj = name_or_obj
+
+    # Check if the file object supports random access, and if not, then wrap
+    # it in a StringIO buffer.
+    if not hasattr(fileobj, 'seek'):
+        from StringIO import StringIO
+        fileobj = StringIO(fileobj)
+
+    # Now read enough bytes to look at signature
+    signature = fileobj.read(4)
+    fileobj.seek(0)
+
+    if signature[:3] == '\x1f\x8b\x08':  # gzip
+        try:
+            import gzip
+            fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='r')
+            fileobj_new.read(1)  # need to check that the file is really gzip
+        except IOError:  # invalid gzip file
+            fileobj.seek(0)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
+    elif signature[:3] == 'BZh':  # bzip2
+        try:
+            # bz2.BZ2File does not support file objects, only filenames, so we
+            # need to write the data to a temporary file
+            import tempfile
+            tmp = tempfile.NamedTemporaryFile()
+            tmp.write(fileobj.read())
+            tmp.flush()
+            import bz2
+            fileobj_new = bz2.BZ2File(tmp.name, mode='r')
+            fileobj_new.read(1)  # need to check that the file is really bzip2
+        except IOError:  # invalid bzip2 file
+            fileobj.seek(0)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
+
+    yield fileobj
+
+    fileobj.close()
+
+    try:
+        tmp.close()
+    except UnboundLocalError:
+        pass
 
 
 def find_current_module(depth=1, finddiff=False):
