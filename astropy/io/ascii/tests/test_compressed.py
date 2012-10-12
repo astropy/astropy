@@ -7,7 +7,9 @@ from .. import read
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
-@pytest.mark.parametrize('filename', ['t/daophot.dat.gz', 't/latex1.tex.gz', 't/short.rdb.gz'])
+
+@pytest.mark.parametrize('filename', ['t/daophot.dat.gz', 't/latex1.tex.gz',
+                                      't/short.rdb.gz'])
 def test_gzip(filename):
     t_comp = read(os.path.join(ROOT, filename))
     t_uncomp = read(os.path.join(ROOT, filename.replace('.gz', '')))
