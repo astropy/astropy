@@ -152,7 +152,21 @@ class BaseInputter(object):
             if hasattr(table, 'read'):
                 table = table.read()
             elif '\n' not in table and '\r' not in table + '':
-                table = open(table, 'r').read()
+
+                # Read in first few characters from file to determine compression
+                header = open(table, 'rb').read(4)
+
+                if header[:2] == '\x1f\x8b':  # gzip compression
+                    import gzip
+                    table = gzip.GzipFile(table)
+                elif header[:3] == 'BZh':  # bzip compression
+                    import bz2
+                    table = bz2.BZ2File(table)
+                else:
+                    table = open(table, 'r')
+
+                table = table.read()
+
             lines = table.splitlines()
         except TypeError:
             try:
