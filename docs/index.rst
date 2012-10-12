@@ -32,6 +32,7 @@ User Documentation
    io/fits/index
    io/ascii/index
    io/vo/index
+   io/misc
    wcs/index
    tools/index
    utils/index
