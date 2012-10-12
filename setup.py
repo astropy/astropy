@@ -68,6 +68,14 @@ cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 
              }
 
+try:
+    import bdist_mpkg
+except ImportError:
+    pass
+else:
+    # Use a custom command to build a dmg (on MacOS X)
+    cmdclassd['bdist_dmg'] = setup_helpers.bdist_dmg
+
 if setup_helpers.HAVE_CYTHON and not release:
     from Cython.Distutils import build_ext
     # Builds Cython->C if in dev mode and Cython is present
