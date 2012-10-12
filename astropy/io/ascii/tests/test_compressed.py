@@ -16,7 +16,7 @@ def test_gzip(filename):
 
 
 @pytest.mark.parametrize('filename', ['t/short.rdb.bz2', 't/ipac.dat.bz2'])
-def test_gzip(filename):
+def test_bzip2(filename):
     t_comp = read(os.path.join(ROOT, filename))
     t_uncomp = read(os.path.join(ROOT, filename.replace('.bz2', '')))
     assert t_comp.dtype.names == t_uncomp.dtype.names
