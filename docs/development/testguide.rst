@@ -65,7 +65,7 @@ within those files.
 
 .. note::
     To test any compiled C/Cython extensions, you must run ``python
-    setup.py develop`` prior to running the py.test command-line
+    setup.py build_ext --inplace`` prior to running the py.test command-line
     script.  Otherwise, any tests that make use of these extensions
     will not succeed.  Similarly, in python 3, these tests will not
     run correctly in the source code, because they need the ``2to3``
