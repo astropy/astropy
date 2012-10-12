@@ -12,8 +12,8 @@ import sys
 import textwrap
 import warnings
 
-__all__ = ['find_current_module', 'fnpickle', 'fnunpickle', 'isiterable',
-           'deprecated', 'lazyproperty', 'deprecated_attribute']
+__all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty', 
+           'deprecated_attribute']
 
 
 def find_current_module(depth=1, finddiff=False):
