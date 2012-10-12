@@ -150,7 +150,7 @@ class BaseInputter(object):
         """
         try:
 
-            if ('\n' not in table and '\r' not in table + '') or hasattr(table, 'read'):
+            if hasattr(table, 'read') or ('\n' not in table and '\r' not in table + ''):
                 with get_fileobj(table) as file_obj:
                     table = file_obj.read()
 
