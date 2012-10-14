@@ -132,7 +132,6 @@ class NDData(object):
             if meta is None:
                 self.meta = {}
             else:
-                #TODO is this sensible what about isinstance(meta, dict) is True otherwise raise hell
                 self.meta = dict(meta)  # makes a *copy* of the passed-in meta
 
             self.units = units
