@@ -97,18 +97,18 @@ And it also works in the other direction::
 Displaying available equivalencies
 ----------------------------------
 
-The `equivalent_units` function also understands equivalencies.
+The `get_equivalent_units` function also understands equivalencies.
 For example, without passing equivalencies, there are no compatible
 units for `Hz` in the standard set::
 
-  >>> u.equivalent_units(u.Hz)
+  >>> u.Hz.get_equivalent_units()
   Primary name | Unit definition | Aliases
   Hz           | 1 / (s)         | Hertz, hertz
 
 However, when passing the spectral equivalency, you can see there are
 all kinds of things that `Hz` can be converted to::
 
-  >>> u.equivalent_units(u.Hz, u.sp())
+  >>> u.Hz.get_equivalent_units(u.sp())
   Primary name | Unit definition       | Aliases
   AA           | 1.00e-10 m            | Angstrom, angstrom
   AU           | 1.50e+11 m            |

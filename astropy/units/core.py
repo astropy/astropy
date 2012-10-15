@@ -20,7 +20,7 @@ from . import format as unit_format
 __all__ = [
     'UnitsException', 'UnitsWarning', 'UnitBase', 'NamedUnit',
     'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
-    'PrefixUnit', 'UnrecognizedUnit', 'equivalent_units']
+    'PrefixUnit', 'UnrecognizedUnit']
 
 
 class UnitsException(Exception):
@@ -374,6 +374,75 @@ class UnitBase(object):
         """
         from . import physical
         return physical.get_physical_type(self)
+
+    class EquivalentUnitsList(list):
+        """
+        A class to handle pretty-printing the result of
+        `get_equivalent_units`.
+        """
+        def __repr__(self):
+            if len(self) == 0:
+                return "[]"
+            else:
+                lines = []
+                for u in self:
+                    irred = u.decompose().to_string()
+                    if irred == u.name:
+                        irred = "irreducible"
+                    lines.append((u.name, irred, ', '.join(u.aliases)))
+
+                lines.sort()
+                lines.insert(0, ('Primary name', 'Unit definition', 'Aliases'))
+                widths = [0, 0, 0]
+                for line in lines:
+                    for i, col in enumerate(line):
+                        widths[i] = max(widths[i], len(col))
+
+                f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+                lines = [f.format(*line) for line in lines]
+                return '\n'.join(lines)
+
+    def get_equivalent_units(self, equivs=[]):
+        """
+        Return a list of all the units that are the same type as the
+        specified unit.
+
+        Parameters
+        ----------
+        u : Unit instance or string
+            The `Unit` to find similar units to.
+
+        equivs : list of equivalence pairs, optional
+            A list of equivalence pairs to also list.  See
+            :ref:`unit_equivalencies`.
+
+        Returns
+        -------
+        units : list of `UnitBase`
+            A list of unit objects that match `u`.  A subclass of
+            `list` (`EquivalentUnitsList`) is returned that
+            pretty-prints the list of units when output.
+        """
+        units = [self]
+        for equiv in equivs:
+            funit, tunit = equiv[:2]
+            if self.is_equivalent(funit):
+                units.append(tunit)
+            elif self.is_equivalent(tunit):
+                units.append(funit)
+
+        equivs = set()
+        for tunit in UnitBase._registry:
+            if not isinstance(tunit, PrefixUnit):
+                for u in units:
+                    try:
+                        tunit.get_converter(u)
+                    except UnitsException:
+                        pass
+                    else:
+                        equivs.add(tunit)
+
+        return self.EquivalentUnitsList(equivs)
 
 
 class NamedUnit(UnitBase):
@@ -1028,72 +1097,3 @@ def _condition_arg(value):
             raise ValueError(
                 "Value not scalar compatible or convertable into a float or "
                 "integer array")
-
-
-class EquivalentUnitsList(list):
-    def __repr__(self):
-        if len(self) == 0:
-            return "[]"
-        else:
-            lines = []
-            for u in self:
-                irred = u.decompose().to_string()
-                if irred == u.name:
-                    irred = "irreducible"
-                lines.append((u.name, irred, ', '.join(u.aliases)))
-
-            lines.sort()
-            lines.insert(0, ('Primary name', 'Unit definition', 'Aliases'))
-            widths = [0, 0, 0]
-            for line in lines:
-                for i, col in enumerate(line):
-                    widths[i] = max(widths[i], len(col))
-
-            f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
-            lines = [f.format(*line) for line in lines]
-            return '\n'.join(lines)
-
-
-def equivalent_units(u, equivs=[]):
-    """
-    Return a list of all the units that are the same type as the
-    specified unit.
-
-    Parameters
-    ----------
-    u : Unit instance or string
-        The `Unit` to find similar units to.
-
-    equivs : list of equivalence pairs, optional
-        A list of equivalence pairs to also list.  See
-        :ref:`unit_equivalencies`.
-
-    Returns
-    -------
-    units : list of `UnitBase`
-        A list of unit objects that match `u`.  A subclass of `list`
-        (`EquivalentUnitsList`) is returned that pretty-prints the
-        list of units when output.
-    """
-    u = Unit(u)
-
-    units = [u]
-    for equiv in equivs:
-        funit, tunit = equiv[:2]
-        if u.is_equivalent(funit):
-            units.append(tunit)
-        elif u.is_equivalent(tunit):
-            units.append(funit)
-
-    equivs = set()
-    for tunit in UnitBase._registry:
-        if not isinstance(tunit, PrefixUnit):
-            for u in units:
-                try:
-                    tunit.get_converter(u)
-                except UnitsException:
-                    pass
-                else:
-                    equivs.add(tunit)
-
-    return EquivalentUnitsList(equivs)

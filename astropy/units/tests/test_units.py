@@ -141,8 +141,8 @@ def test_decompose():
 
 
 def test_equivalent_units():
-    assert u.pound in u.equivalent_units(u.g)
-    assert u.J in u.equivalent_units(u.Hz, u.sp())
+    assert u.pound in u.g.get_equivalent_units()
+    assert u.J in u.Hz.get_equivalent_units(u.sp())
 
 
 def test_unknown_unit():
