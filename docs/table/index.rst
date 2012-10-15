@@ -53,7 +53,12 @@ about the table values and column definitions as follows::
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8.2, 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
 
-If instead you print the table then a nicely formatted version appears::
+From within the IPython notebook, the table is displayed as a formatted HTML table:
+
+.. image:: table_repr_html.png
+
+If you print the table (either from the noteboook or in a text console session) then a
+formatted version appears::
 
   >>> print(t)
     a   b   c
@@ -66,6 +71,7 @@ For a long table you can scroll up and down through the table one page at
 time::
 
   >>> t.more()
+
 
 Now examine some high-level information about the table::
 
