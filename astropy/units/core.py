@@ -20,8 +20,7 @@ from . import format as unit_format
 __all__ = [
     'UnitsException', 'UnitsWarning', 'UnitBase', 'NamedUnit',
     'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
-    'PrefixUnit', 'UnrecognizedUnit', 'get_equivalent_units',
-    'print_equivalent_units']
+    'PrefixUnit', 'UnrecognizedUnit', 'equivalent_units']
 
 
 class UnitsException(Exception):
@@ -1031,7 +1030,31 @@ def _condition_arg(value):
                 "integer array")
 
 
-def get_equivalent_units(u, equivs=[]):
+class EquivalentUnitsList(list):
+    def __repr__(self):
+        if len(self) == 0:
+            return "[]"
+        else:
+            lines = []
+            for u in self:
+                irred = u.decompose().to_string()
+                if irred == u.name:
+                    irred = "irreducible"
+                lines.append((u.name, irred, ', '.join(u.aliases)))
+
+            lines.sort()
+            lines.insert(0, ('Primary name', 'Unit definition', 'Aliases'))
+            widths = [0, 0, 0]
+            for line in lines:
+                for i, col in enumerate(line):
+                    widths[i] = max(widths[i], len(col))
+
+            f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+            lines = [f.format(*line) for line in lines]
+            return '\n'.join(lines)
+
+
+def equivalent_units(u, equivs=[]):
     """
     Return a list of all the units that are the same type as the
     specified unit.
@@ -1048,7 +1071,9 @@ def get_equivalent_units(u, equivs=[]):
     Returns
     -------
     units : list of `UnitBase`
-        A list of unit objects that match `u`.
+        A list of unit objects that match `u`.  A subclass of `list`
+        (`EquivalentUnitsList`) is returned that pretty-prints the
+        list of units when output.
     """
     u = Unit(u)
 
@@ -1071,47 +1096,4 @@ def get_equivalent_units(u, equivs=[]):
                 else:
                     equivs.add(tunit)
 
-    return equivs
-
-
-def print_equivalent_units(u, equivs=[]):
-    """
-    Print the units that are the same type as the specified unit.
-
-    Parameters
-    ----------
-    u : Unit instance or string
-        The `Unit` to find similar units to.
-
-    equivs : list of equivalence pairs, optional
-        A list of equivalence pairs to also list.  See
-        :ref:`unit_equivalencies`.
-
-    See also
-    --------
-    get_equivalent_units :
-        To get a list of equivalent units, rather than printing to the
-        console.
-    """
-    equivs = get_equivalent_units(u, equivs=equivs)
-
-    if len(equivs) == 0:
-        print("No similar units found")
-    else:
-        lines = []
-        for u in equivs:
-            irred = u.decompose().to_string()
-            if irred == u.name:
-                irred = "irreducible"
-            lines.append((u.name, irred, ', '.join(u.aliases)))
-
-        lines.sort()
-        lines.insert(0, ('Primary name', 'Unit definition', 'Aliases'))
-        widths = [0, 0, 0]
-        for line in lines:
-            for i, col in enumerate(line):
-                widths[i] = max(widths[i], len(col))
-
-        f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
-        for line in lines:
-            print(f.format(*line))
+    return EquivalentUnitsList(equivs)

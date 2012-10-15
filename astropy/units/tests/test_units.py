@@ -140,9 +140,9 @@ def test_decompose():
     assert u.Ry == u.Ry.decompose()
 
 
-def test_get_equivalent_units():
-    assert u.pound in u.get_equivalent_units(u.g)
-    assert u.J in u.get_equivalent_units(u.Hz, u.sp())
+def test_equivalent_units():
+    assert u.pound in u.equivalent_units(u.g)
+    assert u.J in u.equivalent_units(u.Hz, u.sp())
 
 
 def test_unknown_unit():
