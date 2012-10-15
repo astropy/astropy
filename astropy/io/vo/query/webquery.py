@@ -15,9 +15,10 @@ the returned data will be an HTML formatted document.  If an
 error is encountered, the returned data may be an HTML formatted
 error message.
 
-Usage:
-webquery.py url=URL host=HOST method=METHOD port=PORT file=FILE
-           [key=VALUE key=VALUE]
+Usage::
+
+    % webquery.py url=URL host=HOST method=METHOD port=PORT file=FILE
+        [key=VALUE key=VALUE]
 
 The default URL is the null string. The default host is the local
 host.  The method and port keywords may be used
@@ -33,13 +34,13 @@ Has the same command-line interface as the Perl script webquery.pl,
 but is vastly simpler since it uses much higher-level Python modules
 as an interface.
 
+:Authors: Perry Greenfield, Michael Droettboom
+
+:Organization: Space Telescope Science Institute
+
 See Also
 --------
 ftp://legacy.gsfc.nasa.gov/heasarc/software/web_batch/webquery.pl
-
-:Author: P. Greenfield, M. Droettboom
-
-:Organization: Space Telescope Science Institute
 
 """
 from __future__ import print_function, division
@@ -70,8 +71,8 @@ def webquery_open(args=(), **kw):
 
     If a parameter keyword has a list as its value, the parameter is
     included multiple times in the query, once for each argument.
-    """
 
+    """
     args = list(args)
     for key, value in kw.iteritems():
         args.append((key,value))
@@ -97,22 +98,22 @@ def webquery_open(args=(), **kw):
         elif isinstance(value,list):
             qkey = urllib.quote(key)
             for v in value:
-                query.append('%s=%s' % (qkey, urllib.quote_plus(str(v))))
+                query.append('{}={}'.format(qkey, urllib.quote_plus(str(v))))
         else:
-            query.append('%s=%s' %
-                         (urllib.quote(key), urllib.quote_plus(str(value))))
+            query.append('{}={}'.format(
+                urllib.quote(key), urllib.quote_plus(str(value))))
     query = '&'.join(query)
 
     if url[:1] == "/":
         # don't add an extra slash (purely for aesthetic purposes)
-        url = "http://%s:%d%s" % (host,port,url)
+        url = "http://{}:{}{}".format(host,port,url)
     else:
-        url = "http://%s:%d/%s" % (host,port,url)
+        url = "http://{}:{}/{}".format(host,port,url)
 
     if not query:
         query = None
     elif method == "GET":
-        url = "%s?%s" % (url,query)
+        url = "{}?{}".format(url,query)
         query = None
 
     if URLLIB2_HAS_TIMEOUT:
@@ -143,6 +144,7 @@ def webquery(args=(), **kw):
 
     If a parameter keyword has a list as its value, the parameter is
     included multiple times in the query, once for each argument.
+
     """
     args = list(args)
     for key, value in kw.iteritems():
@@ -174,7 +176,7 @@ def webquery(args=(), **kw):
 
 
 def webget_open(url, timeout=None, method='GET', **keywords):
-    '''
+    """
     Simplified version of webquery that presumes the url is well formed with
     some optional GET key/value pairs.
 
@@ -186,9 +188,10 @@ def webget_open(url, timeout=None, method='GET', **keywords):
 
     Returns a read-only file-like object to stream over the net.  This
     object should be closed when no longer needed.
-    '''
+
+    """
     if len(keywords) and not (url.endswith('?') or url.endswith('&')):
-        raise ValueError("url should already end with '?' or '&'")
+        raise WebQueryError("url should already end with '?' or '&'")
 
     query = []
     for key, value in keywords.iteritems():
@@ -198,10 +201,10 @@ def webget_open(url, timeout=None, method='GET', **keywords):
         elif isinstance(value,list):
             qkey = urllib.quote(key)
             for v in value:
-                query.append('%s=%s' % (qkey, urllib.quote_plus(str(v))))
+                query.append('{}={}'.format(qkey, urllib.quote_plus(str(v))))
         else:
-            query.append('%s=%s' %
-                         (urllib.quote(key), urllib.quote_plus(str(value))))
+            query.append('{}={}'.format(
+                urllib.quote(key), urllib.quote_plus(str(value))))
     query = '&'.join(query)
 
     if method == 'GET':
@@ -210,7 +213,7 @@ def webget_open(url, timeout=None, method='GET', **keywords):
     elif method == 'POST':
         pass
     else:
-        raise ValueError("method kwarg must be 'GET' or 'POST'")
+        raise WebQueryError("method kwarg must be 'GET' or 'POST'")
 
     if URLLIB2_HAS_TIMEOUT:
         return urllib2.urlopen(url, query, timeout)
@@ -227,7 +230,7 @@ def webget_open(url, timeout=None, method='GET', **keywords):
 
 
 def webget(url, file=None, timeout=None, method='GET', **keywords):
-    '''
+    """
     Simplified version of webquery that presumes the url is well formed with
     some optional GET key/value pairs.
 
@@ -237,7 +240,8 @@ def webget(url, file=None, timeout=None, method='GET', **keywords):
     parameters part of the url, the url string should end with '&' if
     more are expected).  Returns the info obtained as part of the
     retrieval.
-    '''
+
+    """
     inurl = webget_open(url, timeout=timeout, method=method, **keywords)
 
     close_outfile = False
