@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.14 - an implementation of the FITS WCS standard.
+  WCSLIB 4.15 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 4.14 2012/07/13 10:02:27 cal103 Exp $
+  $Id: spc.h,v 4.15 2012/09/26 14:26:05 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.14 - C routines that implement the spectral coordinate systems
+* WCSLIB 4.15 - C routines that implement the spectral coordinate systems
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -377,9 +377,11 @@
 *                        X-types) only if restreq%3 != 0.
 *
 *   err       struct wcserr **
-*                       For function return values > 1, this struct will
-*                       contain a detailed error message.  May be NULL if an
-*                       error message is not desired.
+*                       If enabled, for function return values > 1, this
+*                       struct will contain a detailed error message, see
+*                       wcserr_enable().  May be NULL if an error message is
+*                       not desired.  Otherwise, the user is responsible for
+*                       deleting the memory allocated for the wcserr struct.
 *
 * Function return value:
 *             int       Status return value:
@@ -435,9 +437,11 @@
 *                       coordinate.
 *
 *   err       struct wcserr **
-*                       For function return values > 1, this struct will
-*                       contain a detailed error message.  May be NULL if an
-*                       error message is not desired.
+*                       If enabled, for function return values > 1, this
+*                       struct will contain a detailed error message, see
+*                       wcserr_enable().  May be NULL if an error message is
+*                       not desired.  Otherwise, the user is responsible for
+*                       deleting the memory allocated for the wcserr struct.
 *
 * Function return value:
 *             int       Status return value:
@@ -495,9 +499,11 @@
 *                       keyvalue.
 *
 *   err       struct wcserr **
-*                       For function return values > 1, this struct will
-*                       contain a detailed error message.  May be NULL if an
-*                       error message is not desired.
+*                       If enabled, for function return values > 1, this
+*                       struct will contain a detailed error message, see
+*                       wcserr_enable().  May be NULL if an error message is
+*                       not desired.  Otherwise, the user is responsible for
+*                       deleting the memory allocated for the wcserr struct.
 *
 * Function return value:
 *             int       Status return value:
@@ -561,9 +567,11 @@
 *                       units.
 *
 *   err       struct wcserr **
-*                       For function return values > 1, this struct will
-*                       contain a detailed error message.  May be NULL if an
-*                       error message is not desired.
+*                       If enabled, for function return values > 1, this
+*                       struct will contain a detailed error message, see
+*                       wcserr_enable().  May be NULL if an error message is
+*                       not desired.  Otherwise, the user is responsible for
+*                       deleting the memory allocated for the wcserr struct.
 *
 * Function return value:
 *             int       Status return value:

@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.14 - an implementation of the FITS WCS standard.
+  WCSLIB 4.15 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 4.14 2012/07/13 10:02:27 cal103 Exp $
+  $Id: wcsfix.c,v 4.15 2012/09/26 14:26:05 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>

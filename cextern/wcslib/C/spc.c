@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.14 - an implementation of the FITS WCS standard.
+  WCSLIB 4.15 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 4.14 2012/07/13 10:02:27 cal103 Exp $
+  $Id: spc.c,v 4.15 2012/09/26 14:26:05 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -723,6 +723,8 @@ int spctype(
   char ctype[9], ptype_t, sname_t[32], units_t[8], xtype_t;
   int  restreq_t = 0;
 
+  if (err) *err = 0x0;
+
   /* Copy with blank padding. */
   sprintf(ctype, "%-8.8s", ctypei);
   ctype[8] = '\0';
@@ -930,6 +932,7 @@ int spcspxe(
   if ((status = specx(type, crvalS, restfrq, restwav, &spx))) {
     status = SPCERR_BAD_SPEC_PARAMS;
     if (err) {
+      *err = spx.err;
       (*err)->status = status;
     } else {
       free(spx.err);
@@ -1110,6 +1113,7 @@ int spcxpse(
   if (specx(type, crvalX, restfrq, restwav, &spx)) {
     status = SPCERR_BAD_SPEC_PARAMS;
     if (err) {
+      *err = spx.err;
       (*err)->status = status;
     } else {
       free(spx.err);
@@ -1246,7 +1250,7 @@ int spctrne(
   static const char *function = "spctrne";
 
   char *cp, ptype1, ptype2, stype1[5], stype2[5], xtype1, xtype2;
-  int  restreq;
+  int  restreq, status;
   double crvalX, dS2dX, dXdS1;
 
   if (restfrq == 0.0 && restwav == 0.0) {
@@ -1262,9 +1266,9 @@ int spctrne(
     }
   }
 
-  if (spcspxe(ctypeS1, crvalS1, restfrq, restwav, &ptype1, &xtype1,
-              &restreq, &crvalX, &dXdS1, err)) {
-    return (*err)->status;
+  if ((status = spcspxe(ctypeS1, crvalS1, restfrq, restwav, &ptype1, &xtype1,
+                        &restreq, &crvalX, &dXdS1, err))) {
+    return status;
   }
 
   /* Pad with blanks. */
@@ -1284,9 +1288,9 @@ int spctrne(
     }
   }
 
-  if (spcxpse(ctypeS2, crvalX, restfrq, restwav, &ptype2, &xtype2,
-              &restreq, crvalS2, &dS2dX, err)) {
-    return (*err)->status;
+  if ((status = spcxpse(ctypeS2, crvalX, restfrq, restwav, &ptype2, &xtype2,
+                        &restreq, crvalS2, &dS2dX, err))) {
+    return status;
   }
 
   /* Are the X-types compatible? */
