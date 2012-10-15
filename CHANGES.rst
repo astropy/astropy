@@ -100,7 +100,7 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-  - Updated to wcslib 4.14 [#327]
+  - Updated to wcslib 4.15 [#418]
 
   - Fixed a problem with handling FITS headers on locales that do not use
     dot as a decimal separator. This required an upstream fix to wcslib which
