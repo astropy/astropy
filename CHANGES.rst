@@ -33,7 +33,7 @@ see the "What's New" section of the documentation for more details.
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Astropy doc themes moved into ``astropy.sphinx`` to allow affilated packages
+- Astropy doc themes moved into ``astropy.sphinx`` to allow affiliated packages
   to access them.
 
 - Added expanded documentation for the ``astropy.cosmology`` sub-package.
@@ -115,4 +115,4 @@ Bug Fixes
 0.1 (2012-06-19)
 ----------------
 
-- Inital release.
+- Initial release.
