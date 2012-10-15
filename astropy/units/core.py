@@ -648,7 +648,7 @@ class Unit(NamedUnit):
 
     - From a string::
 
-        Unit(s, format=None, parse_strict='raise')
+        Unit(s, format=None, parse_strict='silent')
 
       Construct from a string representing a (possibly compound) unit.
 
@@ -677,6 +677,12 @@ class Unit(NamedUnit):
         Unit(unit)
 
       Returns the given unit unchanged.
+
+    - From `None`::
+
+        Unit()
+
+      Returns the null unit.
 
     - The last form, which creates a new `Unit` is described in detail
       below.

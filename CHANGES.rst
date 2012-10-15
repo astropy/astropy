@@ -86,10 +86,12 @@ Bug Fixes
 
   - Fixed a minor string formatting issue.
 
-- ``astropy.io.vo``
+- ``astropy.io.votable``
 
   - Changed the ``pedantic`` configuration option to be ``False`` by default
     due to the vast proliferation of non-compliant VO Tables. [#296]
+
+  - Renamed `astropy.io.vo` to `astropy.io.votable`.
 
 - ``astropy.table``
 
@@ -108,7 +110,7 @@ Bug Fixes
   configuration--ensures that tests don't have any impact on the default log
   location or contents. [#291]
 
-- Various minor documentation fixes [#293] 
+- Various minor documentation fixes [#293]
 
 
 

@@ -31,7 +31,8 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
           filename=None,
           _debug_python_based_parser=False):
     """
-    Parses a VOTABLE_ xml file (or file-like object), and returns a `~astropy.io.vo.tree.VOTable` object.
+    Parses a VOTABLE_ xml file (or file-like object), and returns a
+    `~astropy.io.votable.tree.VOTable` object.
 
     Parameters
     ----------
@@ -56,7 +57,7 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         the standard Python mechanisms.  See the `warnings`
         module in the Python standard library for more information.
         When not provided, uses the configuration setting
-        `astropy.io.vo.pedantic`, which defaults to True.
+        `astropy.io.votable.pedantic`, which defaults to True.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
@@ -78,11 +79,11 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
     Returns
     -------
-    votable : `astropy.io.vo.tree.VOTableFile` object
+    votable : `astropy.io.votable.tree.VOTableFile` object
 
     See also
     --------
-    astropy.io.vo.exceptions : The exceptions this function may raise.
+    astropy.io.votable.exceptions : The exceptions this function may raise.
     """
     invalid = invalid.lower()
     assert invalid in ('exception', 'mask')
@@ -110,13 +111,15 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
 
 def parse_single_table(source, **kwargs):
     """
-    Parses a VOTABLE_ xml file (or file-like object), reading and returning only the first `~astropy.io.vo.tree.Table` instance.
+    Parses a VOTABLE_ xml file (or file-like object), reading and
+    returning only the first `~astropy.io.votable.tree.Table`
+    instance.
 
     See `parse` for a description of the keyword arguments.
 
     Returns
     -------
-    votable : `astropy.io.vo.tree.Table` object
+    votable : `astropy.io.votable.tree.Table` object
     """
     if kwargs.get('table_number') is None:
         kwargs['table_number'] = 0
@@ -209,7 +212,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
                 print_code_line(line, w['nchar'], file=output)
             output.write(u'\n')
     else:
-        output.write(u'astropy.io.vo found no violations.\n\n')
+        output.write(u'astropy.io.votable found no violations.\n\n')
 
     success = 0
     if xmllint:

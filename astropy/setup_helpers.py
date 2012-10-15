@@ -935,7 +935,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
 
     For example::
 
-       add_legacy_alias('astropy.io.vo', 'vo')
+       add_legacy_alias('astropy.io.votable', 'vo')
 
     If the legacy package is importable and it is not merely the
     compatibility shim, a warning is printed to the user, and the
