@@ -594,7 +594,7 @@ class _UnitMetaClass(type):
     the constructor before the new instance is actually created, so we
     can return an existing one.
     """
-    def __call__(self, s=None, represents=None, format=None, register=False,
+    def __call__(self, s, represents=None, format=None, register=False,
                  doc=None, parse_strict='raise'):
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
@@ -722,7 +722,7 @@ class Unit(NamedUnit):
     """
     __metaclass__ = _UnitMetaClass
 
-    def __init__(self, st, represents, register=False, doc=None,
+    def __init__(self, st, represents=None, register=False, doc=None,
                  format=None):
         represents = Unit(represents)
         self._represents = represents
