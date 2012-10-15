@@ -34,6 +34,9 @@ from ...utils.console import color_print
 
 __dbversion__ = 1
 
+class VOSError(Exception):
+    pass
+
 class VOSCatalog(object):
     """
     A class to represent VO Service Catalog.
@@ -52,13 +55,26 @@ class VOSCatalog(object):
 
 class VOSDatabase(object):
     def __init__(self, tree):
+        """
+        A class to represent a collection of `VOSCatalog`.
+
+        Parameters
+        ----------
+        tree : JSON tree
+
+        Raises
+        ------
+        VOSError
+            If given `tree` does not have 'catalogs' key.
+
+        """
         self._tree = tree
 
         if tree['__version__'] > __dbversion__:
             vo_warn(W24)
 
         if not 'catalogs' in tree:
-            raise IOError("Invalid VO service catalog database")
+            raise VOSError("Invalid VO service catalog database")
 
         self._catalogs = tree['catalogs']
 
@@ -68,19 +84,47 @@ class VOSDatabase(object):
             yield key, VOSCatalog(val)
 
     def get_catalog(self, name):
-        """Get one catalog of given name."""
+        """
+        Get one catalog of given name.
+
+        Parameters
+        ----------
+        name : str
+            Primary key identifying the catalog.
+
+        Returns
+        -------
+        value : `VOSCatalog` object
+
+        Raises
+        ------
+        VOSError
+            If catalog is not found.
+
+        """
         if not name in self._catalogs:
-            raise ValueError("No catalog '%s' found." % name)
+            raise VOSError("No catalog '{}' found.".format(name))
         return VOSCatalog(self._catalogs[name])
 
     def list_catalogs(self):
-        """List catalog names."""
+        """List of catalog names."""
         return self._catalogs.keys()
 
 def get_remote_catalog_db(dbname):
     """
     Get a database of VO services (which is a JSON file) from a remote
     location.
+
+    Parameters
+    ----------
+    dbname : str
+        Prefix of JSON file to download from `BASEURL`.
+        If cached, cached copy is used instead.
+
+    Returns
+    -------
+    value : `VOSDatabase` object
+
     """
     fd = get_data_fileobj(BASEURL() + dbname + '.json', cache=True)
     if IS_PY3K:
@@ -106,20 +150,18 @@ def _vo_service_request(url, pedantic, kwargs):
     # detect that case.
     for param in tab.iter_fields_and_params():
         if param.ID.lower() == 'error':
-            raise IOError(
-                "Catalog server '%s' returned error '%s'" %
-                (url, param.value))
+            raise VOSError("Catalog server '{}' returned error '{}'".format(
+                url, param.value))
         break
 
     for info in tab.resources[0].infos:
         if info.name == 'QUERY_STATUS' and info.value != 'OK':
             if info.content is not None:
-                long_descr = ':\n%s' % info.content
+                long_descr = ':\n{}'.format(info.content)
             else:
                 long_descr = ''
-            raise IOError(
-                "Catalog server '%s' returned status '%s'%s" %
-                (url, info.value, long_descr))
+            raise VOSError("Catalog server '{}' returned status '{}'{}".format(
+                url, info.value, long_descr))
         break
 
     return tab.get_first_table()
@@ -168,6 +210,16 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         No checking is done that the arguments are accepted by
         the service etc.
 
+    Returns
+    -------
+    value : `astropy.io.vo.tree.Table` object
+        First table from first successful VO service request.
+
+    Raises
+    ------
+    VOSError
+        If VO service request fails.
+
     """
     if catalog_db is None:
         catalog_db = get_remote_catalog_db(service_type)
@@ -182,9 +234,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     elif isinstance(catalog_db, VOSDatabase):
         catalogs = catalog_db.get_catalogs()
     else:
-        raise TypeError(
-            'catalog_db must be a catalog database, a list of catalogs, '
-            'or a catalog')
+        raise VOSError('catalog_db must be a catalog database, '
+                       'a list of catalogs, or a catalog')
 
     if pedantic is None:
         pedantic = VO_PEDANTIC
@@ -201,14 +252,14 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             url = catalog.get_url()
 
         if verbose:
-            util.color_print('green', 'Trying {}'.format(url), bold=True)
+            color_print('Trying {}'.format(url), 'green')
 
         try:
             return _vo_service_request(url, pedantic, kwargs)
         except Exception as e:
             vo_warn(W25, (url, str(e)))
 
-    raise IOError('None of the available catalogs returned valid results.')
+    raise VOSError('None of the available catalogs returned valid results.')
 
 def list_catalogs(service_type):
     """

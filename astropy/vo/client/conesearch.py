@@ -12,9 +12,15 @@ from __future__ import print_function, division
 from . import vos_catalog
 from ...utils.misc import dict_soft_update
 
+_SERVICE_TYPE = 'conesearch'
+#_SERVICE_TYPE = 'conesearch_test' # FOR DEV ONLY
+
+class ConeSearchError(Exception):
+    pass
+
 def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
     """
-    Do a conesearch on the given catalog.
+    Do a cone search on the given catalog.
 
     Parameters
     ----------
@@ -27,10 +33,10 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
         Radius of the cone to search, given in decimal degrees.
 
     catalog_db : str, optional
-        See `astropy.io.vo.query.vos_catalog.catalog_db`.
+        See `astropy.vo.client.vos_catalog.call_vo_service`.
 
-    pedantic : bool, optional
-        See `astropy.io.vo.table.parse.pedantic`.
+    pedantic : bool or `None`
+        See `astropy.io.vo.table.parse`.
 
     verb : {1, 2, 3}
         Verbosity indicating how many columns are to be returned
@@ -49,18 +55,22 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
         service should ignore the parameter and should always
         return the same columns for every request.
 
-    **kwargs : keywords
-        Additional keywords may be provided to pass along to the
-        server. These arguments are specific to the particular
-        catalog(s) being queried.
+    **kwargs : dictionary
+        See `astropy.vo.client.vos_catalog.call_vo_service`.
+
+    Raises
+    ------
+    ConeSearchError
+        When invalid inputs are passed into cone search.
 
     """
     # Validate arguments
-    ra = float(ra)
-    dec = float(dec)
-    sr = float(sr)
-    verb = int(verb)
-    assert verb in (1, 2, 3)
+    ra  = _local_conversion(float, ra)
+    dec = _local_conversion(float, dec)
+    sr  = _local_conversion(float, sr)
+    verb = _local_conversion(int, verb)
+    if verb not in (1, 2, 3):
+        raise ConeSearchError('Verbosity must be 1, 2, or 3')
 
     args = {}
     dict_soft_update(args, kwargs)
@@ -71,14 +81,22 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
             'VERB': verb})
 
     return vos_catalog.call_vo_service(
-        'conesearch', catalog_db=catalog_db,
+        _SERVICE_TYPE, catalog_db=catalog_db,
         pedantic=pedantic, kwargs=args)
-
 
 def list_catalogs():
     """
     Return the available conesearch catalogs as a list of strings.
     These can be used for the *catalog_db* argument to
     :func:`conesearch`.
+
     """
-    return vos_catalog.list_catalogs('conesearch')
+    return vos_catalog.list_catalogs(_SERVICE_TYPE)
+
+def _local_conversion(func, x):
+    """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
+    try:
+        y = func(x)
+    except ValueError as e:
+        raise ConeSearchError(e.message)
+    return y
