@@ -8,9 +8,10 @@ import io
 import json
 
 # LOCAL CONFIG
-from astropy.config.configuration import ConfigurationItem, get_config_items
-from astropy.config.data import get_data_fileobj
-from astropy import log
+from ....config.configuration import ConfigurationItem, get_config_items
+from ....config.data import get_data_fileobj
+from ....logger import log
+
 
 BASEURL = ConfigurationItem('conesearch_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
@@ -29,7 +30,7 @@ from . import webquery
 from .. import table
 from ..exceptions import vo_warn, W24, W25
 from ..util import IS_PY3K
-from astropy.utils.console import color_print
+from ....utils.console import color_print
 
 __dbversion__ = 1
 

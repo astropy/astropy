@@ -8,11 +8,9 @@ Based on the `Simple Cone Search Version 1.03 Recommendation
 """
 from __future__ import print_function, division
 
-# ASTROPY
-from ...utils.misc import dict_soft_update
-
 # LOCAL
 from . import vos_catalog
+from ...utils.misc import dict_soft_update
 
 def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
     """
