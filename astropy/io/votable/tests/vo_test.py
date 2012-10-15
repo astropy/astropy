@@ -186,7 +186,7 @@ class TestFixups:
             get_data_filename('data/regression.xml'),
             pedantic=False).get_first_table()
         self.array = self.table.array
-        self.mask = self.table.mask
+        self.mask = self.table.array.mask
 
     def test_implicit_id(self):
         assert_array_equal(self.array['string_test_2'],
@@ -200,7 +200,7 @@ class TestReferences:
             pedantic=False)
         self.table = self.votable.get_first_table()
         self.array = self.table.array
-        self.mask = self.table.mask
+        self.mask = self.table.array.mask
 
     def test_fieldref(self):
         fieldref = self.table.groups[1].entries[0]
@@ -227,7 +227,7 @@ class TestReferences:
 
     def test_ref_table(self):
         tables = list(self.votable.iter_tables())
-        for x, y in zip(tables[0].array[0], tables[1].array[0]):
+        for x, y in zip(tables[0].array.data[0], tables[1].array.data[0]):
             assert_array_equal(x, y)
 
     def test_iter_coosys(self):
@@ -240,7 +240,7 @@ def test_select_columns_by_index():
         get_data_filename('data/regression.xml'),
         pedantic=False, columns=columns).get_first_table()
     array = table.array
-    mask = table.mask
+    mask = table.array.mask
     assert array['string_test'][0] == b"String & test"
     columns = ['string_test', 'unsignedByte', 'bitarray']
     for c in columns:
@@ -254,7 +254,7 @@ def test_select_columns_by_name():
         get_data_filename('data/regression.xml'),
         pedantic=False, columns=columns).get_first_table()
     array = table.array
-    mask = table.mask
+    mask = table.array.mask
     assert array['string_test'][0] == b"String & test"
     for c in columns:
         assert not np.all(mask[c])
@@ -267,7 +267,7 @@ class TestParse:
             get_data_filename('data/regression.xml'),
             pedantic=False).get_first_table()
         self.array = self.table.array
-        self.mask = self.table.mask
+        self.mask = self.table.array.mask
 
     def test_string_test(self):
         assert issubclass(self.array['string_test'].dtype.type,
@@ -363,8 +363,8 @@ class TestParse:
             for a0, b0 in zip(a, b):
                 assert issubclass(a0.dtype.type, np.int64)
                 assert_array_equal(a0, b0)
-        assert self.array['array'][3].mask[0][0]
-        assert self.array['array'][4].mask[0][1]
+        assert self.array.data['array'][3].mask[0][0]
+        assert self.array.data['array'][4].mask[0][1]
 
     def test_bit(self):
         assert issubclass(self.array['bit'].dtype.type,
@@ -553,7 +553,7 @@ class TestParse:
         assert len(self.array['doublearray'][0]) == 0
         assert_array_equal(self.array['doublearray'][1],
                            [0, 1, np.inf, -np.inf, np.nan, 0, -1])
-        assert_array_equal(self.array['doublearray'][1].mask,
+        assert_array_equal(self.array.data['doublearray'][1].mask,
                            [False, False, False, False, False, False, True])
 
     def test_bit_array2(self):
@@ -577,7 +577,7 @@ class TestThroughTableData(TestParse):
         self.table = parse(join(TMP_DIR, "test_through_tabledata.xml"),
                            pedantic=False).get_first_table()
         self.array = self.table.array
-        self.mask = self.table.mask
+        self.mask = self.table.array.mask
 
     def test_schema(self):
         assert_validate_schema(join(TMP_DIR, "test_through_tabledata.xml"))
@@ -593,7 +593,7 @@ class TestThroughBinary(TestParse):
         self.table = parse(join(TMP_DIR, "test_through_binary.xml"),
                            pedantic=False).get_first_table()
         self.array = self.table.array
-        self.mask = self.table.mask
+        self.mask = self.table.array.mask
 
     # Masked values in bit fields don't roundtrip through the binary
     # representation -- that's not a bug, just a limitation, so
@@ -689,10 +689,10 @@ def test_build_from_scratch():
 
     table = votable.get_first_table()
     assert_array_equal(
-        table.mask, np.array([(False, [[False, False], [False, False]]),
-                              (False, [[False, False], [False, False]])],
-                             dtype=[('filename', '?'),
-                                    ('matrix', '?', (2, 2))]))
+        table.array.mask, np.array([(False, [[False, False], [False, False]]),
+                                    (False, [[False, False], [False, False]])],
+                                    dtype=[('filename', '?'),
+                                           ('matrix', '?', (2, 2))]))
 
 
 def test_validate():

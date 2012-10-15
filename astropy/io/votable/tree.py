@@ -57,6 +57,19 @@ RESIZE_AMOUNT = 1.5
 # FACTORY FUNCTIONS
 
 
+def _resize(masked, new_size):
+    """
+    Masked arrays can not be resized inplace, and `np.resize` and
+    `ma.resize` are both incompatible with structured arrays.
+    Therefore, we do all this.
+    """
+    new_array = ma.zeros((new_size,), dtype=masked.dtype)
+    length = min(len(masked), new_size)
+    new_array.data[:length] = masked.data[:length]
+    new_array.mask[:length] = masked.mask[:length]
+    return new_array
+
+
 def _lookup_by_id_factory(iterator, element_name, doc):
     """
     Creates a function useful for looking up an element by ID.
@@ -1834,25 +1847,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     """
     TABLE_ element: optionally contains data.
 
-    It contains the following publicly-accessible members, all of
+    It contains the following publicly-accessible member, all of
     which are mutable:
 
-        *array*: A Numpy recarray of the data itself, where each row
-        is a row of votable data, and columns are named and typed
-        based on the <FIELD> elements of the table.
-
-        *mask*: A Numpy recarray of only boolean values, set to *True*
-        wherever a value is undefined.
+        *array*: A Numpy masked array of the data itself, where each
+        row is a row of votable data, and columns are named and typed
+        based on the <FIELD> elements of the table.  The mask is
+        parallel to the data array, except for variable-length fields.
+        For those fields, the numpy array's column type is "object"
+        (``"O"``), and another masked array is stored there.
 
     If the Table contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
-    and *mask* will be zero-length arrays.
-
-    .. note::
-        In a future version of the vo package, the *array* and *mask*
-        elements will likely be combined into a single Numpy masked
-        record array.  However, there are a number of deficiencies the
-        current implementation of Numpy that prevent this.
+    will have zero-length.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -1887,8 +1894,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self._links  = HomogeneousList(Link)
         self._infos  = HomogeneousList(Info)
 
-        self.array = np.array([])
-        self.mask  = np.array([])
+        self.array = ma.array([])
 
         warn_unknown_attrs('TABLE', extra.iterkeys(), config, pos)
 
@@ -2015,9 +2021,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def create_arrays(self, nrows=0, config={}):
         """
-        Create new arrays to hold the data based on the current set of
-        fields, and store them in the *array* and *mask* member
-        variables.  Any data in existing arrays will be lost.
+        Create a new array to hold the data based on the current set
+        of fields, and store them in the *array* and member variable.
+        Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
         """
@@ -2044,7 +2050,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if x._unique_name == x.ID:
                         id = x.ID.encode('utf-8')
                     else:
-                        id = (x._unique_name.encode('utf-8'), x.ID.encode('utf-8'))
+                        id = (x._unique_name.encode('utf-8'),
+                              x.ID.encode('utf-8'))
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
@@ -2057,8 +2064,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     descr_mask.append((d[0], new_type, d[2]))
             mask = np.zeros((nrows,), dtype=descr_mask)
 
-        self.array = array
-        self.mask = mask
+        self.array = ma.array(array, mask=mask)
 
     def _resize_strategy(self, size):
         """
@@ -2185,13 +2191,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if tag == 'TABLEDATA':
                         warn_unknown_attrs(
                             'TABLEDATA', data.iterkeys(), config, pos)
-                        self.array, self.mask = self._parse_tabledata(
+                        self.array = self._parse_tabledata(
                             iterator, colnumbers, fields, config)
                         break
                     elif tag == 'BINARY':
                         warn_unknown_attrs(
                             'BINARY', data.iterkeys(), config, pos)
-                        self.array, self.mask = self._parse_binary(
+                        self.array = self._parse_binary(
                             iterator, colnumbers, fields, config)
                         break
                     elif tag == 'FITS':
@@ -2203,7 +2209,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                 raise ValueError()
                         except ValueError:
                             vo_raise(E17, (), config, pos)
-                        self.array, self.mask = self._parse_fits(
+                        self.array = self._parse_fits(
                             iterator, extnum, config)
                         break
                     else:
@@ -2237,12 +2243,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         # allocation is by factors of 1.5.
         invalid = config.get('invalid', 'exception')
 
-        array = self.array
-        mask = self.mask
         # Need to have only one reference so that we can resize the
         # array
+        array = self.array
         del self.array
-        del self.mask
 
         parsers = [field.converter.parse for field in fields]
         binparsers = [field.converter.binparse for field in fields]
@@ -2321,10 +2325,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     while numrows + chunk_size > alloc_rows:
                         alloc_rows = self._resize_strategy(alloc_rows)
                     if alloc_rows != len(array):
-                        array.resize((alloc_rows,))
-                        mask.resize((alloc_rows,))
+                        array = _resize(array, alloc_rows)
                     array[numrows:numrows + chunk_size] = array_chunk
-                    mask[numrows:numrows + chunk_size] = mask_chunk
+                    array.mask[numrows:numrows + chunk_size] = mask_chunk
                     numrows += chunk_size
                     array_chunk = []
                     mask_chunk = []
@@ -2335,10 +2338,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         # Now, resize the array to the exact number of rows we need and
         # put the last chunk values in there.
         alloc_rows = numrows + len(array_chunk)
-        array.resize((alloc_rows,))
-        mask.resize((alloc_rows,))
+
+        array = _resize(array, alloc_rows)
         array[numrows:] = array_chunk
-        mask[numrows:] = mask_chunk
+        array.mask[numrows:] = mask_chunk
         numrows += len(array_chunk)
 
         if (self.nrows is not None and
@@ -2347,7 +2350,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             warn_or_raise(W18, W18, (self.nrows, numrows), config, pos)
         self._nrows = numrows
 
-        return array, mask
+        return array
 
     def _parse_binary(self, iterator, colnumbers, fields, config):
         fields = self.fields
@@ -2408,12 +2411,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 raise EOFError
             return result
 
-        array = self.array
-        mask = self.mask
         # Need to have only one reference so that we can resize the
         # array
+        array = self.array
         del self.array
-        del self.mask
 
         binparsers = [field.converter.binparse for field in fields]
 
@@ -2423,8 +2424,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             # Resize result arrays if necessary
             if numrows >= alloc_rows:
                 alloc_rows = self._resize_strategy(alloc_rows)
-                array.resize((alloc_rows,))
-                mask.resize((alloc_rows,))
+                array = _resize(array, alloc_rows)
 
             row_data = []
             row_mask_data = []
@@ -2450,13 +2450,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 row_mask[i] = row_mask_data[i]
 
             array[numrows] = tuple(row)
-            mask[numrows] = tuple(row_mask)
+            array.mask[numrows] = tuple(row_mask)
             numrows += 1
 
-        array = np.resize(array, (numrows,))
-        mask = np.resize(mask, (numrows,))
+        array = _resize(array, numrows)
 
-        return array, mask
+        return array
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:
@@ -2498,7 +2497,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
 
-        return array, self.mask
+        return array
 
     def to_xml(self, w, **kwargs):
         with w.tag(
@@ -2537,7 +2536,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
         array = self.array
-        mask = self.mask
 
         write_null_values = kwargs.get('write_null_values', False)
         with w.tag(u'TABLEDATA'):
@@ -2546,8 +2544,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 not kwargs.get('_debug_python_based_parser')):
                 fields = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
-                tablewriter.write_tabledata(w.write, array, mask, fields,
-                                            write_null_values, indent, 1 << 8)
+                tablewriter.write_tabledata(
+                    w.write, array.data, array.mask, fields, write_null_values,
+                    indent, 1 << 8)
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
@@ -2559,8 +2558,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                           for i, field in enumerate(fields)]
                 for row in xrange(len(array)):
                     write(tr_start)
-                    array_row = array[row]
-                    mask_row = mask[row]
+                    array_row = array.data[row]
+                    mask_row = array.mask[row]
                     for i, output in fields:
                         data = array_row[i]
                         masked = mask_row[i]
@@ -2585,7 +2584,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         fields = self.fields
         array = self.array
-        mask = self.mask
 
         with w.tag(u'BINARY'):
             with w.tag(u'STREAM', encoding='base64'):
@@ -2594,8 +2592,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
                 data = io.BytesIO()
                 for row in xrange(len(array)):
-                    array_row = array[row]
-                    array_mask = mask[row]
+                    array_row = array.data[row]
+                    array_mask = array.mask[row]
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
@@ -2631,7 +2629,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 meta[key] = val
 
         table = Table(self.array, meta=meta)
-        table.mask = self.mask
+        table.mask = self.array.mask
 
         for field in self.fields:
             column = table[field.ID]
@@ -2658,8 +2656,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             column = table[colname]
             new_table.fields.append(Field.from_table_column(votable, column))
 
-        new_table.array = np.asarray(table)
-        new_table.mask = table.mask
+        new_table.array = ma.array(np.asarray(table), mask=table.mask)
 
         return new_table
 
