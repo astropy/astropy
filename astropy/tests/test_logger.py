@@ -115,8 +115,8 @@ def test_warnings_logging_with_custom_class():
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
-def test_warning_logging_with_io_vo_warning():
-    from ..io.vo.exceptions import W02, vo_warn
+def test_warning_logging_with_io_votable_warning():
+    from ..io.votable.exceptions import W02, vo_warn
 
     with warnings.catch_warnings(record=True) as warn_list:
         log.enable_warnings_logging()

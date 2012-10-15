@@ -47,7 +47,7 @@ class Converter(object):
 
     Parameters
     ----------
-    field : `~astropy.io.vo.table.Field`
+    field : `~astropy.io.votable.table.Field`
         object describing the datatype
 
     config : dict
@@ -1098,7 +1098,7 @@ def get_converter(field, config={}, pos=None):
 
     Parameters
     ----------
-    field : astropy.io.vo.tree.Field
+    field : astropy.io.votable.tree.Field
 
     config : dict, optional
         Parser configuration dictionary
@@ -1108,7 +1108,7 @@ def get_converter(field, config={}, pos=None):
 
     Returns
     -------
-    converter : astropy.io.vo.converters.Converter
+    converter : astropy.io.votable.converters.Converter
     """
     if field.datatype not in converter_mapping:
         vo_raise(E06, (field.datatype, field.ID), config)

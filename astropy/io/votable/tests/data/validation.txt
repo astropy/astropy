@@ -1,4 +1,4 @@
-Validation report for /home/mdboom/Work/builds/astropy/build/lib.linux-x86_64-2.7/astropy/io/vo/tests/data/regression.xml
+Validation report for regression.xml
 
 11: W01: Array uses commas rather than whitespace
 <PARAM datatype="float" name="wrong_arraysize" value="0.000000,0.0000…

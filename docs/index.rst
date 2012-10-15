@@ -31,7 +31,7 @@ User Documentation
    cosmology/index
    io/fits/index
    io/ascii/index
-   io/vo/index
+   io/votable/index
    io/misc
    wcs/index
    tools/index
