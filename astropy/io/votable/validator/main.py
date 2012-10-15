@@ -30,7 +30,7 @@ def get_urls(destdir, s):
     urls = []
     for type in types:
         filename = get_data_filename(
-            'astropy/io/vo/validator/urls/cone.{0}.dat.gz'.format(type))
+            'astropy/io/votable/validator/urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
                 s.next()
@@ -75,8 +75,8 @@ def write_subindex(args):
 
 
 def make_validation_report(
-    urls=None, destdir='astropy.io.vo.validator.results', multiprocess=True,
-    stilts=None):
+    urls=None, destdir='astropy.io.votable.validator.results',
+    multiprocess=True, stilts=None):
     """
     Validates a large collection of web-accessible VOTable files.
 
@@ -91,7 +91,7 @@ def make_validation_report(
 
     destdir : path, optional
         The directory to write the report to.  By default, this is a
-        directory called `astropy.io.vo.validator.results` in the
+        directory called `astropy.io.votable.validator.results` in the
         current directory.  If the directory does not exist, it will
         be created.
 
@@ -102,9 +102,9 @@ def make_validation_report(
     stilts : path, optional
         To perform validation with `votlint` from the the Java-based
         `STILTS <http://www.star.bris.ac.uk/~mbt/stilts/>`_ VOTable
-        parser, in addition to `astropy.io.vo`, set this to the path
-        of the `stilts.jar` file.  `java` on the system shell path
-        will be used to run it.
+        parser, in addition to `astropy.io.votable`, set this to the
+        path of the `stilts.jar` file.  `java` on the system shell
+        path will be used to run it.
 
     Notes
     -----

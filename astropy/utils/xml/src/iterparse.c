@@ -11,8 +11,8 @@
  *     faster and more memory efficient than the alternatives in the
  *     Python standard library because it does not build a tree of
  *     objects, and also throws away most text nodes, since for
- *     astropy.io.vo (the primary user of this library) we only care
- *     about simple text nodes contained between a single pair of
+ *     astropy.io.votable (the primary user of this library) we only
+ *     care about simple text nodes contained between a single pair of
  *     open/close element nodes.  It also has an optimization for
  *     recognizing the most commonly occuring element in a VO file,
  *     "TD".

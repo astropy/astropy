@@ -135,8 +135,9 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
 # ATTRIBUTE CHECKERS
 def check_astroyear(year, field, config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *year* is
-    not a valid astronomical year as defined by the VOTABLE standard.
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
+    *year* is not a valid astronomical year as defined by the VOTABLE
+    standard.
 
     Parameters
     ----------
@@ -159,7 +160,7 @@ def check_astroyear(year, field, config={}, pos=None):
 
 def check_string(string, attr_name, config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
     *string* is not a string or Unicode string.
 
     Parameters
@@ -189,9 +190,10 @@ def resolve_id(ID, id, config={}, pos=None):
 
 def check_ucd(ucd, config={}, pos=None):
     """
-    Warns or raises a `~astropy.io.vo.exceptions.VOTableSpecError`
-    if *ucd* is not a valid `unified content descriptor`_ string as
-    defined by the VOTABLE standard.
+    Warns or raises a
+    `~astropy.io.votable.exceptions.VOTableSpecError` if *ucd* is not
+    a valid `unified content descriptor`_ string as defined by the
+    VOTABLE standard.
 
     Parameters
     ----------
@@ -1247,7 +1249,8 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         """
         A list of :class:`Link` instances used to reference more
         details about the meaning of the FIELD_.  This is purely
-        informational and is not used by the `astropy.io.vo` package.
+        informational and is not used by the `astropy.io.votable`
+        package.
         """
         return self._links
 
@@ -2956,7 +2959,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
             xml_header = u"""
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Produced with astropy.io.vo version %(lib_version)s
+<!-- Produced with astropy.io.votable version %(lib_version)s
      http://www.astropy.org/ -->\n"""
             w.write(xml_header.lstrip() % locals())
 

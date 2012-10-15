@@ -25,8 +25,9 @@ notable features of this package are:
 * Create a table by referencing (not copying) an existing `numpy` table.
 
 Currently `astropy.table` is used when reading an ASCII table using
-`astropy.io.ascii`.  Future releases of AstroPy are expected to use the |Table|
-class for other subpackages such as `astropy.io.vo` and `astropy.io.fits`.
+`astropy.io.ascii`.  Future releases of AstroPy are expected to use
+the |Table| class for other subpackages such as `astropy.io.votable`
+and `astropy.io.fits`.
 
 Getting Started
 ===============

@@ -1,14 +1,14 @@
 .. include:: references.txt
 
-**************************************
-VOTable XML handling (`astropy.io.vo`)
-**************************************
+*******************************************
+VOTable XML handling (`astropy.io.votable`)
+*******************************************
 
 Introduction
 ============
 
-The `astropy.io.vo` subpackage converts VOTable XML files to and from
-Numpy record arrays.
+The `astropy.io.votable` subpackage converts VOTable XML files to and
+from Numpy record arrays.
 
 Getting Started
 ===============
@@ -17,14 +17,14 @@ Reading a VOTable file
 ----------------------
 
 To read in a VOTable file, pass a file path to
-`~astropy.io.vo.table.parse`::
+`~astropy.io.votable.parse`::
 
-  from astropy.io.vo import parse
+  from astropy.io.votable import parse
   votable = parse("votable.xml")
 
-``votable`` is a `~astropy.io.vo.tree.VOTableFile` object, which can
-be used to retrieve and manipulate the data and save it back out to
-disk.
+``votable`` is a `~astropy.io.votable.tree.VOTableFile` object, which
+can be used to retrieve and manipulate the data and save it back out
+to disk.
 
 VOTable files are made up of nested ``RESOURCE`` elements, each of
 which may contain one or more ``TABLE`` elements.  The ``TABLE``
@@ -39,8 +39,8 @@ resources in the ``VOTABLE`` file::
       pass
 
 However, if the nested structure of the resources is not important,
-one can use `~astropy.io.vo.tree.VOTableFile.iter_tables` to return a
-flat list of all tables::
+one can use `~astropy.io.votable.tree.VOTableFile.iter_tables` to
+return a flat list of all tables::
 
   for table in votable.iter_tables():
     # ... do something with the table ...
@@ -48,17 +48,17 @@ flat list of all tables::
 
 Finally, if there is expected to be only one table in the file, it
 might be simplest to just use
-`~astropy.io.vo.tree.VOTableFile.get_first_table`::
+`~astropy.io.votable.tree.VOTableFile.get_first_table`::
 
   table = votable.get_first_table()
 
 Even easier, there is a convenience method to parse a VOTable file and
 return the first table all in one step::
 
-  from astropy.io.vo.table import parse_single_table
+  from astropy.io.votable import parse_single_table
   table = parse_single_table("votable.xml")
 
-From a `~astropy.io.vo.tree.Table` object, one can get the data itself
+From a `~astropy.io.votable.tree.Table` object, one can get the data itself
 in the ``array`` member variable::
 
   data = table.array
@@ -105,7 +105,7 @@ Building a new table from scratch
 It is also possible to build a new table, define some field datatypes
 and populate it with data::
 
-  from astropy.io.vo.tree import VOTableFile, Resource, Table, Field
+  from astropy.io.votable.tree import VOTableFile, Resource, Table, Field
 
   # Create a new VOTable file...
   votable = VOTableFile()
@@ -139,31 +139,32 @@ Outputting a VOTable file
 -------------------------
 
 To save a VOTable file, simply call the
-`~astropy.io.vo.tree.VOTableFile.to_xml` method.  It accepts either a
-string or unicode path, or a Python file-like object::
+`~astropy.io.votable.tree.VOTableFile.to_xml` method.  It accepts
+either a string or unicode path, or a Python file-like object::
 
   votable.to_xml('output.xml')
 
 There are currently two data storage formats supported by
-`astropy.io.vo`.  The ``TABLEDATA`` format is XML-based and stores
-values as strings representing numbers.  The ``BINARY`` format is more
-compact, and stores numbers in base64-encoded binary.  The storage
-format can be set on a per-table basis using the
-`~astropy.io.vo.tree.Table.format` attribute, or globally using the
-`~astropy.io.vo.tree.VOTableFile.set_all_tables_format` method::
+`astropy.io.votable`.  The ``TABLEDATA`` format is XML-based and
+stores values as strings representing numbers.  The ``BINARY`` format
+is more compact, and stores numbers in base64-encoded binary.  The
+storage format can be set on a per-table basis using the
+`~astropy.io.votable.tree.Table.format` attribute, or globally using
+the `~astropy.io.votable.tree.VOTableFile.set_all_tables_format`
+method::
 
   votable.get_first_table().format = 'binary'
   votable.set_all_tables_format('binary')
   votable.to_xml('binary.xml')
 
-Using `io.vo`
-=============
+Using `io.votable`
+==================
 
 Standard compliance
 -------------------
 
-`astropy.io.vo.table` supports the `VOTable Format Definition Version
-1.1
+`astropy.io.votable.table` supports the `VOTable Format Definition
+Version 1.1
 <http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html>`_
 and `Version 1.2
 <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html>`_.
@@ -186,11 +187,11 @@ Pedantic mode
 
 Many VOTABLE files in the wild do not conform to the VOTABLE
 specification.  If reading one of these files causes exceptions, you
-may turn off pedantic mode in `astropy.io.vo` by passing
-``pedantic=False`` to the `~astropy.io.vo.table.parse` or
-`~astropy.io.vo.table.parse_single_table` functions::
+may turn off pedantic mode in `astropy.io.votable` by passing
+``pedantic=False`` to the `~astropy.io.votable.parse` or
+`~astropy.io.votable.parse_single_table` functions::
 
-  from astropy.io.vo.table import parse
+  from astropy.io.votable import parse
   votable = parse("votable.xml", pedantic=False)
 
 Note, however, that it is good practice to report these errors to the
@@ -199,22 +200,23 @@ file into compliance with the specification.
 
 Even with ``pedantic`` turned off, many warnings may still be omitted.
 These warnings are all of the type
-`~astropy.io.vo.exceptions.VOTableSpecWarning` and can be turned off
-using the standard Python `warnings` module.
+`~astropy.io.votable.exceptions.VOTableSpecWarning` and can be turned
+off using the standard Python `warnings` module.
 
 Missing values
 --------------
 
-Any value in the table may be "missing".  `astropy.io.vo.table` stores
-a parallel array in each `~astropy.io.vo.tree.Table` instance called
-`~astropy.io.vo.tree.Table.mask` to keep track of missing values.
-This array is ``False`` anywhere the value is missing.
+Any value in the table may be "missing".  `astropy.io.votable` stores
+a parallel array in each `~astropy.io.votable.tree.Table` instance
+called `~astropy.io.votable.tree.Table.mask` to keep track of missing
+values.  This array is ``False`` anywhere the value is missing.
 
 .. note::
-   In the future, the `~astropy.io.vo.tree.Table.array` and
-   `~astropy.io.vo.tree.Table.mask` members will likely be combined
-   into a single masked record array.  There are implementation bugs
-   in current versions of Numpy that prevent this at the moment.
+   In the future, the `~astropy.io.votable.tree.Table.array` and
+   `~astropy.io.votable.tree.Table.mask` members will likely be
+   combined into a single masked record array.  There are
+   implementation bugs in current versions of Numpy that prevent this
+   at the moment.
 
 Datatype mappings
 -----------------
@@ -266,8 +268,9 @@ Examining field types
 ---------------------
 
 To look up more information about a field in a table, one can use the
-`~astropy.io.vo.tree.Table.get_field_by_id` method, which returns the
-`~astropy.io.vo.tree.Field` object with the given ID.  For example::
+`~astropy.io.votable.tree.Table.get_field_by_id` method, which returns
+the `~astropy.io.votable.tree.Field` object with the given ID.  For
+example::
 
   >>> field = table.get_field_or_param_by_id('Dec')
   >>> field.datatype
@@ -278,8 +281,8 @@ To look up more information about a field in a table, one can use the
 .. note::
    Field descriptors should not be mutated -- they will have no effect
    on the record arrays storing the data.  This shortcoming will be
-   addressed in a future version of `astropy.io.vo` that makes better
-   use of `astropy.table`.
+   addressed in a future version of `astropy.io.votable` that makes
+   better use of `astropy.table`.
 
 Performance considerations
 --------------------------
@@ -302,7 +305,7 @@ See Also
 Reference/API
 =============
 
-.. automodapi:: astropy.io.vo
+.. automodapi:: astropy.io.votable
    :no-inheritance-diagram:
    :skip: VOWarning
    :skip: VOTableChangeWarning
@@ -311,26 +314,26 @@ Reference/API
    :skip: IOWarning
    :skip: VOTableSpecError
 
-.. automodapi:: astropy.io.vo.tree
+.. automodapi:: astropy.io.votable.tree
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.converters
+.. automodapi:: astropy.io.votable.converters
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.ucd
+.. automodapi:: astropy.io.votable.ucd
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.util
+.. automodapi:: astropy.io.votable.util
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.validator
+.. automodapi:: astropy.io.votable.validator
    :no-inheritance-diagram:
 
-.. automodapi:: astropy.io.vo.xmlutil
+.. automodapi:: astropy.io.votable.xmlutil
    :no-inheritance-diagram:
 
-astropy.io.vo.exceptions Module
--------------------------------
+astropy.io.votable.exceptions Module
+------------------------------------
 
 .. toctree::
    :maxdepth: 1
