@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.14 - an implementation of the FITS WCS standard.
+  WCSLIB 4.15 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 4.14 2012/07/13 10:02:27 cal103 Exp $
+  $Id: wcsulex.l,v 4.15 2012/09/26 14:26:05 cal103 Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -107,8 +107,8 @@ jmp_buf wcsulex_abort_jmp_env;
 
 %%
 	static const char *function = "wcsulexe";
-
-        char ctmp[72];
+	
+	char ctmp[72];
 	int bracket  = 0;
 	int operator = 0;
 	int paren    = 0;
@@ -119,6 +119,8 @@ jmp_buf wcsulex_abort_jmp_env;
 	void add(double *factor, double types[], double *expon, double *scale,
 	    double units[]);
 	int yylex_destroy(void);
+	
+	if (err) *err = 0x0;
 	
 	*func = 0;
 	for (i = 0; i < WCSUNITS_NTYPE; i++) {
