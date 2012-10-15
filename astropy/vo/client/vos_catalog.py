@@ -8,9 +8,9 @@ import io
 import json
 
 # LOCAL CONFIG
-from ....config.configuration import ConfigurationItem, get_config_items
-from ....config.data import get_data_fileobj
-from ....logger import log
+from ...config.configuration import ConfigurationItem, get_config_items
+from ...config.data import get_data_fileobj
+from ...logger import log
 
 
 BASEURL = ConfigurationItem('conesearch_baseurl',
@@ -27,10 +27,10 @@ except KeyError as e:
 
 # LOCAL
 from . import webquery
-from .. import table
-from ..exceptions import vo_warn, W24, W25
-from ..util import IS_PY3K
-from ....utils.console import color_print
+from ...io.vo import table
+from ...io.vo.exceptions import vo_warn, W24, W25
+from ...io.vo.util import IS_PY3K
+from ...utils.console import color_print
 
 __dbversion__ = 1
 
