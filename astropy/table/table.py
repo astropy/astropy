@@ -780,7 +780,7 @@ class Table(object):
                 print line
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_units=False):
+                show_units=False, html=False):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -807,13 +807,16 @@ class Table(object):
         show_units : bool
             Include a header row for units (default=False)
 
+        html : bool
+            Format the output as an HTML table (default=False)
+
         Returns
         -------
         lines : list
             Formatted table as a list of strings
         """
         lines, n_header = _pformat_table(self, max_lines, max_width,
-                                         show_name, show_units)
+                                         show_name, show_units, html)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -848,6 +851,10 @@ class Table(object):
         """
         _more_tabcol(self, max_lines, max_width, show_name,
                      show_units)
+
+    def _repr_html_(self):
+        lines = self.pformat(html=True)
+        return ''.join(lines)
 
     def __getitem__(self, item):
         if isinstance(item, basestring):
