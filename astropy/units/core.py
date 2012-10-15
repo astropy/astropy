@@ -378,7 +378,7 @@ class UnitBase(object):
     class EquivalentUnitsList(list):
         """
         A class to handle pretty-printing the result of
-        `get_equivalent_units`.
+        `find_equivalent_units`.
         """
         def __repr__(self):
             if len(self) == 0:
@@ -402,7 +402,7 @@ class UnitBase(object):
                 lines = [f.format(*line) for line in lines]
                 return '\n'.join(lines)
 
-    def get_equivalent_units(self, equivs=[]):
+    def find_equivalent_units(self, equivs=[]):
         """
         Return a list of all the units that are the same type as the
         specified unit.

@@ -31,7 +31,7 @@ There are many units already predefined in the module. One may use the
 following function to list all the existing predefined units of a
 given type::
 
-  >>> u.g.get_equivalent_units()
+  >>> u.g.find_equivalent_units()
   Primary name | Unit definition | Aliases
   g            | 1.00e-03 kg     | gram
   kg           | irreducible     | kilogram
