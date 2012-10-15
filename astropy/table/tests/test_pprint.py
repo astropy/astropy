@@ -32,6 +32,10 @@ class TestMultiD():
                          '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
                          '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
                          '</table>']
+        assert t._repr_html_() == ('<table><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]'
+                                   '</th></tr><tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td>'
+                                   '</tr><tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td>'
+                                   '</tr></table>')
 
         t = Table([arr])
         lines = t.pformat()
