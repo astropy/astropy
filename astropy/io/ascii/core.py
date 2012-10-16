@@ -156,6 +156,16 @@ class BaseInputter(object):
 
             lines = table.splitlines()
 
+            # FIXME: This is a workaround for the fact that a
+            # bz2.BZ2File can not be wrapped in a io.TextIOWrapper.
+            # On Python 3, we expect to get back unicode strings from
+            # the file object, so here we have to manually decode.
+            if sys.version_info[0] >= 3:
+                import locale
+                if isinstance(lines[0], bytes):
+                    lines = [
+                        x.decode(locale.getpreferredencoding()) for x in lines]
+
         except TypeError:
             try:
                 # See if table supports indexing, slicing, and iteration

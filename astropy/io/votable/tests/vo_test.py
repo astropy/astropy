@@ -789,3 +789,15 @@ def _run_test_from_scratch_example():
     table.array[1] = ('test2.xml', [[0.5, 0.3], [0.2, 0.1]])
 
     assert table.array[0][0] == 'test1.xml'
+
+
+def test_fileobj():
+    # Assert that what we get back is a raw C file pointer
+    # so it will be super fast in the C extension.
+    from ....utils.xml import iterparser
+    filename = get_data_filename('data/regression.xml')
+    with iterparser._convert_to_fd_or_read_function(filename) as fd:
+        if sys.version_info[0] >= 3:
+            assert isinstance(fd, io.FileIO)
+        else:
+            assert isinstance(fd, file)

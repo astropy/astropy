@@ -173,7 +173,7 @@ def test_from_string():
 
 def test_from_filelike():
     f = 't/simple.txt'
-    table = open(f)
+    table = open(f, 'rb')
     testfile = get_testfiles(f)
     data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
