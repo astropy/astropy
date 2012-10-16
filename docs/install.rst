@@ -61,6 +61,11 @@ The `instructions for building Numpy from source
 <http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
+You will also need `Cython <http://cython.org/>`_ installed to build
+from source, unless you are installing a numbered release. (The releases
+packages have the necessary C files packaged with them, and hence do not
+require Cython.)
+
 Obtaining the source packages
 -----------------------------
 
