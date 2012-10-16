@@ -10,7 +10,8 @@ from ..logger import log
 
 from .flag_collection import FlagCollection
 from .nderror import IncompatibleErrorsException, NDError
-
+from ..utils.compat.odict import OrderedDict
+from ..io import fits
 
 
 class NDData(object):
@@ -128,12 +129,7 @@ class NDData(object):
             self.mask = mask
             self.flags = flags
             self.wcs = wcs
-
-            if meta is None:
-                self.meta = {}
-            else:
-                self.meta = dict(meta)  # makes a *copy* of the passed-in meta
-
+            self.meta = meta
             self.units = units
 
     @property
@@ -192,6 +188,21 @@ class NDData(object):
                 raise TypeError("error must be an instance of a NDError object")
         else:
             self._error = value
+
+    @property
+    def meta(self):
+        return self._meta
+
+    @meta.setter
+    def meta(self, value):
+        if value is None:
+            self._meta = {}
+        elif hasattr(value, '__getitem__'):
+            self._meta = value
+        else:
+            raise ValueError('meta must support be dictionary-like')
+
+
 
     @property
     def units(self):
