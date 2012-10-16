@@ -17,7 +17,7 @@ BASEURL = ConfigurationItem('conesearch_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
                             'URL where conesearch config file is stored.')
 
-VO_CFG = get_config_items('astropy.io.vo')
+VO_CFG = get_config_items('astropy.io.votable')
 try:
     VO_PEDANTIC = VO_CFG['PEDANTIC']
 except KeyError as e:
@@ -27,9 +27,9 @@ except KeyError as e:
 
 # LOCAL
 from . import webquery
-from ...io.vo import table
-from ...io.vo.exceptions import vo_warn, W24, W25
-from ...io.vo.util import IS_PY3K
+from ...io.votable import table
+from ...io.votable.exceptions import vo_warn, W24, W25
+from ...io.votable.util import IS_PY3K
 from ...utils.console import color_print
 
 __dbversion__ = 1
@@ -200,7 +200,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
           they are tried in order.
 
     pedantic : bool or `None`
-        See  `astropy.io.vo.table.parse`.
+        See  `astropy.io.votable.table.parse`.
 
     verbose : bool
         Verbose output.
@@ -212,7 +212,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     Returns
     -------
-    value : `astropy.io.vo.tree.Table` object
+    value : `astropy.io.votable.tree.Table` object
         First table from first successful VO service request.
 
     Raises

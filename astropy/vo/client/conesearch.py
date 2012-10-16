@@ -36,7 +36,7 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
         See `astropy.vo.client.vos_catalog.call_vo_service`.
 
     pedantic : bool or `None`
-        See `astropy.io.vo.table.parse`.
+        See `astropy.io.votable.table.parse`.
 
     verb : {1, 2, 3}
         Verbosity indicating how many columns are to be returned
