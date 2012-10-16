@@ -11,6 +11,12 @@ n-dimensional Numpy array::
     >>> array = np.random.random((12, 12, 12))  # a random 3-dimensional array
     >>> ndd = NDData(array)
 
+or by passing it an `~astropy.nddata.nddata.NDData` object:
+
+    >>> ndd1 = NDData(array)
+    >>> ndd2 = NDData(ndd1)
+
+
 This object has a few attributes in common with Numpy:
 
     >>> ndd.ndim
