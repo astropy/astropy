@@ -6,6 +6,7 @@ import numpy as np
 from ..nddata import NDData
 from ..nderror import StandardDeviationError, IncompatibleErrorsException, NDError
 from ...tests.helper import raises
+from ...io import fits
 
 np.random.seed(12345)
 
@@ -232,3 +233,16 @@ def test_initializing_from_nderror():
     e2 = StandardDeviationError(e1, copy=False)
 
     assert e1.array is e2.array
+
+def test_meta2ordered_dict():
+    hdr = fits.header.Header()
+    hdr.set('observer', 'Edwin Hubble')
+    hdr.set('exptime', '3600')
+
+    d1 = NDData(np.ones((5, 5)), meta=hdr)
+    assert d1.meta['OBSERVER'] == 'Edwin Hubble'
+
+@raises(TypeError)
+def test_meta2ordered_dict_fail():
+    hdr = 'this is not a valid header'
+    d1 = NDData(np.ones((5, 5)), meta=hdr)
