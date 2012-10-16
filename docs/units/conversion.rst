@@ -47,7 +47,7 @@ If you attempt to convert to a incompatible unit, an exception will result:
   UnitsException: 'cm / (s)' and 'mi' are not convertible
 
 You can check whether a particular conversion is possible using the
-`is_equivalent` method::
+`~astropy.units.core.UnitBase.is_equivalent` method::
 
   >>> u.m.is_equivalent(u.foot)
   True

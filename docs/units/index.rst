@@ -7,7 +7,7 @@ Units (`astropy.units`)
 Introduction
 ============
 
-``astropy.units`` is a Python package to handle defining and converting
+`astropy.units` is a Python package to handle defining and converting
 between physical units.
 
 Unlike some other unit-related Python packages, `astropy.units` does
@@ -30,7 +30,7 @@ Getting Started
 
 `astropy.units` also handles equivalencies, such as that between
 wavelength and frequency.  To use that feature, equivalence objects
-are passed to the `to` conversion method::
+are passed to the `~astropy.units.core.UnitBase.to` conversion method::
 
   # Wavelength to frequency doesn't normally work
   >>> u.nm.to(u.Hz, [1000, 2000])

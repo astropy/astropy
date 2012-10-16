@@ -14,7 +14,8 @@ include in `astropy.units` and then describe how to define new
 equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
-`to` or `get_converter` methods.
+`~astropy.units.core.UnitBase.to` or
+`~astropy.units.core.UnitBase.get_converter` methods.
 
 Built-in equivalencies
 ----------------------
@@ -22,17 +23,19 @@ Built-in equivalencies
 Spectral Units
 ^^^^^^^^^^^^^^
 
-`sp` is a function that returns an equivalency list to handle
-conversions between wavelength, frequency and energy.
+`~astropy.units.equivalencies.sp` is a function that returns an
+equivalency list to handle conversions between wavelength, frequency
+and energy.
 
 Length and frequency are not normally convertible, so
-`to` raises an exception::
+`~astropy.units.core.UnitBase.to` raises an exception::
 
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' and 'Hz' are not convertible
 
-However, when passing the result of `sp` as the third argument to the
-`to` method, wavelength, frequency and energy can be converted.
+However, when passing the result of `~astropy.units.equivalencies.sp`
+as the third argument to the `~astropy.units.core.UnitBase.to` method,
+wavelength, frequency and energy can be converted.
 
   >>> u.nm.to(u.Hz, [1000, 2000], u.sp())
   array([  2.99792458e+14,   1.49896229e+14])

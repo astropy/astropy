@@ -43,3 +43,33 @@ given type::
   t            | 1.00e+03 kg     | tonne
   ton          | 9.07e+02 kg     |
   u            | 1.66e-27 kg     |
+
+The dimensionless unit
+----------------------
+
+In addition to these units, `astropy.units` includes the concept of
+the dimensionless unit, used to indicate quantities that don't have a
+physical dimension.
+
+To obtain the dimensionless unit, use the
+`~astropy.units.dimensionless` object::
+
+   >>> from astropy import units as u
+   >>> u.dimensionless
+   Unit(dimensionless)
+
+Dimensionless quantities are often defined as products or ratios of
+quantities that are not dimensionless, but whose dimensions cancel out
+when their powers are multiplied.  For example::
+
+   >>> u.m / u.m
+   Unit(dimensionless)
+
+For compatibility with the supported unit string formats, this is
+equivalent to ``Unit('')`` and ``Unit(1)``, though using
+``u.dimensionless`` in Python code is preferred for readability::
+
+   >>> u.dimensionless == u.Unit('')
+   True
+   >>> u.dimensionless == u.Unit(1)
+   True
