@@ -195,12 +195,9 @@ class NDData(object):
 
     @meta.setter
     def meta(self, value):
-#        if isinstance(value, fits.Header):
-#            self._meta = value
-#        else:
-#            self._meta = OrderedDict(value)
-#I prefer:
-        if hasattr(value, '__getitem__'):
+        if value is None:
+            self._meta = {}
+        elif hasattr(value, '__getitem__'):
             self._meta = value
         else:
             raise ValueError('meta must support be dictionary-like')
