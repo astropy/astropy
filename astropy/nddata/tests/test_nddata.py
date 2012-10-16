@@ -241,3 +241,8 @@ def test_meta2ordered_dict():
 
     d1 = NDData(np.ones((5, 5)), meta=hdr)
     assert d1.meta['OBSERVER'] == 'Edwin Hubble'
+
+@raises(TypeError)
+def test_meta2ordered_dict_fail():
+    hdr = 'this is not a valid header'
+    d1 = NDData(np.ones((5, 5)), meta=hdr)
