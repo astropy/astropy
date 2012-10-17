@@ -2,7 +2,7 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociationException', 'IncompatibleUncertaintiesException', 'NDUncertainty', 'StandardDeviationUncertainty']
+__all__ = ['MissingDataAssociationException', 'IncompatibleUncertaintiesException', 'NDUncertainty', 'StdDevUncertainty']
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -134,7 +134,7 @@ class NDUncertainty(object):
         pass
 
 
-class StandardDeviationUncertainty(NDUncertainty):
+class StdDevUncertainty(NDUncertainty):
     '''
     A class for standard deviation uncertainties
     '''
@@ -200,7 +200,7 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
@@ -209,7 +209,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_uncertainty = StandardDeviationUncertainty()
+        result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
         return result_uncertainty
@@ -244,7 +244,7 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
@@ -253,7 +253,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_uncertainty = StandardDeviationUncertainty()
+        result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
         return result_uncertainty
@@ -280,7 +280,7 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
@@ -289,7 +289,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_uncertainty = StandardDeviationUncertainty()
+        result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
                                + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
@@ -318,7 +318,7 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
@@ -327,7 +327,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_uncertainty = StandardDeviationUncertainty()
+        result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
                                + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
