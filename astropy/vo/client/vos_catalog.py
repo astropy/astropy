@@ -12,6 +12,10 @@ from ...config.configuration import ConfigurationItem, get_config_items
 from ...config.data import get_data_fileobj
 from ...logger import log
 
+__all__ = ['VOSCatalog', 'VOSDatabase',
+           'get_remote_catalog_db', 'call_vo_service', 'list_catalogs']
+
+__dbversion__ = 1
 
 BASEURL = ConfigurationItem('vos_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
@@ -35,8 +39,6 @@ from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
 from ...utils.console import color_print
-
-__dbversion__ = 1
 
 class VOSError(Exception):
     pass

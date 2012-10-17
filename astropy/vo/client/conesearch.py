@@ -7,7 +7,30 @@ Based on the `Simple Cone Search Version 1.03 Recommendation
 
 Examples
 --------
->>> UNTIL HERE
+>>> from astropy.vo.client import conesearch
+
+Get sorted catalog names containing 'SDSS' (not case-sensitive):
+
+>>> all_sdss_cat = conesearch.list_catalogs(match_string='sdss', sort=True)
+
+Perform cone search for 0.1 arcsec radius around Alpha Centauri
+(ICRS RA=14:39:36.204 DEC=-60:50:08.23), which are already converted
+to decimal degrees in the example below. Only use catalogs containing
+'SDSS' obtained from the example above, with minimum verbosity.
+Get results even if VO table does not comform to IVOA standards.
+The first catalog in the database to successfully return a result is
+used, i.e., order of catalog names is important:
+
+>>> result = conesearch.conesearch(219.900850, -60.835619, 2.78e-05,
+                                   catalog_db=all_sdss_cat, pedantic=False)
+
+Extract Numpy recarray containing the matched objects. See
+`numpy.recarray` for available operations:
+
+>>> cone_arr = result.array
+>>> col_names = cone_arr.dtype.names
+>>> n_rec = cone_arr.size
+>>> ra_list = cone_arr[ col_names[1] ] # This depends on the catalog
 
 """
 from __future__ import print_function, division
@@ -15,6 +38,8 @@ from __future__ import print_function, division
 # LOCAL
 from . import vos_catalog
 from ...utils.misc import dict_soft_update
+
+__all__ = ['conesearch', 'list_catalogs']
 
 _SERVICE_TYPE = 'conesearch'
 #_SERVICE_TYPE = 'conesearch_simple' # Initial version by mdroe

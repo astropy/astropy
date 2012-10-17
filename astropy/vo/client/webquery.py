@@ -52,6 +52,8 @@ import types
 import urllib
 import urllib2
 
+__all__ = ['webquery_open', 'webquery', 'webget_open', 'webget']
+
 URLLIB2_HAS_TIMEOUT = (sys.hexversion >= 0x02060000)
 
 class WebQueryError(Exception):
