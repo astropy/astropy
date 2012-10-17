@@ -398,8 +398,12 @@ class UnitBase(object):
                     for i, col in enumerate(line):
                         widths[i] = max(widths[i], len(col))
 
-                f = "{{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
+                f = "  {{0:<{0}s}} | {{1:<{1}s}} | {{2:<{2}s}}".format(*widths)
                 lines = [f.format(*line) for line in lines]
+                lines = (lines[0:1] +
+                         ['['] +
+                         ['{0} ,'.format(x) for x in lines[1:]] +
+                         [']'])
                 return '\n'.join(lines)
 
     def find_equivalent_units(self, equivs=[]):
