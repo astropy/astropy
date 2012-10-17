@@ -169,3 +169,10 @@ def test_flatten_to_known():
 def test_flatten_impossible():
     myunit = u.def_unit("FOOBAR")
     myunit.to_string('fits')
+
+
+def test_console_out():
+    """
+    Issue #436.
+    """
+    u.Jy.decompose().to_string('console')
