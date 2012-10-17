@@ -5,6 +5,10 @@ Support basic VO conesearch capabilities.
 Based on the `Simple Cone Search Version 1.03 Recommendation
 <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_.
 
+Examples
+--------
+>>> UNTIL HERE
+
 """
 from __future__ import print_function, division
 
@@ -13,7 +17,7 @@ from . import vos_catalog
 from ...utils.misc import dict_soft_update
 
 _SERVICE_TYPE = 'conesearch'
-#_SERVICE_TYPE = 'conesearch_test' # FOR DEV ONLY
+#_SERVICE_TYPE = 'conesearch_simple' # Initial version by mdroe
 
 class ConeSearchError(Exception):
     pass
@@ -84,14 +88,18 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
         _SERVICE_TYPE, catalog_db=catalog_db,
         pedantic=pedantic, kwargs=args)
 
-def list_catalogs():
+def list_catalogs(**kwargs):
     """
     Return the available conesearch catalogs as a list of strings.
     These can be used for the *catalog_db* argument to
     :func:`conesearch`.
 
+    Parameters
+    ----------
+    kwargs : keywords for `astropy.vo.client.vos_catalog.list_catalogs`
+
     """
-    return vos_catalog.list_catalogs(_SERVICE_TYPE)
+    return vos_catalog.list_catalogs(_SERVICE_TYPE, **kwargs)
 
 def _local_conversion(func, x):
     """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""

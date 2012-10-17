@@ -78,7 +78,8 @@ def _convert_to_fd_or_read_function(fd):
     fd : context-dependent
         See above.
     """
-    if is_callable(fd):
+    #if is_callable(fd):
+    if True:
         yield fd
         return
 
@@ -101,7 +102,8 @@ def _convert_to_fd_or_read_function(fd):
 def _fast_iterparse(fd, buffersize=2 ** 10):
     from xml.parsers import expat
 
-    if not is_callable(fd):
+    #if not is_callable(fd):
+    if True:
         read = fd.read
     else:
         read = fd
@@ -150,11 +152,11 @@ def _fast_iterparse(fd, buffersize=2 ** 10):
 # Try to import the C version of the iterparser, otherwise fall back
 # to the Python implementation above.
 _slow_iterparse = _fast_iterparse
-try:
-    from . import _iterparser
-    _fast_iterparse = _iterparser.IterParser
-except ImportError:
-    pass
+#try:
+#    from . import _iterparser
+#    _fast_iterparse = _iterparser.IterParser
+#except ImportError:
+#    pass
 
 
 @contextlib.contextmanager

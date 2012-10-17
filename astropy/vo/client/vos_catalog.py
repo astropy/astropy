@@ -13,16 +13,20 @@ from ...config.data import get_data_fileobj
 from ...logger import log
 
 
-BASEURL = ConfigurationItem('conesearch_baseurl',
+BASEURL = ConfigurationItem('vos_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
-                            'URL where conesearch config file is stored.')
+                            'URL where VO Service database file is stored.')
+
+TIMEOUT = ConfigurationItem('vos_timeout', 30.0,
+                            'Timeout in seconds for VO Service query')
 
 VO_CFG = get_config_items('astropy.io.votable')
 try:
     VO_PEDANTIC = VO_CFG['PEDANTIC']
 except KeyError as e:
     # Could use set, but do not want to mess with general vo config
-    log.warn('PEDANTIC not found in config, defaulting to True')
+    log.warn('astropy.io.votable.pedantic not found in config, '
+             'defaulting to True')
     VO_PEDANTIC = True
 
 # LOCAL
@@ -106,9 +110,12 @@ class VOSDatabase(object):
             raise VOSError("No catalog '{}' found.".format(name))
         return VOSCatalog(self._catalogs[name])
 
-    def list_catalogs(self):
+    def list_catalogs(self, sort=False):
         """List of catalog names."""
-        return self._catalogs.keys()
+        out_arr = self._catalogs.keys()
+        if sort:
+            out_arr.sort()
+        return out_arr
 
 def get_remote_catalog_db(dbname):
     """
@@ -118,7 +125,7 @@ def get_remote_catalog_db(dbname):
     Parameters
     ----------
     dbname : str
-        Prefix of JSON file to download from `BASEURL`.
+        Prefix of JSON file to download from `astropy.vo.client.vos_baseurl`.
         If cached, cached copy is used instead.
 
     Returns
@@ -139,7 +146,7 @@ def get_remote_catalog_db(dbname):
     return VOSDatabase(tree)
 
 def _vo_service_request(url, pedantic, kwargs):
-    req = webquery.webget_open(url, **kwargs)
+    req = webquery.webget_open(url, timeout=TIMEOUT(), **kwargs)
     try:
         tab = table.parse(req, filename=req.geturl(), pedantic=pedantic)
     finally:
@@ -229,7 +236,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     elif isinstance(catalog_db, list):
         for x in catalog_db:
             assert isinstance(
-                catalog_db, (VOSCatalog, basestring))
+                x, (VOSCatalog, basestring))
         catalogs = [(None, x) for x in catalog_db]
     elif isinstance(catalog_db, VOSDatabase):
         catalogs = catalog_db.get_catalogs()
@@ -261,7 +268,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     raise VOSError('None of the available catalogs returned valid results.')
 
-def list_catalogs(service_type):
+def list_catalogs(service_type, match_string=None, sort=False):
     """
     List the catalogs available for the given service type.
 
@@ -270,9 +277,30 @@ def list_catalogs(service_type):
     service_type : {'basic', 'conesearch', 'conesearch_test', 'image', 'ssa'}
         At this stage of development, these are all incomplete.
 
+    match_string : str or `None`
+        If given string is anywhere in a catalog name, it is
+        considered a matching catalog. It is not case-sensitive.
+        By default, all catalogs are returned.
+
+    sort : bool
+        Sort output in alphabetical order. If not sorted, the
+        order depends on dictionary hashing.
+
     Returns
     -------
     value : list of str
 
     """
-    return get_remote_catalog_db(service_type).list_catalogs()
+    all_catalogs = get_remote_catalog_db(service_type).list_catalogs(sort=sort)
+
+    if match_string is None:
+        return all_catalogs
+
+    else:
+        import numpy
+
+        all_cat_arr = numpy.array(all_catalogs)
+        all_cat_ucase = numpy.char.upper(all_cat_arr)
+        i = numpy.char.count(all_cat_ucase, match_string.upper()).astype('bool')
+
+        return list(all_cat_arr[i])
