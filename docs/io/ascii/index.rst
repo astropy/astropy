@@ -17,6 +17,7 @@ The following formats are supported:
 * :class:`~astropy.io.ascii.cds.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
 * :class:`~astropy.io.ascii.basic.CommentedHeader`: column names given in a line that begins with the comment character
 * :class:`~astropy.io.ascii.daophot.Daophot`: table from the IRAF DAOphot package
+* :class:`~astropy.io.ascii.sextractor.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.ipac.Ipac`: `IPAC format table <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.latex.Latex`: LaTeX table with datavalue in the `tabular` environment

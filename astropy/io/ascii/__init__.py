@@ -49,6 +49,7 @@ from .cds import Cds
 from .latex import Latex, AASTex, latexdicts
 from .ipac import Ipac
 from .daophot import Daophot
+from .sextractor import SExtractor
 from .memory import Memory
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,

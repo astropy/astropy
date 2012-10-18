@@ -40,6 +40,7 @@ from . import core
 from . import basic
 from . import cds
 from . import daophot
+from . import sextractor
 from . import ipac
 from . import memory
 from .core import next, izip, any
@@ -210,6 +211,7 @@ def _get_guess_kwargs_list():
                          dict(Reader=basic.Tab),
                          dict(Reader=cds.Cds),
                          dict(Reader=daophot.Daophot),
+                         dict(Reader=sextractor.SExtractor),
                          dict(Reader=ipac.Ipac),
                          dict(Reader=latex.Latex),
                          dict(Reader=latex.AASTex)
