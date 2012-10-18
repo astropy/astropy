@@ -196,7 +196,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         Returns
         -------
         result_uncertainty : NDUncertainty instance
-            The resulting error
+            The resulting uncertainty
 
         Raises
         ------
@@ -204,17 +204,17 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StandardDeviationUncertainty()
-        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
+        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
         return result_uncertainty
 
@@ -240,7 +240,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         Returns
         -------
         result_uncertainty : NDUncertainty instance
-            The resulting error
+            The resulting uncertainty
 
         Raises
         ------
@@ -248,17 +248,17 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StandardDeviationUncertainty()
-        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
+        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
         return result_uncertainty
 
@@ -276,7 +276,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         Returns
         -------
         result_uncertainty : NDUncertainty instance
-            The resulting error
+            The resulting uncertainty
 
         Raises
         ------
@@ -284,18 +284,18 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StandardDeviationUncertainty()
         result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.error.array / other_nddata.data) ** 2) \
+                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
 
         return result_uncertainty
@@ -314,7 +314,7 @@ class StandardDeviationUncertainty(NDUncertainty):
         Returns
         -------
         result_uncertainty : NDUncertainty instance
-            The resulting error
+            The resulting uncertainty
 
         Raises
         ------
@@ -322,18 +322,18 @@ class StandardDeviationUncertainty(NDUncertainty):
             Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
+        if not isinstance(other_nddata.uncertainty, StandardDeviationUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
         result_uncertainty = StandardDeviationUncertainty()
         result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.error.array / other_nddata.data) ** 2) \
+                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
 
         return result_uncertainty

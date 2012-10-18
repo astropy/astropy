@@ -18,15 +18,15 @@ class NDData(object):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of additional
-    metadata such as errors, a mask, units, flags, and/or a coordinate system.
+    metadata such as uncertainties, a mask, units, flags, and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray` or '~astropy.nddata.NDData'
         The actual data contained in this `NDData` object.
 
-    error : `~astropy.nddata.NDUncertainty`, optional
-        Errors on the data.
+    uncertainty : `~astropy.nddata.NDUncertainty`, optional
+        Uncertainties on the data.
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
@@ -65,7 +65,7 @@ class NDData(object):
     Raises
     ------
     ValueError
-        If the `error` or `mask` inputs cannot be broadcast (e.g., match
+        If the `uncertainty` or `mask` inputs cannot be broadcast (e.g., match
         shape) onto `data`.
 
     Notes
@@ -185,7 +185,7 @@ class NDData(object):
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
             else:
-                raise TypeError("error must be an instance of a NDUncertainty object")
+                raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
         else:
             self._uncertainty = value
 
@@ -288,7 +288,7 @@ class NDData(object):
 
 
 
-    def _arithmetic(self, operand, propagate_errors, name, operation):
+    def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -296,9 +296,9 @@ class NDData(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a {operator} b
-        propagate_errors : bool
-            Whether to propagate errors following the propagation rules
-            defined by the class used for the `error` attribute.
+        propagate_uncertainties : bool
+            Whether to propagate uncertainties following the propagation rules
+            defined by the class used for the `uncertainty` attribute.
 
         Returns
         -------
@@ -310,8 +310,8 @@ class NDData(object):
         This method requires the datasets to have identical WCS
         properties, equivalent units, and identical shapes. Flags and
         meta-data get set to None in the resulting dataset. The unit
-        in the result is the same as the unit in `self`. Errors are
-        propagated, although this feature is experimental, and errors
+        in the result is the same as the unit in `self`. Uncertainties are
+        propagated, although this feature is experimental, and uncertainties
         are assumed to be uncorrelated.  Values masked in either
         dataset before the operation are masked in the resulting
         dataset.
@@ -334,24 +334,24 @@ class NDData(object):
         data = operation(self.data, operand_data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
-        if propagate_errors is None:
+        if propagate_uncertainties is None:
             result.uncertainty = None
-        elif self.uncertainty is None and operand.error is None:
+        elif self.uncertainty is None and operand.uncertainty is None:
             result.uncertainty = None
         elif self.uncertainty is None:
-            result.uncertainty = operand.error
-        elif operand.error is None:
+            result.uncertainty = operand.uncertainty
+        elif operand.uncertainty is None:
             result.uncertainty = self.uncertainty
-        else:  # both self and operand have errors
+        else:  # both self and operand have uncertainties
             try:
-                method = getattr(self.uncertainty, propagate_errors)
+                method = getattr(self.uncertainty, propagate_uncertainties)
                 result.uncertainty = method(operand, result.data)
             except IncompatibleUncertaintiesException:
                 raise IncompatibleUncertaintiesException(
-                    "Cannot propagate errors of type {0:s} with errors of "
+                    "Cannot propagate uncertainties of type {0:s} with uncertainties of "
                     "type {1:s} for {2:s}".format(
                         self.uncertainty.__class__.__name__,
-                        operand.error.__class__.__name__,
+                        operand.uncertainty.__class__.__name__,
                         name))
 
         if self.mask is None and operand.mask is None:
@@ -370,40 +370,40 @@ class NDData(object):
 
         return result
 
-    def add(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_add"
+    def add(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_add"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "addition", np.add)
+            operand, propagate_uncertainties, "addition", np.add)
     add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
-    def subtract(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_subtract"
+    def subtract(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_subtract"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "subtraction", np.subtract)
+            operand, propagate_uncertainties, "subtraction", np.subtract)
     subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
 
-    def multiply(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_multiply"
+    def multiply(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_multiply"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "multiplication", np.multiply)
+            operand, propagate_uncertainties, "multiplication", np.multiply)
     multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
 
-    def divide(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_divide"
+    def divide(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_divide"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "division", np.divide)
+            operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
     def convert_units_to(self, unit):
