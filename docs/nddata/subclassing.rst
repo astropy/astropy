@@ -1,8 +1,8 @@
 Subclassing `~astropy.nddata.nddata.NDData` and `~astropy.nddata.nderror.NDUncertainty`
-=================================================================================
+=======================================================================================
 
 Subclassing `~astropy.nddata.nderror.NDUncertainty`
----------------------------------------------
+---------------------------------------------------
 
 New error classes should sub-class from `~astropy.nddata.nderror.NDUncertainty`, and
 should provide methods with the following API::
