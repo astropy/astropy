@@ -9,7 +9,7 @@ from ..units import Unit
 from ..logger import log
 
 from .flag_collection import FlagCollection
-from .nduncertainty import IncompatibleErrorsException, NDUncertainty
+from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
 
@@ -346,8 +346,8 @@ class NDData(object):
             try:
                 method = getattr(self.error, propagate_errors)
                 result.error = method(operand, result.data)
-            except IncompatibleErrorsException:
-                raise IncompatibleErrorsException(
+            except IncompatibleUncertaintiesException:
+                raise IncompatibleUncertaintiesException(
                     "Cannot propagate errors of type {0:s} with errors of "
                     "type {1:s} for {2:s}".format(
                         self.error.__class__.__name__,

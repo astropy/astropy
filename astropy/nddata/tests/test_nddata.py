@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from ..nddata import NDData
-from ..nduncertainty import StandardDeviationUncertainty, IncompatibleErrorsException, NDUncertainty
+from ..nduncertainty import StandardDeviationUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import raises
 from ...io import fits
 
@@ -137,7 +137,7 @@ def test_nddata_add_uncertainties_mismatch():
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)), error=e2)
-    with pytest.raises(IncompatibleErrorsException) as exc:
+    with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.add(d2)
     assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeUncertainty for addition'
 
@@ -189,7 +189,7 @@ def test_nddata_subtract_errors_mismatch():
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
-    with pytest.raises(IncompatibleErrorsException) as exc:
+    with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.subtract(d2)
     assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeUncertainty for subtraction'
 
