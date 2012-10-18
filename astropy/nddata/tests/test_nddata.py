@@ -4,14 +4,14 @@ import pytest
 import numpy as np
 
 from ..nddata import NDData
-from ..nderror import StandardDeviationUncertainty, IncompatibleErrorsException, NDUncertainty
+from ..nduncertainty import StandardDeviationUncertainty, IncompatibleErrorsException, NDUncertainty
 from ...tests.helper import raises
 from ...io import fits
 
 np.random.seed(12345)
 
 
-class FakeErrors(NDUncertainty):
+class FakeUncertainty(NDUncertainty):
 
     def propagate_add(self, data, final_data):
         pass
@@ -48,7 +48,7 @@ def test_nddata_mask_invalid_shape(shape):
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
 
-def test_nddata_error_init():
+def test_nddata_uncertainty_init():
     e = StandardDeviationUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), error=e)
 
@@ -60,7 +60,7 @@ def test_nddata_error_init_invalid_shape_1():
     assert exc.value.args[0] == 'parent shape does not match array data shape'
 
 
-def test_nddata_error_init_invalid_shape_2():
+def test_nddata_uncertainty_init_invalid_shape_2():
     e = StandardDeviationUncertainty()
     NDData(np.ones((5, 5)), error=e)
     with pytest.raises(ValueError) as exc:
@@ -69,7 +69,7 @@ def test_nddata_error_init_invalid_shape_2():
 
 
 @pytest.mark.parametrize(('error'), [1., 'spam', np.ones((5, 5))])
-def test_nddata_error_invalid_type(error):
+def test_nddata_uncertainty_invalid_type(error):
     with pytest.raises(TypeError) as exc:
         NDData(np.ones((5, 5)), error=error)
     assert exc.value.args[0] == 'error must be an instance of a NDUncertainty object'
@@ -121,7 +121,7 @@ def test_nddata_add_mismatch_shape():
     assert exc.value.args[0] == "operand shapes do not match"
 
 
-def test_nddata_add_errors():
+def test_nddata_add_uncertainties():
     e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
     e2 = StandardDeviationUncertainty(array=np.ones((5, 5)))
     d1 = NDData(np.ones((5, 5)), error=e1)
@@ -131,15 +131,15 @@ def test_nddata_add_errors():
     assert np.all(d3.error.array == np.sqrt(10.))
 
 
-def test_nddata_add_errors_mismatch():
+def test_nddata_add_uncertainties_mismatch():
     e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
-    e2 = FakeErrors()
+    e2 = FakeUncertainty()
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)), error=e2)
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.add(d2)
-    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeErrors for addition'
+    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeUncertainty for addition'
 
 
 def test_nddata_subtract():
@@ -185,13 +185,13 @@ def test_nddata_subtract_errors():
 
 def test_nddata_subtract_errors_mismatch():
     e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
-    e2 = FakeErrors()
+    e2 = FakeUncertainty()
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.subtract(d2)
-    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeErrors for subtraction'
+    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeUncertainty for subtraction'
 
 
 def test_convert_units_to():

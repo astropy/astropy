@@ -9,7 +9,7 @@ from ..units import Unit
 from ..logger import log
 
 from .flag_collection import FlagCollection
-from .nderror import IncompatibleErrorsException, NDUncertainty
+from .nduncertainty import IncompatibleErrorsException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
 
