@@ -93,17 +93,17 @@ class NDData(object):
         >>> plt.imshow(x)
     """
 
-    def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
+    def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=copy)
 
-            if error is not None:
-                self.error = error
-                log.info("Overwriting NDData's current error being overwritten with specified error")
+            if uncertainty is not None:
+                self.uncertainty = uncertainty
+                log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
 
-            if error is not None:
+            if uncertainty is not None:
                 self.mask = mask
                 log.info("Overwriting NDData's current mask being overwritten with specified mask")
 
@@ -113,11 +113,11 @@ class NDData(object):
 
             if wcs is not None:
                 self.wcs = wcs
-                log.info("Overwriting NDData's current error being overwritten with specified error")
+                log.info("Overwriting NDData's current wcs being overwritten with specified wcs")
 
             if meta is not None:
                 self.meta = meta
-                log.info("Overwriting NDData's current error being overwritten with specified error")
+                log.info("Overwriting NDData's current meta being overwritten with specified meta")
 
             if units is not None:
                 raise ValueError('To convert to different unit please use .to')
@@ -125,7 +125,7 @@ class NDData(object):
         else:
             self.data = np.array(data, subok=True, copy=copy)
 
-            self.error = error
+            self.uncertainty = uncertainty
             self.mask = mask
             self.flags = flags
             self.wcs = wcs
@@ -175,19 +175,19 @@ class NDData(object):
             self._flags = value
 
     @property
-    def error(self):
-        return self._error
+    def uncertainty(self):
+        return self._uncertainty
 
-    @error.setter
-    def error(self, value):
+    @uncertainty.setter
+    def uncertainty(self, value):
         if value is not None:
             if isinstance(value, NDUncertainty):
-                self._error = value
-                self._error.parent_nddata = self
+                self._uncertainty = value
+                self._uncertainty.parent_nddata = self
             else:
                 raise TypeError("error must be an instance of a NDUncertainty object")
         else:
-            self._error = value
+            self._uncertainty = value
 
     @property
     def meta(self):
@@ -257,10 +257,10 @@ class NDData(object):
 
         new_data = self.data[item]
 
-        if self.error is not None:
-            new_error = self.error[item]
+        if self.uncertainty is not None:
+            new_uncertainty = self.uncertainty[item]
         else:
-            new_error = None
+            new_uncertainty = None
 
         if self.mask is not None:
             new_mask = self.mask[item]
@@ -280,7 +280,7 @@ class NDData(object):
         else:
             new_wcs = None
 
-        return self.__class__(new_data, error=new_error, mask=new_mask, flags=new_flags, wcs=new_wcs,
+        return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
             meta=self.meta, units=self.units, copy=False)
 
 
@@ -335,22 +335,22 @@ class NDData(object):
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
         if propagate_errors is None:
-            result.error = None
-        elif self.error is None and operand.error is None:
-            result.error = None
-        elif self.error is None:
-            result.error = operand.error
+            result.uncertainty = None
+        elif self.uncertainty is None and operand.error is None:
+            result.uncertainty = None
+        elif self.uncertainty is None:
+            result.uncertainty = operand.error
         elif operand.error is None:
-            result.error = self.error
+            result.uncertainty = self.uncertainty
         else:  # both self and operand have errors
             try:
-                method = getattr(self.error, propagate_errors)
-                result.error = method(operand, result.data)
+                method = getattr(self.uncertainty, propagate_errors)
+                result.uncertainty = method(operand, result.data)
             except IncompatibleUncertaintiesException:
                 raise IncompatibleUncertaintiesException(
                     "Cannot propagate errors of type {0:s} with errors of "
                     "type {1:s} for {2:s}".format(
-                        self.error.__class__.__name__,
+                        self.uncertainty.__class__.__name__,
                         operand.error.__class__.__name__,
                         name))
 
@@ -431,7 +431,7 @@ class NDData(object):
         data = self.units.to(unit, self.data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
-        result.error = self.error
+        result.uncertainty = self.uncertainty
         result.mask = self.mask
         result.flags = None
         result.wcs = self.wcs
