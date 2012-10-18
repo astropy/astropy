@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-A "grab bag" of smallish general-purpose utilities that don't have a
-clear other module/pakcage to live in.
+A "grab bag" of relatively small general-purpose utilities that don't have
+a clear module/package to live in.
 """
 
 from __future__ import absolute_import

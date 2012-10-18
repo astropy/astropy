@@ -1,8 +1,8 @@
 .. _utils:
 
-**********************************************
-Developer-Oriented Utilities (`astropy.utils`)
-**********************************************
+************************************************
+Astropy Core Package Utilities (`astropy.utils`)
+************************************************
 
 Introduction
 ============
@@ -27,14 +27,6 @@ only the reference section is currently provided for this subpackage.
     that developers at least glance over the source code for this
     subpackage, but it cannot be reliably included here because of the
     large amount of version-specific code it contains.
-
-See Also
-========
-
-* :ref:`tools`
-    The subpackage for tools that are oriented towards users, rather than
-    developers.  It is somewhat more astronomy-specific, while these are more
-    general-purpose.
 
 
 Reference/API
