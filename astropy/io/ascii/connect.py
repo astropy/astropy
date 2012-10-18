@@ -64,6 +64,17 @@ def read_daophot(filename, **kwargs):
 
 io_registry.register_reader('daophot', read_daophot)
 
+# SExtractor
+# =======
+
+def read_sextractor(filename, **kwargs):
+    from .sextractor import SExtractor
+    from .ui import read
+    if 'guess' not in kwargs:
+        kwargs['guess'] = False
+    return read(filename, Reader=SExtractor, **kwargs)
+
+io_registry.register_reader('sextractor', read_sextractor)
 
 # LaTeX
 # =====

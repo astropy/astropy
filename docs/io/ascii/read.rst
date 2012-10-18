@@ -209,7 +209,7 @@ look like a number.
 
 The order of guessing is shown by this Python code::
   
-  for Reader in (Rdb, Tab, Cds, Daophot, Ipac):
+  for Reader in (Rdb, Tab, Cds, Daophot, SExtractor, Ipac):
       read(Reader=Reader)
   for Reader in (CommentedHeader, Basic, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
