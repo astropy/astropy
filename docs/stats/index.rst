@@ -1,17 +1,14 @@
 .. _tools:
 
-******************************************
-Astronomy-Oriented Tools (`astropy.tools`)
-******************************************
+***************************************
+Astrostatistics Tools (`astropy.stats`)
+***************************************
 
 Introduction
 ============
 
-The `astropy.tools` package holds smallish general astronomy functions
-or algorithms that are likely of use to users, but either not related to
-functionality in an existing package or of general use across multiple
-packages.
-
+The `astropy.stats` package holds statsitical functions or algorithms used
+in astronomy and astropy.
 
 
 Getting Started
@@ -42,13 +39,13 @@ their docstrings.  For example, see `~astropy.tools.misc.sigma_clip`.
 See Also
 ========
 
-* :ref:`utils`
-    The subpackage for utilities that are oriented towards developers, rather than
-    users.  These utilities are more general-purposes, while `astropy.tools` is
-    more astronomy-focused.
+* :mod:`scipy.stats`
+    This scipy package contains a variety of useful statistical functions and
+    classes.  The functionality in `astropy.stats` is intended to supplement
+    this, *not* replace it.
 
 
 Reference/API
 =============
 
-.. automodapi:: astropy.tools
+.. automodapi:: astropy.stats
