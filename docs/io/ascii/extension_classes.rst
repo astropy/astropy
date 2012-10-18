@@ -16,7 +16,6 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.cds.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
 * :class:`~astropy.io.ascii.basic.CommentedHeader`: column names given in a line that begins with the comment character
 * :class:`~astropy.io.ascii.daophot.Daophot`: table from the IRAF DAOphot package
-* :class:`~astropy.io.ascii.sextractor.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.fixedwidth.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.fixedwidth.FixedWidthNoHeader`: table with fixed-width columns and no header
 * :class:`~astropy.io.ascii.fixedwidth.FixedWidthTwoLine`: table with fixed-width columns and a two-line header
@@ -24,5 +23,6 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.latex.Latex`: LaTeX table with datavalue in the `tabular` environment
 * :class:`~astropy.io.ascii.basic.NoHeader`: basic table with no header where columns are auto-named
 * :class:`~astropy.io.ascii.basic.Rdb`: tab-separated values with an extra line after the column definition line
+* :class:`~astropy.io.ascii.sextractor.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
 * :class:`~astropy.io.ascii.basic.Tab`: tab-separated values
 
