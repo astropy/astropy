@@ -34,7 +34,7 @@ User Documentation
    io/votable/index
    io/misc
    wcs/index
-   tools/index
+   stats/index
    utils/index
    configs/index
    logging
