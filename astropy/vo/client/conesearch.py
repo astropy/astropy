@@ -5,6 +5,11 @@ Support basic VO conesearch capabilities.
 Based on the `Simple Cone Search Version 1.03 Recommendation
 <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_.
 
+.. note::
+
+    See `astropy.vo.client.vos_catalog` for configurable
+    properties.
+
 Examples
 --------
 >>> from astropy.vo.client import conesearch
@@ -31,6 +36,16 @@ Extract Numpy recarray containing the matched objects. See
 >>> col_names = cone_arr.dtype.names
 >>> n_rec = cone_arr.size
 >>> ra_list = cone_arr[ col_names[1] ] # This depends on the catalog
+>>> first_row = cone_arr[0]
+>>> last_row = cone_arr[-1]
+>>> first_ten_rows = cone_arr[:10]
+
+Reload catalog names containing 'SDSS' from VO Service
+Database online instead of the cached version (cache will not be
+updated):
+
+>>> all_sdss_cat = conesearch.list_catalogs(match_string='sdss', sort=True,
+                                            cache=False)
 
 """
 from __future__ import print_function, division
@@ -47,7 +62,8 @@ _SERVICE_TYPE = 'conesearch'
 class ConeSearchError(Exception):
     pass
 
-def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
+def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, cache=True,
+               **kwargs):
     """
     Do a cone search on the given catalog.
 
@@ -61,7 +77,7 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
     sr : float
         Radius of the cone to search, given in decimal degrees.
 
-    catalog_db : str, optional
+    catalog_db : str
         See `astropy.vo.client.vos_catalog.call_vo_service`.
 
     pedantic : bool or `None`
@@ -83,6 +99,9 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
         should respond as if `verb` is 2. If not supported, the
         service should ignore the parameter and should always
         return the same columns for every request.
+
+    cache : bool
+        See `astropy.vo.client.vos_catalog.get_remote_catalog_db`.
 
     **kwargs : dictionary
         See `astropy.vo.client.vos_catalog.call_vo_service`.
@@ -111,7 +130,7 @@ def conesearch(ra, dec, sr, catalog_db=None, pedantic=None, verb=1, **kwargs):
 
     return vos_catalog.call_vo_service(
         _SERVICE_TYPE, catalog_db=catalog_db,
-        pedantic=pedantic, kwargs=args)
+        pedantic=pedantic, cache=cache, kwargs=args)
 
 def list_catalogs(**kwargs):
     """

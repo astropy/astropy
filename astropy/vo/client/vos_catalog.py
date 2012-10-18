@@ -1,5 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Common utilities for accessing VO simple services."""
+"""
+Common utilities for accessing VO simple services.
+
+*CONFIGURABLE PROPERTIES*
+
+These properties are set via Astropy configuration system
+(http://astropy.readthedocs.org/en/latest/configs/index.html):
+
+    * `astropy.io.votable.pedantic`
+    * `astropy.vo.client.vos_baseurl`
+    * `astropy.vo.client.vos_timeout`
+
+"""
 
 from __future__ import print_function, division
 
@@ -119,7 +131,7 @@ class VOSDatabase(object):
             out_arr.sort()
         return out_arr
 
-def get_remote_catalog_db(dbname):
+def get_remote_catalog_db(dbname, cache=True):
     """
     Get a database of VO services (which is a JSON file) from a remote
     location.
@@ -128,14 +140,18 @@ def get_remote_catalog_db(dbname):
     ----------
     dbname : str
         Prefix of JSON file to download from `astropy.vo.client.vos_baseurl`.
-        If cached, cached copy is used instead.
+
+    cache : bool
+        Use caching for VO Service database. Access to actual VO
+        websites referenced by the database still needs internet
+        connection.
 
     Returns
     -------
     value : `VOSDatabase` object
 
     """
-    fd = get_data_fileobj(BASEURL() + dbname + '.json', cache=True)
+    fd = get_data_fileobj(BASEURL() + dbname + '.json', cache=cache)
     if IS_PY3K:
         wrapped_fd = io.TextIOWrapper(fd, 'utf8')
     else:
@@ -176,7 +192,7 @@ def _vo_service_request(url, pedantic, kwargs):
     return tab.get_first_table()
 
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
-                    verbose=True, kwargs={}):
+                    verbose=True, cache=True, kwargs={}):
     """
     Makes a generic VO service call.
 
@@ -214,6 +230,9 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     verbose : bool
         Verbose output.
 
+    cache : bool
+        See `get_remote_catalog_db`.
+
     kwargs : dictionary
         Keyword arguments to pass to the catalog service.
         No checking is done that the arguments are accepted by
@@ -231,7 +250,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     """
     if catalog_db is None:
-        catalog_db = get_remote_catalog_db(service_type)
+        catalog_db = get_remote_catalog_db(service_type, cache=cache)
         catalogs = catalog_db.get_catalogs()
     elif isinstance(catalog_db, (VOSCatalog, basestring)):
         catalogs = [(None, catalog_db)]
@@ -254,7 +273,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             if catalog.startswith("http"):
                 url = catalog
             else:
-                remote_db = get_remote_catalog_db(service_type)
+                remote_db = get_remote_catalog_db(service_type, cache=cache)
                 catalog = remote_db.get_catalog(catalog)
                 url = catalog.get_url()
         else:
@@ -270,7 +289,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     raise VOSError('None of the available catalogs returned valid results.')
 
-def list_catalogs(service_type, match_string=None, sort=False):
+def list_catalogs(service_type, match_string=None, sort=False, cache=True):
     """
     List the catalogs available for the given service type.
 
@@ -288,12 +307,16 @@ def list_catalogs(service_type, match_string=None, sort=False):
         Sort output in alphabetical order. If not sorted, the
         order depends on dictionary hashing.
 
+    cache : bool
+        See `get_remote_catalog_db`.
+
     Returns
     -------
     value : list of str
 
     """
-    all_catalogs = get_remote_catalog_db(service_type).list_catalogs(sort=sort)
+    all_catalogs = get_remote_catalog_db(service_type,
+                                         cache=cache).list_catalogs(sort=sort)
 
     if match_string is None:
         return all_catalogs
