@@ -55,4 +55,4 @@ variables with more explicit names, e.g::
 Note that the above example assumes that the errors are stored in an ``array``
 attribute, but this does not have to be the case.
 
-For an example of a complete implementation, see `~astropy.nddata.nderror.StandardDeviationUncertainty`.
+For an example of a complete implementation, see `~astropy.nddata.nderror.StdDevUncertainty`.

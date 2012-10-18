@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from ..nddata import NDData
-from ..nduncertainty import StandardDeviationUncertainty, IncompatibleUncertaintiesException, NDUncertainty
+from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import raises
 from ...io import fits
 
@@ -49,19 +49,19 @@ def test_nddata_mask_invalid_shape(shape):
 
 
 def test_nddata_uncertainty_init():
-    u =  StandardDeviationUncertainty(array=np.ones((5, 5)))
+    u =  StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
 
 
 def test_nddata_uncertainty_init_invalid_shape_1():
-    u =  StandardDeviationUncertainty(array=np.ones((6, 6)))
+    u =  StdDevUncertainty(array=np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
         NDData(np.ones((5, 5)), uncertainty=u)
     assert exc.value.args[0] == 'parent shape does not match array data shape'
 
 
 def test_nddata_uncertainty_init_invalid_shape_2():
-    u =  StandardDeviationUncertainty()
+    u =  StdDevUncertainty()
     NDData(np.ones((5, 5)), uncertainty=u)
     with pytest.raises(ValueError) as exc:
         u.array = np.ones((6, 6))
@@ -122,8 +122,8 @@ def test_nddata_add_mismatch_shape():
 
 
 def test_nddata_add_uncertainties():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
-    u2 = StandardDeviationUncertainty(array=np.ones((5, 5)))
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    u2 = StdDevUncertainty(array=np.ones((5, 5)))
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)), uncertainty=u2)
     d3 = d1.add(d2)
@@ -132,14 +132,14 @@ def test_nddata_add_uncertainties():
 
 
 def test_nddata_add_uncertainties_mismatch():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
     print u2.__class__
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)), uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.add(d2)
-    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StandardDeviationUncertainty with uncertainties of type FakeUncertainty for addition'
+    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for addition'
 
 
 def test_nddata_subtract():
@@ -174,8 +174,8 @@ def test_nddata_subtract_mismatch_shape():
 
 
 def test_nddata_subtract_uncertainties():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
-    u2 = StandardDeviationUncertainty(array=np.ones((5, 5)))
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    u2 = StdDevUncertainty(array=np.ones((5, 5)))
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
     d3 = d1.subtract(d2)
@@ -184,14 +184,14 @@ def test_nddata_subtract_uncertainties():
 
 
 def test_nddata_subtract_uncertainties_mismatch():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
     print u2.__class__
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.subtract(d2)
-    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StandardDeviationUncertainty with uncertainties of type FakeUncertainty for subtraction'
+    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for subtraction'
 
 
 def test_convert_units_to():
@@ -206,14 +206,14 @@ def test_invalid_unit():
     d = NDData(np.ones((5, 5)), units="NotAValidUnit")
 
 def test_simple_slicing():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     assert d1.shape == (5,5)
     d2 = d1[2:3, 2:3]
     assert d2.shape == (1,1)
 
 def test_slicing_reference():
-    u1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), uncertainty=u1)
     d2 = d1[2:3, 2:3]
     #asserting that the new nddata contains references to the original nddata
@@ -229,8 +229,8 @@ def test_initializing_from_nddata():
 
 
 def test_initializing_from_nduncertainty():
-    u1 = StandardDeviationUncertainty(np.ones((5, 5)) * 3)
-    u2 = StandardDeviationUncertainty(u1, copy=False)
+    u1 = StdDevUncertainty(np.ones((5, 5)) * 3)
+    u2 = StdDevUncertainty(u1, copy=False)
 
     assert u1.array is u2.array
 
