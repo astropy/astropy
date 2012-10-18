@@ -198,7 +198,7 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
 
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
-                   show_units=False):
+                   show_units=False, html=False):
     """Return a list of lines for the formatted string representation of
     the table.
 
@@ -215,6 +215,9 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
 
     show_units : bool
         Include a header row for units (default=False)
+
+    html : bool
+        Format the output as an HTML table (default=False)
 
     Returns
     -------
@@ -254,9 +257,21 @@ def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
     # Now "print" the (already-stringified) column values into a
     # row-oriented list.
     rows = []
-    for i in range(n_rows):
-        row = ' '.join(col[i] for col in cols)
-        rows.append(row)
+    if html:
+        rows.append('<table>')
+        for i in range(n_rows):
+            # _pformat_col output has a header line '----' which is not needed here
+            if i == n_header - 1:
+                continue
+            td = 'th' if i < n_header else 'td'
+            vals = ('<{0}>{1}</{2}>'.format(td, col[i].strip(), td) for col in cols)
+            row = ('<tr>' + ''.join(vals) + '</tr>')
+            rows.append(row)
+        rows.append('</table>')
+    else:
+        for i in range(n_rows):
+            row = ' '.join(col[i] for col in cols)
+            rows.append(row)
 
     return rows, n_header
 
