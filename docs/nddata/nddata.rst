@@ -78,8 +78,8 @@ used to set the uncertainty on the data values. This is done by using classes
 to represent the errors of a given type. For example, to set standard
 deviation errors on the pixel values, you can do::
 
-    >>> from astropy.nddata import StandardDeviationError
-    >>> ndd.error = StandardDeviationError(np.ones((12, 12, 12)) * 0.1)
+    >>> from astropy.nddata import StandardDeviationUncertainty
+    >>> ndd.error = StandardDeviationUncertainty(np.ones((12, 12, 12)) * 0.1)
 
 .. note:: For information on creating your own error classes,
           see :doc:`subclassing`.

@@ -2,7 +2,8 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociationException', 'IncompatibleErrorsException', 'NDError', 'StandardDeviationError']
+__all__ = ['MissingDataAssociationException', 'IncompatibleErrorsException', 'NDUncertainty',
+           'StandardDeviationUncertainty']
 
 
 class IncompatibleErrorsException(Exception):
@@ -19,7 +20,7 @@ class MissingDataAssociationException(Exception):
     pass
 
 
-class NDError(object):
+class NDUncertainty(object):
     '''
     This is the base class for error classes used with NDData. It is
     implemented as an abstract class and should never be directly
@@ -29,7 +30,7 @@ class NDError(object):
     methods, keeping the call signature the same. The propagate methods can
     assume that a `parent_nddata` attribute is present which links to the parent_nddata
     dataset, and take an `~astropy.nddata.NDData` instance as the positional
-    argument, *not* an `~astropy.nddata.NDError` instance, because the
+    argument, *not* an `~astropy.nddata.NDUncertainty` instance, because the
     `~astropy.nddata.NDData` instance can be used to access both the data and
     the errors (some propagations require the data values).
     '''
@@ -61,7 +62,7 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -85,7 +86,7 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -109,7 +110,7 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
         '''
         pass
@@ -128,13 +129,13 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
         '''
         pass
 
 
-class StandardDeviationError(NDError):
+class StandardDeviationUncertainty(NDUncertainty):
     '''
     A class for standard deviation errors
     '''
@@ -142,7 +143,7 @@ class StandardDeviationError(NDError):
     def __init__(self, array=None, copy=True):
         if array is None:
             self.array = None
-        elif isinstance(array, StandardDeviationError):
+        elif isinstance(array, StandardDeviationUncertainty):
             self.array = np.array(array.array, copy=copy, subok=True)
         else:
             self.array = np.array(array, copy=copy, subok=True)
@@ -194,7 +195,7 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -203,7 +204,7 @@ class StandardDeviationError(NDError):
             Raised if the method does not know how to propagate the errors
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
+        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
             raise IncompatibleErrorsException
 
         if self.array is None:
@@ -212,7 +213,7 @@ class StandardDeviationError(NDError):
         if other_nddata.error.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
+        result_error = StandardDeviationUncertainty()
         result_error.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
 
         return result_error
@@ -238,7 +239,7 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -247,7 +248,7 @@ class StandardDeviationError(NDError):
             Raised if the method does not know how to propagate the errors
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
+        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
             raise IncompatibleErrorsException
 
         if self.array is None:
@@ -256,7 +257,7 @@ class StandardDeviationError(NDError):
         if other_nddata.error.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
+        result_error = StandardDeviationUncertainty()
         result_error.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
 
         return result_error
@@ -274,7 +275,7 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -283,7 +284,7 @@ class StandardDeviationError(NDError):
             Raised if the method does not know how to propagate the errors
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
+        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
             raise IncompatibleErrorsException
 
         if self.array is None:
@@ -292,7 +293,7 @@ class StandardDeviationError(NDError):
         if other_nddata.error.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
+        result_error = StandardDeviationUncertainty()
         result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (other_nddata.error.array / other_nddata.data) ** 2) \
                                * result_data
@@ -312,7 +313,7 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
+        result_error : NDUncertainty instance
             The resulting error
 
         Raises
@@ -321,7 +322,7 @@ class StandardDeviationError(NDError):
             Raised if the method does not know how to propagate the errors
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
+        if not isinstance(other_nddata.error, StandardDeviationUncertainty):
             raise IncompatibleErrorsException
 
         if self.array is None:
@@ -330,7 +331,7 @@ class StandardDeviationError(NDError):
         if other_nddata.error.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
+        result_error = StandardDeviationUncertainty()
         result_error.array = np.sqrt((self.array / self.data) ** 2
                                + (other_nddata.error.array / other_nddata.data) ** 2) \
                                * result_data

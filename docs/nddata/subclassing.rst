@@ -1,13 +1,13 @@
-Subclassing `~astropy.nddata.nddata.NDData` and `~astropy.nddata.nderror.NDError`
+Subclassing `~astropy.nddata.nddata.NDData` and `~astropy.nddata.nderror.NDUncertainty`
 =================================================================================
 
-Subclassing `~astropy.nddata.nderror.NDError`
+Subclassing `~astropy.nddata.nderror.NDUncertainty`
 ---------------------------------------------
 
-New error classes should sub-class from `~astropy.nddata.nderror.NDError`, and
+New error classes should sub-class from `~astropy.nddata.nderror.NDUncertainty`, and
 should provide methods with the following API::
 
-   class MyError(NDError):
+   class MyError(NDUncertainty):
 
        def propagate_add(self, other_nddata, result_data):
            ...
@@ -43,7 +43,7 @@ other_nddata``.
 To make it easier and clearer to code up the error propagation, you can use
 variables with more explicit names, e.g::
 
-   class MyError(NDError):
+   class MyError(NDUncertainty):
 
        def propogate_add(self, other_nddata, result_data):
 
@@ -55,4 +55,4 @@ variables with more explicit names, e.g::
 Note that the above example assumes that the errors are stored in an ``array``
 attribute, but this does not have to be the case.
 
-For an example of a complete implementation, see `~astropy.nddata.nderror.StandardDeviationError`.
+For an example of a complete implementation, see `~astropy.nddata.nderror.StandardDeviationUncertainty`.

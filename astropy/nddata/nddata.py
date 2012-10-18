@@ -9,7 +9,7 @@ from ..units import Unit
 from ..logger import log
 
 from .flag_collection import FlagCollection
-from .nderror import IncompatibleErrorsException, NDError
+from .nderror import IncompatibleErrorsException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
 
@@ -25,7 +25,7 @@ class NDData(object):
     data : `~numpy.ndarray` or '~astropy.nddata.NDData'
         The actual data contained in this `NDData` object.
 
-    error : `~astropy.nddata.NDError`, optional
+    error : `~astropy.nddata.NDUncertainty`, optional
         Errors on the data.
 
     mask : `~numpy.ndarray`, optional
@@ -181,11 +181,11 @@ class NDData(object):
     @error.setter
     def error(self, value):
         if value is not None:
-            if isinstance(value, NDError):
+            if isinstance(value, NDUncertainty):
                 self._error = value
                 self._error.parent_nddata = self
             else:
-                raise TypeError("error must be an instance of a NDError object")
+                raise TypeError("error must be an instance of a NDUncertainty object")
         else:
             self._error = value
 

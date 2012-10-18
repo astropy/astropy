@@ -4,14 +4,14 @@ import pytest
 import numpy as np
 
 from ..nddata import NDData
-from ..nderror import StandardDeviationError, IncompatibleErrorsException, NDError
+from ..nderror import StandardDeviationUncertainty, IncompatibleErrorsException, NDUncertainty
 from ...tests.helper import raises
 from ...io import fits
 
 np.random.seed(12345)
 
 
-class FakeErrors(NDError):
+class FakeErrors(NDUncertainty):
 
     def propagate_add(self, data, final_data):
         pass
@@ -49,19 +49,19 @@ def test_nddata_mask_invalid_shape(shape):
 
 
 def test_nddata_error_init():
-    e = StandardDeviationError(array=np.ones((5, 5)))
+    e = StandardDeviationUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), error=e)
 
 
 def test_nddata_error_init_invalid_shape_1():
-    e = StandardDeviationError(array=np.ones((6, 6)))
+    e = StandardDeviationUncertainty(array=np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
         NDData(np.ones((5, 5)), error=e)
     assert exc.value.args[0] == 'parent shape does not match array data shape'
 
 
 def test_nddata_error_init_invalid_shape_2():
-    e = StandardDeviationError()
+    e = StandardDeviationUncertainty()
     NDData(np.ones((5, 5)), error=e)
     with pytest.raises(ValueError) as exc:
         e.array = np.ones((6, 6))
@@ -72,7 +72,7 @@ def test_nddata_error_init_invalid_shape_2():
 def test_nddata_error_invalid_type(error):
     with pytest.raises(TypeError) as exc:
         NDData(np.ones((5, 5)), error=error)
-    assert exc.value.args[0] == 'error must be an instance of a NDError object'
+    assert exc.value.args[0] == 'error must be an instance of a NDUncertainty object'
 
 
 def test_nddata_copy():
@@ -122,8 +122,8 @@ def test_nddata_add_mismatch_shape():
 
 
 def test_nddata_add_errors():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
-    e2 = StandardDeviationError(array=np.ones((5, 5)))
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    e2 = StandardDeviationUncertainty(array=np.ones((5, 5)))
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)), error=e2)
     d3 = d1.add(d2)
@@ -132,14 +132,14 @@ def test_nddata_add_errors():
 
 
 def test_nddata_add_errors_mismatch():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
     e2 = FakeErrors()
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)), error=e2)
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.add(d2)
-    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for addition'
+    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeErrors for addition'
 
 
 def test_nddata_subtract():
@@ -174,8 +174,8 @@ def test_nddata_subtract_mismatch_shape():
 
 
 def test_nddata_subtract_errors():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
-    e2 = StandardDeviationError(array=np.ones((5, 5)))
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
+    e2 = StandardDeviationUncertainty(array=np.ones((5, 5)))
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
     d3 = d1.subtract(d2)
@@ -184,14 +184,14 @@ def test_nddata_subtract_errors():
 
 
 def test_nddata_subtract_errors_mismatch():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
     e2 = FakeErrors()
     print e2.__class__
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = NDData(np.ones((5, 5)) * 2., error=e2)
     with pytest.raises(IncompatibleErrorsException) as exc:
         d3 = d1.subtract(d2)
-    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationError with errors of type FakeErrors for subtraction'
+    assert exc.value.args[0] == 'Cannot propagate errors of type StandardDeviationUncertainty with errors of type FakeErrors for subtraction'
 
 
 def test_convert_units_to():
@@ -206,14 +206,14 @@ def test_invalid_unit():
     d = NDData(np.ones((5, 5)), units="NotAValidUnit")
 
 def test_simple_slicing():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), error=e1)
     assert d1.shape == (5,5)
     d2 = d1[2:3, 2:3]
     assert d2.shape == (1,1)
 
 def test_slicing_reference():
-    e1 = StandardDeviationError(array=np.ones((5, 5)) * 3)
+    e1 = StandardDeviationUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDData(np.ones((5, 5)), error=e1)
     d2 = d1[2:3, 2:3]
     #asserting that the new nddata contains references to the original nddata
@@ -229,8 +229,8 @@ def test_initializing_from_nddata():
 
 
 def test_initializing_from_nderror():
-    e1 = StandardDeviationError(np.ones((5, 5)) * 3)
-    e2 = StandardDeviationError(e1, copy=False)
+    e1 = StandardDeviationUncertainty(np.ones((5, 5)) * 3)
+    e2 = StandardDeviationUncertainty(e1, copy=False)
 
     assert e1.array is e2.array
 
