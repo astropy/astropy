@@ -9,7 +9,7 @@ from ..units import Unit
 from ..logger import log
 
 from .flag_collection import FlagCollection
-from .nderror import IncompatibleErrorsException, NDError
+from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
 
@@ -18,15 +18,15 @@ class NDData(object):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of additional
-    metadata such as errors, a mask, units, flags, and/or a coordinate system.
+    metadata such as uncertainties, a mask, units, flags, and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray` or '~astropy.nddata.NDData'
         The actual data contained in this `NDData` object.
 
-    error : `~astropy.nddata.NDError`, optional
-        Errors on the data.
+    uncertainty : `~astropy.nddata.NDUncertainty`, optional
+        Uncertainties on the data.
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
@@ -65,7 +65,7 @@ class NDData(object):
     Raises
     ------
     ValueError
-        If the `error` or `mask` inputs cannot be broadcast (e.g., match
+        If the `uncertainty` or `mask` inputs cannot be broadcast (e.g., match
         shape) onto `data`.
 
     Notes
@@ -93,17 +93,17 @@ class NDData(object):
         >>> plt.imshow(x)
     """
 
-    def __init__(self, data, error=None, mask=None, flags=None, wcs=None,
+    def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=copy)
 
-            if error is not None:
-                self.error = error
-                log.info("Overwriting NDData's current error being overwritten with specified error")
+            if uncertainty is not None:
+                self.uncertainty = uncertainty
+                log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
 
-            if error is not None:
+            if mask is not None:
                 self.mask = mask
                 log.info("Overwriting NDData's current mask being overwritten with specified mask")
 
@@ -125,7 +125,7 @@ class NDData(object):
         else:
             self.data = np.array(data, subok=True, copy=copy)
 
-            self.error = error
+            self.uncertainty = uncertainty
             self.mask = mask
             self.flags = flags
             self.wcs = wcs
@@ -175,19 +175,19 @@ class NDData(object):
             self._flags = value
 
     @property
-    def error(self):
-        return self._error
+    def uncertainty(self):
+        return self._uncertainty
 
-    @error.setter
-    def error(self, value):
+    @uncertainty.setter
+    def uncertainty(self, value):
         if value is not None:
-            if isinstance(value, NDError):
-                self._error = value
-                self._error.parent_nddata = self
+            if isinstance(value, NDUncertainty):
+                self._uncertainty = value
+                self._uncertainty.parent_nddata = self
             else:
-                raise TypeError("error must be an instance of a NDError object")
+                raise TypeError("uncertainty must be an instance of a NDUncertainty object")
         else:
-            self._error = value
+            self._uncertainty = value
 
     @property
     def meta(self):
@@ -257,10 +257,10 @@ class NDData(object):
 
         new_data = self.data[item]
 
-        if self.error is not None:
-            new_error = self.error[item]
+        if self.uncertainty is not None:
+            new_uncertainty = self.uncertainty[item]
         else:
-            new_error = None
+            new_uncertainty = None
 
         if self.mask is not None:
             new_mask = self.mask[item]
@@ -280,7 +280,7 @@ class NDData(object):
         else:
             new_wcs = None
 
-        return self.__class__(new_data, error=new_error, mask=new_mask, flags=new_flags, wcs=new_wcs,
+        return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
             meta=self.meta, units=self.units, copy=False)
 
 
@@ -288,7 +288,7 @@ class NDData(object):
 
 
 
-    def _arithmetic(self, operand, propagate_errors, name, operation):
+    def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -296,9 +296,9 @@ class NDData(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a {operator} b
-        propagate_errors : bool
-            Whether to propagate errors following the propagation rules
-            defined by the class used for the `error` attribute.
+        propagate_uncertainties : bool
+            Whether to propagate uncertainties following the propagation rules
+            defined by the class used for the `uncertainty` attribute.
 
         Returns
         -------
@@ -310,8 +310,8 @@ class NDData(object):
         This method requires the datasets to have identical WCS
         properties, equivalent units, and identical shapes. Flags and
         meta-data get set to None in the resulting dataset. The unit
-        in the result is the same as the unit in `self`. Errors are
-        propagated, although this feature is experimental, and errors
+        in the result is the same as the unit in `self`. Uncertainties are
+        propagated, although this feature is experimental, and uncertainties
         are assumed to be uncorrelated.  Values masked in either
         dataset before the operation are masked in the resulting
         dataset.
@@ -334,24 +334,24 @@ class NDData(object):
         data = operation(self.data, operand_data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
-        if propagate_errors is None:
-            result.error = None
-        elif self.error is None and operand.error is None:
-            result.error = None
-        elif self.error is None:
-            result.error = operand.error
-        elif operand.error is None:
-            result.error = self.error
-        else:  # both self and operand have errors
+        if propagate_uncertainties is None:
+            result.uncertainty = None
+        elif self.uncertainty is None and operand.uncertainty is None:
+            result.uncertainty = None
+        elif self.uncertainty is None:
+            result.uncertainty = operand.uncertainty
+        elif operand.uncertainty is None:
+            result.uncertainty = self.uncertainty
+        else:  # both self and operand have uncertainties
             try:
-                method = getattr(self.error, propagate_errors)
-                result.error = method(operand, result.data)
-            except IncompatibleErrorsException:
-                raise IncompatibleErrorsException(
-                    "Cannot propagate errors of type {0:s} with errors of "
+                method = getattr(self.uncertainty, propagate_uncertainties)
+                result.uncertainty = method(operand, result.data)
+            except IncompatibleUncertaintiesException:
+                raise IncompatibleUncertaintiesException(
+                    "Cannot propagate uncertainties of type {0:s} with uncertainties of "
                     "type {1:s} for {2:s}".format(
-                        self.error.__class__.__name__,
-                        operand.error.__class__.__name__,
+                        self.uncertainty.__class__.__name__,
+                        operand.uncertainty.__class__.__name__,
                         name))
 
         if self.mask is None and operand.mask is None:
@@ -370,40 +370,40 @@ class NDData(object):
 
         return result
 
-    def add(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_add"
+    def add(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_add"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "addition", np.add)
+            operand, propagate_uncertainties, "addition", np.add)
     add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
-    def subtract(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_subtract"
+    def subtract(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_subtract"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "subtraction", np.subtract)
+            operand, propagate_uncertainties, "subtraction", np.subtract)
     subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
 
-    def multiply(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_multiply"
+    def multiply(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_multiply"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "multiplication", np.multiply)
+            operand, propagate_uncertainties, "multiplication", np.multiply)
     multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
 
-    def divide(self, operand, propagate_errors=True):
-        if propagate_errors:
-            propagate_errors = "propagate_divide"
+    def divide(self, operand, propagate_uncertainties=True):
+        if propagate_uncertainties:
+            propagate_uncertainties = "propagate_divide"
         else:
-            propagate_errors = None
+            propagate_uncertainties = None
         return self._arithmetic(
-            operand, propagate_errors, "division", np.divide)
+            operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
     def convert_units_to(self, unit):
@@ -431,7 +431,7 @@ class NDData(object):
         data = self.units.to(unit, self.data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
-        result.error = self.error
+        result.uncertainty = self.uncertainty
         result.mask = self.mask
         result.flags = None
         result.wcs = self.wcs
