@@ -142,8 +142,11 @@ class StdDevUncertainty(NDUncertainty):
     def __init__(self, array=None, copy=True):
         if array is None:
             self.array = None
+        elif isinstance(array, StandardDeviationError):
+            self.array = np.array(array.array, copy=copy, subok=True)
         else:
             self.array = np.array(array, copy=copy, subok=True)
+
 
     @property
     def parent_nddata(self):

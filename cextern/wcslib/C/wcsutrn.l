@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.14 - an implementation of the FITS WCS standard.
+  WCSLIB 4.15 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 4.14 2012/07/13 10:02:27 cal103 Exp $
+  $Id: wcsutrn.l,v 4.15 2012/09/26 14:26:05 cal103 Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -68,13 +68,15 @@ jmp_buf wcsutrn_abort_jmp_env;
 
 %%
 	static const char *function = "wcsutrne";
-
+	
 	char orig[80], subs[80];
 	int bracket = 0;
 	int unsafe  = 0;
 	int status  = -1;
 	YY_BUFFER_STATE inbuff;
 	int yylex_destroy(void);
+	
+	if (err) *err = 0x0;
 	
 	*orig = '\0';
 	*subs = '\0';

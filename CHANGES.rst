@@ -33,7 +33,7 @@ see the "What's New" section of the documentation for more details.
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Astropy doc themes moved into ``astropy.sphinx`` to allow affilated packages
+- Astropy doc themes moved into ``astropy.sphinx`` to allow affiliated packages
   to access them.
 
 - Added expanded documentation for the ``astropy.cosmology`` sub-package.
@@ -86,10 +86,12 @@ Bug Fixes
 
   - Fixed a minor string formatting issue.
 
-- ``astropy.io.vo``
+- ``astropy.io.votable``
 
   - Changed the ``pedantic`` configuration option to be ``False`` by default
     due to the vast proliferation of non-compliant VO Tables. [#296]
+
+  - Renamed `astropy.io.vo` to `astropy.io.votable`.
 
 - ``astropy.table``
 
@@ -98,7 +100,7 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-  - Updated to wcslib 4.14 [#327]
+  - Updated to wcslib 4.15 [#418]
 
   - Fixed a problem with handling FITS headers on locales that do not use
     dot as a decimal separator. This required an upstream fix to wcslib which
@@ -108,11 +110,11 @@ Bug Fixes
   configuration--ensures that tests don't have any impact on the default log
   location or contents. [#291]
 
-- Various minor documentation fixes [#293] 
+- Various minor documentation fixes [#293]
 
 
 
 0.1 (2012-06-19)
 ----------------
 
-- Inital release.
+- Initial release.

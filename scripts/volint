@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 
-import astropy.io.vo.volint
+import astropy.io.votable.volint
 
-astropy.io.vo.volint.main()
+astropy.io.votable.volint.main()

@@ -22,7 +22,8 @@ __all__ = [
 
 def check_id(ID, name='ID', config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *ID* is not a valid XML ID_.
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if *ID*
+    is not a valid XML ID_.
 
     *name* is the name of the attribute being checked (used only for
     error messages).
@@ -64,7 +65,8 @@ def check_token(token, attr_name, config={}, pos=None):
 
 def check_mime_content_type(content_type, config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *content_type* is not a valid MIME content type.
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
+    *content_type* is not a valid MIME content type.
 
     As defined by RFC 2045 (syntactically, at least).
     """
@@ -77,7 +79,8 @@ def check_mime_content_type(content_type, config={}, pos=None):
 
 def check_anyuri(uri, config={}, pos=None):
     """
-    Raises a `~astropy.io.vo.exceptions.VOTableSpecError` if *uri* is not a valid URI.
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
+    *uri* is not a valid URI.
 
     As defined in RFC 2396.
     """

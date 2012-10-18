@@ -6,8 +6,12 @@ __all__ = ['NDData']
 import numpy as np
 
 from ..units import Unit
+from ..logger import log
+
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
+from ..utils.compat.odict import OrderedDict
+from ..io import fits
 
 
 class NDData(object):
@@ -18,7 +22,7 @@ class NDData(object):
 
     Parameters
     -----------
-    data : `~numpy.ndarray`
+    data : `~numpy.ndarray` or '~astropy.nddata.NDData'
         The actual data contained in this `NDData` object.
 
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
@@ -92,21 +96,41 @@ class NDData(object):
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
                  meta=None, units=None, copy=True):
 
-        #TODO change constructor to also accept an nddata object (keywords overwrite current data)
+        if isinstance(data, self.__class__):
+            self.data = np.array(data.data, subok=True, copy=copy)
 
-        self.data = np.array(data, subok=True, copy=copy)
+            if uncertainty is not None:
+                self.uncertainty = uncertainty
+                log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
 
-        self.uncertainty = uncertainty
-        self.mask = mask
-        self.flags = flags
-        self.wcs = wcs
+            if error is not None:
+                self.mask = mask
+                log.info("Overwriting NDData's current mask being overwritten with specified mask")
 
-        if meta is None:
-            self.meta = {}
+            if flags is not None:
+                self.flags = flags
+                log.info("Overwriting NDData's current flags being overwritten with specified flag")
+
+            if wcs is not None:
+                self.wcs = wcs
+                log.info("Overwriting NDData's current error being overwritten with specified error")
+
+            if meta is not None:
+                self.meta = meta
+                log.info("Overwriting NDData's current error being overwritten with specified error")
+
+            if units is not None:
+                raise ValueError('To convert to different unit please use .to')
+
         else:
-            self.meta = dict(meta)  # makes a *copy* of the passed-in meta
+            self.data = np.array(data, subok=True, copy=copy)
 
-        self.units = units
+            self.uncertainty = uncertainty
+            self.mask = mask
+            self.flags = flags
+            self.wcs = wcs
+            self.meta = meta
+            self.units = units
 
     @property
     def mask(self):
@@ -164,6 +188,21 @@ class NDData(object):
                 raise TypeError("uncertainty must be an instance of a NDUncertainty object")
         else:
             self._uncertainty = value
+
+    @property
+    def meta(self):
+        return self._meta
+
+    @meta.setter
+    def meta(self, value):
+        if value is None:
+            self._meta = OrderedDict()
+        else:
+            try:
+                self._meta = OrderedDict(value)
+            except ValueError:
+                raise TypeError('NDData meta attribute must be dict-like')
+
 
     @property
     def units(self):

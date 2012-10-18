@@ -6,6 +6,7 @@ import numpy as np
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import raises
+from ...io import fits
 
 np.random.seed(12345)
 
@@ -220,4 +221,28 @@ def test_slicing_reference():
     assert d2.uncertainty.array.base is d1.uncertainty.array
 
 
+def test_initializing_from_nddata():
+    d1 = NDData(np.ones((5, 5)))
+    d2 = NDData(d1, copy=False)
 
+    assert d1.data is d2.data
+
+
+def test_initializing_from_nderror():
+    e1 = StandardDeviationError(np.ones((5, 5)) * 3)
+    e2 = StandardDeviationError(e1, copy=False)
+
+    assert e1.array is e2.array
+
+def test_meta2ordered_dict():
+    hdr = fits.header.Header()
+    hdr.set('observer', 'Edwin Hubble')
+    hdr.set('exptime', '3600')
+
+    d1 = NDData(np.ones((5, 5)), meta=hdr)
+    assert d1.meta['OBSERVER'] == 'Edwin Hubble'
+
+@raises(TypeError)
+def test_meta2ordered_dict_fail():
+    hdr = 'this is not a valid header'
+    d1 = NDData(np.ones((5, 5)), meta=hdr)

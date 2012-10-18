@@ -764,7 +764,7 @@ def test_from_scratch_example():
 
 
 def _run_test_from_scratch_example():
-    from astropy.io.vo.tree import VOTableFile, Resource, Table, Field
+    from ..tree import VOTableFile, Resource, Table, Field
 
     # Create a new VOTable file...
     votable = VOTableFile()

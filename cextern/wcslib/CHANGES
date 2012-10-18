@@ -1,3 +1,21 @@
+WCSLIB version 4.15 (2012/09/26)
+--------------------------------
+
+* C library
+
+  - Bug fixes in spctype(), spcspxe(), spcxpse, and spctrne() for
+    propagating an error status correctly from lower-level routines.
+    Amendments to the prologues of these routines.  Reported by
+    Hans Terlouw.
+
+  - Similarly for wcsunitse(), wcsulexe(), and wcsutrne().
+
+* PGSBOX
+
+  - Bug fix in PGSBOX for handling cycles in angle when both world
+    coordinate elements are angular.  Reported by Thomas Robitaille.
+
+
 WCSLIB version 4.14 (2012/07/13)
 --------------------------------
 
@@ -1949,4 +1967,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.14 2012/07/13 10:02:44 cal103 Exp $
+$Id: CHANGES,v 4.15 2012/09/26 14:26:06 cal103 Exp $

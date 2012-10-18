@@ -195,3 +195,7 @@ def test_null_unit():
 def test_unrecognized_equivalency():
     assert u.m.is_equivalent('foo') == False
     assert u.m.is_equivalent('foot') == True
+
+@raises(TypeError)
+def test_unit_noarg():
+    u.Unit()
