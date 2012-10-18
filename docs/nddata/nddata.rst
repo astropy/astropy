@@ -70,18 +70,18 @@ and flags can easily be used to set the mask::
 
     >>> ndd.mask = ndd.flags['cosmic_rays'] == 99
 
-Errors
-------
+Uncertainties
+-------------
 
-`~astropy.nddata.nddata.NDData` objects have an `error` attribute that can be
+`~astropy.nddata.nddata.NDData` objects have an `uncertainty` attribute that can be
 used to set the uncertainty on the data values. This is done by using classes
-to represent the errors of a given type. For example, to set standard
-deviation errors on the pixel values, you can do::
+to represent the uncertainties of a given type. For example, to set standard
+deviation uncertainties on the pixel values, you can do::
 
     >>> from astropy.nddata import StdDevUncertainty
-    >>> ndd.error = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
+    >>> ndd.uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
 
-.. note:: For information on creating your own error classes,
+.. note:: For information on creating your own uncertainty classes,
           see :doc:`subclassing`.
 
 Arithmetic
@@ -89,7 +89,7 @@ Arithmetic
 
 Provided that the world coordinate system (WCS), units, and shape match, two
 :class:`~astropy.nddata.nddata.NDData` instances can be added or subtracted
-from each other, with error propagation, creating a new
+from each other, with uncertainty propagation, creating a new
 :class:`~astropy.nddata.nddata.NDData` object::
 
     ndd3 = ndd1.add(ndd2)
@@ -102,8 +102,8 @@ consistent behavior for masks and flags, and with a framework to propagate
 uncertainties. These methods are intended for use by sub-classes and functions
 that deal with more complex combinations.
 
-.. warning:: Error propagation is still experimental, and does not take into
-             account correlated errors.
+.. warning:: Uncertainty propagation is still experimental, and does not take into
+             account correlated uncertainties.
 
 Meta-data
 ---------

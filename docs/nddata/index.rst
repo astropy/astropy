@@ -53,8 +53,8 @@ A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.
 
 Similarly, attributes are available to store generic meta-data, flags, and
-errors, and the `~astropy.nddata.nddata.NDData` class includes methods to
-combine datasets with arithmetic operations (which include error propagation).
+uncertainties, and the `~astropy.nddata.nddata.NDData` class includes methods to
+combine datasets with arithmetic operations (which include uncertainties propagation).
 These are described in :doc:`nddata`.
 
 Using `nddata`
