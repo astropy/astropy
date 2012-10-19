@@ -103,7 +103,7 @@ class NDData(object):
                 self.uncertainty = uncertainty
                 log.info("Overwriting NDData's current uncertainty being overwritten with specified uncertainty")
 
-            if uncertainty is not None:
+            if mask is not None:
                 self.mask = mask
                 log.info("Overwriting NDData's current mask being overwritten with specified mask")
 
