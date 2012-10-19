@@ -708,6 +708,13 @@ class Table(object):
                 'Arguments "names" and "dtypes" must match number of columns'
                 .format(inp_str))
 
+    def _set_masked_from_cols(self, cols):
+        if self.masked is None:
+            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
+                self.masked = True
+            else:
+                self.masked = False
+
     def _init_from_list(self, data, names, dtypes, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
@@ -715,24 +722,17 @@ class Table(object):
         if not copy:
             raise ValueError('Cannot use copy=False with a list data input')
 
-        if self.masked is None:
-            for col in data:
-                if isinstance(col, (MaskedColumn, ma.MaskedArray)):
-                    col_class = MaskedColumn
-                    self.masked = True
-                    break
-            col_class = Column
-            self.masked = False
-        else:
-            col_class = MaskedColumn if self.masked else Column
+        # Set self.masked appropriately, then get class to create column instances.
+        self._set_masked_from_cols(data)
+        ColumnClass = MaskedColumn if self.masked else Column
 
         cols = []
         def_names = _auto_names(n_cols)
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, (Column, MaskedColumn)):
-                col = col_class((name or col.name), col, dtype=dtype)
+                col = ColumnClass((name or col.name), col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = col_class((name or def_name), col, dtype=dtype)
+                col = ColumnClass((name or def_name), col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -750,19 +750,19 @@ class Table(object):
         cols = ([data[name] for name in data_names] if struct else
                 [data[:, i] for i in range(n_cols)])
 
+        # Set self.masked appropriately, then get class to create column instances.
+        self._set_masked_from_cols(cols)
+        ColumnClass = MaskedColumn if self.masked else Column
+
         if copy:
             self._init_from_list(cols, names, dtypes, n_cols, copy)
         else:
             dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtypes).ravel()
             columns = TableColumns()
-            if self.masked is None and isinstance(data, ma.MaskedArray):
-                col_class = MaskedColumn
-                self.masked = True
-            else:
-                col_class = MaskedColumn if self.masked else Column
+
             for name in names:
-                columns[name] = col_class(name, self._data[name])
+                columns[name] = ColumnClass(name, self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
 
@@ -782,6 +782,9 @@ class Table(object):
         data_names = table.colnames
         self.meta = deepcopy(table.meta)
         cols = table.columns.values()
+
+        # Set self.masked appropriately from cols
+        self._set_masked_from_cols(cols)
 
         if copy:
             self._init_from_list(cols, names, dtypes, n_cols, copy)
