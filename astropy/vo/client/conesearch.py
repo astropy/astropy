@@ -47,18 +47,80 @@ updated):
 >>> all_sdss_cat = conesearch.list_catalogs(match_string='sdss', sort=True,
                                             cache=False)
 
+Perform same cone search as above but asynchronously and
+only use catalogs that conform to IVOA standards:
+
+>>> async_search = conesearch.AsyncConeSearch(
+        219.900850, -60.835619, 2.78e-05, catalog_db=all_sdss_cat,
+        pedantic=True)
+
+Several ways to check search status. Any error raised
+does not terminate the process:
+
+>>> async_search.is_alive()
+>>> async_search.ready()
+>>> async_search.successful()
+
+Get search results. If no results are returned after
+30 seconds, an error is raised but this does not
+terminate the process. Otherwise, conesearch result
+is returned and can be manipulated as above.
+
+>>> async_result = async_search.get(timeout=30)
+>>> cone_arr = async_result.array
+
+If search is taking too long and going nowhere,
+it can be forced to terminate:
+
+>>> async_search.terminate()
+
 """
 from __future__ import print_function, division
+
+# STDLIB
+import multiprocessing
+import operator
 
 # LOCAL
 from . import vos_catalog
 
-__all__ = ['conesearch', 'list_catalogs']
+__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs']
 
 _SERVICE_TYPE = 'conesearch'
 
 class ConeSearchError(Exception):
     pass
+
+class AsyncConeSearch(object):
+    def __init__(self, *args, **kwargs):
+        """
+        Perform a cone search asynchronously using
+        :py:class:`multiprocessing.pool.AsyncResult`.
+
+        Cone search will be forced to run in silent
+        mode. Warnings are controled by :mod:`warnings`
+        module.
+
+        Parameters
+        ----------
+        args, kwargs : see `conesearch`
+
+        """
+        kwargs['verbose'] = False
+        self.proc = multiprocessing.Pool()
+        self.result = self.proc.apply_async(conesearch, args, kwargs)
+
+    def __getattr__(self, what):
+        """Expose :py:class:`multiprocessing.pool.AsyncResult` attributes."""
+        return getattr(self.result, what)
+
+    def is_alive(self):
+        """Check if any of pool processes is running."""
+        return reduce(operator.or_, [p.is_alive() for p in self.proc._pool])
+
+    def terminate(self):
+        """Terminate the process."""
+        self.proc.terminate()
 
 def conesearch(ra, dec, sr, verb=1, **kwargs):
     """
