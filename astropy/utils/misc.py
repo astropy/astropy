@@ -15,7 +15,6 @@ import sys
 import textwrap
 import traceback
 import warnings
-import contextlib
 
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
@@ -23,100 +22,6 @@ __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
            'walk_skip_hidden']
 
-@contextlib.contextmanager
-def get_fileobj(name_or_obj, binary=False):
-    """
-    Given a filename or a readable file-like object, return a readable
-    file-like object.
-
-    This supports passing filenames, URLs, and readable file-like
-    objects, any of which can be compressed in gzip or bzip2.
-
-    Parameters
-    ----------
-    name_or_obj : str or file-like object
-        The filename of the file to access (if given as a string), or
-        the file-like object to access.
-
-        If a file-like object, it must be opened in binary mode.
-
-    binary : bool, optional
-        When `False` (default), returns a file-like object that on
-        Python 2.x reads `bytes` objects and on Python 3.x reads `str`
-        (unicode) objects.  This matches the default behavior of
-        `open` when no `mode` argument is provided.
-
-        When `True`, returns a file-like object that will read `bytes`
-        objects.
-    """
-    close_fds = []
-
-    # Get a file object to the content
-    if isinstance(name_or_obj, basestring):
-        import re
-        if re.match('(http|https|ftp)://.*', name_or_obj):
-            import urllib
-            fileobj = urllib.urlopen(name_or_obj)
-            close_fds.append(fileobj)
-        else:
-            if sys.version_info[0] >= 3:
-                fileobj = io.FileIO(name_or_obj, 'r')
-            else:
-                fileobj = open(name_or_obj, 'rb')
-            close_fds.append(fileobj)
-    else:
-        fileobj = name_or_obj
-
-    # Check if the file object supports random access, and if not, then wrap
-    # it in a StringIO buffer.
-    if not hasattr(fileobj, 'seek'):
-        from StringIO import StringIO
-        fileobj = StringIO(fileobj)
-
-    # Now read enough bytes to look at signature
-    signature = fileobj.read(4)
-    fileobj.seek(0)
-
-    if signature[:3] == b'\x1f\x8b\x08':  # gzip
-        try:
-            from .compat import gzip
-            fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
-            fileobj_new.read(1)  # need to check that the file is really gzip
-        except IOError:  # invalid gzip file
-            fileobj.seek(0)
-        else:
-            fileobj_new.seek(0)
-            fileobj = fileobj_new
-    elif signature[:3] == b'BZh':  # bzip2
-        try:
-            # bz2.BZ2File does not support file objects, only filenames, so we
-            # need to write the data to a temporary file
-            import tempfile
-            tmp = tempfile.NamedTemporaryFile()
-            tmp.write(fileobj.read())
-            tmp.flush()
-            close_fds.append(tmp)
-            import bz2
-            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
-            fileobj_new.read(1)  # need to check that the file is really bzip2
-        except IOError:  # invalid bzip2 file
-            fileobj.seek(0)
-        else:
-            fileobj_new.seek(0)
-            fileobj = fileobj_new
-
-    if sys.version_info[0] >= 3 and not binary:
-        import bz2
-        # FIXME: A bz2.BZ2File can not be wrapped by a TextIOWrapper,
-        # so on Python 3 the user will get back bytes from the file
-        # rather than Unicode as expected.
-        if not isinstance(fileobj, bz2.BZ2File):
-            fileobj = io.TextIOWrapper(fileobj)
-
-    yield fileobj
-
-    for fd in close_fds:
-        fd.close()
 
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.
@@ -303,15 +208,6 @@ def isiterable(obj):
         return True
     except TypeError:
         return False
-
-
-def dict_soft_update(d, u):
-    """
-    Like dict.update, except if the values in *u* are None, *d* is not updated.
-    """
-    for key, val in u.iteritems():
-        if val is not None:
-            d[key] = val
 
 
 class lazyproperty(object):

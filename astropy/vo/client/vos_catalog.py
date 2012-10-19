@@ -11,13 +11,44 @@ These properties are set via Astropy configuration system
     * `astropy.vo.client.vos_baseurl`
     * `astropy.vo.client.vos_timeout`
 
-"""
+Examples
+--------
+>>> from astropy.vo.client import vos_catalog
 
+Get all catalogs from a database named 'conesearch'.
+For more cone search examples, see `astropy.vo.client.conesearch`:
+
+>>> my_db = vos_catalog.get_remote_catalog_db('conesearch')
+
+Find catalog names containing 'noao':
+
+>>> cat_names = my_db.list_catalogs(match_string='noao', sort=True)
+
+Get information for first catalog from above. Catalog
+fields may vary:
+
+>>> my_cat = my_db.get_catalog(cat_names[0])
+>>> print my_cat
+>>> cat_keys = my_cat.keys()
+>>> cat_url = my_cat['url']
+>>> max_rec = my_cat['maxRecords']
+
+"""
 from __future__ import print_function, division
 
 # STDLIB
 import io
 import json
+
+# THIRD PARTY
+import numpy
+
+# LOCAL
+from . import webquery
+from ...io.votable import table
+from ...io.votable.exceptions import vo_warn, W24, W25
+from ...io.votable.util import IS_PY3K
+from ...utils.console import color_print
 
 # LOCAL CONFIG
 from ...config.configuration import ConfigurationItem, get_config_items
@@ -36,6 +67,7 @@ BASEURL = ConfigurationItem('vos_baseurl',
 TIMEOUT = ConfigurationItem('vos_timeout', 30.0,
                             'Timeout in seconds for VO Service query')
 
+# LOCAL CONFIG FROM DIFFERENT MODULE
 VO_CFG = get_config_items('astropy.io.votable')
 try:
     VO_PEDANTIC = VO_CFG['PEDANTIC']
@@ -44,13 +76,6 @@ except KeyError as e:
     log.warn('astropy.io.votable.pedantic not found in config, '
              'defaulting to True')
     VO_PEDANTIC = True
-
-# LOCAL
-from . import webquery
-from ...io.votable import table
-from ...io.votable.exceptions import vo_warn, W24, W25
-from ...io.votable.util import IS_PY3K
-from ...utils.console import color_print
 
 class VOSError(Exception):
     pass
@@ -67,9 +92,17 @@ class VOSCatalog(object):
     def __init__(self, tree):
         self._tree = tree
 
-    def get_url(self):
-        """Get catalog URL."""
-        return self._tree['url']
+    def __repr__(self):
+        """Pretty print."""
+        return json.dumps(self._tree, indent=4)
+
+    def __getattr__(self, what):
+        """Expose dictionary attributes."""
+        return getattr(self._tree, what)
+
+    def __getitem__(self, what):
+        """Expose dictionary key look-up."""
+        return self._tree[what]
 
 class VOSDatabase(object):
     def __init__(self, tree):
@@ -124,11 +157,36 @@ class VOSDatabase(object):
             raise VOSError("No catalog '{}' found.".format(name))
         return VOSCatalog(self._catalogs[name])
 
-    def list_catalogs(self, sort=False):
-        """List of catalog names."""
-        out_arr = self._catalogs.keys()
+    def list_catalogs(self, match_string=None, sort=False):
+        """
+        List of catalog names.
+
+        Parameters
+        ----------
+        match_string : str or `None`
+            If given string is anywhere in a catalog name, it is
+            considered a matching catalog. It is not case-sensitive.
+            By default, all catalogs are returned.
+
+        sort : bool
+            Sort output in alphabetical order. If not sorted, the
+            order depends on dictionary hashing.
+
+        """
+        all_catalogs = self._catalogs.keys()
+
+        if match_string is None:
+            out_arr = all_catalogs
+        else:
+            all_cat_arr = numpy.array(all_catalogs)
+            all_cat_ucase = numpy.char.upper(all_cat_arr)
+            i = numpy.char.count(all_cat_ucase,
+                                 match_string.upper()).astype('bool')
+            out_arr = list(all_cat_arr[i])
+
         if sort:
             out_arr.sort()
+
         return out_arr
 
 def get_remote_catalog_db(dbname, cache=True):
@@ -275,9 +333,9 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             else:
                 remote_db = get_remote_catalog_db(service_type, cache=cache)
                 catalog = remote_db.get_catalog(catalog)
-                url = catalog.get_url()
+                url = catalog['url']
         else:
-            url = catalog.get_url()
+            url = catalog['url']
 
         if verbose:
             color_print('Trying {}'.format(url), 'green')
@@ -289,43 +347,25 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
     raise VOSError('None of the available catalogs returned valid results.')
 
-def list_catalogs(service_type, match_string=None, sort=False, cache=True):
+def list_catalogs(service_type, cache=True, **kwargs):
     """
     List the catalogs available for the given service type.
 
     Parameters
     ----------
-    service_type : {'basic', 'conesearch', 'conesearch_test', 'image', 'ssa'}
-        At this stage of development, these are all incomplete.
-
-    match_string : str or `None`
-        If given string is anywhere in a catalog name, it is
-        considered a matching catalog. It is not case-sensitive.
-        By default, all catalogs are returned.
-
-    sort : bool
-        Sort output in alphabetical order. If not sorted, the
-        order depends on dictionary hashing.
+    service_type : {'basic', 'conesearch', 'image', 'ssa'}
+        Only 'conesearch' is supported for now.
+        Others are for testing only.
 
     cache : bool
         See `get_remote_catalog_db`.
+
+    kwargs : keywords for `VOSDatabase.list_catalogs`
 
     Returns
     -------
     value : list of str
 
     """
-    all_catalogs = get_remote_catalog_db(service_type,
-                                         cache=cache).list_catalogs(sort=sort)
-
-    if match_string is None:
-        return all_catalogs
-
-    else:
-        import numpy
-
-        all_cat_arr = numpy.array(all_catalogs)
-        all_cat_ucase = numpy.char.upper(all_cat_arr)
-        i = numpy.char.count(all_cat_ucase, match_string.upper()).astype('bool')
-
-        return list(all_cat_arr[i])
+    return get_remote_catalog_db(service_type,
+                                 cache=cache).list_catalogs(**kwargs)
