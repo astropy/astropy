@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module contains simple algorithmic functionality common in astronomy or
-used in multiple places throughout Astropy, but are not complex enough to
-necessarily warrant their own module.
+This module contains simple statistical algorithms that are straightforwardly
+implemented as a single python function (or family of functions).
 
 This package should generally not be used directly.  Everything in `__all__` is
-imported into `astropy.tools`, and hence that package should be used for
+imported into `astropy.stats`, and hence that package should be used for
 access.
 """
 
@@ -21,6 +20,10 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     This performs the sigma clipping algorithm - i.e. the data will be iterated
     over, each time rejecting points that are more than a specified number of
     standard deviations discrepant.
+
+    .. note::
+        `scipy.stats.sigmaclip` provides a subset of the functionality in this
+        function,
 
     Parameters
     ----------
