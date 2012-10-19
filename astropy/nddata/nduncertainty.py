@@ -2,26 +2,27 @@ import abc
 
 import numpy as np
 
-__all__ = ['MissingDataAssociationException', 'IncompatibleErrorsException', 'NDError', 'StandardDeviationError']
+__all__ = ['MissingDataAssociationException', 'IncompatibleUncertaintiesException', 'NDUncertainty',
+           'StdDevUncertainty']
 
 
-class IncompatibleErrorsException(Exception):
+class IncompatibleUncertaintiesException(Exception):
     """
-    This exception should be used to indicate cases in which errors with two different classes can not be propagated.
+    This exception should be used to indicate cases in which uncertainties with two different classes can not be propagated.
     """
     pass
 
 
 class MissingDataAssociationException(Exception):
     """
-    This exception should be used to indicate that an error instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
+    This exception should be used to indicate that an uncertainty instance has not been associated with a parent `~astropy.nddata.nddata.NDData` object.
     """
     pass
 
 
-class NDError(object):
+class NDUncertainty(object):
     '''
-    This is the base class for error classes used with NDData. It is
+    This is the base class for uncertainty classes used with NDData. It is
     implemented as an abstract class and should never be directly
     instantiated.
 
@@ -29,9 +30,9 @@ class NDError(object):
     methods, keeping the call signature the same. The propagate methods can
     assume that a `parent_nddata` attribute is present which links to the parent_nddata
     dataset, and take an `~astropy.nddata.NDData` instance as the positional
-    argument, *not* an `~astropy.nddata.NDError` instance, because the
+    argument, *not* an `~astropy.nddata.NDUncertainty` instance, because the
     `~astropy.nddata.NDData` instance can be used to access both the data and
-    the errors (some propagations require the data values).
+    the uncertainties (some propagations require the data values).
     '''
 
     __metaclass__ = abc.ABCMeta
@@ -39,7 +40,7 @@ class NDError(object):
     @property
     def parent_nddata(self):
         if self._parent_nddata is None:
-            raise MissingDataAssociationException("Error is not associated with an NDData object")
+            raise MissingDataAssociationException("uncertainty is not associated with an NDData object")
         else:
             return self._parent_nddata
 
@@ -50,7 +51,7 @@ class NDError(object):
     @abc.abstractmethod
     def propagate_add(self, other_nddata, result_data):
         '''
-        Propagate errors for addition.
+        Propagate uncertainties for addition.
 
         Parameters
         ----------
@@ -61,20 +62,20 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to add the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to add the uncertainties
         '''
         pass
 
     @abc.abstractmethod
     def propagate_subtract(self, other_nddata, result_data):
         '''
-        Propagate errors for subtraction.
+        Propagate uncertainties for subtraction.
 
         Parameters
         ----------
@@ -85,20 +86,20 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to add the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to add the uncertainties
         '''
         pass
 
     @abc.abstractmethod
     def propagate_multiply(self, other_nddata, result_data):
         '''
-        Propagate errors for mutliplication.
+        Propagate uncertainties for multiplication.
 
         Parameters
         ----------
@@ -109,15 +110,15 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
         '''
         pass
 
     @abc.abstractmethod
     def propagate_divide(self, other_nddata, result_data):
         '''
-        Propagate errors for division.
+        Propagate uncertainties for division.
 
         Parameters
         ----------
@@ -128,21 +129,21 @@ class NDError(object):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
         '''
         pass
 
 
-class StandardDeviationError(NDError):
+class StdDevUncertainty(NDUncertainty):
     '''
-    A class for standard deviation errors
+    A class for standard deviation uncertaintys
     '''
 
     def __init__(self, array=None, copy=True):
         if array is None:
             self.array = None
-        elif isinstance(array, StandardDeviationError):
+        elif isinstance(array, StdDevUncertainty):
             self.array = np.array(array.array, copy=copy, subok=True)
         else:
             self.array = np.array(array, copy=copy, subok=True)
@@ -152,11 +153,11 @@ class StandardDeviationError(NDError):
     def parent_nddata(self):
         try:
             if self._parent_nddata is None:
-                raise MissingDataAssociationException("Error is not associated with an NDData object")
+                raise MissingDataAssociationException("Uncertainty is not associated with an NDData object")
             else:
                 return self._parent_nddata
         except AttributeError:
-            raise MissingDataAssociationException("Error is not associated with an NDData object")
+            raise MissingDataAssociationException("Uncertainty is not associated with an NDData object")
 
 
     @parent_nddata.setter
@@ -183,7 +184,7 @@ class StandardDeviationError(NDError):
 
     def propagate_add(self, other_nddata, result_data):
         '''
-        Propagate errors for addition.
+        Propagate uncertainties for addition.
 
         Parameters
         ----------
@@ -194,28 +195,28 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to propagate the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
-            raise IncompatibleErrorsException
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
-        result_error.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
+        result_uncertainty = StdDevUncertainty()
+        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
-        return result_error
+        return result_uncertainty
 
     def __getitem__(self, item):
         '''
@@ -227,7 +228,7 @@ class StandardDeviationError(NDError):
 
     def propagate_subtract(self, other_nddata, result_data):
         '''
-        Propagate errors for subtraction.
+        Propagate uncertainties for subtraction.
 
         Parameters
         ----------
@@ -238,32 +239,32 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to propagate the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
-            raise IncompatibleErrorsException
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
-        result_error.array = np.sqrt(self.array ** 2 + other_nddata.error.array ** 2)
+        result_uncertainty = StdDevUncertainty()
+        result_uncertainty.array = np.sqrt(self.array ** 2 + other_nddata.uncertainty.array ** 2)
 
-        return result_error
+        return result_uncertainty
 
     def propagate_multiply(self, other_nddata, result_data):
         '''
-        Propagate errors for mutliplication.
+        Propagate uncertainties for mutliplication.
 
         Parameters
         ----------
@@ -274,34 +275,34 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to propagate the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
-            raise IncompatibleErrorsException
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
-        result_error.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.error.array / other_nddata.data) ** 2) \
+        result_uncertainty = StdDevUncertainty()
+        result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
+                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
 
-        return result_error
+        return result_uncertainty
 
     def propagate_divide(self, other_nddata, result_data):
         '''
-        Propagate errors for division.
+        Propagate uncertainties for division.
 
         Parameters
         ----------
@@ -312,27 +313,27 @@ class StandardDeviationError(NDError):
 
         Returns
         -------
-        result_error : NDError instance
-            The resulting error
+        result_uncertainty : NDUncertainty instance
+            The resulting uncertainty
 
         Raises
         ------
-        IncompatibleErrorsException
-            Raised if the method does not know how to propagate the errors
+        IncompatibleUncertaintiesException
+            Raised if the method does not know how to propagate the uncertainties
         '''
 
-        if not isinstance(other_nddata.error, StandardDeviationError):
-            raise IncompatibleErrorsException
+        if not isinstance(other_nddata.uncertainty, StdDevUncertainty):
+            raise IncompatibleUncertaintiesException
 
         if self.array is None:
             raise ValueError("standard deviation values are not set")
 
-        if other_nddata.error.array is None:
+        if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set in other_nddata")
 
-        result_error = StandardDeviationError()
-        result_error.array = np.sqrt((self.array / self.data) ** 2
-                               + (other_nddata.error.array / other_nddata.data) ** 2) \
+        result_uncertainty = StdDevUncertainty()
+        result_uncertainty.array = np.sqrt((self.array / self.data) ** 2
+                               + (other_nddata.uncertainty.array / other_nddata.data) ** 2) \
                                * result_data
 
-        return result_error
+        return result_uncertainty
