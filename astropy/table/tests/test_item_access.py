@@ -145,7 +145,9 @@ class TestTableItems(BaseTestItems):
         assert row.columns['c'].attrs_equal(COLS[2])
         row[1] = 0
         assert row[1] == 0
-        assert self.t['b'][1] == 0
+        if Table is not MaskedTable:
+            # numpy.core.ma.mvoid makes a copy so this test is skipped for masked table
+            assert self.t['b'][1] == 0
 
     def test_table_slice(self):
         """Table slice returns REFERENCE to data"""
@@ -173,7 +175,7 @@ class TestTableItems(BaseTestItems):
         assert t2['c'].attrs_equal(COLS[2])
         t2['a'][0] = 0
         assert np.all(self.t._data == DATA)
-        assert np.any(t2['a'] != DATA['a'])
+        assert np.any(t2['a'] != DATA['a'][slice])
 
     def test_list_index_slice(self):
         """Table list index slice returns COPY of data"""
@@ -188,7 +190,7 @@ class TestTableItems(BaseTestItems):
         assert t2['c'].attrs_equal(COLS[2])
         t2['a'][0] = 0
         assert np.all(self.t._data == DATA)
-        assert np.any(t2['a'] != DATA['a'])
+        assert np.any(t2['a'] != DATA['a'][slice])
 
     def test_select_columns(self):
         """Select columns returns COPY of data and all column
