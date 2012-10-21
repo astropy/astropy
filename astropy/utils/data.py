@@ -5,10 +5,14 @@ caching data files.
 
 from __future__ import division
 
+import os
+import io
 import sys
 import atexit
+import contextlib
+import urllib2
 
-from .configuration import ConfigurationItem
+from ..config.configuration import ConfigurationItem
 
 
 __all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
@@ -52,14 +56,133 @@ class CacheMissingWarning(Warning):
     """
 
 
-def get_data_fileobj(dataname, cache=True):
+def is_url(string):
     """
-    Retrieves a data file from the standard locations and provides the file as
-    a file-like object.
+    Test whether a string is a valid URL
 
     Parameters
     ----------
-    dataname : str
+    string : str
+        The string to test
+    """
+    from urlparse import urlparse
+    url = urlparse(string)
+    return url[0] != '' # url[0]==url.scheme, but url[0] is py 2.6-compat
+
+
+@contextlib.contextmanager
+def get_fileobj(name_or_obj, binary=False, cache=False):
+    """
+    Given a filename or a readable file-like object, return a readable
+    file-like object.
+
+    This supports passing filenames, URLs, and readable file-like
+    objects, any of which can be compressed in gzip or bzip2.
+
+    Parameters
+    ----------
+    name_or_obj : str or file-like object
+        The filename of the file to access (if given as a string), or
+        the file-like object to access.
+
+        If a file-like object, it must be opened in binary mode.
+
+    binary : bool, optional
+        When `False` (default), returns a file-like object that on
+        Python 2.x reads `bytes` objects and on Python 3.x reads `str`
+        (unicode) objects.  This matches the default behavior of
+        `open` when no `mode` argument is provided.
+
+        When `True`, returns a file-like object that will read `bytes`
+        objects.
+
+    cache : bool, optional
+        Whether to cache the contents of remote URLs
+    """
+    close_fds = []
+
+    # Get a file object to the content
+    if isinstance(name_or_obj, basestring):
+        if is_url(name_or_obj):
+            if cache:
+                fileobj = open(_cache_remote(name_or_obj))
+            else:
+                fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
+                close_fds.append(fileobj)
+                # from types import MethodType
+                # if sys.version_info[0] < 3:  # pragma: py2
+                #     #need to add in context managers to support with urlopen for <3.x
+                #     urlres.__enter__ = MethodType(_fake_enter, urlres)
+                #     urlres.__exit__ = MethodType(_fake_exit, urlres)
+
+        else:
+            if sys.version_info[0] >= 3:
+                fileobj = io.FileIO(name_or_obj, 'r')
+            else:
+                fileobj = open(name_or_obj, 'rb')
+            close_fds.append(fileobj)
+    else:
+        fileobj = name_or_obj
+
+    # Check if the file object supports random access, and if not, then wrap
+    # it in a StringIO buffer.
+    if not hasattr(fileobj, 'seek'):
+        from StringIO import StringIO
+        fileobj = StringIO(fileobj)
+
+    # Now read enough bytes to look at signature
+    signature = fileobj.read(4)
+    fileobj.seek(0)
+
+    if signature[:3] == b'\x1f\x8b\x08':  # gzip
+        try:
+            from .compat import gzip
+            fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really gzip
+        except IOError:  # invalid gzip file
+            fileobj.seek(0)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
+    elif signature[:3] == b'BZh':  # bzip2
+        try:
+            # bz2.BZ2File does not support file objects, only filenames, so we
+            # need to write the data to a temporary file
+            import tempfile
+            tmp = tempfile.NamedTemporaryFile()
+            tmp.write(fileobj.read())
+            tmp.flush()
+            close_fds.append(tmp)
+            import bz2
+            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really bzip2
+        except IOError:  # invalid bzip2 file
+            fileobj.seek(0)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
+
+    if sys.version_info[0] >= 3 and not binary:
+        import bz2
+        # FIXME: A bz2.BZ2File can not be wrapped by a TextIOWrapper,
+        # so on Python 3 the user will get back bytes from the file
+        # rather than Unicode as expected.
+        if not isinstance(fileobj, bz2.BZ2File):
+            fileobj = io.TextIOWrapper(fileobj)
+
+    yield fileobj
+
+    for fd in close_fds:
+        fd.close()
+
+def get_data_fileobj(data_name, cache=True):
+    """
+    Retrieves a data file from the standard locations for the package and
+    provides the file as a file-like object.
+
+    Parameters
+    ----------
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -76,7 +199,6 @@ def get_data_fileobj(dataname, cache=True):
               e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
-            * A URL to some other file.
 
     cache : bool
         If True, the file will be downloaded and saved locally or the
@@ -124,42 +246,20 @@ def get_data_fileobj(dataname, cache=True):
     get_data_contents : returns the contents of a file or url as a bytes object
     get_data_filename : returns a local name for a file containing the data
     """
-    from os.path import isdir, isfile
-    from urlparse import urlparse
-    from urllib2 import urlopen
-    from types import MethodType
-
-    if cache:
-        return open(get_data_filename(dataname), 'rb')
-    else:
-        url = urlparse(dataname)
-        if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
-            #it's actually a url for a net location
-            urlres = urlopen(dataname, timeout=REMOTE_TIMEOUT())
-        else:
-            datafn = _find_pkg_data_path(dataname)
-            if isdir(datafn):
-                raise IOError(
-                    "Tried to access a data file that's actually "
-                    "a package data directory")
-            elif isfile(datafn):
-                return open(datafn, 'rb')
-            else:
-                #not local file - need to get remote data
-                urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
-
-        if sys.version_info[0] < 3:  # pragma: py2
-            #need to add in context managers to support with urlopen for <3.x
-            urlres.__enter__ = MethodType(_fake_enter, urlres)
-            urlres.__exit__ = MethodType(_fake_exit, urlres)
-
-        return urlres
+    datafn = _find_pkg_data_path(data_name)
+    if os.path.isdir(datafn):
+        raise IOError("Tried to access a data file that's actually "
+                      "a package data directory")
+    elif os.path.isfile(datafn):  # local file
+        return get_fileobj(datafn)
+    else:  # remote file
+        return get_fileobj(DATAURL() + datafn)
 
 
-def get_data_filename(dataname):
+def get_data_filename(data_name):
     """
-    Retrieves a data file from the standard locations and provides the local
-    name of the file.
+    Retrieves a data file from the standard locations for the package and
+    provides a local filename for the data.
 
     This function is similar to `get_data_fileobj` but returns the file *name*
     instead of a readable file-like object.  This means that this function must
@@ -167,7 +267,7 @@ def get_data_filename(dataname):
 
     Parameters
     ----------
-    dataname : str
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -184,7 +284,6 @@ def get_data_filename(dataname):
               e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
-            * A URL to some other file.
 
     Raises
     ------
@@ -197,7 +296,7 @@ def get_data_filename(dataname):
     -------
     filename : str
         A file path on the local file system corresponding to the data
-        requested in `dataname`.
+        requested in `data_name`.
 
     Examples
     --------
@@ -226,41 +325,33 @@ def get_data_filename(dataname):
     get_data_contents : returns the contents of a file or url as a bytes object
     get_data_fileobj : returns a file-like object with the data
     """
-    from os.path import isdir, isfile
-    from urlparse import urlparse
 
-    url = urlparse(dataname)
-    if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
-        #it's actually a url for a net location
-        return _cache_remote(dataname)
-    elif dataname.startswith('hash/'):
-            #first try looking for a local version if a hash is specified
-            hashfn = _find_hash_fn(dataname[5:])
-            if hashfn is None:
-                return _cache_remote(DATAURL() + dataname)
-            else:
-                return hashfn
-    else:
-        datafn = _find_pkg_data_path(dataname)
-        if isdir(datafn):
-            raise IOError(
-                "Tried to access a data file that's actually "
-                "a package data directory")
-        elif isfile(datafn):
-            return datafn
+    if data_name.startswith('hash/'):
+        # first try looking for a local version if a hash is specified
+        hashfn = _find_hash_fn(data_name[5:])
+        if hashfn is None:
+            return _cache_remote(DATAURL() + data_name)
         else:
-            #look for the file on the data server
-            return _cache_remote(DATAURL() + dataname)
+            return hashfn
+    else:
+        datafn = _find_pkg_data_path(data_name)
+        if os.path.isdir(datafn):
+            raise IOError("Tried to access a data file that's actually "
+                          "a package data directory")
+        elif os.path.isfile(datafn):  # local file
+            return datafn
+        else:  # remote file
+            return _cache_remote(DATAURL() + data_name)
 
 
-def get_data_contents(dataname, cache=True):
+def get_data_contents(data_name, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
 
     Parameters
     ----------
-    dataname : str
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -302,7 +393,7 @@ def get_data_contents(dataname, cache=True):
     get_data_fileobj : returns a file-like object with the data
     get_data_filename : returns a local name for a file containing the data
     """
-    with get_data_fileobj(dataname, cache=cache) as fd:
+    with get_data_fileobj(data_name, cache=cache) as fd:
         contents = fd.read()
     return contents
 
@@ -441,7 +532,7 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
-def _find_pkg_data_path(dataname):
+def _find_pkg_data_path(data_name):
     """
     Look for data in the source-included data directories and return the
     path.
@@ -454,7 +545,7 @@ def _find_pkg_data_path(dataname):
     rootpkg = __import__(rootpkgname)
 
     module_path = dirname(module.__file__)
-    path = join(module_path, dataname)
+    path = join(module_path, data_name)
 
     root_dir = dirname(rootpkg.__file__)
     assert abspath(path).startswith(abspath(root_dir)), \
@@ -496,7 +587,6 @@ def _cache_remote(remoteurl):
     from os.path import join
     from tempfile import NamedTemporaryFile
     from shutil import move
-    from urllib2 import urlopen
     from warnings import warn
 
     from ..utils.console import ProgressBarOrSpinner
@@ -518,7 +608,7 @@ def _cache_remote(remoteurl):
                 if str(remoteurl) in url2hash:
                     return url2hash[str(remoteurl)]
 
-        with closing(urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
+        with closing(urllib2.urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
