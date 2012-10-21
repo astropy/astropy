@@ -109,12 +109,11 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
             else:
                 fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
                 close_fds.append(fileobj)
-                # from types import MethodType
-                # if sys.version_info[0] < 3:  # pragma: py2
-                #     #need to add in context managers to support with urlopen for <3.x
-                #     urlres.__enter__ = MethodType(_fake_enter, urlres)
-                #     urlres.__exit__ = MethodType(_fake_exit, urlres)
-
+                from types import MethodType
+                if sys.version_info[0] < 3:  # pragma: py2
+                    # Need to add in context managers to support with urlopen for <3.x
+                    fileobj.__enter__ = MethodType(_fake_enter, fileobj)
+                    fileobj.__exit__ = MethodType(_fake_exit, fileobj)
         else:
             if sys.version_info[0] >= 3:
                 fileobj = io.FileIO(name_or_obj, 'r')
