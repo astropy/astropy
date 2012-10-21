@@ -109,7 +109,8 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     """
     from os import path, remove
     from pytest import raises
-    from .. import paths, data
+    from .. import data
+    from ...config import paths
 
     #better yet, set the configuration to make sure the temp files are deleted
     data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)

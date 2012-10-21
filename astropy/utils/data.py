@@ -742,7 +742,7 @@ def _get_data_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
-    from .paths import get_cache_dir
+    from ..config.paths import get_cache_dir
     from os.path import exists, isdir, join
     from os import mkdir
 
