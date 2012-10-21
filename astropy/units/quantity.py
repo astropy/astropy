@@ -20,6 +20,11 @@ __all__ = ["Quantity", "IncompatibleUnitsError"]
 def _validate_units(unit):
     """ Make sure that the input is a either a string parseable by the `units` package, or a
         `Unit` object.
+        
+    Parameters
+    ----------
+    unit : `~astropy.units.UnitBase` instance, str
+        Must be an `~astropy.units.UnitBase` object or a string parseable by the `units` package.
     """
     
     if isinstance(unit, (str, unicode)):
@@ -34,13 +39,18 @@ def _validate_units(unit):
 class Quantity(object):
     """ A `Quantity` represents a number wth some associated unit. 
         
-        Parameters
-        ----------
-        value : number
-            Any Python numeric type.
-        unit : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit associated with the input value. Must be a `~astropy.units.UnitBase`
-            object or a string parseable by the `units` package.
+    Parameters
+    ----------
+    value : number
+        Any Python numeric type.
+    unit : `~astropy.units.UnitBase` instance, str
+        An object that represents the unit associated with the input value. Must be an `~astropy.units.UnitBase`
+        object or a string parseable by the `units` package.
+    
+    Raises
+    ------
+    ValueError
+        If the unit provided is not either a `Unit` object or a parseable string unit.
     """
     
     def __init__(self, value, unit):
@@ -58,7 +68,7 @@ class Quantity(object):
         Parameters
         ----------
         unit : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit to convert to. Must be a `~astropy.units.UnitBase`
+            An object that represents the unit to convert to. Must be an `~astropy.units.UnitBase`
             object or a string parseable by the `units` package.
         """
         new_quantity = self.copy()
@@ -71,6 +81,20 @@ class Quantity(object):
     
     @unit.setter
     def unit(self, unit):
+        """ Setter for the unit attribute. We allow the user to change units by setting this attribute,
+        so this will validate the unit and internally change the value to the new unit.
+        
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase` instance, str
+            An object that represents the unit to internally convert to. Must be an `~astropy.units.UnitBase`
+            object or a string parseable by the `units` package.
+        
+        Raises
+        ------
+        IncompatibleUnitsError
+            If the unit to convert to is not 'equivalent' (see `Unit` documentation) to the original unit.
+        """
         new_unit = _validate_units(unit)
         
         if not self.unit.is_equivalent(new_unit):
@@ -86,31 +110,31 @@ class Quantity(object):
     # Arithmetic operations
     def __add__(self, other):
         """ Addition between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
     
     def __radd__(self, other):
         """ Addition between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         return Quantity(self.to(other.unit).value + other.value, unit=other.unit)
     
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
     
     def __rsub__(self, other):
         """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         return Quantity(self.to(other.unit).value - other.value, unit=other.unit)
         
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         if self.unit.is_equivalent(other.unit):
             return Quantity(self.value * other.to(self.unit).value, unit=self.unit*self.unit)
@@ -119,7 +143,7 @@ class Quantity(object):
     
     def __rmul__(self, other):
         """ Multiplication between `Quantity` objects. All operations return a new `Quantity` object
-            with the units of the **left** object.
+        with the units of the **left** object.
         """
         if self.unit.is_equivalent(other.unit):
             return Quantity(other.value * self.to(other.unit).value, unit=other.unit*other.unit)
