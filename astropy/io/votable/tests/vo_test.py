@@ -24,7 +24,7 @@ from .. import tree
 from ..util import IS_PY3K
 from ..exceptions import VOTableSpecError, VOWarning
 from ..xmlutil import validate_schema
-from ....config import get_data_filename, get_data_fileobj, get_data_filenames
+from ....utils.data import get_data_filename, get_data_fileobj, get_data_filenames
 from ....tests.helper import pytest, raises
 from ....utils.compat import gzip
 

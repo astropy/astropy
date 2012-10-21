@@ -4,7 +4,7 @@ import cPickle
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...config import get_data_contents, get_data_fileobj
+from ...utils.data import get_data_contents, get_data_fileobj
 from ...io import fits
 from ...tests.helper import pytest
 from ... import wcs

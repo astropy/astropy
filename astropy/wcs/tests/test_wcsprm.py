@@ -11,7 +11,7 @@ import pytest
 
 from .. import wcs
 from .. import _wcs
-from ...config import get_data_contents, get_data_fileobj
+from ...utils.data import get_data_contents, get_data_fileobj
 from ... import units as u
 
 

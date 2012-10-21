@@ -8,7 +8,7 @@ from numpy.testing import assert_array_almost_equal
 
 from ...tests.helper import raises
 from ... import wcs
-from ...config import get_data_filenames, get_data_contents, get_data_filename
+from ...utils.data import get_data_filenames, get_data_contents, get_data_filename
 from ...tests.helper import pytest
 
 

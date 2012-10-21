@@ -8,7 +8,7 @@ from __future__ import with_statement, absolute_import
 import re
 
 #LOCAL
-from ... import config
+from ...utils import data
 
 __all__ = ['parse_ucd', 'check_ucd']
 
@@ -26,7 +26,7 @@ class UCDWords:
         self._descriptions = {}
         self._capitalization = {}
 
-        with config.get_data_fileobj("data/ucd1p-words.txt") as fd:
+        with data.get_data_fileobj("data/ucd1p-words.txt") as fd:
             for line in fd.readlines():
                 type, name, descr = [
                     x.strip().decode('ascii') for x in line.split(b'|')]

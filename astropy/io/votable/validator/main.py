@@ -8,7 +8,7 @@ from __future__ import print_function
 import os
 
 # LOCAL
-from ....config import get_data_filename
+from ....utils.data import get_data_filename
 from . import html
 from . import result
 
