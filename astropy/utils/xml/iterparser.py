@@ -79,7 +79,7 @@ def _convert_to_fd_or_read_function(fd):
         yield fd
         return
 
-    from astropy.utils.misc import get_fileobj
+    from astropy.utils.data import get_fileobj
 
     with get_fileobj(fd, binary=True) as new_fd:
         if sys.platform.startswith('win'):

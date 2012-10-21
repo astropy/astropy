@@ -693,9 +693,10 @@ def test_detailed_err():
 
 def test_header_parse():
     from astropy.io import fits
-    hdulist = fits.open(get_data_fileobj('data/header_newlines.fits'))
-    w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == b'RA---TAN-SIP'
+    with get_data_fileobj('data/header_newlines.fits') as test_file:
+        hdulist = fits.open(test_file)
+        w = wcs.WCS(hdulist[0].header)
+        assert w.wcs.ctype[0] == b'RA---TAN-SIP'
 
 
 def test_locale():

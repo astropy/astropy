@@ -175,6 +175,7 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
     for fd in close_fds:
         fd.close()
 
+
 def get_data_fileobj(data_name, cache=True):
     """
     Retrieves a data file from the standard locations for the package and

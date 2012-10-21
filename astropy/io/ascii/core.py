@@ -37,7 +37,7 @@ import itertools
 import numpy
 
 from ...table import Table
-from ...utils.misc import get_fileobj
+from ...utils.data import get_fileobj
 
 class InconsistentTableError(ValueError):
     pass
