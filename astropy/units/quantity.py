@@ -98,7 +98,7 @@ class Quantity(object):
         new_unit = _validate_units(unit)
         
         if not self.unit.is_equivalent(new_unit):
-            raise IncompatibleUnitsError("This object has units of '{}' and can not be converted to '{}'.".format(self.unit, new_unit))
+            raise IncompatibleUnitsError("This object has units of '{0:s}' and can not be converted to '{1:s}'.".format(self.unit, new_unit))
         
         self.value *= self.unit.to(new_unit)
         self._unit = new_unit
@@ -204,10 +204,10 @@ class Quantity(object):
     
     # Display
     def __str__(self):
-        return "{} {}".format(self.value, self.unit.to_string())
+        return "{0:s} {1:s}".format(self.value, self.unit.to_string())
     
     def __repr__(self):
-        return "<Quantity value: {} unit: {}>".format(self.value, self.unit.to_string())
+        return "<Quantity value: {0:s} unit: {1:s}>".format(self.value, self.unit.to_string())
         
 class IncompatibleUnitsError(Exception):
     pass
