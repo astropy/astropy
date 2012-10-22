@@ -61,12 +61,18 @@ class Future(object):
         self._event.set()
 
     def terminate(self):
-        """Kill the function."""
+        """
+        Stop the thread by brute force.
+
+        .. note:: Use with caution!
+
+        """
         if not self.is_done():
             from ..logger import log
             log.warn('Forcing {} thread to stop... '
                      'Exterminate! Exterminate!'.format(self._thread.name))
             self._event.set()
+            self._thread._Thread__stop()
 
     def is_done(self):
         """
