@@ -198,36 +198,37 @@ class Angle(object):
     
     @property
     def bounds(self):
-        """" Returns the angle's bounds, an immutable property. """
+        """" The angle's bounds, an immutable property. """
         return self._bounds
     
     @property
     def degrees(self):
-        """ Returns the angle's value in degrees (read-only property). """
+        """ The angle's value in degrees (read-only property). """
         return math.degrees(self.radians) # converts radians to degrees
 
     @property
     def radians(self):
-        """ Returns the angle's value in radians (read-only property). """
+        """ The angle's value in radians (read-only property). """
         return self._radians
 
     @property
     def hours(self):
-        """ Returns the angle's value in hours (read-only property). """
+        """ The angle's value in hours (read-only property). """
         return util.radians_to_hours(self.radians)
 
     @property
     def hms(self):
-        """ Returns the angle's value in hours, and print as an (h,m,s) tuple (read-only property). """
+        """ The angle's value in hours, and print as an (h,m,s) tuple (read-only property). """
         return util.radians_to_hms(self.radians)
 
     @property
     def dms(self):
-        """ Returns the angle's value in degrees, and print as an (d,m,s) tuple (read-only property). """
+        """ The angle's value in degrees, and print as an (d,m,s) tuple (read-only property). """
         return util.radians_to_dms(self.radians)
 
+    #TODO: Check with @demitri and @adrn re: this vs __str__ vs fromat vs to_string and so on
     def string(self, unit=u.degree, decimal=False, sep=" ", precision=5, pad=False): 
-        """ Returns a string representation of the angle.
+        """ A string representation of the angle.
         
             Parameters
             ----------
@@ -240,6 +241,12 @@ class Angle(object):
                 The separator between numbers in a sexagesimal representation, e.g. 12:41:11.1241
                 where the separator is ":". Also accepts 2 or 3 separators, e.g. 12h41m11.1241s would be sep="hms",
                 or 11-21:17.124 would be sep="-:"
+
+            Returns
+            -------
+            strrepr : str
+                A string representation of the angle.
+
         """
         
         if isinstance(unit, u.Unit):

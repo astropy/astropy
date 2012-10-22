@@ -54,8 +54,11 @@ def parse_degrees(degrees, output_dms=False):
         output_dms : bool
             If True, returns a tuple of (degree, arcminute, arcsecond)
     
-        Returns degrees in decimal form unless the keyword "output_dms" is True, in which
-        case returns a tuple: (d, m, s).
+        Returns
+        -------
+        deg : float or tuple
+             Returns degrees in decimal form unless the keyword "output_dms" is
+             True, in which case a tuple (d, m, s).
         
     """
     
@@ -147,6 +150,12 @@ def parse_hours(hours, output_hms=False):
         Surrounding whitespace in a string value is allowed.
     output_hms : bool
         If True, returns a tuple of (hour, minute, second)
+
+    Returns
+    -------
+    hrs : float or tuple
+         Returns degrees in hours form unless the keyword "output_dms" is
+         True, in which case a tuple (h, m, s).
     """
     
     # either a string or a float
