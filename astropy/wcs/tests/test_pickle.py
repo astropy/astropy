@@ -4,7 +4,7 @@ import cPickle
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...utils.data import get_data_contents, get_data_fileobj
+from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ...io import fits
 from ...tests.helper import pytest
 from ... import wcs
@@ -17,7 +17,7 @@ def test_basic():
 
 
 def test_dist():
-    with get_data_fileobj(os.path.join("data", "dist.fits")) as test_file:
+    with get_pkg_data_fileobj(os.path.join("data", "dist.fits")) as test_file:
         hdulist = fits.open(test_file)
         wcs1 = wcs.WCS(hdulist[0].header, hdulist)
         assert wcs1.det2im2 is not None
@@ -32,7 +32,7 @@ def test_dist():
 
 
 def test_sip():
-    with get_data_fileobj(os.path.join("data", "sip.fits")) as test_file:
+    with get_pkg_data_fileobj(os.path.join("data", "sip.fits")) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
@@ -47,7 +47,7 @@ def test_sip():
 
 
 def test_sip2():
-    with get_data_fileobj(os.path.join("data", "sip2.fits")) as test_file:
+    with get_pkg_data_fileobj(os.path.join("data", "sip2.fits")) as test_file:
         hdulist = fits.open(test_file, ignore_missing_end=True)
         wcs1 = wcs.WCS(hdulist[0].header)
         assert wcs1.sip is not None
@@ -62,7 +62,7 @@ def test_sip2():
 
 
 def test_wcs():
-    header = get_data_contents(os.path.join("data", "outside_sky.hdr"))
+    header = get_pkg_data_contents(os.path.join("data", "outside_sky.hdr"))
 
     wcs1 = wcs.WCS(header)
     s = cPickle.dumps(wcs1)

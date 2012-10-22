@@ -15,9 +15,10 @@ import urllib2
 from ..config.configuration import ConfigurationItem
 
 
-__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
-           'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
-           'clear_data_cache', 'CacheMissingWarning']
+__all__ = ['get_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
+           'get_pkg_data_contents', 'get_pkg_data_fileobjs',
+           'get_pkg_data_filenames', 'compute_hash',
+           'clear_data_cache', 'CacheMissingWarning', 'cache_remote']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -39,7 +40,7 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
 
 
 if sys.version_info[0] < 3:  # pragma: py2
-    #used for supporting with statements in get_data_fileobj
+    #used for supporting with statements in get_pkg_data_fileobj
     def _fake_enter(self):
         return self
 
@@ -56,7 +57,7 @@ class CacheMissingWarning(Warning):
     """
 
 
-def is_url(string):
+def _is_url(string):
     """
     Test whether a string is a valid URL
 
@@ -103,9 +104,9 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
 
     # Get a file object to the content
     if isinstance(name_or_obj, basestring):
-        if is_url(name_or_obj):
+        if _is_url(name_or_obj):
             if cache:
-                fileobj = open(_cache_remote(name_or_obj))
+                fileobj = open(cache_remote(name_or_obj))
             else:
                 fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
                 close_fds.append(fileobj)
@@ -127,7 +128,7 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
     # it in a StringIO buffer.
     if not hasattr(fileobj, 'seek'):
         from StringIO import StringIO
-        fileobj = StringIO(fileobj)
+        fileobj = StringIO(fileobj.read())
 
     # Now read enough bytes to look at signature
     signature = fileobj.read(4)
@@ -175,7 +176,7 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
         fd.close()
 
 
-def get_data_fileobj(data_name, cache=True):
+def get_pkg_data_fileobj(data_name, cache=True):
     """
     Retrieves a data file from the standard locations for the package and
     provides the file as a file-like object.
@@ -226,25 +227,25 @@ def get_data_fileobj(data_name, cache=True):
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_fileobj
+        from astropy.config import get_pkg_data_fileobj
 
-        with get_data_fileobj('data/3d_cd.hdr') as fobj:
+        with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
 
 
     This downloads a data file and its contents from a specified URL, and does
     *not* cache it remotely::
 
-        from astropy.config import get_data_fileobj
+        from astropy.config import get_pkg_data_fileobj
 
         vegaurl = 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/vega.fits'
-        with get_data_fileobj(vegaurl,False) as fobj:
+        with get_pkg_data_fileobj(vegaurl,False) as fobj:
             fcontents = fobj.read()
 
     See Also
     --------
-    get_data_contents : returns the contents of a file or url as a bytes object
-    get_data_filename : returns a local name for a file containing the data
+    get_pkg_data_contents : returns the contents of a file or url as a bytes object
+    get_pkg_data_filename : returns a local name for a file containing the data
     """
     datafn = _find_pkg_data_path(data_name)
     if os.path.isdir(datafn):
@@ -256,14 +257,14 @@ def get_data_fileobj(data_name, cache=True):
         return get_fileobj(DATAURL() + datafn)
 
 
-def get_data_filename(data_name):
+def get_pkg_data_filename(data_name):
     """
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
 
-    This function is similar to `get_data_fileobj` but returns the file *name*
+    This function is similar to `get_pkg_data_fileobj` but returns the file *name*
     instead of a readable file-like object.  This means that this function must
-    always cache remote files locally, unlike `get_data_fileobj`.
+    always cache remote files locally, unlike `get_pkg_data_fileobj`.
 
     Parameters
     ----------
@@ -304,9 +305,9 @@ def get_data_filename(data_name):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filename
+        from astropy.config import get_pkg_data_filename
 
-        fn = get_data_filename('data/3d_cd.hdr')
+        fn = get_pkg_data_filename('data/3d_cd.hdr')
         with open(fn) as f:
             fcontents = f.read()
 
@@ -314,23 +315,23 @@ def get_data_filename(data_name):
     This retrieves a data file by hash either locally or from the astropy data
     server::
 
-        from astropy.config import get_data_filename
+        from astropy.config import get_pkg_data_filename
 
-        fn = get_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
+        fn = get_pkg_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
         with open(fn) as f:
             fcontents = f.read()
 
     See Also
     --------
-    get_data_contents : returns the contents of a file or url as a bytes object
-    get_data_fileobj : returns a file-like object with the data
+    get_pkg_data_contents : returns the contents of a file or url as a bytes object
+    get_pkg_data_fileobj : returns a file-like object with the data
     """
 
     if data_name.startswith('hash/'):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
         if hashfn is None:
-            return _cache_remote(DATAURL() + data_name)
+            return cache_remote(DATAURL() + data_name)
         else:
             return hashfn
     else:
@@ -341,10 +342,10 @@ def get_data_filename(data_name):
         elif os.path.isfile(datafn):  # local file
             return datafn
         else:  # remote file
-            return _cache_remote(DATAURL() + data_name)
+            return cache_remote(DATAURL() + data_name)
 
 
-def get_data_contents(data_name, cache=True):
+def get_pkg_data_contents(data_name, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
@@ -390,15 +391,15 @@ def get_data_contents(data_name, cache=True):
 
     See Also
     --------
-    get_data_fileobj : returns a file-like object with the data
-    get_data_filename : returns a local name for a file containing the data
+    get_pkg_data_fileobj : returns a file-like object with the data
+    get_pkg_data_filename : returns a local name for a file containing the data
     """
-    with get_data_fileobj(data_name, cache=cache) as fd:
+    with get_pkg_data_fileobj(data_name, cache=cache) as fd:
         contents = fd.read()
     return contents
 
 
-def get_data_filenames(datadir, pattern='*'):
+def get_pkg_data_filenames(datadir, pattern='*'):
     """
     Returns the path of all of the data files in a given directory
     that match a given glob pattern.
@@ -430,9 +431,9 @@ def get_data_filenames(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filenames
+        from astropy.config import get_pkg_data_filenames
 
-        for fn in get_data_filename('maps', '*.hdr'):
+        for fn in get_pkg_data_filename('maps', '*.hdr'):
             with open(fn) as f:
                 fcontents = f.read()
     """
@@ -453,7 +454,7 @@ def get_data_filenames(datadir, pattern='*'):
         raise IOError("Path not found")
 
 
-def get_data_fileobjs(datadir, pattern='*'):
+def get_pkg_data_fileobjs(datadir, pattern='*'):
     """
     Returns readable file objects for all of the data files in a given
     directory that match a given glob pattern.
@@ -486,12 +487,12 @@ def get_data_fileobjs(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filenames
+        from astropy.config import get_pkg_data_filenames
 
-        for fd in get_data_filename('maps', '*.hdr'):
+        for fd in get_pkg_data_filename('maps', '*.hdr'):
             fcontents = fd.read()
     """
-    for fn in get_data_filenames(datadir, pattern):
+    for fn in get_pkg_data_filenames(datadir, pattern):
         with open(fn, 'rb') as fd:
             yield fd
 
@@ -506,7 +507,7 @@ def compute_hash(localfn):
 
     Typically, if you wish to write a test that requires a particular data
     file, you will want to submit that file to the astropy data servers, and
-    use e.g. ``get_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
+    use e.g. ``get_pkg_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
     but with the hash for your file in place of the hash in the example.
 
     Parameters
@@ -576,7 +577,7 @@ def _find_hash_fn(hash):
         return None
 
 
-def _cache_remote(remoteurl):
+def cache_remote(remoteurl):
     """
     Accepts a URL, downloads and caches the result returning the filename, with
     a name determined by the file's MD5 hash. If present in the cache, just
@@ -652,7 +653,7 @@ def _cache_remote(remoteurl):
     return localpath
 
 
-#this is used by _cache_remote and _deltemps to determine the files to delete
+#this is used by cache_remote and _deltemps to determine the files to delete
 # when the interpreter exits
 _tempfilestodel = []
 

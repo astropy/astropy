@@ -11,7 +11,7 @@ import pytest
 
 from .. import wcs
 from .. import _wcs
-from ...utils.data import get_data_contents, get_data_fileobj
+from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ... import units as u
 
 
@@ -576,7 +576,7 @@ def test_set_pv_realloc():
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = get_data_contents('spectra/orion-velo-1.hdr')
+    header = get_pkg_data_contents('spectra/orion-velo-1.hdr')
     w = _wcs.Wcsprm(header)
     assert w.spcfix() == -1
 
@@ -666,7 +666,7 @@ def test_zsource():
 
 
 def test_cd_3d():
-    header = get_data_contents('data/3d_cd.hdr')
+    header = get_pkg_data_contents('data/3d_cd.hdr')
     w = _wcs.Wcsprm(header)
     assert w.cd.shape == (3, 3)
     assert w.get_pc().shape == (3, 3)
@@ -674,7 +674,7 @@ def test_cd_3d():
 
 
 def test_get_pc():
-    header = get_data_contents('data/3d_cd.hdr')
+    header = get_pkg_data_contents('data/3d_cd.hdr')
     w = _wcs.Wcsprm(header)
     pc = w.get_pc()
     try:
@@ -693,7 +693,7 @@ def test_detailed_err():
 
 def test_header_parse():
     from astropy.io import fits
-    with get_data_fileobj('data/header_newlines.fits') as test_file:
+    with get_pkg_data_fileobj('data/header_newlines.fits') as test_file:
         hdulist = fits.open(test_file)
         w = wcs.WCS(hdulist[0].header)
         assert w.wcs.ctype[0] == b'RA---TAN-SIP'
@@ -709,7 +709,7 @@ def test_locale():
             "Can't set to 'fr_FR' locale, perhaps because it is not installed "
             "on this system")
     try:
-        header = get_data_contents('data/locale.hdr')
+        header = get_pkg_data_contents('data/locale.hdr')
         w = _wcs.Wcsprm(header)
         assert re.search("[0-9]+,[0-9]*", w.to_header()) is None
     finally:

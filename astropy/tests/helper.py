@@ -115,7 +115,7 @@ class TestRunner(object):
                     'Coverage reporting requires pytest-cov plugin: '
                     'http://pypi.python.org/pypi/pytest-cov')
             else:
-                # Don't use get_data_filename here, because it
+                # Don't use get_pkg_data_filename here, because it
                 # requires importing astropy.config and thus screwing
                 # up coverage results for those packages.
                 coveragerc = os.path.join(

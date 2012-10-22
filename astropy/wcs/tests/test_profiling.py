@@ -5,21 +5,21 @@ import sys
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from ...utils.data import get_data_filenames, get_data_contents
+from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents
 
 from ... import wcs
 
 
 def test_maps():
     def test_map(filename):
-        header = get_data_contents(os.path.join("maps", filename))
+        header = get_pkg_data_contents(os.path.join("maps", filename))
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 12, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2world(x, 1)
         pix = wcsobj.wcs_world2pix(x, 1)
 
-    hdr_file_list = list(get_data_filenames("maps", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -51,14 +51,14 @@ def test_maps():
 
 def test_spectra():
     def test_spectrum(filename):
-        header = get_data_contents(os.path.join("spectra", filename))
+        header = get_pkg_data_contents(os.path.join("spectra", filename))
         wcsobj = wcs.WCS(header)
 
         x = np.random.rand(2 ** 16, wcsobj.wcs.naxis)
         world = wcsobj.wcs_pix2world(x, 1)
         pix = wcsobj.wcs_world2pix(x, 1)
 
-    hdr_file_list = list(get_data_filenames("spectra", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:

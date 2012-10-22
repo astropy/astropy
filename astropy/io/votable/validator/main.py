@@ -8,7 +8,7 @@ from __future__ import print_function
 import os
 
 # LOCAL
-from ....utils.data import get_data_filename
+from ....utils.data import get_pkg_data_filename
 from . import html
 from . import result
 
@@ -29,7 +29,7 @@ def get_urls(destdir, s):
     seen = set()
     urls = []
     for type in types:
-        filename = get_data_filename(
+        filename = get_pkg_data_filename(
             'astropy/io/votable/validator/urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():

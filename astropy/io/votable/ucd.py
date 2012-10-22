@@ -26,7 +26,7 @@ class UCDWords:
         self._descriptions = {}
         self._capitalization = {}
 
-        with data.get_data_fileobj("data/ucd1p-words.txt") as fd:
+        with data.get_pkg_data_fileobj("data/ucd1p-words.txt") as fd:
             for line in fd.readlines():
                 type, name, descr = [
                     x.strip().decode('ascii') for x in line.split(b'|')]

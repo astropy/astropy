@@ -1,78 +1,79 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from ...tests.helper import remote_data, raises
 
+import os
 import io
 
 TESTURL = 'http://www.google.com/index.html'
 
+# General file object function
 
 @remote_data
 def test_url_cache():
-    from ..data import get_data_filename, clear_data_cache
-    from os.path import isfile
 
-    fnout = get_data_filename(TESTURL)
-    assert isfile(fnout)
+    from ..data import cache_remote, clear_data_cache
+
+    fnout = cache_remote(TESTURL)
+    assert os.path.isfile(fnout)
     clear_data_cache(TESTURL)
-    assert not isfile(fnout)
+    assert not os.path.isfile(fnout)
 
 
 @remote_data
 def test_url_nocache():
-    from ..data import get_data_fileobj
 
-    with get_data_fileobj(TESTURL, cache=False) as googlepage:
-        assert googlepage.read().decode().find('oogle</title>') > -1
+    from ..data import get_fileobj
 
+    with get_fileobj(TESTURL, cache=False) as googlepage:
+        assert googlepage.read().find('oogle</title>') > -1
 
 @remote_data
 def test_find_by_hash():
-    from ..data import get_data_fileobj, get_data_filename, clear_data_cache
-    from os.path import isfile
+
+    from ..data import get_fileobj, get_pkg_data_filename, clear_data_cache
+
     import hashlib
 
-    with get_data_fileobj(TESTURL) as googlepage:
+    with get_fileobj(TESTURL, cache=True) as googlepage:
         hash = hashlib.md5(googlepage.read())
 
     hashstr = 'hash/' + hash.hexdigest()
 
-    fnout = get_data_filename(hashstr)
-    assert isfile(fnout)
+    fnout = get_pkg_data_filename(hashstr)
+    assert os.path.isfile(fnout)
     clear_data_cache(hashstr[5:])
-    assert not isfile(fnout)
+    assert not os.path.isfile(fnout)
 
+# Package data functions
 
 def test_local_data_obj():
-    from ..data import get_data_fileobj
+    from ..data import get_pkg_data_fileobj
 
-    with get_data_fileobj('data/local.dat') as f:
+    with get_pkg_data_fileobj('data/local.dat') as f:
         f.readline()
         assert f.read().rstrip() == b'CONTENT'
 
 
 def test_local_data_name():
-    from ..data import get_data_filename
-    from os.path import isfile
+    from ..data import get_pkg_data_filename
 
-    fnout = get_data_filename('data/local.dat')
-    assert isfile(fnout) and fnout.endswith('local.dat')
+    fnout = get_pkg_data_filename('data/local.dat')
+    assert os.path.isfile(fnout) and fnout.endswith('local.dat')
 
     #get something in the astropy root
-    fnout2 = get_data_filename('../../data/README.rst')
-    assert isfile(fnout2) and fnout2.endswith('README.rst')
+    fnout2 = get_pkg_data_filename('../../data/README.rst')
+    assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
 
 
 @raises(AssertionError)
 def test_local_data_nonlocalfail():
-    from ..data import get_data_filename
+    from ..data import get_pkg_data_filename
 
     #this would go *outside* the atropy tree
-    fn = get_data_filename('../../../data/README.rst')
+    get_pkg_data_filename('../../../data/README.rst')
 
 
 def test_compute_hash(tmpdir):
-    import string
-    import tempfile
     import hashlib
     from ..data import compute_hash
 
@@ -90,13 +91,13 @@ def test_compute_hash(tmpdir):
     assert chhash == shash
 
 
-def test_get_data_contents():
-    from ..data import get_data_fileobj, get_data_contents
+def test_get_pkg_data_contents():
+    from ..data import get_pkg_data_fileobj, get_pkg_data_contents
 
-    with get_data_fileobj('data/local.dat') as f:
+    with get_pkg_data_fileobj('data/local.dat') as f:
         contents1 = f.read()
 
-    contents2 = get_data_contents('data/local.dat')
+    contents2 = get_pkg_data_contents('data/local.dat')
 
     assert contents1 == contents2
 
@@ -107,7 +108,6 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
-    from os import path, remove
     from pytest import raises
     from .. import data
     from ...config import paths
@@ -130,8 +130,8 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
         paths.get_cache_dir()
 
     #first try with cache
-    fnout = data.get_data_filename(TESTURL)
-    assert path.isfile(fnout)
+    fnout = data.get_pkg_data_filename(TESTURL)
+    assert os.path.isfile(fnout)
 
     assert len(recwarn.list) > 1
     w1 = recwarn.pop()
@@ -145,13 +145,13 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
 
     #clearing the cache should be a no-up that doesn't affect fnout
     data.clear_data_cache(TESTURL)
-    assert path.isfile(fnout)
+    assert os.path.isfile(fnout)
 
     #now remove it so tests don't clutter up the temp dir
     #this should get called at exit, anyway, but we do it here just to make
     #sure it's working correctly
     data._deltemps()
-    assert not path.isfile(fnout)
+    assert not os.path.isfile(fnout)
 
     assert len(recwarn.list) > 0
     w3 = recwarn.pop()
@@ -160,7 +160,7 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert 'Not clearing data cache - cache inacessable' in str(w3.message)
 
     #now try with no cache
-    with data.get_data_fileobj(TESTURL, cache=False) as googlepage:
+    with data.get_pkg_data_fileobj(TESTURL, cache=False) as googlepage:
         assert googlepage.read().decode().find('oogle</title>') > -1
 
     #no warnings should be raise in fileobj because cache is unnecessary

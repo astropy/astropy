@@ -115,10 +115,10 @@ def validate_schema(filename, version='1.2'):
     assert version in ('1.0', '1.1', '1.2')
 
     if version in ('1.1', '1.2'):
-        schema_path = data.get_data_filename(
+        schema_path = data.get_pkg_data_filename(
             'data/VOTable.v{0}.xsd'.format(version))
     else:
-        schema_path = data.get_data_filename(
+        schema_path = data.get_pkg_data_filename(
             'data/VOTable.dtd')
 
     return validate.validate_schema(filename, schema_path)
