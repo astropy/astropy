@@ -1227,7 +1227,10 @@ class Table(object):
             Use the specified values in the new row
         """
         newlen = len(self._data) + 1
-        self._data.resize((newlen,), refcheck=False)
+        if self.masked:
+            self._data = ma.resize(self._data, (newlen,))
+        else:
+            self._data.resize((newlen,), refcheck=False)
 
         if isinstance(vals, collections.Mapping):
             row = self._data[-1]
