@@ -62,9 +62,9 @@ class Future(object):
 
     def terminate(self):
         """
-        Stop the thread by brute force.
+        Attempt to stop the thread by brute force.
 
-        .. note:: Use with caution!
+        .. warning:: This is unsafe. Use with caution!
 
         """
         if not self.is_done():
