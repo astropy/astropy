@@ -82,10 +82,10 @@ class ICRSCoordinates(CoordinatesBase):
             if isinstance(args[0], str):
                 parsed = False
                 if "," in x:
-                    _ra, _dec = split(",")
+                    _ra, _dec = x.split(",")
                     parsed = True
                 elif "\t" in x:
-                    _ra, _dec = split("\t")
+                    _ra, _dec = x.split("\t")
                     parsed = True
                 elif len(x.split()) == 6:
                     _ra = " ".join(x.split()[0:3])
@@ -112,7 +112,7 @@ class ICRSCoordinates(CoordinatesBase):
                     raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
             else:
                 raise ValueError("A coordinate cannot be created with a value of type "
-                                 "'{0}'.".format(type(arg[0]).__name___))
+                                 "'{0}'.".format(type(args[0]).__name___))
 
         elif len(args) == 2 and len(kwargs) == 0:
             _ra = args[0]
@@ -252,10 +252,10 @@ class GalacticCoordinates(CoordinatesBase):
                 if isinstance(args[0], str):
                     parsed = False
                     if "," in x:
-                        _l, _b = split(",")
+                        _l, _b = x.split(",")
                         parsed = True
                     elif "\t" in x:
-                        _l, _b = split("\t")
+                        _l, _b = x.split("\t")
                         parsed = True
                     elif len(x.split()) == 6:
                         _l = " ".join(x.split()[0:3])
