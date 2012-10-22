@@ -514,9 +514,13 @@ class Row(object):
         self.data[item] = val
 
     def __eq__(self, other):
+        if self._table.masked:
+            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
         return self.data == other
 
     def __ne__(self, other):
+        if self._table.masked:
+            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
         return self.data != other
 
     @property
