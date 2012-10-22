@@ -4,7 +4,7 @@ This module contains a number of utilities for use during
 setup/build/packaging that are useful to astropy as a whole.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import errno
 import imp
@@ -17,9 +17,10 @@ import shlex
 
 from distutils import log
 from distutils.dist import Distribution
-from distutils.errors import DistutilsError
+from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
 from distutils.log import warn
+from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
 from distutils.command.install import install as DistutilsInstall
 from distutils.command.build_ext import build_ext as DistutilsBuildExt
@@ -1114,3 +1115,123 @@ def filter_packages(packagenames):
         exclude = '_py3'
 
     return [x for x in packagenames if not x.endswith(exclude)]
+
+
+class bdist_dmg(Command):
+    """
+    The bdist_dmg command is used to produce the disk image containing the
+    installer, and with a custom background and icon placement.
+    """
+
+    user_options = [
+                    ('background=', 'b', "background image to use (should be 500x500px)"),
+                    ('dist-dir=', 'd', "directory to put final built distributions in")
+                   ]
+    description = "Create a Mac OS X disk image with the package installer"
+
+    def initialize_options(self):
+        self.dist_dir = None
+        self.background = None
+        self.finalized = False
+
+    def finalize_options(self):
+        self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
+        self.finalized = True
+
+    def run(self):
+
+        pkg_dir = os.path.join(self.dist_dir, 'pkg')
+
+        # Remove directory if it already exists
+        if os.path.exists(pkg_dir):
+            shutil.rmtree(pkg_dir)
+
+        # First create the package installer with bdist_mpkg
+        mpkg = self.reinitialize_command('bdist_mpkg', reinit_subcommands=1)
+        mpkg.dist_dir = pkg_dir
+        mpkg.ensure_finalized()
+        mpkg.run()
+
+        # Find the name of the pkg file. Since we removed the dist directory
+        # at the start of the script, our pkg should be the only file there.
+        files = os.listdir(pkg_dir)
+        if len(files) != 1:
+            raise DistutilsFileError("Expected a single file in the {pkg_dir} directory".format(pkg_dir=pkg_dir))
+        pkg_file = os.path.basename(files[0])
+        pkg_name = os.path.splitext(pkg_file)[0]
+
+        # Build the docs
+        docs = self.reinitialize_command('build_sphinx', reinit_subcommands=1)
+        docs.ensure_finalized()
+        docs.run()
+
+        # Copy over the docs to the dist directory
+        shutil.copytree(os.path.join(docs.build_dir, 'html'),
+                        os.path.join(pkg_dir, 'Documentation'))
+
+        # Copy over the background to the disk image
+        if self.background is not None:
+            os.mkdir(os.path.join(pkg_dir, '.background'))
+            shutil.copy2(self.background,
+                         os.path.join(pkg_dir, '.background', 'background.png'))
+
+        # Start creating the volume
+        dmg_path = os.path.join(self.dist_dir, pkg_name + '.dmg')
+        dmg_path_tmp = os.path.join(self.dist_dir, pkg_name + '_tmp.dmg')
+        volume_name = pkg_name
+
+        # Remove existing dmg files
+        if os.path.exists(dmg_path):
+            os.remove(dmg_path)
+        if os.path.exists(dmg_path_tmp):
+            os.remove(dmg_path_tmp)
+
+        # Check if a volume is already mounted
+        if os.path.exists('/Volumes/{volume_name}'.format(volume_name=volume_name)):
+            raise DistutilsFileError("A volume named {volume_name} is already mounted - please eject this and try again".format(volume_name=volume_name))
+
+        shell_script = """
+
+        # Create DMG file
+        hdiutil create -volname {volume_name} -srcdir {pkg_dir} -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 24m {dmg_path_tmp}
+
+        # Mount disk image, and keep reference to device
+        device=$(hdiutil attach -readwrite -noverify -noautoopen {dmg_path_tmp} | egrep '^/dev/' | sed 1q | awk '{{print $1}}')
+
+        echo '
+        tell application "Finder"
+            tell disk "{volume_name}"
+                open
+                set current view of container window to icon view
+                set toolbar visible of container window to false
+                set statusbar visible of container window to false
+                set the bounds of container window to {{100, 100, 600, 600}}
+                set theViewOptions to the icon view options of container window
+                set arrangement of theViewOptions to not arranged
+                set icon size of theViewOptions to 128
+                set the background picture of theViewOptions to file ".background:background.png"
+                set position of item "{pkg_file}" of container window to {{125, 320}}
+                set position of item "Documentation" of container window to {{375, 320}}
+                close
+                open
+                update without registering applications
+                delay 5
+            end tell
+        end tell
+        ' | osascript
+
+        # Eject disk image
+        hdiutil detach ${{device}}
+
+        # Convert to final read-only disk image
+        hdiutil convert {dmg_path_tmp} -format UDZO -imagekey zlib-level=9 -o {dmg_path}
+
+        """.format(volume_name=volume_name, pkg_dir=pkg_dir,
+                   pkg_file=pkg_file, dmg_path_tmp=dmg_path_tmp,
+                   dmg_path=dmg_path)
+
+        # Make the disk image with the above shell script
+        os.system(shell_script)
+
+        # Remove temporary disk image
+        os.remove(dmg_path_tmp)
