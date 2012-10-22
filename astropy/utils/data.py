@@ -493,7 +493,7 @@ def get_pkg_data_fileobjs(datadir, pattern='*'):
             fcontents = fd.read()
     """
     for fn in get_pkg_data_filenames(datadir, pattern):
-        with open(fn, 'rb') as fd:
+        with get_pkg_data_filename(fn) as fd:
             yield fd
 
 
