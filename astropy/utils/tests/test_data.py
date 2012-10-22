@@ -57,6 +57,14 @@ def test_local_data_obj(filename):
         assert f.read().rstrip() == b'CONTENT'
 
 
+@pytest.mark.parametrize(('filename'), ['invalid.dat.gz', 'invalid.dat.bz2'])
+def test_local_data_obj_invalid(filename):
+    from ..data import get_pkg_data_fileobj
+
+    with get_pkg_data_fileobj(os.path.join('data', filename)) as f:
+        assert f.read().rstrip().endswith(b'invalid')
+
+
 def test_local_data_name():
     from ..data import get_pkg_data_filename
 
