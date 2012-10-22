@@ -3,8 +3,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains utility functions that are for internal use of
-astropy.coordinates.core. Mainly they are conversions from one format
+This module contains utility functions that are for internal use in
+astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
 import re

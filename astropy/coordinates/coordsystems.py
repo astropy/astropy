@@ -7,11 +7,41 @@ and the conversions between them.
 
 from abc import ABCMeta
 
-from .core import CoordinatesBase, RA, Dec, Angle
+from .angles import RA, Dec, Angle
 from .. import units as u
 
-__all__ = ['Coordinates', 'ICRSCoordinates', 'GalacticCoordinates', 
-           'HorizontalCoordinates']
+__all__ = ['CoordinatesBase', 'Coordinates', 'HorizontalCoordinates',
+           'ICRSCoordinates', 'GalacticCoordinates'
+          ]
+
+class CoordinatesBase(object):
+    """
+    Abstract superclass for all coordinate classes (except the factory class 'Coordinates').
+    """
+    
+    __metaclass__ = ABCMeta
+    
+    @abstractproperty
+    def angle1(self):
+        pass
+    
+    @abstractproperty
+    def angle2(self):
+        pass
+    
+    @abstractproperty
+    def galactic(self):
+        pass
+
+    @abstractproperty
+    def icrs(self):
+        pass
+        
+    @abstractproperty
+    def horizontal(self):
+        pass
+    
+
 
 
 class ICRSCoordinates(CoordinatesBase):

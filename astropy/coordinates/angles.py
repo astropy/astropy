@@ -18,7 +18,7 @@ import angle_utilities as util
 from errors import *
 from .. import units as u
 
-__all__ = ['Angle', 'RA', 'Dec', 'CoordinatesBase']
+__all__ = ['Angle', 'RA', 'Dec']
 
 twopi = math.pi * 2.0 # no need to calculate this all the time
 
@@ -532,32 +532,3 @@ class Dec(Angle):
 
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90,90))
-
-class CoordinatesBase(object):
-    """
-    Abstract superclass for all coordinate classes (except the factory class 'Coordinates').
-    """
-    
-    __metaclass__ = ABCMeta
-    
-    @abstractproperty
-    def angle1(self):
-        pass
-    
-    @abstractproperty
-    def angle2(self):
-        pass
-    
-    @abstractproperty
-    def galactic(self):
-        pass
-
-    @abstractproperty
-    def icrs(self):
-        pass
-        
-    @abstractproperty
-    def horizontal(self):
-        pass
-    
-
