@@ -11,6 +11,10 @@ These properties are set via Astropy configuration system
     * `astropy.vo.client.vos_baseurl`
     * `astropy.vo.client.vos_timeout`
 
+When run for the first time, catalogs database will be
+downloaded to a local cache. See `astropy.config` for
+caching behavior.
+
 Examples
 --------
 >>> from astropy.vo.client import vos_catalog

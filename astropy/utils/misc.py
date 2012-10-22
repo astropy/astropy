@@ -6,6 +6,7 @@ a clear module/package to live in.
 
 from __future__ import absolute_import
 
+from threading import Thread, Event
 import collections
 import contextlib
 import functools
@@ -22,6 +23,90 @@ __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
            'walk_skip_hidden']
 
+class Future(object):
+    """
+    Asynchronous function support.
+
+    Original source codes obtained from
+    `this webpage <http://stackoverflow.com/questions/998674/make-my-code-handle-in-the-background-function-calls-that-take-a-long-time-to-fi>`_.
+
+    """
+    def __init__(self, thunk, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        thunk : function
+            Function to run asynchronously.
+
+        args, kwargs
+            Positional and keyword arguments for the function.
+
+        """
+        self._thunk = thunk
+        self._event = Event()
+        self._result = None
+        self._failed = None
+        self._thread = Thread(target=self._run, name=thunk.__name__, args=args,
+                              kwargs=kwargs)
+        self._thread.start()
+
+    def _run(self, *args, **kwargs):
+        try:
+            self._result = self._thunk(*args, **kwargs)
+        except Exception, e:
+            self._failed = True
+            self._result = e
+        else:
+            self._failed = False
+        self._event.set()
+
+    def terminate(self):
+        """Kill the function."""
+        if not self.is_done():
+            from ..logger import log
+            log.warn('Forcing {} thread to stop... '
+                     'Exterminate! Exterminate!'.format(self._thread.name))
+            self._event.set()
+
+    def is_done(self):
+        """
+        Check function status.
+
+        Returns
+        -------
+        status : bool
+            `True` if done, else `False`.
+
+        """
+        return self._event.is_set()
+
+    def get(self, timeout=None):
+        """
+        Get result, if available.
+
+        Parameters
+        ----------
+        timeout : int or float
+            Wait the given amount of time in seconds before
+            obtaining result. If not given, wait indefinitely
+            until function is done.
+
+        Returns
+        -------
+        result
+            Results returned by the given function.
+
+        Raises
+        ------
+        Exception
+            Errors raised by the given function.
+
+        """
+        self._event.wait(timeout)
+        if self._failed:
+            raise self._result
+        else:
+            return self._result
 
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.
