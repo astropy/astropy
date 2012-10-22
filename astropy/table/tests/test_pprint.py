@@ -1,13 +1,31 @@
 import pytest
 import numpy as np
 
-from .. import Table
+from ... import table
 from .. import pprint
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
 
 
+# Dummy init of Table for pyflakes and to be sure test fixture is working
+Table = None
+
+
+class MaskedTable(table.Table):
+    def __init__(self, *args, **kwargs):
+        kwargs['masked'] = True
+        table.Table.__init__(self, *args, **kwargs)
+
+
+# Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
+@pytest.fixture(params=[False, True])
+def set_global_Table(request):
+    global Table
+    Table = MaskedTable if request.param else table.Table
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class TestMultiD():
 
     def test_multidim(self):
@@ -47,6 +65,7 @@ class TestMultiD():
                          '   5 .. 60']
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestPprint():
 
     def setup_method(self, method):
@@ -156,6 +175,7 @@ class TestPprint():
             assert len(lines) == max(6, min(102, max_lines))
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestFormat():
 
     def test_column_format(self):
@@ -185,7 +205,6 @@ class TestFormat():
             str(t['a'])
 
     def test_column_format_with_threshold(self):
-        import astropy.table.pprint
         MAX_LINES_val = pprint.MAX_LINES()
         pprint.MAX_LINES.set(6)
         t = Table([np.arange(20)], names=['a'])

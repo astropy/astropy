@@ -1,14 +1,44 @@
 import pytest
 import numpy as np
-from .. import Column, Row, Table
+from ... import table
+from .. import Row
 
 
+# Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
+Table = None
+Column = None
+
+
+class MaskedTable(table.Table):
+    def __init__(self, *args, **kwargs):
+        kwargs['masked'] = True
+        table.Table.__init__(self, *args, **kwargs)
+
+
+# Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
+@pytest.fixture(params=[False, True])
+def set_global_Table(request):
+    global Table
+    global Column
+    Table = MaskedTable if request.param else table.Table
+    Column = table.MaskedColumn if request.param else table.Column
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class TestRow():
 
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3], dtype='i8')
-        self.b = Column('b', [4, 5, 6], dtype='i8')
-        self.t = Table([self.a, self.b])
+    @property
+    def t(self):
+        # py.test wants to run this method once before set_global_Table is run
+        # to set Table and Column.  In this case just return None, which would
+        # cause any downstream test to fail if this happened in any other context.
+        if Column is None:
+            return None
+        if not hasattr(self, '_t'):
+            a = Column('a', [1, 2, 3], dtype='i8')
+            b = Column('b', [4, 5, 6], dtype='i8')
+            self._t = Table([a, b])
+        return self._t
 
     def test_subclass(self):
         """Row is subclass of ndarray and Row"""
@@ -35,26 +65,39 @@ class TestRow():
         table = self.t
         row = table[1]
         row['a'] = 10
-        assert table['a'][1] == 10
+        if Table is not MaskedTable:
+            assert table['a'][1] == 10
 
     def test_left_equal(self):
         """Compare a table row to the corresponding structured array row"""
         np_t = self.t._data.copy()
-        for row, np_row in zip(self.t, np_t):
-            assert np.all(row == np_row)
+        if Table is MaskedTable:
+            with pytest.raises(ValueError):
+                self.t[0] == np_t[0]
+        else:
+            for row, np_row in zip(self.t, np_t):
+                assert np.all(row == np_row)
 
     def test_left_not_equal(self):
         """Compare a table row to the corresponding structured array row"""
         np_t = self.t._data.copy()
         np_t['a'] = [0, 0, 0]
-        for row, np_row in zip(self.t, np_t):
-            assert np.all(row != np_row)
+        if Table is MaskedTable:
+            with pytest.raises(ValueError):
+                self.t[0] == np_t[0]
+        else:
+            for row, np_row in zip(self.t, np_t):
+                assert np.all(row != np_row)
 
     def test_right_equal(self):
         """Test right equal"""
         np_t = self.t._data.copy()
-        for row, np_row in zip(self.t, np_t):
-            assert np.all(np_row == row)
+        if Table is MaskedTable:
+            with pytest.raises(ValueError):
+                self.t[0] == np_t[0]
+        else:
+            for row, np_row in zip(self.t, np_t):
+                assert np.all(np_row == row)
 
     @pytest.mark.xfail
     def test_set_slice(self):
@@ -75,12 +118,14 @@ class TestRow():
         d = self.t[1]
 
         np_data = np.array(d)
-        assert np.all(np_data == d._data)
+        if Table is not MaskedTable:
+            assert np.all(np_data == d._data)
         assert not np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
-        assert np.all(np_data == d._data)
+        if Table is not MaskedTable:
+            assert np.all(np_data == d._data)
         assert not np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
 
