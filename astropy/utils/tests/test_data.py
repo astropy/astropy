@@ -4,6 +4,8 @@ from ...tests.helper import remote_data, raises
 import os
 import io
 
+import pytest
+
 TESTURL = 'http://www.google.com/index.html'
 
 # General file object function
@@ -46,10 +48,11 @@ def test_find_by_hash():
 
 # Package data functions
 
-def test_local_data_obj():
+@pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2'])
+def test_local_data_obj(filename):
     from ..data import get_pkg_data_fileobj
 
-    with get_pkg_data_fileobj('data/local.dat') as f:
+    with get_pkg_data_fileobj(os.path.join('data', filename)) as f:
         f.readline()
         assert f.read().rstrip() == b'CONTENT'
 
