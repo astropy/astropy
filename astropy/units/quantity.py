@@ -204,10 +204,10 @@ class Quantity(object):
     
     # Display
     def __str__(self):
-        return "{0:s} {1:s}".format(self.value, self.unit.to_string())
+        return "{0:g} {1:s}".format(self.value, self.unit.to_string())
     
     def __repr__(self):
-        return "<Quantity value: {0:s} unit: {1:s}>".format(self.value, self.unit.to_string())
+        return "<Quantity value: {0:g} unit: {1:s}>".format(self.value, self.unit.to_string())
         
 class IncompatibleUnitsError(Exception):
     pass
