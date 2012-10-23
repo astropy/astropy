@@ -28,6 +28,8 @@ see the "What's New" section of the documentation for more details.
   - In ``astropy.wcs``, the ``wcs.cunit`` list now takes and returns
     ``astropy.units.Unit`` objects.
 
+- Added SExtractor table reader to ``astropy.io.ascii`` [#420]
+
 
 
 Other Changes and Additions
@@ -53,6 +55,8 @@ Other Changes and Additions
   - Improved the reading of distortion images.
 
   - Added a new option to choose whether or not to write SIP coefficients.
+
+- Added HTML represention of tables in IPython notebook [#409]
 
 
 Bug Fixes
