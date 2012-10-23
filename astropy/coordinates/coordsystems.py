@@ -5,7 +5,7 @@ This module contains the implementations of specific coordinate systems
 and the conversions between them.
 """
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractproperty
 
 from .angles import RA, Dec, Angle
 from .. import units as u
@@ -18,17 +18,17 @@ class CoordinatesBase(object):
     """
     Abstract superclass for all coordinate classes (except the factory class 'Coordinates').
     """
-    
+
     __metaclass__ = ABCMeta
-    
+
     @abstractproperty
     def angle1(self):
         pass
-    
+
     @abstractproperty
     def angle2(self):
         pass
-    
+
     @abstractproperty
     def galactic(self):
         pass
@@ -36,18 +36,18 @@ class CoordinatesBase(object):
     @abstractproperty
     def icrs(self):
         pass
-        
+
     @abstractproperty
     def horizontal(self):
         pass
-    
+
 
 
 
 class ICRSCoordinates(CoordinatesBase):
     """
     Object representing a coordinate in the ICRS system.
-    
+
     Parameters
     ----------
     ra : `~astropy.coordinates.angle`, float, int, str
@@ -60,14 +60,14 @@ class ICRSCoordinates(CoordinatesBase):
         value in the tuple may be 'None'.)
     """
     def __init__(self, *args, **kwargs):
-        
+
         # Initialize values.
         # _ra, _dec are what we parse as potential values that still need validation
         _ra = None
         _dec = None
         self.ra = None
         self.dec = None
-        
+
         if "unit" in kwargs:
             units = kwargs["unit"]
             del kwargs["unit"]
@@ -86,7 +86,7 @@ class ICRSCoordinates(CoordinatesBase):
                              "unit=(u.hour, u.degree). An object of type '{0}' "
                              "was given.".format(type(units).__name__))
 
-        
+
         if len(args) == 0 and len(kwargs) == 0:
             raise ValueError("A coordinate object cannot be created without ra,dec values.")
         elif len(args) > 0 and len(kwargs) > 0:
@@ -124,7 +124,7 @@ class ICRSCoordinates(CoordinatesBase):
                 elif len(x.split()) == 2:
                     _ra, _dec = x.split()
                     parsed = True
-                
+
                 if not parsed:
                     values = x.split()
                     i = 1
@@ -134,10 +134,10 @@ class ICRSCoordinates(CoordinatesBase):
                             parsed = True
                         except:
                             i += 1
-                    
+
                     if parsed == True:
                         self.dec = Dec(" ".join(values[i:]))
-                
+
                 if not parsed:
                     raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
             else:
@@ -155,13 +155,13 @@ class ICRSCoordinates(CoordinatesBase):
             raise ValueError("Unable to create a coordinate using the values provided.")
 
 
-#             # First try to see if RA, Dec objects were provided in the args.            
+#             # First try to see if RA, Dec objects were provided in the args.
 #             for arg in args:
 #                 if isinstance(arg, RA):
 #                     _ra = arg
 #                 elif isinstance(arg, Dec):
 #                     _dec = arg
-#             
+#
 #             if None not in [_ra, _dec]:
 #                 self.ra = _ra
 #                 self.dec = _dec
@@ -169,9 +169,9 @@ class ICRSCoordinates(CoordinatesBase):
 #             elif (_ra and not _dec) or (not _ra and _dec):
 #                 raise ValueError("When an RA or Dec value is provided, the other "
 #                                  "coordinate must also be given.")
-# 
+#
 #             # see if the whole coordinate might be parseable from arg[0]
-#         
+#
 #         try:
 #             if isinstance(args[0], RA) and isinstance(args[1], Dec):
 #                 _ra = args[0]
@@ -181,7 +181,7 @@ class ICRSCoordinates(CoordinatesBase):
 #                 _dec = args[0]
 #         except IndexError:
 #             raise ValueError("Not enough parameters were provided.")
-        
+
         if self.ra is None:
             self.ra = RA(_ra, unit=units[0]) if len(units) > 0 else RA(_ra)
         if self.dec is None:
@@ -190,7 +190,7 @@ class ICRSCoordinates(CoordinatesBase):
     @property
     def angle1(self):
         return self.ra
-    
+
     @property
     def angle2(self):
         return self.dec
@@ -202,15 +202,15 @@ class ICRSCoordinates(CoordinatesBase):
     @property
     def galactic(self):
         raise NotImplementedError()
-        
+
     @property
     def horizontal(self):
         raise NotImplementedError()
 
 class GalacticCoordinates(CoordinatesBase):
-    """ 
+    """
     Galactic coordinate (l,b) class.
-    
+
     Parameters
     ----------
     l : `~astropy.coordinates.angle`, float, int, str
@@ -223,20 +223,20 @@ class GalacticCoordinates(CoordinatesBase):
 
     """
     def __init__(self, *args, **kwargs):
-        
+
         # initialize values
         # _ra, _dec are what we parse as potential values that still need validation
         _l = None
         _b = None
         self.l = None
         self.b = None
-        
+
         if "unit" in kwargs:
             units = kwargs["unit"]
             del kwargs["unit"]
         else:
             units = list()
-            
+
         if isinstance(units, tuple) or isinstance(units, list):
             pass # good
         elif isinstance(units, u.Unit) or isinstance(units, str):
@@ -255,7 +255,7 @@ class GalacticCoordinates(CoordinatesBase):
             raise ValueError("The angle values can only be specified as keyword arguments "
                              "(e.g. l=x, b=y) or as a single value (e.g. a string) "
                              "not a combination.")
-                             
+
         if len(args) == 0 and len(kwargs) > 0:
             # only "l" and "b" accepted as keyword arguments
             try:
@@ -275,7 +275,7 @@ class GalacticCoordinates(CoordinatesBase):
                 if isinstance(arg, RA) or isinstance(arg, Dec):
                     raise TypeError("The class {0} doesn't accept RA or Dec values; "
                                      "use Angle objects instead.".format(type(self).__name__))
-    
+
             if len(args) == 1 and len(kwargs) == 0:
                 # need to try to parse the coordinate from a single argument
                 x = args[0]
@@ -294,7 +294,7 @@ class GalacticCoordinates(CoordinatesBase):
                     elif len(x.split()) == 2:
                         _l, _b = x.split()
                         parsed = True
-    
+
                     if not parsed:
                         values = x.split()
                         i = 1
@@ -304,20 +304,20 @@ class GalacticCoordinates(CoordinatesBase):
                                 parsed = True
                             except:
                                 i += 1
-                        
+
                         if parsed == True:
                             self.b = Angle(" ".join(x.values[i:]))
-                    
+
                     if not parsed:
                         raise ValueError("Could not parse l,b values from the string provided: '{0}'.".format(x))
                 else:
                     raise ValueError("A coordinate cannot be created with a value of type "
                                      "'{0}'.".format(type(arg[0]).__name___))
-    
+
             elif len(args) == 2 and len(kwargs) == 0:
                 _l = args[0]
                 _b = args[1]
-    
+
             elif len(args) > 2 and len(kwargs) == 0:
                 raise ValueError("More than two values were found where only ra and dec "
                                  "were expected.")
@@ -332,7 +332,7 @@ class GalacticCoordinates(CoordinatesBase):
     @property
     def angle1(self):
         return self.l
-    
+
     @property
     def angle2(self):
         return self.b
@@ -350,13 +350,13 @@ class GalacticCoordinates(CoordinatesBase):
         raise NotImplementedError()
 
 class HorizontalCoordinates(CoordinatesBase):
-    """ 
+    """
     Horizontal coordinate (az,el) class.
     """
     @property
     def angle1(self):
         return self.az
-    
+
     @property
     def angle2(self):
         return self.el
@@ -368,7 +368,7 @@ class HorizontalCoordinates(CoordinatesBase):
     @property
     def galactic(self):
         raise NotImplementedError()
-        
+
     @property
     def horizontal(self):
         return self
@@ -376,12 +376,12 @@ class HorizontalCoordinates(CoordinatesBase):
 class Coordinates(object):
     """
     A convenience factory class to create coordinate objects.
-    
+
     This class can be used to create coordinate objects. The coordinate system is chosen
     based on the keywords used. For example, using the 'l' and 'b' keywords will return
     a `~astropy.coordinates.GalacticCoordinates` object. A "Coordinates" object cannot be
     created on its own.
-    
+
     Parameters
     ----------
     (ra, dec) : `~astropy.coordinates.Angle`, str, float, int
@@ -390,7 +390,7 @@ class Coordinates(object):
         Galactic latitude and longitude. Returns a GalacticCoordinates object.
     (az, el) : `~astropy.coordinates.Angle`, str, float, int
         Azimuth and elevation values. Returns a HorizontaolCoordinates object.
-    
+
     unit : `~astropy.units.Unit`, str, tuple
         Units must be provided for each of the angles provided. If the unit value can be
         determined from the Angle objects directly, `unit` does not need to be specified.
@@ -398,7 +398,7 @@ class Coordinates(object):
         requires a unit and the other does not, use `None` as a placeholder.
     """
     __meta__ = ABCMeta
-    
+
     def __new__(self, *args, **kwargs):
         # coordinates, units=None, ra=None, dec=None, az=None, el=None, l=None, b=None):
         """
@@ -411,7 +411,7 @@ class Coordinates(object):
                 units = (units, units)
         except KeyError:
             units = list()
-            
+
         # first see if the keywords suggest what kind of coordinate is being requested.
         if "ra" in kwargs.keys() or "dec" in kwargs.keys():
             try:
@@ -454,7 +454,7 @@ class Coordinates(object):
             l = Angle(l, unit=units[0]) if len(units) > 0 else Angle(l)
             b = Angle(b, unit=units[1]) if len(units) > 1 else Angle(b)
             return GalacticCoordinates(l=l, b=b)
-            
+
         if len(args) == 1:
             x = args[0]
 
@@ -475,11 +475,11 @@ class Coordinates(object):
                              "coordinate system "
                              "was not provided. Specify the system via keywords or use the "
                              "corresponding class (e.g. GalacticCoordinate).".format(args))
-            
+
         else:
             raise ValueError("Could not construct coordinates.")
 
-        if False: # old code - still useful?            
+        if False: # old code - still useful?
             # determine units
             if units is not None:
                 if isinstance(units, u.Unit):
