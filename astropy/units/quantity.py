@@ -219,9 +219,17 @@ class Quantity(object):
         lstr
             LaTeX string
         """
+
+        # Format value
+        latex_value = "{0:g}".format(self.value)
+        if "e" in latex_value:
+            latex_value = latex_value.replace('e', '\\times 10^{') + '}'
+
+        # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
-        unitlstr = self.unit._repr_latex_()[1:-1]  # note this is unicode
-        return u'${0:g} \; {1}$'.format(self.value, unitlstr)
+        latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
+
+        return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
 
 class IncompatibleUnitsError(Exception):
