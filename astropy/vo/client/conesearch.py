@@ -76,11 +76,14 @@ it can be forced to terminate:
 """
 from __future__ import print_function, division
 
+# STDLIB
+import time
+
 # LOCAL
 from . import vos_catalog
 from ...utils.misc import Future
 
-__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs']
+__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'time_search']
 
 _SERVICE_TYPE = 'conesearch'
 
@@ -182,6 +185,26 @@ def list_catalogs(**kwargs):
 
     """
     return vos_catalog.list_catalogs(_SERVICE_TYPE, **kwargs)
+
+def time_search(*args, **kwargs):
+    """
+    Predict the time needed for cone search to complete for given
+    position and radius.
+
+    Parameters
+    ----------
+    args, kwargs : see `conesearch`
+
+    """
+
+
+#Write module to time a search. Do not include time if returned result too few -- network latency, not search time. Increase radius to get a few data points, fit a line, extrapolate to get predicted search time. If too long, display warning/error. Can use timeit module.
+
+    t_beg = time.time()
+    # need to do this for increasing radius
+    out_votable = conesearch(*args, **kwargs)
+    t_end = time.time()
+    t_tot = t_end - t_beg
 
 def _local_conversion(func, x):
     """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
