@@ -251,7 +251,10 @@ def _vo_service_request(url, pedantic, kwargs):
                 url, info.value, long_descr))
         break
 
-    return tab.get_first_table()
+    out_tab = tab.get_first_table()
+    out_tab.url = url  # Track the URL
+
+    return out_tab
 
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
                     verbose=True, cache=True, kwargs={}):
