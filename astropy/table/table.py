@@ -443,6 +443,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             self_data = ma.asarray(data, dtype=dtype)
 
         self = self_data.view(MaskedColumn)
+        if mask is None and hasattr(data, 'mask'):
+            mask = data.mask
         self.mask = mask
         self._name = name
         self.units = units
