@@ -66,7 +66,7 @@ class Generic(Base):
         unit_with_power = p.Forward()
 
         main << (
-            (factor_product_of_units) |
+            (factor_product_of_units) ^
             (division_product_of_units))
 
         factor_product_of_units << (
@@ -83,7 +83,7 @@ class Generic(Base):
              p.StringEnd()))
 
         product_of_units << (
-            (unit_expression + p.Suppress(product) + product_of_units) |
+            (unit_expression + p.Suppress(product) + product_of_units) ^
             (unit_expression))
 
         function << (
@@ -91,31 +91,31 @@ class Generic(Base):
             p.Suppress(open_p) + unit_expression + p.Suppress(close_p))
 
         unit_expression << (
-            (function) |
-            (unit_with_power) |
+            (function) ^
+            (unit_with_power) ^
             (p.Suppress(open_p) + product_of_units + p.Suppress(close_p))
             )
 
         factor << (
-            (unsigned_integer + signed_integer) |
-            (unsigned_integer + p.Suppress(power) + numeric_power) |
+            (unsigned_integer + signed_integer) ^
+            (unsigned_integer + p.Suppress(power) + numeric_power) ^
             (floating_point + p.Suppress(p.White()) +
-             unsigned_integer + signed_integer) |
+             unsigned_integer + signed_integer) ^
             (floating_point + p.Suppress(p.White()) +
-             unsigned_integer + p.Suppress(power) + numeric_power) |
+             unsigned_integer + p.Suppress(power) + numeric_power) ^
             (floating_point)
             )
 
         unit << p.Word(p.alphas, p.alphas + '_')
 
         unit_with_power << (
-            (unit + p.Suppress(power) + numeric_power) |
+            (unit + p.Suppress(power) + numeric_power) ^
             (unit))
 
         numeric_power << (
             integer |
-            (p.Suppress(open_p) + integer + p.Suppress(close_p)) |
-            (p.Suppress(open_p) + floating_point + p.Suppress(close_p)) |
+            (p.Suppress(open_p) + integer + p.Suppress(close_p)) ^
+            (p.Suppress(open_p) + floating_point + p.Suppress(close_p)) ^
             (p.Suppress(open_p) + frac + p.Suppress(close_p)))
 
         frac << (
@@ -236,7 +236,8 @@ class Generic(Base):
         try:
             return self._parser.parseString(s, parseAll=True)[0]
         except p.ParseException as e:
-            raise ValueError("{0} in {1!r}".format(str(e), s))
+            raise ValueError("{0} in {1!r}".format(
+                utils.cleanup_pyparsing_error(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('generic')

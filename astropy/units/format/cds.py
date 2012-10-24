@@ -99,13 +99,13 @@ class CDS(Base):
              p.StringEnd()))
 
         product_of_units << (
-            (unit_expression + p.StringEnd()) |
-            (division + unit_expression) |
-            (unit_expression + product + product_of_units) |
+            (unit_expression + p.StringEnd()) ^
+            (division + unit_expression) ^
+            (unit_expression + product + product_of_units) ^
             (unit_expression + division + product_of_units))
 
         unit_expression << (
-            (unit_with_power) |
+            (unit_with_power) ^
             (p.Suppress(open_p) + product_of_units + p.Suppress(close_p)))
 
         factor << (
@@ -215,7 +215,8 @@ class CDS(Base):
         try:
             return self._parser.parseString(s, parseAll=True)[0]
         except p.ParseException as e:
-            raise ValueError("{0} in {1:r}".format(str(e), s))
+            raise ValueError("{0} in {1!r}".format(
+                utils.cleanup_pyparsing_error(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
