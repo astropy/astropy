@@ -92,9 +92,12 @@ class Quantity(object):
     def value(self):
         """ The numerical value of this quantity. """
         return self._value
+    
     @value.setter
+    def value(self, obj):
         """ Setter for the value attribute. We allow the user to change the value by setting this attribute,
         so this will validate the new object.
+
         Parameters
         ----------
         obj : number
@@ -102,6 +105,7 @@ class Quantity(object):
 
         Raises
         ------
+        TypeError
             If the value provided is not a Python numeric type.
         """
         self._value = _validate_value(obj)
@@ -150,74 +154,75 @@ class Quantity(object):
             raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(type(other)))
         return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
 
-    def __radd__(self, other):
-        """ Addition between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
-        """
-        return Quantity(self.to(other.unit).value + other.value, unit=other.unit)
-
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
         with the units of the **left** object.
         """
+        if not isinstance(other, Quantity):
+            raise TypeError("Object of type '{0}' cannot be subtracted with a Quantity object. Subtraction is only supported between Quantity objects.".format(type(other)))
         return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
 
-    def __rsub__(self, other):
-        """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
-        """
-        return Quantity(self.to(other.unit).value - other.value, unit=other.unit)
-
     def __mul__(self, other):
-        """ Multiplication between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
+        """ Multiplication between `Quantity` objects or numbers with `Quantity` objects. For operations between two `Quantity` instances,
+        returns a new `Quantity` object with the units of the **left** object.
         """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(self.value * other.to(self.unit).value, unit=self.unit*self.unit)
+        if isinstance(other, Quantity):
+            if self.unit.is_equivalent(other.unit):
+                return Quantity(self.value * other.to(self.unit).value, unit=self.unit*self.unit)
+            else:
+                return Quantity(self.value * other.value, unit=self.unit*other.unit)
+        
+        elif isinstance(other, numbers.Number):
+            return Quantity(other*self.value, unit=self.unit)
+            
         else:
-            return Quantity(self.value * other.value, unit=self.unit*other.unit)
+            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(type(other)))
+            
 
     def __rmul__(self, other):
-        """ Multiplication between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
-        """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(other.value * self.to(other.unit).value, unit=other.unit*other.unit)
+        """ Right multiplication between `Quantity` object and a number. """
+        
+        if isinstance(other, numbers.Number):
+            return Quantity(other*self.value, unit=self.unit)
+            
         else:
-            return Quantity(self.value * other.value, unit=other.unit * self.unit)
+            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(type(other)))
 
-    # TODO: We should make the distinction between the __future__ division and old-style division
     def __div__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(self.value / other.to(self.unit).value, unit=Unit(""))
+        if isinstance(other, Quantity):
+            if self.unit.is_equivalent(other.unit):
+                return Quantity(self.value / other.to(self.unit).value, unit=Unit(""))
+            else:
+                return Quantity(self.value / other.value, unit=self.unit/other.unit)
+        
+        elif isinstance(other, numbers.Number):
+            return Quantity(self.value / other, unit=self.unit)
+            
         else:
-            return Quantity(self.value / other.value, unit=self.unit/other.unit)
+            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(type(other)))
 
     def __rdiv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(other.value / self.to(other.unit).value, unit=Unit(""))
+        if isinstance(other, numbers.Number):
+            print(Unit("1/{}".format(self.unit.to_string())))
+            return Quantity(other / self.value, unit=Unit("1/{}".format(self.unit.to_string())))
+            
         else:
-            return Quantity(other.value / self.value, unit=other.unit/self.unit)
+            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(type(other)))
+
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(self.value / other.to(self.unit).value, unit=Unit(""))
-        else:
-            return Quantity(self.value / other.value, unit=self.unit/other.unit)
+        return self.__div__(other)
 
     def __rtruediv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if self.unit.is_equivalent(other.unit):
-            return Quantity(other.value / self.to(other.unit).value, unit=Unit(""))
-        else:
-            return Quantity(other.value / self.value, unit=other.unit/self.unit)
+        return self.__rdiv__(other)
 
     def __pow__(self, p):
         """ Raise quantity object to a power. """
-        return Quantity(self.value**2, unit=(self.unit*self.unit).simplify())
+        return Quantity(self.value**p, unit=(self.unit**p).simplify())
 
     # Comparison operations
     def __eq__(self, other):
@@ -240,10 +245,10 @@ class Quantity(object):
 
     # Display
     def __str__(self):
-        return "{0:g} {1:s}".format(self.value, self.unit.to_string())
+        return "{0} {1:s}".format(self.value, self.unit.to_string())
 
     def __repr__(self):
-        return "<Quantity value: {0:g} unit: {1:s}>".format(self.value, self.unit.to_string())
+        return "<Quantity {0} {1:s}>".format(self.value, self.unit.to_string())
 
     def _repr_latex_(self):
         """
