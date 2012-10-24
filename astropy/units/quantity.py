@@ -32,7 +32,6 @@ def _validate_units(unit):
     elif isinstance(unit, UnitBase):
         unit_obj = unit
     else:
-        raise ValueError("The unit must be a Python string that is parseable by the Units package, or a Unit object.")
         raise TypeError("The unit must be a Python string that is parseable by the Units package, or a Unit object.")
 
     return unit_obj
@@ -59,14 +58,13 @@ class Quantity(object):
     Parameters
     ----------
     value : number
-        Any Python numeric type.
+        The numerical value of this quantity in the units given by unit.
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value. Must be an `~astropy.units.UnitBase`
         object or a string parseable by the `units` package.
 
     Raises
     ------
-    ValueError
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
@@ -74,12 +72,6 @@ class Quantity(object):
     """
 
     def __init__(self, value, unit):
-        # The user must pass in a Python numeric type
-        if isinstance(value, numbers.Number):
-            self.value = value
-        else:
-            raise ValueError("The value must be a valid Python numeric type.")
-
         self._value = _validate_value(value)
         self._unit = _validate_units(unit)
 
@@ -97,17 +89,36 @@ class Quantity(object):
         return new_quantity
 
     @property
+    def value(self):
+        """ The numerical value of this quantity. """
+        return self._value
+    @value.setter
+        """ Setter for the value attribute. We allow the user to change the value by setting this attribute,
+        so this will validate the new object.
+        Parameters
+        ----------
+        obj : number
+            The numerical value of this quantity in the same units as stored internally.
+
+        Raises
+        ------
+            If the value provided is not a Python numeric type.
+        """
+        self._value = _validate_value(obj)
+    
+    @property
     def unit(self):
+        """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
 
     @unit.setter
-    def unit(self, unit):
+    def unit(self, obj):
         """ Setter for the unit attribute. We allow the user to change units by setting this attribute,
         so this will validate the unit and internally change the value to the new unit.
 
         Parameters
         ----------
-        unit : `~astropy.units.UnitBase` instance, str
+        obj : `~astropy.units.UnitBase` instance, str
             An object that represents the unit to internally convert to. Must be an `~astropy.units.UnitBase`
             object or a string parseable by the `units` package.
 
@@ -118,7 +129,7 @@ class Quantity(object):
         TypeError
             If the unit provided is not either a `Unit` object or a parseable string unit.
         """
-        new_unit = _validate_units(unit)
+        new_unit = _validate_units(obj)
 
         if not self.unit.is_equivalent(new_unit):
             raise IncompatibleUnitsError("This object has units of '{0:s}' and can not be converted to '{1:s}'.".format(self.unit, new_unit))
