@@ -10,11 +10,6 @@ Introduction
 `astropy.units` is a Python package to handle defining and converting
 between physical units.
 
-Unlike some other unit-related Python packages, `astropy.units` does
-not aim to provide operations on unitized values.  Instead, it just
-handles the unit description that must be associated with values by
-some other means.
-
 Getting Started
 ===============
 
@@ -47,6 +42,13 @@ are passed to the `~astropy.units.core.UnitBase.to` conversion method::
   array([  2.99792458e+14,   1.49896229e+14])
   >>> u.nm.to(u.eV, [1000, 2000], equivs=u.sp())
   array([ 1.23984201,  0.61992101])
+
+Also included in the `astropy.units` package is the `Quantity` object, 
+which represents a numerical value with an associated unit. Arithmetic
+between `Quantity` objects will preserve units.
+   >>> from astropy import units as u
+   >>> u.Quantity(15.1, u.meter) / u.Quantity(32.0, u.second)
+   <Quantity 0.471875 m / (s)>
 
 Using `astropy.units`
 =====================
@@ -98,6 +100,8 @@ Reference/API
 .. automodapi:: astropy.units.imperial
 
 .. automodapi:: astropy.units.equivalencies
+
+.. automodapi:: astropy.units.quantity
 
 
 Acknowledgments
