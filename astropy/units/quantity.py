@@ -33,8 +33,25 @@ def _validate_units(unit):
         unit_obj = unit
     else:
         raise ValueError("The unit must be a Python string that is parseable by the Units package, or a Unit object.")
+        raise TypeError("The unit must be a Python string that is parseable by the Units package, or a Unit object.")
 
     return unit_obj
+
+def _validate_value(value):
+    """ Make sure that the input is a Python numeric type.
+
+    Parameters
+    ----------
+    value : number
+        An object that will be checked whether it is a numeric type or not.
+    """
+
+    if isinstance(value, numbers.Number):
+        value_obj = value
+    else:
+        raise TypeError("The value must be a valid Python numeric type.")
+        
+    return value_obj
 
 class Quantity(object):
     """ A `Quantity` represents a number wth some associated unit.
@@ -50,6 +67,9 @@ class Quantity(object):
     Raises
     ------
     ValueError
+    TypeError
+        If the value provided is not a Python numeric type.
+    TypeError
         If the unit provided is not either a `Unit` object or a parseable string unit.
     """
 
@@ -60,6 +80,7 @@ class Quantity(object):
         else:
             raise ValueError("The value must be a valid Python numeric type.")
 
+        self._value = _validate_value(value)
         self._unit = _validate_units(unit)
 
     def to(self, unit):
@@ -94,6 +115,8 @@ class Quantity(object):
         ------
         IncompatibleUnitsError
             If the unit to convert to is not 'equivalent' (see `Unit` documentation) to the original unit.
+        TypeError
+            If the unit provided is not either a `Unit` object or a parseable string unit.
         """
         new_unit = _validate_units(unit)
 
@@ -112,6 +135,8 @@ class Quantity(object):
         """ Addition between `Quantity` objects. All operations return a new `Quantity` object
         with the units of the **left** object.
         """
+        if not isinstance(other, Quantity):
+            raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(type(other)))
         return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
 
     def __radd__(self, other):
