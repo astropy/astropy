@@ -48,10 +48,10 @@ import json
 import numpy
 
 # LOCAL
-from . import webquery
 from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
+from ...utils import webquery
 from ...utils.console import color_print
 
 # LOCAL CONFIG
