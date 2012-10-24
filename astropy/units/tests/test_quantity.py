@@ -82,12 +82,22 @@ class TestQuantityOperations():
         # Take units from left object, q1
         new_quantity = self.q1 * self.q2
         assert new_quantity.value == 0.9136
-        assert new_quantity.unit.is_equivalent(u.meter*u.meter) # TODO: is this right?
+        assert new_quantity.unit == (u.meter*u.meter)
         
         # Take units from left object, q2
         new_quantity = self.q2 * self.q1
         assert new_quantity.value == 9136.0
-        assert new_quantity.unit.is_equivalent(u.centimeter*u.centimeter) # TODO: is this right?
+        assert new_quantity.unit == (u.centimeter*u.centimeter)
+        
+        # Multiply with a number
+        new_quantity = 15. * self.q1
+        assert new_quantity.value == 171.3
+        assert new_quantity.unit == u.meter
+        
+        # Multiply with a number
+        new_quantity = self.q1 * 15.
+        assert new_quantity.value == 171.3
+        assert new_quantity.unit == u.meter
     
     def test_division(self):
         # Take units from left object, q1
@@ -105,12 +115,26 @@ class TestQuantityOperations():
         new_quantity = q1 / q2
         np.testing.assert_array_almost_equal(new_quantity.value, 1.14, decimal=10)
         assert new_quantity.unit == (u.meter / u.second)
+        
+        # divide with a number
+        new_quantity = self.q1 / 10.
+        assert new_quantity.value == 1.142
+        assert new_quantity.unit == u.meter
+        
+        # divide with a number
+        new_quantity = 11.42 / self.q1
+        assert new_quantity.value == 1.
+        assert new_quantity.unit == u.Unit("1/m")
     
     def test_power(self):
         # raise quantity to a power
         new_quantity = self.q1**2
         np.testing.assert_array_almost_equal(new_quantity.value, 130.4164, decimal=5)
         assert new_quantity.unit == u.Unit("m^2")
+        
+        new_quantity = self.q1**3
+        np.testing.assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
+        assert new_quantity.unit == u.Unit("m^3")
 
     def test_incompatible_units(self):
         """ When trying to add or subtract units that aren't compatible, throw an error """
