@@ -23,6 +23,10 @@ def test_sphere_cart():
     npytest.assert_almost_equal(y, 0)
     npytest.assert_almost_equal(z, 0)
 
+    x, y ,z = spherical_to_cartesian(5, 0, np.arcsin(4. / 5.))
+    npytest.assert_almost_equal(x, 3)
+    npytest.assert_almost_equal(y, 4)
+    npytest.assert_almost_equal(z, 0)
 
     r, lat, lng = cartesian_to_spherical(0, 1, 0)
     npytest.assert_almost_equal(r, 1)

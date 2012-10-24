@@ -11,7 +11,6 @@ import math
 import numpy as np
 
 pi = math.pi
-piotwo = pi / 2.
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian']
 
@@ -60,10 +59,10 @@ def cartesian_to_spherical(x, y, z):
 
     if np.isscalar(x) and np.isscalar(y) and np.isscalar(z):
         lng = math.atan2(y, x)
-        lat = piotwo - math.atan2(s, z)
+        lat = math.atan2(z, s)
     else:
         lng = np.arctan2(y, x)
-        lat = piotwo - np.arctan2(s, z)
+        lat = np.arctan2(z, s)
 
 
     return r, lat, lng
@@ -104,15 +103,13 @@ def spherical_to_cartesian(r, lat, lng):
 
     """
 
-    polarang = piotwo - lng
-
     if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lng):
-        x = r * math.sin(polarang) * math.cos(lng)
-        y = r * math.sin(polarang) * math.sin(lng)
-        z = r * math.cos(polarang)
+        x = r * math.cos(lat) * math.cos(lng)
+        y = r * math.cos(lat) * math.sin(lng)
+        z = r * math.sin(lat)
     else:
-        x = r * np.sin(polarang) * np.cos(lng)
-        y = r * np.sin(polarang) * np.sin(lng)
-        z = r * np.cos(polarang)
+        x = r * np.cos(lat) * np.cos(lng)
+        y = r * np.cos(lat) * np.sin(lng)
+        z = r * np.sin(lat)
 
     return x,y,z
