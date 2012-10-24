@@ -81,6 +81,20 @@ asynchronous version:
         219.900850, -60.835619, 2.78e-05, catalog_db=all_sdss_cat,
         pedantic=False)
 
+Estimate the execution time and the number of results for a cone
+search at a specific URL with different RA, DEC, and search radius:
+
+>>> url = 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD&'
+>>> t_est, n_est = conesearch.predict_search(
+        120, 20, 0.5, catalog_db=url, pedantic=False)
+
+For debugging purpose, one can obtain the actual values and compare
+with the prediction above. Keep in mind that running this for every
+prediction would defeat the purpose of the prediction itself:
+
+>>> t_real, n_real, url_used = conesearch.conesearch_timer(
+        120, 20, 0.5, catalog_db=url, pedantic=False)
+
 """
 from __future__ import print_function, division
 
@@ -95,7 +109,8 @@ from . import vos_catalog
 from ...logger import log
 from ...utils.misc import Future
 
-__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search']
+__all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
+           'conesearch_timer']
 
 _SERVICE_TYPE = 'conesearch'
 
@@ -209,12 +224,12 @@ def predict_search(*args, **kwargs):
     non-network activities, latency time is defined as half of
     this search time.
 
-    Subsequent searches are done with starting radius and step at
-    0.05 and 0.1 of given radius, respectively. Searches that take
-    longer than network latency time will be used to extrapolate
-    the search time and number of results. Searches will stop when
-    search time reaches `astropy.vo.client.vos_timeout` or radius
-    reaches the given value.
+    Subsequent searches are done with starting and ending radii
+    at 0.05 and 0.5 of the given radius, respectively. Searches
+    that take longer than network latency time will be used to
+    extrapolate the search time and number of results. Searches
+    will stop when search time reaches `astropy.vo.client.vos_timeout`
+    or radius reaches half of the given value.
 
     Extrapolation uses least-square straight line fitting,
     assuming linear increase of search time and number of results
@@ -223,12 +238,16 @@ def predict_search(*args, **kwargs):
 
     Warnings (see :mod:`warnings`) are given upon:
 
+        #. Fitted slope is negative.
         #. Estimated time exceeds `astropy.vo.client.vos_timeout`.
         #. Estimated number of results is 0 or exceeds 10,000.
 
     .. note::
 
-        The predicted results are just rough estimates.
+        If `verbose` keyword is set to `True`, extra log INFO
+        and plot will be displayed. The plot uses :mod:`matplotlib`.
+
+        The predicted results are just *rough* estimates.
 
         Prediction is done using `conesearch`. Prediction for
         `AsyncConeSearch` is not supported.
@@ -261,17 +280,19 @@ def predict_search(*args, **kwargs):
 
     # First search with radius=0 to establish network latency time
     # and obtain access URL.
-    t_0, n_cur, url = _conesearch_timer(ra, dec, 0, **kwargs)
+    t_0, n_cur, url = conesearch_timer(ra, dec, 0, **kwargs)
     kwargs['catalog_db'] = url
 
     # Search properties for timer extrapolation
+    min_datapoints = 3  # Minimum successful searches needed for extrapolation
+    num_datapoints = 10 # Number of desired data points for extrapolation
     t_min = 0.5 * t_0  # Min time to be considered not due to network latency
     t_max = vos_catalog.TIMEOUT()  # Max time to be considered too long
     n_min = 1      # Min number of results to be considered valid (inclusive)
     n_max = 10000  # Max number of results to be considered valid (inclusive)
     sr_min = 0.05 * sr  # Min radius to start the timer
-    sr_step = 0.1 * sr  # Increase radius by this amount every subsequent search
-    min_datapoints = 3  # Minimum successful searches needed for extrapolation
+    sr_max = 0.5 * sr   # Max radius to stop the timer
+    sr_step = (1.0/num_datapoints) * (sr_max - sr_min) # Radius step
 
     if verbose:
         log.info('predict_search latency time = {} s'.format(t_min))
@@ -281,8 +302,8 @@ def predict_search(*args, **kwargs):
     t_cur = t_min
     sr_cur = sr_min
     sr_arr, t_arr, n_arr = [], [], []
-    while t_cur < t_max and sr_cur <= sr:
-        t_cur, n_cur, url = _conesearch_timer(ra, dec, sr_cur, **kwargs)
+    while t_cur < t_max and sr_cur < sr_max:
+        t_cur, n_cur, url = conesearch_timer(ra, dec, sr_cur, **kwargs)
 
         if verbose:
             log.info('predict_search took {} s with {} results '
@@ -305,56 +326,31 @@ def predict_search(*args, **kwargs):
     n_arr = numpy.array(n_arr)
 
     # Predict execution time
-    m_t, c_t = numpy.polyfit(sr_arr, t_arr, 1)
-    t_est = m_t * sr + c_t
-
-    if t_est >= t_max:
-        log.warn('The given Cone Search might take too long; '
-                 'estimated execution time is {} seconds.'.format(t_est))
+    t_est, t_fit = _extrapolate(sr_arr, t_arr, sr, ymax=t_max,
+                                name='execution time', unit='s')
 
     # Predict number of results
-    m_n, c_n = numpy.polyfit(sr_arr, n_arr, 1)
-    n_est = m_n * sr + c_n
+    n_est, n_fit = _extrapolate(sr_arr, n_arr, sr, ymin=n_min, ymax=n_max,
+                                name='number of results')
 
-    if n_est < n_min or n_est > n_max:
-        log.warn('The given Cone Search might return too few or too many '
-                 'results; estimated number is {}.'.format(n_est))
-
-    #----- FOR DEBUGGING ONLY -----
-    # Should be False for deployment
-    if True:
-        import pylab
-        fig = pylab.figure()
+    if verbose:
+        from matplotlib import pyplot as plt
+        fig = plt.figure()
 
         ax1 = fig.add_subplot(211)
-        ax1.scatter(sr_arr, t_arr, 'kx')
-        ax1.scatter([sr], [t_est], 'ro')
-        ax1.plot(sr_arr, m_t * sr_arr + c_t, 'b--')
-        ax1.set_ylabel('t (s)')
+        _plot_predictions(ax1, sr_arr, t_arr, t_fit, sr, t_est, 't (s)')
 
         ax2 = fig.add_subplot(212)
-        ax2.scatter(sr_arr, n_arr, 'kx')
-        ax2.scatter([sr], [n_est], 'ro')
-        ax2.plot(sr_arr, m_n * sr_arr + c_n, 'b--')
-        ax2.set_ylabel('n')
+        _plot_predictions(ax2, sr_arr, n_arr, n_fit, sr, n_est, 'N')
         ax2.set_xlabel('radius (deg)')
 
-        pylab.draw()
-    #------------------------------
+        plt.draw()
 
-    return t_est, n_est
+    return t_est, int(n_est)
 
-def _local_conversion(func, x):
-    """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
-    try:
-        y = func(x)
-    except ValueError as e:
-        raise ConeSearchError(e.message)
-    return y
-
-def _conesearch_timer(*args, **kwargs):
+def conesearch_timer(*args, **kwargs):
     """
-    For use with `predict_search`.
+    For use by `predict_search`.
 
     Parameters
     ----------
@@ -369,10 +365,43 @@ def _conesearch_timer(*args, **kwargs):
         Number of results.
 
     url : string
-        Access URL used for search.
+        Access URL used for search. This is useful to
+        identify which cone search service to use if
+        `catalog_db` selection yields multiple services.
 
     """
     t_beg = time.time()
     out_votable = conesearch(*args, **kwargs)
     t_end = time.time()
     return t_end - t_beg, out_votable.array.size, out_votable.url
+
+def _local_conversion(func, x):
+    """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
+    try:
+        y = func(x)
+    except ValueError as e:
+        raise ConeSearchError(e.message)
+    return y
+
+def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
+    """For use by `predict_search`."""
+    m, c = numpy.polyfit(x_arr, y_arr, 1)
+    y = m * x + c
+    y_fit = m * x_arr + c
+
+    if m < 0:
+        log.warn('Fitted slope for {} is negative ({})'.format(name, m))
+
+    if ymin is not None and y < ymin:
+        log.warn('Predicted {} is less than {} {}'.format(name, ymin, unit))
+    elif ymax is not None and y > ymax:
+        log.warn('Predicted {} is more than {} {}'.format(name, ymax, unit))
+
+    return y, y_fit
+
+def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y, ylabel):
+    """For use by `predict_search`."""
+    ax.plot(x_arr, y_arr, 'kx-')
+    ax.plot(x_arr, y_fit, 'b--')
+    ax.scatter([x], [y], marker='o', c='r')
+    ax.set_ylabel(ylabel)
