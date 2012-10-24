@@ -1,0 +1,2 @@
+# This is the crontab for astropy.vo.server
+# run vo_cronjob.sh
