@@ -151,7 +151,7 @@ class Quantity(object):
         with the units of the **left** object.
         """
         if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(other.__class__))
         return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
 
     def __sub__(self, other):
@@ -159,7 +159,7 @@ class Quantity(object):
         with the units of the **left** object.
         """
         if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be subtracted with a Quantity object. Subtraction is only supported between Quantity objects.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be subtracted with a Quantity object. Subtraction is only supported between Quantity objects.".format(other.__class__))
         return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
 
     def __mul__(self, other):
@@ -176,7 +176,7 @@ class Quantity(object):
             return Quantity(other*self.value, unit=self.unit)
             
         else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
             
 
     def __rmul__(self, other):
@@ -186,7 +186,7 @@ class Quantity(object):
             return Quantity(other*self.value, unit=self.unit)
             
         else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
 
     def __div__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
@@ -200,7 +200,7 @@ class Quantity(object):
             return Quantity(self.value / other, unit=self.unit)
             
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
     def __rdiv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
@@ -209,7 +209,7 @@ class Quantity(object):
             return Quantity(other / self.value, unit=Unit("1/{}".format(self.unit.to_string())))
             
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(type(other)))
+            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
 
     def __truediv__(self, other):
