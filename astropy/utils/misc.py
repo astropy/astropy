@@ -224,7 +224,7 @@ class lazyproperty(object):
         >>> class LazyTest(object):
         ...     @lazyproperty
         ...     def complicated_property(self):
-        ...         print 'Computing the value for complicated_property..."
+        ...         print 'Computing the value for complicated_property...'
         ...         return 42
         ...
         >>> lt = LazyTest()
