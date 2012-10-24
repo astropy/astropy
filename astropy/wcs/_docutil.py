@@ -14,16 +14,16 @@ def _fix(content, indent=0):
     return indent.join(lines)
 
 
-def TWO_OR_THREE_ARGS(naxis, indent=0):
+def TWO_OR_MORE_ARGS(naxis, indent=0):
     return _fix(
 """args : flexible
-    Either two or three arguments may be provided.
+    There are two accepted forms for the positional arguments:
 
-        - 2 arguments: An *N* x *{0}* array of *x*- and
-          *y*-coordinates, and an *origin*.
+        - 2 arguments: An *N* x *{0}* array of coordinates, and an
+          *origin*.
 
-        - 3 arguments: 2 one-dimensional arrays of *x* and *y*
-          coordinates, and an *origin*.
+        - more than 2 arguments: A one-dimensional array for each
+          axis, followed by an *origin*.
 
     Here, *origin* is the coordinate in the upper left corner of the
     image.  In FITS and Fortran standards, this is 1.  In Numpy and C
@@ -54,5 +54,6 @@ def RA_DEC_ORDER(indent=0):
 ra_dec_order : bool, optional
     When `True` will ensure that world coordinates are always given
     and returned in as (*ra*, *dec*) pairs, regardless of the order of
-    the axes specified by the in the ``CTYPE`` keywords.
+    the axes specified by the in the ``CTYPE`` keywords.  Default is
+    `False`.
 """, indent)

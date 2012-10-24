@@ -825,7 +825,11 @@ naxis kwarg.
         A helper function to support reading either a pair of arrays
         or a single Nx2 array.
         """
-        ra_dec_order = kwargs.get('ra_dec_order')
+        ra_dec_order = kwargs.pop('ra_dec_order', False)
+        if len(kwargs):
+            raise TypeError("Unexpected keyword argument {0!r}".format(
+                kwargs.keys()[0]))
+
         if len(args) == 2:
             xy, origin = args
             try:
@@ -833,28 +837,31 @@ naxis kwarg.
                 origin = int(origin)
             except:
                 raise TypeError(
-                    "When providing two arguments, they must be (xy, origin)")
+                    "When providing two arguments, they must be "
+                    "(coords[N][0], origin)".format(self.naxis))
             if ra_dec_order and sky == 'input':
                 xy = self._denormalize_sky(xy)
             result = func(xy, origin)
             if ra_dec_order and sky == 'output':
                 result = self._normalize_sky(result)
             return result
-        elif len(args) == 3:
-            x, y, origin = args
+        elif len(args) == self.naxis + 1:
+            axes = args[:-1]
+            origin = args[-1]
             try:
-                x = np.asarray(x)
-                y = np.asarray(y)
+                axes = [np.asarray(x) for x in axes]
                 origin = int(origin)
             except:
                 raise TypeError(
-                    "When providing three arguments, they must be " +
-                    "(x, y, origin)")
-            if x.size != y.size:
-                raise ValueError("x and y arrays are not the same size")
-            length = x.size
-            xy = np.hstack((x.reshape((length, 1)),
-                            y.reshape((length, 1))))
+                    "When providing more than two arguments, they must be " +
+                    "a 1-D array for each axes, followed by an origin.")
+            size = axes[0].size
+            for axis in axes[1:]:
+                if axis.size != size:
+                    raise ValueError(
+                        "coordinate arrays are not the same size")
+            axes = [x.reshape((size, 1)) for x in axes]
+            xy = np.hstack(axes)
             if ra_dec_order and sky == 'input':
                 xy = self._denormalize_sky(xy)
             sky = func(xy, origin)
@@ -863,7 +870,8 @@ naxis kwarg.
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
         raise TypeError(
-            "Expected 2 or 3 arguments, {0} given".format(len(args)))
+            "Expected 2 or {0} arguments, {0} given".format(
+                self.naxis + 1, len(args)))
 
     def all_pix2world(self, *args, **kwargs):
         return self._array_converter(
@@ -929,7 +937,7 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+        """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('sky coordinates, in degrees', 8))
 
@@ -1002,7 +1010,7 @@ naxis kwarg.
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
         members can be used to determine the order of the axes.
 
-        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+        """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('world coordinates, in degrees', 8))
 
@@ -1069,7 +1077,7 @@ naxis kwarg.
 
         InvalidTransformError
             Ill-conditioned coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('naxis', 8),
+        """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))
 
@@ -1077,8 +1085,8 @@ naxis kwarg.
     def wcs_sky2pix(self, *args, **kwargs):
         return self.wcs_world2pix(*args, **kwargs)
 
-    def pix2foc(self, *args, **kwargs):
-        return self._array_converter(self._pix2foc, None, *args, **kwargs)
+    def pix2foc(self, *args):
+        return self._array_converter(self._pix2foc, None, *args)
     pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention and `Paper IV`_
@@ -1101,11 +1109,11 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+        """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
 
-    def p4_pix2foc(self, *args, **kwargs):
-        return self._array_converter(self._p4_pix2foc, None, *args, **kwargs)
+    def p4_pix2foc(self, *args):
+        return self._array_converter(self._p4_pix2foc, None, *args)
     p4_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
@@ -1127,11 +1135,11 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+        """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
 
-    def det2im(self, *args, **kwargs):
-        return self._array_converter(self._det2im, None, *args, **kwargs)
+    def det2im(self, *args):
+        return self._array_converter(self._det2im, None, *args)
     det2im.__doc__ = """
         Convert detector coordinates to image plane coordinates using
         `Paper IV`_ table-lookup distortion correction.
@@ -1153,10 +1161,10 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+        """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
-    def sip_pix2foc(self, *args, **kwargs):
+    def sip_pix2foc(self, *args):
         if self.sip is None:
             if len(args) == 2:
                 return args[0]
@@ -1164,7 +1172,7 @@ naxis kwarg.
                 return args[:2]
             else:
                 raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.pix2foc, None, *args, **kwargs)
+        return self._array_converter(self.sip.pix2foc, None, *args)
     sip_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention.
@@ -1192,10 +1200,10 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+        """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
 
-    def sip_foc2pix(self, *args, **kwargs):
+    def sip_foc2pix(self, *args):
         if self.sip is None:
             if len(args) == 2:
                 return args[0]
@@ -1203,7 +1211,7 @@ naxis kwarg.
                 return args[:2]
             else:
                 raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.foc2pix, None, *args, **kwargs)
+        return self._array_converter(self.sip.foc2pix, None, *args)
     sip_foc2pix.__doc__ = """
         Convert focal plane coordinates to pixel coordinates using the
         `SIP`_ polynomial distortion convention.
@@ -1229,7 +1237,7 @@ naxis kwarg.
 
         ValueError
             Invalid coordinate transformation parameters.
-        """.format(__.TWO_OR_THREE_ARGS('2', 8),
+        """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
     def to_fits(self, relax=False):
