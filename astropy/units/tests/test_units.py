@@ -206,11 +206,11 @@ def test_convertible_exception():
     try:
         u.AA.to(u.h * u.s ** 2)
     except u.UnitsException as e:
-        assert "length" in e.message
+        assert "length" in str(e)
 
 
 def test_convertible_exception2():
     try:
         u.m.to(u.s)
     except u.UnitsException as e:
-        assert 'time' not in e.message
+        assert 'time' not in str(e)
