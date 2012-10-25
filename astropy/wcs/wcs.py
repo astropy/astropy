@@ -838,7 +838,7 @@ naxis kwarg.
             except:
                 raise TypeError(
                     "When providing two arguments, they must be "
-                    "(coords[N][0], origin)".format(self.naxis))
+                    "(coords[N][{0}], origin)".format(self.naxis))
             if ra_dec_order and sky == 'input':
                 xy = self._denormalize_sky(xy)
             result = func(xy, origin)
@@ -854,12 +854,14 @@ naxis kwarg.
             except:
                 raise TypeError(
                     "When providing more than two arguments, they must be " +
-                    "a 1-D array for each axes, followed by an origin.")
+                    "a 1-D array for each axis, followed by an origin.")
+
             size = axes[0].size
             for axis in axes[1:]:
                 if axis.size != size:
                     raise ValueError(
                         "coordinate arrays are not the same size")
+
             axes = [x.reshape((size, 1)) for x in axes]
             xy = np.hstack(axes)
             if ra_dec_order and sky == 'input':
@@ -869,6 +871,7 @@ naxis kwarg.
                 sky = self._normalize_sky_output(sky)
                 return sky[:, 0], sky[:, 1]
             return [sky[:, i] for i in range(sky.shape[1])]
+
         raise TypeError(
             "Expected 2 or {0} arguments, {0} given".format(
                 self.naxis + 1, len(args)))
