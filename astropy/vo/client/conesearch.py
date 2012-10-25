@@ -114,8 +114,10 @@ __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
 
 _SERVICE_TYPE = 'conesearch'
 
+
 class ConeSearchError(Exception):
     pass
+
 
 class AsyncConeSearch(Future):
     """
@@ -142,6 +144,7 @@ class AsyncConeSearch(Future):
     def __init__(self, *args, **kwargs):
         kwargs['verbose'] = False
         Future.__init__(self, conesearch, *args, **kwargs)
+
 
 def conesearch(ra, dec, sr, verb=1, **kwargs):
     """
@@ -189,9 +192,9 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
 
     """
     # Validate arguments
-    ra  = _local_conversion(float, ra)
+    ra = _local_conversion(float, ra)
     dec = _local_conversion(float, dec)
-    sr  = _local_conversion(float, sr)
+    sr = _local_conversion(float, sr)
     verb = _local_conversion(int, verb)
     if verb not in (1, 2, 3):
         raise ConeSearchError('Verbosity must be 1, 2, or 3')
@@ -199,6 +202,7 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
     args = {'RA': ra, 'DEC': dec, 'SR': sr, 'VERB': verb}
 
     return vos_catalog.call_vo_service(_SERVICE_TYPE, kwargs=args, **kwargs)
+
 
 def list_catalogs(**kwargs):
     """
@@ -212,6 +216,7 @@ def list_catalogs(**kwargs):
 
     """
     return vos_catalog.list_catalogs(_SERVICE_TYPE, **kwargs)
+
 
 def predict_search(*args, **kwargs):
     """
@@ -285,14 +290,14 @@ def predict_search(*args, **kwargs):
 
     # Search properties for timer extrapolation
     min_datapoints = 3  # Minimum successful searches needed for extrapolation
-    num_datapoints = 10 # Number of desired data points for extrapolation
+    num_datapoints = 10  # Number of desired data points for extrapolation
     t_min = 0.5 * t_0  # Min time to be considered not due to network latency
     t_max = vos_catalog.TIMEOUT()  # Max time to be considered too long
     n_min = 1      # Min number of results to be considered valid (inclusive)
     n_max = 10000  # Max number of results to be considered valid (inclusive)
     sr_min = 0.05 * sr  # Min radius to start the timer
     sr_max = 0.5 * sr   # Max radius to stop the timer
-    sr_step = (1.0/num_datapoints) * (sr_max - sr_min) # Radius step
+    sr_step = (1.0 / num_datapoints) * (sr_max - sr_min)  # Radius step
 
     if verbose:
         log.info('predict_search latency time = {} s'.format(t_min))
@@ -348,6 +353,7 @@ def predict_search(*args, **kwargs):
 
     return t_est, int(n_est)
 
+
 def conesearch_timer(*args, **kwargs):
     """
     Time a single conesearch. For use by `predict_search`.
@@ -375,6 +381,7 @@ def conesearch_timer(*args, **kwargs):
     t_end = time.time()
     return t_end - t_beg, out_votable.array.size, out_votable.url
 
+
 def _local_conversion(func, x):
     """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
     try:
@@ -382,6 +389,7 @@ def _local_conversion(func, x):
     except ValueError as e:
         raise ConeSearchError(e.message)
     return y
+
 
 def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     """For use by `predict_search`."""
@@ -398,6 +406,7 @@ def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
         log.warn('Predicted {} is more than {} {}'.format(name, ymax, unit))
 
     return y, y_fit
+
 
 def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y, ylabel):
     """For use by `predict_search`."""

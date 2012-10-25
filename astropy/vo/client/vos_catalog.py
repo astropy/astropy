@@ -80,8 +80,10 @@ except KeyError as e:
              'defaulting to True')
     VO_PEDANTIC = True
 
+
 class VOSError(Exception):
     pass
+
 
 class VOSCatalog(object):
     """
@@ -106,6 +108,7 @@ class VOSCatalog(object):
     def __getitem__(self, what):
         """Expose dictionary key look-up."""
         return self._tree[what]
+
 
 class VOSDatabase(object):
     """
@@ -184,13 +187,14 @@ class VOSDatabase(object):
             all_cat_arr = np.array(all_catalogs)
             all_cat_ucase = np.char.upper(all_cat_arr)
             i = np.char.count(all_cat_ucase,
-                                 match_string.upper()).astype('bool')
+                              match_string.upper()).astype('bool')
             out_arr = list(all_cat_arr[i])
 
         if sort:
             out_arr.sort()
 
         return out_arr
+
 
 def get_remote_catalog_db(dbname, cache=True):
     """
@@ -223,6 +227,7 @@ def get_remote_catalog_db(dbname, cache=True):
         fd.close()
 
     return VOSDatabase(tree)
+
 
 def _vo_service_request(url, pedantic, kwargs):
     req = webquery.webget_open(url, timeout=TIMEOUT(), **kwargs)
@@ -257,6 +262,7 @@ def _vo_service_request(url, pedantic, kwargs):
 
     out_tab.url = url  # Track the URL
     return out_tab
+
 
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
                     verbose=True, cache=True, kwargs={}):
@@ -355,6 +361,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             vo_warn(W25, (url, str(e)))
 
     raise VOSError('None of the available catalogs returned valid results.')
+
 
 def list_catalogs(service_type, cache=True, **kwargs):
     """
