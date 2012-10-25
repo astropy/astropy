@@ -18,6 +18,8 @@ class Generic(Base):
     but instead of only supporting the units that FITS knows about, it
     supports any unit available in the `astropy.units` namespace.
     """
+    _show_scale = True
+
     def __init__(self):
         # Build this on the class, so it only gets generated once.
         if '_parser' not in Generic.__dict__:
@@ -260,7 +262,7 @@ class Generic(Base):
         from .. import core
 
         if isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1:
+            if unit.scale != 1 and self._show_scale:
                 s = '{0:e} '.format(unit.scale)
             else:
                 s = ''
@@ -279,3 +281,13 @@ class Generic(Base):
             s = self._get_unit_name(unit)
 
         return s
+
+
+class Unscaled(Generic):
+    """
+    A format that doesn't display the scale part of the unit, other
+    than that, it is identical to the `Generic` format.
+
+    This is used in some error messages where the scale is irrelevant.
+    """
+    _show_scale = False
