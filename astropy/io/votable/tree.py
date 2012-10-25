@@ -1847,8 +1847,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     """
     TABLE_ element: optionally contains data.
 
-    It contains the following publicly-accessible member, all of
-    which are mutable:
+    It contains the following publicly-accessible and mutable
+    attribute:
 
         *array*: A Numpy masked array of the data itself, where each
         row is a row of votable data, and columns are named and typed
