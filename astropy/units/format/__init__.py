@@ -5,7 +5,7 @@ A collection of different unit formats.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .base import Base
-from .generic import Generic
+from .generic import Generic, Unscaled
 from .cds import CDS
 from .console import Console
 from .fits import Fits
@@ -14,8 +14,8 @@ from .unicode_format import Unicode
 from .vounit import VOUnit
 
 __all__ = [
-    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'VOUnit',
-    'get_format']
+    'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'Unicode', 'Unscaled',
+    'VOUnit', 'get_format']
 
 
 def get_format(format=None):
