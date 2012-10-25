@@ -5,6 +5,7 @@ Utilities shared by the different formats.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import functools
+import re
 
 
 def get_grouped_by_powers(bases, powers):
@@ -115,3 +116,11 @@ def _trace(func):
         return result
 
     return functools.update_wrapper(run, func)
+
+
+def cleanup_pyparsing_error(e):
+    """
+    Given a pyparsing.ParseException, returns a string that has the
+    line and column numbers removed.
+    """
+    return re.sub(", \(line:[0-9]+, col:[0-9]+\)", "", str(e))
