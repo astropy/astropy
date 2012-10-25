@@ -45,7 +45,7 @@ import io
 import json
 
 # THIRD PARTY
-import numpy
+import numpy as np
 
 # LOCAL
 from ...io.votable import table
@@ -182,9 +182,9 @@ class VOSDatabase(object):
         if match_string is None:
             out_arr = all_catalogs
         else:
-            all_cat_arr = numpy.array(all_catalogs)
-            all_cat_ucase = numpy.char.upper(all_cat_arr)
-            i = numpy.char.count(all_cat_ucase,
+            all_cat_arr = np.array(all_catalogs)
+            all_cat_ucase = np.char.upper(all_cat_arr)
+            i = np.char.count(all_cat_ucase,
                                  match_string.upper()).astype('bool')
             out_arr = list(all_cat_arr[i])
 

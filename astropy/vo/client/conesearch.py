@@ -102,7 +102,7 @@ from __future__ import print_function, division
 import time
 
 # THIRD PARTY
-import numpy
+import numpy as np
 
 # LOCAL
 from . import vos_catalog
@@ -321,9 +321,9 @@ def predict_search(*args, **kwargs):
         raise ConeSearchError('predict_search only has {} data points; '
                               'unable to continue.'.format(n_datapoints))
 
-    sr_arr = numpy.array(sr_arr)
-    t_arr = numpy.array(t_arr)
-    n_arr = numpy.array(n_arr)
+    sr_arr = np.array(sr_arr)
+    t_arr = np.array(t_arr)
+    n_arr = np.array(n_arr)
 
     # Predict execution time
     t_est, t_fit = _extrapolate(sr_arr, t_arr, sr, ymax=t_max,
@@ -385,7 +385,7 @@ def _local_conversion(func, x):
 
 def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     """For use by `predict_search`."""
-    m, c = numpy.polyfit(x_arr, y_arr, 1)
+    m, c = np.polyfit(x_arr, y_arr, 1)
     y = m * x + c
     y_fit = m * x_arr + c
 
