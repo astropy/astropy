@@ -1184,9 +1184,15 @@ numpy_dtype_to_field_mapping = {
     np.int64().dtype.num      : 'long',
     np.complex64().dtype.num  : 'floatComplex',
     np.complex128().dtype.num : 'doubleComplex',
-    np.bytes_().dtype.num     : 'char',
     np.unicode_().dtype.num   : 'unicodeChar'
 }
+
+
+# numpy 1.4.1 doesn't have a "bytes_" type
+if hasattr(np, 'bytes_'):
+    numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
+else:
+    numpy_dtype_to_field_mapping[np.str_().dtype.num] = 'char'
 
 
 def _all_bytes(column):
