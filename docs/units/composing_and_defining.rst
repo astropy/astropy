@@ -4,9 +4,10 @@ Composing and defining units
 Units can be composed together using the regular Python numeric
 operators.  For example::
 
+  >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
 
 Users are free to define new units, either fundamental or compound
 using the `~astropy.units.core.def_unit` function.  For example::

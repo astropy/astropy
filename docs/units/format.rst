@@ -15,7 +15,7 @@ Units can be converted to strings using the
 
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit.to_string()
-  u'erg / (s cm2)'
+  u'erg / (cm2 s)'
 
 By default, the string format used is referred to as the "generic"
 format, which is based on syntax of the FITS standard's format for
@@ -23,9 +23,7 @@ representing units, but supports all of the units defined within the
 `astropy.units` framework, including user-defined units.  The
 `~astropy.units.core.Unit` and
 `~astropy.units.core.UnitBase.to_string` functions also take an
-optional `format` parameter to select a different format.  This
-parameter may be either a string or a `astropy.units.format.Base`
-instance.
+optional `format` parameter to select a different format.
 
 Built-in formats
 ----------------
@@ -87,15 +85,15 @@ following formats:
 Unrecognized Units
 ------------------
 
-Since many files in found in the wild represent have unit strings that
-do not correspond to any given standard, `astropy.units` also has a
+Since many files in found in the wild have unit strings that do not
+correspond to any given standard, `astropy.units` also has a
 consistent way to store and pass around unit strings that did not
 parse.
 
 Normally, passing an unrecognized unit string raises an exception::
 
   >>> u.Unit("m/s/s")  # The FITS standard only allows one '/'
-  ValueError: Expected end of text (at char 3), (line:1, col:4) in 'm/s/s'
+  ValueError: Expected end of text (at char 3) in 'm/s/s'
 
 However, the `~astropy.units.core.Unit` constructor has the keyword
 argument `parse_strict` that can take one of three values to control
@@ -113,8 +111,7 @@ So, for example, one can do::
 
    >>> x = u.Unit("m/s/s", parse_strict="warn")
    WARNING: UnitsWarning: 'm/s/s' did not parse using format 'generic'.
-   Expected end of text (at char 3), (line:1, col:4) in 'm/s/s'
-   [astropy.units.core]
+   Expected end of text (at char 3) in 'm/s/s' [astropy.units.core]
 
 This `~astropy.units.core.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
@@ -122,7 +119,7 @@ but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
    >>> x.to_string()
-   m/s/s
+   'm/s/s'
    >>> x.to(u.km / u.s / u.s)
    ValueError: The unit 'm/s/s' is unrecognized.  It can not be converted to
    other units.
