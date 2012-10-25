@@ -252,8 +252,11 @@ def _vo_service_request(url, pedantic, kwargs):
         break
 
     out_tab = tab.get_first_table()
-    out_tab.url = url  # Track the URL
+    if out_tab.array.size <= 0:
+        raise VOSError("Catalog server '{}' returned {} result".format(
+            url, out_tab.array.size))
 
+    out_tab.url = url  # Track the URL
     return out_tab
 
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
