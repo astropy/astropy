@@ -2,18 +2,17 @@
 """
 Common utilities for accessing VO simple services.
 
+When run for the first time, catalogs database will be
+downloaded to a local cache. See `astropy.config` for
+caching behavior.
+
 *CONFIGURABLE PROPERTIES*
 
-These properties are set via Astropy configuration system
-(http://astropy.readthedocs.org/en/latest/configs/index.html):
+These properties are set via Astropy configuration system:
 
     * `astropy.io.votable.pedantic`
     * `astropy.vo.client.vos_baseurl`
     * `astropy.vo.client.vos_timeout`
-
-When run for the first time, catalogs database will be
-downloaded to a local cache. See `astropy.config` for
-caching behavior.
 
 Examples
 --------
@@ -109,20 +108,20 @@ class VOSCatalog(object):
         return self._tree[what]
 
 class VOSDatabase(object):
+    """
+    A class to represent a collection of `VOSCatalog`.
+
+    Parameters
+    ----------
+    tree : JSON tree
+
+    Raises
+    ------
+    VOSError
+        If given `tree` does not have 'catalogs' key.
+
+    """
     def __init__(self, tree):
-        """
-        A class to represent a collection of `VOSCatalog`.
-
-        Parameters
-        ----------
-        tree : JSON tree
-
-        Raises
-        ------
-        VOSError
-            If given `tree` does not have 'catalogs' key.
-
-        """
         self._tree = tree
 
         if tree['__version__'] > __dbversion__:

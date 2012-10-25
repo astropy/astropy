@@ -118,28 +118,28 @@ class ConeSearchError(Exception):
     pass
 
 class AsyncConeSearch(Future):
+    """
+    Perform a cone search asynchronously using
+    :py:class:`threading.Thread`.
+
+    Cone search will be forced to run in silent
+    mode. Warnings are controled by :mod:`warnings`
+    module.
+
+    .. seealso::
+
+        `astropy.utils.misc.Future`
+
+    Parameters
+    ----------
+    args, kwargs : see `conesearch`
+
+    Returns
+    -------
+    value : see `conesearch`
+
+    """
     def __init__(self, *args, **kwargs):
-        """
-        Perform a cone search asynchronously using
-        :py:class:`threading.Thread`.
-
-        Cone search will be forced to run in silent
-        mode. Warnings are controled by :mod:`warnings`
-        module.
-
-        .. seealso::
-
-            `astropy.utils.misc.Future`
-
-        Parameters
-        ----------
-        args, kwargs : see `conesearch`
-
-        Returns
-        -------
-        value : see `conesearch`
-
-        """
         kwargs['verbose'] = False
         Future.__init__(self, conesearch, *args, **kwargs)
 
@@ -350,7 +350,7 @@ def predict_search(*args, **kwargs):
 
 def conesearch_timer(*args, **kwargs):
     """
-    For use by `predict_search`.
+    Time a single conesearch. For use by `predict_search`.
 
     Parameters
     ----------
