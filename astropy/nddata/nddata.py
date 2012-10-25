@@ -417,7 +417,7 @@ class NDData(object):
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
-    def convert_units_to(self, unit):
+    def convert_units_to(self, unit, equivs=[]):
         """
         Returns a new `NDData` object whose values have been converted
         to a new unit.
@@ -426,6 +426,10 @@ class NDData(object):
         ----------
         unit : `astropy.units.UnitBase` instance or str
             The unit to convert to.
+
+        equivs : list of equivalence pairs, optional
+           A list of equivalence pairs to try if the units are not
+           directly convertible.  See :ref:`unit_equivalencies`.
 
         Returns
         -------
@@ -439,7 +443,7 @@ class NDData(object):
         """
         if self.units is None:
             raise ValueError("No units specified on source data")
-        data = self.units.to(unit, self.data)
+        data = self.units.to(unit, self.data, equivs=equivs)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
         result.uncertainty = self.uncertainty
