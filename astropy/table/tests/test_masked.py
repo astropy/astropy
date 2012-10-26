@@ -1,9 +1,4 @@
-""" Test behavior related to masked tables
-# TESTS:
-# Add a masked row to existing non-masked table (should fail)
-# Add a non-masked row to existing masked table (should succeed)
-
-"""
+"""Test behavior related to masked tables"""
 
 from .. import Column, MaskedColumn, Table
 
