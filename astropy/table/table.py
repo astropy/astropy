@@ -1038,7 +1038,10 @@ class Table(object):
     def masked(self, masked):
         if hasattr(self, '_masked'):
             # The only allowed change is from None to False or True, or False to True
-            if self._masked is None and masked in [False, True] or self._masked is False and masked is True:
+            if self._masked is None and masked in [False, True]:
+                self._masked = masked
+            elif self._masked is False and masked is True:
+                log.info("Upgrading Table to masked Table")
                 self._masked = masked
             elif self._masked is masked:
                 raise Exception("Masked attribute is already set to {0}".format(masked))
@@ -1253,7 +1256,6 @@ class Table(object):
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
-            log.info("Upgrading table to masked table")
             self.masked = True
 
         if self.masked:
