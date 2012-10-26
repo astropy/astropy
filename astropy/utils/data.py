@@ -132,11 +132,13 @@ def get_fileobj(name_or_obj, encoding=None, cache=False):
     else:
         fileobj = name_or_obj
 
-    # Check if the file object supports random access, and if not, then wrap
-    # it in a StringIO buffer.
+    # Check if the file object supports random access, and if not,
+    # then wrap it in a BytesIO buffer.  It would be nicer to use a
+    # BufferedReader to avoid reading loading the whole file first,
+    # but that is not compatible with streams or urllib2.urlopen
+    # objects on Python 2.x.
     if not hasattr(fileobj, 'seek'):
-        from StringIO import StringIO
-        fileobj = StringIO(fileobj.read())
+        fileobj = io.BytesIO(fileobj.read())
 
     # Now read enough bytes to look at signature
     signature = fileobj.read(4)
@@ -208,7 +210,7 @@ def get_fileobj(name_or_obj, encoding=None, cache=False):
         fd.close()
 
 
-def get_pkg_data_fileobj(data_name, cache=True, encoding=None):
+def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations for the package and
     provides the file as a file-like object that reads bytes.
@@ -233,12 +235,6 @@ def get_pkg_data_fileobj(data_name, cache=True, encoding=None):
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
 
-    cache : bool
-        If True, the file will be downloaded and saved locally or the
-        already-cached local copy will be accessed. If False, the file-like
-        object will directly access the resource (e.g. if a remote URL is
-        accessed, an object like that from `urllib2.urlopen` is returned).
-
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         `read` method that on Python 2.x returns `bytes` objects and
@@ -254,6 +250,11 @@ def get_pkg_data_fileobj(data_name, cache=True, encoding=None):
         file-like object's `read` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
+    cache : bool
+        If True, the file will be downloaded and saved locally or the
+        already-cached local copy will be accessed. If False, the file-like
+        object will directly access the resource (e.g. if a remote URL is
+        accessed, an object like that from `urllib2.urlopen` is returned).
 
     Returns
     -------
@@ -393,7 +394,7 @@ def get_pkg_data_filename(data_name):
             return cache_remote(DATAURL() + data_name)
 
 
-def get_pkg_data_contents(data_name, cache=True, encoding=None):
+def get_pkg_data_contents(data_name, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
@@ -419,12 +420,6 @@ def get_pkg_data_contents(data_name, cache=True, encoding=None):
               the Astropy data server will be queried.
             * A URL to some other file.
 
-    cache : bool
-        If True, the file will be downloaded and saved locally or the
-        already-cached local copy will be accessed. If False, the file-like
-        object will directly access the resource (e.g. if a remote URL is
-        accessed, an object like that from `urllib2.urlopen` is returned).
-
     encoding : str, optional
         When `None` (default), returns a file-like object with a
         `read` method that on Python 2.x returns `bytes` objects and
@@ -440,6 +435,11 @@ def get_pkg_data_contents(data_name, cache=True, encoding=None):
         file-like object's `read` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
 
+    cache : bool
+        If True, the file will be downloaded and saved locally or the
+        already-cached local copy will be accessed. If False, the file-like
+        object will directly access the resource (e.g. if a remote URL is
+        accessed, an object like that from `urllib2.urlopen` is returned).
 
     Returns
     -------
@@ -458,7 +458,7 @@ def get_pkg_data_contents(data_name, cache=True, encoding=None):
     get_pkg_data_fileobj : returns a file-like object with the data
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-    with get_pkg_data_fileobj(data_name, cache=cache, encoding=encoding) as fd:
+    with get_pkg_data_fileobj(data_name, encoding=encoding, cache=cache) as fd:
         contents = fd.read()
     return contents
 
@@ -554,7 +554,6 @@ def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
         When another string, it is the name of an encoding, and the
         file-like object's `read` method will return `str` (`unicode`)
         objects, decoded from binary using the given encoding.
-
 
     Returns
     -------

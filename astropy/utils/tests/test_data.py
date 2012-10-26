@@ -190,3 +190,33 @@ def test_read_unicode():
     assert isinstance(contents, bytes)
     contents = contents.split(b'\n')[1]
     assert contents == b"\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"
+
+
+def test_compressed_stream():
+    import base64
+    from ..data import get_fileobj
+
+    gzipped_data = b"H4sICIxwG1AAA2xvY2FsLmRhdAALycgsVkjLzElVANKlxakpCpl5CiUZqQolqcUl8Tn5yYk58SmJJYnxWmCRzLx0hbTSvOSSzPy8Yi5nf78QV78QLgAlLytnRQAAAA=="
+    gzipped_data = base64.b64decode(gzipped_data)
+    assert isinstance(gzipped_data, bytes)
+
+    class FakeStream:
+        """
+        A fake stream that has `read`, but no `seek`.
+        """
+        def __init__(self, data):
+            self.data = data
+
+        def read(self, nbytes=None):
+            if nbytes is None:
+                result = self.data
+                self.data = b''
+            else:
+                result = self.data[:nbytes]
+                self.data = self.data[nbytes:]
+            return result
+
+    stream = FakeStream(gzipped_data)
+    with get_fileobj(stream, encoding='binary') as f:
+        f.readline()
+        assert f.read().rstrip() == b'CONTENT'
