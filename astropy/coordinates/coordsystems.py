@@ -1,377 +1,157 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains the implementations of specific coordinate systems
-and the conversions between them.
+This module contains the base classes and framework for coordinate objects.
 """
 
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .angles import RA, Dec, Angle
 from .. import units as u
 
-__all__ = ['CoordinatesBase', 'Coordinates', 'HorizontalCoordinates',
-           'ICRSCoordinates', 'GalacticCoordinates'
+__all__ = ['SphericalCoordinatesBase', 'Coordinates', 'CartesianPoint'
           ]
 
-class CoordinatesBase(object):
+class SphericalCoordinatesBase(object):
     """
-    Abstract superclass for all coordinate classes (except the factory class 'Coordinates').
+    Abstract superclass for all coordinate classes representing points in three
+    dimensions.
     """
 
     __metaclass__ = ABCMeta
 
+    @abstractmethod
+    def __init__(self, **kwargs):
+        """
+        Subclasses must override this, but they should also call this to set up
+        internal state.
+        """
+        self._distancequant = None
+        self._cartpoint = None
+
     @abstractproperty
-    def angle1(self):
+    def latangle(self):
+        """
+        The latitudinal/elevation angle for these coordinates as an
+        `~astropy.coorinates.angles.Angle` object.
+
+        .. note ::
+            This should be overridden in subclasses as a read-only property that
+            just returns an attribute a way to abstract the exact choice of
+            names for the coordiantes. E.g., `ICRSCoordinates` implements this
+            by doing ``return self.ra``.
+        """
         pass
 
     @abstractproperty
-    def angle2(self):
-        pass
+    def longangle(self):
+        """
+        The longitudinal/azimuthal angle for these coordinates as an
+        `~astropy.coorinates.angles.Angle` object.
 
-    @abstractproperty
-    def galactic(self):
-        pass
+        .. note ::
+            This should be overridden in subclasses as a read-only property that
+            just returns an attribute a way to abstract the exact choice of
+            names for the coordinates. E.g., `ICRSCoordinates` implements this
+            by doing ``return self.dec``.
+        """
 
-    @abstractproperty
-    def icrs(self):
-        pass
+    @property
+    def distance(self):
+        """
+        The radial distance for this coordinate object as an
+        `~astropy.units.Quantity` object. It must have units of distance.
 
-    @abstractproperty
-    def horizontal(self):
-        pass
+        Alternatively, this may be `None`, indicating an unknown/not given
+        distance. Where necessary, this will be interpreted as a (dimensionless)
+        unit sphere.
+        """
+        return self._distancequant
 
+    @distance.setter
+    def distance(self, val):
+        if val is None:
+            self._distance = None
+        elif not hasattr(val, 'value') or not hasattr(val, 'unit'):
+            raise TypeError('Spherical coordinate distances is not a Quantity-like object')
+        elif not val.unit.is_equivalent(u.m):
+            raise u.IncompatibleUnitError('')
 
-
-
-class ICRSCoordinates(CoordinatesBase):
-    """
-    Object representing a coordinate in the ICRS system.
-
-    Parameters
-    ----------
-    ra : `~astropy.coordinates.angle`, float, int, str
-    dec : `~astropy.coordinates.angle`, float, int, str
-    unit : tuple
-        If the units cannot be determined from the angle values provided, they must
-        be specified as a tuple in the 'unit' parameter. The first value in the tuple
-        is paired with the first angle provided, and the second with the second angle.
-        (If the unit is specified in the first angle but not the second, the first
-        value in the tuple may be 'None'.)
-    """
-    def __init__(self, *args, **kwargs):
-
-        # Initialize values.
-        # _ra, _dec are what we parse as potential values that still need validation
-        _ra = None
-        _dec = None
-        self.ra = None
-        self.dec = None
-
-        if "unit" in kwargs:
-            units = kwargs["unit"]
-            del kwargs["unit"]
         else:
-             units = list()
+            self._distance = u.Quantity(val)
 
-        if isinstance(units, tuple) or isinstance(units, list):
-            pass # good
-        elif isinstance(units, u.Unit) or isinstance(units, str):
-            # Only a single unit given, which is fine (assigned to 'ra').
-            # The value, even if given as a tuple, is unpacked. Just make it
-            # a tuple for consistency
-            units = [units]
-        else:
-            raise ValueError("The value for units must be given as a tuple, e.g. "
-                             "unit=(u.hour, u.degree). An object of type '{0}' "
-                             "was given.".format(type(units).__name__))
+    @property
+    def x(self):
+        self._make_cart()
+        return self._cartpoint.x
 
+    @property
+    def y(self):
+        self._make_cart()
+        return self._cartpoint.y
 
-        if len(args) == 0 and len(kwargs) == 0:
-            raise ValueError("A coordinate object cannot be created without ra,dec values.")
-        elif len(args) > 0 and len(kwargs) > 0:
-            raise ValueError("The angle values can only be specified as keyword arguments "
-                             "(e.g. ra=x, dec=y) or as a single value (e.g. a string) "
-                             "not a combination.")
-        elif len(args) == 0 and len(kwargs) > 0:
-            # only "ra" and "dec" accepted as keyword arguments
-            try:
-                _ra = kwargs["ra"]
-                _dec = kwargs["dec"]
-            except KeyError:
-                raise ValueError("When values are supplied as keyword arguments, both "
-                                 "'ra' and 'dec' must be specified.")
-            if isinstance(_ra, RA):
-                self.ra = _ra
-            if isinstance(_dec, Dec):
-                self.dec = _dec
+    @property
+    def z(self):
+        self._make_cart()
+        return self._cartpoint.z
 
-        elif len(args) == 1 and len(kwargs) == 0:
-            # need to try to parge the coordinate from a single argument
-            x = args[0]
-            if isinstance(args[0], str):
-                parsed = False
-                if "," in x:
-                    _ra, _dec = x.split(",")
-                    parsed = True
-                elif "\t" in x:
-                    _ra, _dec = x.split("\t")
-                    parsed = True
-                elif len(x.split()) == 6:
-                    _ra = " ".join(x.split()[0:3])
-                    _dec = " ".join(x.split()[3:])
-                    parsed = True
-                elif len(x.split()) == 2:
-                    _ra, _dec = x.split()
-                    parsed = True
+    @property
+    def cartesian(self):
+        self._make_cart()
+        return self._cartpoint
 
-                if not parsed:
-                    values = x.split()
-                    i = 1
-                    while i < len(values) and not parsed:
-                        try:
-                            self.ra = RA(" ".join(values[0:i]))
-                            parsed = True
-                        except:
-                            i += 1
+    def _make_cart(self, override=False):
+        if override or self._cartpoint is None:
+            from .transformations import spherical_to_cartesian
 
-                    if parsed == True:
-                        self.dec = Dec(" ".join(values[i:]))
-
-                if not parsed:
-                    raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
+            if self._distancequant is None:
+                r = 1
+                runit = None
             else:
-                raise ValueError("A coordinate cannot be created with a value of type "
-                                 "'{0}'.".format(type(args[0]).__name___))
+                r = self._distancequant.value
+                runit = self._distancequant.unit
+            x, y, z = spherical_to_cartesian(r, self.latangle, self.longangle)
+            self._cartpoint = CartesianPoint(x, y, z, runit)
 
-        elif len(args) == 2 and len(kwargs) == 0:
-            _ra = args[0]
-            _dec = args[1]
-
-        elif len(args) > 2 and len(kwargs) == 0:
-            raise ValueError("More than two values were found where only ra and dec "
-                             "were expected.")
-        else:
-            raise ValueError("Unable to create a coordinate using the values provided.")
-
-
-#             # First try to see if RA, Dec objects were provided in the args.
-#             for arg in args:
-#                 if isinstance(arg, RA):
-#                     _ra = arg
-#                 elif isinstance(arg, Dec):
-#                     _dec = arg
-#
-#             if None not in [_ra, _dec]:
-#                 self.ra = _ra
-#                 self.dec = _dec
-#                 return
-#             elif (_ra and not _dec) or (not _ra and _dec):
-#                 raise ValueError("When an RA or Dec value is provided, the other "
-#                                  "coordinate must also be given.")
-#
-#             # see if the whole coordinate might be parseable from arg[0]
-#
-#         try:
-#             if isinstance(args[0], RA) and isinstance(args[1], Dec):
-#                 _ra = args[0]
-#                 _dec = args[1]
-#             elif isinstance(args[1], RA) and isinstance(args[0], Dec):
-#                 _ra = args[1]
-#                 _dec = args[0]
-#         except IndexError:
-#             raise ValueError("Not enough parameters were provided.")
-
-        if self.ra is None:
-            self.ra = RA(_ra, unit=units[0]) if len(units) > 0 else RA(_ra)
-        if self.dec is None:
-            self.dec = Dec(_dec, unit=units[1]) if len(units) > 1 else Dec(_dec)
-
-    @property
-    def angle1(self):
-        return self.ra
-
-    @property
-    def angle2(self):
-        return self.dec
-
-    @property
-    def icrs(self):
-        return self
-
-    @property
-    def galactic(self):
-        raise NotImplementedError()
-
-    @property
-    def horizontal(self):
-        raise NotImplementedError()
-
-class GalacticCoordinates(CoordinatesBase):
+class CartesianPoint(object):
     """
-    Galactic coordinate (l,b) class.
+    A cartesian representation of a point in three-dimensional space.
 
-    Parameters
+    Attributes
     ----------
-    l : `~astropy.coordinates.angle`, float, int, str
-        galactic latitude
-    b : `~astropy.coordinates.angle`, float, int, str
-        galactic longitude
-    unit : tuple
-        Units associated with the l and b values provided. Only needed if the unit cannot be
-        unambiguously determined from the given values.
-
+    x : number or array
+        The first cartesian coordinate.
+    y : number or array
+        The second cartesian coordinate.
+    z : number or array
+        The third cartesian coordinate.
+    unit : `~astropy.units.UnitBase` object or None
+        The physical unit of the coordinate values.
     """
-    def __init__(self, *args, **kwargs):
 
-        # initialize values
-        # _ra, _dec are what we parse as potential values that still need validation
-        _l = None
-        _b = None
-        self.l = None
-        self.b = None
+    def __init__(self, x, y, z, unit=None):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.unit = unit
 
-        if "unit" in kwargs:
-            units = kwargs["unit"]
-            del kwargs["unit"]
-        else:
-            units = list()
+    def to_spherical(self):
+        """
+        Converts returns the spherical representation of this point.
 
-        if isinstance(units, tuple) or isinstance(units, list):
-            pass # good
-        elif isinstance(units, u.Unit) or isinstance(units, str):
-            # Only a single unit given, which is fine (assigned to 'ra').
-            # The value, even if given as a tuple, is unpacked. Just make it
-            # a tuple for consistency
-            units = [units]
-        else:
-            raise ValueError("The value for units must be given as a tuple, e.g. "
-                             "unit=(u.hour, u.degree). An object of type '{0}' "
-                             "was given.".format(type(units).__name__))
+        Returns
+        -------
+        r : float or array
+            The radial coordinate (in the same units as the inputs).
+        lat : float or array
+            The latitude in radians
+        lng : float or array
+            The longitude in radians
 
-        if len(args) == 0 and len(kwargs) == 0:
-            raise ValueError("A coordinate object cannot be created without l,b values.")
-        elif len(args) > 0 and len(kwargs) > 0:
-            raise ValueError("The angle values can only be specified as keyword arguments "
-                             "(e.g. l=x, b=y) or as a single value (e.g. a string) "
-                             "not a combination.")
+        """
+        from .transformations import cartesian_to_spherical
 
-        if len(args) == 0 and len(kwargs) > 0:
-            # only "l" and "b" accepted as keyword arguments
-            try:
-                _l = kwargs["l"]
-                _b = kwargs["b"]
-            except KeyError:
-                raise ValueError("When values are supplied as keyword arguments, both "
-                                 "'l' and 'b' must be specified.")
-            if isinstance(_l, Angle):
-                self.l = _l
-            if isinstance(_b, Angle):
-                self.b = _b
-
-        elif len(args) > 0:
-            # make sure someone isn't using RA/Dec objects
-            for arg in args:
-                if isinstance(arg, RA) or isinstance(arg, Dec):
-                    raise TypeError("The class {0} doesn't accept RA or Dec values; "
-                                     "use Angle objects instead.".format(type(self).__name__))
-
-            if len(args) == 1 and len(kwargs) == 0:
-                # need to try to parse the coordinate from a single argument
-                x = args[0]
-                if isinstance(args[0], str):
-                    parsed = False
-                    if "," in x:
-                        _l, _b = x.split(",")
-                        parsed = True
-                    elif "\t" in x:
-                        _l, _b = x.split("\t")
-                        parsed = True
-                    elif len(x.split()) == 6:
-                        _l = " ".join(x.split()[0:3])
-                        _b = " ".join(x.split()[3:])
-                        parsed = True
-                    elif len(x.split()) == 2:
-                        _l, _b = x.split()
-                        parsed = True
-
-                    if not parsed:
-                        values = x.split()
-                        i = 1
-                        while i < len(values) and not parsed:
-                            try:
-                                self.l = Angle(" ".join(x.values[0:i]))
-                                parsed = True
-                            except:
-                                i += 1
-
-                        if parsed == True:
-                            self.b = Angle(" ".join(x.values[i:]))
-
-                    if not parsed:
-                        raise ValueError("Could not parse l,b values from the string provided: '{0}'.".format(x))
-                else:
-                    raise ValueError("A coordinate cannot be created with a value of type "
-                                     "'{0}'.".format(type(arg[0]).__name___))
-
-            elif len(args) == 2 and len(kwargs) == 0:
-                _l = args[0]
-                _b = args[1]
-
-            elif len(args) > 2 and len(kwargs) == 0:
-                raise ValueError("More than two values were found where only ra and dec "
-                                 "were expected.")
-        else:
-            raise ValueError("Unable to create a coordinate using the values provided.")
-
-        if self.l is None:
-            self.l = Angle(_l, unit=units[0]) if len(units) > 0 else Angle(_l)
-        if self.b is None:
-            self.b = Angle(_b, unit=units[1]) if len(units) > 1 else Angle(_b)
-
-    @property
-    def angle1(self):
-        return self.l
-
-    @property
-    def angle2(self):
-        return self.b
-
-    @property
-    def icrs(self):
-        raise NotImplementedError()
-
-    @property
-    def galactic(self):
-        return self
-
-    @property
-    def horizontal(self):
-        raise NotImplementedError()
-
-class HorizontalCoordinates(CoordinatesBase):
-    """
-    Horizontal coordinate (az,el) class.
-    """
-    @property
-    def angle1(self):
-        return self.az
-
-    @property
-    def angle2(self):
-        return self.el
-
-    @property
-    def icrs(self):
-        raise NotImplementedError()
-
-    @property
-    def galactic(self):
-        raise NotImplementedError()
-
-    @property
-    def horizontal(self):
-        return self
+        return cartesian_to_spherical(self.x, self.y, self.z)
 
 class Coordinates(object):
     """
