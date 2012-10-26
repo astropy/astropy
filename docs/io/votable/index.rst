@@ -207,16 +207,13 @@ Missing values
 --------------
 
 Any value in the table may be "missing".  `astropy.io.votable` stores
-a parallel array in each `~astropy.io.votable.tree.Table` instance
-called `~astropy.io.votable.tree.Table.mask` to keep track of missing
-values.  This array is ``False`` anywhere the value is missing.
-
-.. note::
-   In the future, the `~astropy.io.votable.tree.Table.array` and
-   `~astropy.io.votable.tree.Table.mask` members will likely be
-   combined into a single masked record array.  There are
-   implementation bugs in current versions of Numpy that prevent this
-   at the moment.
+a Numpy masked array in each `~astropy.io.votable.tree.Table`
+instance.  This behaves like an ordinary Numpy masked array, except
+for variable-length fields.  For those fields, the datatype of the
+column is "object" and another Numpy masked array is stored there.
+Therefore, operations on variable length columns will not work -- this
+is simply because variable length columns are not directly supported
+by Numpy masked arrays.
 
 Datatype mappings
 -----------------
@@ -279,10 +276,26 @@ example::
   'deg'
 
 .. note::
-   Field descriptors should not be mutated -- they will have no effect
-   on the record arrays storing the data.  This shortcoming will be
-   addressed in a future version of `astropy.io.votable` that makes
-   better use of `astropy.table`.
+   Field descriptors should not be mutated.  To change the set of
+   columns, convert the Table to an `astropy.table.Table`, make the
+   changes, and then convert it back.
+
+Converting to/from an `astropy.table.Table`
+-------------------------------------------
+
+The VOTable standard does not map conceptually to an
+`astropy.table.Table`.  However, a single table within the `VOTable`
+file may be converted to and from an `astropy.table.Table`::
+
+  from astropy.io.votable import parse_single_table
+  table = parse_single_table("votable.xml").to_table()
+
+As a convenience, there is also a function to create an entire VOTable
+file with just a single table::
+
+  from astropy.io.votable import from_table, writeto
+  votable = from_table(table)
+  writeto(votable, "output.xml")
 
 Performance considerations
 --------------------------

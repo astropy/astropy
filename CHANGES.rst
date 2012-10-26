@@ -92,6 +92,10 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+  - The `Table` class now maintains a single array object which is a
+    Numpy masked array.  For variable-length columns, the object that
+    is stored there is also a Numpy masked array.
+
   - Changed the ``pedantic`` configuration option to be ``False`` by default
     due to the vast proliferation of non-compliant VO Tables. [#296]
 

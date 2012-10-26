@@ -15,6 +15,7 @@ else:
 
 # THIRD-PARTY
 import numpy as np
+from numpy import ma
 
 # LOCAL
 from .. import fits
@@ -54,6 +55,19 @@ RESIZE_AMOUNT = 1.5
 
 ######################################################################
 # FACTORY FUNCTIONS
+
+
+def _resize(masked, new_size):
+    """
+    Masked arrays can not be resized inplace, and `np.resize` and
+    `ma.resize` are both incompatible with structured arrays.
+    Therefore, we do all this.
+    """
+    new_array = ma.zeros((new_size,), dtype=masked.dtype)
+    length = min(len(masked), new_size)
+    new_array.data[:length] = masked.data[:length]
+    new_array.mask[:length] = masked.mask[:length]
+    return new_array
 
 
 def _lookup_by_id_factory(iterator, element_name, doc):
@@ -502,6 +516,20 @@ class Link(SimpleElement, _IDProperty):
     def href(self):
         self._href = None
 
+    def to_table_column(self, column):
+        meta = {}
+        for key in self._attr_list:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+
+        column.meta.setdefault('links', [])
+        column.meta['links'].append(meta)
+
+    @classmethod
+    def from_table_column(cls, d):
+        return cls(**d)
+
 
 class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
            _UtypeProperty):
@@ -931,6 +959,46 @@ class Values(Element, _IDProperty):
                         name=name,
                         value=value)
 
+    def to_table_column(self, column):
+        # Have the ref filled in here
+        ref = self.ref
+
+        meta = {}
+        for key in [u'ID', u'null']:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+        if self.min is not None:
+            meta['min'] = {
+                'value': self.min,
+                'inclusive': self.min_inclusive}
+        if self.max is not None:
+            meta['max'] = {
+                'value': self.max,
+                'inclusive': self.max_inclusive}
+        if len(self.options):
+            meta['options'] = dict(self.options)
+
+        column.meta['values'] = meta
+
+    def from_table_column(self, column):
+        if not 'values' in column.meta:
+            return
+
+        meta = column.meta['values']
+        for key in [u'ID', u'null']:
+            val = meta.get(key, None)
+            if val is not None:
+                setattr(self, key, val)
+        if 'min' in meta:
+            self.min = meta['min']['value']
+            self.min_inclusive = meta['min']['inclusive']
+        if 'max' in meta:
+            self.max = meta['max']['value']
+            self.max_inclusive = meta['max']['inclusive']
+        if 'options' in meta:
+            self._options = meta['options'].items()
+
 
 class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
             _UtypeProperty, _UcdProperty):
@@ -1300,6 +1368,57 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                 self.values.to_xml(w, **kwargs)
             for link in self.links:
                 link.to_xml(w, **kwargs)
+
+    def to_table_column(self, column):
+        """
+        Sets the attributes of a given `astropy.table.Column` instance
+        to match the information in this `Field`.
+        """
+        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+            val = getattr(self, key, None)
+            if val is not None:
+                column.meta[key] = val
+        if not self.values.is_defaults():
+            self.values.to_table_column(column)
+        for link in self.links:
+            link.to_table_column(column)
+        if self.description is not None:
+            column.description = self.description
+        if self.unit is not None:
+            # TODO: Use units framework when it's available
+            column.units = self.unit
+        if isinstance(self.converter, converters.FloatingPoint):
+            column.format = self.converter.output_format
+
+    @classmethod
+    def from_table_column(cls, votable, column):
+        """
+        Restores a `Field` instance from a given
+        `astropy.table.Column` instance.
+        """
+        kwargs = {}
+        for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
+            val = column.meta.get(key, None)
+            if val is not None:
+                kwargs[key] = val
+        # TODO: Use the unit framework when available
+        if column.units is not None:
+            kwargs['unit'] = column.units
+        kwargs['name'] = column.name
+        result = converters.table_column_to_votable_datatype(column)
+        kwargs.update(result)
+
+        field = cls(votable, **kwargs)
+
+        if column.description is not None:
+            field.description = column.description
+        field.values.from_table_column(column)
+        if 'links' in column.meta:
+            for link in column.meta['links']:
+                field.links.append(Link.from_table_column(link))
+
+        # TODO: Parse format into precision and width
+        return field
 
 
 class Param(Field):
@@ -1728,25 +1847,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     """
     TABLE_ element: optionally contains data.
 
-    It contains the following publicly-accessible members, all of
-    which are mutable:
+    It contains the following publicly-accessible and mutable
+    attribute:
 
-        *array*: A Numpy recarray of the data itself, where each row
-        is a row of votable data, and columns are named and typed
-        based on the <FIELD> elements of the table.
-
-        *mask*: A Numpy recarray of only boolean values, set to *True*
-        wherever a value is undefined.
+        *array*: A Numpy masked array of the data itself, where each
+        row is a row of votable data, and columns are named and typed
+        based on the <FIELD> elements of the table.  The mask is
+        parallel to the data array, except for variable-length fields.
+        For those fields, the numpy array's column type is "object"
+        (``"O"``), and another masked array is stored there.
 
     If the Table contains no data, (for example, its enclosing
     :class:`Resource` has :attr:`~Resource.type` == 'meta') *array*
-    and *mask* will be zero-length arrays.
-
-    .. note::
-        In a future version of the vo package, the *array* and *mask*
-        elements will likely be combined into a single Numpy masked
-        record array.  However, there are a number of deficiencies the
-        current implementation of Numpy that prevent this.
+    will have zero-length.
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
@@ -1781,8 +1894,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         self._links  = HomogeneousList(Link)
         self._infos  = HomogeneousList(Info)
 
-        self.array = np.array([])
-        self.mask  = np.array([])
+        self.array = ma.array([])
 
         warn_unknown_attrs('TABLE', extra.iterkeys(), config, pos)
 
@@ -1909,9 +2021,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def create_arrays(self, nrows=0, config={}):
         """
-        Create new arrays to hold the data based on the current set of
-        fields, and store them in the *array* and *mask* member
-        variables.  Any data in existing arrays will be lost.
+        Create a new array to hold the data based on the current set
+        of fields, and store them in the *array* and member variable.
+        Any data in the existing array will be lost.
 
         *nrows*, if provided, is the number of rows to allocate.
         """
@@ -1938,7 +2050,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if x._unique_name == x.ID:
                         id = x.ID.encode('utf-8')
                     else:
-                        id = (x._unique_name.encode('utf-8'), x.ID.encode('utf-8'))
+                        id = (x._unique_name.encode('utf-8'),
+                              x.ID.encode('utf-8'))
                 dtype.append((id, x.converter.format))
 
             array = np.recarray((nrows,), dtype=np.dtype(dtype))
@@ -1951,8 +2064,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     descr_mask.append((d[0], new_type, d[2]))
             mask = np.zeros((nrows,), dtype=descr_mask)
 
-        self.array = array
-        self.mask = mask
+        self.array = ma.array(array, mask=mask)
 
     def _resize_strategy(self, size):
         """
@@ -2079,13 +2191,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     if tag == 'TABLEDATA':
                         warn_unknown_attrs(
                             'TABLEDATA', data.iterkeys(), config, pos)
-                        self.array, self.mask = self._parse_tabledata(
+                        self.array = self._parse_tabledata(
                             iterator, colnumbers, fields, config)
                         break
                     elif tag == 'BINARY':
                         warn_unknown_attrs(
                             'BINARY', data.iterkeys(), config, pos)
-                        self.array, self.mask = self._parse_binary(
+                        self.array = self._parse_binary(
                             iterator, colnumbers, fields, config)
                         break
                     elif tag == 'FITS':
@@ -2097,7 +2209,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                                 raise ValueError()
                         except ValueError:
                             vo_raise(E17, (), config, pos)
-                        self.array, self.mask = self._parse_fits(
+                        self.array = self._parse_fits(
                             iterator, extnum, config)
                         break
                     else:
@@ -2131,12 +2243,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         # allocation is by factors of 1.5.
         invalid = config.get('invalid', 'exception')
 
-        array = self.array
-        mask = self.mask
         # Need to have only one reference so that we can resize the
         # array
+        array = self.array
         del self.array
-        del self.mask
 
         parsers = [field.converter.parse for field in fields]
         binparsers = [field.converter.binparse for field in fields]
@@ -2215,10 +2325,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     while numrows + chunk_size > alloc_rows:
                         alloc_rows = self._resize_strategy(alloc_rows)
                     if alloc_rows != len(array):
-                        array.resize((alloc_rows,))
-                        mask.resize((alloc_rows,))
+                        array = _resize(array, alloc_rows)
                     array[numrows:numrows + chunk_size] = array_chunk
-                    mask[numrows:numrows + chunk_size] = mask_chunk
+                    array.mask[numrows:numrows + chunk_size] = mask_chunk
                     numrows += chunk_size
                     array_chunk = []
                     mask_chunk = []
@@ -2229,10 +2338,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         # Now, resize the array to the exact number of rows we need and
         # put the last chunk values in there.
         alloc_rows = numrows + len(array_chunk)
-        array.resize((alloc_rows,))
-        mask.resize((alloc_rows,))
+
+        array = _resize(array, alloc_rows)
         array[numrows:] = array_chunk
-        mask[numrows:] = mask_chunk
+        array.mask[numrows:] = mask_chunk
         numrows += len(array_chunk)
 
         if (self.nrows is not None and
@@ -2241,7 +2350,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             warn_or_raise(W18, W18, (self.nrows, numrows), config, pos)
         self._nrows = numrows
 
-        return array, mask
+        return array
 
     def _parse_binary(self, iterator, colnumbers, fields, config):
         fields = self.fields
@@ -2302,12 +2411,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 raise EOFError
             return result
 
-        array = self.array
-        mask = self.mask
         # Need to have only one reference so that we can resize the
         # array
+        array = self.array
         del self.array
-        del self.mask
 
         binparsers = [field.converter.binparse for field in fields]
 
@@ -2317,8 +2424,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             # Resize result arrays if necessary
             if numrows >= alloc_rows:
                 alloc_rows = self._resize_strategy(alloc_rows)
-                array.resize((alloc_rows,))
-                mask.resize((alloc_rows,))
+                array = _resize(array, alloc_rows)
 
             row_data = []
             row_mask_data = []
@@ -2344,13 +2450,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 row_mask[i] = row_mask_data[i]
 
             array[numrows] = tuple(row)
-            mask[numrows] = tuple(row_mask)
+            array.mask[numrows] = tuple(row_mask)
             numrows += 1
 
-        array = np.resize(array, (numrows,))
-        mask = np.resize(mask, (numrows,))
+        array = _resize(array, numrows)
 
-        return array, mask
+        return array
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:
@@ -2392,7 +2497,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if array.dtype != self.array.dtype:
             warn_or_raise(W19, W19, (), self._config, self._pos)
 
-        return array, self.mask
+        return array
 
     def to_xml(self, w, **kwargs):
         with w.tag(
@@ -2431,7 +2536,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
         array = self.array
-        mask = self.mask
 
         write_null_values = kwargs.get('write_null_values', False)
         with w.tag(u'TABLEDATA'):
@@ -2440,8 +2544,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 not kwargs.get('_debug_python_based_parser')):
                 fields = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
-                tablewriter.write_tabledata(w.write, array, mask, fields,
-                                            write_null_values, indent, 1 << 8)
+                tablewriter.write_tabledata(
+                    w.write, array.data, array.mask, fields, write_null_values,
+                    indent, 1 << 8)
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
@@ -2453,18 +2558,23 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                           for i, field in enumerate(fields)]
                 for row in xrange(len(array)):
                     write(tr_start)
-                    array_row = array[row]
-                    mask_row = mask[row]
+                    array_row = array.data[row]
+                    mask_row = array.mask[row]
                     for i, output in fields:
+                        data = array_row[i]
                         masked = mask_row[i]
-                        if not np.all(masked) or write_null_values:
+                        if (not np.all(masked) or
+                            write_null_values):
                             try:
-                                val = output(array_row[i], masked)
+                                val = output(data, masked)
                             except Exception as e:
                                 vo_reraise(e,
                                            additional="(in row %d, col '%s')" %
-                                           (row, fields[i].ID))
-                            write(td % val)
+                                           (row, self.fields[i].ID))
+                            if len(val):
+                                write(td % val)
+                            else:
+                                write(td_empty)
                         else:
                             write(td_empty)
                     write(tr_end)
@@ -2474,7 +2584,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         fields = self.fields
         array = self.array
-        mask = self.mask
 
         with w.tag(u'BINARY'):
             with w.tag(u'STREAM', encoding='base64'):
@@ -2483,8 +2592,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
                 data = io.BytesIO()
                 for row in xrange(len(array)):
-                    array_row = array[row]
-                    array_mask = mask[row]
+                    array_row = array.data[row]
+                    array_mask = array.mask[row]
                     for i, converter in fields_basic:
                         try:
                             chunk = converter(array_row[i], array_mask[i])
@@ -2497,6 +2606,59 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
                 w._flush()
                 w.write(base64.b64encode(data.getvalue()).decode('ascii'))
+
+    def to_table(self):
+        """
+        Convert this VO Table to an `astropy.table.Table` instance.
+
+        .. warning::
+
+           The mask is thrown out by this operation, since masking is
+           not currently supported by `astropy.table.Table`.
+
+           Variable-length array fields may not be restored
+           identically when round-tripping through the
+           `astropy.table.Table` instance.
+        """
+        from ...table import Table
+
+        meta = {}
+        for key in [u'ID', u'name', u'ref', u'ucd', u'utype', u'description']:
+            val = getattr(self, key, None)
+            if val is not None:
+                meta[key] = val
+
+        table = Table(self.array, meta=meta)
+        table.mask = self.array.mask
+
+        for field in self.fields:
+            column = table[field.ID]
+            field.to_table_column(column)
+
+        return table
+
+    @classmethod
+    def from_table(cls, votable, table):
+        """
+        Create a `Table` instance from a given `astropy.table.Table`
+        instance.
+        """
+        kwargs = {}
+        for key in [u'ID', u'name', u'ref', u'ucd', u'utype']:
+            val = table.meta.get(key)
+            if val is not None:
+                kwargs[key] = val
+        new_table = cls(votable, **kwargs)
+        if 'description' in table.meta:
+            new_table.description = table.meta['description']
+
+        for colname in table.colnames:
+            column = table[colname]
+            new_table.fields.append(Field.from_table_column(votable, column))
+
+        new_table.array = ma.array(np.asarray(table), mask=table.mask)
+
+        return new_table
 
     def iter_fields_and_params(self):
         """
@@ -2538,6 +2700,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         Looks up a GROUP element by the given ID.  Used by the group's
         "ref" attribute
         """)
+
 
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
@@ -3090,3 +3253,16 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """
         for table in self.iter_tables():
             table.format = format
+
+    @classmethod
+    def from_table(cls, table):
+        """
+        Create a `VOTableFile` instance from a given
+        `astropy.table.Table` instance.
+        """
+        votable_file = cls()
+        resource = Resource()
+        votable = Table.from_table(votable_file, table)
+        resource.tables.append(votable)
+        votable_file.resources.append(resource)
+        return votable_file
