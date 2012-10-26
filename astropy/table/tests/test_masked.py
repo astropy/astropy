@@ -105,3 +105,41 @@ class TestAddColumn(object):
         assert np.all(t['a'].mask == np.array([0,0,0], bool))
         assert np.all(t['b'] == np.array([4,5,6]))
         assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+
+class TestAddRow(object):
+
+    def test_add_masked_row_to_masked_table_iterable(self):
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_row([2,5], mask=[1,0])
+        t.add_row([3,6], mask=[0,1])
+        assert t.masked
+        assert np.all(np.array(t['a']) == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert np.all(np.array(t['b']) == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_masked_row_to_masked_table_mapping(self):
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_row({'b':5, 'a':2}, mask={'a':1, 'b':0})
+        t.add_row({'a':3, 'b':6}, mask={'b':1, 'a':0})
+        assert t.masked
+        assert np.all(np.array(t['a']) == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert np.all(np.array(t['b']) == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_masked_row_to_masked_table_mismatch(self):
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        with pytest.raises(TypeError) as exc:
+            t.add_row([2,5], mask={'a':1, 'b':0})
+        assert exc.value.args[0] == "Mismatch between type of vals and mask"
+        with pytest.raises(TypeError) as exc:
+            t.add_row({'b':5, 'a':2}, mask=[1,0])
+        assert exc.value.args[0] == "Mismatch between type of vals and mask"

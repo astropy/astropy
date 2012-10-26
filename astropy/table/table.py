@@ -1221,7 +1221,7 @@ class Table(object):
 
         self.columns[name].name = new_name
 
-    def add_row(self, vals=None):
+    def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
 
         The ``vals`` argument can be:
@@ -1238,31 +1238,72 @@ class Table(object):
         data.  In particular one cannot add a row to a Table that was
         initialized with copy=False from an existing array.
 
+        The ``mask`` attribute should give (if desired) the mask for the
+        values. The type of the mask should match that of the values, i.e. if
+        ``vals`` is an interable, then ``mask`` should also be an iterable
+        with the same length, and if ``vals`` is a mapping, then ``mask``
+        should be a dictionary.
+
         Parameters
         ----------
         vals : tuple, list, dict or None
             Use the specified values in the new row
         """
         newlen = len(self._data) + 1
+
+        if mask is not None and not self.masked:
+            log.info("Upgrading table to masked table")
+            self.masked = True
+
         if self.masked:
             self._data = ma.resize(self._data, (newlen,))
         else:
             self._data.resize((newlen,), refcheck=False)
 
         if isinstance(vals, collections.Mapping):
-            row = self._data[-1]
+
+            if mask is not None and not isinstance(mask, collections.Mapping):
+                raise TypeError("Mismatch between type of vals and mask")
+
+            # Now check that the mask is specified for the same keys as the
+            # values, otherwise things get really confusing.
+            if mask is not None and len(set(vals.keys()) - set(mask.keys())) > 0:
+                raise ValueError('keys in mask should match keys in vals')
+
+            if self.masked:
+                # We set the mask to True regardless of whether a mask value
+                # is specified or not - that is, any cell where a new row
+                # value is not specified should be treated as missing.
+                self._data.mask[-1] = np.repeat(1, len(self._data.dtype))
+
+            # First we copy the values
             for name, val in vals.items():
                 try:
-                    row[name] = val
+                    self._data[name][-1] = val
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
+                if mask:
+                    self._data[name].mask[-1] = mask[name]
 
         elif isiterable(vals):
+
+            if mask is not None and (not isiterable(mask) or isinstance(mask, collections.Mapping)):
+                raise TypeError("Mismatch between type of vals and mask")
+
             if len(self.columns) != len(vals):
                 raise ValueError('Mismatch between number of vals and columns')
+
+            if len(self.columns) != len(mask):
+                raise ValueError('Mismatch between number of masks and columns')
+
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
+
+            if not isinstance(mask, tuple):
+                mask = tuple(mask)
+
             self._data[-1] = vals
+            self._data.mask[-1] = mask
 
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
