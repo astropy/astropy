@@ -7,6 +7,7 @@ import numpy as np
 from numpy import ma
 
 from ..units import Unit
+from .. import log
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
@@ -1293,17 +1294,20 @@ class Table(object):
             if len(self.columns) != len(vals):
                 raise ValueError('Mismatch between number of vals and columns')
 
-            if len(self.columns) != len(mask):
-                raise ValueError('Mismatch between number of masks and columns')
-
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
 
-            if not isinstance(mask, tuple):
-                mask = tuple(mask)
-
             self._data[-1] = vals
-            self._data.mask[-1] = mask
+
+            if mask is not None:
+
+                if len(self.columns) != len(mask):
+                    raise ValueError('Mismatch between number of masks and columns')
+
+                if not isinstance(mask, tuple):
+                    mask = tuple(mask)
+
+                self._data.mask[-1] = mask
 
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
@@ -1311,7 +1315,8 @@ class Table(object):
         # Add_row() probably corrupted the Column views of self._data.  Rebuild
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
-        cols = [c.copy(self._data[c.name]) for c in self.columns.values()]
+        ColumnClass = MaskedColumn if self.masked else Column
+        cols = [ColumnClass.copy(ColumnClass(c.name, c), self._data[c.name]) for c in self.columns.values()]
         self.columns = TableColumns(cols)
 
     def sort(self, keys):

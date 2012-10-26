@@ -143,3 +143,17 @@ class TestAddRow(object):
         with pytest.raises(TypeError) as exc:
             t.add_row({'b':5, 'a':2}, mask=[1,0])
         assert exc.value.args[0] == "Mismatch between type of vals and mask"
+
+    def test_add_masked_row_to_non_masked_table_iterable(self):
+        t = Table(masked=False)
+        t.add_column(Column('a', [1]))
+        t.add_column(Column('b', [4]))
+        assert not t.masked
+        t.add_row([2,5])
+        assert not t.masked
+        t.add_row([3,6], mask=[0,1])
+        assert t.masked
+        assert np.all(np.array(t['a']) == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,0,0], bool))
+        assert np.all(np.array(t['b']) == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([0,0,1], bool))
