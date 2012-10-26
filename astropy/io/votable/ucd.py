@@ -26,10 +26,11 @@ class UCDWords:
         self._descriptions = {}
         self._capitalization = {}
 
-        with data.get_pkg_data_fileobj("data/ucd1p-words.txt") as fd:
+        with data.get_pkg_data_fileobj(
+                "data/ucd1p-words.txt", encoding='ascii') as fd:
             for line in fd.readlines():
                 type, name, descr = [
-                    x.strip().decode('ascii') for x in line.split(b'|')]
+                    x.strip() for x in line.split(u'|')]
                 name_lower = name.lower()
                 if type in u'QPEV':
                     self._primary.add(name_lower)

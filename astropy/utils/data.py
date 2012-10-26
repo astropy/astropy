@@ -14,7 +14,6 @@ import urllib2
 
 from ..config.configuration import ConfigurationItem
 
-
 __all__ = ['get_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
            'get_pkg_data_contents', 'get_pkg_data_fileobjs',
            'get_pkg_data_filenames', 'compute_hash',
@@ -39,7 +38,10 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     ' of the python session.')
 
 
-if sys.version_info[0] < 3:  # pragma: py2
+PY3K = sys.version_info[0] >= 3
+
+
+if not PY3K:  # pragma: py2
     #used for supporting with statements in get_pkg_data_fileobj
     def _fake_enter(self):
         return self
@@ -72,7 +74,7 @@ def _is_url(string):
 
 
 @contextlib.contextmanager
-def get_fileobj(name_or_obj, binary=False, cache=False):
+def get_fileobj(name_or_obj, encoding=None, cache=False):
     """
     Given a filename or a readable file-like object, return a readable
     file-like object.
@@ -88,14 +90,20 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
 
         If a file-like object, it must be opened in binary mode.
 
-    binary : bool, optional
-        When `False` (default), returns a file-like object that on
-        Python 2.x reads `bytes` objects and on Python 3.x reads `str`
-        (unicode) objects.  This matches the default behavior of
-        `open` when no `mode` argument is provided.
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
 
-        When `True`, returns a file-like object that will read `bytes`
-        objects.
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
 
     cache : bool, optional
         Whether to cache the contents of remote URLs
@@ -111,12 +119,12 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
                 fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
                 close_fds.append(fileobj)
                 from types import MethodType
-                if sys.version_info[0] < 3:  # pragma: py2
+                if not PY3K:  # pragma: py2
                     # Need to add in context managers to support with urlopen for <3.x
                     fileobj.__enter__ = MethodType(_fake_enter, fileobj)
                     fileobj.__exit__ = MethodType(_fake_exit, fileobj)
         else:
-            if sys.version_info[0] >= 3:
+            if PY3K:
                 fileobj = io.FileIO(name_or_obj, 'r')
             else:
                 fileobj = open(name_or_obj, 'rb')
@@ -135,11 +143,14 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
     fileobj.seek(0)
 
     if signature[:3] == b'\x1f\x8b\x08':  # gzip
+        import struct
         try:
             from .compat import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
         except IOError:  # invalid gzip file
+            fileobj.seek(0)
+        except struct.error:  # invalid gzip file on Python 3
             fileobj.seek(0)
         else:
             fileobj_new.seek(0)
@@ -162,13 +173,34 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
             fileobj_new.seek(0)
             fileobj = fileobj_new
 
-    if sys.version_info[0] >= 3 and not binary:
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, or
+    # bz2.BZ2File instance opened in binary mode (that is, read
+    # returns bytes).  Now we need to, if requested, wrap it in a
+    # io.TextIOWrapper so read will return unicode based on the
+    # encoding parameter.
+
+    if PY3K:
+        needs_textio_wrapper = encoding != 'binary'
+    else:
+        needs_textio_wrapper = encoding != 'binary' and encoding is not None
+
+    if needs_textio_wrapper:
         import bz2
         # FIXME: A bz2.BZ2File can not be wrapped by a TextIOWrapper,
         # so on Python 3 the user will get back bytes from the file
         # rather than Unicode as expected.
         if not isinstance(fileobj, bz2.BZ2File):
-            fileobj = io.TextIOWrapper(fileobj)
+            # On Python 2.x, we need to first wrap the regular `file`
+            # instance in a `io.FileIO` object before it can be
+            # wrapped in a `TextIOWrapper`.  We don't just create an
+            # `io.FileIO` object in the first place, because we can't
+            # get a raw file descriptor out of it on Python 2.x, which
+            # is required for the XML iterparser.
+            if not PY3K and isinstance(fileobj, file):
+                fileobj = io.FileIO(fileobj.fileno())
+
+            fileobj = io.BufferedReader(fileobj)
+            fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
 
     yield fileobj
 
@@ -176,10 +208,10 @@ def get_fileobj(name_or_obj, binary=False, cache=False):
         fd.close()
 
 
-def get_pkg_data_fileobj(data_name, cache=True):
+def get_pkg_data_fileobj(data_name, cache=True, encoding=None):
     """
     Retrieves a data file from the standard locations for the package and
-    provides the file as a file-like object.
+    provides the file as a file-like object that reads bytes.
 
     Parameters
     ----------
@@ -206,6 +238,22 @@ def get_pkg_data_fileobj(data_name, cache=True):
         already-cached local copy will be accessed. If False, the file-like
         object will directly access the resource (e.g. if a remote URL is
         accessed, an object like that from `urllib2.urlopen` is returned).
+
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
+
 
     Returns
     -------
@@ -252,9 +300,9 @@ def get_pkg_data_fileobj(data_name, cache=True):
         raise IOError("Tried to access a data file that's actually "
                       "a package data directory")
     elif os.path.isfile(datafn):  # local file
-        return get_fileobj(datafn)
+        return get_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_fileobj(DATAURL() + datafn)
+        return get_fileobj(DATAURL() + datafn, encoding=encoding)
 
 
 def get_pkg_data_filename(data_name):
@@ -345,7 +393,7 @@ def get_pkg_data_filename(data_name):
             return cache_remote(DATAURL() + data_name)
 
 
-def get_pkg_data_contents(data_name, cache=True):
+def get_pkg_data_contents(data_name, cache=True, encoding=None):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
@@ -377,6 +425,22 @@ def get_pkg_data_contents(data_name, cache=True):
         object will directly access the resource (e.g. if a remote URL is
         accessed, an object like that from `urllib2.urlopen` is returned).
 
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
+
+
     Returns
     -------
     contents : bytes
@@ -394,7 +458,7 @@ def get_pkg_data_contents(data_name, cache=True):
     get_pkg_data_fileobj : returns a file-like object with the data
     get_pkg_data_filename : returns a local name for a file containing the data
     """
-    with get_pkg_data_fileobj(data_name, cache=cache) as fd:
+    with get_pkg_data_fileobj(data_name, cache=cache, encoding=encoding) as fd:
         contents = fd.read()
     return contents
 
@@ -454,7 +518,7 @@ def get_pkg_data_filenames(datadir, pattern='*'):
         raise IOError("Path not found")
 
 
-def get_pkg_data_fileobjs(datadir, pattern='*'):
+def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
     """
     Returns readable file objects for all of the data files in a given
     directory that match a given glob pattern.
@@ -476,6 +540,22 @@ def get_pkg_data_fileobjs(datadir, pattern='*'):
         `glob` module in the standard library for more information.
         By default, matches all files.
 
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
+
+
     Returns
     -------
     fileobjs : iterator of file objects
@@ -493,7 +573,7 @@ def get_pkg_data_fileobjs(datadir, pattern='*'):
             fcontents = fd.read()
     """
     for fn in get_pkg_data_filenames(datadir, pattern):
-        with get_pkg_data_filename(fn) as fd:
+        with get_pkg_data_fileobj(fn, encoding=encoding) as fd:
             yield fd
 
 
@@ -772,7 +852,7 @@ def _open_shelve(shelffn, withclosing=False):
     import shelve
     from contextlib import closing
 
-    if sys.version_info[0] > 2:  # pragma: py3
+    if not PY3K:  # pragma: py3
         shelf = shelve.open(shelffn, protocol=2)
     else:  # pragma: py2
         shelf = shelve.open(shelffn + '.db', protocol=2)

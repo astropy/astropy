@@ -20,7 +20,8 @@ def test_maps():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        header = get_pkg_data_contents(os.path.join("maps", filename))
+        header = get_pkg_data_contents(
+            os.path.join("maps", filename), encoding='binary')
         wcsobj = wcs.WCS(header)
 
         world = wcsobj.wcs_pix2world([[97, 97]], 1)
@@ -70,7 +71,8 @@ def test_spectra():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        header = get_pkg_data_contents(os.path.join("spectra", filename))
+        header = get_pkg_data_contents(
+            os.path.join("spectra", filename), encoding='binary')
 
         wcsobj = wcs.WCS(header)
 
@@ -207,7 +209,8 @@ def test_fixes():
     From github issue #36
     """
     def run():
-        header = get_pkg_data_contents('data/nonstandard_units.hdr')
+        header = get_pkg_data_contents(
+            'data/nonstandard_units.hdr', encoding='binary')
         w = wcs.WCS(header)
 
     with warnings.catch_warnings(record=True) as w:
@@ -224,7 +227,8 @@ def test_outside_sky():
     """
     From github issue #107
     """
-    header = get_pkg_data_contents('data/outside_sky.hdr')
+    header = get_pkg_data_contents(
+        'data/outside_sky.hdr', encoding='binary')
     w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2world([[100.,500.]], 0)))  # outside sky
