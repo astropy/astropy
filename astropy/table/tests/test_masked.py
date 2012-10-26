@@ -1,13 +1,13 @@
 """ Test behavior related to masked tables
 # TESTS:
-# Add a masked column to existing non-masked table (should fail)
-# Add a non-masked column to existing masked table (should succeed)
 # Add a masked row to existing non-masked table (should fail)
 # Add a non-masked row to existing masked table (should succeed)
 
 """
 
 from .. import Column, MaskedColumn, Table
+
+import pytest
 import numpy as np
 import numpy.ma as ma
 
@@ -66,3 +66,42 @@ class TestTableInit(SetupData):
         assert t.masked is False
         t = Table([self.ca, ma.array([1, 2, 3])])
         assert t.masked is True
+
+
+class TestAddColumn(object):
+
+    def test_add_masked_column_to_masked_table(self):
+        t = Table(masked=True)
+        assert t.masked
+        t.add_column(MaskedColumn('a', [1,2,3], mask=[0,1,0]))
+        assert t.masked
+        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        assert t.masked
+        assert np.all(t['a'] == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert np.all(t['b'] == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_masked_column_to_non_masked_table(self):
+        t = Table(masked=False)
+        assert not t.masked
+        t.add_column(Column('a', [1,2,3]))
+        assert not t.masked
+        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        assert t.masked
+        assert np.all(t['a'] == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,0,0], bool))
+        assert np.all(t['b'] == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_non_masked_column_to_masked_table(self):
+        t = Table(masked=True)
+        assert t.masked
+        t.add_column(Column('a', [1,2,3]))
+        assert t.masked
+        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        assert t.masked
+        assert np.all(t['a'] == np.array([1,2,3]))
+        assert np.all(t['a'].mask == np.array([0,0,0], bool))
+        assert np.all(t['b'] == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
