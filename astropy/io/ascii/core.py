@@ -141,11 +141,10 @@ class BaseInputter(object):
         :returns: list of lines
         """
         try:
-
-            if hasattr(table, 'read') or ('\n' not in table and '\r' not in table + ''):
+            if (hasattr(table, 'read') or
+                ('\n' not in table and '\r' not in table + '')):
                 with get_readable_fileobj(table) as file_obj:
                     table = file_obj.read()
-
             lines = table.splitlines()
         except TypeError:
             try:
@@ -155,7 +154,8 @@ class BaseInputter(object):
                 iter(table)
                 lines = table
             except TypeError:
-                raise TypeError('Input "table" must be a string (filename or data) or an iterable')
+                raise TypeError(
+                    'Input "table" must be a string (filename or data) or an iterable')
 
         return self.process_lines(lines)
 
@@ -773,7 +773,7 @@ class BaseReader(object):
         self.data = BaseData()
         self.inputter = BaseInputter()
         self.outputter = TableOutputter()
-        self.meta = {}                  # Placeholder for storing table metadata 
+        self.meta = {}                  # Placeholder for storing table metadata
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
