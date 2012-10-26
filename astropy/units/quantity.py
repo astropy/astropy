@@ -15,26 +15,7 @@ import numbers
 # AstroPy
 from .core import UnitBase, Unit
 
-__all__ = ["Quantity", "IncompatibleUnitsError"]
-
-def _validate_units(unit):
-    """ Make sure that the input is a either a string parseable by the `units` package, or a
-        `Unit` object.
-
-    Parameters
-    ----------
-    unit : `~astropy.units.UnitBase` instance, str
-        Must be an `~astropy.units.UnitBase` object or a string parseable by the `units` package.
-    """
-
-    if isinstance(unit, (str, unicode)):
-        unit_obj = Unit(unit)
-    elif isinstance(unit, UnitBase):
-        unit_obj = unit
-    else:
-        raise TypeError("The unit must be a Python string that is parseable by the Units package, or a Unit object.")
-
-    return unit_obj
+__all__ = ["Quantity"]
 
 def _validate_value(value):
     """ Make sure that the input is a Python numeric type.
@@ -49,7 +30,7 @@ def _validate_value(value):
         value_obj = value
     else:
         raise TypeError("The value must be a valid Python numeric type.")
-        
+
     return value_obj
 
 class Quantity(object):
@@ -73,7 +54,7 @@ class Quantity(object):
 
     def __init__(self, value, unit):
         self._value = _validate_value(value)
-        self._unit = _validate_units(unit)
+        self._unit = Unit(unit)
 
     def to(self, unit):
         """ Returns a new `Quantity` object with the specified units.
@@ -84,15 +65,15 @@ class Quantity(object):
             An object that represents the unit to convert to. Must be an `~astropy.units.UnitBase`
             object or a string parseable by the `units` package.
         """
-        new_quantity = self.copy()
-        new_quantity.unit = unit
-        return new_quantity
+        new_val = self.unit.to(unit, self.value)
+        new_unit = Unit(unit)
+        return Quantity(new_val, new_unit)
 
     @property
     def value(self):
         """ The numerical value of this quantity. """
         return self._value
-    
+
     @value.setter
     def value(self, obj):
         """ Setter for the value attribute. We allow the user to change the value by setting this attribute,
@@ -109,37 +90,11 @@ class Quantity(object):
             If the value provided is not a Python numeric type.
         """
         self._value = _validate_value(obj)
-    
+
     @property
     def unit(self):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
-
-    @unit.setter
-    def unit(self, obj):
-        """ Setter for the unit attribute. We allow the user to change units by setting this attribute,
-        so this will validate the unit and internally change the value to the new unit.
-
-        Parameters
-        ----------
-        obj : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit to internally convert to. Must be an `~astropy.units.UnitBase`
-            object or a string parseable by the `units` package.
-
-        Raises
-        ------
-        IncompatibleUnitsError
-            If the unit to convert to is not 'equivalent' (see `Unit` documentation) to the original unit.
-        TypeError
-            If the unit provided is not either a `Unit` object or a parseable string unit.
-        """
-        new_unit = _validate_units(obj)
-
-        if not self.unit.is_equivalent(new_unit):
-            raise IncompatibleUnitsError("This object has units of '{0:s}' and can not be converted to '{1:s}'.".format(self.unit, new_unit))
-
-        self.value *= self.unit.to(new_unit)
-        self._unit = new_unit
 
     def copy(self):
         """ Return a copy of this `Quantity` instance """
@@ -171,20 +126,20 @@ class Quantity(object):
                 return Quantity(self.value * other.to(self.unit).value, unit=self.unit*self.unit)
             else:
                 return Quantity(self.value * other.value, unit=self.unit*other.unit)
-        
+
         elif isinstance(other, numbers.Number):
             return Quantity(other*self.value, unit=self.unit)
-            
+
         else:
             raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
-            
+
 
     def __rmul__(self, other):
         """ Right multiplication between `Quantity` object and a number. """
-        
+
         if isinstance(other, numbers.Number):
             return Quantity(other*self.value, unit=self.unit)
-            
+
         else:
             raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
 
@@ -195,10 +150,10 @@ class Quantity(object):
                 return Quantity(self.value / other.to(self.unit).value, unit=Unit(""))
             else:
                 return Quantity(self.value / other.value, unit=self.unit/other.unit)
-        
+
         elif isinstance(other, numbers.Number):
             return Quantity(self.value / other, unit=self.unit)
-            
+
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
@@ -207,7 +162,7 @@ class Quantity(object):
         if isinstance(other, numbers.Number):
             print(Unit("1/{}".format(self.unit.to_string())))
             return Quantity(other / self.value, unit=Unit("1/{}".format(self.unit.to_string())))
-            
+
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
@@ -271,7 +226,3 @@ class Quantity(object):
         latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
-
-
-class IncompatibleUnitsError(Exception):
-    pass
