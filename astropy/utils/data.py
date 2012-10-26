@@ -204,6 +204,19 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fileobj = io.BufferedReader(fileobj)
             fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
 
+            # Ensure that file is at the start - io.FileIO will for example not always
+            # be at the start:
+            # >>> import io
+            # >>> f = open('test.fits', 'rb')
+            # >>> f.read(4)
+            # 'SIMP'
+            # >>> f.seek(0)
+            # >>> fileobj = io.FileIO(f.fileno())
+            # >>> fileobj.tell()
+            # 4096L
+
+            fileobj.seek(0)
+
     yield fileobj
 
     for fd in close_fds:
