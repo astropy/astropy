@@ -419,6 +419,7 @@ class AstropyLogger(Logger):
         fh.setFormatter(f)
         self.addHandler(fh)
         yield
+        fh.close()
         self.removeHandler(fh)
 
     @contextmanager
