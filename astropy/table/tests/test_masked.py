@@ -121,7 +121,7 @@ class TestAddRow(object):
         assert np.all(np.array(t['b']) == np.array([4,5,6]))
         assert np.all(t['b'].mask == np.array([1,0,1], bool))
 
-    def test_add_masked_row_to_masked_table_mapping(self):
+    def test_add_masked_row_to_masked_table_mapping1(self):
         t = Table(masked=True)
         t.add_column(MaskedColumn('a', [1], mask=[0]))
         t.add_column(MaskedColumn('b', [4], mask=[1]))
@@ -131,6 +131,35 @@ class TestAddRow(object):
         assert np.all(np.array(t['a']) == np.array([1,2,3]))
         assert np.all(t['a'].mask == np.array([0,1,0], bool))
         assert np.all(np.array(t['b']) == np.array([4,5,6]))
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_masked_row_to_masked_table_mapping2(self):
+        # When adding values to a masked table, if the mask is specified as a
+        # dict, then values not specified will have mask values set to True
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_row({'b':5}, mask={'b':0})
+        t.add_row({'a':3}, mask={'a':0})
+        assert t.masked
+        assert t['a'][0] == 1 and t['a'][2] == 3
+        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert t['b'][1] == 5
+        assert np.all(t['b'].mask == np.array([1,0,1], bool))
+
+    def test_add_masked_row_to_masked_table_mapping3(self):
+        # When adding values to a masked table, if mask is not passed to
+        # add_row, then the mask should be set to False if values are present
+        # and True if not.
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_row({'b':5})
+        t.add_row({'a':3})
+        assert t.masked
+        assert t['a'][0] == 1 and t['a'][2] == 3
+        assert np.all(t['a'].mask == np.array([0,1,0], bool))
+        assert t['b'][1] == 5
         assert np.all(t['b'].mask == np.array([1,0,1], bool))
 
     def test_add_masked_row_to_masked_table_mismatch(self):
