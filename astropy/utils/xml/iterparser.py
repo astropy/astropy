@@ -49,7 +49,7 @@ def _convert_to_fd_or_read_function(fd):
 
     This is somewhat quirky behavior, of course, which is why it is
     private.  For a more useful version of similar behavior, see
-    `astropy.utils.misc.get_fileobj`.
+    `astropy.utils.misc.get_readable_fileobj`.
 
     Parameters
     ----------
@@ -79,9 +79,9 @@ def _convert_to_fd_or_read_function(fd):
         yield fd
         return
 
-    from astropy.utils.data import get_fileobj
+    from astropy.utils.data import get_readable_fileobj
 
-    with get_fileobj(fd, encoding='binary') as new_fd:
+    with get_readable_fileobj(fd, encoding='binary') as new_fd:
         if sys.platform.startswith('win'):
             yield new_fd.read
         else:

@@ -24,19 +24,19 @@ def test_url_cache():
 @remote_data
 def test_url_nocache():
 
-    from ..data import get_fileobj
+    from ..data import get_readable_fileobj
 
-    with get_fileobj(TESTURL, cache=False) as googlepage:
+    with get_readable_fileobj(TESTURL, cache=False) as googlepage:
         assert googlepage.read().find('oogle</title>') > -1
 
 @remote_data
 def test_find_by_hash():
 
-    from ..data import get_fileobj, get_pkg_data_filename, clear_data_cache
+    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_data_cache
 
     import hashlib
 
-    with get_fileobj(TESTURL, cache=True) as googlepage:
+    with get_readable_fileobj(TESTURL, cache=True) as googlepage:
         hash = hashlib.md5(googlepage.read())
 
     hashstr = 'hash/' + hash.hexdigest()
@@ -194,7 +194,7 @@ def test_read_unicode():
 
 def test_compressed_stream():
     import base64
-    from ..data import get_fileobj
+    from ..data import get_readable_fileobj
 
     gzipped_data = b"H4sICIxwG1AAA2xvY2FsLmRhdAALycgsVkjLzElVANKlxakpCpl5CiUZqQolqcUl8Tn5yYk58SmJJYnxWmCRzLx0hbTSvOSSzPy8Yi5nf78QV78QLgAlLytnRQAAAA=="
     gzipped_data = base64.b64decode(gzipped_data)
@@ -217,6 +217,6 @@ def test_compressed_stream():
             return result
 
     stream = FakeStream(gzipped_data)
-    with get_fileobj(stream, encoding='binary') as f:
+    with get_readable_fileobj(stream, encoding='binary') as f:
         f.readline()
         assert f.read().rstrip() == b'CONTENT'

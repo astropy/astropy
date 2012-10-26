@@ -37,7 +37,7 @@ import itertools
 import numpy
 
 from ...table import Table
-from ...utils.data import get_fileobj
+from ...utils.data import get_readable_fileobj
 
 class InconsistentTableError(ValueError):
     pass
@@ -151,7 +151,7 @@ class BaseInputter(object):
         try:
 
             if hasattr(table, 'read') or ('\n' not in table and '\r' not in table + ''):
-                with get_fileobj(table) as file_obj:
+                with get_readable_fileobj(table) as file_obj:
                     table = file_obj.read()
 
             lines = table.splitlines()

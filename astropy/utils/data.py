@@ -14,7 +14,7 @@ import urllib2
 
 from ..config.configuration import ConfigurationItem
 
-__all__ = ['get_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
+__all__ = ['get_readable_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
            'get_pkg_data_contents', 'get_pkg_data_fileobjs',
            'get_pkg_data_filenames', 'compute_hash',
            'clear_data_cache', 'CacheMissingWarning', 'cache_remote']
@@ -74,7 +74,7 @@ def _is_url(string):
 
 
 @contextlib.contextmanager
-def get_fileobj(name_or_obj, encoding=None, cache=False):
+def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     """
     Given a filename or a readable file-like object, return a readable
     file-like object.
@@ -301,9 +301,9 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
         raise IOError("Tried to access a data file that's actually "
                       "a package data directory")
     elif os.path.isfile(datafn):  # local file
-        return get_fileobj(datafn, encoding=encoding)
+        return get_readable_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_fileobj(DATAURL() + datafn, encoding=encoding)
+        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding)
 
 
 def get_pkg_data_filename(data_name):
