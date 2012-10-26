@@ -9,7 +9,8 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 from .angles import RA, Dec, Angle
 from .. import units as u
 
-__all__ = ['SphericalCoordinatesBase', 'Coordinates', 'CartesianPoint'
+__all__ = ['SphericalCoordinatesBase', 'Coordinates', 'Distance',
+           'CartesianPoint'
           ]
 
 class SphericalCoordinatesBase(object):
@@ -26,7 +27,7 @@ class SphericalCoordinatesBase(object):
         Subclasses must override this, but they should also call this to set up
         internal state.
         """
-        self._distancequant = None
+        self._distance = None
         self._cartpoint = None
 
     @abstractproperty
@@ -60,25 +61,27 @@ class SphericalCoordinatesBase(object):
     def distance(self):
         """
         The radial distance for this coordinate object as an
-        `~astropy.units.Quantity` object. It must have units of distance.
+        `~astropy.coordinates.coordsystems.Distance` object.
+
+        If set as a tuple, the tuple will be passed into the
+        `~astropy.coordinates.coordsystems.Distance` constructor.
 
         Alternatively, this may be `None`, indicating an unknown/not given
-        distance. Where necessary, this will be interpreted as a (dimensionless)
-        unit sphere.
+        distance. Where necessary, this object will be interpreted as angles on
+        the unit sphere.
         """
-        return self._distancequant
+        return self._distance
 
     @distance.setter
     def distance(self, val):
         if val is None:
             self._distance = None
-        elif not hasattr(val, 'value') or not hasattr(val, 'unit'):
-            raise TypeError('Spherical coordinate distances is not a Quantity-like object')
-        elif not val.unit.is_equivalent(u.m):
-            raise u.IncompatibleUnitError('')
-
+        elif isinstance(val, tuple):
+            self._distance = Distance(*val)
+        elif isinstance(val, Distance):
+            self._distance = val
         else:
-            self._distance = u.Quantity(val)
+            raise TypeError('Spherical coordinate distance must be a ')
 
     @property
     def x(self):
@@ -104,14 +107,81 @@ class SphericalCoordinatesBase(object):
         if override or self._cartpoint is None:
             from .transformations import spherical_to_cartesian
 
-            if self._distancequant is None:
+            if self._distanceq is None:
                 r = 1
                 runit = None
             else:
-                r = self._distancequant.value
-                runit = self._distancequant.unit
+                r = self._distance.value
+                runit = self._distance.unit
             x, y, z = spherical_to_cartesian(r, self.latangle, self.longangle)
             self._cartpoint = CartesianPoint(x, y, z, runit)
+
+#FIXME: make this subclass Quantity once its in master
+class Distance(object):
+    """
+    A one-dimensional distance.
+
+    Parameters
+    ----------
+    value : scalar
+        The value of this distance
+    unit : `~astropy.units.core.UnitBase`
+        The units for this distance.  Must have dimensions of distance.
+
+
+    Raises
+    ------
+    ValueError
+        If the `unit` is not a distance.
+    """
+    def __init__(self, value, unit):
+        if not unit.is_equivalent(u.m):
+            raise ValueError('provided unit for Distance is not a length')
+        self._value = value
+        self._unit = unit
+
+    @property
+    def lightyear(self):
+        """
+        The value of this distance in light years
+        """
+        return self._unit.to(u.lyr, self._value)
+
+    @property
+    def pc(self):
+        """
+        The value of this distance in parsecs
+        """
+        return self._unit.to(u.parsec, self._value)
+
+    @property
+    def kpc(self):
+        """
+        The value of this distance in kiloparsecs
+        """
+        return self._unit.to(u.kpc, self._value)
+
+    @property
+    def au(self):
+        """
+        The value of this distance in astronomical units
+        """
+        return self._unit.to(u.au, self._value)
+
+    @property
+    def m(self):
+        """
+        The value of this distance in meters
+        """
+        return self._unit.to(u.m, self._value)
+
+    @property
+    def km(self):
+        """
+        The value of this distance in kilometers
+        """
+        return self._unit.to(u.km, self._value)
+
 
 class CartesianPoint(object):
     """
