@@ -81,7 +81,7 @@ except KeyError as e:
     VO_PEDANTIC = True
 
 
-class VOSError(Exception):
+class VOSError(Exception):  # pragma: no cover
     pass
 
 
