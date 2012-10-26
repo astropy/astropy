@@ -32,7 +32,6 @@ User Documentation
    io/fits/index
    io/ascii/index
    io/votable/index
-   io/misc
    wcs/index
    stats/index
    utils/index

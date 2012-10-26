@@ -261,7 +261,6 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
 
             if (write_full) {
                 if (_write_indent(&buf, &buf_size, &x, indent)) goto exit;
-                if (_write_cstring(&buf, &buf_size, &x, "  <TD>", 6)) goto exit;
 
                 if ((str_val =
                      PyObject_CallFunctionObjArgs(converter, array_val, mask_val, NULL))
@@ -270,15 +269,23 @@ write_tabledata(PyObject* self, PyObject *args, PyObject *kwds)
                     Py_DECREF(str_val);
                     goto exit;
                 }
+
                 str_len = PyUnicode_GetSize(str_val);
-                if (_write_string(&buf, &buf_size, &x, str_tmp, str_len)) {
-                    Py_DECREF(str_val);
-                    goto exit;
+                if (str_len) {
+                    if (_write_cstring(&buf, &buf_size, &x, "  <TD>", 6) ||
+                        _write_string(&buf, &buf_size, &x, str_tmp, str_len) ||
+                        _write_cstring(&buf, &buf_size, &x, "</TD>\n", 6)) {
+                        Py_DECREF(str_val);
+                        goto exit;
+                    }
+                } else {
+                    if (_write_cstring(&buf, &buf_size, &x, "  <TD/>\n", 8)) {
+                        Py_DECREF(str_val);
+                        goto exit;
+                    }
                 }
 
                 Py_DECREF(str_val);
-
-                if (_write_cstring(&buf, &buf_size, &x, "</TD>\n", 6)) goto exit;
             } else {
                 if (_write_indent(&buf, &buf_size, &x, indent)) goto exit;
                 if (_write_cstring(&buf, &buf_size, &x, "  <TD/>\n", 8)) goto exit;

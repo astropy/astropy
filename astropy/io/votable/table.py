@@ -17,7 +17,7 @@ from ...utils.xml import iterparser
 from ...config import ConfigurationItem
 
 
-__all__ = ['parse', 'parse_single_table', 'validate']
+__all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate']
 
 
 PEDANTIC = ConfigurationItem(
@@ -129,6 +129,27 @@ def parse_single_table(source, **kwargs):
     return votable.get_first_table()
 
 
+def writeto(table, file):
+    """
+    Writes a `astropy.io.vo.VOTableFile` to a VOTABLE_ xml file.
+
+    Parameters
+    ----------
+    table : `astropy.io.vo.VOTableFile` or `astropy.table.Table` instance.
+
+    file : str or writable file-like object
+        Path or file object to write to
+    """
+    from ...table import Table
+    if isinstance(table, Table):
+        table = tree.VOTableFile.from_table(table)
+    elif not isinstance(table, tree.VOTableFile):
+        raise TypeError(
+            "first argument must be astropy.io.vo.VOTableFile or "
+            "astropy.table.Table instance")
+    table.to_xml(file, _debug_python_based_parser=True)
+
+
 def validate(filename, output=sys.stdout, xmllint=False):
     """
     Prints a validation report for the given file.
@@ -235,3 +256,20 @@ def validate(filename, output=sys.stdout, xmllint=False):
     if return_as_str:
         return output.getvalue()
     return len(lines) == 0 and success == 0
+
+
+def from_table(table):
+    """
+    Given an `astropy.table.Table` object, return a
+    `~astropy.io.votable.tree.VOTableFile` file structure containing
+    just that single table.
+
+    Parameters
+    ----------
+    table : `astropy.table.Table` instance
+
+    Returns
+    -------
+    votable : `astropy.io.votable.tree.VOTableFile` instance
+    """
+    return tree.VOTableFile.from_table(table)

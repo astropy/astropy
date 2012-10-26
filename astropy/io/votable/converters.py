@@ -12,6 +12,7 @@ from struct import pack as struct_pack
 
 # THIRD-PARTY
 import numpy as np
+from numpy import ma
 
 # ASTROPY
 from ...utils.xml.writer import xml_escape_cdata
@@ -22,7 +23,7 @@ from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
 from .util import IS_PY3K
 
 
-__all__ = ['get_converter', 'Converter']
+__all__ = ['get_converter', 'Converter', 'table_column_to_votable_datatype']
 
 
 pedantic_array_splitter = re.compile(r" +")
@@ -37,6 +38,22 @@ files in the wild use them.
 _zero_int = b'\0\0\0\0'
 _empty_bytes = b''
 _zero_byte = b'\0'
+
+
+def _make_masked_array(data, mask):
+    """
+    Masked arrays of zero length that also have a mask of zero length
+    cause problems in Numpy (at least in 1.6.2).  This function
+    creates a masked array from data and a mask, unless it is zero
+    length.
+    """
+    # np.ma doesn't like setting mask to []
+    if len(data):
+        return ma.array(
+            np.array(data),
+            mask=np.array(mask, dtype='bool'))
+    else:
+        return ma.array(np.array(data))
 
 
 class Converter(object):
@@ -291,7 +308,7 @@ class UnicodeChar(Converter):
     def output(self, value, mask):
         if mask:
             return u''
-        return xml_escape_cdata(value)
+        return xml_escape_cdata(unicode(value))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -357,7 +374,7 @@ class VarArray(Array):
 
     def output(self, value, mask):
         output = self._base.output
-        result = [output(x, m) for x, m in np.broadcast(value, mask)]
+        result = [output(x, m) for x, m in np.broadcast(value, value.mask)]
         return u' '.join(result)
 
     def binparse(self, read):
@@ -370,8 +387,8 @@ class VarArray(Array):
             val, mask = binparse(read)
             result.append(val)
             result_mask.append(mask)
-        return (np.array(result),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(result, result_mask), False
 
     def binoutput(self, value, mask):
         if value is None or len(value) == 0:
@@ -380,7 +397,7 @@ class VarArray(Array):
         length = len(value)
         result = [self._write_length(length)]
         binoutput = self._base.binoutput
-        for x, m in zip(value, mask):
+        for x, m in zip(value, value.mask):
             result.append(binoutput(x, m))
         return _empty_bytes.join(result)
 
@@ -392,7 +409,7 @@ class ArrayVarArray(VarArray):
     """
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         items = self._base._items
@@ -405,7 +422,8 @@ class ArrayVarArray(VarArray):
             value, mask = parse_parts(parts[i:i+items], config, pos)
             result.append(value)
             result_mask.append(mask)
-        return np.array(result), np.array(result_mask, dtype='bool')
+
+        return _make_masked_array(result, result_mask), False
 
 
 class ScalarVarArray(VarArray):
@@ -414,7 +432,7 @@ class ScalarVarArray(VarArray):
     """
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
 
@@ -425,8 +443,8 @@ class ScalarVarArray(VarArray):
             value, mask = parse(x, config, pos)
             result.append(value)
             result_mask.append(mask)
-        return (np.array(result, dtype=self._base.format),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(result, result_mask), False
 
 
 class NumericArray(Array):
@@ -584,6 +602,10 @@ class FloatingPoint(Numeric):
                 vo_warn(W30, value, config, pos)
             return self.null, True
 
+    @property
+    def output_format(self):
+        return self._output_format
+
     def output(self, value, mask):
         if mask:
             return self._null_output
@@ -728,7 +750,7 @@ class ComplexArrayVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         items = self._base._items
@@ -741,7 +763,8 @@ class ComplexArrayVarArray(VarArray):
             value, mask = parse_parts(parts[i:i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
-        return np.array(result), np.array(result_mask, dtype='bool')
+
+        return _make_masked_array(result, result_mask), False
 
 
 class ComplexVarArray(VarArray):
@@ -753,7 +776,7 @@ class ComplexVarArray(VarArray):
 
     def parse(self, value, config={}, pos=None):
         if value.strip() == '':
-            return np.array([]), True
+            return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
         parse_parts = self._base.parse_parts
@@ -764,8 +787,9 @@ class ComplexVarArray(VarArray):
             value, mask = parse_parts(value, config, pos)
             result.append(value)
             result_mask.append(mask)
-        return (np.array(result, dtype=self._base.format),
-                np.array(result_mask, dtype='bool'))
+
+        return _make_masked_array(
+            np.array(result, dtype=self._base.format), result_mask), False
 
 
 class ComplexArray(NumericArray):
@@ -1148,3 +1172,149 @@ def get_converter(field, config={}, pos=None):
                 field, converter, arraysize, config)
 
     return converter
+
+
+numpy_dtype_to_field_mapping = {
+    np.float64().dtype.num    : 'double',
+    np.float32().dtype.num    : 'float',
+    np.bool_().dtype.num      : 'bit',
+    np.uint8().dtype.num      : 'unsignedByte',
+    np.int16().dtype.num      : 'short',
+    np.int32().dtype.num      : 'int',
+    np.int64().dtype.num      : 'long',
+    np.complex64().dtype.num  : 'floatComplex',
+    np.complex128().dtype.num : 'doubleComplex',
+    np.unicode_().dtype.num   : 'unicodeChar'
+}
+
+
+# numpy 1.4.1 doesn't have a "bytes_" type
+if hasattr(np, 'bytes_'):
+    numpy_dtype_to_field_mapping[np.bytes_().dtype.num] = 'char'
+else:
+    numpy_dtype_to_field_mapping[np.str_().dtype.num] = 'char'
+
+
+def _all_bytes(column):
+    for x in column:
+        if not isinstance(x, bytes):
+            return False
+    return True
+
+
+def _all_unicode(column):
+    for x in column:
+        if not isinstance(x, unicode):
+            return False
+    return True
+
+
+def _all_matching_dtype(column):
+    first_dtype = False
+    first_shape = ()
+    for x in column:
+        if not isinstance(x, np.ndarray) or len(x) == 0:
+            continue
+
+        if first_dtype is False:
+            first_dtype = x.dtype
+            first_shape = x.shape[1:]
+        elif first_dtype != x.dtype:
+            return False, ()
+        elif first_shape != x.shape[1:]:
+            first_shape = ()
+    return first_dtype, first_shape
+
+
+def numpy_to_votable_dtype(dtype, shape):
+    """
+    Converts a numpy dtype and shape to a dictionary of attributes for
+    a VOTable FIELD element and correspond to that type.
+
+    Parameters
+    ----------
+    dtype : Numpy dtype instance
+
+    shape : tuple
+
+    Returns
+    -------
+    attributes : dict
+       A dict containing 'datatype' and 'arraysize' keys that can be
+       set on a VOTable FIELD element.
+    """
+    if dtype.num not in numpy_dtype_to_field_mapping:
+        raise TypeError(
+            "{0!r} can not be represented in VOTable".format(dtype))
+
+    if dtype.char == 'S':
+        return {'datatype': 'char',
+                'arraysize': str(dtype.itemsize)}
+    elif dtype.char == 'U':
+        return {'datatype': 'unicodeChar',
+                'arraysize': str(dtype.itemsize // 4)}
+    else:
+        result = {
+            'datatype': numpy_dtype_to_field_mapping[dtype.num]}
+        if len(shape):
+            result['arraysize'] = 'x'.join(str(x) for x in shape)
+
+        return result
+
+
+def table_column_to_votable_datatype(column):
+    """
+    Given a `astropy.table.Column` instance, returns the attributes
+    necessary to create a VOTable FIELD element that corresponds to
+    the type of the column.
+
+    This necessarily must perform some heuristics to determine the
+    type of variable length arrays fields, since they are not directly
+    supported by Numpy.
+
+    If the column has dtype of "object", it performs the following
+    tests:
+
+       - If all elements are byte or unicode strings, it creates a
+         variable-length byte or unicode field, respectively.
+
+       - If all elements are numpy arrays of the same dtype and with a
+         consistent shape in all but the first dimension, it creates a
+         variable length array of fixed sized arrays.  If the dtypes
+         match, but the shapes do not, a variable length array is
+         created.
+
+    If the dtype of the input is not understood, it sets the data type
+    to the most inclusive: a variable length unicodeChar array.
+
+    Parameters
+    ----------
+    column : `astropy.table.Column` instance
+
+    Returns
+    -------
+    attributes : dict
+       A dict containing 'datatype' and 'arraysize' keys that can be
+       set on a VOTable FIELD element.
+    """
+    if column.dtype.char == 'O':
+        if isinstance(column[0], bytes):
+            if _all_bytes(column[1:]):
+                return {'datatype': 'char', 'arraysize': '*'}
+        elif isinstance(column[0], unicode):
+            if _all_unicode(column[1:]):
+                return {'datatype': 'unicodeChar', 'arraysize': '*'}
+        elif isinstance(column[0], np.ndarray):
+            dtype, shape = _all_matching_dtype(column)
+            if dtype is not False:
+                result = numpy_to_votable_dtype(dtype, shape)
+                if 'arraysize' not in result:
+                    result['arraysize'] = '*'
+                else:
+                    result['arraysize'] += '*'
+                return result
+
+        # All bets are off, do the most generic thing
+        return {'datatype': 'unicodeChar', 'arraysize': '*'}
+
+    return numpy_to_votable_dtype(column.dtype, column.shape[1:])

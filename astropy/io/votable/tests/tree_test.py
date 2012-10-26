@@ -1,8 +1,4 @@
-# THIRD-PARTY
-import numpy as np
-
 # LOCAL
-from .. import converters
 from .. import exceptions
 from .. import tree
 from ....tests.helper import raises
@@ -19,6 +15,3 @@ def test_check_astroyear_fail():
 def test_string_fail():
     config = {'pedantic': True}
     tree.check_string(42, 'foo', config)
-
-
-
