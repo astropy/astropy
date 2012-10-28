@@ -70,7 +70,11 @@ def _is_url(string):
     """
     from urlparse import urlparse
     url = urlparse(string)
-    return url[0] != '' # url[0]==url.scheme, but url[0] is py 2.6-compat
+    # url[0]==url.scheme, but url[0] is py 2.6-compat
+    # we can't just check that url[0] is not an empty string, because
+    # file paths in windows would return a non-empty scheme (e.g. e:\\
+    # returns 'e').
+    return url[0].lower() in ['http', 'https', 'ftp']
 
 
 @contextlib.contextmanager
