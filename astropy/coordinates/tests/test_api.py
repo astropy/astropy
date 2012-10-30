@@ -591,7 +591,7 @@ def test_convert_api():
     assert isinstance(mycoord2, CustomCoordinates)
 
 
-def test_separations():
+def test_proj_separations():
     """
     Test angular separation functionality
     """
@@ -643,7 +643,7 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from .. import Distance, Coordinates, ICRSCoordinates, CartesianPoint
+    from .. import Distance, Coordinates, GalacticCoordinates, CartesianPoint
     from ...cosmology import WMAP5
     import numpy.testing as npt
 
@@ -666,7 +666,7 @@ def test_distances():
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
-    c = Coordinates(l=158.558650, b=-43.350066, unit=u.degree)
+    c = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree)
     c.distance = Distance(12, u.parsec)
 
     #can also set distances using tuple-format
@@ -675,12 +675,12 @@ def test_distances():
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
-    c1 = Coordinates(l=158.558650, b=-43.350066, unit=u.degree,
+    c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree,
                     distance=12 * u.kpc)
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
-    c2 = ICRSCoordinates(x=2, y=4, z=8, unit=u.parsec)
+    c2 = GalacticCoordinates(x=2, y=4, z=8, unit=u.parsec)
 
     sep12 = c1.separation3d(c2)
     # returns a *3d* distance between the c1 and c2 coordinates, assuming

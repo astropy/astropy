@@ -222,10 +222,6 @@ class Distance(object):
         return optimize.brent(f, (self.Mpc, cosmology))
 
 
-
-
-
-
 class CartesianPoint(object):
     """
     A cartesian representation of a point in three-dimensional space.

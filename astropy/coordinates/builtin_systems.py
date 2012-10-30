@@ -160,24 +160,13 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             self.dec = Dec(_dec, unit=units[1]) if len(units) > 1 else Dec(_dec)
 
     @property
-    def angle1(self):
+    def longangle(self):
         return self.ra
 
     @property
-    def angle2(self):
+    def latangle(self):
         return self.dec
 
-    @property
-    def icrs(self):
-        return self
-
-    @property
-    def galactic(self):
-        raise NotImplementedError()
-
-    @property
-    def horizontal(self):
-        raise NotImplementedError()
 
 class GalacticCoordinates(SphericalCoordinatesBase):
     """
@@ -302,45 +291,22 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             self.b = Angle(_b, unit=units[1]) if len(units) > 1 else Angle(_b)
 
     @property
-    def angle1(self):
+    def longangle(self):
         return self.l
 
     @property
-    def angle2(self):
+    def latangle(self):
         return self.b
 
-    @property
-    def icrs(self):
-        raise NotImplementedError()
-
-    @property
-    def galactic(self):
-        return self
-
-    @property
-    def horizontal(self):
-        raise NotImplementedError()
 
 class HorizontalCoordinates(SphericalCoordinatesBase):
     """
     Horizontal coordinate (az,el) class.
     """
     @property
-    def angle1(self):
+    def longangle(self):
         return self.az
 
     @property
-    def angle2(self):
+    def latangle(self):
         return self.el
-
-    @property
-    def icrs(self):
-        raise NotImplementedError()
-
-    @property
-    def galactic(self):
-        raise NotImplementedError()
-
-    @property
-    def horizontal(self):
-        return self
