@@ -78,7 +78,7 @@ def test_create_angles():
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
 
     a15 = Angle("5h4m3s") # single digits, no decimal
-    
+
     #ensure the above angles that should match do
     a1 == a2 == a3 == a4 == a5 == a6 == a7
     npt.assert_almost_equal(a1.radians, a2.radians)
@@ -88,7 +88,7 @@ def test_create_angles():
     npt.assert_almost_equal(a5.radians, a6.radians)
     npt.assert_almost_equal(a6.radians, a7.radians)
     #assert a10 == a11 == a12
-    
+
     # check for illegal ranges / values
     with raises(IllegalSecondError):
         a = Angle("12 32 99", unit=u.degree)
@@ -104,13 +104,13 @@ def test_create_angles():
 
     with raises(IllegalHourError):
         a = Angle("99 25 51.0", unit=u.hour)
-    
+
     with raises(ValueError):
         a = Angle("12 25 51.0xxx", unit=u.hour)
 
     with raises(ValueError):
         a = Angle("12h34321m32.2s")
-    
+
     assert a1 is not None
 
 def test_angle_ops():
@@ -148,7 +148,7 @@ def test_angle_ops():
 
     a4 = abs(-a1)
     assert a4.radians == a1.radians
-    
+
     a5 = Angle(5.0, unit=u.hour)
     assert a5 > a1
     assert a5 >= a1
@@ -162,7 +162,7 @@ def test_angle_bounds():
     """
     from .. import Angle, RangeError
     import numpy.testing as npt
-    
+
     '''
     By default the Angle object can accept any value, but will return
     values in [-360,360] (retaining the sign that was specified).
@@ -302,9 +302,9 @@ def test_angle_formatting():
                                                   pad=True)) == res
 
     # Same as above, in degrees
-    
+
     angle = Angle("3 36 29.78880", unit=u.degree)
-    
+
     res = 'Angle as DMS: 3 36 29.78880'
     assert "Angle as DMS: {0}".format(angle.string(unit=u.degree)) == res
 
@@ -361,26 +361,26 @@ def test_radec():
 
     ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
     npt.assert_almost_equal(ra.degrees, 26.570929342)
-    
+
     with raises(ValueError):
 	    ra = RA("garbage containing a d and no units")
-    
+
     ra = RA(68)
- 
+
     with raises(ValueError):
         ra = RA(12)
-    
+
     ra = RA("12h43m23s")
     npt.assert_almost_equal(ra.hours, 12.7230555556)
-    
+
     ra = RA((56,14,52.52))		# can accept tuples
     with raises(ValueError):
 	    ra = RA((12,14,52)) # ambiguous w/o units
     ra = RA((12,14,52), unit=u.hour)
-    
+
     with raises(ValueError):
         ra = RA([56,64,52.2])	# ...but not arrays (yet)
-    
+
     # Units can be specified
     ra = RA("4:08:15.162342", unit=u.hour)
 
@@ -428,13 +428,13 @@ def test_create_coordinate():
 
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342")
     assert isinstance(c.dec, Dec) # dec is a Dec object
-    
+
     npt.assert_almost_equal(dec.degrees, -41.137545095)
 
     # We should be really robust in what we accept.
     with raises(ValueError):
         c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
-    
+
     c = Coordinates(ra=RA("54.12412 deg"), dec="-41:08:15.162342")
     assert isinstance(c, ICRSCoordinates)
 
@@ -442,7 +442,7 @@ def test_create_coordinate():
 	    c = ICRSCoordinates() # not allowed
 
     c = ICRSCoordinates(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
-    
+
     with raises(ValueError):
         c = ICRSCoordinates(ra="12 43 12", unit=(u.hour))
 
@@ -454,7 +454,7 @@ def test_create_coordinate():
 
     with raises(ValueError):
         c = Coordinates(dec="12 32 54")
-    
+
     with raises(ValueError):
         c = Coordinates(ra="12h43m32", dec="12 32 54", az="12.4311")
 
@@ -644,7 +644,7 @@ def test_distances():
     transformations.
     """
     from .. import Distance, Coordinates, ICRSCoordinates, CartesianPoint
-    from ...comology import WMAP5
+    from ...cosmology import WMAP5
     import numpy.testing as npt
 
     '''
@@ -658,7 +658,7 @@ def test_distances():
         Distance(12)
 
     # standard units are pre-defined
-    assert distance.light_years == 39.12
+    npt.assert_almost_equal(distance.lightyear, 39.13876728075561)
     npt.assert_almost_equal(distance.km, 3.7e14)
 
     distance.z  # redshift, assuming "current" cosmology
@@ -668,6 +668,10 @@ def test_distances():
     # 3D position
     c = Coordinates(l=158.558650, b=-43.350066, unit=u.degree)
     c.distance = Distance(12, u.parsec)
+
+    #can also set distances using tuple-format
+    c.distance = (12, u.parsec)
+    c.distance.parsec = 12
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
@@ -725,14 +729,13 @@ def test_angle_arrays():
     """
     Test arrays values with Angle objects.
     """
-	
+
     from .. import Angle
 
     # Tests incomplete
     with raises(TypeError):
         a1 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree)
-	
+
     with raises(TypeError):
         a2 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
-	
-	
+
