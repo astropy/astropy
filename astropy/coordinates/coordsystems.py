@@ -162,6 +162,13 @@ class Distance(object):
         return self._unit.to(u.kpc, self._value)
 
     @property
+    def Mpc(self):
+        """
+        The value of this distance in megaparsecs
+        """
+        return self._unit.to(u.Mpc, self._value)
+
+    @property
     def au(self):
         """
         The value of this distance in astronomical units
@@ -181,6 +188,42 @@ class Distance(object):
         The value of this distance in kilometers
         """
         return self._unit.to(u.km, self._value)
+
+    @property
+    def z(self):
+        """
+        The redshift for this distance assuming its physical distance is
+        a luminosity distance.
+
+        .. note::
+            This uses the "current" cosmology to determine the appropriate
+            distance to redshift conversions.  See `astropy.cosmology`
+            for details on how to change this.
+
+        """
+        return self.get_z()
+
+    def get_z(self, cosmology=None):
+        """
+        The redshift for this distance assuming its physical distance is
+        a luminosity distance.
+
+        Parameters
+        ----------
+        cosmology : `~astropy.cosmology.cosmology` or None
+            The cosmology to assume for this calculation, or None to use the
+            current cosmology.
+
+        """
+        from ..cosmology import luminosity_distance
+        from scipy import optimize
+
+        f = lambda z, d, cos: (luminosity_distance(z, cos) - d)**2
+        return optimize.brent(f, (self.Mpc, cosmology))
+
+
+
+
 
 
 class CartesianPoint(object):

@@ -654,15 +654,15 @@ def test_distances():
 
     distance = Distance(12, u.parsec)
     # need to provide a unit
-    with raises(ValueError):
+    with raises(TypeError):
         Distance(12)
 
     # standard units are pre-defined
     npt.assert_almost_equal(distance.lightyear, 39.13876728075561)
-    npt.assert_almost_equal(distance.km, 3.7e14)
+    npt.assert_almost_equal(distance.km, 370281309776063.0)
 
     distance.z  # redshift, assuming "current" cosmology
-    distance.get_z(WMAP5())  # specifying a cosmology possible
+    distance.get_z(WMAP5)  # specifying a cosmology possible
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
