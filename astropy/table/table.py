@@ -425,7 +425,7 @@ class Column(BaseColumn, np.ndarray):
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
 
-    def __new__(cls, name, data=None, mask=None,
+    def __new__(cls, name, data=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -448,7 +448,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         self = self_data.view(MaskedColumn)
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
+        if fill_value is None and hasattr(data, 'fill_value'):
+            fill_value = data.fill_value
         self.mask = mask
+        self.fill_value = fill_value
         self._name = name
         self.units = units
         self.format = format
@@ -466,8 +469,22 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         ma.MaskedArray.__array_finalize__(self, obj)
 
     @property
+    def fill_value(self):
+        return self.get_fill_value()  # defer to native ma.MaskedArray method
+
+    @fill_value.setter
+    def fill_value(self, val):
+        """Set fill value both in the masked column view and in the parent table
+        if it exists.  Setting one or the other alone doesn't work."""
+        if self.parent_table:
+            self.parent_table._data[self._name].fill_value = val
+        self.set_fill_value(val)  # defer to native ma.MaskedArray method
+
+    @property
     def data(self):
-        return self.view(ma.MaskedArray)
+        out = self.view(ma.MaskedArray)
+        out.fill_value = self.fill_value
+        return out
 
     def copy(self, data=None, copy_data=True):
         """Return a copy of the current Column instance.

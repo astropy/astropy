@@ -9,7 +9,7 @@ import numpy.ma as ma
 
 class SetupData(object):
     def setup_method(self, method):
-        self.a = MaskedColumn('a', [1, 2, 3])
+        self.a = MaskedColumn('a', [1, 2, 3], fill_value=1)
         self.b = MaskedColumn('b', [4, 5, 6], mask=True)
         self.c = MaskedColumn('c', [7, 8, 9], mask=False)
         self.d_mask = np.array([False, True, False])
@@ -18,11 +18,43 @@ class SetupData(object):
         self.ca = Column('ca', [1, 2, 3])
 
 
-class TestMaskedColumnInit(SetupData):
-    """Initialization of a masked column
-    """
+class TestFillValue(SetupData):
+    """Test setting and getting fill value in MaskedColumn and Table"""
 
-    def test_1(self):
+    def test_init_set_fill_value(self):
+        """Check that setting fill_value in the MaskedColumn init works"""
+        assert self.a.fill_value == 1
+
+    def test_set_get_fill_value_for_bare_column(self):
+        """Check set and get of fill value works for bare Column"""
+        self.d.fill_value = -999
+        assert self.d.fill_value == -999
+        assert np.all(self.d.filled() == [7, -999, 7])
+
+    def test_table_column_mask_not_ref(self):
+        """Table column mask is not ref of original column mask"""
+        self.b.fill_value = -999
+        assert self.t['b'].fill_value != -999
+
+    def test_set_get_fill_value_for_table_column(self):
+        """Check set and get of fill value works for Column in a Table"""
+        self.t['b'].fill_value = 1
+        assert self.t['b'].fill_value == 1
+        assert np.all(self.t['b'].filled() == [1, 1, 1])
+        assert self.t._data['b'].fill_value == 1
+
+    def test_data_attribute_fill_and_mask(self):
+        """Check that .data attribute preserves fill_value and mask"""
+        self.t['b'].fill_value = 1
+        self.t['b'].mask = [True, False, True]
+        assert self.t['b'].data.fill_value == 1
+        assert np.all(self.t['b'].data.mask == [True, False, True])
+
+
+class TestMaskedColumnInit(SetupData):
+    """Initialization of a masked column"""
+
+    def test_set_mask_and_not_ref(self):
         """Check that mask gets set properly and that it is a copy, not ref"""
         assert np.all(self.a.mask == False)
         assert np.all(self.b.mask == True)
@@ -31,19 +63,19 @@ class TestMaskedColumnInit(SetupData):
         self.d.mask[0] = True
         assert not np.all(self.d.mask == self.d_mask)
 
-    def test_2(self):
+    def test_set_mask_from_list(self):
         """Set mask from a list"""
         mask_list = [False, True, False]
         a = MaskedColumn('a', [1, 2, 3], mask=mask_list)
         assert np.all(a.mask == mask_list)
 
-    def test_3(self):
+    def test_override_existing_mask(self):
         """Override existing mask values"""
         mask_list = [False, True, False]
         b = MaskedColumn('b', self.b, mask=mask_list)
         assert np.all(b.mask == mask_list)
 
-    def test_4(self):
+    def test_incomplete_mask_spec(self):
         """Incomplete mask specification (mask values cycle through available)"""
         mask_list = [False, True]
         b = MaskedColumn('b', length=4, mask=mask_list)
@@ -53,7 +85,7 @@ class TestMaskedColumnInit(SetupData):
 class TestTableInit(SetupData):
     """Initializing a table"""
 
-    def test_1(self):
+    def test_mask_true_if_any_input_masked(self):
         """Masking is True if any input is masked"""
         t = Table([self.ca, self.a])
         assert t.masked is True
