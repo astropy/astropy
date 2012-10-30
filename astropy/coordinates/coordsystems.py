@@ -6,7 +6,7 @@ This module contains the base classes and framework for coordinate objects.
 
 from abc import ABCMeta, abstractproperty, abstractmethod
 
-from .angles import RA, Dec, Angle
+from .angles import RA, Dec, Angle, AngularSeparation
 from .. import units as u
 
 __all__ = ['SphericalCoordinatesBase', 'Coordinates', 'Distance',
@@ -116,6 +116,26 @@ class SphericalCoordinatesBase(object):
             x, y, z = spherical_to_cartesian(r, self.latangle, self.longangle)
             self._cartpoint = CartesianPoint(x, y, z, runit)
 
+    def separation(self, other):
+        """
+        Computes on-sky separation between this coordinate and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
+            The coordinate system to get the separation to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Angles.AngularSeparation`
+            The on-sky separation between this and the `other` coordinate.
+        """
+        lat1 = self.latangle.radians
+        long1 = other.latangle.radians
+        lat2 = self.longangle.radians
+        long2 = other.longangle.radians
+        return AngularSeparation(lat1, long1, lat2, long2, u.radian)
+
 #FIXME: make this subclass Quantity once its in master
 class Distance(object):
     """
@@ -217,6 +237,8 @@ class Distance(object):
         """
         from ..cosmology import luminosity_distance
         from scipy import optimize
+
+        #FIXME: array: need to make this calculation more vector-friendly
 
         f = lambda z, d, cos: (luminosity_distance(z, cos) - d)**2
         return optimize.brent(f, (self.Mpc, cosmology))
