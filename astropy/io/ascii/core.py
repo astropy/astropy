@@ -125,14 +125,15 @@ class Column(object):
         self.formatter = None
 
     def __iter__(self):
-        '''iterate over formated column values
+        '''Iterate over formatted column values, for use in write()
 
         Each value is paased through self.formatter.
         If str(self.formatter(value)) is found in the fill_values specification,
         the corresponding fill_value is returned, otherwise the formated value.
         '''
+        formatter = self.formatter
         for val in self.data:
-            yield self.fill_values.get(str(self.formatter(val)).strip(), self.formatter(val))
+            yield formatter(val)
 
 class BaseInputter(object):
     """Get the lines from the table input and return a list of lines.  The input table can be one of:
@@ -566,7 +567,7 @@ class BaseData(object):
         """Replace string values in col.str_vales and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
-                col.mask = [False] * len(col.str_vals)
+                col.mask = numpy.zeros(len(col.str_vals), dtype=numpy.bool)
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals) if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
                     col.mask[i] = True
@@ -719,55 +720,6 @@ class BaseOutputter(object):
                 except IndexError:
                     raise ValueError('Column %s failed to convert' % col.name)
 
-class NumpyOutputter(BaseOutputter):
-    """Output the table as a numpy.rec.recarray
-
-    Missing or bad data values are handled at two levels.  The first is in
-    the data reading step where if ``data.fill_values`` is set then any
-    occurences of a bad value are replaced by the correspond fill value.
-    At the same time a boolean list ``mask`` is created in the column object.
-
-    The second stage is when converting to numpy arrays which by default generates
-    masked arrays, if ``data.fill_values`` is set and plain arrays if it is not.
-    In the rare case that plain arrays are needed set ``auto_masked`` (default = True) and
-    ``default_masked`` (default = False) to control this behavior as follows:
-
-    ===========  ==============  ===========  ============
-    auto_masked  default_masked  fill_values  output
-    ===========  ==============  ===========  ============
-    --            True           --           masked_array
-    --            False          None         array
-    True          --             dict(..)     masked_array
-    False         --             dict(..)     array
-    ===========  ==============  ===========  ============
-
-    To set these values use::
-
-      Outputter = asciitable.NumpyOutputter()
-      Outputter.default_masked = True
-
-    """
-
-    auto_masked_array = True
-    default_masked_array = False
-
-    default_converters = [convert_numpy(numpy.int),
-                          convert_numpy(numpy.float),
-                          convert_numpy(numpy.str)]
-
-    def __call__(self, cols):
-        self._convert_vals(cols)
-        recarr = numpy.rec.fromarrays([x.data for x in cols], names=[x.name for x in cols])
-        if self.default_masked_array or (self.auto_masked_array and
-                                         any(col.fill_values for col in cols)):
-            maarr = recarr.view(numpy.ma.MaskedArray)
-            for col in cols:
-                if col.fill_values:
-                    maarr[col.name] = numpy.ma.masked_where(col.mask, maarr[col.name])
-            return maarr
-        else:
-            return recarr
-
 
 class TableOutputter(BaseOutputter):
     """Output the table as an astropy.table.Table object.
@@ -783,7 +735,16 @@ class TableOutputter(BaseOutputter):
 
     def __call__(self, cols):
         self._convert_vals(cols)
-        out = Table([x.data for x in cols], names=[x.name for x in cols])
+
+        # XXX: Maybe replace the logic below with an explicit masked arg in read()
+        masked = any(col.fill_values for col in cols)
+
+        out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked)
+        if masked:
+            for col, out_col in zip(cols, out.columns.values()):
+                if hasattr(col, 'mask'):
+                    out_col.data.mask = col.mask
+
         # To Do: add support for column and table metadata
         return out
 

@@ -199,10 +199,10 @@ def test_fill_values():
     f = 't/fill_values.txt'
     testfile = get_testfiles(f)
     data = asciitable.read(f, fill_values=('a','1'), **testfile['opts'])
-    assert_true((data.mask['a']==[False,True]).all())
-    assert_true((data.data['a']==[1,1]).all())
-    assert_true((data.mask['b']==[False,True]).all())
-    assert_true((data.data['b']==[2,1]).all())
+    assert_true((data['a'].mask==[False,True]).all())
+    assert_true((data['a']==[1,1]).all())
+    assert_true((data['b'].mask==[False,True]).all())
+    assert_true((data['b']==[2,1]).all())
 
 
 def test_fill_values_col():
@@ -230,10 +230,13 @@ def test_fill_values_exclude_names():
 
 def check_fill_values(data):
     """compare array column by column with expectation """
-    assert_true((data.mask['a']==[False,False]).all())
-    assert_true((data.data['a']==['1','a']).all())
-    assert_true((data.mask['b']==[False,True]).all())
-    assert_true((data.data['b']==[2,1]).all())        
+    assert_true((data['a'].mask==[False,False]).all())
+    assert_true((data['a']==['1','a']).all())
+    assert_true((data['b'].mask==[False,True]).all())
+    # Check that masked value is "do not care" in comparison
+    assert_true((data['b']==[2, -999]).all())
+    data['b'].mask = False  # explicitly unmask for comparison
+    assert_true((data['b']==[2,1]).all())
 
 
 def test_fill_values_list():
@@ -241,7 +244,8 @@ def test_fill_values_list():
     testfile = get_testfiles(f)
     data = asciitable.read(f, fill_values=[('a','42'),('1','42','a')],
                            **testfile['opts'])
-    assert_true((data.data['a']==[42,42]).all())
+    data['a'].mask = False  # explicitly unmask for comparison
+    assert_true((data['a']==[42,42]).all())
 
 
 def test_masking_Cds():
@@ -296,8 +300,7 @@ def get_testfiles(name=None):
                   'Fit'),
          'name': 't/cds.dat',
          'nrows': 1,
-         'opts': {'Reader': asciitable.Cds,
-                  'Outputter': asciitable.NumpyOutputter}},
+         'opts': {'Reader': asciitable.Cds}},
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header.dat',
          'nrows': 2,

@@ -119,10 +119,7 @@ def read(table, guess=None, **kwargs):
     # Provide a simple way to choose between the two common outputters.  If an
     # Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    if 'fill_values' not in kwargs:
-        new_kwargs['Outputter'] = core.TableOutputter
-    else:
-        new_kwargs['Outputter'] = core.NumpyOutputter
+    new_kwargs['Outputter'] = core.TableOutputter
     new_kwargs.update(kwargs)
 
     if guess is None:
