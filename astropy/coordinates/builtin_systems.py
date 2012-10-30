@@ -8,6 +8,7 @@ and the conversions between them.
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .angles import RA, Dec, Angle
+from .coordsystems import SphericalCoordinatesBase
 from .. import units as u
 
 __all__ = ['ICRSCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
@@ -15,7 +16,7 @@ __all__ = ['ICRSCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
 
 
 
-class ICRSCoordinates(CoordinatesBase):
+class ICRSCoordinates(SphericalCoordinatesBase):
     """
     Object representing a coordinate in the ICRS system.
 
@@ -178,7 +179,7 @@ class ICRSCoordinates(CoordinatesBase):
     def horizontal(self):
         raise NotImplementedError()
 
-class GalacticCoordinates(CoordinatesBase):
+class GalacticCoordinates(SphericalCoordinatesBase):
     """
     Galactic coordinate (l,b) class.
 
@@ -320,7 +321,7 @@ class GalacticCoordinates(CoordinatesBase):
     def horizontal(self):
         raise NotImplementedError()
 
-class HorizontalCoordinates(CoordinatesBase):
+class HorizontalCoordinates(SphericalCoordinatesBase):
     """
     Horizontal coordinate (az,el) class.
     """
