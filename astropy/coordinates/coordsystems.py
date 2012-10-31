@@ -136,7 +136,7 @@ class SphericalCoordinatesBase(object):
         long2 = other.longangle.radians
         return AngularSeparation(lat1, long1, lat2, long2, u.radian)
 
-#FIXME: make this subclass Quantity once its in master
+#FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
     """
     A one-dimensional distance.
@@ -221,9 +221,9 @@ class Distance(object):
             for details on how to change this.
 
         """
-        return self.get_z()
+        return self.compute_z()
 
-    def get_z(self, cosmology=None):
+    def compute_z(self, cosmology=None):
         """
         The redshift for this distance assuming its physical distance is
         a luminosity distance.
@@ -268,7 +268,7 @@ class CartesianPoint(object):
 
     def to_spherical(self):
         """
-        Converts returns the spherical representation of this point.
+        Converts to the spherical representation of this point.
 
         Returns
         -------
