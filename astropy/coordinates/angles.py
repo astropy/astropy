@@ -8,9 +8,6 @@ coordinates in astropy.
 
 import math
 from types import *
-from abc import ABCMeta
-#from abc import abstractmethod
-from abc import abstractproperty
 
 import numpy as np
 
@@ -20,7 +17,8 @@ from .. import units as u
 
 __all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
 
-twopi = math.pi * 2.0 # no need to calculate this all the time
+twopi = math.pi * 2.0  # no need to calculate this all the time
+
 
 class Angle(object):
     """ This class represents an angle.
@@ -44,7 +42,7 @@ class Angle(object):
 
     """
 
-    def __init__(self, angle, unit=None, bounds=(-360,360)):
+    def __init__(self, angle, unit=None, bounds=(-360, 360)):
 
         self._bounds = bounds
 
@@ -95,7 +93,7 @@ class Angle(object):
                             if unitStr in a:
                                 a_unit = u.radian
                                 a = angle.replace(unitStr, "")
-                                angle[idx] = math.radians(util.parse_hours(a)*15.)
+                                angle[idx] = math.radians(util.parse_hours(a) * 15.)
                                 break
                     if unit == None:
                         for unitStr in ["radians", "radian", "rad"]:
@@ -109,7 +107,7 @@ class Angle(object):
                                          "- units could not be determined.".format(angle[idx]))
                 unit = u.radian
 
-            else: # single value
+            else:  # single value
                 if isinstance(angle, str):
                     angle = angle.lower()
                 else:
@@ -142,7 +140,7 @@ class Angle(object):
                              "then use 'u.degree').")
 
         if self.is_array:
-            pass # already performed conversions to radians above
+            pass  # already performed conversions to radians above
         else:
             if unit == u.degree:
                 self._radians = math.radians(util.parse_degrees(angle))
@@ -159,7 +157,7 @@ class Angle(object):
         # TODO: handle arrays
         # handle bounds units, convert to radians
         if bounds == None:
-           pass # no range checking performed
+            Ppass  # no range checking performed
         else:
             try:
                 if unit == u.radian:
@@ -169,8 +167,8 @@ class Angle(object):
                     lower_bound = math.radians(bounds[0])
                     upper_bound = math.radians(bounds[1])
                 elif unit == u.hour:
-                    lower_bound = math.radians(bounds[0]*15.)
-                    upper_bound = math.radians(bounds[1]*15.)
+                    lower_bound = math.radians(bounds[0] * 15.)
+                    upper_bound = math.radians(bounds[1] * 15.)
                 # invalid units handled above
             except TypeError:
                 raise TypeError("Bounds specified for Angle must be a two element list, "
@@ -178,7 +176,7 @@ class Angle(object):
 
             # bounds check
             if lower_bound < self._radians < upper_bound:
-                pass # looks good
+                pass  # looks good
             else:
                 if self._radians > upper_bound:
                     while True:
@@ -204,7 +202,7 @@ class Angle(object):
     @property
     def degrees(self):
         """ The angle's value in degrees (read-only property). """
-        return math.degrees(self.radians) # converts radians to degrees
+        return math.degrees(self.radians)  # converts radians to degrees
 
     @property
     def radians(self):
@@ -250,7 +248,7 @@ class Angle(object):
         """
 
         if isinstance(unit, u.Unit):
-            pass # great!
+            pass  # great!
         elif isinstance(unit, str):
             unit = unit.lower()
             if unit == "degrees":
@@ -317,7 +315,7 @@ class Angle(object):
             raise NotImplementedError("Multiplication is not supported between two {0} "
                                       "objects ".format(type(self).__name__))
         elif type(other) in [float, int]:
-            return Angle(self.radians*other, unit=u.radian)
+            return Angle(self.radians * other, unit=u.radian)
         else:
             raise NotImplementedError("An {0} object can only be multiplied by a float or integer.".format(type(self).__name__))
 
@@ -327,7 +325,7 @@ class Angle(object):
             raise NotImplementedError("Division is not supported between two {0} "
                                       "objects.".format(type(self).__name__))
         elif type(other) in [float, int]:
-            return Angle(self.radians/other, unit=u.radian)
+            return Angle(self.radians / other, unit=u.radian)
         else:
             raise NotImplementedError("An {0} object can only be divided by a float or integer.".format(type(self).__name__))
 
@@ -344,8 +342,8 @@ class Angle(object):
         if other == None:
             return False
         else:
-             raise NotImplementedError("To compare {0} objects, compare their "
-                                       "float values directly.".format(type(self).__name__))
+            raise NotImplementedError("To compare {0} objects, compare their "
+                                      "float values directly.".format(type(self).__name__))
 
     def __ne__(self, other):
         #return not self.radians == other.radians
@@ -355,35 +353,36 @@ class Angle(object):
         if isinstance(other, type(self)):
             return self.radians < other.radians
         else:
-             raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                       "object.".format(type(self).__name__))
+            raise NotImplementedError("An {0} object can only be compared to another {0} "
+                                      "object.".format(type(self).__name__))
 
     def __gt__(self, other):
         if isinstance(other, type(self)):
             return self.radians > other.radians
         else:
-             raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                       "object.".format(type(self).__name__))
+            raise NotImplementedError("An {0} object can only be compared to another {0} "
+                                      "object.".format(type(self).__name__))
 
     def __ge__(self, other):
         if isinstance(other, type(self)):
             return self.radians >= other.radians
         else:
-             raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                       "object.".format(type(self).__name__))
+            raise NotImplementedError("An {0} object can only be compared to another {0} "
+                                      "object.".format(type(self).__name__))
 
     def __le__(self, other):
         if isinstance(other, type(self)):
             return self.radians <= other.radians
         else:
-             raise NotImplementedError("An {0} object can only be compared to another {0} "
-                                       "object.".format(type(self).__name__))
+            raise NotImplementedError("An {0} object can only be compared to another {0} "
+                                      "object.".format(type(self).__name__))
 
     def __abs__(self):
         return Angle(abs(self.radians), unit=u.radian)
 
     def __repr__(self):
         return "<{0}.{1} {2:.5f} deg>".format(__name__, type(self).__name__, self.degrees)
+
 
 class RA(Angle):
     """ An object that represents a J2000 right ascension angle.
@@ -413,17 +412,17 @@ class RA(Angle):
         # validation/creation.
 
         if isinstance(angle, type(self)):
-            return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0,360))
+            return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0, 360))
 
         if unit == u.hour:
-            pass # to Angle initializer
+            pass  # to Angle initializer
             #self._radians = math.radians(decimal_hours * 15.)
         elif unit == u.degree:
-            pass # to Angle initializer
+            pass  # to Angle initializer
             #decimal_degrees = util.parse_degrees(angle)
             #self._radians = math.radians(decimal_degrees)
         elif unit == u.radian:
-            pass # to Angle initializer
+            pass  # to Angle initializer
             #self._radians = util.parse_radians(angle)
         elif unit == None:
             # Try to figure out the unit if we can.
@@ -468,7 +467,7 @@ class RA(Angle):
             raise ValueError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
 
         # By here, the unit should be defined.
-        super(RA, self).__init__(angle, unit=unit, bounds=(0,360))
+        super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
 
     def hour_angle(self, lst, unit=None):
         """ Given a local sidereal time (LST), returns the hour angle for this RA.
@@ -509,6 +508,7 @@ class RA(Angle):
 
         return Angle(ha.radians + self.radians, units=u.radian)
 
+
 class Dec(Angle):
     """
     Represents a J2000 declination value.
@@ -528,10 +528,10 @@ class Dec(Angle):
 
     def __init__(self, angle, unit=u.degree):
         if isinstance(angle, type(self)):
-            return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90,90))
+            return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90, 90))
 
+        super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
 
-        super(Dec, self).__init__(angle, unit=unit, bounds=(-90,90))
 
 class AngularSeparation(Angle):
     """
@@ -565,10 +565,9 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             long2 = units.to(u.radian, long2)
 
-            sepval = self._vicenty_dist(lat1, long1, lat2, long2)
+            sepval = self._haversine_dist_atan(lat1, long1, lat2, long2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
-
 
     @staticmethod
     def _vicenty_dist(lat1, long1, lat2, long2):
@@ -613,11 +612,10 @@ class AngularSeparation(Angle):
         from math import acos, sin, cos
 
         dlong = long2 - long1
-        return acos(sin(lat1) * sin(-lat2) + cos(lat1) * cos(-lat2) * dlong )
-
+        return acos(sin(lat1) * sin(-lat2) + cos(lat1) * cos(-lat2) * dlong)
 
     @staticmethod
-    def _haversin_dist(lat1, long1, lat2, long2):
+    def _haversine_dist(lat1, long1, lat2, long2):
         """
         Haversine formula for distance on a sphere: more stable at poles
 
@@ -632,9 +630,8 @@ class AngularSeparation(Angle):
 
         return 2 * asin((sdlat ** 2 + coslats * sdlong ** 2) ** 0.5)
 
-
     @staticmethod
-    def _haversin_dist_atan(lat1, long1, lat2, long2):
+    def _haversine_dist_atan(lat1, long1, lat2, long2):
         """
         Haversine formula for distance on a sphere: more stable at poles.
         This version uses arctan instead of arcsin and thus does better
@@ -644,7 +641,6 @@ class AngularSeparation(Angle):
         """
         #FIXME: array: use numpy functions
         from math import atan2, sin, cos
-
 
         sdlat = sin((lat2 - lat1) / 2)
         sdlong = sin((long2 - long1) / 2)
@@ -657,14 +653,11 @@ class AngularSeparation(Angle):
     def __add__(self, other):
         raise TypeError('+ is ambiguous for AngularSeparation objects; not supported')
 
-
     def __radd__(self, other):
         raise TypeError('+ is ambiguous for AngularSeparation objects; not supported')
 
-
     def __sub__(self, other):
         raise TypeError('- is ambiguous for AngularSeparation objects; not supported')
-
 
     def __rsub__(self, other):
         raise TypeError('- is ambiguous for AngularSeparation objects; not supported')
