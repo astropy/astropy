@@ -94,6 +94,18 @@ class TestTableInit(SetupData):
         t = Table([self.ca, ma.array([1, 2, 3])])
         assert t.masked is True
 
+    def test_mask_property(self):
+        t = self.t
+        # Access table mask (boolean structured array) by column name
+        assert np.all(t.mask['a'] == np.array([False, False, False]))
+        assert np.all(t.mask['b'] == np.array([True, True, True]))
+        # Check that setting mask from table mask has the desired effect on column
+        t.mask['b'] = np.array([False, True, False])
+        assert np.all(t['b'].mask == np.array([False, True, False]))
+        # Non-masked table returns None for mask attribute
+        t2 = Table([self.ca], masked=False)
+        assert t2.mask is None
+
 
 class TestAddColumn(object):
 

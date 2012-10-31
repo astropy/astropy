@@ -698,7 +698,12 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
     @property
+    def mask(self):
+        return self._data.mask if self.masked else None
+
+    @property
     def _mask(self):
+        """This is needed due to intricacies in numpy.ma, don't remove it."""
         return self._data.mask
 
     def __array__(self, dtype=None):
