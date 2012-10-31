@@ -486,8 +486,44 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         out.fill_value = self.fill_value
         return out
 
+    def filled(self, fill_value=None):
+        """Return a copy of self, with masked values filled with a given value.
+
+        Parameters
+        ----------
+        fill_value : scalar; optional
+            The value to use for invalid entries (None by default).
+            If None, the `fill_value` attribute of the array is used instead.
+
+        Returns
+        -------
+        filled_column : Column
+            A copy of ``self`` with masked entries replaced by `fill_value`
+            (be it the function argument or the attribute of ``self``).
+        """
+        if fill_value is None:
+            fill_value = self.fill_value
+        data = super(MaskedColumn, self).filled(fill_value)
+        out = Column(self.name, data, units=self.units, format=self.format,
+                     description=self.description, meta=deepcopy(self.meta))
+        return out
+
     def copy(self, data=None, copy_data=True):
-        """Return a copy of the current Column instance.
+        """
+        Return a copy of the current MaskedColumn instance.
+
+        Parameters
+        ----------
+        data : array; optional
+            Data to use when creating MaskedColumn copy.  If not supplied the
+            column data array is used.
+        copy_data : boolean; optional
+            Make a copy of input data instead of using a reference (default=True)
+
+        Returns
+        -------
+        column : MaskedColumn
+            A copy of ``self``
         """
         if data is None:
             data = self.view(ma.MaskedArray)
@@ -495,7 +531,9 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                 data = data.copy()
 
         return MaskedColumn(self.name, data, units=self.units, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
+                            # Do not include mask=self.mask since `data` has the mask
+                            fill_value=self.fill_value,
+                            description=self.description, meta=deepcopy(self.meta))
 
 
 class Row(object):
@@ -705,6 +743,24 @@ class Table(object):
     def _mask(self):
         """This is needed due to intricacies in numpy.ma, don't remove it."""
         return self._data.mask
+
+    def filled(self, fill_value=None):
+        """Return a copy of self, with masked values filled.
+
+        If input ``fill_value`` supplied then that value is used for all masked entries
+        in the table.  Otherwise the individual ``fill_value`` defined for each 
+        table column is used.
+
+        Returns
+        -------
+        filled_table : Table
+            New table with masked values filled
+        """
+        if self.masked:
+            data = [col.filled(fill_value) for col in self.columns.values()]
+        else:
+            data = self
+        return Table(data, meta=deepcopy(self.meta))
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).

@@ -1,6 +1,6 @@
 """Test behavior related to masked tables"""
 
-from .. import Column, MaskedColumn, Table
+from astropy.table import Column, MaskedColumn, Table
 
 import pytest
 import numpy as np
@@ -16,6 +16,73 @@ class SetupData(object):
         self.d = MaskedColumn('d', [7, 8, 7], mask=self.d_mask)
         self.t = Table([self.a, self.b], masked=True)
         self.ca = Column('ca', [1, 2, 3])
+
+
+class TestFilled(object):
+    """Test the filled method in MaskedColumn and Table"""
+    def setup_method(self, method):
+        mask = [True, False, False]
+        self.meta = {'a': 1, 'b': [2, 3]}
+        a = self.a = MaskedColumn('a', [1, 2, 3], fill_value=10, mask=mask, meta={'a': 1})
+        b = self.b = MaskedColumn('b', [4.0, 5.0, 6.0], fill_value=10.0, mask=mask)
+        c = self.c = MaskedColumn('c', ['7', '8', '9'], fill_value='1', mask=mask)
+
+    def test_filled_column(self):
+        f = self.a.filled()
+        assert np.all(f == [10, 2, 3])
+        assert isinstance(f, Column)
+        assert not isinstance(f, MaskedColumn)
+
+        # Confirm copy, not ref
+        assert f.meta['a'] == 1
+        f.meta['a'] = 2
+        f[1] = 100
+        assert self.a[1] == 2
+        assert self.a.meta['a'] == 1
+
+        # Fill with arg fill_value not column fill_value
+        f = self.a.filled(20)
+        assert np.all(f == [20, 2, 3])
+
+        f = self.b.filled()
+        assert np.all(f == [10.0, 5.0, 6.0])
+        assert isinstance(f, Column)
+
+        f = self.c.filled()
+        assert np.all(f == ['1', '8', '9'])
+        assert isinstance(f, Column)
+
+    def test_filled_masked_table(self):
+        t = Table([self.a, self.b, self.c], meta=self.meta)
+
+        f = t.filled()
+        assert isinstance(f, Table)
+        assert f.masked is False
+        assert np.all(f['a'] == [10, 2, 3])
+        assert np.allclose(f['b'], [10.0, 5.0, 6.0])
+        assert np.all(f['c'] == ['1', '8', '9'])
+
+        # Confirm copy, not ref
+        assert f.meta['b'] == [2, 3]
+        f.meta['b'][0] = 20
+        assert t.meta['b'] == [2, 3]
+        f['a'][2] = 100
+        assert t['a'][2] == 3
+
+    def test_filled_unmasked_table(self):
+        t = Table([(1, 2), ('3', '4')], names=('a', 'b'), meta=self.meta)
+        f = t.filled()
+        assert isinstance(f, Table)
+        assert f.masked is False
+        assert np.all(f['a'] == t['a'])
+        assert np.all(f['b'] == t['b'])
+
+        # Confirm copy, not ref
+        assert f.meta['b'] == [2, 3]
+        f.meta['b'][0] = 20
+        assert t.meta['b'] == [2, 3]
+        f['a'][1] = 100
+        assert t['a'][1] == 2
 
 
 class TestFillValue(SetupData):
