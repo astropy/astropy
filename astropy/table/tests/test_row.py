@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from ... import table
-from .. import Row
+from astropy import table
+from astropy.table import Row
 
 
 # Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
@@ -98,21 +98,6 @@ class TestRow():
         else:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(np_row == row)
-
-    @pytest.mark.xfail
-    def test_set_slice(self):
-        """Set row elements with a slice
-
-        This currently fails because the underlying np.void object
-        row.data = table._data[index] does not support slice assignment.
-        """
-        table = self.t
-        row = table[0]
-        row[:] = [-1, -1]
-        row[:1] = np.array([-2])
-        assert np.all(table._data == np.array([[-1, -1],
-                                               [-2, 5],
-                                               [3, 6]]))
 
     def test_convert_numpy_array(self):
         d = self.t[1]
