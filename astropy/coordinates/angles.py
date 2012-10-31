@@ -570,25 +570,6 @@ class AngularSeparation(Angle):
         super(AngularSeparation, self).__init__(sepval, u.radian)
 
     @staticmethod
-    def _vicenty_dist(lat1, long1, lat2, long2):
-        """
-        Vincenty formula for distance on a sphere: stable at poles and
-        antipodes but more complex/computationally expensive
-
-        inputs must be in radians
-        """
-        #FIXME: array: use numpy functions
-        from math import atan2, sin, cos
-
-        dlong = long2 - long1
-
-        num1 = cos(lat2) * sin(dlong)
-        num2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dlong)
-        denominator = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(dlong)
-
-        return atan2((num1 ** 2 + num2 ** 2) ** 0.5, denominator)
-
-    @staticmethod
     def _small_angle_dist(lat1, long1, lat2, long2):
         """
         Euclidean distance - only valid on sphere in the small-angle
@@ -601,7 +582,7 @@ class AngularSeparation(Angle):
         return (dlat ** 2 + dlong ** 2) ** 0.5
 
     @staticmethod
-    def _basic_dist(lat1, long1, lat2, long2):
+    def _sphere_dist(lat1, long1, lat2, long2):
         """
         Simple formula for distance on a sphere: numerically unstable
         for small distances
@@ -649,6 +630,25 @@ class AngularSeparation(Angle):
         numerator = sdlat ** 2 + coslats * sdlong ** 2
 
         return atan2(numerator, 1 - numerator)
+
+    @staticmethod
+    def _vicenty_dist(lat1, long1, lat2, long2):
+        """
+        Vincenty formula for distance on a sphere: stable at poles and
+        antipodes but more complex/computationally expensive
+
+        inputs must be in radians
+        """
+        #FIXME: array: use numpy functions
+        from math import atan2, sin, cos
+
+        dlong = long2 - long1
+
+        num1 = cos(lat2) * sin(dlong)
+        num2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dlong)
+        denominator = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(dlong)
+
+        return atan2((num1 ** 2 + num2 ** 2) ** 0.5, denominator)
 
     def __add__(self, other):
         raise TypeError('+ is ambiguous for AngularSeparation objects; not supported')
