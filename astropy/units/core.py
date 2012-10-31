@@ -210,7 +210,7 @@ class UnitBase(object):
         """
         return False
 
-    def is_equivalent(self, other, equivs=[]):
+    def is_equivalent(self, other, equivalencies=[]):
         """
         Returns `True` if this unit is equivalent to `other`.
 
@@ -219,7 +219,7 @@ class UnitBase(object):
         other : unit object or string
            The unit to convert to.
 
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -237,7 +237,7 @@ class UnitBase(object):
         except UnitsException:
             unit = self.decompose()
             other = other.decompose()
-            for equiv in equivs:
+            for equiv in equivalencies:
                 a = equiv[0]
                 b = equiv[1]
                 if (unit.is_equivalent(a) and
@@ -250,7 +250,7 @@ class UnitBase(object):
         else:
             return True
 
-    def _apply_equivalences(self, unit, other, equivs):
+    def _apply_equivalences(self, unit, other, equivalencies):
         """
         Internal function (used from `get_converter`) to apply
         equivalence pairs.
@@ -266,7 +266,7 @@ class UnitBase(object):
         unit = self.decompose()
         other = other.decompose()
 
-        for equiv in equivs:
+        for equiv in equivalencies:
             if len(equiv) == 2:
                 funit, tunit = equiv
                 a, b = lambda x: x
@@ -305,7 +305,7 @@ class UnitBase(object):
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
-    def get_converter(self, other, equivs=[]):
+    def get_converter(self, other, equivalencies=[]):
         """
         Return the conversion function to convert values from `self`
         to the specified unit.
@@ -315,7 +315,7 @@ class UnitBase(object):
         other : unit object or string
            The unit to convert to.
 
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -337,10 +337,10 @@ class UnitBase(object):
             scale = (self / other).dimensionless_constant()
         except UnitsException:
             return self._apply_equivalences(
-                self, other, equivs)
+                self, other, equivalencies)
         return lambda val: scale * _condition_arg(val)
 
-    def to(self, other, value=1.0, equivs=[]):
+    def to(self, other, value=1.0, equivalencies=[]):
         """
         Return the converted values in the specified unit.
 
@@ -353,7 +353,7 @@ class UnitBase(object):
             Value(s) in the current unit to be converted to the
             specified unit.  If not provided, defaults to 1.0
 
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -369,13 +369,15 @@ class UnitBase(object):
             If units are inconsistent
         """
         other = Unit(other)
-        return self.get_converter(other, equivs=equivs)(value)
+        return self.get_converter(
+            other, equivalencies=equivalencies)(value)
 
-    def in_units(self, other, value=1.0, equivs=[]):
+    def in_units(self, other, value=1.0, equivalencies=[]):
         """
         Alias for `to` for backward compatibility with pynbody.
         """
-        return self.to(other, value=value, equivs=equivs)
+        return self.to(
+            other, value=value, equivalencies=equivalencies)
 
     def decompose(self):
         """
@@ -436,7 +438,7 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivs=[]):
+    def find_equivalent_units(self, equivalencies=[]):
         """
         Return a list of all the units that are the same type as the
         specified unit.
@@ -446,7 +448,7 @@ class UnitBase(object):
         u : Unit instance or string
             The `Unit` to find similar units to.
 
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
 
@@ -458,14 +460,14 @@ class UnitBase(object):
             pretty-prints the list of units when output.
         """
         units = [self]
-        for equiv in equivs:
+        for equiv in equivalencies:
             funit, tunit = equiv[:2]
             if self.is_equivalent(funit):
                 units.append(tunit)
             elif self.is_equivalent(tunit):
                 units.append(funit)
 
-        equivs = set()
+        equivalencies = set()
         for tunit in UnitBase._registry:
             if not isinstance(tunit, PrefixUnit):
                 for u in units:
@@ -474,9 +476,9 @@ class UnitBase(object):
                     except UnitsException:
                         pass
                     else:
-                        equivs.add(tunit)
+                        equivalencies.add(tunit)
 
-        return self.EquivalentUnitsList(equivs)
+        return self.EquivalentUnitsList(equivalencies)
 
 
 class NamedUnit(UnitBase):
@@ -680,10 +682,10 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __ne__(self, other):
         return not (self == other)
 
-    def is_equivalent(self, other, equivs=[]):
+    def is_equivalent(self, other, equivalencies=[]):
         return self == other
 
-    def get_converter(self, other, equivs=[]):
+    def get_converter(self, other, equivalencies=[]):
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.".format(self.name))

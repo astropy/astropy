@@ -315,7 +315,7 @@ class BaseColumn(object):
     def units(self):
         self._units = None
 
-    def convert_units_to(self, new_units, equivs=[]):
+    def convert_units_to(self, new_units, equivalencies=[]):
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
@@ -329,7 +329,7 @@ class BaseColumn(object):
         new_units : str or `astropy.units.UnitBase` instance
             The unit to convert to.
 
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
            A list of equivalence pairs to try if the units are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -340,7 +340,8 @@ class BaseColumn(object):
         """
         if self.units is None:
             raise ValueError("No units set on column")
-        self.data[:] = self.units.to(new_units, self.data, equivs=equivs)
+        self.data[:] = self.units.to(
+            new_units, self.data, equivalencies=equivalencies)
         self.units = new_units
 
     def __str__(self):
