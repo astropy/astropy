@@ -1,7 +1,7 @@
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
-from ... import table
+from astropy import table
 import numpy as np
 import pytest
 from ... import units as u

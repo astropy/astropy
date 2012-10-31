@@ -3,8 +3,8 @@ from __future__ import print_function  # For print debugging with python 2 or 3
 import pytest
 import numpy as np
 
-from ... import table
-from .. import Column
+from astropy import table
+from astropy.table import Column
 from astropy.utils import OrderedDict
 
 # Dummy init of Table for pyflakes and to be sure test fixture is working

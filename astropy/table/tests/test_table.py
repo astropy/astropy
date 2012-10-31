@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from ... import table
+from astropy import table
 
 
 # Dummy init of Table, DATA for pyflakes and to be sure test fixture is working

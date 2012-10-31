@@ -3,9 +3,9 @@ from copy import copy
 import pytest
 import numpy as np
 
-from ..io_registry import _readers, _writers, _identifiers
-from .. import Table
-from .. import io_registry
+from astropy.table.io_registry import _readers, _writers, _identifiers
+from astropy.table import Table
+from astropy.table import io_registry
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from ... import table
+from astropy import table
 
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
