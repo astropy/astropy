@@ -13,7 +13,7 @@ import copy
 import numbers
 
 # AstroPy
-from .core import UnitBase, Unit
+from .core import Unit
 
 __all__ = ["Quantity"]
 
@@ -34,7 +34,7 @@ def _validate_value(value):
     return value_obj
 
 class Quantity(object):
-    """ A `Quantity` represents a number wth some associated unit.
+    """ A `Quantity` represents a number with some associated unit.
 
     Parameters
     ----------
@@ -197,6 +197,9 @@ class Quantity(object):
 
     def __ge__(self, other):
         return self.value >= other.to(self.unit).value
+
+    def __hash__(self):
+        return hash(self.value) ^ hash(self.unit)
 
     # Display
     def __str__(self):
