@@ -21,8 +21,17 @@ class TestQuantityCreation():
 
         # TODO: not implemented in Units yet
         quantity = 11.42 * u.meter # returns a Quantity object
+        assert isinstance(quantity,u.Quantity)
+        quantity = u.meter * 11.42 # returns a Quantity object
+        assert isinstance(quantity,u.Quantity)
+
         quantity = 11.42 / u.meter
+        assert isinstance(quantity,u.Quantity)
+        quantity = u.meter / 11.42
+        assert isinstance(quantity,u.Quantity)
+
         quantity = 11.42 * u.meter / u.second
+        assert isinstance(quantity,u.Quantity)
 
         with pytest.raises(TypeError):
             quantity = 182.234 + u.meter
