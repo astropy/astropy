@@ -96,6 +96,20 @@ class Quantity(object):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
 
+    def simplify_units(self):
+        """ Returns a new `Quantity` object with simplified units.
+
+        When doing multiplication or division between quantities, you may end up with compound,
+        equivalent units such as centimeter*meter or kilogram/gram. This method reduces all
+        such equivalent units.
+
+        """
+        simplified_unit = self.unit.decompose()
+        new_value = self.value * simplified_unit.scale
+        new_unit = simplified_unit / simplified_unit.scale
+
+        return Quantity(new_value, unit=new_unit)
+
     def copy(self):
         """ Return a copy of this `Quantity` instance """
         return Quantity(self.value, unit=self.unit)
@@ -160,7 +174,6 @@ class Quantity(object):
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
-
     def __truediv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
         return self.__div__(other)
@@ -171,7 +184,7 @@ class Quantity(object):
 
     def __pow__(self, p):
         """ Raise quantity object to a power. """
-        return Quantity(self.value**p, unit=(self.unit**p).simplify())
+        return Quantity(self.value**p, unit=self.unit**p)
 
     # Comparison operations
     def __eq__(self, other):
