@@ -822,10 +822,10 @@ class BaseReader(object):
                 col.str_vals.append(str_vals[col.index])
 
         self.data.masks(cols)
-        self.table = self.outputter(cols)
+        table = self.outputter(cols)
         self.cols = self.header.cols
 
-        return self.table
+        return table
 
     def inconsistent_handler(self, str_vals, ncols):
         """Adjust or skip data entries if a row is inconsistent with the header.
