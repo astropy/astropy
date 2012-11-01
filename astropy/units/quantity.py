@@ -122,10 +122,7 @@ class Quantity(object):
         returns a new `Quantity` object with the units of the **left** object.
         """
         if isinstance(other, Quantity):
-            if self.unit.is_equivalent(other.unit):
-                return Quantity(self.value * other.to(self.unit).value, unit=self.unit*self.unit)
-            else:
-                return Quantity(self.value * other.value, unit=self.unit*other.unit)
+            return Quantity(self.value * other.value, unit=self.unit*other.unit)
 
         elif isinstance(other, numbers.Number):
             return Quantity(other*self.value, unit=self.unit)
@@ -146,10 +143,7 @@ class Quantity(object):
     def __div__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
         if isinstance(other, Quantity):
-            if self.unit.is_equivalent(other.unit):
-                return Quantity(self.value / other.to(self.unit).value, unit=Unit(""))
-            else:
-                return Quantity(self.value / other.value, unit=self.unit/other.unit)
+            return Quantity(self.value / other.value, unit=self.unit/other.unit)
 
         elif isinstance(other, numbers.Number):
             return Quantity(self.value / other, unit=self.unit)
