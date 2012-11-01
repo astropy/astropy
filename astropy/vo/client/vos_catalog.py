@@ -110,7 +110,7 @@ class VOSCatalog(object):
         return self._tree[what]
 
 
-class VOSDatabase(object):
+class VOSDatabase(VOSCatalog):
     """
     A class to represent a collection of `VOSCatalog`.
 
@@ -217,9 +217,9 @@ def get_remote_catalog_db(dbname, cache=True):
 
     """
     fd = get_data_fileobj(BASEURL() + dbname + '.json', cache=cache)
-    if IS_PY3K:
+    if IS_PY3K:  # pragma: py3
         wrapped_fd = io.TextIOWrapper(fd, 'utf8')
-    else:
+    else:  # pragma: py2
         wrapped_fd = fd
     try:
         tree = json.load(wrapped_fd)

@@ -115,7 +115,7 @@ __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
 _SERVICE_TYPE = 'conesearch'
 
 
-class ConeSearchError(Exception):
+class ConeSearchError(Exception):  # pragma: no cover
     pass
 
 
