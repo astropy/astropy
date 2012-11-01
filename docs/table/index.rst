@@ -17,6 +17,7 @@ notable features of this package are:
 * Initialize a table from a wide variety of input data structures and types.
 * Modify a table by adding or removing columns, changing column names,
   or adding new rows of data.
+* Handle tables containing missing values.
 * Include table and column metadata as flexible data structures.
 * Specify a description, units and output formatting for columns.
 * Interactively scroll through long tables similar to using ``more``.
@@ -138,11 +139,30 @@ Add, remove, and rename columns with the following::
   >>> t.colnames
   ['A', 'b', 'd']
 
-Lastly, adding a new row of data to the table is as follows::
+Adding a new row of data to the table is as follows::
 
   >>> t.add_row([-8, -9, 10])
   >>> len(t)
   4
+
+Lastly, one can create a table with support for missing values, for example by setting
+``masked=True``::
+
+  >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)
+  >>> t['a'].mask = [True, True, False]
+  >>> t
+  <Table rows=3 names=('a','b','c')>
+  masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8.2, 'z')],
+               mask = [(True, False, False) (True, False, False) (False, False, False)],
+         fill_value = (999999, 1e+20, 'N'),
+              dtype = [('a', '<i8'), ('b', '<f8'), ('c', '|S1')])
+  
+  >>> print(t)
+   a   b   c 
+  --- --- ---
+   -- 2.0   x
+   -- 5.0   y
+    5 8.2   z
 
 .. _using_astropy_table:
 

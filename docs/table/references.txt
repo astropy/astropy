@@ -1,5 +1,6 @@
 .. |Row| replace:: :class:`~astropy.table.table.Row`
 .. |Table| replace:: :class:`~astropy.table.table.Table`
 .. |Column| replace:: :class:`~astropy.table.table.Column`
+.. |MaskedColumn| replace:: :class:`~astropy.table.table.MaskedColumn`
 .. |TableColumns| replace:: :class:`~astropy.table.table.TableColumns`
 .. _OrderedDict: http://docs.python.org/library/collections.html#collections.OrderedDict
