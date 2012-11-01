@@ -54,12 +54,12 @@ class Daophot(core.BaseReader):
       14       138.538   256.405   15.461      0.003         34.85955       4        \\
       -0.032      0.802       0     No_error
 
-    The keywords defined in the #K records are available via the Daophot reader object::
+    The keywords defined in the #K records are available via output table
+    ``meta`` attribute::
 
-      reader = asciitable.get_reader(Reader=asciitable.Daophot)
-      data = reader.read('t/daophot.dat')
-      for keyword in reader.keywords:
-          print keyword.name, keyword.value, keyword.units, keyword.format
+      data = asciitable.read('t/daophot.dat')
+      for keyword in data.meta['keywords']:
+          print keyword['name'], keyword['value'], keyword['units'], keyword['format']
     
     """
     
@@ -72,18 +72,20 @@ class Daophot(core.BaseReader):
         self.data.comment = r'\s*#'
     
     def read(self, table):
-        output = core.BaseReader.read(self, table)
-        reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', 
-                                  names = ['temp1','keyword','temp2','value','unit','format'])
+        out = core.BaseReader.read(self, table)
+
+        # Read keywords as a table embedded in the header comments
+        names = ('temp1', 'name', 'temp2', 'value', 'units', 'format')
+        reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', names=names)
         headerkeywords = reader.read(self.comment_lines)
 
-        for line in headerkeywords:
-            self.keywords.append(core.Keyword(line['keyword'], line['value'], 
-                                              units=line['unit'], format=line['format']))
-        self.table = output
+        out.meta['keywords'] = []
+        for headerkeyword in headerkeywords:
+            keyword_dict = dict((x, headerkeyword[x]) for x in names if 'temp' not in x)
+            out.meta['keywords'].append(keyword_dict)
         self.cols = self.header.cols
 
-        return self.table
+        return out
 
     def write(self, table=None):
         raise NotImplementedError

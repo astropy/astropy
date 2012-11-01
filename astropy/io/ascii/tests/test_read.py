@@ -39,18 +39,17 @@ def test_guess_all_files():
 
 
 def test_daophot_header_keywords():
-    reader = asciitable.get_reader(Reader=asciitable.Daophot)
-    table = reader.read('t/daophot.dat')
+    table = asciitable.read('t/daophot.dat', Reader=asciitable.Daophot)
     expected_keywords = (('NSTARFILE', 'test.nst.1', 'filename', '%-23s'),
                          ('REJFILE', 'hello world', 'filename', '%-23s'),
                          ('SCALE', '1.',  'units/pix', '%-23.7g'),)
 
     for name, value, units, format_ in expected_keywords:
-        for keyword in reader.keywords:
-            if keyword.name == name:
-                assert_equal(keyword.value, value)
-                assert_equal(keyword.units, units)
-                assert_equal(keyword.format, format_)
+        for keyword in table.meta['keywords']:
+            if keyword['name'] == name:
+                assert_equal(keyword['value'], value)
+                assert_equal(keyword['units'], units)
+                assert_equal(keyword['format'], format_)
                 break
         else:
             raise ValueError('Keyword not found')

@@ -78,15 +78,6 @@ except NameError:
                 return True
         return False
 
-class Keyword(object):
-    """Table keyword"""
-    def __init__(self, name, value, units=None, comment=None, format=None):
-        self.name = name
-        self.value = value
-        self.units = units
-        self.comment = comment
-        self.format = format
-
 class NoType(object):
     pass
 
@@ -767,8 +758,7 @@ class BaseReader(object):
         self.data = BaseData()
         self.inputter = BaseInputter()
         self.outputter = TableOutputter()
-        self.meta = {}                  # Placeholder for storing table metadata
-        self.keywords = []              # Placeholder for storing table Keywords
+        self.meta = {}                  # Placeholder for storing table metadata 
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.

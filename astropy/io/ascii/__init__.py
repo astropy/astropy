@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 from .core import (InconsistentTableError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,
-                   Column, Keyword,
+                   Column,
                    BaseInputter, ContinuationLinesInputter,
                    BaseHeader,
                    BaseData,
