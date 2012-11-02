@@ -493,10 +493,11 @@ def get_config_items(packageormod=None):
 
     configitems = {}
     for n, obj in packageormod.__dict__.iteritems():
-        objcls = obj.__class__
-        fqn = objcls.__module__ + '.' + objcls.__name__
-        if fqn == 'astropy.config.configuration.ConfigurationItem':
-            configitems[n] = obj
+        #if it's not a new-style object, it's certainly not a ConfigurationItem
+        if hasattr(obj, '__class__'):
+            fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
+            if fqn == 'astropy.config.configuration.ConfigurationItem':
+                configitems[n] = obj
 
     return configitems
 
@@ -558,7 +559,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
         msg = '_generate_all_config_items was not given a package/package name'
         raise TypeError(msg)
 
-    if hasattr(package,'__path__'):
+    if hasattr(package, '__path__'):
         pkgpath = package.__path__
     elif hasattr(package, '__file__'):
         pkgpath = split(package.__file__)[0]
@@ -567,11 +568,10 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
                              'have __file__ or __path__')
 
     for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
-        mod = imper.find_module(nm)
+        imper.find_module(nm)
         if reset_to_default:
-            for v in mod.__dict__.itervalues():
-                if isinstance(v, ConfigurationItem):
-                    v.set(v.defaultvalue)
+            for cfgitem in get_config_items(nm).itervalues():
+                cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
     save_config(package.__name__)

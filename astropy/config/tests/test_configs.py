@@ -251,3 +251,20 @@ def test_configitem_setters():
         assert ci() == 46
 
     assert ci() == 43
+
+
+def test_reset_configuration():
+    """
+    This sets a ConfigurationItem and then makes sure that it gets
+    reset to it's default by the `reset_configuration_items` function.
+    """
+    from ..configuration import reset_configuration_items
+
+    assert TESTCONF1() == 1
+
+    TESTCONF1.set(35)
+    TESTCONF1.save()
+    assert TESTCONF1() == 35
+
+    reset_configuration_items()
+    assert TESTCONF1() == 1
