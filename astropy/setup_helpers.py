@@ -35,6 +35,14 @@ except ImportError:
     HAVE_CYTHON = False
 
 
+try:
+    import sphinx
+    from sphinx.setup_command import BuildDoc as SphinxBuildDoc
+    HAVE_SPHINX = True
+except ImportError:
+    HAVE_SPHINX = False
+
+
 class AstropyBuild(DistutilsBuild):
     """
     A custom 'build' command that allows for adding extra build
@@ -196,10 +204,8 @@ for option in [
     AstropyInstall.add_install_option(*option)
 
 
-try:
-    from sphinx.setup_command import BuildDoc
-
-    class AstropyBuildSphinx(BuildDoc):
+if HAVE_SPHINX:
+    class AstropyBuildSphinx(SphinxBuildDoc):
         """ A version of the ``build_sphinx`` command that uses the
         version of Astropy that is built by the setup ``build`` command,
         rather than whatever is installed on the system - to build docs
@@ -212,7 +218,7 @@ try:
         """
 
         description = 'Build Sphinx documentation for Astropy environment'
-        user_options = BuildDoc.user_options[:]
+        user_options = SphinxBuildDoc.user_options[:]
         user_options.append(('clean-docs', 'l', 'Completely clean previously '
                                                 'builds, including auotmodapi-'
                                                 'generated files before '
@@ -220,14 +226,14 @@ try:
 
         user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
                                                     'conf.py says to use it'))
-        boolean_options = BuildDoc.boolean_options[:]
+        boolean_options = SphinxBuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
         def initialize_options(self):
-            BuildDoc.initialize_options(self)
+            SphinxBuildDoc.initialize_options(self)
             self.clean_docs = False
             self.no_intersphinx = False
 
@@ -251,7 +257,7 @@ try:
                         log.info('Not cleaning directory ' + d + ' because '
                                  'not present or not a directory')
 
-            BuildDoc.finalize_options(self)
+            SphinxBuildDoc.finalize_options(self)
 
         def run(self):
             from os.path import split, join
@@ -285,7 +291,7 @@ try:
             #command.  This is needed to get the correct imports for the built
             #version
 
-            runlines, runlineno = getsourcelines(BuildDoc.run)
+            runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
             subproccode = dedent("""
             from sphinx.setup_command import *
 
@@ -328,12 +334,6 @@ try:
                          'code ' + str(proc.returncode))
 
     AstropyBuildSphinx.__name__ = 'build_sphinx'
-
-except ImportError as e:
-    if 'sphinx' in e.args[0]:  # Sphinx not present
-        AstropyBuildSphinx = None
-    else:
-        raise
 
 
 def get_distutils_display_options():
