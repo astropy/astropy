@@ -37,6 +37,7 @@ except ImportError:
 
 try:
     import sphinx
+    from sphinx.setup_command import BuildDoc as SphinxBuildDoc
     HAVE_SPHINX = True
 except ImportError:
     HAVE_SPHINX = False
@@ -200,9 +201,7 @@ for option in [
 
 
 if HAVE_SPHINX:
-    from sphinx.setup_command import BuildDoc
-
-    class AstropyBuildSphinx(BuildDoc):
+    class AstropyBuildSphinx(SphinxBuildDoc):
         """ A version of the ``build_sphinx`` command that uses the
         version of Astropy that is built by the setup ``build`` command,
         rather than whatever is installed on the system - to build docs
