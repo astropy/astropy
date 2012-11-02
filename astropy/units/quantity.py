@@ -168,7 +168,7 @@ class Quantity(object):
     def __rdiv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
         if isinstance(other, numbers.Number):
-            return Quantity(other / self.value, unit=Unit("1/({})".format(self.unit.to_string())))
+            return Quantity(other / self.value, unit=Unit("1/({0})".format(self.unit.to_string())))
 
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
