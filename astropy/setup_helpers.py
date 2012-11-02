@@ -138,8 +138,9 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
 
     Uses the default distutils.command.build_ext by default.
     """
+
     attrs = dict(basecls.__dict__)
-    orig_run = attrs['run']
+    orig_run = getattr(basecls, 'run', None)
 
     def run(self):
         from astropy.version import release
@@ -176,7 +177,9 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
                                                       extension.name))
                             raise IOError(errno.ENOENT, msg, cfn)
 
-        orig_run(self)
+        if orig_run is not None:
+            # This shouldn't happen.
+            orig_run(self)
 
     attrs['run'] = run
 
