@@ -592,8 +592,8 @@ class AngularSeparation(Angle):
         #FIXME: array: use numpy functions
         from math import acos, sin, cos
 
-        dlong = long2 - long1
-        return acos(sin(lat1) * sin(-lat2) + cos(lat1) * cos(-lat2) * dlong)
+        cdlong = cos(long2 - long1)
+        return acos(sin(lat1) * sin(-lat2) + cos(lat1) * cos(-lat2) * cdlong)
 
     @staticmethod
     def _haversine_dist(lat1, long1, lat2, long2):
@@ -642,11 +642,12 @@ class AngularSeparation(Angle):
         #FIXME: array: use numpy functions
         from math import atan2, sin, cos
 
-        dlong = long2 - long1
+        sdlong = sin(long2 - long1)
+        cdlong = cos(long2 - long1)
 
-        num1 = cos(lat2) * sin(dlong)
-        num2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dlong)
-        denominator = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(dlong)
+        num1 = cos(lat2) * sdlong
+        num2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cdlong
+        denominator = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cdlong
 
         return atan2((num1 ** 2 + num2 ** 2) ** 0.5, denominator)
 
