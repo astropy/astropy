@@ -385,10 +385,6 @@ def get_config(packageormod=None, reload=False):
             _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
                 interpolation=False)
 
-            #if cobj is None, that means this package has never been accessed,
-            #and we need to populate the defaults.
-            _generate_all_config_items(packageormod, False)
-
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
