@@ -16,7 +16,8 @@ from contextlib import contextmanager
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
-           'reload_config', 'reset_configuration_items']
+           'reload_config', 'update_configuration_files',
+           'reset_configuration_files']
 
 
 class InvalidConfigurationItemWarning(Warning):
@@ -526,7 +527,7 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
             _fix_section_blank_lines(sec[snm], True, False)
 
 
-def _generate_all_config_items(pkgornm=None, reset_to_default=False):
+def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
     """ Given a root package name or package, this function simply walks
     through all the subpackages and modules, which should populate any
     ConfigurationItem objects defined at the module level. If
@@ -570,10 +571,11 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
                 cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
-    save_config(package.__name__)
+    if save:
+        save_config(package.__name__)
 
 
-def update_configuration_items(pkgorname=None):
+def update_configuration_files(pkgorname=None):
     """
     Adds any missing configuration items in a particular package, set to
     their default values.
@@ -589,7 +591,7 @@ def update_configuration_items(pkgorname=None):
     _generate_all_config_items(pkgorname, False)
 
 
-def reset_configuration_items(pkgorname=None):
+def reset_configuration_files(pkgorname=None):
     """
     Resets all configuration items in a particular package to their
     default settings. (With no arguments, this resets the whole astropy
