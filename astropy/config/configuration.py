@@ -577,6 +577,22 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     save_config(package.__name__)
 
 
+def update_configuration_items(pkgorname=None):
+    """
+    Adds any missing configuration items in a particular package, set to
+    their default values.
+
+    Parameters
+    ----------
+    pkgorname : str or module or None
+        The package or module to have its configuration updated,
+        specified either by name or as a module object.  Alternatively,
+        if None, the whole astropy core package will be updated.
+
+    """
+    _generate_all_config_items(pkgorname, False)
+
+
 def reset_configuration_items(pkgorname=None):
     """
     Resets all configuration items in a particular package to their

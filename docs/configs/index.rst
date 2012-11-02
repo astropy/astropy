@@ -15,8 +15,19 @@ source code to make those changes.
 Getting Started
 ===============
 
-To see the configuration options, look for your astropy configuration file.
-You can find it by doing::
+To see the configuration options, you'll first need to populate your
+configuration files.  Do this by running::
+
+    from astropy.config import update_configuration_items
+
+    update_configuration_items()
+
+If you later updgrade to a newer version of astropy, you'll want to run this
+again to make sure the file is updated with new configuration items that may
+have been added.
+
+
+Next, look for your astropy configuration file. You can find it by doing::
 
     from astropy.config import get_config_dir
 
@@ -37,15 +48,12 @@ want to see your changes immediately in your current Astropy session, just do::
 
     reload_config()
 
-.. warning::
 
-    The above is not true yet, because the setup doesn't automatically
-    populate the configuration files. Hopefully it will be true soon, though.
-    The :func:`~astropy.config.configuration._generate_all_config_items`
-    function will already do this, basically, but there has to be some
-    thought about how to make driver scripts that actually do this for
-    each user, and coordinate when they get run so that everything is
-    already built.
+If you ever want to reset your configuration back to the defaults, just do::
+
+    from astropy.config import reset_configuration_items
+
+    reset_configuration_items()
 
 .. note::
     If for whatever reason your ``$HOME/.astropy`` directory is not accessible
