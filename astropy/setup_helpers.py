@@ -35,6 +35,13 @@ except ImportError:
     HAVE_CYTHON = False
 
 
+try:
+    import sphinx
+    HAVE_SPHINX = True
+except ImportError:
+    HAVE_SPHINX = False
+
+
 class AstropyBuild(DistutilsBuild):
     """
     A custom 'build' command that allows for adding extra build
@@ -192,7 +199,7 @@ for option in [
     AstropyInstall.add_install_option(*option)
 
 
-try:
+if HAVE_SPHINX:
     from sphinx.setup_command import BuildDoc
 
     class AstropyBuildSphinx(BuildDoc):
@@ -324,9 +331,6 @@ try:
                          'code ' + str(proc.returncode))
 
     AstropyBuildSphinx.__name__ = 'build_sphinx'
-
-except ImportError:
-    AstropyBuildSphinx = None
 
 
 def get_distutils_display_options():
