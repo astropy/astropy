@@ -270,6 +270,7 @@ if HAVE_SPHINX:
             from subprocess import Popen, PIPE
             from textwrap import dedent
             from inspect import getsourcelines
+            from urllib import pathname2url
             import webbrowser
 
             # If possible, create the _static dir
@@ -339,11 +340,11 @@ if HAVE_SPHINX:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
                         absdir = abspath(self.builder_target_dir)
-                        fileurl = 'file://' + join(absdir, 'index.html')
+                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
                         webbrowser.open(fileurl)
                     else:
                         log.warn('open-docs-in-browser option was given, but '
-                                 'the builder is not html! Ignoring.')
+                                 'the builder is not html! Ignogring.')
             else:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
