@@ -196,7 +196,7 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
     dec = _local_conversion(float, dec)
     sr = _local_conversion(float, sr)
     verb = _local_conversion(int, verb)
-    if verb not in (1, 2, 3):
+    if verb not in (1, 2, 3):  # pragma: no cover
         raise ConeSearchError('Verbosity must be 1, 2, or 3')
 
     args = {'RA': ra, 'DEC': dec, 'SR': sr, 'VERB': verb}
@@ -275,7 +275,7 @@ def predict_search(*args, **kwargs):
         If input args are invalid or prediction fails.
 
     """
-    if len(args) != 3 or args[2] <= 0:
+    if len(args) != 3 or args[2] <= 0:  # pragma: no cover
         raise ConeSearchError(
             'conesearch must have exactly 3 arguments and search radius '
             'has to be > 0.')
@@ -299,7 +299,7 @@ def predict_search(*args, **kwargs):
     sr_max = 0.5 * sr   # Max radius to stop the timer
     sr_step = (1.0 / num_datapoints) * (sr_max - sr_min)  # Radius step
 
-    if verbose:
+    if verbose:  # pragma: no cover
         log.info('predict_search latency time = {} s'.format(t_min))
         log.info('predict_search radius step = {} deg'.format(sr_step))
 
@@ -310,7 +310,7 @@ def predict_search(*args, **kwargs):
     while t_cur < t_max and sr_cur < sr_max:
         t_cur, n_cur, url = conesearch_timer(ra, dec, sr_cur, **kwargs)
 
-        if verbose:
+        if verbose:  # pragma: no cover
             log.info('predict_search took {} s with {} results '
                      'at {} deg radius'.format(t_cur, n_cur, sr_cur))
 
@@ -322,7 +322,7 @@ def predict_search(*args, **kwargs):
         sr_cur += sr_step
 
     n_datapoints = len(sr_arr)
-    if n_datapoints < min_datapoints:
+    if n_datapoints < min_datapoints:  # pragma: no cover
         raise ConeSearchError('predict_search only has {} data points; '
                               'unable to continue.'.format(n_datapoints))
 
@@ -338,7 +338,7 @@ def predict_search(*args, **kwargs):
     n_est, n_fit = _extrapolate(sr_arr, n_arr, sr, ymin=n_min, ymax=n_max,
                                 name='number of results')
 
-    if verbose:
+    if verbose:  # pragma: no cover
         from matplotlib import pyplot as plt
         fig = plt.figure()
 
@@ -386,7 +386,7 @@ def _local_conversion(func, x):
     """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
     try:
         y = func(x)
-    except ValueError as e:
+    except ValueError as e:  # pragma: no cover
         raise ConeSearchError(e.message)
     return y
 
@@ -400,9 +400,9 @@ def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     if m < 0:
         log.warn('Fitted slope for {} is negative ({})'.format(name, m))
 
-    if ymin is not None and y < ymin:
+    if ymin is not None and y < ymin:  # pragma: no cover
         log.warn('Predicted {} is less than {} {}'.format(name, ymin, unit))
-    elif ymax is not None and y > ymax:
+    elif ymax is not None and y > ymax:  # pragma: no cover
         log.warn('Predicted {} is more than {} {}'.format(name, ymax, unit))
 
     return y, y_fit
@@ -410,7 +410,7 @@ def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
 
 def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y, ylabel):
     """For use by `predict_search`."""
-    ax.plot(x_arr, y_arr, 'kx-')
-    ax.plot(x_arr, y_fit, 'b--')
-    ax.scatter([x], [y], marker='o', c='r')
-    ax.set_ylabel(ylabel)
+    ax.plot(x_arr, y_arr, 'kx-')  # pragma: no cover
+    ax.plot(x_arr, y_fit, 'b--')  # pragma: no cover
+    ax.scatter([x], [y], marker='o', c='r')  # pragma: no cover
+    ax.set_ylabel(ylabel)  # pragma: no cover

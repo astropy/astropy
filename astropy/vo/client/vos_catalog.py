@@ -99,7 +99,7 @@ class VOSCatalog(object):
 
     def __repr__(self):
         """Pretty print."""
-        return json.dumps(self._tree, indent=4)
+        return json.dumps(self._tree, indent=4)  # pragma: no cover
 
     def __getattr__(self, what):
         """Expose dictionary attributes."""
@@ -127,10 +127,10 @@ class VOSDatabase(VOSCatalog):
     def __init__(self, tree):
         self._tree = tree
 
-        if tree['__version__'] > __dbversion__:
+        if tree['__version__'] > __dbversion__:  # pragma: no cover
             vo_warn(W24)
 
-        if not 'catalogs' in tree:
+        if not 'catalogs' in tree:  # pragma: no cover
             raise VOSError("Invalid VO service catalog database")
 
         self._catalogs = tree['catalogs']
@@ -256,7 +256,7 @@ def _vo_service_request(url, pedantic, kwargs):
         break
 
     out_tab = tab.get_first_table()
-    if out_tab.array.size <= 0:
+    if kwargs.get('sr', 1) == 0 and out_tab.array.size <= 0:
         raise VOSError("Catalog server '{}' returned {} result".format(
             url, out_tab.array.size))
 
@@ -325,20 +325,20 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     if catalog_db is None:
         catalog_db = get_remote_catalog_db(service_type, cache=cache)
         catalogs = catalog_db.get_catalogs()
+    elif isinstance(catalog_db, VOSDatabase):
+        catalogs = catalog_db.get_catalogs()
     elif isinstance(catalog_db, (VOSCatalog, basestring)):
         catalogs = [(None, catalog_db)]
     elif isinstance(catalog_db, list):
         for x in catalog_db:
-            assert isinstance(
-                x, (VOSCatalog, basestring))
+            assert isinstance(x, (VOSCatalog, basestring)) and \
+                not isinstance(x, VOSDatabase)
         catalogs = [(None, x) for x in catalog_db]
-    elif isinstance(catalog_db, VOSDatabase):
-        catalogs = catalog_db.get_catalogs()
-    else:
+    else:  # pragma: no cover
         raise VOSError('catalog_db must be a catalog database, '
                        'a list of catalogs, or a catalog')
 
-    if pedantic is None:
+    if pedantic is None:  # pragma: no cover
         pedantic = VO_PEDANTIC
 
     for name, catalog in catalogs:
@@ -352,7 +352,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         else:
             url = catalog['url']
 
-        if verbose:
+        if verbose:  # pragma: no cover
             color_print('Trying {}'.format(url), 'green')
 
         try:
