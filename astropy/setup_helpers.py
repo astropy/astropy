@@ -325,11 +325,8 @@ try:
 
     AstropyBuildSphinx.__name__ = 'build_sphinx'
 
-except ImportError as e:
-    if 'sphinx' in e.args[0]:  # Sphinx not present
-        AstropyBuildSphinx = None
-    else:
-        raise
+except ImportError:
+    AstropyBuildSphinx = None
 
 
 def get_distutils_display_options():
