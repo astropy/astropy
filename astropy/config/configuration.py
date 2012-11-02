@@ -16,7 +16,7 @@ from contextlib import contextmanager
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
-           'reload_config']
+           'reload_config', 'reset_configuration_items']
 
 
 class InvalidConfigurationItemWarning(Warning):
@@ -575,3 +575,25 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
 
     _fix_section_blank_lines(package.__name__, True, True)
     save_config(package.__name__)
+
+
+def reset_configuration_items(pkgorname=None):
+    """
+    Resets all configuration items in a particular package to their
+    default settings. (With no arguments, this resets the whole astropy
+    core package.)
+
+    .. note::
+        To reset configuration for an affiliated package, you *must*
+        provide the affiliated package's name.  The default is to only
+        reset the Astropy core package's configuration.
+
+    Parameters
+    ----------
+    pkgorname : str or module or None
+        The package or module to have its configuration reset, specified
+        either by name or as a module object.  Alternatively, if None,
+        the whole astropy core package will be reset.
+
+    """
+    _generate_all_config_items(pkgorname, True)
