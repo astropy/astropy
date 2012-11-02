@@ -60,6 +60,10 @@ class TestConeSearch():
         self.old_stype = conesearch._SERVICE_TYPE
         conesearch._SERVICE_TYPE = 'conesearch_simple'
 
+    def test_cat_listing(self):
+        assert conesearch.list_catalogs(sort=True) == \
+               ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1']
+
     def test(self):
         #self.url, self.ra, self.dec, self.sr
         #catdb_none = conesearch.conesearch(self.ra, self.dec, self.sr, pedantic=False)
