@@ -18,9 +18,9 @@ Getting Started
 To see the configuration options, you'll first need to populate your
 configuration files.  Do this by running::
 
-    from astropy.config import update_configuration_items
+    from astropy.config import update_configuration_files
 
-    update_configuration_items()
+    update_configuration_files()
 
 If you later updgrade to a newer version of astropy, you'll want to run this
 again to make sure the file is updated with new configuration items that may
@@ -51,9 +51,9 @@ want to see your changes immediately in your current Astropy session, just do::
 
 If you ever want to reset your configuration back to the defaults, just do::
 
-    from astropy.config import reset_configuration_items
+    from astropy.config import reset_configuration_files
 
-    reset_configuration_items()
+    reset_configuration_files()
 
 .. note::
     If for whatever reason your ``$HOME/.astropy`` directory is not accessible
