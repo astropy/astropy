@@ -384,6 +384,11 @@ def get_config(packageormod=None, reload=False):
             cfgfn = join(get_config_dir(), rootname + '.cfg')
             _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
                 interpolation=False)
+
+            #if cobj is None, that means this package has never been accessed,
+            #and we need to populate the defaults.
+            _generate_all_config_items(packageormod, False)
+
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
@@ -536,8 +541,9 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     of the function where this function is called. Be a bit cautious about
     this, though - this might not always be what you want.
     """
-    from pkgutil import get_loader, walk_packages
+    from os.path import split
     from types import ModuleType
+    from pkgutil import get_loader, walk_packages
 
     from ..utils import find_current_module
 
@@ -552,8 +558,15 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
         msg = '_generate_all_config_items was not given a package/package name'
         raise TypeError(msg)
 
-    for imper, nm, ispkg in walk_packages(package.__path__,
-                                          package.__name__ + '.'):
+    if hasattr(package,'__path__'):
+        pkgpath = package.__path__
+    elif hasattr(package, '__file__'):
+        pkgpath = split(package.__file__)[0]
+    else:
+        raise AttributeError('package to generate config items for does not '
+                             'have __file__ or __path__')
+
+    for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
         mod = imper.find_module(nm)
         if reset_to_default:
             for v in mod.__dict__.itervalues():
