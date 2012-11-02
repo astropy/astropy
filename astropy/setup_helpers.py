@@ -214,7 +214,7 @@ if HAVE_SPHINX:
         """
 
         description = 'Build Sphinx documentation for Astropy environment'
-        user_options = BuildDoc.user_options[:]
+        user_options = SphinxBuildDoc.user_options[:]
         user_options.append(('clean-docs', 'l', 'Completely clean previously '
                                                 'builds, including auotmodapi-'
                                                 'generated files before '
@@ -222,14 +222,14 @@ if HAVE_SPHINX:
 
         user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
                                                     'conf.py says to use it'))
-        boolean_options = BuildDoc.boolean_options[:]
+        boolean_options = SphinxBuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
         def initialize_options(self):
-            BuildDoc.initialize_options(self)
+            SphinxBuildDoc.initialize_options(self)
             self.clean_docs = False
             self.no_intersphinx = False
 
@@ -253,7 +253,7 @@ if HAVE_SPHINX:
                         log.info('Not cleaning directory ' + d + ' because '
                                  'not present or not a directory')
 
-            BuildDoc.finalize_options(self)
+            SphinxBuildDoc.finalize_options(self)
 
         def run(self):
             from os.path import split, join
@@ -287,7 +287,7 @@ if HAVE_SPHINX:
             #command.  This is needed to get the correct imports for the built
             #version
 
-            runlines, runlineno = getsourcelines(BuildDoc.run)
+            runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
             subproccode = dedent("""
             from sphinx.setup_command import *
 
