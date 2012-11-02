@@ -178,7 +178,8 @@ def wrap_build_ext(basecls=DistutilsBuildExt):
                             raise IOError(errno.ENOENT, msg, cfn)
 
         if orig_run is not None:
-            # This shouldn't happen.
+            # This should always be the case for a correctly implemented
+            # distutils command.
             orig_run(self)
 
     attrs['run'] = run
