@@ -10,9 +10,12 @@ configuration files for Astropy and affiliated packages.
 """
 
 from __future__ import division
+
+import re
 import textwrap
-from ..extern.configobj import configobj, validate
 from contextlib import contextmanager
+
+from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
@@ -526,6 +529,11 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
         if recurse:
             _fix_section_blank_lines(sec[snm], True, False)
 
+_unsafe_import_regex = [r'astropy\.sphinx\.ext.*',
+                           r'astropy\.utils\.compat\._gzip_32']
+_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
+_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
+
 
 def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
     """ Given a root package name or package, this function simply walks
@@ -565,10 +573,11 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
                              'have __file__ or __path__')
 
     for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
-        imper.find_module(nm)
-        if reset_to_default:
-            for cfgitem in get_config_items(nm).itervalues():
-                cfgitem.set(cfgitem.defaultvalue)
+        if not _unsafe_import_regex.match(nm):
+            imper.find_module(nm)
+            if reset_to_default:
+                for cfgitem in get_config_items(nm).itervalues():
+                    cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
     if save:
