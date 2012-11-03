@@ -113,21 +113,12 @@ class Column(object):
         self.type = NoType
         self.str_vals = []
         self.fill_values = {}
-        self.formatter = None
 
-    def __iter__(self):
-        '''Iterate over formatted column values, for use in write()
-
-        Each value is paased through self.formatter.
-        If str(self.formatter(value)) is found in the fill_values specification,
-        the corresponding fill_value is returned, otherwise the formated value.
-        '''
-        formatter = self.formatter
-        for val in self.data:
-            yield formatter(val)
 
 class BaseInputter(object):
-    """Get the lines from the table input and return a list of lines.  The input table can be one of:
+    """
+    Get the lines from the table input and return a list of lines.  The input
+    table can be one of:
 
     * File name
     * String (newline separated) with all header and data lines (must have at least 2 lines)
@@ -170,6 +161,7 @@ class BaseInputter(object):
         ContinuationLinesInputter derived class accounts for continuation
         characters if a row is split into lines."""
         return lines
+
 
 class BaseSplitter(object):
     """Base splitter that uses python's split method to do the work.
@@ -307,6 +299,7 @@ class DefaultSplitter(BaseSplitter):
 
         return self.csv_writer_out.getvalue()
 
+
 def _replace_tab_with_space(line, escapechar, quotechar):
     """Replace tab with space within ``line`` while respecting quoted substrings"""
     newline = []
@@ -320,6 +313,7 @@ def _replace_tab_with_space(line, escapechar, quotechar):
         lastchar = char
         newline.append(char)
     return ''.join(newline)
+
 
 def _get_line_index(line_or_func, lines):
     """Return the appropriate line index, depending on ``line_or_func`` which
@@ -391,7 +385,8 @@ class BaseHeader(object):
                 try:
                     first_data_vals = next(self.data.get_str_vals())
                 except StopIteration:
-                    raise InconsistentTableError('No data lines found so cannot autogenerate column names')
+                    raise InconsistentTableError('No data lines found so cannot autogenerate '
+                                                 'column names')
                 n_data_cols = len(first_data_vals)
                 self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
 
@@ -470,7 +465,6 @@ class BaseData(object):
     splitter_class = DefaultSplitter
     write_spacer_lines = ['ASCIITABLE_WRITE_SPACER_LINE']
     formats = {}
-    default_formatter = str
     fill_values = []
     fill_include_names = None
     fill_exclude_names = None
@@ -559,7 +553,8 @@ class BaseData(object):
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 col.mask = numpy.zeros(len(col.str_vals), dtype=numpy.bool)
-                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals) if x in col.fill_values):
+                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
+                                   if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
                     col.mask[i] = True
 
