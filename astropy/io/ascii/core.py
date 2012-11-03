@@ -78,23 +78,30 @@ except NameError:
                 return True
         return False
 
+
 class NoType(object):
     pass
+
 
 class StrType(NoType):
     pass
 
+
 class NumType(NoType):
     pass
+
 
 class FloatType(NumType):
     pass
 
+
 class IntType(NumType):
     pass
 
+
 class AllType(StrType, FloatType, IntType):
     pass
+
 
 class Column(object):
     """Table column.
@@ -525,7 +532,7 @@ class BaseData(object):
             #if input is only one <fill_spec>, then make it a list
             try:
                 self.fill_values[0] + ''
-                self.fill_values = [ self.fill_values ]
+                self.fill_values = [self.fill_values]
             except TypeError:
                 pass
             # Step 1: Set the default list of columns which are affected by fill_values
@@ -536,10 +543,12 @@ class BaseData(object):
                 colnames.difference_update(self.fill_exclude_names)
 
             # Step 2a: Find out which columns are affected by this tuple
-            # iterate over reversed order, so last condition is set first and overwritten by earlier conditions
+            # iterate over reversed order, so last condition is set first and
+            # overwritten by earlier conditions
             for replacement in reversed(self.fill_values):
                 if len(replacement) < 2:
-                    raise ValueError("Format of fill_values must be (<bad>, <fill>, <optional col1>, ...)")
+                    raise ValueError("Format of fill_values must be "
+                                     "(<bad>, <fill>, <optional col1>, ...)")
                 elif len(replacement) == 2:
                     affect_cols = colnames
                 else:
@@ -549,7 +558,7 @@ class BaseData(object):
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
-        """Replace string values in col.str_vales and set masks"""
+        """Replace string values in col.str_vals and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 col.mask = numpy.zeros(len(col.str_vals), dtype=numpy.bool)
