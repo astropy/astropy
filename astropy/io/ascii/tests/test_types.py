@@ -25,18 +25,11 @@ def test_types_from_dat():
                           Reader=asciitable.Basic,
                           converters=converters)
 
-    reader = asciitable.get_reader(Reader=asciitable.Memory)
-    reader.read(dat)
-
-    print('dat=%s' % repr(dat))
-    print('reader.table=%s' % repr(reader.table))
-    print('types=%s' % repr([x.type for x in reader.cols]))
-
-    assert_true(issubclass(reader.cols[0].type, asciitable.FloatType))
-    assert_true(issubclass(reader.cols[1].type, asciitable.IntType))
-    assert_true(issubclass(reader.cols[2].type, asciitable.StrType))
-    assert_true(issubclass(reader.cols[3].type, asciitable.FloatType))
-    assert_true(issubclass(reader.cols[4].type, asciitable.StrType))
+    assert dat['a'].dtype.kind == 'f'
+    assert dat['b'].dtype.kind == 'i'
+    assert dat['c'].dtype.kind in ('S', 'U')
+    assert dat['d'].dtype.kind == 'f'
+    assert dat['e'].dtype.kind == 'S'
 
 
 def test_rdb_write_types():

@@ -42,7 +42,6 @@ from . import cds
 from . import daophot
 from . import sextractor
 from . import ipac
-from . import memory
 from .core import next, izip, any
 from . import latex
 
