@@ -258,12 +258,9 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     """
 
     table = Table(table, names=kwargs.get('names'))
+    table.cols = table.columns.values()
     reader_kwargs = dict((key, val) for key, val in kwargs.items()
-                         if key in ('names', 'include_names', 'exclude_names'))
-    if not isinstance(table, core.BaseReader) or reader_kwargs:
-        reader = get_reader(Reader=memory.Memory, **reader_kwargs)
-        reader.read(table)
-        table = reader
+                         if key in ('include_names', 'exclude_names'))
 
     writer = get_writer(Writer=Writer, **kwargs)
     lines = writer.write(table)

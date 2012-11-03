@@ -572,21 +572,20 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        formatters = []
+        # Save the internal column formats to allow for override with
+        # the write `formats` kwarg.
+        orig_formats = [col.format for col in self.cols]
         for col in self.cols:
-            formatter = self.formats.get(col.name, self.default_formatter)
-            if not hasattr(formatter, '__call__'):
-                formatter = _format_func(formatter)
-            col.formatter = formatter
+            if col.name in self.formats:
+                col.format = self.formats[col.name]
 
-        for vals in izip(*self.cols):
+        col_str_iters = [col.iter_str_vals() for col in self.cols]
+        for vals in izip(*col_str_iters):
             lines.append(self.splitter.join(vals))
 
-
-def _format_func(format_str):
-    def func(val):
-        return format_str % val
-    return func
+        # Restore the original column format values
+        for col, orig_format in izip(self.cols, orig_formats):
+            col.format = orig_format
 
 
 class DictLikeNumpy(dict):
