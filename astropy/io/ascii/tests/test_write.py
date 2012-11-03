@@ -20,7 +20,7 @@ ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 """
          ),
     dict(kwargs=dict(formats={'XCENTER': '%12.1f',
-                              'YCENTER': lambda x: round(x, 1)},
+                              'YCENTER': '{0:.1f}'},
                      include_names=['XCENTER', 'YCENTER']),
          out="""\
 XCENTER YCENTER

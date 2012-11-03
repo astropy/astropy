@@ -217,9 +217,9 @@ class RdbHeader(core.BaseHeader):
         lines.append(self.splitter.join([x.name for x in self.cols]))
         rdb_types = []
         for col in self.cols:
-            if issubclass(col.type, core.NumType):
-                rdb_types.append('N')
-            else:
-                rdb_types.append('S')
+            # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
+            rdb_type = 'S' if col.dtype.kind in ('S', 'U') else 'N'
+            rdb_types.append(rdb_type)
+
         lines.append(self.splitter.join(rdb_types))
 

@@ -258,9 +258,17 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     """
 
     table = Table(table, names=kwargs.get('names'))
+
+    names = set(table.colnames)
+    if 'include_names' in kwargs:
+        names.intersection_update(kwargs['include_names'])
+    if 'exclude_names' in kwargs:
+        names.difference_update(kwargs['exclude_names'])
+    if names != set(table.colnames):
+        remove_names = set(table.colnames) - set(names)
+        table.remove_columns(remove_names)
+
     table.cols = table.columns.values()
-    reader_kwargs = dict((key, val) for key, val in kwargs.items()
-                         if key in ('include_names', 'exclude_names'))
 
     writer = get_writer(Writer=Writer, **kwargs)
     lines = writer.write(table)

@@ -230,19 +230,14 @@ class FixedWidthData(core.BaseData):
     splitter_class = FixedWidthSplitter
 
     def write(self, lines):
-        formatters = []
-        for col in self.cols:
-            formatter = self.formats.get(col.name, self.default_formatter)
-            if not hasattr(formatter, '__call__'):
-                formatter = core._format_func(formatter)
-            col.formatter = formatter
-            
-        vals_list = []
-        # Col iterator does the formatting defined above so each val is a string
-        # and vals is a tuple of strings for all columns of each row
-        for vals in izip(*self.cols):
-            vals_list.append(vals)
-            
+        with self._set_col_formats(self.cols, self.formats):
+            vals_list = []
+            # Col iterator does the formatting defined above so each val is a string
+            # and vals is a tuple of strings for all columns of each row
+            col_str_iters = [col.iter_str_vals() for col in self.cols]
+            for vals in izip(*col_str_iters):
+                vals_list.append(vals)
+
         for i, col in enumerate(self.cols):
             col.width = max([len(vals[i]) for vals in vals_list])
             if self.header.start_line is not None:

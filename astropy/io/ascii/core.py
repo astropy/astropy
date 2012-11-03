@@ -35,6 +35,7 @@ import re
 import csv
 import itertools
 import numpy
+from contextlib import contextmanager
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -576,21 +577,27 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        # Save the internal column formats to allow for override with
-        # the write `formats` kwarg.
-        orig_formats = [col.format for col in self.cols]
-        for col in self.cols:
-            if col.name in self.formats:
-                col.format = self.formats[col.name]
+        with self._set_col_formats(self.cols, self.formats):
+            col_str_iters = [col.iter_str_vals() for col in self.cols]
+            for vals in izip(*col_str_iters):
+                lines.append(self.splitter.join(vals))
 
-        col_str_iters = [col.iter_str_vals() for col in self.cols]
-        for vals in izip(*col_str_iters):
-            lines.append(self.splitter.join(vals))
+    @contextmanager
+    def _set_col_formats(self, cols, formats):
+        """
+        Context manager to save the internal column formats in `cols` and
+        override with any custom `formats`.
+        """
+        orig_formats = [col.format for col in cols]
+        for col in cols:
+            if col.name in formats:
+                col.format = formats[col.name]
+
+        yield  # execute the nested context manager block
 
         # Restore the original column format values
-        for col, orig_format in izip(self.cols, orig_formats):
+        for col, orig_format in izip(cols, orig_formats):
             col.format = orig_format
-
 
 class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
@@ -873,8 +880,7 @@ class BaseReader(object):
 
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
-        self.data.cols = self.header.cols
-        self.data.masks(self.data.cols)
+        self.data.cols = table.cols
 
         # Write header and data to lines list
         lines = []
