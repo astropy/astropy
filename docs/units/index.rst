@@ -7,8 +7,9 @@ Units (`astropy.units`)
 Introduction
 ============
 
-`astropy.units` is a Python package to handle defining and converting
-between physical units.
+``astropy.units`` is a Python package to handle defining and converting
+between physical units, and performing arithmetic with physical quantities
+(numbers with associated units).
 
 Getting Started
 ===============
@@ -43,12 +44,17 @@ are passed to the `~astropy.units.core.UnitBase.to` conversion method::
   >>> u.nm.to(u.eV, [1000, 2000], equivs=u.sp())
   array([ 1.23984201,  0.61992101])
 
-Also included in the `astropy.units` package is the `Quantity` object, 
-which represents a numerical value with an associated unit. Arithmetic
-between `Quantity` objects will preserve units.
+Also included in the `astropy.units` package is the `Quantity` object,
+which represents a numerical value with an associated unit. These objects
+support arithmetic with other numbers and `Quantity` objects and preserve
+units.
    >>> from astropy import units as u
-   >>> u.Quantity(15.1, u.meter) / u.Quantity(32.0, u.second)
+   >>> 15.1*u.meter / (32.0*u.second)
    <Quantity 0.471875 m / (s)>
+   >>> 3.0*u.kilometer / (130.51*u.meter/u.second)
+   <Quantity 0.0229867443108 km s / (m)>
+   >>> (3.0*u.kilometer / (130.51*u.meter/u.second)).simplify_units()
+   <Quantity 22.9867443108 s>
 
 Using `astropy.units`
 =====================
@@ -61,6 +67,7 @@ Using `astropy.units`
    conversion
    format
    equivalencies
+   quantity
 
 See Also
 ========
