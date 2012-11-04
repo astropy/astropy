@@ -2,41 +2,47 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
-from pytest import raises
+import numpy as np
+from ...tests.helper import pytest
 
-from ... import units as u
+from .. import angle_utilities
+
+distance_funcs = {'small_angle': angle_utilities.small_angle_dist,
+                  'sphere': angle_utilities.sphere_dist,
+                  'haversine': angle_utilities.haversine_dist,
+                  'haversine_atan': angle_utilities.haversine_dist_atan,
+                  'vicenty': angle_utilities.vicenty_dist,
+                 }
+# lat1, long1, lat2, long2 in degrees
+coords = [(0, 0, 1, 0),
+          (0, 0, 0, 10),
+          (0, 0, 0, 90),
+          (0, 0, 0, 180),
+          (45, 0, -45, 0),
+          (60, 0, -30, 0),
+          (0, 0, 0, 0),
+          (0, 0, 1. / 60., 1. / 60.)
+         ]
+correct_seps = [1, 10, 90, 180, 90, 90, 0, 0.023570225877234643]
+correctness_margin = 1e-98
 
 
-def test_2dseparations():
+@pytest.mark.parametrize(('coords', 'corrsep'), zip(coords, correct_seps))
+def test_2dseparations(coords, corrsep):
     """
     A variety of tests to examine how close the various distance estimators are
     """
-    from math import fabs
+    from math import fabs, radians, degrees
 
-    from .. import angles
+    lat1, long1, lat2, long2 = coords
 
-    distances = {'small_angle': angles.AngularSeparation._small_angle_dist,
-                 'sphere': angles.AngularSeparation._sphere_dist,
-                 'haversine': angles.AngularSeparation._haversine_dist,
-                 'haversine_atan': angles.AngularSeparation._haversine_dist_atan,
-                 'vicenty': angles.AngularSeparation._vicenty_dist,
-                }
+    print('({0},{1}) - ({2},{3})'.format(lat1, long1, lat2, long2))
+    print('Correct separation', corrsep)
 
-             # lat1, long1, lat2, long2
-    coords = [(0, 0, 1, 0),
-              (0, 0, 0, 10),
-              (0, 0, 0, 90),
-              (0, 0, 0, 180),
-              (45, 0, -45, 0),
-              (0, 0, 0, 0),
-              (0, 0, 1 / 60., .1 / 60.)
-             ]
-    coorect_seps = [1, 10, 90, 180, 90, 0, 2 ** 0.5 / 60.]
+    seps = {}
+    for n, dfunc in distance_funcs.iteritems():
+        sep = degrees(dfunc(radians(lat1), radians(long1), radians(lat2), radians(long2)))
+        seps[n] = sep - corrsep
+    print(seps)
+    assert all([fabs(sepval) < 1e-9 for sepval in seps.values()])
 
-    for (lat1, long1, lat2, long2), corrsep in zip(coords, coorect_seps):
-        print('({0},{1}) - ({2},{3})'.format(lat1, long1, lat2, long2))
-        print('Correct separation', corrsep)
-        for n, dfunc in distances.iteritems():
-            sep = dfunc(lat1, long1, lat2, long2)
-            print(n, sep - corrsep)
-            assert fabs(sep - corrsep) < 1e-10
