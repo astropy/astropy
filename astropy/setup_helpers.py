@@ -223,12 +223,16 @@ if HAVE_SPHINX:
                                                 'builds, including auotmodapi-'
                                                 'generated files before '
                                                 'building new ones'))
-
         user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
                                                     'conf.py says to use it'))
+        user_options.append(('open-docs-in-browser', 'o', 'Open the docs in a '
+                                'browser (using the webbrowser module) if the '
+                                'build finishes successfully.'))
+
         boolean_options = SphinxBuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
+        boolean_options.append('open-docs-in-browser')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
@@ -236,6 +240,7 @@ if HAVE_SPHINX:
             SphinxBuildDoc.initialize_options(self)
             self.clean_docs = False
             self.no_intersphinx = False
+            self.open_docs_in_browser = False
 
         def finalize_options(self):
             from os.path import isdir
@@ -260,11 +265,13 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
-            from os.path import split, join
+            from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE
             from textwrap import dedent
             from inspect import getsourcelines
+            from urllib import pathname2url
+            import webbrowser
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -329,7 +336,16 @@ if HAVE_SPHINX:
 
             proc = Popen([sys.executable], stdin=PIPE)
             proc.communicate(subproccode)
-            if proc.returncode != 0:
+            if proc.returncode == 0:
+                if self.open_docs_in_browser:
+                    if self.builder == 'html':
+                        absdir = abspath(self.builder_target_dir)
+                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
+                        webbrowser.open(fileurl)
+                    else:
+                        log.warn('open-docs-in-browser option was given, but '
+                                 'the builder is not html! Ignogring.')
+            else:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
 
