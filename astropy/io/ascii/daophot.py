@@ -33,6 +33,7 @@ daophot.py:
 import re
 from . import core
 from . import basic
+from ...utils import OrderedDict
 
 class Daophot(core.BaseReader):
     """Read a DAOphot file.
@@ -79,10 +80,10 @@ class Daophot(core.BaseReader):
         reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', names=names)
         headerkeywords = reader.read(self.comment_lines)
 
-        out.meta['keywords'] = []
+        out.meta['keywords'] = OrderedDict()
         for headerkeyword in headerkeywords:
-            keyword_dict = dict((x, headerkeyword[x]) for x in names if 'temp' not in x)
-            out.meta['keywords'].append(keyword_dict)
+            keyword_dict = dict((x, headerkeyword[x]) for x in ('value', 'units', 'format'))
+            out.meta['keywords'][headerkeyword['name']] = keyword_dict
         self.cols = self.header.cols
 
         return out

@@ -44,16 +44,12 @@ def test_daophot_header_keywords():
                          ('REJFILE', 'hello world', 'filename', '%-23s'),
                          ('SCALE', '1.',  'units/pix', '%-23.7g'),)
 
+    keywords = table.meta['keywords']  # Ordered dict of keyword structures
     for name, value, units, format_ in expected_keywords:
-        for keyword in table.meta['keywords']:
-            if keyword['name'] == name:
-                assert_equal(keyword['value'], value)
-                assert_equal(keyword['units'], units)
-                assert_equal(keyword['format'], format_)
-                break
-        else:
-            raise ValueError('Keyword not found')
-
+        keyword = keywords[name]
+        assert_equal(keyword['value'], value)
+        assert_equal(keyword['units'], units)
+        assert_equal(keyword['format'], format_)
 
 
 @raises(asciitable.InconsistentTableError)
