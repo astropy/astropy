@@ -173,12 +173,16 @@ def write_hdf5(table, output, name=None, compression=False, group="",
             try:
                 dset.attrs[key] = table.meta[key]
             except TypeError:
-                log.warn("Attribute `{0}` of type {1} cannot be written to HDF5 files - skipping".format(key, type(table.meta[key])))
+                log.warn("Attribute `{0}` of type {1} cannot be written to"
+                         "HDF5 files - skipping".format(key,
+                         type(table.meta[key])))
 
     if f is not None:
         f.close()
 
-from astropy.table.io_registry import register_reader, register_writer, register_identifier
+from astropy.table.io_registry import register_reader, \
+                                      register_writer, \
+                                      register_identifier
 
 register_reader('hdf5', read_hdf5)
 register_writer('hdf5', write_hdf5)
