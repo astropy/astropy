@@ -35,8 +35,8 @@ def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(test_file, name='the_table')
-    t2 = Table.read(test_file, name='the_table')
+    t1.write(test_file, path='the_table')
+    t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -47,12 +47,12 @@ def test_read_fileobj(tmpdir):
 
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(test_file, name='the_table')
+    t1.write(test_file, path='the_table')
 
     import h5py
     input_file = h5py.File(test_file, 'r')
 
-    t2 = Table.read(input_file, name='the_table')
+    t2 = Table.read(input_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -63,12 +63,12 @@ def test_read_filobj_group(tmpdir):
 
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(test_file, name='the_table', group='path/to/data')
+    t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
     input_file = h5py.File(test_file, 'r')
 
-    t2 = Table.read(input_file, name='the_table', group='path/to/data')
+    t2 = Table.read(input_file, path='path/to/data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -82,10 +82,10 @@ def test_write_fileobj(tmpdir):
 
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(output_file, name='the_table')
+    t1.write(output_file, path='the_table')
     output_file.close()
 
-    t2 = Table.read(test_file, name='the_table')
+    t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -99,10 +99,10 @@ def test_write_filobj_group(tmpdir):
 
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(output_file, name='the_table', group='path/to/data')
+    t1.write(output_file, path='path/to/data/the_table')
     output_file.close()
 
-    t2 = Table.read(test_file, name='the_table', group='path/to/data')
+    t2 = Table.read(test_file, path='path/to/data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -116,9 +116,9 @@ def test_preserve_single_dtypes(tmpdir, dtype):
 
     t1 = Table()
     t1.add_column(Column('a', np.array(values, dtype=dtype)))
-    t1.write(test_file, name='the_table')
+    t1.write(test_file, path='the_table')
 
-    t2 = Table.read(test_file, name='the_table')
+    t2 = Table.read(test_file, path='the_table')
 
     assert np.all(t2['a'] == values)
     assert t2['a'].dtype == dtype
@@ -135,9 +135,9 @@ def test_preserve_all_dtypes(tmpdir):
         values = _default_values(dtype)
         t1.add_column(Column(str(dtype), np.array(values, dtype=dtype)))
 
-    t1.write(test_file, name='the_table')
+    t1.write(test_file, path='the_table')
 
-    t2 = Table.read(test_file, name='the_table')
+    t2 = Table.read(test_file, path='the_table')
 
     for dtype in ALL_DTYPES:
         values = _default_values(dtype)
@@ -159,9 +159,9 @@ def test_preserve_meta(tmpdir):
     t1.meta['d'] = True
     t1.meta['e'] = np.array([1, 2, 3])
 
-    t1.write(test_file, name='the_table')
+    t1.write(test_file, path='the_table')
 
-    t2 = Table.read(test_file, name='the_table')
+    t2 = Table.read(test_file, path='the_table')
 
     for key in t1.meta:
         assert np.all(t1.meta[key] == t2.meta[key])

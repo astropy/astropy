@@ -36,7 +36,7 @@ def _is_hdf5(origin, args, kwargs):
     return False
 
 
-def read_hdf5(input, name=None, group=""):
+def read_hdf5(input, path=None):
     """
     Read a Table object from an HDF5 file
 
@@ -48,11 +48,9 @@ def read_hdf5(input, name=None, group=""):
     input : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to read the table from. If an h5py object,
         either the file or the group object to read the table from.
-    group : str
-        The group to read the table from inside the HDF5 file. This can
-        only be used if the ``input`` argument is a string.
-    name : str
-        The table name in the file.
+    path : str
+        The path from which to read the table inside the HDF5 file.
+        This should be relative to the input file or group.
     """
 
     try:
@@ -60,10 +58,15 @@ def read_hdf5(input, name=None, group=""):
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
 
-    if name is None:
-        raise ValueError("table name should be set via the name= argument")
-    elif '/' in name:
-        raise ValueError("table name should not contain any '/'")
+    if path is None:
+        raise ValueError("table path should be set via the path= argument")
+    elif path.endswith('/'):
+        raise ValueError("table path should end with table name, not /")
+
+    if '/' in path:
+        group, name = path.rsplit('/', 1)
+    else:
+        group, name = "", path
 
     if isinstance(input, h5py.highlevel.File) or \
        isinstance(input, h5py.highlevel.Group):
@@ -98,7 +101,7 @@ def read_hdf5(input, name=None, group=""):
     return table
 
 
-def write_hdf5(table, output, name=None, compression=False, group="",
+def write_hdf5(table, output, path=None, compression=False,
                append=False, overwrite=False):
     """
     Write a Table object to an HDF5 file
@@ -111,14 +114,11 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     output : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
-    name : str
-        The table name in the file.
     compression : bool
         Whether to compress the table inside the HDF5 file.
-    group : str
-        The group to write the table to inside the HDF5 file, relative
-        to the output (i.e. if a h5py group object is passed in
-        `output`, then `group` is the path relative to the group.)
+    path : str
+        The path to which to write the table inside the HDF5 file.
+        This should be relative to the input file or group.
     append : bool
         Whether to append the table to an existing HDF5 file.
     overwrite : bool
@@ -130,10 +130,15 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
 
-    if name is None:
-        raise ValueError("table name should be set via the name= argument")
-    elif '/' in name:
-        raise ValueError("table name should not contain any '/'")
+    if path is None:
+        raise ValueError("table path should be set via the path= argument")
+    elif path.endswith('/'):
+        raise ValueError("table path should end with table name, not /")
+
+    if '/' in path:
+        group, name = path.rsplit('/', 1)
+    else:
+        group, name = "", path
 
     if isinstance(output, h5py.highlevel.File) or \
        isinstance(output, h5py.highlevel.Group):
