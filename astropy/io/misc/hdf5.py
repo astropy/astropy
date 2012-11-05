@@ -1,0 +1,140 @@
+import os
+
+import numpy as np
+
+from ... import log
+
+HDF5_SIGNATURE = '\x89HDF\r\n\x1a\n'
+
+
+def is_hdf5(origin, args, kwargs):
+
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
+
+    if isinstance(args[0], h5py.highlevel.File) or \
+       isinstance(args[0], h5py.highlevel.Group):
+        return True
+    elif isinstance(args[0], basestring):
+        if os.path.exists(args[0]):
+            with open(args[0], 'rb') as f:
+                if f.read(8) == HDF5_SIGNATURE:
+                    return True
+                else:
+                    return False
+        elif args[0].endswith('.hdf5'):
+            return True
+
+    return False
+
+
+def _get_file_and_group(filename, group=None, append=False):
+    """
+    Return handles to a file and group
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file to open/create
+    group : str, optional
+        The name of the group to open/create
+    append : bool, optional
+        Whether to append to an existing file, or whether to create a new
+        file.
+    """
+
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
+
+    # Open the file for appending or writing
+    f = h5py.File(filename, 'a' if append else 'w')
+
+    if group:
+        if append:
+            if group in f.keys():
+                g = f[group]
+            else:
+                g = f.create_group(group)
+        else:
+            g = f.create_group(group)
+    else:
+        g = f
+
+    return f, g
+
+
+def write_hdf5(table, output, name=None, compression=False, group="",
+               append=False, overwrite=False):
+    """
+    Write a Table object to an HDF5 file
+
+    Parameters
+    ----------
+    output : str or h5py.highlevel.File or h5py.highlevel.Group
+        If a string, the filename to write the table to. If an h5py object,
+        either the file or the group object to write the table to.
+    compression : bool
+        Whether to compress the table inside the HDF5 file.
+    group : str
+        The group to write the table to inside the HDF5 file. This can
+        only be used if the ``output`` argument is a string.
+    name : str
+        The table name in the file.
+    append : bool
+        Whether to append the table to an existing HDF5 file.
+    overwrite : bool
+        Whether to overwrite any existing file without warning.
+    """
+
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
+
+    if name is None:
+        raise ValueError("table name should be set via the name= argument")
+    elif '/' in name:
+        raise ValueError("table name should not contain any '/'")
+
+    if isinstance(output, h5py.highlevel.File) or \
+       isinstance(output, h5py.highlevel.Group):
+        f, g = None, output
+    else:
+        if os.path.exists(output) and not append:
+            if overwrite:
+                os.remove(output)
+            else:
+                raise Exception("File exists: %s" % output)
+
+        f, g = _get_file_and_group(output, group=group, append=append)
+
+    # Check whether table already exists
+    if name in g.keys():
+        raise Exception("Table %s/%s already exists" % (group, name))
+
+    # Write the table to the file
+    dset = g.create_dataset(name, data=table._data, compression=compression)
+
+    # Write the meta-data to the file
+    for key in table.meta:
+
+        if isinstance(table.meta[key], basestring):
+            # Use np.string_ to ensure that fixed-length attributes are used.
+            dset.attrs[key] = np.string_(table.meta[key])
+        else:
+            try:
+                dset.attrs[key] = table.meta[key]
+            except TypeError:
+                log.warn("Attribute `{0:s}` of type {1:s} cannot be written to HDF5 files - skipping".format(key, type(table.meta[key])))
+
+    if f is not None:
+        f.close()
+
+from astropy.table.io_registry import register_writer, register_identifier
+
+register_writer('hdf5', write_hdf5)
+register_identifier('hdf5', is_hdf5)
