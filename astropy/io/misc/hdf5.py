@@ -61,6 +61,11 @@ def read_hdf5(input, name=None, group=""):
     if isinstance(input, h5py.highlevel.File) or \
        isinstance(input, h5py.highlevel.Group):
         f, g = None, input
+        if group:
+            try:
+                g = g[group]
+            except KeyError:
+                raise Exception("Group %s does not exist" % group)
     else:
         f = h5py.File(input, 'r')
         g = f[group] if group else f
@@ -124,9 +129,9 @@ def write_hdf5(table, output, name=None, compression=False, group="",
        isinstance(output, h5py.highlevel.Group):
         f, g = None, output
         if group:
-            if group in g.keys():
+            try:
                 g = g[group]
-            else:
+            except KeyError:
                 g = g.create_group(group)
     else:
         if os.path.exists(output) and not append:

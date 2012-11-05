@@ -29,6 +29,36 @@ def test_read_write_simple(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+def test_read_fileobj(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, name='the_table')
+
+    import h5py
+    input_file = h5py.File(test_file, 'r')
+
+    t2 = Table.read(input_file, name='the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
+def test_read_filobj_group(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, name='the_table', group='path/to/data')
+
+    import h5py
+    input_file = h5py.File(test_file, 'r')
+
+    t2 = Table.read(input_file, name='the_table', group='path/to/data')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
 def test_write_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
