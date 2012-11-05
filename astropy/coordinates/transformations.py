@@ -285,6 +285,7 @@ class FunctionTransform(CoordinateTransform):
         if not isinstance(res, self.tosys):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
+        return res
 
 
 class StaticMatrixTransform(CoordinateTransform):
