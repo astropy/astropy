@@ -29,6 +29,8 @@ class TransformGraph(object):
         self._graph = defaultdict(dict)
         self._clsaliases = {}
 
+        self.invalidate_cache()  # generates cache entries
+
     def add_transform(self, fromsys, tosys, transform):
         """
         Add a new coordinate transformation to the graph.
@@ -59,6 +61,7 @@ class TransformGraph(object):
             raise TypeError('transform must be callable')
 
         self._graph[fromsys][tosys] = transform
+        self.invalidate_cache()
 
     def remove_transform(self, fromsys, tosys, transform):
         """
@@ -106,15 +109,117 @@ class TransformGraph(object):
                 else:
                     raise ValueError('Current transform from {0} to {1} is not '
                                      '{2}'.format(fromsys, tosys, transform))
+        self.invalidate_cache()
 
+    #TODO: store the final distances or other internal parts to speed this up?
     def find_shortest_path(self, fromsys, tosys):
         """
-        Returns a sequence of the transformations needed (in order)
+        Computes the shortest distance along the transform graph from
+        one system to another.
+
+        Parameters
+        ----------
+        fromsys : class
+            The starting coordinate system.
+        tosys : class
+            The starting coordinate system.
+
+        Returns
+        -------
+        path : list of classes or None
+            The path from `fromsys` to `tosys` as an in-order sequence
+            of classes.  This does *not* include `fromsys`, but it
+            *does* include `tosys`. Is None if there is no possible
+            path.
+        distance : number
+            The total distance/priority from `fromsys` to `tosys`.  If
+            priorities are not set this is the number of trasnforms
+            needed. Is `inf` if there is no possible path.
         """
-        raise NotImplementedError
-        if not hasattr('priorty'):
-            priority = 1
-        return None # if no path
+        import heapq
+
+        #special-case the 0-path and 1-path
+        if tosys is fromsys:
+            return [], 0
+        elif tosys in self._graph[fromsys]:
+            t = self._graph[fromsys][tosys]
+            return [tosys], t.priority if hasattr(t, 'priority') else 1
+
+        if fromsys in self._shortestpaths:
+            #already have a cached result
+            return self._shortestpaths[fromsys][tosys]
+
+        #use Dijkstra's algorithm to find shortest path
+        inf = float('inf')
+
+        nodes = []
+        #first make the list of nodes
+        for a in self._graph:
+            if a not in nodes:
+                nodes.append(a)
+            for b in self._graph[a]:
+                if b not in nodes:
+                    nodes.append(b)
+
+        if fromsys not in nodes or tosys not in nodes:
+            #one is isolated or not registered, so by definition unreachable
+            return None, inf
+
+        edgeweights = {}
+        #rebuild the transform graph as a dict of dicts of weights
+        #Now the edges (e1, e2, weight)
+        for a in self._graph:
+            edgeweights[a] = aew = {}
+            agraph = self._graph[a]
+            for b in agraph:
+                aew[b] = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+
+        # entries in q are [distance, nodename, pathlist]
+        q = [[inf, n, []] for n in nodes if n is not fromsys]
+        q.insert(0, [0, fromsys, []])  # starts out as a valid heap
+
+        # final distance to node from `fromsys`
+        result = {}
+
+        while len(q) > 0:
+            d, n, path = heapq.heappop(q)
+            result[n] = (path, d)
+            path.append(n)
+
+            if d == inf:
+                #everything left is unreachable - just copy them to the results
+                #and jump out of the loop
+                for d, n, path in q:
+                    result[n] = (path, d)
+                break
+            else:
+                for n2 in edgeweights[n]:
+                    if n2 not in result:  # already visited
+                        #find where n2 is in the heap
+                        for i in range(len(q)):
+                            if q[i][1] == n2:
+                                break
+                        else:
+                            raise ValueError('n2 not in heap - this should be impossible!')
+
+                        newd = d + edgeweights[n][n2]
+                        if newd < q[i][0]:
+                            q[i][0] = newd
+                            q[i][2].append(n)
+                            heapq.heapify(q)
+
+        #cache for later use
+        self._shortestpaths[fromsys] = result
+        return result[fromsys][tosys]
+
+    def invalidate_cache(self):
+        """
+        Invalidates the cache that stores optimizations for traversing the
+        transform cache.  This is called automatically when transforms
+        are added or removed, but will need to be called manually if
+        weights on transforms are modified inplace.
+        """
+        self._shortestpaths = {}
 
     def get_transform(self, fromsys, tosys):
         """
@@ -220,7 +325,8 @@ class TransformGraph(object):
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                edgenames.append((a.__name__, b.__name__, agraph[b].priority))
+                pri = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+                edgenames.append((a.__name__, b.__name__, pri))
 
         #generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
@@ -276,7 +382,8 @@ class TransformGraph(object):
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                nxgraph.add_edge(a, b, weight=agraph[b].priority)
+                pri = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+                nxgraph.add_edge(a, b, weight=pri)
 
         return nxgraph
 

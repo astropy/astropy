@@ -86,6 +86,48 @@ def test_coo_alias():
     assert c1.coo2.ra.d == c1.ra.d
     assert c1.coo2.dec.d == c1.dec.d
 
+def test_shortest_path():
+    class FakeTransform(object):
+        def __init__(self, pri):
+            self.priority = pri
+
+    g = t.TransformGraph()
+
+    #cheating by adding graph elements directly that are not classes - the
+    #graphing algorithm still works fine with integers - it just isn't a valid
+    #TransformGraph
+
+    #the graph looks is a down-going diamond graph with the lower-right slightly
+    #heavier and a cycle from the bottom to the top
+    #also, a pair of nodes isolated from 1
+
+    g._graph[1][2] = FakeTransform(1)
+    g._graph[1][3] = FakeTransform(1)
+    g._graph[2][4] = FakeTransform(1)
+    g._graph[3][4] = FakeTransform(2)
+    g._graph[4][1] = FakeTransform(5)
+
+    g._graph[5][6] = FakeTransform(1)
+
+    path, d = g.find_shortest_path(1, 2)
+    assert path == [2]
+    assert d == 1
+    path, d = g.find_shortest_path(1, 3)
+    assert path == [3]
+    assert d == 1
+    path, d = g.find_shortest_path(1, 4)
+    assert path == [2, 4]
+    assert d == 2
+
+    #unreachable
+    path, d = g.find_shortest_path(1, 5)
+    assert path is None
+    assert d == float('inf')
+
+    path, d = g.find_shortest_path(5, 6)
+    assert path == [6]
+    assert d == 1
+
 
 def test_sphere_cart():
     """
