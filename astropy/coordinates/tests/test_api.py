@@ -568,7 +568,7 @@ def test_convert_api():
     npt.assert_almost_equal(c.galactic.b.degree, -43.350066)
 
     # can also explicitly specify a coordinate class to convert to
-    gal = c.convert_to(GalacticCoordinates)
+    gal = c.transform_to(GalacticCoordinates)
 
     # can still convert back to equatorial using the shorthand
     assert gal.equatorial.ra.format(unit=u.hour, sep=":",
@@ -576,7 +576,7 @@ def test_convert_api():
 
     with raises(CoordinatesConversionError):
         # there's no way to convert to alt/az without a specified location
-        c.convert_to(HorizontalCoordinates)
+        c.transform_to(HorizontalCoordinates)
 
     # users can specify their own coordinates and conversions
     class CustomCoordinates(SphericalCoordinatesBase):
@@ -585,7 +585,7 @@ def test_convert_api():
 
     # allows both ways of converting
     mycoord1 = c.my_coord
-    mycoord2 = c.convert_to(CustomCoordinates)
+    mycoord2 = c.transform_to(CustomCoordinates)
 
     assert isinstance(mycoord1, CustomCoordinates)
     assert isinstance(mycoord2, CustomCoordinates)

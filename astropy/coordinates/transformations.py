@@ -7,11 +7,456 @@ implementation is actually in individual coordinates in the
 `builtin_systems` module, while this module provides the framework and
 related utilities.
 """
-
-import math
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-pi = math.pi
+__all__ = ['StaticMatrixTransform', 'FunctionTransform',
+           'DynamicMatrixTransform', 'CompositeStaticMatrixTransform',
+           'static_transform_matrix', 'transform_function',
+           'dynamic_transform_matrix', 'coordinate_alias']
 
-__all__ = []
+
+class TransformGraph(object):
+    """
+    A graph representing the paths between coordinate systems.
+    """
+
+    def __init__(self):
+        from collections import defaultdict
+
+        self._graph = defaultdict(dict)
+        self._clsaliases = {}
+
+    def add_transform(self, fromsys, tosys, transform):
+        """
+        Add a new coordinate transformation to the graph.
+
+        Parameters
+        ----------
+        fromsys : class
+            The coordinate system *class* to start from
+        tosys : class
+            The coordinate system *class* to transform to
+        transform : callable
+            The transformation object. Should have call parameters compatible
+            with `CoordinateTransform`.
+
+        Raises
+        ------
+        TypeError
+            If `fromsys` or `tosys` are not classes or `transform` is
+            not callable.
+        """
+        from inspect import isclass
+
+        if not isclass(fromsys):
+            raise TypeError('fromsys must be a class')
+        if not isclass(tosys):
+            raise TypeError('tosys must be a class')
+        if not callable(transform):
+            raise TypeError('transform must be callable')
+
+        self._graph[fromsys][tosys] = transform
+
+    def remove_transform(self, fromsys, tosys, transform):
+        """
+        Removes a coordinate transform from the graph.
+
+
+        Parameters
+        ----------
+        fromsys : class
+            The coordinate system *class* to start from
+        tosys : class
+            The coordinate system *class* to transform to
+        transform : callable or None
+            The transformation object or None.  If None, there will be no
+            check to ensure the correct object is removed.
+        """
+        if transform is None:
+            self._graph[fromsys].pop(tosys, None)
+        else:
+            curr = self._graph[fromsys].get(tosys, None)
+            if curr is transform:
+                self._graph[fromsys].pop(tosys)
+            else:
+                raise ValueError('Current transform from {0} to {1} is not '
+                                 '{2}'.format(fromsys, tosys, transform))
+
+    def find_shortest_path(self, fromsys, tosys):
+        """
+        Returns a sequence of the transformations needed (in order)
+        """
+        raise NotImplementedError
+        if not hasattr('priorty'):
+            priority = 1
+
+    def add_coord_name(self, name, coordcls):
+        """
+        Adds an alias for a coordinate, primarily for allowing
+        attribute-style access of coordinate transformations (e.g.,
+        ``coordasgal = coord.galactic``).
+
+        Parameters
+        ----------
+        name : str
+            The alias for the coordinate class. Should be a valid
+            python identifier.
+        coordcls : class
+            The class object to be referenced by this name.
+        """
+        self._clsaliases[name] = coordcls
+
+    def lookup_name(self, name):
+        """
+        Tries to locate the coordinate class with the provided alias.
+
+        Parameters
+        ----------
+        name : str
+            The alias to look up.
+
+        Returns
+        -------
+        coordcls
+            The coordinate class corresponding to the `name` or None if
+            no such class exists.
+        """
+        return self._clsaliases.get(name, None)
+
+
+# The primary transform graph for astropy coordinates
+master_transform_graph = TransformGraph()
+
+
+class CoordinateTransform(object):
+    """
+    An object that transforms a coordinate from one system to another.
+    Subclasses must implement `__call__` with the provided signature.
+    They should also call this superclass's `__init__` in their
+    `__init__`.
+    """
+
+    __metaclass__ = ABCMeta
+
+    def __init__(self, fromsys, tosys, register=True):
+        from inspect import isclass
+
+        self.fromsys = fromsys
+        self.tosys = tosys
+
+        if register:
+            # this will do the type-checking
+            self.register()
+        else:
+            if not isclass(fromsys) or not isclass(tosys):
+                raise TypeError('fromsys and tosys must be classes')
+
+    def register(self):
+        """
+        Add this transformation to the master transformation graph, replacing
+        anything already connecting these two coordinates.
+        """
+        master_transform_graph.add_transform(self.fromsys, self.tosys, self)
+
+    def unregister(self):
+        """
+        Remove this transformation to the master transformation graph.
+
+        Raises
+        ------
+        ValueError
+            If this is not currently in the transform graph.
+        """
+        master_transform_graph.remove_transfrom(self.fromsys, self.tosys, self)
+
+    @abstractmethod
+    def __call__(self, fromcoord):
+        """
+        Accepts the provided coordinate object and yields a new coordinate
+        object with the transform applied.
+        """
+
+
+#TODO: array: specify in the docs how arrays should be dealt with
+class FunctionTransform(CoordinateTransform):
+    """
+    A coordinate transformation defined by a function that simply
+    accepts a coordinate object and returns the transformed coordinate
+    object.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system *class* to start from.
+    tosys : class
+        The coordinate system *class* to transform into.
+    func : callable
+        The transformation function.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+    register : bool
+        Determines if this transformation will be registered in the
+        astropy master transform graph.
+
+    Raises
+    ------
+    TypeError
+        If `func` is not callable.
+    ValueError
+        If `func` cannot accept one argument.
+    """
+    def __init__(self, fromsys, tosys, func, priority=1, register=True):
+        from inspect import getargspec
+
+        if not callable(func):
+            raise TypeError('func must be callable')
+
+        try:
+            argspec = getargspec(func)
+            if (len(argspec[0]) - len(argspec[3]) != 1) and not argspec[1]:
+                raise ValueError('provided function does not accept a single argument')
+        except TypeError:
+            pass  # hopefully this person knows what they're doing...
+
+        self.func = func
+        self.priority = priority
+        super(FunctionTransform, self).__init__(fromsys, tosys)
+
+    def __call__(self, fromcoord):
+        res = self.func(fromcoord)
+        if not isinstance(res, self.tosys):
+            raise TypeError('the transformation function yielded {0} but '
+                'should have been of type {1}'.format(res, self.tosys))
+
+
+class StaticMatrixTransform(CoordinateTransform):
+    """
+    A coordinate transformation defined as a 3 x 3 cartesian
+    transformation matrix.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system *class* to start from.
+    tosys : class
+        The coordinate system *class* to transform into.
+    matrix: array-like
+        A 3 x 3 matrix for transforming 3-vectors. In most cases will
+        be unitary (although this is not strictly required).
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+
+    Raises
+    ------
+    ValueError
+        If the matrix is not 3 x 3
+
+    """
+    def __init__(self, fromsys, tosys, matrix, priority=1, register=True):
+        self.matrix = np.array(matrix)
+        if self.matrix.shape != (3, 3):
+            raise ValueError('Provided matrix is not 3 x 3')
+        self.priority = priority
+        super(StaticMatrixTransform, self).__init__(fromsys, tosys)
+
+    #TODO: array: this needs some extra bits to do the broadcasting right
+    def __call__(self, fromcoord):
+        v = [fromcoord.x, fromcoord.y, fromcoord.z]
+        x, y, z = np.dot(self.matrix, v)
+        unit = None if fromcoord.distance is None else fromcoord.distance.unit
+        return self.tosys(x=x, y=y, z=z, unit=unit)
+
+class CompositeStaticMatrixTransform(StaticMatrixTransform):
+    """
+    A `MatrixTransform` constructed by combining a sequence of matricies
+    together.  See `MatrixTransform` for syntax details.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system *class* to start from.
+    tosys : class
+        The coordinate system *class* to transform into.
+    matrices: sequence of array-like
+        A sequence of 3 x 3 cartesian transformation matricies.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+
+    """
+    def __init__(self, fromsys, tosys, matricies, priority=1, register=True):
+        self.matricies = [np.array(m) for m in matricies]
+        for m in matricies:
+            if m.shape != (3, 3):
+                raise ValueError('One of the provided matrices is not 3 x 3')
+
+        matrix = np.array(self.matricies[0])
+        if len(self.matricies) > 1:
+            for m in self.matricies[1:]:
+                matrix = np.dot(self.matrix, m)
+
+        super(CompositeStaticMatrixTransform, self).__init__(self, fromsys,
+            tosys, matrix, priority)
+
+
+class DynamicMatrixTransform(CoordinateTransform):
+    """
+    A coordinate transformation specified as a function that yields a
+    3 x 3 cartesian transformation matrix.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system *class* to start from.
+    tosys : class
+        The coordinate system *class* to transform into.
+    matrix_func: callable
+        A callable that accepts a coordinate object and yields the 3 x 3
+        matrix that converts it to the new coordinate system.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+
+    Raises
+    ------
+    TypeError
+        If `matrix_func` is not callable
+
+    """
+    def __init__(self, fromsys, tosys, matrix_func, priority=1, register=True):
+        if not callable(matrix_func):
+            raise TypeError('matrix_func is not callable')
+        self.matrix_func = matrix_func
+        self.priority = priority
+        super(DynamicMatrixTransform, self).__init__(fromsys, tosys, register)
+
+    #TODO: array: this needs some extra bits to do the broadcasting right
+    def __call__(self, fromcoord):
+        v = [fromcoord.x, fromcoord.y, fromcoord.z]
+        x, y, z = np.dot(self.matrix_func(fromcoord), v)
+        unit = None if fromcoord.distance is None else fromcoord.distance.unit
+        return self.tosys(x=x, y=y, z=z, unit=unit)
+
+
+#<------------function decorators for actual practical use--------------------->
+def transform_function(fromsys, tosys, priority=1):
+    """
+    A function decorator for defining transformations between coordinate
+    systems.
+
+    .. note::
+        If decorating a static method of a class, ``@staticmethod``
+        should be  added *above* this decorator.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system this function starts from.
+    tosys : class
+        The coordinate system this function results in.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+
+    """
+    def deco(func):
+        FunctionTransform(fromsys, tosys, func, priority, register=True)
+        return func
+    return deco
+
+
+def static_transform_matrix(fromsys, tosys, priority=1):
+    """
+    A function decorator for defining transformations between coordinate
+    systems using a matrix.
+
+    The decorated function should accept *no* arguments and yield a
+    3 x 3 matrix.
+
+    .. note::
+        If decorating a static method of a class, ``@staticmethod``
+        should be  added *above* this decorator.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system this function starts from.
+    tosys : class
+        The coordinate system this function results in.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+    """
+    def deco(matfunc):
+        StaticMatrixTransform(fromsys, tosys, matfunc(), priority, register=True)
+        return matfunc
+    return deco
+
+
+def dynamic_transform_matrix(fromsys, tosys, priority=1):
+    """
+    A function decorator for defining transformations between coordinate
+    systems using a function that yields a matrix.
+
+    The decorated function should accept a single argument, the
+    coordinate object to be transformed, and should return a 3 x 3
+    matrix.
+
+    .. note::
+        If decorating a static method of a class, ``@staticmethod``
+        should be  added *above* this decorator.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system this function starts from.
+    tosys : class
+        The coordinate system this function results in.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+    """
+    def deco(matfunc):
+        DynamicMatrixTransform(fromsys, tosys, matfunc, priority, register=True)
+        return matfunc
+    return deco
+
+
+def coordinate_alias(name, coordcls=None):
+    """
+    Gives a short name to this coordinate system, allowing other coordinate
+    objects to convert to this one using attribute-style access.
+
+    Parameters
+    ----------
+    name : str
+        The short alias to use for this coordinate class. Should be a
+        valid python identifier.
+    coordcls : class or None
+        Either the coordinate class to register or None to use this as a
+        decorator.
+
+    Examples
+    --------
+    For use with a class already defined, do::
+
+        coordinate_alias('fancycoords', MyFancyCoordinateClass)
+
+    To use as a decorator, do::
+
+        @coordiante_alias('fancycoords')
+        class MyFancyCoordinateClass(SphericalCoordinatesBase):
+            ...
+
+    """
+    if coordcls is None:
+        def deco(cls):
+            master_transform_graph.add_coord_name(name, cls)
+            return cls
+        return deco
+    else:
+        master_transform_graph.add_coord_name(name, coordcls)

@@ -178,6 +178,66 @@ class SphericalCoordinatesBase(object):
 
         return (dx ** 2 + dy ** 2 + dz ** 2) ** 0.5
 
+    #<------------transformation-related stuff here-------------------->
+    def transform_to(self, tosys):
+        """
+        Transform this coordinate to a new system.
+
+        Parameters
+        ----------
+        tosys : class
+            The system to transform this coordinate into.
+
+        Returns
+        -------
+        transcoord
+            A new object with this coordinate represented in the `tosys` system.
+
+        Raises
+        ------
+        ValueError
+            If there is no possible transformation route.
+        """
+        from .transformations import master_transform_graph
+
+        trans = master_transform_graph.get_transform(self.__class__, tosys)
+        if trans is None:
+            raise ValueError('Cannot transform from {0} to '
+                             '{1}'.format(self.__class__, tosys))
+        return trans(self)
+
+    def is_transformable_to(self, tosys):
+        """
+        Determines if this coordinate can be transformed to a particular system.
+
+        Parameters
+        ----------
+        tosys : class
+            The system to transform this coordinate into.
+
+        Returns
+        -------
+        transformable : bool
+            True if this can be trasnformed to `tosys`, False if not.
+        """
+        from .transformations import master_transform_graph
+
+        trans = master_transform_graph.get_transform(self.__class__, tosys)
+        return trans is not None
+
+    def __getattr__(self, name):
+        """
+        Overrides getattr to return coordinates that this can be transformed
+        to, based on the alias name in the master transform graph.
+        """
+        from .transformations import master_transform_graph
+
+        nmsys = master_transform_graph.lookup_name(name)
+        if nmsys is not None and self.is_transformable_to(nmsys):
+            return self.transform_to(nmsys)
+        else:
+            raise AttributeError
+
 #FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
     """
