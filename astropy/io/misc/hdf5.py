@@ -173,7 +173,7 @@ def write_hdf5(table, output, name=None, compression=False, group="",
             try:
                 dset.attrs[key] = table.meta[key]
             except TypeError:
-                log.warn("Attribute `{0:s}` of type {1:s} cannot be written to HDF5 files - skipping".format(key, type(table.meta[key])))
+                log.warn("Attribute `{0}` of type {1} cannot be written to HDF5 files - skipping".format(key, type(table.meta[key])))
 
     if f is not None:
         f.close()
