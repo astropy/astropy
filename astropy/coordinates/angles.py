@@ -549,12 +549,20 @@ class AngularSeparation(Angle):
         The value of the second longitudinal/azimuthal angle.
     units : `~astropy.units`
         The units of the given angles.
-
-    .. note::
+    distance_function : None or function
+        The function to use to compute the angular value of this
+        separation. If None, the class attribute
+        `AngularSeparation.distance_function` will be used. If a
+        function, it will be called as ``f(lat1, long1, lat2, long2)``
+        and it should return the separation between the two points. see
+        the `astropy.coordinates.angle_utilities` module for some common
+        distance measurement functions.
 
 
     """
-    def __init__(self, lat1, long1, lat2, long2, units):
+    AngularSeparation.distance_function = util.haversine_dist_atan
+
+    def __init__(self, lat1, long1, lat2, long2, units, distance_function=None):
 
         units = u.Unit(units)
         lat1 = units.to(u.radian, lat1)
@@ -565,7 +573,9 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             long2 = units.to(u.radian, long2)
 
-            sepval = self._haversine_dist_atan(lat1, long1, lat2, long2)
+            if distance_function is None:
+                distance_function = self.distance_function
+            sepval = distance_function(lat1, long1, lat2, long2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 
