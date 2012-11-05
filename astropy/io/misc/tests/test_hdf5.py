@@ -8,6 +8,14 @@ import numpy as np
 from ....table import Table, Column
 
 
+try:
+    import h5py
+except ImportError:
+    HAS_H5PY = False
+else:
+    HAS_H5PY = True
+
+
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
               np.bool, '|S3']
@@ -22,6 +30,7 @@ def _default_values(dtype):
         return [1, 2, 3]
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
@@ -31,6 +40,7 @@ def test_read_write_simple(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -46,6 +56,7 @@ def test_read_fileobj(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_filobj_group(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -61,6 +72,7 @@ def test_read_filobj_group(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_write_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -77,6 +89,7 @@ def test_write_fileobj(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_write_filobj_group(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -93,6 +106,7 @@ def test_write_filobj_group(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 @pytest.mark.parametrize(('dtype'), ALL_DTYPES)
 def test_preserve_single_dtypes(tmpdir, dtype):
 
@@ -110,6 +124,7 @@ def test_preserve_single_dtypes(tmpdir, dtype):
     assert t2['a'].dtype == dtype
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_preserve_all_dtypes(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -130,6 +145,7 @@ def test_preserve_all_dtypes(tmpdir):
         assert t2[str(dtype)].dtype == dtype
 
 
+@pytest.mark.skipif('not HAS_H5PY')
 def test_preserve_meta(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
