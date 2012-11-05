@@ -15,7 +15,7 @@ def is_hdf5(origin, args, kwargs):
         raise Exception("h5py is required to read and write HDF5 files")
 
     if isinstance(args[0], h5py.highlevel.File) or \
-       isinstance(args[0], h5py.highlevel.Group):
+        isinstance(args[0], h5py.highlevel.Group):
         return True
     elif isinstance(args[0], basestring):
         if os.path.exists(args[0]):
@@ -67,6 +67,60 @@ def _get_file_and_group(filename, group=None, append=False):
     return f, g
 
 
+def read_hdf5(input, name=None, group=""):
+    """
+    Read a Table object from an HDF5 file
+
+    Parameters
+    ----------
+    input : str or h5py.highlevel.File or h5py.highlevel.Group
+        If a string, the filename to read the table from. If an h5py object,
+        either the file or the group object to read the table from.
+    group : str
+        The group to read the table from inside the HDF5 file. This can
+        only be used if the ``input`` argument is a string.
+    name : str
+        The table name in the file.
+    """
+
+    try:
+        import h5py
+    except ImportError:
+        raise Exception("h5py is required to read and write HDF5 files")
+
+    if name is None:
+        raise ValueError("table name should be set via the name= argument")
+    elif '/' in name:
+        raise ValueError("table name should not contain any '/'")
+
+    if isinstance(input, h5py.highlevel.File) or \
+       isinstance(input, h5py.highlevel.Group):
+        f, g = None, input
+    else:
+        f = h5py.File(input, 'r')
+        g = f[group] if group else f
+
+    # Check whether table exists
+    if name not in g.keys():
+        raise Exception("Table %s/%s does not exist" % (group, name))
+
+    # Read the table from the file
+    dset = g[name]
+
+    # Create a Table object
+    from ...table import Table
+    table = Table(np.array(dset))
+
+    # Read the meta-data from the file
+    for key in dset.attrs:
+        table.meta[key] = dset.attrs[key]
+
+    if f is not None:
+        f.close()
+
+    return table
+
+
 def write_hdf5(table, output, name=None, compression=False, group="",
                append=False, overwrite=False):
     """
@@ -77,13 +131,13 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     output : str or h5py.highlevel.File or h5py.highlevel.Group
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
+    name : str
+        The table name in the file.
     compression : bool
         Whether to compress the table inside the HDF5 file.
     group : str
         The group to write the table to inside the HDF5 file. This can
         only be used if the ``output`` argument is a string.
-    name : str
-        The table name in the file.
     append : bool
         Whether to append the table to an existing HDF5 file.
     overwrite : bool
@@ -134,7 +188,8 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     if f is not None:
         f.close()
 
-from astropy.table.io_registry import register_writer, register_identifier
+from astropy.table.io_registry import register_reader, register_writer, register_identifier
 
+register_reader('hdf5', read_hdf5)
 register_writer('hdf5', write_hdf5)
 register_identifier('hdf5', is_hdf5)
