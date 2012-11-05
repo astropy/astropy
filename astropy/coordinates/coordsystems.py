@@ -7,7 +7,9 @@ This module contains the base classes and framework for coordinate objects.
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .angles import RA, Dec, Angle, AngularSeparation
+from .errors import UnitsError
 from .. import units as u
+from .. import cosmology
 
 __all__ = ['SphericalCoordinatesBase', 'Coordinates', 'Distance',
            'CartesianPoint'
@@ -143,24 +145,79 @@ class Distance(object):
     """
     A one-dimensional distance.
 
+    This can be initialized in one of two ways, using either a distance
+    and a unit, or a redshift and (optionally) a cosmology.  `value`
+    and `unit` may be provided as positional arguments, but `z` and
+    `cosmology` are only valid as keyword arguments (see examples).
+
     Parameters
     ----------
     value : scalar
         The value of this distance
     unit : `~astropy.units.core.UnitBase`
         The units for this distance.  Must have dimensions of distance.
-
+    z : float
+        A redshift for this distance.  It will be converted to a distance
+        by computing the luminosity distance for this redshift given the
+        cosmology specified by `cosmology`.
+    cosmology : `~astropy.cosmology.Cosmology` or None
+        A cosmology that will be used to compute the distance from `z`.
+        If None, the current cosmology will be used (see
+        `astropy.cosmology` for details).
 
     Raises
     ------
-    ValueError
+    UnitsError
         If the `unit` is not a distance.
+
+    Examples
+    --------
+    >>> from astropy import units as u
+    >>> from astropy.cosmology import WMAP3
+    >>> d1 = Distance(10, u.Mpc)
+    >>> d2 = Distance(40, unit=u.au)
+    >>> d3 = Distance(value=5, unit=u.kpc)
+    >>> d4 = Distance(z=0.23)
+    >>> d5 = Distance(z=0.23, cosmology=WMAP3)
     """
-    def __init__(self, value, unit):
-        if not unit.is_equivalent(u.m):
-            raise ValueError('provided unit for Distance is not a length')
-        self._value = value
-        self._unit = unit
+
+    def __init__(self, *args, **kwargs):
+        if 'z' in kwargs:
+            z = kwargs.pop('z')
+            cosmo = kwargs.pop('cosmology', None)
+            if cosmo is None:
+                cosmo = cosmology.get_current()
+
+            if len(args) > 0 or len(kwargs) > 0:
+                raise TypeError('Cannot give both distance and redshift')
+
+            self._value = cosmo.luminosity_distance(z)
+            self._unit = u.Mpc
+        else:
+            if len(args) == 0:
+                value = kwargs.pop('value', None)
+                unit = kwargs.pop('unit', None)
+            if len(args) == 1:
+                value = args[0]
+                unit = kwargs.pop('unit', None)
+            elif len(args) == 2:
+                value, unit = args
+            else:
+                raise TypeError('Distance constructor cannot take more than 2 arguments')
+
+            if len(kwargs) > 0:
+                raise TypeError('Invalid keywords provided to Distance: ' +
+                                str(kwargs.keys()))
+
+            if value is None:
+                raise ValueError('A value for the distance must be provided')
+            if unit is None:
+                raise UnitsError('A unit must be provided for distance.')
+
+            if not unit.is_equivalent(u.m):
+                raise UnitsError('provided unit for Distance is not a length')
+            self._value = value
+            self._unit = unit
 
     @property
     def lightyear(self):
@@ -315,9 +372,8 @@ class Coordinates(object):
 
     def __new__(self, *args, **kwargs):
         # coordinates, units=None, ra=None, dec=None, az=None, el=None, l=None, b=None):
-        """
-        Document me.
-        """
+        from .builtin_systems import ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
+
         #units = kwargs["unit"] if "unit" in kwargs.keys() else list()
         try:
             units = kwargs["unit"]

@@ -489,7 +489,7 @@ def test_create_coordinate():
 
     alt = Angle(20.5, unit=u.degree)
     az = Angle(45, unit=u.degree)
-    timeobj = Time('J2000')
+    timeobj = Time('J2000', scale='utc')
     HorizontalCoordinates(alt, az, epoch=timeobj)
 
 
@@ -548,7 +548,7 @@ def test_convert_api():
     """
 
     from .. import Angle, RA, Dec, Coordinates, GalacticCoordinates
-    from .. import HorizontalCoordinates, CoordinatesBase
+    from .. import HorizontalCoordinates, SphericalCoordinatesBase
     import numpy.testing as npt
 
     '''
@@ -579,7 +579,7 @@ def test_convert_api():
         c.convert_to(HorizontalCoordinates)
 
     # users can specify their own coordinates and conversions
-    class CustomCoordinates(CoordinatesBase):
+    class CustomCoordinates(SphericalCoordinatesBase):
         coordsysname = 'my_coord'
         #TODO: specify conversion rules
 
@@ -644,7 +644,7 @@ def test_distances():
     transformations.
     """
     from .. import Distance, Coordinates, GalacticCoordinates, CartesianPoint
-    from ...cosmology import WMAP5
+    from ...cosmology import WMAP5, WMAP3
     import numpy.testing as npt
 
     '''
@@ -652,7 +652,13 @@ def test_distances():
     coordinate.
     '''
 
+    #try all the different ways to initialize a Distance
     distance = Distance(12, u.parsec)
+    d2 = Distance(40, unit=u.au)
+    d3 = Distance(value=5, unit=u.kpc)
+    d4 = Distance(z=0.23)
+    d5 = Distance(z=0.23, cosmology=WMAP3)
+
     # need to provide a unit
     with raises(TypeError):
         Distance(12)
@@ -672,6 +678,7 @@ def test_distances():
     #can also set distances using tuple-format
     c.distance = (12, u.parsec)
     c.distance.parsec = 12
+
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
