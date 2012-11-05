@@ -545,8 +545,18 @@ class Table(object):
             init_func = self._init_from_list
             n_cols = len(data)
 
-        elif isinstance(data, np.ndarray):
-            if data.dtype.names:
+        elif isinstance(data, Table):
+            init_func = self._init_from_table
+            n_cols = len(data.colnames)
+            default_names = data.colnames
+
+        # Duck-typing ndarray-like structure
+        elif hasattr(data, 'dtype'):
+            #converting to ndarray for .view method
+            if not isinstance(data, np.ndarray):
+                data = np.asarray(data)
+
+            if data.dtype.names is not None:
                 init_func = self._init_from_ndarray  # _struct
                 n_cols = len(data.dtype.names)
                 default_names = data.dtype.names
@@ -554,15 +564,12 @@ class Table(object):
                 init_func = self._init_from_ndarray  # _homog
                 n_cols = data.shape[1]
 
+
         elif isinstance(data, dict):
             init_func = self._init_from_dict
             n_cols = len(data.keys())
             default_names = data.keys()
 
-        elif isinstance(data, Table):
-            init_func = self._init_from_table
-            n_cols = len(data.colnames)
-            default_names = data.colnames
 
         elif data is None:
             if names is None:
