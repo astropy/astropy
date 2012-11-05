@@ -137,7 +137,7 @@ class TransformGraph(object):
         if tosys in self._graph[fromsys]:
             return self._graph[fromsys][tosys]
         else:
-            path = self.find_shortest_path(fromsys,tosys)
+            path = self.find_shortest_path(fromsys, tosys)
 
             if path is None:
                 return None
@@ -179,6 +179,106 @@ class TransformGraph(object):
             no such class exists.
         """
         return self._clsaliases.get(name, None)
+
+    def to_dot_graph(self, savefn=None, savelayout='neato'):
+        """
+        Converts this transform graph to the graphviz_ DOT format, and
+        optionally saves it (requires graphviz_ be installed and on your
+        path).
+
+        Parameters
+        ----------
+        savefn : None or str
+            The file name to save this graph to or None to not save
+            to a file.
+        savelayout : str
+            The graphviz program to use to layout the graph (see
+            graphviz_ for details) or 'plain' to just save the DOT graph
+            content. Ignored if `savefn` is None.
+
+        Returns
+        -------
+        dotgraph : str
+            A string with the DOT format graph.
+
+
+        .. _graphviz: http://www.graphviz.org/
+        """
+        from subprocess import Popen, PIPE
+
+        nodenames = []
+        #find the node names
+        for a in self._graph:
+            if a.__name__ not in nodenames:
+                nodenames.append(a.__name__)
+            for b in self._graph[a]:
+                if b.__name__ not in nodenames:
+                    nodenames.append(b.__name__)
+
+        edgenames = []
+        #Now the edges
+        for a in self._graph:
+            agraph = self._graph[a]
+            for b in agraph:
+                edgenames.append((a.__name__, b.__name__, agraph[b].priority))
+
+        #generate simple dot format graph
+        lines = ['digraph AstropyCoordinateTransformGraph {']
+        lines.append('node [shape=box]; ' + '; '.join(nodenames) + ';')
+        for enm1, enm2, weights in edgenames:
+            lines.append('{0} -> {1} [ label = "{2}" ];'.format(enm1, enm2, weights))
+        lines.append('')
+        lines.append('overlap=false')
+        lines.append('}')
+        dotgraph = '\n'.join(lines)
+
+        if savefn is not None:
+            if savelayout == 'plain':
+                with open(savefn, 'w') as f:
+                    f.write(dotgraph)
+            else:
+                proc = Popen([savelayout], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                stdout, stderr = proc.communicate(dotgraph)
+                if proc.returncode != 0:
+                    raise IOError('problem running graphviz: \n' + stderr)
+
+                with open(savefn, 'w') as f:
+                    f.write(stdout)
+
+        return dotgraph
+
+    def to_networkx_graph(self):
+        """
+        Converts this transform graph into a networkx graph.
+
+        .. note::
+            You must have the `networkx <http://networkx.lanl.gov/>`_
+            package installed for this to work.
+
+        Returns
+        -------
+        nxgraph : `networkx.Graph`
+            This `TransformGraph` as a `networkx.Graph`.
+        """
+        import networkx as nx
+
+        nxgraph = nx.Graph()
+
+        #first make the nodes
+        for a in self._graph:
+            if a not in nxgraph:
+                nxgraph.add_node(a)
+            for b in self._graph[a]:
+                if b not in nxgraph:
+                    nxgraph.add_node(b)
+
+        #Now the edges
+        for a in self._graph:
+            agraph = self._graph[a]
+            for b in agraph:
+                nxgraph.add_edge(a, b, weight=agraph[b].priority)
+
+        return nxgraph
 
 
 # The primary transform graph for astropy coordinates
@@ -325,6 +425,7 @@ class StaticMatrixTransform(CoordinateTransform):
         x, y, z = np.dot(self.matrix, v)
         unit = None if fromcoord.distance is None else fromcoord.distance.unit
         return self.tosys(x=x, y=y, z=z, unit=unit)
+
 
 class CompositeStaticMatrixTransform(StaticMatrixTransform):
     """
