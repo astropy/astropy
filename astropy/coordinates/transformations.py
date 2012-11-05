@@ -91,6 +91,38 @@ class TransformGraph(object):
         raise NotImplementedError
         if not hasattr('priorty'):
             priority = 1
+        return None # if no path
+
+    def get_transform(self, fromsys, tosys):
+        """
+        Determines or generates a transformation between two coordinate
+        systems.
+
+        Parameters
+        ----------
+        fromsys : class
+            The coordinate system *class* to start from
+        tosys : class
+            The coordinate system *class* to transform into.
+
+        Returns
+        -------
+        trans : `CoordinateTransform` or None
+            If there is a path from `fromsys` to `tosys`, this is a transform
+            object for that path.  If None, no path could be found.
+        """
+        if tosys in self._graph[fromsys]:
+            return self._graph[fromsys][tosys]
+        else:
+            path = self.find_shortest_path(fromsys,tosys)
+
+            if path is None:
+                return None
+
+            if all([isinstance(p, StaticMatrixTransform) for p in path]):
+                return CompositeStaticMatrixTransform(fromsys, tosys, path, register=False)
+            else:
+                return CompositeTransform(fromsys, tosys, path, register=False)
 
     def add_coord_name(self, name, coordcls):
         """
@@ -340,6 +372,35 @@ class DynamicMatrixTransform(CoordinateTransform):
         x, y, z = np.dot(self.matrix_func(fromcoord), v)
         unit = None if fromcoord.distance is None else fromcoord.distance.unit
         return self.tosys(x=x, y=y, z=z, unit=unit)
+
+
+class CompositeTransform(CoordinateTransform):
+    """
+    A `MatrixTransform` constructed by combining a sequence of matricies
+    together.  See `MatrixTransform` for syntax details.
+
+    Parameters
+    ----------
+    fromsys : class
+        The coordinate system *class* to start from.
+    tosys : class
+        The coordinate system *class* to transform into.
+    transforms: sequence of `CoordinateTransform`s
+        A sequence of transformations to apply in sequence.
+    priority : number
+        The priority if this transform when finding the shortest
+        coordinate tranform path - large numbers are lower priorities.
+
+    """
+    def __init__(self, fromsys, tosys, transforms, priority=1, register=True):
+        self.transforms = transforms
+        super(CompositeTransform, self).__init__(fromsys, tosys, register)
+
+    def __call__(self, fromcoord):
+        coord = fromcoord
+        for t in self.transforms:
+            coord = t(coord)
+        return coord
 
 
 #<------------function decorators for actual practical use--------------------->
