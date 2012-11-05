@@ -32,43 +32,6 @@ def is_hdf5(origin, args, kwargs):
     return False
 
 
-def _get_file_and_group(filename, group=None, append=False):
-    """
-    Return handles to a file and group
-
-    Parameters
-    ----------
-    filename : str
-        The name of the file to open/create
-    group : str, optional
-        The name of the group to open/create
-    append : bool, optional
-        Whether to append to an existing file, or whether to create a new
-        file.
-    """
-
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
-
-    # Open the file for appending or writing
-    f = h5py.File(filename, 'a' if append else 'w')
-
-    if group:
-        if append:
-            if group in f.keys():
-                g = f[group]
-            else:
-                g = f.create_group(group)
-        else:
-            g = f.create_group(group)
-    else:
-        g = f
-
-    return f, g
-
-
 def read_hdf5(input, name=None, group=""):
     """
     Read a Table object from an HDF5 file
@@ -172,7 +135,19 @@ def write_hdf5(table, output, name=None, compression=False, group="",
             else:
                 raise Exception("File exists: %s" % output)
 
-        f, g = _get_file_and_group(output, group=group, append=append)
+        # Open the file for appending or writing
+        f = h5py.File(output, 'a' if append else 'w')
+
+        if group:
+            if append:
+                if group in f.keys():
+                    g = f[group]
+                else:
+                    g = f.create_group(group)
+            else:
+                g = f.create_group(group)
+        else:
+            g = f
 
     # Check whether table already exists
     if name in g.keys():
