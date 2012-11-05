@@ -57,7 +57,7 @@ class Angle(object):
         self.is_array = type(angle) in [list, np.ndarray]
 
         if angle == None:
-            raise ValueError("The Angle class requires a unit")
+            raise UnitsError("The Angle class requires a unit")
 
         #angle_type = type(angle[0]) if self.is_array else type(angle)
 
@@ -77,7 +77,7 @@ class Angle(object):
                         # If units are not specified as a parameter, the only chance
                         # to determine them is in a string value - if it's not a string,
                         # then there's not enough information to create an Angle.
-                        raise ValueError("Could not parse an angle value in the array provided"
+                        raise UnitsError("Could not parse an angle value in the array provided"
                                          "- units could not be determined.".format(angle[idx]))
                 for idx, a in enumerate(angle):
                     a_unit = None
@@ -103,7 +103,7 @@ class Angle(object):
                                 angle[idx] = util.parse_radians(a)
                                 break
                     if a_unit == None:
-                        raise ValueError("Could not parse the angle value '{0}' "
+                        raise UnitsError("Could not parse the angle value '{0}' "
                                          "- units could not be determined.".format(angle[idx]))
                 unit = u.radian
 
@@ -111,7 +111,7 @@ class Angle(object):
                 if isinstance(angle, str):
                     angle = angle.lower()
                 else:
-                    raise ValueError("Could not parse the angle value '{0}' "
+                    raise UnitsError("Could not parse the angle value '{0}' "
                                      "- units could not be determined.".format(angle))
                 angle = angle.strip()
                 for unitStr in ["degrees", "degree", "deg"]:
@@ -135,7 +135,7 @@ class Angle(object):
                         unit = u.degree
 
         if unit == None:
-            raise ValueError("The unit parameter should be an object from the "
+            raise UnitsError("The unit parameter should be an object from the "
                              "astropy.unit module (e.g. 'from astropy import units as u',"
                              "then use 'u.degree').")
 
@@ -149,7 +149,7 @@ class Angle(object):
             elif unit == u.hour:
                 self._radians = util.hours_to_radians(util.parse_hours(angle))
             else:
-                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         # ---------------
         # bounds checking
@@ -258,9 +258,9 @@ class Angle(object):
             elif unit == "radians":
                 unit = u.radian
             else:
-                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
         else:
-                raise ValueError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         if unit == u.degree:
             if decimal:
@@ -430,7 +430,7 @@ class RA(Angle):
                 if angle > 24:
                     unit = u.degree
                 else:
-                    raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+                    raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
             elif isinstance(angle, str):
                 # Try to deduce the units from hints in the string.
                 # Further, enforce absolute bounds here, i.e. don't let
@@ -453,18 +453,18 @@ class RA(Angle):
                     if decimal_value > 24:
                         unit = u.degree
                     elif 0 <= decimal_value <= 24.0:
-                        raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+                        raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
                     elif decimal_value < 0:
                         raise RangeError("No units were specified; could not assume any since the value was less than zero.")
             elif isinstance(angle, tuple):
                 if len(angle) == 3 and 0 <= angle[0] < 24.0:
-                    raise ValueError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+                    raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
                 else:
                     unit = u.degree
             else:
                 raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
         if unit == None:
-            raise ValueError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
+            raise UnitsError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
 
         # By here, the unit should be defined.
         super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))

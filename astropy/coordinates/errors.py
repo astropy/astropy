@@ -77,8 +77,8 @@ class IllegalSecondError(RangeError):
         return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
 
 
-class CoordinatesConversionError(Exception):
+#TODO: consider if this should be used to `units`?
+class UnitsError(Exception):
     """
-    Raised
+    Raised if units are missing or invalid.
     """
-    pass
