@@ -14,7 +14,8 @@ import numpy as np
 __all__ = ['StaticMatrixTransform', 'FunctionTransform',
            'DynamicMatrixTransform', 'CompositeStaticMatrixTransform',
            'static_transform_matrix', 'transform_function',
-           'dynamic_transform_matrix', 'coordinate_alias']
+           'dynamic_transform_matrix', 'coordinate_alias'
+          ]
 
 
 class TransformGraph(object):
@@ -63,26 +64,48 @@ class TransformGraph(object):
         """
         Removes a coordinate transform from the graph.
 
-
         Parameters
         ----------
-        fromsys : class
-            The coordinate system *class* to start from
-        tosys : class
-            The coordinate system *class* to transform to
+        fromsys : class or None
+            The coordinate system *class* to start from. If None,
+            `transform` will be searched for and removed (`tosys` must
+            also be None).
+        tosys : class or None
+            The coordinate system *class* to transform into. If None,
+            `transform` will be searched for and removed (`fromsys` must
+            also be None).
         transform : callable or None
-            The transformation object or None.  If None, there will be no
+            The transformation object to be removed or None.  If None
+            and `tosys` and `fromsys` are supplied, there will be no
             check to ensure the correct object is removed.
         """
-        if transform is None:
-            self._graph[fromsys].pop(tosys, None)
-        else:
-            curr = self._graph[fromsys].get(tosys, None)
-            if curr is transform:
-                self._graph[fromsys].pop(tosys)
+        if fromsys is None or tosys is None:
+            if not (tosys is None and fromsys is None):
+                raise ValueError('fromsys and tosys must both be None if either are')
+            if transform is None:
+                raise ValueError('cannot give all Nones to remove_transform')
+
+            #search for the requested transform by brute force and remove it
+            for a in self._graph:
+                agraph = self._graph[a]
+                for b in agraph:
+                    if b is transform:
+                        del agraph[b]
+                        break
             else:
-                raise ValueError('Current transform from {0} to {1} is not '
-                                 '{2}'.format(fromsys, tosys, transform))
+                raise ValueError('Could not find transform {0} in the '
+                                 'graph'.format(transform))
+
+        else:
+            if transform is None:
+                self._graph[fromsys].pop(tosys, None)
+            else:
+                curr = self._graph[fromsys].get(tosys, None)
+                if curr is transform:
+                    self._graph[fromsys].pop(tosys)
+                else:
+                    raise ValueError('Current transform from {0} to {1} is not '
+                                     '{2}'.format(fromsys, tosys, transform))
 
     def find_shortest_path(self, fromsys, tosys):
         """

@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
-from pytest import raises
+from ...tests.helper.pytest import raises
 
 from ... import units as u
 from ..errors import *
@@ -444,7 +444,7 @@ def test_create_coordinate():
     c = ICRSCoordinates(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
 
     with raises(ValueError):
-        c = ICRSCoordinates(ra="12 43 12", unit=(u.hour))
+        c = ICRSCoordinates(ra="12 43 12", unit=(u.hour,))
 
     with raises(ValueError):
         c = Coordinates(ra="12h43m32", b="12:32:43")
@@ -464,7 +464,7 @@ def test_create_coordinate():
     # sequence for the "unit" keyword  that one would expect to sent to Angle.
     # The first element in 'units' refers to the first coordinate.
     # DEGREE is assumed for the second coordinate, unless specified
-    c1 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour))
+    c1 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour,))
 
     # Both can be specified and should be when there is ambiguity.
     c2 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))

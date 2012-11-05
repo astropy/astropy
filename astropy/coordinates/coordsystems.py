@@ -3,8 +3,9 @@
 """
 This module contains the base classes and frameworks for coordinate objects.
 """
-
 from abc import ABCMeta, abstractproperty, abstractmethod
+
+import numpy as np
 
 from .angles import RA, Dec, Angle, AngularSeparation
 from .errors import UnitsError
@@ -236,7 +237,8 @@ class SphericalCoordinatesBase(object):
         if nmsys is not None and self.is_transformable_to(nmsys):
             return self.transform_to(nmsys)
         else:
-            raise AttributeError
+            objname = self.__class__.__name__
+            raise AttributeError("'{0}' object has no attribute '{1}'".format(objname, name))
 
 #FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
@@ -606,6 +608,7 @@ def cartesian_to_spherical(x, y, z):
     lng : float or array
         The longitude in radians
     """
+    import math
 
     xsq = x ** 2
     ysq = y ** 2
@@ -659,6 +662,7 @@ def spherical_to_cartesian(r, lat, lng):
 
 
     """
+    import math
 
     if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lng):
         x = r * math.cos(lat) * math.cos(lng)
