@@ -10,8 +10,10 @@ from ... import log
 
 HDF5_SIGNATURE = '\x89HDF\r\n\x1a\n'
 
+__all__ = ['read_hdf5', 'write_hdf5']
 
-def is_hdf5(origin, args, kwargs):
+
+def _is_hdf5(origin, args, kwargs):
 
     try:
         import h5py
@@ -38,9 +40,12 @@ def read_hdf5(input, name=None, group=""):
     """
     Read a Table object from an HDF5 file
 
+    This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
+    installed.
+
     Parameters
     ----------
-    input : str or h5py.highlevel.File or h5py.highlevel.Group
+    input : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to read the table from. If an h5py object,
         either the file or the group object to read the table from.
     group : str
@@ -98,9 +103,12 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     """
     Write a Table object to an HDF5 file
 
+    This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
+    installed.
+
     Parameters
     ----------
-    output : str or h5py.highlevel.File or h5py.highlevel.Group
+    output : str or `h5py.highlevel.File` or `h5py.highlevel.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
     name : str
@@ -186,4 +194,4 @@ from astropy.table.io_registry import register_reader, \
 
 register_reader('hdf5', read_hdf5)
 register_writer('hdf5', write_hdf5)
-register_identifier('hdf5', is_hdf5)
+register_identifier('hdf5', _is_hdf5)
