@@ -130,15 +130,55 @@ class SphericalCoordinatesBase(object):
 
         Returns
         -------
-        sep : `~astropy.coordinates.Angles.AngularSeparation`
+        sep : `~astropy.coordinates.angles.AngularSeparation`
             The on-sky separation between this and the `other` coordinate.
         """
+        other_in_self_system = other.convert_to(self.__class__)
+
         lat1 = self.latangle.radians
-        long1 = other.latangle.radians
+        long1 = other_in_self_system.latangle.radians
         lat2 = self.longangle.radians
-        long2 = other.longangle.radians
+        long2 = other_in_self_system.longangle.radians
         return AngularSeparation(lat1, long1, lat2, long2, u.radian)
 
+    def separation3d(self, other):
+        """
+        Computes three dimensional separation between this coordinate
+        and another.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
+            The coordinate system to get the distance to.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.coordsystems.Distance`
+            The real-space distance between these two coordinates.
+
+        Raises
+        ------
+        ValueError
+            If this or the other coordinate do not have distances.
+        """
+        if self._distance is None:
+            raise ValueError('This object does not have a distance; cannot '
+                             'compute 3d separation.')
+
+        # do this first just in case the conversion somehow creates a distance
+        other_in_self_system = other.convert_to(self.__class__)
+
+        if other_in_self_system._distance is None:
+            raise ValueError('The other object does not have a distance; '
+                             'cannot compute 3d separation.')
+
+        dscale = other_in_self_system._distance.unit.to(self._distance.unit, 1)
+
+        dx = self.x - other_in_self_system.x * dscale
+        dy = self.y - other_in_self_system.y * dscale
+        dz = self.z - other_in_self_system.z * dscale
+
+        return (dx ** 2 + dy ** 2 + dz ** 2) ** 0.5
 
 #FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
