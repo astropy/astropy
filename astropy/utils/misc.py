@@ -10,8 +10,10 @@ from threading import Thread, Event
 import collections
 import contextlib
 import functools
+
 import os
 import io
+import json
 import sys
 import textwrap
 import traceback
@@ -21,7 +23,8 @@ import warnings
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden']
+           'walk_skip_hidden', 'NumpyScalarEncoder']
+
 
 @contextlib.contextmanager
 def get_fileobj(name_or_obj, binary=False):
@@ -118,6 +121,7 @@ def get_fileobj(name_or_obj, binary=False):
     for fd in close_fds:
         fd.close()
 
+
 class Future(object):
     """
     Asynchronous function support.
@@ -208,6 +212,7 @@ class Future(object):
             raise self._result
         else:
             return self._result
+
 
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.
@@ -939,3 +944,13 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
         dirs[:] = [d for d in dirs if not is_path_hidden(d)]
         files[:] = [f for f in files if not is_path_hidden(f)]
         yield root, dirs, files
+
+
+class NumpyScalarEncoder(json.JSONEncoder):
+    """Encode Numpy scalar numbers in JSON."""
+    def default(self, obj):
+        import numpy
+        if isinstance(obj, (numpy.int32, numpy.int64, numpy.int,
+                            numpy.float32, numpy.float64, numpy.float)):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)

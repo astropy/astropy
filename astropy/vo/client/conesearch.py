@@ -408,9 +408,10 @@ def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     return y, y_fit
 
 
-def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y, ylabel):
+def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y,
+                      ylabel):  # pragma: no cover
     """For use by `predict_search`."""
-    ax.plot(x_arr, y_arr, 'kx-')  # pragma: no cover
-    ax.plot(x_arr, y_fit, 'b--')  # pragma: no cover
-    ax.scatter([x], [y], marker='o', c='r')  # pragma: no cover
-    ax.set_ylabel(ylabel)  # pragma: no cover
+    ax.plot(x_arr, y_arr, 'kx-')
+    ax.plot(x_arr, y_fit, 'b--')
+    ax.scatter([x], [y], marker='o', c='r')
+    ax.set_ylabel(ylabel)

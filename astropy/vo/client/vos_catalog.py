@@ -256,7 +256,7 @@ def _vo_service_request(url, pedantic, kwargs):
         break
 
     out_tab = tab.get_first_table()
-    if kwargs.get('sr', 1) == 0 and out_tab.array.size <= 0:
+    if kwargs.get('sr', 0) != 0 and out_tab.array.size <= 0:
         raise VOSError("Catalog server '{}' returned {} result".format(
             url, out_tab.array.size))
 
