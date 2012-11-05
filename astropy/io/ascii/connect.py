@@ -87,7 +87,7 @@ io_registry.register_writer('latex', write_latex)
 
 
 def is_latex(origin, args, kwargs):
-    return args[0].endswith('.tex')
+    return isinstance(args[0], basestring) and args[0].endswith('.tex')
 
 io_registry.register_identifier('latex', is_latex)
 
@@ -114,6 +114,6 @@ io_registry.register_writer('rdb', write_rdb)
 
 
 def is_rdb(origin, args, kwargs):
-    return args[0].endswith('.rdb')
+    return isinstance(args[0], basestring) and args[0].endswith('.rdb')
 
 io_registry.register_identifier('rdb', is_rdb)
