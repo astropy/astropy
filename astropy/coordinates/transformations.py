@@ -15,7 +15,6 @@ pi = math.pi
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian']
 
 
-
 def cartesian_to_spherical(x, y, z):
     """
     Converts 3D rectangular cartesian coordinates to spherical polar
@@ -64,8 +63,8 @@ def cartesian_to_spherical(x, y, z):
         lng = np.arctan2(y, x)
         lat = np.arctan2(z, s)
 
-
     return r, lat, lng
+
 
 def spherical_to_cartesian(r, lat, lng):
     """
@@ -112,4 +111,4 @@ def spherical_to_cartesian(r, lat, lng):
         y = r * np.cos(lat) * np.sin(lng)
         z = r * np.sin(lat)
 
-    return x,y,z
+    return x, y, z

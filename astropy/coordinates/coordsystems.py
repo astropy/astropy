@@ -13,6 +13,7 @@ __all__ = ['SphericalCoordinatesBase', 'Coordinates', 'Distance',
            'CartesianPoint'
           ]
 
+
 class SphericalCoordinatesBase(object):
     """
     Abstract superclass for all coordinate classes representing points in three
@@ -136,6 +137,7 @@ class SphericalCoordinatesBase(object):
         long2 = other.longangle.radians
         return AngularSeparation(lat1, long1, lat2, long2, u.radian)
 
+
 #FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
     """
@@ -240,7 +242,7 @@ class Distance(object):
 
         #FIXME: array: need to make this calculation more vector-friendly
 
-        f = lambda z, d, cos: (luminosity_distance(z, cos) - d)**2
+        f = lambda z, d, cos: (luminosity_distance(z, cos) - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
 
 
@@ -283,6 +285,7 @@ class CartesianPoint(object):
         from .transformations import cartesian_to_spherical
 
         return cartesian_to_spherical(self.x, self.y, self.z)
+
 
 class Coordinates(object):
     """
@@ -331,7 +334,7 @@ class Coordinates(object):
             except KeyError:
                 raise ValueError("When an 'ra' or 'dec' value is provided, the "
                                  "other coordinate must also be given.")
-            for kw in ["l", "b", "az", "el"]: # no others should be provided
+            for kw in ["l", "b", "az", "el"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             ra = RA(ra, unit=units[0]) if len(units) > 0 else RA(ra)
@@ -345,7 +348,7 @@ class Coordinates(object):
             except KeyError:
                 raise ValueError("When an 'az' or 'el' horizontal coordinates value "
                                  "is provided, the other coordinate must also be given.")
-            for kw in ["ra", "dec", "l", "b"]: # no others should be provided
+            for kw in ["ra", "dec", "l", "b"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             az = Angle(az, unit=units[0]) if len(units) > 0 else Angle(az)
@@ -359,7 +362,7 @@ class Coordinates(object):
             except KeyError:
                 raise ValueError("When an 'l' or 'b' galactic coordinates value is "
                                  "provided, the other coordinate must also be given.")
-            for kw in ["ra", "dec", "az", "el"]: # no others should be provided
+            for kw in ["ra", "dec", "az", "el"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             l = Angle(l, unit=units[0]) if len(units) > 0 else Angle(l)
@@ -390,11 +393,11 @@ class Coordinates(object):
         else:
             raise ValueError("Could not construct coordinates.")
 
-        if False: # old code - still useful?
+        if False:  # old code - still useful?
             # determine units
             if units is not None:
                 if isinstance(units, u.Unit):
-                    pass # great!
+                    pass  # great!
                 elif isinstance(units, tuple):
                     if len(units) == 0 or len(units) > 2:
                         raise ValueError("The units parameter only accepts "

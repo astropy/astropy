@@ -5,16 +5,18 @@
 
 __all__ = ['RangeError', 'IllegalHourError', 'IllegalMinuteError', 'IllegalSecondError']
 
+
 class RangeError(Exception):
-	pass
+    pass
+
 
 class IllegalHourError(Exception):
     """
     Returned when an hour value is not in the range [0,24).
-    
+
     Usage:
         if not 0 <= hr < 24:
-            raise IllegalHourError(hour)
+        raise IllegalHourError(hour)
 
     Parameters
     ----------
@@ -22,8 +24,10 @@ class IllegalHourError(Exception):
     """
     def __init__(self, hour):
         self.hour = hour
+
     def __str__(self):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
+
 
 class IllegalMinuteError(Exception):
     """
@@ -39,8 +43,10 @@ class IllegalMinuteError(Exception):
     """
     def __init__(self, minute):
         self.minute = minute
+
     def __str__(self):
         return "An invalid value for 'minute' was found ('{0}'); must be in the range [0,60).".format(self.minute)
+
 
 class IllegalSecondError(Exception):
     """
@@ -49,17 +55,19 @@ class IllegalSecondError(Exception):
     Usage:
         if not 0 <= sec < 60:
             raise IllegalSecondError(second)
-    
+
     Parameters
     ----------
     second : int, float
     """
     def __init__(self, second):
         self.second = second
+
     def __str__(self):
         return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
-        
+
+
 class CoordinatesConversionError(Exception):
-	"""
-	"""
-	pass
+    """
+    """
+    pass

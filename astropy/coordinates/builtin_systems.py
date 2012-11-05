@@ -15,7 +15,6 @@ __all__ = ['ICRSCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
           ]
 
 
-
 class ICRSCoordinates(SphericalCoordinatesBase):
     """
     Object representing a coordinate in the ICRS system.
@@ -44,10 +43,10 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             units = kwargs["unit"]
             del kwargs["unit"]
         else:
-             units = list()
+            units = list()
 
         if isinstance(units, tuple) or isinstance(units, list):
-            pass # good
+            pass  # good
         elif isinstance(units, u.Unit) or isinstance(units, str):
             # Only a single unit given, which is fine (assigned to 'ra').
             # The value, even if given as a tuple, is unpacked. Just make it
@@ -57,7 +56,6 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             raise ValueError("The value for units must be given as a tuple, e.g. "
                              "unit=(u.hour, u.degree). An object of type '{0}' "
                              "was given.".format(type(units).__name__))
-
 
         if len(args) == 0 and len(kwargs) == 0:
             raise ValueError("A coordinate object cannot be created without ra,dec values.")
@@ -199,7 +197,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             units = list()
 
         if isinstance(units, tuple) or isinstance(units, list):
-            pass # good
+            pass  # good
         elif isinstance(units, u.Unit) or isinstance(units, str):
             # Only a single unit given, which is fine (assigned to 'ra').
             # The value, even if given as a tuple, is unpacked. Just make it
