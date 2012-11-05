@@ -15,15 +15,7 @@ __all__ = ['read_hdf5', 'write_hdf5']
 
 def _is_hdf5(origin, args, kwargs):
 
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
-
-    if isinstance(args[0], h5py.highlevel.File) or \
-        isinstance(args[0], h5py.highlevel.Group):
-        return True
-    elif isinstance(args[0], basestring):
+    if isinstance(args[0], basestring):
         if os.path.exists(args[0]):
             with open(args[0], 'rb') as f:
                 if f.read(8) == HDF5_SIGNATURE:
@@ -33,7 +25,15 @@ def _is_hdf5(origin, args, kwargs):
         elif args[0].endswith('.hdf5'):
             return True
 
-    return False
+    try:
+        import h5py
+    except ImportError:
+        return False
+    else:
+        if isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group)):
+            return True
+        else:
+            return False
 
 
 def read_hdf5(input, path=None):
