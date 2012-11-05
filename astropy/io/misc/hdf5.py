@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 import numpy as np
@@ -136,8 +138,9 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     compression : bool
         Whether to compress the table inside the HDF5 file.
     group : str
-        The group to write the table to inside the HDF5 file. This can
-        only be used if the ``output`` argument is a string.
+        The group to write the table to inside the HDF5 file, relative
+        to the output (i.e. if a h5py group object is passed in
+        `output`, then `group` is the path relative to the group.)
     append : bool
         Whether to append the table to an existing HDF5 file.
     overwrite : bool
@@ -157,6 +160,11 @@ def write_hdf5(table, output, name=None, compression=False, group="",
     if isinstance(output, h5py.highlevel.File) or \
        isinstance(output, h5py.highlevel.Group):
         f, g = None, output
+        if group:
+            if group in g.keys():
+                g = g[group]
+            else:
+                g = g.create_group(group)
     else:
         if os.path.exists(output) and not append:
             if overwrite:

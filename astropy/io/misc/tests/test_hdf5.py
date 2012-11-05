@@ -29,6 +29,38 @@ def test_read_write_simple(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
+def test_write_fileobj(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    import h5py
+    output_file = h5py.File(test_file, 'w')
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(output_file, name='the_table')
+    output_file.close()
+
+    t2 = Table.read(test_file, name='the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
+def test_write_filobj_group(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    import h5py
+    output_file = h5py.File(test_file, 'w')
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(output_file, name='the_table', group='path/to/data')
+    output_file.close()
+
+    t2 = Table.read(test_file, name='the_table', group='path/to/data')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
 @pytest.mark.parametrize(('dtype'), ALL_DTYPES)
 def test_preserve_single_dtypes(tmpdir, dtype):
 
