@@ -157,7 +157,7 @@ class Angle(object):
         # TODO: handle arrays
         # handle bounds units, convert to radians
         if bounds == None:
-            Ppass  # no range checking performed
+            pass  # no range checking performed
         else:
             try:
                 if unit == u.radian:
@@ -560,7 +560,7 @@ class AngularSeparation(Angle):
 
 
     """
-    AngularSeparation.distance_function = util.haversine_dist_atan
+    distance_function = util.haversine_dist_atan
 
     def __init__(self, lat1, long1, lat2, long2, units, distance_function=None):
 

@@ -662,7 +662,7 @@ def test_distances():
     npt.assert_almost_equal(distance.km, 370281309776063.0)
 
     distance.z  # redshift, assuming "current" cosmology
-    distance.get_z(WMAP5)  # specifying a cosmology possible
+    distance.compute_z(WMAP5)  # specifying a cosmology possible
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position

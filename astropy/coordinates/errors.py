@@ -3,7 +3,8 @@
 
 ''' This module defines custom errors and exceptions used in astropy.coordinates. '''
 
-__all__ = ['RangeError', 'IllegalHourError', 'IllegalMinuteError', 'IllegalSecondError']
+__all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
+           'IllegalMinuteError', 'IllegalSecondError']
 
 
 class RangeError(Exception):
