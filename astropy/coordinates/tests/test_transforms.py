@@ -116,6 +116,7 @@ def test_shortest_path():
     assert path == [3]
     assert d == 1
     path, d = g.find_shortest_path(1, 4)
+    print('Cached paths:', g._shortestpaths)
     assert path == [2, 4]
     assert d == 2
 

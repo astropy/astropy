@@ -15,6 +15,7 @@ __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
 
 #<-----------------Coordinate definitions; transforms are below---------------->
 
+
 class ICRSCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in the ICRS system.
@@ -26,7 +27,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
 
     {params}
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format('ra', 'dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
         super(ICRSCoordinates, self)._initialize_latlong('ra', 'dec', args,
@@ -46,7 +47,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     A coordinate in the FK5 system.
 
     {params}
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format('ra', 'dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
         super(ICRSCoordinates, self)._initialize_latlong('ra', 'dec', args,
@@ -66,7 +67,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     A coordinate in the FK4 system.
 
     {params}
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format('ra', 'dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
         super(ICRSCoordinates, self)._initialize_latlong('ra', 'dec', args,
@@ -86,7 +87,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     A coordinate in Galactic Coordinates
 
     {params}
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format('l', 'b'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='l', latnm='b'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
         super(ICRSCoordinates, self)._initialize_latlong('l', 'b', args,
@@ -106,7 +107,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     A coordinate in the Horizontal or "alt/az" system.
 
     {params}
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format('az', 'alt'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='az', latnm='alt'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
         super(ICRSCoordinates, self)._initialize_latlong('az', 'alt', args,

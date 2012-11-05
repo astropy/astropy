@@ -183,16 +183,18 @@ class TransformGraph(object):
 
         while len(q) > 0:
             d, n, path = heapq.heappop(q)
-            result[n] = (path, d)
-            path.append(n)
 
             if d == inf:
                 #everything left is unreachable - just copy them to the results
                 #and jump out of the loop
+                result[n] = (None, d)
                 for d, n, path in q:
-                    result[n] = (path, d)
+                    result[n] = (None, d)
                 break
             else:
+                result[n] = (path, d)
+                path.append(n)
+
                 for n2 in edgeweights[n]:
                     if n2 not in result:  # already visited
                         #find where n2 is in the heap
@@ -210,7 +212,7 @@ class TransformGraph(object):
 
         #cache for later use
         self._shortestpaths[fromsys] = result
-        return result[fromsys][tosys]
+        return result[tosys]
 
     def invalidate_cache(self):
         """
