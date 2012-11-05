@@ -2,17 +2,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
-import numpy as np
 from ...tests.helper import pytest
 
 from .. import angle_utilities
 
-distance_funcs = {'small_angle': angle_utilities.small_angle_dist,
-                  'sphere': angle_utilities.sphere_dist,
-                  'haversine': angle_utilities.haversine_dist,
-                  'haversine_atan': angle_utilities.haversine_dist_atan,
-                  'vicenty': angle_utilities.vicenty_dist,
-                 }
+distance_funcs = [angle_utilities.small_angle_dist,
+                  angle_utilities.sphere_dist,
+                  angle_utilities.haversine_dist,
+                  angle_utilities.haversine_dist_atan,
+                  angle_utilities.vicenty_dist,
+                 ]
+
 # lat1, long1, lat2, long2 in degrees
 coords = [(0, 0, 1, 0),
           (0, 0, 0, 10),
@@ -20,29 +20,57 @@ coords = [(0, 0, 1, 0),
           (0, 0, 0, 180),
           (45, 0, -45, 0),
           (60, 0, -30, 0),
+          (-15, -135, 15, 45),
+          (-89, 100, 89, -80),
           (0, 0, 0, 0),
           (0, 0, 1. / 60., 1. / 60.)
          ]
-correct_seps = [1, 10, 90, 180, 90, 90, 0, 0.023570225877234643]
-correctness_margin = 1e-98
+correct_seps = [1, 10, 90, 180, 90, 90, 180, 180, 0, 0.023570225877234643]
+correctness_margin = 2e-10
+
+# set this to a numer to run the timing tests and trigger a failure so stdout is
+# read back in pytest - the number gives the number of iterations
+dotiming = False
+
+paramsets = []
+for coord, coorsep in zip(coords, correct_seps):
+    for df in distance_funcs:
+        paramsets.append((coord, coorsep, df))
 
 
-@pytest.mark.parametrize(('coords', 'corrsep'), zip(coords, correct_seps))
-def test_2dseparations(coords, corrsep):
+@pytest.mark.parametrize(('coord', 'correctsep', 'dfunc'), paramsets)
+def test_2dseparations(coord, correctsep, dfunc):
     """
-    A variety of tests to examine how close the various distance estimators are
+    A variety of tests to examine how close the various sphereical
+    distance/great circle measurements are from the expectations
     """
+    from time import time
     from math import fabs, radians, degrees
 
-    lat1, long1, lat2, long2 = coords
+    lat1, long1, lat2, long2 = coord
 
+    print('distance function', dfunc)
     print('({0},{1}) - ({2},{3})'.format(lat1, long1, lat2, long2))
-    print('Correct separation', corrsep)
+    print('Correct separation', correctsep)
 
-    seps = {}
-    for n, dfunc in distance_funcs.iteritems():
-        sep = degrees(dfunc(radians(lat1), radians(long1), radians(lat2), radians(long2)))
-        seps[n] = sep - corrsep
-    print(seps)
-    assert all([fabs(sepval) < 1e-9 for sepval in seps.values()])
+    inputs = (radians(lat1), radians(long1), radians(lat2), radians(long2))
+    sep = degrees(dfunc(*inputs))
+    print('Reported:', sep)
+    print('Deviation from correct:', sep - correctsep)
 
+    if dotiming:
+        starttime = time()
+        for i in range(int(dotiming)):
+            dfunc(*inputs)
+        endtime = time()
+        dt = endtime - starttime
+        print('{0} in {1} sec'.format(int(dotiming), dt))
+        print('{0} sec per execution'.format(dt / float(int(dotiming))))
+        assert False  # Triggers py.test failures so we can see the timings
+
+    #a few cases are known to fail because of bad approximations - let them fail
+    if dfunc is angle_utilities.small_angle_dist:
+        if fabs(lat2 - lat1) > 1 and fabs(long2 - long1) > 1:  # radians
+            pytest.xfail('Small angle approximation fails for large angles')
+
+    assert fabs(sep - correctsep) < correctness_margin
