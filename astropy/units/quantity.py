@@ -13,7 +13,7 @@ import copy
 import numbers
 
 # AstroPy
-from .core import Unit
+from .core import Unit, UnitBase
 
 __all__ = ["Quantity"]
 
@@ -105,8 +105,10 @@ class Quantity(object):
 
         """
         simplified_unit = self.unit.decompose()
+        print(self.unit, type(self.unit), self.unit.decompose(), type(self.unit.decompose()))
         new_value = self.value * simplified_unit.scale
-        new_unit = simplified_unit / simplified_unit.scale
+        print(simplified_unit.bases)
+        new_unit = simplified_unit.bases / simplified_unit.scale
 
         return Quantity(new_value, unit=new_unit)
 
@@ -141,6 +143,9 @@ class Quantity(object):
         elif isinstance(other, numbers.Number):
             return Quantity(other*self.value, unit=self.unit)
 
+        elif isinstance(other, UnitBase):
+            return Quantity(self.value, unit=self.unit*other)
+
         else:
             raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
 
@@ -150,6 +155,9 @@ class Quantity(object):
 
         if isinstance(other, numbers.Number):
             return Quantity(other*self.value, unit=self.unit)
+
+        elif isinstance(other, UnitBase):
+            return Quantity(self.value, unit=self.unit*other)
 
         else:
             raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
@@ -162,6 +170,9 @@ class Quantity(object):
         elif isinstance(other, numbers.Number):
             return Quantity(self.value / other, unit=self.unit)
 
+        elif isinstance(other, UnitBase):
+            return Quantity(self.value, unit=self.unit/other)
+
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
 
@@ -169,6 +180,9 @@ class Quantity(object):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
         if isinstance(other, numbers.Number):
             return Quantity(other / self.value, unit=Unit("1/({0})".format(self.unit.to_string())))
+
+        elif isinstance(other, UnitBase):
+            return Quantity(1./self.value, unit=other/self.unit)
 
         else:
             raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
@@ -208,6 +222,7 @@ class Quantity(object):
         return hash(self.value) ^ hash(self.unit)
 
     # Display
+    # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
         return "{0} {1:s}".format(self.value, self.unit.to_string())
 

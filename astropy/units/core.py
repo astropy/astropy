@@ -10,6 +10,7 @@ import re
 import sys
 import textwrap
 import warnings
+import numbers
 
 import numpy as np
 
@@ -117,29 +118,40 @@ class UnitBase(object):
         # same way whether __future__ division is being used or not
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
+        elif isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(1./m, self)
         else:
             return CompositeUnit(1.0 / m, [self], [1]).simplify()
 
     def __rdiv__(self, m):
-        return CompositeUnit(m, [self], [-1]).simplify()
+        if isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(m, CompositeUnit(1.0, [self], [-1]).simplify())
+        else:
+            return CompositeUnit(m, [self], [-1]).simplify()
 
     def __truediv__(self, m):
-        if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, -1]).simplify()
-        else:
-            return CompositeUnit(1.0 / m, [self], [1]).simplify()
+        return self.__div__(m)
 
     def __rtruediv__(self, m):
-        return CompositeUnit(m, [self], [-1]).simplify()
+        return self.__rdiv__(m)
 
     def __mul__(self, m):
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, 1]).simplify()
+        elif isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(m, self)
         else:
             return CompositeUnit(m, [self], [1]).simplify()
 
     def __rmul__(self, m):
-        return CompositeUnit(m, [self], [1]).simplify()
+        if isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(m, self)
+        else:
+            return CompositeUnit(m, [self], [1]).simplify()
 
     if sys.version_info[0] >= 3:
         def __hash__(self):
@@ -355,6 +367,7 @@ class UnitBase(object):
         UnitException
             If units are inconsistent
         """
+        other = Unit(other)
         return self.get_converter(other, equivs=equivs)(value)
 
     def in_units(self, other, value=1.0, equivs=[]):
@@ -501,6 +514,10 @@ class NamedUnit(UnitBase):
     """
     def __init__(self, st, register=False, doc=None, format=None):
         UnitBase.__init__(self)
+
+        from .quantity import Quantity
+        if isinstance(st, Quantity):
+            st = str(st)
 
         if isinstance(st, (bytes, unicode)):
             self._names = [st]
@@ -687,6 +704,25 @@ class _UnitMetaClass(type):
     """
     def __call__(self, s, represents=None, format=None, register=False,
                  doc=None, parse_strict='raise'):
+
+
+        from .quantity import Quantity
+        if isinstance(represents, Quantity):
+            if represents.value == 1:
+                represents = represents.unit
+            elif isinstance(represents.unit, CompositeUnit):
+                represents = CompositeUnit(represents.value, bases=represents.unit.bases, powers=represents.unit.powers)
+            else:
+                represents = CompositeUnit(represents.value, bases=[represents.unit], powers=[1])
+
+        if isinstance(s, Quantity):
+            if s.value == 1:
+                s = s.unit
+            elif isinstance(s.unit, CompositeUnit):
+                s = CompositeUnit(s.value, bases=s.unit.bases, powers=s.unit.powers)
+            else:
+                s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
+
         if isinstance(represents, UnitBase):
             # This has the effect of calling the real __new__ and
             # __init__ on the Unit class.
@@ -815,6 +851,7 @@ class Unit(NamedUnit):
 
     def __init__(self, st, represents=None, register=False, doc=None,
                  format=None):
+
         represents = Unit(represents)
         self._represents = represents
 
@@ -1024,8 +1061,7 @@ def _add_prefixes(u, excludes=[], register=False):
                 if len(alias) > 2:
                     names.append(prefix + alias)
 
-        PrefixUnit(names, factor * u, register=register, format=format)
-
+        PrefixUnit(names, CompositeUnit(factor, [u], [1]), register=register, format=format)
 
 def def_unit(s, represents=None, register=None, doc=None,
              format=None, prefixes=False, exclude_prefixes=[]):
@@ -1079,6 +1115,7 @@ def def_unit(s, represents=None, register=None, doc=None,
         The newly-defined unit, or a matching unit that was already
         defined.
     """
+
     if register is None:
         register = False
     if represents is not None:
