@@ -79,7 +79,7 @@ class TestQuantityOperations():
         assert new_quantity.unit == u.centimeter
 
         new_q = u.Quantity(1500.1,u.m) + u.Quantity(13.5,u.km)
-                assert new_q.unit == u.m
+        assert new_q.unit == u.m
         assert new_q.value == 15000.1
 
     def test_subtraction(self):

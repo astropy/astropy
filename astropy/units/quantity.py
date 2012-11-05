@@ -104,6 +104,7 @@ class Quantity(object):
         such equivalent units.
 
         """
+        # TODO: This method is in flux...waiting to hear from @mdboom about whether we should have .simplify_units() and .decompose_units()
         simplified_unit = self.unit.decompose()
         print(self.unit, type(self.unit), self.unit.decompose(), type(self.unit.decompose()))
         new_value = self.value * simplified_unit.scale
