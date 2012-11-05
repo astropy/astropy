@@ -67,14 +67,14 @@ def read_hdf5(input, name=None, group=""):
             try:
                 g = g[group]
             except KeyError:
-                raise Exception("Group %s does not exist" % group)
+                raise Exception("Group {0} does not exist".format(group))
     else:
         f = h5py.File(input, 'r')
         g = f[group] if group else f
 
     # Check whether table exists
     if name not in g.keys():
-        raise Exception("Table %s/%s does not exist" % (group, name))
+        raise Exception("Table {0}/{1} does not exist".format(group, name))
 
     # Read the table from the file
     dset = g[name]
@@ -140,7 +140,7 @@ def write_hdf5(table, output, name=None, compression=False, group="",
             if overwrite:
                 os.remove(output)
             else:
-                raise Exception("File exists: %s" % output)
+                raise Exception("File exists: {0}".format(output))
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')
@@ -158,7 +158,7 @@ def write_hdf5(table, output, name=None, compression=False, group="",
 
     # Check whether table already exists
     if name in g.keys():
-        raise Exception("Table %s/%s already exists" % (group, name))
+        raise Exception("Table {0}/{1} already exists".format(group, name))
 
     # Write the table to the file
     dset = g.create_dataset(name, data=table._data, compression=compression)
