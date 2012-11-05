@@ -160,7 +160,7 @@ def test_angle_bounds():
     Tests setting and obeying of bounds for Angle objects, as well as
     how operations interact with bounds
     """
-    from .. import Angle, RangeError
+    from .. import Angle, RangeError, BoundsError
     import numpy.testing as npt
 
     '''
@@ -184,12 +184,12 @@ def test_angle_bounds():
 
     # custom bounds
 
-    with raises(RangeError):
+    with raises(BoundsError):
         Angle(66, unit=u.degree, bounds=(-45, 45))
 
     a4 = Angle(390, unit=u.degree, bounds=(-75, 75))
     npt.assert_almost_equal(a4.degrees, 30)
-    # no RangeError because while 390>75, 30 is within the bounds
+    # no BoundsError because while 390>75, 30 is within the bounds
 
     a5 = Angle(390, unit=u.degree, bounds=(-720, 720))
     a5.degrees == 390

@@ -7,14 +7,23 @@ __all__ = ['RangeError', 'IllegalHourError', 'IllegalMinuteError', 'IllegalSecon
 
 
 class RangeError(Exception):
-    pass
-
-
-class IllegalHourError(Exception):
     """
-    Returned when an hour value is not in the range [0,24).
+    Raised when some part of an angle is out of its valid range.
+    """
 
-    Usage:
+
+class BoundsError(RangeError):
+    """
+    Raised when an angle is outside of its user-specified bounds.
+    """
+
+
+class IllegalHourError(RangeError):
+    """
+    Raised when an hour value is not in the range [0,24).
+
+    Usage::
+
         if not 0 <= hr < 24:
         raise IllegalHourError(hour)
 
@@ -29,9 +38,9 @@ class IllegalHourError(Exception):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
 
 
-class IllegalMinuteError(Exception):
+class IllegalMinuteError(RangeError):
     """
-    Returned when an minute value is not in the range [0,60).
+    Raised when an minute value is not in the range [0,60).
 
     Usage:
         if not 0 <= min < 60:
@@ -48,9 +57,9 @@ class IllegalMinuteError(Exception):
         return "An invalid value for 'minute' was found ('{0}'); must be in the range [0,60).".format(self.minute)
 
 
-class IllegalSecondError(Exception):
+class IllegalSecondError(RangeError):
     """
-    Returned when an second value (time) is not in the range [0,60).
+    Raised when an second value (time) is not in the range [0,60).
 
     Usage:
         if not 0 <= sec < 60:
@@ -69,5 +78,6 @@ class IllegalSecondError(Exception):
 
 class CoordinatesConversionError(Exception):
     """
+    Raised
     """
     pass

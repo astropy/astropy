@@ -182,7 +182,7 @@ class Angle(object):
                     while True:
                         self._radians -= twopi
                         if self._radians < lower_bound:
-                            raise RangeError("The angle given falls outside of the specified bounds.")
+                            raise BoundsError("The angle given falls outside of the specified bounds.")
                         elif lower_bound < self._radians < upper_bound:
                             break
 
@@ -190,7 +190,7 @@ class Angle(object):
                     while True:
                         self._radians += twopi
                         if self._radians > upper_bound:
-                            raise RangeError("The angle given falls outside of the specified bounds.")
+                            raise BoundsError("The angle given falls outside of the specified bounds.")
                         elif lower_bound < self._radians < upper_bound:
                             break
 
