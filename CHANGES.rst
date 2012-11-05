@@ -20,6 +20,8 @@ see the "What's New" section of the documentation for more details.
 - ``astropy.table`` I/O infrastructure for custom readers/writers
   implemented. [#305]
 
+  - Added support for reading/writing HDF5 files [#461]
+
 - New ``astropy.time`` sub-package. [#332]
 
 - New ``astropy.units`` sub-package.  This has the following effects on
