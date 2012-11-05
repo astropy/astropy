@@ -66,7 +66,7 @@ def read_hdf5(input, path=None):
     if '/' in path:
         group, name = path.rsplit('/', 1)
     else:
-        group, name = "", path
+        group, name = None, path
 
     if isinstance(input, h5py.highlevel.File) or \
        isinstance(input, h5py.highlevel.Group):
@@ -138,7 +138,7 @@ def write_hdf5(table, output, path=None, compression=False,
     if '/' in path:
         group, name = path.rsplit('/', 1)
     else:
-        group, name = "", path
+        group, name = None, path
 
     if isinstance(output, h5py.highlevel.File) or \
        isinstance(output, h5py.highlevel.Group):
