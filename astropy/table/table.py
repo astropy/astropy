@@ -550,6 +550,11 @@ class Table(object):
             n_cols = len(data.colnames)
             default_names = data.colnames
 
+        elif isinstance(data, Column):
+            data = (data, )
+            init_func = self._init_from_list
+            n_cols = 1
+
         # Duck-typing ndarray-like structure
         elif hasattr(data, 'dtype'):
             #converting to ndarray for .view method
