@@ -20,30 +20,31 @@ class TestCoo2(ICRSCoordinates):
     pass
 
 
-
 def test_transform_classes():
     """
     Tests the class-based/OO syntax for creating transforms
     """
     t.FunctionTransform(TestCoo1, TestCoo2,
-        lambda c: TestCoo2(c.ra.r, c.dec.r, unit=u.radian))
+        lambda c: TestCoo2(c.ra.radians, c.dec.radians, unit=u.radian))
 
     c1 = TestCoo1(1, 2, unit=u.radian)
+    c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    assert c2.ra.r == 1
-    assert c2.dec.r == 2
+    npytest.assert_almost_equal(c2.ra.radians, 1)
+    npytest.assert_almost_equal(c2.dec.radians, 2)
 
     def matfunc(coo):
         return [[1, 0, 0],
-                [0, coo.ra.d, 0],
+                [0, coo.ra.degrees, 0],
                 [0, 0, 1]]
     t.DynamicMatrixTransform(TestCoo1, TestCoo2, matfunc)
 
     c3 = TestCoo1(1, 2, unit=u.degree)
+    c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    assert c4.ra.radian == 1
-    assert c4.dec.radian == 2
+    npytest.assert_almost_equal(c4.ra.degrees, 1)
+    npytest.assert_almost_equal(c4.ra.degrees, 1)
 
 
 def test_transform_decos():
@@ -56,9 +57,10 @@ def test_transform_decos():
     def trans(coo1):
         return TestCoo2(coo1.ra.radians, coo1.dec.radians * 2, unit=u.radian)
 
+    c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    assert c2.ra.d == 1
-    assert c2.dec.d == 4
+    npytest.assert_almost_equal(c2.ra.degrees, 1)
+    npytest.assert_almost_equal(c2.dec.degrees, 4)
 
     c3 = TestCoo1(x=1, y=1, z=2, unit=u.pc)
 
@@ -68,11 +70,12 @@ def test_transform_decos():
                 [0, 1, 0],
                 [0, 0, 1]]
 
+    c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    assert c4.x == 2
-    assert c4.y == 1
-    assert c4.z == 2
+    npytest.assert_almost_equal(c4.x, 2)
+    npytest.assert_almost_equal(c4.y, 1)
+    npytest.assert_almost_equal(c4.z, 2)
 
 def test_coo_alias():
     """

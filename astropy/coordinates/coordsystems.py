@@ -304,13 +304,14 @@ class SphericalCoordinatesBase(object):
 
     def _make_cart(self, override=False):
         if override or self._cartpoint is None:
-            if self._distanceq is None:
+            if self._distance is None:
                 r = 1
                 runit = None
             else:
-                r = self._distance.value
-                runit = self._distance.unit
-            x, y, z = spherical_to_cartesian(r, self.latangle, self.longangle)
+                r = self._distance._value
+                runit = self._distance._unit
+            x, y, z = spherical_to_cartesian(r, self.latangle.radians,
+                                                self.longangle.radians)
             self._cartpoint = CartesianPoint(x, y, z, runit)
 
     def separation(self, other):
@@ -366,7 +367,7 @@ class SphericalCoordinatesBase(object):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 
-        dscale = other_in_self_system._distance.unit.to(self._distance.unit, 1)
+        dscale = other_in_self_system._distance._unit.to(self._distance._unit, 1)
 
         dx = self.x - other_in_self_system.x * dscale
         dy = self.y - other_in_self_system.y * dscale
