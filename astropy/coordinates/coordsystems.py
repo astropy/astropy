@@ -29,15 +29,7 @@ class SphericalCoordinatesBase(object):
         self._distance = None
         self._cartpoint = None
 
-    _init_docstring_templ = """
-
-    .. note::
-        A range of different possible parameters are available to
-        initialize this coordinate, but not all parameters can be used
-        together.  See the examples in the documentation for more.
-
-    Parameters
-    ----------
+    _init_docstring_param_templ = """
     coordstr : str
         A single string with the coordinates.  Cannot be used with
         `{latnm}` and `{longnm}` nor `x`/`y`/`z`.

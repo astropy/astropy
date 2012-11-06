@@ -24,13 +24,15 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     ICRS is better defined and is within a few microarcsec of J2000.
 
 
+    Paramaters
+    ----------
     {params}
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to ICRSCoordinates and used as this
     coordinate.
 
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
 
@@ -55,6 +57,8 @@ class FK5Coordinates(SphericalCoordinatesBase):
     """
     A coordinate in the FK5 system.
 
+    Paramaters
+    ----------
     {params}
     epoch : `~astropy.time.Time`, optional
         The epoch for these coordinates.  Defaults to J2000.
@@ -62,7 +66,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
     coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         from ..time import Time
 
@@ -91,6 +95,9 @@ class FK4Coordinates(SphericalCoordinatesBase):
     """
     A coordinate in the FK4 system.
 
+
+    Paramaters
+    ----------
     {params}
     epoch : `~astropy.time.Time`, optional
         The epoch for these coordinates.  Defaults to B1950.
@@ -98,7 +105,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
     coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
         from ..time import Time
 
@@ -127,12 +134,14 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in Galactic Coordinates.
 
+    Paramaters
+    ----------
     {params}
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `GalacticCoordinates` and
     used as this coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='l', latnm='b'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
     def __init__(self, *args, **kwargs):
         super(GalacticCoordinates, self).__init__()
 
@@ -157,6 +166,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in the Horizontal or "alt/az" system.
 
+    Paramaters
+    ----------
     {params}
     epoch : `~astropy.time.Time`, optional
         The epoch for these coordinates.  Defaults to J200.
@@ -164,7 +175,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='az', latnm='alt'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='alt'))
     def __init__(self, *args, **kwargs):
         from ..time import Time
 
