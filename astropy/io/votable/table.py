@@ -217,13 +217,13 @@ def validate(filename, output=sys.stdout, xmllint=False):
             else:
                 line = xml_lines[w['nline'] - 1]
                 warning = w['warning']
-                if warning.startswith('W'):
+                if w['is_warning']:
                     color = 'yellow'
                 else:
                     color = 'red'
                 color_print(
                     u'{0:d}: '.format(w['nline']), '',
-                    warning, color,
+                    warning or 'EXC', color,
                     u': ', '',
                     textwrap.fill(
                         w['message'],

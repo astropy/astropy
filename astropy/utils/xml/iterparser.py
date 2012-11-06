@@ -230,7 +230,8 @@ def get_xml_encoding(source):
         if not start or tag != u'xml':
             raise IOError('Invalid XML file')
 
-    return data['encoding']
+    # The XML spec says that no encoding === utf-8
+    return data.get('encoding') or 'utf-8'
 
 
 def xml_readlines(source):

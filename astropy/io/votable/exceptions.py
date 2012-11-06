@@ -135,7 +135,7 @@ def parse_vowarning(line):
         result['warning'] = warning = match.group('warning')
         if warning is not None:
             result['is_warning'] = (warning[0].upper() == 'W')
-            result['is_exception'] = (warning[0].upper() == 'E')
+            result['is_exception'] = not result['is_warning']
             result['number'] = int(match.group('warning')[1:])
             result['doc_url'] = "vo/api_exceptions.html#%s" % warning.lower()
         else:
