@@ -7,8 +7,7 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 
 import warnings
 
-import pytest
-from ...tests.helper import raises
+from ...tests.helper import pytest, raises
 from ...tests.compat import assert_allclose
 
 from ... import units as u

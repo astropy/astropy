@@ -1,5 +1,5 @@
 import os
-import pytest
+from ....tests.helper import pytest
 
 from ....table import Table, Column
 

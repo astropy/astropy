@@ -4,11 +4,10 @@ import locale
 import re
 import warnings
 
-from astropy.tests.helper import raises
 from numpy.testing import assert_array_equal
 import numpy as np
-import pytest
 
+from ...tests.helper import pytest, raises
 from .. import wcs
 from .. import _wcs
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj

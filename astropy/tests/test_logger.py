@@ -1,7 +1,7 @@
 import sys
 import warnings
 
-import pytest
+from .helper import pytest
 from .. import log
 from ..logger import LoggingError
 

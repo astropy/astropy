@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
 
-from astropy.time import Time, TimeDelta, OperandTypeError
+from ...tests.helper import pytest
+from .. import Time, TimeDelta, OperandTypeError
 
 
 class TestTimeDelta():
