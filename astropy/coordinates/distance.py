@@ -62,7 +62,7 @@ class Distance(object):
         if len(args) == 1 and isinstance(args[0], Distance):
             #just copy
             self._value = args[0]._value
-            self._unit = args[1]._unit
+            self._unit = args[0]._unit
         elif 'z' in kwargs:
             z = kwargs.pop('z')
             cosmo = kwargs.pop('cosmology', None)
@@ -78,7 +78,7 @@ class Distance(object):
             if len(args) == 0:
                 value = kwargs.pop('value', None)
                 unit = kwargs.pop('unit', None)
-            if len(args) == 1:
+            elif len(args) == 1:
                 value = args[0]
                 unit = kwargs.pop('unit', None)
             elif len(args) == 2:

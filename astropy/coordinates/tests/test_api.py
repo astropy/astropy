@@ -2,6 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
+from numpy import testing as npytest
 from ...tests.helper import pytest
 raises = pytest.raises
 
@@ -644,7 +645,7 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from .. import Distance, Coordinates, GalacticCoordinates, CartesianPoint
+    from .. import Distance, Coordinates, ICRSCoordinates, GalacticCoordinates, CartesianPoint
     from ...cosmology import WMAP5, WMAP7
     import numpy.testing as npt
 
@@ -661,7 +662,7 @@ def test_distances():
     d5 = Distance(z=0.23, cosmology=WMAP5)
 
     # need to provide a unit
-    with raises(TypeError):
+    with raises(UnitsError):
         Distance(12)
 
     # standard units are pre-defined
@@ -680,24 +681,27 @@ def test_distances():
     c.distance = (12, u.parsec)
     c.distance.parsec = 12
 
+    #or initialize distances via redshifts
+    c.distance = Distance(z=0.2)  # uses current cosmology
+    #with whatever your preferred cosmology may be
+    c.distance = Distance(z=0.2, cosmology=WMAP5)
+
 
     # Coordinate objects can be initialized with a distance using special
     # syntax
-    c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree,
-                    distance=12 * u.kpc)
+    #TODO: use this commented line once quantity is in
+    #c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=12 * u.kpc)
+    c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=Distance(12, u.kpc))
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
     c2 = GalacticCoordinates(x=2, y=4, z=8, unit=u.parsec)
 
     sep12 = c1.separation3d(c2)
-    # returns a *3d* distance between the c1 and c2 coordinates, assuming
-    # current cosmology if needed
+    # returns a *3d* distance between the c1 and c2 coordinates
+    # not that this does *not*
     assert isinstance(sep12, Distance)
-    assert sep12.kpc == 0  # TODO: actually put the right number in here
-
-    # can also specify a cosmology
-    c1.separation3d(c2, cosmology=WMAP5())
+    npytest.assert_almost_equal(sep12.pc, 12005.784163916317, 10)
 
     '''
     All spherical coordinate systems with distances can be converted to
@@ -706,20 +710,20 @@ def test_distances():
 
     (x, y, z) = (c2.x, c2.y, c2.z)
     #this only computes the CartesianPoint *once*, and then caches it
-    assert x == 2
-    assert y == 4
-    assert z == 8
+    npytest.assert_almost_equal(x, 2)
+    npytest.assert_almost_equal(y, 4)
+    npytest.assert_almost_equal(z, 8)
 
     cpt = c2.cartesian
     assert isinstance(cpt, CartesianPoint)
-    assert cpt.x == 2
-    assert cpt.y == 4
-    assert cpt.z == 8
+    npytest.assert_almost_equal(cpt.x, 2)
+    npytest.assert_almost_equal(cpt.y, 4)
+    npytest.assert_almost_equal(cpt.z, 8)
 
-    # returns CartesianPoint object, raise exception if no distance
-    with raises(ValueError):
-        c3 = Coordinate(l=158.558650, b=-43.350066, unit=u.degree)
-        c3.cartesian
+    # with no distance, the unit sphere is assumed when converting to cartesian
+    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=None)
+    unitcart = c3.cartesian
+    npytest.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
 
     # CartesianPoint objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate

@@ -198,7 +198,6 @@ class SphericalCoordinatesBase(object):
             else:
                 longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
-
             dist = None if distval is None else Distance(distval)  # copy
 
         elif xyz and not ll and distval is None and coordstr is None:
@@ -323,7 +322,7 @@ class SphericalCoordinatesBase(object):
         sep : `~astropy.coordinates.angles.AngularSeparation`
             The on-sky separation between this and the `other` coordinate.
         """
-        other_in_self_system = other.convert_to(self.__class__)
+        other_in_self_system = other.transform_to(self.__class__)
 
         lat1 = self.latangle.radians
         long1 = other_in_self_system.latangle.radians
@@ -356,7 +355,7 @@ class SphericalCoordinatesBase(object):
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = other.convert_to(self.__class__)
+        other_in_self_system = other.transform_to(self.__class__)
 
         if other_in_self_system._distance is None:
             raise ValueError('The other object does not have a distance; '
@@ -368,7 +367,8 @@ class SphericalCoordinatesBase(object):
         dy = self.y - other_in_self_system.y * dscale
         dz = self.z - other_in_self_system.z * dscale
 
-        return (dx ** 2 + dy ** 2 + dz ** 2) ** 0.5
+        distval = (dx ** 2 + dy ** 2 + dz ** 2) ** 0.5
+        return Distance(distval, self._distance._unit)
 
     #<------------transformation-related stuff here-------------------->
     def transform_to(self, tosys):
@@ -390,7 +390,11 @@ class SphericalCoordinatesBase(object):
         ValueError
             If there is no possible transformation route.
         """
+        from copy import deepcopy
         from .transformations import master_transform_graph
+
+        if tosys is self.__class__:
+            return deepcopy(self)
 
         trans = master_transform_graph.get_transform(self.__class__, tosys)
         if trans is None:

@@ -35,7 +35,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         super(ICRSCoordinates, self).__init__()
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
-            newcoord = args[0].convert_to(self.__class__)
+            newcoord = args[0].transform_to(self.__class__)
             self.ra = newcoord.ra
             self.dec = newcoord.dec
             self._distance = newcoord._distance
@@ -65,7 +65,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
         super(FK5Coordinates, self).__init__()
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
-            newcoord = args[0].convert_to(self.__class__)
+            newcoord = args[0].transform_to(self.__class__)
             self.ra = newcoord.ra
             self.dec = newcoord.dec
             self._distance = newcoord._distance
@@ -95,7 +95,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
         super(FK4Coordinates, self).__init__()
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
-            newcoord = args[0].convert_to(self.__class__)
+            newcoord = args[0].transform_to(self.__class__)
             self.ra = newcoord.ra
             self.dec = newcoord.dec
             self._distance = newcoord._distance
@@ -125,7 +125,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         super(GalacticCoordinates, self).__init__()
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
-            newcoord = args[0].convert_to(self.__class__)
+            newcoord = args[0].transform_to(self.__class__)
             self.l = newcoord.l
             self.b = newcoord.b
             self._distance = newcoord._distance
@@ -155,7 +155,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         super(HorizontalCoordinates, self).__init__()
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
-            newcoord = args[0].convert_to(self.__class__)
+            newcoord = args[0].transform_to(self.__class__)
             self.az = newcoord.az
             self.alt = newcoord.alt
             self._distance = newcoord._distance
