@@ -78,7 +78,10 @@ def read_hdf5(input, path=None):
                 raise IOError("Group {0} does not exist".format(group))
     else:
         f = h5py.File(input, 'r')
-        g = f[group] if group else f
+        try:
+            g = f[group] if group else f
+        except KeyError:
+            raise IOError("Group {0} does not exist".format(group))
 
     # Check whether table exists
     if name not in g.keys():
@@ -186,7 +189,7 @@ def write_hdf5(table, output, path=None, compression=False,
             try:
                 dset.attrs[key] = table.meta[key]
             except TypeError:
-                log.warn("Attribute `{0}` of type {1} cannot be written to"
+                log.warn("Attribute `{0}` of type {1} cannot be written to "
                          "HDF5 files - skipping".format(key,
                          type(table.meta[key])))
 

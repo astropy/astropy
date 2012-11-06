@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from ....table import Table, Column
-
+from .... import log
 
 try:
     import h5py
@@ -31,6 +31,78 @@ def _default_values(dtype):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_write_nopath(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    with pytest.raises(ValueError) as exc:
+        t1.write(test_file)
+    assert exc.value.args[0] == "table path should be set via the path= argument"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_nopath(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='the_table')
+    with pytest.raises(ValueError) as exc:
+        Table.read(test_file)
+    assert exc.value.args[0] == "table path should be set via the path= argument"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_write_invalid_path(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    with pytest.raises(ValueError) as exc:
+        t1.write(test_file, path='test/')
+    assert exc.value.args[0] == "table path should end with table name, not /"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_invalid_path(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='the_table')
+    with pytest.raises(ValueError) as exc:
+        Table.read(test_file, path='test/')
+    assert exc.value.args[0] == "table path should end with table name, not /"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_missing_group(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.close()
+    with pytest.raises(IOError) as exc:
+        Table.read(test_file, path='test/path/table')
+    assert exc.value.args[0] == "Group test/path does not exist"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_missing_table(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.create_group('test').create_group('path')
+    f.close()
+    with pytest.raises(IOError) as exc:
+        Table.read(test_file, path='test/path/table')
+    assert exc.value.args[0] == "Table test/path/table does not exist"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_missing_group_fileobj(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    with pytest.raises(IOError) as exc:
+        Table.read(f, path='test/path/table')
+    assert exc.value.args[0] == "Group test/path does not exist"
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
@@ -38,6 +110,17 @@ def test_read_write_simple(tmpdir):
     t1.write(test_file, path='the_table')
     t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing_table(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='the_table')
+    with pytest.raises(IOError) as exc:
+        t1.write(test_file, path='the_table', append=True)
+    assert exc.value.args[0] == "Table the_table already exists"
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -122,7 +205,7 @@ def test_read_fileobj(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
-def test_read_filobj_group(tmpdir):
+def test_read_filobj_path(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
 
@@ -134,6 +217,22 @@ def test_read_filobj_group(tmpdir):
     input_file = h5py.File(test_file, 'r')
 
     t2 = Table.read(input_file, path='path/to/data/the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_filobj_group_path(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='path/to/data/the_table')
+
+    import h5py
+    input_file = h5py.File(test_file, 'r')['path/to']
+
+    t2 = Table.read(input_file, path='data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
 
@@ -230,3 +329,23 @@ def test_preserve_meta(tmpdir):
 
     for key in t1.meta:
         assert np.all(t1.meta[key] == t2.meta[key])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_skip_meta(tmpdir):
+
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+
+    t1.meta['a'] = 1
+    t1.meta['b'] = 'hello'
+    t1.meta['c'] = 3.14159
+    t1.meta['d'] = True
+    t1.meta['e'] = np.array([1, 2, 3])
+    t1.meta['f'] = str
+
+    with log.log_to_list() as warning_list:
+        t1.write(test_file, path='the_table')
+    assert warning_list[0].message == "Attribute `f` of type {0} cannot be written to HDF5 files - skipping".format(type(t1.meta['f']))
