@@ -2,7 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
-from ...tests.helper.pytest import raises
+from ...tests.helper import pytest
+raises = pytest.raises
 
 from ... import units as u
 from ..errors import *
@@ -644,7 +645,7 @@ def test_distances():
     transformations.
     """
     from .. import Distance, Coordinates, GalacticCoordinates, CartesianPoint
-    from ...cosmology import WMAP5, WMAP3
+    from ...cosmology import WMAP5, WMAP7
     import numpy.testing as npt
 
     '''
@@ -656,8 +657,8 @@ def test_distances():
     distance = Distance(12, u.parsec)
     d2 = Distance(40, unit=u.au)
     d3 = Distance(value=5, unit=u.kpc)
-    d4 = Distance(z=0.23)
-    d5 = Distance(z=0.23, cosmology=WMAP3)
+    d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
+    d5 = Distance(z=0.23, cosmology=WMAP5)
 
     # need to provide a unit
     with raises(TypeError):

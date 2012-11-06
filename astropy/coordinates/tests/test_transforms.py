@@ -137,7 +137,7 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
-    from ..coordsystems import spherical_to_cartesian, cartesian_to_spherical
+    from ..distances import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
     npytest.assert_almost_equal(x, 1)
