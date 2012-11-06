@@ -152,7 +152,7 @@ class LatexSplitter(core.BaseSplitter):
     def join(self, vals):
         '''Join values together and add a few extra spaces for readability'''
         delimiter = ' ' + self.delimiter + ' '
-        return delimiter.join(str(x) for x in vals) + r' \\'
+        return delimiter.join(x.strip() for x in vals) + r' \\'
 
 class Latex(core.BaseReader):
     '''Write and read LaTeX tables.

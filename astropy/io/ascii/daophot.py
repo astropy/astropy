@@ -68,6 +68,7 @@ class Daophot(core.BaseReader):
         core.BaseReader.__init__(self)
         self.header = DaophotHeader()
         self.inputter = core.ContinuationLinesInputter()
+        self.inputter.no_continue = r'\s*#'
         self.data.splitter.delimiter = ' '
         self.data.start_line = 0
         self.data.comment = r'\s*#'
@@ -107,18 +108,49 @@ class DaophotHeader(core.BaseHeader):
         :returns: list of table Columns
         """
 
-        self.names = []
-        re_name_def = re.compile(r'#N([^#]+)#')
+        # Parse a series of column defintion lines like below.  There may be several
+        # such blocks in a single file (where continuation characters have already been
+        # stripped).
+        # #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    
+        # #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       
+        # #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
+        coldef_lines = ['', '', '']
+        starts = ('#N ', '#U ', '#F ')
         for line in lines:
             if not line.startswith('#'):
-                break                   # End of header lines
+                break # End of header lines
             else:
-                match = re_name_def.search(line)
-                if match:
-                    self.names.extend(match.group(1).split())
+                for i, start in enumerate(starts):
+                    if line.startswith(start):
+                        line_stripped = line[3:]
+                        coldef_lines[i] = coldef_lines[i] + line_stripped
+                        break
         
+        # At this point colddef_lines has three lines corresponding to column
+        # names, units, and format.  Get the column names by splitting the
+        # first line on whitespace.
+        self.names = coldef_lines[0].split()
         if not self.names:
             raise core.InconsistentTableError('No column names found in DAOphot header')
-        
+
+        # If there wasn't a #U or #F defined (not sure of DAOphot specification), then
+        # replace the empty line with the right number of ## indicators, which matches
+        # the DAOphot "no unit" tag.
+        for i, coldef_line in enumerate(coldef_lines):
+            if not coldef_line:
+                coldef_lines[i] = '## ' * len(self.names)
+
+        # Read the three lines as a basic table.
+        reader = core._get_reader(Reader=basic.Basic, comment=None)
+        reader.header.comment = None
+        coldefs = reader.read(coldef_lines)
+
+        # Create the list of io.ascii column objects
         self._set_cols_from_names()
 
+        # Set units and format as needed.
+        for col in self.cols:
+            if coldefs[col.name][0] != '##':
+                col.units = coldefs[col.name][0]
+            if coldefs[col.name][1] != '##':
+                col.format = coldefs[col.name][1]

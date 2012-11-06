@@ -303,6 +303,8 @@ class DefaultSplitter(BaseSplitter):
                                          )
         self.csv_writer_out.seek(0)
         self.csv_writer_out.truncate()
+        if self.process_val:
+            vals = [self.process_val(x) for x in vals]
         self.csv_writer.writerow(vals)
 
         return self.csv_writer_out.getvalue()
@@ -741,10 +743,12 @@ class TableOutputter(BaseOutputter):
         masked = any(col.fill_values for col in cols)
 
         out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked)
-        if masked:
-            for col, out_col in zip(cols, out.columns.values()):
-                if hasattr(col, 'mask'):
-                    out_col.data.mask = col.mask
+        for col, out_col in zip(cols, out.columns.values()):
+            if masked and hasattr(col, 'mask'):
+                out_col.data.mask = col.mask
+            for attr in ('format', 'units'):
+                if hasattr(col, attr):
+                    setattr(out_col, attr, getattr(col, attr))
 
         # To Do: add support for column and table metadata
         return out
@@ -901,14 +905,22 @@ class ContinuationLinesInputter(BaseInputter):
     """
 
     continuation_char = '\\'
+    # If no_continue is not None then lines matching this regex are not subject
+    # to line continuation.  The initial use case here is Daophot.  In this
+    # case the continuation character is just stripped.
+    no_continue = None
 
     def process_lines(self, lines):
+        re_no_continue = re.compile(self.no_continue) if self.no_continue else None
+
         striplines = (x.strip() for x in lines)
         lines = [x for x in striplines if len(x) > 0]
 
         parts = []
         outlines = []
         for line in lines:
+            if re_no_continue and re_no_continue.match(line):
+                line = line.rstrip(self.continuation_char)
             if line.endswith(self.continuation_char):
                 parts.append(line.rstrip(self.continuation_char))
             else:
@@ -995,7 +1007,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
+extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')
@@ -1019,6 +1031,16 @@ def _get_writer(Writer, **kwargs):
         writer.data.splitter.quotechar = kwargs['quotechar']
     if 'formats' in kwargs:
         writer.data.formats = kwargs['formats']
+    if 'strip_whitespace' in kwargs:
+        if kwargs['strip_whitespace']:
+            # Restore the default SplitterClass process_val method which strips
+            # whitespace.  This may have been changed in the Writer
+            # initialization (e.g. Rdb and Tab)
+            Class = writer.data.splitter.__class__
+            obj = writer.data.splitter
+            writer.data.splitter.process_val = Class.process_val.__get__(obj, Class)
+        else:
+            writer.data.splitter.process_val = None
     if 'names' in kwargs:
         writer.header.names = kwargs['names']
     if 'include_names' in kwargs:

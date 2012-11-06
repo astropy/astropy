@@ -220,7 +220,7 @@ def _get_guess_kwargs_list():
     return guess_kwargs_list
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
-                     'names', 'include_names', 'exclude_names')
+                     'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 def get_writer(Writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
@@ -231,12 +231,15 @@ def get_writer(Writer=None, **kwargs):
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
+    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
     if Writer is None:
         Writer = basic.Basic
+    if 'strip_whitespace' not in kwargs:
+        kwargs['strip_whitespace'] = True
     writer = core._get_writer(Writer, **kwargs)
     return writer
 
@@ -251,6 +254,7 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
+    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
