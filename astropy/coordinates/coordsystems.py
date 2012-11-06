@@ -39,20 +39,46 @@ class SphericalCoordinatesBase(object):
 
     Parameters
     ----------
+    coordstr : str
+        A single string with the coordinates.  Cannot be used with
+        `{latnm}` and `{longnm}` nor `x`/`y`/`z`.
     {longnm} : `~astropy.coordinates.angle.Angle`, float, int, str
+        This must be given with `{latnm}`.
     {latnm} : `~astropy.coordinates.angle.Angle`, float, int, str
-    unit : tuple
-        If the units cannot be determined from the angle values provided, they must
-        be specified as a tuple in the 'unit' parameter. The first value in the tuple
-        is paired with the first angle provided, and the second with the second angle.
-        (If the unit is specified in the first angle but not the second, the first
-        value in the tuple may be 'None'.)
+        This must be given with `{longnm}`.
+    distance : `~astropy.coordinates.coordsystems.Distance`, optional
+        This may be given with `{latnm}` and `{longnm}` or `coordstr`
+        and not `x`, `y`, or `z`.  If not given, `None` (unit sphere)
+        will be assumed.
+    x : number
+        The first cartesian coordinate. Must be given with `y` and `z`
+        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+    y : number
+        The second cartesian coordinate. Must be given with `x` and `z`
+        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+    z : number
+        The third cartesian coordinate. Must be given with `x` and `y`
+        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+    unit : `~astropy.units.UnitBase` or tuple
+
+        * If `{longnm}` and `{latnm}` or `coordstr` are given:
+            If the units cannot be determined from the angle values
+            provided, they must be specified as a tuple. The first value
+            in the tuple is paired with `{longnm}`, and the second with
+            `{latnm}`. If `coordstr` is applied or `{latnm}` is a string
+            and a single unit is  given, it is assumed to apply to
+            `{longnm}`. Otherwise, a single unit is applied to both.
+
+        * If `x`, `y`, and `z` are given:
+            `unit` must be present have dimensions of length, representing the
     """
 
-    def _initialize_latlong(self, longname, latname, initargs, initkwargs):
+    def _initialize_latlong(self, longname, latname, useradec, initargs, initkwargs):
         """
         Subclasses should use this to initialize standard lat/long-style
         coordinates.
+
+        This recognizes both the lat/long style and the cartesian form.
 
         Parameters
         ----------
@@ -60,137 +86,141 @@ class SphericalCoordinatesBase(object):
             The name of the longitude-like coordinate attribute
         latname : str
             The name of the latitude-like coordinate attribute
+        useradec : bool
+            If True, the `RA` and `Dec` classes will be used for the
+            angles.  Otherwise, a basic `Angle` will be used.
         initargs : list
             The ``*args`` from the initializer
         initkwargs : dict
             The ``**kwargs`` from the initializer
         """
+        initkwargs = dict(initkwargs)  # copy
+        nargs = len(initargs)
+        if nargs == 1:
+            initkwargs['coordstr'] = initargs[0]
+        if nargs > 1:
+            if longname in initkwargs:
+                raise TypeError("_initialize_latlong() got multiple values for"
+                                " keyword argument '{0}'".format(longname))
+            initkwargs[longname] = initargs[0]
+        if nargs >= 2:
+            if latname in initkwargs:
+                raise TypeError("_initialize_latlong() got multiple values for"
+                                " keyword argument '{0}'".format(latname))
+            initkwargs[latname] = initargs[1]
+        if nargs == 3:
+            if 'distance' in initkwargs:
+                raise TypeError("_initialize_latlong() got multiple values for"
+                                " keyword argument 'distance'")
+            initkwargs['distance'] = initargs[2]
+        if nargs > 3:
+            raise TypeError('_initialize_latlong() takes up to 3 positional '
+                            ' arguments ({0} given)'.format(len(initargs)))
 
+        unit = initkwargs.pop('unit', None)
+        coordstr = initkwargs.pop('coordstr', None)
+        longval = initkwargs.pop(longname, None)
+        latval = initkwargs.pop(latname, None)
+        distval = initkwargs.pop('distance', None)
+        x = initkwargs.pop('x', None)
+        y = initkwargs.pop('y', None)
+        z = initkwargs.pop('z', None)
 
-        # Initialize values.
-        # _ra, _dec are what we parse as potential values that still need validation
-        _ra = None
-        _dec = None
-        self.ra = None
-        self.dec = None
+        if len(initkwargs) > 0:
+            raise TypeError('_initialize_latlong() got unexpected keyword '
+                            'arguments {0}'.format(initkwargs.keys()))
 
-        if "unit" in kwargs:
-            units = kwargs["unit"]
-            del kwargs["unit"]
-        else:
-            units = list()
+        ll = longval is not None and latval is not None
+        xyz = x is not None or y is not None or z is not None
 
-        if isinstance(units, tuple) or isinstance(units, list):
-            pass  # good
-        elif isinstance(units, u.Unit) or isinstance(units, str):
-            # Only a single unit given, which is fine (assigned to 'ra').
-            # The value, even if given as a tuple, is unpacked. Just make it
-            # a tuple for consistency
-            units = [units]
-        else:
-            raise ValueError("The value for units must be given as a tuple, e.g. "
-                             "unit=(u.hour, u.degree). An object of type '{0}' "
-                             "was given.".format(type(units).__name__))
+        if (ll or coordstr is not None) and not xyz:
+            # lat/long-style initialization
 
-        if len(args) == 0 and len(kwargs) == 0:
-            raise ValueError("A coordinate object cannot be created without ra,dec values.")
-        elif len(args) > 0 and len(kwargs) > 0:
-            raise ValueError("The angle values can only be specified as keyword arguments "
-                             "(e.g. ra=x, dec=y) or as a single value (e.g. a string) "
-                             "not a combination.")
-        elif len(args) == 0 and len(kwargs) > 0:
-            # only "ra" and "dec" accepted as keyword arguments
-            try:
-                _ra = kwargs["ra"]
-                _dec = kwargs["dec"]
-            except KeyError:
-                raise ValueError("When values are supplied as keyword arguments, both "
-                                 "'ra' and 'dec' must be specified.")
-            if isinstance(_ra, RA):
-                self.ra = _ra
-            if isinstance(_dec, Dec):
-                self.dec = _dec
+            units = [] if unit is None else unit
 
-        elif len(args) == 1 and len(kwargs) == 0:
-            # need to try to parge the coordinate from a single argument
-            x = args[0]
-            if isinstance(args[0], str):
-                parsed = False
-                if "," in x:
-                    _ra, _dec = x.split(",")
-                    parsed = True
-                elif "\t" in x:
-                    _ra, _dec = x.split("\t")
-                    parsed = True
-                elif len(x.split()) == 6:
-                    _ra = " ".join(x.split()[0:3])
-                    _dec = " ".join(x.split()[3:])
-                    parsed = True
-                elif len(x.split()) == 2:
-                    _ra, _dec = x.split()
-                    parsed = True
-
-                if not parsed:
-                    values = x.split()
-                    i = 1
-                    while i < len(values) and not parsed:
-                        try:
-                            self.ra = RA(" ".join(values[0:i]))
-                            parsed = True
-                        except:
-                            i += 1
-
-                    if parsed == True:
-                        self.dec = Dec(" ".join(values[i:]))
-
-                if not parsed:
-                    raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
+            if isinstance(units, tuple) or isinstance(units, list):
+                if len(units) > 2:
+                    raise ValueError('Cannot give more than 2 units while '
+                                     'initializing a coordinate')
+            elif isinstance(units, u.Unit) or isinstance(units, str):
+                # Only a single unit given, which is fine.  If the arguments are
+                # strings, assign it to just the long, otherwise both
+                if coordstr is not None or isinstance(latval, basestring):
+                    units = (units, )
+                else:
+                    units = (units, units)
             else:
-                raise ValueError("A coordinate cannot be created with a value of type "
-                                 "'{0}'.".format(type(args[0]).__name___))
+                raise ValueError("The value for units must be given as a tuple, e.g. "
+                                 "unit=(u.hour, u.degree). An object of type '{0}' "
+                                 "was given.".format(type(units).__name__))
 
-        elif len(args) == 2 and len(kwargs) == 0:
-            _ra = args[0]
-            _dec = args[1]
+            if coordstr is not None:
+                # need to try to parse the coordinate from a single argument
+                x = coordstr
+                if isinstance(coordstr, str):
+                    parsed = False
+                    if "," in x:
+                        _ra, _dec = x.split(",")
+                        parsed = True
+                    elif "\t" in x:
+                        _ra, _dec = x.split("\t")
+                        parsed = True
+                    elif len(x.split()) == 6:
+                        _ra = " ".join(x.split()[0:3])
+                        _dec = " ".join(x.split()[3:])
+                        parsed = True
+                    elif len(x.split()) == 2:
+                        _ra, _dec = x.split()
+                        parsed = True
 
-        elif len(args) > 2 and len(kwargs) == 0:
-            raise ValueError("More than two values were found where only ra and dec "
-                             "were expected.")
+                    if not parsed:
+                        values = x.split()
+                        i = 1
+                        while i < len(values) and not parsed:
+                            try:
+                                self.ra = RA(" ".join(values[0:i]))
+                                parsed = True
+                            except:
+                                i += 1
+
+                        if parsed == True:
+                            self.dec = Dec(" ".join(values[i:]))
+
+                    if not parsed:
+                        raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
+                else:
+                    raise ValueError("A coordinate cannot be created with a value of type "
+                                     "'{0}'.".format(type(coordstr).__name___))
+            elif useradec:
+                longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
+                latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
+            else:
+                longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
+                latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
+
+            self._distance = Distance(distval)  # copy
+
+        elif xyz and not ll and distval is None and coordstr is None:
+            #cartesian-style initialization
+            r, latval, longval = cartesian_to_spherical(x, y, z)
+
+            if useradec:
+                longang = RA(longval, unit=u.radian)
+                latang = Dec(latval, unit=u.radian)
+            else:
+                longang = Angle(longval, unit=u.radian)
+                latang = Angle(latval, unit=u.radian)
+
+            dist = None if unit is None else Distance(r, unit)
+
         else:
-            raise ValueError("Unable to create a coordinate using the values provided.")
-
-
-#             # First try to see if RA, Dec objects were provided in the args.
-#             for arg in args:
-#                 if isinstance(arg, RA):
-#                     _ra = arg
-#                 elif isinstance(arg, Dec):
-#                     _dec = arg
-#
-#             if None not in [_ra, _dec]:
-#                 self.ra = _ra
-#                 self.dec = _dec
-#                 return
-#             elif (_ra and not _dec) or (not _ra and _dec):
-#                 raise ValueError("When an RA or Dec value is provided, the other "
-#                                  "coordinate must also be given.")
-#
-#             # see if the whole coordinate might be parseable from arg[0]
-#
-#         try:
-#             if isinstance(args[0], RA) and isinstance(args[1], Dec):
-#                 _ra = args[0]
-#                 _dec = args[1]
-#             elif isinstance(args[1], RA) and isinstance(args[0], Dec):
-#                 _ra = args[1]
-#                 _dec = args[0]
-#         except IndexError:
-#             raise ValueError("Not enough parameters were provided.")
-
-        if self.ra is None:
-            self.ra = RA(_ra, unit=units[0]) if len(units) > 0 else RA(_ra)
-        if self.dec is None:
-            self.dec = Dec(_dec, unit=units[1]) if len(units) > 1 else Dec(_dec)
+            raise TypeError('Cannot initialize coordinates with '
+                            '{latname}/{longname}/(distance) and x/y/z '
+                            'simultaneously'.format(latname=latname,
+                                                    longname=longname))
+        setattr(self, longname, longang)
+        setattr(self, latname, latang)
+        self._distance = dist
 
 
     @abstractproperty
@@ -441,7 +471,11 @@ class Distance(object):
     """
 
     def __init__(self, *args, **kwargs):
-        if 'z' in kwargs:
+        if len(args) == 1 and isinstance(args[0], Distance):
+            #just copy
+            self._value = args[0]._value
+            self._unit = args[1]._unit
+        elif 'z' in kwargs:
             z = kwargs.pop('z')
             cosmo = kwargs.pop('cosmology', None)
             if cosmo is None:

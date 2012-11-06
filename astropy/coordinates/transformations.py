@@ -111,7 +111,6 @@ class TransformGraph(object):
                                      '{2}'.format(fromsys, tosys, transform))
         self.invalidate_cache()
 
-    #TODO: store the final distances or other internal parts to speed this up?
     def find_shortest_path(self, fromsys, tosys):
         """
         Computes the shortest distance along the transform graph from
