@@ -22,7 +22,7 @@ def is_hdf5(origin, args, kwargs):
                     return True
                 else:
                     return False
-        elif args[0].endswith('.hdf5'):
+        elif args[0].endswith('.hdf5') or args[0].endswith('.h5'):
             return True
 
     try:
