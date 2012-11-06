@@ -64,7 +64,7 @@ class Angle(object):
         # -------------------------------
         # unit validation and angle value
         # -------------------------------
-        if isinstance(unit, u.Unit):
+        if isinstance(unit, u.UnitBase):
             pass
         elif isinstance(unit, str):
             unit = u.Unit(unit)
@@ -247,7 +247,7 @@ class Angle(object):
 
         """
 
-        if isinstance(unit, u.Unit):
+        if isinstance(unit, u.UnitBase):
             pass  # great!
         elif isinstance(unit, str):
             unit = unit.lower()

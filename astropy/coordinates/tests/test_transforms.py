@@ -83,8 +83,8 @@ def test_coo_alias():
     t.FunctionTransform(TestCoo1, TestCoo2, lambda c: TestCoo2(c.ra, c.dec))
 
     c1 = TestCoo1(1, 2, unit=u.degree)
-    assert c1.coo2.ra.d == c1.ra.d
-    assert c1.coo2.dec.d == c1.dec.d
+    assert c1.coo2.ra.degrees == c1.ra.degrees
+    assert c1.coo2.dec.degrees == c1.dec.degrees
 
 def test_shortest_path():
     class FakeTransform(object):

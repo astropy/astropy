@@ -142,7 +142,7 @@ class SphericalCoordinatesBase(object):
                 if len(units) > 2:
                     raise ValueError('Cannot give more than 2 units while '
                                      'initializing a coordinate')
-            elif isinstance(units, u.Unit) or isinstance(units, str):
+            elif isinstance(units, u.UnitBase) or isinstance(units, str):
                 # Only a single unit given, which is fine.  If the arguments are
                 # strings, assign it to just the long, otherwise both
                 if coordstr is not None or isinstance(latval, basestring):
@@ -156,21 +156,23 @@ class SphericalCoordinatesBase(object):
 
             if coordstr is not None:
                 # need to try to parse the coordinate from a single argument
+                # populates latval and longval variables, which then get made
+                # into coordinates below
                 x = coordstr
                 if isinstance(coordstr, str):
                     parsed = False
                     if "," in x:
-                        _ra, _dec = x.split(",")
+                        longval, latval = x.split(",")
                         parsed = True
                     elif "\t" in x:
-                        _ra, _dec = x.split("\t")
+                        longval, latval = x.split("\t")
                         parsed = True
                     elif len(x.split()) == 6:
-                        _ra = " ".join(x.split()[0:3])
-                        _dec = " ".join(x.split()[3:])
+                        longval = " ".join(x.split()[0:3])
+                        latval = " ".join(x.split()[3:])
                         parsed = True
                     elif len(x.split()) == 2:
-                        _ra, _dec = x.split()
+                        longval, latval = x.split()
                         parsed = True
 
                     if not parsed:
@@ -178,27 +180,31 @@ class SphericalCoordinatesBase(object):
                         i = 1
                         while i < len(values) and not parsed:
                             try:
-                                self.ra = RA(" ".join(values[0:i]))
+                                longval = " ".join(values[0:i])
                                 parsed = True
                             except:
                                 i += 1
 
                         if parsed == True:
-                            self.dec = Dec(" ".join(values[i:]))
+                            latval = " ".join(values[i:])
 
                     if not parsed:
-                        raise ValueError("Could not parse ra,dec values from the string provided: '{0}'.".format(x))
+                        msg = ("Could not parse {longname}/{latname} values "
+                               "from the string provided: '{coordstr}'.")
+                        raise ValueError(msg.format(longname=longname,
+                                                    latname=latname,
+                                                    coordstr=coordstr))
                 else:
                     raise ValueError("A coordinate cannot be created with a value of type "
                                      "'{0}'.".format(type(coordstr).__name___))
-            elif useradec:
+            if useradec:
                 longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
                 latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
             else:
                 longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
 
-            self._distance = Distance(distval)  # copy
+            dist = None if distval is None else Distance(distval)  # copy
 
         elif xyz and not ll and distval is None and coordstr is None:
             #cartesian-style initialization
@@ -668,7 +674,7 @@ class Coordinates(object):
         #units = kwargs["unit"] if "unit" in kwargs.keys() else list()
         try:
             units = kwargs["unit"]
-            if isinstance(units, u.Unit) or isinstance(units, str):
+            if isinstance(units, u.UnitBase) or isinstance(units, str):
                 units = (units, units)
         except KeyError:
             units = list()
@@ -743,7 +749,7 @@ class Coordinates(object):
         if False:  # old code - still useful?
             # determine units
             if units is not None:
-                if isinstance(units, u.Unit):
+                if isinstance(units, u.UnitBase):
                     pass  # great!
                 elif isinstance(units, tuple):
                     if len(units) == 0 or len(units) > 2:
@@ -752,7 +758,7 @@ class Coordinates(object):
                     else:
                         # validate them
                         for a in units:
-                            if not isinstance(a, u.Unit):
+                            if not isinstance(a, u.UnitBase):
                                 raise ValueError("Units must be specified as u.degree, u.hour, etc.")
                     # units are valid
             else:
