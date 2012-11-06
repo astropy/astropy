@@ -72,8 +72,7 @@ class SphericalCoordinatesBase(object):
             `{longnm}`. Otherwise, a single unit is applied to both.
 
         * If `x`, `y`, and `z` are given:
-            `unit` must be present have dimensions of length
-    """
+            `unit` must be present have dimensions of length"""
 
     def _initialize_latlong(self, longname, latname, useradec, initargs, initkwargs):
         """

@@ -56,13 +56,19 @@ class FK5Coordinates(SphericalCoordinatesBase):
     A coordinate in the FK5 system.
 
     {params}
+    epoch : `~astropy.time.Time`, optional
+        The epoch for these coordinates.  Defaults to J2000.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
     coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
+        from ..time import Time
+
         super(FK5Coordinates, self).__init__()
+
+        self.epoch = kwargs.pop('epoch', Time('J2000', scale='utc'))
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -86,13 +92,19 @@ class FK4Coordinates(SphericalCoordinatesBase):
     A coordinate in the FK4 system.
 
     {params}
+    epoch : `~astropy.time.Time`, optional
+        The epoch for these coordinates.  Defaults to B1950.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
     coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
+        from ..time import Time
+
         super(FK4Coordinates, self).__init__()
+
+        self.epoch = kwargs.pop('epoch', Time('B1950', scale='utc'))
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -146,13 +158,19 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     A coordinate in the Horizontal or "alt/az" system.
 
     {params}
+    epoch : `~astropy.time.Time`, optional
+        The epoch for these coordinates.  Defaults to J200.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_templ.format(longnm='az', latnm='alt'))
     def __init__(self, *args, **kwargs):
+        from ..time import Time
+
         super(HorizontalCoordinates, self).__init__()
+
+        self.epoch = kwargs.pop('epoch', Time('J2000', scale='utc'))
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
