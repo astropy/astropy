@@ -10,10 +10,10 @@ from ... import log
 
 HDF5_SIGNATURE = '\x89HDF\r\n\x1a\n'
 
-__all__ = ['read_hdf5', 'write_hdf5']
+__all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 
-def _is_hdf5(origin, args, kwargs):
+def is_hdf5(origin, args, kwargs):
 
     if isinstance(args[0], basestring):
         if os.path.exists(args[0]):
@@ -36,7 +36,7 @@ def _is_hdf5(origin, args, kwargs):
             return False
 
 
-def read_hdf5(input, path=None):
+def read_table_hdf5(input, path=None):
     """
     Read a Table object from an HDF5 file
 
@@ -104,7 +104,7 @@ def read_hdf5(input, path=None):
     return table
 
 
-def write_hdf5(table, output, path=None, compression=False,
+def write_table_hdf5(table, output, path=None, compression=False,
                append=False, overwrite=False):
     """
     Write a Table object to an HDF5 file
@@ -195,11 +195,3 @@ def write_hdf5(table, output, path=None, compression=False,
 
     if f is not None:
         f.close()
-
-from astropy.table.io_registry import register_reader, \
-                                      register_writer, \
-                                      register_identifier
-
-register_reader('hdf5', read_hdf5)
-register_writer('hdf5', write_hdf5)
-register_identifier('hdf5', _is_hdf5)
