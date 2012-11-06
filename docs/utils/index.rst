@@ -7,17 +7,18 @@ Astropy Core Package Utilities (`astropy.utils`)
 Introduction
 ============
 
-The `astropy.utils` package contains general-purpose utilities
-functions and classes that such as general-purpose data structures,
-version intercompatibility functions. Basically, if it's not
-astronomy-related, but likely useful for other developers, it probably
-lives here. These are safe for users to make use of, but they are
-typically more complicated or esoteric enough that they are mostly of
-interest to developers.
+The `astropy.utils` package contains general-purpose utility functions and
+classes.  Examples include data structures, tools for downloading and caching
+from URLs, and version intercompatibility functions.
 
-Because of the mostly standalone and grab-bag nature of these utilities,
-they are generally best understood through their docstrings, and hence
-only the reference section is currently provided for this subpackage.
+This functionality is not astronomy-specific, but is intended primarily for
+use by Astropy developers. It is all safe for users to use, but the functions
+and classes are typically more complicated or specific to a particuly need of
+Astropy.
+
+Because of the mostly standalone and grab-bag nature of these utilities, they
+are generally best understood through their docstrings, and hence this
+documentation does not have detailed sections like the other packages.
 
 .. note::
     The `astropy.utils.compat` subpackage is not included in this
@@ -39,6 +40,12 @@ Reference/API
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.console
+    :no-inheritance-diagram:
+
+File Downloads
+--------------
+
+.. automodapi:: astropy.utils.data
     :no-inheritance-diagram:
 
 XML
