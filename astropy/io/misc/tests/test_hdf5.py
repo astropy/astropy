@@ -41,6 +41,71 @@ def test_read_write_simple(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_memory(tmpdir):
+    output_file = h5py.File('test', driver='core', backing_store=False)
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(output_file, path='the_table')
+    t2 = Table.read(output_file, path='the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.close()
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    with pytest.raises(IOError) as exc:
+        t1.write(test_file, path='the_table')
+    assert exc.value.args[0].startswith("File exists:")
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing_overwrite(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.close()
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='the_table', overwrite=True)
+    t2 = Table.read(test_file, path='the_table')
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing_append(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.close()
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='the_table_1', append=True)
+    t1.write(test_file, path='the_table_2', append=True)
+    t2 = Table.read(test_file, path='the_table_1')
+    assert np.all(t2['a'] == [1, 2, 3])
+    t3 = Table.read(test_file, path='the_table_2')
+    assert np.all(t3['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_read_write_existing_append_groups(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+    f = h5py.File(test_file, 'w')
+    f.create_group('test_1')
+    f.close()
+    t1 = Table()
+    t1.add_column(Column('a', [1, 2, 3]))
+    t1.write(test_file, path='test_1/the_table_1', append=True)
+    t1.write(test_file, path='test_2/the_table_2', append=True)
+    t2 = Table.read(test_file, path='test_1/the_table_1')
+    assert np.all(t2['a'] == [1, 2, 3])
+    t3 = Table.read(test_file, path='test_2/the_table_2')
+    assert np.all(t3['a'] == [1, 2, 3])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_read_fileobj(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
