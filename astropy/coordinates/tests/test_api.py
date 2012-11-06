@@ -730,12 +730,12 @@ def test_distances():
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
 
-    assert csum.x == 0  # TODO: fill in correct values
-    assert csum.y == 0
-    assert csum.z == 0
-    assert csum.ra.d == 0
-    assert csum.dec.d == 0
-    assert csum.distance.pc == 0
+    npytest.assert_almost_equal(csum.x, -8.12016610185)
+    npytest.assert_almost_equal(csum.y, 3.19380597435)
+    npytest.assert_almost_equal(csum.z, -8.2294483707)
+    npytest.assert_almost_equal(csum.ra.degrees, 158.529401774)
+    npytest.assert_almost_equal(csum.dec.degrees, -43.3235825777)
+    npytest.assert_almost_equal(csum.distance.kpc, 11.9942200501)
 
 def test_angle_arrays():
     """
