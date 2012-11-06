@@ -31,6 +31,10 @@ class SphericalCoordinatesBase(object):
 
     _init_docstring_templ = """
 
+    .. note::
+        A range of different possible parameters are available to
+        initialize this coordinate, but not all parameters can be used
+        together.  See the examples in the documentation for more.
 
     Parameters
     ----------
@@ -54,6 +58,9 @@ class SphericalCoordinatesBase(object):
     z : number
         The third cartesian coordinate. Must be given with `x` and `y`
         and not with `{longnm}` or `{latnm}` nor `coordstr`.
+    cartpoint : `~astropy.coordinates.distance.CartesianPoint`
+        A cartesian point with the coordinates.  Cannot be used with
+        any other arguments.
     unit : `~astropy.units.UnitBase` or tuple
 
         * If `{longnm}` and `{latnm}` or `coordstr` are given:
@@ -92,7 +99,10 @@ class SphericalCoordinatesBase(object):
         initkwargs = dict(initkwargs)  # copy
         nargs = len(initargs)
         if nargs == 1:
-            initkwargs['coordstr'] = initargs[0]
+            if isinstance(initargs[0], CartesianPoint):
+                initkwargs['cartpoint'] = initargs[0]
+            else:
+                initkwargs['coordstr'] = initargs[0]
         if nargs > 1:
             if longname in initkwargs:
                 raise TypeError("_initialize_latlong() got multiple values for"
@@ -117,6 +127,7 @@ class SphericalCoordinatesBase(object):
         longval = initkwargs.pop(longname, None)
         latval = initkwargs.pop(latname, None)
         distval = initkwargs.pop('distance', None)
+        cartpoint = initkwargs.pop('cartpoint', None)
         x = initkwargs.pop('x', None)
         y = initkwargs.pop('y', None)
         z = initkwargs.pop('z', None)
@@ -128,7 +139,7 @@ class SphericalCoordinatesBase(object):
         ll = longval is not None and latval is not None
         xyz = x is not None or y is not None or z is not None
 
-        if (ll or coordstr is not None) and not xyz:
+        if (ll or coordstr is not None) and not xyz and cartpoint is None:
             # lat/long-style initialization
 
             units = [] if unit is None else unit
@@ -191,7 +202,7 @@ class SphericalCoordinatesBase(object):
                                                     coordstr=coordstr))
                 else:
                     raise ValueError("A coordinate cannot be created with a value of type "
-                                     "'{0}'.".format(type(coordstr).__name___))
+                                     "'{0}'.".format(type(coordstr).__name__))
             if useradec:
                 longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
                 latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
@@ -200,8 +211,15 @@ class SphericalCoordinatesBase(object):
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
             dist = None if distval is None else Distance(distval)  # copy
 
-        elif xyz and not ll and distval is None and coordstr is None:
+        elif (xyz or cartpoint is not None) and not ll and distval is None and coordstr is None:
             #cartesian-style initialization
+            if cartpoint is not None:
+                if xyz or unit is not None:
+                    raise ValueError('Cannot give both a CartesianPoint and x/y/z/units.')
+                x = cartpoint.x
+                y = cartpoint.y
+                z = cartpoint.z
+                unit = cartpoint.unit
             r, latval, longval = cartesian_to_spherical(x, y, z)
 
             if useradec:
