@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function
 
-from numpy import testing as npytest
+from numpy import testing as npt
 from ...tests.helper import pytest
 raises = pytest.raises
 
@@ -42,7 +42,6 @@ def test_create_angles():
     Tests creating and accessing Angle objects
     """
     from .. import Angle
-    import numpy.testing as npt
 
     ''' The "angle" is a fundamental object. The internal
     representation is stored in radians, but this is transparent to the user.
@@ -70,11 +69,11 @@ def test_create_angles():
 
     Angle(0.944644098745, unit=u.radian)
 
-    with raises(ValueError):
+    with raises(UnitsError):
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
-    with raises(ValueError):
+    with raises(UnitsError):
     	a13 = Angle(12.34, unit="not a unit")
 
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
@@ -356,7 +355,7 @@ def test_radec():
     Angle class is to be used for other coordinate systems.
     '''
 
-    with raises(ValueError):
+    with raises(UnitsError):
         ra = RA("4:08:15.162342")  # error - hours or degrees?
     with raises(RangeError):
         ra = RA("-4:08:15.162342")  # same, should check sign
@@ -369,7 +368,7 @@ def test_radec():
 
     ra = RA(68)
 
-    with raises(ValueError):
+    with raises(UnitsError):
         ra = RA(12)
 
     ra = RA("12h43m23s")
@@ -440,12 +439,12 @@ def test_create_coordinate():
     c = Coordinates(ra=RA("54.12412 deg"), dec="-41:08:15.162342")
     assert isinstance(c, ICRSCoordinates)
 
-    with raises(ValueError):
+    with raises(TypeError):
 	    c = ICRSCoordinates() # not allowed
 
     c = ICRSCoordinates(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
 
-    with raises(ValueError):
+    with raises(TypeError):
         c = ICRSCoordinates(ra="12 43 12", unit=(u.hour,))
 
     with raises(ValueError):
@@ -549,8 +548,8 @@ def test_convert_api():
     Tests the basic coordinate conversion functionality.
     """
 
-    from .. import Angle, RA, Dec, Coordinates, GalacticCoordinates
-    from .. import HorizontalCoordinates, SphericalCoordinatesBase
+    from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
+    from .. import coordinate_alias, transform_function
     import numpy.testing as npt
 
     '''
@@ -559,7 +558,7 @@ def test_convert_api():
 
     ra = RA("4:08:15.162342", unit=u.hour)
     dec = Dec("-41:08:15.162342")
-    c = Coordinates(ra=ra, dec=dec)
+    c = ICRSCoordinates(ra=ra, dec=dec)
 
     assert c.galactic == GalacticCoordinates(245.28098, -47.554501)
 
@@ -576,14 +575,20 @@ def test_convert_api():
     assert gal.equatorial.ra.format(unit=u.hour, sep=":",
                                        precision=2) == '4:08:15.16'
 
-    with raises(CoordinatesConversionError):
+    with raises(ConvertError):
         # there's no way to convert to alt/az without a specified location
         c.transform_to(HorizontalCoordinates)
 
     # users can specify their own coordinates and conversions
-    class CustomCoordinates(SphericalCoordinatesBase):
-        coordsysname = 'my_coord'
-        #TODO: specify conversion rules
+    @coordinate_alias('my_coord')
+    class CustomCoordinates(ICRSCoordinates):
+        pass
+
+    @transform_function(ICRSCoordinates, CustomCoordinates)
+    def icrs_to_custom(icrs_coo):
+        return CustomCoordinates(icrs_coo.ra.degrees,
+                                 icrs_coo.dec.degrees + 2.5,
+                                 unit=u.degree)
 
     # allows both ways of converting
     mycoord1 = c.my_coord
@@ -598,7 +603,7 @@ def test_proj_separations():
     Test angular separation functionality
     """
 
-    from .. import ICRSCoordinates, GalacticCoordinates, AngularSeparation
+    from .. import ICRSCoordinates, GalacticCoordinates, AngularSeparation, coordinate_alias
 
     '''
     Angular separations between two points on a sphere are supported via the
@@ -627,17 +632,17 @@ def test_proj_separations():
     # it will be automatically performed to get the right angular separation
 
     # distance from the north galactic pole to celestial pole
-    assert c3.separation(c1).degrees == 62.8716627659
+    npt.assert_almost_equal(c3.separation(c1).degrees, 62.8716627659)
 
-    class CustomCoordinate(Coordinates):
-        coordsysname = 'my_coord2'
-        # does not specify a coordinate transform
+    @coordinate_alias('my_coord2')
+    class CustomCoordinate(ICRSCoordinates):
+        pass  # does not specify a coordinate transform
 
     c4 = CustomCoordinate(0, 0, unit=u.degree)
-    #with raises(ConvertError):
+    with raises(ConvertError):
         # raises an error if no conversion from the custom to equatorial
         # coordinates is available
-    #    c4.separation(c1)
+        c4.separation(c1)
 
 
 def test_distances():
@@ -701,7 +706,7 @@ def test_distances():
     # returns a *3d* distance between the c1 and c2 coordinates
     # not that this does *not*
     assert isinstance(sep12, Distance)
-    npytest.assert_almost_equal(sep12.pc, 12005.784163916317, 10)
+    npt.assert_almost_equal(sep12.pc, 12005.784163916317, 10)
 
     '''
     All spherical coordinate systems with distances can be converted to
@@ -710,32 +715,32 @@ def test_distances():
 
     (x, y, z) = (c2.x, c2.y, c2.z)
     #this only computes the CartesianPoint *once*, and then caches it
-    npytest.assert_almost_equal(x, 2)
-    npytest.assert_almost_equal(y, 4)
-    npytest.assert_almost_equal(z, 8)
+    npt.assert_almost_equal(x, 2)
+    npt.assert_almost_equal(y, 4)
+    npt.assert_almost_equal(z, 8)
 
     cpt = c2.cartesian
     assert isinstance(cpt, CartesianPoint)
-    npytest.assert_almost_equal(cpt.x, 2)
-    npytest.assert_almost_equal(cpt.y, 4)
-    npytest.assert_almost_equal(cpt.z, 8)
+    npt.assert_almost_equal(cpt.x, 2)
+    npt.assert_almost_equal(cpt.y, 4)
+    npt.assert_almost_equal(cpt.z, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
     c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=None)
     unitcart = c3.cartesian
-    npytest.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
+    npt.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
 
     # CartesianPoint objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)
 
-    npytest.assert_almost_equal(csum.x, -8.12016610185)
-    npytest.assert_almost_equal(csum.y, 3.19380597435)
-    npytest.assert_almost_equal(csum.z, -8.2294483707)
-    npytest.assert_almost_equal(csum.ra.degrees, 158.529401774)
-    npytest.assert_almost_equal(csum.dec.degrees, -43.3235825777)
-    npytest.assert_almost_equal(csum.distance.kpc, 11.9942200501)
+    npt.assert_almost_equal(csum.x, -8.12016610185)
+    npt.assert_almost_equal(csum.y, 3.19380597435)
+    npt.assert_almost_equal(csum.z, -8.2294483707)
+    npt.assert_almost_equal(csum.ra.degrees, 158.529401774)
+    npt.assert_almost_equal(csum.dec.degrees, -43.3235825777)
+    npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
 
 def test_angle_arrays():
     """

@@ -72,7 +72,7 @@ class SphericalCoordinatesBase(object):
             `{longnm}`. Otherwise, a single unit is applied to both.
 
         * If `x`, `y`, and `z` are given:
-            `unit` must be present have dimensions of length, representing the
+            `unit` must be present have dimensions of length
     """
 
     def _initialize_latlong(self, longname, latname, useradec, initargs, initkwargs):
@@ -207,6 +207,10 @@ class SphericalCoordinatesBase(object):
                 longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
                 latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
             else:
+                if isinstance(longval, RA):
+                    raise TypeError('Cannot provide an RA object to a non-RA/Dec system')
+                if isinstance(latval, Dec):
+                    raise TypeError('Cannot provide a Dec object to a non-RA/Dec system')
                 longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
             dist = None if distval is None else Distance(distval)  # copy
@@ -232,10 +236,9 @@ class SphericalCoordinatesBase(object):
             dist = None if unit is None else Distance(r, unit)
 
         else:
-            raise TypeError('Cannot initialize coordinates with '
-                            '{latname}/{longname}/(distance) and x/y/z '
-                            'simultaneously'.format(latname=latname,
-                                                    longname=longname))
+            raise TypeError('Must initialize coordinates with '
+                            '{latname}/{longname}/(distance) or x/y/z '
+                            ''.format(latname=latname, longname=longname))
         setattr(self, longname, longang)
         setattr(self, latname, latang)
         self._distance = dist
@@ -410,14 +413,15 @@ class SphericalCoordinatesBase(object):
         """
         from copy import deepcopy
         from .transformations import master_transform_graph
+        from .errors import ConvertError
 
         if tosys is self.__class__:
             return deepcopy(self)
 
         trans = master_transform_graph.get_transform(self.__class__, tosys)
         if trans is None:
-            raise ValueError('Cannot transform from {0} to '
-                             '{1}'.format(self.__class__, tosys))
+            raise ConvertError('Cannot transform from {0} to '
+                               '{1}'.format(self.__class__, tosys))
         return trans(self)
 
     def is_transformable_to(self, tosys):
@@ -450,8 +454,8 @@ class SphericalCoordinatesBase(object):
         if nmsys is not None and self.is_transformable_to(nmsys):
             return self.transform_to(nmsys)
         else:
-            objname = self.__class__.__name__
-            raise AttributeError("'{0}' object has no attribute '{1}'".format(objname, name))
+            msg = "'{0}' object has no attribute '{1}', nor a transform."
+            raise AttributeError(msg.format(self.__class__.__name__, name))
 
 
 class Coordinates(object):

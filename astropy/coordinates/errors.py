@@ -4,10 +4,10 @@
 ''' This module defines custom errors and exceptions used in astropy.coordinates. '''
 
 __all__ = ['RangeError', 'BoundsError', 'UnitsError', 'IllegalHourError',
-           'IllegalMinuteError', 'IllegalSecondError']
+           'IllegalMinuteError', 'IllegalSecondError', 'ConvertError']
 
 
-class RangeError(Exception):
+class RangeError(ValueError):
     """
     Raised when some part of an angle is out of its valid range.
     """
@@ -78,7 +78,13 @@ class IllegalSecondError(RangeError):
 
 
 #TODO: consider if this should be used to `units`?
-class UnitsError(Exception):
+class UnitsError(ValueError):
     """
     Raised if units are missing or invalid.
+    """
+
+
+class ConvertError(Exception):
+    """
+    Raised if a coordinate system cannot be converted to another
     """

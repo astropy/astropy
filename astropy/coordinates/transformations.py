@@ -243,7 +243,7 @@ class TransformGraph(object):
         if tosys in self._graph[fromsys]:
             return self._graph[fromsys][tosys]
         else:
-            path = self.find_shortest_path(fromsys, tosys)
+            path, distance = self.find_shortest_path(fromsys, tosys)
 
             if path is None:
                 return None
