@@ -16,6 +16,7 @@ These properties are set via Astropy configuration system:
 """
 # STDLIB
 from copy import deepcopy
+import json
 import os
 import shutil
 import time
@@ -42,8 +43,10 @@ CS_MSTR_LIST = ConfigurationItem(
     'predicate=1%3D1&capability=conesearch&VOTStyleOption=2',
     'Conesearch master list query from VAO.')
 
+_TMP_ROOT = None  # Set by `check_conesearch_sites`
 
-def check_conesearch_sites(destdir=os.curdir, verbose=True):
+
+def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     """
     Validate Cone Search Services.
 
@@ -84,6 +87,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
     verbose : bool
         Print extra info to log.
 
+    multiproc : bool
+        Enable multiprocessing.
+
     Raises
     ------
     AssertionError
@@ -93,6 +99,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
         URL request timed out.
 
     """
+    global _TMP_ROOT
+
     assert (not os.path.exists(destdir) and len(destdir) > 0) or \
         (os.path.exists(destdir) and os.path.isdir(destdir)), \
         'Invalid destination directory'
@@ -104,7 +112,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
         destdir += os.sep
 
     # Temp dir created by votable.validator
-    tmp_root = destdir + 'results'
+    _TMP_ROOT = destdir + 'results'
 
     # Output files
     db_file = {}
@@ -116,6 +124,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
 
     # JSON dictionaries for output files
     js_template = {'__version__': 1, 'catalogs':{}}
+    js_mstr = deepcopy(js_template)
     js_tree = {}
     for key in db_file:
         js_tree[key] = deepcopy(js_template)
@@ -137,17 +146,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
     col_names = arr_cone.dtype.names
     col_to_rename = {'accessURL':'url'}
     uniq_title = sorted(set(arr_cone['title']))  # May have duplicates
+    key_lookup_by_url = {}
 
-    conesearch_pars = 'RA=0&DEC=0&SR=0'
-
-    count = 1
-    t_beg = time.time()
-
+    # Re-structure dictionary for JSON file
     for title in uniq_title:
         idx = numpy.where(arr_cone['title'] == title)
         for n,i in enumerate(idx[0], start=1):
-
-            # Re-structure dictionary for JSON file
             cat_key = '{} {}'.format(title, n)
             row_d = {}
             for col in col_names:
@@ -156,35 +160,48 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
                 else:
                     row_d[col] = arr_cone[i][col]
 
-            # FOR DEBUGGING ONLY
-            # If enabled for normal use, will clog up the info screen
-            if verbose:
-                log.info('{}/{} Checking {}'.format(
-                    count, arr_cone.size, row_d['url']))
+            cur_url = row_d['url']
+            assert cur_url not in key_lookup_by_url, 'Duplicate access URL'
+            key_lookup_by_url[cur_url] = cat_key
 
-            # Dummy Cone Search query
-            r = result.Result(row_d['url'] + conesearch_pars, root=tmp_root)
-            r.download_xml_content()
-            r.validate_vo()
+            js_mstr['catalogs'][cat_key] = row_d
 
-            # Categorize validation success
-            if r['network_error'] is not None:
-                success_key = 'nerr'
-            elif r['nexceptions'] > 0:
-                success_key = 'excp'
-            elif r['nwarnings'] > 0:
-                success_key = 'warn'
-            else:
-                success_key = 'good'
+    all_urls = arr_cone['accessURL'] + 'RA=0&DEC=0&SR=0'
+    t_beg = time.time()
 
-            js_tree[success_key]['catalogs'][cat_key] = row_d
+    # Validate URLs (with multiprocessing)
+    if multiproc:
+        import multiprocessing
+        mp_list = []
+        pool = multiprocessing.Pool()
+        mp_proc = pool.map_async(_do_validation, all_urls,
+                                 callback=mp_list.append)
+        mp_proc.wait()
+        mp_list = mp_list[0]
 
-            count += 1
+    # Validate URLs (no multiprocessing)
+    else:
+        mp_list = [_do_validation(cur_url) for cur_url in all_urls]
+
     t_end = time.time()
 
     if verbose:
         log.info('Validation of {} sites took {} s'.format(
             arr_cone.size, t_end - t_beg))
+
+    # Categorize validation results
+    for r in mp_list:
+        if r['network_error'] is not None:
+            success_key = 'nerr'
+        elif r['nexceptions'] > 0:
+            success_key = 'excp'
+        elif r['nwarnings'] > 0:
+            success_key = 'warn'
+        else:
+            success_key = 'good'
+
+        cat_key = key_lookup_by_url[r.url]
+        js_tree[success_key]['catalogs'][cat_key] = js_mstr['catalogs'][cat_key]
 
     # Write to JSON
     n = {}
@@ -214,8 +231,16 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
                  'No viable database for Cone Search.')
 
     # Delete temp dir
-    if os.path.exists(tmp_root):
-        shutil.rmtree(tmp_root)
+    if os.path.exists(_TMP_ROOT):
+        shutil.rmtree(_TMP_ROOT)
+
+
+def _do_validation(url):
+    """Validation for multiprocessing support."""
+    r = result.Result(url, root=_TMP_ROOT)
+    r.download_xml_content()
+    r.validate_vo()
+    return r
 
 
 def _do_rmfile(filename, verbose=True):
