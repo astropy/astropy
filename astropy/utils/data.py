@@ -238,10 +238,11 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
 
         fileobj.seek(0)
 
-    yield fileobj
-
-    for fd in close_fds:
-        fd.close()
+    try:
+        yield fileobj
+    finally:
+        for fd in close_fds:
+            fd.close()
 
 
 def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
