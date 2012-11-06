@@ -222,6 +222,41 @@ class CartesianPoint(object):
         """
         return cartesian_to_spherical(self.x, self.y, self.z)
 
+    def __repr__(self):
+        return '<CartesianPoint ({x}, {y}, {z}) {unit}>'.format(x=self.x,
+                y=self.y, z=self.z, unit=self.unit)
+
+    def __eq__(self, other):
+        return (isinstance(other, CartesianPoint) and self.x == other.x and
+                self.y == other.y and self.z == other.z and
+                self.unit == other.unit)
+
+    def __add__(self, other):
+        if isinstance(other, CartesianPoint) or (hasattr(other, 'x') and
+            hasattr(other, 'y') and hasattr(other, 'z') and
+            hasattr(other, 'unit')):
+            newx = self.x + other.unit.to(self.unit, other.x)
+            newy = self.y + other.unit.to(self.unit, other.y)
+            newz = self.z + other.unit.to(self.unit, other.z)
+        else:
+            msg = "unsupported operand type(s) for +: '{sel}' and '{other}'"
+            raise TypeError(msg.format(type(self).__name__,
+                                        type(other).__name__))
+        return CartesianPoint(newx, newy, newz, self.unit)
+
+    def __sub__(self, other):
+        if isinstance(other, CartesianPoint) or (hasattr(other, 'x') and
+            hasattr(other, 'y') and hasattr(other, 'z') and
+            hasattr(other, 'unit')):
+            newx = self.x - other.unit.to(self.unit, other.x)
+            newy = self.y - other.unit.to(self.unit, other.y)
+            newz = self.z - other.unit.to(self.unit, other.z)
+        else:
+            msg = "unsupported operand type(s) for -: '{sel}' and '{other}'"
+            raise TypeError(msg.format(type(self).__name__,
+                                        type(other).__name__))
+        return CartesianPoint(newx, newy, newz, self.unit)
+
 #<------------transformation-related utility functions----------------->
 
 
