@@ -18,6 +18,7 @@ These properties are set via Astropy configuration system:
 from copy import deepcopy
 import os
 import shutil
+import time
 import urllib2
 
 # THIRD PARTY
@@ -26,6 +27,7 @@ import numpy
 # LOCAL
 from ..client import vos_catalog
 from ...io import votable
+from ...io.votable.validator import result
 from ...logger import log
 from ...utils.misc import NumpyScalarEncoder
 
@@ -127,19 +129,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
     # Get all Cone Search sites
     tab_all = votable.parse_single_table(urllib2.urlopen(
         CS_MSTR_LIST(), timeout=vos_catalog.TIMEOUT()), pedantic=False)
-    arr_cone = tab_all.array[numpy.where(
+    arr_cone = tab_all.array.data[numpy.where(
         tab_all.array['capabilityClass'] == 'ConeSearch')]
 
     assert arr_cone.size > 0, 'CS_MSTR_LIST yields no valid result'
 
     col_names = arr_cone.dtype.names
-    col_to_copy_asis = ('shortName', 'title', 'description', 'identifier',
-                        'maxRadius', 'maxRecords', 'publisherID', 'subject',
-                        'updated', 'version', 'waveband')
     col_to_rename = {'accessURL':'url'}
     uniq_title = sorted(set(arr_cone['title']))  # May have duplicates
 
     conesearch_pars = 'RA=0&DEC=0&SR=0'
+
+    count = 1
+    t_beg = time.time()
 
     for title in uniq_title:
         idx = numpy.where(arr_cone['title'] == title)
@@ -149,14 +151,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
             cat_key = '{} {}'.format(title, n)
             row_d = {}
             for col in col_names:
-                if col in col_to_copy_asis:
-                    row_d[col] = arr_cone[i][col]
-                elif col in col_to_rename:
+                if col in col_to_rename:
                     row_d[col_to_rename[col]] = arr_cone[i][col]
+                else:
+                    row_d[col] = arr_cone[i][col]
+
+            # FOR DEBUGGING ONLY
+            # If enabled for normal use, will clog up the info screen
+            if verbose:
+                log.info('{}/{} Checking {}'.format(
+                    count, arr_cone.size, row_d['url']))
 
             # Dummy Cone Search query
-            r = votable.validator.result.Result(
-                row_d['url'] + conesearch_pars, root=tmp_root)
+            r = result.Result(row_d['url'] + conesearch_pars, root=tmp_root)
             r.download_xml_content()
             r.validate_vo()
 
@@ -172,15 +179,28 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True):
 
             js_tree[success_key]['catalogs'][cat_key] = row_d
 
+            count += 1
+    t_end = time.time()
+
+    if verbose:
+        log.info('Validation of {} sites took {} s'.format(
+            arr_cone.size, t_end - t_beg))
+
     # Write to JSON
     n = {}
+    checksum = 0
     for key in db_file:
         n[key] = len(js_tree[key]['catalogs'])
+        checksum += n[key]
         if verbose:
             log.info('{}: {} catalogs'.format(key, n[key]))
         with open(db_file[key], 'w') as f_json:
             f_json.write(json.dumps(js_tree[key], cls=NumpyScalarEncoder,
                                     sort_keys=True, indent=4))
+
+    if checksum != arr_cone.size:
+        log.warn('Expected {} sites in all databases combined '
+                 'but only found {}'.format(arr_cone.size, checksum))
 
     # Make symbolic link
     if n['good'] > 0:

@@ -7,6 +7,7 @@ file.
 from __future__ import absolute_import
 
 # STDLIB
+from xml.parsers.expat import ExpatError
 import hashlib
 import httplib
 import os
@@ -165,7 +166,7 @@ class Result:
             with warnings.catch_warnings(record=True) as warning_lines:
                 try:
                     t = table.parse(input, pedantic=False, filename=path)
-                except ValueError as e:
+                except (ValueError, TypeError, ExpatError) as e:
                     lines.append(str(e))
                     nexceptions += 1
         lines = [str(x.message) for x in warning_lines] + lines

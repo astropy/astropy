@@ -32,10 +32,10 @@ used, i.e., order of catalog names is important:
 >>> result = conesearch.conesearch(219.900850, -60.835619, 2.78e-05,
                                    catalog_db=all_sdss_cat, pedantic=False)
 
-Extract Numpy recarray containing the matched objects. See
-`numpy.recarray` for available operations:
+Extract Numpy array containing the matched objects. See
+`numpy.ndarray` for available operations:
 
->>> cone_arr = result.array
+>>> cone_arr = result.array.data
 >>> col_names = cone_arr.dtype.names
 >>> n_rec = cone_arr.size
 >>> ra_list = cone_arr[ col_names[1] ] # This depends on the catalog
@@ -66,7 +66,7 @@ after 30 seconds, `None` is returned. Otherwise, conesearch result
 is returned and can be manipulated as above.
 
 >>> async_result = async_search.get(timeout=30)
->>> cone_arr = async_result.array
+>>> cone_arr = async_result.array.data
 
 If search is taking too long and going nowhere,
 it can be forced to terminate:
