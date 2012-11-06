@@ -112,6 +112,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     cache : bool, optional
         Whether to cache the contents of remote URLs
     """
+    # close_fds is a list of file handles created by this function
+    # that need to be closed.  We don't want to always just close the
+    # returned file handle, because it may simply be the file handle
+    # passed in.  In that case it is not the responsibility of this
+    # function to close it: doing so could result in a "double close"
+    # and an "invalid file descriptor" exception.
     close_fds = []
 
     # Get a file object to the content
@@ -121,7 +127,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
                 fileobj = open(cache_remote(name_or_obj))
             else:
                 fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
-                close_fds.append(fileobj)
+            close_fds.append(fileobj)
         else:
             if PY3K:
                 fileobj = io.FileIO(name_or_obj, 'r')
@@ -163,7 +169,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
             import tempfile
-            tmp = tempfile.NamedTemporaryFile()
+            tmp = tempfile.NamedTemporaryFile("wb")
             tmp.write(fileobj.read())
             tmp.flush()
             close_fds.append(tmp)
@@ -175,6 +181,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fileobj_new.close()
         else:
             fileobj_new.seek(0)
+            close_fds.append(fileobj_new)
             fileobj = fileobj_new
 
     # By this point, we have a file, io.FileIO, gzip.GzipFile, or
@@ -201,7 +208,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             # get a raw file descriptor out of it on Python 2.x, which
             # is required for the XML iterparser.
             if not PY3K and isinstance(fileobj, file):
-                close_fds.append(fileobj)
                 fileobj = io.FileIO(fileobj.fileno())
 
             fileobj = io.BufferedReader(fileobj)
