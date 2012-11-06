@@ -112,6 +112,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     cache : bool, optional
         Whether to cache the contents of remote URLs
     """
+    import tempfile
+
     # close_fds is a list of file handles created by this function
     # that need to be closed.  We don't want to always just close the
     # returned file handle, because it may simply be the file handle
@@ -168,7 +170,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            import tempfile
             tmp = tempfile.NamedTemporaryFile("wb")
             tmp.write(fileobj.read())
             tmp.flush()
@@ -196,35 +197,46 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         needs_textio_wrapper = encoding != 'binary' and encoding is not None
 
     if needs_textio_wrapper:
+        # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
+        # so we decompress it to a temporary file and then
+        # return a handle to that.
         import bz2
-        # FIXME: A bz2.BZ2File can not be wrapped by a TextIOWrapper,
-        # so on Python 3 the user will get back bytes from the file
-        # rather than Unicode as expected.
-        if not isinstance(fileobj, bz2.BZ2File):
-            # On Python 2.x, we need to first wrap the regular `file`
-            # instance in a `io.FileIO` object before it can be
-            # wrapped in a `TextIOWrapper`.  We don't just create an
-            # `io.FileIO` object in the first place, because we can't
-            # get a raw file descriptor out of it on Python 2.x, which
-            # is required for the XML iterparser.
-            if not PY3K and isinstance(fileobj, file):
-                fileobj = io.FileIO(fileobj.fileno())
+        if isinstance(fileobj, bz2.BZ2File):
+            tmp = tempfile.NamedTemporaryFile("wb")
+            data = fileobj.read()
+            tmp.write(data)
+            tmp.flush()
+            close_fds.append(tmp)
+            if PY3K:
+                fileobj = io.FileIO(tmp.name, 'r')
+            else:
+                fileobj = open(tmp.name, 'rb')
+            close_fds.append(fileobj)
 
-            fileobj = io.BufferedReader(fileobj)
-            fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
+        # On Python 2.x, we need to first wrap the regular `file`
+        # instance in a `io.FileIO` object before it can be
+        # wrapped in a `TextIOWrapper`.  We don't just create an
+        # `io.FileIO` object in the first place, because we can't
+        # get a raw file descriptor out of it on Python 2.x, which
+        # is required for the XML iterparser.
+        if not PY3K and isinstance(fileobj, file):
+            fileobj = io.FileIO(fileobj.fileno())
 
-            # Ensure that file is at the start - io.FileIO will for example not always
-            # be at the start:
-            # >>> import io
-            # >>> f = open('test.fits', 'rb')
-            # >>> f.read(4)
-            # 'SIMP'
-            # >>> f.seek(0)
-            # >>> fileobj = io.FileIO(f.fileno())
-            # >>> fileobj.tell()
-            # 4096L
+        fileobj = io.BufferedReader(fileobj)
+        fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
 
-            fileobj.seek(0)
+        # Ensure that file is at the start - io.FileIO will for
+        # example not always be at the start:
+        # >>> import io
+        # >>> f = open('test.fits', 'rb')
+        # >>> f.read(4)
+        # 'SIMP'
+        # >>> f.seek(0)
+        # >>> fileobj = io.FileIO(f.fileno())
+        # >>> fileobj.tell()
+        # 4096L
+
+        fileobj.seek(0)
 
     yield fileobj
 
