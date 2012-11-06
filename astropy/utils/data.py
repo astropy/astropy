@@ -122,11 +122,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             else:
                 fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
                 close_fds.append(fileobj)
-                from types import MethodType
-                if not PY3K:  # pragma: py2
-                    # Need to add in context managers to support with urlopen for <3.x
-                    fileobj.__enter__ = MethodType(_fake_enter, fileobj)
-                    fileobj.__exit__ = MethodType(_fake_exit, fileobj)
         else:
             if PY3K:
                 fileobj = io.FileIO(name_or_obj, 'r')
@@ -156,8 +151,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fileobj_new.read(1)  # need to check that the file is really gzip
         except IOError:  # invalid gzip file
             fileobj.seek(0)
+            fileobj_new.close()
         except struct.error:  # invalid gzip file on Python 3
             fileobj.seek(0)
+            fileobj_new.close()
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
@@ -175,6 +172,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fileobj_new.read(1)  # need to check that the file is really bzip2
         except IOError:  # invalid bzip2 file
             fileobj.seek(0)
+            fileobj_new.close()
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
@@ -203,6 +201,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             # get a raw file descriptor out of it on Python 2.x, which
             # is required for the XML iterparser.
             if not PY3K and isinstance(fileobj, file):
+                close_fds.append(fileobj)
                 fileobj = io.FileIO(fileobj.fileno())
 
             fileobj = io.BufferedReader(fileobj)
