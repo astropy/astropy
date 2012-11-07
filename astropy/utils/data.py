@@ -86,6 +86,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     This supports passing filenames, URLs, and readable file-like
     objects, any of which can be compressed in gzip or bzip2.
 
+    **Note**: this function is a context manager, and should be used
+    as e.g.::
+
+        with get_readable_fileobj('file.dat') as f:
+            contents = f.read()
+
     Parameters
     ----------
     name_or_obj : str or file-like object
