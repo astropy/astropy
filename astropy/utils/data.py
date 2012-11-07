@@ -17,7 +17,7 @@ from ..config.configuration import ConfigurationItem
 __all__ = ['get_readable_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
            'get_pkg_data_contents', 'get_pkg_data_fileobjs',
            'get_pkg_data_filenames', 'compute_hash',
-           'clear_data_cache', 'CacheMissingWarning', 'cache_remote']
+           'clear_data_cache', 'CacheMissingWarning', 'download_file']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -131,10 +131,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     # Get a file object to the content
     if isinstance(name_or_obj, basestring):
         if _is_url(name_or_obj):
-            if cache:
-                fileobj = open(cache_remote(name_or_obj))
-            else:
-                fileobj = urllib2.urlopen(name_or_obj, timeout=REMOTE_TIMEOUT())
+            fileobj = open(download_file(name_or_obj, cache=cache))
             close_fds.append(fileobj)
         else:
             if PY3K:
@@ -421,7 +418,7 @@ def get_pkg_data_filename(data_name):
         # first try looking for a local version if a hash is specified
         hashfn = _find_hash_fn(data_name[5:])
         if hashfn is None:
-            return cache_remote(DATAURL() + data_name)
+            return download_file(DATAURL() + data_name, cache=True)
         else:
             return hashfn
     else:
@@ -432,7 +429,7 @@ def get_pkg_data_filename(data_name):
         elif os.path.isfile(datafn):  # local file
             return datafn
         else:  # remote file
-            return cache_remote(DATAURL() + data_name)
+            return download_file(DATAURL() + data_name, cache=True)
 
 
 def get_pkg_data_contents(data_name, encoding=None, cache=True):
@@ -697,39 +694,53 @@ def _find_hash_fn(hash):
         return None
 
 
-def cache_remote(remoteurl):
+def download_file(remote_url, cache=False):
     """
-    Accepts a URL, downloads and caches the result returning the filename, with
-    a name determined by the file's MD5 hash. If present in the cache, just
+    Accepts a URL, downloads and optionally caches the result
+    returning the filename, with a name determined by the file's MD5
+    hash. If ``cache=True`` and the file is present in the cache, just
     returns the filename.
+
+    Parameters
+    ----------
+    remote_url : str
+        The URL of the file to download
+    cache : bool, optional
+        Whether to use the cache
     """
+
     import hashlib
     from contextlib import closing
-    from os.path import join
     from tempfile import NamedTemporaryFile
     from shutil import move
     from warnings import warn
 
     from ..utils.console import ProgressBarOrSpinner
 
-    try:
-        dldir, urlmapfn = _get_data_cache_locs()
-        docache = True
-    except (IOError, OSError) as e:
-        msg = 'Remote data cache could not be accessed due to '
-        estr = '' if len(e.args) < 1 else (': ' + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-        docache = False
+    missing_cache = False
 
-    if docache:
+    if cache:
+
+        try:
+            dldir, urlmapfn = _get_data_cache_locs()
+        except (IOError, OSError) as e:
+            msg = 'Remote data cache could not be accessed due to '
+            estr = '' if len(e.args) < 1 else (': ' + str(e))
+            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+            cache = False
+            missing_cache = True  # indicates that the cache is missing to raise a warning later
+
         _acquire_data_cache_lock()
-    try:
-        if docache:
-            with _open_shelve(urlmapfn, True) as url2hash:
-                if str(remoteurl) in url2hash:
-                    return url2hash[str(remoteurl)]
 
-        with closing(urllib2.urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
+    try:
+
+        if cache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                if str(remote_url) in url2hash:
+                    return url2hash[str(remote_url)]
+
+        with closing(urllib2.urlopen(remote_url, timeout=REMOTE_TIMEOUT())) as remote:
+
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -742,7 +753,7 @@ def cache_remote(remoteurl):
             else:
                 size = None
 
-            dlmsg = "Downloading {0}".format(remoteurl)
+            dlmsg = "Downloading {0}".format(remote_url)
             with ProgressBarOrSpinner(size, dlmsg) as p:
                 with NamedTemporaryFile(delete=False) as f:
                     bytes_read = 0
@@ -753,34 +764,39 @@ def cache_remote(remoteurl):
                         bytes_read += len(block)
                         p.update(bytes_read)
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-        if docache:
+
+        if cache:
+
             with _open_shelve(urlmapfn, True) as url2hash:
-                localpath = join(dldir, hash.hexdigest())
-                move(f.name, localpath)
-                url2hash[str(remoteurl)] = localpath
+                local_path = os.path.join(dldir, hash.hexdigest())
+                move(f.name, local_path)
+                url2hash[str(remote_url)] = local_path
+
         else:
-            localpath = f.name
-            msg = 'File downloaded to temp file due to lack of cache access.'
-            warn(CacheMissingWarning(msg, localpath))
+
+            local_path = f.name
+            if missing_cache:
+                msg = 'File downloaded to temp file due to lack of cache access.'
+                warn(CacheMissingWarning(msg, local_path))
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
-                _tempfilestodel.append(localpath)
+                _tempfilestodel.append(local_path)
 
     finally:
-        if docache:
+
+        if cache:
             _release_data_cache_lock()
 
-    return localpath
+    return local_path
 
 
-#this is used by cache_remote and _deltemps to determine the files to delete
+# This is used by download_file and _deltemps to determine the files to delete
 # when the interpreter exits
 _tempfilestodel = []
 
 
 @atexit.register
 def _deltemps():
-    import os
 
     global _tempfilestodel
 

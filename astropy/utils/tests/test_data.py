@@ -13,9 +13,9 @@ TESTURL = 'http://www.google.com/index.html'
 @remote_data
 def test_url_cache():
 
-    from ..data import cache_remote, clear_data_cache
+    from ..data import download_file, clear_data_cache
 
-    fnout = cache_remote(TESTURL)
+    fnout = download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
     clear_data_cache(TESTURL)
     assert not os.path.isfile(fnout)
