@@ -80,14 +80,18 @@ def _is_url(string):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     """
-    Given a filename or a readable file-like object, return a readable
-    file-like object.
+    Given a filename or a readable file-like object, return a context
+    manager that yields a readable file-like object.
 
     This supports passing filenames, URLs, and readable file-like
     objects, any of which can be compressed in gzip or bzip2.
 
-    **Note**: this function is a context manager, and should be used
-    as e.g.::
+
+    Notes
+    -----
+
+    This function is a context manager, and should be used for example
+    as::
 
         with get_readable_fileobj('file.dat') as f:
             contents = f.read()
