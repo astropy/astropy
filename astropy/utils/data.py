@@ -14,9 +14,9 @@ import urllib2
 
 from ..config.configuration import ConfigurationItem
 
-__all__ = ['get_readable_fileobj', 'get_pkg_data_fileobj', 'get_pkg_data_filename',
-           'get_pkg_data_contents', 'get_pkg_data_fileobjs',
-           'get_pkg_data_filenames', 'compute_hash',
+__all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
+           'get_pkg_data_filename', 'get_pkg_data_contents',
+           'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
            'clear_data_cache', 'CacheMissingWarning', 'download_file']
 
 DATAURL = ConfigurationItem(
@@ -250,6 +250,22 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     finally:
         for fd in close_fds:
             fd.close()
+
+
+def get_file_contents(name_or_obj, encoding=None, cache=True):
+    """
+    Retrieves the contents of a filename or file-like object.
+
+    See  the `get_readable_fileobj` docstring for details on parameters.
+
+    Returns
+    -------
+    content
+        The content of the file (as requested by `encoding`).
+
+    """
+    with get_readable_fileobj(name_or_obj, encoding, cache) as f:
+        return f.read()
 
 
 def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
