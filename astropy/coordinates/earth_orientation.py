@@ -7,11 +7,14 @@ precession and nutation.
 This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
+import numpy as np
+
 from ..time import Time
 from .. import units as u
 
 jd2000 = Time('J2000', scale='utc').jd
 _asecperrad = u.radian.to(u.arcsec)
+
 
 def obliquity(jd, algorithm=2006):
     """
@@ -59,36 +62,52 @@ def obliquity(jd, algorithm=2006):
 
 
 #TODO: replace this with SOFA equivalent
-def precession_matrix_J2000_Capitaine(epoch):
+def precession_matrix_Capitaine(fromepoch, toepoch):
         """
-        Computes the precession matrix from J2000 to the given Julian Epoch.
-        Expression from from Capitaine et al. 2003 as expressed in the USNO
-        Circular 179.  This should match the IAU 2006 standard from SOFA.
-
         Parameters
         ----------
-            epoch : scalar
-                The julian epoch at which to compute the precession matrix.
+        fromepoch : `~astropy.time.Time`
+            The epoch to precess from.
+        toepoch : `~astropy.time.Time`
+            The epoch to precess to.
 
         Returns
         -------
         pmatrix : 3x3 array
-            Precession matrix at `epoch`
+            Precession matrix to get from `fromepoch` to `toepoch`
+
+        References
+        ----------
+        USNO Circular 179
         """
-        from .angles import rotation_matrix
+        mat_fromto2000 = _precession_matrix_J2000_Capitaine(fromepoch.jyear)
+        mat_2000toto = _precession_matrix_J2000_Capitaine(fromepoch.jyear).T
 
-        T = (epoch-2000.0)/100.0
-        #from USNO circular
-        pzeta = (-0.0000003173,-0.000005971,0.01801828,0.2988499,2306.083227,2.650545)
-        pz = (-0.0000002904,-0.000028596,0.01826837,1.0927348,2306.077181,-2.650545)
-        ptheta = (-0.0000001274,-0.000007089,-0.04182264,-0.4294934,2004.191903,0)
-        zeta = np.polyval(pzeta,T)/3600.0
-        z = np.polyval(pz,T)/3600.0
-        theta = np.polyval(ptheta,T)/3600.0
+        return np.dot(mat_fromto2000, mat_2000toto)
 
-        return rotation_matrix(-z,'z') *\
-               rotation_matrix(theta,'y') *\
-               rotation_matrix(-zeta,'z')
+
+def _precession_matrix_J2000_Capitaine(epoch):
+    """
+    Computes the precession matrix from J2000 to the given Julian Epoch.
+    Expression from from Capitaine et al. 2003 as expressed in the USNO
+    Circular 179.  This should match the IAU 2006 standard from SOFA.
+    """
+    from .angles import rotation_matrix
+
+    T = (epoch-2000.0)/100.0
+    #from USNO circular
+    pzeta = (-0.0000003173,-0.000005971,0.01801828,0.2988499,2306.083227,2.650545)
+    pz = (-0.0000002904,-0.000028596,0.01826837,1.0927348,2306.077181,-2.650545)
+    ptheta = (-0.0000001274,-0.000007089,-0.04182264,-0.4294934,2004.191903,0)
+    zeta = np.polyval(pzeta,T)/3600.0
+    z = np.polyval(pz,T)/3600.0
+    theta = np.polyval(ptheta,T)/3600.0
+
+    return rotation_matrix(-z,'z') *\
+           rotation_matrix(theta,'y') *\
+           rotation_matrix(-zeta,'z')
+
+
 
 
 def _load_nutation_data(datafn, seriestype):
