@@ -102,4 +102,4 @@ def test_fnpickling_many(tmpdir):
     assert len(res) == 2
 
     with pytest.raises(EOFError):
-        misc.fnunpickle(fn, number=5)
+        fnunpickle(fn, number=5)
