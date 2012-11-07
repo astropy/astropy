@@ -1,8 +1,8 @@
 import os
 
-import pytest
 import numpy as np
 
+from ....tests.helper import pytest
 from .. import read
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
