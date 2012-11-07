@@ -248,7 +248,11 @@ def get_result_subsets(results, root, s=None):
         if s:
             s.next()
 
-        x = Result(url, root=root)
+        if isinstance(url, Result):
+            x = url
+        else:
+            x = Result(url, root=root)
+
         all_results.append(x)
         if (x['nwarnings'] == 0 and
             x['nexceptions'] == 0 and
