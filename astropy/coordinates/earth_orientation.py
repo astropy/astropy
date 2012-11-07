@@ -7,6 +7,11 @@ precession and nutation.
 This module is (currently) not intended to be part of the public API, but
 is instead primarily for internal use in `coordinates`
 """
+from ..time import Time
+from .. import units as u
+
+jd2000 = Time('J2000', scale='utc').jd
+_asecperrad = u.radian.to(u.arcsec)
 
 def obliquity(jd, algorithm=2006):
     """
@@ -36,8 +41,6 @@ def obliquity(jd, algorithm=2006):
     * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
       Seidelmann (ed), University Science Books (1992).
     """
-    from ..obstools import jd2000
-
     T = (jd-jd2000)/36525.0
 
     if algorithm==2006:
@@ -64,15 +67,15 @@ def precession_matrix_J2000_Capitaine(epoch):
 
         Parameters
         ----------
-            epoch : int
-                The epoch at which to compute the precession matrix.
+            epoch : scalar
+                The julian epoch at which to compute the precession matrix.
 
         Returns
         -------
         pmatrix : 3x3 array
             Precession matrix at `epoch`
         """
-        from ..utils import rotation_matrix
+        from .angles import rotation_matrix
 
         T = (epoch-2000.0)/100.0
         #from USNO circular
@@ -88,13 +91,15 @@ def precession_matrix_J2000_Capitaine(epoch):
                rotation_matrix(-zeta,'z')
 
 
-def load_nutation_data(datafn, seriestype):
+def _load_nutation_data(datafn, seriestype):
     """
     Loads nutation series from saved data files.
 
     Seriestype can be 'lunisolar' or 'planetary'
     """
-    from ..utils.data import get_package_data
+    from os.path import join
+
+    from ..config.data import get_data_contents
 
     if seriestype == 'lunisolar':
         dtypes = [('nl',int),
@@ -129,7 +134,7 @@ def load_nutation_data(datafn, seriestype):
     else:
         raise ValueError('requested invalid nutation series type')
 
-    lines = [l for l in get_package_data(datafn).split('\n') if not l.startswith('#') if not l.strip()=='']
+    lines = [l for l in get_data_contents(join('data', datafn)).split('\n') if not l.startswith('#') if not l.strip()=='']
 
     lists = [[] for n in dtypes]
     for l in lines:
@@ -137,56 +142,41 @@ def load_nutation_data(datafn, seriestype):
             lists[i].append(dtypes[i][1](e))
     return np.rec.fromarrays(lists,names=[e[0] for e in dtypes])
 
+
+_nut_data_00b = _load_nutation_data('iau00b_nutation.tab','lunisolar')
 #TODO: replace w/SOFA equivalent
-_nut_data_00a_ls = load_nutation_data('iau00a_nutation_ls.tab','lunisolar')
-_nut_data_00a_pl = load_nutation_data('iau00a_nutation_pl.tab','planetary')
-def nutation_components20062000A(epoch):
+def nutation_components2000B(jd):
     """
-    :returns: eps,dpsi,deps in radians
+    Computes nutation components following the IAU 2000B specification
+
+    Parameters
+    ----------
+    jd : scalar
+        epoch at which to compute the nutation components as a JD
+
+    Returns
+    -------
+    eps : float
+        epsilon in radians
+    dpsi : float
+        dpsi in radians
+    deps : float
+        depsilon in raidans
     """
-    from ..obstools import epoch_to_jd
-    from .funcs import obliquity
-
-    epsa = obliquity(epoch_to_jd(epoch),2006)
-
-    raise NotImplementedError('2006/2000A nutation model not implemented')
-
-    return epsa,dpsi,deps
-
-
-
-_nut_data_00b = load_nutation_data('iau00b_nutation.tab','lunisolar')
-def nutation_components2000B(intime,asepoch=True):
-    """
-    :param intime: time to compute the nutation components as a JD or epoch
-    :type intime: scalar
-    :param asepoch: if True, `intime` is interpreted as an epoch, otherwise JD
-    :type asepoch: bool
-
-    :returns: eps,dpsi,deps in radians
-    """
-    from ..constants import asecperrad
-    from ..obstools import epoch_to_jd,jd2000
-    from .funcs import obliquity
-
-    if asepoch:
-        jd = epoch_to_jd(intime)
-    else:
-        jd = intime
-    epsa = np.radians(obliquity(jd,2000))
-    t = (jd-jd2000)/36525
+    epsa = np.radians(obliquity(jd, 2000))
+    t = (jd - jd2000) / 36525
 
     #Fundamental (Delaunay) arguments from Simon et al. (1994) via SOFA
     #Mean anomaly of moon
-    el = ((485868.249036 + 1717915923.2178*t)%1296000)/asecperrad
+    el = ((485868.249036 + 1717915923.2178*t)%1296000)/_asecperrad
     #Mean anomaly of sun
-    elp = ((1287104.79305 + 129596581.0481*t)%1296000)/asecperrad
+    elp = ((1287104.79305 + 129596581.0481*t)%1296000)/_asecperrad
     #Mean argument of the latitude of Moon
-    F = ((335779.526232 + 1739527262.8478*t)%1296000)/asecperrad
+    F = ((335779.526232 + 1739527262.8478*t)%1296000)/_asecperrad
     #Mean elongation of the Moon from Sun
-    D = ((1072260.70369 + 1602961601.2090*t)%1296000)/asecperrad
+    D = ((1072260.70369 + 1602961601.2090*t)%1296000)/_asecperrad
     #Mean longitude of the ascending node of Moon
-    Om = ((450160.398036 + -6962890.5431*t)%1296000)/asecperrad
+    Om = ((450160.398036 + -6962890.5431*t)%1296000)/_asecperrad
 
     #compute nutation series using array loaded from data directory
     dat = _nut_data_00b
@@ -194,13 +184,13 @@ def nutation_components2000B(intime,asepoch=True):
     sarg = np.sin(arg)
     carg = np.cos(arg)
 
-    p1uasecperrad = asecperrad*1e7 #0.1 microasrcsecperrad
-    dpsils = np.sum((dat.ps + dat.pst*t)*sarg + dat.pc*carg)/p1uasecperrad
-    depsls = np.sum((dat.ec + dat.ect*t)*carg + dat.es*sarg)/p1uasecperrad
+    p1u_asecperrad = _asecperrad*1e7 #0.1 microasrcsecperrad
+    dpsils = np.sum((dat.ps + dat.pst*t)*sarg + dat.pc*carg)/p1u_asecperrad
+    depsls = np.sum((dat.ec + dat.ect*t)*carg + dat.es*sarg)/p1u_asecperrad
     #fixed offset in place of planetary tersm
-    masecperrad = asecperrad*1e3 #milliarcsec per rad
-    dpsipl = -0.135/masecperrad
-    depspl =  0.388/masecperrad
+    m_asecperrad = _asecperrad*1e3 #milliarcsec per rad
+    dpsipl = -0.135/m_asecperrad
+    depspl =  0.388/m_asecperrad
 
     return epsa,dpsils+dpsipl,depsls+depspl #all in radians
 
@@ -211,10 +201,10 @@ def nutation_matrix(epoch):
     Matrix converts from mean coordinate to true coordinate as
     r_true = M * r_mean
     """
-    from ..utils import rotation_matrix
+    from .angles import rotation_matrix
 
     #TODO: implement higher precision 2006/2000A model if requested/needed
-    epsa,dpsi,deps = nutation_components2000B(epoch) #all in radians
+    epsa,dpsi,deps = nutation_components2000B(epoch.jd) #all in radians
 
     return rotation_matrix(-(epsa + deps),'x',False) *\
            rotation_matrix(-dpsi,'z',False) *\
