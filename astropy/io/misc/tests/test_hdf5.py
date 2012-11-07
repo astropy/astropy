@@ -2,9 +2,9 @@
 
 from __future__ import print_function
 
-import pytest
 import numpy as np
 
+from ....tests.helper import pytest
 from ....table import Table, Column
 from .... import log
 
