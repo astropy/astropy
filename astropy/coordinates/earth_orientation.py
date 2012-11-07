@@ -64,6 +64,10 @@ def obliquity(jd, algorithm=2006):
 #TODO: replace this with SOFA equivalent
 def precession_matrix_Capitaine(fromepoch, toepoch):
         """
+        Computes the precession matrix from one epoch to another.  The
+        exact method is based on Capitaine et al. 2003, which should
+        match the IAU 2006 standard.
+
         Parameters
         ----------
         fromepoch : `~astropy.time.Time`
