@@ -604,3 +604,113 @@ class AngularSeparation(Angle):
         The value of this separation in arcseconds.
         """
         return self.degrees * 3600.
+
+#<----------------------------------Rotations---------------------------------->
+
+
+def rotation_matrix(angle, axis='z', degrees=True):
+    """
+    Generate a 3x3 cartesian rotation matrix in for rotation about
+    a particular axis.
+
+    Parameters
+    ----------
+    angle : scalar
+        The amount of rotation this matrix should represent. In degrees
+        if `degrees` is True, otherwise radians.
+    axis : str or 3-sequence
+        Either 'x','y', 'z', or a (x,y,z) specifying an axis to rotate
+        about. If 'x','y', or 'z', the rotation sense is
+        counterclockwise looking down the + axis (e.g. positive
+        rotations obey left-hand-rule).
+    degrees : bool
+        If True the input angle is degrees, otherwise radians.
+
+    Returns
+    -------
+    rmat: `numpy.matrix`
+        A unitary rotation matrix.
+    """
+    from math import sin, cos, radians, sqrt
+
+    if degrees:
+        angle = radians(angle)
+
+    if axis == 'z':
+        s = sin(angle)
+        c = cos(angle)
+        return np.matrix((( c, s, 0),
+                          (-s, c, 0),
+                          ( 0, 0, 1)))
+    elif axis == 'y':
+        s = sin(angle)
+        c = cos(angle)
+        return np.matrix((( c, 0,-s),
+                          ( 0, 1, 0),
+                          ( s, 0, c)))
+    elif axis == 'x':
+        s = sin(angle)
+        c = cos(angle)
+        return np.matrix((( 1, 0, 0),
+                          ( 0, c, s),
+                          ( 0,-s, c)))
+    else:
+        x,y,z = axis
+        w = cos(angle/2)
+
+        #normalize
+        if w == 1:
+            x=y=z=0
+        else:
+            l = sqrt((x*x + y*y + z*z)/(1 - w*w))
+            x /= l
+            y /= l
+            z /= l
+
+        wsq = w*w
+        xsq = x*x
+        ysq = y*y
+        zsq = z*z
+        return np.matrix((( wsq+xsq-ysq-zsq, 2*x*y-2*w*z, 2*x*z+2*w*y),
+                          ( 2*x*y+2*w*z, wsq-xsq+ysq-zsq,2*y*z-2*w*x),
+                          ( 2*x*z-2*w*y, 2*y*z+2*w*x, wsq-xsq-ysq+zsq)))
+
+
+def angle_axis(matrix, degrees=True):
+    """
+    Computes the angle of rotation and the rotation axis for a given rotation
+    matrix.
+
+    Parameters
+    ----------
+    matrix : array-like
+        A 3 x 3 unitary rotation matrix.
+    degrees : bool
+        If True, output is in degrees.
+
+    Returns
+    -------
+    angle : scalar
+        The angle of rotation for this matrix. In degrees if `degrees is
+        True, otherwise radians.
+    axis : array (length 3)
+        The axis of rotation for this matrix.
+
+    """
+    from math import sin, cos, acos, degrees, sqrt
+
+    m = np.asmatrix(matrix)
+    if m.shape != (3,3):
+        raise ValueError('matrix is not 3x3')
+
+
+
+    angle = acos((m[0,0] + m[1,1] + m[2,2] - 1)/2)
+    denom = sqrt(2*((m[2,1]-m[1,2])+(m[0,2]-m[2,0])+(m[1,0]-m[0,1])))
+    axis = np.array((m[2,1]-m[1,2],m[0,2]-m[2,0],m[1,0]-m[0,1]))/denom
+    axis /= sqrt(np.sum(axis**2))
+
+    if degrees:
+        return degrees(angle),axis
+    else:
+        return angle,axis
