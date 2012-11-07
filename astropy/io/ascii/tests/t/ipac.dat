@@ -7,6 +7,6 @@
 |     ra   |    dec   |   sai   |-----v2---|    sptype        |
 |    real  |   real   |   int   |    real  |     char         |
 |    unit  |   unit   |   unit  |    unit  |     ergs         |
-|    null  |   null   |   null  |    null  |     -999         |
-   2.09708   29.09056     73765    2.06000   B8IVpMnHg
+|    null  |   null   |   -999  |    null  |     -999         |
+   null      29.09056     -999    2.06000    -999
 12345678901234567890123456789012345678901234567890123456789012345

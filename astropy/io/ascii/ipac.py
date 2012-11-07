@@ -151,14 +151,16 @@ class IpacHeader(core.BaseHeader):
             if len(header_vals) > 2:
                 col.units = header_vals[2][i].strip() # Can't strip dashes here
             if len(header_vals) > 3:
+                # The IPAC null value corresponds to the io.ascii bad_value.
+                # In this case there isn't a fill_value defined, so just put
+                # in the minimal entry that is sure to convert properly to the
+                # required type.
+                #
+                # Strip spaces but not dashes (not allowed in NULL row per
+                # https://github.com/astropy/astropy/issues/361)
                 null = header_vals[3][i].strip()
-                if null.lower() != 'null':
-                    col.null = null  # Can't strip dashes here
-                    if issubclass(col.type, core.FloatType):
-                        fillval = 'nan'
-                    else:
-                        fillval = '-999'
-                    self.data.fill_values.append((col.null, fillval, col.name))
+                fillval = '' if issubclass(col.type, core.StrType) else '0'
+                self.data.fill_values.append((null, fillval, col.name))
             start = col.end + 1
             cols.append(col)
 

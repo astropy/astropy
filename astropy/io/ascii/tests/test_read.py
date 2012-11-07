@@ -252,6 +252,17 @@ def test_masking_Cds():
     assert_true(not data['Fit'].mask[0])
 
 
+def test_null_Ipac():
+    f = 't/ipac.dat'
+    testfile = get_testfiles(f)
+    data = asciitable.read(f, **testfile['opts'])
+    mask = np.array([(True, False, True, False, True),
+                     (False, False, False, False, False)],
+                    dtype=[('ra', '|b1'), ('dec', '|b1'), ('sai', '|b1'),
+                           ('v2', '|b1'), ('sptype', '|b1')])
+    assert np.all(data.mask == mask)
+
+
 def test_set_guess_kwarg():
     """Read a file using guess with one of the typical guess_kwargs explicitly set."""
     data = asciitable.read('t/space_delim_no_header.dat',
