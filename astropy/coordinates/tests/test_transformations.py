@@ -169,3 +169,29 @@ def test_sphere_cart():
     npytest.assert_allclose(x, x2)
     npytest.assert_allclose(y, y2)
     npytest.assert_allclose(z, z2)
+
+
+def test_icrs_gal():
+    """
+    This tests the ICRS to galactic (and vice versa) conversion
+    based on some known-good coordinates.
+
+    Implicitly, this tests the ICRS<->FK5 conversion as well
+    """
+    raise NotImplementedError
+
+
+def test_ICRS_FK5():
+    """
+    This tests the FK5 <-> ICRS conversion
+    based on some known-good coordinates
+    """
+    raise NotImplementedError
+
+
+def test_ICRS_FK4():
+    """
+    This tests the FK4 <-> ICRS conversion
+    based on some known-good coordinates
+    """
+    raise NotImplementedError
