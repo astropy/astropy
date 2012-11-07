@@ -43,12 +43,16 @@ the ``data_start`` and ``delimiter`` arguments are passed to :func:`astropy.io.a
 Built-in readers/writers
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-At this time, :meth:`~astropy.table.table.Table.read` and
-:meth:`~astropy.table.table.Table.write` can be used to read and write formats
+ASCII formats
+"""""""""""""
+
+The :meth:`~astropy.table.table.Table.read` and
+:meth:`~astropy.table.table.Table.write` methods can be used to read and write formats
 supported by `astropy.io.ascii`:
 
-    * ``format='ascii'`` can be used to interface to the bare ``read`` and
-      ``write`` functions from `~astropy.io.ascii`, e.g.::
+    * ``format='ascii'`` can be used to interface to the bare
+      :func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
+      functions from `astropy.io.ascii`, e.g.::
 
          t = Table.read('table.tex', format='ascii')
 
@@ -65,10 +69,25 @@ supported by `astropy.io.ascii`:
 
     * ``format='rdb'`` can be used to read and write RDB tables
 
-In addition, the following file extensions are automatically recognized and do not require the ``format=`` argument to be specified:
+The following file extensions are automatically recognized and do not require the ``format=`` argument to be specified:
 
     * ``.tex`` is recognized as ``format='latex'``
     * ``.rdb`` is recognized as ``format='rdb'``
+
+HDF5
+""""
+
+Reading/writing from/to HDF5 files is supported with ``format='hdf5'``. The
+``.hdf5`` file extension is automatically recognized when writing files, and
+HDF5 files are automatically identified (even with a different extension) when
+reading in (using the first few bytes of the file to identify the format).
+
+For information on available arguments, see
+:func:`~astropy.io.misc.hdf5.read_table_hdf5` and
+:func:`~astropy.io.misc.hdf5.write_table_hdf5`.
+
+Other
+"""""
 
 In future, FITS and VO tables will also be supported.
 
