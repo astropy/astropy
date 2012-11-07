@@ -9,6 +9,6 @@ between coordinate systems.
 from .errors import *
 from .angles import *
 from .coordsystems import *
-from .distance import *
+from .distances import *
 from .transformations import *
 from .builtin_systems import *

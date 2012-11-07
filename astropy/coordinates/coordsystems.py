@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 
 from .. import units as u
 from .angles import RA, Dec, Angle, AngularSeparation
-from .distance import *
+from .distances import *
 
 __all__ = ['SphericalCoordinatesBase', 'Coordinates']
 
