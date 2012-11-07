@@ -252,7 +252,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fd.close()
 
 
-def get_file_contents(name_or_obj, encoding=None, cache=True):
+def get_file_contents(name_or_obj, encoding=None, cache=False):
     """
     Retrieves the contents of a filename or file-like object.
 
