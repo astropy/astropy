@@ -99,9 +99,9 @@ You should be able to modify the values at run-time this way::
 
 Or alternatively::
 
-    from astropy.config import get_config_items
+    from astropy.config import get_config
 
-    >>> items = get_config_items('astropy.config.data')
+    >>> items = get_config('astropy.config.data')
     >>> items['DATAURL'].set('http://astropydata.mywebsite.com')
     >>> items['REMOTE_TIMEOUT'].set('4.5')
 
