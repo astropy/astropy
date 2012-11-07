@@ -232,7 +232,7 @@ class Cds(core.BaseReader):
     starting with "Byte-by-byte Description of file:".
 
     In the case where the table description is combined with the data values,
-    the data must be in the last section and must be preceded by section
+    the data must be in the last section and must be preceded by a section
     delimiter line (dashes or equal signs only).
 
     **Basic usage**
