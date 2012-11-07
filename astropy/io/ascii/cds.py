@@ -196,8 +196,16 @@ class Cds(core.BaseReader):
     """Read a CDS format table.  See http://vizier.u-strasbg.fr/doc/catstd.htx.
     Example::
 
-      Table: Spitzer-identified YSOs: Addendum
-      = ==============================================================================
+      Table: Table name here
+      ================================================================================
+      Catalog reference paper
+          Bibliography info here
+      ================================================================================
+      ADC_Keywords: Keyword ; Another keyword ; etc
+
+      Description:
+          Catalog description here.
+      ================================================================================
       Byte-by-byte Description of file: datafile3.txt
       --------------------------------------------------------------------------------
          Bytes Format Units  Label  Explanations
@@ -207,7 +215,25 @@ class Cds(core.BaseReader):
          8-  9 I2     min    RAm    Minute of Right Ascension (J2000)
         11- 15 F5.2   s      RAs    Second of Right Ascension (J2000)
       --------------------------------------------------------------------------------
+      Note (1): A CDS file can contain sections with various metadata.
+                Notes can be multiple lines.
+      Note (2): Another note.
+      --------------------------------------------------------------------------------
         1 03 28 39.09
+        2 04 18 24.11
+
+    **About parsing the CDS format**
+
+    The CDS format consists of a table description and the table data.  These
+    can be in separate files as a ``ReadMe`` file plus data file(s), or
+    combined in a single file.  Different subsections within the description
+    are separated by lines of dashes or equal signs ("------" or "======").
+    The table which specifies the column information must be preceded by a line
+    starting with "Byte-by-byte Description of file:".
+
+    In the case where the table description is combined with the data values,
+    the data must be in the last section and must be preceded by section
+    delimiter line (dashes or equal signs only).
 
     **Basic usage**
 
