@@ -222,6 +222,7 @@ class TransformGraph(object):
         """
         self._shortestpaths = {}
 
+    #TODO: cache composites so they don't need to be generated every time?
     def get_transform(self, fromsys, tosys):
         """
         Determines or generates a transformation between two coordinate
@@ -248,6 +249,7 @@ class TransformGraph(object):
             if path is None:
                 return None
 
+            #TODO: collapse "runs" of statics?
             if all([isinstance(p, StaticMatrixTransform) for p in path]):
                 return CompositeStaticMatrixTransform(fromsys, tosys, path, register=False)
             else:
@@ -754,3 +756,4 @@ def coordinate_alias(name, coordcls=None):
         return deco
     else:
         master_transform_graph.add_coord_name(name, coordcls)
+
