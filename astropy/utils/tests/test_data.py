@@ -10,8 +10,18 @@ TESTURL = 'http://www.google.com/index.html'
 
 # General file object function
 
+
 @remote_data
-def test_url_cache():
+def test_download_nocache():
+
+    from ..data import download_file
+
+    fnout = download_file(TESTURL)
+    assert os.path.isfile(fnout)
+
+
+@remote_data
+def test_download_cache():
 
     from ..data import download_file, clear_data_cache
 
