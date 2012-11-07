@@ -268,7 +268,17 @@ class TransformGraph(object):
             python identifier.
         coordcls : class
             The class object to be referenced by this name.
+
+        Raises
+        ------
+        ValueError
+            If `coordcls` already has a name assigned.
         """
+        if coordcls in self._clsaliases.values():
+            idx = self._clsaliases.values().index(coordcls)
+            oldnm = self._clsaliases.keys()[idx]
+            msg = 'Coordinate class {0} already has a name: {1}'
+            raise ValueError(msg.format(coordcls, oldnm))
         self._clsaliases[name] = coordcls
 
     def lookup_name(self, name):
