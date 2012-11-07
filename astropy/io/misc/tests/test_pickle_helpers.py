@@ -82,7 +82,7 @@ def test_fnpickling_many(tmpdir):
     Tests the `fnpickle` and `fnupickle` functions' ability to pickle
     and unpickle multiple objects from a single file.
     """
-    from pytest import raises
+    from ...test.helper import pytest
 
     fn = str(tmpdir.join('test3.pickle'))
 
@@ -101,5 +101,5 @@ def test_fnpickling_many(tmpdir):
     res = fnunpickle(fn, number=2)
     assert len(res) == 2
 
-    with raises(EOFError):
-        fnunpickle(fn, number=5)
+    with pytest.raises(EOFError):
+        misc.fnunpickle(fn, number=5)

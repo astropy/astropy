@@ -1,7 +1,7 @@
 from __future__ import division
 
 import numpy as np
-from pytest import mark
+from ...tests.helper import pytest
 
 from .. import funcs
 from ...utils.misc import NumpyRNGContext
@@ -46,7 +46,7 @@ def test_sigma_clip():
         maskedarr = funcs.sigma_clip(randvar, 3, None, maout=True)
 
 
-@mark.skipif('not HAS_SCIPY')
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
     from numpy.random import randn
     from numpy.testing import assert_equal
