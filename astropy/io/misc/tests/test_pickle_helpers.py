@@ -4,8 +4,8 @@ from .. import fnpickle, fnunpickle
 
 def test_fnpickling_simple(tmpdir):
     """
-    Tests the `utils.fnpickle` and `utils.fnupickle` functions' basic
-    operation by pickling and unpickling a string, using both a filename and a
+    Tests the `fnpickle` and `fnupickle` functions' basic operation by
+    pickling and unpickling a string, using both a filename and a
     file.
     """
     fn = str(tmpdir.join('test1.pickle'))
@@ -48,8 +48,8 @@ class ToBePickled(object):
 
 def test_fnpickling_class(tmpdir):
     """
-    Tests the `utils.fnpickle` and `utils.fnupickle` functions'
-    ability to pickle and unpickle custom classes.
+    Tests the `fnpickle` and `fnupickle` functions' ability to pickle
+    and unpickle custom classes.
     """
     fn = str(tmpdir.join('test2.pickle'))
 
@@ -62,8 +62,8 @@ def test_fnpickling_class(tmpdir):
 
 def test_fnpickling_protocol(tmpdir):
     """
-    Tests the `utils.fnpickle` and `utils.fnupickle` functions'
-    ability to pickle and unpickle pickle files from all protcols.
+    Tests the `fnpickle` and `fnupickle` functions' ability to pickle
+    and unpickle pickle files from all protcols.
     """
     import pickle
 
@@ -79,8 +79,8 @@ def test_fnpickling_protocol(tmpdir):
 
 def test_fnpickling_many(tmpdir):
     """
-    Tests the `utils.fnpickle` and `utils.fnupickle` functions'
-    ability to pickle and unpickle multiple objects from a single file.
+    Tests the `fnpickle` and `fnupickle` functions' ability to pickle
+    and unpickle multiple objects from a single file.
     """
     from pytest import raises
 
