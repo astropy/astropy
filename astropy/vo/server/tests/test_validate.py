@@ -15,7 +15,7 @@ Running from `astropy/vo/server/tests` directory::
 
 """
 # STDLIB
-import filecmp
+import json
 import os
 import shutil
 import tempfile
@@ -23,7 +23,7 @@ import tempfile
 # LOCAL
 from .. import validate
 from ....config import get_data_filename
-from ....tests.helper import remote_data
+from ....tests.helper import pytest, remote_data
 
 
 @remote_data
@@ -40,17 +40,35 @@ class TestConeSearchValidation():
         validate.CS_MSTR_LIST.set(get_data_filename(
             self.datadir + 'vao_conesearch_sites_121107_subset.xml'))
 
-    def test_validation(self):
-        validate.check_conesearch_sites(destdir=self.out_dir)
+    @pytest.mark.parametrize(('multiproc'), [True, False])
+    def test_validation(self, multiproc):
+        if os.path.exists(self.out_dir):
+            shutil.rmtree(self.out_dir)
+
+        validate.check_conesearch_sites(
+            destdir=self.out_dir, multiproc=multiproc)
 
         for val in self.filenames.values():
-            assert filecmp.cmp(get_data_filename(self.datadir + val),
-                               self.out_dir + os.sep + val)
+            _compare_catnames(get_data_filename(self.datadir + val),
+                              self.out_dir + os.sep + val)
 
         # Symbolic link
-        assert filecmp.cmp(
+        _compare_catnames(
             get_data_filename(self.datadir + self.filenames['warn']),
             self.out_dir + os.sep + 'conesearch.json')
 
     def teardown_class(self):
         shutil.rmtree(self.out_dir)
+
+
+def _load_catnames(fname):
+    with open(fname,'r') as fd:
+        js = json.load(fd)
+        cats = sorted(js['catalogs'].keys())
+    return cats
+
+
+def _compare_catnames(fname1, fname2):
+    cat1 = _load_catnames(fname1)
+    cat2 = _load_catnames(fname2)
+    assert cat1 == cat2

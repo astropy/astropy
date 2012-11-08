@@ -300,13 +300,17 @@ def _html_subindex(args):
 
 
 def _do_rmfile(filename, verbose=True):
-    """Delete a file."""
+    """Delete a file or symbolic link."""
     if os.path.exists(filename):
         assert not os.path.isdir(filename), \
             '{} is a directory, cannot continue'.format(filename)
         os.remove(filename)
         if verbose:
-            log.info('Existing copy of {} deleted'.format(filename))
+            log.info('Existing file {} deleted'.format(filename))
+    elif os.path.lexists(filename):
+        os.unlink(filename)
+        if verbose:
+            log.info('Existing symbolic link {} deleted'.format(filename))
 
 
 def _do_symlink_or_copy(src, dst):
