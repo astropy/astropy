@@ -562,7 +562,9 @@ class Row(object):
         # MaskedArray __getitem__ has a strange behavior where if a
         # row mask is all False then it returns a np.void which
         # has no mask attribute. This makes it impossible to then set
-        # the mask.  Here we recast back to mvoid.
+        # the mask. Here we recast back to mvoid. This was fixed in
+        # Numpy following issue numpy/numpy#483, and the fix should be
+        # included in Numpy 1.8.0.
         if self._table.masked and isinstance(self._data, np.void):
             self._data = ma.core.mvoid(self._data,
                                        mask=self._table._mask[index])
