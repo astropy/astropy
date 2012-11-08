@@ -30,10 +30,7 @@ def is_hdf5(origin, args, kwargs):
     except ImportError:
         return False
     else:
-        if isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group)):
-            return True
-        else:
-            return False
+        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group))
 
 
 def read_table_hdf5(input, path=None):
@@ -68,8 +65,7 @@ def read_table_hdf5(input, path=None):
     else:
         group, name = None, path
 
-    if isinstance(input, h5py.highlevel.File) or \
-       isinstance(input, h5py.highlevel.Group):
+    if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
         f, g = None, input
         if group:
             try:
@@ -95,8 +91,7 @@ def read_table_hdf5(input, path=None):
     table = Table(np.array(dset))
 
     # Read the meta-data from the file
-    for key in dset.attrs:
-        table.meta[key] = dset.attrs[key]
+    table.meta.update(dset.attrs)
 
     if f is not None:
         f.close()
