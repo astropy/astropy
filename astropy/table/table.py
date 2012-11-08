@@ -1332,7 +1332,7 @@ class Table(object):
 
         The ``mask`` attribute should give (if desired) the mask for the
         values. The type of the mask should match that of the values, i.e. if
-        ``vals`` is an interable, then ``mask`` should also be an iterable
+        ``vals`` is an iterable, then ``mask`` should also be an iterable
         with the same length, and if ``vals`` is a mapping, then ``mask``
         should be a dictionary.
 
