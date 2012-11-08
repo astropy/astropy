@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import time
+import warnings
 
 # THIRD PARTY
 import numpy
@@ -46,7 +47,8 @@ CS_MSTR_LIST = ConfigurationItem(
 _OUT_ROOT = None  # Set by `check_conesearch_sites`
 
 
-def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
+def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
+                           url_list=None):
     """
     Validate Cone Search Services.
 
@@ -111,6 +113,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     multiproc : bool
         Enable multiprocessing.
 
+    url_list : list of string
+        Only check these access URLs from the master list and
+        ignore the others, which will not appear in output files.
+        This is useful for testing or debugging. If `None`, check
+        everything.
+
     Raises
     ------
     AssertionError
@@ -125,6 +133,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     assert (not os.path.exists(destdir) and len(destdir) > 0) or \
         (os.path.exists(destdir) and os.path.isdir(destdir)), \
         'Invalid destination directory'
+
+    if url_list is not None:
+        from collections import Iterable
+        assert isinstance(url_list, Iterable)
+        for cur_url in url_list:
+            assert isinstance(cur_url, basestring)
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
@@ -183,6 +197,11 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     key_lookup_by_url = {}
 
     for cur_url in uniq_urls:
+        if url_list is not None and cur_url not in url_list:
+            if verbose:
+                log.info('Skipping {}'.format(cur_url))
+            continue
+
         i_same_url = numpy.where(arr_cone['accessURL'] == cur_url)
         i = i_same_url[0][0]
 
@@ -232,7 +251,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
 
     # Categorize validation results
     for r in mp_list:
-        db_key = r['expected']
+        db_key = r['out_db_name']
         cat_key = key_lookup_by_url[r.url]
         js_tree[db_key]['catalogs'][cat_key] = js_mstr['catalogs'][cat_key]
 
@@ -277,19 +296,53 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
 def _do_validation(url):
     """Validation for multiprocessing support."""
     r = result.Result(url, root=_OUT_ROOT)
-    r.download_xml_content()
     r.validate_vo()
 
     if r['network_error'] is not None:
-        r['expected'] = 'nerr'
+        r['out_db_name'] = 'nerr'
+        r['expected'] = 'broken'
     elif r['nexceptions'] > 0:
-        r['expected'] = 'excp'
+        r['out_db_name'] = 'excp'
+        r['expected'] = 'incorrect'
     elif r['nwarnings'] > 0:
-        r['expected'] = 'warn'
+        r['out_db_name'] = 'warn'
+        r['expected'] = 'incorrect'
     else:
+        r['out_db_name'] = 'good'
         r['expected'] = 'good'
 
+    # Catch well-formed error responses
+    # Accessing URL instead of using cache (not elegant but works for now)
+
+    nexceptions = 0
+    nwarnings = 0
+    lines = []
+
+    with warnings.catch_warnings(record=True) as warning_lines:
+        try:
+            tab = vos_catalog._vo_service_request(r.url, False, {})
+        except (IndexError, vos_catalog.VOSError) as e:
+            lines.append(str(e))
+            nexceptions += 1
+    lines = [str(x.message) for x in warning_lines] + lines
+
+    warning_types = set()
+    for line in lines:
+        w = votable.exceptions.parse_vowarning(line)
+        if w['is_warning']:
+            nwarnings += 1
+        if w['is_exception']:
+            nexceptions += 1
+        warning_types.add(w['warning'])
+
+    r['nwarnings'] += nwarnings
+    r['nexceptions'] += nexceptions
+    r['warnings'] += lines
+    r['warning_types'] = r['warning_types'].union(warning_types)
+
+    # HTML page
     html.write_result(r)
+
     return r
 
 

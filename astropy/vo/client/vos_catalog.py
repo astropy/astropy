@@ -222,6 +222,8 @@ def get_remote_catalog_db(dbname, cache=True):
 
 
 def _vo_service_request(url, pedantic, kwargs):
+    url = url.replace('&amp;','&')
+
     req = webquery.webget_open(url, timeout=TIMEOUT(), **kwargs)
     try:
         tab = table.parse(req, filename=req.geturl(), pedantic=pedantic)

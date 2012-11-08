@@ -192,8 +192,7 @@ def webget_open(url, timeout=None, method='GET', **keywords):
     object should be closed when no longer needed.
 
     """
-    if len(keywords) and not (url.endswith('?') or
-                              url.endswith('&') or url.endswith('&amp;')):
+    if len(keywords) and not (url.endswith('?') or url.endswith('&')):
         raise WebQueryError("url should already end with '?' or '&'")
 
     query = []
