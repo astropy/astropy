@@ -47,21 +47,23 @@ import json
 import numpy as np
 
 # LOCAL
+from ...config.data import get_data_fileobj
 from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
+from ...logger import log
 from ...utils import webquery
 from ...utils.console import color_print
 
 # LOCAL CONFIG
-from ...config.configuration import ConfigurationItem, get_config_items
-from ...config.data import get_data_fileobj
-from ...logger import log
+from ...config.configuration import ConfigurationItem
 
 __all__ = ['VOSCatalog', 'VOSDatabase',
            'get_remote_catalog_db', 'call_vo_service', 'list_catalogs']
 
 __dbversion__ = 1
+
+VO_PEDANTIC = table.PEDANTIC()
 
 BASEURL = ConfigurationItem('vos_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
@@ -69,16 +71,6 @@ BASEURL = ConfigurationItem('vos_baseurl',
 
 TIMEOUT = ConfigurationItem('vos_timeout', 30.0,
                             'Timeout in seconds for VO Service query')
-
-# LOCAL CONFIG FROM DIFFERENT MODULE
-VO_CFG = get_config_items('astropy.io.votable')
-try:
-    VO_PEDANTIC = VO_CFG['PEDANTIC']
-except KeyError as e:
-    # Could use set, but do not want to mess with general vo config
-    log.warn('astropy.io.votable.pedantic not found in config, '
-             'defaulting to True')
-    VO_PEDANTIC = True
 
 
 class VOSError(Exception):  # pragma: no cover

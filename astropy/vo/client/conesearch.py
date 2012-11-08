@@ -5,10 +5,12 @@ Support basic VO conesearch capabilities.
 Based on the `Simple Cone Search Version 1.03 Recommendation
 <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_.
 
-.. note::
+*CONFIGURABLE PROPERTIES*
 
-    See `astropy.vo.client.vos_catalog` for configurable
-    properties.
+These properties are set via Astropy configuration system:
+
+    * `astropy.vo.client.conesearch_dbname`
+    * Also depends on properties set by `astropy.vo.client.vos_catalog`
 
 Examples
 --------
@@ -109,10 +111,14 @@ from . import vos_catalog
 from ...logger import log
 from ...utils.misc import Future
 
+# LOCAL CONFIG
+from ...config.configuration import ConfigurationItem
+
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
            'conesearch_timer']
 
-_SERVICE_TYPE = 'conesearch'
+CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch',
+                                      'Conesearch database name.')
 
 
 class ConeSearchError(Exception):  # pragma: no cover
@@ -201,7 +207,8 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
 
     args = {'RA': ra, 'DEC': dec, 'SR': sr, 'VERB': verb}
 
-    return vos_catalog.call_vo_service(_SERVICE_TYPE, kwargs=args, **kwargs)
+    return vos_catalog.call_vo_service(CONESEARCH_DBNAME(),
+                                       kwargs=args, **kwargs)
 
 
 def list_catalogs(**kwargs):
@@ -215,7 +222,7 @@ def list_catalogs(**kwargs):
     kwargs : keywords for `astropy.vo.client.vos_catalog.list_catalogs`
 
     """
-    return vos_catalog.list_catalogs(_SERVICE_TYPE, **kwargs)
+    return vos_catalog.list_catalogs(CONESEARCH_DBNAME(), **kwargs)
 
 
 def predict_search(*args, **kwargs):

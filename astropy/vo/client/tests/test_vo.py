@@ -77,8 +77,7 @@ class TestConeSearch():
         self.sr = 0.1
 
         # Avoid downloading the full database
-        self.old_stype = conesearch._SERVICE_TYPE
-        conesearch._SERVICE_TYPE = 'conesearch_simple'
+        conesearch.CONESEARCH_DBNAME.set('conesearch_simple')
 
         self.verbose = False
         self.pedantic = False
@@ -111,7 +110,7 @@ class TestConeSearch():
         tab_4 = conesearch.conesearch(
             self.ra, self.dec, self.sr,
             catalog_db=vos_catalog.get_remote_catalog_db(
-                conesearch._SERVICE_TYPE),
+                conesearch.CONESEARCH_DBNAME()),
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert tab_2.url == tab_3.url
@@ -141,7 +140,3 @@ class TestConeSearch():
 
         assert n_2 > 0 and n_2 <= n_1 * 1.5
         assert t_2 > 0 and t_2 <= t_1 * 1.5
-
-    def teardown_class(self):
-        """Undo local change before exiting."""
-        conesearch._SERVICE_TYPE = self.old_stype
