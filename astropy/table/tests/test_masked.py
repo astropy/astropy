@@ -268,6 +268,16 @@ class TestAddRow(object):
         assert t['b'][1] == 5
         assert np.all(t['b'].mask == np.array([1,0,1], bool))
 
+    def test_add_masked_row_to_masked_table_mapping4(self):
+        # When adding values to a masked table, if the mask is specified as a
+        # dict, then keys in values should match keys in mask
+        t = Table(masked=True)
+        t.add_column(MaskedColumn('a', [1], mask=[0]))
+        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        with pytest.raises(ValueError) as exc:
+            t.add_row({'b':5}, mask={'a':True})
+        assert exc.value.args[0] == 'keys in mask should match keys in vals'
+
     def test_add_masked_row_to_masked_table_mismatch(self):
         t = Table(masked=True)
         t.add_column(MaskedColumn('a', [1], mask=[0]))

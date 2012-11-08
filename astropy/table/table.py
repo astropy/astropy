@@ -1358,7 +1358,7 @@ class Table(object):
 
             # Now check that the mask is specified for the same keys as the
             # values, otherwise things get really confusing.
-            if mask is not None and len(set(vals.keys()) - set(mask.keys())) > 0:
+            if mask is not None and set(vals.keys()) != set(mask.keys()):
                 raise ValueError('keys in mask should match keys in vals')
 
             if self.masked:
