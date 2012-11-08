@@ -21,7 +21,6 @@ import json
 import os
 import shutil
 import time
-import urllib2
 
 # THIRD PARTY
 import numpy
@@ -145,7 +144,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     db_to_use = destdir + 'conesearch.json'
 
     # JSON dictionaries for output files
-    js_template = {'__version__': 1, 'catalogs':{}}
+    js_template = {'__version__': 1, 'catalogs': {}}
     js_mstr = deepcopy(js_template)
     js_tree = {}
     for key in db_file:
@@ -158,8 +157,15 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     _do_rmfile(db_to_use, verbose=verbose)
 
     # Get all Cone Search sites
-    tab_all = votable.parse_single_table(urllib2.urlopen(
-        CS_MSTR_LIST(), timeout=vos_catalog.TIMEOUT()), pedantic=False)
+
+    if CS_MSTR_LIST().startswith(('http://', 'file://', 'ftp://')):
+        import urllib2
+        cur_url = urllib2.urlopen(CS_MSTR_LIST(),
+                                  timeout=vos_catalog.TIMEOUT())
+    else:
+        cur_url = CS_MSTR_LIST()
+
+    tab_all = votable.parse_single_table(cur_url, pedantic=False)
     arr_cone = tab_all.array.data[numpy.where(
         tab_all.array['capabilityClass'] == 'ConeSearch')]
 
@@ -168,7 +174,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
     # Re-structure dictionary for JSON file
 
     col_names = arr_cone.dtype.names
-    col_to_rename = {'accessURL':'url'}  # To be consistent with client
+    col_to_rename = {'accessURL': 'url'}  # To be consistent with client
     uniq_urls = set(arr_cone['accessURL'])
     uniq_rows = len(uniq_urls)
     check_sum = 0
@@ -226,9 +232,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True):
 
     # Categorize validation results
     for r in mp_list:
-        success_key = r['expected']
+        db_key = r['expected']
         cat_key = key_lookup_by_url[r.url]
-        js_tree[success_key]['catalogs'][cat_key] = js_mstr['catalogs'][cat_key]
+        js_tree[db_key]['catalogs'][cat_key] = js_mstr['catalogs'][cat_key]
 
     # Write to HTML
 
