@@ -456,7 +456,7 @@ def test_create_coordinate():
     with raises(ValueError):
         c = Coordinates(dec="12 32 54")
 
-    with raises(ValueError):
+    with raises(TypeError):
         c = Coordinates(ra="12h43m32", dec="12 32 54", az="12.4311")
 
     # It would be convenient to accept both (e.g. ra, dec) coordinates as a

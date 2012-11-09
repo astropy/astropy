@@ -498,6 +498,10 @@ class Coordinates(object):
         determined from the Angle objects directly, `unit` does not need to be specified.
         If `unit` is a single value, it is applied to both of the given angles. If one angle
         requires a unit and the other does not, use `None` as a placeholder.
+
+    distance : `~astropy.coordinates.Distance`, optional
+        The distance to this coordinate.  If not supplied, the unit sphere will
+        be assumed.
     """
     __meta__ = ABCMeta
 
@@ -505,9 +509,9 @@ class Coordinates(object):
         # coordinates, units=None, ra=None, dec=None, az=None, el=None, l=None, b=None):
         from .builtin_systems import ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
 
-        #units = kwargs["unit"] if "unit" in kwargs.keys() else list()
+        distance = kwargs.pop('distance', None)
         try:
-            units = kwargs["unit"]
+            units = kwargs.pop("unit")
             if isinstance(units, u.UnitBase) or isinstance(units, str):
                 units = (units, units)
         except KeyError:
@@ -516,45 +520,51 @@ class Coordinates(object):
         # first see if the keywords suggest what kind of coordinate is being requested.
         if "ra" in kwargs.keys() or "dec" in kwargs.keys():
             try:
-                ra = kwargs["ra"]
-                dec = kwargs["dec"]
+                ra = kwargs.pop("ra")
+                dec = kwargs.pop("dec")
             except KeyError:
                 raise ValueError("When an 'ra' or 'dec' value is provided, the "
                                  "other coordinate must also be given.")
+            if kwargs:
+                raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["l", "b", "az", "el"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             ra = RA(ra, unit=units[0]) if len(units) > 0 else RA(ra)
             dec = Dec(dec, unit=units[1]) if len(units) > 1 else Dec(dec)
-            return ICRSCoordinates(ra=ra, dec=dec)
+            return ICRSCoordinates(ra=ra, dec=dec, distance=distance)
 
         if "az" in kwargs.keys() or "el" in kwargs.keys():
             try:
-                az = kwargs["az"]
-                el = kwargs["el"]
+                az = kwargs.pop("az")
+                el = kwargs.pop("el")
             except KeyError:
                 raise ValueError("When an 'az' or 'el' horizontal coordinates value "
                                  "is provided, the other coordinate must also be given.")
+            if kwargs:
+                raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["ra", "dec", "l", "b"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             az = Angle(az, unit=units[0]) if len(units) > 0 else Angle(az)
             el = Angle(el, unit=units[1]) if len(units) > 1 else Angle(el)
-            return HorizontalCoordinates(az=az, el=el)
+            return HorizontalCoordinates(az=az, el=el, distance=distance)
 
         if "l" in kwargs.keys() or "b" in kwargs.keys():
             try:
-                l = kwargs["l"]
-                b = kwargs["b"]
+                l = kwargs.pop("l")
+                b = kwargs.pop("b")
             except KeyError:
                 raise ValueError("When an 'l' or 'b' galactic coordinates value is "
                                  "provided, the other coordinate must also be given.")
+            if kwargs:
+                raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["ra", "dec", "az", "el"]:  # no others should be provided
                 if kw in kwargs.keys():
                     raise ValueError("Conflicting coordinates were given.")
             l = Angle(l, unit=units[0]) if len(units) > 0 else Angle(l)
             b = Angle(b, unit=units[1]) if len(units) > 1 else Angle(b)
-            return GalacticCoordinates(l=l, b=b)
+            return GalacticCoordinates(l=l, b=b, distance=distance)
 
         if len(args) == 1:
             x = args[0]

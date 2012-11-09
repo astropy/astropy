@@ -283,7 +283,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 @transformations.coordinate_alias('horizontal')
 class HorizontalCoordinates(SphericalCoordinatesBase):
     """
-    A coordinate in the Horizontal or "alt/az" system.
+    A coordinate in the Horizontal or "az/el" saltystem.
 
     Paramaters
     ----------
@@ -294,7 +294,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='alt'))
+    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='el'))
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
 
@@ -303,10 +303,10 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
             self.az = newcoord.az
-            self.alt = newcoord.alt
+            self.el = newcoord.el
             self._distance = newcoord._distance
         else:
-            super(HorizontalCoordinates, self)._initialize_latlong('az', 'alt', False, args, kwargs)
+            super(HorizontalCoordinates, self)._initialize_latlong('az', 'el', False, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -314,8 +314,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         else:
             diststr = ''
 
-        msg = "<{0} alt={1:.5f} deg, az={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.alt.degrees,
+        msg = "<{0} el={1:.5f} deg, az={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.el.degrees,
                           self.az.degrees, diststr)
 
     @property
@@ -324,7 +324,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
     @property
     def latangle(self):
-        return self.alt
+        return self.el
 
     @property
     def epoch(self):
