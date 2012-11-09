@@ -515,10 +515,6 @@ class NamedUnit(UnitBase):
     def __init__(self, st, register=False, doc=None, format=None):
         UnitBase.__init__(self)
 
-        from .quantity import Quantity
-        if isinstance(st, Quantity):
-            st = str(st)
-
         if isinstance(st, (bytes, unicode)):
             self._names = [st]
         else:
@@ -715,11 +711,20 @@ class _UnitMetaClass(type):
             else:
                 represents = CompositeUnit(represents.value, bases=[represents.unit], powers=[1])
 
+        '''
+        from .quantity import Quantity
+        if isinstance(st, Quantity):
+            if isinstance(st.unit, CompositeUnit):
+                st = "{0} . {1}".format(st.value, st.unit.to_string())
+            else:
+                st = "{0}".format(str(st))
+        '''
+
         if isinstance(s, Quantity):
             if s.value == 1:
                 s = s.unit
             elif isinstance(s.unit, CompositeUnit):
-                s = CompositeUnit(s.value, bases=s.unit.bases, powers=s.unit.powers)
+                s = CompositeUnit(s.value*s.unit.scale, bases=s.unit.bases, powers=s.unit.powers)
             else:
                 s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
 

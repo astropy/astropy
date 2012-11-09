@@ -191,7 +191,8 @@ class CDS(Base):
         if len(toks) == 1:
             return toks[0]
         elif len(toks) == 2:
-            return 1.0 / toks[1]
+            from ..core import Unit
+            return Unit(1.0 / toks[1])
         elif len(toks) == 3:
             if toks[1] == '/':
                 return toks[0] / toks[2]
@@ -201,7 +202,10 @@ class CDS(Base):
     @classmethod
     @utils._trace
     def _parse_main(cls, s, loc, toks):
-        return toks[0] * toks[1]
+        from ..core import Unit
+        print(toks[0], toks[1])
+        print(toks[0] * toks[1])
+        return Unit(toks[0] * toks[1])
 
     def parse(self, s):
         from astropy.extern import pyparsing as p
