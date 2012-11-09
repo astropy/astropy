@@ -197,7 +197,6 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
     coo2 = coo1.transform_to(tosys[0])
     if tosys[0] is FK4Coordinates:
-        print('inprec',coo2.epoch)
         coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
         assert fabs(coo2_prec.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
         assert fabs(coo2_prec.latangle.degrees - tocoo[1]) < convert_precision

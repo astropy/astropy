@@ -549,7 +549,7 @@ def test_convert_api():
     """
 
     from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
-    from .. import coordinate_alias, transform_function
+    from ..transformations import coordinate_alias, transform_function, master_transform_graph
     import numpy.testing as npt
 
     '''
@@ -560,20 +560,16 @@ def test_convert_api():
     dec = Dec("-41:08:15.162342")
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    assert c.galactic == GalacticCoordinates(245.28098, -47.554501, unit=u.degree)
-
-    #the `galactic` result will be cached to speed this up
-    assert isinstance(c.galactic.l, Angle)
-    npt.assert_almost_equal(c.galactic.l.degree, 158.558650)
+    npt.assert_almost_equal(c.galactic.l.degrees, -114.71902, 5)
     assert isinstance(c.galactic.b, Angle)
-    npt.assert_almost_equal(c.galactic.b.degree, -43.350066)
+    npt.assert_almost_equal(c.galactic.b.degrees, -47.554501, 5)
 
     # can also explicitly specify a coordinate class to convert to
     gal = c.transform_to(GalacticCoordinates)
 
     # can still convert back to equatorial using the shorthand
-    assert gal.equatorial.ra.format(unit=u.hour, sep=":",
-                                       precision=2) == '4:08:15.16'
+    assert gal.icrs.ra.string(unit=u.hour, sep=":",
+                              precision=2) == '4:08:15.16'
 
     with raises(ConvertError):
         # there's no way to convert to alt/az without a specified location
@@ -590,12 +586,16 @@ def test_convert_api():
                                  icrs_coo.dec.degrees + 2.5,
                                  unit=u.degree)
 
-    # allows both ways of converting
-    mycoord1 = c.my_coord
-    mycoord2 = c.transform_to(CustomCoordinates)
+    try:
+        # allows both ways of converting
+        mycoord1 = c.my_coord
+        mycoord2 = c.transform_to(CustomCoordinates)
 
-    assert isinstance(mycoord1, CustomCoordinates)
-    assert isinstance(mycoord2, CustomCoordinates)
+        assert isinstance(mycoord1, CustomCoordinates)
+        assert isinstance(mycoord2, CustomCoordinates)
+    finally:
+        #be sure to remove the registered transform
+        master_transform_graph._graph[ICRSCoordinates][CustomCoordinates].unregister()
 
 
 def test_proj_separations():
@@ -626,13 +626,16 @@ def test_proj_separations():
     with raises(TypeError):
         c1 - c2
 
-    c3 = GalacticCoordinates(l=0, b=0, unit=u.degree)
+    ngp = GalacticCoordinates(l=0, b=90, unit=u.degree)
+    ncp = ICRSCoordinates(ra=0, dec=90, unit=u.degree)
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
+    npt.assert_almost_equal(ncp.separation(ngp.icrs).degrees, ncp.separation(ngp).degrees)
 
     # distance from the north galactic pole to celestial pole
-    npt.assert_almost_equal(c3.separation(c1).degrees, 62.8716627659)
+    npt.assert_almost_equal(ncp.separation(ngp.icrs).degrees, 62.8716627659)
+
 
     @coordinate_alias('my_coord2')
     class CustomCoordinate(ICRSCoordinates):

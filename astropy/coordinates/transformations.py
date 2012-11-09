@@ -137,6 +137,8 @@ class TransformGraph(object):
         """
         import heapq
 
+        inf = float('inf')
+
         #special-case the 0-path and 1-path
         if tosys is fromsys:
             return [], 0
@@ -146,10 +148,13 @@ class TransformGraph(object):
 
         if fromsys in self._shortestpaths:
             #already have a cached result
-            return self._shortestpaths[fromsys][tosys]
+            fpaths = self._shortestpaths[fromsys]
+            if tosys in fpaths:
+                return fpaths[tosys]
+            else:
+                return None, inf
 
         #use Dijkstra's algorithm to find shortest path
-        inf = float('inf')
 
         nodes = []
         #first make the list of nodes
@@ -450,7 +455,7 @@ class CoordinateTransform(object):
         ValueError
             If this is not currently in the transform graph.
         """
-        master_transform_graph.remove_transfrom(self.fromsys, self.tosys, self)
+        master_transform_graph.remove_transform(self.fromsys, self.tosys, self)
 
     @abstractmethod
     def __call__(self, fromcoord):

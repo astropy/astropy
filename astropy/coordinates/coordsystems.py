@@ -41,6 +41,15 @@ class SphericalCoordinatesBase(object):
         self._distance = None
         self._cartpoint = None
 
+    def __eq__(self, other):
+        try:
+            return (self.latangle == other.latangle and
+                    self.longangle == other.longangle and
+                    self.distance == other.distance and
+                    self.epoch == other.epoch)
+        except AttributeError:
+            return False
+
     _init_docstring_param_templ = """g
     coordstr : str
         A single string with the coordinates.  Cannot be used with
