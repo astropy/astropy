@@ -1,6 +1,6 @@
-=======================
-Documentation Guideline
-=======================
+========================
+Documentation Guidelines
+========================
 
 Building the Documentation from source
 --------------------------------------
@@ -594,7 +594,7 @@ Using a different theme for `astropy` or affiliated packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A different theme can be used by overriding a few sphinx
-configuration variables set in the global configuration. 
+configuration variables set in the global configuration.
 
 * To use a different theme, set `html_theme` to the name of a desired
   builtin Sphinx theme or a custom theme in
@@ -605,7 +605,7 @@ configuration variables set in the global configuration.
   `package-name/docs/_themes` and add `'_themes'` to the
   `html_theme_path` variable. See the Sphinx_ documentation for more
   details on theming.
- 
+
 Adding more custom themes to astropy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
