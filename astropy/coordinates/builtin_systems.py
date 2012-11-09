@@ -51,6 +51,16 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         else:
             super(ICRSCoordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
 
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.ra.degrees,
+                          self.dec.degrees, diststr)
+
     @property
     def longangle(self):
         return self.ra
@@ -91,6 +101,16 @@ class FK5Coordinates(SphericalCoordinatesBase):
             self._distance = newcoord._distance
         else:
             super(FK5Coordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
+
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.ra.degrees,
+                          self.dec.degrees, diststr)
 
     @property
     def longangle(self):
@@ -160,6 +180,16 @@ class FK4Coordinates(SphericalCoordinatesBase):
             self._distance = newcoord._distance
         else:
             super(FK4Coordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
+
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.ra.degrees,
+                          self.dec.degrees, diststr)
 
     @property
     def longangle(self):
@@ -232,6 +262,15 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         else:
             super(GalacticCoordinates, self)._initialize_latlong('l', 'b', False, args, kwargs)
 
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} l={1:.5f} deg, b={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.l.degrees,
+                          self.b.degrees, diststr)
     @property
     def longangle(self):
         return self.l
@@ -268,6 +307,16 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             self._distance = newcoord._distance
         else:
             super(HorizontalCoordinates, self)._initialize_latlong('az', 'alt', False, args, kwargs)
+
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} alt={1:.5f} deg, az={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.alt.degrees,
+                          self.az.degrees, diststr)
 
     @property
     def longangle(self):
