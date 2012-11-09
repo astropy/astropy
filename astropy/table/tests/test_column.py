@@ -136,3 +136,11 @@ class TestAttrEqual():
         c2 = Column(name='a', dtype=int, units='mJy', format='%i',
                     description='test column', meta={'c': 9, 'd': 12})
         assert not c1.attrs_equal(c2)
+
+    def test_col_and_masked_col(self):
+        c1 = table.Column(name='a', dtype=int, units='mJy', format='%i',
+                          description='test column', meta={'c': 8, 'd': 12})
+        c2 = table.MaskedColumn(name='a', dtype=int, units='mJy', format='%i',
+                                description='test column', meta={'c': 8, 'd': 12})
+        assert c1.attrs_equal(c2)
+        assert c2.attrs_equal(c1)

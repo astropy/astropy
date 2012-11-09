@@ -162,8 +162,8 @@ class BaseColumn(object):
         equal: boolean
             True if all attributes are equal
         """
-        if not isinstance(col, self.__class__):
-            raise ValueError('Comparison `col` must be a Column object')
+        if not isinstance(col, BaseColumn):
+            raise ValueError('Comparison `col` must be a Column or MaskedColumn object')
 
         attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
         equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
