@@ -209,3 +209,25 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
             coo2_2 = getattr(coo1_2, tosys[1])
             assert fabs(coo2_2.longangle.degrees - coo2.longangle.degrees) < roundtrip_precision
             assert fabs(coo2_2.latangle.degrees - coo2.latangle.degrees) < roundtrip_precision
+
+
+def test_precession():
+    """
+    Ensures that FK4 and FK5 coordinates precess their epochs
+    """
+    from ...time import Time
+
+    j2000 = Time('J2000', scale='utc')
+    b1950 = Time('B1950', scale='utc')
+    j1975 = Time('J1975', scale='utc')
+    b1975 = Time('B1975', scale='utc')
+
+    fk4 = FK4Coordinates(1, 2, unit=u.radian)
+    assert fk4.epoch.byear == b1950.byear
+    fk4_2 = fk4.precess_to(b1975)
+    assert fk4_2.epoch.byear == b1975.byear
+
+    fk5 = FK5Coordinates(1, 2, unit=u.radian)
+    assert fk5.epoch.jyear == j2000.jyear
+    fk5_2 = fk5.precess_to(j1975)
+    assert fk5_2.epoch.jyear == j1975.jyear

@@ -5,7 +5,9 @@ This module contains the implementations of specific coordinate systems
 and the conversions between them.
 """
 
-from .angles import Angle
+import numpy as np
+
+from .angles import Angle, RA, Dec
 from .coordsystems import SphericalCoordinatesBase
 from ..time import Time
 from . import transformations
@@ -102,6 +104,33 @@ class FK5Coordinates(SphericalCoordinatesBase):
     def epoch(self):
         return self._epoch
 
+    def precess_to(self, newepoch):
+        """
+        Precesses the coordinates from their current `epoch` to a new epoch and
+        returns the resulting coordinate.
+
+        Parameters
+        ----------
+        newepoch : `~astropy.time.Time`
+            The epoch to precess these coordinates to.
+
+        Returns
+        -------
+        newcoord : FK5Coordinates
+            The new coordinate
+        """
+        from .earth_orientation import precession_matrix_Capitaine
+
+        pmat = precession_matrix_Capitaine(self._epoch, newepoch)
+
+        v = [self.x, self.y, self.z]
+        x, y, z = np.dot(pmat.A, v)
+
+        if self.distance is not None:
+            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, epoch=newepoch)
+        else:
+            return self.__class__(x=x, y=y, z=z, epoch=newepoch)
+
 
 @transformations.coordinate_alias('fk4')
 class FK4Coordinates(SphericalCoordinatesBase):
@@ -143,6 +172,32 @@ class FK4Coordinates(SphericalCoordinatesBase):
     @property
     def epoch(self):
         return self._epoch
+
+    def precess_to(self, newepoch):
+        """
+        Precesses the coordinates from their current `epoch` to a new epoch.
+
+        Parameters
+        ----------
+        newepoch : `~astropy.time.Time`
+            The epoch to precess these coordinates to.
+
+        Returns
+        -------
+        newcoord : FK4Coordinates
+            The new coordinate
+        """
+        from .earth_orientation import _precession_matrix_besselian
+
+        pmat = _precession_matrix_besselian(self._epoch.byear, newepoch.byear)
+
+        v = [self.x, self.y, self.z]
+        x, y, z = np.dot(pmat.A, v)
+
+        if self.distance is not None:
+            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, epoch=newepoch)
+        else:
+            return self.__class__(x=x, y=y, z=z, epoch=newepoch)
 
 
 @transformations.coordinate_alias('galactic')
