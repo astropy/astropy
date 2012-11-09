@@ -77,11 +77,11 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc[1].description == 'db'
         assert self.tc[1].format == 'fb'
         assert self.tc[1].meta == {'mb': 1}
-        assert self.tc[1].units == 'uF'
+        assert self.tc[1].units == 'ub'
         assert self.tc[1].attrs_equal(COLS[1])
         assert isinstance(self.tc[1], Column)
 
-        assert self.tc[2].units == 'UnrecognizedUnit'
+        assert self.tc[2].units == 'ub'
 
         self.tc[1][1] = 0
         assert self.t['b'][1] == 0
@@ -214,9 +214,3 @@ class TestTableItems(BaseTestItems):
 
         with pytest.raises(ValueError):
             self.t['a', 1]
-
-
-@raises(ValueError)
-def test_invalid_unit():
-    Column('c', [7, 8, 9], description='dc',
-           format='fc', meta={'mc': 1}, units="UnrecognizedUnit")

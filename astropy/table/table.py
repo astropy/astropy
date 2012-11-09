@@ -272,7 +272,7 @@ class BaseColumn(object):
         if units is None:
             self._units = None
         else:
-            self._units = Unit(units)
+            self._units = Unit(units, parse_strict='silent')
 
     @units.deleter
     def units(self):
