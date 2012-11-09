@@ -363,8 +363,8 @@ class SphericalCoordinatesBase(object):
         other_in_self_system = other.transform_to(self.__class__)
 
         lat1 = self.latangle.radians
-        long1 = other_in_self_system.latangle.radians
-        lat2 = self.longangle.radians
+        lat2 = other_in_self_system.latangle.radians
+        long1 = self.longangle.radians
         long2 = other_in_self_system.longangle.radians
         return AngularSeparation(lat1, long1, lat2, long2, u.radian)
 
