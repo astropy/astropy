@@ -469,44 +469,42 @@ class RA(Angle):
         # By here, the unit should be defined.
         super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
 
-    def hour_angle(self, lst, unit=None):
-        """ Given a local sidereal time (LST), returns the hour angle for this RA.
-
-            Parameters
-            ----------
-            lst : float, str, `~astropy.coordinates.angle`
-                A local sidereal time (LST)
-            unit : str
-                The units of the LST, if not an `~astropy.coordinates.angle` object or datetime.datetime object
-                .. note::
-                    * if lst is **not** an `~astropy.coordinates.angle`-like object, you can specify the units by passing a `unit` parameter into the call
-                    * this function currently returns an `Angle` object
-        """
-        # TODO : this should return an HA() object, and accept an Angle or LST object
-        if not isinstance(lst, Angle):
-            lst = Angle(lst, unit=unit)
-
-        return Angle(lst.radians - self.radians, unit=u.radian)
-
-    def lst(self, hour_angle, unit=u.hour):
-        """
-        Given an hour angle, calculate the local sidereal time (LST), returning an `~astropy.coordinates.Angle` object.
+    def hour_angle(self, lst):
+        """ Computes the hour angle for this RA given a local sidereal
+        time (LST).
 
         Parameters
         ----------
-        ha :  float, str, `~astropy.coordinates.angle`
-            An hour angle
-        unit : `~astropy.units` (preferred), str
-            The unit of the value specified for the hour angle if it cannot be determined
-            from the value provided. It is preferred that the unit be an object from the
-            `~astropy.units` package, e.g. "from astropy import units as u; u.degree".
-            Also accepts any string that the Unit class maps to "degrees", "radians", "hours".
-        """
-        # TODO : I guess this should return an HA() object, and accept an Angle or LST object
-        if not isinstance(ha, Angle):
-            ha = Angle(ha, unit)
+        lst : `~astropy.coordinates.angle.Angle`, `~astropy.time.Time`
+            A local sidereal time (LST).
 
-        return Angle(ha.radians + self.radians, units=u.radian)
+        Returns
+        -------
+        hourangle : `~astropy.coordinates.angle.Angle`
+            The hour angle for this RA at the LST `lst`.
+        """
+        if hasattr(lst, 'mjd'):
+            lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
+
+        return Angle(lst.radians - self.radians, unit=u.radian, bounds=(0, 360.))
+
+    def lst(self, hour_angle):
+        """
+        Calculates the local sidereal time (LST) if this RA is at a
+        particular hour angle.
+
+        Parameters
+        ----------
+        hour_angle :  `~astropy.coordinates.angle.Angle`
+            An hour angle.
+
+        Returns
+        -------
+        lst : `~astropy.coordinates.angle.Angle`
+            The local siderial time as an angle.
+
+        """
+        return Angle(hour_angle.radians + self.radians, unit=u.radian, bounds=(0, 360.))
 
 
 class Dec(Angle):

@@ -337,13 +337,13 @@ def test_angle_formatting():
                                                   pad=True)) == res
 
 
-
 def test_radec():
     """
     Tests creation/operations of RA and Dec objects
     """
-    from .. import RA, Dec
-    import numpy.testing as npt
+    from .. import RA, Dec, Angle
+    from ...time import Time
+
     '''
     RA and Dec are objects that are subclassed from Angle. As with Angle, RA
     and Dec can parse any unambiguous format (tuples, formatted strings, etc.).
@@ -399,6 +399,18 @@ def test_radec():
     with raises(AttributeError):
         dec.bounds = (-45, 45)
 
+
+    #RA objects can also compute hour angle and local siderial times
+    ra = RA("1:00:00", unit=u.hour)
+    ha1 = ra.hour_angle(Angle(1.5, u.hour))
+    assert isinstance(ha1, Angle)
+    npt.assert_almost_equal(ha1.hours, .5)
+    ha2 = ra.hour_angle(Time('2012-1-1 3:00:00', scale='utc'))
+    npt.assert_almost_equal(ha2.hours, 23.125)
+
+    lst = ra.lst(Angle(1.5, u.hour))
+    assert isinstance(lst, Angle)
+    npt.assert_almost_equal(lst.hours, 2.5)
 
 def test_create_coordinate():
     """
@@ -550,7 +562,6 @@ def test_convert_api():
 
     from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates, HorizontalCoordinates
     from ..transformations import coordinate_alias, transform_function, master_transform_graph
-    import numpy.testing as npt
 
     '''
     Coordinate conversion occurs on-demand internally
@@ -655,7 +666,6 @@ def test_distances():
     """
     from .. import Distance, Coordinates, ICRSCoordinates, GalacticCoordinates, CartesianPoint
     from ...cosmology import WMAP5, WMAP7
-    import numpy.testing as npt
 
     '''
     Distances can also be specified, and allow for a full 3D definition of a
