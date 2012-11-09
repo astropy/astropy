@@ -40,13 +40,6 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to ICRSCoordinates and used as this
     coordinate.
 
-    Attributes
-    ----------
-    ra : `~astropy.coordinates.angle.RA`
-        The right ascension of this coordinate.
-    dec : `~astropy.coordinates.angle.Dec`
-        The declination of this coordinate.
-
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
 
@@ -98,15 +91,6 @@ class FK5Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
     coordinate.
-
-    Attributes
-    ----------
-    ra : `~astropy.coordinates.angle.RA`
-        The right ascension of this coordinate.
-    dec : `~astropy.coordinates.angle.Dec`
-        The declination of this coordinate.
-    epoch : `~astropy.time.Time`
-        The epoch of this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
 
@@ -188,15 +172,6 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
     coordinate.
-
-    Attributes
-    ----------
-    ra : `~astropy.coordinates.angle.RA`
-        The right ascension of this coordinate.
-    dec : `~astropy.coordinates.angle.Dec`
-        The declination of this coordinate.
-    epoch : `~astropy.time.Time`
-        The epoch of this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
 
@@ -274,13 +249,6 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `GalacticCoordinates` and
     used as this coordinate.
-
-    Attributes
-    ----------
-    l : `~astropy.coordinates.angle.Angle`
-        The galactic longitude of this coordinate.
-    b : `~astropy.coordinates.angle.Angle`
-        The galactic latitude of this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
 
@@ -334,15 +302,6 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
-
-    Attributes
-    ----------
-    az : `~astropy.coordinates.angle.RA`
-        The azimuth of this coordinate.
-    el : `~astropy.coordinates.angle.Dec`
-        The elevation/altitude of this coordinate.
-    epoch : `~astropy.time.Time`
-        The epoch of this coordinate.
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='el'))
 
