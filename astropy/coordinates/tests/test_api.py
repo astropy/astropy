@@ -560,7 +560,7 @@ def test_convert_api():
     dec = Dec("-41:08:15.162342")
     c = ICRSCoordinates(ra=ra, dec=dec)
 
-    assert c.galactic == GalacticCoordinates(245.28098, -47.554501)
+    assert c.galactic == GalacticCoordinates(245.28098, -47.554501, unit=u.degree)
 
     #the `galactic` result will be cached to speed this up
     assert isinstance(c.galactic.l, Angle)

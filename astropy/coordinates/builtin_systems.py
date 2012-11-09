@@ -259,7 +259,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
 
-        self.epoch = kwargs.pop('epoch', _epoch_j2000)
+        self._epoch = kwargs.pop('epoch', _epoch_j2000)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -276,6 +276,10 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     @property
     def latangle(self):
         return self.alt
+
+    @property
+    def epoch(self):
+        return self._epoch
 
 
 #<--------------------------------transformations------------------------------>

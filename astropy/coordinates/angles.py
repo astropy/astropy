@@ -532,7 +532,7 @@ class Dec(Angle):
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
 
-
+_angsep_distance_function = util.haversine_dist_atan
 class AngularSeparation(Angle):
     """
     An on-sky separation between two directions.
@@ -560,8 +560,6 @@ class AngularSeparation(Angle):
 
 
     """
-    distance_function = util.haversine_dist_atan
-
     def __init__(self, lat1, long1, lat2, long2, units, distance_function=None):
 
         units = u.Unit(units)
@@ -573,8 +571,10 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             long2 = units.to(u.radian, long2)
 
-            if distance_function is None:
+            if hasattr(self, 'distance_function'):
                 distance_function = self.distance_function
+            else:
+                distance_function = _angsep_distance_function
             sepval = distance_function(lat1, long1, lat2, long2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
