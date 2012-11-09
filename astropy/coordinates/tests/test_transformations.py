@@ -195,17 +195,17 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
 
     coo2 = coo1.transform_to(tosys[0])
-    assert fabs(coo2.l.degrees - tocoo[0]) < convert_precision  # <1 arcsec
-    assert fabs(coo2.b.degrees - tocoo[1]) < convert_precision
+    assert fabs(coo2.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
+    assert fabs(coo2.latangle.degrees - tocoo[1]) < convert_precision
 
     if fromsys[1] is not None:
         coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.
 
         #check round-tripping
-        assert fabs(coo2.l.degrees - fromcoo[0]) < roundtrip_precision
-        assert fabs(coo2.b.degrees - fromcoo[1]) < roundtrip_precision
+        assert fabs(coo1_2.longangle.degrees - fromcoo[0]) < roundtrip_precision
+        assert fabs(coo1_2.latangle.degrees - fromcoo[1]) < roundtrip_precision
 
         if tosys[1] is not None:
             coo2_2 = getattr(coo1_2, tosys[1])
-            assert fabs(coo2_2.l.degrees - coo2.l.degrees) < roundtrip_precision
-            assert fabs(coo2_2.b.degrees - coo2.b.degrees) < roundtrip_precision
+            assert fabs(coo2_2.longangle.degrees - coo2.longangle.degrees) < roundtrip_precision
+            assert fabs(coo2_2.latangle.degrees - coo2.latangle.degrees) < roundtrip_precision

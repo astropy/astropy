@@ -14,14 +14,26 @@ __all__ = ['SphericalCoordinatesBase', 'Coordinates']
 
 class SphericalCoordinatesBase(object):
     """
-    Abstract superclass for all coordinate classes representing points in three
-    dimensions.
+    Abstract superclass for all coordinate classes representing points
+    in three dimensions.
+
+    Notes
+    -----
+    Subclasses must implement `__init__`, and define the `latangle` and
+    `longangle` properties.  They may also override the `epoch`
+    property, or leave it unaltered to indicate the coordinates are
+    epochless.
+
+    `_initialize_latlong` is provided to implement typical
+    initialization features, and should be called from a subclass'
+    `__init__`.  See the classes in
+    `astropy.coordinates.builtin_systems` for examples of this.
     """
 
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         Subclasses must override this, but they should also call this to set up
         internal state.
@@ -259,6 +271,13 @@ class SphericalCoordinatesBase(object):
             names for the coordinates. E.g., `ICRSCoordinates` implements this
             by doing ``return self.dec``.
         """
+
+    @property
+    def epoch(self):
+        """
+        The epoch of this system, or None to indicate no epoch applies.
+        """
+        return None
 
     @property
     def distance(self):

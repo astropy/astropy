@@ -5,14 +5,18 @@ This module contains the implementations of specific coordinate systems
 and the conversions between them.
 """
 
-from .angles import RA, Dec, Angle
+from .angles import Angle
 from .coordsystems import SphericalCoordinatesBase
-from .import transformations
+from ..time import Time
+from . import transformations
 from .. import units as u
 
 __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
            'GalacticCoordinates', 'HorizontalCoordinates'
           ]
+
+
+_epoch_j2000 = Time('J2000', scale='utc')
 
 
 #<--------------Coordinate definitions; transformations are below-------------->
@@ -53,6 +57,10 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     def latangle(self):
         return self.dec
 
+    @property
+    def epoch(self):
+        return _epoch_j2000
+
 
 @transformations.coordinate_alias('fk5')
 class FK5Coordinates(SphericalCoordinatesBase):
@@ -70,11 +78,9 @@ class FK5Coordinates(SphericalCoordinatesBase):
     coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
-        from ..time import Time
-
         super(FK5Coordinates, self).__init__()
 
-        self.epoch = kwargs.pop('epoch', Time('J2000', scale='utc'))
+        self._epoch = kwargs.pop('epoch', _epoch_j2000)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -91,6 +97,10 @@ class FK5Coordinates(SphericalCoordinatesBase):
     @property
     def latangle(self):
         return self.dec
+
+    @property
+    def epoch(self):
+        return self._epoch
 
 
 @transformations.coordinate_alias('fk4')
@@ -110,11 +120,9 @@ class FK4Coordinates(SphericalCoordinatesBase):
     coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
     def __init__(self, *args, **kwargs):
-        from ..time import Time
-
         super(FK4Coordinates, self).__init__()
 
-        self.epoch = kwargs.pop('epoch', Time('B1950', scale='utc'))
+        self._epoch = kwargs.pop('epoch', Time('B1950', scale='utc'))
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -131,6 +139,10 @@ class FK4Coordinates(SphericalCoordinatesBase):
     @property
     def latangle(self):
         return self.dec
+
+    @property
+    def epoch(self):
+        return self._epoch
 
 
 @transformations.coordinate_alias('galactic')
@@ -153,7 +165,6 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     _long0_J2000 = Angle(122.932, unit=u.degree)
     _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=u.degree)
     _long0_B1950 = Angle(123, unit=u.degree)
-
 
     def __init__(self, *args, **kwargs):
         super(GalacticCoordinates, self).__init__()
@@ -191,11 +202,9 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     as this coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='alt'))
     def __init__(self, *args, **kwargs):
-        from ..time import Time
-
         super(HorizontalCoordinates, self).__init__()
 
-        self.epoch = kwargs.pop('epoch', Time('J2000', scale='utc'))
+        self.epoch = kwargs.pop('epoch', _epoch_j2000)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
