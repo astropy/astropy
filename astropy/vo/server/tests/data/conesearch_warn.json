@@ -25,7 +25,7 @@
             "title": "BeppoSAX Wide Field Camera X-Ray Source Catalog", 
             "type": "#Catalog#", 
             "updated": "2008-12-24T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=saxwfccat&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=saxwfccat&", 
             "version": "", 
             "waveband": "#X-ray#"
         }, 
@@ -53,7 +53,7 @@
             "title": "CGRO/BATSE 4B Catalog", 
             "type": "#Catalog#", 
             "updated": "2008-12-24T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batse4b&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batse4b&", 
             "version": "", 
             "waveband": "#Gamma-ray#"
         }, 
@@ -81,7 +81,7 @@
             "title": "CGRO/BATSE Complete Spectral Catalog of Bright GRBs", 
             "type": "#Catalog#", 
             "updated": "2008-12-24T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batsegrbsp&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batsegrbsp&", 
             "version": "", 
             "waveband": "#Gamma-ray#"
         }, 
@@ -109,7 +109,7 @@
             "title": "Catalina Real-time Transient Survey (CRTS) (Drake+, 2009)", 
             "type": "#Catalog#", 
             "updated": "2011-11-30T13:09:40", 
-            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/ApJ/696/870/transients&amp;", 
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/ApJ/696/870/transients&", 
             "version": "04-May-2011", 
             "waveband": "#Optical#"
         }, 
@@ -137,7 +137,7 @@
             "title": "ChaMP Extended Stellar Survey (ChESS) X-Ray Catalog", 
             "type": "#Catalog#", 
             "updated": "2010-12-02T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=chesscat&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=chesscat&", 
             "version": "", 
             "waveband": "#Optical#X-ray#"
         }, 
@@ -165,7 +165,7 @@
             "title": "Faint Object Spectrograph", 
             "type": "#Archive#", 
             "updated": "2011-09-14T18:11:38", 
-            "url": "http://archive.stsci.edu/hst/search.php?sci_data_set_name=Y*&amp;", 
+            "url": "http://archive.stsci.edu/hst/search.php?sci_data_set_name=Y*&", 
             "version": "", 
             "waveband": "#Optical#UV#Infrared#"
         }, 
@@ -193,7 +193,7 @@
             "title": "First Byurakan Survey Blue Stellar Objects Catalog", 
             "type": "#Catalog#", 
             "updated": "2008-12-24T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=fbsbsocat&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=fbsbsocat&", 
             "version": "", 
             "waveband": "#Optical#"
         }, 
@@ -221,7 +221,7 @@
             "title": "GALEX/SDSS Quasar Catalog", 
             "type": "#Catalog#", 
             "updated": "2011-04-06T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=glxsdssqso&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=glxsdssqso&", 
             "version": "", 
             "waveband": "#Optical#UV#"
         }, 
@@ -249,7 +249,7 @@
             "title": "MHO Catalogue (Davis+, 2010)", 
             "type": "#Catalog#", 
             "updated": "2011-09-14T21:08:16", 
-            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/A+A/511/A24/mhocat&amp;", 
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/A+A/511/A24/mhocat&", 
             "version": "11-Feb-2010", 
             "waveband": "#Optical#"
         }, 
@@ -333,7 +333,7 @@
             "title": "ROSAT 13-hour Field XMM-Newton X-Ray Source Catalog", 
             "type": "#Catalog#", 
             "updated": "2008-12-24T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=ros13hrxmm&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=ros13hrxmm&", 
             "version": "", 
             "waveband": "#X-ray#"
         }, 
@@ -361,7 +361,7 @@
             "title": "Sloan Digital Sky Survey (DR5)/XMM-Newton Quasar Survey Catalog", 
             "type": "#Catalog#", 
             "updated": "2009-07-21T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssxmmqso&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssxmmqso&", 
             "version": "", 
             "waveband": "#X-ray#"
         }, 
@@ -389,7 +389,7 @@
             "title": "Sloan Digital Sky Survey Quasar Catalog (7th Data Release)", 
             "type": "#Catalog#", 
             "updated": "2010-06-09T00:00:00", 
-            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssquasar&amp;", 
+            "url": "http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssquasar&", 
             "version": "", 
             "waveband": "#Optical#"
         }, 
@@ -417,7 +417,7 @@
             "title": "The ISOGAL Point Source Catalogue - IGPSC (Omont+ 2003)", 
             "type": "#Catalog#", 
             "updated": "2012-10-23T12:17:05", 
-            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=II/243&amp;", 
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=II/243&", 
             "version": "23-Jun-2003", 
             "waveband": "#Infrared#"
         }, 
@@ -445,7 +445,7 @@
             "title": "X-ray and NIR studies of L1448 (Tsujimoto+, 2005)", 
             "type": "#Catalog#", 
             "updated": "2011-09-14T20:18:25", 
-            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/AJ/130/2212/table3&amp;", 
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/AJ/130/2212/table3&", 
             "version": "11-Apr-2006", 
             "waveband": "#X-ray#Infrared#"
         }

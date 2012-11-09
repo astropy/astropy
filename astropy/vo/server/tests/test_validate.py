@@ -28,7 +28,16 @@ from ....tests.helper import pytest, remote_data
 
 @remote_data
 class TestConeSearchValidation():
-    """Validation on a small subset of Cone Search sites."""
+    """
+    Validation on a small subset of Cone Search sites.
+
+    .. note::
+
+        This test will fail if external URL query status
+        changes. This is beyond the control of AstroPy.
+        When this happens, update the test.
+
+    """
     def setup_class(self):
         self.datadir = 'data' + os.sep
         self.out_dir = tempfile.mkdtemp()
@@ -54,23 +63,28 @@ class TestConeSearchValidation():
 
         # Symbolic link
         _compare_catnames(
-            get_data_filename(self.datadir + self.filenames['warn']),
+            get_data_filename(self.datadir + self.filenames['good']),
             self.out_dir + os.sep + 'conesearch.json')
 
     def test_url_list(self):
         local_outdir = self.out_dir + 'subtmp1' + os.sep
-        local_list = ['http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batse4b&amp;','http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/AJ/130/2212/table3&amp;']
-        validate.check_conesearch_sites(destdir=local_outdir, url_list=local_list)
+        local_list = [
+            'http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?'
+            'table=batse4b&',
+            'http://vizier.u-strasbg.fr/viz-bin/votable/-A?'
+            '-source=J/AJ/130/2212/table3&']
+        validate.check_conesearch_sites(destdir=local_outdir,
+                                        url_list=local_list)
         _compare_catnames(get_data_filename(
             self.datadir + 'conesearch_warn_subset.json'),
-                          local_outdir + os.sep + 'conesearch_warn.json')
+            local_outdir + os.sep + 'conesearch_warn.json')
 
-    def teardown_class(self):
-        shutil.rmtree(self.out_dir)
+    #def teardown_class(self):
+    #    shutil.rmtree(self.out_dir)
 
 
 def _load_catnames(fname):
-    with open(fname,'r') as fd:
+    with open(fname, 'r') as fd:
         js = json.load(fd)
         cats = sorted(js['catalogs'].keys())
     return cats

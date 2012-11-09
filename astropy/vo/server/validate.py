@@ -18,6 +18,7 @@ These properties are set via Astropy configuration system:
 from collections import defaultdict
 from copy import deepcopy
 import json
+import numpy
 import os
 import shutil
 import time
@@ -185,11 +186,14 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     assert arr_cone.size > 0, 'CS_MSTR_LIST yields no valid result'
 
+    # Fix URL syntax or queries will fail
+    fixed_urls = numpy.char.replace(
+        arr_cone['accessURL'].tolist(), '&amp;', '&')
+
     # Re-structure dictionary for JSON file
 
     col_names = arr_cone.dtype.names
-    col_to_rename = {'accessURL': 'url'}  # To be consistent with client
-    uniq_urls = set(arr_cone['accessURL'])
+    uniq_urls = set(fixed_urls)
     uniq_rows = len(uniq_urls)
     check_sum = 0
     title_counter = defaultdict(int)
@@ -202,7 +206,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
                 log.info('Skipping {}'.format(cur_url))
             continue
 
-        i_same_url = numpy.where(arr_cone['accessURL'] == cur_url)
+        i_same_url = numpy.where(fixed_urls == cur_url)
         i = i_same_url[0][0]
 
         num_match = len(i_same_url[0])
@@ -214,17 +218,18 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         cat_key = '{} {}'.format(cur_title, title_counter[cur_title])
 
         for col in col_names:
-            if col in col_to_rename:
-                row_d[col_to_rename[col]] = arr_cone[i][col]
+            if col == 'accessURL':
+                row_d['url'] = fixed_urls[i]
             else:
                 row_d[col] = arr_cone[i][col]
 
         js_mstr['catalogs'][cat_key] = row_d
         key_lookup_by_url[cur_url + conesearch_pars] = cat_key
 
-    assert check_sum == arr_cone.size, 'Database checksum error'
-    assert len(js_mstr['catalogs']) == uniq_rows, \
-        'Number of database entries do not match unique access URLs'
+    if url_list is None:
+        assert check_sum == arr_cone.size, 'Database checksum error'
+        assert len(js_mstr['catalogs']) == uniq_rows, \
+            'Number of database entries do not match unique access URLs'
 
     # Validate URLs
 
@@ -311,38 +316,41 @@ def _do_validation(url):
         r['out_db_name'] = 'good'
         r['expected'] = 'good'
 
-    # Catch well-formed error responses
-    # Accessing URL instead of using cache (not elegant but works for now)
+    # This was already checked above.
+    # Calling this again to get VOTableFile object to catch
+    # well-formed error responses in downloaded XML.
+    try:
+        t = votable.table.parse(r.get_vo_xml_path(), pedantic=False)
+    except:
+        pass
+    else:
+        nexceptions = 0
+        nwarnings = 0
+        lines = []
 
-    nexceptions = 0
-    nwarnings = 0
-    lines = []
+        with warnings.catch_warnings(record=True) as warning_lines:
+            try:
+                tab = vos_catalog.vo_tab_parse(t, r.url, {})
+            except (IndexError, vos_catalog.VOSError) as e:
+                lines.append(str(e))
+                nexceptions += 1
+        lines = [str(x.message) for x in warning_lines] + lines
 
-    with warnings.catch_warnings(record=True) as warning_lines:
-        try:
-            tab = vos_catalog._vo_service_request(r.url, False, {})
-        except (IndexError, vos_catalog.VOSError) as e:
-            lines.append(str(e))
-            nexceptions += 1
-    lines = [str(x.message) for x in warning_lines] + lines
+        warning_types = set()
+        for line in lines:
+            w = votable.exceptions.parse_vowarning(line)
+            if w['is_warning']:
+                nwarnings += 1
+            if w['is_exception']:
+                nexceptions += 1
+            warning_types.add(w['warning'])
 
-    warning_types = set()
-    for line in lines:
-        w = votable.exceptions.parse_vowarning(line)
-        if w['is_warning']:
-            nwarnings += 1
-        if w['is_exception']:
-            nexceptions += 1
-        warning_types.add(w['warning'])
+        r['nwarnings'] += nwarnings
+        r['nexceptions'] += nexceptions
+        r['warnings'] += lines
+        r['warning_types'] = r['warning_types'].union(warning_types)
 
-    r['nwarnings'] += nwarnings
-    r['nexceptions'] += nexceptions
-    r['warnings'] += lines
-    r['warning_types'] = r['warning_types'].union(warning_types)
-
-    # HTML page
     html.write_result(r)
-
     return r
 
 

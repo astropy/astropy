@@ -1,33 +1,4 @@
 {
     "__version__": 1, 
-    "catalogs": {
-        "IPHAS IDR: service 1": {
-            "capabilityClass": "ConeSearch", 
-            "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
-            "capabilityValidationLevel": "", 
-            "contentLevel": "#Research#", 
-            "description": "IPHAS is a survey of the northern galactic plane in r, i and Halpha using the INT/WFC. For more details about the survey and the data release see Drew et al. 2005 and Gonzalez-Solares et al. 2007.\n\nThis particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.\n\nService details: IDR, PhotoObj: cone search", 
-            "duplicatesIgnored": 0, 
-            "identifier": "ivo://uk.ac.cam.ast/iphas-dsa-catalog/IDR#3", 
-            "interfaceClass": "ParamHTTP", 
-            "interfaceRole": "std?", 
-            "interfaceVersion": "", 
-            "maxRadius": 10.0, 
-            "maxRecords": 999999999, 
-            "publisher": "Cambridge Astronomy Survey Unit", 
-            "publisherID": "", 
-            "referenceURL": "http://www.iphas.org/idr", 
-            "regionOfRegard": NaN, 
-            "resourceID": "ivo://uk.ac.cam.ast/iphas-dsa-catalog/IDR", 
-            "shortName": "", 
-            "subject": "#IPHAS#", 
-            "tags": "Catalog", 
-            "title": "IPHAS IDR: service", 
-            "type": "#Catalog#", 
-            "updated": "2008-04-02T14:20:57", 
-            "url": "http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&amp;DSATAB=PhotoObj&amp;", 
-            "version": "", 
-            "waveband": ""
-        }
-    }
+    "catalogs": {}
 }

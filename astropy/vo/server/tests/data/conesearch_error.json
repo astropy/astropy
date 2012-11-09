@@ -25,7 +25,7 @@
             "title": "Data release 7 of Sloan Digital Sky Survey catalogs", 
             "type": "#Archive#", 
             "updated": "2006-06-17T12:01:07", 
-            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;tab=matchhead&amp;", 
+            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&tab=matchhead&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -53,7 +53,7 @@
             "title": "EUVECAT2: EUVE Second Source Catalog (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2011-02-10T22:15:42", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=euvecat2&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=euvecat2&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -81,7 +81,7 @@
             "title": "EXOGPS: EXOSAT/ME Galactic Plane Survey (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2011-02-10T22:15:44", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=exogps&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=exogps&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -109,7 +109,7 @@
             "title": "HYADESXRAY: ROSAT All-Sky Survey: Hyades Cluster Region (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2011-02-10T22:16:00", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=hyadesxray&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=hyadesxray&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -137,7 +137,7 @@
             "title": "MARKARIAN: Markarian Galaxies (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:25:22", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=markarian&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=markarian&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -165,7 +165,7 @@
             "title": "NGC6530OID: NGC 6530 Chandra Point Source Optical/IR Identifications Catalog (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:25:39", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=ngc6530oid&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=ngc6530oid&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -193,7 +193,7 @@
             "title": "PMSUCAT: Palomar/MSU Nearby Star Survey (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:03", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=pmsucat&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=pmsucat&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -221,7 +221,7 @@
             "title": "RASSDWARF: ROSAT All-Sky Survey: A-K Dwarfs/Subgiants (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:09", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=rassdwarf&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=rassdwarf&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -249,7 +249,7 @@
             "title": "ROSATSRC: ROSAT Catalog PSPC RX MPE Sources (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:25", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=rosatsrc&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=rosatsrc&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -277,7 +277,7 @@
             "title": "SAXWFCLOG: BeppoSAX WFC Observation Log (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:42", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=saxwfclog&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=saxwfclog&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -305,7 +305,7 @@
             "title": "SDSSNBCQSC: Sloan Digital Sky Survey NBC Quasar Candidate Catalog (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:43", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=sdssnbcqsc&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=sdssnbcqsc&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -333,7 +333,7 @@
             "title": "SPITZMASTR: Spitzer Space Telescope Observation Log (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:26:52", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=spitzmastr&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=spitzmastr&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -361,7 +361,7 @@
             "title": "The 2MASS All-Sky Catalog", 
             "type": "#Archive#", 
             "updated": "2006-06-17T14:35:29", 
-            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;tab=psc&amp;", 
+            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&tab=psc&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -389,7 +389,7 @@
             "title": "The Guide Star Catalog II (GSC-II), version 2.3.2", 
             "type": "#Archive#", 
             "updated": "2006-06-17T14:35:29", 
-            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=gsc2_3_2&amp;tab=main&amp;", 
+            "url": "http://vo.astronet.ru/sai_cas/conesearch?cat=gsc2_3_2&tab=main&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -417,7 +417,7 @@
             "title": "WRCAT: The VIIth Catalog of Galactic Wolf-Rayet Stars (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2008-03-26T21:27:26", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=wrcat&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=wrcat&", 
             "version": "", 
             "waveband": ""
         }, 
@@ -445,7 +445,7 @@
             "title": "ZCAT: CfA Redshift Catalog (June 1995 Version) (LEDAS)", 
             "type": "#Catalog#", 
             "updated": "2010-06-15T10:46:30", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;DSATAB=zcat&amp;", 
+            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=zcat&", 
             "version": "", 
             "waveband": ""
         }

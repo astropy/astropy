@@ -51,15 +51,14 @@ from ...config.data import get_data_fileobj
 from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
-from ...logger import log
 from ...utils import webquery
 from ...utils.console import color_print
 
 # LOCAL CONFIG
 from ...config.configuration import ConfigurationItem
 
-__all__ = ['VOSCatalog', 'VOSDatabase',
-           'get_remote_catalog_db', 'call_vo_service', 'list_catalogs']
+__all__ = ['VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
+           'call_vo_service', 'list_catalogs', 'vo_tab_parse']
 
 __dbversion__ = 1
 
@@ -222,17 +221,44 @@ def get_remote_catalog_db(dbname, cache=True):
 
 
 def _vo_service_request(url, pedantic, kwargs):
-    url = url.replace('&amp;','&')
-
     req = webquery.webget_open(url, timeout=TIMEOUT(), **kwargs)
     try:
         tab = table.parse(req, filename=req.geturl(), pedantic=pedantic)
     finally:
         req.close()
 
-    # In case of errors from the server, a complete and correct
-    # "stub" VOTable file may still be returned.  This is to
-    # detect that case.
+    return vo_tab_parse(tab, url, kwargs)
+
+
+def vo_tab_parse(tab, url, kwargs):
+    """
+    In case of errors from the server, a complete and correct
+    'stub' VOTable file may still be returned.  This is to
+    detect that case.
+
+    Parameters
+    ----------
+    tab : `astropy.io.votable.tree.VOTableFile` object
+
+    url : string
+        URL used to obtain `tab`.
+
+    kwargs : dict
+        Keywords used to obtain `tab`, if any.
+
+    Returns
+    -------
+    out_tab : `astropy.io.votable.tree.Table` object
+
+    Raises
+    ------
+    IndexError
+        Table iterator fails.
+
+    VOSError
+        Server returns error message or invalid table.
+
+    """
     for param in tab.iter_fields_and_params():
         if param.ID.lower() == 'error':
             raise VOSError("Catalog server '{}' returned error '{}'".format(
