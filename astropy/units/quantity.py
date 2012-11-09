@@ -96,23 +96,6 @@ class Quantity(object):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
 
-    def simplify_units(self):
-        """ Returns a new `Quantity` object with simplified units.
-
-        When doing multiplication or division between quantities, you may end up with compound,
-        equivalent units such as centimeter*meter or kilogram/gram. This method reduces all
-        such equivalent units.
-
-        """
-        # TODO: This method is in flux...waiting to hear from @mdboom about whether we should have .simplify_units() and .decompose_units()
-        simplified_unit = self.unit.decompose()
-        print(self.unit, type(self.unit), self.unit.decompose(), type(self.unit.decompose()))
-        new_value = self.value * simplified_unit.scale
-        print(simplified_unit.bases)
-        new_unit = simplified_unit.bases / simplified_unit.scale
-
-        return Quantity(new_value, unit=new_unit)
-
     def copy(self):
         """ Return a copy of this `Quantity` instance """
         return Quantity(self.value, unit=self.unit)
