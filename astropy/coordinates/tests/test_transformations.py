@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import print_function
+from __future__ import print_function, division
 
 import numpy as np
-from numpy import testing as npytest
+from numpy import testing as npt
 
 from ... import units as u
 from .. import transformations as t
-from ..builtin_systems import ICRSCoordinates
+from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates
+from ..builtin_systems import GalacticCoordinates
 from ...tests.helper import pytest
+
 
 
 #Coordinates just for these tests. TODO: expunge
@@ -30,8 +32,8 @@ def test_transform_classes():
     c1 = TestCoo1(1, 2, unit=u.radian)
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npytest.assert_almost_equal(c2.ra.radians, 1)
-    npytest.assert_almost_equal(c2.dec.radians, 2)
+    npt.assert_almost_equal(c2.ra.radians, 1)
+    npt.assert_almost_equal(c2.dec.radians, 2)
 
     def matfunc(coo):
         return [[1, 0, 0],
@@ -43,8 +45,8 @@ def test_transform_classes():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npytest.assert_almost_equal(c4.ra.degrees, 1)
-    npytest.assert_almost_equal(c4.ra.degrees, 1)
+    npt.assert_almost_equal(c4.ra.degrees, 1)
+    npt.assert_almost_equal(c4.ra.degrees, 1)
 
 
 def test_transform_decos():
@@ -59,8 +61,8 @@ def test_transform_decos():
 
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
-    npytest.assert_almost_equal(c2.ra.degrees, 1)
-    npytest.assert_almost_equal(c2.dec.degrees, 4)
+    npt.assert_almost_equal(c2.ra.degrees, 1)
+    npt.assert_almost_equal(c2.dec.degrees, 4)
 
     c3 = TestCoo1(x=1, y=1, z=2, unit=u.pc)
 
@@ -73,9 +75,9 @@ def test_transform_decos():
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
-    npytest.assert_almost_equal(c4.x, 2)
-    npytest.assert_almost_equal(c4.y, 1)
-    npytest.assert_almost_equal(c4.z, 2)
+    npt.assert_almost_equal(c4.x, 2)
+    npt.assert_almost_equal(c4.y, 1)
+    npt.assert_almost_equal(c4.z, 2)
 
 def test_coo_alias():
     """
@@ -140,24 +142,24 @@ def test_sphere_cart():
     from ..distances import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
-    npytest.assert_almost_equal(x, 1)
-    npytest.assert_almost_equal(y, 0)
-    npytest.assert_almost_equal(z, 0)
+    npt.assert_almost_equal(x, 1)
+    npt.assert_almost_equal(y, 0)
+    npt.assert_almost_equal(z, 0)
 
     x, y, z = spherical_to_cartesian(0, 1, 1)
-    npytest.assert_almost_equal(x, 0)
-    npytest.assert_almost_equal(y, 0)
-    npytest.assert_almost_equal(z, 0)
+    npt.assert_almost_equal(x, 0)
+    npt.assert_almost_equal(y, 0)
+    npt.assert_almost_equal(z, 0)
 
     x, y, z = spherical_to_cartesian(5, 0, np.arcsin(4. / 5.))
-    npytest.assert_almost_equal(x, 3)
-    npytest.assert_almost_equal(y, 4)
-    npytest.assert_almost_equal(z, 0)
+    npt.assert_almost_equal(x, 3)
+    npt.assert_almost_equal(y, 4)
+    npt.assert_almost_equal(z, 0)
 
     r, lat, lng = cartesian_to_spherical(0, 1, 0)
-    npytest.assert_almost_equal(r, 1)
-    npytest.assert_almost_equal(lat, 0)
-    npytest.assert_almost_equal(lng, np.pi / 2)
+    npt.assert_almost_equal(r, 1)
+    npt.assert_almost_equal(lat, 0)
+    npt.assert_almost_equal(lng, np.pi / 2)
 
     #test round-tripping
     #TODO: add NumpRNG context after merging w/master
@@ -166,32 +168,44 @@ def test_sphere_cart():
     r, lat, lng = cartesian_to_spherical(x, y, z)
     x2, y2, z2 = spherical_to_cartesian(r, lat, lng)
 
-    npytest.assert_allclose(x, x2)
-    npytest.assert_allclose(y, y2)
-    npytest.assert_allclose(z, z2)
+    npt.assert_allclose(x, x2)
+    npt.assert_allclose(y, y2)
+    npt.assert_allclose(z, z2)
 
 
-def test_icrs_gal():
+m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
+m31_coo = [(10.6847929, 41.2690650 ), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
+convert_precision = 1 / 3600.  # 1 arcsec
+roundtrip_precision = 1e-10
+
+m31_params =[]
+for i in range(len(m31_sys)):
+    for j in range(len(m31_sys)):
+        if i < j:
+            m31_params.append((m31_sys[i], m31_sys[j], m31_coo[i], m31_coo[j]))
+
+@pytest.mark.parametrize(('fromsys', 'tosys', 'fromcoo', 'tocoo'), m31_params)
+def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     """
-    This tests the ICRS to galactic (and vice versa) conversion
-    based on some known-good coordinates.
-
-    Implicitly, this tests the ICRS<->FK5 conversion as well
+    This tests a variety of coordinate conversions for the Chandra point-source
+    catalog location of M31 from NED.
     """
-    raise NotImplementedError
+    from math import fabs
 
+    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
 
-def test_ICRS_FK5():
-    """
-    This tests the FK5 <-> ICRS conversion
-    based on some known-good coordinates
-    """
-    raise NotImplementedError
+    coo2 = coo1.transform_to(tosys[0])
+    assert fabs(coo2.l.degrees - tocoo[0]) < convert_precision  # <1 arcsec
+    assert fabs(coo2.b.degrees - tocoo[1]) < convert_precision
 
+    if fromsys[1] is not None:
+        coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.
 
-def test_ICRS_FK4():
-    """
-    This tests the FK4 <-> ICRS conversion
-    based on some known-good coordinates
-    """
-    raise NotImplementedError
+        #check round-tripping
+        assert fabs(coo2.l.degrees - fromcoo[0]) < roundtrip_precision
+        assert fabs(coo2.b.degrees - fromcoo[1]) < roundtrip_precision
+
+        if tosys[1] is not None:
+            coo2_2 = getattr(coo1_2, tosys[1])
+            assert fabs(coo2_2.l.degrees - coo2.l.degrees) < roundtrip_precision
+            assert fabs(coo2_2.b.degrees - coo2.b.degrees) < roundtrip_precision

@@ -7,15 +7,16 @@ and the conversions between them.
 
 from .angles import RA, Dec, Angle
 from .coordsystems import SphericalCoordinatesBase
+from .import transformations
 from .. import units as u
 
 __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
            'GalacticCoordinates', 'HorizontalCoordinates'
           ]
 
-#<-----------------Coordinate definitions; transforms are below---------------->
 
-
+#<--------------Coordinate definitions; transformations are below-------------->
+@transformations.coordinate_alias('icrs')
 class ICRSCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in the ICRS system.
@@ -53,6 +54,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         return self.dec
 
 
+@transformations.coordinate_alias('fk5')
 class FK5Coordinates(SphericalCoordinatesBase):
     """
     A coordinate in the FK5 system.
@@ -91,6 +93,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
         return self.dec
 
 
+@transformations.coordinate_alias('fk4')
 class FK4Coordinates(SphericalCoordinatesBase):
     """
     A coordinate in the FK4 system.
@@ -130,6 +133,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
         return self.dec
 
 
+@transformations.coordinate_alias('galactic')
 class GalacticCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in Galactic Coordinates.
@@ -142,6 +146,15 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to `GalacticCoordinates` and
     used as this coordinate.
     """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
+
+    #North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
+    #transformations to/from FK4/5
+    _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=u.degree)
+    _long0_J2000 = Angle(122.932, unit=u.degree)
+    _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=u.degree)
+    _long0_B1950 = Angle(123, unit=u.degree)
+
+
     def __init__(self, *args, **kwargs):
         super(GalacticCoordinates, self).__init__()
 
@@ -162,6 +175,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         return self.b
 
 
+@transformations.coordinate_alias('horizontal')
 class HorizontalCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in the Horizontal or "alt/az" system.
@@ -199,4 +213,113 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     def latangle(self):
         return self.alt
 
-#<-----------------------------------Transforms-------------------------------->
+
+#<--------------------------------transformations------------------------------>
+#ICRS to/from FK5
+# @CoordinateSystem.registerTransform(ICRSCoordinates,'self',transtype='smatrix')
+# def _fromICRS(icrsc):
+#     """
+#     B-matrix from USNO circular 179
+#     """
+#     from ..utils import rotation_matrix
+
+#     eta0 = -19.9/3600000
+#     xi0 = 9.1/3600000
+#     da0 = -22.9/3600000
+#     B = rotation_matrix(-eta0,'x') *\
+#         rotation_matrix(xi0,'y') *\
+#         rotation_matrix(da0,'z')
+
+#     epoch = icrsc.epoch
+#     if icrsc.epoch is None:
+#         return B
+#     else:
+#         return FK5Coordinates._precessionMatrixJ(2000,icrsc.epoch)*B
+
+# @CoordinateSystem.registerTransform('self',ICRSCoordinates,transtype='smatrix')
+# def _toICRS(fk5c):
+#     return FK5Coordinates._fromICRS(fk5c).T
+
+
+# #ICRS to/from FK4
+# # these transformations are very slightly prioritized >1 (lower priority number means
+# # better path) to prefer the FK5 path over FK4 when possible
+# @CoordinateSystem.registerTransform('self',FK5Coordinates,transtype='smatrix')
+#     def _toFK5(fk4c):
+#         from ..obstools import epoch_to_jd,jd_to_epoch
+
+
+#         #B1950->J2000 matrix from Murray 1989 A&A 218,325
+#         B = np.mat([[0.9999256794956877,-0.0111814832204662,-0.0048590038153592],
+#                     [0.0111814832391717,0.9999374848933135,-0.0000271625947142],
+#                     [0.0048590037723143,-0.0000271702937440,0.9999881946023742]])
+
+#         if fk4c.epoch is not None and fk4c.epoch != 1950:
+#             jd = epoch_to_jd(fk4c.epoch,False)
+#             jepoch = jd_to_epoch(jd)
+#             T = (jepoch - 1950)/100
+
+#             #now add in correction terms for FK4 rotating system
+#             B[0,0] += -2.6455262e-9*T
+#             B[0,1] += -1.1539918689e-6*T
+#             B[0,2] += 2.1111346190e-6*T
+#             B[1,0] += 1.1540628161e-6*T
+#             B[1,1] += -1.29042997e-8*T
+#             B[1,2] += 2.36021478e-8*T
+#             B[2,0] += -2.1112979048e-6*T
+#             B[2,1] += -5.6024448e-9*T
+#             B[2,2] += 1.02587734e-8*T
+
+#             PB = FK4Coordinates._precessionMatrixB(fk4c.epoch,1950)
+
+#             return B*PB
+#         else:
+#             return B
+
+#     @CoordinateSystem.registerTransform(FK5Coordinates,'self',transtype='smatrix')
+#     def _fromFK5(fk5c):
+#         #need inverse because Murray's matrix is *not* a true rotation matrix
+#         return FK4Coordinates._toFK5(fk5c).I
+
+
+#GalacticCoordinates to/from FK4/FK5
+#can't be static because the epoch is needed
+@transformations.dynamic_transform_matrix(FK5Coordinates, GalacticCoordinates)
+def _fk5_to_gal(fk5coords):
+    from .angles import rotation_matrix
+    from .earth_orientation import _precess_from_J2000_Capitaine
+
+    # needed mainly to support inverse from galactic
+    jepoch = 2000 if fk5coords.epoch is None else fk5coords.epoch.jyear
+
+    mat1 = rotation_matrix(180 - GalacticCoordinates._long0_J2000.degrees, 'z')
+    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degrees, 'y')
+    mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degrees, 'z')
+    #transpose gets epoch -> J2000
+    matprec = _precess_from_J2000_Capitaine(jepoch).T
+    return mat1 * mat2 * mat3 * matprec
+
+
+@transformations.dynamic_transform_matrix(GalacticCoordinates, FK5Coordinates)
+def _gal_to_fk5(galcoords):
+    return _fk5_to_gal(galcoords).T
+
+
+@transformations.dynamic_transform_matrix(FK4Coordinates, GalacticCoordinates)
+def _fk4_to_gal(fk4coords):
+    from .angles import rotation_matrix
+    from .earth_orientation import _precession_matrix_besselian
+
+    # needed mainly to support inverse from galactic
+    bepoch = 1950 if fk4coords.epoch is None else fk4coords.epoch.byear
+
+    mat1 = rotation_matrix(180 - GalacticCoordinates._long0_B1950.degrees, 'z')
+    mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degrees, 'y')
+    mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degrees, 'z')
+    matprec = _precession_matrix_besselian(bepoch, 1950)
+    return mat1 * mat2 * mat3 * matprec
+
+
+@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4Coordinates)
+def _gal_to_fk4(galcoords):
+    return _fk4_to_gal(galcoords).T

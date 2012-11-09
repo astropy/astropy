@@ -542,7 +542,7 @@ class StaticMatrixTransform(CoordinateTransform):
     #TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
-        x, y, z = np.dot(self.matrix, v)
+        x, y, z = np.dot(np.asarray(self.matrix), v)
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         return self.tosys(x=x, y=y, z=z, unit=unit)
 
@@ -574,7 +574,7 @@ class CompositeStaticMatrixTransform(StaticMatrixTransform):
         matrix = np.array(self.matricies[0])
         if len(self.matricies) > 1:
             for m in self.matricies[1:]:
-                matrix = np.dot(self.matrix, m)
+                matrix = np.dot(np.asarray(self.matrix), m)
 
         super(CompositeStaticMatrixTransform, self).__init__(self, fromsys,
             tosys, matrix, priority)
@@ -614,7 +614,7 @@ class DynamicMatrixTransform(CoordinateTransform):
     #TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
-        x, y, z = np.dot(self.matrix_func(fromcoord), v)
+        x, y, z = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
         unit = None if fromcoord.distance is None else fromcoord.distance.unit
         return self.tosys(x=x, y=y, z=z, unit=unit)
 

@@ -29,7 +29,7 @@ class SphericalCoordinatesBase(object):
         self._distance = None
         self._cartpoint = None
 
-    _init_docstring_param_templ = """
+    _init_docstring_param_templ = """g
     coordstr : str
         A single string with the coordinates.  Cannot be used with
         `{latnm}` and `{longnm}` nor `x`/`y`/`z`.
@@ -89,6 +89,8 @@ class SphericalCoordinatesBase(object):
         """
         initkwargs = dict(initkwargs)  # copy
         nargs = len(initargs)
+        sclsnm = self.__class__.__name__
+
         if nargs == 1:
             if isinstance(initargs[0], CartesianPoint):
                 initkwargs['cartpoint'] = initargs[0]
@@ -96,22 +98,17 @@ class SphericalCoordinatesBase(object):
                 initkwargs['coordstr'] = initargs[0]
         if nargs > 1:
             if longname in initkwargs:
-                raise TypeError("_initialize_latlong() got multiple values for"
-                                " keyword argument '{0}'".format(longname))
+                raise TypeError("{0} got multiple values for keyword argument "
+                                "'{1}'".format(sclsnm, longname))
             initkwargs[longname] = initargs[0]
         if nargs >= 2:
             if latname in initkwargs:
-                raise TypeError("_initialize_latlong() got multiple values for"
-                                " keyword argument '{0}'".format(latname))
+                raise TypeError("{0} got multiple values for keyword argument "
+                                "'{1}'".format(sclsnm, latname))
             initkwargs[latname] = initargs[1]
-        if nargs == 3:
-            if 'distance' in initkwargs:
-                raise TypeError("_initialize_latlong() got multiple values for"
-                                " keyword argument 'distance'")
-            initkwargs['distance'] = initargs[2]
-        if nargs > 3:
-            raise TypeError('_initialize_latlong() takes up to 3 positional '
-                            ' arguments ({0} given)'.format(len(initargs)))
+        if nargs > 2:
+            raise TypeError('{0} takes up to 2 positional arguments '
+                            '({1} given)'.format(sclsnm, len(initargs)))
 
         unit = initkwargs.pop('unit', None)
         coordstr = initkwargs.pop('coordstr', None)
@@ -124,8 +121,8 @@ class SphericalCoordinatesBase(object):
         z = initkwargs.pop('z', None)
 
         if len(initkwargs) > 0:
-            raise TypeError('_initialize_latlong() got unexpected keyword '
-                            'arguments {0}'.format(initkwargs.keys()))
+            raise TypeError('{0} got unexpected keyword argument'
+                            ' {1}'.format(sclsnm, initkwargs.keys()))
 
         ll = longval is not None and latval is not None
         xyz = x is not None or y is not None or z is not None
@@ -192,16 +189,16 @@ class SphericalCoordinatesBase(object):
                                                     latname=latname,
                                                     coordstr=coordstr))
                 else:
-                    raise ValueError("A coordinate cannot be created with a value of type "
-                                     "'{0}'.".format(type(coordstr).__name__))
+                    raise ValueError("A {0} cannot be created with a value of type "
+                                     "'{1}'.".format(sclsnm, type(coordstr).__name__))
             if useradec:
                 longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
                 latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
             else:
                 if isinstance(longval, RA):
-                    raise TypeError('Cannot provide an RA object to a non-RA/Dec system')
+                    raise TypeError('Cannot provide an RA object to non-RA/Dec system {0}'.format(sclsnm))
                 if isinstance(latval, Dec):
-                    raise TypeError('Cannot provide a Dec object to a non-RA/Dec system')
+                    raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
                 longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
             dist = None if distval is None else Distance(distval)  # copy
@@ -210,7 +207,7 @@ class SphericalCoordinatesBase(object):
             #cartesian-style initialization
             if cartpoint is not None:
                 if xyz or unit is not None:
-                    raise ValueError('Cannot give both a CartesianPoint and x/y/z/units.')
+                    raise ValueError('Cannot give both a CartesianPoint and x/y/z/units')
                 x = cartpoint.x
                 y = cartpoint.y
                 z = cartpoint.z
@@ -227,9 +224,10 @@ class SphericalCoordinatesBase(object):
             dist = None if unit is None else Distance(r, unit)
 
         else:
-            raise TypeError('Must initialize coordinates with '
+            raise TypeError('Must initialize {coordnm} with '
                             '{latname}/{longname}/(distance) or x/y/z '
-                            ''.format(latname=latname, longname=longname))
+                            ''.format(coordnm=sclsnm, latname=latname,
+                                      longname=longname))
         setattr(self, longname, longang)
         setattr(self, latname, latang)
         self._distance = dist
