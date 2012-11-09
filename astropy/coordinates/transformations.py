@@ -309,7 +309,7 @@ class TransformGraph(object):
         """
         return self._clsaliases.get(name, None)
 
-    def to_dot_graph(self, savefn=None, savelayout='neato'):
+    def to_dot_graph(self, savefn=None, savelayout='plain', saveformat=None):
         """
         Converts this transform graph to the graphviz_ DOT format, and
         optionally saves it (requires graphviz_ be installed and on your
@@ -324,6 +324,10 @@ class TransformGraph(object):
             The graphviz program to use to layout the graph (see
             graphviz_ for details) or 'plain' to just save the DOT graph
             content. Ignored if `savefn` is None.
+        saveformat : str
+            The graphviz output format. (e.g. the ``-Txxx`` option for
+            the command line program - see graphviz docs for details).
+            Ignored if `savefn` is None.
 
         Returns
         -------
@@ -349,12 +353,13 @@ class TransformGraph(object):
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                pri = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+                pri = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
                 edgenames.append((a.__name__, b.__name__, pri))
 
         #generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
-        lines.append('node [shape=box]; ' + '; '.join(nodenames) + ';')
+        #this could be used to specify nodes that don't have transforms
+        #lines.append('node [shape=box]; ' + '; '.join(nodenames) + ';')
         for enm1, enm2, weights in edgenames:
             lines.append('{0} -> {1} [ label = "{2}" ];'.format(enm1, enm2, weights))
         lines.append('')
@@ -367,7 +372,10 @@ class TransformGraph(object):
                 with open(savefn, 'w') as f:
                     f.write(dotgraph)
             else:
-                proc = Popen([savelayout], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                args = [savelayout]
+                if saveformat is not None:
+                    args.append('-T' + saveformat)
+                proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
                 stdout, stderr = proc.communicate(dotgraph)
                 if proc.returncode != 0:
                     raise IOError('problem running graphviz: \n' + stderr)
