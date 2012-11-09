@@ -25,13 +25,14 @@ _epoch_j2000 = Time('J2000', scale='utc')
 @transformations.coordinate_alias('icrs')
 class ICRSCoordinates(SphericalCoordinatesBase):
     """
-    A coordinate in the ICRS system.
+    A coordinate in the ICRS.
 
-    If you're looking for "J2000" coordinates, this is probably what you want;
-    ICRS is better defined and is within a few microarcsec of J2000.
+    If you're looking for "J2000" coordinates, this is probably what you
+    want; ICRS is better defined and is within a few microarcsec of
+    J2000. The ICRS is defined in reference to this single epoch.
 
 
-    Paramaters
+    Parameters
     ----------
     {params}
 
@@ -39,7 +40,16 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to ICRSCoordinates and used as this
     coordinate.
 
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+    Attributes
+    ----------
+    ra : `~astropy.coordinates.angle.RA`
+        The right ascension of this coordinate.
+    dec : `~astropy.coordinates.angle.Dec`
+        The declination of this coordinate.
+
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
 
@@ -79,7 +89,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     """
     A coordinate in the FK5 system.
 
-    Paramaters
+    Parameters
     ----------
     {params}
     epoch : `~astropy.time.Time`, optional
@@ -88,7 +98,18 @@ class FK5Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
     coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+
+    Attributes
+    ----------
+    ra : `~astropy.coordinates.angle.RA`
+        The right ascension of this coordinate.
+    dec : `~astropy.coordinates.angle.Dec`
+        The declination of this coordinate.
+    epoch : `~astropy.time.Time`
+        The epoch of this coordinate.
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+
     def __init__(self, *args, **kwargs):
         super(FK5Coordinates, self).__init__()
 
@@ -158,7 +179,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     A coordinate in the FK4 system.
 
 
-    Paramaters
+    Parameters
     ----------
     {params}
     epoch : `~astropy.time.Time`, optional
@@ -167,7 +188,18 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
     coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+
+    Attributes
+    ----------
+    ra : `~astropy.coordinates.angle.RA`
+        The right ascension of this coordinate.
+    dec : `~astropy.coordinates.angle.Dec`
+        The declination of this coordinate.
+    epoch : `~astropy.time.Time`
+        The epoch of this coordinate.
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+
     def __init__(self, *args, **kwargs):
         super(FK4Coordinates, self).__init__()
 
@@ -235,14 +267,22 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in Galactic Coordinates.
 
-    Paramaters
+    Parameters
     ----------
     {params}
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `GalacticCoordinates` and
     used as this coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
+
+    Attributes
+    ----------
+    l : `~astropy.coordinates.angle.Angle`
+        The galactic longitude of this coordinate.
+    b : `~astropy.coordinates.angle.Angle`
+        The galactic latitude of this coordinate.
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
 
     #North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     #transformations to/from FK4/5
@@ -283,9 +323,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 @transformations.coordinate_alias('horizontal')
 class HorizontalCoordinates(SphericalCoordinatesBase):
     """
-    A coordinate in the Horizontal or "az/el" saltystem.
+    A coordinate in the Horizontal or "az/el" system.
 
-    Paramaters
+    Parameters
     ----------
     {params}
     epoch : `~astropy.time.Time`, optional
@@ -294,7 +334,18 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
-    """.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='el'))
+
+    Attributes
+    ----------
+    az : `~astropy.coordinates.angle.RA`
+        The azimuth of this coordinate.
+    el : `~astropy.coordinates.angle.Dec`
+        The elevation/altitude of this coordinate.
+    epoch : `~astropy.time.Time`
+        The epoch of this coordinate.
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='el'))
+
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
 

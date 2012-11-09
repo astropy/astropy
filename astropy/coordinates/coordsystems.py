@@ -50,8 +50,7 @@ class SphericalCoordinatesBase(object):
         except AttributeError:
             return False
 
-    _init_docstring_param_templ = """g
-    coordstr : str
+    _init_docstring_param_templ = """coordstr : str
         A single string with the coordinates.  Cannot be used with
         `{latnm}` and `{longnm}` nor `x`/`y`/`z`.
     {longnm} : `~astropy.coordinates.angle.Angle`, float, int, str
@@ -266,7 +265,6 @@ class SphericalCoordinatesBase(object):
             names for the coordiantes. E.g., `ICRSCoordinates` implements this
             by doing ``return self.ra``.
         """
-        pass
 
     @abstractproperty
     def longangle(self):
