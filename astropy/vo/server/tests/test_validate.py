@@ -79,8 +79,8 @@ class TestConeSearchValidation():
             self.datadir + 'conesearch_warn_subset.json'),
             local_outdir + os.sep + 'conesearch_warn.json')
 
-    #def teardown_class(self):
-    #    shutil.rmtree(self.out_dir)
+    def teardown_class(self):
+        shutil.rmtree(self.out_dir)
 
 
 def _load_catnames(fname):
