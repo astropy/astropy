@@ -482,6 +482,13 @@ class FunctionTransform(CoordinateTransform):
         If `func` is not callable.
     ValueError
         If `func` cannot accept one argument.
+
+    Notes
+    -----
+    This does *not* propogate epochs automatically, so the function must
+    do so if that behavior is desired.
+
+
     """
     def __init__(self, fromsys, tosys, func, priority=1, register=True):
         from inspect import getargspec
@@ -505,6 +512,11 @@ class FunctionTransform(CoordinateTransform):
         if not isinstance(res, self.tosys):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
+
+        #copy over the epoch
+        if hasattr(fromcoord, '_epoch') and hasattr(res, '_epoch'):
+            res._epoch = fromcoord._epoch
+
         return res
 
 
@@ -544,7 +556,13 @@ class StaticMatrixTransform(CoordinateTransform):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
         x, y, z = np.dot(np.asarray(self.matrix), v)
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
-        return self.tosys(x=x, y=y, z=z, unit=unit)
+        result = self.tosys(x=x, y=y, z=z, unit=unit)
+
+        #copy over the epoch
+        if hasattr(fromcoord, '_epoch') and hasattr(result, '_epoch'):
+            result._epoch = fromcoord._epoch
+
+        return result
 
 
 class CompositeStaticMatrixTransform(StaticMatrixTransform):
@@ -616,7 +634,13 @@ class DynamicMatrixTransform(CoordinateTransform):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
         x, y, z = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
         unit = None if fromcoord.distance is None else fromcoord.distance.unit
-        return self.tosys(x=x, y=y, z=z, unit=unit)
+        result = self.tosys(x=x, y=y, z=z, unit=unit)
+
+        #copy over the epoch
+        if hasattr(fromcoord, '_epoch') and hasattr(result, '_epoch'):
+            result._epoch = fromcoord._epoch
+
+        return result
 
 
 class CompositeTransform(CoordinateTransform):
