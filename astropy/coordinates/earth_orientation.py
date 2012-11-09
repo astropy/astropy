@@ -84,10 +84,10 @@ def precession_matrix_Capitaine(fromepoch, toepoch):
         ----------
         USNO Circular 179
         """
-        mat_fromto2000 = _precess_from_J2000_Capitaine(fromepoch.jyear)
-        mat_2000toto = _precess_from_J2000_Capitaine(fromepoch.jyear).T
+        mat_fromto2000 = _precess_from_J2000_Capitaine(fromepoch.jyear).T
+        mat_2000toto = _precess_from_J2000_Capitaine(toepoch.jyear)
 
-        return np.dot(mat_fromto2000, mat_2000toto)
+        return np.dot(mat_2000toto, mat_fromto2000)
 
 
 def _precess_from_J2000_Capitaine(epoch):
