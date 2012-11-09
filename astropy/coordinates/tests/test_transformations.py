@@ -176,7 +176,7 @@ def test_sphere_cart():
 m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
 m31_coo = [(10.6847929, 41.2690650 ), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
 convert_precision = 1 / 3600.  # 1 arcsec
-roundtrip_precision = 1e-10
+roundtrip_precision = 1e-4
 
 m31_params =[]
 for i in range(len(m31_sys)):
@@ -192,11 +192,18 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     """
     from math import fabs
 
-    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
+    from ...time import Time
 
+    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
     coo2 = coo1.transform_to(tosys[0])
-    assert fabs(coo2.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
-    assert fabs(coo2.latangle.degrees - tocoo[1]) < convert_precision
+    if tosys[0] is FK4Coordinates:
+        print('inprec',coo2.epoch)
+        coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
+        assert fabs(coo2_prec.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
+        assert fabs(coo2_prec.latangle.degrees - tocoo[1]) < convert_precision
+    else:
+        assert fabs(coo2.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
+        assert fabs(coo2.latangle.degrees - tocoo[1]) < convert_precision
 
     if fromsys[1] is not None:
         coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.

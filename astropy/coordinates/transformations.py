@@ -249,11 +249,17 @@ class TransformGraph(object):
             if path is None:
                 return None
 
+            transforms = []
+            currsys = fromsys
+            for p in path:
+                transforms.append(self._graph[currsys][p])
+                currsys = p
+
             #TODO: collapse "runs" of statics?
             if all([isinstance(p, StaticMatrixTransform) for p in path]):
-                return CompositeStaticMatrixTransform(fromsys, tosys, path, register=False)
+                return CompositeStaticMatrixTransform(fromsys, tosys, transforms, register=False)
             else:
-                return CompositeTransform(fromsys, tosys, path, register=False)
+                return CompositeTransform(fromsys, tosys, transforms, register=False)
 
     def add_coord_name(self, name, coordcls):
         """
@@ -637,8 +643,8 @@ class DynamicMatrixTransform(CoordinateTransform):
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
         #copy over the epoch
-        if hasattr(fromcoord, '_epoch') and hasattr(result, '_epoch'):
-            result._epoch = fromcoord._epoch
+        if fromcoord.epoch is not None and hasattr(result, '_epoch'):
+            result._epoch = fromcoord.epoch
 
         return result
 

@@ -315,8 +315,8 @@ def fk5_to_icrs(fk5c):
 # these transformations are very slightly prioritized >1 (lower priority number means
 # better path) to prefer the FK5 path over FK4 when possible
 #can't be static because the epoch is needed
-@transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
-def icrs_to_fk4(fk4c):
+@transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
+def fk4_to_icrs(fk4c):
     from .earth_orientation import _precession_matrix_besselian
 
     #B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
@@ -347,17 +347,13 @@ def icrs_to_fk4(fk4c):
 
 
 #can't be static because the epoch is needed
-@transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
-def fk4_to_icrs(fk4c):
+@transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
+def icrs_to_fk4(fk4c):
     from .earth_orientation import _precession_matrix_besselian
-
-    pmat = _precession_matrix_besselian(fk4c.epoch.byear, 1950)
 
     # need inverse instead of transpose because Murray's matrix is *not* a true
     # rotation matrix
-    fk4toicrsmat = icrs_to_fk4().I
-
-    return fk4toicrsmat * pmat
+    return fk4_to_icrs(fk4c).I
 
 
 #GalacticCoordinates to/from FK4/FK5
@@ -383,7 +379,7 @@ def _gal_to_fk5(galcoords):
     return _fk5_to_gal(galcoords).T
 
 
-@transformations.dynamic_transform_matrix(FK4Coordinates, GalacticCoordinates)
+@transformations.dynamic_transform_matrix(FK4Coordinates, GalacticCoordinates, priority=1.02)
 def _fk4_to_gal(fk4coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precession_matrix_besselian
@@ -398,6 +394,6 @@ def _fk4_to_gal(fk4coords):
     return mat1 * mat2 * mat3 * matprec
 
 
-@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4Coordinates)
+@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4Coordinates, priority=1.02)
 def _gal_to_fk4(galcoords):
     return _fk4_to_gal(galcoords).T
