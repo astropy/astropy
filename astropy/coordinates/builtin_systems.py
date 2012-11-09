@@ -7,7 +7,7 @@ and the conversions between them.
 
 import numpy as np
 
-from .angles import Angle, RA, Dec
+from .angles import Angle
 from .coordsystems import SphericalCoordinatesBase
 from ..time import Time
 from . import transformations
@@ -280,70 +280,84 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
 #<--------------------------------transformations------------------------------>
 #ICRS to/from FK5
-# @CoordinateSystem.registerTransform(ICRSCoordinates,'self',transtype='smatrix')
-# def _fromICRS(icrsc):
-#     """
-#     B-matrix from USNO circular 179
-#     """
-#     from ..utils import rotation_matrix
+@transformations.static_transform_matrix(ICRSCoordinates, FK5Coordinates)
+def icrs_to_fk5():
+    """
+    B-matrix from USNO circular 179
+    """
+    from .angles import rotation_matrix
 
-#     eta0 = -19.9/3600000
-#     xi0 = 9.1/3600000
-#     da0 = -22.9/3600000
-#     B = rotation_matrix(-eta0,'x') *\
-#         rotation_matrix(xi0,'y') *\
-#         rotation_matrix(da0,'z')
+    eta0 = -19.9 / 3600000
+    xi0 = 9.1 / 3600000
+    da0 = -22.9 / 3600000
 
-#     epoch = icrsc.epoch
-#     if icrsc.epoch is None:
-#         return B
-#     else:
-#         return FK5Coordinates._precessionMatrixJ(2000,icrsc.epoch)*B
+    m1 = rotation_matrix(-eta0, 'x')
+    m2 = rotation_matrix(xi0, 'y')
+    m3 = rotation_matrix(da0, 'z')
 
-# @CoordinateSystem.registerTransform('self',ICRSCoordinates,transtype='smatrix')
-# def _toICRS(fk5c):
-#     return FK5Coordinates._fromICRS(fk5c).T
+    return m1 * m2 * m3
 
 
-# #ICRS to/from FK4
-# # these transformations are very slightly prioritized >1 (lower priority number means
-# # better path) to prefer the FK5 path over FK4 when possible
-# @CoordinateSystem.registerTransform('self',FK5Coordinates,transtype='smatrix')
-#     def _toFK5(fk4c):
-#         from ..obstools import epoch_to_jd,jd_to_epoch
+#can't be static because the epoch is needed
+@transformations.dynamic_transform_matrix(FK5Coordinates, ICRSCoordinates)
+def fk5_to_icrs(fk5c):
+    from .earth_orientation import _precess_from_J2000_Capitaine
+
+    pmat = _precess_from_J2000_Capitaine(fk5c.epoch.jyear).T
+
+    #transpose gets epoch -> J2000
+    fk5toicrsmat = icrs_to_fk5().T
+
+    return fk5toicrsmat * pmat
 
 
-#         #B1950->J2000 matrix from Murray 1989 A&A 218,325
-#         B = np.mat([[0.9999256794956877,-0.0111814832204662,-0.0048590038153592],
-#                     [0.0111814832391717,0.9999374848933135,-0.0000271625947142],
-#                     [0.0048590037723143,-0.0000271702937440,0.9999881946023742]])
+#ICRS to/from FK4
+# these transformations are very slightly prioritized >1 (lower priority number means
+# better path) to prefer the FK5 path over FK4 when possible
+#can't be static because the epoch is needed
+@transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
+def icrs_to_fk4(fk4c):
+    from .earth_orientation import _precession_matrix_besselian
 
-#         if fk4c.epoch is not None and fk4c.epoch != 1950:
-#             jd = epoch_to_jd(fk4c.epoch,False)
-#             jepoch = jd_to_epoch(jd)
-#             T = (jepoch - 1950)/100
+    #B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
+    B = np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
+                [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
+                [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
-#             #now add in correction terms for FK4 rotating system
-#             B[0,0] += -2.6455262e-9*T
-#             B[0,1] += -1.1539918689e-6*T
-#             B[0,2] += 2.1111346190e-6*T
-#             B[1,0] += 1.1540628161e-6*T
-#             B[1,1] += -1.29042997e-8*T
-#             B[1,2] += 2.36021478e-8*T
-#             B[2,0] += -2.1112979048e-6*T
-#             B[2,1] += -5.6024448e-9*T
-#             B[2,2] += 1.02587734e-8*T
+    if fk4c.epoch is not None and fk4c.epoch.byear != 1950:
+        #not this is *julian century*, not besselian
+        T = (fk4c.epoch.jyear - 1950) / 100
 
-#             PB = FK4Coordinates._precessionMatrixB(fk4c.epoch,1950)
+        #now add in correction terms for FK4 rotating system - Murray 89 eqn 29
+        B[0, 0] += -2.6455262e-9 * T
+        B[0, 1] += -1.1539918689e-6 * T
+        B[0, 2] += 2.1111346190e-6 * T
+        B[1, 0] += 1.1540628161e-6 * T
+        B[1, 1] += -1.29042997e-8 * T
+        B[1, 2] += 2.36021478e-8 * T
+        B[2, 0] += -2.1112979048e-6 * T
+        B[2, 1] += -5.6024448e-9 * T
+        B[2, 2] += 1.02587734e-8 * T
 
-#             return B*PB
-#         else:
-#             return B
+        PB = _precession_matrix_besselian(fk4c.epoch.byear, 1950)
 
-#     @CoordinateSystem.registerTransform(FK5Coordinates,'self',transtype='smatrix')
-#     def _fromFK5(fk5c):
-#         #need inverse because Murray's matrix is *not* a true rotation matrix
-#         return FK4Coordinates._toFK5(fk5c).I
+        return B * PB
+    else:
+        return B
+
+
+#can't be static because the epoch is needed
+@transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
+def fk4_to_icrs(fk4c):
+    from .earth_orientation import _precession_matrix_besselian
+
+    pmat = _precession_matrix_besselian(fk4c.epoch.byear, 1950)
+
+    # need inverse instead of transpose because Murray's matrix is *not* a true
+    # rotation matrix
+    fk4toicrsmat = icrs_to_fk4().I
+
+    return fk4toicrsmat * pmat
 
 
 #GalacticCoordinates to/from FK4/FK5
