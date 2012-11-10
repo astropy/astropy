@@ -309,7 +309,8 @@ class TransformGraph(object):
         """
         return self._clsaliases.get(name, None)
 
-    def to_dot_graph(self, savefn=None, savelayout='plain', saveformat=None):
+    def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
+                     savelayout='plain', saveformat=None):
         """
         Converts this transform graph to the graphviz_ DOT format, and
         optionally saves it (requires graphviz_ be installed and on your
@@ -317,6 +318,12 @@ class TransformGraph(object):
 
         Parameters
         ----------
+        priorities : bool
+            If True, show the priority values for each transform.  Otherwise,
+            the will not be included in the graph.
+        addnodes : sequence of str
+            Additional coordinate systems to add (this can include systems
+            already in the transform graph, but they will only appear once).
         savefn : None or str
             The file name to save this graph to or None to not save
             to a file.
@@ -335,18 +342,30 @@ class TransformGraph(object):
             A string with the DOT format graph.
 
 
+
         .. _graphviz: http://www.graphviz.org/
         """
         from subprocess import Popen, PIPE
 
-        nodenames = []
+        nodes = []
         #find the node names
         for a in self._graph:
-            if a.__name__ not in nodenames:
-                nodenames.append(a.__name__)
+            if a not in nodes:
+                nodes.append(a)
             for b in self._graph[a]:
-                if b.__name__ not in nodenames:
-                    nodenames.append(b.__name__)
+                if b not in nodes:
+                    nodes.append(b)
+        for node in addnodes:
+            if node not in nodes:
+                nodes.append(node)
+        nodenames = []
+        invclsaliases = dict([(v, k) for k, v in self._clsaliases.iteritems()])
+        for n in nodes:
+            if n in invclsaliases:
+                nodenames.append('{0} [shape=oval label="{0}\\n`{1}`"]'.format(n.__name__, invclsaliases[n]))
+            else:
+                nodenames.append(n.__name__ + '[ shape=oval ]')
+
 
         edgenames = []
         #Now the edges
@@ -358,10 +377,10 @@ class TransformGraph(object):
 
         #generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
-        #this could be used to specify nodes that don't have transforms
-        #lines.append('node [shape=box]; ' + '; '.join(nodenames) + ';')
+        lines.append('; '.join(nodenames) + ';')
         for enm1, enm2, weights in edgenames:
-            lines.append('{0} -> {1} [ label = "{2}" ];'.format(enm1, enm2, weights))
+            labelstr = '[ label = "{0}" ]'.format(weights) if priorities else ''
+            lines.append('{0} -> {1}{2};'.format(enm1, enm2, labelstr))
         lines.append('')
         lines.append('overlap=false')
         lines.append('}')

@@ -460,3 +460,45 @@ def _fk4_to_gal(fk4coords):
 @transformations.dynamic_transform_matrix(GalacticCoordinates, FK4Coordinates, priority=1.02)
 def _gal_to_fk4(galcoords):
     return _fk4_to_gal(galcoords).T
+
+
+def _make_transform_graph_docs():
+    """
+    Generates a string for use with the coordinate package's docstring
+    to show the available transforms and coordinate systems
+    """
+    from inspect import isclass
+    from textwrap import dedent
+
+    from .transformations import master_transform_graph
+
+    coosys = [item for item in globals().values()
+              if isclass(item) and issubclass(item, SphericalCoordinatesBase)]
+    coosys.remove(SphericalCoordinatesBase)
+    graphstr = master_transform_graph.to_dot_graph(addnodes=coosys)
+
+    docstr = """
+    The diagram below shows all of the coordinate systems built into the
+    `~astropy.coordinates` package, their aliases (usable for converting
+    other coordinates to them using attribute-style access) and the
+    pre-defined transformations between them.  The user is free to
+    override any of these transformations by defining new trasnformation
+    between these systems, but the pre-defined transformations should be
+    sufficient for typical usage.
+
+    The graph also indicates the priority for each transformation as a
+    number next to the arrow.  These priorities are used to decide the
+    preferred order when two trasnformation paths have the same number
+    of steps.  These priorities are defined such that path with a
+    *smaller* total priority are favored over larger.
+    E.g., the path from `ICRSCoordinates` to `GalacticCoordinates` goes
+    through `FK5Coordinates` because the total path length is 2 instead
+    of 2.03.
+
+
+    .. graphviz::
+
+    """
+
+    return dedent(docstr) + '    ' + graphstr.replace('\n', '\n    ')
+_transform_graph_docs = _make_transform_graph_docs()
