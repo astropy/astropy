@@ -13,7 +13,7 @@ import copy
 import numbers
 
 # AstroPy
-from .core import Unit, UnitBase
+from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
 
 __all__ = ["Quantity"]
 
@@ -99,6 +99,54 @@ class Quantity(object):
     def copy(self):
         """ Return a copy of this `Quantity` instance """
         return Quantity(self.value, unit=self.unit)
+
+    @property
+    def si(self):
+        """ Returns a copy of the current `Quantity` instance with SI units. The value of the
+            resulting object will be scaled.
+        """
+
+        from . import si as _si
+        si_unit_set = set([ss for ss in _si.__dict__.values() if isinstance(ss, IrreducibleUnit)])
+        si_quantity_value = self.value
+
+        if isinstance(self.unit, CompositeUnit):
+            si_quantity_bases = []
+            si_quantity_powers = []
+
+            for base_unit, power in zip(self.unit.bases, self.unit.powers):
+                is_si = True
+                for si_unit in si_unit_set:
+                    if base_unit.is_equivalent(si_unit) and base_unit != si_unit:
+                        scale = (base_unit / si_unit).dimensionless_constant()**power
+                        si_quantity_value *= scale
+                        is_si = False
+                        si_quantity_bases.append(si_unit)
+                        si_quantity_powers.append(power)
+                        break
+
+                if is_si:
+                    si_quantity_bases.append(base_unit)
+                    si_quantity_powers.append(power)
+
+            return Quantity(si_quantity_value, CompositeUnit(1., si_quantity_bases, si_quantity_powers).simplify())
+        else:
+            for si_unit in si_unit_set:
+                if self.unit.is_equivalent(si_unit) and self.unit != si_unit:
+                    # Don't have to worry about power here because if it has a power, it's a CompositeUnit
+                    scale = (self.unit / si_unit).dimensionless_constant()
+                    si_quantity_value *= scale
+
+                    return Quantity(si_quantity_value, si_unit)
+
+            return self.copy()
+
+
+    @property
+    def cgs(self):
+        """ TODO: """
+        raise NotImplementedError()
+
 
     # Arithmetic operations
     def __add__(self, other):

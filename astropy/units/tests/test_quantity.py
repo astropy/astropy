@@ -204,6 +204,20 @@ def test_quantity_conversion():
     with pytest.raises(u.UnitsException):
         q1.to(u.zettastokes)
 
+def test_si():
+    q1 = 10. * u.m * u.s**2 / (200. * u.ms)**2 # 250 meters
+    assert q1.si.value == 250
+    assert q1.si.unit == u.m
+
+    q = 10.*u.m # 10 meters
+    assert q.si.value == 10
+    assert q.si.unit == u.m
+
+    q = 10./u.m # 10 1 / meters
+    assert q.si.value == 10
+    assert q.si.unit == (1/u.m)
+
+
 '''
 def test_simplify_units():
     quantity = u.Quantity(15., u.kg) * u.Quantity(72., u.cm) / u.Quantity(9., u.m*u.s) * u.Quantity(10., u.g) * u.Quantity(110000., u.um)
