@@ -140,6 +140,7 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
+    from ...utils import NumpyRNGContext
     from ..distances import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
@@ -163,8 +164,8 @@ def test_sphere_cart():
     npt.assert_almost_equal(lng, np.pi / 2)
 
     #test round-tripping
-    #TODO: add NumpRNG context after merging w/master
-    x, y, z = np.random.randn(3, 5)
+    with NumpyRNGContext(13579):
+        x, y, z = np.random.randn(3, 5)
 
     r, lat, lng = cartesian_to_spherical(x, y, z)
     x2, y2, z2 = spherical_to_cartesian(r, lat, lng)
