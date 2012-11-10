@@ -671,7 +671,7 @@ class DynamicMatrixTransform(CoordinateTransform):
     def __call__(self, fromcoord):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
         x, y, z = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
-        unit = None if fromcoord.distance is None else fromcoord.distance.unit
+        unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
         #copy over the epoch

@@ -152,7 +152,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, epoch=newepoch)
         else:
             return self.__class__(x=x, y=y, z=z, epoch=newepoch)
 
@@ -232,7 +232,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance.unit, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, epoch=newepoch)
         else:
             return self.__class__(x=x, y=y, z=z, epoch=newepoch)
 

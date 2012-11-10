@@ -6,6 +6,7 @@ import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
+from ..distances import Distance
 from .. import transformations as t
 from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates
 from ..builtin_systems import GalacticCoordinates
@@ -175,8 +176,10 @@ def test_sphere_cart():
 
 m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
 m31_coo = [(10.6847929, 41.2690650 ), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
+m31_dist = Distance(770, u.kpc)
 convert_precision = 1 / 3600.  # 1 arcsec
 roundtrip_precision = 1e-4
+dist_precision = 1e-9
 
 m31_params =[]
 for i in range(len(m31_sys)):
@@ -194,7 +197,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
     from ...time import Time
 
-    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree)
+    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree, distance=m31_dist)
     coo2 = coo1.transform_to(tosys[0])
     if tosys[0] is FK4Coordinates:
         coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
@@ -203,6 +206,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     else:
         assert fabs(coo2.longangle.degrees - tocoo[0]) < convert_precision  # <1 arcsec
         assert fabs(coo2.latangle.degrees - tocoo[1]) < convert_precision
+    assert fabs(coo2.distance.kpc - m31_dist.kpc) < dist_precision
 
     if fromsys[1] is not None:
         coo1_2 = getattr(coo2, fromsys[1])  # implicit `transform_to` call.
@@ -210,11 +214,13 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
         #check round-tripping
         assert fabs(coo1_2.longangle.degrees - fromcoo[0]) < roundtrip_precision
         assert fabs(coo1_2.latangle.degrees - fromcoo[1]) < roundtrip_precision
+        assert fabs(coo1_2.distance.kpc - m31_dist.kpc) < dist_precision
 
         if tosys[1] is not None:
             coo2_2 = getattr(coo1_2, tosys[1])
             assert fabs(coo2_2.longangle.degrees - coo2.longangle.degrees) < roundtrip_precision
             assert fabs(coo2_2.latangle.degrees - coo2.latangle.degrees) < roundtrip_precision
+            assert fabs(coo2_2.distance.kpc - m31_dist.kpc) < dist_precision
 
 
 def test_precession():
