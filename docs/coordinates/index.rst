@@ -284,7 +284,51 @@ distance (i.e., non-projected separation)::
 Transforming Between Systems
 ----------------------------
 
-Content
+`astropy.coordinates` supports a rich system for transfroming coordinates from
+one system to another.  The key concept is that a registry of all the
+transformations is used to determine which coordinates can convert to others.
+When you ask for a transformation, the registry (or "transformation graph") is
+searched for the shortest path from your starting coordinate to your target, and
+it applies all of the transformations in that path in series.   This allows only
+the simplest transformations to be defined, and the package will automatically
+determine how to combine those transformations to get from one system to
+another.
+
+As described above, there are two ways of transforming coordinates.  Coordinates
+that have an alias (created with
+`~astropy.coordinates.transformations.coordinate_alias`) can be converted to by
+simply using attribute style access to any other coordinate system::
+
+    >>> gc = GalacticCoordinates(l=0, b=45, unit=u.degree)
+    >>> gc.fk5
+    <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
+    >>> ic = ICRSCoordinates(ra=0, dec=, unit=u.degree)
+    >>> ic.fk5
+    <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
+
+While this appears to be simple attribute-style access, it is actually just
+syntactic sugar for the `transform_to` method::
+
+    >>> gc.transform_to(FK5Coordinates)
+    <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
+    >>> ic.transform_to(FK5Coordinates)
+    <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
+
+The full list of supported coordinate systems and transformations is in the
+`astropy.coordinates` API documentation below.
+
+Additionally, some coordinate systems support precessing the coordinate to
+produce a new coordinate in the same system but at a different epoch::
+
+    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s', epoch=Time('J2000', scale='utc'))
+    >>> fk5c
+    <FK5Coordinates RA=37.95454 deg, Dec=89.26411 deg>
+    >>> fk5c.precess_to(Time(2100, format='jyear', scale='utc'))
+    <FK5Coordinates RA=88.32396 deg, Dec=89.54057 deg>
+
+Not all coordinate systems support an epoch nor precession.  Those that do not
+will always have their `epoch` property set to `None`.
+
 
 Designing Coordinate Systems
 ----------------------------
