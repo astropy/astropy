@@ -411,7 +411,7 @@ class RA(Angle):
         # After this block, the normal Angle initializer handles most of the
         # validation/creation.
 
-        if isinstance(angle, type(self)):
+        if isinstance(angle, Angle):
             return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0, 360))
 
         if unit == u.hour:
@@ -525,7 +525,7 @@ class Dec(Angle):
     """
 
     def __init__(self, angle, unit=u.degree):
-        if isinstance(angle, type(self)):
+        if isinstance(angle, Angle):
             return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90, 90))
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
