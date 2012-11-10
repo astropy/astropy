@@ -117,7 +117,7 @@ interpret any *unambiguous* string a human could interpret.  For example::
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("54.12412 -41:08:15.162342")
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
-    >>>apc.ICRSCoordinates("14.12412 -41:08:15.162342")
+    >>> ICRSCoordinates("14.12412 -41:08:15.162342")
     UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
 
 Working with Angles
@@ -163,6 +163,18 @@ the limit at which an angle is wrapped back around to 0::
     >>> Angle(361, unit=u.degree, bounds=(0,360))
     <Angle 1.00000 deg>
 
+Angles will also behave correctly for appropriate arithmetic operations::
+
+    >>> a = Angle(1, u.radian)
+    >>> a + a
+    <Angle 114.59156 deg>
+    >>> a - a
+    <Angle 0.00000 deg>
+    >>> a == a
+    True
+    >>> a == (a + a)
+    False
+
 Angle objects can also be used for creating coordinate objects::
 
     >>> ICRSCoordinates(Angle(1, u.radian), Angle(2, u.radian))
@@ -173,19 +185,109 @@ Angle objects can also be used for creating coordinate objects::
     <ICRSCoordinates RA=57.29578 deg, Dec=114.59156 deg>
 
 
+Separations
+-----------
+
+The on-sky separation is easily computed with the `separation` method::
+
+    >>> c1 = ICRSCoordinates('5h23m34.5s -69d45m22s')
+    >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s')
+    >>> sep = c1.separation(c2)
+    >>> sep
+    <AngularSeparation 20.74612 deg>
+
+The `~astropy.coordinates.angles.AngularSeparation` object is a subclass of
+`~astropy.coordinates.angles.Angle`, so it can be accessed in the same ways,
+along with a few additions::
+
+    >>> sep.radians
+    0.36208807374669766
+    >>> sep.hours
+    1.383074562513832
+    >>> sep.arcmins
+    1244.7671062624488
+    >>> sep.arcsecs
+    74686.02637574692
+
 
 Distances
 ---------
 
-Content
+Coordinates can also have line-of-sight distances.  If these are provided, a
+coordinate object becomes a full-fledged point in three-dimensional space.  If
+not (i.e., the `distance` attribute of the coordinate object is `None`), the
+point is interpreted as lying on the (dimensionless) unit sphere.
+
+The `~astropy.coordinates.distances.Distance` class is provided to represent a
+line-of-sight distance for a coordinate.  It must include a length unit to be
+valid.::
+
+    >>> d = Distance(770)
+    UnitsError: A unit must be provided for distance.
+    >>> d = Distance(770, u.kpc)
+    >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=d)
+    >>> c
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+
+If a distance is available, the coordinate can be converted into cartesian
+coordinates using the `x`/`y`/`z` attributes::
+
+    >>> c.x
+    568.7128882165681
+    >>> c.y
+    107.3009359688103
+    >>> c.z
+    507.8899092486349
+
+The cartesian coordinates can also be accessed via the
+`~astropy.coordinates.distances.CartesianCoordinates` object, which has
+additional capabilities like arithemtic operations::
+
+    >>> cp = c.cartesian
+    >>> cp
+    <CartesianPoint (568.712888217, 107.300935969, 507.889909249) kpc>
+    >>> cp.x
+    568.7128882165681
+    >>> cp.y
+    107.3009359688103
+    >>> cp.z
+    507.8899092486349
+    >>> cp.unit
+    Unit("kpc")
+    >>> cp + cp
+    <CartesianPoint (1137.42577643, 214.601871938, 1015.7798185) kpc>
+    >>> cp - cp
+    <CartesianPoint (0.0, 0.0, 0.0) kpc>
+
+This cartesian representation can also be used to create a new coordinate
+object::
+
+    >>> ICRSCoordinates(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+
+Finally, two coordinates with distances can be used to derive a real-space
+distance (i.e., non-projected separation)::
+
+    >>> c1 = ICRSCoordinates('5h23m34.5s -69d45m22s', distance=Distance(49, u.kpc))
+    >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
+    >>> sep3d = c1.separation3d(c2)
+    >>> sep3d
+    <Distance 23.05685 kpc>
+    >>> sep3d.kpc
+    23.05684814695706
+    >>> sep3d.Mpc
+    0.02305684814695706
+    >>> sep3d.au
+    4755816315.663559
+
 
 Transforming Between Systems
 ----------------------------
 
 Content
 
-Custom Coordinate Classes
--------------------------
+Designing Coordinate Systems
+----------------------------
 
 Content
 
