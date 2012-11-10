@@ -11,6 +11,7 @@ from .pprint import _pformat_table, _pformat_col, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  .io_registry import get_reader, get_writer, identify_format
+
 # Python 2 and 3 source compatibility
 try:
     unicode
@@ -540,40 +541,39 @@ class Table(object):
         # function, number of columns, and potentially the default col names
 
         default_names = None
+        #Checking for iterable types first
 
-        if isinstance(data, (list, tuple)):
-            init_func = self._init_from_list
-            n_cols = len(data)
+        if isiterable(data):
 
-        elif isinstance(data, Table):
-            init_func = self._init_from_table
-            n_cols = len(data.colnames)
-            default_names = data.colnames
+            if isinstance(data, Table):
+                init_func = self._init_from_table
+                n_cols = len(data.colnames)
+                default_names = data.colnames
 
-        elif isinstance(data, Column):
-            data = (data, )
-            init_func = self._init_from_list
-            n_cols = 1
 
-        # Duck-typing ndarray-like structure
-        elif hasattr(data, 'dtype'):
-            #converting to ndarray for .view method
-            if not isinstance(data, np.ndarray):
-                data = np.asarray(data)
+            # Duck-typing ndarray-like structure
+            elif hasattr(data, 'dtype'):
+                #converting to ndarray for .view method
+                if not isinstance(data, np.ndarray):
+                    data = np.asarray(data)
 
-            if data.dtype.names is not None:
-                init_func = self._init_from_ndarray  # _struct
-                n_cols = len(data.dtype.names)
-                default_names = data.dtype.names
+                if data.dtype.names is not None:
+                    init_func = self._init_from_ndarray  # _struct
+                    n_cols = len(data.dtype.names)
+                    default_names = data.dtype.names
+                else:
+                    init_func = self._init_from_ndarray  # _homog
+                    n_cols = data.shape[1]
+
+
+            elif isinstance(data, dict):
+                init_func = self._init_from_dict
+                n_cols = len(data.keys())
+                default_names = data.keys()
+
             else:
-                init_func = self._init_from_ndarray  # _homog
-                n_cols = data.shape[1]
-
-
-        elif isinstance(data, dict):
-            init_func = self._init_from_dict
-            n_cols = len(data.keys())
-            default_names = data.keys()
+                init_func = self._init_from_list
+                n_cols = len(data)
 
 
         elif data is None:
