@@ -73,7 +73,7 @@ def test_create_angles():
         Angle(54.12412)
         #raises an exception because this is ambiguous
 
-    with raises(UnitsError):
+    with raises(ValueError):
     	a13 = Angle(12.34, unit="not a unit")
 
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
