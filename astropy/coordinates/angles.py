@@ -381,7 +381,7 @@ class Angle(object):
         return Angle(abs(self.radians), unit=u.radian)
 
     def __repr__(self):
-        return "<{0}.{1} {2:.5f} deg>".format(__name__, type(self).__name__, self.degrees)
+        return "<{0} {1:.5f} deg>".format(type(self).__name__, self.degrees)
 
 
 class RA(Angle):
