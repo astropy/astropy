@@ -5,65 +5,97 @@ Astronomical Coordinate Systems (`astropy.coordinates`)
 Introduction
 ============
 
-Include general content that might be useful for understanding the
-package here, as well as general scientific or mathematical background
-that might be necessary for the "big-picture" of this package.
+The `~astropy.coordinates` package provides classes for representing celestial
+coordinates, as well as tools for converting between standard systems in a
+uniform way.
+
+.. note::
+	The current `~astropy.coordinates` framework only accepts scalar
+	coordinates, i.e. one coordinate per object.  In the next release it will
+	be expanded to accept arrays of coordinates.
 
 
 Getting Started
 ===============
 
-Short tutorial-like examples of how to do common-tasks - should be
-fairly quick, with any more detailed examples in the next section.
+Coordinate objects are intantiated with a flexible and natural approach::
+
+    >>> from astropy import coordinates as apc
+    >>> from astropy import units as u
+    >>> apc.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
+    >>> apc.ICRSCoordinates('00h42m44.3s +41d16m9s')
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
+
+The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
+objects, and their values are acceessed using special attributes::
+
+	>>> c = apc.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> c.ra.hours
+    0.7123053333333333
+    >>> c.dec.radians
+    0.7202828960652683
+    >>> c.ra.hms
+    (0.0, 42, 44.2992000000001)
+
+To convert to some other coordinate system, the easiest method is to use
+attribute-style access with short names for the builtin systems, but explicit
+transformations via the `transform_to` method are also available::
+
+    >>> c.galactic
+    <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
+    >>> c.transform_to(apc.GalacticCoordinates)
+    <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
 
 
 Using `astropy.coordinates`
 ===========================
 
-.. THIS SECTION SHOULD BE EITHER
+Content
 
 
-This section is for the detailed documentation.  For simpler packages, this
-should either by paragraphs or sub-divided into sub-sections like:
+Creating Coordinate Objects
+---------------------------
 
-Sub-topic 1
------------
-
-Content if needed
-
-A Complex example
------------------
-
-Content if needed
-
-Sub-sub topic 1
-^^^^^^^^^^^^^^^^
-
-Content if needed (note the use of ^^^^ at this level).
-
-Sub-sub-sub topic 1
-"""""""""""""""""""
-
-Content if needed (note the use of """"" at this level).
-This is probably the deepest level that is practical.  However,
-just in case, the next levels of detail should use the +, :, and ~
-characters respectively.
+Content
 
 
-See Also (optional)
-===================
+Distances
+---------
 
-Include here any references to related packages, articles, or texts.
+Content
+
+Transforming Between Systems
+----------------------------
+
+Content
+
+Custom Coordinate Classes
+-------------------------
+
+Content
+
+
+See Also
+========
+
+Some references particularly useful in understanding subtleties of the
+coordinate systems implemented here include:
+
+* `Standards Of Funamental Astronomy <http://www.iausofa.org/>`_
+	The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
+	for Earth Attitude" document is particularly valuable for understanding
+	the latest IAU standards in detail.
+* `USNO Circular 179 <http://www.usno.navy.mil/USNO/astronomical-applications/publications/circ-179>`_
+	A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
+	related problems in precision coordinate system work.
+* Meeus, J. "Astronomical Algorithms"
+	A valuable text describing details of a wide range of coordinate-related
+	problems and concepts.
+
 
 
 Reference/API
 =============
 
 .. automodapi:: astropy.coordinates
-
-
-Acknowledgments and Licenses (optional)
-=======================================
-
-Any acknowledgements or licenses needed for this package - remove the
-section if none are necessary.
