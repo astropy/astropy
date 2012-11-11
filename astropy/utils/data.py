@@ -131,6 +131,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
     close_fds = []
+    delete_fds = []
 
     # Get a file object to the content
     if isinstance(name_or_obj, basestring):
@@ -177,10 +178,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            tmp = tempfile.NamedTemporaryFile("wb")
+            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
             tmp.write(fileobj.read())
-            tmp.flush()
-            close_fds.append(tmp)
+            tmp.close()
+            delete_fds.append(tmp)
             import bz2
             fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
@@ -250,6 +251,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     finally:
         for fd in close_fds:
             fd.close()
+        for fd in delete_fds:
+            fd.delete()
 
 
 def get_file_contents(name_or_obj, encoding=None, cache=False):
