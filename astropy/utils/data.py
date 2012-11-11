@@ -210,11 +210,11 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         # return a handle to that.
         import bz2
         if isinstance(fileobj, bz2.BZ2File):
-            tmp = tempfile.NamedTemporaryFile("wb")
+            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
             data = fileobj.read()
             tmp.write(data)
-            tmp.flush()
-            close_fds.append(tmp)
+            tmp.close()
+            delete_fds.append(tmp)
             if PY3K:
                 fileobj = io.FileIO(tmp.name, 'r')
             else:
