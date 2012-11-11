@@ -193,12 +193,12 @@ def test_read_unicode():
 
     contents = get_pkg_data_contents('data/unicode.txt', encoding='utf-8')
     assert isinstance(contents, unicode)
-    contents = contents.split('\n')[1]
+    contents = contents.splitlines()[1]
     assert contents == u"\u05d4\u05d0\u05e1\u05d8\u05e8\u05d5\u05e0\u05d5\u05de\u05d9 \u05e4\u05d9\u05d9\u05ea\u05d5\u05df"
 
     contents = get_pkg_data_contents('data/unicode.txt', encoding='binary')
     assert isinstance(contents, bytes)
-    contents = contents.split(b'\n')[1]
+    contents = contents.splitlines()[1]
     assert contents == b"\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"
 
 
