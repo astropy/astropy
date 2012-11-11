@@ -797,7 +797,10 @@ def test_fileobj():
     from ....utils.xml import iterparser
     filename = get_pkg_data_filename('data/regression.xml')
     with iterparser._convert_to_fd_or_read_function(filename) as fd:
-        if sys.version_info[0] >= 3:
-            assert isinstance(fd, io.FileIO)
+        if sys.platform == 'win32':
+            fd()
         else:
-            assert isinstance(fd, file)
+            if sys.version_info[0] >= 3:
+                assert isinstance(fd, io.FileIO)
+            else:
+                assert isinstance(fd, file)
