@@ -381,7 +381,9 @@ class TestConvolve2D(object):
         print "z: ", z
         print "answer: ", a
         print "ratio: ", z / a
-        assert np.all(np.abs(z - a) < np.spacing(np.where(z > a, z, a)) * 10)
+        # for reasons unknown, the Windows FFT returns an answer for the [0,0]
+        # component that is EXACTLY 10*np.spacing
+        assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_3x3_withnan(self, boundary, interpolate_nan, normalize_kernel, ignore_edge_zeros, fft_type):
@@ -491,4 +493,6 @@ class TestConvolve2D(object):
         print "z: ", z
         print "answer: ", a
         print "ratio: ", z / a
-        assert np.all(np.abs(z - a) < np.spacing(np.where(z > a, z, a)) * 10)
+        # for reasons unknown, the Windows FFT returns an answer for the [0,0]
+        # component that is EXACTLY 10*np.spacing
+        assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
