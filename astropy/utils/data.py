@@ -252,8 +252,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         for fd in close_fds:
             fd.close()
         for fd in delete_fds:
-            fd.delete()
-
+            os.remove(fd.name)
 
 def get_file_contents(name_or_obj, encoding=None, cache=False):
     """
