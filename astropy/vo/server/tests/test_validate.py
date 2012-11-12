@@ -67,7 +67,7 @@ class TestConeSearchValidation():
             self.out_dir + os.sep + 'conesearch.json')
 
     def test_url_list(self):
-        local_outdir = self.out_dir + 'subtmp1' + os.sep
+        local_outdir = self.out_dir + os.sep + 'subtmp1' + os.sep
         local_list = [
             'http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?'
             'table=batse4b&',

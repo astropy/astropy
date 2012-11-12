@@ -5,6 +5,11 @@ Support basic VO conesearch capabilities.
 Based on the `Simple Cone Search Version 1.03 Recommendation
 <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_.
 
+Available databases are generated on the server side by
+`astropy.vo.server.validate.check_conesearch_sites`.
+Default database is 'conesearch.json', which can be changed
+locally in a session via AstroPy configuration system.
+
 *CONFIGURABLE PROPERTIES*
 
 These properties are set via Astropy configuration system:
@@ -96,6 +101,11 @@ prediction would defeat the purpose of the prediction itself:
 
 >>> t_real, n_real, url_used = conesearch.conesearch_timer(
         120, 20, 0.5, catalog_db=url, pedantic=False)
+
+To use a non-default cone search database, one can use the AstroPy
+configuration system, as illustrated below:
+
+>>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')
 
 """
 from __future__ import print_function, division
