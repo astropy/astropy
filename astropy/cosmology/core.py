@@ -278,8 +278,7 @@ class FLRW(Cosmology):
         return self._Ok0 * (1. + z)**2 * self.inv_efunc(z)**2
 
     def Ode(self, z):
-        """ Return the density parameter for non-relativistic matter 
-        at redshift `z`.
+        """ Return the density parameter for dark energy at redshift `z`.
 
         Parameters
         ----------
