@@ -18,6 +18,11 @@ class SetupData(object):
         self.ca = Column('ca', [1, 2, 3])
 
 
+class TestPprint(SetupData):
+    def test_pformat(self):
+        assert self.t.pformat() == [' a   b ', '--- ---', '  1  --', '  2  --', '  3  --']
+
+
 class TestFilled(object):
     """Test the filled method in MaskedColumn and Table"""
     def setup_method(self, method):
