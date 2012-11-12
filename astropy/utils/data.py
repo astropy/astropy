@@ -41,15 +41,6 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
 PY3K = sys.version_info[0] >= 3
 
 
-if not PY3K:  # pragma: py2
-    #used for supporting with statements in get_pkg_data_fileobj
-    def _fake_enter(self):
-        return self
-
-    def _fake_exit(self, type, value, traceback):
-        self.close()
-
-
 class CacheMissingWarning(Warning):
     """
     This warning indicates the standard cache directory is not accessible, with
