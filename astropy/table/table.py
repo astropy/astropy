@@ -577,6 +577,9 @@ class Row(object):
 
     def __eq__(self, other):
         if self._table.masked:
+            # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
+            # "Comparing rows in a structured masked array raises exception"
+            # No response, so this is still unresolved.
             raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
         return self.data == other
 
