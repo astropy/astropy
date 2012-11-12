@@ -5,15 +5,19 @@ caching data files.
 
 from __future__ import division
 
+import os
+import io
 import sys
 import atexit
+import contextlib
+import urllib2
 
-from .configuration import ConfigurationItem
+from ..config.configuration import ConfigurationItem
 
-
-__all__ = ['get_data_fileobj', 'get_data_filename', 'get_data_contents',
-           'get_data_fileobjs', 'get_data_filenames', 'compute_hash',
-           'clear_data_cache', 'CacheMissingWarning']
+__all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
+           'get_pkg_data_filename', 'get_pkg_data_contents',
+           'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
+           'clear_data_cache', 'CacheMissingWarning', 'download_file']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -34,13 +38,7 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     ' of the python session.')
 
 
-if sys.version_info[0] < 3:  # pragma: py2
-    #used for supporting with statements in get_data_fileobj
-    def _fake_enter(self):
-        return self
-
-    def _fake_exit(self, type, value, traceback):
-        self.close()
+PY3K = sys.version_info[0] >= 3
 
 
 class CacheMissingWarning(Warning):
@@ -52,14 +50,225 @@ class CacheMissingWarning(Warning):
     """
 
 
-def get_data_fileobj(dataname, cache=True):
+def _is_url(string):
     """
-    Retrieves a data file from the standard locations and provides the file as
-    a file-like object.
+    Test whether a string is a valid URL
 
     Parameters
     ----------
-    dataname : str
+    string : str
+        The string to test
+    """
+    from urlparse import urlparse
+    url = urlparse(string)
+    # url[0]==url.scheme, but url[0] is py 2.6-compat
+    # we can't just check that url[0] is not an empty string, because
+    # file paths in windows would return a non-empty scheme (e.g. e:\\
+    # returns 'e').
+    return url[0].lower() in ['http', 'https', 'ftp']
+
+
+@contextlib.contextmanager
+def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
+    """
+    Given a filename or a readable file-like object, return a context
+    manager that yields a readable file-like object.
+
+    This supports passing filenames, URLs, and readable file-like
+    objects, any of which can be compressed in gzip or bzip2.
+
+
+    Notes
+    -----
+
+    This function is a context manager, and should be used for example
+    as::
+
+        with get_readable_fileobj('file.dat') as f:
+            contents = f.read()
+
+    Parameters
+    ----------
+    name_or_obj : str or file-like object
+        The filename of the file to access (if given as a string), or
+        the file-like object to access.
+
+        If a file-like object, it must be opened in binary mode.
+
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
+
+    cache : bool, optional
+        Whether to cache the contents of remote URLs
+    """
+    import tempfile
+
+    # close_fds is a list of file handles created by this function
+    # that need to be closed.  We don't want to always just close the
+    # returned file handle, because it may simply be the file handle
+    # passed in.  In that case it is not the responsibility of this
+    # function to close it: doing so could result in a "double close"
+    # and an "invalid file descriptor" exception.
+    close_fds = []
+    delete_fds = []
+
+    # Get a file object to the content
+    if isinstance(name_or_obj, basestring):
+        if _is_url(name_or_obj):
+            fileobj = open(download_file(name_or_obj, cache=cache))
+            close_fds.append(fileobj)
+        else:
+            if PY3K:
+                fileobj = io.FileIO(name_or_obj, 'r')
+            else:
+                fileobj = open(name_or_obj, 'rb')
+            close_fds.append(fileobj)
+    else:
+        fileobj = name_or_obj
+
+    # Check if the file object supports random access, and if not,
+    # then wrap it in a BytesIO buffer.  It would be nicer to use a
+    # BufferedReader to avoid reading loading the whole file first,
+    # but that is not compatible with streams or urllib2.urlopen
+    # objects on Python 2.x.
+    if not hasattr(fileobj, 'seek'):
+        fileobj = io.BytesIO(fileobj.read())
+
+    # Now read enough bytes to look at signature
+    signature = fileobj.read(4)
+    fileobj.seek(0)
+
+    if signature[:3] == b'\x1f\x8b\x08':  # gzip
+        import struct
+        try:
+            from .compat import gzip
+            fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really gzip
+        except IOError:  # invalid gzip file
+            fileobj.seek(0)
+            fileobj_new.close()
+        except struct.error:  # invalid gzip file on Python 3
+            fileobj.seek(0)
+            fileobj_new.close()
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
+    elif signature[:3] == b'BZh':  # bzip2
+        try:
+            # bz2.BZ2File does not support file objects, only filenames, so we
+            # need to write the data to a temporary file
+            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
+            tmp.write(fileobj.read())
+            tmp.close()
+            delete_fds.append(tmp)
+            import bz2
+            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really bzip2
+        except IOError:  # invalid bzip2 file
+            fileobj.seek(0)
+            fileobj_new.close()
+        else:
+            fileobj_new.seek(0)
+            close_fds.append(fileobj_new)
+            fileobj = fileobj_new
+
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, or
+    # bz2.BZ2File instance opened in binary mode (that is, read
+    # returns bytes).  Now we need to, if requested, wrap it in a
+    # io.TextIOWrapper so read will return unicode based on the
+    # encoding parameter.
+
+    if PY3K:
+        needs_textio_wrapper = encoding != 'binary'
+    else:
+        needs_textio_wrapper = encoding != 'binary' and encoding is not None
+
+    if needs_textio_wrapper:
+        # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
+        # so we decompress it to a temporary file and then
+        # return a handle to that.
+        import bz2
+        if isinstance(fileobj, bz2.BZ2File):
+            tmp = tempfile.NamedTemporaryFile("wb", delete=False)
+            data = fileobj.read()
+            tmp.write(data)
+            tmp.close()
+            delete_fds.append(tmp)
+            if PY3K:
+                fileobj = io.FileIO(tmp.name, 'r')
+            else:
+                fileobj = open(tmp.name, 'rb')
+            close_fds.append(fileobj)
+
+        # On Python 2.x, we need to first wrap the regular `file`
+        # instance in a `io.FileIO` object before it can be
+        # wrapped in a `TextIOWrapper`.  We don't just create an
+        # `io.FileIO` object in the first place, because we can't
+        # get a raw file descriptor out of it on Python 2.x, which
+        # is required for the XML iterparser.
+        if not PY3K and isinstance(fileobj, file):
+            fileobj = io.FileIO(fileobj.fileno())
+
+        fileobj = io.BufferedReader(fileobj)
+        fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
+
+        # Ensure that file is at the start - io.FileIO will for
+        # example not always be at the start:
+        # >>> import io
+        # >>> f = open('test.fits', 'rb')
+        # >>> f.read(4)
+        # 'SIMP'
+        # >>> f.seek(0)
+        # >>> fileobj = io.FileIO(f.fileno())
+        # >>> fileobj.tell()
+        # 4096L
+
+        fileobj.seek(0)
+
+    try:
+        yield fileobj
+    finally:
+        for fd in close_fds:
+            fd.close()
+        for fd in delete_fds:
+            os.remove(fd.name)
+
+def get_file_contents(name_or_obj, encoding=None, cache=False):
+    """
+    Retrieves the contents of a filename or file-like object.
+
+    See  the `get_readable_fileobj` docstring for details on parameters.
+
+    Returns
+    -------
+    content
+        The content of the file (as requested by `encoding`).
+
+    """
+    with get_readable_fileobj(name_or_obj, encoding, cache) as f:
+        return f.read()
+
+
+def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
+    """
+    Retrieves a data file from the standard locations for the package and
+    provides the file as a file-like object that reads bytes.
+
+    Parameters
+    ----------
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -76,7 +285,21 @@ def get_data_fileobj(dataname, cache=True):
               e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
-            * A URL to some other file.
+
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
 
     cache : bool
         If True, the file will be downloaded and saved locally or the
@@ -104,70 +327,48 @@ def get_data_fileobj(dataname, cache=True):
     This will retrieve a data file and its contents for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_fileobj
+        from astropy.config import get_pkg_data_fileobj
 
-        with get_data_fileobj('data/3d_cd.hdr') as fobj:
+        with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
 
 
     This downloads a data file and its contents from a specified URL, and does
     *not* cache it remotely::
 
-        from astropy.config import get_data_fileobj
+        from astropy.config import get_pkg_data_fileobj
 
         vegaurl = 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/vega.fits'
-        with get_data_fileobj(vegaurl,False) as fobj:
+        with get_pkg_data_fileobj(vegaurl,False) as fobj:
             fcontents = fobj.read()
 
     See Also
     --------
-    get_data_contents : returns the contents of a file or url as a bytes object
-    get_data_filename : returns a local name for a file containing the data
+    get_pkg_data_contents : returns the contents of a file or url as a bytes object
+    get_pkg_data_filename : returns a local name for a file containing the data
     """
-    from os.path import isdir, isfile
-    from urlparse import urlparse
-    from urllib2 import urlopen
-    from types import MethodType
-
-    if cache:
-        return open(get_data_filename(dataname), 'rb')
-    else:
-        url = urlparse(dataname)
-        if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
-            #it's actually a url for a net location
-            urlres = urlopen(dataname, timeout=REMOTE_TIMEOUT())
-        else:
-            datafn = _find_pkg_data_path(dataname)
-            if isdir(datafn):
-                raise IOError(
-                    "Tried to access a data file that's actually "
-                    "a package data directory")
-            elif isfile(datafn):
-                return open(datafn, 'rb')
-            else:
-                #not local file - need to get remote data
-                urlres = urlopen(DATAURL() + datafn, timeout=REMOTE_TIMEOUT())
-
-        if sys.version_info[0] < 3:  # pragma: py2
-            #need to add in context managers to support with urlopen for <3.x
-            urlres.__enter__ = MethodType(_fake_enter, urlres)
-            urlres.__exit__ = MethodType(_fake_exit, urlres)
-
-        return urlres
+    datafn = _find_pkg_data_path(data_name)
+    if os.path.isdir(datafn):
+        raise IOError("Tried to access a data file that's actually "
+                      "a package data directory")
+    elif os.path.isfile(datafn):  # local file
+        return get_readable_fileobj(datafn, encoding=encoding)
+    else:  # remote file
+        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding)
 
 
-def get_data_filename(dataname):
+def get_pkg_data_filename(data_name):
     """
-    Retrieves a data file from the standard locations and provides the local
-    name of the file.
+    Retrieves a data file from the standard locations for the package and
+    provides a local filename for the data.
 
-    This function is similar to `get_data_fileobj` but returns the file *name*
+    This function is similar to `get_pkg_data_fileobj` but returns the file *name*
     instead of a readable file-like object.  This means that this function must
-    always cache remote files locally, unlike `get_data_fileobj`.
+    always cache remote files locally, unlike `get_pkg_data_fileobj`.
 
     Parameters
     ----------
-    dataname : str
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -184,7 +385,6 @@ def get_data_filename(dataname):
               e.g. 'hash/395dd6493cc584df1e78b474fb150840'.  The hash
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
-            * A URL to some other file.
 
     Raises
     ------
@@ -197,7 +397,7 @@ def get_data_filename(dataname):
     -------
     filename : str
         A file path on the local file system corresponding to the data
-        requested in `dataname`.
+        requested in `data_name`.
 
     Examples
     --------
@@ -205,9 +405,9 @@ def get_data_filename(dataname):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filename
+        from astropy.config import get_pkg_data_filename
 
-        fn = get_data_filename('data/3d_cd.hdr')
+        fn = get_pkg_data_filename('data/3d_cd.hdr')
         with open(fn) as f:
             fcontents = f.read()
 
@@ -215,52 +415,44 @@ def get_data_filename(dataname):
     This retrieves a data file by hash either locally or from the astropy data
     server::
 
-        from astropy.config import get_data_filename
+        from astropy.config import get_pkg_data_filename
 
-        fn = get_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
+        fn = get_pkg_data_filename('hash/da34a7b07ef153eede67387bf950bb32')
         with open(fn) as f:
             fcontents = f.read()
 
     See Also
     --------
-    get_data_contents : returns the contents of a file or url as a bytes object
-    get_data_fileobj : returns a file-like object with the data
+    get_pkg_data_contents : returns the contents of a file or url as a bytes object
+    get_pkg_data_fileobj : returns a file-like object with the data
     """
-    from os.path import isdir, isfile
-    from urlparse import urlparse
 
-    url = urlparse(dataname)
-    if url[0] != '':  # url[0]==url.scheme, but url[0] is py 2.6-compat
-        #it's actually a url for a net location
-        return _cache_remote(dataname)
-    elif dataname.startswith('hash/'):
-            #first try looking for a local version if a hash is specified
-            hashfn = _find_hash_fn(dataname[5:])
-            if hashfn is None:
-                return _cache_remote(DATAURL() + dataname)
-            else:
-                return hashfn
-    else:
-        datafn = _find_pkg_data_path(dataname)
-        if isdir(datafn):
-            raise IOError(
-                "Tried to access a data file that's actually "
-                "a package data directory")
-        elif isfile(datafn):
-            return datafn
+    if data_name.startswith('hash/'):
+        # first try looking for a local version if a hash is specified
+        hashfn = _find_hash_fn(data_name[5:])
+        if hashfn is None:
+            return download_file(DATAURL() + data_name, cache=True)
         else:
-            #look for the file on the data server
-            return _cache_remote(DATAURL() + dataname)
+            return hashfn
+    else:
+        datafn = _find_pkg_data_path(data_name)
+        if os.path.isdir(datafn):
+            raise IOError("Tried to access a data file that's actually "
+                          "a package data directory")
+        elif os.path.isfile(datafn):  # local file
+            return datafn
+        else:  # remote file
+            return download_file(DATAURL() + data_name, cache=True)
 
 
-def get_data_contents(dataname, cache=True):
+def get_pkg_data_contents(data_name, encoding=None, cache=True):
     """
     Retrieves a data file from the standard locations and returns its
     contents as a bytes object.
 
     Parameters
     ----------
-    dataname : str
+    data_name : str
         Name/location of the desired data file.  One of the following:
 
             * The name of a data file included in the source
@@ -278,6 +470,21 @@ def get_data_contents(dataname, cache=True):
               will first be searched for locally, and if not found,
               the Astropy data server will be queried.
             * A URL to some other file.
+
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
 
     cache : bool
         If True, the file will be downloaded and saved locally or the
@@ -299,15 +506,15 @@ def get_data_contents(dataname, cache=True):
 
     See Also
     --------
-    get_data_fileobj : returns a file-like object with the data
-    get_data_filename : returns a local name for a file containing the data
+    get_pkg_data_fileobj : returns a file-like object with the data
+    get_pkg_data_filename : returns a local name for a file containing the data
     """
-    with get_data_fileobj(dataname, cache=cache) as fd:
+    with get_pkg_data_fileobj(data_name, encoding=encoding, cache=cache) as fd:
         contents = fd.read()
     return contents
 
 
-def get_data_filenames(datadir, pattern='*'):
+def get_pkg_data_filenames(datadir, pattern='*'):
     """
     Returns the path of all of the data files in a given directory
     that match a given glob pattern.
@@ -339,9 +546,9 @@ def get_data_filenames(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filenames
+        from astropy.config import get_pkg_data_filenames
 
-        for fn in get_data_filename('maps', '*.hdr'):
+        for fn in get_pkg_data_filename('maps', '*.hdr'):
             with open(fn) as f:
                 fcontents = f.read()
     """
@@ -362,7 +569,7 @@ def get_data_filenames(datadir, pattern='*'):
         raise IOError("Path not found")
 
 
-def get_data_fileobjs(datadir, pattern='*'):
+def get_pkg_data_fileobjs(datadir, pattern='*', encoding=None):
     """
     Returns readable file objects for all of the data files in a given
     directory that match a given glob pattern.
@@ -384,6 +591,21 @@ def get_data_fileobjs(datadir, pattern='*'):
         `glob` module in the standard library for more information.
         By default, matches all files.
 
+    encoding : str, optional
+        When `None` (default), returns a file-like object with a
+        `read` method that on Python 2.x returns `bytes` objects and
+        on Python 3.x returns `str` (`unicode`) objects, using
+        `locale.getpreferredencoding()` as an encoding.  This matches
+        the default behavior of the built-in `open` when no `mode`
+        argument is provided.
+
+        When `'binary'`, returns a file-like object where its `read`
+        method returns `bytes` objects.
+
+        When another string, it is the name of an encoding, and the
+        file-like object's `read` method will return `str` (`unicode`)
+        objects, decoded from binary using the given encoding.
+
     Returns
     -------
     fileobjs : iterator of file objects
@@ -395,13 +617,13 @@ def get_data_fileobjs(datadir, pattern='*'):
     This will retrieve the contents of the data file for the `astropy.wcs`
     tests::
 
-        from astropy.config import get_data_filenames
+        from astropy.config import get_pkg_data_filenames
 
-        for fd in get_data_filename('maps', '*.hdr'):
+        for fd in get_pkg_data_filename('maps', '*.hdr'):
             fcontents = fd.read()
     """
-    for fn in get_data_filenames(datadir, pattern):
-        with open(fn, 'rb') as fd:
+    for fn in get_pkg_data_filenames(datadir, pattern):
+        with get_pkg_data_fileobj(fn, encoding=encoding) as fd:
             yield fd
 
 
@@ -415,7 +637,7 @@ def compute_hash(localfn):
 
     Typically, if you wish to write a test that requires a particular data
     file, you will want to submit that file to the astropy data servers, and
-    use e.g. ``get_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
+    use e.g. ``get_pkg_data_filename('hash/a725fa6ba642587436612c2df0451956')``,
     but with the hash for your file in place of the hash in the example.
 
     Parameters
@@ -441,7 +663,7 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
-def _find_pkg_data_path(dataname):
+def _find_pkg_data_path(data_name):
     """
     Look for data in the source-included data directories and return the
     path.
@@ -454,7 +676,7 @@ def _find_pkg_data_path(dataname):
     rootpkg = __import__(rootpkgname)
 
     module_path = dirname(module.__file__)
-    path = join(module_path, dataname)
+    path = join(module_path, data_name)
 
     root_dir = dirname(rootpkg.__file__)
     assert abspath(path).startswith(abspath(root_dir)), \
@@ -485,40 +707,53 @@ def _find_hash_fn(hash):
         return None
 
 
-def _cache_remote(remoteurl):
+def download_file(remote_url, cache=False):
     """
-    Accepts a URL, downloads and caches the result returning the filename, with
-    a name determined by the file's MD5 hash. If present in the cache, just
+    Accepts a URL, downloads and optionally caches the result
+    returning the filename, with a name determined by the file's MD5
+    hash. If ``cache=True`` and the file is present in the cache, just
     returns the filename.
+
+    Parameters
+    ----------
+    remote_url : str
+        The URL of the file to download
+    cache : bool, optional
+        Whether to use the cache
     """
+
     import hashlib
     from contextlib import closing
-    from os.path import join
     from tempfile import NamedTemporaryFile
     from shutil import move
-    from urllib2 import urlopen
     from warnings import warn
 
     from ..utils.console import ProgressBarOrSpinner
 
-    try:
-        dldir, urlmapfn = _get_data_cache_locs()
-        docache = True
-    except (IOError, OSError) as e:
-        msg = 'Remote data cache could not be accessed due to '
-        estr = '' if len(e.args) < 1 else (': ' + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
-        docache = False
+    missing_cache = False
 
-    if docache:
+    if cache:
+
+        try:
+            dldir, urlmapfn = _get_data_cache_locs()
+        except (IOError, OSError) as e:
+            msg = 'Remote data cache could not be accessed due to '
+            estr = '' if len(e.args) < 1 else (': ' + str(e))
+            warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+            cache = False
+            missing_cache = True  # indicates that the cache is missing to raise a warning later
+
         _acquire_data_cache_lock()
-    try:
-        if docache:
-            with _open_shelve(urlmapfn, True) as url2hash:
-                if str(remoteurl) in url2hash:
-                    return url2hash[str(remoteurl)]
 
-        with closing(urlopen(remoteurl, timeout=REMOTE_TIMEOUT())) as remote:
+    try:
+
+        if cache:
+            with _open_shelve(urlmapfn, True) as url2hash:
+                if str(remote_url) in url2hash:
+                    return url2hash[str(remote_url)]
+
+        with closing(urllib2.urlopen(remote_url, timeout=REMOTE_TIMEOUT())) as remote:
+
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -531,7 +766,7 @@ def _cache_remote(remoteurl):
             else:
                 size = None
 
-            dlmsg = "Downloading {0}".format(remoteurl)
+            dlmsg = "Downloading {0}".format(remote_url)
             with ProgressBarOrSpinner(size, dlmsg) as p:
                 with NamedTemporaryFile(delete=False) as f:
                     bytes_read = 0
@@ -542,34 +777,39 @@ def _cache_remote(remoteurl):
                         bytes_read += len(block)
                         p.update(bytes_read)
                         block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
-        if docache:
+
+        if cache:
+
             with _open_shelve(urlmapfn, True) as url2hash:
-                localpath = join(dldir, hash.hexdigest())
-                move(f.name, localpath)
-                url2hash[str(remoteurl)] = localpath
+                local_path = os.path.join(dldir, hash.hexdigest())
+                move(f.name, local_path)
+                url2hash[str(remote_url)] = local_path
+
         else:
-            localpath = f.name
-            msg = 'File downloaded to temp file due to lack of cache access.'
-            warn(CacheMissingWarning(msg, localpath))
+
+            local_path = f.name
+            if missing_cache:
+                msg = 'File downloaded to temp file due to lack of cache access.'
+                warn(CacheMissingWarning(msg, local_path))
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
-                _tempfilestodel.append(localpath)
+                _tempfilestodel.append(local_path)
 
     finally:
-        if docache:
+
+        if cache:
             _release_data_cache_lock()
 
-    return localpath
+    return local_path
 
 
-#this is used by _cache_remote and _deltemps to determine the files to delete
+# This is used by download_file and _deltemps to determine the files to delete
 # when the interpreter exits
 _tempfilestodel = []
 
 
 @atexit.register
 def _deltemps():
-    import os
 
     global _tempfilestodel
 
@@ -651,7 +891,7 @@ def _get_data_cache_locs():
     shelveloc : str
         The path to the shelve object that stores the cache info.
     """
-    from .paths import get_cache_dir
+    from ..config.paths import get_cache_dir
     from os.path import exists, isdir, join
     from os import mkdir
 
@@ -681,7 +921,7 @@ def _open_shelve(shelffn, withclosing=False):
     import shelve
     from contextlib import closing
 
-    if sys.version_info[0] > 2:  # pragma: py3
+    if not PY3K:  # pragma: py3
         shelf = shelve.open(shelffn, protocol=2)
     else:  # pragma: py2
         shelf = shelve.open(shelffn + '.db', protocol=2)

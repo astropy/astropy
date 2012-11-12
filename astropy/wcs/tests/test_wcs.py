@@ -8,7 +8,7 @@ from numpy.testing import assert_array_almost_equal
 
 from ...tests.helper import raises
 from ... import wcs
-from ...config import get_data_filenames, get_data_contents, get_data_filename
+from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename
 from ...tests.helper import pytest
 
 
@@ -20,7 +20,8 @@ def test_maps():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        header = get_data_contents(os.path.join("maps", filename))
+        header = get_pkg_data_contents(
+            os.path.join("maps", filename), encoding='binary')
         wcsobj = wcs.WCS(header)
 
         world = wcsobj.wcs_pix2world([[97, 97]], 1)
@@ -32,7 +33,7 @@ def test_maps():
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_data_filenames("maps", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -70,7 +71,8 @@ def test_spectra():
 
         # the test parameter is the base name of the file to use; find
         # the file in the installed wcs test directory
-        header = get_data_contents(os.path.join("spectra", filename))
+        header = get_pkg_data_contents(
+            os.path.join("spectra", filename), encoding='binary')
 
         wcsobj = wcs.WCS(header)
 
@@ -78,7 +80,7 @@ def test_spectra():
         assert len(all) == 9
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_data_filenames("spectra", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -207,7 +209,8 @@ def test_fixes():
     From github issue #36
     """
     def run():
-        header = get_data_contents('data/nonstandard_units.hdr')
+        header = get_pkg_data_contents(
+            'data/nonstandard_units.hdr', encoding='binary')
         w = wcs.WCS(header)
 
     with warnings.catch_warnings(record=True) as w:
@@ -224,7 +227,8 @@ def test_outside_sky():
     """
     From github issue #107
     """
-    header = get_data_contents('data/outside_sky.hdr')
+    header = get_pkg_data_contents(
+        'data/outside_sky.hdr', encoding='binary')
     w = wcs.WCS(header)
 
     assert np.all(np.isnan(w.wcs_pix2world([[100.,500.]], 0)))  # outside sky
@@ -233,12 +237,12 @@ def test_outside_sky():
 
 
 def test_load_fits_path():
-    fits = get_data_filename('data/sip.fits')
+    fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
 
 
 def test_backward_compatible():
-    fits = get_data_filename('data/sip.fits')
+    fits = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(fits)
 
     data = np.random.rand(100, 2)

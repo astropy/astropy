@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 
-from ....config import get_data_filename
+from ....utils.data import get_pkg_data_filename
 from ..table import parse, writeto
 from .. import tree
 
@@ -24,7 +24,7 @@ def teardown_module():
 def test_table():
     # Read the VOTABLE
     votable = parse(
-        get_data_filename('data/regression.xml'),
+        get_pkg_data_filename('data/regression.xml'),
         pedantic=False)
     table = votable.get_first_table()
     astropy_table = table.to_table()

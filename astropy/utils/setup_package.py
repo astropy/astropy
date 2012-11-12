@@ -9,3 +9,14 @@ def get_extensions():
         Extension('astropy.utils._compiler',
                   [relpath(join(ROOT, 'src', 'compiler.c'))])
         ]
+
+
+def get_package_data():
+    # Installs the testing data files
+    return {
+        'astropy.utils.tests': [
+            'data/*.dat',
+            'data/*.dat.gz',
+            'data/*.dat.bz2',
+            'data/*.txt']
+        }

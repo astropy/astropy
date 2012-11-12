@@ -8,5 +8,4 @@ affiliated package index.
 
 from .paths import *
 from .configuration import *
-from .data import *
 from .affiliated import *

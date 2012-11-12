@@ -75,7 +75,8 @@ caps. Alternatively, they may be located with the
 
 For example, if there is a part of your configuration file that looks like::
 
-    [config.data]
+    [utils.data]
+
     # URL for astropy remote data site.
     dataurl = http://data.astropy.org/
 
@@ -85,7 +86,7 @@ For example, if there is a part of your configuration file that looks like::
 
 You should be able to modify the values at run-time this way::
 
-    >>> from astropy.config.data import DATAURL, REMOTE_TIMEOUT
+    >>> from astropy.utils.data import DATAURL, REMOTE_TIMEOUT
     >>> DATAURL()
     'http://data.astropy.org/'
     >>> DATAURL.set('http://astropydata.mywebsite.com')
@@ -101,7 +102,7 @@ Or alternatively::
 
     >>> from astropy.config import get_config
 
-    >>> items = get_config('astropy.config.data')
+    >>> items = get_config('astropy.utils.data')
     >>> items['dataurl'].set('http://astropydata.mywebsite.com')
     >>> items['remote_timeout'].set('4.5')
 
@@ -112,11 +113,11 @@ after you've made your changes, you can do::
     >>> DATAURL.save()
     >>> REMOTE_TIMEOUT.save()
 
-Or to save all modifications to configuration items in `astropy.config.data`
+Or to save all modifications to configuration items in `astropy.utils.data`
 (which includes the changes made above), do::
 
     >>> from astropy.config import save_config
-    >>> save_config('astropy.config.data')
+    >>> save_config('astropy.utils.data')
 
 Reloading Configuration
 -----------------------
@@ -125,7 +126,8 @@ Instead of modifying the variables in python, you can also modify the
 configuration files and then reload them.  For example, if you modify the
 configuration file to say::
 
-    [config.data]
+    [utils.data]
+
     # URL for astropy remote data site.
     dataurl = http://myotherdata.mywebsite.com/
 
