@@ -1373,7 +1373,7 @@ class Table(object):
                 # We set the mask to True regardless of whether a mask value
                 # is specified or not - that is, any cell where a new row
                 # value is not specified should be treated as missing.
-                self._data.mask[-1] = tuple(1 for i in range(len(self._data.dtype)))
+                self._data.mask[-1] = (True,) * len(self._data.dtype)
 
             # First we copy the values
             for name, val in vals.items():
