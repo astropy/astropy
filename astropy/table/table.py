@@ -1,7 +1,6 @@
 import abc
 import sys
 from copy import deepcopy
-import collections
 
 import numpy as np
 from numpy import ma
@@ -1344,6 +1343,12 @@ class Table(object):
         vals : tuple, list, dict or None
             Use the specified values in the new row
         """
+
+        def _is_mapping(obj):
+            """Minimal checker for mapping (dict-like) interface for obj"""
+            attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
+            return all(hasattr(obj, attr) for attr in attrs)
+
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
@@ -1354,9 +1359,9 @@ class Table(object):
         else:
             self._data.resize((newlen,), refcheck=False)
 
-        if isinstance(vals, collections.Mapping):
+        if _is_mapping(vals):
 
-            if mask is not None and not isinstance(mask, collections.Mapping):
+            if mask is not None and not _is_mapping(mask):
                 raise TypeError("Mismatch between type of vals and mask")
 
             # Now check that the mask is specified for the same keys as the
@@ -1381,7 +1386,7 @@ class Table(object):
 
         elif isiterable(vals):
 
-            if mask is not None and (not isiterable(mask) or isinstance(mask, collections.Mapping)):
+            if mask is not None and (not isiterable(mask) or _is_mapping(mask)):
                 raise TypeError("Mismatch between type of vals and mask")
 
             if len(self.columns) != len(vals):
