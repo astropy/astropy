@@ -22,8 +22,8 @@ import tempfile
 
 # LOCAL
 from .. import validate
-from ....config import get_data_filename
 from ....tests.helper import pytest, remote_data
+from ...utils.data import get_pkg_data_filename
 
 
 @remote_data
@@ -46,7 +46,7 @@ class TestConeSearchValidation():
                           'excp': 'conesearch_exception.json',
                           'nerr': 'conesearch_error.json'}
 
-        validate.CS_MSTR_LIST.set(get_data_filename(os.path.join(
+        validate.CS_MSTR_LIST.set(get_pkg_data_filename(os.path.join(
             self.datadir, 'vao_conesearch_sites_121107_subset.xml')))
 
     @pytest.mark.parametrize(('multiproc'), [True, False])
@@ -58,12 +58,12 @@ class TestConeSearchValidation():
             destdir=self.out_dir, multiproc=multiproc)
 
         for val in self.filenames.values():
-            _compare_catnames(get_data_filename(
+            _compare_catnames(get_pkg_data_filename(
                 os.path.join(self.datadir, val)),
                 os.path.join(self.out_dir, val))
 
         # Symbolic link
-        _compare_catnames(get_data_filename(
+        _compare_catnames(get_pkg_data_filename(
             os.path.join(self.datadir, self.filenames['good'])),
             os.path.join(self.out_dir, 'conesearch.json'))
 
@@ -76,7 +76,7 @@ class TestConeSearchValidation():
             '-source=J/AJ/130/2212/table3&']
         validate.check_conesearch_sites(destdir=local_outdir,
                                         url_list=local_list)
-        _compare_catnames(get_data_filename(
+        _compare_catnames(get_pkg_data_filename(
             os.path.join(self.datadir, 'conesearch_warn_subset.json')),
             os.path.join(local_outdir, 'conesearch_warn.json'))
 

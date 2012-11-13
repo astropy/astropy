@@ -47,12 +47,12 @@ import json
 import numpy as np
 
 # LOCAL
-from ...config.data import get_data_fileobj
 from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
 from ...utils import webquery
 from ...utils.console import color_print
+from ...utils.data import get_pkg_data_fileobj
 
 # LOCAL CONFIG
 from ...config.configuration import ConfigurationItem
@@ -207,11 +207,12 @@ def get_remote_catalog_db(dbname, cache=True):
     value : `VOSDatabase` object
 
     """
-    fd = get_data_fileobj(BASEURL() + dbname + '.json', cache=cache)
+    fd = get_pkg_data_fileobj(BASEURL() + dbname + '.json', cache=cache)
     if IS_PY3K:  # pragma: py3
         wrapped_fd = io.TextIOWrapper(fd, 'utf8')
     else:  # pragma: py2
         wrapped_fd = fd
+
     try:
         tree = json.load(wrapped_fd)
     finally:
