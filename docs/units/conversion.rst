@@ -9,6 +9,7 @@ Direct Conversion
 In this case, given a source and destination unit, the value(s) in the
 new units is(are) returned.
 
+  >>> from astropy import units as u
   >>> u.pc.to(u.m, 3.26)
   1.0059317615e+17
 
@@ -24,17 +25,18 @@ Obtaining a Conversion Function
 
 Finally, one may obtain a function that can be used to convert to the
 new unit. Normally this may seem like overkill when all one needs to
-do is multiply by a scale factor, but there are cases where it is not
-so simple, for example when there are equivalencies in use.
+do is multiply by a scale factor, but there are cases when the
+transformation between units may not be as simple as a single scale
+factor, for example when a custom equivalency table is in use.
 
 Conversion to different units involves obtaining a conversion function
 and then applying it to the value, or values to be converted.
 
-  >>> speed_unit = u.cm / u.s
-  >>> speed_converter = speed_unit.get_converter(u.mile / u.hour)
-  >>> speed_converter(100.)
+  >>> cms = u.cm / u.s
+  >>> cms_to_mph = cms.get_converter(u.mile / u.hour)
+  >>> cms_to_mph(100.)
   2.2366936292054402
-  >>> speed_converter([1000, 2000])
+  >>> cms_to_mph([1000, 2000])
   array([ 22.36936292,  44.73872584])
 
 Incompatible Conversions
@@ -42,16 +44,16 @@ Incompatible Conversions
 
 If you attempt to convert to a incompatible unit, an exception will result:
 
-  >>> speed_unit.to(u.mile)
+  >>> cms.to(u.mile)
   ...
-  UnitsException: 'cm / (s)' and 'mi' are not convertible
+  UnitsException: 'cm / (s)' (speed) and 'mi' (length) are not convertible
 
 You can check whether a particular conversion is possible using the
-`is_equivalent` method::
+`~astropy.units.core.UnitBase.is_equivalent` method::
 
   >>> u.m.is_equivalent(u.foot)
   True
   >>> u.m.is_equivalent("second")
   False
-  >>> (u.m**2).is_equivalent(u.acre)
+  >>> (u.m ** 2).is_equivalent(u.acre)
   True

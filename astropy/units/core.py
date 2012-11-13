@@ -638,6 +638,9 @@ class UnrecognizedUnit(IrreducibleUnit):
     def __init__(self, st):
         IrreducibleUnit.__init__(self, st)
 
+    def __repr__(self):
+        return "UnrecognizedUnit({0})".format(str(self))
+
     def __str__(self):
         return self.name
 
@@ -669,7 +672,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     def get_converter(self, other, equivs=[]):
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "
-            "to other units.")
+            "to other units.".format(self.name))
 
     def get_format_name(self, format):
         return self.name
@@ -864,6 +867,12 @@ class CompositeUnit(UnitBase):
                 raise TypeError("bases must be sequence of UnitBase instances")
         self._bases = bases
         self._powers = powers
+
+    def __repr__(self):
+        if len(self._bases):
+            return super(CompositeUnit, self).__repr__()
+        else:
+            return 'Unit(dimensionless)'
 
     @property
     def scale(self):
