@@ -312,3 +312,30 @@ class Quantity(object):
         latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
+
+    def decomposed_unit(self, allowscaledunits=False):
+        """
+        Generates a new `Quantity` with the units decomposed. Decomposed
+        units have only irreducible units in them (see
+        `astropy.units.UnitBase.decompose`).
+
+        Parameters
+        ----------
+        allowscaledunits : bool
+            If True, the resulting `Quantity` may have a scale factor
+            associated with it.  If False, any scaling in the unit will
+            be subsumed into the value of the resulting `Quantity`
+
+        Returns
+        -------
+        newq : `~astropy.units.quantity.Quantity`
+            A new object equal to this quantity with units decomposed.
+
+        """
+        newu = self.unit.decompose()
+        newval = self.value
+        if not allowscaledunits and hasattr(newu, 'scale'):
+            newval *= newu.scale
+            newu = newu / Unit(newu.scale)
+
+        return Quantity(newval, newu)
