@@ -95,6 +95,12 @@ def find_all_optional_dependencies(pkgornm=None):
     dependencies specified by way of the `requires_optional_dependencies`
     decorator.
 
+    .. note::
+        This will import all of the package and subpackage, but
+        will *not* fail on ImportErrors by design - instead it will
+        silently skip those packages.
+
+
     Parameters
     ----------
     pkgornm : module, str, or None
@@ -133,7 +139,11 @@ def find_all_optional_dependencies(pkgornm=None):
 
     opdeps = set()
     for imper, nm, ispkg in walk_packages(package.__path__, package.__name__ + '.'):
-        mod = imper.find_module(nm).load_module(nm)
-        opdeps = opdeps.union(do_check(mod))
+        imper.find_module(nm)
+        try:
+            mod = __import__(nm)
+            opdeps = opdeps.union(do_check(mod))
+        except ImportError:
+            pass
 
     return opdeps
