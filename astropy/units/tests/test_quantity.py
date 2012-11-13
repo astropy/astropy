@@ -288,3 +288,18 @@ class TestQuantityDisplay():
     def test_quantity_repr(self):
         q1 = u.Quantity(1, unit='m')
         assert repr(q1) == "<Quantity 1 m>"
+
+
+def test_decompose():
+    q1 = 5 * u.N
+    assert q1.decomposed_unit() == (5 * u.kg * u.m * u.s ** -2)
+
+    q2 = 5 * u.m / u.km
+
+    q2d = q2.decomposed_unit(False)
+    assert q2d.value == 0.005
+    assert q2d.unit == u.Unit('')  # dimensionless unit
+
+    q2d2 = q2.decomposed_unit(True)
+    assert q2d2.value == 5
+    assert q2d2.unit != u.Unit('')  # dimensionless unit
