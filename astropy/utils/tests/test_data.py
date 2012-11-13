@@ -81,9 +81,13 @@ def test_local_data_name():
     fnout = get_pkg_data_filename('data/local.dat')
     assert os.path.isfile(fnout) and fnout.endswith('local.dat')
 
+    #TODO: if in the future, the root data/ directory is added in, the below
+    #test should be uncommented and the README.rst should be replaced with
+    #whatever file is there
+
     #get something in the astropy root
-    fnout2 = get_pkg_data_filename('../../data/README.rst')
-    assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
+    #fnout2 = get_pkg_data_filename('../../data/README.rst')
+    #assert os.path.isfile(fnout2) and fnout2.endswith('README.rst')
 
 
 @raises(AssertionError)
