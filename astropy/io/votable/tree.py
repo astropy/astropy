@@ -2613,9 +2613,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         .. warning::
 
-           The mask is thrown out by this operation, since masking is
-           not currently supported by `astropy.table.Table`.
-
            Variable-length array fields may not be restored
            identically when round-tripping through the
            `astropy.table.Table` instance.
@@ -2629,7 +2626,6 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 meta[key] = val
 
         table = Table(self.array, meta=meta)
-        table.mask = self.array.mask
 
         for field in self.fields:
             column = table[field.ID]

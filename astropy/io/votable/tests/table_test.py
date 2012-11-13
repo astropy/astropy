@@ -6,6 +6,8 @@ import os
 import shutil
 import tempfile
 
+import numpy as np
+
 from ....config import get_data_filename
 from ..table import parse, writeto
 from .. import tree
@@ -28,6 +30,53 @@ def test_table():
         pedantic=False)
     table = votable.get_first_table()
     astropy_table = table.to_table()
+    mask = np.array([ (False, False, False, False, False, False, False, False, False,
+                       False, False, False, False,
+                       [[False, False], [False, False], [False, False]], False, False,
+                       True, True, False, [False, False], False, [False, False, False, False],
+                       False, [[True, True], [True, True]], False, False, False,
+                       [False, False, False, False, False, False, False, False, False, False,
+                        False, False, False, False, False, False]),
+                      (False, False, False, False, False, False, False, False, True, False,
+                       False, False, False, [[False, False], [False, False], [False, False]],
+                       False, False, False, False, False, [False, False], False,
+                       [False, False, False, False], True, [[False, False], [False, False]],
+                       False, False, False, [True, True, True, True, True, True, True, True,
+                                             True, True, True, True, True, True, True, True]),
+                      (False, False, False, False, False, False, False, False, False, False,
+                       False, False, False, [[False, False], [False, False], [False, False]],
+                       False, False, False, False, False, [False, False], False,
+                       [False, False, True, False], False, [[True, False], [True, False]],
+                       False, False, False, [True, True, True, True, True, True, True, True,
+                                             True, True, True, True, True, True, True, True]),
+                      (False, False, False, False, False, False, False, False, False, True,
+                       False, False, False, [[True, True], [True, True], [True, True]],
+                       False, False, True, True, False, [False, False], False,
+                       [True, True, True, True], True, [[False, True], [False, True]],
+                       True, True, False, [True, True, True, True, True, True, True, True, True,
+                                           True, True, True, True, True, True, True]),
+                      (False, False, False, False, False, False, False, True, True, False, True,
+                       False, True, [[True, True], [True, True], [True, True]],
+                       False, False, True, True, False, [False, False], True,
+                       [True, True, True, True], True, [[True, True], [True, True]],
+                       True, True, False, [True, True, True, True, True, True, True, True, True,
+                                           True, True, True, True, True, True, True])],
+                    dtype=[('string_test', '|b1'), ('string_test_2', '|b1'),
+                           ('unicode_test', '|b1'), ('fixed_unicode_test', '|b1'),
+                           ('string_array_test', '|b1'), ('unsignedByte', '|b1'),
+                           ('short', '|b1'), ('int', '|b1'), ('long', '|b1'), ('double', '|b1'),
+                           ('float', '|b1'), ('array', '|b1'), ('bit', '|b1'),
+                           ('bitarray', '|b1', (3, 2)), ('bitvararray', '|b1'),
+                           ('bitvararray2', '|b1'), ('floatComplex', '|b1'),
+                           ('doubleComplex', '|b1'), ('doubleComplexArray', '|b1'),
+                           ('doubleComplexArrayFixed', '|b1', (2,)), ('boolean', '|b1'),
+                           ('booleanArray', '|b1', (4,)), ('nulls', '|b1'),
+                           ('nulls_array', '|b1', (2, 2)), ('precision1', '|b1'),
+                           ('precision2', '|b1'), ('doublearray', '|b1'),
+                           ('bitarray2', '|b1', (16,))])
+
+    assert np.all(astropy_table.mask == mask)
+
     votable2 = tree.VOTableFile.from_table(astropy_table)
     t = votable2.get_first_table()
 
