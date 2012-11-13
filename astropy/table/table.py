@@ -467,6 +467,19 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         BaseColumn.__array_finalize__(self, obj)
         ma.MaskedArray.__array_finalize__(self, obj)
 
+    def _fix_fill_value(self, val):
+        """Fix a fill value (if needed) to work around a bug with setting the fill
+        value of a string array in MaskedArray with Python 3.x.  See
+        https://github.com/numpy/numpy/pull/2733.  This mimics the check in
+        numpy.ma.core._check_fill_value() (version < 1.7) which incorrectly sets
+        fill_value to a default if self.dtype.char is 'U' (which is the case for Python
+        3).  Here we change the string to a byte string so that in Python 3 the
+        isinstance(val, basestring) part fails.
+        """
+        if isinstance(val, basestring) and (self.dtype.char not in 'SV'):
+            val = val.encode()
+        return val
+
     @property
     def fill_value(self):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
@@ -475,8 +488,27 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     def fill_value(self, val):
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work."""
+        val = self._fix_fill_value(val)
+
         if self.parent_table:
             self.parent_table._data[self._name].fill_value = val
+
+        # Yet another ma bug workaround: If the value of fill_value for a string array is
+        # requested but not yet set then it gets created as 'N/A'.  From this point onward
+        # any new fill_values are truncated to 3 characters.  Note that this does not
+        # occur if the masked array is a structured array (as in the previous block that
+        # deals with the parent table).
+        #
+        # >>> x = ma.array(['xxxx'])
+        # >>> x.fill_value  # fill_value now gets represented as an 'S3' array
+        # 'N/A'
+        # >>> x.fill_value='yyyy'
+        # >>> x.fill_value
+        # 'yyy'
+        #
+        # To handle this we are forced to reset a private variable first:
+        self._fill_value = None
+
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 
     @property
@@ -502,6 +534,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         """
         if fill_value is None:
             fill_value = self.fill_value
+        fill_value = self._fix_fill_value(fill_value)
+
         data = super(MaskedColumn, self).filled(fill_value)
         out = Column(self.name, data, units=self.units, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))

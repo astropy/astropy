@@ -96,12 +96,22 @@ class TestFillValue(SetupData):
     def test_init_set_fill_value(self):
         """Check that setting fill_value in the MaskedColumn init works"""
         assert self.a.fill_value == 1
+        c = MaskedColumn('c', ['xxxx', 'yyyy'], fill_value='none')
+        assert c.fill_value == 'none'
 
     def test_set_get_fill_value_for_bare_column(self):
         """Check set and get of fill value works for bare Column"""
         self.d.fill_value = -999
         assert self.d.fill_value == -999
         assert np.all(self.d.filled() == [7, -999, 7])
+
+    def test_set_get_fill_value_for_str_column(self):
+        c = MaskedColumn('c', ['xxxx', 'yyyy'], mask=[True, False])
+        # assert np.all(c.filled() == ['N/A', 'yyyy'])
+        c.fill_value = 'ABCDEF'
+        assert c.fill_value == 'ABCD'  # string truncated to dtype length
+        assert np.all(c.filled() == ['ABCD', 'yyyy'])
+        assert np.all(c.filled('XY') == ['XY', 'yyyy'])
 
     def test_table_column_mask_not_ref(self):
         """Table column mask is not ref of original column mask"""
