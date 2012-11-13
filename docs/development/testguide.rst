@@ -239,8 +239,8 @@ Working with data files
 -----------------------
 
 Tests that need to make use of a data file should use the
-`~astropy.config.data.get_data_fileobj` or
-`~astropy.config.data.get_data_filename` functions.  These functions search
+`~astropy.utils.data.get_data_fileobj` or
+`~astropy.utils.data.get_data_filename` functions.  These functions search
 locally first, and then on the astropy data server or an arbitrary URL, and
 return a file-like object or a local filename, respectively.  They automatically
 cache the data locally if remote data is obtained, and from then on the local
@@ -248,7 +248,7 @@ copy will be used transparently.
 
 They also support the use of an MD5 hash to get a specific version of a data
 file.  This hash can be obtained prior to submitting a file to the astropy
-data server by using the `~astropy.config.data.compute_hash` function on a
+data server by using the `~astropy.utils.data.compute_hash` function on a
 local copy of the file.
 
 Tests that may retrieve remote data should be marked with the ``@remote_data``

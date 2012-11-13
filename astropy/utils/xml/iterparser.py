@@ -47,20 +47,25 @@ def _convert_to_fd_or_read_function(fd):
        - If it's not a real file object, it's much handier to just
          have a Python function to call.
 
+    This is somewhat quirky behavior, of course, which is why it is
+    private.  For a more useful version of similar behavior, see
+    `astropy.utils.misc.get_readable_fileobj`.
+
     Parameters
     ----------
     fd : object
         May be:
 
-            - a file object, in which case it is returned verbatim.
+            - a file object.  If the file is uncompressed, this raw
+              file object is returned verbatim.  Otherwise, the read
+              method is returned.
 
             - a function that reads from a stream, in which case it is
               returned verbatim.
 
-            - a file path, in which case it is opened.  If it ends in
-              `.gz`, it is assumed to be a gzipped file, and the
-              :meth:`read` method on the file object is returned.
-              Otherwise, the raw file object is returned.
+            - a file path, in which case it is opened.  Again, like a
+              file object, if it's uncompressed, a raw file object is
+              returned, otherwise its read method.
 
             - an object with a :meth:`read` method, in which case that
               method is returned.
@@ -73,50 +78,23 @@ def _convert_to_fd_or_read_function(fd):
     if is_callable(fd):
         yield fd
         return
-    elif isinstance(fd, basestring):
-        if fd.endswith('.gz'):
-            from ...utils.compat import gzip
-            with gzip.GzipFile(fd, 'rb') as real_fd:
-                yield real_fd.read
-                return
+
+    from astropy.utils.data import get_readable_fileobj
+
+    with get_readable_fileobj(fd, encoding='binary') as new_fd:
+        if sys.platform.startswith('win'):
+            yield new_fd.read
         else:
-            with open(fd, 'rb') as real_fd:
-                if sys.platform.startswith('win'):
-                    # On Windows, we can't pass a real file descriptor
-                    # to the C level, so we pass the read method
-                    yield real_fd.read
-                    return
-                yield real_fd
-                return
-    elif hasattr(fd, 'read'):
-        assert is_callable(fd.read)
-        magic = fd.read(2)
-        fd.seek(0)
-        if magic == b'\x1f\x8b':
-            from ...utils.compat import gzip
-            fd = gzip.GzipFile(fileobj=fd)
-
-        if type(fd.read(0)) == type(u''):
-            def make_encoder(reader):
-                def read(n):
-                    return reader(n).encode('utf-8')
-            yield make_encoder(fd.read)
-            return
-
-        if not sys.platform.startswith('win'):
             if IS_PY3K:
-                if isinstance(fd, io.FileIO):
-                    yield fd
-                    return
+                if isinstance(new_fd, io.FileIO):
+                    yield new_fd
+                else:
+                    yield new_fd.read
             else:
-                if isinstance(fd, file):
-                    yield fd
-                    return
-
-        yield fd.read
-        return
-    else:
-        raise TypeError("Can not be coerced to read function")
+                if isinstance(new_fd, file):
+                    yield new_fd
+                else:
+                    yield new_fd.read
 
 
 def _fast_iterparse(fd, buffersize=2 ** 10):

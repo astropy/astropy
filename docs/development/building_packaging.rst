@@ -29,8 +29,8 @@ process:
 
     It is recommended that all such data be in a directory named "data" inside
     the package within which it is supposed to be used, and package data should
-    be accessed via the `astropy.config.data.get_data_filename` and
-    `astropy.config.data.get_data_fileobj` functions.
+    be accessed via the `astropy.utils.data.get_data_filename` and
+    `astropy.utils.data.get_data_fileobj` functions.
 
 * :func:`get_extensions`
     This provides information for building C or Cython extensions. If defined,
