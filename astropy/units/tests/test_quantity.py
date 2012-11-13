@@ -217,6 +217,22 @@ def test_si():
     assert q.si.value == 10
     assert q.si.unit == (1/u.m)
 
+def test_cgs():
+    q1 = 10. * u.cm * u.s**2 / (200. * u.ms)**2 # 250 centimeters
+    assert q1.cgs.value == 250
+    assert q1.cgs.unit == u.cm
+
+    q = 10.*u.m # 10 centimeters
+    assert q.cgs.value == 1000
+    assert q.cgs.unit == u.cm
+
+    q = 10./u.cm # 10 1 / centimeters
+    assert q.cgs.value == 10
+    assert q.cgs.unit == (1/u.cm)
+
+    q = 10.*u.Pa # 10 pascals
+    assert q.cgs.value == 100
+    assert q.cgs.unit == u.barye
 
 '''
 def test_simplify_units():

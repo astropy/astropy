@@ -144,8 +144,38 @@ class Quantity(object):
 
     @property
     def cgs(self):
-        """ TODO: """
-        raise NotImplementedError()
+        """ Returns a copy of the current `Quantity` instance with CGS units. The value of the
+            resulting object will be scaled.
+        """
+
+        from . import cgs as _cgs
+        si_quantity = self.si
+        cgs_quantity_value = si_quantity.value
+
+        if isinstance(si_quantity.unit, CompositeUnit):
+            cgs_quantity_bases = []
+            cgs_quantity_powers = []
+
+            for base_unit, power in zip(si_quantity.unit.bases, si_quantity.unit.powers):
+                if base_unit in _cgs._cgs_bases.keys():
+                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant()**power
+                    cgs_quantity_value *= scale
+                    cgs_quantity_bases.append(_cgs._cgs_bases[base_unit])
+                    cgs_quantity_powers.append(power)
+                else:
+                    cgs_quantity_bases.append(base_unit)
+                    cgs_quantity_powers.append(power)
+
+            return Quantity(cgs_quantity_value, CompositeUnit(1., cgs_quantity_bases, cgs_quantity_powers).simplify())
+        else:
+            if si_quantity.unit in _cgs._cgs_bases.keys():
+                # Don't have to worry about power here because if it has a power, it's a CompositeUnit
+                scale = (si_quantity.unit / _cgs._cgs_bases[si_quantity.unit]).dimensionless_constant()
+                cgs_quantity_value *= scale
+
+                return Quantity(cgs_quantity_value, _cgs._cgs_bases[si_quantity.unit])
+            else:
+                return Quantity(si_quantity.value, si_quantity.unit)
 
 
     # Arithmetic operations

@@ -88,6 +88,15 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, register=True, prefixes=True,
          doc="Gauss: CGS unit for magnetic field")
 
 
+# Mapping from SI units to CGS units
+_cgs_bases = {si.meter : si.cm,
+              si.joule : erg,
+              si.newton : dyne,
+              si.pascal : barye,
+              si.tesla : gauss,
+              si.coulomb : statcoulomb,
+              si.kilogram : si.g}
+
 ###########################################################################
 # CLEANUP
 
