@@ -54,10 +54,10 @@ def requires_optional_dependencies(*dependencymodnames):
 
             # If we have not successfully imported the optional
             # packages yet, import them.
-            if fn_hook.optional_imports_needed:
+            if fn_hook.optional_deps_notchecked:
                 missing_packages = []
                 glo = globals()
-                for x in fn_hook.optional_imports_needed:
+                for x in fn_hook.optional_deps_needed:
                     # If we don't have a global with that name,
                     # try to import it.
                     if not x in glo:
@@ -76,13 +76,13 @@ def requires_optional_dependencies(*dependencymodnames):
                         raise ImportError(msg + (' '.join(missing_packages)))
 
                     # Remember that we succeeeded in the imports.
-                    fn_hook.optional_imports_unchecked = False
+                    fn_hook.optional_deps_notchecked = False
 
                 # finally call through to the real function
                 return fcn(*args, **kwargs)
 
-        fn_hook.optional_imports_needed = tuple(dependencymodnames)
-        fn_hook.optional_imports_unchecked = True
+        fn_hook.optional_deps_needed = tuple(dependencymodnames)
+        fn_hook.optional_deps_notchecked = True
 
         return fn_hook
 
@@ -96,9 +96,10 @@ def find_all_optional_dependencies(pkgornm=None):
     decorator.
 
     .. note::
-        This will import all of the package and subpackage, but
-        will *not* fail on ImportErrors by design - instead it will
-        silently skip those packages.
+        This will attempt to import all of the packages and subpackage,
+        but will *not* fail on if this process raises an exception.
+        Instead it will skip those packages and include them in
+        `failedmodnames`.
 
 
     Parameters
@@ -107,6 +108,15 @@ def find_all_optional_dependencies(pkgornm=None):
         The package (as a module object) or name of the package to
         search. If None, it determines the package to search as the root
         package of the function where this function is called.
+
+    Returns
+    -------
+    opdeps : set
+        The names of all packages given as optional dependencies from
+        the requested `pkgornm`.
+    failedmodnames : list
+        The list of package/module names that could not be checked due
+        to some exception raised whil importing them.
     """
     from pkgutil import get_loader, walk_packages
     from types import ModuleType
@@ -133,17 +143,19 @@ def find_all_optional_dependencies(pkgornm=None):
         for k, v in modorcls.__dict__.iteritems():
             if isclass(v):  # need to check methods of classes
                 s = s.union(do_check(v))
-            elif hasattr(v, 'optional_imports_needed'):
-                s = s.union(v.optional_imports_needed)
+            elif hasattr(v, 'optional_deps_needed'):
+                s = s.union(v.optional_deps_needed)
         return s
 
     opdeps = set()
+    failedmodnames = []
+
     for imper, nm, ispkg in walk_packages(package.__path__, package.__name__ + '.'):
         imper.find_module(nm)
         try:
-            mod = __import__(nm)
+            mod = __import__(nm, fromlist=[''])  # this fromlist trick seems hacky, but works
             opdeps = opdeps.union(do_check(mod))
-        except ImportError:
-            pass
+        except Exception:
+            failedmodnames.append(nm)
 
-    return opdeps
+    return opdeps, failedmodnames

@@ -33,4 +33,5 @@ def test_opdep():
 
 def test_find_deps():
 	# note that this will fail if any astropy module isn't importable
-	dependencies.find_all_optional_dependencies('astropy')
+	opdeps, fails = dependencies.find_all_optional_dependencies('astropy')
+	#assert 'scipy' in opdeps  # there may be more, but we know this one at least
