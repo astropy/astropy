@@ -4,12 +4,13 @@ Composing and defining units
 Units can be composed together using the regular Python numeric
 operators.  For example::
 
+  >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
   >>> fluxunit
-  Unit("erg / (s cm2)")
+  Unit("erg / (cm2 s)")
 
 Users are free to define new units, either fundamental or compound
-using the `def_unit` function.  For example::
+using the `~astropy.units.core.def_unit` function.  For example::
 
   >>> bakers_fortnight = u.def_unit('bakers_fortnight', 13 * u.day)
 
@@ -30,8 +31,8 @@ Creating a new fundamental unit is simple::
 Reducing a unit to its irreducible parts
 ----------------------------------------
 
-A unit can be decomposed into its irreducible parts using the `decompose`
-method::
+A unit can be decomposed into its irreducible parts using the
+`~astropy.units.core.UnitBase.decompose` method::
 
   >>> u.Ry
   Unit("Ry")

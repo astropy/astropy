@@ -17,6 +17,9 @@ from .imperial import *
 from .equivalencies import *
 from .physical import *
 
+# Create a special singleton for the dimensionless unit
+dimensionless = Unit(1)
+
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
 UnitBase._set_namespace(globals())
