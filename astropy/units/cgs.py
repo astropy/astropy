@@ -15,7 +15,6 @@ from .core import UnitBase, def_unit
 
 UnitBase._set_namespace(globals())
 
-
 ##########################################################################
 # ACCELERATION
 
@@ -78,7 +77,7 @@ def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * si.C * si.m,
          register=True,
          doc="Debye: CGS unit of electric dipole moment")
 
-def_unit(['Fr', 'Franklin', 'statcolomb', 'statC', 'esu'],
+def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
          si.g ** Fraction(1, 2) * si.cm ** Fraction(3, 2) * si.s ** -1,
          register=True)
 
