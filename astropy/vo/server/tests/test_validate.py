@@ -39,15 +39,15 @@ class TestConeSearchValidation():
 
     """
     def setup_class(self):
-        self.datadir = 'data' + os.sep
+        self.datadir = 'data'
         self.out_dir = tempfile.mkdtemp()
         self.filenames = {'good': 'conesearch_good.json',
                           'warn': 'conesearch_warn.json',
                           'excp': 'conesearch_exception.json',
                           'nerr': 'conesearch_error.json'}
 
-        validate.CS_MSTR_LIST.set(get_data_filename(
-            self.datadir + 'vao_conesearch_sites_121107_subset.xml'))
+        validate.CS_MSTR_LIST.set(get_data_filename(os.path.join(
+            self.datadir, 'vao_conesearch_sites_121107_subset.xml')))
 
     @pytest.mark.parametrize(('multiproc'), [True, False])
     def test_validation(self, multiproc):
@@ -58,16 +58,17 @@ class TestConeSearchValidation():
             destdir=self.out_dir, multiproc=multiproc)
 
         for val in self.filenames.values():
-            _compare_catnames(get_data_filename(self.datadir + val),
-                              self.out_dir + os.sep + val)
+            _compare_catnames(get_data_filename(
+                os.path.join(self.datadir, val)),
+                os.path.join(self.out_dir, val))
 
         # Symbolic link
-        _compare_catnames(
-            get_data_filename(self.datadir + self.filenames['good']),
-            self.out_dir + os.sep + 'conesearch.json')
+        _compare_catnames(get_data_filename(
+            os.path.join(self.datadir, self.filenames['good'])),
+            os.path.join(self.out_dir, 'conesearch.json'))
 
     def test_url_list(self):
-        local_outdir = self.out_dir + os.sep + 'subtmp1' + os.sep
+        local_outdir = os.path.join(self.out_dir, 'subtmp1')
         local_list = [
             'http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?'
             'table=batse4b&',
@@ -76,8 +77,8 @@ class TestConeSearchValidation():
         validate.check_conesearch_sites(destdir=local_outdir,
                                         url_list=local_list)
         _compare_catnames(get_data_filename(
-            self.datadir + 'conesearch_warn_subset.json'),
-            local_outdir + os.sep + 'conesearch_warn.json')
+            os.path.join(self.datadir, 'conesearch_warn_subset.json')),
+            os.path.join(local_outdir, 'conesearch_warn.json'))
 
     def teardown_class(self):
         shutil.rmtree(self.out_dir)

@@ -48,7 +48,6 @@ from __future__ import print_function, division
 # STDLIB
 import socket
 import sys
-import types
 import urllib
 import urllib2
 

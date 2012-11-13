@@ -18,7 +18,6 @@ These properties are set via Astropy configuration system:
 from collections import defaultdict
 from copy import deepcopy
 import json
-import numpy
 import os
 import shutil
 import time
@@ -144,19 +143,16 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     if not os.path.exists(destdir):
         os.mkdir(destdir)
 
-    if destdir[-1] != os.sep:
-        destdir += os.sep
-
     # Output dir created by votable.validator
-    _OUT_ROOT = destdir + 'results'
+    _OUT_ROOT = os.path.join(destdir, 'results')
 
     # Output files
     db_file = {}
-    db_file['good'] = destdir + 'conesearch_good.json'
-    db_file['warn'] = destdir + 'conesearch_warn.json'
-    db_file['excp'] = destdir + 'conesearch_exception.json'
-    db_file['nerr'] = destdir + 'conesearch_error.json'
-    db_to_use = destdir + 'conesearch.json'
+    db_file['good'] = os.path.join(destdir, 'conesearch_good.json')
+    db_file['warn'] = os.path.join(destdir, 'conesearch_warn.json')
+    db_file['excp'] = os.path.join(destdir, 'conesearch_exception.json')
+    db_file['nerr'] = os.path.join(destdir, 'conesearch_error.json')
+    db_to_use = os.path.join(destdir, 'conesearch.json')
 
     # JSON dictionaries for output files
     js_template = {'__version__': 1, 'catalogs': {}}
