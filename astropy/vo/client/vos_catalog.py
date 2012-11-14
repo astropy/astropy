@@ -48,7 +48,6 @@ import numpy as np
 # LOCAL
 from ...io.votable import table
 from ...io.votable.exceptions import vo_warn, W24, W25
-from ...io.votable.util import IS_PY3K
 from ...utils import webquery
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj

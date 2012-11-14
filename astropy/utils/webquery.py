@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """webquery: Get the output of a specified URL.
 
 This program gets the output of a specified URL.  The user
@@ -43,8 +42,6 @@ See Also
 ftp://legacy.gsfc.nasa.gov/heasarc/software/web_batch/webquery.pl
 
 """
-from __future__ import print_function, division
-
 # STDLIB
 import socket
 import sys
@@ -55,7 +52,8 @@ __all__ = ['webquery_open', 'webquery', 'webget_open', 'webget']
 
 URLLIB2_HAS_TIMEOUT = (sys.hexversion >= 0x02060000)
 
-class WebQueryError(Exception):
+
+class WebQueryError(Exception):  # pragma: no cover
     pass
 
 
@@ -66,9 +64,14 @@ def webquery_open(args=(), **kw):
 
     Keywords for query may be specified as a sequence of pairs in args
     or as keywords.  Special keywords that define the URL include:
-    host (default 'localhost'), url (default null), method (default
-    'POST'), port (default 80), timeout (default None).  Additional
-    keywords are passed as parameters to the query.
+
+        * host (default 'localhost')
+        * url (default null)
+        * method (default 'POST')
+        * port (default 80)
+        * timeout (default None)
+
+    Additional keywords are passed as parameters to the query.
 
     If a parameter keyword has a list as its value, the parameter is
     included multiple times in the query, once for each argument.
@@ -76,7 +79,7 @@ def webquery_open(args=(), **kw):
     """
     args = list(args)
     for key, value in kw.iteritems():
-        args.append((key,value))
+        args.append((key, value))
     port = 80
     method = "POST"
     url = ""
@@ -96,7 +99,7 @@ def webquery_open(args=(), **kw):
             timeout = value
         elif value is None:
             query.append(urllib.quote(key))
-        elif isinstance(value,list):
+        elif isinstance(value, list):
             qkey = urllib.quote(key)
             for v in value:
                 query.append('{}={}'.format(qkey, urllib.quote_plus(str(v))))
@@ -107,14 +110,14 @@ def webquery_open(args=(), **kw):
 
     if url[:1] == "/":
         # don't add an extra slash (purely for aesthetic purposes)
-        url = "http://{}:{}{}".format(host,port,url)
+        url = "http://{}:{}{}".format(host, port, url)
     else:
-        url = "http://{}:{}/{}".format(host,port,url)
+        url = "http://{}:{}/{}".format(host, port, url)
 
     if not query:
         query = None
     elif method == "GET":
-        url = "{}?{}".format(url,query)
+        url = "{}?{}".format(url, query)
         query = None
 
     if URLLIB2_HAS_TIMEOUT:
@@ -133,15 +136,19 @@ def webquery_open(args=(), **kw):
 
 def webquery(args=(), **kw):
     """
-    Write output of a specified URL to stdout or file
+    Write output of a specified URL to stdout or file.
 
     Keywords for query may be specified as a sequence of pairs in args
     or as keywords.  Special keywords that define the URL include:
-    host (default 'localhost'), url (default null), method (default
-    'POST'), port (default 80), timeout (default None).  The file
-    keyword specifies an output filename or file handle (default
-    sys.stdout).  Additional keywords are passed as parameters to the
-    query.
+
+        * host (default 'localhost')
+        * url (default null)
+        * method (default 'POST')
+        * port (default 80)
+        * timeout (default None)
+        * file (output filename or file handle; default sys.stdout)
+
+    Additional keywords are passed as parameters to the query.
 
     If a parameter keyword has a list as its value, the parameter is
     included multiple times in the query, once for each argument.
@@ -199,7 +206,7 @@ def webget_open(url, timeout=None, method='GET', **keywords):
         value = keywords[key]
         if value is None:
             query.append(urllib.quote(key))
-        elif isinstance(value,list):
+        elif isinstance(value, list):
             qkey = urllib.quote(key)
             for v in value:
                 query.append('{}={}'.format(qkey, urllib.quote_plus(str(v))))
@@ -247,7 +254,7 @@ def webget(url, file=None, timeout=None, method='GET', **keywords):
 
     close_outfile = False
     if isinstance(file, basestring):
-        file = open(file,"w")
+        file = open(file, "w")
         close_outfile = True
 
     try:
@@ -269,9 +276,9 @@ if __name__ == "__main__":
     else:
         arglist = []
         for arg in sys.argv[1:]:
-            f = arg.split('=',1)
-            if len(f)==1:
-                arglist.append((arg,None))
+            f = arg.split('=', 1)
+            if len(f) == 1:
+                arglist.append((arg, None))
             else:
                 arglist.append(f)
         webquery(arglist)
