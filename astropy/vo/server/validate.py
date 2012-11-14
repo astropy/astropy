@@ -299,19 +299,6 @@ def _do_validation(url):
     r = result.Result(url, root=_OUT_ROOT)
     r.validate_vo()
 
-    if r['network_error'] is not None:
-        r['out_db_name'] = 'nerr'
-        r['expected'] = 'broken'
-    elif r['nexceptions'] > 0:
-        r['out_db_name'] = 'excp'
-        r['expected'] = 'incorrect'
-    elif r['nwarnings'] > 0:
-        r['out_db_name'] = 'warn'
-        r['expected'] = 'incorrect'
-    else:
-        r['out_db_name'] = 'good'
-        r['expected'] = 'good'
-
     # This was already checked above.
     # Calling this again to get VOTableFile object to catch
     # well-formed error responses in downloaded XML.
@@ -345,6 +332,19 @@ def _do_validation(url):
         r['nexceptions'] += nexceptions
         r['warnings'] += lines
         r['warning_types'] = r['warning_types'].union(warning_types)
+
+    if r['network_error'] is not None:
+        r['out_db_name'] = 'nerr'
+        r['expected'] = 'broken'
+    elif r['nexceptions'] > 0:
+        r['out_db_name'] = 'excp'
+        r['expected'] = 'incorrect'
+    elif r['nwarnings'] > 0:
+        r['out_db_name'] = 'warn'
+        r['expected'] = 'incorrect'
+    else:
+        r['out_db_name'] = 'good'
+        r['expected'] = 'good'
 
     html.write_result(r)
     return r
