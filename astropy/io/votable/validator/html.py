@@ -116,7 +116,7 @@ def write_votlint_warning(w, line, xml_lines):
 
 
 def write_result(result):
-    if result['network_error'] is not None:
+    if 'network_error' in result and result['network_error'] is not None:
         return
 
     xml = result.get_xml_content()

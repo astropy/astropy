@@ -150,7 +150,7 @@ class Result:
         if not os.path.exists(path):
             self.download_xml_content()
         self['version'] = ''
-        if self['network_error'] is not None:
+        if 'network_error' in self and self['network_error'] is not None:
             self['nwarnings'] = 0
             self['nexceptions'] = 0
             self['warnings'] = []

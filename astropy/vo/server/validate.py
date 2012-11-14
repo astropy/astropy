@@ -31,6 +31,7 @@ from ..client import vos_catalog
 from ...io import votable
 from ...io.votable.validator import html, result
 from ...logger import log
+from ...utils.data import get_readable_fileobj
 from ...utils.misc import NumpyScalarEncoder
 
 # LOCAL CONFIG
@@ -168,19 +169,13 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     _do_rmfile(db_to_use, verbose=verbose)
 
     # Get all Cone Search sites
-
-    if CS_MSTR_LIST().startswith(('http://', 'file://', 'ftp://')):
-        import urllib2
-        cur_url = urllib2.urlopen(CS_MSTR_LIST(),
-                                  timeout=vos_catalog.TIMEOUT())
-    else:
-        cur_url = CS_MSTR_LIST()
-
-    tab_all = votable.parse_single_table(cur_url, pedantic=False)
+    with get_readable_fileobj(CS_MSTR_LIST()) as fd:
+        tab_all = votable.parse_single_table(fd, pedantic=False)
     arr_cone = tab_all.array.data[np.where(
         tab_all.array['capabilityClass'] == 'ConeSearch')]
 
-    assert arr_cone.size > 0, 'CS_MSTR_LIST yields no valid result'
+    assert arr_cone.size > 0, \
+        'astropy.vo.server.cs_mstr_list yields no valid result'
 
     # Fix URL syntax or queries will fail
     fixed_urls = np.char.replace(
@@ -299,21 +294,20 @@ def _do_validation(url):
     r = result.Result(url, root=_OUT_ROOT)
     r.validate_vo()
 
+    _categorize_result(r)
+
     # This was already checked above.
     # Calling this again to get VOTableFile object to catch
     # well-formed error responses in downloaded XML.
-    try:
-        t = votable.table.parse(r.get_vo_xml_path(), pedantic=False)
-    except:
-        pass
-    else:
+    if r['expected'] == 'good':
         nexceptions = 0
         nwarnings = 0
         lines = []
 
         with warnings.catch_warnings(record=True) as warning_lines:
             try:
-                tab = vos_catalog.vo_tab_parse(t, r.url, {})
+                tab = vos_catalog.vo_tab_parse(votable.table.parse(
+                    r.get_vo_xml_path(), pedantic=False), r.url, {})
             except (IndexError, vos_catalog.VOSError) as e:
                 lines.append(str(e))
                 nexceptions += 1
@@ -333,7 +327,22 @@ def _do_validation(url):
         r['warnings'] += lines
         r['warning_types'] = r['warning_types'].union(warning_types)
 
-    if r['network_error'] is not None:
+        _categorize_result(r)
+
+    html.write_result(r)
+    return r
+
+
+def _categorize_result(r):
+    """
+    Set success codes.
+
+    Parameters
+    ----------
+    r : `astropy.io.votable.validator.result.Result` object
+
+    """
+    if 'network_error' in r and r['network_error'] is not None:
         r['out_db_name'] = 'nerr'
         r['expected'] = 'broken'
     elif r['nexceptions'] > 0:
@@ -345,9 +354,6 @@ def _do_validation(url):
     else:
         r['out_db_name'] = 'good'
         r['expected'] = 'good'
-
-    html.write_result(r)
-    return r
 
 
 def _html_subindex(args):
