@@ -102,6 +102,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     A new field named 'duplicatesIgnored' is added to each catalog in
     the database to count ignored duplicate entries.
 
+    .. notes::
+
+        All cone search queries are done using RA=0, DEC=0, and SR=0.
+        A successful validation does not guarantee a successful
+        search with any given search values.
+
     Parameters
     ----------
     destdir : string
