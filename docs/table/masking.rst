@@ -7,7 +7,7 @@ The `astropy.table` package provides support for masking and missing
 values in a table by wrapping the `numpy.ma` masked array package.
 This allows handling tables with missing or invalid entries in much
 the same manner as for standard (unmasked) tables.  It
-is useful to be familiar with the `masked array 
+is useful to be familiar with the `masked array
 <http://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html>`_
 documentation when using masked tables within `astropy.table`.
 
@@ -20,7 +20,7 @@ columns or column slices follow the rules for `operations
 on masked arrays
 <http://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html#operations-on-masked-arrays>`_.
 
-.. Note:: 
+.. Note::
 
    Reduction operations like `numpy.sum` or `numpy.mean` follow the
    convention of ignoring masked (invalid) values.  This differs from
@@ -29,6 +29,12 @@ on masked arrays
    See `<http://numpy.scipy.org/NA-overview.html>`_ for a very
    interesting discussion of different strategies for handling
    missing data in the context of `numpy`.
+
+.. Note::
+
+   Masked tables are only available for `numpy` version 1.5 and later
+   because of issues in the masked array implementation for
+   prior `numpy` versions.
 
 Table creation
 ^^^^^^^^^^^^^^^
