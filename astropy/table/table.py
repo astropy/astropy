@@ -713,7 +713,7 @@ class Table(object):
 
         # Set up a placeholder empty table
         self._data = None
-        self.masked = masked
+        self.set_masked(masked)
         self.columns = TableColumns()
         self.meta = OrderedDict() if meta is None else deepcopy(meta)
 
@@ -844,12 +844,12 @@ class Table(object):
     def _set_masked_from_cols(self, cols):
         if self.masked is None:
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
-                self.masked = True
+                self.set_masked(True)
             else:
-                self.masked = False
+                self.set_masked(False)
         elif not self.masked:
             if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
-                self.masked = True
+                self.set_masked(True)
 
     def _init_from_list(self, data, names, dtypes, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
@@ -1157,6 +1157,20 @@ class Table(object):
 
     @masked.setter
     def masked(self, masked):
+        raise Exception('Masked attribute is read-only.  Use self.set_masked(masked) method'
+                        ' to change masking.')
+
+    def set_masked(self, masked):
+        """
+        Set the table masked property.
+
+        This is primarily used to convert an unmasked table to masked.
+
+        Parameters
+        ----------
+        masked : bool
+            State of table masking (True or False)
+        """
         if hasattr(self, '_masked'):
             # The only allowed change is from None to False or True, or False to True
             if self._masked is None and masked in [False, True]:
@@ -1167,7 +1181,8 @@ class Table(object):
             elif self._masked is masked:
                 raise Exception("Masked attribute is already set to {0}".format(masked))
             else:
-                raise Exception("Cannot change masked attribute to {0} once it is set to {1}".format(masked, self._masked))
+                raise Exception("Cannot change masked attribute to {0} once it is set to {1}"
+                                .format(masked, self._masked))
         else:
             if masked in [True, False, None]:
                 self._masked = masked
@@ -1394,7 +1409,7 @@ class Table(object):
         newlen = len(self._data) + 1
 
         if mask is not None and not self.masked:
-            self.masked = True
+            self.set_masked(True)
 
         if self.masked:
             self._data = ma.resize(self._data, (newlen,))
