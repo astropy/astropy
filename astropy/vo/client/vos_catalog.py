@@ -40,7 +40,6 @@ fields may vary:
 from __future__ import print_function, division
 
 # STDLIB
-import io
 import json
 
 # THIRD PARTY
@@ -52,7 +51,7 @@ from ...io.votable.exceptions import vo_warn, W24, W25
 from ...io.votable.util import IS_PY3K
 from ...utils import webquery
 from ...utils.console import color_print
-from ...utils.data import get_pkg_data_fileobj
+from ...utils.data import get_readable_fileobj
 
 # LOCAL CONFIG
 from ...config.configuration import ConfigurationItem
@@ -207,16 +206,9 @@ def get_remote_catalog_db(dbname, cache=True):
     value : `VOSDatabase` object
 
     """
-    fd = get_pkg_data_fileobj(BASEURL() + dbname + '.json', cache=cache)
-    if IS_PY3K:  # pragma: py3
-        wrapped_fd = io.TextIOWrapper(fd, 'utf8')
-    else:  # pragma: py2
-        wrapped_fd = fd
-
-    try:
-        tree = json.load(wrapped_fd)
-    finally:
-        fd.close()
+    with get_readable_fileobj(BASEURL() + dbname + '.json',
+                              encoding='utf8', cache=cache) as fd:
+        tree = json.load(fd)
 
     return VOSDatabase(tree)
 

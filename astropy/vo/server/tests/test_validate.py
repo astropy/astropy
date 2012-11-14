@@ -23,7 +23,7 @@ import tempfile
 # LOCAL
 from .. import validate
 from ....tests.helper import pytest, remote_data
-from ...utils.data import get_pkg_data_filename
+from ....utils.data import get_pkg_data_filename
 
 
 @remote_data

@@ -15,7 +15,7 @@ Running from `astropy/vo/client/tests` directory::
 
 """
 # THIRD-PARTY
-import numpy
+import numpy as np
 
 # LOCAL
 from .. import conesearch, vos_catalog
@@ -45,7 +45,7 @@ def test_basic_db():
 
     try:
         x = basic_db.get_catalog('not_there')
-    except vos_catalog.VOSError as e:
+    except vos_catalog.VOSError:
         pass
 
     assert vos_catalog.list_catalogs('basic') == ['foo']
@@ -114,10 +114,10 @@ class TestConeSearch():
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert tab_2.url == tab_3.url
-        numpy.testing.assert_array_equal(tab_2.array, tab_3.array)
+        np.testing.assert_array_equal(tab_2.array, tab_3.array)
 
         assert tab_2.url == tab_4.url
-        numpy.testing.assert_array_equal(tab_2.array, tab_4.array)
+        np.testing.assert_array_equal(tab_2.array, tab_4.array)
 
     def test_async(self):
         async_search = conesearch.AsyncConeSearch(

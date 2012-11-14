@@ -24,7 +24,7 @@ import time
 import warnings
 
 # THIRD PARTY
-import numpy
+import numpy as np
 
 # LOCAL
 from ..client import vos_catalog
@@ -177,13 +177,13 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         cur_url = CS_MSTR_LIST()
 
     tab_all = votable.parse_single_table(cur_url, pedantic=False)
-    arr_cone = tab_all.array.data[numpy.where(
+    arr_cone = tab_all.array.data[np.where(
         tab_all.array['capabilityClass'] == 'ConeSearch')]
 
     assert arr_cone.size > 0, 'CS_MSTR_LIST yields no valid result'
 
     # Fix URL syntax or queries will fail
-    fixed_urls = numpy.char.replace(
+    fixed_urls = np.char.replace(
         arr_cone['accessURL'].tolist(), '&amp;', '&')
 
     # Re-structure dictionary for JSON file
@@ -202,7 +202,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
                 log.info('Skipping {}'.format(cur_url))
             continue
 
-        i_same_url = numpy.where(fixed_urls == cur_url)
+        i_same_url = np.where(fixed_urls == cur_url)
         i = i_same_url[0][0]
 
         num_match = len(i_same_url[0])
