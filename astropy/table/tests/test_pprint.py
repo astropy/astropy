@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
 
-from astropy import table
-from astropy.table import pprint
+from ...tests.helper import pytest
+from ... import table
+from ...table import pprint
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)

@@ -1,8 +1,10 @@
-import pytest
+from distutils import version
 import numpy as np
 
-from astropy import table
+from ...tests.helper import pytest
+from ... import table
 
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
 Table = None
@@ -560,6 +562,7 @@ class TestSort():
 @pytest.mark.usefixtures('set_global_Table')
 class TestIterator():
 
+    @pytest.mark.xfail('numpy_lt_1p5')
     def test_iterator(self):
         d = np.array([(2, 1),
                       (3, 6),

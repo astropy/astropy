@@ -1,10 +1,13 @@
 """Test behavior related to masked tables"""
 
-from astropy.table import Column, MaskedColumn, Table
-
-import pytest
+from distutils import version
 import numpy as np
 import numpy.ma as ma
+
+from ...tests.helper import pytest
+from ...table import Column, MaskedColumn, Table
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 
 class SetupData(object):
@@ -118,6 +121,7 @@ class TestFillValue(SetupData):
         self.b.fill_value = -999
         assert self.t['b'].fill_value != -999
 
+    @pytest.mark.xfail('numpy_lt_1p5')
     def test_set_get_fill_value_for_table_column(self):
         """Check set and get of fill value works for Column in a Table"""
         self.t['b'].fill_value = 1

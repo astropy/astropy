@@ -1,11 +1,11 @@
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-import pytest
 import numpy as np
 
-from astropy import table
-from astropy.table import Column
-from astropy.utils import OrderedDict
+from ...tests.helper import pytest
+from ... import table
+from ...table import Column
+from ...utils import OrderedDict
 
 # Dummy init of Table for pyflakes and to be sure test fixture is working
 Table = None

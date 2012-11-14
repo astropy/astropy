@@ -1,12 +1,14 @@
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """
-from astropy import table
+from distutils import version
 import numpy as np
-import pytest
-from ... import units as u
-from ...tests.helper import raises
 
+from ...tests.helper import pytest, raises
+from ... import units as u
+from ... import table
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
 Table = None
@@ -132,6 +134,7 @@ class TestTableItems(BaseTestItems):
         a[1] = 0
         assert self.t['a'][1] == 0
 
+    @pytest.mark.xfail('numpy_lt_1p5')
     def test_row(self):
         """Row  access returns REFERENCE to data"""
         self.t = Table(COLS)

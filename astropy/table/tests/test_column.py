@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
-from astropy import table
 
+from ...tests.helper import pytest
+from ... import table
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
