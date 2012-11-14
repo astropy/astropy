@@ -93,6 +93,11 @@ Note the INFO message because the underlying type of the table is modified in th
   >>> t.add_row([3, 6], mask=[True, False])
   INFO: Upgrading Table to masked Table [astropy.table.table]
 
+**Convert an existing table to a masked table**
+
+  >>> t = Table([[1, 2], ['x', 'y']])  # standard (unmasked) table
+  >>> t = Table(t, masked=True)  # convert to masked table
+
 Table access
 ^^^^^^^^^^^^
 
