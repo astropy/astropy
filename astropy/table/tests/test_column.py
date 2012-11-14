@@ -140,6 +140,7 @@ class TestAttrEqual():
                     description='test column', meta={'c': 9, 'd': 12})
         assert not c1.attrs_equal(c2)
 
+    @pytest.mark.xfail('numpy_lt_1p5')
     def test_col_and_masked_col(self):
         c1 = table.Column(name='a', dtype=int, units='mJy', format='%i',
                           description='test column', meta={'c': 8, 'd': 12})
