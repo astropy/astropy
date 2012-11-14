@@ -201,6 +201,9 @@ class Result:
         return warning_code in self['warning_types']
 
     def match_expectations(self):
+        if 'network_error' not in self:
+            self['network_error'] = None
+
         if self['expected'] == 'good':
             return (not self['network_error'] and
                     self['nwarnings'] == 0 and
@@ -255,8 +258,8 @@ def get_result_subsets(results, root, s=None):
 
         all_results.append(x)
         if (x['nwarnings'] == 0 and
-            x['nexceptions'] == 0 and
-            x['xmllint'] is True):
+                x['nexceptions'] == 0 and
+                x['xmllint'] is True):
             correct.append(x)
         if not x.match_expectations():
             not_expected.append(x)
@@ -268,11 +271,13 @@ def get_result_subsets(results, root, s=None):
             schema_mismatch.append(x)
         if 'votlint' in x and x['votlint'] is False:
             fail_votlint.append(x)
+            if 'network_error' not in x:
+                x['network_error'] = None
             if (x['nwarnings'] == 0 and
                     x['nexceptions'] == 0 and
                     x['network_error'] is None):
                 votlint_mismatch.append(x)
-        if x['network_error'] is not None:
+        if 'network_error' in x and x['network_error'] is not None:
             network_failures.append(x)
         version = x['version']
         if version == '1.0':

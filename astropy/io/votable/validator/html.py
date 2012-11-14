@@ -163,13 +163,14 @@ def write_result(result):
 def write_result_row(w, result):
     with w.tag(u'tr'):
         with w.tag(u'td'):
-            if result['network_error'] is not None:
+            if 'network_error' in result and \
+                    result['network_error'] is not None:
                 w.data(result.url.decode('ascii'))
             else:
                 w.element(u'a', result.url.decode('ascii'),
                           href=u'%s/index.html' % result.get_htmlpath())
 
-        if result['network_error'] is not None:
+        if 'network_error' in result and result['network_error'] is not None:
             w.element(u'td', unicode(result['network_error']),
                       attrib={u'class': u'red'})
             w.element(u'td', '-')
