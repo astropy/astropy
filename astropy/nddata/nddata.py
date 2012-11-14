@@ -12,6 +12,14 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
+from ..config import ConfigurationItem
+
+WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
+    'warn_unsupported_correlated', True,
+    'Whether to issue a warning if NDData arithmetic is performed with '
+    'uncertainties and the uncertainties do not support the propagation '
+    'of correlated uncertainties.'
+    )
 
 
 class NDData(object):
@@ -283,11 +291,6 @@ class NDData(object):
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
             meta=self.meta, units=self.units, copy=False)
 
-
-
-
-
-
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
         {name} another dataset (`operand`) to this dataset.
@@ -307,13 +310,15 @@ class NDData(object):
 
         Notes
         -----
-        This method requires the datasets to have identical WCS
-        properties, equivalent units, and identical shapes. Flags and
-        meta-data get set to None in the resulting dataset. The unit
-        in the result is the same as the unit in `self`. Uncertainties are
-        propagated, although this feature is experimental, and uncertainties
-        are assumed to be uncorrelated.  Values masked in either
-        dataset before the operation are masked in the resulting
+        This method requires the datasets to have identical WCS properties,
+        equivalent units, and identical shapes. Flags and meta-data get set to
+        None in the resulting dataset. The unit in the result is the same as
+        the unit in `self`. Uncertainties are propagated, although correlated
+        errors are not supported by any of the built-in uncertainty classes.
+        If uncertainties are assumed to be correlated, a warning is issued by
+        default (though this can be disabled via the
+        `WARN_UNSUPPORTED_CORRELATED` configuration item). Values masked in
+        either dataset before the operation are masked in the resulting
         dataset.
         """
         if self.wcs != operand.wcs:
@@ -343,6 +348,12 @@ class NDData(object):
         elif operand.uncertainty is None:
             result.uncertainty = self.uncertainty
         else:  # both self and operand have uncertainties
+            if WARN_UNSUPPORTED_CORRELATED() and \
+               (not self.uncertainty.support_correlated or \
+               not operand.uncertainty.support_correlated):
+                log.warn("The uncertainty classes used do not support the "
+                         "propagation of correlated errors, so uncertainties"
+                         " will be propagated assuming they are uncorrelated")
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
                 result.uncertainty = method(operand, result.data)
