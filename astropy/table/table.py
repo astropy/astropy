@@ -19,6 +19,8 @@ try:
 except NameError:
     unicode = basestring = str
 
+NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
+
 AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
@@ -428,6 +430,9 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
+        if NUMPY_LT_1P5:
+            raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
+
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = ma.zeros(length, dtype=dtype)
@@ -773,6 +778,9 @@ class Table(object):
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
 
+        if NUMPY_LT_1P5 and self.masked:
+            raise ValueError('Masked table requires NumPy version 1.5 or later')
+
     @property
     def mask(self):
         return self._data.mask if self.masked else None
@@ -786,7 +794,7 @@ class Table(object):
         """Return a copy of self, with masked values filled.
 
         If input ``fill_value`` supplied then that value is used for all masked entries
-        in the table.  Otherwise the individual ``fill_value`` defined for each 
+        in the table.  Otherwise the individual ``fill_value`` defined for each
         table column is used.
 
         Returns
