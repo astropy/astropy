@@ -30,7 +30,7 @@ def get_urls(destdir, s):
     urls = []
     for type in types:
         filename = get_pkg_data_filename(
-            'astropy/io/votable/validator/urls/cone.{0}.dat.gz'.format(type))
+            'urls/cone.{0}.dat.gz'.format(type))
         with gzip.open(filename, 'rb') as fd:
             for url in fd.readlines():
                 s.next()

@@ -226,6 +226,7 @@ class Result:
 
 def get_result_subsets(results, root, s=None):
     all_results      = []
+    correct          = []
     not_expected     = []
     fail_schema      = []
     schema_mismatch  = []
@@ -247,6 +248,10 @@ def get_result_subsets(results, root, s=None):
 
         x = Result(url, root=root)
         all_results.append(x)
+        if (x['nwarnings'] == 0 and
+            x['nexceptions'] == 0 and
+            x['xmllint'] is True):
+            correct.append(x)
         if not x.match_expectations():
             not_expected.append(x)
         if x['xmllint'] is False:
@@ -294,6 +299,7 @@ def get_result_subsets(results, root, s=None):
 
     tables = [
         ('all', u'All tests', all_results),
+        ('correct', u'Correct', correct),
         ('unexpected', u'Unexpected', not_expected),
         ('schema', u'Invalid against schema', fail_schema),
         ('schema_mismatch', u'Invalid against schema/Passed vo.table',
