@@ -1,11 +1,14 @@
+from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
 
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[table.Column, table.MaskedColumn])
+@pytest.fixture(params=[table.Column] if numpy_lt_1p5 else [table.Column, table.MaskedColumn])
 def Column(request):
     return request.param
 

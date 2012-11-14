@@ -25,7 +25,7 @@ class MaskedTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table_DATA(request):
     global Table, Column, DATA, COLS
 
@@ -134,7 +134,6 @@ class TestTableItems(BaseTestItems):
         a[1] = 0
         assert self.t['a'][1] == 0
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_row(self):
         """Row  access returns REFERENCE to data"""
         self.t = Table(COLS)

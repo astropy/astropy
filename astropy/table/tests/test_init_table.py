@@ -1,11 +1,14 @@
 from __future__ import print_function  # For print debugging with python 2 or 3
 
+from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
 from ...table import Column
 from ...utils import OrderedDict
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table for pyflakes and to be sure test fixture is working
 Table = None
@@ -19,7 +22,7 @@ class MaskedTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
     global Table
     Table = MaskedTable if request.param else table.Table

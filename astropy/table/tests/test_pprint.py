@@ -1,3 +1,4 @@
+from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest
@@ -7,6 +8,7 @@ from ...table import pprint
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
 SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
 
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 # Dummy init of Table for pyflakes and to be sure test fixture is working
 Table = None
@@ -19,7 +21,7 @@ class MaskedTable(table.Table):
 
 
 # Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
     global Table
     Table = MaskedTable if request.param else table.Table

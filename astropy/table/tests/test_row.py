@@ -19,7 +19,7 @@ class MaskedTable(table.Table):
 
 
 # Fixture to run all tests for both an unmasked (ndarray) and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
     global Table
     global Column
@@ -43,13 +43,11 @@ class TestRow():
             self._t = Table([a, b])
         return self._t
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_subclass(self):
         """Row is subclass of ndarray and Row"""
         c = Row(self.t, 2)
         assert isinstance(c, Row)
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_values(self):
         """Row accurately reflects table values and attributes"""
         table = self.t
@@ -65,7 +63,6 @@ class TestRow():
             row[2]
         assert str(row.dtype) == "[('a', '<i8'), ('b', '<i8')]"
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_ref(self):
         """Row is a reference into original table data"""
         table = self.t
@@ -74,7 +71,6 @@ class TestRow():
         if Table is not MaskedTable:
             assert table['a'][1] == 10
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_left_equal(self):
         """Compare a table row to the corresponding structured array row"""
         np_t = self.t._data.copy()
@@ -85,7 +81,6 @@ class TestRow():
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row == np_row)
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_left_not_equal(self):
         """Compare a table row to the corresponding structured array row"""
         np_t = self.t._data.copy()
@@ -97,7 +92,6 @@ class TestRow():
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row != np_row)
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_right_equal(self):
         """Test right equal"""
         np_t = self.t._data.copy()
@@ -108,7 +102,6 @@ class TestRow():
             for row, np_row in zip(self.t, np_t):
                 assert np.all(np_row == row)
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_convert_numpy_array(self):
         d = self.t[1]
 
@@ -127,7 +120,6 @@ class TestRow():
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[('c', 'i8'), ('d', 'i8')])
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_format_row(self):
         """Test formatting row"""
         table = self.t

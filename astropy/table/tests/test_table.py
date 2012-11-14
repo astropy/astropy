@@ -19,7 +19,7 @@ class MaskedTable(table.Table):
 
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
 def set_global_Table(request):
     global Table, Column
 
@@ -562,7 +562,6 @@ class TestSort():
 @pytest.mark.usefixtures('set_global_Table')
 class TestIterator():
 
-    @pytest.mark.xfail('numpy_lt_1p5')
     def test_iterator(self):
         d = np.array([(2, 1),
                       (3, 6),
