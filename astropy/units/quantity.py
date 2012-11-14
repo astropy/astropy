@@ -241,7 +241,12 @@ class Quantity(object):
     def __rdiv__(self, other):
         """ Division between `Quantity` objects. This operation returns a dimensionless object. """
         if isinstance(other, numbers.Number):
-            return Quantity(other / self.value, unit=Unit("1/({0})".format(self.unit.to_string())))
+            if hasattr(self.unit, "bases"):
+                new_unit_bases = copy.copy(self.unit.bases)
+                new_unit_powers = [-p for p in self.unit.powers]
+                return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
+            else:
+                return Quantity(other / self.value, unit=1./self.unit)
 
         elif isinstance(other, UnitBase):
             return Quantity(1./self.value, unit=other/self.unit)

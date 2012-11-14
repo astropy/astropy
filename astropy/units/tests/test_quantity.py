@@ -187,6 +187,9 @@ class TestQuantityOperations():
         velocity = (distance / time).to(u.mile/u.hour)
         np.testing.assert_array_almost_equal(velocity.value, 3.05037, decimal=5)
 
+        G = u.Quantity(6.673E-11, u.m**3/u.kg/u.s**2)
+        new_q = ((1. / (4.*np.pi*G)).to(u.pc**-3/u.s**-2*u.kg))
+
         # Area
         side1 = u.Quantity(11., u.centimeter)
         side2 = u.Quantity(7., u.centimeter)
