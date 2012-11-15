@@ -38,8 +38,12 @@ download_base_url = 'http://cloud.github.com/downloads/astropy/astropy'
 setup_helpers.adjust_compiler()
 
 if not release:
-    version += get_git_devstr(False)
-generate_version_py('astropy', version, release,
+    version += get_git_devstr(sha=False)
+    git_hash = get_git_devstr(sha=True, show_warning=False)
+else:
+    git_hash = None
+
+generate_version_py('astropy', version, release, git_hash,
                     setup_helpers.get_debug_option())
 
 # Use the find_packages tool to locate all packages and modules
