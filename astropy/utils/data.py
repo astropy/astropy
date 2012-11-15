@@ -936,16 +936,24 @@ def _open_shelve(shelffn, withclosing=False):
 
 
 #the cache directory must be locked before any writes are performed.  Same for
-#the hash shelve, so this should be used for both.  Note
+#the hash shelve, so this should be used for both.
 def _acquire_data_cache_lock():
+    """
+    Uses the lock directory method.  This is good because `mkdir` is
+    atomic at the system call level, so it's thread-safe.
+    """
     from os.path import join
     from os import mkdir
     from time import sleep
 
-    lockdir = join(_get_data_cache_locs()[0], 'lock')
+    lockdir = os.path.join(_get_data_cache_locs()[0], 'lock')
     for i in range(DATA_CACHE_LOCK_ATTEMPTS()):
         try:
             mkdir(lockdir)
+            #write the pid of this process for informational purposes
+            with open(join(lockdir, 'pid'), 'w') as f:
+                f.write(str(os.getpid()))
+
         except OSError:
             sleep(1)
         else:
@@ -961,6 +969,10 @@ def _release_data_cache_lock():
     lockdir = join(_get_data_cache_locs()[0], 'lock')
 
     if exists(lockdir) and isdir(lockdir):
+        #if the pid file is present, be sure to remove it
+        pidfn = join(lockdir, 'pid')
+        if exists(pidfn):
+            os.remove(pidfn)
         rmdir(lockdir)
     else:
         msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\
