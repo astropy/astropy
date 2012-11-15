@@ -268,7 +268,8 @@ def vo_tab_parse(tab, url, kwargs):
         break
 
     out_tab = tab.get_first_table()
-    if kwargs.get('sr', 0) != 0 and out_tab.array.size <= 0:
+    if kwargs.get([k for k in kwargs if 'sr' == k.lower()][0], 0) != 0 and \
+            out_tab.array.size <= 0:
         raise VOSError("Catalog server '{}' returned {} result".format(
             url, out_tab.array.size))
 
