@@ -23,7 +23,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
 
     .. note::
         `scipy.stats.sigmaclip` provides a subset of the functionality in this
-        function,
+        function.
 
     Parameters
     ----------
