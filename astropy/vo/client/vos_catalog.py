@@ -23,9 +23,9 @@ For more cone search examples, see `astropy.vo.client.conesearch`:
 
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch')
 
-Find catalog names containing 'noao':
+Find catalog names containing 'iphas':
 
->>> cat_names = my_db.list_catalogs(match_string='noao', sort=True)
+>>> cat_names = my_db.list_catalogs(match_string='iphas', sort=True)
 
 Get information for first catalog from above. Catalog
 fields may vary:
@@ -35,6 +35,27 @@ fields may vary:
 >>> cat_keys = my_cat.keys()
 >>> cat_url = my_cat['url']
 >>> max_rec = my_cat['maxRecords']
+
+One can also get information for a catalog using its URL.
+If URL yields multiple catalogs, only first match is given:
+
+>>> my_cat2 = my_db.get_catalog_by_url(cat_url)
+
+To get all the matching catalogs by URL:
+
+>>> cat_list = []
+>>> for key, cat in my_db.get_catalogs_by_url(url):
+>>>     cat_list.append(cat)
+
+To get all catalogs in the database:
+
+>>> all_cat_list = []
+>>> for key, cat in my_db.get_catalogs():
+>>>     all_cat_list.append(cat)
+
+Other functions listed in this module but not in the examples
+above are used indirectly by other modules in `astropy.vo`
+package.
 
 """
 from __future__ import print_function, division
@@ -56,7 +77,7 @@ from ...utils.data import get_readable_fileobj
 from ...config.configuration import ConfigurationItem
 
 __all__ = ['VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
-           'call_vo_service', 'list_catalogs', 'vo_tab_parse']
+           'call_vo_service', 'list_catalogs']
 
 __dbversion__ = 1
 
@@ -129,6 +150,12 @@ class VOSDatabase(VOSCatalog):
         for key, val in self._catalogs.items():
             yield key, VOSCatalog(val)
 
+    def get_catalogs_by_url(self, url):
+        """Like `get_catalogs` but using access URL look-up."""
+        for key, cat in self.get_catalogs():
+            if cat['url'] == url:
+                yield key, cat
+
     def get_catalog(self, name):
         """
         Get one catalog of given name.
@@ -151,6 +178,20 @@ class VOSDatabase(VOSCatalog):
         if not name in self._catalogs:
             raise VOSError("No catalog '{}' found.".format(name))
         return VOSCatalog(self._catalogs[name])
+
+    def get_catalog_by_url(self, url):
+        """
+        Like `get_catalog` but using access URL look-up.
+        On multiple matches, only first match is returned.
+
+        """
+        out_cat = None
+        for key, cat in self.get_catalogs_by_url(url):
+            out_cat = cat
+            break
+        if out_cat is None:
+            raise VOSError("No catalog with URL '{}' found.".format(url))
+        return out_cat
 
     def list_catalogs(self, match_string=None, sort=False):
         """
