@@ -20,7 +20,6 @@ class TestQuantityCreation():
     def test_1(self):
         # create objects through operations with Unit objects:
 
-        # TODO: not implemented in Units yet
         quantity = 11.42 * u.meter # returns a Quantity object
         assert isinstance(quantity,u.Quantity)
         quantity = u.meter * 11.42 # returns a Quantity object
@@ -295,14 +294,4 @@ class TestQuantityDisplay():
 
 def test_decompose():
     q1 = 5 * u.N
-    assert q1.decomposed_unit() == (5 * u.kg * u.m * u.s ** -2)
-
-    q2 = 5 * u.m / u.km
-
-    q2d = q2.decomposed_unit(False)
-    assert q2d.value == 0.005
-    assert q2d.unit == u.Unit('')  # dimensionless unit
-
-    q2d2 = q2.decomposed_unit(True)
-    assert q2d2.value == 5
-    assert q2d2.unit != u.Unit('')  # dimensionless unit
+    assert q1.decomposed_unit == (5 * u.kg * u.m * u.s ** -2)

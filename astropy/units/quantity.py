@@ -319,7 +319,7 @@ class Quantity(object):
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
     @property
-    def decomposed_unit(self)
+    def decomposed_unit(self):
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
