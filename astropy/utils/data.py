@@ -849,11 +849,13 @@ def clear_data_cache(hashorurl=None):
         return
 
     _acquire_data_cache_lock()
+    releaselock = False
     try:
 
         if hashorurl is None:
             if exists(dldir):
                 rmtree(dldir)
+                releaselock = False
             if exists(urlmapfn):
                 unlink(urlmapfn)
         else:
@@ -878,7 +880,8 @@ def clear_data_cache(hashorurl=None):
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))
     finally:
-        _release_data_cache_lock()
+        if releaselock:
+            _release_data_cache_lock()
 
 
 def _get_data_cache_locs():
