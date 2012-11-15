@@ -32,6 +32,7 @@ see the "What's New" section of the documentation for more details.
 
 - Added SExtractor table reader to ``astropy.io.ascii`` [#420]
 
+- Added support for masked tables with missing or invalid data [#451]
 
 
 Other Changes and Additions
