@@ -318,7 +318,21 @@ class Quantity(object):
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
-    def decomposed_unit(self, allowscaledunits=False):
+    @property
+    def decomposed_unit(self)
+        """
+        Generates a new `Quantity` with the units decomposed. Decomposed
+        units have only irreducible units in them (see
+        `astropy.units.UnitBase.decompose`).
+
+        Returns
+        -------
+        newq : `~astropy.units.quantity.Quantity`
+            A new object equal to this quantity with units decomposed.
+        """
+        return self._decomposed_unit(False)
+
+    def _decomposed_unit(self, allowscaledunits=False):
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
