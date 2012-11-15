@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import pytest
 import numpy as np
 
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
-from ...tests.helper import raises
+from ...tests.helper import pytest, raises
 from ...io import fits
 
 np.random.seed(12345)

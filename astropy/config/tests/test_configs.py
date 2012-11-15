@@ -127,7 +127,7 @@ def test_configitem_save(tmpdir):
 
 def test_configitem_types():
     from ..configuration import ConfigurationItem
-    from pytest import raises
+    from ...tests.helper import pytest
 
     ci1 = ConfigurationItem('tstnm1', 34)
     assert isinstance(ci1(), int)
@@ -141,18 +141,18 @@ def test_configitem_types():
     ci4 = ConfigurationItem('tstnm4', 'astring')
     assert isinstance(ci4(), str)
 
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         ci1.set(34.3)
     ci2.set(12)  # this would should succeed as up-casting
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         ci3.set('fasd')
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         ci4.set(546.245)
 
 
 def test_configitem_options(tmpdir):
     from ..configuration import ConfigurationItem, get_config
-    from pytest import raises
+    from ...tests.helper import pytest
 
     cio = ConfigurationItem('tstnmo', ['op1', 'op2', 'op3'])
     sec = get_config(cio.module)
@@ -162,7 +162,7 @@ def test_configitem_options(tmpdir):
     assert sec['tstnmo'] == 'op1'
 
     cio.set('op2')
-    with raises(TypeError):
+    with pytest.raises(TypeError):
         cio.set('op5')
     assert sec['tstnmo'] == 'op2'
 
@@ -185,7 +185,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
-    from pytest import raises
+    from ...tests.helper import pytest
     from .. import paths, configuration
 
     #make sure the config directory is not searched
@@ -201,7 +201,7 @@ def test_config_noastropy_fallback(monkeypatch, recwarn):
     # also have to make sure the stored configuration objects are cleared
     monkeypatch.setattr(configuration, '_cfgobjs', {})
 
-    with raises(OSError):
+    with pytest.raises(OSError):
         #make sure the config dir search fails
         paths.get_config_dir()
 

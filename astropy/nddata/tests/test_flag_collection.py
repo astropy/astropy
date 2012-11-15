@@ -1,4 +1,4 @@
-import pytest
+from ...tests.helper import pytest
 import numpy as np
 
 from .. import FlagCollection

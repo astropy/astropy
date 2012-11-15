@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
 
-from astropy.time import Time, ScaleValueError, sofa_time
+from ...tests.helper import pytest
+from .. import Time, ScaleValueError, sofa_time
 
 
 class TestBasic():
@@ -258,7 +258,7 @@ class TestSofaErrors():
         sofa_time.cal2jd(iy, im, id, djm0, djm)
         assert np.allclose(djm0, [2400000.5])
         assert np.allclose(djm, [ 53574.])
-        
+
         # How do you test for warnings in pytest?  Test that dubious year for
         # UTC works.
 
