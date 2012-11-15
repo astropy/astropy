@@ -898,8 +898,8 @@ def _get_data_cache_locs():
     from os.path import exists, isdir, join
     from os import mkdir
 
-    datadir = join(get_cache_dir(), 'data')
-    shelveloc = join(get_cache_dir(), 'data_urlmap')
+    datadir = join(get_cache_dir(), 'download')
+    shelveloc = join(get_cache_dir(), 'download_urlmap')
     if not exists(datadir):
         mkdir(datadir)
     elif not isdir(datadir):
