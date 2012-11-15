@@ -1,10 +1,12 @@
+import abc
 import sys
 from copy import deepcopy
-import collections
 
 import numpy as np
+from numpy import ma
 
 from ..units import Unit
+from .. import log
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _more_tabcol
@@ -16,6 +18,8 @@ try:
     unicode
 except NameError:
     unicode = basestring = str
+
+NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
 
 AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
@@ -92,104 +96,9 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
-class Column(np.ndarray):
-    """Define a data column for use in a Table object.
+class BaseColumn(object):
 
-    Parameters
-    ----------
-    name : str
-        Column name and key for reference within Table
-    data : list, ndarray or None
-        Column data values
-    dtype : numpy.dtype compatible value
-        Data type for column
-    shape : tuple or ()
-        Dimensions of a single row element in the column data
-    length : int or 0
-        Number of row elements in column data
-    description : str or None
-        Full description of column
-    units : str, `astropy.units.UnitBase` instance or None
-        Physical units
-    format : str or None
-        Format string for outputting column values.  This can be an
-        "old-style" (``format % value``) or "new-style" (`str.format`)
-        format specification string.
-    meta : dict-like or None
-        Meta-data associated with the column
-
-    Examples
-    --------
-    A Column can be created in two different ways:
-
-    - Provide a ``data`` value and optionally a ``dtype`` value
-
-      Examples::
-
-        col = Column('name', data=[1, 2, 3])         # shape=(3,)
-        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-        col = Column('name', data=[1, 2, 3], dtype=float)
-        col = Column('name', np.array([1, 2, 3]))
-        col = Column('name', ['hello', 'world'])
-
-      The ``dtype`` argument can be any value which is an acceptable
-      fixed-size data-type initializer for the numpy.dtype() method.  See
-      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
-      Examples include:
-
-      - Python non-string type (float, int, bool)
-      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
-      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
-
-      If no ``dtype`` value is provide then the type is inferred using
-      ``np.array(data)``.  When ``data`` is provided then the ``shape``
-      and ``length`` arguments are ignored.
-
-    - Provide zero or more of ``dtype``, ``shape``, ``length``
-
-      Examples::
-
-        col = Column('name')
-        col = Column('name', dtype=int, length=10, shape=(3,4))
-
-      The default ``dtype`` is ``np.float64`` and the default ``length`` is
-      zero.  The ``shape`` argument is the array shape of a single cell in the
-      column.  The default ``shape`` is () which means a single value in each
-      element.
-    """
-
-    def __new__(cls, name, data=None,
-                 dtype=None, shape=(), length=0,
-                 description=None, units=None, format=None, meta=None):
-
-        if data is None:
-            dtype = (np.dtype(dtype).str, shape)
-            self_data = np.zeros(length, dtype=dtype)
-        elif isinstance(data, Column):
-            self_data = np.asarray(data.data, dtype=dtype)
-            if description is None:
-                description = data.description
-            if units is None:
-                units = units or data.units
-            if format is None:
-                format = data.format
-            if meta is None:
-                meta = deepcopy(data.meta)
-        else:
-            self_data = np.asarray(data, dtype=dtype)
-
-        self = self_data.view(cls)
-        self._name = name
-        self.units = units
-        self.format = format
-        self.description = description
-        self.parent_table = None
-
-        self.meta = OrderedDict()
-        if meta is not None:
-            self.meta.update(meta)
-
-        return self
+    __metaclass__ = abc.ABCMeta
 
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
@@ -219,21 +128,6 @@ class Column(np.ndarray):
     name = property(_get_name, _set_name)
 
     @property
-    def data(self):
-        return self.view(np.ndarray)
-
-    def copy(self, data=None, copy_data=True):
-        """Return a copy of the current Column instance.
-        """
-        if data is None:
-            data = self.view(np.ndarray)
-            if copy_data:
-                data = data.copy()
-
-        return Column(self.name, data, units=self.units, format=self.format,
-                      description=self.description, meta=deepcopy(self.meta))
-
-    @property
     def descr(self):
         """Array-interface compliant full description of the column.
 
@@ -244,8 +138,9 @@ class Column(np.ndarray):
 
     def __repr__(self):
         if self.name:
-            out = "<Column name={0} units={1} format={2} " \
-                "description={3}>\n{4}".format(
+            out = "<{0} name={1} units={2} format={3} " \
+                "description={4}>\n{5}".format(
+                self.__class__.__name__,
                 repr(self.name), repr(self.units),
                 repr(self.format), repr(self.description), repr(self.data))
         else:
@@ -268,8 +163,8 @@ class Column(np.ndarray):
         equal: boolean
             True if all attributes are equal
         """
-        if not isinstance(col, Column):
-            raise ValueError('Comparison `col` must be a Column object')
+        if not isinstance(col, BaseColumn):
+            raise ValueError('Comparison `col` must be a Column or MaskedColumn object')
 
         attrs = ('name', 'units', 'dtype', 'format', 'description', 'meta')
         equal = all(getattr(self, x) == getattr(col, x) for x in attrs)
@@ -378,7 +273,7 @@ class Column(np.ndarray):
         if units is None:
             self._units = None
         else:
-            self._units = Unit(units)
+            self._units = Unit(units, parse_strict='silent')
 
     @units.deleter
     def units(self):
@@ -412,6 +307,272 @@ class Column(np.ndarray):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
 
+class Column(BaseColumn, np.ndarray):
+    """Define a data column for use in a Table object.
+
+    Parameters
+    ----------
+    name : str
+        Column name and key for reference within Table
+    data : list, ndarray or None
+        Column data values
+    dtype : numpy.dtype compatible value
+        Data type for column
+    shape : tuple or ()
+        Dimensions of a single row element in the column data
+    length : int or 0
+        Number of row elements in column data
+    description : str or None
+        Full description of column
+    units : str or None
+        Physical units
+    format : str or None
+        Format string for outputting column values.  This can be an
+        "old-style" (``format % value``) or "new-style" (`str.format`)
+        format specification string.
+    meta : dict-like or None
+        Meta-data associated with the column
+
+    Examples
+    --------
+    A Column can be created in two different ways:
+
+    - Provide a ``data`` value and optionally a ``dtype`` value
+
+      Examples::
+
+        col = Column('name', data=[1, 2, 3])         # shape=(3,)
+        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
+        col = Column('name', data=[1, 2, 3], dtype=float)
+        col = Column('name', np.array([1, 2, 3]))
+        col = Column('name', ['hello', 'world'])
+
+      The ``dtype`` argument can be any value which is an acceptable
+      fixed-size data-type initializer for the numpy.dtype() method.  See
+      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      Examples include:
+
+      - Python non-string type (float, int, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+
+      If no ``dtype`` value is provide then the type is inferred using
+      ``np.array(data)``.  When ``data`` is provided then the ``shape``
+      and ``length`` arguments are ignored.
+
+    - Provide zero or more of ``dtype``, ``shape``, ``length``
+
+      Examples::
+
+        col = Column('name')
+        col = Column('name', dtype=int, length=10, shape=(3,4))
+
+      The default ``dtype`` is ``np.float64`` and the default ``length`` is
+      zero.  The ``shape`` argument is the array shape of a single cell in the
+      column.  The default ``shape`` is () which means a single value in each
+      element.
+    """
+
+    def __new__(cls, name, data=None,
+                 dtype=None, shape=(), length=0,
+                 description=None, units=None, format=None, meta=None):
+
+        if data is None:
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = np.zeros(length, dtype=dtype)
+        elif isinstance(data, Column):
+            self_data = np.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if units is None:
+                units = units or data.units
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
+        elif isinstance(data, MaskedColumn):
+            raise TypeError("Cannot convert a MaskedColumn to a Column")
+        else:
+            self_data = np.asarray(data, dtype=dtype)
+
+        self = self_data.view(cls)
+        self._name = name
+        self.units = units
+        self.format = format
+        self.description = description
+        self.parent_table = None
+
+        self.meta = OrderedDict()
+        if meta is not None:
+            self.meta.update(meta)
+
+        return self
+
+    @property
+    def data(self):
+        return self.view(np.ndarray)
+
+    def copy(self, data=None, copy_data=True):
+        """Return a copy of the current Column instance.
+        """
+        if data is None:
+            data = self.view(np.ndarray)
+            if copy_data:
+                data = data.copy()
+
+        return Column(self.name, data, units=self.units, format=self.format,
+                      description=self.description, meta=deepcopy(self.meta))
+
+
+class MaskedColumn(BaseColumn, ma.MaskedArray):
+
+    def __new__(cls, name, data=None, mask=None, fill_value=None,
+                 dtype=None, shape=(), length=0,
+                 description=None, units=None, format=None, meta=None):
+
+        if NUMPY_LT_1P5:
+            raise ValueError('MaskedColumn requires NumPy version 1.5 or later')
+
+        if data is None:
+            dtype = (np.dtype(dtype).str, shape)
+            self_data = ma.zeros(length, dtype=dtype)
+        elif isinstance(data, (Column, MaskedColumn)):
+            self_data = ma.asarray(data.data, dtype=dtype)
+            if description is None:
+                description = data.description
+            if units is None:
+                units = units or data.units
+            if format is None:
+                format = data.format
+            if meta is None:
+                meta = deepcopy(data.meta)
+        else:
+            self_data = ma.asarray(data, dtype=dtype)
+
+        self = self_data.view(MaskedColumn)
+        if mask is None and hasattr(data, 'mask'):
+            mask = data.mask
+        if fill_value is None and hasattr(data, 'fill_value'):
+            fill_value = data.fill_value
+        self.mask = mask
+        self.fill_value = fill_value
+        self._name = name
+        self.units = units
+        self.format = format
+        self.description = description
+        self.parent_table = None
+
+        self.meta = OrderedDict()
+        if meta is not None:
+            self.meta.update(meta)
+
+        return self
+
+    def __array_finalize__(self, obj):
+        BaseColumn.__array_finalize__(self, obj)
+        ma.MaskedArray.__array_finalize__(self, obj)
+
+    def _fix_fill_value(self, val):
+        """Fix a fill value (if needed) to work around a bug with setting the fill
+        value of a string array in MaskedArray with Python 3.x.  See
+        https://github.com/numpy/numpy/pull/2733.  This mimics the check in
+        numpy.ma.core._check_fill_value() (version < 1.7) which incorrectly sets
+        fill_value to a default if self.dtype.char is 'U' (which is the case for Python
+        3).  Here we change the string to a byte string so that in Python 3 the
+        isinstance(val, basestring) part fails.
+        """
+        if isinstance(val, basestring) and (self.dtype.char not in 'SV'):
+            val = val.encode()
+        return val
+
+    @property
+    def fill_value(self):
+        return self.get_fill_value()  # defer to native ma.MaskedArray method
+
+    @fill_value.setter
+    def fill_value(self, val):
+        """Set fill value both in the masked column view and in the parent table
+        if it exists.  Setting one or the other alone doesn't work."""
+        val = self._fix_fill_value(val)
+
+        if self.parent_table:
+            self.parent_table._data[self._name].fill_value = val
+
+        # Yet another ma bug workaround: If the value of fill_value for a string array is
+        # requested but not yet set then it gets created as 'N/A'.  From this point onward
+        # any new fill_values are truncated to 3 characters.  Note that this does not
+        # occur if the masked array is a structured array (as in the previous block that
+        # deals with the parent table).
+        #
+        # >>> x = ma.array(['xxxx'])
+        # >>> x.fill_value  # fill_value now gets represented as an 'S3' array
+        # 'N/A'
+        # >>> x.fill_value='yyyy'
+        # >>> x.fill_value
+        # 'yyy'
+        #
+        # To handle this we are forced to reset a private variable first:
+        self._fill_value = None
+
+        self.set_fill_value(val)  # defer to native ma.MaskedArray method
+
+    @property
+    def data(self):
+        out = self.view(ma.MaskedArray)
+        out.fill_value = self.fill_value
+        return out
+
+    def filled(self, fill_value=None):
+        """Return a copy of self, with masked values filled with a given value.
+
+        Parameters
+        ----------
+        fill_value : scalar; optional
+            The value to use for invalid entries (None by default).
+            If None, the `fill_value` attribute of the array is used instead.
+
+        Returns
+        -------
+        filled_column : Column
+            A copy of ``self`` with masked entries replaced by `fill_value`
+            (be it the function argument or the attribute of ``self``).
+        """
+        if fill_value is None:
+            fill_value = self.fill_value
+        fill_value = self._fix_fill_value(fill_value)
+
+        data = super(MaskedColumn, self).filled(fill_value)
+        out = Column(self.name, data, units=self.units, format=self.format,
+                     description=self.description, meta=deepcopy(self.meta))
+        return out
+
+    def copy(self, data=None, copy_data=True):
+        """
+        Return a copy of the current MaskedColumn instance.
+
+        Parameters
+        ----------
+        data : array; optional
+            Data to use when creating MaskedColumn copy.  If not supplied the
+            column data array is used.
+        copy_data : boolean; optional
+            Make a copy of input data instead of using a reference (default=True)
+
+        Returns
+        -------
+        column : MaskedColumn
+            A copy of ``self``
+        """
+        if data is None:
+            data = self.view(ma.MaskedArray)
+            if copy_data:
+                data = data.copy()
+
+        return MaskedColumn(self.name, data, units=self.units, format=self.format,
+                            # Do not include mask=self.mask since `data` has the mask
+                            fill_value=self.fill_value,
+                            description=self.description, meta=deepcopy(self.meta))
+
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -436,6 +597,16 @@ class Row(object):
         self._index = index
         self._data = table._data[index]
 
+        # MaskedArray __getitem__ has a strange behavior where if a
+        # row mask is all False then it returns a np.void which
+        # has no mask attribute. This makes it impossible to then set
+        # the mask. Here we recast back to mvoid. This was fixed in
+        # Numpy following issue numpy/numpy#483, and the fix should be
+        # included in Numpy 1.8.0.
+        if self._table.masked and isinstance(self._data, np.void):
+            self._data = ma.core.mvoid(self._data,
+                                       mask=self._table._mask[index])
+
     def __getitem__(self, item):
         return self.data[item]
 
@@ -443,10 +614,21 @@ class Row(object):
         self.data[item] = val
 
     def __eq__(self, other):
+        if self._table.masked:
+            # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
+            # "Comparing rows in a structured masked array raises exception"
+            # No response, so this is still unresolved.
+            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
         return self.data == other
 
     def __ne__(self, other):
+        if self._table.masked:
+            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
         return self.data != other
+
+    @property
+    def _mask(self):
+        return self._data.mask
 
     def __array__(self, dtype=None):
         """Support converting Row to np.array via np.array(table).
@@ -513,6 +695,8 @@ class Table(object):
     ----------
     data : numpy ndarray, dict, list, or Table, optional
         Data to initialize table.
+    mask : numpy ndarray, dict, list, optional
+        The mask to initialize the table
     names : list, optional
         Specify column names
     dtypes : list, optional
@@ -524,11 +708,12 @@ class Table(object):
 
     """
 
-    def __init__(self, data=None, names=None, dtypes=None, meta=None,
-                 copy=True):
+    def __init__(self, data=None, masked=None, names=None, dtypes=None,
+                 meta=None, copy=True):
 
         # Set up a placeholder empty table
         self._data = None
+        self._set_masked(masked)
         self.columns = TableColumns()
         self.meta = OrderedDict() if meta is None else deepcopy(meta)
 
@@ -589,6 +774,40 @@ class Table(object):
         # Finally do the real initialization
         init_func(data, names, dtypes, n_cols, copy)
 
+        # Whatever happens above, the masked property should be set to a boolean
+        if type(self.masked) != bool:
+            raise TypeError("masked property has not been set to True or False")
+
+        if NUMPY_LT_1P5 and self.masked:
+            raise ValueError('Masked table requires NumPy version 1.5 or later')
+
+    @property
+    def mask(self):
+        return self._data.mask if self.masked else None
+
+    @property
+    def _mask(self):
+        """This is needed due to intricacies in numpy.ma, don't remove it."""
+        return self._data.mask
+
+    def filled(self, fill_value=None):
+        """Return a copy of self, with masked values filled.
+
+        If input ``fill_value`` supplied then that value is used for all masked entries
+        in the table.  Otherwise the individual ``fill_value`` defined for each
+        table column is used.
+
+        Returns
+        -------
+        filled_table : Table
+            New table with masked values filled
+        """
+        if self.masked:
+            data = [col.filled(fill_value) for col in self.columns.values()]
+        else:
+            data = self
+        return Table(data, meta=deepcopy(self.meta))
+
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
 
@@ -606,7 +825,8 @@ class Table(object):
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        return self._data
+        return self._data.data if self.masked else self._data
+
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
         """Make sure that names and dtypes are boths iterable and have
@@ -621,6 +841,16 @@ class Table(object):
                 'Arguments "names" and "dtypes" must match number of columns'
                 .format(inp_str))
 
+    def _set_masked_from_cols(self, cols):
+        if self.masked is None:
+            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
+                self._set_masked(True)
+            else:
+                self._set_masked(False)
+        elif not self.masked:
+            if any(isinstance(col, (MaskedColumn, ma.MaskedArray)) for col in cols):
+                self._set_masked(True)
+
     def _init_from_list(self, data, names, dtypes, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
@@ -628,13 +858,16 @@ class Table(object):
         if not copy:
             raise ValueError('Cannot use copy=False with a list data input')
 
+        # Set self.masked appropriately, then get class to create column instances.
+        self._set_masked_from_cols(data)
+
         cols = []
         def_names = _auto_names(n_cols)
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
-            if isinstance(col, Column):
-                col = Column((name or col.name), col, dtype=dtype)
+            if isinstance(col, (Column, MaskedColumn)):
+                col = self.ColumnClass((name or col.name), col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = Column((name or def_name), col, dtype=dtype)
+                col = self.ColumnClass((name or def_name), col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -652,14 +885,18 @@ class Table(object):
         cols = ([data[name] for name in data_names] if struct else
                 [data[:, i] for i in range(n_cols)])
 
+        # Set self.masked appropriately, then get class to create column instances.
+        self._set_masked_from_cols(cols)
+
         if copy:
             self._init_from_list(cols, names, dtypes, n_cols, copy)
         else:
             dtypes = [(name, col.dtype) for name, col in zip(names, cols)]
             self._data = data.view(dtypes).ravel()
             columns = TableColumns()
+
             for name in names:
-                columns[name] = Column(name, self._data[name])
+                columns[name] = self.ColumnClass(name, self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
 
@@ -680,6 +917,9 @@ class Table(object):
         self.meta = deepcopy(table.meta)
         cols = table.columns.values()
 
+        # Set self.masked appropriately from cols
+        self._set_masked_from_cols(cols)
+
         if copy:
             self._init_from_list(cols, names, dtypes, n_cols, copy)
         else:
@@ -697,9 +937,13 @@ class Table(object):
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
 
+        self._set_masked_from_cols(cols)
+        cols = [self.ColumnClass(col.name, col) for col in cols]
+
         names = [col.name for col in cols]
         dtypes = [col.descr for col in cols]
-        data = np.empty(lengths.pop(), dtype=dtypes)
+        empty_init = ma.empty if self.masked else np.empty
+        data = empty_init(lengths.pop(), dtype=dtypes)
         for col in cols:
             data[col.name] = col.data
 
@@ -908,6 +1152,53 @@ class Table(object):
         return self.columns[item]
 
     @property
+    def masked(self):
+        return self._masked
+
+    @masked.setter
+    def masked(self, masked):
+        raise Exception('Masked attribute is read-only (use t = Table(t, masked=True)'
+                        ' to convert to a masked table)')
+
+    def _set_masked(self, masked):
+        """
+        Set the table masked property.
+
+        Parameters
+        ----------
+        masked : bool
+            State of table masking (True or False)
+        """
+        if hasattr(self, '_masked'):
+            # The only allowed change is from None to False or True, or False to True
+            if self._masked is None and masked in [False, True]:
+                self._masked = masked
+            elif self._masked is False and masked is True:
+                log.info("Upgrading Table to masked Table")
+                self._masked = masked
+            elif self._masked is masked:
+                raise Exception("Masked attribute is already set to {0}".format(masked))
+            else:
+                raise Exception("Cannot change masked attribute to {0} once it is set to {1}"
+                                .format(masked, self._masked))
+        else:
+            if masked in [True, False, None]:
+                self._masked = masked
+            else:
+                raise ValueError("masked should be one of True, False, None")
+        if self._masked:
+            self._column_class = MaskedColumn
+        else:
+            self._column_class = Column
+
+    @property
+    def ColumnClass(self):
+        if self._column_class is None:
+            return Column
+        else:
+            return self._column_class
+
+    @property
     def dtype(self):
         return self._data.dtype
 
@@ -923,6 +1214,13 @@ class Table(object):
             return 0
         else:
             return len(self._data)
+
+    def create_mask(self):
+        if isinstance(self._data, ma.MaskedArray):
+            raise Exception("data array is already masked")
+        else:
+            self._data = ma.array(self._data)
+
 
     def index_column(self, name):
         """
@@ -1072,7 +1370,7 @@ class Table(object):
 
         self.columns[name].name = new_name
 
-    def add_row(self, vals=None):
+    def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.
 
         The ``vals`` argument can be:
@@ -1089,28 +1387,80 @@ class Table(object):
         data.  In particular one cannot add a row to a Table that was
         initialized with copy=False from an existing array.
 
+        The ``mask`` attribute should give (if desired) the mask for the
+        values. The type of the mask should match that of the values, i.e. if
+        ``vals`` is an iterable, then ``mask`` should also be an iterable
+        with the same length, and if ``vals`` is a mapping, then ``mask``
+        should be a dictionary.
+
         Parameters
         ----------
         vals : tuple, list, dict or None
             Use the specified values in the new row
         """
-        newlen = len(self._data) + 1
-        self._data.resize((newlen,), refcheck=False)
 
-        if isinstance(vals, collections.Mapping):
-            row = self._data[-1]
+        def _is_mapping(obj):
+            """Minimal checker for mapping (dict-like) interface for obj"""
+            attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
+            return all(hasattr(obj, attr) for attr in attrs)
+
+        newlen = len(self._data) + 1
+
+        if mask is not None and not self.masked:
+            self._set_masked(True)
+
+        if self.masked:
+            self._data = ma.resize(self._data, (newlen,))
+        else:
+            self._data.resize((newlen,), refcheck=False)
+
+        if _is_mapping(vals):
+
+            if mask is not None and not _is_mapping(mask):
+                raise TypeError("Mismatch between type of vals and mask")
+
+            # Now check that the mask is specified for the same keys as the
+            # values, otherwise things get really confusing.
+            if mask is not None and set(vals.keys()) != set(mask.keys()):
+                raise ValueError('keys in mask should match keys in vals')
+
+            if self.masked:
+                # We set the mask to True regardless of whether a mask value
+                # is specified or not - that is, any cell where a new row
+                # value is not specified should be treated as missing.
+                self._data.mask[-1] = (True,) * len(self._data.dtype)
+
+            # First we copy the values
             for name, val in vals.items():
                 try:
-                    row[name] = val
+                    self._data[name][-1] = val
                 except IndexError:
                     raise ValueError("No column {0} in table".format(name))
+                if mask:
+                    self._data[name].mask[-1] = mask[name]
 
         elif isiterable(vals):
+
+            if mask is not None and (not isiterable(mask) or _is_mapping(mask)):
+                raise TypeError("Mismatch between type of vals and mask")
+
             if len(self.columns) != len(vals):
                 raise ValueError('Mismatch between number of vals and columns')
+
             if not isinstance(vals, tuple):
                 vals = tuple(vals)
+
             self._data[-1] = vals
+
+            if mask is not None:
+
+                if len(self.columns) != len(mask):
+                    raise ValueError('Mismatch between number of masks and columns')
+
+                if not isinstance(mask, tuple):
+                    mask = tuple(mask)
+
+                self._data.mask[-1] = mask
 
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
@@ -1118,7 +1468,7 @@ class Table(object):
         # Add_row() probably corrupted the Column views of self._data.  Rebuild
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
-        cols = [c.copy(self._data[c.name]) for c in self.columns.values()]
+        cols = [self.ColumnClass(c.name, c).copy(self._data[c.name]) for c in self.columns.values()]
         self.columns = TableColumns(cols)
 
     def sort(self, keys):
