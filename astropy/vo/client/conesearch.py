@@ -21,23 +21,16 @@ Examples
 --------
 >>> from astropy.vo.client import conesearch
 
-Get sorted catalog names containing 'SDSS' (not case-sensitive).
-If running this for the first time, a copy of the catalogs
-database will be downloaded to local cache. See `astropy.config`
-for caching behavior:
+Perform cone search for 0.5 degree radius around 47 Tuc
+(RA 6.088 deg, DEC -72.086 deg) with minimum verbosity,
+if supported. The first catalog in the database to
+successfully return a result that conforms to IVOA standards
+is used. If running this for the first time, a copy of the
+catalogs database will be downloaded to local cache.
+To run this again without using cached data, set `cache`
+keyword to `False` (local cache will not be updated):
 
->>> all_sdss_cat = conesearch.list_catalogs(match_string='sdss', sort=True)
-
-Perform cone search for 0.1 arcsec radius around Alpha Centauri
-(ICRS RA=14:39:36.204 DEC=-60:50:08.23), which are already converted
-to decimal degrees in the example below. Only use catalogs containing
-'SDSS' obtained from the example above, with minimum verbosity.
-Get results even if VO table does not comform to IVOA standards.
-The first catalog in the database to successfully return a result is
-used, i.e., order of catalog names is important:
-
->>> result = conesearch.conesearch(219.900850, -60.835619, 2.78e-05,
-                                   catalog_db=all_sdss_cat, pedantic=False)
+>>> result = conesearch.conesearch(6.088, -72.086, 0.5, pedantic=True)
 
 Extract Numpy array containing the matched objects. See
 `numpy.ndarray` for available operations:
@@ -50,62 +43,77 @@ Extract Numpy array containing the matched objects. See
 >>> last_row = cone_arr[-1]
 >>> first_ten_rows = cone_arr[:10]
 
-Reload catalog names containing 'SDSS' from VO Service
-Database online instead of the cached version (cache will not be
-updated):
-
->>> all_sdss_cat = conesearch.list_catalogs(match_string='sdss', sort=True,
-                                            cache=False)
-
-Perform same cone search as above but asynchronously and
-only use catalogs that conform to IVOA standards:
+Perform the same cone search as above but asynchronously:
 
 >>> async_search = conesearch.AsyncConeSearch(
-        219.900850, -60.835619, 2.78e-05, catalog_db=all_sdss_cat,
-        pedantic=True)
+        6.088, -72.086, 0.5, pedantic=True)
 
 Check search status:
 
 >>> async_search.is_done()
 
-Wait for 30 seconds and get search results. If not done
-after 30 seconds, `None` is returned. Otherwise, conesearch result
-is returned and can be manipulated as above.
+Get search results with 30-sec time-out. If still not
+done after 30 seconds, `None` is returned. Otherwise,
+conesearch result is returned and can be manipulated as
+above. If no `timeout` given, it waits till completion:
 
 >>> async_result = async_search.get(timeout=30)
 >>> cone_arr = async_result.array.data
 
 If search is taking too long and going nowhere,
-it can be forced to terminate:
+it can be forced to terminate (not recommended):
 
 >>> async_search.terminate()
 
-Estimate the execution time and the number of results for the cone
-search above. This uses the normal cone search function, not the
+Estimate the execution time and the number of results for
+the cone search above. The function naively assumes a
+linear model, which might not be accurate for some cases.
+It also uses the normal cone search function, not the
 asynchronous version:
 
 >>> t_est, n_est = conesearch.predict_search(
-        219.900850, -60.835619, 2.78e-05, catalog_db=all_sdss_cat,
-        pedantic=False)
+        result.url, 6.088, -72.086, 0.5, pedantic=True)
 
-Estimate the execution time and the number of results for a cone
-search at a specific URL with different RA, DEC, and search radius:
+For debugging purpose, one can obtain the actual values
+and compare with the prediction above. Keep in mind that
+running this for every prediction would defeat the purpose
+of the prediction itself:
 
->>> url = 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD&'
->>> t_est, n_est = conesearch.predict_search(
-        120, 20, 0.5, catalog_db=url, pedantic=False)
+>>> t_real, n_real = conesearch.conesearch_timer(
+        6.088, -72.086, 0.5, catalog_db=result.url, pedantic=True)
 
-For debugging purpose, one can obtain the actual values and compare
-with the prediction above. Keep in mind that running this for every
-prediction would defeat the purpose of the prediction itself:
-
->>> t_real, n_real, url_used = conesearch.conesearch_timer(
-        120, 20, 0.5, catalog_db=url, pedantic=False)
-
-To use a non-default cone search database, one can use the AstroPy
-configuration system, as illustrated below:
+If one is unable to obtain any results using the default
+cone search database that only contains sites that cleanly
+passed validation, one can use the AstroPy configuration
+system to use another database containing sites with
+validation warnings. One should use these sites with
+caution:
 
 >>> conesearch.CONESEARCH_DBNAME.set('conesearch_warn')
+
+Find catalog names containing 'STSCI' and sort them
+alphabetically:
+
+>>> stsci_cats = conesearch.list_catalogs(match_string='stsci', sort=True)
+
+Perform the same cone search as above using only STSCI
+catalogs in this new database. Get results even if VO table
+does not comform to IVOA standards, i.e., ignore validation
+warnings. As the first catalog in the database to
+successfully return a result is used, the order of catalog
+names given to `catalog_db` is important:
+
+>>> result = conesearch.conesearch(
+        6.088, -72.086, 0.5, catalog_db=stsci_cats, pedantic=False)
+>>> cone_arr = result.array.data
+
+To see the catalog information for the access URL used
+above (also see `astropy.vo.client.vos_catalog`):
+
+>>> from astropy.vo.client import vos_catalog
+>>> my_db = vos_catalog.get_remote_catalog_db(conesearch.CONESEARCH_DBNAME())
+>>> my_cat = my_db.get_catalog_by_url(result.url)
+>>> print(my_cat)
 
 """
 from __future__ import print_function, division
@@ -235,16 +243,17 @@ def list_catalogs(**kwargs):
     return vos_catalog.list_catalogs(CONESEARCH_DBNAME(), **kwargs)
 
 
-def predict_search(*args, **kwargs):
+def predict_search(url, *args, **kwargs):
     """
     Predict the execution time needed and the number of results
-    for a cone search for the given position and radius.
+    for a cone search for the given access URL, position, and
+    radius.
 
     A search is first done with zero radius to establish network
-    latency time, which does not account for variability in latency.
-    Since the first call can take longer than usual due to
-    non-network activities, latency time is defined as half of
-    this search time.
+    latency time, which does not account for variability in
+    latency. Since the first call can take longer than usual
+    due to non-network activities, latency time is defined as
+    half of this search time.
 
     Subsequent searches are done with starting and ending radii
     at 0.05 and 0.5 of the given radius, respectively. Searches
@@ -276,6 +285,9 @@ def predict_search(*args, **kwargs):
 
     Parameters
     ----------
+    url : string
+        Cone Search access URL to use.
+
     args, kwargs : see `conesearch`
 
     Returns
@@ -301,9 +313,8 @@ def predict_search(*args, **kwargs):
     verbose = kwargs.get('verbose', True)
 
     # First search with radius=0 to establish network latency time
-    # and obtain access URL.
-    t_0, n_cur, url = conesearch_timer(ra, dec, 0, **kwargs)
     kwargs['catalog_db'] = url
+    t_0, n_cur = conesearch_timer(ra, dec, 0, **kwargs)
 
     # Search properties for timer extrapolation
     min_datapoints = 3  # Minimum successful searches needed for extrapolation
@@ -325,7 +336,7 @@ def predict_search(*args, **kwargs):
     sr_cur = sr_min
     sr_arr, t_arr, n_arr = [], [], []
     while t_cur < t_max and sr_cur < sr_max:
-        t_cur, n_cur, url = conesearch_timer(ra, dec, sr_cur, **kwargs)
+        t_cur, n_cur = conesearch_timer(ra, dec, sr_cur, **kwargs)
 
         if verbose:  # pragma: no cover
             log.info('predict_search took {} s with {} results '
@@ -387,16 +398,16 @@ def conesearch_timer(*args, **kwargs):
     n : int
         Number of results.
 
-    url : string
-        Access URL used for search. This is useful to
-        identify which cone search service to use if
-        `catalog_db` selection yields multiple services.
-
     """
     t_beg = time.time()
-    out_votable = conesearch(*args, **kwargs)
+    try:
+        out_votable = conesearch(*args, **kwargs)
+    except vos_catalog.VOSError:
+        n = 0
+    else:
+        n = out_votable.array.size
     t_end = time.time()
-    return t_end - t_beg, out_votable.array.size, out_votable.url
+    return t_end - t_beg, n
 
 
 def _local_conversion(func, x):
@@ -410,12 +421,13 @@ def _local_conversion(func, x):
 
 def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     """For use by `predict_search`."""
-    m, c = np.polyfit(x_arr, y_arr, 1)
-    y = m * x + c
-    y_fit = m * x_arr + c
+    a = np.polyfit(x_arr, y_arr, 1)
+    p = np.poly1d(a)
+    y = p(x)
+    y_fit = p(x_arr)
 
-    if m < 0:
-        log.warn('Fitted slope for {} is negative ({})'.format(name, m))
+    if a[0] < 0:
+        log.warn('Fitted slope for {} is negative ({})'.format(name, a[0]))
 
     if ymin is not None and y < ymin:  # pragma: no cover
         log.warn('Predicted {} is less than {} {}'.format(name, ymin, unit))

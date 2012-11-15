@@ -36,12 +36,15 @@ def test_basic_db():
     assert basic_db.list_catalogs() == ['foo']
     assert basic_db.list_catalogs(match_string='whatever', sort=True) == []
 
+    foo_cat1 = basic_db.get_catalog('foo')
     for k, v in basic_db.get_catalogs():
         assert k == 'foo'
-        assert v._tree == 'bar'
+        assert v._tree == foo_cat1._tree == {'title':'bar', 'url':'bar.foo'}
 
-    foo_cat = basic_db.get_catalog('foo')
-    assert foo_cat._tree == 'bar'
+    foo_cat2 = basic_db.get_catalog_by_url('bar.foo')
+    for k, v in basic_db.get_catalogs_by_url('bar.foo'):
+        assert k == 'foo'
+        assert v._tree == foo_cat2._tree == {'title':'bar', 'url':'bar.foo'}
 
     try:
         x = basic_db.get_catalog('not_there')
@@ -130,12 +133,12 @@ class TestConeSearch():
 
     def test_prediction(self):
         """Prediction tests are not very accurate but will have to do."""
-        t_1, n_1, url_1 = conesearch.conesearch_timer(
+        t_1, n_1 = conesearch.conesearch_timer(
             self.ra, self.dec, self.sr, catalog_db=self.url,
             pedantic=self.pedantic, verbose=self.verbose)
 
         t_2, n_2 = conesearch.predict_search(
-            self.ra, self.dec, self.sr, catalog_db=self.url,
+            self.url, self.ra, self.dec, self.sr,
             pedantic=self.pedantic, verbose=self.verbose)
 
         assert n_2 > 0 and n_2 <= n_1 * 1.5
