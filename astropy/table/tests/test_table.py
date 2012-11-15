@@ -1,9 +1,70 @@
-import pytest
+from distutils import version
 import numpy as np
 
-from .. import Table, Column
+from ...tests.helper import pytest
+from ... import table
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+
+# Dummy init of Table, DATA for pyflakes and to be sure test fixture is working
+Table = None
+Column = None
 
 
+class MaskedTable(table.Table):
+    def __init__(self, *args, **kwargs):
+        kwargs['masked'] = True
+        table.Table.__init__(self, *args, **kwargs)
+
+
+# Fixture to run all the Column tests for both an unmasked (ndarray)
+# and masked (MaskedArray) column.
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+def set_global_Table(request):
+    global Table, Column
+
+    Table = MaskedTable if request.param else table.Table
+    Column = table.MaskedColumn if request.param else table.Column
+
+
+class SetupData(object):
+    @property
+    def a(self):
+        if Column is not None:
+            if not hasattr(self, '_a'):
+                self._a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
+            return self._a
+
+    @property
+    def b(self):
+        if Column is not None:
+            if not hasattr(self, '_b'):
+                self._b = Column('b', [4, 5, 6])
+            return self._b
+
+    @property
+    def c(self):
+        if Column is not None:
+            if not hasattr(self, '_c'):
+                self._c = Column('c', [7, 8, 9])
+            return self._c
+
+    @property
+    def d(self):
+        if Column is not None:
+            if not hasattr(self, '_d'):
+                self._d = Column('d', [7, 8, 7])
+            return self._d
+
+    @property
+    def t(self):
+        if Table is not None:
+            if not hasattr(self, '_t'):
+                self._t = Table([self.a, self.b])
+            return self._t
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class TestEmptyData():
 
     def test_1(self):
@@ -32,6 +93,7 @@ class TestEmptyData():
         assert len(t['a']) == 0
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestNewFromColumns():
 
     def test_simple(self):
@@ -59,6 +121,7 @@ class TestNewFromColumns():
             Table(cols)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestReverse():
 
     def test_reverse(self):
@@ -81,6 +144,7 @@ class TestReverse():
         assert np.all(t2['col1'] == np.array(['a', 'b', 'cc']))
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestColumnAccess():
 
     def test_1(self):
@@ -96,10 +160,8 @@ class TestColumnAccess():
             t['b']  # column does not exist
 
 
-class TestAddLength():
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
+@pytest.mark.usefixtures('set_global_Table')
+class TestAddLength(SetupData):
 
     def test_right_length(self):
         t = Table([self.a])
@@ -116,11 +178,8 @@ class TestAddLength():
             t.add_column(Column('b', [4, 5]))  # data too short
 
 
-class TestAddPosition():
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
-        self.c = Column('c', [7, 8, 9])
+@pytest.mark.usefixtures('set_global_Table')
+class TestAddPosition(SetupData):
 
     def test_1(self):
         t = Table()
@@ -171,13 +230,8 @@ class TestAddPosition():
         assert t.columns.keys() == ['c', 'a', 'b']
 
 
-class TestInitFromTable():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
-        self.b = Column('b', [4, 5, 6])
-        self.c = Column('c', [7, 8, 9])
-        self.t = Table([self.a, self.b])
+@pytest.mark.usefixtures('set_global_Table')
+class TestInitFromTable(SetupData):
 
     def test_from_table_cols(self):
         """Ensure that using cols from an existing table gives
@@ -211,13 +265,8 @@ class TestInitFromTable():
             assert t.columns['a'].meta['aa'][3] == 3
 
 
-class TestAddColumns():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
-        self.c = Column('c', [7, 8, 9])
-        self.d = Column('d', [7, 8, 7])
+@pytest.mark.usefixtures('set_global_Table')
+class TestAddColumns(SetupData):
 
     def test_add_columns1(self):
         t = Table()
@@ -262,13 +311,29 @@ class TestAddColumns():
         assert t.colnames == ['a', 'b', 'c', 'd']
 
 
-class TestAddRow():
+@pytest.mark.usefixtures('set_global_Table')
+class TestAddRow(SetupData):
 
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4.0, 5.1, 6.2])
-        self.c = Column('c', ['7', '8', '9'])
-        self.t = Table([self.a, self.b, self.c])
+    @property
+    def b(self):
+        if Column is not None:
+            if not hasattr(self, '_b'):
+                self._b = Column('b', [4.0, 5.1, 6.2])
+            return self._b
+
+    @property
+    def c(self):
+        if Column is not None:
+            if not hasattr(self, '_c'):
+                self._c = Column('c', ['7', '8', '9'])
+            return self._c
+
+    @property
+    def t(self):
+        if Table is not None:
+            if not hasattr(self, '_t'):
+                self._t = Table([self.a, self.b, self.c])
+            return self._t
 
     def test_add_with_tuple(self):
         t = self.t
@@ -292,15 +357,23 @@ class TestAddRow():
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 4]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 7.2]))
-        assert np.all(t['c'] == np.array(['7', '8', '9', '']))
+        if t.masked:
+            assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
+        else:
+            assert np.all(t['c'] == np.array(['7', '8', '9', '']))
 
     def test_add_with_none(self):
         t = self.t
         t.add_row()
         assert len(t) == 4
-        assert np.all(t['a'].data == np.array([1, 2, 3, 0]))
-        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
-        assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
+        if t.masked:
+            assert np.all(t['a'].data == np.array([1, 2, 3, 1]))
+            assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
+            assert np.all(t['c'].data == np.array(['7', '8', '9', '7']))
+        else:
+            assert np.all(t['a'].data == np.array([1, 2, 3, 0]))
+            assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 0.0]))
+            assert np.all(t['c'].data == np.array(['7', '8', '9', '']))
 
     def test_add_missing_column(self):
         t = self.t
@@ -323,17 +396,13 @@ class TestAddRow():
                          (3, 4, 5)],
                         dtype='i4')
         t = Table(data, copy=False)
-        with pytest.raises(ValueError):
-            t.add_row([6, 7, 8])
+        if not t.masked:
+            with pytest.raises(ValueError):
+                t.add_row([6, 7, 8])
 
 
-class TestTableColumn():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
-        self.b = Column('b', [4, 5, 6])
-        self.c = Column('c', [7, 8, 9])
-        self.t = Table([self.a, self.b])
+@pytest.mark.usefixtures('set_global_Table')
+class TestTableColumn(SetupData):
 
     def test_column_view(self):
         t = self.t
@@ -342,10 +411,8 @@ class TestTableColumn():
         assert t._data['a'][2] == 10
 
 
-class TestArrayColumns():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
+@pytest.mark.usefixtures('set_global_Table')
+class TestArrayColumns(SetupData):
 
     def test_1d(self):
         b = Column('b', dtype=int, shape=(2, ), length=3)
@@ -369,14 +436,22 @@ class TestArrayColumns():
         assert t['b'][0].shape == (2, 4, 6)
 
 
-class TestRemove():
+@pytest.mark.usefixtures('set_global_Table')
+class TestRemove(SetupData):
 
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
-        self.c = Column('c', [7, 8, 9])
-        self.t = Table([self.a])
-        self.t2 = Table([self.a, self.b, self.c])
+    @property
+    def t(self):
+        if Table is not None:
+            if not hasattr(self, '_t'):
+                self._t = Table([self.a])
+            return self._t
+
+    @property
+    def t2(self):
+        if Table is not None:
+            if not hasattr(self, '_t2'):
+                self._t2 = Table([self.a, self.b, self.c])
+            return self._t2
 
     def test_1(self):
         self.t.remove_columns('a')
@@ -408,11 +483,8 @@ class TestRemove():
             del self.t['d']
 
 
-class TestKeep():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
+@pytest.mark.usefixtures('set_global_Table')
+class TestKeep(SetupData):
 
     def test_1(self):
         t = Table([self.a, self.b])
@@ -428,11 +500,8 @@ class TestKeep():
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
 
-class TestRename():
-
-    def setup_method(self, method):
-        self.a = Column('a', [1, 2, 3])
-        self.b = Column('b', [4, 5, 6])
+@pytest.mark.usefixtures('set_global_Table')
+class TestRename(SetupData):
 
     def test_1(self):
         t = Table([self.a])
@@ -460,6 +529,7 @@ class TestRename():
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestSort():
 
     def test_single(self):
@@ -489,6 +559,7 @@ class TestSort():
         assert np.all(t['b'] == np.array([3, 4, 4, 5, 5, 6]))
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestIterator():
 
     def test_iterator(self):
@@ -496,10 +567,15 @@ class TestIterator():
                       (3, 6),
                       (4, 5)], dtype=[('a', 'i4'), ('b', 'i4')])
         t = Table(d)
-        for row, np_row in zip(t, d):
-            assert np.all(row == np_row)
+        if t.masked:
+            with pytest.raises(ValueError):
+                t[0] == d[0]
+        else:
+            for row, np_row in zip(t, d):
+                assert np.all(row == np_row)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestSetMeta():
 
     def test_set_meta(self):
@@ -511,19 +587,22 @@ class TestSetMeta():
         assert list(d.meta.keys()) == ['a', 'b', 'c', 'd']
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestConvertNumpyArray():
 
     def test_convert_numpy_array(self):
         d = Table([[1, 2], [3, 4]], names=('a', 'b'))
 
         np_data = np.array(d)
-        assert np.all(np_data == d._data)
+        if Table is not MaskedTable:
+            assert np.all(np_data == d._data)
         assert not np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
-        assert np.all(np_data == d._data)
-        assert np_data is d._data
+        if Table is not MaskedTable:
+            assert np.all(np_data == d._data)
+            assert np_data is d._data
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):

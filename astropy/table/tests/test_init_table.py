@@ -1,12 +1,34 @@
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-import pytest
+from distutils import version
 import numpy as np
 
-from .. import Table, Column
-from astropy.utils import OrderedDict
+from ...tests.helper import pytest
+from ... import table
+from ...table import Column
+from ...utils import OrderedDict
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
+
+# Dummy init of Table for pyflakes and to be sure test fixture is working
+Table = None
 
 
+class MaskedTable(table.Table):
+    def __init__(self, *args, **kwargs):
+        kwargs['masked'] = True
+        table.Table.__init__(self, *args, **kwargs)
+
+
+# Fixture to run all the Column tests for both an unmasked (ndarray)
+# and masked (MaskedArray) column.
+@pytest.fixture(params=[False] if numpy_lt_1p5 else [False, True])
+def set_global_Table(request):
+    global Table
+    Table = MaskedTable if request.param else table.Table
+
+
+@pytest.mark.usefixtures('set_global_Table')
 class BaseInitFrom():
 
     def test_basic_init(self):
@@ -37,6 +59,7 @@ class BaseInitFrom():
             Table(self.data, names=('a',), dtypes=('i4'))
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class BaseInitFromListLike(BaseInitFrom):
 
     def test_names_cols_mismatch(self):
@@ -48,10 +71,12 @@ class BaseInitFromListLike(BaseInitFrom):
             Table(self.data, names=['a'], dtypes=[int], copy=False)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class BaseInitFromDictLike(BaseInitFrom):
     pass
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromNdarrayHomo(BaseInitFromListLike):
 
     def setup_method(self, method):
@@ -91,6 +116,7 @@ class TestInitFromNdarrayHomo(BaseInitFromListLike):
         assert all(t[name].name == name for name in t.colnames)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromListOfLists(BaseInitFromListLike):
 
     def setup_method(self, method):
@@ -118,6 +144,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
                    [3, 4, 5]])
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
@@ -143,6 +170,7 @@ class TestInitFromColsList(BaseInitFromListLike):
             Table(self.data, copy=False)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 
     def setup_method(self, method):
@@ -178,6 +206,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         assert all(t[name].name == name for name in t.colnames)
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromDict(BaseInitFromDictLike):
 
     def setup_method(self, method):
@@ -186,6 +215,7 @@ class TestInitFromDict(BaseInitFromDictLike):
                           ('c', np.array([3, 5], dtype='i8'))])
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromOrderedDict(BaseInitFromDictLike):
 
     def setup_method(self, method):
@@ -198,6 +228,7 @@ class TestInitFromOrderedDict(BaseInitFromDictLike):
         assert t.colnames == ['a', 'b', 'c']
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromTable(BaseInitFromDictLike):
 
     def setup_method(self, method):
@@ -261,6 +292,7 @@ class TestInitFromTable(BaseInitFromDictLike):
         assert t2._data.dtype.names == ('x', 'z')
 
 
+@pytest.mark.usefixtures('set_global_Table')
 class TestInitFromNone():
     # Note table_table.TestEmptyData tests initializing a completely empty
     # table and adding data.

@@ -1,4 +1,4 @@
-from .table import Column, Table, TableColumns, Row
+from .table import Column, Table, TableColumns, Row, MaskedColumn
 
 # Import routines that connect readers/writers to astropy.table
 from ..io.ascii import connect

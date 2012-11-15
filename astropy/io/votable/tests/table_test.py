@@ -5,11 +5,16 @@ Test the conversion to/from astropy.table
 import os
 import shutil
 import tempfile
+from distutils import version
+
+import numpy as np
+from ....tests.helper import pytest
 
 from ....utils.data import get_pkg_data_filename
 from ..table import parse, writeto
 from .. import tree
 
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 TMP_DIR = None
 def setup_module():
@@ -21,6 +26,7 @@ def teardown_module():
     shutil.rmtree(TMP_DIR)
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_table():
     # Read the VOTABLE
     votable = parse(
@@ -28,6 +34,10 @@ def test_table():
         pedantic=False)
     table = votable.get_first_table()
     astropy_table = table.to_table()
+
+    for name in table.array.dtype.names:
+        assert np.all(astropy_table.mask[name] == table.array.mask[name])
+
     votable2 = tree.VOTableFile.from_table(astropy_table)
     t = votable2.get_first_table()
 

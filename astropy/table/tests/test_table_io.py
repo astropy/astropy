@@ -1,11 +1,11 @@
 from copy import copy
 
-import pytest
 import numpy as np
 
-from ..io_registry import _readers, _writers, _identifiers
-from .. import Table
-from .. import io_registry
+from ...tests.helper import pytest
+from ...table.io_registry import _readers, _writers, _identifiers
+from ...table import Table
+from ...table import io_registry
 
 _READERS_ORIGINAL = copy(_readers)
 _WRITERS_ORIGINAL = copy(_writers)
