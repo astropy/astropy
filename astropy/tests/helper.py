@@ -18,7 +18,7 @@ from distutils.core import Command
 
 from .. import test
 
-if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST'):
+if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
     import pytest
 
 else:

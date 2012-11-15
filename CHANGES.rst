@@ -121,7 +121,11 @@ Bug Fixes
   configuration--ensures that tests don't have any impact on the default log
   location or contents. [#291]
 
-- Various minor documentation fixes [#293]
+- Various minor documentation fixes [#293 and others]
+
+- Fixed a bug where running the tests with the ``py.test`` command still tried
+  to replace the system-installed pytest with the one bundled with Astropy.
+  [#454]
 
 
 
