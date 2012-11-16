@@ -30,7 +30,36 @@ see the "What's New" section of the documentation for more details.
   - In ``astropy.wcs``, the ``wcs.cunit`` list now takes and returns
     ``astropy.units.Unit`` objects.
 
-- Added SExtractor table reader to ``astropy.io.ascii`` [#420]
+- ``astropy.io.ascii``
+
+  - Improved integration with the ``astropy.table`` Table class so that
+    table and column metadata (e.g. keywords, units, description,
+    formatting) are directly available in the output table object.  The
+    CDS, DAOphot, and IPAC format readers now provide this type of
+    integrated metadata.
+
+  - Changed to using `astropy.table` masked tables instead of NumPy
+    masked arrays for tables with missing values.
+
+  - Added SExtractor table reader to ``astropy.io.ascii`` [#420]
+
+  - Removed the Memory reader class which was used to convert data input
+    passed to the ``write`` function into an internal table.  Instead
+    ``write`` instantiates an astropy Table object using the data
+    input to ``write``.
+
+  - Removed the NumpyOutputter as the output of reading a table is now
+    always a ``Table`` object.
+
+  - Removed the option of supplying a function as a column output
+    formatter.
+
+  - Added a new ``strip_whitespace`` keyword argument to the ``write``
+    function.  This controls whether whitespace is stripped from
+    the left and right sides of table elements before writing.
+    Default is True.
+
+  - Fixed a bug in reading IPAC tables with null values.
 
 - Added support for masked tables with missing or invalid data [#451]
 
