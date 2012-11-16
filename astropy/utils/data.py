@@ -705,7 +705,7 @@ def _find_hash_fn(hash):
     from warnings import warn
 
     try:
-        dldir, urlmapfn = _get_dl_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs()
     except (IOError, OSError) as e:
         msg = 'Could not access cache directory to search for data file: '
         warn(CacheMissingWarning(msg + str(e)))
@@ -745,7 +745,7 @@ def download_file(remote_url, cache=False):
     if cache:
 
         try:
-            dldir, urlmapfn = _get_dl_cache_locs()
+            dldir, urlmapfn = _get_download_cache_locs()
         except (IOError, OSError) as e:
             msg = 'Remote data cache could not be accessed due to '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
@@ -753,7 +753,7 @@ def download_file(remote_url, cache=False):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-        _acquire_dl_cache_lock()
+        _acquire_download_cache_lock()
 
     try:
 
@@ -811,7 +811,7 @@ def download_file(remote_url, cache=False):
         raise e
     finally:
         if cache:
-            _release_dl_cache_lock()
+            _release_download_cache_lock()
 
     return local_path
 
@@ -854,14 +854,14 @@ def clear_download_cache(hashorurl=None):
     from warnings import warn
 
     try:
-        dldir, urlmapfn = _get_dl_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs()
     except (IOError, OSError) as e:
         msg = 'Not clearing data cache - cache inacessable due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
 
-    _acquire_dl_cache_lock()
+    _acquire_download_cache_lock()
     releaselock = False
     try:
 
@@ -875,7 +875,7 @@ def clear_download_cache(hashorurl=None):
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = join(dldir, hashorurl)
                 assert abspath(filepath).startswith(abspath(dldir)), \
-                       ("attempted to use clear_dl_cache on a location" +
+                       ("attempted to use clear_download_cache on a location" +
                         " that's not inside the data cache directory")
 
                 if exists(filepath):
@@ -894,10 +894,10 @@ def clear_download_cache(hashorurl=None):
                     raise OSError(msg.format(hashorurl))
     finally:
         if releaselock:
-            _release_dl_cache_lock()
+            _release_download_cache_lock()
 
 
-def _get_dl_cache_locs():
+def _get_download_cache_locs():
     """ Finds the path to the data cache directory.
 
     Returns
@@ -950,7 +950,7 @@ def _open_shelve(shelffn, withclosing=False):
 
 #the cache directory must be locked before any writes are performed.  Same for
 #the hash shelve, so this should be used for both.
-def _acquire_dl_cache_lock():
+def _acquire_download_cache_lock():
     """
     Uses the lock directory method.  This is good because `mkdir` is
     atomic at the system call level, so it's thread-safe.
@@ -959,7 +959,7 @@ def _acquire_dl_cache_lock():
     from os import mkdir
     from time import sleep
 
-    lockdir = os.path.join(_get_dl_cache_locs()[0], 'lock')
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
     for i in range(DOWNLOAD_CACHE_LOCK_ATTEMPTS()):
         try:
             mkdir(lockdir)
@@ -975,11 +975,11 @@ def _acquire_dl_cache_lock():
     raise RuntimeError(msg.format(lockdir))
 
 
-def _release_dl_cache_lock():
+def _release_download_cache_lock():
     from os.path import join, exists, isdir
     from os import rmdir
 
-    lockdir = join(_get_dl_cache_locs()[0], 'lock')
+    lockdir = join(_get_download_cache_locs()[0], 'lock')
 
     if exists(lockdir) and isdir(lockdir):
         #if the pid file is present, be sure to remove it
