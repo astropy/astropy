@@ -2,7 +2,7 @@
 from StringIO import StringIO
 from .. import core, funcs
 import numpy as np
-import pytest
+from ...tests.helper import pytest
 
 try:
     import scipy
@@ -44,7 +44,7 @@ class test_cos(core.FLRW):
     def __init__(self):
         core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
         self._w0 = -0.9
-    
+
     def w(self,z):
         return self._w0*np.ones_like(z)
 
@@ -92,17 +92,17 @@ def test_varyde_lumdist_mathematica():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_ogamma():
     """Tests the effects of changing the temperature of the CMB"""
-    
+
     #Tested against Ned Wright's advanced cosmology calculator,
     # Sep 7 2012.  The accuracy of our comparision is limited by
     # how many digits it outputs, which limits our test to about
     # 0.2% accuracy.  The NWACC does not allow one
     # to change the number of nuetrino species, fixing that at 3.
     # Also, inspection of the NWACC code shows it uses inaccurate
-    # constants at the 0.2% level (specifically, a_B), 
+    # constants at the 0.2% level (specifically, a_B),
     # so we shouldn't expect to match it that well. The integral is
     # also done rather crudely.  Therefore, we should not expect
-    # the NWACC to be accurate to better than about 0.5%, which is 
+    # the NWACC to be accurate to better than about 0.5%, which is
     # unfortunate, but reflects a problem with it rather than this code.
     # More accurate tests below using Mathematica
     z = np.array([1.0, 10.0, 500.0, 1000.0])

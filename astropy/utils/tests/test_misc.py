@@ -46,7 +46,7 @@ def test_find_mod_objs():
 
 def test_find_current_mod():
     from sys import getrecursionlimit
-    from pytest import raises
+    from ...tests.helper import pytest
 
     thismodnm = __name__
 
@@ -58,7 +58,7 @@ def test_find_current_mod():
     assert misc.find_current_module(0, [misc]).__name__ == thismodnm
     assert misc.find_current_module(0, ['astropy.utils.misc']).__name__ == thismodnm
 
-    with raises(ImportError):
+    with pytest.raises(ImportError):
         misc.find_current_module(0, ['faddfdsasewrweriopunjlfiurrhujnkflgwhu'])
 
 

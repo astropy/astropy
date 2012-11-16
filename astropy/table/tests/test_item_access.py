@@ -4,8 +4,7 @@ https://github.com/astropy/astropy/wiki/Table-item-access-definition
 from distutils import version
 import numpy as np
 
-from ...tests.helper import pytest, raises
-from ... import units as u
+from ...tests.helper import pytest
 from ... import table
 
 numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')

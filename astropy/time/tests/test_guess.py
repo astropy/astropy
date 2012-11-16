@@ -1,6 +1,5 @@
-import pytest
-
-from astropy.time import Time
+from ...tests.helper import pytest
+from .. import Time
 
 
 class TestGuess():
