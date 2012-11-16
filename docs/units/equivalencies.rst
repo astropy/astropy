@@ -23,7 +23,7 @@ Built-in equivalencies
 Spectral Units
 ^^^^^^^^^^^^^^
 
-`~astropy.units.equivalencies.sp` is a function that returns an
+`~astropy.units.equivalencies.spectral` is a function that returns an
 equivalency list to handle conversions between wavelength, frequency
 and energy.
 
@@ -34,7 +34,7 @@ Length and frequency are not normally convertible, so
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
 
-However, when passing the result of `~astropy.units.equivalencies.sp`
+However, when passing the result of `~astropy.units.equivalencies.spectral`
 as the third argument to the `~astropy.units.core.UnitBase.to` method,
 wavelength, frequency and energy can be converted.
 
@@ -52,17 +52,17 @@ These equivalencies even work with non-base units::
 Spectral Flux Density Units
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There is also support for spectral flux density units. Their use is
-more complex, since it is necessary to also supply the location in the
-spectrum for which the conversions will be done, and the units of
-those spectral locations. The function that handles these unit
-conversions is `sd`.  This function takes as its arguments the unit
-and value for the spectral location.  For example::
+There is also support for spectral flux density units. Their use is more
+complex, since it is necessary to also supply the location in the spectrum for
+which the conversions will be done, and the units of those spectral locations.
+The function that handles these unit conversions is
+`~astropy.units.equivalencies.spectral_density`. This function takes as its
+arguments the unit and value for the spectral location. For example::
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1., equivs=u.sd(u.AA, 3500))
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1., equivs=u.spectral_density(u.AA, 3500))
   1.0000000000000001e-23
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1., equivs=u.sd(u.AA, 3500))
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1., equivs=u.spectral_density(u.AA, 3500))
   2.4472853714285712e-08
 
 Writing new equivalencies
