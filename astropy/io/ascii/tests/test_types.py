@@ -29,7 +29,7 @@ def test_types_from_dat():
     assert dat['b'].dtype.kind == 'i'
     assert dat['c'].dtype.kind in ('S', 'U')
     assert dat['d'].dtype.kind == 'f'
-    assert dat['e'].dtype.kind == 'S'
+    assert dat['e'].dtype.kind in ('S', 'U')
 
 
 def test_rdb_write_types():
