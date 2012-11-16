@@ -290,3 +290,29 @@ class TestQuantityDisplay():
 def test_decompose():
     q1 = 5 * u.N
     assert q1.decomposed_unit == (5 * u.kg * u.m * u.s ** -2)
+
+def test_arrays():
+    """
+    Test using quantites with array values
+    """
+    from numpy.testing import assert_array_equal
+
+    qsec = u.Quantity(np.arange(10), u.second)
+    assert isinstance(qsec.value, np.ndarray)
+
+    #can also create from lists, will auto-convert to arrays
+    qsec = u.Quantity(range(10), u.second)
+    assert isinstance(qsec.value, np.ndarray)
+
+    #quantity math should work with arrays
+    assert_array_equal((qsec * 2).value, (np.arange(10) * 2))
+    #quantity math should work with arrays
+    assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
+
+    #should create by unit multiplication, too
+    qsec2 = np.arange(10) * u.second
+    qsec3 = u.second * np.arange(10)
+
+    assert qsec == qsec2
+    assert qsec2 == qsec3
+
