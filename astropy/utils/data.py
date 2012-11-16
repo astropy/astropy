@@ -753,10 +753,9 @@ def download_file(remote_url, cache=False):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-        _acquire_download_cache_lock()
-
+        if not missing_cache:
+            _acquire_download_cache_lock()
     try:
-
         if cache:
             with _open_shelve(urlmapfn, True) as url2hash:
                 if str(remote_url) in url2hash:
@@ -789,17 +788,15 @@ def download_file(remote_url, cache=False):
                         block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
 
         if cache:
-
             with _open_shelve(urlmapfn, True) as url2hash:
                 local_path = os.path.join(dldir, hash.hexdigest())
                 move(f.name, local_path)
                 url2hash[str(remote_url)] = local_path
-
         else:
-
             local_path = f.name
             if missing_cache:
-                msg = 'File downloaded to temp file due to lack of cache access.'
+                msg = ('File downloaded to temporary location due to problem '
+                       'with cache directory and will not be cached.')
                 warn(CacheMissingWarning(msg, local_path))
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
@@ -810,7 +807,7 @@ def download_file(remote_url, cache=False):
             e.reason.args = (e.reason.errno, e.reason.strerror)
         raise e
     finally:
-        if cache:
+        if cache and not missing_cache:
             _release_download_cache_lock()
 
     return local_path
