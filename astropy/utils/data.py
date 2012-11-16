@@ -862,13 +862,11 @@ def clear_download_cache(hashorurl=None):
         return
 
     _acquire_download_cache_lock()
-    releaselock = False
     try:
 
         if hashorurl is None:
             if exists(dldir):
                 rmtree(dldir)
-                releaselock = False
             if exists(urlmapfn):
                 unlink(urlmapfn)
         else:
@@ -893,7 +891,8 @@ def clear_download_cache(hashorurl=None):
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))
     finally:
-        if releaselock:
+        # the lock will be gone if rmtree was used above, but release otherwise
+        if exists(join(_get_download_cache_locs()[0], 'lock')):
             _release_download_cache_lock()
 
 
@@ -981,7 +980,7 @@ def _release_download_cache_lock():
 
     lockdir = join(_get_download_cache_locs()[0], 'lock')
 
-    if exists(lockdir) and isdir(lockdir):
+    if isdir(lockdir):
         #if the pid file is present, be sure to remove it
         pidfn = join(lockdir, 'pid')
         if exists(pidfn):
