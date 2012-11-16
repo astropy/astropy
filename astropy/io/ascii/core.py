@@ -873,15 +873,12 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
-    def write(self, table=None):
+    def write(self, table):
         """Write ``table`` as list of strings.
 
-        :param table: input table data
+        :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
-        if table is None:
-            table = self
-
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
         self.data.cols = table.cols
