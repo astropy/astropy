@@ -34,11 +34,11 @@ import re
 from . import core
 
 latexdicts ={'AA':  {'tabletype': 'table',
-                     'header_start': r'\hline \hline', 'header_end': r'\hline',
-                     'data_end': r'\hline'},
+                 'header_start': r'\hline \hline', 'header_end': r'\hline',
+                 'data_end': r'\hline'},
              'doublelines': {'tabletype': 'table',
-                             'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
-                             'data_end': r'\hline\hline'},
+                 'header_start': r'\hline \hline', 'header_end': r'\hline\hline',
+                 'data_end': r'\hline\hline'},
              'template': {'tabletype': 'tabletype', 'caption': 'caption',
                           'col_align': 'col_align', 'preamble': 'preamble',
                           'header_start': 'header_start',
@@ -158,7 +158,7 @@ class LatexSplitter(core.BaseSplitter):
         return delimiter.join(x.strip() for x in vals) + r' \\'
 
 class Latex(core.BaseReader):
-    '''Write and read LaTeX tables.
+    r'''Write and read LaTeX tables.
 
     This class implements some LaTeX specific commands.  Its main
     purpose is to write out a table in a form that LaTeX can compile. It
@@ -193,7 +193,7 @@ class Latex(core.BaseReader):
             which spans the whole page in a two-column document::
 
                 ascii.write(data, sys.stdout, Writer = ascii.Latex,
-                             latexdict = {'tabletype': 'table*'})
+                            latexdict = {'tabletype': 'table*'})
 
         * col_align : Alignment of columns
             If not present all columns will be centered.
@@ -250,7 +250,8 @@ class Latex(core.BaseReader):
             latexdict['caption'] = caption
 
     **col_align** : Set the column alignment.
-        If not present this will be auto-generated for centered columns. Shorthand for::
+        If not present this will be auto-generated for centered
+        columns. Shorthand for::
 
             latexdict['col_align'] = col_align
 
@@ -359,9 +360,9 @@ class AASTex(Latex):
     AASTeX is used for the AAS (American Astronomical Society)
     publications like ApJ, ApJL and AJ.
 
-    It derives from the ``Latex`` reader and accepts the same keywords.  However, the
-    keywords ``header_start``, ``header_end``, ``data_start`` and ``data_end`` in
-    ``latexdict`` have no effect.
+    It derives from the ``Latex`` reader and accepts the same
+    keywords.  However, the keywords ``header_start``, ``header_end``,
+    ``data_start`` and ``data_end`` in ``latexdict`` have no effect.
     '''
 
     def __init__(self, **kwargs):

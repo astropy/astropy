@@ -208,7 +208,27 @@ html_last_updated_fmt = '%d %b %Y'
 #latex_show_urls = False
 
 # Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
+latex_preamble = r"""
+% The enumitem package provides unlimited nesting of lists and enums.
+% Sphinx may use this in the future, in which case this can be removed.
+% See https://bitbucket.org/birkenfeld/sphinx/issue/777/latex-output-too-deeply-nested
+\usepackage{enumitem}
+\setlistdepth{15}
+
+% Support the superscript Unicode numbers used by the "unicode" units
+% formatter
+\DeclareUnicodeCharacter{2070}{\ensuremath{^0}}
+\DeclareUnicodeCharacter{00B9}{\ensuremath{^1}}
+\DeclareUnicodeCharacter{00B2}{\ensuremath{^2}}
+\DeclareUnicodeCharacter{00B3}{\ensuremath{^3}}
+\DeclareUnicodeCharacter{2074}{\ensuremath{^4}}
+\DeclareUnicodeCharacter{2075}{\ensuremath{^5}}
+\DeclareUnicodeCharacter{2076}{\ensuremath{^6}}
+\DeclareUnicodeCharacter{2077}{\ensuremath{^7}}
+\DeclareUnicodeCharacter{2078}{\ensuremath{^8}}
+\DeclareUnicodeCharacter{2079}{\ensuremath{^9}}
+\DeclareUnicodeCharacter{207B}{\ensuremath{^-}}
+"""
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []

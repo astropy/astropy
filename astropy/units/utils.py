@@ -84,7 +84,8 @@ def generate_unit_summary(namespace):
         doc = _get_first_sentence(unit.__doc__).strip()
         represents = ''
         if isinstance(unit, core.Unit):
-            represents = ":math:`{0}`".format(unit._represents.to_string('latex'))
+            represents = ":math:`{0}`".format(
+                unit._represents.to_string('latex')[1:-1])
         aliases = ', '.join('``{0}``'.format(x) for x in unit.aliases)
         docstring.write("""
    * - ``{0}``
