@@ -672,7 +672,11 @@ def _find_pkg_data_path(data_name):
     from ..utils.misc import find_current_module
 
     module = find_current_module(1, True)
+    if module is None:
+        # not called from inside an astropy package.  So just pass name through
+        return data_name
     rootpkgname = module.__package__.split('.')[0]
+
     rootpkg = __import__(rootpkgname)
 
     module_path = dirname(module.__file__)
