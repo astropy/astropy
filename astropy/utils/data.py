@@ -332,14 +332,19 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
         with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
 
-
-    This downloads a data file and its contents from a specified URL, and does
-    *not* cache it remotely::
+    This would downloads a data file from the astropy data server
+    because the ``standards/vega.fits`` file is not present in the
+    source distribution.  It will also save the file locally so the
+    next time it is accessed it won't need to be downloaded.::
 
         from astropy.config import get_pkg_data_fileobj
 
-        vegaurl = 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/vega.fits'
-        with get_pkg_data_fileobj(vegaurl,False) as fobj:
+        with get_pkg_data_fileobj('standards/vega.fits') as fobj:
+            fcontents = fobj.read()
+
+    This does the same thing but does *not* cache it locally::
+
+        with get_pkg_data_fileobj('standards/vega.fits', cache=False) as fobj:
             fcontents = fobj.read()
 
     See Also
@@ -354,7 +359,8 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     elif os.path.isfile(datafn):  # local file
         return get_readable_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding)
+        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding,
+                                    cache=cache)
 
 
 def get_pkg_data_filename(data_name):
