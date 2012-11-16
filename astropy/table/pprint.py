@@ -184,7 +184,7 @@ def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
     if show_units:
         i_centers.append(n_header)
         n_header += 1
-        yield col.units or ''
+        yield str(col.units or '')
     if show_units or show_name:
         i_dashes = n_header
         n_header += 1
