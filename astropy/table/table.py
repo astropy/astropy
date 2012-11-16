@@ -138,10 +138,11 @@ class BaseColumn(object):
 
     def __repr__(self):
         if self.name:
+            units = None if self.units is None else str(self.units)
             out = "<{0} name={1} units={2} format={3} " \
                 "description={4}>\n{5}".format(
                 self.__class__.__name__,
-                repr(self.name), repr(self.units),
+                repr(self.name), repr(units),
                 repr(self.format), repr(self.description), repr(self.data))
         else:
             out = repr(self.data)
