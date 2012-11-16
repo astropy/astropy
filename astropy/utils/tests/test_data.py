@@ -5,6 +5,7 @@ import os
 import io
 
 import pytest
+from ..data import _get_download_cache_locs
 
 TESTURL = 'http://www.google.com/index.html'
 
@@ -29,6 +30,9 @@ def test_download_cache():
     assert os.path.isfile(fnout)
     clear_download_cache(TESTURL)
     assert not os.path.isfile(fnout)
+
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
 @remote_data
@@ -56,8 +60,11 @@ def test_find_by_hash():
     clear_download_cache(hashstr[5:])
     assert not os.path.isfile(fnout)
 
-# Package data functions
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
+
+# Package data functions
 @pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2'])
 def test_local_data_obj(filename):
     from ..data import get_pkg_data_fileobj
@@ -190,6 +197,9 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
 
     #no warnings should be raise in fileobj because cache is unnecessary
     assert len(recwarn.list) == 0
+
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
 def test_read_unicode():
