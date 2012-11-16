@@ -1,4 +1,4 @@
-""" Asciitable: an extensible ASCII table reader and writer.
+""" An extensible ASCII table reader and writer.
 
 core.py:
   Core base classes and functions for reading and writing tables.
@@ -226,7 +226,7 @@ class DefaultSplitter(BaseSplitter):
     Typical usage::
 
       # lines = ..
-      splitter = asciitable.DefaultSplitter()
+      splitter = ascii.DefaultSplitter()
       for col_vals in splitter(lines):
           for col_val in col_vals:
                ...
@@ -360,7 +360,7 @@ class BaseHeader(object):
     names = None
     include_names = None
     exclude_names = None
-    write_spacer_lines = ['ASCIITABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
         self.splitter = self.__class__.splitter_class()
@@ -473,7 +473,7 @@ class BaseData(object):
     end_line = None
     comment = None
     splitter_class = DefaultSplitter
-    write_spacer_lines = ['ASCIITABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     formats = {}
     fill_values = []
     fill_include_names = None
@@ -605,7 +605,7 @@ class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
     object::
 
-      table = asciitable.read('mytable.dat', numpy=False)
+      table = ascii.read('mytable.dat', numpy=False)
       table.field('x')    # List of elements in column 'x'
       table.dtype.names   # get column names in order
       table[1]            # returns row 1 as a list
@@ -876,7 +876,7 @@ class BaseReader(object):
     def write(self, table=None):
         """Write ``table`` as list of strings.
 
-        :param table: asciitable Reader object
+        :param table: input table data
         :returns: list of strings corresponding to ASCII table
         """
         if table is None:

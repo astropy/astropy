@@ -1,4 +1,4 @@
-"""asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 ui.py:
   Provides the main user functions for reading and writing tables.
@@ -94,7 +94,7 @@ def read(table, guess=None, **kwargs):
 
     :param table: input table (file name, list of strings, or single newline-separated string)
     :param guess: try to guess the table format (default=True)
-    :param Reader: Reader class (default= :class:`~asciitable.Basic`)
+    :param Reader: Reader class (default=``ascii.Basic``)
     :param Inputter: Inputter class
     :param Outputter: Outputter class
     :param delimiter: column delimiter string
@@ -226,7 +226,7 @@ def get_writer(Writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (default= :class:`~asciitable.Basic` )
+    :param Writer: Writer class (default=``ascii.Basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -249,7 +249,7 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param output: output [filename, file-like object] (default = sys.stdout)
-    :param Writer: Writer class (default= :class:`~asciitable.Basic` )
+    :param Writer: Writer class (default=``ascii.Basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters

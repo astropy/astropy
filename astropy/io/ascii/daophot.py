@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 daophot.py:
   Classes to read DAOphot table format
@@ -58,7 +58,7 @@ class Daophot(core.BaseReader):
     The keywords defined in the #K records are available via output table
     ``meta`` attribute::
 
-      data = asciitable.read('t/daophot.dat')
+      data = ascii.read('t/daophot.dat')
       for keyword in data.meta['keywords']:
           print keyword['name'], keyword['value'], keyword['units'], keyword['format']
 

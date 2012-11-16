@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 fixedwidth.py:
   Read or write a table with fixed width columns.
@@ -331,7 +331,7 @@ class FixedWidthNoHeader(FixedWidth):
       1.2hello there3 
       2.4many words 7 
 
-    This class is just a convenience wrapper around :class:`~asciitable.FixedWidth`
+    This class is just a convenience wrapper around the ``FixedWidth`` reader
     but with ``header.start_line = None`` and ``data.start_line = 0``.
 
     See the :ref:`fixed_width_gallery` for specific usage examples.

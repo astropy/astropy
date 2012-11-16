@@ -239,15 +239,15 @@ class Cds(core.BaseReader):
 
     **Basic usage**
 
-    Use the ``asciitable.read()`` function as normal, with an optional ``readme``
+    Use the ``ascii.read()`` function as normal, with an optional ``readme``
     parameter indicating the CDS ReadMe file.  If not supplied it is assumed that
     the header information is at the top of the given table.  Examples::
 
-      >>> import asciitable
-      >>> table = asciitable.read("t/cds.dat")
-      >>> table = asciitable.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
-      >>> table = asciitable.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
-      >>> table = asciitable.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
+      >>> from astropy.io import ascii
+      >>> table = ascii.read("t/cds.dat")
+      >>> table = ascii.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
+      >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
+      >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
 
     **Using a reader object**
 
@@ -259,7 +259,7 @@ class Cds(core.BaseReader):
     have header information for the given table.
 
       >>> readme = "t/vizier/ReadMe"
-      >>> r = asciitable.get_reader(asciitable.Cds, readme=readme)
+      >>> r = ascii.get_reader(ascii.Cds, readme=readme)
       >>> table = r.read("t/vizier/table1.dat")
       >>> # table5.dat has the same ReadMe file
       >>> table = r.read("t/vizier/table5.dat")
@@ -267,7 +267,7 @@ class Cds(core.BaseReader):
     If no ``readme`` parameter is specified, then the header
     information is assumed to be at the top of the given table.
 
-      >>> r = asciitable.get_reader(asciitable.Cds)
+      >>> r = ascii.get_reader(ascii.Cds)
       >>> table = r.read("t/cds.dat")
       >>> #The following gives InconsistentTableError, since no
       >>> #readme file was given and table1.dat does not have a header.

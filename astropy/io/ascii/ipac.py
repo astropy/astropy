@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 ipac.py:
   Classes to read IPAC table format
