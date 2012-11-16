@@ -23,11 +23,11 @@ def test_download_nocache():
 @remote_data
 def test_download_cache():
 
-    from ..data import download_file, clear_data_cache
+    from ..data import download_file, clear_download_cache
 
     fnout = download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
-    clear_data_cache(TESTURL)
+    clear_download_cache(TESTURL)
     assert not os.path.isfile(fnout)
 
 
@@ -42,7 +42,7 @@ def test_url_nocache():
 @remote_data
 def test_find_by_hash():
 
-    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_data_cache
+    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
 
     import hashlib
 
@@ -53,7 +53,7 @@ def test_find_by_hash():
 
     fnout = get_pkg_data_filename(hashstr)
     assert os.path.isfile(fnout)
-    clear_data_cache(hashstr[5:])
+    clear_download_cache(hashstr[5:])
     assert not os.path.isfile(fnout)
 
 # Package data functions
@@ -169,7 +169,7 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert fnout == w2.message.args[1]
 
     #clearing the cache should be a no-up that doesn't affect fnout
-    data.clear_data_cache(TESTURL)
+    data.clear_download_cache(TESTURL)
     assert os.path.isfile(fnout)
 
     #now remove it so tests don't clutter up the temp dir
