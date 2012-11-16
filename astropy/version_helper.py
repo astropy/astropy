@@ -128,9 +128,9 @@ def get_git_devstr(sha=False, show_warning=True, path=None):
         return ''
 
     if sha:
-        return str(stdout.decode('utf-8')[:40])
+        return stdout.decode('utf-8')[:40].encode('ascii')
     else:
-        nrev = stdout.decode('utf-8').count('\n')
+        nrev = len(stdout.decode('utf-8').splitlines())
         return str(nrev)
 
 
