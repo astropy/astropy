@@ -199,7 +199,7 @@ html_last_updated_fmt = '%d %b %Y'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+latex_use_parts = True
 
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
@@ -209,11 +209,21 @@ html_last_updated_fmt = '%d %b %Y'
 
 # Additional stuff for the LaTeX preamble.
 latex_preamble = r"""
+% Use a more modern-looking monospace font
+\usepackage{inconsolata}
+
 % The enumitem package provides unlimited nesting of lists and enums.
 % Sphinx may use this in the future, in which case this can be removed.
 % See https://bitbucket.org/birkenfeld/sphinx/issue/777/latex-output-too-deeply-nested
 \usepackage{enumitem}
 \setlistdepth{15}
+
+% In the parameters section, place a newline after the Parameters
+% header.  (This is stolen directly from Numpy's conf.py, since it
+% affects Numpy-style docstrings).
+\usepackage{expdlist}
+\let\latexdescription=\description
+\def\description{\latexdescription{}{} \breaklabel}
 
 % Support the superscript Unicode numbers used by the "unicode" units
 % formatter
@@ -228,6 +238,14 @@ latex_preamble = r"""
 \DeclareUnicodeCharacter{2078}{\ensuremath{^8}}
 \DeclareUnicodeCharacter{2079}{\ensuremath{^9}}
 \DeclareUnicodeCharacter{207B}{\ensuremath{^-}}
+
+% Make the "warning" and "notes" sections use a sans-serif font to
+% make them stand out more.
+\renewenvironment{notice}[2]{
+  \def\py@noticetype{#1}
+  \csname py@noticestart@#1\endcsname
+  \textsf{\textbf{#2}}
+}{\csname py@noticeend@\py@noticetype\endcsname}
 """
 
 # Documents to append as an appendix to all manuals.

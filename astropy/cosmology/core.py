@@ -22,7 +22,7 @@ import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM","get_current", 
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM","get_current",
            "set_current", "WMAP5", "WMAP7"]
 
 # Constants
@@ -93,7 +93,7 @@ class FLRW(Cosmology):
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -123,13 +123,13 @@ class FLRW(Cosmology):
         self._critical_density0 = 3. * H0_s**2 / (8. * pi * G)
 
         # Compute photon density, Tcmb, neutrino parameters
-        # Tcmb0=0 removes both photons and neutrinos, is handled 
+        # Tcmb0=0 removes both photons and neutrinos, is handled
         # as a special case for efficiency
         if self._Tcmb0 > 0:
             # Compute photon density from Tcmb
             self._Ogamma0 = a_B_c2 * self._Tcmb0**4 / self._critical_density0
 
-            #Compute Neutrino Omega 
+            #Compute Neutrino Omega
             # The constant in front is 7/8 (4/11)^4/3 -- see any
             #  cosmology book for an explanation; the 7/8 is FD vs. BE
             #  statistics, the 4/11 is the temperature effect
@@ -165,7 +165,7 @@ class FLRW(Cosmology):
 
     @property
     def Ok0(self):
-        """ Omega curvature; the effective curvature density/critical density 
+        """ Omega curvature; the effective curvature density/critical density
         at z=0"""
         return self._Ok0
 
@@ -222,10 +222,10 @@ class FLRW(Cosmology):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.
@@ -235,7 +235,7 @@ class FLRW(Cosmology):
         raise NotImplementedError("w(z) is not implemented")
 
     def Om(self, z):
-        """ Return the density parameter for non-relativistic matter 
+        """ Return the density parameter for non-relativistic matter
         at redshift `z`.
 
         Parameters
@@ -366,7 +366,7 @@ class FLRW(Cosmology):
 
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
-        
+
         #See Linder 2003, PRL 90, 91301 eq (5)
         #Assumes scalar input, since this should only be called
         # inside an integral
@@ -376,7 +376,7 @@ class FLRW(Cosmology):
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -396,7 +396,7 @@ class FLRW(Cosmology):
 
             I = \\exp \\left( 3 \int_{a}^1 \\frac{ da^{\\prime} }{ a^{\\prime} }
             \\left[ 1 + w\\left( a^{\\prime} \\right) \\right] \\right)
-        
+
         It will generally helpful for subclasses to overload this method if
         the integral can be done analytically for the particular dark
         energy equation of state that they implement.
@@ -406,9 +406,9 @@ class FLRW(Cosmology):
         # Linder 2003, PRL 90, 91301.  The code here evaluates
         # the integral numerically.  However, most popular
         # forms of w(z) are designed to make this integral analytic,
-        # so it is probably a good idea for subclasses to overload this 
+        # so it is probably a good idea for subclasses to overload this
         # method if an analytic form is available.
-        # 
+        #
         # The integral we actually use (the one given in Linder)
         # is rewritten in terms of z, so looks slightly different than the
         # one in the documentation string, but it's the same thing.
@@ -456,7 +456,7 @@ class FLRW(Cosmology):
                        Ode0 * self.de_density_scale(z))
 
     def inv_efunc(self, z):
-        """Inverse of efunc
+        """Inverse of efunc.
 
         Parameters
         ----------
@@ -506,7 +506,7 @@ class FLRW(Cosmology):
 
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
-        
+
         Parameters
         ----------
         z : array_like
@@ -900,7 +900,7 @@ class LambdaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04, 
+    def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
                  name='LambdaCDM'):
         """ Initializer.
 
@@ -919,7 +919,7 @@ class LambdaCDM(FLRW):
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -940,10 +940,10 @@ class LambdaCDM(FLRW):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.  Here this is
@@ -951,10 +951,10 @@ class LambdaCDM(FLRW):
         """
 
         return -1.0*np.ones_like(z)
-    
+
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -1003,7 +1003,7 @@ class LambdaCDM(FLRW):
         return np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
     def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
+        r""" Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
@@ -1017,9 +1017,10 @@ class LambdaCDM(FLRW):
 
         Notes
         -----
-        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        The return value, E, is defined such that :math:`H_z = H_0 /
+        E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
@@ -1056,7 +1057,7 @@ class FlatLambdaCDM(LambdaCDM):
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1103,7 +1104,7 @@ class FlatLambdaCDM(LambdaCDM):
         return np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + Ode0)
 
     def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
+        r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
@@ -1117,9 +1118,9 @@ class FlatLambdaCDM(LambdaCDM):
 
         Notes
         -----
-        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        The return value, E, is defined such that :math:`H_z = H_0 / E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0 = self._Om0, self._Ode0
@@ -1162,13 +1163,13 @@ class wCDM(FLRW):
           of the critical density at z=0.
 
         w0 : float
-          Dark energy equation of state at all redshifts.  
+          Dark energy equation of state at all redshifts.
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1180,7 +1181,7 @@ class wCDM(FLRW):
 
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0, self._Om0, 
+            (self.name, self._H0, self._Om0,
              self._Ode0, self._Ok0, self._w0)
 
     @property
@@ -1200,10 +1201,10 @@ class wCDM(FLRW):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.  Here this is
@@ -1211,10 +1212,10 @@ class wCDM(FLRW):
         """
 
         return self._w0*np.ones_like(z)
-    
+
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -1228,7 +1229,7 @@ class wCDM(FLRW):
         Notes
         -----
         The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
-        and in this case is given by 
+        and in this case is given by
         :math:`I = \\left(1 + z\\right)^{3\\left(1 + w_0\\right)}`
         """
 
@@ -1253,7 +1254,7 @@ class wCDM(FLRW):
         -----
         The return value, E, is defined such that :math:`H(z) = H_0 E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode, self._Ok0, self._w0
@@ -1264,7 +1265,7 @@ class wCDM(FLRW):
                        Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
+        r""" Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
@@ -1278,16 +1279,16 @@ class wCDM(FLRW):
 
         Notes
         -----
-        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        The return value, E, is defined such that :math:`H_z = H_0 / E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) + 
+        return 1.0 / np.sqrt(zp1**2 * ((Or0 * zp1 + Om0) * zp1 + Ok0) +
                              Ode0 * zp1**(3 * (1 + w0)))
 
 
@@ -1321,13 +1322,13 @@ class FlatwCDM(wCDM):
           of the critical density at z=0.
 
         w0 : float
-          Dark energy equation of state at all redshifts.  
+          Dark energy equation of state at all redshifts.
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1342,7 +1343,7 @@ class FlatwCDM(wCDM):
 
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g)" % \
-            (self.name, self._H0, self._Om0, 
+            (self.name, self._H0, self._Om0,
              self._Ode0, self._w0)
 
     def efunc(self, z):
@@ -1362,7 +1363,7 @@ class FlatwCDM(wCDM):
         -----
         The return value, E, is defined such that :math:`H(z) = H_0 E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, w0 = self._Om0, self._Ode, self._w0
@@ -1373,7 +1374,7 @@ class FlatwCDM(wCDM):
                        Ode0 * zp1**(3.0 * (1 + w0)))
 
     def inv_efunc(self, z):
-        """ Function used to calculate 1.0/H(z)
+        r""" Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
@@ -1387,18 +1388,18 @@ class FlatwCDM(wCDM):
 
         Notes
         -----
-        The return value, E, is defined such that :math:`H(z) = H_0 / E`.
+        The return value, E, is defined such that :math:`H_z = H_0 / E`.
         """
-        
+
         if isiterable(z):
             z = np.asarray(z)
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         Or0 = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) + 
+        return 1.0 / np.sqrt(zp1**3 * (Or0 * zp1 + Om0) +
                              Ode0 * zp1**(3 * (1 + w0)))
-    
+
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
 
@@ -1437,15 +1438,15 @@ class w0waCDM(FLRW):
         w0 : float
           Dark energy equation of state at z=0 (a=1).
           This is pressure/density for dark energy in units where c=1.
-          
+
         wa : float
           Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant has 
+          with respect to the scale factor.  A cosmological constant has
           w0=-1.0 and wa=0.0.
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1483,10 +1484,10 @@ class w0waCDM(FLRW):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.  Here this is
@@ -1500,7 +1501,7 @@ class w0waCDM(FLRW):
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -1514,7 +1515,7 @@ class w0waCDM(FLRW):
         Notes
         -----
         The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
-        and in this case is given by 
+        and in this case is given by
 
         .. math::
 
@@ -1545,7 +1546,7 @@ class Flatw0waCDM(w0waCDM):
 
     >>> dc = cosmo.comoving_distance(z)
     """
-    def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725, 
+    def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
                  Neff=3.04, name='Flatw0waCDM'):
         """ Initializer.
 
@@ -1561,15 +1562,15 @@ class Flatw0waCDM(w0waCDM):
         w0 : float
           Dark energy equation of state at z=0 (a=1).
           This is pressure/density for dark energy in units where c=1.
-          
+
         wa : float
           Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant has 
+          with respect to the scale factor.  A cosmological constant has
           w0=-1.0 and wa=0.0.
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1586,7 +1587,7 @@ class Flatw0waCDM(w0waCDM):
     def __repr__(self):
         return "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, w0=%.3g, wa=%.3g)" %\
             (self.name, self._H0, self._Om0, self._Ode0, self._w0, self._wa)
-    
+
 
 class wpwaCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state, a pivot
@@ -1609,7 +1610,7 @@ class wpwaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, 
+    def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=2.725, Neff=3.04, name='wpwaCDM'):
         """ Initializer.
 
@@ -1629,10 +1630,10 @@ class wpwaCDM(FLRW):
         wp : float
           Dark energy equation of state at the pivot redshift zp.
           This is pressure/density for dark energy in units where c=1.
-          
+
         wa : float
           Negative derivative of the dark energy equation of state
-          with respect to the scale factor.  A cosmological constant 
+          with respect to the scale factor.  A cosmological constant
           has w0=-1.0 and wa=0.0.
 
         zp : float
@@ -1640,7 +1641,7 @@ class wpwaCDM(FLRW):
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1655,7 +1656,7 @@ class wpwaCDM(FLRW):
     def __repr__(self):
         str = "%s(H0=%.3g, Om0=%.3g, Ode0=%.3g, Ok0=%.3g, wp=%.3g, "+\
             "wa=%.3g, zp=%.3g)"
-        return str % (self.name, self._H0, self._Om0, self._Ode0, 
+        return str % (self.name, self._H0, self._Om0, self._Ode0,
                       self._Ok0, self._wp, self._wa, self._zp)
 
     @property
@@ -1685,10 +1686,10 @@ class wpwaCDM(FLRW):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.  Here this is
@@ -1704,7 +1705,7 @@ class wpwaCDM(FLRW):
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -1718,7 +1719,7 @@ class wpwaCDM(FLRW):
         Notes
         -----
         The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
-        and in this case is given by 
+        and in this case is given by
 
         .. math::
 
@@ -1776,7 +1777,7 @@ class w0wzCDM(FLRW):
           of the critical density at z=0.
 
         w0 : float
-          Dark energy equation of state at z=0.  
+          Dark energy equation of state at z=0.
           This is pressure/density for dark energy in units where c=1.
           A cosmological constant has w0=-1.0.
 
@@ -1785,7 +1786,7 @@ class w0wzCDM(FLRW):
 
         Tcmb0 : float
           Temperature of the CMB in Kelvin at z=0 (def: 2.725)
-          
+
         Neff : float
           Effective number of Neutrino species (def: 3.04)
 
@@ -1822,10 +1823,10 @@ class w0wzCDM(FLRW):
         -------
         w : ndarray, or float if input scalar
           The dark energy equation of state
-          
+
         Notes
         ------
-        The dark energy equation of state is defined as 
+        The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
         at redshift z, both in units where c=1.  Here this is given by
@@ -1839,7 +1840,7 @@ class w0wzCDM(FLRW):
 
     def de_density_scale(self, z):
         """ Evaluates the redshift dependence of the dark energy density.
-        
+
         Parameters
         ----------
         z : array_like
@@ -1853,7 +1854,7 @@ class w0wzCDM(FLRW):
         Notes
         -----
         The scaling factor, I, is defined by :math:`\\rho(z) = \\rho_0 I`,
-        and in this case is given by 
+        and in this case is given by
 
         .. math::
 
@@ -1867,10 +1868,10 @@ class w0wzCDM(FLRW):
         return zp1**(3 * (1 + self._w0 - self._wz)) * exp(-3 * self._wz * z)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a LambdaCDM or FlatLambdaCDM instance 
+# parameters module and creates a LambdaCDM or FlatLambdaCDM instance
 # with the same name as the parameter set in the current module's namespace.
 # Note this assumes all the cosmologies in parameters are LambdaCDM,
-# which is true at least as of this writing.        
+# which is true at least as of this writing.
 
 for key in parameters.available:
     par = getattr(parameters, key)
@@ -1878,7 +1879,7 @@ for key in parameters.available:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
                               Neff=par['Neff'], name=key)
     else:
-        cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'], 
+        cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
                           m_nu=par['m_nu'], name=key)
     cosmo.__doc__ = "%s cosmology\n\n(from %s)" % (key, par['reference'])

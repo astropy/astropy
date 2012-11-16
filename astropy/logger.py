@@ -376,7 +376,7 @@ class AstropyLogger(Logger):
     @contextmanager
     def log_to_file(self, filename, filter_level=None, filter_origin=None):
         '''
-        Context manager to temporarily log messages to a file
+        Context manager to temporarily log messages to a file.
 
         Parameters
         ----------
@@ -424,7 +424,7 @@ class AstropyLogger(Logger):
     @contextmanager
     def log_to_list(self, filter_level=None, filter_origin=None):
         '''
-        Context manager to temporarily log messages to a list
+        Context manager to temporarily log messages to a list.
 
         Parameters
         ----------
