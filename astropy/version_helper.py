@@ -182,8 +182,19 @@ def generate_version_py(packagename, version, release, git_hash, debug=None):
 
     import os
     import sys
+    import imp
     from distutils import log
     from .setup_helpers import is_distutils_display_option
+
+    try:
+        version_module = __import__(packagename + '.version')
+    except ImportError:
+        version_module = None
+
+    try:
+        top_level_module = __import__(packagename)
+    except ImportError:
+        top_level_module = None
 
     version_py = os.path.join(packagename, 'version.py')
 
@@ -201,3 +212,11 @@ def generate_version_py(packagename, version, release, git_hash, debug=None):
         # This overwrites the actual version.py
         f.write(_get_version_py_str(packagename, version, release, git_hash,
                                     debug))
+
+    # Reload the version sub-module
+    if version_module:
+        imp.reload(version_module)
+
+    # Reload the top-level module so that __version__ gets updated
+    if top_level_module:
+        imp.reload(top_level_module)
