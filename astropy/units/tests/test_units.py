@@ -49,8 +49,8 @@ def test_convert_fail():
 def test_is_equivalent():
     assert u.m.is_equivalent(u.inch)
     assert not (u.Hz.is_equivalent(u.J))
-    assert u.Hz.is_equivalent(u.J, u.sp())
-    assert u.J.is_equivalent(u.Hz, u.sp())
+    assert u.Hz.is_equivalent(u.J, u.spectral())
+    assert u.J.is_equivalent(u.Hz, u.spectral())
 
 
 def test_composite():
@@ -75,43 +75,43 @@ def test_repr():
 
 
 def test_spectral():
-    a = u.AA.to(u.Hz, 1, u.sp())
+    a = u.AA.to(u.Hz, 1, u.spectral())
     assert_allclose(a, 2.9979245799999995e+18)
-    b = u.Hz.to(u.AA, a, u.sp())
+    b = u.Hz.to(u.AA, a, u.spectral())
     assert_allclose(b, 1)
 
-    a = u.AA.to(u.MHz, 1, u.sp())
+    a = u.AA.to(u.MHz, 1, u.spectral())
     assert_allclose(a, 2.9979245799999995e+12)
-    b = u.MHz.to(u.AA, a, u.sp())
+    b = u.MHz.to(u.AA, a, u.spectral())
     assert_allclose(b, 1)
 
-    a = u.m.to(u.Hz, 1, u.sp())
+    a = u.m.to(u.Hz, 1, u.spectral())
     assert_allclose(a, 2.9979245799999995e+8)
-    b = u.Hz.to(u.m, a, u.sp())
+    b = u.Hz.to(u.m, a, u.spectral())
     assert_allclose(b, 1)
 
 
 def test_spectral2():
-    a = u.nm.to(u.J, 500, u.sp())
+    a = u.nm.to(u.J, 500, u.spectral())
     assert_allclose(a, 3.972891366538605e-19)
-    b = u.J.to(u.nm, a, u.sp())
+    b = u.J.to(u.nm, a, u.spectral())
     assert_allclose(b, 500)
 
-    a = u.AA.to(u.Hz, 1, u.sp())
-    b = u.Hz.to(u.J, a, u.sp())
-    c = u.AA.to(u.J, 1, u.sp())
+    a = u.AA.to(u.Hz, 1, u.spectral())
+    b = u.Hz.to(u.J, a, u.spectral())
+    c = u.AA.to(u.J, 1, u.spectral())
     assert_allclose(b, c)
 
 
 def test_spectral3():
-    a = u.nm.to(u.Hz, [1000, 2000], u.sp())
+    a = u.nm.to(u.Hz, [1000, 2000], u.spectral())
     assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
 
 
 def test_spectraldensity():
-    a = u.AA.to(u.Jy, 1, u.sd(u.eV, 2.2))
+    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
     assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-    b = u.Jy.to(u.AA, a, u.sd(u.eV, 2.2))
+    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
     assert_allclose(b, 1)
 
 
@@ -119,7 +119,7 @@ def test_spectraldensity2():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
-    a = flambda.to(fnu, 1, u.sd(u.AA, 3500))
+    a = flambda.to(fnu, 1, u.spectral_density(u.AA, 3500))
     assert_allclose(a, 4.086160166177361e-12)
 
 
@@ -142,7 +142,7 @@ def test_decompose():
 
 def test_equivalent_units():
     assert u.pound in u.g.find_equivalent_units()
-    assert u.J in u.Hz.find_equivalent_units(u.sp())
+    assert u.J in u.Hz.find_equivalent_units(u.spectral())
 
 
 def test_unknown_unit():

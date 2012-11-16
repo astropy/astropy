@@ -38,15 +38,15 @@ However, when passing the result of `~astropy.units.equivalencies.sp`
 as the third argument to the `~astropy.units.core.UnitBase.to` method,
 wavelength, frequency and energy can be converted.
 
-  >>> u.nm.to(u.Hz, [1000, 2000], equivs=u.sp())
+  >>> u.nm.to(u.Hz, [1000, 2000], equivs=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
-  >>> u.nm.to(u.eV, [1000, 2000], equivs=u.sp())
+  >>> u.nm.to(u.eV, [1000, 2000], equivs=u.spectral())
   array([ 1.23984201,  0.61992101])
 
 These equivalencies even work with non-base units::
 
   >>> # Inches to calories
-  >>> u.inch.to(u.Cal, 1, equivs=u.sp())
+  >>> u.inch.to(u.Cal, 1, equivs=u.spectral())
   1.869180759162485e-27
 
 Spectral Flux Density Units
@@ -114,7 +114,7 @@ units for `Hz` in the standard set::
 However, when passing the spectral equivalency, you can see there are
 all kinds of things that `Hz` can be converted to::
 
-  >>> u.Hz.find_equivalent_units(equivs=u.sp())
+  >>> u.Hz.find_equivalent_units(equivs=u.spectral())
     Primary name | Unit definition           | Aliases
   [
     AU           | 1.495979e+11 m            | au                                 ,
