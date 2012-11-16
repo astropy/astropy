@@ -332,7 +332,7 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
         with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
 
-    This would downloads a data file from the astropy data server
+    This would download a data file from the astropy data server
     because the ``standards/vega.fits`` file is not present in the
     source distribution.  It will also save the file locally so the
     next time it is accessed it won't need to be downloaded.::
