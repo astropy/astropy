@@ -1,4 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This package contains functions for reading and writing HDF5 tables that are
+not meant to be used directly, but instead are available as readers/writers in
+`astropy.table`. See :ref:`table_io` for more details.
+"""
 
 from __future__ import print_function
 
