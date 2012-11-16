@@ -61,9 +61,14 @@ class Daophot(core.BaseReader):
       data = asciitable.read('t/daophot.dat')
       for keyword in data.meta['keywords']:
           print keyword['name'], keyword['value'], keyword['units'], keyword['format']
-    
+
+    The units and formats are available in the output table columns::
+
+      for colname in data.colnames:
+           col = data[colname]
+           print colname, col.units, col.format
     """
-    
+
     def __init__(self):
         core.BaseReader.__init__(self)
         self.header = DaophotHeader()
@@ -72,7 +77,7 @@ class Daophot(core.BaseReader):
         self.data.splitter.delimiter = ' '
         self.data.start_line = 0
         self.data.comment = r'\s*#'
-    
+
     def read(self, table):
         out = core.BaseReader.read(self, table)
 
