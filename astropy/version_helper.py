@@ -141,7 +141,9 @@ _frozen_version_py_template = """
 
 from astropy.version_helper import _update_git_devstr, get_git_devstr
 
-version = _update_git_devstr({verstr!r})
+_last_generated_version = {verstr!r}
+
+version = _update_git_devstr(_last_generated_version)
 githash = get_git_devstr(sha=True, show_warning=False)
 
 major = {major}
@@ -177,7 +179,7 @@ def _get_version_py_str(packagename, version, release, debug):
                                               rel=release, debug=debug)
 
 
-def generate_version_py(packagename, version, release, debug=None):
+def generate_version_py(packagename, version, release=None, debug=None):
     """Regenerate the version.py module if necessary."""
 
     from .setup_helpers import is_distutils_display_option
@@ -188,23 +190,33 @@ def generate_version_py(packagename, version, release, debug=None):
 
     try:
         version_module = __import__(packagename + '.version',
-                                    fromlist=['version', 'release', 'debug'])
-        current_version = version_module.version
+                                    fromlist=['_last_generated_version',
+                                              'version', 'release', 'debug'])
+        try:
+            last_generated_version = version_module._last_generated_version
+        except AttributeError:
+            # Older version.py with no _last_generated_version; this will
+            # ensure a new version.py is written
+            last_generated_version = None
         current_release = version_module.release
         current_debug = version_module.debug
     except ImportError:
         version_module = None
-        current_version = None
+        last_generated_version = None
         current_release = None
         current_debug = None
 
-    if debug is None:
+    if release is None:
         # Keep whatever the current value is, if it exists
+        release = bool(current_release)
+
+    if debug is None:
+        # Likewise, keep whatever the current value is, if it exists
         debug = bool(current_debug)
 
     version_py = os.path.join(packagename, 'version.py')
 
-    if (current_version != version or current_release != release or
+    if (last_generated_version != version or current_release != release or
         current_debug != debug):
         if '-q' not in sys.argv and '--quiet' not in sys.argv:
             log.set_threshold(log.INFO)
