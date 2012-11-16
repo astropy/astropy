@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 cds.py:
   Classes to read CDS / Vizier table format
@@ -131,11 +131,13 @@ class CdsHeader(core.BaseHeader):
                 col.start = int(re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
                 col.units = match.group('units')
-                col.descr = match.group('descr')
+                if col.units == '---':
+                    col.units = None  # "---" is the marker for no units in CDS table
+                col.description = match.group('descr').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
 
-                match = re.match(r'\? (?P<equal> =)? (?P<nullval> \S*)', col.descr, re.VERBOSE)
+                match = re.match(r'\? (?P<equal> =)? (?P<nullval> \S*)', col.description, re.VERBOSE)
                 if match:
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
@@ -152,7 +154,7 @@ class CdsHeader(core.BaseHeader):
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
                 if cols:
-                    cols[-1].descr += line.strip()
+                    cols[-1].description += line.strip()
                 else:
                     raise ValueError('Line "%s" not parsable as CDS header' % line)
 
