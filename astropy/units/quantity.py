@@ -12,6 +12,8 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 import copy
 import numbers
 
+import numpy as np
+
 # AstroPy
 from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
 
@@ -24,10 +26,18 @@ def _validate_value(value):
     ----------
     value : number
         An object that will be checked whether it is a numeric type or not.
+
+    Returns
+    -------
+    newval
+        The new value either as an array or a scalar
     """
+    from ..utils.misc import isiterable
 
     if isinstance(value, numbers.Number):
         value_obj = value
+    elif isiterable(value):
+        value_obj = np.array(value, copy=True)
     else:
         raise TypeError("The value must be a valid Python numeric type.")
 
