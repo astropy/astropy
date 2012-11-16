@@ -794,9 +794,12 @@ def download_file(remote_url, cache=False):
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
-
+    except urllib2.URLError, e:
+        if e.reason.errno == 8:
+            e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
+            e.reason.args = (e.reason.errno, e.reason.strerror)
+        raise e
     finally:
-
         if cache:
             _release_data_cache_lock()
 
