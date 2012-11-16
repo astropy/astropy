@@ -8,10 +8,10 @@ from ..constants import si as _si
 from . import si
 from . import cgs
 
-__all__ = ['sp', 'sd']
+__all__ = ['spectral', 'spectral_density']
 
 
-def sp():
+def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
     wavelength, frequency, and energy equivalences.
@@ -27,7 +27,7 @@ def sp():
     ]
 
 
-def sd(sunit, sfactor):
+def spectral_density(sunit, sfactor):
     """
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
@@ -38,10 +38,10 @@ def sd(sunit, sfactor):
     fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
 
     def converter(x):
-        return x * (sunit.to(si.AA, sfactor, sp()) ** 2 / c_Aps)
+        return x * (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
 
     def iconverter(x):
-        return x / (sunit.to(si.AA, sfactor, sp()) ** 2 / c_Aps)
+        return x / (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
 
     return [
         (si.AA, fnu, converter, iconverter),
