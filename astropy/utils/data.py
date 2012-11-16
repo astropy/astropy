@@ -1011,7 +1011,6 @@ def clear_download_cache(hashorurl=None):
         if hashorurl is None:
             if exists(dldir):
                 rmtree(dldir)
-                releaselock = False
             if exists(urlmapfn):
                 unlink(urlmapfn)
         else:
