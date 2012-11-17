@@ -268,22 +268,45 @@ class Quantity(object):
 
     # Comparison operations
     def __eq__(self, other):
-        return self.value == other.to(self.unit).value
+        if isinstance(other, UnitBase):
+            if self.value == 1:
+                return self.unit == other
+            else:
+                raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+        elif isinstance(other, Quantity):
+            return self.value == other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __ne__(self, other):
-        return self.value != other.to(self.unit).value
+        if isinstance(other, Quantity):
+            return self.value != other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __lt__(self, other):
-        return self.value < other.to(self.unit).value
+        if isinstance(other, Quantity):
+            return self.value < other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __le__(self, other):
-        return self.value <= other.to(self.unit).value
+        if isinstance(other, Quantity):
+            return self.value <= other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __gt__(self, other):
-        return self.value > other.to(self.unit).value
+        if isinstance(other, Quantity):
+            return self.value > other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __ge__(self, other):
-        return self.value >= other.to(self.unit).value
+        if isinstance(other, Quantity):
+            return self.value >= other.to(self.unit).value
+        else:
+            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
