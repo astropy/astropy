@@ -711,15 +711,6 @@ class _UnitMetaClass(type):
             else:
                 represents = CompositeUnit(represents.value, bases=[represents.unit], powers=[1])
 
-        '''
-        from .quantity import Quantity
-        if isinstance(st, Quantity):
-            if isinstance(st.unit, CompositeUnit):
-                st = "{0} . {1}".format(st.value, st.unit.to_string())
-            else:
-                st = "{0}".format(str(st))
-        '''
-
         if isinstance(s, Quantity):
             if s.value == 1:
                 s = s.unit
