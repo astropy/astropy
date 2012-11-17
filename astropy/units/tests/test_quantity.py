@@ -162,14 +162,6 @@ class TestQuantityOperations():
     def test_dimensionless_operations(self):
         # this test will check that operations with dimensionless Quantities don't work
 
-        #with pytest.raises(u.UnitsException):
-        #    self.q1 * u.Quantity(0.1, unit=u.Unit(""))
-        #assert new_quantity.value == 1.142
-
-        #with pytest.raises(u.UnitsException):
-        #    self.q1 / u.Quantity(0.1, unit=u.Unit(""))
-        #assert new_quantity.value == 114.2
-
         with pytest.raises(u.UnitsException):
             self.q1 + u.Quantity(0.1, unit=u.Unit(""))
 
@@ -195,6 +187,12 @@ class TestQuantityOperations():
         area = side1 * side2
         np.testing.assert_array_almost_equal(area.value, 77., decimal=15)
         assert area.unit == u.cm*u.cm
+
+    def test_comparison(self):
+
+        assert (1 / (u.cm * u.cm)) == u.cm ** -2
+        assert 1. * u.cm * u.cm * u.cm == u.cm ** 3
+
 
 
 def test_quantity_conversion():
@@ -235,17 +233,6 @@ def test_cgs():
     q = 10.*u.Pa # 10 pascals
     assert q.cgs.value == 100
     assert q.cgs.unit == u.barye
-
-'''
-def test_simplify_units():
-    quantity = u.Quantity(15., u.kg) * u.Quantity(72., u.cm) / u.Quantity(9., u.m*u.s) * u.Quantity(10., u.g) * u.Quantity(110000., u.um)
-    assert quantity.value == 132000000.
-    assert quantity.unit == u.Unit("kg cm g um / (m s)")
-
-    simplified_quantity = quantity.simplify_units()
-    np.testing.assert_array_almost_equal(simplified_quantity.value, 0.00132, decimal=11)
-    assert simplified_quantity.unit == u.Unit("kg2 m / (s)")
-'''
 
 class TestQuantityComparison():
     def test_quantity_equality(self):
