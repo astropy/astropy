@@ -20,17 +20,17 @@ Getting Started
 
 Coordinate objects are intantiated with a flexible and natural approach::
 
-    >>> from astropy import coordinates as apc
+    >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> apc.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
-    >>> apc.ICRSCoordinates('00h42m44.3s +41d16m9s')
+    >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
 
 The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
 objects, and their values are acceessed using special attributes::
 
-    >>> c = apc.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
     >>> c.ra.hours
     0.7123053333333333
     >>> c.dec.radians
@@ -44,13 +44,13 @@ transformations via the `transform_to` method are also available::
 
     >>> c.galactic
     <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
-    >>> c.transform_to(apc.GalacticCoordinates)
+    >>> c.transform_to(coord.GalacticCoordinates)
     <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
 
 Distances can also be assigned to a coordinate, defining a unique point in 3D
 space, which also allows conversion to cartesian coordinates::
 
-    >>> c = apc.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=apc.Distance(770, u.kpc))
+    >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=coord.Distance(770, u.kpc))
     >>> c.x
     568.7128654235232
     >>> c.y
