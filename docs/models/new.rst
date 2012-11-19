@@ -27,6 +27,8 @@ in the __init__ method. The default for `paramdim` is set in the base class to 1
 As a minimum the __init__ method takes all parameters and the number of
  parameter sets, `paramdim`:
 
+::
+
     def __init__(self, amplitude, xcen, xsigma, paramdim=1)
         self.linear = False
         self.ndim = 1
@@ -46,11 +48,12 @@ Parameters are instances of `parameters._Parameter` class which takes as
 arguments the name of the parameter, its value, the instance of the class 
 and the number of parameter sets.
 
-Next, provide a method to evaluate the model, called `eval` and a method 
-to compute its derivatives, called `deriv`. The evaluation method takes all
+Next, provide a method, called `eval,  to evaluate the model and a method,
+called `deriv`,  to compute its derivatives. The evaluation method takes all
 input coordinates as separate arguments and a parameter set. For this example:
 
 ::
+
     def eval(self, x, params):
         return params[0] * np.exp((-(1/(params[2]**2)) * (x-params[1])**2))
                                                 
@@ -84,6 +87,7 @@ The details are described below using scipy's SLSQP algorithm as an example.
 The base class for all fitters is `fitting.Fitter`. 
 
 ::
+
     class SLSQPFitter(Fitter):
         def __init__(self, model, fixed=None, tied=None, bounds=None,
                             eqcons=None, ineqcons=None):
@@ -100,10 +104,11 @@ different types of constraints.
 
 Next, the error function takes a list of parameters returned by an iteration of the 
 fitting algorithm and input coordinates, evaluates the model with them and 
-returns some type of a distance? measure. In the example the sum of the 
+returns some type of a measure for the fit. In the example the sum of the 
 squared residuals is used as a measure of fitting.
 
 ::
+
     def errorfunc(self, fps, *args):
         meas = args[0]
         self.fitpars = fps
