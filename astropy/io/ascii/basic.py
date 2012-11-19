@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 basic.py:
   Basic table read / write functionality for simple character
@@ -8,7 +8,7 @@ basic.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
-## 
+##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted provided that the following conditions are met:
 ##     * Redistributions of source code must retain the above copyright
@@ -19,7 +19,7 @@ basic.py:
 ##     * Neither the name of the Smithsonian Astrophysical Observatory nor the
 ##       names of its contributors may be used to endorse or promote products
 ##       derived from this software without specific prior written permission.
-## 
+##
 ## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ## ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,7 +28,7 @@ basic.py:
 ## (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ## LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ## ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS  
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
@@ -42,7 +42,7 @@ class Basic(core.BaseReader):
     configurable.
     ::
 
-        rdr = asciitable.get_reader(Reader=asciitable.Basic)
+        rdr = ascii.get_reader(Reader=ascii.Basic)
         rdr.header.splitter.delimiter = ' '
         rdr.data.splitter.delimiter = ' '
         rdr.header.start_line = 0
@@ -52,7 +52,7 @@ class Basic(core.BaseReader):
         rdr.data.comment = r'\s*#'
 
     Example table::
-    
+
       # Column definition is the first uncommented line
       # Default delimiter is the space character.
       apples oranges pears
@@ -133,7 +133,7 @@ class CommentedHeader(core.BaseReader):
 
 
 class Tab(Basic):
-    """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is 
+    """Read a tab-separated file.  Unlike the :class:`Basic` reader, whitespace is
     not stripped from the beginning and end of lines.  By default whitespace is
     still stripped from the beginning and end of individual column values.
 
@@ -148,7 +148,7 @@ class Tab(Basic):
         self.header.splitter.delimiter = '\t'
         self.data.splitter.delimiter = '\t'
         # Don't strip line whitespace since that includes tabs
-        self.header.splitter.process_line = None  
+        self.header.splitter.process_line = None
         self.data.splitter.process_line = None
         # Don't strip data value whitespace since that is significant in TSV tables
         self.data.splitter.process_val = None
@@ -187,7 +187,7 @@ class RdbHeader(core.BaseHeader):
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
-        
+
         This is a specialized get_cols for the RDB type:
         Line 0: RDB col names
         Line 1: RDB col definitions
@@ -204,10 +204,10 @@ class RdbHeader(core.BaseHeader):
 
         if len(self.names) != len(raw_types):
             raise ValueError('RDB header mismatch between number of column names and column types')
-        
+
         if any(not re.match(r'\d*(N|S)$', x, re.IGNORECASE) for x in raw_types):
             raise ValueError('RDB types definitions do not all match [num](N|S): %s' % raw_types)
-        
+
         self._set_cols_from_names()
         for col, raw_type in zip(self.cols, raw_types):
             col.raw_type = raw_type
@@ -217,9 +217,8 @@ class RdbHeader(core.BaseHeader):
         lines.append(self.splitter.join([x.name for x in self.cols]))
         rdb_types = []
         for col in self.cols:
-            if issubclass(col.type, core.NumType):
-                rdb_types.append('N')
-            else:
-                rdb_types.append('S')
-        lines.append(self.splitter.join(rdb_types))
+            # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
+            rdb_type = 'S' if col.dtype.kind in ('S', 'U') else 'N'
+            rdb_types.append(rdb_type)
 
+        lines.append(self.splitter.join(rdb_types))

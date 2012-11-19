@@ -16,12 +16,13 @@ test_defs = [
          out="""\
 ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
-18 18.114 280.17 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
+18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),
     dict(kwargs=dict(formats={'XCENTER': '%12.1f',
-                              'YCENTER': lambda x: round(x, 1)},
-                     include_names=['XCENTER', 'YCENTER']),
+                              'YCENTER': '{0:.1f}'},
+                     include_names=['XCENTER', 'YCENTER'],
+                     strip_whitespace=False),
          out="""\
 XCENTER YCENTER
 "       138.5" 256.4
@@ -33,27 +34,27 @@ XCENTER YCENTER
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
 N	N	N	N	N	N	N	N	N	S
 14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0	No_error
-18	18.114	280.17	22.329	0.206	30.12784	4	-2.544	0	No_error
+18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
 """
          ),   
     dict(kwargs=dict(Writer=asciitable.Tab),
          out="""\
 ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
 14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
-18	18.114	280.17	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
+18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
 """
          ),   
     dict(kwargs=dict(Writer=asciitable.NoHeader),
          out="""\
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
-18 18.114 280.17 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
+18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),   
     dict(kwargs=dict(Writer=asciitable.CommentedHeader),
          out="""\
 # ID XCENTER YCENTER MAG MERR MSKY NITER SHARPNESS CHI PIER PERROR
 14 138.538 256.405 15.461 0.003 34.85955 4 -0.032 0.802 0 No_error
-18 18.114 280.17 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
+18 18.114 280.170 22.329 0.206 30.12784 4 -2.544 1.104 0 No_error
 """
          ),   
     dict(kwargs=dict(Writer=asciitable.Latex),
@@ -62,7 +63,7 @@ ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
-18 & 18.114 & 280.17 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\end{tabular}
 \\end{table}
 """
@@ -73,7 +74,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
-18 & 18.114 & 280.17 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\enddata
 \\end{deluxetable}
 """
@@ -85,7 +86,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{ } & \\colhead{[mag]} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ }}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
-18 & 18.114 & 280.17 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\enddata
 \\end{deluxetable}
 """
@@ -97,9 +98,9 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\caption{Mag values \\label{tab1}}
 \\begin{tabular}{|lcccccccccc|}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
-  & [pixel] &   & [mag] &   &   &   &   &   &   &   \\\\
+ & [pixel] &  & [mag] &  &  &  &  &  &  &  \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
-18 & 18.114 & 280.17 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\hline
 \\hline
 \\end{tabular}
@@ -115,11 +116,11 @@ preamble
 \\begin{tabular}{col_align}
 header_start
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
-  &   &   &   &   &   &   &   &   &   &   \\\\
+ &  &  &  &  &  &  &  &  &  &  \\\\
 header_end
 data_start
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
-18 & 18.114 & 280.17 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
+18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 data_end
 \\end{tabular}
 tablefoot

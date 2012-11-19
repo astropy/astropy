@@ -1,11 +1,16 @@
 from __future__ import absolute_import
-
 import os
+from distutils import version
+import numpy as np
+
+
 from ... import ascii
 
-__all__ = ['raises',
+__all__ = ['raises', 'numpy_lt_1p5'
            'assert_equal', 'assert_almost_equal', 'assert_true',
            'setup_function', 'teardown_function', 'has_isnan']
+
+numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
 
 CWD = os.getcwd()
 TEST_DIR = os.path.dirname(__file__)

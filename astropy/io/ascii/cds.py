@@ -1,4 +1,4 @@
-"""Asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 cds.py:
   Classes to read CDS / Vizier table format
@@ -131,11 +131,13 @@ class CdsHeader(core.BaseHeader):
                 col.start = int(re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1
                 col.end = int(match.group('end'))
                 col.units = match.group('units')
-                col.descr = match.group('descr')
+                if col.units == '---':
+                    col.units = None  # "---" is the marker for no units in CDS table
+                col.description = match.group('descr').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
 
-                match = re.match(r'\? (?P<equal> =)? (?P<nullval> \S*)', col.descr, re.VERBOSE)
+                match = re.match(r'\? (?P<equal> =)? (?P<nullval> \S*)', col.description, re.VERBOSE)
                 if match:
                     if issubclass(col.type, core.FloatType):
                         fillval = 'nan'
@@ -152,7 +154,7 @@ class CdsHeader(core.BaseHeader):
                 cols.append(col)
             else:  # could be a continuation of the previous col's description
                 if cols:
-                    cols[-1].descr += line.strip()
+                    cols[-1].description += line.strip()
                 else:
                     raise ValueError('Line "%s" not parsable as CDS header' % line)
 
@@ -196,8 +198,16 @@ class Cds(core.BaseReader):
     """Read a CDS format table.  See http://vizier.u-strasbg.fr/doc/catstd.htx.
     Example::
 
-      Table: Spitzer-identified YSOs: Addendum
+      Table: Table name here
       = ==============================================================================
+      Catalog reference paper
+          Bibliography info here
+      ================================================================================
+      ADC_Keywords: Keyword ; Another keyword ; etc
+
+      Description:
+          Catalog description here.
+      ================================================================================
       Byte-by-byte Description of file: datafile3.txt
       --------------------------------------------------------------------------------
          Bytes Format Units  Label  Explanations
@@ -207,19 +217,37 @@ class Cds(core.BaseReader):
          8-  9 I2     min    RAm    Minute of Right Ascension (J2000)
         11- 15 F5.2   s      RAs    Second of Right Ascension (J2000)
       --------------------------------------------------------------------------------
+      Note (1): A CDS file can contain sections with various metadata.
+                Notes can be multiple lines.
+      Note (2): Another note.
+      --------------------------------------------------------------------------------
         1 03 28 39.09
+        2 04 18 24.11
+
+    **About parsing the CDS format**
+
+    The CDS format consists of a table description and the table data.  These
+    can be in separate files as a ``ReadMe`` file plus data file(s), or
+    combined in a single file.  Different subsections within the description
+    are separated by lines of dashes or equal signs ("------" or "======").
+    The table which specifies the column information must be preceded by a line
+    starting with "Byte-by-byte Description of file:".
+
+    In the case where the table description is combined with the data values,
+    the data must be in the last section and must be preceded by a section
+    delimiter line (dashes or equal signs only).
 
     **Basic usage**
 
-    Use the ``asciitable.read()`` function as normal, with an optional ``readme``
+    Use the ``ascii.read()`` function as normal, with an optional ``readme``
     parameter indicating the CDS ReadMe file.  If not supplied it is assumed that
     the header information is at the top of the given table.  Examples::
 
-      >>> import asciitable
-      >>> table = asciitable.read("t/cds.dat")
-      >>> table = asciitable.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
-      >>> table = asciitable.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
-      >>> table = asciitable.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
+      >>> from astropy.io import ascii
+      >>> table = ascii.read("t/cds.dat")
+      >>> table = ascii.read("t/vizier/table1.dat", readme="t/vizier/ReadMe")
+      >>> table = ascii.read("t/cds/multi/lhs2065.dat", readme="t/cds/multi/ReadMe")
+      >>> table = ascii.read("t/cds/glob/lmxbrefs.dat", readme="t/cds/glob/ReadMe")
 
     **Using a reader object**
 
@@ -231,7 +259,7 @@ class Cds(core.BaseReader):
     have header information for the given table.
 
       >>> readme = "t/vizier/ReadMe"
-      >>> r = asciitable.get_reader(asciitable.Cds, readme=readme)
+      >>> r = ascii.get_reader(ascii.Cds, readme=readme)
       >>> table = r.read("t/vizier/table1.dat")
       >>> # table5.dat has the same ReadMe file
       >>> table = r.read("t/vizier/table5.dat")
@@ -239,7 +267,7 @@ class Cds(core.BaseReader):
     If no ``readme`` parameter is specified, then the header
     information is assumed to be at the top of the given table.
 
-      >>> r = asciitable.get_reader(asciitable.Cds)
+      >>> r = ascii.get_reader(ascii.Cds)
       >>> table = r.read("t/cds.dat")
       >>> #The following gives InconsistentTableError, since no
       >>> #readme file was given and table1.dat does not have a header.

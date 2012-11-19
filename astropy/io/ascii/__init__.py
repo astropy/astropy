@@ -31,11 +31,11 @@ from __future__ import absolute_import
 
 from .core import (InconsistentTableError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,
-                   Column, Keyword,
+                   Column,
                    BaseInputter, ContinuationLinesInputter,
                    BaseHeader,
                    BaseData,
-                   BaseOutputter, NumpyOutputter, TableOutputter,
+                   BaseOutputter, TableOutputter,
                    BaseReader,
                    BaseSplitter, DefaultSplitter, WhitespaceSplitter,
                    convert_numpy,
@@ -50,7 +50,6 @@ from .latex import Latex, AASTex, latexdicts
 from .ipac import Ipac
 from .daophot import Daophot
 from .sextractor import SExtractor
-from .memory import Memory
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
                          FixedWidthHeader, FixedWidthData)
