@@ -134,7 +134,7 @@ Using `models`
 
 
 .. toctree::
-    model.parameters
+    parameters
     models
     fitting
     util
@@ -147,4 +147,9 @@ Using `models`
 Reference/API
 =============
 
-.. automodapi:: astropy.models
+.. automodapi:: astropy.models.models
+.. automodapi:: astropy.models.projections
+.. automodapi:: astropy.models.rotations
+.. automodapi:: astropy.models.fitting
+.. automodapi:: astropy.models.parameters
+
