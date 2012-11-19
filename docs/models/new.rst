@@ -23,9 +23,9 @@ in the __init__ method. The default for `paramdim` is set in the base class to 1
 
     class Gauss1DModel(ParametricModel):
         parnames = ['amplitude', 'xcen', 'xsigma']
-        
-As a minimum the __init__ method takes all parameters and the number of
- parameter sets, `paramdim`:
+
+
+As a minimum the __init__ method takes all parameters and the number of parameter sets, `paramdim`:
 
 ::
 
