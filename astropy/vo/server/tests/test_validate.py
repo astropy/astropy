@@ -62,11 +62,6 @@ class TestConeSearchValidation():
                 os.path.join(self.datadir, val)),
                 os.path.join(self.out_dir, val))
 
-        # Symbolic link
-        _compare_catnames(get_pkg_data_filename(
-            os.path.join(self.datadir, self.filenames['good'])),
-            os.path.join(self.out_dir, 'conesearch.json'))
-
     def test_url_list(self):
         local_outdir = os.path.join(self.out_dir, 'subtmp1')
         local_list = [

@@ -23,7 +23,7 @@ import warnings
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden', 'NumpyScalarEncoder']
+           'walk_skip_hidden', 'NumpyScalarOrSetEncoder']
 
 
 class Future(object):
@@ -850,11 +850,13 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
         yield root, dirs, files
 
 
-class NumpyScalarEncoder(json.JSONEncoder):
-    """Encode Numpy scalar numbers in JSON."""
+class NumpyScalarOrSetEncoder(json.JSONEncoder):
+    """Encode Numpy scalar numbers or sets in JSON."""
     def default(self, obj):
         import numpy
         if isinstance(obj, (numpy.int32, numpy.int64, numpy.int,
                             numpy.float32, numpy.float64, numpy.float)):
             return obj.tolist()
+        elif isinstance(obj, set):
+            return list(obj)
         return json.JSONEncoder.default(self, obj)

@@ -18,10 +18,10 @@ Examples
 --------
 >>> from astropy.vo.client import vos_catalog
 
-Get all catalogs from a database named 'conesearch'.
+Get all catalogs from a database named 'conesearch_good'.
 For more cone search examples, see `astropy.vo.client.conesearch`:
 
->>> my_db = vos_catalog.get_remote_catalog_db('conesearch')
+>>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
 Find catalog names containing 'iphas':
 

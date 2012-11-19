@@ -7,8 +7,14 @@ Based on the `Simple Cone Search Version 1.03 Recommendation
 
 Available databases are generated on the server side by
 `astropy.vo.server.validate.check_conesearch_sites`.
-Default database is 'conesearch.json', which can be changed
+Default database is 'conesearch_good.json', which can be changed
 locally in a session via AstroPy configuration system.
+
+.. warning::
+
+    When Cone Search returns warnings, user should decide
+    whether the results are reliable by inspecting the
+    `warning codes <http://astropy.readthedocs.org/en/latest/io/votable/api_exceptions.html>`_ .
 
 *CONFIGURABLE PROPERTIES*
 
@@ -135,7 +141,7 @@ from ...config.configuration import ConfigurationItem
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
            'conesearch_timer']
 
-CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch',
+CONESEARCH_DBNAME = ConfigurationItem('conesearch_dbname', 'conesearch_good',
                                       'Conesearch database name.')
 
 
