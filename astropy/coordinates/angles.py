@@ -225,21 +225,32 @@ class Angle(object):
         """ The angle's value in degrees, and print as an (d,m,s) tuple (read-only property). """
         return util.radians_to_dms(self.radians)
 
-    #TODO: Check with @demitri and @adrn re: this vs __str__ vs fromat vs to_string and so on
-    def string(self, unit=u.degree, decimal=False, sep=" ", precision=5, pad=False):
+    def format(self, unit=u.degree, decimal=False, sep='dms', precision=5,
+               alwayssign=False, pad=False):
         """ A string representation of the angle.
 
             Parameters
             ----------
-            units : str
-                Specifies the units, value should be one of the allowed units values (see: `Angle`)
+            units : `~astropy.units.UnitBase`
+                Specifies the units, should be 'degree', 'hour', or 'radian'
             decimal : bool
-                Specifies whether to return a sexagesimal representation (e.g. a tuple
-                (hours, minutes, seconds)), or decimal
+                If True, a decimal respresentation will be used, otherwise
+                the returned string will be in sexagesimal form.
             sep : str
-                The separator between numbers in a sexagesimal representation, e.g. 12:41:11.1241
-                where the separator is ":". Also accepts 2 or 3 separators, e.g. 12h41m11.1241s would be sep="hms",
-                or 11-21:17.124 would be sep="-:"
+                The separator between numbers in a sexagesimal representation.
+                E.g., if it is ':', the result is "12:41:11.1241". Also accepts
+                2 or 3 separators. E.g., ``sep='hms'`` would give the result
+                "12h41m11.1241s", or sep='-:' would yield "11-21:17.124".
+            precision : int
+                The level of decimal precision.  if `decimal` is True, this is
+                the raw precision, otherwise it gives the precision of the last
+                place of the sexagesimal representation (seconds).
+            alwayssign : bool
+                If True, include the sign no matter what.  If False, only
+                include the sign if it is necessary (negative).
+            pad : bool
+                If True, include leading zeros when needed to ensure a fixed
+                number of characters.
 
             Returns
             -------
@@ -247,41 +258,35 @@ class Angle(object):
                 A string representation of the angle.
 
         """
-
-        if isinstance(unit, u.UnitBase):
-            pass  # great!
-        elif isinstance(unit, basestring):
-            lunit = unit.lower()
-            if lunit is "degrees":
-                unit = u.degree
-            elif lunit is "hours":
-                unit = u.hour
-            elif lunit is "radians":
-                unit = u.radian
-            else:
-                unit = u.Unit(unit)
-        else:
-                raise UnitsError("{0} was given as a unit, but is not a valid Unit".format(unit))
-
-        if unit not in (u.degree, u.hour, u.radian):
-            raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+        unit = u.Unit(unit)
 
         if unit is u.degree:
             if decimal:
-                return ("{0:0." + str(precision) + "f}").format(self.degrees)
+                res = ("{0:0." + str(precision) + "f}").format(self.degrees)
             else:
-                return util.degrees_to_string(self.degrees, precision=precision, sep=sep, pad=pad)
+                res = util.degrees_to_string(self.degrees, precision=precision, sep=sep, pad=pad)
 
         elif unit is u.radian:
-            return str(self.radians)
+            if decimal:
+                raise ValueError('Radians cannot be in sexagesimal representation')
+            else:
+                res = ("{0:0." + str(precision) + "f}").format(self.hours)
 
         elif unit is u.hour:
             if decimal:
-                return ("{0:0." + str(precision) + "f}").format(self.hours)
+                res = ("{0:0." + str(precision) + "f}").format(self.hours)
             else:
-                return util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
+                res = util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
         else:
-            raise ValueError(unit)
+            raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+
+        if alwayssign and not res.startswith('-'):
+            return '+' + res
+        else:
+            return res
+
+    def __str__(self):
+        return self.format()
 
     # ----------------------------------------------------------------------------
     # Emulating numeric types

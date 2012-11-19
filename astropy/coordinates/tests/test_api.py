@@ -257,6 +257,7 @@ def test_angle_convert():
     assert isinstance(angle.dms[0], float)
     assert isinstance(angle.hms[0], float)
 
+
 def test_angle_formatting():
     """
     Tests string formatting for Angle objects
@@ -275,68 +276,71 @@ def test_angle_formatting():
 
     angle = Angle("54.12412", unit=u.degree)
 
-    res = 'Angle as HMS: 3 36 29.78880'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour)) == res
+    #__str__ is the default `format`
+    assert '54d07m26.83200s' == str(angle)
+
+    res = 'Angle as HMS: 3d36m29.78880s'
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.78880'
-    print("Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=":")))
+    print("Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")))
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=":",
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as HMS: 3h36m29.7888s'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour,
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour,
                                                    sep=("h", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36|29.7888'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, sep=["-", "|"],
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36-29.7888'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, sep="-",
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep="-",
                                                     precision=4)) == res
 
-    res = 'Angle as HMS: 03 36 29.7888'
-    assert "Angle as HMS: {0}".format(angle.string(unit=u.hour, precision=4,
+    res = 'Angle as HMS: 03d36m29.7888s'
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, precision=4,
                                                   pad=True)) == res
 
     # Same as above, in degrees
 
     angle = Angle("3 36 29.78880", unit=u.degree)
 
-    res = 'Angle as DMS: 3 36 29.78880'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree)) == res
+    res = 'Angle as DMS: 3d36m29.78880s'
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree)) == res
 
     res = 'Angle as DMS: 3:36:29.78880'
-    print("Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=":")))
+    print("Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":")))
 
     res = 'Angle as DMS: 3:36:29.79'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=":",
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":",
                                       precision=2)) == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
 
     res = 'Angle as DMS: 3d36m29.7888s'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree,
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree,
                                                    sep=("d", "m", "s"),
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36|29.7888'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep=["-", "|"],
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=["-", "|"],
                                                    precision=4)) == res
 
     res = 'Angle as DMS: 3-36-29.7888'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, sep="-",
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep="-",
                                                     precision=4)) == res
 
-    res = 'Angle as DMS: 03 36 29.7888'
-    assert "Angle as DMS: {0}".format(angle.string(unit=u.degree, precision=4,
+    res = 'Angle as DMS: 03d36m29.7888s'
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, precision=4,
                                                   pad=True)) == res
 
 
@@ -582,7 +586,7 @@ def test_convert_api():
     gal = c.transform_to(GalacticCoordinates)
 
     # can still convert back to equatorial using the shorthand
-    assert gal.icrs.ra.string(unit=u.hour, sep=":",
+    assert gal.icrs.ra.format(unit=u.hour, sep=":",
                               precision=2) == '4:08:15.16'
 
     with raises(ConvertError):
