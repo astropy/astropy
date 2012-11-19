@@ -315,13 +315,13 @@ another.
 
 As described above, there are two ways of transforming coordinates.  Coordinates
 that have an alias (created with
-`~astropy.coordinates.transformations.coordinate_alias`) can be converted to by
+`~astropy.coordinates.transformations.coordinate_alias`) can be converted by
 simply using attribute style access to any other coordinate system::
 
     >>> gc = GalacticCoordinates(l=0, b=45, unit=u.degree)
     >>> gc.fk5
     <FK5Coordinates RA=229.27250 deg, Dec=-1.12842 deg>
-    >>> ic = ICRSCoordinates(ra=0, dec=, unit=u.degree)
+    >>> ic = ICRSCoordinates(ra=0, dec=45, unit=u.degree)
     >>> ic.fk5
     <FK5Coordinates RA=0.00001 deg, Dec=45.00000 deg>
 

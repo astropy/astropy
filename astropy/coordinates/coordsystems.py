@@ -577,7 +577,7 @@ class Coordinates(object):
             if isinstance(x, basestring):
                 raise ValueError("The coordinate system could not be determines from the value "
                                  "provided. Specify the system via keywords or use the "
-                                 "corresponding class (e.g. GalacticCoordinate).")
+                                 "corresponding class (e.g. GalacticCoordinates).")
             elif isinstance(x, list):
                 return ValueError("Lists of coordinates are not yet supported")
             else:
@@ -590,7 +590,7 @@ class Coordinates(object):
             raise ValueError("Two angles were provided ('{0[0]}', '{0[1]}'), but the "
                              "coordinate system "
                              "was not provided. Specify the system via keywords or use the "
-                             "corresponding class (e.g. GalacticCoordinate).".format(args))
+                             "corresponding class (e.g. GalacticCoordinates).".format(args))
 
         else:
             raise ValueError("Could not construct coordinates.")

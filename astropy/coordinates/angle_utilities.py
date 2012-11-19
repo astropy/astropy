@@ -425,10 +425,13 @@ def small_angle_dist(lat1, lon1, lat2, lon2):
     """
     Euclidean angular distance "on a sphere" - only valid on sphere in the
     small-angle approximation.
+
+    inputs must be in radians
     """
+    from math import cos
 
     dlat = lat2 - lat1
-    dlon = lon2 - lon1
+    dlon = (lon2 - lon1) * cos((lat1 + lat2) / 2.)
 
     return (dlat ** 2 + dlon ** 2) ** 0.5
 
@@ -467,7 +470,7 @@ def haversine_dist_atan(lat1, lon1, lat2, lon2):
     """
     Haversine formula for angular distance on a sphere: more stable at poles.
     This version uses arctan instead of arcsin and thus does better
-    with sign convnentions.
+    with sign conventions.
 
     inputs must be in radians
     """
