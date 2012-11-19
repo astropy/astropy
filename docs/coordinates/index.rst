@@ -31,12 +31,16 @@ The individual components of a coordinate are `~astropy.coordinates.angles.Angle
 objects, and their values are acceessed using special attributes::
 
     >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> c.ra
+    <RA 10.68458 deg>
     >>> c.ra.hours
     0.7123053333333333
-    >>> c.dec.radians
-    0.7202828960652683
     >>> c.ra.hms
     (0.0, 42, 44.2992000000001)
+    >>> c.dec
+    <Dec 41.26917 deg>
+    >>> c.dec.radians
+    0.7202828960652683
 
 To convert to some other coordinate system, the easiest method is to use
 attribute-style access with short names for the builtin systems, but explicit
@@ -47,8 +51,9 @@ transformations via the `transform_to` method are also available::
     >>> c.transform_to(coord.GalacticCoordinates)
     <GalacticCoordinates l=121.17422 deg, b=-21.57283 deg>
 
-Distances can also be assigned to a coordinate, defining a unique point in 3D
-space, which also allows conversion to cartesian coordinates::
+Distances from the origin (which is system-dependent, but often the Earth
+center) can also be assigned to a coordinate. This specifies a unique point
+in 3D space, which also allows conversion to cartesian coordinates::
 
     >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=coord.Distance(770, u.kpc))
     >>> c.x
@@ -238,6 +243,12 @@ coordinates using the `x`/`y`/`z` attributes::
     107.3009359688103
     >>> c.z
     507.8899092486349
+
+.. note::
+
+    The location of the origin is different for different coordinate
+    systems, but for common celestial coordinate systems it is often
+    the Earth center (or for precision work, the Earth/Moon barycenter).
 
 The cartesian coordinates can also be accessed via the
 `~astropy.coordinates.distances.CartesianCoordinates` object, which has
