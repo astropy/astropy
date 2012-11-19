@@ -67,7 +67,6 @@ def parse_degrees(degrees, output_dms=False):
 
     if isinstance(x, float) or isinstance(x, int):
         parsed_degrees = float(x)
-        #parsedDMS = degrees_to_dms(parsed_degrees)
 
     elif isinstance(x, str):
         x = x.strip()
@@ -122,11 +121,9 @@ def parse_degrees(degrees, output_dms=False):
 
     elif isinstance(x, Angle):
         parsed_degrees = x.degrees
-        #parsedDMS = degrees_to_dms(parsed_degrees)
 
     elif isinstance(x, tuple):
         parsed_degrees = dms_to_degrees(*x)
-        #parsedDMS = x
 
     else:
         raise ValueError("{0}: could not parse value of {1}.".format(inspect.stack()[0][3], type(x)))
@@ -184,7 +181,6 @@ def parse_hours(hours, output_hms=False):
                 string_parsed = True
             except:
                 pass # try again below
-                #raise ValueError("{0}: Invalid input string, can't parse to HMS. ({1})".format(inspect.stack()[0][3],x))
 
             if string_parsed:
                 h, m, s = float(elems[0]), int(elems[1]), float(elems[2])
