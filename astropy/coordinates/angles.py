@@ -11,8 +11,8 @@ from types import *
 
 import numpy as np
 
-import angle_utilities as util
-from errors import *
+from . import angle_utilities as util
+from .errors import *
 from .. import units as u
 
 __all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
