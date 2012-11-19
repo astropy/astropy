@@ -17,7 +17,7 @@ from ..config.configuration import ConfigurationItem
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',
            'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
-           'clear_data_cache', 'CacheMissingWarning', 'download_file']
+           'clear_download_cache', 'CacheMissingWarning', 'download_file']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -26,11 +26,11 @@ REMOTE_TIMEOUT = ConfigurationItem(
 COMPUTE_HASH_BLOCK_SIZE = ConfigurationItem(
     'hash_block_size', 2 ** 16,  # 64K
     'Block size for computing MD5 file hashes.')
-DATA_CACHE_DL_BLOCK_SIZE = ConfigurationItem(
-    'data_dl_block_size', 2 ** 16,  # 64K
+DOWNLOAD_CACHE_BLOCK_SIZE = ConfigurationItem(
+    'download_block_size', 2 ** 16,  # 64K
     'Number of bytes of remote data to download per step.')
-DATA_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
-    'data_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
+DOWNLOAD_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
+    'download_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
     'while accessing the data cache before giving up.')
 DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     'delete_temporary_downloads_at_exit', True, 'If True, temporary download' +
@@ -332,14 +332,19 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
         with get_pkg_data_fileobj('data/3d_cd.hdr') as fobj:
             fcontents = fobj.read()
 
-
-    This downloads a data file and its contents from a specified URL, and does
-    *not* cache it remotely::
+    This would download a data file from the astropy data server
+    because the ``standards/vega.fits`` file is not present in the
+    source distribution.  It will also save the file locally so the
+    next time it is accessed it won't need to be downloaded.::
 
         from astropy.config import get_pkg_data_fileobj
 
-        vegaurl = 'ftp://ftp.stsci.edu/cdbs/grid/k93models/standards/vega.fits'
-        with get_pkg_data_fileobj(vegaurl,False) as fobj:
+        with get_pkg_data_fileobj('standards/vega.fits') as fobj:
+            fcontents = fobj.read()
+
+    This does the same thing but does *not* cache it locally::
+
+        with get_pkg_data_fileobj('standards/vega.fits', cache=False) as fobj:
             fcontents = fobj.read()
 
     See Also
@@ -354,7 +359,8 @@ def get_pkg_data_fileobj(data_name, encoding=None, cache=True):
     elif os.path.isfile(datafn):  # local file
         return get_readable_fileobj(datafn, encoding=encoding)
     else:  # remote file
-        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding)
+        return get_readable_fileobj(DATAURL() + datafn, encoding=encoding,
+                                    cache=cache)
 
 
 def get_pkg_data_filename(data_name):
@@ -672,7 +678,11 @@ def _find_pkg_data_path(data_name):
     from ..utils.misc import find_current_module
 
     module = find_current_module(1, True)
+    if module is None:
+        # not called from inside an astropy package.  So just pass name through
+        return data_name
     rootpkgname = module.__package__.split('.')[0]
+
     rootpkg = __import__(rootpkgname)
 
     module_path = dirname(module.__file__)
@@ -695,7 +705,7 @@ def _find_hash_fn(hash):
     from warnings import warn
 
     try:
-        dldir, urlmapfn = _get_data_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs()
     except (IOError, OSError) as e:
         msg = 'Could not access cache directory to search for data file: '
         warn(CacheMissingWarning(msg + str(e)))
@@ -735,7 +745,7 @@ def download_file(remote_url, cache=False):
     if cache:
 
         try:
-            dldir, urlmapfn = _get_data_cache_locs()
+            dldir, urlmapfn = _get_download_cache_locs()
         except (IOError, OSError) as e:
             msg = 'Remote data cache could not be accessed due to '
             estr = '' if len(e.args) < 1 else (': ' + str(e))
@@ -743,10 +753,9 @@ def download_file(remote_url, cache=False):
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
 
-        _acquire_data_cache_lock()
-
+        if not missing_cache:
+            _acquire_download_cache_lock()
     try:
-
         if cache:
             with _open_shelve(urlmapfn, True) as url2hash:
                 if str(remote_url) in url2hash:
@@ -770,35 +779,36 @@ def download_file(remote_url, cache=False):
             with ProgressBarOrSpinner(size, dlmsg) as p:
                 with NamedTemporaryFile(delete=False) as f:
                     bytes_read = 0
-                    block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+                    block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
                     while block:
                         f.write(block)
                         hash.update(block)
                         bytes_read += len(block)
                         p.update(bytes_read)
-                        block = remote.read(DATA_CACHE_DL_BLOCK_SIZE())
+                        block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
 
         if cache:
-
             with _open_shelve(urlmapfn, True) as url2hash:
                 local_path = os.path.join(dldir, hash.hexdigest())
                 move(f.name, local_path)
                 url2hash[str(remote_url)] = local_path
-
         else:
-
             local_path = f.name
             if missing_cache:
-                msg = 'File downloaded to temp file due to lack of cache access.'
+                msg = ('File downloaded to temporary location due to problem '
+                       'with cache directory and will not be cached.')
                 warn(CacheMissingWarning(msg, local_path))
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
-
+    except urllib2.URLError, e:
+        if e.reason.errno == 8:
+            e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
+            e.reason.args = (e.reason.errno, e.reason.strerror)
+        raise e
     finally:
-
-        if cache:
-            _release_data_cache_lock()
+        if cache and not missing_cache:
+            _release_download_cache_lock()
 
     return local_path
 
@@ -819,7 +829,7 @@ def _deltemps():
             os.remove(fn)
 
 
-def clear_data_cache(hashorurl=None):
+def clear_download_cache(hashorurl=None):
     """ Clears the data file cache by deleting the local file(s).
 
     Parameters
@@ -841,14 +851,14 @@ def clear_data_cache(hashorurl=None):
     from warnings import warn
 
     try:
-        dldir, urlmapfn = _get_data_cache_locs()
+        dldir, urlmapfn = _get_download_cache_locs()
     except (IOError, OSError) as e:
         msg = 'Not clearing data cache - cache inacessable due to '
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         return
 
-    _acquire_data_cache_lock()
+    _acquire_download_cache_lock()
     try:
 
         if hashorurl is None:
@@ -860,7 +870,7 @@ def clear_data_cache(hashorurl=None):
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = join(dldir, hashorurl)
                 assert abspath(filepath).startswith(abspath(dldir)), \
-                       ("attempted to use clear_data_cache on a location" +
+                       ("attempted to use clear_download_cache on a location" +
                         " that's not inside the data cache directory")
 
                 if exists(filepath):
@@ -878,10 +888,12 @@ def clear_data_cache(hashorurl=None):
                     msg = 'Could not find file or url {0}'
                     raise OSError(msg.format(hashorurl))
     finally:
-        _release_data_cache_lock()
+        # the lock will be gone if rmtree was used above, but release otherwise
+        if exists(join(_get_download_cache_locs()[0], 'lock')):
+            _release_download_cache_lock()
 
 
-def _get_data_cache_locs():
+def _get_download_cache_locs():
     """ Finds the path to the data cache directory.
 
     Returns
@@ -895,8 +907,8 @@ def _get_data_cache_locs():
     from os.path import exists, isdir, join
     from os import mkdir
 
-    datadir = join(get_cache_dir(), 'data')
-    shelveloc = join(get_cache_dir(), 'data_urlmap')
+    datadir = join(get_cache_dir(), 'download')
+    shelveloc = join(get_cache_dir(), 'download_urlmap')
     if not exists(datadir):
         mkdir(datadir)
     elif not isdir(datadir):
@@ -933,16 +945,24 @@ def _open_shelve(shelffn, withclosing=False):
 
 
 #the cache directory must be locked before any writes are performed.  Same for
-#the hash shelve, so this should be used for both.  Note
-def _acquire_data_cache_lock():
+#the hash shelve, so this should be used for both.
+def _acquire_download_cache_lock():
+    """
+    Uses the lock directory method.  This is good because `mkdir` is
+    atomic at the system call level, so it's thread-safe.
+    """
     from os.path import join
     from os import mkdir
     from time import sleep
 
-    lockdir = join(_get_data_cache_locs()[0], 'lock')
-    for i in range(DATA_CACHE_LOCK_ATTEMPTS()):
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    for i in range(DOWNLOAD_CACHE_LOCK_ATTEMPTS()):
         try:
             mkdir(lockdir)
+            #write the pid of this process for informational purposes
+            with open(join(lockdir, 'pid'), 'w') as f:
+                f.write(str(os.getpid()))
+
         except OSError:
             sleep(1)
         else:
@@ -951,13 +971,17 @@ def _acquire_data_cache_lock():
     raise RuntimeError(msg.format(lockdir))
 
 
-def _release_data_cache_lock():
+def _release_download_cache_lock():
     from os.path import join, exists, isdir
     from os import rmdir
 
-    lockdir = join(_get_data_cache_locs()[0], 'lock')
+    lockdir = join(_get_download_cache_locs()[0], 'lock')
 
-    if exists(lockdir) and isdir(lockdir):
+    if isdir(lockdir):
+        #if the pid file is present, be sure to remove it
+        pidfn = join(lockdir, 'pid')
+        if exists(pidfn):
+            os.remove(pidfn)
         rmdir(lockdir)
     else:
         msg = 'Error releasing lock. "{0}" either does not exist or is not ' +\

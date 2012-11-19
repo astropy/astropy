@@ -5,6 +5,7 @@ import os
 import io
 
 import pytest
+from ..data import _get_download_cache_locs
 
 TESTURL = 'http://www.google.com/index.html'
 
@@ -23,12 +24,15 @@ def test_download_nocache():
 @remote_data
 def test_download_cache():
 
-    from ..data import download_file, clear_data_cache
+    from ..data import download_file, clear_download_cache
 
     fnout = download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
-    clear_data_cache(TESTURL)
+    clear_download_cache(TESTURL)
     assert not os.path.isfile(fnout)
+
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
 @remote_data
@@ -42,7 +46,7 @@ def test_url_nocache():
 @remote_data
 def test_find_by_hash():
 
-    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_data_cache
+    from ..data import get_readable_fileobj, get_pkg_data_filename, clear_download_cache
 
     import hashlib
 
@@ -53,11 +57,14 @@ def test_find_by_hash():
 
     fnout = get_pkg_data_filename(hashstr)
     assert os.path.isfile(fnout)
-    clear_data_cache(hashstr[5:])
+    clear_download_cache(hashstr[5:])
     assert not os.path.isfile(fnout)
 
-# Package data functions
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
+
+# Package data functions
 @pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2'])
 def test_local_data_obj(filename):
     from ..data import get_pkg_data_fileobj
@@ -130,19 +137,24 @@ def test_get_pkg_data_contents():
 @remote_data
 def test_data_noastropy_fallback(monkeypatch, recwarn):
     """
-    Tests to make sure configuration items fall back to their defaults when
-    there's a problem accessing the astropy directory
+    Tests to make sure the default behavior when the cache directory can't
+    be located is correct
     """
     from pytest import raises
     from .. import data
     from ...config import paths
 
+    # needed for testing the *real* lock at the end
+    lockdir = os.path.join(_get_download_cache_locs()[0], 'lock')
+
     #better yet, set the configuration to make sure the temp files are deleted
     data.DELETE_TEMPORARY_DOWNLOADS_AT_EXIT.set(True)
 
-    #make sure the config directory is not searched
+    #make sure the config and cache directories are not searched
     monkeypatch.setenv('XDG_CONFIG_HOME', 'foo')
     monkeypatch.delenv('XDG_CONFIG_HOME')
+    monkeypatch.setenv('XDG_CACHE_HOME', 'bar')
+    monkeypatch.delenv('XDG_CACHE_HOME')
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
@@ -155,7 +167,7 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
         paths.get_cache_dir()
 
     #first try with cache
-    fnout = data.get_pkg_data_filename(TESTURL)
+    fnout = data.download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
 
     assert len(recwarn.list) > 1
@@ -165,11 +177,11 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert w1.category == data.CacheMissingWarning
     assert 'Remote data cache could not be accessed' in w1.message.args[0]
     assert w2.category == data.CacheMissingWarning
-    assert 'File downloaded to temp file' in w2.message.args[0]
+    assert 'File downloaded to temporary location' in w2.message.args[0]
     assert fnout == w2.message.args[1]
 
     #clearing the cache should be a no-up that doesn't affect fnout
-    data.clear_data_cache(TESTURL)
+    data.clear_download_cache(TESTURL)
     assert os.path.isfile(fnout)
 
     #now remove it so tests don't clutter up the temp dir
@@ -185,11 +197,15 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
     assert 'Not clearing data cache - cache inacessable' in str(w3.message)
 
     #now try with no cache
-    with data.get_pkg_data_fileobj(TESTURL, cache=False) as googlepage:
+    fnnocache = data.download_file(TESTURL, cache=False)
+    with open(fnnocache) as googlepage:
         assert googlepage.read().decode().find('oogle</title>') > -1
 
     #no warnings should be raise in fileobj because cache is unnecessary
     assert len(recwarn.list) == 0
+
+    # lockdir determined above as the *real* lockdir, not the temp one
+    assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
 def test_read_unicode():
