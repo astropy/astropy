@@ -229,11 +229,11 @@ class CardList(list):
 
     @deprecated('3.1', alternative=':meth:`Header.index`')
     def index(self, card):
-        return self._header.cards.index(card)
+        return self._header._cards.index(card)
 
     @deprecated('3.1', alternative=':meth:`Header.count`')
     def count(self, card):
-        return self._header.cards.count(card)
+        return self._header._cards.count(card)
 
     @deprecated('3.1', alternative=':meth:`Header.index`', pending=False)
     def index_of(self, key, backward=False):
@@ -382,13 +382,13 @@ class Card(_Verify):
     _rvkc_identifier = r'[a-zA-Z_]\w*'
     _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
     _rvkc_field_specifier_s = r'%s(\.%s)*' % ((_rvkc_field,) * 2)
-    _rvkc_field_specifier_val = (r'(?P<keyword>%s): (?P<val>%s\s*)' %
+    _rvkc_field_specifier_val = (r'(?P<keyword>%s): (?P<val>%s)' %
                                  (_rvkc_field_specifier_s, _numr_FSC))
-    _rvkc_keyword_val = r'\'%s\'' % _rvkc_field_specifier_val
+    _rvkc_keyword_val = r'\'(?P<rawval>%s)\'' % _rvkc_field_specifier_val
     _rvkc_keyword_val_comm = (r' +%s *(/ *(?P<comm>[ -~]*))?$' %
                               _rvkc_keyword_val)
 
-    _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val)
+    _rvkc_field_specifier_val_RE = re.compile(_rvkc_field_specifier_val + '$')
 
     # regular expression to extract the key and the field specifier from a
     # string that is being used to index into a card list that contains
@@ -412,6 +412,7 @@ class Card(_Verify):
         self._keyword = None
         self._value = None
         self._comment = None
+        self._rawvalue = None
         self._image = None
 
         # This attribute is set to False when creating the card from a card
@@ -597,6 +598,12 @@ class Card(_Verify):
                                  'keyword cards')
 
     @property
+    def rawvalue(self):
+        if self._rawvalue is None and self.value:
+            self._rawvalue = self.value
+        return self._rawvalue
+
+    @property
     def comment(self):
         """Get the comment attribute from the card image if not already set."""
 
@@ -774,6 +781,8 @@ class Card(_Verify):
             if eq_idx < 0 or eq_idx > 9:
                 return False
             keyword, rest = image.split('=', 1)
+            if keyword in self._commentary_keywords:
+                return False
             match = self._rvkc_keyword_val_comm_RE.match(rest)
             if match:
                 field_specifier = match.group('keyword')
@@ -781,10 +790,13 @@ class Card(_Verify):
                                           field_specifier))
                 self._field_specifier = field_specifier
                 self._value = _int_or_float(match.group('val'))
+                self._rawvalue = match.group('rawval')
                 return True
         elif len(args) == 2:
             keyword, value = args
             if not isinstance(keyword, basestring):
+                return False
+            if keyword in self._commentary_keywords:
                 return False
             match = self._rvkc_keyword_name_RE.match(keyword)
             if match and isinstance(value, (int, float)):
@@ -802,6 +814,7 @@ class Card(_Verify):
                                               field_specifier))
                     self._field_specifier = field_specifier
                     self._value = _int_or_float(match.group('val'))
+                    self._rawvalue = value
                     return True
 
     def _parse_keyword(self):
