@@ -6,7 +6,7 @@ Fitting
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters take an instance of
-`fitting.models.ParametricModel` as input and define a __call__ method
+`models.ParametricModel` as input and define a __call__ method
 which fits the model to the data and changes the model's parameters 
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
@@ -27,7 +27,7 @@ The rules for passing input to fitters are:
 * Attempting to fit a model with multiple parameter sets to a single 
   data set results in an error.
 
-Fitters support constraint fitting through `~fitting.fitting.Constraints`.
+Fitters support constraint fitting through `fitting.Constraints`.
 
 Fitting Examples
 ----------------
@@ -43,8 +43,7 @@ Fitting Examples
 >>> x=np.arange(10)
 >>> y=p1(x)
 >>> yy=np.array([y,y]).T
->>> p2=models.Poly1DModel(3, pdim=2)
->>> p2.window=[0,9]
+>>> p2=models.Poly1DModel(3, paramdim=2)
 >>> pfit=fitting.LinearLSQFitter(p2)
 >>> pfit(x,yy)
 >>> print p2.psets
@@ -53,26 +52,19 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
-- All fitters support frozen parameters through the pmask argument. 
+- All fitters support fixed parameters. 
 
-For linear fitters freezing a polynomial coefficient means that a 
+For linear fitters fixing a polynomial coefficient means that a 
 polynomial without that term will be fitted to the data. For example the 
-fitter, LinearLSQFitter(p1, pmask={'c0': False}),  will fit a polynomial 
+fitter, LinearLSQFitter(p1, fixed=['c0']),  will fit a polynomial 
 with the zero-th order term missing.
 
 - Print a list of available fitting constraints
 
 >>> fitting.Constraints.fitters
-{'LinearLSQFitter': ['pmask'],
- 'NonLinearLSQFitter': ['pmask'],
- 'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'pmask']}
+{'LinearLSQFitter': ['fixed'],
+ 'NonLinearLSQFitter': ['fixed', 'tied'],
+ 'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']}
 
 
-Fitting API
------------
-
-.. py:currentmodule:: fitting.fitting
-
-.. automodule:: fitting.fitting
-    :members:
     

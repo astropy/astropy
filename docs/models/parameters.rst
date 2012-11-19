@@ -1,28 +1,25 @@
 .. _parameters:
 
-.. py:currentmodule:: fitting.parameters
-
 **********
 Parameters
 **********
 
-All models and many transforms in the fitting package need parameters to be fully 
-defined. Parameters are used in three different contexts within the package: 
+Parameters are used in three different contexts within this package: 
 communicating with fitters, performing transformations and getting values to/from users. 
 
 Transforms maintain a list of parameter names, `parnames`. Single parameters are list-like 
-objects, instances of `~fitting.parameters.Par`. Simple mathematical operations can be 
+objects, instances of `parameters._Parameter`. Simple mathematical operations can be 
 performed with them. The preferred way for users to interact with transforms is through 
 individual parameters.
 
 The goal of this package is, when possible, to allow simultaneous model evaluation 
-and fitting with multiple parameter sets. Because of this, all transforms maintain a `psets` 
-attribute, an array of shape `(pdim,len(parnames))`, where `pdim` is the number of 
+and fitting with multiple parameter sets. Because of this, all models maintain a `psets`
+attribute, an array of shape `(len(parnames), paramdim)`, where `paramdim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in 
 some cases. `Psets` is used for evaluating a transform. Users cannot update `psets` directly.
 
-In addition, all models, being fittable transforms, maintain an attribute,
-`parameters`, an instance of `~fitting.parameters.Parameters`. This is a flat list of 
+In addition, all models maintain an attribute,
+`parameters`, an instance of `parameters.Parameters`. This is a flat list of 
 parameter values which fitters update. It serves as a communication tool between fitters 
 and models.
 
@@ -51,7 +48,7 @@ Parameters Examples
 
 - It is possible to set the coefficients passing a dictionary to the `pars` keyword
 
->>> ch2 = models.ICheb2DModel(xdeg=2,ydeg=3, pdim=2)
+>>> ch2 = models.ICheb2DModel(xdeg=2,ydeg=3, paramdim=2)
 >>> coeff = {}
 >>> for i, j in zip(ch2.parnames, range(len(ch2.parnames))):
         coeff[i] = [j, j+10]
@@ -79,15 +76,10 @@ array([[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11],
 >>> ch2.c0_0
 [-34.2, 10]
 
-- The number of parameter sets is stored in an attribute `pdim`
+- The number of parameter sets is stored in an attribute `paramdim`
 
 >>> ch2.pdim
 2
 
 
-Parameters API
---------------
-
-.. automodule:: fitting.parameters
-    :members:
     
