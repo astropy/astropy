@@ -421,10 +421,15 @@ def degrees_to_string(d, precision=5, pad=False, sep=":"):
 
 
 #<----------Spherical angular distances------------->
-def small_angle_dist(lat1, lon1, lat2, lon2):
+def small_angle_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Euclidean angular distance "on a sphere" - only valid on sphere in the
     small-angle approximation.
+
+    .. warning::
+        Do not use this unless you know small-angle is a valid approximation
+        for your problem and performance is a major conern.  In general this
+        is very wrong.
 
     inputs must be in radians
     """
@@ -436,7 +441,7 @@ def small_angle_dist(lat1, lon1, lat2, lon2):
     return (dlat ** 2 + dlon ** 2) ** 0.5
 
 
-def sphere_dist(lat1, lon1, lat2, lon2):
+def simple_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Simple formula for angular distance on a sphere: numerically unstable
     for small distances
@@ -450,7 +455,7 @@ def sphere_dist(lat1, lon1, lat2, lon2):
     return acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(-lat2) * cdlon)
 
 
-def haversine_dist(lat1, lon1, lat2, lon2):
+def haversine_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Haversine formula for angular distance on a sphere: more stable at poles
 
@@ -466,7 +471,7 @@ def haversine_dist(lat1, lon1, lat2, lon2):
     return 2 * asin((sdlat ** 2 + coslats * sdlon ** 2) ** 0.5)
 
 
-def haversine_dist_atan(lat1, lon1, lat2, lon2):
+def haversine_atan_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Haversine formula for angular distance on a sphere: more stable at poles.
     This version uses arctan instead of arcsin and thus does better
@@ -486,10 +491,14 @@ def haversine_dist_atan(lat1, lon1, lat2, lon2):
     return 2 * atan2(numerator ** 0.5, (1 - numerator) ** 0.5)
 
 
-def vicenty_dist(lat1, lon1, lat2, lon2):
+def vicenty_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Vincenty formula for angular distance on a sphere: stable at poles and
-    antipodes but more complex/computationally expensive
+    antipodes but more complex/computationally expensive.
+
+    Note that this is the only version actually used in the `AngularSeparation`
+    classes, so the other `*_spher_dist` functions are only for possible
+    future internal use.
 
     inputs must be in radians
     """
@@ -498,9 +507,13 @@ def vicenty_dist(lat1, lon1, lat2, lon2):
 
     sdlon = sin(lon2 - lon1)
     cdlon = cos(lon2 - lon1)
+    slat1 = sin(lat1)
+    slat2 = sin(lat2)
+    clat1 = cos(lat1)
+    clat2 = cos(lat2)
 
-    num1 = cos(lat2) * sdlon
-    num2 = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cdlon
-    denominator = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cdlon
+    num1 = clat2 * sdlon
+    num2 = clat1 * slat2 - slat1 * clat2 * cdlon
+    denominator = slat1 * slat2 + clat1 * clat2 * cdlon
 
     return atan2((num1 ** 2 + num2 ** 2) ** 0.5, denominator)

@@ -561,7 +561,7 @@ class Dec(Angle):
 
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
 
-_angsep_distance_function = util.haversine_dist_atan
+
 class AngularSeparation(Angle):
     """
     An on-sky separation between two directions.
@@ -578,18 +578,10 @@ class AngularSeparation(Angle):
         The value of the second longitudinal/azimuthal angle.
     units : `~astropy.units`
         The units of the given angles.
-    distance_function : None or function
-        The function to use to compute the angular value of this
-        separation. If None, the class attribute
-        `AngularSeparation.distance_function` will be used. If a
-        function, it will be called as ``f(lat1, lon1, lat2, lon2)``
-        and it should return the separation between the two points. see
-        the `astropy.coordinates.angle_utilities` module for some common
-        distance measurement functions.
 
 
     """
-    def __init__(self, lat1, lon1, lat2, lon2, units, distance_function=None):
+    def __init__(self, lat1, lon1, lat2, lon2, units):
 
         units = u.Unit(units)
         lat1 = units.to(u.radian, lat1)
@@ -600,11 +592,7 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             lon2 = units.to(u.radian, lon2)
 
-            if hasattr(self, 'distance_function'):
-                distance_function = self.distance_function
-            else:
-                distance_function = _angsep_distance_function
-            sepval = distance_function(lat1, lon1, lat2, lon2)
+            sepval = util.vicenty_sphere_dist(lat1, lon1, lat2, lon2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 

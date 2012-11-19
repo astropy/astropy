@@ -6,11 +6,11 @@ from ...tests.helper import pytest
 
 from .. import angle_utilities
 
-distance_funcs = [angle_utilities.small_angle_dist,
-                  angle_utilities.sphere_dist,
-                  angle_utilities.haversine_dist,
-                  angle_utilities.haversine_dist_atan,
-                  angle_utilities.vicenty_dist,
+distance_funcs = [angle_utilities.small_angle_sphere_dist,
+                  angle_utilities.simple_sphere_dist,
+                  angle_utilities.haversine_sphere_dist,
+                  angle_utilities.haversine_atan_sphere_dist,
+                  angle_utilities.vicenty_sphere_dist,
                  ]
 
 # lat1, lon1, lat2, lon2 in degrees
@@ -69,7 +69,7 @@ def test_2dseparations(coord, correctsep, dfunc):
         assert False  # Triggers py.test failures so we can see the timings
 
     #a few cases are known to fail because of bad approximations - let them fail
-    if dfunc is angle_utilities.small_angle_dist:
+    if dfunc is angle_utilities.small_angle_sphere_dist:
         if fabs(lat2 - lat1) > 1 and fabs(lon2 - lon1) > 1:  # radians
             pytest.xfail('Small angle approximation fails for large angles')
 
