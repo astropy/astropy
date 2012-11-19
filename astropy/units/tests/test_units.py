@@ -58,10 +58,6 @@ def test_composite():
 
     assert u.cm * u.cm * u.cm == u.cm ** 3
 
-    assert (1 / (u.cm * u.cm)) == u.cm ** -2
-
-    assert u.m / 4.0 == 0.25 * u.m
-
     assert u.Hz.to(1000 * u.Hz, 1) == 0.001
 
 
