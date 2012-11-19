@@ -249,8 +249,14 @@ def test_precession():
 def test_alias_transform():
     """
     Tests the use of aliases to do trasnforms and also transforming from
-    a system to itself
+    a system to itself.  Also checks that `dir` correctly includes
+    valid transforms
     """
     c = ICRSCoordinates(12.34, 56.78, unit=(u.hour, u.degree))
     assert isinstance(c.galactic, GalacticCoordinates)
     assert isinstance(c.icrs, ICRSCoordinates)
+
+    d = dir(c)
+    assert 'galactic' in d
+    assert 'fk4' in d
+    assert 'fk5' in d

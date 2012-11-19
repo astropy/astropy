@@ -479,6 +479,24 @@ class SphericalCoordinatesBase(object):
             msg = "'{0}' object has no attribute '{1}', nor a transform."
             raise AttributeError(msg.format(self.__class__.__name__, name))
 
+    def __dir__(self):
+        """
+        Overriding the builtin `dir` behavior allows us to add the
+        transforms available by aliases.  This also allows ipython
+        tab-completion to know about the transforms.
+        """
+        from .transformations import master_transform_graph
+
+        # the stuff `dir` normally gives
+        dir_items = dir(type(self)) + self.__dict__.keys()
+
+        # determine the aliases that this can be transformed to.
+        for alias in master_transform_graph.get_aliases():
+            tosys = master_transform_graph.lookup_name(alias)
+            if self.is_transformable_to(tosys):
+                dir_items.append(alias)
+
+        return sorted(set(dir_items))
 
 class Coordinates(object):
     """

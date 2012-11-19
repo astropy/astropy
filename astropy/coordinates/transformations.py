@@ -309,6 +309,18 @@ class TransformGraph(object):
         """
         return self._clsaliases.get(name, None)
 
+    def get_aliases(self):
+        """
+        Returns all available transform aliases. They will all be
+        valid arguments to `lookup_name`.
+
+        Returns
+        -------
+        nms : list
+            The aliases for coordinate systems.
+        """
+        return self._clsaliases.keys()
+
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None):
         """
