@@ -7,7 +7,6 @@ coordinates in astropy.
 """
 
 import math
-from types import *
 
 import numpy as np
 
