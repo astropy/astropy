@@ -6,14 +6,14 @@ Fitting
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters take an instance of
-`models.ParametricModel` as input and define a __call__ method
-which fits the model to the data and changes the model's parameters 
+**`models.ParametricModel`** as input and define a **__call__** method
+which fits the model to the data and changes **model.parameters**
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 
-Linear fitting is done using Numpy's linalg.lstsq function.
-There are currently two non-linear fitters which use leastsq and slsqp functions
-in scipy.optimize.
+Linear fitting is done using Numpy's **linalg.lstsq** function.
+There are currently two non-linear fitters which use **leastsq** and **slsqp**
+in **scipy.optimize**.
 
 The rules for passing input to fitters are:
 
@@ -27,7 +27,7 @@ The rules for passing input to fitters are:
 * Attempting to fit a model with multiple parameter sets to a single 
   data set results in an error.
 
-Fitters support constraint fitting through `fitting.Constraints`.
+
 
 Fitting Examples
 ----------------
@@ -52,12 +52,8 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
-- All fitters support fixed parameters. 
 
-For linear fitters fixing a polynomial coefficient means that a 
-polynomial without that term will be fitted to the data. For example the 
-fitter, LinearLSQFitter(p1, fixed=['c0']),  will fit a polynomial 
-with the zero-th order term missing.
+Fitters support constraint fitting through **`fitting.Constraints`**.
 
 - Print a list of available fitting constraints
 
