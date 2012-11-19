@@ -18,7 +18,7 @@ uniform way.
 Getting Started
 ===============
 
-Coordinate objects are intantiated with a flexible and natural approach::
+Coordinate objects are instantiated with a flexible and natural approach::
 
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
@@ -28,7 +28,7 @@ Coordinate objects are intantiated with a flexible and natural approach::
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
 
 The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
-objects, and their values are acceessed using special attributes::
+objects, and their values are accessed using special attributes::
 
     >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
     >>> c.ra
@@ -43,7 +43,7 @@ objects, and their values are acceessed using special attributes::
     0.7202828960652683
 
 To convert to some other coordinate system, the easiest method is to use
-attribute-style access with short names for the builtin systems, but explicit
+attribute-style access with short names for the built-in systems, but explicit
 transformations via the `transform_to` method are also available::
 
     >>> c.galactic
@@ -67,7 +67,7 @@ in 3D space, which also allows conversion to cartesian coordinates::
 Using `astropy.coordinates`
 ===========================
 
-An exhaustive resource for the capabilties of this package is the
+An exhaustive resource for the capabilities of this package is the
 `astropy.coordinates.tests.test_api` testing file. It showcases most of the
 major capabilities of the package, and hence is a useful supplement to this
 document.  You can see it by either looking at it directly if you downloaded a
@@ -87,7 +87,7 @@ result will be a `GalacticCoordinates` object. If you specify `ra` and `dec`
 angles, the result will be an `ICRSCoordinates` object. Note that the
 `Coordinates` object is a generalization, and actually returns the kind of
 object appropriate to what you are requesting. (This is called a "factory
-class".) E.g.::
+class".) For example::
 
     >>> from astropy.coordinates import Coordinates
     >>> Coordinates(ra='12h30m49.42s', dec='+12d23m28.044s')
@@ -105,7 +105,7 @@ class".) E.g.::
     true base class of all astropy coordinate classes.
 
 The second method is to directly initialize your preferred coordinate system by
-the name of the class representing that system.  E.g.,
+the name of the class representing that system.  For example::
 
     >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, GalacticCoordinates
     >>> ICRSCoordinates(187.70592, 12.39112, unit=u.degree)
@@ -260,7 +260,7 @@ coordinates using the `x`/`y`/`z` attributes::
 
 The cartesian coordinates can also be accessed via the
 `~astropy.coordinates.distances.CartesianCoordinates` object, which has
-additional capabilities like arithemtic operations::
+additional capabilities like arithmetic operations::
 
     >>> cp = c.cartesian
     >>> cp
@@ -303,7 +303,7 @@ distance (i.e., non-projected separation)::
 Transforming Between Systems
 ----------------------------
 
-`astropy.coordinates` supports a rich system for transfroming coordinates from
+`astropy.coordinates` supports a rich system for transforming coordinates from
 one system to another.  The key concept is that a registry of all the
 transformations is used to determine which coordinates can convert to others.
 When you ask for a transformation, the registry (or "transformation graph") is
@@ -369,7 +369,7 @@ coordinate object to use this converter.  You can also use the
 `~astropy.coordinates.transformations.static_transform_matrix` and
 `~astropy.coordinates.transformations.dynamic_transform_matrix` decorators to
 specify the transformation in terms of 3 x 3 cartesian coordinate transformation
-matricies (typically rotations).
+matrices (typically rotations).
 
 
 See Also
@@ -378,7 +378,7 @@ See Also
 Some references particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
-* `Standards Of Funamental Astronomy <http://www.iausofa.org/>`_
+* `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
