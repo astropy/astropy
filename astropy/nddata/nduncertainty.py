@@ -37,6 +37,10 @@ class NDUncertainty(object):
 
     __metaclass__ = abc.ABCMeta
 
+    # Indicates whether the class supports the propagation of correlated
+    # uncertainties
+    supports_correlated = False
+
     @property
     def parent_nddata(self):
         if self._parent_nddata is None:
@@ -139,6 +143,8 @@ class StdDevUncertainty(NDUncertainty):
     '''
     A class for standard deviation uncertaintys
     '''
+
+    support_correlated = False
 
     def __init__(self, array=None, copy=True):
         if array is None:
