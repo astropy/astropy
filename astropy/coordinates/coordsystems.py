@@ -541,7 +541,7 @@ class Coordinates(object):
             units = list()
 
         # first see if the keywords suggest what kind of coordinate is being requested.
-        if "ra" in kwargs.keys() or "dec" in kwargs.keys():
+        if "ra" in kwargs or "dec" in kwargs:
             try:
                 ra = kwargs.pop("ra")
                 dec = kwargs.pop("dec")
@@ -551,13 +551,13 @@ class Coordinates(object):
             if kwargs:
                 raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["l", "b", "az", "el"]:  # no others should be provided
-                if kw in kwargs.keys():
+                if kw in kwargs:
                     raise ValueError("Conflicting coordinates were given.")
             ra = RA(ra, unit=units[0]) if len(units) > 0 else RA(ra)
             dec = Dec(dec, unit=units[1]) if len(units) > 1 else Dec(dec)
             return ICRSCoordinates(ra=ra, dec=dec, distance=distance)
 
-        if "az" in kwargs.keys() or "el" in kwargs.keys():
+        if "az" in kwargs or "el" in kwargs:
             try:
                 az = kwargs.pop("az")
                 el = kwargs.pop("el")
@@ -567,13 +567,13 @@ class Coordinates(object):
             if kwargs:
                 raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["ra", "dec", "l", "b"]:  # no others should be provided
-                if kw in kwargs.keys():
+                if kw in kwargs:
                     raise ValueError("Conflicting coordinates were given.")
             az = Angle(az, unit=units[0]) if len(units) > 0 else Angle(az)
             el = Angle(el, unit=units[1]) if len(units) > 1 else Angle(el)
             return HorizontalCoordinates(az=az, el=el, distance=distance)
 
-        if "l" in kwargs.keys() or "b" in kwargs.keys():
+        if "l" in kwargs or "b" in kwargs:
             try:
                 l = kwargs.pop("l")
                 b = kwargs.pop("b")
@@ -583,7 +583,7 @@ class Coordinates(object):
             if kwargs:
                 raise TypeError('Unexpected keywords {0} encountered in Coordinate'.format(kwargs.keys()))
             for kw in ["ra", "dec", "az", "el"]:  # no others should be provided
-                if kw in kwargs.keys():
+                if kw in kwargs:
                     raise ValueError("Conflicting coordinates were given.")
             l = Angle(l, unit=units[0]) if len(units) > 0 else Angle(l)
             b = Angle(b, unit=units[1]) if len(units) > 1 else Angle(b)
