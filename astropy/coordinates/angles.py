@@ -66,7 +66,7 @@ class Angle(object):
         # -------------------------------
         if isinstance(unit, u.UnitBase):
             pass
-        elif isinstance(unit, str):
+        elif isinstance(unit, basestring):
             unit = u.Unit(unit)
         elif unit is None:
             # try to determine unit from the "angle" value
@@ -108,7 +108,7 @@ class Angle(object):
                 unit = u.radian
 
             else:  # single value
-                if isinstance(angle, str):
+                if isinstance(angle, basestring):
                     angle = angle.lower()
                 else:
                     raise UnitsError("Could not parse the angle value '{0}' "
@@ -249,7 +249,7 @@ class Angle(object):
 
         if isinstance(unit, u.UnitBase):
             pass  # great!
-        elif isinstance(unit, str):
+        elif isinstance(unit, basestring):
             unit = unit.lower()
             if unit is "degrees":
                 unit = u.degree
@@ -431,7 +431,7 @@ class RA(Angle):
                     unit = u.degree
                 else:
                     raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
-            elif isinstance(angle, str):
+            elif isinstance(angle, basestring):
                 # Try to deduce the units from hints in the string.
                 # Further, enforce absolute bounds here, i.e. don't let
                 # Angle +-2π to see if the angle falls in the bounds.

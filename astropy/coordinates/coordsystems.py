@@ -156,7 +156,7 @@ class SphericalCoordinatesBase(object):
                 if len(units) > 2:
                     raise ValueError('Cannot give more than 2 units while '
                                      'initializing a coordinate')
-            elif isinstance(units, u.UnitBase) or isinstance(units, str):
+            elif isinstance(units, u.UnitBase) or isinstance(units, basestring):
                 # Only a single unit given, which is fine.  If the arguments are
                 # strings, assign it to just the long, otherwise both
                 if coordstr is not None or isinstance(latval, basestring):
@@ -173,7 +173,7 @@ class SphericalCoordinatesBase(object):
                 # populates latval and longval variables, which then get made
                 # into coordinates below
                 x = coordstr
-                if isinstance(coordstr, str):
+                if isinstance(coordstr, basestring):
                     parsed = False
                     if "," in x:
                         longval, latval = x.split(",")
@@ -510,7 +510,7 @@ class Coordinates(object):
         distance = kwargs.pop('distance', None)
         try:
             units = kwargs.pop("unit")
-            if isinstance(units, u.UnitBase) or isinstance(units, str):
+            if isinstance(units, u.UnitBase) or isinstance(units, basestring):
                 units = (units, units)
         except KeyError:
             units = list()
@@ -567,7 +567,7 @@ class Coordinates(object):
         if len(args) == 1:
             x = args[0]
 
-            if isinstance(x, str):
+            if isinstance(x, basestring):
                 raise ValueError("The coordinate system could not be determines from the value "
                                  "provided. Specify the system via keywords or use the "
                                  "corresponding class (e.g. GalacticCoordinate).")

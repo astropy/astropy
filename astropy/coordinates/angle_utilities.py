@@ -68,7 +68,7 @@ def parse_degrees(degrees, output_dms=False):
     if isinstance(x, float) or isinstance(x, int):
         parsed_degrees = float(x)
 
-    elif isinstance(x, str):
+    elif isinstance(x, basestring):
         x = x.strip()
 
         string_parsed = False
@@ -163,7 +163,7 @@ def parse_hours(hours, output_hms=False):
         parsed_hours = x
         parsed_hms = hours_to_hms(parsed_hours)
 
-    elif isinstance(x, str):
+    elif isinstance(x, basestring):
         x = x.strip()
 
         try:
