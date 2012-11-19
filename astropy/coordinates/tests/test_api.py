@@ -60,7 +60,7 @@ def test_create_angles():
     a7 = Angle((54, 7, 26.832), unit=u.degree)
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
-    with raises(TypeError):
+    with raises(NotImplementedError):
         Angle([54, 7, 26.832], unit=u.degree)
 
     a10 = Angle(3.60827466667, unit=u.hour)
@@ -754,18 +754,3 @@ def test_distances():
     npt.assert_almost_equal(csum.ra.degrees, 158.529401774)
     npt.assert_almost_equal(csum.dec.degrees, -43.3235825777)
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
-
-def test_angle_arrays():
-    """
-    Test arrays values with Angle objects.
-    """
-
-    from .. import Angle
-
-    # Tests incomplete
-    with raises(TypeError):
-        a1 = Angle([0, 45, 90, 180, 270, 360], unit=u.degree)
-
-    with raises(TypeError):
-        a2 = Angle(["12 degrees", "3 hours", "5 deg", "4rad"])
-

@@ -29,8 +29,9 @@ class Angle(object):
 
         Parameters
         ----------
-        angle : float, int, str
-            The angle value.
+        angle : float, int, str, tuple
+            The angle value. If a tuple, will be interpreted as (h, m s) or
+            (d, m, s) depending on `unit`.
         unit : `~astropy.units` (preferred), str
             The unit of the value specified for the angle. It is preferred that
             the unit be an object from the `~astropy.units` package, e.g.
@@ -43,6 +44,7 @@ class Angle(object):
     """
 
     def __init__(self, angle, unit=None, bounds=(-360, 360)):
+        from ..utils import isiterable
 
         self._bounds = bounds
 
@@ -50,16 +52,16 @@ class Angle(object):
             angle = angle.radians
             unit = u.radian
 
-        # short circuit arrays for now
-        if isinstance(angle, list):
-            raise TypeError("Angles as lists are not yet supported.")
+        self.is_array = (isiterable(angle) and
+                         not isinstance(angle, basestring) and
+                         not isinstance(angle, tuple))
 
-        self.is_array = type(angle) in [list, np.ndarray]
+        # short circuit arrays for now
+        if self.is_array:
+            raise NotImplementedError("Angles as arrays are not yet supported.")
 
         if angle == None:
             raise UnitsError("The Angle class requires a unit")
-
-        #angle_type = type(angle[0]) if self.is_array else type(angle)
 
         # -------------------------------
         # unit validation and angle value
