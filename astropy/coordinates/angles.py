@@ -251,17 +251,20 @@ class Angle(object):
         if isinstance(unit, u.UnitBase):
             pass  # great!
         elif isinstance(unit, basestring):
-            unit = unit.lower()
-            if unit is "degrees":
+            lunit = unit.lower()
+            if lunit is "degrees":
                 unit = u.degree
-            elif unit is "hours":
+            elif lunit is "hours":
                 unit = u.hour
-            elif unit is "radians":
+            elif lunit is "radians":
                 unit = u.radian
             else:
-                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                unit = u.Unit(unit)
         else:
-                raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
+                raise UnitsError("{0} was given as a unit, but is not a valid Unit".format(unit))
+
+        if unit not in (u.degree, u.hour, u.radian):
+            raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")
 
         if unit is u.degree:
             if decimal:
