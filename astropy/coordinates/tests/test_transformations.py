@@ -244,3 +244,13 @@ def test_precession():
     assert fk5.epoch.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
     assert fk5_2.epoch.jyear == j1975.jyear
+
+
+def test_alias_transform():
+    """
+    Tests the use of aliases to do trasnforms and also transforming from
+    a system to itself
+    """
+    c = ICRSCoordinates(12.34, 56.78, unit=(u.hour, u.degree))
+    assert isinstance(c.galactic, GalacticCoordinates)
+    assert isinstance(c.icrs, ICRSCoordinates)

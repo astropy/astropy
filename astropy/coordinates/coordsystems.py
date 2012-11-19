@@ -450,13 +450,18 @@ class SphericalCoordinatesBase(object):
 
         Returns
         -------
-        transformable : bool
-            True if this can be trasnformed to `tosys`, False if not.
+        transformable : bool or str
+            True if this can be trasnformed to `tosys`, False if not. The
+            string 'same' if `tosys` is the same system as this object
+            (i.e. no transformation is needed).
         """
         from .transformations import master_transform_graph
 
-        trans = master_transform_graph.get_transform(self.__class__, tosys)
-        return trans is not None
+        if self.__class__ is tosys:
+            return 'same'
+        else:
+            trans = master_transform_graph.get_transform(self.__class__, tosys)
+            return trans is not None
 
     def __getattr__(self, name):
         """
@@ -466,6 +471,8 @@ class SphericalCoordinatesBase(object):
         from .transformations import master_transform_graph
 
         nmsys = master_transform_graph.lookup_name(name)
+        if self.__class__ is nmsys:
+            return self
         if nmsys is not None and self.is_transformable_to(nmsys):
             return self.transform_to(nmsys)
         else:
