@@ -480,7 +480,7 @@ class RA(Angle):
 
         Returns
         -------
-        hourangle : `~astropy.coordinates.angle.Angle`
+        hour_angle : `~astropy.coordinates.angle.Angle`
             The hour angle for this RA at the LST `lst`.
         """
         if hasattr(lst, 'mjd'):
