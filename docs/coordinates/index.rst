@@ -80,10 +80,14 @@ copy of the astropy source code, or typing the following in an IPython session::
 Creating Coordinate Objects
 ---------------------------
 
-There are two basic ways to create coordinates.  The simplest is to use the
-`~astropy.coordsystems.Coordinates` factory class. You provide this with
-appropriate keywords, and it will determine from those what sort of coordinate
-system you are likely to want.  E.g.::
+There are two basic ways to create coordinates.   The easiest way to create a
+coordinate object is to use `Coordinates`. The kind of coordinate is determined
+by the keywords provided. For example, if you specify `l` and `b` angles, the
+result will be a `GalacticCoordinates` object. If you specify `ra` and `dec`
+angles, the result will be an `ICRSCoordinates` object. Note that the
+`Coordinates` object is a generalization, and actually returns the kind of
+object appropriate to what you are requesting. (This is called a "factory
+class".) E.g.::
 
     >>> from astropy.coordinates import Coordinates
     >>> Coordinates(ra='12h30m49.42s', dec='+12d23m28.044s')
