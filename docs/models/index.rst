@@ -1,29 +1,29 @@
 **************************
 Models  (`astropy.models`)
-*************************
+**************************
 
 Introduction
 ============
-The `models.models` and `models.fitting` modules described here are designed to work as 
+The **`models`** and **`fitting`** modules described here are designed to work as 
 peers with each other. The goal is to be able to add models without 
 explicit reference to fitting algorithms (though exceptions are 
 sometimes necessary) and likewise, add different fitting algorithms 
 without changing the existing models. The mechanism that allows this 
-is the special `parameters` module that both models and fitters use to 
+is the special **`parameters`** module that both models and fitters use to 
 interact with each other. Nevertheless, most users won't need to 
 interact with this module unless they wish to add new models or 
 fitters (the term used hereafter for specific fitting algorithms) to 
 the existing suites of models and fitters.
 
 Furthermore, the models are designed to be combined in many ways. It
-is possible, for example, to combine models serially `models.SCompositeModel`,
+is possible, for example, to combine models serially **`models.SCompositeModel`**,
 so that the output values of one model are used as input values to another. It is 
 also possible to form a new model by combining models in parallel (each model is
-applied to the inputs separately and the deltas are summed), 
-`models.PCompositeModel`. Since models may have 
+evaluated separately with the original input and the deltas are summed), 
+**`models.PCompositeModel`**. Since models may have 
 multiple input values, machinery is provided that allows assigning 
-outputs from one model into the appropriate input of another in 
-flexible way, `models.LabeledInput`. Finally, it is permitted to combine any
+outputs from one model into the appropriate input of another in a
+flexible way, **`models.LabeledInput`**. Finally, it is permitted to combine any
 number of models using all of these mechanisms simultaneously. A composite
 model can be used to make further composite models. The goal is to eventually 
 provide a rich toolset of models and fitters such that most users will 
@@ -134,7 +134,7 @@ Using `models`
 
 
 .. toctree::
-    parameters
+    model.parameters
     models
     fitting
     util
@@ -143,11 +143,8 @@ Using `models`
 
 
 
-See Also (optional)
-===================
-
 
 Reference/API
 =============
 
-.. automodapi:: models
+.. automodapi:: astropy.models
