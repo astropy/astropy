@@ -290,22 +290,36 @@ class Angle(object):
     def __add__(self, other):
         if isinstance(other, type(self)):
             if self.bounds != other.bounds:
-                raise ValueError("An {0} object can only be subtracted from another "
-                                 "{0} object.".format(type(self).__name__))
+                msg = "Can't add angles because bounds don't match: {0} and {1}"
+                raise ValueError(msg.format(self.bounds, other.bounds))
             else:
                 return Angle(self.radians + other.radians, unit=u.radian, bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be added to another "
                                       "{0} object.".format(type(self).__name__))
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     # Subtraction
     def __sub__(self, other):
         if isinstance(other, type(self)):
             if self.bounds != other.bounds:
-                raise ValueError("An {0} object can only be subtracted from another "
-                                 "{0} object.".format(type(self).__name__))
+                msg = "Can't add angles because bounds don't match: {0} and {1}"
+                raise ValueError(msg.format(self.bounds, other.bounds))
             else:
                 return Angle(self.radians - other.radians, unit=u.radian, bounds=self.bounds)
+        else:
+            raise NotImplementedError("An {0} object can only be subtracted from another "
+                                      "{0} object.".format(type(self).__name__))
+
+    def __rsub__(self, other):
+        if isinstance(other, type(self)):
+            if self.bounds != other.bounds:
+                msg = "Can't add angles because bounds don't match: {0} and {1}"
+                raise ValueError(msg.format(self.bounds, other.bounds))
+            else:
+                return Angle(other.radians - self.radians, unit=u.radian, bounds=self.bounds)
         else:
             raise NotImplementedError("An {0} object can only be subtracted from another "
                                       "{0} object.".format(type(self).__name__))
@@ -320,6 +334,9 @@ class Angle(object):
         else:
             raise NotImplementedError("An {0} object can only be multiplied by a float or integer.".format(type(self).__name__))
 
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     # Division
     def __div__(self, other):
         if isinstance(other, type(self)):
@@ -330,9 +347,22 @@ class Angle(object):
         else:
             raise NotImplementedError("An {0} object can only be divided by a float or integer.".format(type(self).__name__))
 
+    def __rdiv__(self, other):
+        if isinstance(other, type(self)):
+            raise NotImplementedError("Division is not supported between two {0} "
+                                      "objects.".format(type(self).__name__))
+        elif type(other) in [float, int]:
+            return Angle(other / self.radians, unit=u.radian)
+        else:
+            raise NotImplementedError("An {0} object can only be divided by a float or integer.".format(type(self).__name__))
+
     def __truediv__(self, other):
-        raise NotImplementedError("Division is not supported between two {0} "
-                                  "objects.".format(type(self).__name__))
+        return self.__div__(other)
+
+    def __rtruediv__(self, other):
+        return self.__rdiv__(other)
+
+    # other operations
 
     def __neg__(self):
         return Angle(-self.radians, unit=u.radian)

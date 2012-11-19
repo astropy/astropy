@@ -143,6 +143,9 @@ def test_angle_ops():
     (a1 * 2).hours == 2 * 3.60827466667
     (a1 / 3.123456).hours == 3.60827466667 / 3.123456
 
+    # commutativity
+    (2 * a1).hours == (a1 * 2).hours
+
     a3 = Angle(a1)  # makes a *copy* of the object, but identical content as a1
     npt.assert_almost_equal(a1.radians, a3.radians)
     assert a1 is not a3
