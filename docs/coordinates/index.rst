@@ -85,6 +85,7 @@ There are two basic ways to create coordinates.  The simplest is to use the
 appropriate keywords, and it will determine from those what sort of coordinate
 system you are likely to want.  E.g.::
 
+    >>> from astropy.coordinates import Coordinates
     >>> Coordinates(ra='12h30m49.42s', dec='+12d23m28.044s')
     <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
     >>> Coordinates(l=-76.22237, b=74.49108, unit=u.degree)
@@ -102,6 +103,7 @@ system you are likely to want.  E.g.::
 The second method is to directly initialize your preferred coordinate system by
 the name of the class representing that system.  E.g.,
 
+    >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, GalacticCoordinates
     >>> ICRSCoordinates(187.70592, 12.39112, unit=u.degree)
     <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
     >>> FK4Coordinates(187.07317, 12.66715, unit=u.degree)
@@ -133,6 +135,7 @@ The angular components of a coordinate are represented by objects of the
 their own anywhere a representation of an angle is needed, and support a variety
 of ways of representing the value of the angle::
 
+    >>> from astropy.coordinates import Angle
     >>> a = Angle(1, u.radian)
     >>> a
     <astropy.coordinates.angles.Angle 57.29578 deg>
@@ -227,6 +230,7 @@ The `~astropy.coordinates.distances.Distance` class is provided to represent a
 line-of-sight distance for a coordinate.  It must include a length unit to be
 valid.::
 
+    >>> from astropy.coordinates import Distance
     >>> d = Distance(770)
     UnitsError: A unit must be provided for distance.
     >>> d = Distance(770, u.kpc)
