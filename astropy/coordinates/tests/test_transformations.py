@@ -158,17 +158,17 @@ def test_sphere_cart():
     npt.assert_almost_equal(y, 4)
     npt.assert_almost_equal(z, 0)
 
-    r, lat, lng = cartesian_to_spherical(0, 1, 0)
+    r, lat, lon = cartesian_to_spherical(0, 1, 0)
     npt.assert_almost_equal(r, 1)
     npt.assert_almost_equal(lat, 0)
-    npt.assert_almost_equal(lng, np.pi / 2)
+    npt.assert_almost_equal(lon, np.pi / 2)
 
     #test round-tripping
     with NumpyRNGContext(13579):
         x, y, z = np.random.randn(3, 5)
 
-    r, lat, lng = cartesian_to_spherical(x, y, z)
-    x2, y2, z2 = spherical_to_cartesian(r, lat, lng)
+    r, lat, lon = cartesian_to_spherical(x, y, z)
+    x2, y2, z2 = spherical_to_cartesian(r, lat, lon)
 
     npt.assert_allclose(x, x2)
     npt.assert_allclose(y, y2)
@@ -176,7 +176,7 @@ def test_sphere_cart():
 
 
 m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
-m31_coo = [(10.6847929, 41.2690650 ), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
+m31_coo = [(10.6847929, 41.2690650), (10.6847929, 41.2690650), (10.0004738, 40.9952444), (121.1744050, -21.5729360)]
 m31_dist = Distance(770, u.kpc)
 convert_precision = 1 / 3600.  # 1 arcsec
 roundtrip_precision = 1e-4

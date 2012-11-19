@@ -219,7 +219,7 @@ class CartesianPoint(object):
             The radial coordinate (in the same units as the inputs).
         lat : float or array
             The latitude in radians
-        lng : float or array
+        lon : float or array
             The longitude in radians
 
         """
@@ -293,7 +293,7 @@ def cartesian_to_spherical(x, y, z):
         The radial coordinate (in the same units as the inputs).
     lat : float or array
         The latitude in radians
-    lng : float or array
+    lon : float or array
         The longitude in radians
     """
     import math
@@ -306,16 +306,16 @@ def cartesian_to_spherical(x, y, z):
     s = (xsq + ysq) ** 0.5
 
     if np.isscalar(x) and np.isscalar(y) and np.isscalar(z):
-        lng = math.atan2(y, x)
+        lon = math.atan2(y, x)
         lat = math.atan2(z, s)
     else:
-        lng = np.arctan2(y, x)
+        lon = np.arctan2(y, x)
         lat = np.arctan2(z, s)
 
-    return r, lat, lng
+    return r, lat, lon
 
 
-def spherical_to_cartesian(r, lat, lng):
+def spherical_to_cartesian(r, lat, lon):
     """
     Converts spherical polar coordinates to rectangular cartesian
     coordinates.
@@ -336,7 +336,7 @@ def spherical_to_cartesian(r, lat, lng):
         The radial coordinate (in the same units as the inputs).
     lat : scalar or array-like
         The latitude in radians
-    lng : scalar or array-like
+    lon : scalar or array-like
         The longitude in radians
 
     Returns
@@ -352,13 +352,13 @@ def spherical_to_cartesian(r, lat, lng):
     """
     import math
 
-    if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lng):
-        x = r * math.cos(lat) * math.cos(lng)
-        y = r * math.cos(lat) * math.sin(lng)
+    if np.isscalar(r) and np.isscalar(lat) and np.isscalar(lon):
+        x = r * math.cos(lat) * math.cos(lon)
+        y = r * math.cos(lat) * math.sin(lon)
         z = r * math.sin(lat)
     else:
-        x = r * np.cos(lat) * np.cos(lng)
-        y = r * np.cos(lat) * np.sin(lng)
+        x = r * np.cos(lat) * np.cos(lon)
+        y = r * np.cos(lat) * np.sin(lon)
         z = r * np.sin(lat)
 
     return x, y, z
