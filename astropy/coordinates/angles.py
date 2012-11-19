@@ -385,7 +385,7 @@ class Angle(object):
 
 
 class RA(Angle):
-    """ An object that represents a J2000 right ascension angle.
+    """ An object that represents a right ascension angle.
 
         This object can be created from a numeric value along with a unit. If the
         value specified is greater than "24", then a unit of degrees is assumed. Bounds
@@ -509,7 +509,7 @@ class RA(Angle):
 
 class Dec(Angle):
     """
-    Represents a J2000 declination value.
+    Represents a declination value.
 
     This object can be created from a numeric value along with a unit, or else a
     string in any commonly represented format, e.g. "12 43 23.53", "-32d52m29s".
