@@ -16,17 +16,17 @@ from .errors import *
 
 def _check_hour_range(hrs):
     ''' Checks that the given value is in the range (-24,24). '''
-    if not -24 < hrs < 24:
+    if not -24. < hrs < 24.:
         raise IllegalHourError(hrs)
 
 def _check_minute_range(min):
     ''' Checks that the given value is in the range [0,60). '''
-    if not 0 <= min < 60:
+    if not 0. <= min < 60.:
         raise IllegalMinuteError(min) #"Error: minutes not in range [0,60) ({0}).".format(min))
 
 def _check_second_range(sec):
     ''' Checks that the given value is in the range [0,60). '''
-    if not 0 <= sec < 60:
+    if not 0. <= sec < 60.:
         raise IllegalSecondError(sec)#"Error: seconds not in range [0,60) ({0}).".format(sec))
 
 def check_hms_ranges(h, m, s):
@@ -423,7 +423,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=":"):
 #<----------Spherical angular distances------------->
 def small_angle_dist(lat1, long1, lat2, long2):
     """
-    Euclidean angular distance "on a sphere" - only valid on sphere in the 
+    Euclidean angular distance "on a sphere" - only valid on sphere in the
     small-angle approximation.
     """
 
