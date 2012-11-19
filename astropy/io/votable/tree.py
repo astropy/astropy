@@ -66,7 +66,8 @@ def _resize(masked, new_size):
     new_array = ma.zeros((new_size,), dtype=masked.dtype)
     length = min(len(masked), new_size)
     new_array.data[:length] = masked.data[:length]
-    new_array.mask[:length] = masked.mask[:length]
+    if length != 0:
+        new_array.mask[:length] = masked.mask[:length]
     return new_array
 
 
@@ -2341,7 +2342,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
         array = _resize(array, alloc_rows)
         array[numrows:] = array_chunk
-        array.mask[numrows:] = mask_chunk
+        if alloc_rows != 0:
+            array.mask[numrows:] = mask_chunk
         numrows += len(array_chunk)
 
         if (self.nrows is not None and
