@@ -1,4 +1,4 @@
-"""asciitable: an extensible ASCII table reader and writer.
+"""An extensible ASCII table reader and writer.
 
 ui.py:
   Provides the main user functions for reading and writing tables.
@@ -42,7 +42,6 @@ from . import cds
 from . import daophot
 from . import sextractor
 from . import ipac
-from . import memory
 from .core import next, izip, any
 from . import latex
 
@@ -95,7 +94,7 @@ def read(table, guess=None, **kwargs):
 
     :param table: input table (file name, list of strings, or single newline-separated string)
     :param guess: try to guess the table format (default=True)
-    :param Reader: Reader class (default= :class:`~asciitable.Basic`)
+    :param Reader: Reader class (default=``ascii.Basic``)
     :param Inputter: Inputter class
     :param Outputter: Outputter class
     :param delimiter: column delimiter string
@@ -119,10 +118,7 @@ def read(table, guess=None, **kwargs):
     # Provide a simple way to choose between the two common outputters.  If an
     # Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    if 'fill_values' not in kwargs:
-        new_kwargs['Outputter'] = core.TableOutputter
-    else:
-        new_kwargs['Outputter'] = core.NumpyOutputter
+    new_kwargs['Outputter'] = core.TableOutputter
     new_kwargs.update(kwargs)
 
     if guess is None:
@@ -224,23 +220,26 @@ def _get_guess_kwargs_list():
     return guess_kwargs_list
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
-                     'names', 'include_names', 'exclude_names')
+                     'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 def get_writer(Writer=None, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (default= :class:`~asciitable.Basic` )
+    :param Writer: Writer class (default=``ascii.Basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
+    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
     if Writer is None:
         Writer = basic.Basic
+    if 'strip_whitespace' not in kwargs:
+        kwargs['strip_whitespace'] = True
     writer = core._get_writer(Writer, **kwargs)
     return writer
 
@@ -250,23 +249,29 @@ def write(table, output=sys.stdout,  Writer=None, **kwargs):
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param output: output [filename, file-like object] (default = sys.stdout)
-    :param Writer: Writer class (default= :class:`~asciitable.Basic` )
+    :param Writer: Writer class (default=``ascii.Basic``)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
+    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
     """
 
     table = Table(table, names=kwargs.get('names'))
-    reader_kwargs = dict((key, val) for key, val in kwargs.items()
-                         if key in ('names', 'include_names', 'exclude_names'))
-    if not isinstance(table, core.BaseReader) or reader_kwargs:
-        reader = get_reader(Reader=memory.Memory, **reader_kwargs)
-        reader.read(table)
-        table = reader
+
+    names = set(table.colnames)
+    if 'include_names' in kwargs:
+        names.intersection_update(kwargs['include_names'])
+    if 'exclude_names' in kwargs:
+        names.difference_update(kwargs['exclude_names'])
+    if names != set(table.colnames):
+        remove_names = set(table.colnames) - set(names)
+        table.remove_columns(remove_names)
+
+    table.cols = table.columns.values()
 
     writer = get_writer(Writer=Writer, **kwargs)
     lines = writer.write(table)

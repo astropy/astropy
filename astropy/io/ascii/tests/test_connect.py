@@ -3,12 +3,15 @@ from ....tests.helper import pytest
 
 from ....table import Table, Column
 
+from .common import numpy_lt_1p5
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.mark.parametrize('filename', ['t/cds.dat', 't/ipac.dat',
                                       't/daophot.dat', 't/latex1.tex'])
 def test_read_generic(filename):
+    if numpy_lt_1p5 and filename in ['t/cds.dat', 't/ipac.dat']:
+        return
     Table.read(os.path.join(ROOT, filename), format='ascii')
 
 
@@ -19,10 +22,12 @@ def test_write_generic(tmpdir):
     t.write(str(tmpdir.join("test")), format='ascii')
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_read_ipac():
     Table.read(os.path.join(ROOT, 't/ipac.dat'), format='ipac')
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_read_cds():
     Table.read(os.path.join(ROOT, 't/cds.dat'), format='cds')
 

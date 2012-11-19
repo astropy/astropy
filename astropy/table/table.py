@@ -9,7 +9,7 @@ from ..units import Unit
 from .. import log
 from ..utils import OrderedDict, isiterable
 from .structhelper import _drop_fields
-from .pprint import _pformat_table, _pformat_col, _more_tabcol
+from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  .io_registry import get_reader, get_writer, identify_format
@@ -138,14 +138,31 @@ class BaseColumn(object):
 
     def __repr__(self):
         if self.name:
+            units = None if self.units is None else str(self.units)
             out = "<{0} name={1} units={2} format={3} " \
                 "description={4}>\n{5}".format(
                 self.__class__.__name__,
-                repr(self.name), repr(self.units),
+                repr(self.name), repr(units),
                 repr(self.format), repr(self.description), repr(self.data))
         else:
             out = repr(self.data)
         return out
+
+    def iter_str_vals(self):
+        """
+        Return an iterator that yields the string-formatted values of this
+        column.
+
+        Returns
+        -------
+        str_vals : iterator
+            Column values formatted as strings
+        """
+        # pprint._pformat_col_iter(col, max_lines, show_name, show_units, outs)
+        # Iterate over formatted values with no max number of lines, no column
+        # name, no units, and ignoring the returned header info in outs.
+        for str_val in _pformat_col_iter(self, -1, False, False, {}):
+            yield str_val
 
     def attrs_equal(self, col):
         """Compare the column attributes of ``col`` to this object.
@@ -306,6 +323,7 @@ class BaseColumn(object):
     def __str__(self):
         lines, n_header = _pformat_col(self)
         return '\n'.join(lines)
+
 
 class Column(BaseColumn, np.ndarray):
     """Define a data column for use in a Table object.

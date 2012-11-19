@@ -126,6 +126,41 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
         Number of lines in the header
 
     """
+    outs = {}  # Some values from _pformat_col_iter iterator that are needed here
+    col_strs = list(_pformat_col_iter(col, max_lines, show_name, show_units, outs))
+    col_width = max(len(x) for x in col_strs)
+
+    # Center line content and generate dashed headerline
+    for i in outs['i_centers']:
+        col_strs[i] = col_strs[i].center(col_width)
+    if outs['i_dashes'] is not None:
+        col_strs[outs['i_dashes']] = '-' * col_width
+
+    # Now bring all the column string values to the same fixed width
+    for i, col_str in enumerate(col_strs):
+        col_strs[i] = col_str.rjust(col_width)
+
+    return col_strs, outs['n_header']
+
+
+def _pformat_col_iter(col, max_lines, show_name, show_units, outs):
+    """Iterator which yields formatted string representation of column values.
+
+    Parameters
+    ----------
+    max_lines : int
+        Maximum lines of output (header + data rows)
+
+    show_name : bool
+        Include column name (default=True)
+
+    show_units : bool
+        Include a header row for units (default=False)
+
+    out : dict
+        Must be a dict which is used to pass back additional values
+        defined within the iterator.
+    """
     max_lines, _ = _get_pprint_size(max_lines, -1)
 
     multidims = col.shape[1:]
@@ -136,28 +171,26 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
     col_strs = []  # List of formatted column values
     i_dashes = None
     i_centers = []  # Line indexes where content should be centered
+    n_header = 0
     if show_name:
-        i_centers.append(len(col_strs))
+        i_centers.append(n_header)
         if multidims:
             col_name = col.name + ' [{0}]'.format(
                 ','.join(str(n) for n in multidims))
         else:
             col_name = col.name
-        col_strs.append(col_name)
-        max_lines -= 1
+        n_header += 1
+        yield col_name
     if show_units:
-        i_centers.append(len(col_strs))
-        if col.units is not None:
-            col_strs.append(col.units.to_string())
-        else:
-            col_strs.append('')
-        max_lines -= 1
+        i_centers.append(n_header)
+        n_header += 1
+        yield str(col.units or '')
     if show_units or show_name:
-        i_dashes = len(col_strs)
-        col_strs.append('---')
-        max_lines -= 1
+        i_dashes = n_header
+        n_header += 1
+        yield '---'
 
-    n_header = len(col_strs)
+    max_lines -= n_header
     n_print2 = max_lines // 2
     n_rows = len(col)
 
@@ -178,24 +211,13 @@ def _pformat_col(col, max_lines=None, show_name=True, show_units=False):
                            format_func(col.format, col[(i,) + multidim1]))
             else:
                 col_str = format_func(col.format, col[i])
-            col_strs.append(col_str)
+            yield col_str
         elif i == i0:
-            col_strs.append('...')
+            yield '...'
 
-    col_width = max(len(x) for x in col_strs)
-
-    # Center line content and generate dashed headerline
-    for i in i_centers:
-        col_strs[i] = col_strs[i].center(col_width)
-    if i_dashes is not None:
-        col_strs[i_dashes] = '-' * col_width
-
-    # Now bring all the column string values to the same fixed width
-    for i, col_str in enumerate(col_strs):
-        col_strs[i] = col_str.rjust(col_width)
-
-    return col_strs, n_header
-
+    outs['n_header'] = n_header
+    outs['i_centers'] = i_centers
+    outs['i_dashes'] = i_dashes
 
 def _pformat_table(table, max_lines=None, max_width=None, show_name=True,
                    show_units=False, html=False):

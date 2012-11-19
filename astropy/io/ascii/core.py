@@ -1,4 +1,4 @@
-""" Asciitable: an extensible ASCII table reader and writer.
+""" An extensible ASCII table reader and writer.
 
 core.py:
   Core base classes and functions for reading and writing tables.
@@ -35,6 +35,7 @@ import re
 import csv
 import itertools
 import numpy
+from contextlib import contextmanager
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -78,32 +79,30 @@ except NameError:
                 return True
         return False
 
-class Keyword(object):
-    """Table keyword"""
-    def __init__(self, name, value, units=None, comment=None, format=None):
-        self.name = name
-        self.value = value
-        self.units = units
-        self.comment = comment
-        self.format = format
 
 class NoType(object):
     pass
 
+
 class StrType(NoType):
     pass
+
 
 class NumType(NoType):
     pass
 
+
 class FloatType(NumType):
     pass
+
 
 class IntType(NumType):
     pass
 
+
 class AllType(StrType, FloatType, IntType):
     pass
+
 
 class Column(object):
     """Table column.
@@ -122,20 +121,12 @@ class Column(object):
         self.type = NoType
         self.str_vals = []
         self.fill_values = {}
-        self.formatter = None
 
-    def __iter__(self):
-        '''iterate over formated column values
-
-        Each value is paased through self.formatter.
-        If str(self.formatter(value)) is found in the fill_values specification,
-        the corresponding fill_value is returned, otherwise the formated value.
-        '''
-        for val in self.data:
-            yield self.fill_values.get(str(self.formatter(val)).strip(), self.formatter(val))
 
 class BaseInputter(object):
-    """Get the lines from the table input and return a list of lines.  The input table can be one of:
+    """
+    Get the lines from the table input and return a list of lines.  The input
+    table can be one of:
 
     * File name
     * String (newline separated) with all header and data lines (must have at least 2 lines)
@@ -178,6 +169,7 @@ class BaseInputter(object):
         ContinuationLinesInputter derived class accounts for continuation
         characters if a row is split into lines."""
         return lines
+
 
 class BaseSplitter(object):
     """Base splitter that uses python's split method to do the work.
@@ -234,7 +226,7 @@ class DefaultSplitter(BaseSplitter):
     Typical usage::
 
       # lines = ..
-      splitter = asciitable.DefaultSplitter()
+      splitter = ascii.DefaultSplitter()
       for col_vals in splitter(lines):
           for col_val in col_vals:
                ...
@@ -311,9 +303,12 @@ class DefaultSplitter(BaseSplitter):
                                          )
         self.csv_writer_out.seek(0)
         self.csv_writer_out.truncate()
+        if self.process_val:
+            vals = [self.process_val(x) for x in vals]
         self.csv_writer.writerow(vals)
 
         return self.csv_writer_out.getvalue()
+
 
 def _replace_tab_with_space(line, escapechar, quotechar):
     """Replace tab with space within ``line`` while respecting quoted substrings"""
@@ -328,6 +323,7 @@ def _replace_tab_with_space(line, escapechar, quotechar):
         lastchar = char
         newline.append(char)
     return ''.join(newline)
+
 
 def _get_line_index(line_or_func, lines):
     """Return the appropriate line index, depending on ``line_or_func`` which
@@ -364,7 +360,7 @@ class BaseHeader(object):
     names = None
     include_names = None
     exclude_names = None
-    write_spacer_lines = ['ASCIITABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
         self.splitter = self.__class__.splitter_class()
@@ -399,7 +395,8 @@ class BaseHeader(object):
                 try:
                     first_data_vals = next(self.data.get_str_vals())
                 except StopIteration:
-                    raise InconsistentTableError('No data lines found so cannot autogenerate column names')
+                    raise InconsistentTableError('No data lines found so cannot autogenerate '
+                                                 'column names')
                 n_data_cols = len(first_data_vals)
                 self.names = [self.auto_format % i for i in range(1, n_data_cols+1)]
 
@@ -476,9 +473,8 @@ class BaseData(object):
     end_line = None
     comment = None
     splitter_class = DefaultSplitter
-    write_spacer_lines = ['ASCIITABLE_WRITE_SPACER_LINE']
+    write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     formats = {}
-    default_formatter = str
     fill_values = []
     fill_include_names = None
     fill_exclude_names = None
@@ -539,7 +535,7 @@ class BaseData(object):
             #if input is only one <fill_spec>, then make it a list
             try:
                 self.fill_values[0] + ''
-                self.fill_values = [ self.fill_values ]
+                self.fill_values = [self.fill_values]
             except TypeError:
                 pass
             # Step 1: Set the default list of columns which are affected by fill_values
@@ -550,10 +546,12 @@ class BaseData(object):
                 colnames.difference_update(self.fill_exclude_names)
 
             # Step 2a: Find out which columns are affected by this tuple
-            # iterate over reversed order, so last condition is set first and overwritten by earlier conditions
+            # iterate over reversed order, so last condition is set first and
+            # overwritten by earlier conditions
             for replacement in reversed(self.fill_values):
                 if len(replacement) < 2:
-                    raise ValueError("Format of fill_values must be (<bad>, <fill>, <optional col1>, ...)")
+                    raise ValueError("Format of fill_values must be "
+                                     "(<bad>, <fill>, <optional col1>, ...)")
                 elif len(replacement) == 2:
                     affect_cols = colnames
                 else:
@@ -563,11 +561,12 @@ class BaseData(object):
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
-        """Replace string values in col.str_vales and set masks"""
+        """Replace string values in col.str_vals and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
-                col.mask = [False] * len(col.str_vals)
-                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals) if x in col.fill_values):
+                col.mask = numpy.zeros(len(col.str_vals), dtype=numpy.bool)
+                for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
+                                   if x in col.fill_values):
                     col.str_vals[i] = col.fill_values[str_val]
                     col.mask[i] = True
 
@@ -580,28 +579,33 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        formatters = []
-        for col in self.cols:
-            formatter = self.formats.get(col.name, self.default_formatter)
-            if not hasattr(formatter, '__call__'):
-                formatter = _format_func(formatter)
-            col.formatter = formatter
+        with self._set_col_formats(self.cols, self.formats):
+            col_str_iters = [col.iter_str_vals() for col in self.cols]
+            for vals in izip(*col_str_iters):
+                lines.append(self.splitter.join(vals))
 
-        for vals in izip(*self.cols):
-            lines.append(self.splitter.join(vals))
+    @contextmanager
+    def _set_col_formats(self, cols, formats):
+        """
+        Context manager to save the internal column formats in `cols` and
+        override with any custom `formats`.
+        """
+        orig_formats = [col.format for col in cols]
+        for col in cols:
+            if col.name in formats:
+                col.format = formats[col.name]
 
+        yield  # execute the nested context manager block
 
-def _format_func(format_str):
-    def func(val):
-        return format_str % val
-    return func
-
+        # Restore the original column format values
+        for col, orig_format in izip(cols, orig_formats):
+            col.format = orig_format
 
 class DictLikeNumpy(dict):
     """Provide minimal compatibility with numpy rec array API for BaseOutputter
     object::
 
-      table = asciitable.read('mytable.dat', numpy=False)
+      table = ascii.read('mytable.dat', numpy=False)
       table.field('x')    # List of elements in column 'x'
       table.dtype.names   # get column names in order
       table[1]            # returns row 1 as a list
@@ -719,55 +723,6 @@ class BaseOutputter(object):
                 except IndexError:
                     raise ValueError('Column %s failed to convert' % col.name)
 
-class NumpyOutputter(BaseOutputter):
-    """Output the table as a numpy.rec.recarray
-
-    Missing or bad data values are handled at two levels.  The first is in
-    the data reading step where if ``data.fill_values`` is set then any
-    occurences of a bad value are replaced by the correspond fill value.
-    At the same time a boolean list ``mask`` is created in the column object.
-
-    The second stage is when converting to numpy arrays which by default generates
-    masked arrays, if ``data.fill_values`` is set and plain arrays if it is not.
-    In the rare case that plain arrays are needed set ``auto_masked`` (default = True) and
-    ``default_masked`` (default = False) to control this behavior as follows:
-
-    ===========  ==============  ===========  ============
-    auto_masked  default_masked  fill_values  output
-    ===========  ==============  ===========  ============
-    --            True           --           masked_array
-    --            False          None         array
-    True          --             dict(..)     masked_array
-    False         --             dict(..)     array
-    ===========  ==============  ===========  ============
-
-    To set these values use::
-
-      Outputter = asciitable.NumpyOutputter()
-      Outputter.default_masked = True
-
-    """
-
-    auto_masked_array = True
-    default_masked_array = False
-
-    default_converters = [convert_numpy(numpy.int),
-                          convert_numpy(numpy.float),
-                          convert_numpy(numpy.str)]
-
-    def __call__(self, cols):
-        self._convert_vals(cols)
-        recarr = numpy.rec.fromarrays([x.data for x in cols], names=[x.name for x in cols])
-        if self.default_masked_array or (self.auto_masked_array and
-                                         any(col.fill_values for col in cols)):
-            maarr = recarr.view(numpy.ma.MaskedArray)
-            for col in cols:
-                if col.fill_values:
-                    maarr[col.name] = numpy.ma.masked_where(col.mask, maarr[col.name])
-            return maarr
-        else:
-            return recarr
-
 
 class TableOutputter(BaseOutputter):
     """Output the table as an astropy.table.Table object.
@@ -783,7 +738,18 @@ class TableOutputter(BaseOutputter):
 
     def __call__(self, cols):
         self._convert_vals(cols)
-        out = Table([x.data for x in cols], names=[x.name for x in cols])
+
+        # XXX: Maybe replace the logic below with an explicit masked arg in read()
+        masked = any(col.fill_values for col in cols)
+
+        out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked)
+        for col, out_col in zip(cols, out.columns.values()):
+            if masked and hasattr(col, 'mask'):
+                out_col.data.mask = col.mask
+            for attr in ('format', 'units', 'description'):
+                if hasattr(col, attr):
+                    setattr(out_col, attr, getattr(col, attr))
+
         # To Do: add support for column and table metadata
         return out
 
@@ -806,8 +772,7 @@ class BaseReader(object):
         self.data = BaseData()
         self.inputter = BaseInputter()
         self.outputter = TableOutputter()
-        self.meta = {}                  # Placeholder for storing table metadata
-        self.keywords = []              # Placeholder for storing table Keywords
+        self.meta = {}                  # Placeholder for storing table metadata 
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
@@ -871,10 +836,10 @@ class BaseReader(object):
                 col.str_vals.append(str_vals[col.index])
 
         self.data.masks(cols)
-        self.table = self.outputter(cols)
+        table = self.outputter(cols)
         self.cols = self.header.cols
 
-        return self.table
+        return table
 
     def inconsistent_handler(self, str_vals, ncols):
         """Adjust or skip data entries if a row is inconsistent with the header.
@@ -908,19 +873,15 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
-    def write(self, table=None):
+    def write(self, table):
         """Write ``table`` as list of strings.
 
-        :param table: asciitable Reader object
+        :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
-        if table is None:
-            table = self
-
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = table.cols
-        self.data.cols = self.header.cols
-        self.data.masks(self.data.cols)
+        self.data.cols = table.cols
 
         # Write header and data to lines list
         lines = []
@@ -941,14 +902,22 @@ class ContinuationLinesInputter(BaseInputter):
     """
 
     continuation_char = '\\'
+    # If no_continue is not None then lines matching this regex are not subject
+    # to line continuation.  The initial use case here is Daophot.  In this
+    # case the continuation character is just stripped.
+    no_continue = None
 
     def process_lines(self, lines):
+        re_no_continue = re.compile(self.no_continue) if self.no_continue else None
+
         striplines = (x.strip() for x in lines)
         lines = [x for x in striplines if len(x) > 0]
 
         parts = []
         outlines = []
         for line in lines:
+            if re_no_continue and re_no_continue.match(line):
+                line = line.rstrip(self.continuation_char)
             if line.endswith(self.continuation_char):
                 parts.append(line.rstrip(self.continuation_char))
             else:
@@ -1035,7 +1004,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     return reader
 
-extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
+extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats', 'strip_whitespace',
                      'names', 'include_names', 'exclude_names',
                      'fill_values', 'fill_include_names',
                      'fill_exclude_names')
@@ -1059,6 +1028,16 @@ def _get_writer(Writer, **kwargs):
         writer.data.splitter.quotechar = kwargs['quotechar']
     if 'formats' in kwargs:
         writer.data.formats = kwargs['formats']
+    if 'strip_whitespace' in kwargs:
+        if kwargs['strip_whitespace']:
+            # Restore the default SplitterClass process_val method which strips
+            # whitespace.  This may have been changed in the Writer
+            # initialization (e.g. Rdb and Tab)
+            Class = writer.data.splitter.__class__
+            obj = writer.data.splitter
+            writer.data.splitter.process_val = Class.process_val.__get__(obj, Class)
+        else:
+            writer.data.splitter.process_val = None
     if 'names' in kwargs:
         writer.header.names = kwargs['names']
     if 'include_names' in kwargs:
