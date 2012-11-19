@@ -79,7 +79,7 @@ def test_parse_single_table2():
 def test_parse_single_table3():
     table2 = parse_single_table(
         get_pkg_data_filename('data/regression.xml'),
-        table_number=2, pedantic=False)
+        table_number=3, pedantic=False)
 
 
 def _test_regression(_python_based=False):
@@ -223,7 +223,7 @@ class TestReferences:
     def test_iter_groups(self):
         # Because of the ref'd table, there are more logical groups
         # than actually exist in the file
-        assert len(list(self.votable.iter_groups())) == 6
+        assert len(list(self.votable.iter_groups())) == 9
 
     def test_ref_table(self):
         tables = list(self.votable.iter_tables())
