@@ -539,11 +539,11 @@ class AngularSeparation(Angle):
     ----------
     lat1 : float
         The value of the first latitudinal/elevation angle.
-    long1 : float
+    lon1 : float
         The value of the first longitudinal/azimuthal angle.
     lat2 : float
         The value of the second latitudinal/elevation angle.
-    long2 : float
+    lon2 : float
         The value of the second longitudinal/azimuthal angle.
     units : `~astropy.units`
         The units of the given angles.
@@ -551,29 +551,29 @@ class AngularSeparation(Angle):
         The function to use to compute the angular value of this
         separation. If None, the class attribute
         `AngularSeparation.distance_function` will be used. If a
-        function, it will be called as ``f(lat1, long1, lat2, long2)``
+        function, it will be called as ``f(lat1, lon1, lat2, lon2)``
         and it should return the separation between the two points. see
         the `astropy.coordinates.angle_utilities` module for some common
         distance measurement functions.
 
 
     """
-    def __init__(self, lat1, long1, lat2, long2, units, distance_function=None):
+    def __init__(self, lat1, lon1, lat2, lon2, units, distance_function=None):
 
         units = u.Unit(units)
         lat1 = units.to(u.radian, lat1)
-        if 0 == long1 == lat2 == long2:
+        if 0 == lon1 == lat2 == lon2:
             sepval = lat1
         else:
-            long1 = units.to(u.radian, long1)
+            lon1 = units.to(u.radian, lon1)
             lat2 = units.to(u.radian, lat2)
-            long2 = units.to(u.radian, long2)
+            lon2 = units.to(u.radian, lon2)
 
             if hasattr(self, 'distance_function'):
                 distance_function = self.distance_function
             else:
                 distance_function = _angsep_distance_function
-            sepval = distance_function(lat1, long1, lat2, long2)
+            sepval = distance_function(lat1, lon1, lat2, lon2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 

@@ -13,7 +13,7 @@ distance_funcs = [angle_utilities.small_angle_dist,
                   angle_utilities.vicenty_dist,
                  ]
 
-# lat1, long1, lat2, long2 in degrees
+# lat1, lon1, lat2, lon2 in degrees
 coords = [(0, 0, 1, 0),
           (0, 0, 0, 10),
           (0, 0, 0, 90),
@@ -47,13 +47,13 @@ def test_2dseparations(coord, correctsep, dfunc):
     from time import time
     from math import fabs, radians, degrees
 
-    lat1, long1, lat2, long2 = coord
+    lat1, lon1, lat2, lon2 = coord
 
     print('distance function', dfunc)
-    print('({0},{1}) - ({2},{3})'.format(lat1, long1, lat2, long2))
+    print('({0},{1}) - ({2},{3})'.format(lat1, lon1, lat2, lon2))
     print('Correct separation', correctsep)
 
-    inputs = (radians(lat1), radians(long1), radians(lat2), radians(long2))
+    inputs = (radians(lat1), radians(lon1), radians(lat2), radians(lon2))
     sep = degrees(dfunc(*inputs))
     print('Reported:', sep)
     print('Deviation from correct:', sep - correctsep)
@@ -70,7 +70,7 @@ def test_2dseparations(coord, correctsep, dfunc):
 
     #a few cases are known to fail because of bad approximations - let them fail
     if dfunc is angle_utilities.small_angle_dist:
-        if fabs(lat2 - lat1) > 1 and fabs(long2 - long1) > 1:  # radians
+        if fabs(lat2 - lat1) > 1 and fabs(lon2 - lon1) > 1:  # radians
             pytest.xfail('Small angle approximation fails for large angles')
 
     assert fabs(sep - correctsep) < correctness_margin

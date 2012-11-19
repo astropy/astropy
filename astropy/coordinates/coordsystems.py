@@ -20,11 +20,11 @@ class SphericalCoordinatesBase(object):
     Notes
     -----
     Subclasses must implement `__init__`, and define the `latangle` and
-    `longangle` properties.  They may also override the `epoch`
+    `lonangle` properties.  They may also override the `epoch`
     property, or leave it unaltered to indicate the coordinates are
     epochless.
 
-    `_initialize_latlong` is provided to implement typical
+    `_initialize_latlon` is provided to implement typical
     initialization features, and should be called from a subclass'
     `__init__`.  See the classes in
     `astropy.coordinates.builtin_systems` for examples of this.
@@ -44,7 +44,7 @@ class SphericalCoordinatesBase(object):
     def __eq__(self, other):
         try:
             return (self.latangle == other.latangle and
-                    self.longangle == other.longangle and
+                    self.lonangle == other.lonangle and
                     self.distance == other.distance and
                     self.epoch == other.epoch)
         except AttributeError:
@@ -52,50 +52,50 @@ class SphericalCoordinatesBase(object):
 
     _init_docstring_param_templ = """coordstr : str
         A single string with the coordinates.  Cannot be used with
-        `{latnm}` and `{longnm}` nor `x`/`y`/`z`.
-    {longnm} : `~astropy.coordinates.angle.Angle`, float, int, str
+        `{latnm}` and `{lonnm}` nor `x`/`y`/`z`.
+    {lonnm} : `~astropy.coordinates.angle.Angle`, float, int, str
         This must be given with `{latnm}`.
     {latnm} : `~astropy.coordinates.angle.Angle`, float, int, str
-        This must be given with `{longnm}`.
+        This must be given with `{lonnm}`.
     distance : `~astropy.coordinates.coordsystems.Distance`, optional
-        This may be given with `{latnm}` and `{longnm}` or `coordstr`
+        This may be given with `{latnm}` and `{lonnm}` or `coordstr`
         and not `x`, `y`, or `z`.  If not given, `None` (unit sphere)
         will be assumed.
     x : number
         The first cartesian coordinate. Must be given with `y` and `z`
-        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
     y : number
         The second cartesian coordinate. Must be given with `x` and `z`
-        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
     z : number
         The third cartesian coordinate. Must be given with `x` and `y`
-        and not with `{longnm}` or `{latnm}` nor `coordstr`.
+        and not with `{lonnm}` or `{latnm}` nor `coordstr`.
     cartpoint : `~astropy.coordinates.distance.CartesianPoint`
         A cartesian point with the coordinates.  Cannot be used with
         any other arguments.
     unit : `~astropy.units.UnitBase` or tuple
 
-        * If `{longnm}` and `{latnm}` or `coordstr` are given:
+        * If `{lonnm}` and `{latnm}` or `coordstr` are given:
             If the units cannot be determined from the angle values
             provided, they must be specified as a tuple. The first value
-            in the tuple is paired with `{longnm}`, and the second with
+            in the tuple is paired with `{lonnm}`, and the second with
             `{latnm}`. If `coordstr` is applied or `{latnm}` is a string
             and a single unit is  given, it is assumed to apply to
-            `{longnm}`. Otherwise, a single unit is applied to both.
+            `{lonnm}`. Otherwise, a single unit is applied to both.
 
         * If `x`, `y`, and `z` are given:
             `unit` must be present have dimensions of length"""
 
-    def _initialize_latlong(self, longname, latname, useradec, initargs, initkwargs):
+    def _initialize_latlon(self, lonname, latname, useradec, initargs, initkwargs):
         """
-        Subclasses should use this to initialize standard lat/long-style
+        Subclasses should use this to initialize standard lat/lon-style
         coordinates.
 
-        This recognizes both the lat/long style and the cartesian form.
+        This recognizes both the lat/lon style and the cartesian form.
 
         Parameters
         ----------
-        longname : str
+        lonname : str
             The name of the longitude-like coordinate attribute
         latname : str
             The name of the latitude-like coordinate attribute
@@ -117,10 +117,10 @@ class SphericalCoordinatesBase(object):
             else:
                 initkwargs['coordstr'] = initargs[0]
         if nargs > 1:
-            if longname in initkwargs:
+            if lonname in initkwargs:
                 raise TypeError("{0} got multiple values for keyword argument "
-                                "'{1}'".format(sclsnm, longname))
-            initkwargs[longname] = initargs[0]
+                                "'{1}'".format(sclsnm, lonname))
+            initkwargs[lonname] = initargs[0]
         if nargs >= 2:
             if latname in initkwargs:
                 raise TypeError("{0} got multiple values for keyword argument "
@@ -132,7 +132,7 @@ class SphericalCoordinatesBase(object):
 
         unit = initkwargs.pop('unit', None)
         coordstr = initkwargs.pop('coordstr', None)
-        longval = initkwargs.pop(longname, None)
+        lonval = initkwargs.pop(lonname, None)
         latval = initkwargs.pop(latname, None)
         distval = initkwargs.pop('distance', None)
         cartpoint = initkwargs.pop('cartpoint', None)
@@ -144,11 +144,11 @@ class SphericalCoordinatesBase(object):
             raise TypeError('{0} got unexpected keyword argument'
                             ' {1}'.format(sclsnm, initkwargs.keys()))
 
-        ll = longval is not None and latval is not None
+        ll = lonval is not None and latval is not None
         xyz = x is not None or y is not None or z is not None
 
         if (ll or coordstr is not None) and not xyz and cartpoint is None:
-            # lat/long-style initialization
+            # lat/lon-style initialization
 
             units = [] if unit is None else unit
 
@@ -158,7 +158,7 @@ class SphericalCoordinatesBase(object):
                                      'initializing a coordinate')
             elif isinstance(units, u.UnitBase) or isinstance(units, basestring):
                 # Only a single unit given, which is fine.  If the arguments are
-                # strings, assign it to just the long, otherwise both
+                # strings, assign it to just the lon, otherwise both
                 if coordstr is not None or isinstance(latval, basestring):
                     units = (units, )
                 else:
@@ -170,23 +170,23 @@ class SphericalCoordinatesBase(object):
 
             if coordstr is not None:
                 # need to try to parse the coordinate from a single argument
-                # populates latval and longval variables, which then get made
+                # populates latval and lonval variables, which then get made
                 # into coordinates below
                 x = coordstr
                 if isinstance(coordstr, basestring):
                     parsed = False
                     if "," in x:
-                        longval, latval = x.split(",")
+                        lonval, latval = x.split(",")
                         parsed = True
                     elif "\t" in x:
-                        longval, latval = x.split("\t")
+                        lonval, latval = x.split("\t")
                         parsed = True
                     elif len(x.split()) == 6:
-                        longval = " ".join(x.split()[0:3])
+                        lonval = " ".join(x.split()[0:3])
                         latval = " ".join(x.split()[3:])
                         parsed = True
                     elif len(x.split()) == 2:
-                        longval, latval = x.split()
+                        lonval, latval = x.split()
                         parsed = True
 
                     if not parsed:
@@ -194,7 +194,7 @@ class SphericalCoordinatesBase(object):
                         i = 1
                         while i < len(values) and not parsed:
                             try:
-                                longval = " ".join(values[0:i])
+                                lonval = " ".join(values[0:i])
                                 parsed = True
                             except:
                                 i += 1
@@ -203,23 +203,23 @@ class SphericalCoordinatesBase(object):
                             latval = " ".join(values[i:])
 
                     if not parsed:
-                        msg = ("Could not parse {longname}/{latname} values "
+                        msg = ("Could not parse {lonname}/{latname} values "
                                "from the string provided: '{coordstr}'.")
-                        raise ValueError(msg.format(longname=longname,
+                        raise ValueError(msg.format(lonname=lonname,
                                                     latname=latname,
                                                     coordstr=coordstr))
                 else:
                     raise ValueError("A {0} cannot be created with a value of type "
                                      "'{1}'.".format(sclsnm, type(coordstr).__name__))
             if useradec:
-                longang = RA(longval, unit=units[0]) if len(units) > 0 else RA(longval)
+                lonang = RA(lonval, unit=units[0]) if len(units) > 0 else RA(lonval)
                 latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
             else:
-                if isinstance(longval, RA):
+                if isinstance(lonval, RA):
                     raise TypeError('Cannot provide an RA object to non-RA/Dec system {0}'.format(sclsnm))
                 if isinstance(latval, Dec):
                     raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
-                longang = Angle(longval, unit=units[0]) if len(units) > 0 else Angle(longval)
+                lonang = Angle(lonval, unit=units[0]) if len(units) > 0 else Angle(lonval)
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
             dist = None if distval is None else Distance(distval)  # copy
 
@@ -232,23 +232,23 @@ class SphericalCoordinatesBase(object):
                 y = cartpoint.y
                 z = cartpoint.z
                 unit = cartpoint.unit
-            r, latval, longval = cartesian_to_spherical(x, y, z)
+            r, latval, lonval = cartesian_to_spherical(x, y, z)
 
             if useradec:
-                longang = RA(longval, unit=u.radian)
+                lonang = RA(lonval, unit=u.radian)
                 latang = Dec(latval, unit=u.radian)
             else:
-                longang = Angle(longval, unit=u.radian)
+                lonang = Angle(lonval, unit=u.radian)
                 latang = Angle(latval, unit=u.radian)
 
             dist = None if unit is None else Distance(r, unit)
 
         else:
             raise TypeError('Must initialize {coordnm} with '
-                            '{latname}/{longname}/(distance) or x/y/z '
+                            '{latname}/{lonname}/(distance) or x/y/z '
                             ''.format(coordnm=sclsnm, latname=latname,
-                                      longname=longname))
-        setattr(self, longname, longang)
+                                      lonname=lonname))
+        setattr(self, lonname, lonang)
         setattr(self, latname, latang)
         self._distance = dist
 
@@ -267,7 +267,7 @@ class SphericalCoordinatesBase(object):
         """
 
     @abstractproperty
-    def longangle(self):
+    def lonangle(self):
         """
         The longitudinal/azimuthal angle for these coordinates as an
         `~astropy.coorinates.angles.Angle` object.
@@ -341,7 +341,7 @@ class SphericalCoordinatesBase(object):
                 r = self._distance._value
                 runit = self._distance._unit
             x, y, z = spherical_to_cartesian(r, self.latangle.radians,
-                                                self.longangle.radians)
+                                                self.lonangle.radians)
             self._cartpoint = CartesianPoint(x, y, z, runit)
 
     def separation(self, other):
@@ -362,9 +362,9 @@ class SphericalCoordinatesBase(object):
 
         lat1 = self.latangle.radians
         lat2 = other_in_self_system.latangle.radians
-        long1 = self.longangle.radians
-        long2 = other_in_self_system.longangle.radians
-        return AngularSeparation(lat1, long1, lat2, long2, u.radian)
+        lon1 = self.lonangle.radians
+        lon2 = other_in_self_system.lonangle.radians
+        return AngularSeparation(lat1, lon1, lat2, lon2, u.radian)
 
     def separation3d(self, other):
         """

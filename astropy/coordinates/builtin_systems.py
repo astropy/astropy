@@ -41,7 +41,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     coordinate.
 
     """
-    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
@@ -52,7 +52,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(ICRSCoordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
+            super(ICRSCoordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -65,7 +65,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
                           self.dec.degrees, diststr)
 
     @property
-    def longangle(self):
+    def lonangle(self):
         return self.ra
 
     @property
@@ -92,7 +92,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to `FK5Coordinates` and used as this
     coordinate.
     """
-    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
         super(FK5Coordinates, self).__init__()
@@ -105,7 +105,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK5Coordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
+            super(FK5Coordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -118,7 +118,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
                           self.dec.degrees, diststr)
 
     @property
-    def longangle(self):
+    def lonangle(self):
         return self.ra
 
     @property
@@ -173,7 +173,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to `FK4Coordinates` and used as this
     coordinate.
     """
-    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='ra', latnm='dec'))
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
 
     def __init__(self, *args, **kwargs):
         super(FK4Coordinates, self).__init__()
@@ -186,7 +186,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
             self.dec = newcoord.dec
             self._distance = newcoord._distance
         else:
-            super(FK4Coordinates, self)._initialize_latlong('ra', 'dec', True, args, kwargs)
+            super(FK4Coordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -199,7 +199,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
                           self.dec.degrees, diststr)
 
     @property
-    def longangle(self):
+    def lonangle(self):
         return self.ra
 
     @property
@@ -250,14 +250,14 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to `GalacticCoordinates` and
     used as this coordinate.
     """
-    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='l', latnm='b'))
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='l', latnm='b'))
 
     #North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     #transformations to/from FK4/5
     _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=u.degree)
-    _long0_J2000 = Angle(122.932, unit=u.degree)
+    _lon0_J2000 = Angle(122.932, unit=u.degree)
     _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=u.degree)
-    _long0_B1950 = Angle(123, unit=u.degree)
+    _lon0_B1950 = Angle(123, unit=u.degree)
 
     def __init__(self, *args, **kwargs):
         super(GalacticCoordinates, self).__init__()
@@ -268,7 +268,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
             self.b = newcoord.b
             self._distance = newcoord._distance
         else:
-            super(GalacticCoordinates, self)._initialize_latlong('l', 'b', False, args, kwargs)
+            super(GalacticCoordinates, self)._initialize_latlon('l', 'b', False, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -280,7 +280,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         return msg.format(self.__class__.__name__, self.l.degrees,
                           self.b.degrees, diststr)
     @property
-    def longangle(self):
+    def lonangle(self):
         return self.l
 
     @property
@@ -303,7 +303,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     can be provided, and will be converted to `HorizontalCoordinates` and used
     as this coordinate.
     """
-    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(longnm='az', latnm='el'))
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='az', latnm='el'))
 
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
@@ -316,7 +316,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
             self.el = newcoord.el
             self._distance = newcoord._distance
         else:
-            super(HorizontalCoordinates, self)._initialize_latlong('az', 'el', False, args, kwargs)
+            super(HorizontalCoordinates, self)._initialize_latlon('az', 'el', False, args, kwargs)
 
     def __repr__(self):
         if self.distance is not None:
@@ -329,7 +329,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
                           self.az.degrees, diststr)
 
     @property
-    def longangle(self):
+    def lonangle(self):
         return self.az
 
     @property
@@ -429,7 +429,7 @@ def _fk5_to_gal(fk5coords):
     # needed mainly to support inverse from galactic
     jepoch = 2000 if fk5coords.epoch is None else fk5coords.epoch.jyear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._long0_J2000.degrees, 'z')
+    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degrees, 'z')
     mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degrees, 'y')
     mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degrees, 'z')
     #transpose gets epoch -> J2000
@@ -450,7 +450,7 @@ def _fk4_to_gal(fk4coords):
     # needed mainly to support inverse from galactic
     bepoch = 1950 if fk4coords.epoch is None else fk4coords.epoch.byear
 
-    mat1 = rotation_matrix(180 - GalacticCoordinates._long0_B1950.degrees, 'z')
+    mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_B1950.degrees, 'z')
     mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degrees, 'y')
     mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degrees, 'z')
     matprec = _precession_matrix_besselian(bepoch, 1950)
