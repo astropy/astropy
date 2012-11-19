@@ -595,7 +595,7 @@ class ChebyshevModel(PModel):
     1D Chebyshev polynomial
     
     """
-    def __init__(self, degree, domain=None, window=None, paramdim=1, **pars):
+    def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
         """
         Parameters
         ----------
@@ -611,11 +611,7 @@ class ChebyshevModel(PModel):
                 keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
-        
-        if window is not None:
-            self.window = window
-        else:
-            self.window = [-1, 1]
+        self.window = window
         PModel.__init__(self, degree, ndim=1, paramdim=paramdim, **pars)
         self.outdim = 1
             
@@ -668,7 +664,7 @@ class LegendreModel(PModel):
     1D Legendre polynomial
 
     """
-    def __init__(self, degree, domain=None, window=None, paramdim=1, **pars):
+    def __init__(self, degree, domain=None, window=[-1, 1], paramdim=1, **pars):
         """
         Parameters
         ----------
@@ -684,10 +680,7 @@ class LegendreModel(PModel):
                 keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
-        if window is not None:
-            self.window = window
-        else:
-            self.window = [-1, 1]
+        self.window = window
         PModel.__init__(self, degree, ndim=1, paramdim=paramdim, **pars)
         self.outdim = 1
            
@@ -911,8 +904,8 @@ class ICheb2DModel(IModel):
     It is defined the same way as in IRAF.
     Pnm(x,y) = Cn_m * Tn(x) * Tm(y)
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None, 
-                            ywindow=None, paramdim=1, **pars):
+    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
+                            ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
         
         """
         Parameters
@@ -1019,8 +1012,8 @@ class ILegend2DModel(IModel):
     Pnm(x,y) = Cn_m * Ln(x )* Lm(y)
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None, 
-                 ywindow=None, paramdim=1, **pars):
+    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1,1], 
+                            ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
         """
         Parameters
         ----------
