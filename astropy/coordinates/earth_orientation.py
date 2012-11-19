@@ -339,6 +339,7 @@ def nutation_components2000B(jd):
 
     return epsa,dpsils+dpsipl,depsls+depspl #all in radians
 
+
 def nutation_matrix(epoch):
     """
     Nutation matrix generated from nutation components.
@@ -349,8 +350,10 @@ def nutation_matrix(epoch):
     from .angles import rotation_matrix
 
     #TODO: implement higher precision 2006/2000A model if requested/needed
-    epsa,dpsi,deps = nutation_components2000B(epoch.jd) #all in radians
+    epsa, dpsi, deps = nutation_components2000B(epoch.jd)  # all in radians
 
-    return rotation_matrix(-(epsa + deps),'x',False) *\
-           rotation_matrix(-dpsi,'z',False) *\
-           rotation_matrix(epsa,'x',False)
+    rot1 = rotation_matrix(-(epsa + deps), 'x', False)
+    rot2 = rotation_matrix(-dpsi, 'z', False)
+    rot3 = rotation_matrix(epsa, 'x', False)
+
+    return rot1 * rot2 * rot3
