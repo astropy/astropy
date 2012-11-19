@@ -190,13 +190,15 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_division_product_of_units(cls, s, loc, toks):
-        return (toks[0] * toks[1]) / toks[2]
+        from ..core import Unit
+        return Unit((toks[0] * toks[1]) / toks[2])
 
     @classmethod
     @utils._trace
     def _parse_factor_product_of_units(cls, s, loc, toks):
         if toks[0] != 1.0:
-            return toks[0] * toks[1]
+            from ..core import Unit
+            return Unit(toks[0] * toks[1])
         else:
             return toks[1]
 

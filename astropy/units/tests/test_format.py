@@ -26,8 +26,8 @@ def test_unit_grammar():
         (["m**2", "m2", "m**(2)", "m**+2", "m+2", "m^(+2)"], u.m ** 2),
         (["m**-3", "m-3", "m^(-3)", "/m3"], u.m ** -3),
         (["m**(1.5)", "m(3/2)", "m**(3/2)", "m^(3/2)"], u.m ** 1.5),
-        (["2.54cm"], u.cm * 2.54),
-        (["10+8m"], u.m * 1e8),
+        (["2.54cm"], u.Unit(u.cm * 2.54)),
+        (["10+8m"], u.Unit(u.m * 1e8)),
         # # This is the VOUnits documentation, but doesn't seem to follow the unity grammar
         # (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy) #
         (["sqrt(m)"], u.m ** -2)
@@ -46,13 +46,13 @@ def test_cds_grammar():
 
     data = [
         (["0.1nm"], u.AA),
-        (["mW/m2"], u.erg / u.cm ** 2 / u.s),
+        (["mW/m2"], u.Unit(u.erg / u.cm ** 2 / u.s)),
         (["km/s", "km.s-1"], u.km / u.s),
-        (["10pix/nm"], 10 * u.pix / u.nm),
-        (["1.5x10+11m"], 1.5e11 * u.m),
+        (["10pix/nm"], u.Unit(10 * u.pix / u.nm)),
+        (["1.5x10+11m"], u.Unit(1.5e11 * u.m)),
         (["m2"], u.m ** 2),
-        (["10+21m"], u.m * 1e21),
-        (["2.54cm"], u.cm * 2.54),
+        (["10+21m"], u.Unit(u.m * 1e21)),
+        (["2.54cm"], u.Unit(u.cm * 2.54)),
         (["20%"], 0.20)]
 
     for strings, unit in data:
