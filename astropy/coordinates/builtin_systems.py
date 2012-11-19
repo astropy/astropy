@@ -324,9 +324,9 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         else:
             diststr = ''
 
-        msg = "<{0} el={1:.5f} deg, az={2:.5f} deg{3}>"
-        return msg.format(self.__class__.__name__, self.el.degrees,
-                          self.az.degrees, diststr)
+        msg = "<{0} az={1:.5f} deg, el={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.az.degrees,
+                          self.el.degrees, diststr)
 
     @property
     def lonangle(self):
