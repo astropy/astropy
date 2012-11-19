@@ -35,12 +35,12 @@ def check_hms_ranges(h, m, s):
     _check_second_range(s)
     return None
 
-#these regexes are used in parse_degrees and parse_hours
-_div_regex_str = '[:|/|\t|\-|\sDdMmSs]{1,2}'  # accept these as (one or more repeated) delimiters: :, whitespace, /
+#these regexes are used in parse_degrees
+_dms_div_regex_str = '[:|/|\t|\-|\sDdMmSs]{1,2}'  # accept these as (one or more repeated) delimiters: :, whitespace, /
 # Look for a pattern where d,m,s is specified
-_dms_regex = re.compile('^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + div + '(\d{1,2}[\.0-9]*)' + '[Ss]{0,1}' + '$')
+_dms_regex = re.compile('^([+-]{0,1}\d{1,3})' + _dms_div_regex_str + '(\d{1,2})' + _dms_div_regex_str + '(\d{1,2}[\.0-9]*)' + '[Ss]{0,1}' + '$')
 # look for a pattern where only d,m is specified
-_dm_regex = re.compile('^([+-]{0,1}\d{1,3})' + div + '(\d{1,2})' + '[Mm]{0,1}' + '$')
+_dm_regex = re.compile('^([+-]{0,1}\d{1,3})' + _dms_div_regex_str + '(\d{1,2})' + '[Mm]{0,1}' + '$')
 
 
 def parse_degrees(degrees, output_dms=False):
@@ -132,6 +132,15 @@ def parse_degrees(degrees, output_dms=False):
 
     return degrees_to_dms(parsed_degrees) if output_dms else parsed_degrees
 
+
+#these regexes are used in parse_hours
+_hms_div_regex_str = '[:|/|\t|\-|\sHhMmSs]{1,2}'  # accept these as (one or more repeated) delimiters: :, whitespace, /
+# Look for a pattern where h,m,s is specified
+_hms_regex = re.compile('^([+-]{0,1}\d{1,2})' + _hms_div_regex_str + '(\d{1,2})' + _hms_div_regex_str + '(\d{1,2}[\.0-9]*)' + '[Ss]{0,1}' + '$')
+# look for a pattern where only h,m is specified
+_hm_regex = re.compile('^([+-]{0,1}\d{1,2})' + _hms_div_regex_str + '(\d{1,2})' + '[Mm]{0,1}' + '$')
+
+
 def parse_hours(hours, output_hms=False):
     """
     Returns an hour value (as a decimal or HMS tuple) from the integer, float, or string provided.
@@ -176,10 +185,10 @@ def parse_hours(hours, output_hms=False):
             string_parsed = False
 
             try:
-                elems = _dms_regex.search(x).groups()
+                elems = _hms_regex.search(x).groups()
                 string_parsed = True
             except:
-                pass # try again below
+                pass  # try again below
 
             if string_parsed:
                 h, m, s = float(elems[0]), int(elems[1]), float(elems[2])
@@ -188,7 +197,7 @@ def parse_hours(hours, output_hms=False):
 
             else:
                 try:
-                    elems = _dm_regex.search(x).groups()
+                    elems = _hm_regex.search(x).groups()
                     string_parsed = True
                 except:
                     raise ValueError("{0}: Invalid input string, can't parse to HMS. ({1})".format(inspect.stack()[0][3], x))
