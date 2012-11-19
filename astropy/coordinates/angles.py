@@ -225,7 +225,7 @@ class Angle(object):
         """ The angle's value in degrees, and print as an (d,m,s) tuple (read-only property). """
         return util.radians_to_dms(self.radians)
 
-    def format(self, unit=u.degree, decimal=False, sep='dms', precision=5,
+    def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
                alwayssign=False, pad=False):
         """ A string representation of the angle.
 
@@ -241,6 +241,8 @@ class Angle(object):
                 E.g., if it is ':', the result is "12:41:11.1241". Also accepts
                 2 or 3 separators. E.g., ``sep='hms'`` would give the result
                 "12h41m11.1241s", or sep='-:' would yield "11-21:17.124".
+                Alternatively, the special string 'fromunit' means 'dms' if
+                the unit is degrees, or 'hms' if the unit is hours.
             precision : int
                 The level of decimal precision.  if `decimal` is True, this is
                 the raw precision, otherwise it gives the precision of the last
@@ -250,7 +252,7 @@ class Angle(object):
                 include the sign if it is necessary (negative).
             pad : bool
                 If True, include leading zeros when needed to ensure a fixed
-                number of characters.
+                number of characters for sexagesimal representation.
 
             Returns
             -------
@@ -262,20 +264,24 @@ class Angle(object):
 
         if unit is u.degree:
             if decimal:
-                res = ("{0:0." + str(precision) + "f}").format(self.degrees)
+                res = ("{0:0." + str(precision) + "}").format(self.degrees)
             else:
+                if sep == 'fromunit':
+                    sep = 'dms'
                 res = util.degrees_to_string(self.degrees, precision=precision, sep=sep, pad=pad)
 
         elif unit is u.radian:
             if decimal:
-                raise ValueError('Radians cannot be in sexagesimal representation')
+                res = ("{0:0." + str(precision) + "}").format(self.radians)
             else:
-                res = ("{0:0." + str(precision) + "f}").format(self.hours)
+                raise ValueError('Radians cannot be in sexagesimal representation')
 
         elif unit is u.hour:
             if decimal:
-                res = ("{0:0." + str(precision) + "f}").format(self.hours)
+                res = ("{0:0." + str(precision) + "}").format(self.hours)
             else:
+                if sep == 'fromunit':
+                    sep = 'hms'
                 res = util.hours_to_string(self.hours, precision=precision, sep=sep, pad=pad)
         else:
             raise UnitsError("The unit value provided was not one of u.degree, u.hour, u.radian'.")

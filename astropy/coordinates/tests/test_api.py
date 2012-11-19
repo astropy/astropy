@@ -277,13 +277,13 @@ def test_angle_formatting():
     angle = Angle("54.12412", unit=u.degree)
 
     #__str__ is the default `format`
-    assert '54d07m26.83200s' == str(angle)
+    assert str(angle) == angle.format()
 
-    res = 'Angle as HMS: 3d36m29.78880s'
+    res = 'Angle as HMS: 3h36m29.78880s'
     assert "Angle as HMS: {0}".format(angle.format(unit=u.hour)) == res
 
     res = 'Angle as HMS: 3:36:29.78880'
-    print("Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")))
+    assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":")) == res
 
     res = 'Angle as HMS: 3:36:29.79'
     assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep=":",
@@ -305,7 +305,7 @@ def test_angle_formatting():
     assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, sep="-",
                                                     precision=4)) == res
 
-    res = 'Angle as HMS: 03d36m29.7888s'
+    res = 'Angle as HMS: 03h36m29.7888s'
     assert "Angle as HMS: {0}".format(angle.format(unit=u.hour, precision=4,
                                                   pad=True)) == res
 
@@ -317,7 +317,7 @@ def test_angle_formatting():
     assert "Angle as DMS: {0}".format(angle.format(unit=u.degree)) == res
 
     res = 'Angle as DMS: 3:36:29.78880'
-    print("Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":")))
+    assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":")) == res
 
     res = 'Angle as DMS: 3:36:29.79'
     assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, sep=":",
@@ -342,6 +342,16 @@ def test_angle_formatting():
     res = 'Angle as DMS: 03d36m29.7888s'
     assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, precision=4,
                                                   pad=True)) == res
+
+
+    # check negative angles
+
+    angle = Angle(-1.23456789, unit=u.degree)
+
+    assert angle.format() == '-1d14m04.44440s'
+    assert angle.format(unit=u.hour) == '-0h04m56.29629s'
+    assert angle.format(unit=u.radian, decimal=True) == '-0.021547'
+
 
 
 def test_radec():

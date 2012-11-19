@@ -416,7 +416,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=":"):
         raise ValueError("Invalid separator specification for converting angle to string.")
 
     d,m,s = degrees_to_dms(d)
-    d = "-{0}".format(int(d)) if math.copysign(1,d) == -1 else int(d)
+    d = "{0}".format(int(d)) if math.copysign(1,d) == -1 else int(d)
     return literal.format(d,m,s)
 
 
