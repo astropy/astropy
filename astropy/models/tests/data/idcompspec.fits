@@ -1,0 +1,36 @@
+# Thu 16:08:18 31-Mar-2011
+begin	identify compspec.fits[1] - Ap 1
+	id	compspec.fits[1]
+	task	identify
+	image	compspec.fits[1] - Ap 1
+	aperture	1
+	aplow	INDEF
+	aphigh	INDEF
+	units	Angstroms
+	features	7
+	        404.10 3888.54757   3888.646   4.0 1 1 HeI
+	        544.09 4045.50261   4044.418   4.0 1 1 AI(4)
+	        571.51 4076.76389    4077.81   4.0 1 1 
+	        813.59 4358.40117    4358.34   4.0 1 1 
+	       1720.36 5460.75353    5460.75   4.0 1 1 
+	       1966.66 5769.52138    5769.59   4.0 1 1 
+	       1983.41 5790.75384    5790.69   4.0 1 1 
+	function chebyshev
+	order 5
+	sample *
+	naverage 1
+	niterate 0
+	low_reject 3.
+	high_reject 3.
+	grow 0.
+	coefficients	9
+		1.
+		5.
+		404.0984802246094
+		1983.410888671875
+		4826.104189057136
+		952.8936304314716
+		12.6431161257298
+		-1.790494280706627
+		0.9034001474192017
+
