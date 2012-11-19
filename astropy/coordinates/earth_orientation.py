@@ -163,8 +163,6 @@ def _load_nutation_data(datastr, seriestype):
     """
     from os.path import join
 
-    from ..config.data import get_data_contents
-
     if seriestype == 'lunisolar':
         dtypes = [('nl',int),
                   ('nlp',int),
