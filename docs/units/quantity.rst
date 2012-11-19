@@ -76,7 +76,7 @@ with equivalent units, the **resulting object has composite units**
     <Quantity 20.0 cm / (m)>
 
 For multiplication, you can choose how to represent the resulting
-object by using the `.to()` method
+object by using the `~astropy.units.quantity.Quantity.to` method
 
     >>> (1.1*u.m * 140.3*u.cm).to(u.m**2)
     <Quantity 1.5433 m2>

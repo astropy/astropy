@@ -44,10 +44,11 @@ are passed to the `~astropy.units.core.UnitBase.to` conversion method::
   >>> u.nm.to(u.eV, [1000, 2000], equivs=u.spectral())
   array([ 1.23984201,  0.61992101])
 
-Also included in the `astropy.units` package is the `Quantity` object,
+Also included in the `astropy.units` package is the `~astropy.units.quantity.Quantity` object,
 which represents a numerical value with an associated unit. These objects
-support arithmetic with other numbers and `Quantity` objects and preserve
-units.
+support arithmetic with other numbers and `~astropy.units.quantity.Quantity`  objects and preserve
+units::
+
    >>> from astropy import units as u
    >>> 15.1*u.meter / (32.0*u.second)
    <Quantity 0.471875 m / (s)>
