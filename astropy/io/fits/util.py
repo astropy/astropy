@@ -5,7 +5,6 @@ import itertools
 import mmap
 import os
 import signal
-import sys
 import tempfile
 import textwrap
 import threading
@@ -515,29 +514,17 @@ def _tmp_name(input):
     return fn
 
 
-if sys.version_info[:2] < (2, 6):
-    # In Python 2.5 mmap.mmap is a function that returns an object of type
-    # 'mmap.mmap', but the mmap.mmap type is otherwise not accessible through
-    # the module
-    def _is_mmap(obj):
-        return (type(obj).__module__ == 'mmap' and
-                type(obj).__name__ == 'mmap')
-else:
-    def _is_mmap(obj):
-        return isinstance(obj, mmap.mmap)
-
-
 def _get_array_mmap(array):
     """
     If the array has an mmap.mmap at base of its base chain, return the mmap
     object; otherwise return None.
     """
 
-    if _is_mmap(array):
+    if isinstance(array, mmap.mmap):
         return array
 
     base = array
     while hasattr(base, 'base') and base.base is not None:
-        if _is_mmap(base.base):
+        if isinstance(base.base, mmap.mmap):
             return base.base
         base = base.base
