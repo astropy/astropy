@@ -203,8 +203,6 @@ class CDS(Base):
     @utils._trace
     def _parse_main(cls, s, loc, toks):
         from ..core import Unit
-        print(toks[0], toks[1])
-        print(toks[0] * toks[1])
         return Unit(toks[0] * toks[1])
 
     def parse(self, s):
