@@ -333,7 +333,11 @@ def _do_validation(url):
     #
     # 'incorrect' is also added in case user wants to use
     # 'conesearch_warn.json' anyway.
-    if r['expected'] in ('good', 'incorrect'):
+    #
+    # If using cached data, it will not detect network error
+    # like the first run, but will raise exception.
+    #
+    if r['expected'] in ('good', 'incorrect') and r['nexceptions'] == 0:
         nexceptions = 0
         nwarnings = 0
         lines = []
