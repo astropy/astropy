@@ -215,10 +215,13 @@ class VOSDatabase(VOSCatalog):
             out_arr = all_catalogs
         else:
             all_cat_arr = np.array(all_catalogs)
-            all_cat_ucase = np.char.upper(all_cat_arr)
-            i = np.char.count(all_cat_ucase,
-                              match_string.upper()).astype('bool')
-            out_arr = list(all_cat_arr[i])
+            if all_cat_arr.size == 0:
+                out_arr = []
+            else:
+                all_cat_ucase = np.char.upper(all_cat_arr)
+                i = np.char.count(all_cat_ucase,
+                                  match_string.upper()).astype('bool')
+                out_arr = list(all_cat_arr[i])
 
         if sort:
             out_arr.sort()
