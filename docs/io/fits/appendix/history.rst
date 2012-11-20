@@ -43,13 +43,13 @@ Bug Fixes
 
 - Added support for EXTNAME and EXTVER in PRIMARY HDUs.  That is, if EXTNAME
   is specified in the header, it will also be reflected in the ``.name``
-  attribute and in ``pyfits.info()``.  These keywords used to be verbotten in
+  attribute and in ``pyfits.info()``.  These keywords used to be verboten in
   PRIMARY HDUs, but the latest version of the FITS standard allows them.
   (#151)
 
 - HCOMPRESS can again be used to compress data cubes (and higher-dimensional
   arrays) so long as the tile size is effectively 2-dimensional. In fact,
-  PyFITS will not automatically use compatible tile sizes even if they're not
+  PyFITS will automatically use compatible tile sizes even if they're not
   explicitly specified. (#171)
 
 - Added support for the optional ``endcard`` parameter in the

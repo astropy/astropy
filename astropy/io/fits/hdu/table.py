@@ -441,13 +441,11 @@ class TableHDU(_TableBaseHDU):
             # We need to pad the data to a block length before calculating
             # the datasum.
 
-            if self.size > 0:
-                d = np.append(np.fromstring(self.data, dtype='ubyte'),
-                              np.fromstring(_pad_length(self.size) * ' ',
-                                            dtype='ubyte'))
+            d = np.append(self.data.view(dtype='ubyte'),
+                          np.fromstring(_pad_length(self.size) * ' ',
+                                        dtype='ubyte'))
 
-            cs = self._compute_checksum(np.fromstring(d, dtype='ubyte'),
-                                        blocking=blocking)
+            cs = self._compute_checksum(d, blocking=blocking)
             return cs
         else:
             # This is the case where the data has not been read from the file
@@ -514,14 +512,13 @@ class BinTableHDU(_TableBaseHDU):
                             data.field(i)[:] = data.field(i).byteswap()
         data.dtype = data.dtype.newbyteorder('>')
 
-        dout = np.fromstring(data, dtype='ubyte')
+        dout = data.view(dtype='ubyte')
 
         for i in range(data._nfields):
             if isinstance(data._coldefs._recformats[i], _FormatP):
                 for coldata in data.field(i):
                     if len(coldata) > 0:
-                        dout = np.append(dout,
-                                         np.fromstring(coldata, dtype='ubyte'))
+                        dout = np.append(dout, coldata.view(dtype='ubyte'))
 
         cs = self._compute_checksum(dout, blocking=blocking)
         return cs

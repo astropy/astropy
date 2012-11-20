@@ -104,9 +104,12 @@
 /* Some defines for Python3 support--bytes objects should be used where */
 /* strings were previously used                                         */
 #if PY_MAJOR_VERSION >= 3
-#define PyString_AsString PyBytes_AsString
-#define PyString_FromStringAndSize PyBytes_FromStringAndSize
-#define PyString_Size PyBytes_Size
+#define IS_PY3K
+#endif
+
+#ifdef IS_PY3K
+#define PyString_FromString PyUnicode_FromString
+#define PyInt_AsLong PyLong_AsLong
 #endif
 
 
@@ -207,7 +210,8 @@ void bitpix_to_datatypes(int bitpix, int* datatype, int* npdatatype) {
             *npdatatype = NPY_DOUBLE;
             break;
         default:
-            PyErr_SetString(PyExc_ValueError, "Invalid value for BITPIX");
+            PyErr_Format(PyExc_ValueError, "Invalid value for BITPIX: %d",
+                         bitpix);
    }
 
    return;
@@ -239,13 +243,24 @@ int compress_type_from_string(char* zcmptype) {
 int get_header_string(PyObject* header, char* keyword, char** val, char* def) {
     PyObject* keystr;
     PyObject* keyval;
+#ifdef IS_PY3K
+    PyObject* tmp;  // Temp pointer to decoded bytes object
+#endif
     int retval;
 
     keystr = PyString_FromString(keyword);
     keyval = PyObject_GetItem(header, keystr);
 
     if (keyval != NULL) {
+#ifdef IS_PY3K
+        // FITS header values should always be ASCII, but Latin1 is on the
+        // safe side
+        tmp = PyUnicode_AsLatin1String(keyval);
+        *val = PyBytes_AsString(tmp);
+        Py_DECREF(tmp);
+#else
         *val = PyString_AsString(keyval);
+#endif
         retval = 0;
     }
     else {
@@ -963,7 +978,7 @@ static PyMethodDef compression_methods[] =
    {NULL, NULL}
 };
 
-#if PY_MAJOR_VERSION >=3
+#ifdef IS_PY3K
 static struct PyModuleDef compressionmodule = {
     PyModuleDef_HEAD_INIT,
     "compression",
