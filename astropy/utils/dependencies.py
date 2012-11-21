@@ -4,7 +4,7 @@
 
 def requires_optional_dependencies(*dependencymodnames):
     """
-    A decorator to signify that a function
+    A decorator to signify that a function has an optional dependence.
 
     Parameters
     ----------
