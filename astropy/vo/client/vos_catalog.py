@@ -201,7 +201,8 @@ class VOSDatabase(VOSCatalog):
         ----------
         match_string : str or `None`
             If given string is anywhere in a catalog name, it is
-            considered a matching catalog. It is not case-sensitive.
+            considered a matching catalog. It accepts patterns as
+            in :py:module:`fnmatch` and is case-insensitive.
             By default, all catalogs are returned.
 
         sort : bool
@@ -211,17 +212,14 @@ class VOSDatabase(VOSCatalog):
         """
         all_catalogs = self._catalogs.keys()
 
-        if match_string is None:
+        if match_string is None or len(all_catalogs) == 0:
             out_arr = all_catalogs
         else:
-            all_cat_arr = np.array(all_catalogs)
-            if all_cat_arr.size == 0:
-                out_arr = []
-            else:
-                all_cat_ucase = np.char.upper(all_cat_arr)
-                i = np.char.count(all_cat_ucase,
-                                  match_string.upper()).astype('bool')
-                out_arr = list(all_cat_arr[i])
+            import fnmatch
+            import re
+            pattern = re.compile(fnmatch.translate('*' + match_string + '*'),
+                                 re.IGNORECASE)
+            out_arr = [s for s in all_catalogs if pattern.match(s)]
 
         if sort:
             out_arr.sort()
