@@ -286,7 +286,7 @@ def degrees_to_dms(d):
     _check_minute_range(m)
     _check_second_range(s)
 
-    return (float(sign * d), int(m), s)
+    return (float(sign * d), int(sign * m), sign * s)
 
 def dms_to_degrees(d, m, s):
     """ Convert degrees, arcminute, arcsecond to a float degrees value. """
@@ -309,7 +309,7 @@ def dms_to_degrees(d, m, s):
 def hms_to_hours(h, m, s):
     """ Convert hour, minute, second to a float hour value. """
 
-    check_hms_ranges(h, m, s);
+    check_hms_ranges(h, m, s)
 
     try:
         h = int(h)
@@ -349,7 +349,7 @@ def hours_to_hms(h):
 
     check_hms_ranges(h,m,s) # throws exception if out of range
 
-    return (float(sign*h), int(m), s)
+    return (float(sign*h), int(sign*m), sign*s)
 
 def radians_to_degrees(r):
     """ Convert an angle in Radians to Degrees """
@@ -395,7 +395,7 @@ def hours_to_string(h, precision=5, pad=False, sep=("h", "m", "s")):
 
     (h,m,s) = hours_to_hms(h)
     h = "-{0}".format(int(h)) if math.copysign(1,h) == -1 else int(h)
-    return literal.format(h,m,s)
+    return literal.format(h,abs(m),abs(s))
 
 def degrees_to_string(d, precision=5, pad=False, sep=":"):
     """ Takes a decimal hour value and returns a string formatted as dms with separator
@@ -417,7 +417,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=":"):
 
     d,m,s = degrees_to_dms(d)
     d = "{0}".format(int(d)) if math.copysign(1,d) == -1 else int(d)
-    return literal.format(d,m,s)
+    return literal.format(d,abs(m),abs(s))
 
 
 #<----------Spherical angular distances------------->
