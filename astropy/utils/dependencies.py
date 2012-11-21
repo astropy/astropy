@@ -42,7 +42,7 @@ def requires_optional_dependencies(*dependencymodnames):
 
     if len(dependencymodnames) == 1:
         if callable(dependencymodnames[0]):
-            raise TypeError('dependcy list must be provided to requires_optional_dependencies')
+            raise TypeError('dependency list must be provided to requires_optional_dependencies')
         dependencymodnames = [d.strip() for d in dependencymodnames[0].split(',')]
 
     # This is the decorator that will be applied to the function.
