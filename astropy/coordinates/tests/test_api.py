@@ -9,6 +9,14 @@ raises = pytest.raises
 from ... import units as u
 from ..errors import *
 
+
+try:
+    import scipy
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
+
 # notes from the original api document:
 '''
 The emphasis of this package is that common tasks should
@@ -693,8 +701,6 @@ def test_distances():
     distance = Distance(12, u.parsec)
     d2 = Distance(40, unit=u.au)
     d3 = Distance(value=5, unit=u.kpc)
-    d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
-    d5 = Distance(z=0.23, cosmology=WMAP5)
 
     # need to provide a unit
     with raises(UnitsError):
@@ -771,3 +777,17 @@ def test_distances():
     npt.assert_almost_equal(csum.ra.degrees, 158.529401774)
     npt.assert_almost_equal(csum.dec.degrees, -43.3235825777)
     npt.assert_almost_equal(csum.distance.kpc, 11.9942200501)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_distances_scipy():
+    """
+    The distance-related tests that require scipy due to the cosmology
+    module needing scipy integration routines
+    """
+    from .. import Distance
+    from ...cosmology import WMAP5
+
+    #try all the different ways to initialize a Distance
+    d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
+    d5 = Distance(z=0.23, cosmology=WMAP5)
