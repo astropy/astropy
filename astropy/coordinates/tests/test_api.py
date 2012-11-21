@@ -710,9 +710,6 @@ def test_distances():
     npt.assert_almost_equal(distance.lightyear, 39.13876728075561)
     npt.assert_almost_equal(distance.km, 370281309776063.0)
 
-    distance.z  # redshift, assuming "current" cosmology
-    distance.compute_z(WMAP5)  # specifying a cosmology possible
-
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
     c = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree)
@@ -791,3 +788,6 @@ def test_distances_scipy():
     #try all the different ways to initialize a Distance
     d4 = Distance(z=0.23)  # uses default cosmology - as of writing, WMAP7
     d5 = Distance(z=0.23, cosmology=WMAP5)
+
+    assert abs(d4.z - 0.23) < 1e-8  # redshift, assuming "current" cosmology
+    assert abs(d5.compute_z(WMAP5) - 0.23) < 1e-8 # specifying a cosmology possible
