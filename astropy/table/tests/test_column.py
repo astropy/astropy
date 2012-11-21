@@ -82,9 +82,9 @@ class TestColumn():
         # Mean and sum for a 1-d float column
         c = table.Column('a', [1., 2., 3.])
         assert np.allclose(c.mean(), 2.0)
-        assert isinstance(c.mean(), np.float)
+        assert isinstance(c.mean(), (np.float, float))
         assert np.allclose(c.sum(), 6.)
-        assert isinstance(c.sum(), np.float)
+        assert isinstance(c.sum(), (np.float, float))
 
         # Non-reduction ufunc preserves Column class
         assert isinstance(np.cos(c), table.Column)
@@ -92,23 +92,24 @@ class TestColumn():
         # Sum for a 1-d int column
         c = table.Column('a', [1, 2, 3])
         assert np.allclose(c.sum(), 6)
-        assert isinstance(c.sum(), np.int)
+        assert isinstance(c.sum(), (np.int, int))
 
         # Sum for a 2-d int column
         c = table.Column('a', [[1, 2, 3],
                                [4, 5, 6]])
         assert c.sum() == 21
-        assert isinstance(c.sum(), np.int)
+        assert isinstance(c.sum(), (np.int, int))
         assert np.all(c.sum(axis=0) == [5, 7, 9])
         assert c.sum(axis=0).shape == (3,)
         assert isinstance(c.sum(axis=0), np.ndarray)
 
-        # Sum and mean for a 1-d masked column
-        c = table.MaskedColumn('a', [1., 2., 3.], mask=[0, 0, 1])
-        assert np.allclose(c.mean(), 1.5)
-        assert isinstance(c.mean(), np.float)
-        assert np.allclose(c.sum(), 3.)
-        assert isinstance(c.sum(), np.float)
+        if not numpy_lt_1p5:
+            # Sum and mean for a 1-d masked column
+            c = table.MaskedColumn('a', [1., 2., 3.], mask=[0, 0, 1])
+            assert np.allclose(c.mean(), 1.5)
+            assert isinstance(c.mean(), (np.float, float))
+            assert np.allclose(c.sum(), 3.)
+            assert isinstance(c.sum(), (np.float, float))
 
 
 class TestAttrEqual():
