@@ -14,6 +14,37 @@ These properties are set via Astropy configuration system:
 
     This is not meant to be used by a typical AstroPy user.
 
+Examples
+--------
+>>> from astropy.vo.server import validate
+
+Validate default Cone Search sites with multiprocessing
+and write results in the current directory:
+
+>>> validate.check_conesearch_sites()
+
+Validate only the given access URLs that are the subset
+of `astropy.vo.server.cs_mstr_list` without verbose
+outputs or multiprocessing, and write results in
+'subset' sub-directory:
+
+>>> urls = ['http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&', 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1&']
+>>> validate.check_conesearch_sites(destdir='./subset', verbose=False, multiproc=False, url_list=urls)
+
+Change `astropy.vo.server.cs_mstr_list` to obtain
+the master list directly from STScI VAO registry.
+This will take a while:
+
+>>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
+>>> validate.check_conesearch_sites()
+
+Add `astropy.io.votable.exceptions.W03` to the list of
+ignored warnings. This is *not* recommended unless you
+know exactly what you are doing:
+
+>>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W03'])
+>>> validate.check_conesearch_sites()
+
 """
 from __future__ import print_function, division
 
@@ -42,10 +73,8 @@ from ...config.configuration import ConfigurationItem
 __all__ = ['check_conesearch_sites']
 
 CS_MSTR_LIST = ConfigurationItem(
-    'cs_mstr_list',
-    'http://vao.stsci.edu/directory/NVORegInt.asmx/VOTCapabilityPredOpt?'
-    'predicate=1%3D1&capability=conesearch&VOTStyleOption=2',
-    'Conesearch master list query from VAO.')
+    'cs_mstr_list', vos_catalog.BASEURL() + 'conesearch_sites.xml',
+    'Cone Search services master list for validation.')
 
 NONCRIT_WARNINGS = ConfigurationItem(
     'noncrit_warnings',
@@ -55,6 +84,11 @@ NONCRIT_WARNINGS = ConfigurationItem(
     'list')
 
 _OUT_ROOT = None  # Set by `check_conesearch_sites`
+
+# This obtains a master list of conesearch sites
+_VAO_QUERY = 'http://vao.stsci.edu/directory/NVORegInt.asmx/' \
+             'VOTCapabilityPredOpt?predicate=1%3D1&' \
+             'capability=conesearch&VOTStyleOption=2'
 
 
 def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
@@ -90,7 +124,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     *WARNINGS AND EXCEPTIONS*
 
     A full list VO Table warnings and exceptions is available
-    `here <http://astropy.readthedocs.org/en/latest/io/votable/api_exceptions.html>`_ .
+    from `astropy.io.votable.exceptions`.
 
     A subset of that list that is considered non-critical is defined
     by `astropy.vo.server.noncrit_warnings` configurable property.
@@ -153,8 +187,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     url_list : list of string
         Only check these access URLs from the master list and
         ignore the others, which will not appear in output files.
-        This is useful for testing or debugging. If `None`, check
-        everything.
+        Unlike the master list, URLs here must end with '&', not
+        '&amp;'. This is useful for testing or debugging.
+        If `None`, check everything.
 
     Raises
     ------
