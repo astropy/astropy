@@ -87,6 +87,49 @@ class AstropyBuild(DistutilsBuild):
         cls.user_options.append((name, None, doc))
         cls.custom_options.append(name)
 
+    def run(self):
+        """
+        Override run to generate the default configuration file after build is
+        done
+        """
+        from subprocess import Popen, PIPE
+        from textwrap import dedent
+
+        DistutilsBuild.run(self)
+
+        # Now generate the default configuration file in a subprocess.  We have
+        # to use a subprocess because already some imports have been done
+
+        # This file gets placed in <package>/config/<packagenm>.cfg if 'config'
+        # exists, otherwise it gets put in <package>/<packagenm>.cfg.
+
+        libdir = os.path.abspath(self.build_lib)
+
+        subproccode = dedent("""
+        from __future__ import print_function
+        import os
+        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
+
+        from astropy.config.configuration import _generate_all_config_items
+
+        os.chdir('{libdir}')
+        genfn = _generate_all_config_items('{pkgnm}', True)
+        print(genfn)
+        """).format(libdir=libdir, pkgnm=self.distribution.packages[0])
+        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate(subproccode)
+
+        if proc.returncode == 0:
+            genfn = stdout.strip()
+
+            configpath = os.path.join(os.path.split(genfn)[0], 'config')
+            if os.path.isdir(configpath):
+                newfn = os.path.join(configpath, os.path.split(genfn)[1])
+                shutil.move(genfn, newfn)
+        else:
+            msg = 'Generation of default configuration item failed!\nstdout:\n{stdout}\n\nstderr:\n{stderr}'
+            log.error(msg.format(stdout=stdout, stderr=stderr))
+
 
 class AstropyInstall(DistutilsInstall):
     """
