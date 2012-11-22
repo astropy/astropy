@@ -534,7 +534,7 @@ _unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
 _unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
 
 
-def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
+def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     """ Given a root package name or package, this function simply walks
     through all the subpackages and modules, which should populate any
     ConfigurationItem objects defined at the module level. If
@@ -545,6 +545,8 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
     If `pkgname` is None, it determines the package based on the root package
     of the function where this function is called. Be a bit cautious about
     this, though - this might not always be what you want.
+
+    Returns the file that has the configuration
     """
     from os.path import split
     from types import ModuleType
@@ -579,5 +581,7 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False, save=True):
                     cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
-    if save:
-        save_config(package.__name__)
+
+    save_config(package.__name__)
+
+    return get_config(package.__name__).filename
