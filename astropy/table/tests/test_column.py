@@ -75,6 +75,42 @@ class TestColumn():
         d.convert_units_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
+    def test_array_wrap(self):
+        """Test that the __array_wrap__ method converts a reduction ufunc
+        output that has a different shape into an ndarray view.  Without this a
+        method call like c.mean() returns a Column array object with length=1."""
+        # Mean and sum for a 1-d float column
+        c = table.Column('a', [1., 2., 3.])
+        assert np.allclose(c.mean(), 2.0)
+        assert isinstance(c.mean(), (np.floating, float))
+        assert np.allclose(c.sum(), 6.)
+        assert isinstance(c.sum(), (np.floating, float))
+
+        # Non-reduction ufunc preserves Column class
+        assert isinstance(np.cos(c), table.Column)
+
+        # Sum for a 1-d int column
+        c = table.Column('a', [1, 2, 3])
+        assert np.allclose(c.sum(), 6)
+        assert isinstance(c.sum(), (np.integer, int))
+
+        # Sum for a 2-d int column
+        c = table.Column('a', [[1, 2, 3],
+                               [4, 5, 6]])
+        assert c.sum() == 21
+        assert isinstance(c.sum(), (np.integer, int))
+        assert np.all(c.sum(axis=0) == [5, 7, 9])
+        assert c.sum(axis=0).shape == (3,)
+        assert isinstance(c.sum(axis=0), np.ndarray)
+
+        if not numpy_lt_1p5:
+            # Sum and mean for a 1-d masked column
+            c = table.MaskedColumn('a', [1., 2., 3.], mask=[0, 0, 1])
+            assert np.allclose(c.mean(), 1.5)
+            assert isinstance(c.mean(), (np.floating, float))
+            assert np.allclose(c.sum(), 3.)
+            assert isinstance(c.sum(), (np.floating, float))
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

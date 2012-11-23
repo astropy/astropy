@@ -114,6 +114,25 @@ class BaseColumn(object):
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
 
+    def __array_wrap__(self, out_arr, context=None):
+        """
+        __array_wrap__ is called at the end of every ufunc.
+
+        If the output is the same shape as the column then call the standard
+        ndarray __array_wrap__ which will return a Column object.
+
+        If instead the output shape is different (e.g. for reduction ufuncs
+        like sum() or mean()) then return the output viewed as a standard
+        np.ndarray.  The "[()]" selects everything, but also converts a zero
+        rank array to a scalar.  For some reason np.sum() returns a zero rank
+        scalar array while np.mean() returns a scalar.  So the [()] is needed
+        for this case.
+        """
+        if self.shape == out_arr.shape:
+            return np.ndarray.__array_wrap__(self, out_arr, context)
+        else:
+            return out_arr.view(np.ndarray)[()]
+
     def _get_name(self):
         return self._name
 
