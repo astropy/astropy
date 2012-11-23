@@ -842,45 +842,6 @@ def get_compiler_version(compiler):
     return version
 
 
-def is_in_build_mode():
-    """
-    Determines if the current package is being built.
-
-    Returns
-    -------
-    buildmode : bool
-        True if the current package is in the process of being built.
-
-    See Also
-    --------
-    `set_build_mode`
-    """
-    #_ASTROPY_SETUP_ is added to the builtins in setup.py or astropy/__init__.py
-    return _ASTROPY_SETUP_
-
-
-def set_build_mode(val=True):
-    """
-    Sets whether or not the current package is being built.
-
-    Parameters
-    ----------
-    val : bool
-        Whether or not build mode should be activated.
-
-    See Also
-    --------
-    `is_in_build_mode`
-    """
-    from sys import version_info
-
-    if version_info[0] >= 3:
-        import builtins
-    else:
-        import __builtin__ as builtins
-    builtins._ASTROPY_SETUP_ = val
-
-
 def setup_test_command(package_name):
     return type(package_name + '_test_command', (astropy_test,),
                 {'package_name': package_name})
