@@ -108,12 +108,14 @@ class AstropyBuild(DistutilsBuild):
         subproccode = dedent("""
         from __future__ import print_function
         import os
-        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
 
-        from astropy.config.configuration import _generate_all_config_items
+        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
+        os.environ['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
+
+        from astropy.config.configuration import generate_all_config_items
 
         os.chdir('{libdir}')
-        genfn = _generate_all_config_items('{pkgnm}', True)
+        genfn = generate_all_config_items('{pkgnm}', True)
         print(genfn)
         """).format(libdir=libdir, pkgnm=self.distribution.packages[0])
         proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE)
