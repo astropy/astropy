@@ -19,7 +19,6 @@ from distutils import log
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
-from distutils.log import warn
 from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
 from distutils.command.install import install as DistutilsInstall
@@ -468,6 +467,7 @@ def get_distutils_install_option(option):
         is not set, returns None.
     """
     return get_distutils_option(option, ['install'])
+
 
 def get_distutils_build_or_install_option(option):
     """ Returns the value of the given distutils build or install option.
