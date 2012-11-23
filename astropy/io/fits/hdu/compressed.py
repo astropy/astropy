@@ -34,6 +34,10 @@ DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
 
+# CFITSIO version-specific features
+if COMPRESSION_SUPPORTED:
+    CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
+
 
 class CompImageHeader(Header):
     """
@@ -462,7 +466,7 @@ class CompImageHDU(BinTableHDU):
             # this behavior so the only way to determine which behavior will
             # be employed is via the CFITSIO version
 
-            if compression.cfitsio_version >= 3.28:
+            if CFITSIO_SUPPORTS_GZIPDATA:
                 ttype2 = 'GZIP_COMPRESSED_DATA'
                 # The required format for the GZIP_COMPRESSED_DATA is actually
                 # missing from the standard docs, but CFITSIO suggests it
@@ -770,7 +774,8 @@ class CompImageHDU(BinTableHDU):
                 bytepix = DEFAULT_BYTE_PIX
 
             self._header.set('ZVAL2', bytepix,
-                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
+                             'bytes per pixel (1, 2, 4, or 8)',
+                             after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
         elif compressionType == 'HCOMPRESS_1':
@@ -942,6 +947,7 @@ class CompImageHDU(BinTableHDU):
         # data) from the file, if there is any.
         compData = super(BinTableHDU, self).data
         if isinstance(compData, np.rec.recarray):
+            del self.data
             return compData
         else:
             # This will actually set self.compData with the pre-allocated space
@@ -1255,6 +1261,11 @@ class CompImageHDU(BinTableHDU):
         if dataspan < BLOCK_SIZE:
             # We must a full FITS block at a minimum
             dataspan = BLOCK_SIZE
+        else:
+            # Still make sure to pad out to a multiple of 2880 byte blocks
+            # otherwise CFITSIO can get read errors when it tries to read
+            # a partial block that goes past the end of the file
+            dataspan += _pad_length(dataspan)
         self.compData = np.empty((dataspan,), dtype=np.byte)
         self.compData[:tbsize] = 0
 
@@ -1353,7 +1364,8 @@ class CompImageHDU(BinTableHDU):
                 bytepix = DEFAULT_BYTE_PIX
 
             self._header.set('ZVAL2', bytepix,
-                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
+                             'bytes per pixel (1, 2, 4, or 8)',
+                             after='ZNAME2')
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """

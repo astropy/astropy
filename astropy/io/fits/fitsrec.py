@@ -391,7 +391,9 @@ class FITS_rec(np.recarray):
                             buff = np.fromstring(buff, dtype=np.uint8)
 
                         def get_pdata(dtype, count):
-                            slc = slice(_offset, _offset+count)
+                            dtype = np.dtype(dtype)
+                            nbytes = count * dtype.itemsize
+                            slc = slice(_offset, _offset + nbytes)
                             return buff[slc].view(dtype=dtype)
 
                     if recformat.dtype == 'a':
