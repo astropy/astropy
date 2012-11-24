@@ -18,7 +18,7 @@ __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
           ]
 
 
-_epoch_j2000 = Time('J2000', scale='utc')
+_equinox_j2000 = Time('J2000', scale='utc')
 
 
 #<--------------Coordinate definitions; transformations are below-------------->
@@ -29,7 +29,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
     If you're looking for "J2000" coordinates, this is probably what you
     want; ICRS is better defined and is within a few microarcsec of
-    J2000. The ICRS is defined in reference to this single epoch.
+    J2000. The ICRS is defined in reference to this single equinox.
 
 
     Parameters
@@ -73,8 +73,8 @@ class ICRSCoordinates(SphericalCoordinatesBase):
         return self.dec
 
     @property
-    def epoch(self):
-        return _epoch_j2000
+    def equinox(self):
+        return _equinox_j2000
 
 
 @transformations.coordinate_alias('fk5')
@@ -85,8 +85,8 @@ class FK5Coordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
-    epoch : `~astropy.time.Time`, optional
-        The epoch for these coordinates.  Defaults to J2000.
+    equinox : `~astropy.time.Time`, optional
+        The equinox for these coordinates.  Defaults to J2000.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
@@ -97,7 +97,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(FK5Coordinates, self).__init__()
 
-        self._epoch = kwargs.pop('epoch', _epoch_j2000)
+        self._equinox = kwargs.pop('equinox', _equinox_j2000)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -126,18 +126,18 @@ class FK5Coordinates(SphericalCoordinatesBase):
         return self.dec
 
     @property
-    def epoch(self):
-        return self._epoch
+    def equinox(self):
+        return self._equinox
 
-    def precess_to(self, newepoch):
+    def precess_to(self, newequinox):
         """
-        Precesses the coordinates from their current `epoch` to a new epoch and
+        Precesses the coordinates from their current `equinox` to a new equinox and
         returns the resulting coordinate.
 
         Parameters
         ----------
-        newepoch : `~astropy.time.Time`
-            The epoch to precess these coordinates to.
+        newequinox : `~astropy.time.Time`
+            The equinox to precess these coordinates to.
 
         Returns
         -------
@@ -146,15 +146,15 @@ class FK5Coordinates(SphericalCoordinatesBase):
         """
         from .earth_orientation import precession_matrix_Capitaine
 
-        pmat = precession_matrix_Capitaine(self._epoch, newepoch)
+        pmat = precession_matrix_Capitaine(self._equinox, newequinox)
 
         v = [self.x, self.y, self.z]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
         else:
-            return self.__class__(x=x, y=y, z=z, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
 
 @transformations.coordinate_alias('fk4')
@@ -166,8 +166,8 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
-    epoch : `~astropy.time.Time`, optional
-        The epoch for these coordinates.  Defaults to B1950.
+    equinox : `~astropy.time.Time`, optional
+        The equinox for these coordinates.  Defaults to B1950.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
@@ -178,7 +178,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(FK4Coordinates, self).__init__()
 
-        self._epoch = kwargs.pop('epoch', Time('B1950', scale='utc'))
+        self._equinox = kwargs.pop('equinox', Time('B1950', scale='utc'))
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -207,17 +207,17 @@ class FK4Coordinates(SphericalCoordinatesBase):
         return self.dec
 
     @property
-    def epoch(self):
-        return self._epoch
+    def equinox(self):
+        return self._equinox
 
-    def precess_to(self, newepoch):
+    def precess_to(self, newequinox):
         """
-        Precesses the coordinates from their current `epoch` to a new epoch.
+        Precesses the coordinates from their current `equinox` to a new equinox.
 
         Parameters
         ----------
-        newepoch : `~astropy.time.Time`
-            The epoch to precess these coordinates to.
+        newequinox : `~astropy.time.Time`
+            The equinox to precess these coordinates to.
 
         Returns
         -------
@@ -226,15 +226,15 @@ class FK4Coordinates(SphericalCoordinatesBase):
         """
         from .earth_orientation import _precession_matrix_besselian
 
-        pmat = _precession_matrix_besselian(self._epoch.byear, newepoch.byear)
+        pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
 
         v = [self.x, self.y, self.z]
         x, y, z = np.dot(pmat.A, v)
 
         if self.distance is not None:
-            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
         else:
-            return self.__class__(x=x, y=y, z=z, epoch=newepoch)
+            return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
 
 @transformations.coordinate_alias('galactic')
@@ -296,8 +296,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
-    epoch : `~astropy.time.Time`, optional
-        The epoch for these coordinates.  Defaults to J200.
+    equinox : `~astropy.time.Time`, optional
+        The equinox for these coordinates.  Defaults to J200.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
@@ -308,7 +308,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
 
-        self._epoch = kwargs.pop('epoch', _epoch_j2000)
+        self._equinox = kwargs.pop('equinox', _equinox_j2000)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -337,8 +337,8 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         return self.el
 
     @property
-    def epoch(self):
-        return self._epoch
+    def equinox(self):
+        return self._equinox
 
 
 #<--------------------------------transformations------------------------------>
@@ -361,14 +361,14 @@ def icrs_to_fk5():
     return m1 * m2 * m3
 
 
-#can't be static because the epoch is needed
+#can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK5Coordinates, ICRSCoordinates)
 def fk5_to_icrs(fk5c):
     from .earth_orientation import _precess_from_J2000_Capitaine
 
-    pmat = _precess_from_J2000_Capitaine(fk5c.epoch.jyear).T
+    pmat = _precess_from_J2000_Capitaine(fk5c.equinox.jyear).T
 
-    #transpose gets epoch -> J2000
+    #transpose gets equinox -> J2000
     fk5toicrsmat = icrs_to_fk5().T
 
     return fk5toicrsmat * pmat
@@ -377,7 +377,7 @@ def fk5_to_icrs(fk5c):
 #ICRS to/from FK4
 # these transformations are very slightly prioritized >1 (lower priority number means
 # better path) to prefer the FK5 path over FK4 when possible
-#can't be static because the epoch is needed
+#can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
 def fk4_to_icrs(fk4c):
     from .earth_orientation import _precession_matrix_besselian
@@ -387,9 +387,9 @@ def fk4_to_icrs(fk4c):
                 [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
                 [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
-    if fk4c.epoch is not None and fk4c.epoch.byear != 1950:
+    if fk4c.equinox is not None and fk4c.equinox.byear != 1950:
         #not this is *julian century*, not besselian
-        T = (fk4c.epoch.jyear - 1950) / 100
+        T = (fk4c.equinox.jyear - 1950) / 100
 
         #now add in correction terms for FK4 rotating system - Murray 89 eqn 29
         B[0, 0] += -2.6455262e-9 * T
@@ -402,14 +402,14 @@ def fk4_to_icrs(fk4c):
         B[2, 1] += -5.6024448e-9 * T
         B[2, 2] += 1.02587734e-8 * T
 
-        PB = _precession_matrix_besselian(fk4c.epoch.byear, 1950)
+        PB = _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
         return B * PB
     else:
         return B
 
 
-#can't be static because the epoch is needed
+#can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
 def icrs_to_fk4(fk4c):
     from .earth_orientation import _precession_matrix_besselian
@@ -420,20 +420,20 @@ def icrs_to_fk4(fk4c):
 
 
 #GalacticCoordinates to/from FK4/FK5
-#can't be static because the epoch is needed
+#can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK5Coordinates, GalacticCoordinates)
 def _fk5_to_gal(fk5coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precess_from_J2000_Capitaine
 
     # needed mainly to support inverse from galactic
-    jepoch = 2000 if fk5coords.epoch is None else fk5coords.epoch.jyear
+    jequinox = 2000 if fk5coords.equinox is None else fk5coords.equinox.jyear
 
     mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degrees, 'z')
     mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degrees, 'y')
     mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degrees, 'z')
-    #transpose gets epoch -> J2000
-    matprec = _precess_from_J2000_Capitaine(jepoch).T
+    #transpose gets equinox -> J2000
+    matprec = _precess_from_J2000_Capitaine(jequinox).T
     return mat1 * mat2 * mat3 * matprec
 
 
@@ -448,12 +448,12 @@ def _fk4_to_gal(fk4coords):
     from .earth_orientation import _precession_matrix_besselian
 
     # needed mainly to support inverse from galactic
-    bepoch = 1950 if fk4coords.epoch is None else fk4coords.epoch.byear
+    bequinox = 1950 if fk4coords.equinox is None else fk4coords.equinox.byear
 
     mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_B1950.degrees, 'z')
     mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_B1950.dec.degrees, 'y')
     mat3 = rotation_matrix(GalacticCoordinates._ngp_B1950.ra.degrees, 'z')
-    matprec = _precession_matrix_besselian(bepoch, 1950)
+    matprec = _precession_matrix_besselian(bequinox, 1950)
     return mat1 * mat2 * mat3 * matprec
 
 

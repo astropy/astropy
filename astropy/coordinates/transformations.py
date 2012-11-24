@@ -535,7 +535,7 @@ class FunctionTransform(CoordinateTransform):
 
     Notes
     -----
-    This does *not* propogate epochs automatically, so the function must
+    This does *not* propogate equinoxes automatically, so the function must
     do so if that behavior is desired.
 
 
@@ -563,9 +563,9 @@ class FunctionTransform(CoordinateTransform):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
 
-        #copy over the epoch
-        if hasattr(fromcoord, '_epoch') and hasattr(res, '_epoch'):
-            res._epoch = fromcoord._epoch
+        #copy over the equinox
+        if hasattr(fromcoord, '_equinox') and hasattr(res, '_equinox'):
+            res._equinox = fromcoord._equinox
 
         return res
 
@@ -608,9 +608,9 @@ class StaticMatrixTransform(CoordinateTransform):
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the epoch
-        if hasattr(fromcoord, '_epoch') and hasattr(result, '_epoch'):
-            result._epoch = fromcoord._epoch
+        #copy over the equinox
+        if hasattr(fromcoord, '_equinox') and hasattr(result, '_equinox'):
+            result._equinox = fromcoord._equinox
 
         return result
 
@@ -686,9 +686,9 @@ class DynamicMatrixTransform(CoordinateTransform):
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the epoch
-        if fromcoord.epoch is not None and hasattr(result, '_epoch'):
-            result._epoch = fromcoord.epoch
+        #copy over the equinox
+        if fromcoord.equinox is not None and hasattr(result, '_equinox'):
+            result._equinox = fromcoord.equinox
 
         return result
 

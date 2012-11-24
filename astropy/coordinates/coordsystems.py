@@ -20,9 +20,9 @@ class SphericalCoordinatesBase(object):
     Notes
     -----
     Subclasses must implement `__init__`, and define the `latangle` and
-    `lonangle` properties.  They may also override the `epoch`
+    `lonangle` properties.  They may also override the `equinox`
     property, or leave it unaltered to indicate the coordinates are
-    epochless.
+    equinoxless.
 
     `_initialize_latlon` is provided to implement typical
     initialization features, and should be called from a subclass'
@@ -46,7 +46,7 @@ class SphericalCoordinatesBase(object):
             return (self.latangle == other.latangle and
                     self.lonangle == other.lonangle and
                     self.distance == other.distance and
-                    self.epoch == other.epoch)
+                    self.equinox == other.equinox)
         except AttributeError:
             return False
 
@@ -280,9 +280,9 @@ class SphericalCoordinatesBase(object):
         """
 
     @property
-    def epoch(self):
+    def equinox(self):
         """
-        The epoch of this system, or None to indicate no epoch applies.
+        The equinox of this system, or None to indicate no equinox specified.
         """
         return None
 

@@ -522,13 +522,13 @@ def test_create_coordinate():
     assert isinstance(c.l, Angle)  # *not* RA or Dec
     assert isinstance(c.b, Angle)  # *not* RA or Dec
 
-    #some coordinates require an epoch - this is given as an astropy.time.Time
+    #some coordinates require an equinox - this is given as an astropy.time.Time
     from ...time import Time
 
     alt = Angle(20.5, unit=u.degree)
     az = Angle(45, unit=u.degree)
     timeobj = Time('J2000', scale='utc')
-    HorizontalCoordinates(alt, az, epoch=timeobj)
+    HorizontalCoordinates(alt, az, equinox=timeobj)
 
 
 def test_coord_factory():

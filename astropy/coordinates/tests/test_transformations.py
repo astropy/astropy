@@ -226,7 +226,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
 def test_precession():
     """
-    Ensures that FK4 and FK5 coordinates precess their epochs
+    Ensures that FK4 and FK5 coordinates precess their equinoxes
     """
     from ...time import Time
 
@@ -236,14 +236,14 @@ def test_precession():
     b1975 = Time('B1975', scale='utc')
 
     fk4 = FK4Coordinates(1, 2, unit=u.radian)
-    assert fk4.epoch.byear == b1950.byear
+    assert fk4.equinox.byear == b1950.byear
     fk4_2 = fk4.precess_to(b1975)
-    assert fk4_2.epoch.byear == b1975.byear
+    assert fk4_2.equinox.byear == b1975.byear
 
     fk5 = FK5Coordinates(1, 2, unit=u.radian)
-    assert fk5.epoch.jyear == j2000.jyear
+    assert fk5.equinox.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
-    assert fk5_2.epoch.jyear == j1975.jyear
+    assert fk5_2.equinox.jyear == j1975.jyear
 
 
 def test_alias_transform():
