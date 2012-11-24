@@ -166,6 +166,9 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to B1950.
 
@@ -179,6 +182,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
         super(FK4Coordinates, self).__init__()
 
         self._equinox = kwargs.pop('equinox', Time('B1950', scale='utc'))
+        self._obstime = kwargs.pop('obstime', None)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -209,6 +213,13 @@ class FK4Coordinates(SphericalCoordinatesBase):
     @property
     def equinox(self):
         return self._equinox
+
+    @property
+    def obstime(self):
+        if self._obstime is None:
+            return self._equinox
+        else:
+            return self._obstime
 
     def precess_to(self, newequinox):
         """
