@@ -105,8 +105,8 @@ def test_nddata_add_mismatch_wcs():
 
 
 def test_nddata_add_mismatch_units():
-    d1 = NDData(np.ones((5, 5)), units='Jy')
-    d2 = NDData(np.ones((5, 5)), units='erg/s')
+    d1 = NDData(np.ones((5, 5)), unit='Jy')
+    d2 = NDData(np.ones((5, 5)), unit='erg/s')
     with pytest.raises(ValueError) as exc:
         d1.add(d2)
     assert exc.value.args[0] == "operand units do not match"
@@ -157,8 +157,8 @@ def test_nddata_subtract_mismatch_wcs():
 
 
 def test_nddata_subtract_mismatch_units():
-    d1 = NDData(np.ones((5, 5)), units='Jy')
-    d2 = NDData(np.ones((5, 5)) * 2., units='erg/s')
+    d1 = NDData(np.ones((5, 5)), unit='Jy')
+    d2 = NDData(np.ones((5, 5)) * 2., unit='erg/s')
     with pytest.raises(ValueError) as exc:
         d1.subtract(d2)
     assert exc.value.args[0] == "operand units do not match"
@@ -195,14 +195,14 @@ def test_nddata_subtract_uncertainties_mismatch():
 
 def test_convert_units_to():
     d = NDData(np.ones((5, 5)))
-    d.units = 'km'
+    d.unit = 'km'
     d1 = d.convert_units_to('m')
     assert np.all(d1 == np.array(1000.0))
 
 
 @raises(ValueError)
 def test_invalid_unit():
-    d = NDData(np.ones((5, 5)), units="NotAValidUnit")
+    d = NDData(np.ones((5, 5)), unit="NotAValidUnit")
 
 def test_simple_slicing():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
