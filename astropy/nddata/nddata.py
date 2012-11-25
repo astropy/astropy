@@ -5,7 +5,7 @@ __all__ = ['NDData']
 
 import numpy as np
 
-from ..units import Unit
+from ..units import Unit, Quantity
 from ..logger import log
 
 from .flag_collection import FlagCollection
@@ -66,10 +66,6 @@ class NDData(object):
     units : `astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
-    copy : bool, optional
-        If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` :attr:`copy`
-        argument for details).
 
     Raises
     ------
@@ -103,7 +99,7 @@ class NDData(object):
     """
 
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
-                 meta=None, units=None, copy=True):
+                 meta=None, unit=None):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=copy)
@@ -128,18 +124,25 @@ class NDData(object):
                 self.meta = meta
                 log.info("Overwriting NDData's current meta being overwritten with specified meta")
 
-            if units is not None:
+            if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
 
         else:
-            self.data = np.array(data, subok=True, copy=copy)
+            if hasattr(data, 'mask'):
+                self.data = np.array(data.data, subok=True)
+                self.mask = data.mask
+            else:
+                self.data = np.array(data, subok=True)
+                self.mask = mask
+
 
             self.uncertainty = uncertainty
-            self.mask = mask
             self.flags = flags
             self.wcs = wcs
             self.meta = meta
-            self.units = units
+            self.unit = unit
+
+
 
     @property
     def mask(self):
@@ -214,11 +217,11 @@ class NDData(object):
 
 
     @property
-    def units(self):
+    def unit(self):
         return self._units
 
-    @units.setter
-    def units(self, value):
+    @unit.setter
+    def unit(self, value):
         if value is None:
             self._units = None
         else:
@@ -290,7 +293,7 @@ class NDData(object):
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, units=self.units, copy=False)
+            meta=self.meta, units=self.unit, copy=False)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
@@ -325,16 +328,16 @@ class NDData(object):
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if not (self.units is None and operand.units is None):
-            if (self.units is None or operand.units is None
-                or not self.units.is_equivalent(operand.units)):
+        if not (self.unit is None and operand.unit is None):
+            if (self.unit is None or operand.unit is None
+                or not self.unit.is_equivalent(operand.unit)):
                 raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
-        if self.units is not None:
-            operand_data = operand.units.to(self.units, operand.data)
+        if self.unit is not None:
+            operand_data = operand.unit.to(self.unit, operand.data)
         else:
             operand_data = operand.data
         data = operation(self.data, operand_data)
@@ -378,7 +381,7 @@ class NDData(object):
         result.flags = None
         result.wcs = self.wcs
         result.meta = None
-        result.units = self.units
+        result.unit = self.unit
 
         return result
 
@@ -418,6 +421,24 @@ class NDData(object):
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
+    def __add__(self, other):
+        if isinstance(other, Quantity):
+            new_data = self.__array__() + other.to(self.unit).value
+            return self.__class__(new_data, unit=self.unit)
+
+        elif isinstance(other, self.__class__):
+            #TODO change to not invoke Masked array after units have been fixed
+            other_data = other.unit.to(self.unit, other.data)
+            if other.mask is not None:
+                other_data = np.ma.MaskedArray(other_data, mask=other.mask)
+
+            new_data = self.__array__() + other_data
+            return self.__class__(new_data, unit=self.unit)
+
+        else:
+            raise TypeError('Cannot add type blah blah blah')
+
+
     def convert_units_to(self, unit, equivalencies=[]):
         """
         Returns a new `NDData` object whose values have been converted
@@ -442,10 +463,9 @@ class NDData(object):
         UnitsException
             If units are inconsistent.
         """
-        if self.units is None:
+        if self.unit is None:
             raise ValueError("No units specified on source data")
-        data = self.units.to(
-            unit, self.data, equivalencies=equivalencies)
+        data = self.unit.to(unit, self.data, equivalencies=equivalencies)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
         result.uncertainty = self.uncertainty
@@ -453,7 +473,7 @@ class NDData(object):
         result.flags = None
         result.wcs = self.wcs
         result.meta = self.meta
-        result.units = unit
+        result.unit = unit
 
         return result
 
