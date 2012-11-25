@@ -6,7 +6,6 @@ __all__ = ['NDData']
 import numpy as np
 import copy
 
-
 from ..units import Unit, Quantity
 from ..logger import log
 
@@ -361,6 +360,38 @@ class NDData(object):
         """
         operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
 
+    def _arithmetic(self, operand, operation_name):
+        """
+        {name} another dataset (`operand`) to this dataset.
+
+        Parameters
+        ----------
+        operand : `~astropy.nddata.NDData`
+            The second operand in the operation a {operator} b
+        propagate_uncertainties : bool
+            Whether to propagate uncertainties following the propagation rules
+            defined by the class used for the `uncertainty` attribute.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Notes
+        -----
+        This method requires the datasets to have identical WCS properties,
+        equivalent units, and identical shapes. Flags and meta-data get set to
+        None in the resulting dataset. The unit in the result is the same as
+        the unit in `self`. Uncertainties are propagated, although correlated
+        errors are not supported by any of the built-in uncertainty classes.
+        If uncertainties are assumed to be correlated, a warning is issued by
+        default (though this can be disabled via the
+        `WARN_UNSUPPORTED_CORRELATED` configuration item). Values masked in
+        either dataset before the operation are masked in the resulting
+        dataset.
+        """
+        operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
+
         operation = operation_name2operation[operation_name]
 
         if isinstance(operand, Quantity):
@@ -402,11 +433,11 @@ class NDData(object):
 
 
             return self.__class__(new_data, unit=self.unit, wcs=self.wcs,
-                                    meta=merge_meta(self.meta, operand.meta, operation_name))
+                meta=merge_meta(self.meta, operand.meta, operation_name))
 
         else:
             raise TypeError('Cannot {operation_name} of type {self_type} with {other_type}'.format(
-                                    operation_name=operation_name, self_type=type(self), operand_type=type(operand)))
+                operation_name=operation_name, self_type=type(self), operand_type=type(operand)))
 
 
 
@@ -423,6 +454,23 @@ class NDData(object):
         return self._arithmetic(other, 'divide')
 
 
+
+    def __add__(self, other):
+        if isinstance(other, Quantity):
+            new_data = self.__array__() + other.to(self.unit).value
+            return self.__class__(new_data, unit=self.unit)
+
+        elif isinstance(other, self.__class__):
+            #TODO change to not invoke Masked array after units have been fixed
+            other_data = other.unit.to(self.unit, other.data)
+            if other.mask is not None:
+                other_data = np.ma.MaskedArray(other_data, mask=other.mask)
+
+            new_data = self.__array__() + other_data
+            return self.__class__(new_data, unit=self.unit)
+
+        else:
+            raise TypeError('Cannot add type blah blah blah')
 
 
     def convert_units_to(self, unit):
