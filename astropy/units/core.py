@@ -13,6 +13,7 @@ import warnings
 import numbers
 
 import numpy as np
+from numpy import ma
 
 from . import format as unit_format
 
@@ -1154,6 +1155,8 @@ def _condition_arg(value):
             dt = str(avalue.dtype)
             if not (dt.startswith('int') or dt.startswith('float')):
                 raise ValueError("Must be convertable to int or float array")
+            if ma.isMaskedArray(value):
+                return value
             return avalue
         except ValueError:
             raise ValueError(
