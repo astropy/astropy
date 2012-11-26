@@ -19,7 +19,15 @@ def get_extensions():
     extra_compile_args = []
 
     if not setup_helpers.use_system_library('cfitsio'):
-        if setup_helpers.get_compiler_option() != 'msvc':
+        if setup_helpers.get_compiler_option() == 'msvc':
+            # These come from the CFITSIO vcc makefile
+            extra_compile_args = [
+                    '/D', '"WIN32"',
+                    '/D', '"_WINDOWS"',
+                    '/D', '"_MBCS"',
+                    '/D', '"_USRDLL"',
+                    '/D', '"_CRT_SECURE_NO_DEPRECATE"']
+        else:
             # All of these switches are to silence warnings from compiling CFITSIO
             extra_compile_args = ['-Wno-unused-variable', '-Wno-parentheses',
                                   '-Wno-uninitialized', '-Wno-format',
