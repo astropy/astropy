@@ -206,6 +206,13 @@ class astropy_test(Command, object):
         build_cmd = self.get_finalized_command('build')
         new_path = os.path.abspath(build_cmd.build_lib)
 
+        # Copy the build to a temporary directory for the purposes of testing
+        # - this avoids creating pyc and __pycache__ directories inside the
+        # build directory
+        tmp_dir = tempfile.mkdtemp()
+        testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
+        shutil.copytree(new_path, testing_path)
+
         # Run the tests in a subprocess--this is necessary since new extension
         # modules may have appeared, and this is the easiest way to set up a
         # new environment
@@ -234,7 +241,7 @@ class astropy_test(Command, object):
 
         try:
             retcode = subprocess.call([sys.executable, '-c', cmd],
-                                      cwd=new_path, close_fds=False)
+                                      cwd=testing_path, close_fds=False)
         finally:
             # kill the temporary dirs
             shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
@@ -245,7 +252,10 @@ class astropy_test(Command, object):
             # obvious place
             if os.path.exists('htmlcov'):
                 shutil.rmtree('htmlcov')
-            shutil.copytree(os.path.join(new_path, 'htmlcov'), 'htmlcov')
+            shutil.copytree(os.path.join(testing_path, 'htmlcov'), 'htmlcov')
+
+        # Remove temporary directory
+        shutil.rmtree(tmp_dir)
 
         raise SystemExit(retcode)
 
