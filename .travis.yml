@@ -35,6 +35,6 @@ before_install:
    - sudo apt-get update -qq
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
 install: 
-   - if ! $ONLY_EGG_INFO; then pip -q install "numpy<=$NUMPY_VERSION" --use-mirrors; fi
+   - if ! $ONLY_EGG_INFO; then pip install "numpy==$NUMPY_VERSION" --use-mirrors; fi
    - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
 script: if $ONLY_EGG_INFO;then python setup.py egg_info;else python setup.py test;fi
