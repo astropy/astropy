@@ -61,10 +61,12 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _parse_unit(cls, s, loc, toks):
+        from astropy.extern import pyparsing as p
+
         unit = toks[0]
 
         if unit not in cls._units:
-            raise ValueError(
+            raise p.ParseException(
                 "Unit {0!r} not supported by the VOUnit "
                 "standard.".format(unit))
 
