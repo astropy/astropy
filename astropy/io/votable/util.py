@@ -12,16 +12,12 @@ import io
 import re
 import sys
 
-# LOCAL
-from . import converters, exceptions, tree, xmlutil
-
 
 __all__ = [
     'convert_to_writable_filelike',
     'stc_reference_frames',
     'coerce_range_list_param',
-    'is_callable',
-    'reset_vo_warnings'
+    'is_callable'
     ]
 
 
@@ -238,16 +234,3 @@ else:  # pragma: py2
         Returns `True` if `o` is callable.
         """
         return callable(o)
-
-
-def reset_vo_warnings():
-    """
-    This is a special variable used by the Python warnings
-    infrastructure to keep track of warnings that have
-    already been seen.  Since we want to get every single
-    warning out of this, we have to delete all of them first.
-
-    """
-    for module in (converters, exceptions, tree, xmlutil):
-        if hasattr(module, '__warningregistry__'):
-            del module.__warningregistry__

@@ -15,13 +15,13 @@ import warnings
 # LOCAL
 from . import exceptions
 from . import tree
-from .util import reset_vo_warnings
 from ...utils.xml import iterparser
 from ...utils import data
 from ...config import ConfigurationItem
 
 
-__all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate']
+__all__ = ['parse', 'parse_single_table', 'from_table', 'writeto', 'validate',
+           'reset_vo_warnings']
 
 
 PEDANTIC = ConfigurationItem(
@@ -341,3 +341,17 @@ def is_votable(source):
             return True
     except ValueError:
         return False
+
+
+def reset_vo_warnings():
+    """
+    This is a special variable used by the Python warnings
+    infrastructure to keep track of warnings that have
+    already been seen.  Since we want to get every single
+    warning out of this, we have to delete all of them first.
+
+    """
+    from . import converters, xmlutil
+    for module in (converters, exceptions, tree, xmlutil):
+        if hasattr(module, '__warningregistry__'):
+            del module.__warningregistry__

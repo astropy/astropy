@@ -358,7 +358,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
 def _do_validation(url):
     """Validation for multiprocessing support."""
-    votable.util.reset_vo_warnings()
+    votable.table.reset_vo_warnings()
 
     r = result.Result(url, root=_OUT_ROOT)
     r.validate_vo()
