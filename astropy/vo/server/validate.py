@@ -356,23 +356,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         log.warn('No good sites available for Cone Search.')
 
 
-def _clear_warnings():
-    """
-    This is a special variable used by the Python warnings
-    infrastructure to keep track of warnings that have
-    already been seen.  Since we want to get every single
-    warning out of this, we have to delete all of them first.
-
-    """
-    for module in (votable.exceptions, votable.converters,
-                   votable.tree, votable.xmlutil):
-        if hasattr(module, '__warningregistry__'):
-            del module.__warningregistry__
-
-
 def _do_validation(url):
     """Validation for multiprocessing support."""
-    _clear_warnings()
+    votable.util.reset_vo_warnings()
 
     r = result.Result(url, root=_OUT_ROOT)
     r.validate_vo()

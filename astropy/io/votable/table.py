@@ -15,6 +15,7 @@ import warnings
 # LOCAL
 from . import exceptions
 from . import tree
+from .util import reset_vo_warnings
 from ...utils.xml import iterparser
 from ...utils import data
 from ...config import ConfigurationItem
@@ -199,7 +200,6 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
         `None`, the return value will be a string.
     """
     import textwrap
-    from . import converters, xmlutil
     from ...utils.console import print_code_line, color_print
 
     return_as_str = False
@@ -209,13 +209,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     lines = []
     votable = None
 
-    # This is a special variable used by the Python warnings
-    # infrastructure to keep track of warnings that have already been
-    # seen.  Since we want to get every single warning out of this, we
-    # have to delete all of them first.
-    for module in (exceptions, converters, tree, xmlutil):
-        if hasattr(module, '__warningregistry__'):
-            del module.__warningregistry__
+    reset_vo_warnings()
 
     with data.get_readable_fileobj(source, encoding='binary') as fd:
         content = fd.read()
