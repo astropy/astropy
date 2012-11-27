@@ -7,7 +7,8 @@ python:
     - 3.1
 env:
     #NUMPY_VERSION=999.9 guarantees the latest version
-    - NUMPY_VERSION=999.9 ONLY_EGG_INFO=false
+    #- NUMPY_VERSION=999.9 ONLY_EGG_INFO=false
+    - NUMPY_VERSION=1.6.1 ONLY_EGG_INFO=false
     - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
     - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
     
