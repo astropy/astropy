@@ -33,6 +33,7 @@ daophot.py:
 import re
 from . import core
 from . import basic
+from . import fixedwidth
 from ...utils import OrderedDict
 
 class Daophot(core.BaseReader):
@@ -74,7 +75,7 @@ class Daophot(core.BaseReader):
         self.header = DaophotHeader()
         self.inputter = core.ContinuationLinesInputter()
         self.inputter.no_continue = r'\s*#'
-        self.data.splitter.delimiter = ' '
+        self.data.splitter = fixedwidth.FixedWidthSplitter()
         self.data.start_line = 0
         self.data.comment = r'\s*#'
 
@@ -121,10 +122,21 @@ class DaophotHeader(core.BaseHeader):
         # #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
         coldef_lines = ['', '', '']
         starts = ('#N ', '#U ', '#F ')
+        col_width = []
+        col_len_def = re.compile(r'[0-9]+')
+        re_colformat_def = re.compile(r'#F([^#]+)')
         for line in lines:
             if not line.startswith('#'):
                 break # End of header lines
             else:
+                formatmatch = re_colformat_def.search(line)
+                if formatmatch:
+                    form = formatmatch.group(1).split()
+                    width = ([int(col_len_def.search(s).group()) for s in form])
+                    # original data format might be shorter than 80 characters
+                    # and filled with spaces
+                    width[-1] = 80 - sum(width[:-1])
+                    col_width.extend(width)
                 for i, start in enumerate(starts):
                     if line.startswith(start):
                         line_stripped = line[3:]
@@ -138,7 +150,10 @@ class DaophotHeader(core.BaseHeader):
         if not self.names:
             raise core.InconsistentTableError('No column names found in DAOphot header')
 
-        # If there wasn't a #U or #F defined (not sure of DAOphot specification), then
+        starts = [int(sum(col_width[0:i])) for i in range(len(col_width))]
+        ends = [col_width[i] + starts[i] for i in range(len(col_width))]
+
+        # If there wasn't a #U defined (not sure of DAOphot specification), then
         # replace the empty line with the right number of ## indicators, which matches
         # the DAOphot "no unit" tag.
         for i, coldef_line in enumerate(coldef_lines):
@@ -159,3 +174,11 @@ class DaophotHeader(core.BaseHeader):
                 col.units = coldefs[col.name][0]
             if coldefs[col.name][1] != '##':
                 col.format = coldefs[col.name][1]
+
+        # Set column start and end positions.  Also re-index the cols because
+        # the FixedWidthSplitter does NOT return the ignored cols (as is the
+        # case for typical delimiter-based splitters)
+        for i, col in enumerate(self.cols):
+            col.start = starts[col.index]
+            col.end = ends[col.index]
+            col.index = i
