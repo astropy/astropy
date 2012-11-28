@@ -556,6 +556,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     @property
     def data(self):
         out = self.view(ma.MaskedArray)
+        # The following is necessary because of a bug in Numpy, which was
+        # fixed in numpy/numpy#2703. The fix should be included in Numpy 1.8.0.
         out.fill_value = self.fill_value
         return out
 
