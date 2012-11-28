@@ -68,7 +68,7 @@ import numpy as np
 
 # LOCAL
 from ...io.votable import table
-from ...io.votable.exceptions import vo_warn, W24, W25
+from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils import webquery
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj
@@ -298,6 +298,9 @@ def vo_tab_parse(tab, url, kwargs):
             raise VOSError("Catalog server '{}' returned error '{}'".format(
                 url, param.value))
         break
+
+    if tab.resources == []:
+        vo_raise(E19)
 
     for info in tab.resources[0].infos:
         if info.name == 'QUERY_STATUS' and info.value != 'OK':
