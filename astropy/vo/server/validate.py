@@ -62,6 +62,7 @@ import numpy as np
 # LOCAL
 from ..client import vos_catalog
 from ...io import votable
+from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
 from ...utils.data import get_readable_fileobj
@@ -384,7 +385,7 @@ def _do_validation(url):
             try:
                 tab = vos_catalog.vo_tab_parse(votable.table.parse(
                     r.get_vo_xml_path(), pedantic=False), r.url, {})
-            except (IndexError, vos_catalog.VOSError) as e:
+            except (E19, IndexError, vos_catalog.VOSError) as e:
                 lines.append(str(e))
                 nexceptions += 1
         lines = [str(x.message) for x in warning_lines] + lines
