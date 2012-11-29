@@ -16,18 +16,18 @@ env:
 matrix:
     include:
         - python: 2.7 
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
+          env: PYTHON_VERSION=2 NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
         - python: 3.2 
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
+          env: PYTHON_VERSION=3 NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
     exclude:
         - python: 3.2
-          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
+          env: PYTHON_VERSION=3 NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
         - python: 3.1 
-          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
+          env: PYTHON_VERSION=3 NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
         - python: 3.2 
-          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
+          env: PYTHON_VERSION=3 NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
         - python: 3.1 
-          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
+          env: PYTHON_VERSION=3 NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
 
 
 before_install:
@@ -36,7 +36,7 @@ before_install:
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
 install: 
    # upgrade to distribute 0.6.32 to avoid numpy issues
-   - pip install --upgrade http://www.mpia.de/~robitaille/astropy/distribute-patched.tar.gz
+   - if [ $PYTHON_VERSION == "3" ]; then pip install --upgrade http://www.mpia.de/~robitaille/astropy/distribute-patched.tar.gz; fi
    - if ! $ONLY_EGG_INFO; then pip install "numpy==$NUMPY_VERSION" --use-mirrors; fi
    - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
 script: if $ONLY_EGG_INFO;then python setup.py egg_info;else python setup.py test;fi
