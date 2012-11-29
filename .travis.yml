@@ -37,7 +37,7 @@ before_install:
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
 install: 
    - export PYTHONIOENCODING=UTF8 # just in case
-   - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then pip install "numpy==$NUMPY_VERSION" --use-mirrors; fi' # should be nop if pre-installed
+   - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then pip install "numpy==$NUMPY_VERSION" --use-mirrors; fi'
    - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "3" ]; then pip install https://github.com/y-p/numpy/archive/1.6.2_with_travis_fix.tar.gz; fi'
    - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
 script: if $ONLY_EGG_INFO;then python setup.py egg_info;else python setup.py test;fi
