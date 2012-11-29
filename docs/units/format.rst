@@ -10,6 +10,13 @@ class::
   >>> u.Unit("erg / (s cm2)")
   Unit("erg / (s cm2)")
 
+.. note::
+
+   Creating units from strings requires the use of a specialized
+   parser for the unit language.  Therefore, there is a performance
+   penalty for using strings versus creating units using Python
+   expressions.
+
 Units can be converted to strings using the
 `~astropy.units.core.UnitBase.to_string` method::
 
