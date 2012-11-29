@@ -249,7 +249,7 @@ def get_extensions():
         include_dirs.append(wcslib_cpath)
     else:
         setup_helpers.pkg_config(
-            ['wcs'], ['wcs'], include_dirs, library_dirs, libraries)
+            ['wcslib'], ['wcs'], include_dirs, library_dirs, libraries)
 
     astropy_wcs_files = [  # List of astropy.wcs files to compile
         'distortion.c',
