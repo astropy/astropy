@@ -146,8 +146,14 @@ def parse_vowarning(line):
             result['is_other'] = True
             result['number'] = None
             result['doc_url'] = None
-        result['nline'] = int(match.group('nline'))
-        result['nchar'] = int(match.group('nchar'))
+        if isinstance(match.group('nline'), (int, long, float, complex)):
+            result['nline'] = int(match.group('nline'))
+        else:
+            result['nline'] = 0
+        if isinstance(match.group('nchar'), (int, long, float, complex)):
+            result['nchar'] = int(match.group('nchar'))
+        else:
+            result['nchar'] = 0
         result['message'] = match.group('rest')
         result['is_something'] = True
     else:
