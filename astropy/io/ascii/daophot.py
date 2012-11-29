@@ -152,8 +152,8 @@ class DaophotHeader(core.BaseHeader):
         if not self.names:
             raise core.InconsistentTableError('No column names found in DAOphot header')
 
-        starts = [int(sum(col_width[0:i])) for i in range(len(col_width))]
-        ends = [col_width[i] + starts[i] for i in range(len(col_width))]
+        ends = np.cumsum(col_width)
+        starts = ends - col_width
 
         # If there wasn't a #U defined (not sure of DAOphot specification), then
         # replace the empty line with the right number of ## indicators, which matches
