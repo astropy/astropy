@@ -31,6 +31,7 @@ daophot.py:
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
+import numpy as np
 from . import core
 from . import basic
 from . import fixedwidth
@@ -83,14 +84,15 @@ class Daophot(core.BaseReader):
         out = core.BaseReader.read(self, table)
 
         # Read keywords as a table embedded in the header comments
-        names = ('temp1', 'name', 'temp2', 'value', 'units', 'format')
-        reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', names=names)
-        headerkeywords = reader.read(self.comment_lines)
+        if len(self.comment_lines) > 0:
+            names = ('temp1', 'name', 'temp2', 'value', 'units', 'format')
+            reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', names=names)
+            headerkeywords = reader.read(self.comment_lines)
 
-        out.meta['keywords'] = OrderedDict()
-        for headerkeyword in headerkeywords:
-            keyword_dict = dict((x, headerkeyword[x]) for x in ('value', 'units', 'format'))
-            out.meta['keywords'][headerkeyword['name']] = keyword_dict
+            out.meta['keywords'] = OrderedDict()
+            for headerkeyword in headerkeywords:
+                keyword_dict = dict((x, headerkeyword[x]) for x in ('value', 'units', 'format'))
+                out.meta['keywords'][headerkeyword['name']] = keyword_dict
         self.cols = self.header.cols
 
         return out
@@ -139,7 +141,7 @@ class DaophotHeader(core.BaseHeader):
                     col_width.extend(width)
                 for i, start in enumerate(starts):
                     if line.startswith(start):
-                        line_stripped = line[3:]
+                        line_stripped = line[2:]
                         coldef_lines[i] = coldef_lines[i] + line_stripped
                         break
         
@@ -182,3 +184,5 @@ class DaophotHeader(core.BaseHeader):
             col.start = starts[col.index]
             col.end = ends[col.index]
             col.index = i
+        
+        self.n_data_cols = len(self.cols)
