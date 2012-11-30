@@ -13,9 +13,11 @@ class::
 .. note::
 
    Creating units from strings requires the use of a specialized
-   parser for the unit language.  Therefore, there is a performance
-   penalty for using strings versus creating units using Python
-   expressions.
+   parser for the unit language, which results in a performance
+   penalty if units are created using strings.  Thus, it is much
+   faster to use unit objects directly (e.g., ``unit = u.degree /
+   u.minute``) instead of via string parsing (``unit =
+   u.Unit('deg/min')``).
 
 Units can be converted to strings using the
 `~astropy.units.core.UnitBase.to_string` method::
