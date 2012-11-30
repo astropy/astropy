@@ -13,8 +13,6 @@ import sys
 from setuptools import setup, find_packages
 
 #A dirty hack to get around some early import/configurations ambiguities
-#This is the same as setup_helpers.set_build_mode(), but does not require
-#importing setup_helpers
 if sys.version_info[0] >= 3:
     import builtins
 else:

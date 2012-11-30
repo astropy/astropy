@@ -14,6 +14,6 @@ from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
 
-if not setup_helpers.is_in_build_mode():
+if not _ASTROPY_SETUP_:
     from .convolution.convolve import convolve,convolve_fft
     from .convolution.make_kernel import make_kernel
