@@ -7,7 +7,7 @@ Validate VO Services.
 These properties are set via Astropy configuration system:
 
     * `astropy.vo.server.cs_mstr_list`
-    * `astropy.vo.server.crit_warnings`
+    * `astropy.vo.server.noncrit_warnings`
     * Also depends on properties in `astropy.vo.client`
 
 .. note::
@@ -38,11 +38,11 @@ This will take a while:
 >>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
 >>> validate.check_conesearch_sites()
 
-Add `astropy.io.votable.exceptions.W03` to the list of
+Add `astropy.io.votable.exceptions.W01` to the list of
 ignored warnings. This is *not* recommended unless you
 know exactly what you are doing:
 
->>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W03'])
+>>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W01'])
 >>> validate.check_conesearch_sites()
 
 """
