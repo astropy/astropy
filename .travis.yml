@@ -6,17 +6,20 @@ python:
     - 3.2
     - 3.1
 env:
-    #NUMPY_VERSION=999.9 guarantees the latest version
-    - NUMPY_VERSION=999.9 ONLY_EGG_INFO=false
+    # NUMPY_VERSION=999.9 guarantees the latest version, but we cannot use this
+    # for now, since we are using a temporary fix due to a bug in distribute
+    # or pip. See https://github.com/travis-ci/travis-cookbooks/issues/48 for
+    # more details.
+    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false
     - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
     - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
     
 matrix:
     include:
         - python: 2.7 
-          env: NUMPY_VERSION=999.9 ONLY_EGG_INFO=true
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
         - python: 3.2 
-          env: NUMPY_VERSION=999.9 ONLY_EGG_INFO=true
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
     exclude:
         - python: 3.2
           env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
@@ -33,6 +36,8 @@ before_install:
    - sudo apt-get update -qq
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
 install: 
-   - if ! $ONLY_EGG_INFO; then pip -q install "numpy<=$NUMPY_VERSION" --use-mirrors; fi
+   - export PYTHONIOENCODING=UTF8 # just in case
+   - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then pip install "numpy==$NUMPY_VERSION" --use-mirrors; fi'
+   - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "3" ]; then pip install https://github.com/y-p/numpy/archive/1.6.2_with_travis_fix.tar.gz; fi'
    - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
 script: if $ONLY_EGG_INFO;then python setup.py egg_info;else python setup.py test;fi
