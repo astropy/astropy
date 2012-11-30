@@ -79,8 +79,8 @@ CS_MSTR_LIST = ConfigurationItem(
 
 NONCRIT_WARNINGS = ConfigurationItem(
     'noncrit_warnings',
-    ['W06', 'W07', 'W09', 'W10', 'W15', 'W17', 'W20', 'W21', 'W22', 'W27',
-     'W28', 'W29', 'W41', 'W42', 'W48', 'W50'],
+    ['W03', 'W06', 'W07', 'W09', 'W10', 'W15', 'W17', 'W20', 'W21', 'W22',
+     'W27', 'W28', 'W29', 'W41', 'W42', 'W48', 'W50'],
     'VO Table warning codes that are considered non-critical',
     'list')
 
