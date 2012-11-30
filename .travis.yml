@@ -6,7 +6,7 @@ python:
     - 3.2
     - 3.1
 env:
-    #NUMPY_VERSION=1.6.2 guarantees the latest version, but we cannot use this
+    # NUMPY_VERSION=999.9 guarantees the latest version, but we cannot use this
     # for now, since we are using a temporary fix due to a bug in distribute
     # or pip. See https://github.com/travis-ci/travis-cookbooks/issues/48 for
     # more details.
