@@ -88,8 +88,6 @@ def test_missing_file():
 
 def test_set_names():
     names = ('c1','c2','c3', 'c4', 'c5', 'c6')
-    include_names = ('c1', 'c3')
-    exclude_names = ('c4', 'c5', 'c6')
     data = asciitable.read('t/simple3.txt', names=names, delimiter='|')
     assert_equal(data.dtype.names, names)
 
@@ -106,6 +104,18 @@ def test_set_exclude_names():
     exclude_names = ('Y', 'object')
     data = asciitable.read('t/simple3.txt', exclude_names=exclude_names, delimiter='|')
     assert_equal(data.dtype.names, ('obsid', 'redshift', 'X', 'rad'))
+
+
+def test_include_names_daophot():
+    include_names = ('ID', 'MAG', 'PIER')
+    data = asciitable.read('t/daophot.dat', include_names=include_names)
+    assert_equal(data.dtype.names, include_names)
+
+
+def test_exclude_names_daophot():
+    exclude_names = ('ID', 'YCENTER', 'MERR', 'NITER', 'CHI', 'PERROR')
+    data = asciitable.read('t/daophot.dat', exclude_names=exclude_names)
+    assert_equal(data.dtype.names, ('XCENTER', 'MAG', 'MSKY', 'SHARPNESS', 'PIER'))
 
 
 def test_custom_process_lines():
@@ -350,6 +360,43 @@ def get_testfiles(name=None):
                   'PIER',
                   'PERROR'),
          'name': 't/daophot.dat',
+         'nrows': 2,
+         'requires_numpy': True,
+         'opts': {'Reader': asciitable.Daophot}},
+        {'cols': ('IMAGE',
+                  'XINIT',
+                  'YINIT',
+                  'ID',
+                  'COORDS',
+                  'LID',
+                  'XCENTER',
+                  'YCENTER',
+                  'XSHIFT',
+                  'YSHIFT',
+                  'XERR',
+                  'YERR',
+                  'CIER',
+                  'CERROR',
+                  'MSKY',
+                  'STDEV',
+                  'SSKEW',
+                  'NSKY',
+                  'NSREJ',
+                  'SIER',
+                  'SERROR',
+                  'ITIME',
+                  'XAIRMASS',
+                  'IFILTER',
+                  'OTIME',
+                  'RAPERT',
+                  'SUM',
+                  'AREA',
+                  'FLUX',
+                  'MAG',
+                  'MERR',
+                  'PIER',
+                  'PERROR'),
+         'name': 't/daophot2.dat',
          'nrows': 2,
          'requires_numpy': True,
          'opts': {'Reader': asciitable.Daophot}},

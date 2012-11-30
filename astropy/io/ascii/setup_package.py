@@ -22,6 +22,7 @@ def get_package_data():
                                    't/commented_header2.dat',
                                    't/continuation.dat',
                                    't/daophot.dat',
+                                   't/daophot2.dat',
                                    't/sextractor.dat',
                                    't/daophot.dat.gz',
                                    't/fill_values.txt',

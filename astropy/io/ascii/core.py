@@ -902,24 +902,22 @@ class ContinuationLinesInputter(BaseInputter):
     """
 
     continuation_char = '\\'
+    replace_char = ' '
     # If no_continue is not None then lines matching this regex are not subject
     # to line continuation.  The initial use case here is Daophot.  In this
-    # case the continuation character is just stripped.
+    # case the continuation character is just replaced with replace_char.
     no_continue = None
 
     def process_lines(self, lines):
         re_no_continue = re.compile(self.no_continue) if self.no_continue else None
 
-        striplines = (x.strip() for x in lines)
-        lines = [x for x in striplines if len(x) > 0]
-
         parts = []
         outlines = []
         for line in lines:
             if re_no_continue and re_no_continue.match(line):
-                line = line.rstrip(self.continuation_char)
+                line = line.replace(self.continuation_char, self.replace_char)
             if line.endswith(self.continuation_char):
-                parts.append(line.rstrip(self.continuation_char))
+                parts.append(line.replace(self.continuation_char, self.replace_char))
             else:
                 parts.append(line)
                 outlines.append(''.join(parts))
