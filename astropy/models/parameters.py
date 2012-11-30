@@ -5,7 +5,7 @@ It is unlikely users will need to work with these classes directly,
 unless they define their own models.
 
 """
-from __future__ import division 
+from __future__ import division, print_function
 import numpy as np
 import operator
 from .util import InputParametersException
