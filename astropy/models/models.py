@@ -35,7 +35,7 @@ In all these cases the output has the same shape as the input.
   of the output is (m, N)
 
 """
-from __future__ import division
+from __future__ import division, print_function
 import math
 import operator
 import abc
@@ -237,7 +237,7 @@ class ParametricModel(Model):
     
     def __init__(self, parnames, paramdim=1, fittable=True):
         self.linear = True
-        Model.__init__(self, parnames, paramdim=paramdim)
+        super(ParametricModel, self).__init__(parnames, paramdim=paramdim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.parnames, paramdim=paramdim)
         
@@ -350,11 +350,11 @@ class PModel(ParametricModel):
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print "Creating a model with %d parameter sets\n" %lenpars
+                print("Creating a model with %d parameter sets\n" %lenpars)
                 paramdim = lenpars
             self._validate_pars(paramdim, **pars)  
             self.set_coeff(pardim=paramdim, **pars)
-        ParametricModel.__init__(self, self.parnames, paramdim=paramdim)
+        super(PModel, self).__init__(self.parnames, paramdim=paramdim)
     
     def _invlex(self):
         c = []
@@ -478,11 +478,11 @@ class IModel(ParametricModel):
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print "Creating a model with %d parameter sets\n" %lenpars
+                print("Creating a model with %d parameter sets\n" %lenpars)
                 paramdim = lenpars
             self._validate_pars(paramdim, **pars)  
             self.set_coeff(pardim=paramdim, **pars)        
-        ParametricModel.__init__(self, self.parnames, paramdim=paramdim)
+        super(IModel, self).__init__(self.parnames, paramdim=paramdim)
     
     def _generate_coeff_names(self):
         names = []
@@ -612,7 +612,7 @@ class ChebyshevModel(PModel):
         """
         self.domain = domain
         self.window = window
-        PModel.__init__(self, degree, ndim=1, paramdim=paramdim, **pars)
+        super(ChebyshevModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
         self.outdim = 1
             
     def clenshaw(self, x, coeff):
@@ -681,7 +681,7 @@ class LegendreModel(PModel):
         """
         self.domain = domain
         self.window = window
-        PModel.__init__(self, degree, ndim=1, paramdim=paramdim, **pars)
+        super(LegendreModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
         self.outdim = 1
            
     def clenshaw(self, x, coeff):
@@ -750,7 +750,7 @@ class Poly1DModel(PModel):
         """
         self.domain = domain
         self.window = window
-        PModel.__init__(self, degree, ndim=1, paramdim=paramdim, **pars)
+        super(Poly1DModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
         self.outdim = 1
             
     def deriv(self, x):
@@ -814,7 +814,7 @@ class Poly2DModel(PModel):
         """
         self.ndim = 2
         self.outdim = 1
-        PModel.__init__(self, degree, ndim=self.ndim, paramdim=paramdim, **pars)
+        super(Poly2DModel, self).__init__(degree, ndim=self.ndim, paramdim=paramdim, **pars)
         self.xdomain = xdomain
         self.ydomain = ydomain
         self.xwindow = xwindow
@@ -928,7 +928,7 @@ class ICheb2DModel(IModel):
         **pars: dict
                 keyword: value pairs, representing parameter_name: value
         """
-        IModel.__init__(self, xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
+        super(ICheb2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
                         ywindow=ywindow, paramdim=paramdim, **pars)
                         
     
@@ -1035,7 +1035,7 @@ class ILegend2DModel(IModel):
         **pars: dict
                 keyword: value pairs, representing parameter_name: value
         """
-        IModel.__init__(self, xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
+        super(ILegend2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
                         ywindow=ywindow, paramdim=paramdim, **pars)
 
     def _fcache(self, x, y):
@@ -1160,7 +1160,7 @@ class Gauss1DModel(ParametricModel):
              "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        ParametricModel.__init__(self, self.parnames, paramdim=paramdim)
+        super(Gauss1DModel, self).__init__(self.parnames, paramdim=paramdim)
         self.linear = False
         self.fjac = fjac
  
@@ -1251,7 +1251,7 @@ class Gauss2DModel(ParametricModel):
                             "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        ParametricModel.__init__(self, self.parnames, paramdim=paramdim)
+        super(Gauss2DModel, self).__init__(self.parnames, paramdim=paramdim)
         self.linear = False
         
     def eval(self, x, y, p):
@@ -1302,7 +1302,7 @@ class ShiftModel(Model):
             offsets = [offsets]
         paramdim = len(offsets)
         self._offsets = parameters._Parameter('offsets', offsets, self, paramdim)
-        Model.__init__(self, self.parnames, paramdim=paramdim)
+        super(ShiftModel, self).__init__(self.parnames, paramdim=paramdim)
 
     def __call__(self, x):
         x, format = _convert_input(x, self.paramdim)
@@ -1330,7 +1330,7 @@ class ScaleModel(Model):
             factors = [factors]
         paramdim = len(factors)
         self._factors = parameters._Parameter('factors', factors, self, paramdim)
-        Model.__init__(self, self.parnames, paramdim=paramdim)
+        super(ScaleModel, self).__init__(self.parnames, paramdim=paramdim)
     
     def __call__(self, x):
         x, format = _convert_input(x, self.paramdim)
@@ -1362,12 +1362,12 @@ class _SIP1D(Model):
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print "Creating a model with %d parameter sets\n" % lenpars
+                print("Creating a model with %d parameter sets\n" % lenpars)
                 paramdim = lenpars
             self._validate_pars(paramdim, **pars)  
             self.set_coeff(pardim=paramdim, **pars)
         
-        Model.__init__(self, self.parnames, paramdim=paramdim)
+        super(_SIP1D, self).__init__(self.parnames, paramdim=paramdim)
        
     def __repr__(self):
         fmt = """
@@ -1657,7 +1657,7 @@ class SCompositeModel(_CompositeModel):
         
         
         """
-        _CompositeModel.__init__(self, transforms, inmap, outmap)
+        super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
                    "Expected sequences of transform, inmap and outmap to have the same length"
@@ -1748,7 +1748,7 @@ class PCompositeModel(_CompositeModel):
                labels in an input instance of LabeledInput
                if None, the number of input coordinates is exactly what the transforms expect 
         """
-        _CompositeModel.__init__(self, transforms, inmap=None, outmap=None)
+        super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
         self.ndim = self.keys()[0].ndim
         self.outdim = self.ndim
@@ -1855,7 +1855,7 @@ class SIPModel(SCompositeModel):
             self.inverse = Poly1DModel(aporder, **apcoeff)
         else:
             self.inverse = None
-        SCompositeModel.__init__(self, [self.shifta, self.shiftb, self.sip1d], inmap = [['x'], ['y'], ['x', 'y']], 
+        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1d], inmap = [['x'], ['y'], ['x', 'y']], 
                                                 outmap=[['x'], ['y'], ['z']])
         
     def __repr__(self):

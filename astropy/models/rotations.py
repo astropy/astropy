@@ -15,7 +15,7 @@ References
 .. [3] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 
 """
-from __future__ import division
+from __future__ import division, print_function
 import math
 import operator
 import numpy as np
@@ -46,7 +46,7 @@ class RotateNative2Celestial(Model):
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
-        Model.__init__(self, parnames=[])
+        super(RotateNative2Celestial, self).__init__(parnames=[])
         self.has_inverse = True
 
     @property
@@ -108,7 +108,7 @@ class RotateCelestial2Native(Model):
         self._phi = _Parameter('phi', np.deg2rad(phi), self, 1)
         self._theta = _Parameter('theta', np.deg2rad(theta), self, 1)
         self._psi = _Parameter('psi', np.deg2rad(psi), self, 1)
-        Model.__init__(self, parnames=[])
+        super(RotateCelestial2Native, self).__init__(parnames=[])
         
         self.has_inverse = True
 
@@ -175,11 +175,11 @@ class MatrixRotation2D(Model):
         if rotmat is not None:
             self._validate_rotmat(rotmat)
             self._rotmat = _Parameter('rotmat', np.asarray(rotmat) + 0., self, 1)
-            Model.__init__(self, parnames=['rotmat'], pdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], pdim=1)
         else:
             self._validate_angle(angle)
             self._angle = _Parameter('angle', np.deg2rad(angle), self, 1)
-            Model.__init__(self, parnames=[], pdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=[], pdim=1)
             self.parnames = ['angle']
             self._rotmat = _Parameter('rotmat', self._compute_matrix(angle), self, 1)
         self.ndim = self._rotmat[0].shape[0]

@@ -11,7 +11,7 @@ There are currently two non-linear fitters which use leastsq and slsqp functions
 in scipy.optimize.
 
 """
-from __future__ import division
+from __future__ import division, print_function
 import abc
 import numpy as np
 from numpy import linalg
@@ -106,7 +106,7 @@ class LinearLSQFitter(Fitter):
                          'singular_values': None,
                          'pars': None
                         }
-        Fitter.__init__(self, model, fixed=fixed)
+        super(LinearLSQFitter, self).__init__(model, fixed=fixed)
         
     def _deriv_with_constraints(self, x, y=None):
         if y is None:
@@ -231,7 +231,7 @@ class LinearLSQFitter(Fitter):
         lacoef = (lacoef.T/scl).T
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
-            print "The fit may be poorly conditioned\n"
+            print("The fit may be poorly conditioned\n")
         #self.model._parameters = lacoef.flatten()[:]
         self.fitpars = lacoef.flatten()[:]
         #self.model._parameters._update(lacoef.flatten())
@@ -279,7 +279,7 @@ class NonLinearLSQFitter(Fitter):
                          'ierr': None,
                          'status': None}
                         
-        Fitter.__init__(self, model, fixed=fixed, tied=tied)
+        super(NonLinearLSQFitter, self).__init__(model, fixed=fixed, tied=tied)
         if self.model.linear:
             raise ModelLinearityException('Model is linear in parameters, '
                             'non-linear fitting methods should not be used.')
@@ -389,7 +389,7 @@ class SLSQPFitter(Fitter):
             A linear model is passed to a nonlinear fitter
             
         """
-        Fitter.__init__(self, model, fixed=fixed, tied=tied, bounds=bounds, eqcons=eqcons, 
+        super(SLSQPFitter, self).__init__(model, fixed=fixed, tied=tied, bounds=bounds, eqcons=eqcons, 
                         ineqcons=ineqcons)
         if self.model.linear:
             raise ModelLinearityException('Model is linear in parameters, '
@@ -684,7 +684,7 @@ class Constraints(object):
         try:
             c = self.fitters[fname]
         except KeyError:
-            print "%s does not support fitting with constraints" % fname
+            print("%s does not support fitting with constraints" % fname)
             raise
         if self._fixed and 'fixed' not in c:
             raise ValueError("%s cannot handle fixed parameter constraints "\
@@ -709,8 +709,9 @@ class Constraints(object):
     @fixed.setter
     def fixed(self, fixedparlist):
         self._validate_fitter()
-        for key in self._fixed:
-            self.pmask.pop(key)
+        if self._fixed:
+            for key in self._fixed:
+                self.pmask.pop(key)
         self._fixed = tuple(fixedparlist)
         self.pmask.update({}.fromkeys(fixedparlist, False))
         
