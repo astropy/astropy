@@ -177,9 +177,11 @@ class CDS(Base):
     @classmethod
     @utils._trace
     def _parse_unit(cls, s, loc, toks):
+        from astropy.extern import pyparsing as p
+
         unit = toks[0]
         if unit not in cls._units:
-            raise ValueError(
+            raise p.ParseException(
                 "Unit {0!r} not supported by the CDS SAC "
                 "standard.".format(unit))
 
@@ -214,11 +216,16 @@ class CDS(Base):
         if ' ' in s:
             raise ValueError('CDS unit must not contain whitespace')
 
+        # This is a short circuit for the case where the string
+        # is just a single unit name
         try:
-            return self._parser.parseString(s, parseAll=True)[0]
+            return self._parse_unit(s, 0, [s])
         except p.ParseException as e:
-            raise ValueError("{0} in {1!r}".format(
-                utils.cleanup_pyparsing_error(e), s))
+            try:
+                return self._parser.parseString(s, parseAll=True)[0]
+            except p.ParseException as e:
+                raise ValueError("{0} in {1!r}".format(
+                    utils.cleanup_pyparsing_error(e), s))
 
     def _get_unit_name(self, unit):
         return unit.get_format_name('cds')
