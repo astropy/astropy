@@ -288,8 +288,8 @@ class WCS(WCSBase):
                 try:
                     # Accept any dict-like object
                     new_header = fits.Header()
-                    for key in header:
-                        new_header[key] = header[key]
+                    for dict_key in header:
+                        new_header[dict_key] = header[dict_key]
                     header_string = new_header.tostring()
                 except TypeError:
                     raise TypeError(
