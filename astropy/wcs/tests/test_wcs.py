@@ -303,3 +303,37 @@ def test_3d_shapes():
     result = w.wcs_pix2sky(
         data[..., 0], data[..., 1], data[..., 2], 1)
     assert len(result) == 3
+
+
+def test_preserve_shape():
+
+    w = wcs.WCS(naxis=2)
+
+    x = np.random.random((2,3,4))
+    y = np.random.random((2,3,4))
+
+    xw, yw = w.wcs_pix2world(x, y, 1)
+
+    assert xw.shape == (2,3,4)
+    assert yw.shape == (2,3,4)
+
+    xp, yp = w.wcs_world2pix(x, y, 1)
+
+    assert xp.shape == (2,3,4)
+    assert yp.shape == (2,3,4)
+
+
+def test_shape_mismatch():
+
+    w = wcs.WCS(naxis=2)
+
+    x = np.random.random((2,3,4))
+    y = np.random.random((3,2,4))
+
+    with pytest.raises(ValueError) as exc:
+        xw, yw = w.wcs_pix2world(x, y, 1)
+    assert exc.value.args[0] == "coordinate arrays are not the same shape"
+
+    with pytest.raises(ValueError) as exc:
+        xp, yp = w.wcs_world2pix(x, y, 1)
+    assert exc.value.args[0] == "coordinate arrays are not the same shape"

@@ -870,6 +870,12 @@ naxis kwarg.
                     raise ValueError(
                         "coordinate arrays are not the same size")
 
+            shape = axes[0].shape
+            for axis in axes[1:]:
+                if axis.shape != shape:
+                    raise ValueError(
+                        "coordinate arrays are not the same shape")
+
             axes = [x.reshape((size, 1)) for x in axes]
             xy = np.hstack(axes)
             if ra_dec_order and sky == 'input':
@@ -877,8 +883,8 @@ naxis kwarg.
             sky = func(xy, origin)
             if ra_dec_order and sky == 'output':
                 sky = self._normalize_sky_output(sky)
-                return sky[:, 0], sky[:, 1]
-            return [sky[:, i] for i in range(sky.shape[1])]
+                return sky[:, 0].reshape(shape), sky[:, 1].reshape(shape)
+            return [sky[:, i].reshape(shape) for i in range(sky.shape[1])]
 
         raise TypeError(
             "Expected 2 or {0} arguments, {0} given".format(
