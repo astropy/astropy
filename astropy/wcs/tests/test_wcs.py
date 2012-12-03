@@ -4,7 +4,8 @@ import sys
 import warnings
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, \
+                          assert_array_almost_equal_nulp
 
 from ...tests.helper import raises
 from ... import wcs
@@ -250,6 +251,37 @@ def test_backward_compatible():
     assert np.all(w.wcs_world2pix(data, 0) == w.wcs_sky2pix(data, 0))
 
 
+def test_dict_init():
+    """
+    Test that WCS can be initialized with a dict-like object
+    """
+
+    # Dictionary with no actual WCS, returns identity transform
+    w = wcs.WCS({})
+
+    xp, yp = w.wcs_world2pix(41., 2., 1)
+
+    assert_array_almost_equal_nulp(xp[0], 41., 10)
+    assert_array_almost_equal_nulp(yp[0], 2., 10)
+
+    # Valid WCS
+    w = wcs.WCS({'CTYPE1':'GLON-CAR',
+                 'CTYPE2':'GLAT-CAR',
+                 'CUNIT1':'deg',
+                 'CUNIT2':'deg',
+                 'CRPIX1':1,
+                 'CRPIX2':1,
+                 'CRVAL1':40.,
+                 'CRVAL2':0.,
+                 'CDELT1':-0.1,
+                 'CDELT2':0.1})
+
+    xp, yp = w.wcs_world2pix(41., 2., 0)
+
+    assert_array_almost_equal_nulp(xp[0], -10., 10)
+    assert_array_almost_equal_nulp(yp[0], 20., 10)
+
+
 @raises(TypeError)
 def test_extra_kwarg():
     """
@@ -271,3 +303,4 @@ def test_3d_shapes():
     result = w.wcs_pix2sky(
         data[..., 0], data[..., 1], data[..., 2], 1)
     assert len(result) == 3
+
