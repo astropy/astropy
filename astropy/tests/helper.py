@@ -209,7 +209,7 @@ class astropy_test(Command, object):
         # Copy the build to a temporary directory for the purposes of testing
         # - this avoids creating pyc and __pycache__ directories inside the
         # build directory
-        tmp_dir = tempfile.mkdtemp()
+        tmp_dir = tempfile.mkdtemp(prefix='astropy-test-')
         testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
         shutil.copytree(new_path, testing_path)
 
