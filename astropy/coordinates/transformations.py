@@ -519,6 +519,10 @@ class FunctionTransform(CoordinateTransform):
         The coordinate system *class* to transform into.
     func : callable
         The transformation function.
+    copyobstime : bool
+        If True (default) the value of the  `_obstime` attribute will be copied
+        to the newly-produced coordinate.
+
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
@@ -533,14 +537,10 @@ class FunctionTransform(CoordinateTransform):
     ValueError
         If `func` cannot accept one argument.
 
-    Notes
-    -----
-    This does *not* propogate equinoxes automatically, so the function must
-    do so if that behavior is desired.
-
 
     """
-    def __init__(self, fromsys, tosys, func, priority=1, register=True):
+    def __init__(self, fromsys, tosys, func, copyobstime=True, priority=1,
+                 register=True):
         from inspect import getargspec
 
         if not callable(func):
@@ -555,6 +555,8 @@ class FunctionTransform(CoordinateTransform):
 
         self.func = func
         self.priority = priority
+        self.copyobstime = copyobstime
+
         super(FunctionTransform, self).__init__(fromsys, tosys)
 
     def __call__(self, fromcoord):
@@ -563,9 +565,10 @@ class FunctionTransform(CoordinateTransform):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
 
-        #copy over the equinox
-        if hasattr(fromcoord, '_equinox') and hasattr(res, '_equinox'):
-            res._equinox = fromcoord._equinox
+        if self._copyobstime:
+            #copy over the obstime
+            if hasattr(fromcoord, '_obstime') and hasattr(res, '_obstime'):
+                res._obstime = fromcoord._obstime
 
         return res
 
@@ -608,9 +611,9 @@ class StaticMatrixTransform(CoordinateTransform):
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the equinox
-        if hasattr(fromcoord, '_equinox') and hasattr(result, '_equinox'):
-            result._equinox = fromcoord._equinox
+        #copy over the observation time
+        if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
+            result._obstime = fromcoord._obstime
 
         return result
 
@@ -686,9 +689,9 @@ class DynamicMatrixTransform(CoordinateTransform):
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the equinox
-        if fromcoord.equinox is not None and hasattr(result, '_equinox'):
-            result._equinox = fromcoord.equinox
+        #copy over the observation time
+        if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
+            result._obstime = fromcoord._obstime
 
         return result
 
@@ -723,7 +726,7 @@ class CompositeTransform(CoordinateTransform):
 
 
 #<------------function decorators for actual practical use--------------------->
-def transform_function(fromsys, tosys, priority=1):
+def transform_function(fromsys, tosys, copyobstime=True, priority=1):
     """
     A function decorator for defining transformations between coordinate
     systems.
@@ -738,13 +741,19 @@ def transform_function(fromsys, tosys, priority=1):
         The coordinate system this function starts from.
     tosys : class
         The coordinate system this function results in.
+    copyobstime : bool
+        If True (default) the value of the  `_obstime` attribute will be
+        copied to the newly-produced coordinate.
     priority : number
         The priority if this transform when finding the shortest
         coordinate tranform path - large numbers are lower priorities.
 
     """
     def deco(func):
-        FunctionTransform(fromsys, tosys, func, priority, register=True)
+        #this doesn't do anything directly with the trasnform because
+        #``register=True`` stores it in the transform graph automatically
+        FunctionTransform(fromsys, tosys, func, copyobstime=copyobstime,
+                          priority=priority, register=True)
         return func
     return deco
 
@@ -840,4 +849,3 @@ def coordinate_alias(name, coordcls=None):
         return deco
     else:
         master_transform_graph.add_coord_name(name, coordcls)
-
