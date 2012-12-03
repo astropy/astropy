@@ -360,6 +360,29 @@ def test_angle_formatting():
     assert angle.format(unit=u.hour) == '-0h04m56.29629s'
     assert angle.format(unit=u.radian, decimal=True) == '-0.021547'
 
+def test_angle_format_roundtripping():
+    """
+    Ensures that the string represtation of an angle can be used to create a
+    new valid Angle.
+    """
+    from .. import Angle, RA, Dec
+
+    a1 = Angle(0, unit=u.radian)
+    a2 = Angle(10, unit=u.degree)
+    a3 = Angle(0.543, unit=u.degree)
+    a4 = Angle('1d2m3.4s')
+
+    assert Angle(str(a1)).degrees == a1.degrees
+    assert Angle(str(a2)).degrees == a2.degrees
+    assert Angle(str(a3)).degrees == a3.degrees
+    assert Angle(str(a4)).degrees == a4.degrees
+
+    #also check RA/Dec
+    ra = RA('1h2m3.4s')
+    dec = Dec('1d2m3.4s')
+
+    assert Angle(str(ra)).degrees == ra.degrees
+    assert Angle(str(dec)).degrees == dec.degrees
 
 
 def test_radec():
