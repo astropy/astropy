@@ -262,6 +262,17 @@ def test_alias_transform():
     assert 'fk5' in d
 
 
+def test_transform_path_pri():
+    """
+    This checks that the transformation path prioritization works by
+    making sure the ICRS -> Gal transformation always goes through FK5
+    and not FK4.
+    """
+    t.master_transform_graph.invalidate_cache()
+    tpath = t.master_transform_graph.find_shortest_path(ICRSCoordinates, GalacticCoordinates)[0]
+    assert tpath[0] is FK5Coordinates
+
+
 def test_obstime():
     """
     Checks to make sure observation time survives transforms, and that it's

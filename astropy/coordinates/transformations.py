@@ -176,7 +176,7 @@ class TransformGraph(object):
             edgeweights[a] = aew = {}
             agraph = self._graph[a]
             for b in agraph:
-                aew[b] = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+                aew[b] = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
 
         #entries in q are [distance, count, nodeobj, pathlist]
         # count is needed because in py 3.x, tie-breaking fails on the nodes.
@@ -447,7 +447,7 @@ class TransformGraph(object):
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
-                pri = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
+                pri = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
                 nxgraph.add_edge(a, b, weight=pri)
 
         return nxgraph
