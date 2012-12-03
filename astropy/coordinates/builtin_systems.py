@@ -14,7 +14,7 @@ from . import transformations
 from .. import units as u
 
 __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
-           'GalacticCoordinates', 'HorizontalCoordinates'
+           'FK4NoETermCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
           ]
 
 
@@ -286,6 +286,102 @@ class FK4Coordinates(SphericalCoordinatesBase):
             return self.__class__(x=x, y=y, z=z, equinox=newequinox)
 
 
+@transformations.coordinate_alias('fk4_no_e')
+class FK4NoETermCoordinates(SphericalCoordinatesBase):
+    """
+    A coordinate in the FK4 system.
+
+
+    Parameters
+    ----------
+    {params}
+    equinox : `~astropy.time.Time`, optional
+        The equinox for these coordinates.  Defaults to B1950.
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
+
+    Alternatively, a single argument that is any kind of spherical coordinate
+    can be provided, and will be converted to `FK4NoETermCoordinates` and used as this
+    coordinate.
+    """
+    __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='ra', latnm='dec'))
+
+    def __init__(self, *args, **kwargs):
+        super(FK4NoETermCoordinates, self).__init__()
+
+        self._equinox = kwargs.pop('equinox', Time('B1950', scale='utc'))
+        self._obstime = kwargs.pop('obstime', None)
+
+        if not isinstance(self._equinox, Time):
+            raise TypeError('specified equinox is not a Time object')
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
+
+        if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
+            newcoord = args[0].transform_to(self.__class__)
+            self.ra = newcoord.ra
+            self.dec = newcoord.dec
+            self._distance = newcoord._distance
+        else:
+            super(FK4NoETermCoordinates, self)._initialize_latlon('ra', 'dec', True, args, kwargs)
+
+    def __repr__(self):
+        if self.distance is not None:
+            diststr = ', Distance={0:.2g} {1!s}'.format(self.distance._value, self.distance._unit)
+        else:
+            diststr = ''
+
+        msg = "<{0} RA={1:.5f} deg, Dec={2:.5f} deg{3}>"
+        return msg.format(self.__class__.__name__, self.ra.degrees,
+                          self.dec.degrees, diststr)
+
+    @property
+    def lonangle(self):
+        return self.ra
+
+    @property
+    def latangle(self):
+        return self.dec
+
+    @property
+    def equinox(self):
+        return self._equinox
+
+    @property
+    def obstime(self):
+        if self._obstime is None:
+            return self.equinox
+        else:
+            return self._obstime
+
+    def precess_to(self, newequinox):
+        """
+        Precesses the coordinates from their current `equinox` to a new equinox.
+
+        Parameters
+        ----------
+        newequinox : `~astropy.time.Time`
+            The equinox to precess these coordinates to.
+
+        Returns
+        -------
+        newcoord : FK4NoETermCoordinates
+            The new coordinate
+        """
+        from .earth_orientation import _precession_matrix_besselian
+
+        pmat = _precession_matrix_besselian(self._equinox.byear, newequinox.byear)
+
+        v = [self.x, self.y, self.z]
+        x, y, z = np.dot(pmat.A, v)
+
+        if self.distance is not None:
+            return self.__class__(x=x, y=y, z=z, unit=self.distance._unit, equinox=newequinox)
+        else:
+            return self.__class__(x=x, y=y, z=z, equinox=newequinox)
+
+
 @transformations.coordinate_alias('galactic')
 class GalacticCoordinates(SphericalCoordinatesBase):
     """
@@ -447,51 +543,74 @@ def fk5_to_icrs(fk5c):
 
     return fk5toicrsmat * pmat
 
+# FK4-NO-E to/from FK4
 
-# ICRS to/from FK4
-# these transformations are very slightly prioritized >1 (lower priority number means
+# In the present framework, we include two coordinate classes for FK4
+# coordinates - one including the E-terms of aberration (FK4Coordinates), and
+# one not including them (FK4NoETermCoordinates). In the following functions,
+# we describe the transformation between these two.
+
+# Define e-terms of aberation vector
+# RADEG = 180. / np.pi
+# SEC_TO_RADIAN = 1. / RADEG / 3600.
+# A_DOT = np.array([1.244, -1.579, -0.660]) * 1.e-3
+ETERMS_A = np.array([-1.62557, -0.31919, -0.13843]) * 1.e-6
+# ETERMS_A = ETERMS_A + SEC_TO_RADIAN * A_DOT * 0.5
+
+@transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1.01)
+def fk4_to_fk4_no_e(fk4c):
+  
+    # Extract cartesian vector
+    r = np.array([fk4c.x, fk4c.y, fk4c.z])
+    
+    # Apply E-terms of aberration
+    r = r - ETERMS_A + np.dot(r, ETERMS_A) * r
+
+    unit = None if fk4c.distance is None else fk4c.distance._unit
+    result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit)
+
+    return result
+
+
+@transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1.01)
+def fk4_no_e_to_fk4(fk4c):
+  
+    # Extract cartesian vector
+    r = np.array([fk4c.x, fk4c.y, fk4c.z])
+    
+    # Apply E-terms of aberration
+    r0 = r.copy()
+    for j in range(10):
+        r = (r0 + ETERMS_A) / (1. + np.dot(r, ETERMS_A))
+        
+    unit = None if fk4c.distance is None else fk4c.distance._unit
+    result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit)
+
+    return result
+
+# FK5 to/from FK4
+
+# These transformations are very slightly prioritized >1 (lower priority number means
 # better path) to prefer the FK5 path over FK4 when possible
-# can't be static because the equinox is needed
-@transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
-def fk4_to_icrs(fk4c, bypassprec=False):
-    # bypassprec is here to make icrs_to_fk4 work more easily - it skips
-    # adding the equinox precession part
-    from .earth_orientation import _precession_matrix_besselian
+#can't be static because the equinox is needed
 
-    # B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
-    B = np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
-                [0.0111814832391717, 0.9999374848933135, -0.0000271625947142],
-                [0.0048590037723143, -0.0000271702937440, 0.9999881946023742]])
+# B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
+B1950_TO_J2000_M = \
+    np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
+            [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
+            [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
-    if fk4c.obstime.byear != 1950:
-        # note this is *julian century*, not besselian
-        T = (fk4c.obstime.jyear - 1950) / 100
+# This transformation can't be static because the observation date is needed.
+@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1.01)
+def fk4_no_e_to_fk5(fk4c):
+    return B1950_TO_J2000_M
 
-        # add in correction terms for FK4 rotating system - Murray 89 eqn 29
-        B[0, 0] += -2.6455262e-9 * T
-        B[0, 1] += -1.1539918689e-6 * T
-        B[0, 2] += 2.1111346190e-6 * T
-        B[1, 0] += 1.1540628161e-6 * T
-        B[1, 1] += -1.29042997e-8 * T
-        B[1, 2] += 2.36021478e-8 * T
-        B[2, 0] += -2.1112979048e-6 * T
-        B[2, 1] += -5.6024448e-9 * T
-        B[2, 2] += 1.02587734e-8 * T
+J2000_TO_B1950_M = B1950_TO_J2000_M.I
 
-    if bypassprec or fk4c.equinox.byear == 1950:
-        return B  # if B1950, no precession is needed - B takes us to J2000
-    else:
-        return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
-
-
-# can't be static because the equinox is needed
-@transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
-def icrs_to_fk4(icrs):
-    # need inverse instead of transpose because Murray's matrix is *not* a true
-    # rotation matrix
-    # also note that icrs works here
-    return fk4_to_icrs(icrs, bypassprec=True).I
-
+# This transformation can't be static because the observation date is needed.
+@transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1.01)
+def fk5_to_fk4_no_e(fk5c):
+    return J2000_TO_B1950_M
 
 # GalacticCoordinates to/from FK4/FK5
 # can't be static because the equinox is needed
