@@ -178,21 +178,23 @@ class TransformGraph(object):
             for b in agraph:
                 aew[b] = agraph[b].priority if hasattr(agraph[b], 'priorty') else 1
 
-        # entries in q are [distance, nodename, pathlist]
-        q = [[inf, n, []] for n in nodes if n is not fromsys]
-        q.insert(0, [0, fromsys, []])  # starts out as a valid heap
+        #entries in q are [distance, count, nodeobj, pathlist]
+        # count is needed because in py 3.x, tie-breaking fails on the nodes.
+        # this way, insertion order is preserved if the weights are the same
+        q = [[inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys]
+        q.insert(0, [0, -1, fromsys, []])  # starts out as a valid heap
 
         # final distance to node from `fromsys`
         result = {}
 
         while len(q) > 0:
-            d, n, path = heapq.heappop(q)
+            d, orderi, n, path = heapq.heappop(q)
 
             if d == inf:
                 #everything left is unreachable - just copy them to the results
                 #and jump out of the loop
                 result[n] = (None, d)
-                for d, n, path in q:
+                for d, orderi, n, path in q:
                     result[n] = (None, d)
                 break
             else:
@@ -203,7 +205,7 @@ class TransformGraph(object):
                     if n2 not in result:  # already visited
                         #find where n2 is in the heap
                         for i in range(len(q)):
-                            if q[i][1] == n2:
+                            if q[i][2] == n2:
                                 break
                         else:
                             raise ValueError('n2 not in heap - this should be impossible!')
@@ -211,7 +213,7 @@ class TransformGraph(object):
                         newd = d + edgeweights[n][n2]
                         if newd < q[i][0]:
                             q[i][0] = newd
-                            q[i][2].append(n)
+                            q[i][3].append(n)
                             heapq.heapify(q)
 
         #cache for later use
