@@ -70,7 +70,7 @@ class SphericalCoordinatesBase(object):
     z : number
         The third cartesian coordinate. Must be given with `x` and `y`
         and not with `{lonnm}` or `{latnm}` nor `coordstr`.
-    cartpoint : `~astropy.coordinates.distance.CartesianPoint`
+    cartpoint : `~astropy.coordinates.distance.CartesianPoints`
         A cartesian point with the coordinates.  Cannot be used with
         any other arguments.
     unit : `~astropy.units.UnitBase` or tuple
@@ -112,7 +112,7 @@ class SphericalCoordinatesBase(object):
         sclsnm = self.__class__.__name__
 
         if nargs == 1:
-            if isinstance(initargs[0], CartesianPoint):
+            if isinstance(initargs[0], CartesianPoints):
                 initkwargs['cartpoint'] = initargs[0]
             else:
                 initkwargs['coordstr'] = initargs[0]
@@ -227,7 +227,7 @@ class SphericalCoordinatesBase(object):
             #cartesian-style initialization
             if cartpoint is not None:
                 if xyz or unit is not None:
-                    raise ValueError('Cannot give both a CartesianPoint and x/y/z/units')
+                    raise ValueError('Cannot give both a CartesianPoints and x/y/z/units')
                 x = cartpoint.x
                 y = cartpoint.y
                 z = cartpoint.z
@@ -342,7 +342,7 @@ class SphericalCoordinatesBase(object):
                 runit = self._distance._unit
             x, y, z = spherical_to_cartesian(r, self.latangle.radians,
                                                 self.lonangle.radians)
-            self._cartpoint = CartesianPoint(x, y, z, runit)
+            self._cartpoint = CartesianPoints(x, y, z, runit)
 
     def separation(self, other):
         """

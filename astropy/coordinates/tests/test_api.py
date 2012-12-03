@@ -633,7 +633,7 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from .. import Distance, ICRSCoordinates, GalacticCoordinates, CartesianPoint
+    from .. import Distance, ICRSCoordinates, GalacticCoordinates, CartesianPoints
     from ...cosmology import WMAP5, WMAP7
 
     '''
@@ -691,13 +691,13 @@ def test_distances():
     '''
 
     (x, y, z) = (c2.x, c2.y, c2.z)
-    #this only computes the CartesianPoint *once*, and then caches it
+    #this only computes the CartesianPoints *once*, and then caches it
     npt.assert_almost_equal(x, 2)
     npt.assert_almost_equal(y, 4)
     npt.assert_almost_equal(z, 8)
 
     cpt = c2.cartesian
-    assert isinstance(cpt, CartesianPoint)
+    assert isinstance(cpt, CartesianPoints)
     npt.assert_almost_equal(cpt.x, 2)
     npt.assert_almost_equal(cpt.y, 4)
     npt.assert_almost_equal(cpt.z, 8)
@@ -707,7 +707,7 @@ def test_distances():
     unitcart = c3.cartesian
     npt.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
 
-    # CartesianPoint objects can be added and subtracted, which are
+    # CartesianPoints objects can be added and subtracted, which are
     # vector/elementwise they can also be given as arguments to a coordinate
     # system
     csum = ICRSCoordinates(c1.cartesian + c2.cartesian)

@@ -264,7 +264,7 @@ additional capabilities like arithmetic operations::
 
     >>> cp = c.cartesian
     >>> cp
-    <CartesianPoint (568.712888217, 107.300935969, 507.889909249) kpc>
+    <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
     >>> cp.x
     568.7128882165681
     >>> cp.y
@@ -274,9 +274,9 @@ additional capabilities like arithmetic operations::
     >>> cp.unit
     Unit("kpc")
     >>> cp + cp
-    <CartesianPoint (1137.42577643, 214.601871938, 1015.7798185) kpc>
+    <CartesianPoints (1137.42577643, 214.601871938, 1015.7798185) kpc>
     >>> cp - cp
-    <CartesianPoint (0.0, 0.0, 0.0) kpc>
+    <CartesianPoints (0.0, 0.0, 0.0) kpc>
 
 This cartesian representation can also be used to create a new coordinate
 object::
