@@ -691,10 +691,11 @@ def test_distances():
     c.distance = (12, u.parsec)
     c.distance.parsec = 12
 
-    #or initialize distances via redshifts
-    c.distance = Distance(z=0.2)  # uses current cosmology
+    #or initialize distances via redshifts - this is actually tested in the
+    #function below that checks for scipy. This is kept here as an example
+    #c.distance = Distance(z=0.2)  # uses current cosmology
     #with whatever your preferred cosmology may be
-    c.distance = Distance(z=0.2, cosmology=WMAP5)
+    #c.distance = Distance(z=0.2, cosmology=WMAP5)
 
 
     # Coordinate objects can be initialized with a distance using special
