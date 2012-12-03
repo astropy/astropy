@@ -64,8 +64,9 @@ class Time(object):
 
     Parameters
     ----------
-    val : sequence, str, or number
-        Value(s) to initialize the time or times
+    val : sequence, str, number, or `~astropy.time.Time` object
+        Value(s) to initialize the time or times.  If a `Time` object,
+        a simple copy will be made (or a deep copy if `copy` is True).
     val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times
     format : str, optional
@@ -95,6 +96,21 @@ class Time(object):
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0, copy=False):
+
+        # if the first input is a Time object, copy the attributes and don't do
+        # any of the parsing.  Copy the values if possible when `copy` is True
+        if isinstance(val, self.__class__):
+            if copy:
+                for attrname, attrvalue in val.__dict__.iteritems():
+                    if hasattr(attrvalue, 'copy'):
+                        setattr(self, attrname, attrvalue.copy())
+                    else:
+                        setattr(self, attrname, attrvalue)
+            else:
+                for attrname, attrvalue in val.__dict__.iteritems():
+                    setattr(self, attrname, attrvalue)
+            return
+
         self.lat = lat
         self.lon = lon
         if precision is not None:
