@@ -419,7 +419,7 @@ merge`_.
 
 If your feature branch is already on github and you rebase, you will have to force
 push the branch, a normal push would give an error. If the branch you rebased is
-called `cool-feature` and your github fork is available as the remote called `origin`,
+called ``cool-feature`` and your github fork is available as the remote called ``origin``,
 you use this command to force-push::
 
    git push -f origin cool-feature
@@ -427,7 +427,7 @@ you use this command to force-push::
 Note that this will overwrite the branch on github, i.e. this is one of the few ways
 you can actually loose commits with git.
 Also note that it is never allowed to force push to the main astropy repo (typically
-called `upstream`), because this would re-write commit history and thus cause problems
+called ``upstream``), because this would re-write commit history and thus cause problems
 for all others.
 
 .. _recovering-from-mess-up:
