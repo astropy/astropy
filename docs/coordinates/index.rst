@@ -14,6 +14,11 @@ uniform way.
     coordinates, i.e. one coordinate per object.  In the next release it will
     be expanded to accept arrays of coordinates.
 
+.. warning::
+    `~astropy.coordinates` is currently a work-in-progress, and thus it is
+    possible there will be significant API changes in later versions of
+    Astropy.
+
 
 Getting Started
 ===============
