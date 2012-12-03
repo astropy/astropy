@@ -1,0 +1,47 @@
+{
+    "__version__": 1, 
+    "catalogs": {
+        "The USNO-A2.0 Catalogue (Monet+ 1998) 1": {
+            "capabilityClass": "ConeSearch", 
+            "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
+            "capabilityValidationLevel": "", 
+            "contentLevel": "#Research#", 
+            "description": "USNO-A2.0 is a catalog of 526,280,881 stars, and is based on a re-reduction of the Precision Measuring Machine (PMM) scans that were the basis for the USNO-A1.0 catalog. The major difference between A2.0 and A1.0 is that A1.0 used the Guide Star Catalog (Lasker et al. 1986, see Cat. &lt;I/220&gt;) as its reference frame whereas A2.0 uses the ICRF as realized by the USNO ACT catalog (Urban et al. 1997, see Cat. II/246&gt;). A2.0 presents right ascension and declination (J2000, epoch of the mean of the blue and red plate) and the blue and red magnitude for each star. Usage of the ACT catalog as well as usage of new astrometric and photometric reduction algorithms should provide improved astrometry (mostly in the reduction of systematic errors) and improved photometry (because the brightest stars on each plate had B and V magnitudes measured by the Tycho experiment on the Hipparcos satellite). The basic format of the catalog and its compilation is the same as for A1.0, and most users should be able to migrate to this newer version with minimal effort.\n\nThis particular record describes access specifically to the \"out\" table within this catalog through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.  Consult the referenceURL for more information about this table.", 
+            "duplicatesIgnored": 0, 
+            "identifier": "ivo://CDS.VizieR/I/252#out", 
+            "interfaceClass": "ParamHTTP", 
+            "interfaceRole": "std?", 
+            "interfaceVersion": "", 
+            "maxRadius": 180.0, 
+            "maxRecords": 9999, 
+            "publisher": "CDS", 
+            "publisherID": "ivo://CDS", 
+            "referenceURL": "http://cdsarc.u-strasbg.fr/cgi-bin/Cat?I/252", 
+            "regionOfRegard": NaN, 
+            "resourceID": "ivo://CDS.VizieR/I/252", 
+            "shortName": "I/252", 
+            "subject": "#Positional_Data#", 
+            "tags": "Catalog", 
+            "title": "The USNO-A2.0 Catalogue (Monet+ 1998)", 
+            "type": "#Catalog#", 
+            "updated": "2011-09-14T20:20:21", 
+            "url": "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&", 
+            "validate_expected": "good", 
+            "validate_network_error": null, 
+            "validate_nexceptions": 0, 
+            "validate_nwarnings": 1, 
+            "validate_out_db_name": "good", 
+            "validate_version": "1.1", 
+            "validate_warning_types": [
+                "W22"
+            ], 
+            "validate_warnings": [
+                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/57/4f/1898273d7498efddc5a3544da882/vo.xml:13:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring"
+            ], 
+            "validate_xmllint": true, 
+            "validate_xmllint_content": "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/57/4f/1898273d7498efddc5a3544da882/vo.xml validates\n", 
+            "version": "27-Oct-1998", 
+            "waveband": "#Optical#"
+        }
+    }
+}

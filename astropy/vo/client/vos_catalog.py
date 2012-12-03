@@ -3,8 +3,9 @@
 Common utilities for accessing VO simple services.
 
 When run for the first time, catalogs database will be
-downloaded to a local cache. See `astropy.config` for
-caching behavior.
+downloaded to a local cache. Otherwise, cached data
+are used. To by-pass cached data, some functions have
+a `cache` keyword that can be set to `False`.
 
 *CONFIGURABLE PROPERTIES*
 
@@ -23,18 +24,18 @@ For more cone search examples, see `astropy.vo.client.conesearch`:
 
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
-Find catalog names containing 'iphas':
+Find catalog names containing 'usno*a2':
 
->>> cat_names = my_db.list_catalogs(match_string='iphas', sort=True)
+>>> cat_names = my_db.list_catalogs(match_string='usno*a2', sort=True)
 
 Get information for first catalog from above. Catalog
 fields may vary:
 
 >>> my_cat = my_db.get_catalog(cat_names[0])
->>> print my_cat
+>>> print(my_cat)
 >>> cat_keys = my_cat.keys()
 >>> cat_url = my_cat['url']
->>> max_rec = my_cat['maxRecords']
+>>> max_rad = my_cat['maxRadius']
 
 One can also get information for a catalog using its URL.
 If URL yields multiple catalogs, only first match is given:
@@ -44,7 +45,7 @@ If URL yields multiple catalogs, only first match is given:
 To get all the matching catalogs by URL:
 
 >>> cat_list = []
->>> for key, cat in my_db.get_catalogs_by_url(url):
+>>> for key, cat in my_db.get_catalogs_by_url(cat_url):
 >>>     cat_list.append(cat)
 
 To get all catalogs in the database:

@@ -2,6 +2,12 @@
 """
 Tests for `astropy.vo.server`
 
+.. note::
+
+    This test will fail if external URL query status
+    changes. This is beyond the control of AstroPy.
+    When this happens, update the test.
+
 Examples
 --------
 Running from top level via command line::
@@ -15,29 +21,22 @@ Running from `astropy/vo/server/tests` directory::
 
 """
 # STDLIB
+import filecmp
 import json
 import os
 import shutil
 import tempfile
 
 # LOCAL
-from .. import validate
+from .. import inspect, validate
+from ...client.vos_catalog import BASEURL
 from ....tests.helper import pytest, remote_data
-from ....utils.data import get_pkg_data_filename
+from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
 
 
 @remote_data
 class TestConeSearchValidation():
-    """
-    Validation on a small subset of Cone Search sites.
-
-    .. note::
-
-        This test will fail if external URL query status
-        changes. This is beyond the control of AstroPy.
-        When this happens, update the test.
-
-    """
+    """Validation on a small subset of Cone Search sites."""
     def setup_class(self):
         self.datadir = 'data'
         self.out_dir = tempfile.mkdtemp()
@@ -65,15 +64,54 @@ class TestConeSearchValidation():
     def test_url_list(self):
         local_outdir = os.path.join(self.out_dir, 'subtmp1')
         local_list = [
-            'http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?'
-            'table=batse4b&',
-            'http://vizier.u-strasbg.fr/viz-bin/votable/-A?'
-            '-source=J/AJ/130/2212/table3&']
+            'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&']
         validate.check_conesearch_sites(destdir=local_outdir,
                                         url_list=local_list)
         _compare_catnames(get_pkg_data_filename(
-            os.path.join(self.datadir, 'conesearch_warn_subset.json')),
-            os.path.join(local_outdir, 'conesearch_warn.json'))
+            os.path.join(self.datadir, 'conesearch_good_subset.json')),
+            os.path.join(local_outdir, 'conesearch_good.json'))
+
+    def teardown_class(self):
+        shutil.rmtree(self.out_dir)
+
+
+class TestConeSearchResults():
+    """Inspection of `TestConeSearchValidation` results."""
+    def setup_class(self):
+        self.datadir = 'data'
+        self.out_dir = tempfile.mkdtemp()
+        BASEURL.set(_find_pkg_data_path(self.datadir) + os.sep)
+        self.r = inspect.ConeSearchResults()
+
+    def test_catkeys(self):
+        assert self.r.catkeys['good'] == \
+            ['HST Guide Star Catalog 2.3 1',
+             'The USNO-A2.0 Catalogue (Monet+ 1998) 1']
+        assert self.r.catkeys['warn'] == \
+            ['SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs 1']
+        assert self.r.catkeys['exception'] == \
+            ['2MASS All-Sky Point Source Catalog 1']
+        assert self.r.catkeys['error'] == \
+            ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1']
+
+    def gen_cmp(self, func, oname, *args, **kwargs):
+        dat_file = get_pkg_data_filename(os.path.join(self.datadir, oname))
+        out_file = os.path.join(self.out_dir, oname)
+        with open(out_file, 'w') as fout:
+            func(fout=fout, *args, **kwargs)
+        assert filecmp.cmp(dat_file, out_file, shallow=False)
+
+    def test_tally(self):
+        self.gen_cmp(self.r.tally, 'tally.out')
+
+    def test_listcats(self):
+        self.gen_cmp(self.r.list_cats, 'listcats1.out', 'good')
+        self.gen_cmp(self.r.list_cats, 'listcats2.out', 'good',
+                     ignore_noncrit=True)
+
+    def test_printcat(self):
+        self.gen_cmp(self.r.print_cat, 'printcat.out',
+                     '2MASS All-Sky Point Source Catalog 1')
 
     def teardown_class(self):
         shutil.rmtree(self.out_dir)

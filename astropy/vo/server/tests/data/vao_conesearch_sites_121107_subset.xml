@@ -31,475 +31,84 @@
         <TABLEDATA>
           <TR>
             <TD>Catalog</TD>
-            <TD>SAXWFCCAT</TD>
-            <TD>BeppoSAX Wide Field Camera X-Ray Source Catalog</TD>
-            <TD>This table contains the catalog of X-ray sources detected by the two Wide Field Cameras (WFCs) in complete observations on board BeppoSAX during its 6 years of operational lifetime, i.e., between April 1996 and April 2002. The BeppoSAX WFCs were coded mask instruments sensitive in the 2 - 28 keV energy band with a 40 x 40 square degree fields of view, pointing in opposite directions and perpendicularly to the BeppoSAX Narrow Field Instruments (NFI). The WFCs were usually operated simultaneously to NFI observations, each lasting up to several days. The WFCs observed thus the entire sky several times with a typical sensitivity of 2 to 10 mCrab. A systematic analysis of all WFC observations in the BeppoSAX archive has been carried out using the latest post-mission release of the WFC analysis software and calibrations. The catalog includes 253 distinct sources, obtained from a total sample of 8253 WFC detections.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#X-ray#</TD>
-            <TD>ivo://nasa.heasarc/saxwfccat#1</TD>
-            <TD>2008-12-24T00:00:00</TD>
-            <TD>#Survey Source#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0833333333333333333</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/saxwfccat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=saxwfccat&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/bepposax/saxwfccat.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>NGC6530OID: NGC 6530 Chandra Point Source Optical/IR Identifications Catalog (LEDAS)</TD>
-            <TD>Cone Search service for NGC6530OID: NGC 6530 Chandra Point Source Optical/IR Identifications Catalog (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, ngc6530oid: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/ngc6530oid#1</TD>
-            <TD>2008-03-26T21:25:39</TD>
-            <TD>#LEDAS#ngc6530oid#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/ngc6530oid</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=ngc6530oid&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>BATSE/Spec</TD>
-            <TD>CGRO/BATSE Complete Spectral Catalog of Bright GRBs</TD>
-            <TD>The CGRO/BATSE Complete Spectral Catalog of Bright Gamma-Ray Bursts (GRBs) contains the results of a systematic spectral analysis of 350 bright GRBs observed with the Burst and Transient Source Experiment (BATSE; spectral range ~ 30 keV - 2 MeV) with high temporal and spectral resolution. The sample was selected from the complete set of 2704 BATSE GRBs based on their energy fluence or peak photon flux values in order to assure good statistics, and included 17 short GRBs. To obtain well-constrained spectral parameters, several photon models were used to fit each spectrum. Spectral parameters resulting from the fits using different models were compared, and the spectral parameters that best represent each spectrum were statistically determined, taking into account the parameterization differences among the models. A thorough analysis was performed on 350 time-integrated and 8459 time-resolved burst spectra, and the effects of integration times in determining the spectral parameters were explored. Using the results, correlations among spectral parameters and their evolution pattern within each burst were studied. The resulting spectral catalog provides reliable constraints on particle acceleration and emission mechanisms in GRBs, and is the most comprehensive study of spectral properties of GRB prompt emission to date. The files containing the details of the spectral model fits to the GRBs are also available as data products associated with this Browse table.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Gamma-ray#</TD>
-            <TD>ivo://nasa.heasarc/batsegrbsp#1</TD>
-            <TD>2008-12-24T00:00:00</TD>
-            <TD>#GRB#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>5</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/batsegrbsp</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batsegrbsp&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/cgro/batsegrbsp.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>CHESSCAT</TD>
-            <TD>ChaMP Extended Stellar Survey (ChESS) X-Ray Catalog</TD>
-            <TD>The ChaMP Extended Stellar Survey (ChESS) X-ray catalog contains 348 X-ray-emitting stars identified from correlating the Extended Chandra Multiwavelength Project (ChaMP), a wide-area serendipitous survey based on archival X-ray images, with the Sloan Digital Sky Survey (SDSS). The authors used morphological star/galaxy separation, matching to an SDSS quasar catalog, an optical color-magnitude cut, and X-ray data-quality tests to create this catalog, from a sample of 2121 matched ChaMP/SDSS sources. Their cuts retain 92% of the spectroscopically confirmed stars in the original sample while excluding 99.6% of the 684 spectroscopically confirmed extragalactic sources. Fewer than 3% of the sources in their final catalog are previously identified stellar X-ray emitters. For 42 catalog members, spectroscopic classifications are available in the literature. New spectral classifications and H-alpha measurements are presented for an additional 79 stars. The catalog is dominated by main-sequence stars; the authors estimate the fraction of giants in ChESS to be ~10%. They identify seven giant stars (including a possible Cepheid and an RR Lyrae star) as ChaMP sources, as well as three cataclysmic variables. They derive distances from ~10 to 2000 pc for the stars in the catalog using photometric parallax relations appropriate for dwarfs on the main sequence and calculate their X-ray and bolometric luminosities. These stars lie in a unique space in the L_X-distance plane, filling the gap between the nearby stars identified as counterparts to sources in the ROSAT All Sky Survey and the more distant stars detected in deep Chandra and XMM-Newton surveys. For 36 newly identified X-ray-emitting M stars, the authors calculated L_H-alpha/L_bol. The quantities L_H-alpha/L_bol and L_X/L_bol are linearly related below L_X/L_bol ~ 3 x 10&amp;lt;sup&amp;gt;-4&amp;lt;/sup&amp;gt;, while L_H-alpha/L_bol appears to turn over at larger L_X/L_bol values. Stars with reliable SDSS photometry have an ~0.1 mag blue excess in u-g, likely due to increased chromospheric continuum emission. Photometric metallicity estimates suggest that the sample is evenly split between the young and old disk populations of the Galaxy; the lowest activity sources belong to the old disk population, a clear signature of the decay of magnetic activity with age.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Optical#X-ray#</TD>
-            <TD>ivo://nasa.heasarc/chesscat#1</TD>
-            <TD>2010-12-02T00:00:00</TD>
-            <TD>#Survey Source#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/chesscat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=chesscat&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/chandra/chesscat.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>RASSDWARF: ROSAT All-Sky Survey: A-K Dwarfs/Subgiants (LEDAS)</TD>
-            <TD>Cone Search service for RASSDWARF: ROSAT All-Sky Survey: A-K Dwarfs/Subgiants (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, rassdwarf: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/rassdwarf#1</TD>
-            <TD>2008-03-26T21:26:09</TD>
-            <TD>#LEDAS#rassdwarf#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/rassdwarf</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=rassdwarf&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>BATSE4B</TD>
-            <TD>CGRO/BATSE 4B Catalog</TD>
-            <TD>This database table comprises the 4th BATSE Gamma-Ray Burst Catalog, hereafter referred to as 4B. It specifies the locations and times for 1637 triggered gamma-ray bursts observed from 19 April, 1991 until 29 August, 1996. It therefore includes the data from the 3B catalog. The only revisions from the 3B catalog are improved locations for the trigger #s 741, 2311, and 3155. Bursts since the end of the 1B catalog (March 1992) occurred when the Compton Gamma-Ray Observatory (CGRO) tape recorders were experiencing numerous errors. Consequently, there are gaps in the data of many bursts that preclude valid measurement of peak flux, peak rate, fluence, or duration. Peak rates on the 1 second timescale from each detector are almost always available. These data (called MAXBC rates) can be used to determine burst location. Previous difficulties with this data type have been largely removed, and we now believe that the systematic errors for MAXBC-located bursts are the same as for bursts located with other data types. It is still true however, that the MAXBC-located bursts usually have larger statistical errors than would be the case if another data type were available. The parameter called comments_position in this database contains comments on MAXBC-located bursts. A number of CGRO and BATSE flight software changes have significantly reduced the problem of data gaps since March of 1993. Much additional material about the BATSE 4B Catalog can be found on the Compton Observatory Science Support Center website at &amp;lt;pre&amp;gt; &amp;lt;a href="http://cossc.gsfc.nasa.gov/docs/cgro/batse/4Bcatalog/"&amp;gt;http://cossc.gsfc.nasa.gov/docs/cgro/batse/4Bcatalog/&amp;lt;/a&amp;gt; &amp;lt;/pre&amp;gt; including some supporting tabular material: (i) An Exposure Table which describes the average exposure time as a function of declination for burst detection, (ii) a Trigger Efficiency Table which describes the fraction of time a burst will be triggered on each of the trigger timescales, as a function of the burst intensity, and (iii) a Trigger Criteria History Table which lists the trigger thresholds and the channels used for triggering as functions both of time and trigger number.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Gamma-ray#</TD>
-            <TD>ivo://nasa.heasarc/batse4b#1</TD>
-            <TD>2008-12-24T00:00:00</TD>
-            <TD>#GRB#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>5</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/batse4b</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=batse4b&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/cgro/batse4b.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>WRCAT: The VIIth Catalog of Galactic Wolf-Rayet Stars (LEDAS)</TD>
-            <TD>Cone Search service for WRCAT: The VIIth Catalog of Galactic Wolf-Rayet Stars (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, wrcat: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/wrcat#1</TD>
-            <TD>2008-03-26T21:27:26</TD>
-            <TD>#LEDAS#wrcat#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/wrcat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=wrcat&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>GLXSDSSQSO</TD>
-            <TD>GALEX/SDSS Quasar Catalog</TD>
-            <TD>This table contains the result of an analysis of the broad-band UV and optical properties of z ~&amp;lt; 3.4 quasars matched in the Galaxy Evolution Explorer (GALEX) General Data Release 1 (GR1) and the Sloan Digital Sky Survey (SDSS) Data Release 3 (DR3). Of the 6371 SDSS DR3 quasars covered by 204 GALEX GR1 tiles and listed in this table, 5380 (84%) have near-UV detections, while 3034 (48%) have both near-UV and far-UV detections using a matching radius of 7 arcseconds. Most of the DR3 sample quasars are detected in the near-UV until z ~ 1.7, with the near-UV detection fraction dropping to ~50% by z ~ 2. Statistical tests performed on the distributions of nondetections indicate that the optically selected quasars missed in the UV tend to be optically faint or at high redshift. The GALEX positions are shown to be consistent with the SDSS astrometry to within an rms scatter of 0.6 - 0.7 arcsecs in each coordinate, and the empirically determined photometric errors from multiepoch GALEX observations significantly exceed the Poissonian errors quoted in the GR1 object catalogs. The UV-detected quasars are well separated from stars in UV-optical color-color space, with the UV-optical relative colors suggesting a marginally detected population of reddened objects due to absorption along the line of sight or dust associated with the quasar. The resulting spectral energy distributions (SEDs) cover ~350 - 9000 Angstroms (rest frame), where the overall median SED peaks near the Lyman-Alpha emission line, as found in other UV quasar studies. The large sample size allows the authors to construct median SEDs in small bins of redshift and luminosity, and they find that the median SED becomes harder (bluer) at UV wavelengths for quasars with lower continuum luminosity. The detected UV-optical flux as a function of redshift is qualitatively consistent with attenuation by intervening Lyman-absorbing clouds.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Optical#UV#</TD>
-            <TD>ivo://nasa.heasarc/glxsdssqso#1</TD>
-            <TD>2011-04-06T00:00:00</TD>
-            <TD>#Quasar#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/glxsdssqso</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=glxsdssqso&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/galex/glxsdssqso.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>MARKARIAN: Markarian Galaxies (LEDAS)</TD>
-            <TD>Cone Search service for MARKARIAN: Markarian Galaxies (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, markarian: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/markarian#1</TD>
-            <TD>2008-03-26T21:25:22</TD>
-            <TD>#LEDAS#markarian#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/markarian</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=markarian&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>IPHAS IDR: service</TD>
-            <TD>IPHAS is a survey of the northern galactic plane in r, i and Halpha using the INT/WFC. For more details about the survey and the data release see Drew et al. 2005 and Gonzalez-Solares et al. 2007.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: IDR, PhotoObj: cone search</TD>
-            <TD>Cambridge Astronomy Survey Unit</TD>
-            <TD/>
-            <TD>ivo://uk.ac.cam.ast/iphas-dsa-catalog/IDR#3</TD>
-            <TD>2008-04-02T14:20:57</TD>
-            <TD>#IPHAS#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.cam.ast/iphas-dsa-catalog/IDR</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?DSACAT=IDR&amp;amp;DSATAB=PhotoObj&amp;amp;</TD>
-            <TD>10.0</TD>
-            <TD>999999999</TD>
-            <TD/>
-            <TD>http://www.iphas.org/idr</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>SDSSXMMQSO</TD>
-            <TD>Sloan Digital Sky Survey (DR5)/XMM-Newton Quasar Survey Catalog</TD>
-            <TD>This table contains the 5th Data Release Sloan Digital Sky Survey (DR5 SDSS)/XMM-Newton Quasar Survey Catalog. This catalog contains 792 SDSS DR5 quasars with optical spectra that have been observed serendipitously in the X-rays with XMM-Newton. These quasars cover a redshift range of z = 0.11 - 5.41 and a magnitude range of i = 15.3 - 20.7. Substantial numbers of radio-loud (70) and broad absorption line (51) quasars exist within this sample. Significant X-ray detections at &amp;gt;=2 sigma account for 87% of the sample (685 quasars), and 473 quasars are detected at &amp;gt;=6 sigma, sufficient to allow X-ray spectral fits. For detected sources, ~60% have X-ray fluxes between F(2-10 keV) = (1-10) x 10&amp;lt;sup&amp;gt;-14&amp;lt;/sup&amp;gt; erg cm&amp;lt;sup&amp;gt;-2&amp;lt;/sup&amp;gt; s&amp;lt;sup&amp;gt;-1&amp;lt;/sup&amp;gt;. The authors fit a single power law, a fixed power law with intrinsic absorption left free to vary, and an absorbed power-law model to all quasars with X-ray signal-to-noise ratio &amp;gt;= 6, resulting in a weighted mean photon index Gamma = 1.91 +/- 0.08, with an intrinsic dispersion sigma(Gamma) = 0.38. For the 55 sources (11.6%) that prefer intrinsic absorption, the authors find a weighted mean N_H = 1.5 +/- 0.3 x 10&amp;lt;sup&amp;gt;21&amp;lt;/sup&amp;gt; cm&amp;lt;sup&amp;gt;-2&amp;lt;/sup&amp;gt;. They find that Gamma correlates significantly with optical color, Delta(g-i), the optical-to-X-ray spectral index (alpha_ox), and the X-ray luminosity. While the first two correlations can be explained as artifacts of undetected intrinsic absorption, the correlation between Gamma and X-ray luminosity appears to be a real physical correlation, indicating a pivot in the X-ray slope.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#X-ray#</TD>
-            <TD>ivo://nasa.heasarc/sdssxmmqso#1</TD>
-            <TD>2009-07-21T00:00:00</TD>
-            <TD>#AGN#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/sdssxmmqso</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssxmmqso&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/xmm-newton/sdssxmmqso.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>twomass-psc</TD>
-            <TD>The 2MASS All-Sky Catalog</TD>
-            <TD>The Two Micron All Sky Survey (2MASS) project is designed to close the gap between our current technical capability and our knowledge of the near-infrared sky. In addition to providing a context for the interpretation of results obtained at infrared and other wavelengths, 2MASS will provide direct answers to immediate questions on the large-scale structure of the Milky Way and the Local Universe. To achieve these goals, 2MASS is uniformly scanning the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 10, using a pixel size of 2.0". This will achieve an 80,000-fold improvement in sensitivity relative to earlier surveys. 2MASS uses two new, highly-automated 1.3-m telescopes, one at Mt. Hopkins, AZ, and one at CTIO, Chile. Each telescope is equipped with a three-channel camera, each channel consisting of a 256x256 array of HgCdTe detectors, capable of observing the sky simultaneously at J (1.25 {mu}m), H (1.65 {mu}m), and Ks (2.17 {mu}m), to a 3{sigma} limiting sensitivity of 17.1, 16.4 and 15.3mag in the three bands. The 2MASS arrays image the sky while the telescopes scan smoothly in declination at a rate of ~1' per second. The 2MASS data "tiles" are 6 deg. long in the declination direction and one camera frame (8.5') wide. The camera field-of-view shifts by ~1/6 of a frame in declination from frame-to-frame. The camera images each point on the sky six times for a total integration time of 7.8 s, with sub-pixel "dithering", which improves the ultimate spatial resolution of the final Atlas Images. The University of Massachusetts (UMass) is responsible for the overall management of the project, and for developing the infrared cameras and on-site computing systems at both facilities. The Infrared Processing and Analysis Center (IPAC) is responsible for all data processing through the Production Pipeline, and construction and distribution of the data products. The 2MASS project involves the participation of members of the Science Team from several different institutions. The 2MASS project is funding by the National Aeronautics and Space Administration (NASA) and the National Science Foundation (NSF). Acknowledging 2MASS in publications: Please include the following in any published material that makes use of the 2MASS data products: "This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation."
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>Sternberg Astronomical Institute Virtual Observatory Project</TD>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/twomass-psc#1</TD>
-            <TD>2006-06-17T14:35:29</TD>
-            <TD>#Catalogs#</TD>
-            <TD>#Archive#</TD>
-            <TD/>
-            <TD/>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/twomass-psc</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vo.astronet.ru/sai_cas/conesearch?cat=twomass&amp;amp;tab=psc&amp;amp;</TD>
-            <TD>3</TD>
-            <TD>1000000</TD>
-            <TD>ivo://astronet.ru/organisation</TD>
-            <TD>http://vo.astronet.ru/cas/</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>HST.FOS</TD>
-            <TD>Faint Object Spectrograph</TD>
-            <TD>The Faint Object Spectrograph (FOS) was one of the 4 original axial instruments aboard the Hubble Space Telescope (HST). The FOS was designed to make spectroscopic observations of astrophysical sources from the near ultraviolet to the near infrared (1150 - 8000 Angstroms). The instrument was removed from HST during the Second Servicing Mission in February 1997.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
+            <TD>GSC23</TD>
+            <TD>HST Guide Star Catalog 2.3</TD>
+            <TD>The Guide Star Catalog II (GSC-II) is an all-sky optical catalog based on 1" resolution scans of the photographic Sky Survey plates, at two epochs and three bandpasses, from the Palomar and UK Schmidt telescopes. This all-sky catalog will ultimately contains positions, proper motions, classifications, and magnitudes in multiple bandpasses for almost a billion objects down to approximately Jpg=21, Fpg=20. The GSC-II is currently used for HST Bright Object Protection and HST pointing. Looking ahead, the GSC-II will form the basis of the Guide Star Catalog for JWST. This was constructed in collaboration with ground-based observatories for use with the GEMINI, VLT and GALILEO telescopes</TD>
             <TD>Space Telescope Science</TD>
-            <TD>#Optical#UV#Infrared#</TD>
-            <TD>ivo://archive.stsci.edu/hst/fos#1</TD>
-            <TD>2011-09-14T18:11:38</TD>
-            <TD>#Cosmology#Galaxies#Stars#Nebulae#Planets#</TD>
-            <TD>#Archive#</TD>
+            <TD>#Optical#</TD>
+            <TD>ivo://archive.stsci.edu/gsc/gsc2.3#1</TD>
+            <TD>2012-03-08T20:39:06</TD>
+            <TD>#Surveys#</TD>
+            <TD>#Catalog#</TD>
             <TD>#Research#</TD>
-            <TD>2.99999992421363E-05</TD>
             <TD/>
-            <TD>ivo://archive.stsci.edu/hst/fos</TD>
+            <TD>2.3.2</TD>
+            <TD>ivo://archive.stsci.edu/gsc/gsc2.3</TD>
             <TD>ConeSearch</TD>
             <TD>ivo://ivoa.net/std/ConeSearch</TD>
             <TD>2</TD>
             <TD>ParamHTTP</TD>
             <TD/>
             <TD>std?</TD>
-            <TD>http://archive.stsci.edu/hst/search.php?sci_data_set_name=Y*&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>100</TD>
+            <TD>http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23&amp;amp;</TD>
+            <TD>1</TD>
+            <TD>1000</TD>
             <TD/>
-            <TD>http://www.stsci.edu/hst/fos</TD>
+            <TD>http://gsss.stsci.edu/Catalogs/GSC/GSC2/GSC2.htm</TD>
           </TR>
           <TR>
             <TD>Catalog</TD>
-            <TD>gsc2_3_2</TD>
-            <TD>The Guide Star Catalog II (GSC-II), version 2.3.2</TD>
-            <TD>The Guide Star Catalog II (GSC-II) is an all-sky optical catalog based on 1" resolution scans of the photographic Sky Survey plates, at two epochs and three bandpasses, from the Palomar and UK Schmidt telescopes. This all-sky catalog will ultimately contains positions, proper motions, classifications, and magnitudes in multiple bandpasses for almost a billion objects down to approximately Jpg=21, Fpg=20. The GSC-II is currently used for HST Bright Object Protection, and will replace GSC-I for HST pointing in cycle 15. Looking ahead, the GSC-II will form the basis of the Guide Star Catalog for JWST. This was constructed in collaboration with ground-based observatories
+            <TD>I/252</TD>
+            <TD>The USNO-A2.0 Catalogue (Monet+ 1998)</TD>
+            <TD>USNO-A2.0 is a catalog of 526,280,881 stars, and is based on a re-reduction of the Precision Measuring Machine (PMM) scans that were the basis for the USNO-A1.0 catalog. The major difference between A2.0 and A1.0 is that A1.0 used the Guide Star Catalog (Lasker et al. 1986, see Cat. &amp;lt;I/220&amp;gt;) as its reference frame whereas A2.0 uses the ICRF as realized by the USNO ACT catalog (Urban et al. 1997, see Cat. II/246&amp;gt;). A2.0 presents right ascension and declination (J2000, epoch of the mean of the blue and red plate) and the blue and red magnitude for each star. Usage of the ACT catalog as well as usage of new astrometric and photometric reduction algorithms should provide improved astrometry (mostly in the reduction of systematic errors) and improved photometry (because the brightest stars on each plate had B and V magnitudes measured by the Tycho experiment on the Hipparcos satellite). The basic format of the catalog and its compilation is the same as for A1.0, and most users should be able to migrate to this newer version with minimal effort.
 
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>Sternberg Astronomical Institute Virtual Observatory Project</TD>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/gsc2_3_2#1</TD>
-            <TD>2006-06-17T14:35:29</TD>
-            <TD>#Catalogs#</TD>
-            <TD>#Archive#</TD>
-            <TD/>
-            <TD/>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/gsc2_3_2</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vo.astronet.ru/sai_cas/conesearch?cat=gsc2_3_2&amp;amp;tab=main&amp;amp;</TD>
-            <TD>3</TD>
-            <TD>1000000</TD>
-            <TD>ivo://astronet.ru/organisation</TD>
-            <TD>http://vo.astronet.ru/cas/</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>sdss_blah</TD>
-            <TD>SDSSNBCQSC: Sloan Digital Sky Survey NBC Quasar Candidate Catalog (LEDAS)</TD>
-            <TD>Cone Search service for SDSSNBCQSC: Sloan Digital Sky Survey NBC Quasar Candidate Catalog (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, sdssnbcqsc: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/sdssnbcqsc#1</TD>
-            <TD>2008-03-26T21:26:43</TD>
-            <TD>#LEDAS#sdssnbcqsc#</TD>
+This particular record describes access specifically to the "out" table within this catalog through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.  Consult the referenceURL for more information about this table.</TD>
+            <TD>CDS</TD>
+            <TD>#Optical#</TD>
+            <TD>ivo://CDS.VizieR/I/252#out</TD>
+            <TD>2011-09-14T20:20:21</TD>
+            <TD>#Positional_Data#</TD>
             <TD>#Catalog#</TD>
             <TD>#Research#</TD>
             <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/sdssnbcqsc</TD>
+            <TD>27-Oct-1998</TD>
+            <TD>ivo://CDS.VizieR/I/252</TD>
             <TD>ConeSearch</TD>
             <TD>ivo://ivoa.net/std/ConeSearch</TD>
             <TD/>
             <TD>ParamHTTP</TD>
             <TD/>
             <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=sdssnbcqsc&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
+            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&amp;amp;</TD>
+            <TD>180</TD>
+            <TD>9999</TD>
+            <TD>ivo://CDS</TD>
+            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?I/252</TD>
           </TR>
           <TR>
             <TD>Catalog</TD>
-            <TD>sdssdr7-matchhea</TD>
-            <TD>Data release 7 of Sloan Digital Sky Survey catalogs</TD>
+            <TD>sdssdr7-photoobj</TD>
+            <TD>SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs</TD>
             <TD>
 
 This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
             <TD>Sternberg Astronomical Institute Virtual Observatory Project</TD>
             <TD/>
-            <TD>ivo://astronet.ru/cas/sdssdr7-matchhead#1</TD>
+            <TD>ivo://astronet.ru/cas/sdssdr7-photoobjall#1</TD>
             <TD>2006-06-17T12:01:07</TD>
             <TD>#Catalogs#</TD>
             <TD>#Archive#</TD>
             <TD/>
             <TD/>
             <TD/>
-            <TD>ivo://astronet.ru/cas/sdssdr7-matchhead</TD>
+            <TD>ivo://astronet.ru/cas/sdssdr7-photoobjall</TD>
             <TD>ConeSearch</TD>
             <TD>ivo://ivoa.net/std/ConeSearch</TD>
             <TD/>
             <TD>ParamHTTP</TD>
             <TD/>
             <TD>std?</TD>
-            <TD>http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;amp;tab=matchhead&amp;amp;</TD>
+            <TD>http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;amp;tab=photoobjall&amp;amp;</TD>
             <TD>3</TD>
             <TD>1000000</TD>
             <TD>ivo://astronet.ru/organisation</TD>
@@ -507,506 +116,63 @@ This particular record describes access to the position-based catalog data in th
           </TR>
           <TR>
             <TD>Catalog</TD>
-            <TD>SDSS(QSO)</TD>
-            <TD>Sloan Digital Sky Survey Quasar Catalog (7th Data Release)</TD>
-            <TD>This table contains the fifth edition of the Sloan Digital Sky Survey (SDSS) Quasar Catalog, which is based upon the SDSS Seventh Data Release. The catalog, which contains 105,783 spectroscopically confirmed quasars, represents the conclusion of the SDSS-I and SDSS-II quasar survey. There is an increase of 28,354 entries over the previous edition. The catalog consists of the SDSS objects that have luminosities larger than an absolute i-magnitude M_i = -22.0 (in a cosmology with H_0 = 70 km s&amp;lt;sup&amp;gt;-1&amp;lt;/sup&amp;gt; Mpc&amp;lt;sup&amp;gt;-1&amp;lt;/sup&amp;gt;, Omega_M = 0.3, and Omega_Lambda = 0.7), have at least one emission line with a FWHM larger than 1000 km s&amp;lt;sup&amp;gt;-1&amp;lt;/sup&amp;gt; or have interesting/complex absorption features, are fainter than an apparent i magnitude ~ 15.0, and have highly reliable redshifts. The area covered by the catalog is ~ 9380 deg&amp;lt;sup&amp;gt;2&amp;lt;/sup&amp;gt;. The quasar redshifts range from 0.065 to 5.46, with a median value of 1.49; the catalog includes 1248 quasars at redshifts greater than 4, of which 56 are at redshifts greater than 5. The catalog contains 9210 quasars with i &amp;lt; 18; slightly over half of the entries have i &amp;lt; 19. For each object the catalog presents positions accurate to better than 0.1" rms per coordinate, five-band (ugriz) CCD-based photometry with typical accuracy of 0.03 magnitudes, and information on the morphology and selection method. The catalog also contains basic radio, near-infrared, and X-ray emission properties of the quasars, when available, from other large-area surveys. The calibrated digital spectra cover the wavelength region 3800-9200 Angstroms at a spectral resolution of ~ 2000; the spectra can be retrieved from the SDSS public database using the information provided in the catalog. Over 96% of the objects in the catalog were discovered by the SDSS. Much more information on the SDSS is available at the project's web site at &amp;lt;a href="http://www.sdss.org/"&amp;gt;http://www.sdss.org/&amp;lt;/a&amp;gt;.
+            <TD>2MASS-PSC</TD>
+            <TD>2MASS All-Sky Point Source Catalog</TD>
+            <TD>2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 1.
 
 This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Optical#</TD>
-            <TD>ivo://nasa.heasarc/sdssquasar#1</TD>
-            <TD>2010-06-09T00:00:00</TD>
-            <TD>#Survey Source#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/sdssquasar</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=sdssquasar&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/galaxy-catalog/sdssquasar.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>ROSATSRC: ROSAT Catalog PSPC RX MPE Sources (LEDAS)</TD>
-            <TD>Cone Search service for ROSATSRC: ROSAT Catalog PSPC RX MPE Sources (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, rosatsrc: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/rosatsrc#1</TD>
-            <TD>2008-03-26T21:26:25</TD>
-            <TD>#LEDAS#rosatsrc#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/rosatsrc</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=rosatsrc&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>SAXWFCLOG: BeppoSAX WFC Observation Log (LEDAS)</TD>
-            <TD>Cone Search service for SAXWFCLOG: BeppoSAX WFC Observation Log (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, saxwfclog: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/saxwfclog#1</TD>
-            <TD>2008-03-26T21:26:42</TD>
-            <TD>#LEDAS#saxwfclog#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/saxwfclog</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=saxwfclog&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>ZCAT: CfA Redshift Catalog (June 1995 Version) (LEDAS)</TD>
-            <TD>Cone Search service for ZCAT: CfA Redshift Catalog (June 1995 Version) (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, zcat: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/zcat#1</TD>
-            <TD>2010-06-15T10:46:30</TD>
-            <TD>#LEDAS#zcat#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/zcat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=zcat&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>ROS13HRXMM</TD>
-            <TD>ROSAT 13-hour Field XMM-Newton X-Ray Source Catalog</TD>
-            <TD>This table contains the results of a deep X-ray survey conducted with XMM-Newton, centered on the UK ROSAT 13-hours deep field area. This region covers 0.18 square degrees, and is the first of the two areas covered with XMM-Newton as part of an extensive multi-wavelength survey designed to study the nature and evolution of the faint X-ray source population. This table contains the final catalog of 225 sources. Within the central 9 arcminutes, 68% of the source positions are accurate to 2 arcseconds, making optical follow-up relatively straightforward. The authors construct the N(&amp;gt;S) relation in four energy bands: 0.2-0.5, 0.5-2, 2-5 and 5-10 keV. In all but the highest energy band, they find that the source counts can be represented by a double power law with a bright-end slope consistent with the Euclidean case and a break around 10^-14 erg cm^-2 s^-1. Below this flux, the counts exhibit a flattening. The 13-hours deep field is centered on the sky coordinates RA(J2000) = 13 34 37.1, Dec (J2000) = +37 53 02.2. The XMM-Newton observations were carried out in three separate revolutions during June 2001 for a total exposure time of 200ks. Approximately 40% of the total observation time was affected by high particle background flares, arising from soft protons hitting the detector. The data were therefore temporally filtered to remove these high-background periods. Filtering reduced the total useful exposure time from ~200 ks to ~120 ks.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#X-ray#</TD>
-            <TD>ivo://nasa.heasarc/ros13hrxmm#1</TD>
-            <TD>2008-12-24T00:00:00</TD>
-            <TD>#Survey Source#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/ros13hrxmm</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=ros13hrxmm&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/xmm-newton/ros13hrxmm.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>EXOGPS: EXOSAT/ME Galactic Plane Survey (LEDAS)</TD>
-            <TD>Cone Search service for EXOGPS: EXOSAT/ME Galactic Plane Survey (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, exogps: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/exogps#1</TD>
-            <TD>2011-02-10T22:15:44</TD>
-            <TD>#LEDAS#exogps#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/exogps</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=exogps&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>SPITZMASTR: Spitzer Space Telescope Observation Log (LEDAS)</TD>
-            <TD>Cone Search service for SPITZMASTR: Spitzer Space Telescope Observation Log (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, spitzmastr: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/spitzmastr#1</TD>
-            <TD>2008-03-26T21:26:52</TD>
-            <TD>#LEDAS#spitzmastr#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/spitzmastr</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=spitzmastr&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>EUVECAT2: EUVE Second Source Catalog (LEDAS)</TD>
-            <TD>Cone Search service for EUVECAT2: EUVE Second Source Catalog (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, euvecat2: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/euvecat2#1</TD>
-            <TD>2011-02-10T22:15:42</TD>
-            <TD>#LEDAS#euvecat2#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/euvecat2</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=euvecat2&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>PMSUCAT: Palomar/MSU Nearby Star Survey (LEDAS)</TD>
-            <TD>Cone Search service for PMSUCAT: Palomar/MSU Nearby Star Survey (LEDAS). Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, pmsucat: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/pmsucat#1</TD>
-            <TD>2008-03-26T21:26:03</TD>
-            <TD>#LEDAS#pmsucat#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/pmsucat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=pmsucat&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>FBSBSOCAT</TD>
-            <TD>First Byurakan Survey Blue Stellar Objects Catalog</TD>
-            <TD>Eleven lists of blue stellar objects (BSOs) found in the First Byurakan Survey (FBS) low-dispersion spectroscopic plates were published in the journal Astrophysics in the period 1990-1996, The selection was carried out in the region with declinations +33 deg. &amp;lt; delta &amp;lt; +45 deg. and delta &amp;gt; +61 degrees with a surface area of 4000 square degrees. As a result, the present catalog of the FBS blue stellar objects (BSOs) has been compiled. Its preliminary version has been available at CDS since 1999. The author has revised and updated the FBS BSOs catalog with the new data from recently published optical and multiwavelength catalogues to give access to all available data and make further comparative studies of the properties of these objects possible. The athor has made cross-correlations of the FBS BSOs catalog with the MAPS , USNO-B1.0, SDSS, and 2MASS catalogs, as well as with ROSAT, IRAS, NVSS, and FIRST catalogs , added updated SIMBAD and NED data for the objects, and provided accurate DSS1 and DSS2 positions and revised photometry. The author also checked the objects for proper motion and variability. A refined classification for the low-dispersion spectra in the Digitized First Byurakan Survey (DFBS) was carried out. The revised and updated catalog of 1103 FBS blue stellar objects is presented here. (The catalog in fact contains 1101 objects, as 2 pairs of objects turned to be identical; however, the author has kept all objects in the list on order to allow users to enter and find objects by all accepted FBS names). The FBS blue stellar objects catalog can be used to study a complete sample of white dwarfs, hot subdwarfs, horizantla-branch B (HBB) stars, cataclysmic variables, bright AGN, and to investigate individual interesting objects.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/GSFC HEASARC</TD>
-            <TD>#Optical#</TD>
-            <TD>ivo://nasa.heasarc/fbsbsocat#1</TD>
-            <TD>2008-12-24T00:00:00</TD>
-            <TD>#Survey Source#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.0166666666666666667</TD>
-            <TD/>
-            <TD>ivo://nasa.heasarc/fbsbsocat</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/cgi-bin/vo/cone/coneGet.pl?table=fbsbsocat&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>99999</TD>
-            <TD>ivo://nasa.heasarc/ASD</TD>
-            <TD>http://heasarc.gsfc.nasa.gov/W3Browse/general-catalog/fbsbsocat.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>HYADESXRAY: ROSAT All-Sky Survey: Hyades Cluster Region (LEDAS)</TD>
-            <TD>Cone Search service for HYADESXRAY: ROSAT All-Sky Survey: Hyades Cluster Region (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, hyadesxray: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/hyadesxray#1</TD>
-            <TD>2011-02-10T22:16:00</TD>
-            <TD>#LEDAS#hyadesxray#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/hyadesxray</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=hyadesxray&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>J/AJ/130/2212</TD>
-            <TD>X-ray and NIR studies of L1448 (Tsujimoto+, 2005)</TD>
-            <TD>The X-ray observation was carried out on 2004 March 15 using ACIS on board Chandra. Four ACIS-I chips (I0, I1, I2, and I3) covered a ~17'x17' region aimed at R.A.=3h25m36.4, Decl.=30{deg}44'58"(J2000.0) for an exposure time of 67.9ks. The NIR observation was conducted on 2003 December 16 using FLAMINGOS on the Cassegrain focus of the 4m telescope at the Kitt Peak National Observatory.
-
-This particular record describes access specifically to the "table3" table within this catalog through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.  Consult the referenceURL for more information about this table.</TD>
-            <TD>CDS</TD>
-            <TD>#X-ray#Infrared#</TD>
-            <TD>ivo://CDS.VizieR/J/AJ/130/2212#table3</TD>
-            <TD>2011-09-14T20:18:25</TD>
-            <TD>#Stars:variable#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD>11-Apr-2006</TD>
-            <TD>ivo://CDS.VizieR/J/AJ/130/2212</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/AJ/130/2212/table3&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>9999</TD>
-            <TD>ivo://CDS</TD>
-            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/AJ/130/2212</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>J/A+A/511/A24</TD>
-            <TD>MHO Catalogue (Davis+, 2010)</TD>
-            <TD>The catalogue contains almost 1000 objects and covers regions on the sky loosely based on the constellations and associated Giant Molecular Clouds (Perseus, Orion A, Orion B, Taurus, etc.); full details are given in the paper. Note also that this catalogue is being maintained (and updated) at a dedicated, search-able website: http://www.jach.hawaii.edu/UKIRT/MHCat/
-
-This particular record describes access specifically to the "mhocat" table within this catalog through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.  Consult the referenceURL for more information about this table.</TD>
-            <TD>CDS</TD>
-            <TD>#Optical#</TD>
-            <TD>ivo://CDS.VizieR/J/A+A/511/A24#mhocat</TD>
-            <TD>2011-09-14T21:08:16</TD>
-            <TD>#Interstellar_Medium#YSOs#Stars:Emission#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD>11-Feb-2010</TD>
-            <TD>ivo://CDS.VizieR/J/A+A/511/A24</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/A+A/511/A24/mhocat&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>9999</TD>
-            <TD>ivo://CDS</TD>
-            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/A+A/511/A24</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>J/ApJ/696/870</TD>
-            <TD>Catalina Real-time Transient Survey (CRTS) (Drake+, 2009)</TD>
-            <TD>Two experiments have been searching tens of thousands of square degrees of the sky for transients; the Palomar-Quest (PQ) digital synoptic sky survey (Djorgovski et al. 2008AN....329..263D), and the Catalina Real-Time Transient Survey (CRTS). The PQ survey started analyzing drift scan data for optical transients (OTs) in real time in August 2006, while the CRTS began in 2007 November. The transients discovered in PQ data will be presented in A. Mahabal et al. (2009AAS...21440709M). The Catalina Sky Survey (CSS; Larson et al. 2003DPS....35.3604L), used by CRTS, uses the 0.7m f/1.9 Catalina Schmidt Telescope north of Tucson, Arizona to discover near-Earth objects (NEOs) and potentially hazardous asteroids (PHAs).
-
-This particular record describes access specifically to the "transients" table within this catalog through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.  Consult the referenceURL for more information about this table.</TD>
-            <TD>CDS</TD>
-            <TD>#Optical#</TD>
-            <TD>ivo://CDS.VizieR/J/ApJ/696/870#transients</TD>
-            <TD>2011-11-30T13:09:40</TD>
-            <TD>#Stars:variable#SuperNovae#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD>04-May-2011</TD>
-            <TD>ivo://CDS.VizieR/J/ApJ/696/870</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=J/ApJ/696/870/transients&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>9999</TD>
-            <TD>ivo://CDS</TD>
-            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?J/ApJ/696/870</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>II/243 [ghosts2]</TD>
-            <TD>The ISOGAL Point Source Catalogue - IGPSC (Omont+ 2003)</TD>
-            <TD>The ISOGAL survey is one of the largest imaging programme performed by the ISO satellite. About 16deg^2^ mainly distributed in the inner Galactic disk were mapped at 7 and/or 15 micron ({mu}m). Because of highly structured background and high source density, a special point source extraction algorithm was used and resulted in a 100000 point source catalogue. The mid-infrared data have been associated with near-infrared DENIS sources, providing an up to five wavelength photometric catalogue with a typical astrometric accuracy better than 1 arcsecond. The point source catalogue contains the positional and photometric parameters of all ISOGAL sources, together with various quality flags aimed at giving an estimate of the reliability of the detections and of the associations between the different bands (see the paper for a complete description).</TD>
-            <TD>CDS</TD>
+            <TD>NASA/IPAC Infrared Science Archive</TD>
             <TD>#Infrared#</TD>
-            <TD>ivo://CDS.VizieR/II/243#ghosts2</TD>
-            <TD>2012-10-23T12:17:05</TD>
-            <TD>##</TD>
+            <TD>ivo://irsa.ipac/2MASS-PSC#1</TD>
+            <TD>2008-04-07T11:31:44.24</TD>
+            <TD>#Infrared Astronomy#Surveys#</TD>
+            <TD>#Catalog#</TD>
+            <TD>#Research#</TD>
+            <TD>0.14</TD>
+            <TD>1</TD>
+            <TD>ivo://irsa.ipac/2MASS-PSC</TD>
+            <TD>ConeSearch</TD>
+            <TD>ivo://ivoa.net/std/ConeSearch</TD>
+            <TD/>
+            <TD>ParamHTTP</TD>
+            <TD/>
+            <TD>std?</TD>
+            <TD>http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc&amp;amp;</TD>
+            <TD>1</TD>
+            <TD>1000</TD>
+            <TD>ivo://irsa.ipac/IRSA</TD>
+            <TD>http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec2_2.html</TD>
+          </TR>
+          <TR>
+            <TD>Catalog</TD>
+            <TD/>
+            <TD>GSC: HST Guide Star Catalog Version 1.2 (LEDAS)</TD>
+            <TD>Cone Search service for GSC: HST Guide Star Catalog Version 1.2 (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
+
+This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
+
+Service details: ledas, gsc: cone search</TD>
+            <TD>LEDAS, University of Leicester</TD>
+            <TD/>
+            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc#1</TD>
+            <TD>2011-02-10T22:15:54</TD>
+            <TD>#LEDAS#gsc#</TD>
             <TD>#Catalog#</TD>
             <TD>#Research#</TD>
             <TD/>
-            <TD>23-Jun-2003</TD>
-            <TD>ivo://CDS.VizieR/II/243</TD>
+            <TD/>
+            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc</TD>
             <TD>ConeSearch</TD>
             <TD>ivo://ivoa.net/std/ConeSearch</TD>
             <TD/>
             <TD>ParamHTTP</TD>
             <TD/>
             <TD>std?</TD>
-            <TD>http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=II/243&amp;amp;</TD>
-            <TD>180</TD>
-            <TD>9999</TD>
-            <TD>ivo://CDS</TD>
-            <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?II/243</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>MC extinctions [2]</TD>
-            <TD>Magellanic Clouds Extinction Values</TD>
-            <TD>A catalogue of E(V-I) extinction values is presented for 3174 (LMC) and 693 (SMC) fields within the Magellanic Clouds. The extinction values were computed by determining the (V-I) colour difference of the red clump from Optical Gravitational Microlensing Experiment (OGLE III) observations in the V and I bands and theoretical values for unreddend red clump colours.</TD>
-            <TD>The GAVO DC team</TD>
-            <TD>#Optical#Infrared#</TD>
-            <TD>ivo://org.gavo.dc/mcextinct/q/cone#2</TD>
-            <TD>2012-08-15T07:10:17</TD>
-            <TD>#Large Magellanic Cloud#Interstellar medium, nebulae#Extinction#Dust#</TD>
+            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=gsc&amp;amp;</TD>
+            <TD>0.0</TD>
+            <TD>50000</TD>
             <TD/>
-            <TD/>
-            <TD/>
-            <TD/>
-            <TD>ivo://org.gavo.dc/mcextinct/q/cone</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://dc.zah.uni-heidelberg.de/mcextinct/q/cone/scs.xml?</TD>
-            <TD>180.0</TD>
-            <TD>10000</TD>
-            <TD/>
-            <TD>http://dc.zah.uni-heidelberg.de/mcextinct/q/cone/info</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD>rave_scs [2]</TD>
-            <TD>RAdial Velocity Experiment: RAVE</TD>
-            <TD>The third data release of the RAdial Velocity Experiment (RAVE) contains spectroscopic radial velocities for 83,072 stars in the Milky-Way southern hemisphere, obtained using the 6dF instrument at the AAO. Stellar parameters are published for a set of 39,833 stars belonging to the second and third years of observation. An accompanying paper (see "source" in metadata) describes the content of the new release, the new processing pipeline, as well as an updated calibration for the metallicity based upon the observation of additional standard stars.</TD>
-            <TD>The GAVO DC team</TD>
-            <TD/>
-            <TD>ivo://org.gavo.dc/rave/q/cone#2</TD>
-            <TD>2012-08-30T15:12:23</TD>
-            <TD>#Catalogs#Surveys#Stars#Radial velocities#Milky Way#</TD>
-            <TD/>
-            <TD/>
-            <TD/>
-            <TD>Data Release 3</TD>
-            <TD>ivo://org.gavo.dc/rave/q/cone</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://dc.zah.uni-heidelberg.de/rave/q/cone/scs.xml?</TD>
-            <TD>180.0</TD>
-            <TD>10000</TD>
-            <TD/>
-            <TD>http://dc.zah.uni-heidelberg.de/rave/q/cone/info</TD>
+            <TD>http://www.ledas.ac.uk</TD>
           </TR>
         </TABLEDATA>
       </DATA>

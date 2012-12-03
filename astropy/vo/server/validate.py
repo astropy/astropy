@@ -2,6 +2,9 @@
 """
 Validate VO Services.
 
+This could be used by VO service providers to validate
+their services.
+
 *CONFIGURABLE PROPERTIES*
 
 These properties are set via Astropy configuration system:
@@ -28,8 +31,11 @@ of `astropy.vo.server.cs_mstr_list` without verbose
 outputs or multiprocessing, and write results in
 'subset' sub-directory:
 
->>> urls = ['http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&', 'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1&']
->>> validate.check_conesearch_sites(destdir='./subset', verbose=False, multiproc=False, url_list=urls)
+>>> urls = [
+>>>     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&',
+>>>     'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1&']
+>>> validate.check_conesearch_sites(
+>>>     destdir='./subset', verbose=False, multiproc=False, url_list=urls)
 
 Change `astropy.vo.server.cs_mstr_list` to obtain
 the master list directly from STScI VAO registry.
@@ -37,6 +43,10 @@ This will take a while:
 
 >>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
 >>> validate.check_conesearch_sites()
+
+Change `astropy.vo.server.cs_mstr_list` back to default:
+
+>>> validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
 
 Add `astropy.io.votable.exceptions.W01` to the list of
 ignored warnings. This is *not* recommended unless you

@@ -1,0 +1,52 @@
+{
+    "validate_network_error": null, 
+    "capabilityClass": "ConeSearch", 
+    "updated": "2008-04-07T11:31:44.24", 
+    "capabilityValidationLevel": "", 
+    "maxRecords": 1000, 
+    "validate_nwarnings": 4, 
+    "interfaceClass": "ParamHTTP", 
+    "subject": "#Infrared Astronomy#Surveys#", 
+    "validate_xmllint_content": "I/O error : Attempt to load network entity http://us-vo.org/xml/VOTable.dtd\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:2: warning: failed to load external entity \"http://us-vo.org/xml/VOTable.dtd\"\n<!DOCTYPE VOTABLE SYSTEM \"http://us-vo.org/xml/VOTable.dtd\">\n                                                            ^\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:3: element VOTABLE: validity error : Element VOTABLE content does not follow the DTD, expecting (DESCRIPTION? , DEFINITIONS? , INFO* , RESOURCE*), got (Info )\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:4: element Info: validity error : No declaration for element Info\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:4: element Info: validity error : No declaration for attribute name of element Info\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:4: element Info: validity error : No declaration for attribute value of element Info\nDocument /eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml does not validate against /home/lim/arzach/lib/python2.7/site-packages/astropy/io/votable/data/VOTable.dtd\n", 
+    "title": "2MASS All-Sky Point Source Catalog", 
+    "resourceID": "ivo://irsa.ipac/2MASS-PSC", 
+    "duplicatesIgnored": 0, 
+    "referenceURL": "http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec2_2.html", 
+    "interfaceRole": "std?", 
+    "version": "1", 
+    "validate_warnings": [
+        "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:3:0: W29: Version specified in non-standard form 'v1.0'", 
+        "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:3:0: W21: vo.table is designed for VOTable version 1.1 and 1.2, but this file is 1.0", 
+        "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:3:0: W42: No XML namespace specified", 
+        "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/a6/4c/da506ff31f132997ded45ba6e3ca/vo.xml:4:0: W10: Unknown tag 'Info'.  Ignoring", 
+        "?:?:?: E19: File does not appear to be a VOTABLE"
+    ], 
+    "type": "#Catalog#", 
+    "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
+    "contentLevel": "#Research#", 
+    "description": "2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 1.\n\nThis particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.", 
+    "tags": "Catalog", 
+    "regionOfRegard": 0.14000000059604645, 
+    "shortName": "2MASS-PSC", 
+    "publisherID": "ivo://irsa.ipac/IRSA", 
+    "maxRadius": 1.0, 
+    "interfaceVersion": "", 
+    "validate_expected": "incorrect", 
+    "publisher": "NASA/IPAC Infrared Science Archive", 
+    "validate_out_db_name": "excp", 
+    "url": "http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc&", 
+    "waveband": "#Infrared#", 
+    "validate_nexceptions": 2, 
+    "validate_warning_types": [
+        "E19", 
+        "W42", 
+        "W10", 
+        "W21", 
+        "W29"
+    ], 
+    "validate_version": "1.0", 
+    "identifier": "ivo://irsa.ipac/2MASS-PSC#1", 
+    "validate_xmllint": false
+}
+
+Found in exception
