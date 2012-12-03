@@ -335,16 +335,21 @@ The full list of supported coordinate systems and transformations is in the
 `astropy.coordinates` API documentation below.
 
 Additionally, some coordinate systems support precessing the coordinate to
-produce a new coordinate in the same system but at a different epoch::
+produce a new coordinate in the same system but at a different equinox::
 
-    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s', epoch=Time('J2000', scale='utc'))
+    >>> fk5c = FK5Coordinates('02h31m49.09s +89d15m50.8s', equinox=Time('J2000', scale='utc'))
     >>> fk5c
     <FK5Coordinates RA=37.95454 deg, Dec=89.26411 deg>
     >>> fk5c.precess_to(Time(2100, format='jyear', scale='utc'))
     <FK5Coordinates RA=88.32396 deg, Dec=89.54057 deg>
 
-Not all coordinate systems support an epoch nor precession.  Those that do not
-will always have their `epoch` property set to `None`.
+Coordinate systems do not necessarily all support an equinox nor precession, as it is a
+meaningless action for coordinate systems that do not depend on a particular equinox.
+
+Furthermore, coordinates typically have an `obstime` attribute, intended to record the
+time of the observation.  Some systems (especially FK4) require this information due
+to being non-inertial frames (i.e., they rotate over time due to motions of the
+defining stars).
 
 
 Designing Coordinate Systems

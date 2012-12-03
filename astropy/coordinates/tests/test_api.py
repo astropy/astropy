@@ -546,6 +546,11 @@ def test_create_coordinate():
     #some also have an option for an observation time
     ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=timeobj)
 
+    #passing in a non-time object give a TypeError
+    with raises(TypeError):
+        ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=2000.)
+
+
 
 def test_convert_api():
     """

@@ -51,6 +51,9 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
         self._obstime = kwargs.pop('obstime', None)
 
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
+
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
             self.ra = newcoord.ra
@@ -114,6 +117,11 @@ class FK5Coordinates(SphericalCoordinatesBase):
 
         self._equinox = kwargs.pop('equinox', _equinox_j2000)
         self._obstime = kwargs.pop('obstime', None)
+
+        if not isinstance(self._equinox, Time):
+            raise TypeError('specified equinox is not a Time object')
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -206,6 +214,11 @@ class FK4Coordinates(SphericalCoordinatesBase):
 
         self._equinox = kwargs.pop('equinox', Time('B1950', scale='utc'))
         self._obstime = kwargs.pop('obstime', None)
+
+        if not isinstance(self._equinox, Time):
+            raise TypeError('specified equinox is not a Time object')
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -301,6 +314,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
         self._obstime = kwargs.pop('obstime', None)
 
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
+
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
             self.l = newcoord.l
@@ -353,6 +369,11 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
         self._equinox = kwargs.pop('equinox', _equinox_j2000)
         self._obstime = kwargs.pop('obstime', None)
+
+        if not isinstance(self._equinox, Time):
+            raise TypeError('specified equinox is not a Time object')
+        if self._obstime is not None and not isinstance(self._obstime, Time):
+            raise TypeError('specified obstime is not None or a Time object')
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
