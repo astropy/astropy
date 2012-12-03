@@ -35,6 +35,9 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to ICRSCoordinates and used as this
@@ -45,6 +48,8 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
     def __init__(self, *args, **kwargs):
         super(ICRSCoordinates, self).__init__()
+
+        self._obstime = kwargs.pop('obstime', None)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -76,6 +81,13 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     def equinox(self):
         return _equinox_j2000
 
+    @property
+    def obstime(self):
+        if self._obstime is None:
+            return self._equinox
+        else:
+            return self._obstime
+
 
 @transformations.coordinate_alias('fk5')
 class FK5Coordinates(SphericalCoordinatesBase):
@@ -87,6 +99,9 @@ class FK5Coordinates(SphericalCoordinatesBase):
     {params}
     equinox : `~astropy.time.Time`, optional
         The equinox for these coordinates.  Defaults to J2000.
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK5Coordinates` and used as this
@@ -98,6 +113,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
         super(FK5Coordinates, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _equinox_j2000)
+        self._obstime = kwargs.pop('obstime', None)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -128,6 +144,13 @@ class FK5Coordinates(SphericalCoordinatesBase):
     @property
     def equinox(self):
         return self._equinox
+
+    @property
+    def obstime(self):
+        if self._obstime is None:
+            return self._equinox
+        else:
+            return self._obstime
 
     def precess_to(self, newequinox):
         """
@@ -166,11 +189,11 @@ class FK4Coordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
+    equinox : `~astropy.time.Time`, optional
+        The equinox for these coordinates.  Defaults to B1950.
     obstime : `~astropy.time.Time` or None
         The time of observation for this coordinate.  If None, it will be taken
         to be the same as the `equinox`.
-    equinox : `~astropy.time.Time`, optional
-        The equinox for these coordinates.  Defaults to B1950.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `FK4Coordinates` and used as this
@@ -256,6 +279,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     Parameters
     ----------
     {params}
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `GalacticCoordinates` and
@@ -272,6 +298,8 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
     def __init__(self, *args, **kwargs):
         super(GalacticCoordinates, self).__init__()
+
+        self._obstime = kwargs.pop('obstime', None)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -308,7 +336,10 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     ----------
     {params}
     equinox : `~astropy.time.Time`, optional
-        The equinox for these coordinates.  Defaults to J200.
+        The equinox for these coordinates.  Defaults to J2000.
+    obstime : `~astropy.time.Time` or None
+        The time of observation for this coordinate.  If None, it will be taken
+        to be the same as the `equinox`.
 
     Alternatively, a single argument that is any kind of spherical coordinate
     can be provided, and will be converted to `HorizontalCoordinates` and used
@@ -320,6 +351,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
         super(HorizontalCoordinates, self).__init__()
 
         self._equinox = kwargs.pop('equinox', _equinox_j2000)
+        self._obstime = kwargs.pop('obstime', None)
 
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], SphericalCoordinatesBase):
             newcoord = args[0].transform_to(self.__class__)
@@ -350,6 +382,13 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     @property
     def equinox(self):
         return self._equinox
+
+    @property
+    def obstime(self):
+        if self._obstime is None:
+            return self._equinox
+        else:
+            return self._obstime
 
 
 #<--------------------------------transformations------------------------------>
