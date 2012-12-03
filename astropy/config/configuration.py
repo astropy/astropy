@@ -631,7 +631,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
             deault_cfgfn = default_cfg_dir_or_fn
 
         if not os.path.isfile(deault_cfgfn):
-            print 'grr',deault_cfgfn
             raise ValueError('Requested default configuration file {0} is not a file.'.format(deault_cfgfn))
 
         with open(cfgfn, 'w') as fw:
