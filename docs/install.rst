@@ -33,7 +33,6 @@ Binary installers
 
 No binary installers are available at this time.
 
-
 Testing Astropy
 ---------------
 
@@ -65,6 +64,13 @@ You will also need `Cython <http://cython.org/>`_ installed to build
 from source, unless you are installing a numbered release. (The releases
 packages have the necessary C files packaged with them, and hence do not
 require Cython.)
+
+.. note:: If you are using MacOS X, the easiest way to install a compiler
+          suite is to install the MacOS X developer tools (XCode) As of XCode
+          4.3, the command-line compilers are no longer installed by default:
+          you will need to open the XCode application, go to **Preferences**,
+          then **Downloads**, and then under **Components**, click on the
+          Install button to the right of **Command Line Tools**.
 
 Obtaining the source packages
 -----------------------------
