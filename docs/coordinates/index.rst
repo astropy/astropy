@@ -23,11 +23,12 @@ uniform way.
 Getting Started
 ===============
 
-Coordinate objects are instantiated with a flexible and natural approach::
+Coordinate objects are instantiated with a flexible and natural approach that
+supports both numeric angle values and (limited) string parsing::
 
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree)
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
     >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
@@ -35,7 +36,7 @@ Coordinate objects are instantiated with a flexible and natural approach::
 The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
 objects, and their values are accessed using special attributes::
 
-    >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree)
     >>> c.ra
     <RA 10.68458 deg>
     >>> c.ra.hours
@@ -60,7 +61,7 @@ Distances from the origin (which is system-dependent, but often the Earth
 center) can also be assigned to a coordinate. This specifies a unique point
 in 3D space, which also allows conversion to cartesian coordinates::
 
-    >>> c = coord.Coordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=coord.Distance(770, u.kpc))
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=coord.Distance(770, u.kpc))
     >>> c.x
     568.7128654235232
     >>> c.y
@@ -189,9 +190,9 @@ Angle objects can also be used for creating coordinate objects::
 
     >>> ICRSCoordinates(Angle(1, u.radian), Angle(2, u.radian))
     <ICRSCoordinates RA=57.29578 deg, Dec=114.59156 deg>
-    >>> Coordinates(Angle(1, u.radian), Angle(2, u.radian))
+    >>> ICRSCoordinates(Angle(1, u.radian), Angle(2, u.radian))
     ValueError: Two angles were provided ('<astropy.coordinates.angles.Angle 57.29578 deg>', '<astropy.coordinates.angles.Angle 114.59156 deg>'), but the coordinate system was not provided. Specify the system via keywords or use the corresponding class (e.g. GalacticCoordinate).
-    >>> Coordinates(RA(1, u.radian), Dec(2, u.radian))
+    >>> ICRSCoordinates(RA(1, u.radian), Dec(2, u.radian))
     <ICRSCoordinates RA=57.29578 deg, Dec=114.59156 deg>
 
 
