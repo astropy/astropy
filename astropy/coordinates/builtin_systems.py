@@ -84,7 +84,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     @property
     def obstime(self):
         if self._obstime is None:
-            return self._equinox
+            return self.equinox
         else:
             return self._obstime
 
@@ -148,7 +148,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     @property
     def obstime(self):
         if self._obstime is None:
-            return self._equinox
+            return self.equinox
         else:
             return self._obstime
 
@@ -240,7 +240,7 @@ class FK4Coordinates(SphericalCoordinatesBase):
     @property
     def obstime(self):
         if self._obstime is None:
-            return self._equinox
+            return self.equinox
         else:
             return self._obstime
 
@@ -387,7 +387,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     @property
     def obstime(self):
         if self._obstime is None:
-            return self._equinox
+            return self.equinox
         else:
             return self._obstime
 

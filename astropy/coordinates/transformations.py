@@ -565,7 +565,7 @@ class FunctionTransform(CoordinateTransform):
             raise TypeError('the transformation function yielded {0} but '
                 'should have been of type {1}'.format(res, self.tosys))
 
-        if self._copyobstime:
+        if self.copyobstime:
             #copy over the obstime
             if hasattr(fromcoord, '_obstime') and hasattr(res, '_obstime'):
                 res._obstime = fromcoord._obstime

@@ -530,6 +530,9 @@ def test_create_coordinate():
     timeobj = Time('J2000', scale='utc')
     HorizontalCoordinates(alt, az, equinox=timeobj)
 
+    #some also have an option for an observation time
+    ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=timeobj)
+
 
 def test_coord_factory():
     """

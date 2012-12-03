@@ -260,3 +260,28 @@ def test_alias_transform():
     assert 'galactic' in d
     assert 'fk4' in d
     assert 'fk5' in d
+
+
+def test_obstime():
+    """
+    Checks to make sure observation time survives transforms, and that it's
+    accounted for at least in FK4 <-> ICRS transformations
+    """
+    from ...time import Time
+
+    b1950 = Time('B1950', scale='utc')
+    j1975 = Time('J1975', scale='utc')
+
+    fk4_50 = FK4Coordinates(1, 2, unit=u.radian, obstime=b1950)  # default
+    fk4_75 = FK4Coordinates(1, 2, unit=u.radian, obstime=j1975)
+
+    icrs_50 = fk4_50.transform_to(ICRSCoordinates)
+    icrs_75 = fk4_75.transform_to(ICRSCoordinates)
+
+    assert icrs_50.obstime == fk4_50.obstime
+    assert icrs_75.obstime == fk4_75.obstime
+
+    # now check that the resulting coordinates are *different* - they should be,
+    # because the obstime is different
+    assert (icrs_50.ra.degrees != icrs_75.ra.degrees and
+            icrs_50.dec.degrees != icrs_75.dec.degrees)
