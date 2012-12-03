@@ -127,9 +127,8 @@ class TransformGraph(object):
         -------
         path : list of classes or None
             The path from `fromsys` to `tosys` as an in-order sequence
-            of classes.  This does *not* include `fromsys`, but it
-            *does* include `tosys`. Is None if there is no possible
-            path.
+            of classes.  This list includes *both* `fromsys` and
+            `tosys`. Is None if there is no possible path.
         distance : number
             The total distance/priority from `fromsys` to `tosys`.  If
             priorities are not set this is the number of trasnforms
@@ -141,10 +140,10 @@ class TransformGraph(object):
 
         #special-case the 0-path and 1-path
         if tosys is fromsys:
-            return [], 0
+            return [tosys], 0
         elif tosys in self._graph[fromsys]:
             t = self._graph[fromsys][tosys]
-            return [tosys], t.priority if hasattr(t, 'priority') else 1
+            return [fromsys, tosys], float(t.priority if hasattr(t, 'priority') else 1)
 
         if fromsys in self._shortestpaths:
             #already have a cached result
@@ -154,7 +153,7 @@ class TransformGraph(object):
             else:
                 return None, inf
 
-        #use Dijkstra's algorithm to find shortest path
+        #use Dijkstra's algorithm to find shortest path in all other cases
 
         nodes = []
         #first make the list of nodes
@@ -166,33 +165,36 @@ class TransformGraph(object):
                     nodes.append(b)
 
         if fromsys not in nodes or tosys not in nodes:
-            #one is isolated or not registered, so by definition unreachable
+            #fromsys or tosys are isolated or not registered, so there's
+            #certainly no way to get from one to the other
             return None, inf
 
         edgeweights = {}
-        #rebuild the transform graph as a dict of dicts of weights
-        #Now the edges (e1, e2, weight)
+        # construct another graph that is a dict of dicts of priorities
+        # (used as edge weights in Dijkstra's algorithm)
         for a in self._graph:
             edgeweights[a] = aew = {}
             agraph = self._graph[a]
             for b in agraph:
-                aew[b] = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
+                aew[b] = float(agraph[b].priority if hasattr(agraph[b], 'priority') else 1)
 
         #entries in q are [distance, count, nodeobj, pathlist]
         # count is needed because in py 3.x, tie-breaking fails on the nodes.
         # this way, insertion order is preserved if the weights are the same
         q = [[inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys]
-        q.insert(0, [0, -1, fromsys, []])  # starts out as a valid heap
+        q.insert(0, [0, -1, fromsys, []])
 
-        # final distance to node from `fromsys`
+        # this dict will store the distance to node from `fromsys` and the path
         result = {}
 
+        #definitely starts as a valid heap because of the insert line; from the
+        #node to itself is always the shortest distance
         while len(q) > 0:
             d, orderi, n, path = heapq.heappop(q)
 
             if d == inf:
-                #everything left is unreachable - just copy them to the results
-                #and jump out of the loop
+                #everything left is unreachable from fromsys, just copy them to
+                #the results and jump out of the loop
                 result[n] = (None, d)
                 for d, orderi, n, path in q:
                     result[n] = (None, d)
@@ -200,7 +202,6 @@ class TransformGraph(object):
             else:
                 result[n] = (path, d)
                 path.append(n)
-
                 for n2 in edgeweights[n]:
                     if n2 not in result:  # already visited
                         #find where n2 is in the heap
@@ -213,8 +214,9 @@ class TransformGraph(object):
                         newd = d + edgeweights[n][n2]
                         if newd < q[i][0]:
                             q[i][0] = newd
-                            q[i][3].append(n)
+                            q[i][3] = list(path)
                             heapq.heapify(q)
+
 
         #cache for later use
         self._shortestpaths[fromsys] = result
@@ -258,7 +260,7 @@ class TransformGraph(object):
 
             transforms = []
             currsys = fromsys
-            for p in path:
+            for p in path[1:]:  # first element is fromsys so we skip it
                 transforms.append(self._graph[currsys][p])
                 currsys = p
 

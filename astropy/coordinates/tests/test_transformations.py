@@ -116,14 +116,14 @@ def test_shortest_path():
     g._graph[5][6] = FakeTransform(1)
 
     path, d = g.find_shortest_path(1, 2)
-    assert path == [2]
+    assert path == [1, 2]
     assert d == 1
     path, d = g.find_shortest_path(1, 3)
-    assert path == [3]
+    assert path == [1, 3]
     assert d == 1
     path, d = g.find_shortest_path(1, 4)
     print('Cached paths:', g._shortestpaths)
-    assert path == [2, 4]
+    assert path == [1, 2, 4]
     assert d == 2
 
     #unreachable
@@ -132,7 +132,7 @@ def test_shortest_path():
     assert d == float('inf')
 
     path, d = g.find_shortest_path(5, 6)
-    assert path == [6]
+    assert path == [5, 6]
     assert d == 1
 
 
@@ -269,8 +269,14 @@ def test_transform_path_pri():
     and not FK4.
     """
     t.master_transform_graph.invalidate_cache()
-    tpath = t.master_transform_graph.find_shortest_path(ICRSCoordinates, GalacticCoordinates)[0]
-    assert tpath[0] is FK5Coordinates
+    tpath, td = t.master_transform_graph.find_shortest_path(ICRSCoordinates, GalacticCoordinates)
+    assert tpath == [ICRSCoordinates, FK5Coordinates, GalacticCoordinates]
+    assert td == 2
+
+    #but direct from FK4 to Galactic should still be possible
+    tpath, td = t.master_transform_graph.find_shortest_path(FK4Coordinates, GalacticCoordinates)
+    assert tpath == [FK4Coordinates, GalacticCoordinates]
+    assert td == 1.02
 
 
 def test_obstime():
