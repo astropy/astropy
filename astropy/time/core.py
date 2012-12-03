@@ -151,11 +151,15 @@ class Time(object):
         if format is None and val.dtype.kind in ('S', 'U'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeString)]
-            err_msg = 'any of format classes {0}'.format(
-                [name for name, cls in formats])
+            err_msg = 'any formats that can interpret strings {0}'.format(
+                      [name for name, cls in formats])
         elif format not in self.FORMATS:
-            raise ValueError("Format {0} is not in the allowed formats {1}"
-                             .format(repr(format), sorted(self.FORMATS)))
+            if format is None:
+                raise ValueError("No time format was given, and the input is "
+                                 "not string-like")
+            else:
+                raise ValueError("Format {0} is not one of the allowed "
+                    "formats {1}".format(repr(format), sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
             err_msg = 'the format class {0}'.format(format)
