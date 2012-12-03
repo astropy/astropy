@@ -131,7 +131,7 @@ class WCS(WCSBase):
 
     Parameters
     ----------
-    header : astropy.io.fits header object, string or None, optional
+    header : astropy.io.fits header object, string, dict-like, or None, optional
         If *header* is not provided or None, the object will be
         initialized to default values.
 
@@ -285,9 +285,16 @@ class WCS(WCSBase):
             elif isinstance(header, fits.Header):
                 header_string = header.tostring()
             else:
-                raise TypeError(
-                    "header must be a string or an astropy.io.fits.Header "
-                    "object")
+                try:
+                    # Accept any dict-like object
+                    new_header = fits.Header()
+                    for dict_key in header:
+                        new_header[dict_key] = header[dict_key]
+                    header_string = new_header.tostring()
+                except TypeError:
+                    raise TypeError(
+                        "header must be a string, an astropy.io.fits.Header "
+                        "object, or a dict-like object")
 
             if isinstance(header_string, unicode):
                 header_bytes = header_string.encode('ascii')
