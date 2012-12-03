@@ -20,25 +20,35 @@ twopi = math.pi * 2.0  # no need to calculate this all the time
 
 
 class Angle(object):
-    """ This class represents an angle.
+    """ An angle.
 
-        Units must be specified by the units parameter.
-        Degrees and hours both accept either a string like '15:23:14.231,' or a
-        decimal representation of the value, e.g. 15.387.
+        An angle can be specified either as a float, tuple (see below),
+        or string.  If A string, it must be in one of the following formats:
+
+        * '1:2:3.4'
+        * '1 2 3.4'
+        * '1h2m3.4s'
+        * '1d2m3.4s'
 
         Parameters
         ----------
         angle : float, int, str, tuple
             The angle value. If a tuple, will be interpreted as (h, m s) or
-            (d, m, s) depending on `unit`.
-        unit : `~astropy.units` (preferred), str
-            The unit of the value specified for the angle. It is preferred that
-            the unit be an object from the `~astropy.units` package, e.g.
-            "from astropy import units as u; u.degree". Also accepts any string that the Unit class
-            maps to "degrees", "radians", "hours".
+            (d, m, s) depending on `unit`. If a string, it will be interpreted
+            following the rules described above.
+        unit : `~astropy.units.UnitBase`, str
+            The unit of the value specified for the angle.  This may be any
+            string that `~astropy.units.Unit` understands, but it is better to
+            give an actual unit object.  Must be one of `~astropy.units.degree`,
+            `~astropy.units.radian`, or `~astropy.units.hour`.
         bounds : tuple
             A tuple indicating the upper and lower value that the new angle object may
             have.
+
+        Raises
+        ------
+        `~astropy.coordinates.errors.UnitsError`
+            If a unit is not provided or it is not hour, radian, or degree.
 
     """
 

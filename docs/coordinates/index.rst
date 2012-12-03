@@ -85,32 +85,11 @@ copy of the astropy source code, or typing the following in an IPython session::
 Creating Coordinate Objects
 ---------------------------
 
-There are two basic ways to create coordinates.   The easiest way to create a
-coordinate object is to use `Coordinates`. The kind of coordinate is determined
-by the keywords provided. For example, if you specify `l` and `b` angles, the
-result will be a `GalacticCoordinates` object. If you specify `ra` and `dec`
-angles, the result will be an `ICRSCoordinates` object. Note that the
-`Coordinates` object is a generalization, and actually returns the kind of
-object appropriate to what you are requesting. (This is called a "factory
-class".) For example::
-
-    >>> from astropy.coordinates import Coordinates
-    >>> Coordinates(ra='12h30m49.42s', dec='+12d23m28.044s')
-    <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
-    >>> Coordinates(l=-76.22237, b=74.49108, unit=u.degree)
-    <GalacticCoordinates l=-76.22237 deg, b=74.49108 deg>
-    >>> Coordinates(az=45.8, el=42.3, unit=u.degree)
-    <HorizontalCoordinates el=42.30000 deg, az=45.80000 deg>
-
-.. warning::
-    `~astropy.coordinates.coordsystems.Coordinates` is *not* an actual class
-    that ever gets instantiated.  Do not do ``isinstance(coord, Coordinates)``
-    in your code to check if something is a coordinate.  Instead, use
-    `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`, which is the
-    true base class of all astropy coordinate classes.
-
-The second method is to directly initialize your preferred coordinate system by
-the name of the class representing that system.  For example::
+Creating new coordinate objects is of course crucial to using
+`~astropy.coordinates`.  The typical way to create a new coordinate object
+is to directly initialize your preferred coordinate system using standard
+python class creation, using the name of the class representing that
+system.  For example::
 
     >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, GalacticCoordinates
     >>> ICRSCoordinates(187.70592, 12.39112, unit=u.degree)
@@ -120,12 +99,23 @@ the name of the class representing that system.  For example::
     >>> GalacticCoordinates(-76.22237, 74.49108, unit=u.degree)
     <GalacticCoordinates l=-76.22237 deg, b=74.49108 deg>
 
-Note that for these you don't need to specify `ra`/`dec` or `l`/`b` keywords,
-because those are already the appropriate longitude/latitude angles for the
-requested coordinate systems.
+Note that for equatorial coordinates (those with `ra` and `dec`), the `unit` is necessary
+any time there might be an ambiguity between a radian, degree, or hour representation of
+the RA component.  For example::
 
-With this method, the parsing of coordinates is quite flexible, designed to
-interpret any *unambiguous* string a human could interpret.  For example::
+    >>> ICRSCoordinates(25, 1)
+    <ICRSCoordinates RA=25.00000 deg, Dec=1.00000 deg>
+    >>> ICRSCoordinates(23, 1)
+    UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
+
+The latter case results in an exception because '23' could be degrees *or* hours.  When in doubt, it's
+probably better to explicitly provide a `unit`.
+
+While the above example uses python numerical types, you can also provide strings to create coordinates.
+These strings will be interpreted using the `Angle` class' parsing scheme, and has a guiding principal of
+being able to interpret any *unambiguous* string a human would interpret.  For the exact rules for how
+each string is parsed, see the `~astropy.coordinates.angles.Angle` documentation.  Some examples
+include::
 
     >>> ICRSCoordinates(54.12412, "-41:08:15.162342", unit=u.degree)
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
@@ -135,6 +125,9 @@ interpret any *unambiguous* string a human could interpret.  For example::
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
     UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
+
+
+
 
 Working with Angles
 -------------------
