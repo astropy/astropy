@@ -417,6 +417,13 @@ page for some instructions at the end of the "Description" section. There is
 some related help on merging in the git user manual - see `resolving a
 merge`_.
 
+If your feature branch is already on github and you rebase, you will have to force
+push the branch, a normal push would give an error. If the branch you rebased is
+called `cool-feature` and your github fork is available as the remote called `origin`,
+you use this command to force-push::
+
+   git push -f origin cool-feature
+
 .. _recovering-from-mess-up:
 
 Recovering from mess-ups
