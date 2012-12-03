@@ -424,6 +424,12 @@ you use this command to force-push::
 
    git push -f origin cool-feature
 
+Note that this will overwrite the branch on github, i.e. this is one of the few ways
+you can actually loose commits with git.
+Also note that it is never allowed to force push to the main astropy repo (typically
+called `upstream`), because this would re-write commit history and thus cause problems
+for all others.
+
 .. _recovering-from-mess-up:
 
 Recovering from mess-ups
