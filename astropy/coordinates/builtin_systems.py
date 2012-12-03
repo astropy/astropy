@@ -318,6 +318,7 @@ class GalacticCoordinates(SphericalCoordinatesBase):
         msg = "<{0} l={1:.5f} deg, b={2:.5f} deg{3}>"
         return msg.format(self.__class__.__name__, self.l.degrees,
                           self.b.degrees, diststr)
+
     @property
     def lonangle(self):
         return self.l
@@ -400,9 +401,9 @@ def icrs_to_fk5():
     """
     from .angles import rotation_matrix
 
-    eta0 = -19.9 / 3600000
-    xi0 = 9.1 / 3600000
-    da0 = -22.9 / 3600000
+    eta0 = -19.9 / 3600000.
+    xi0 = 9.1 / 3600000.
+    da0 = -22.9 / 3600000.
 
     m1 = rotation_matrix(-eta0, 'x')
     m2 = rotation_matrix(xi0, 'y')
@@ -429,7 +430,9 @@ def fk5_to_icrs(fk5c):
 # better path) to prefer the FK5 path over FK4 when possible
 #can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
-def fk4_to_icrs(fk4c):
+def fk4_to_icrs(fk4c, bypassprec=False):
+    #bypassprec is here to make icrs_to_fk4 work more easily - it skips
+    #adding the equinox precession part
     from .earth_orientation import _precession_matrix_besselian
 
     #B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
@@ -437,11 +440,11 @@ def fk4_to_icrs(fk4c):
                 [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
                 [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
-    if fk4c.equinox is not None and fk4c.equinox.byear != 1950:
-        #not this is *julian century*, not besselian
-        T = (fk4c.equinox.jyear - 1950) / 100
+    if fk4c.obstime.byear != 1950:
+        #note this is *julian century*, not besselian
+        T = (fk4c.obstime.jyear - 1950) / 100
 
-        #now add in correction terms for FK4 rotating system - Murray 89 eqn 29
+        #add in correction terms for FK4 rotating system - Murray 89 eqn 29
         B[0, 0] += -2.6455262e-9 * T
         B[0, 1] += -1.1539918689e-6 * T
         B[0, 2] += 2.1111346190e-6 * T
@@ -452,21 +455,19 @@ def fk4_to_icrs(fk4c):
         B[2, 1] += -5.6024448e-9 * T
         B[2, 2] += 1.02587734e-8 * T
 
-        PB = _precession_matrix_besselian(fk4c.equinox.byear, 1950)
-
-        return B * PB
+    if bypassprec or fk4c.equinox.byear == 1950:
+        return B  # if B1950, no precession is needed - B takes us to J2000
     else:
-        return B
+        return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
 
 #can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
-def icrs_to_fk4(fk4c):
-    from .earth_orientation import _precession_matrix_besselian
-
+def icrs_to_fk4(icrs):
     # need inverse instead of transpose because Murray's matrix is *not* a true
     # rotation matrix
-    return fk4_to_icrs(fk4c).I
+    # also note that icrs works here
+    return fk4_to_icrs(icrs, bypassprec=True).I
 
 
 #GalacticCoordinates to/from FK4/FK5
