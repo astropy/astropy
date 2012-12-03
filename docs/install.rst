@@ -65,9 +65,9 @@ from source, unless you are installing a numbered release. (The releases
 packages have the necessary C files packaged with them, and hence do not
 require Cython.)
 
-.. note:: If you are using MacOS X, you will need the developer tools (XCode)
-          installed in order to have a functional compiler suite. As of XCode
-          4.3, the command-line compilers are no longer installed by default -
+.. note:: If you are using MacOS X, the easiest way to install a compiler
+          suite is to install the MacOS X developer tools (XCode) As of XCode
+          4.3, the command-line compilers are no longer installed by default:
           you will need to open the XCode application, go to **Preferences**,
           then **Downloads**, and then under **Components**, click on the
           Install button to the right of **Command Line Tools**.
