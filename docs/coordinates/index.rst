@@ -127,6 +127,15 @@ include::
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
     UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
 
+You can also directly specify the units for both to resolve ambiguities.  This, will also give you
+an error if you give a string with units that conflict with your desired units::
+
+    >>> ICRSCoordinates('3 4 5 +6 7 8', unit=(u.hour, u.degree))
+    <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
+    >>> ICRSCoordinates('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
+    <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
+    >>> ICRSCoordinates('3d4m5s +6h7m8s', unit=(u.hour, u.degree))
+    ValueError: parse_hours: Invalid input string, can't parse to HMS. (3d4m5s)
 
 
 
