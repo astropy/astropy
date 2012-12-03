@@ -439,7 +439,7 @@ def test_radec():
 
 def test_create_coordinate():
     """
-    Tests creation and basic attributes of Coordinate and subclasses
+    Tests creation and basic attributes of coordinates
     """
 
     '''
@@ -449,7 +449,7 @@ def test_create_coordinate():
     coordinates with conversions to standard coordinates.
     '''
 
-    from .. import Angle, RA, Dec, Coordinates, ICRSCoordinates, GalacticCoordinates
+    from .. import Angle, RA, Dec, ICRSCoordinates, GalacticCoordinates
     from .. import HorizontalCoordinates
     import numpy.testing as npt
 
@@ -460,10 +460,6 @@ def test_create_coordinate():
     c = ICRSCoordinates(ra, dec)
     assert isinstance(c, ICRSCoordinates)
 
-    # system not specified
-    with raises(ValueError):
-        c = Coordinates("54.12412 deg", "-41:08:15.162342")
-
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342")
     assert isinstance(c.dec, Dec) # dec is a Dec object
 
@@ -473,9 +469,6 @@ def test_create_coordinate():
     with raises(ValueError):
         c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
 
-    c = Coordinates(ra=RA("54.12412 deg"), dec="-41:08:15.162342")
-    assert isinstance(c, ICRSCoordinates)
-
     with raises(TypeError):
 	    c = ICRSCoordinates() # not allowed
 
@@ -484,17 +477,14 @@ def test_create_coordinate():
     with raises(TypeError):
         c = ICRSCoordinates(ra="12 43 12", unit=(u.hour,))
 
-    with raises(ValueError):
-        c = Coordinates(ra="12h43m32", b="12:32:43")
-
-    with raises(ValueError):
-        c = Coordinates(ra="12h43m32")
-
-    with raises(ValueError):
-        c = Coordinates(dec="12 32 54")
+    with raises(TypeError):
+        c = ICRSCoordinates(ra="12h43m32", b="12:32:43")
 
     with raises(TypeError):
-        c = Coordinates(ra="12h43m32", dec="12 32 54", az="12.4311")
+        c = ICRSCoordinates(ra="12h43m32")
+
+    with raises(TypeError):
+        c = ICRSCoordinates(dec="12 32 54")
 
     # It would be convenient to accept both (e.g. ra, dec) coordinates as a
     # single string in the initializer. This can lead to ambiguities
@@ -532,55 +522,6 @@ def test_create_coordinate():
 
     #some also have an option for an observation time
     ICRSCoordinates(12, 13, unit=(u.hour, u.degree), obstime=timeobj)
-
-
-def test_coord_factory():
-    """
-    Tests the coordinate factory class.
-    """
-    from .. import Coordinates, RA, Dec, ICRSCoordinates, GalacticCoordinates
-
-    '''
-    To simplify usage, syntax will be provided to figure out the type of
-    coordinates the user wants without requiring them to know exactly which
-    frame they want.  The coordinate system is determined from the keywords
-    used when the object is initialized or can be explicitly specified using
-    `a1` and `a2` as angle parameters.
-    '''
-
-    c1 = Coordinates(ra="12:43:53", dec=-23, unit=(u.hour,u.degree))
-
-    # The ra and dec keywords imply equatorial coordinates, which will default
-    # to ICRS hence this returns an ICRSCoordinate
-    assert isinstance(c1, ICRSCoordinates)
-
-    # l and b are for galactic coordinates, so this returns a
-    # GalacticCoordinate object
-    with raises (ValueError):
-        c2 = Coordinates(l=158.558650, b=-43.350066, unit=(u.degree,))
-
-    c3 = Coordinates(l=158.558650, b=-43.350066, unit=u.degree)
-    assert isinstance(c3, GalacticCoordinates)
-
-    c4 = Coordinates(l=158.558650, b="-43.350066d", unit=(u.degree, None))
-    assert isinstance(c4, GalacticCoordinates)
-
-    # Any acceptable input for RA() is accepted in Coordinate, etc.
-    with raises(IllegalHourError):
-        c5 = Coordinates(ra="24:08:15.162342", dec=-41.432345, unit=(u.hour, u.degree))
-
-    c5 = Coordinates(ra="21:08:15.162342", dec=-41.432345, unit=(u.hour, u.degree))
-    assert isinstance(c5, ICRSCoordinates)
-
-    # Mismatched keywords produce an error
-    with raises(ValueError):
-        Coordinates(ra="24:08:15.162342", b=-43.350066, unit=(u.hour, u.degree))  # error
-
-    # Angle objects also accepted, and thus do not require units
-    ra = RA("4:08:15.162342", unit=u.hour)
-    dec = Dec("-41:08:15.162342")
-    c6 = Coordinates(ra=ra, dec=dec)
-    assert isinstance(c6, ICRSCoordinates)
 
 
 def test_convert_api():
@@ -692,7 +633,7 @@ def test_distances():
     Tests functionality for Coordinate class distances and cartesian
     transformations.
     """
-    from .. import Distance, Coordinates, ICRSCoordinates, GalacticCoordinates, CartesianPoint
+    from .. import Distance, ICRSCoordinates, GalacticCoordinates, CartesianPoint
     from ...cosmology import WMAP5, WMAP7
 
     '''
