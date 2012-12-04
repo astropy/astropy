@@ -201,6 +201,12 @@ class TestQuantityOperations():
         assert not 1. * u.cm == 1.
         assert 1. * u.cm != 1.
 
+    def test_numeric(self):
+        q = u.Quantity(1.23, u.m)
+
+        assert float(q) == 1.23
+        assert int(1) == 1
+        assert long(1) == 1L
 
 
 def test_quantity_conversion():
