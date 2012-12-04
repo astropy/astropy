@@ -170,9 +170,9 @@ def test_sphere_cart():
     r, lat, lon = cartesian_to_spherical(x, y, z)
     x2, y2, z2 = spherical_to_cartesian(r, lat, lon)
 
-    npt.assert_allclose(x, x2)
-    npt.assert_allclose(y, y2)
-    npt.assert_allclose(z, z2)
+    assert np.allclose(x, x2)
+    assert np.allclose(y, y2)
+    assert np.allclose(z, z2)
 
 
 m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
