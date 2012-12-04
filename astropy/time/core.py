@@ -65,8 +65,7 @@ class Time(object):
     Parameters
     ----------
     val : sequence, str, number, or `~astropy.time.Time` object
-        Value(s) to initialize the time or times.  If a `Time` object,
-        a simple copy will be made (or a deep copy if `copy` is True).
+        Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times
     format : str, optional
@@ -93,23 +92,19 @@ class Time(object):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
+    def __new__(cls, val, val2=None, format=None, scale=None,
+                precision=None, in_subfmt=None, out_subfmt=None,
+                lat=0.0, lon=0.0, copy=False):
+
+        if isinstance(val, cls):
+            self = val.replicate(format=format, copy=copy)
+        else:
+            self = super(Time, cls).__new__(cls)
+        return self
+
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0, copy=False):
-
-        # if the first input is a Time object, copy the attributes and don't do
-        # any of the parsing.  Copy the values if possible when `copy` is True
-        if isinstance(val, self.__class__):
-            if copy:
-                for attrname, attrvalue in val.__dict__.iteritems():
-                    if hasattr(attrvalue, 'copy'):
-                        setattr(self, attrname, attrvalue.copy())
-                    else:
-                        setattr(self, attrname, attrvalue)
-            else:
-                for attrname, attrvalue in val.__dict__.iteritems():
-                    setattr(self, attrname, attrvalue)
-            return
 
         self.lat = lat
         self.lon = lon
@@ -119,7 +114,12 @@ class Time(object):
             self.in_subfmt = in_subfmt
         if out_subfmt is not None:
             self.out_subfmt = out_subfmt
-        self._init_from_vals(val, val2, format, scale, copy)
+
+        if isinstance(val, self.__class__):
+            if scale is not None:
+                self._set_scale(scale)
+        else:
+            self._init_from_vals(val, val2, format, scale, copy)
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -598,12 +598,14 @@ class TimeDelta(Time):
 
     Parameters
     ----------
-    val : numpy ndarray, list, str, or number
+    val : numpy ndarray, list, str, number, or `~astropy.time.TimeDelta` object
         Data to initialize table.
     val2 : numpy ndarray, list, str, or number; optional
         Data to initialize table.
     format : str, optional
         Format of input value(s)
+    copy : bool, optional
+        Make a copy of the input values
     """
     SCALES = TIME_DELTA_SCALES
     """List of time delta scales"""
@@ -614,7 +616,8 @@ class TimeDelta(Time):
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         # Note: scale is not used but is needed because of the inheritance
         # from Time.
-        self._init_from_vals(val, val2, format, 'tai', copy)
+        if not isinstance(val, self.__class__):
+            self._init_from_vals(val, val2, format, 'tai', copy)
 
 
 class TimeFormat(object):
