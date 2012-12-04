@@ -10,7 +10,7 @@ from distutils import version
 import numpy as np
 from ....tests.helper import pytest
 
-from ....utils.data import get_pkg_data_filename
+from ....utils.data import get_pkg_data_filename, get_pkg_data_fileobj
 from ..table import parse, writeto
 from .. import tree
 
@@ -79,3 +79,31 @@ def test_table():
             assert field.arraysize == d['arraysize']
 
     writeto(votable2, os.path.join(TMP_DIR, "through_table.xml"))
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_read_through_table_interface():
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
+        t = Table.read(fd, format='votable', table_id='main_table')
+
+    assert len(t) == 5
+
+    fn = os.path.join(TMP_DIR, "table_interface.xml")
+    t.write(fn, table_id='FOO', format='votable')
+
+    with open(fn, 'rb') as fd:
+        t2 = Table.read(fd, format='votable', table_id='FOO')
+
+    assert len(t2) == 5
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_read_through_table_interface2():
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/regression.xml', encoding='binary') as fd:
+        t = Table.read(fd, format='votable', table_id='last_table')
+
+    assert len(t) == 0
