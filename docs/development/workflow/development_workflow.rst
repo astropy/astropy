@@ -79,7 +79,7 @@ In detail
    This tells you that you are currently on the ``master`` branch, and
    that you also have a ``remote`` connection to ``origin/master``.
    What remote repository is ``remote/origin``? Try ``git remote -v`` to
-   see the URLs for the remote.  They will point to your github fork.
+   see the URLs for the remote.  They will point to your GitHub fork.
 
    Now you want to connect to the Astropy repository, so you can
    merge in changes from the trunk::
@@ -150,7 +150,7 @@ details.
 Updating the mirror of trunk
 ============================
 
-From time to time you should fetch the upstream (trunk) changes from github::
+From time to time you should fetch the upstream (trunk) changes from GitHub::
 
    git fetch upstream
 
@@ -184,7 +184,7 @@ or ``buxfix-for-issue-42``.
     git branch my-new-feature upstream/master
     git checkout my-new-feature
 
-Generally, you will want to keep your feature branches on your public github_
+Generally, you will want to keep your feature branches on your public GitHub_
 fork. To do this, you `git push`_ this new branch up to your
 github repo. Generally (if you followed the instructions in these pages, and
 by default), git will have a link to your GitHub repo, called ``origin``. You
@@ -254,7 +254,7 @@ In more detail
    signals that you're going to type a message on the command line. The `git
    commit`_ manual page might also be useful.
 
-#. To push the changes up to your forked repo on github, do a ``git
+#. To push the changes up to your forked repo on GitHub, do a ``git
    push`` (see `git push`_).
 
 Asking for your changes to be reviewed or merged
@@ -285,7 +285,7 @@ When you are ready to ask for someone to review your code and consider a merge:
 Some other things you might want to do
 ======================================
 
-Delete a branch on github
+Delete a branch on GitHub
 -------------------------
 
 ::
@@ -297,7 +297,7 @@ Delete a branch on github
    # delete branch locally
    git branch -D my-unwanted-branch
 
-   # delete branch on github
+   # delete branch on GitHub
    git push origin :my-unwanted-branch
 
 (Note the colon ``:`` before ``test-branch``.  See also:
@@ -308,7 +308,7 @@ Several people sharing a single repository
 
 If you want to work on some stuff with other people, where you are all
 committing into the same repository, or even the same branch, then just
-share it via github.
+share it via GitHub.
 
 First fork Astropy into your account, as from :ref:`forking`.
 
@@ -345,7 +345,7 @@ To see a linear list of commits for this branch::
 
    git log
 
-You can also look at the `network graph visualizer`_ for your github
+You can also look at the `network graph visualizer`_ for your GitHub
 repo.
 
 Finally the :ref:`fancy-log` ``lg`` alias will give you a reasonable
@@ -417,15 +417,15 @@ page for some instructions at the end of the "Description" section. There is
 some related help on merging in the git user manual - see `resolving a
 merge`_.
 
-If your feature branch is already on github and you rebase, you will have to force
-push the branch, a normal push would give an error. If the branch you rebased is
-called ``cool-feature`` and your github fork is available as the remote called ``origin``,
+If your feature branch is already on GitHub and you rebase, you will have to force
+push the branch; a normal push would give an error. If the branch you rebased is
+called ``cool-feature`` and your GitHub fork is available as the remote called ``origin``,
 you use this command to force-push::
 
    git push -f origin cool-feature
 
-Note that this will overwrite the branch on github, i.e. this is one of the few ways
-you can actually loose commits with git.
+Note that this will overwrite the branch on GitHub, i.e. this is one of the few ways
+you can actually lose commits with git.
 Also note that it is never allowed to force push to the main astropy repo (typically
 called ``upstream``), because this would re-write commit history and thus cause problems
 for all others.
