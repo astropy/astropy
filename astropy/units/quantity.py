@@ -348,6 +348,16 @@ class Quantity(object):
         else:
             return len(self.value)
 
+    #Numerical types
+    def __float__(self):
+        return float(self.value)
+
+    def __int__(self):
+        return int(self.value)
+
+    def __long__(self):
+        return long(self.value)
+
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
