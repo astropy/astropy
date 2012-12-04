@@ -186,3 +186,19 @@ def test_invalid_type():
         None, name='c', datatype='foobar',
         config=config)
     c = converters.get_converter(field, config=config)
+
+
+def test_precision():
+    config = {'pedantic': True}
+
+    field = tree.Field(
+        None, name='c', datatype='float', precision="E4",
+        config=config)
+    c = converters.get_converter(field, config=config)
+    assert c.output(266.248, False) == '266.2'
+
+    field = tree.Field(
+        None, name='c', datatype='float', precision="F4",
+        config=config)
+    c = converters.get_converter(field, config=config)
+    assert c.output(266.248, False) == '266.2480'
