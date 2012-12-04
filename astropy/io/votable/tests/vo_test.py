@@ -756,7 +756,7 @@ def test_from_scratch_example():
         try:
             _run_test_from_scratch_example()
         except ValueError as e:
-            lines.append(str(e))
+            warning_lines.append(str(e))
 
     assert len(warning_lines) == 0
 
@@ -804,3 +804,29 @@ def test_fileobj():
                 assert isinstance(fd, io.FileIO)
             else:
                 assert isinstance(fd, file)
+
+
+def test_read_through_table_interface():
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/regression.xml') as fd:
+        t = Table.read(fd, format='votable', table_id='main_table')
+
+    assert len(t) == 5
+
+    fn = join(TMP_DIR, "table_interface.xml")
+    t.write(fn, table_id='FOO', format='votable')
+
+    with open(fn) as fd:
+        t2 = Table.read(fd, format='votable', table_id='FOO')
+
+    assert len(t2) == 5
+
+
+def test_read_through_table_interface2():
+    from ....table import Table
+
+    with get_pkg_data_fileobj('data/regression.xml') as fd:
+        t = Table.read(fd, format='votable', table_id='last_table')
+
+    assert len(t) == 0
