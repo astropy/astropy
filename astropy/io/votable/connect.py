@@ -76,19 +76,26 @@ def write_table_votable(input, output, table_id=None, compression=False, overwri
         Whether to overwrite any existing file without warning.
     """
 
+    # Check if output file already exists
     if os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:
             raise IOError("File exists: {0}".format(output))
 
-    # Convert to VOTableFile object
+    # Create a new VOTable file
     table_file = VOTableFile()
+
+    # Create a resource
     resource = Resource()
     table_file.resources.append(resource)
+
+    # Convert the table and add to file
     table = VOTable.from_table(table_file, input)
     table.ID = table_id
     resource.tables.append(table)
+
+    # Write out file
     table_file.to_xml(output)
 
 
