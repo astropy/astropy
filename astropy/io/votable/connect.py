@@ -60,9 +60,6 @@ def write_table_votable(input, output, table_id=None, compression=False, overwri
     """
     Write a Table object to an VO table file
 
-    This requires `h5py <http://alfven.org/wp/hdf5-for-python/>`_ to be
-    installed.
-
     Parameters
     ----------
     output : str
