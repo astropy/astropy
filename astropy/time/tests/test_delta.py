@@ -50,3 +50,25 @@ class TestTimeDelta():
         dt = self.t2 - self.t
         t2 = dt + self.t
         assert t2.iso == self.t2.iso
+
+    def test_copy_timedelta(self):
+        """Test copying the values of a TimeDelta object by passing it into the
+        Time initializer.
+        """
+        t = Time(2455197.5, format='jd', scale='utc')
+        t2 = Time(2455198.5, format='jd', scale='utc')
+        dt = t2 - t
+
+        dt2 = TimeDelta(dt, copy=False)
+        assert dt.jd == dt2.jd
+        assert dt._time.jd1 is dt2._time.jd1
+        assert dt._time.jd2 is dt2._time.jd2
+
+        dt2 = TimeDelta(dt, copy=True)
+        assert dt.jd == dt2.jd
+        assert dt._time.jd1 is not dt2._time.jd1
+        assert dt._time.jd2 is not dt2._time.jd2
+
+        # Include initializers
+        dt2 = TimeDelta(dt, format='sec')
+        assert np.allclose(dt2.val, 86400.0)
