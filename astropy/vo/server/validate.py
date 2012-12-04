@@ -5,6 +5,10 @@ Validate VO Services.
 This could be used by VO service providers to validate
 their services.
 
+.. note::
+
+    This is not meant to be used by a typical AstroPy user.
+
 *CONFIGURABLE PROPERTIES*
 
 These properties are set via Astropy configuration system:
@@ -13,46 +17,71 @@ These properties are set via Astropy configuration system:
     * `astropy.vo.server.noncrit_warnings`
     * Also depends on properties in `astropy.vo.client`
 
-.. note::
+*DEFAULT CONE SEARCH SERVICES*
 
-    This is not meant to be used by a typical AstroPy user.
+Currently, the default Cone Search services used are a
+subset of those found in `STScI VAO registry
+<http://vao.stsci.edu/directory/NVORegInt.asmx?op=VOTCapabilityPredOpt>`_.
+They are hand-picked to represent commonly used catalogs below:
+
+    * 2MASS All-Sky
+    * HST Guide Star Catalog
+    * SDSS Data Release 7
+    * SDSS-III Data Release 8
+    * USNO A1
+    * USNO A2
+    * USNO B1
+
+From this subset, the ones that pass daily validation
+are used by `astropy.vo.client.conesearch` by default.
+
+If you are a Cone Search service provider and would like
+to include your service in this list, please contact the
+AstroPy Team.
 
 Examples
 --------
->>> from astropy.vo.server import validate
-
 Validate default Cone Search sites with multiprocessing
 and write results in the current directory:
 
+>>> from astropy.vo.server import validate
 >>> validate.check_conesearch_sites()
 
-Validate only the given access URLs that are the subset
-of `astropy.vo.server.cs_mstr_list` without verbose
+Change `astropy.vo.server.cs_mstr_list` to obtain
+the master list directly from STScI VAO registry:
+
+>>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
+
+From the master list above, select Cone Search services
+hosted by 'stsci.edu' and fix selected URL strings
+(by replacing '&amp;' escape sequence with '&'):
+
+>>> import numpy as np
+>>> from astropy.io.votable import parse_single_table
+>>> from astropy.utils.data import get_readable_fileobj
+>>> with get_readable_fileobj(validate.CS_MSTR_LIST()) as fd:
+...     tab_all = parse_single_table(fd, pedantic=False)
+>>> arr = tab_all.array.data[np.where(
+...     (tab_all.array['capabilityClass'] == 'ConeSearch') &
+...     (np.char.count(tab_all.array['accessURL'].tolist(), 'stsci.edu') > 0))]
+>>> urls = np.char.replace(arr['accessURL'].tolist(), '&amp;', '&')
+
+Validate only the URLs found above without verbose
 outputs or multiprocessing, and write results in
 'subset' sub-directory:
 
->>> urls = [
->>>     'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&',
->>>     'http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1&']
 >>> validate.check_conesearch_sites(
->>>     destdir='./subset', verbose=False, multiproc=False, url_list=urls)
-
-Change `astropy.vo.server.cs_mstr_list` to obtain
-the master list directly from STScI VAO registry.
-This will take a while:
-
->>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
->>> validate.check_conesearch_sites()
+...     destdir='./subset', verbose=False, multiproc=False, url_list=urls)
 
 Change `astropy.vo.server.cs_mstr_list` back to default:
 
 >>> validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
 
-Add `astropy.io.votable.exceptions.W01` to the list of
-ignored warnings. This is *not* recommended unless you
-know exactly what you are doing:
+Add 'W24' from `astropy.io.votable.exceptions` to the list of
+ignored warnings and re-run validation. This is *not*
+recommended unless you know exactly what you are doing:
 
->>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W01'])
+>>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W24'])
 >>> validate.check_conesearch_sites()
 
 """
@@ -71,6 +100,7 @@ import numpy as np
 
 # LOCAL
 from ..client import vos_catalog
+from ...config.configuration import ConfigurationItem
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
@@ -78,8 +108,6 @@ from ...logger import log
 from ...utils.data import get_readable_fileobj
 from ...utils.misc import NumpyScalarOrSetEncoder
 
-# LOCAL CONFIG
-from ...config.configuration import ConfigurationItem
 
 __all__ = ['check_conesearch_sites']
 
@@ -109,39 +137,42 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     A master list of all available Cone Search sites is
     obtained from `astropy.vo.server.cs_mstr_list`, which
-    is a URL query to an external VAO service.
+    is a URL query to an external VAO service or the resultant
+    XML file.
 
     These sites are validated using `astropy.io.votable.validator`
     and separated into four groups below, each is stored as a JSON
     database in `destdir`. Existing files with same names will be
     deleted to avoid confusion:
 
-        #. 'conesearch_good.json' - Passed validation without
-           critical warnings and exceptions. This database is the
-           one used by `astropy.vo.client.conesearch`.
-        #. 'conesearch_warn.json' - Has critical warnings but no
-           exceptions. Users can manually set
-           `astropy.vo.client.conesearch` to use this at their
-           own risk.
-        #. 'conesearch_exception.json' - Has some exceptions.
-           *Never* use this. For informational purpose only.
-        #. 'conesearch_error.json' - Has network connection error.
-           *Never* use this. For informational purpose only.
+        #. *conesearch_good.json*
+               Passed validation without critical warnings and
+               exceptions. This database in
+               `astropy.vo.client.vos_baseurl` is the one used
+               by `astropy.vo.client.conesearch` by default.
+        #. *conesearch_warn.json*
+               Has critical warnings but no exceptions. Users
+               can manually set `astropy.vo.client.conesearch`
+               to use this at their own risk.
+        #. *conesearch_exception.json*
+               Has some exceptions. *Never* use this.
+               For informational purpose only.
+        #. *conesearch_error.json*
+               Has network connection error. *Never* use this.
+               For informational purpose only.
 
     HTML pages summarizing the validation results are generated by
     `astropy.io.votable.validator` and stored in 'results'
-    sub-directory. Downloaded XML files are also stored here.
+    sub-directory, which also contains downloaded XML files from
+    individual cone search queries.
 
     *WARNINGS AND EXCEPTIONS*
 
-    A full list VO Table warnings and exceptions is available
-    from `astropy.io.votable.exceptions`.
-
-    A subset of that list that is considered non-critical is defined
-    by `astropy.vo.server.noncrit_warnings` configurable property.
-    This means validation will ignore them (but
-    `astropy.io.votable.table.pedantic` still needs to be set to
-    `False` if user wants to use results from sites with these
+    A subset of `astropy.io.votable.exceptions` that is considered
+    non-critical is defined by `astropy.vo.server.noncrit_warnings`
+    configurable property. This means validation will ignore them
+    (but `astropy.io.votable.table.pedantic` still needs to be set
+    to `False` if user wants to use results from sites with these
     warnings). Despite listed as non-critical, user is responsible
     to check whether the results are reliable; They should not be
     used blindly.
@@ -154,9 +185,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     For user-friendly catalog listing, title will be the catalog key.
     To avoid repeating the same query, access URL should be unique.
-    But a title can have multiple access URLs, and vice versa.
-    In addition, the same title and access URL can also repeat under
-    different descriptions.
+    In STScI VAO registry, a title can have multiple access URLs,
+    and vice versa. In addition, the same title and access URL can
+    also repeat under different descriptions.
 
     In the case of (title, url 1) and (title, url 2), they will appear
     as two different entries with title renamed to 'title N' where N
@@ -196,10 +227,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         Enable multiprocessing.
 
     url_list : list of string
-        Only check these access URLs from the master list and
-        ignore the others, which will not appear in output files.
-        Unlike the master list, URLs here must end with '&', not
-        '&amp;'. This is useful for testing or debugging.
+        Only check these access URLs from
+        `astropy.vo.server.cs_mstr_list` and ignore the others,
+        which will not appear in output files. Unlike the master
+        list, URLs here must end with '&', not '&amp;'.
         If `None`, check everything.
 
     Raises

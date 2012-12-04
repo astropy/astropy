@@ -4,20 +4,27 @@ Inspect results from `astropy.vo.server.validate`.
 
 Examples
 --------
->>> from astropy.vo.server import inspect
-
 Load Cone Search validation results directly from
 `astropy.vo.client.vos_baseurl`:
 
+>>> from astropy.vo.server import inspect
 >>> r = inspect.ConeSearchResults()
 
 Print tally:
 
 >>> r.tally()
+good: 18 catalogs
+warn: 11 catalogs
+exception: 1 catalogs
+error: 1 catalogs
 
 Print a list of good Cone Search catalogs:
 
 >>> r.list_cats('good')
+2MASS All-Sky Catalog of Point Sources (Cutri+ 2003) 1
+http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=II/246/out&
+W22,W03
+# ...
 
 List Cone Search catalogs with warnings,
 excluding warnings that were ignored in
@@ -25,12 +32,29 @@ excluding warnings that were ignored in
 and writes the output to a file:
 
 >>> with open('warn_cats.txt', 'w') as fout:
->>>     r.list_cats('warn', fout=fout, ignore_noncrit=True)
+...     r.list_cats('warn', fout=fout, ignore_noncrit=True)
 
 Print the first good Cone Search catalog:
 
 >>> catkey = r.catkeys['good'][0]
 >>> r.print_cat(catkey)
+{
+    \"validate_network_error\": null,
+    \"capabilityClass\": \"ConeSearch\",
+    \"updated\": \"2011-09-14T20:17:37\",
+    \"capabilityValidationLevel\": \"\",
+    # ...
+    \"validate_xmllint\": true
+}
+Found in good
+
+Load Cone Search validation results from local
+validation in the current directory:
+
+>>> import os
+>>> from astropy.vo.client.vos_catalog import BASEURL
+>>> BASEURL.set(os.curdir + os.sep)
+>>> r = inspect.ConeSearchResults()
 
 """
 from __future__ import print_function, division
@@ -41,6 +65,7 @@ import sys
 
 # LOCAL
 from ..client.vos_catalog import get_remote_catalog_db
+
 
 __all__ = ['ConeSearchResults']
 

@@ -17,11 +17,10 @@ These properties are set via Astropy configuration system:
 
 Examples
 --------
->>> from astropy.vo.client import vos_catalog
-
 Get all catalogs from a database named 'conesearch_good'.
 For more cone search examples, see `astropy.vo.client.conesearch`:
 
+>>> from astropy.vo.client import vos_catalog
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
 Find catalog names containing 'usno*a2':
@@ -33,6 +32,15 @@ fields may vary:
 
 >>> my_cat = my_db.get_catalog(cat_names[0])
 >>> print(my_cat)
+{
+    \"validate_network_error\": null,
+    \"capabilityClass\": \"ConeSearch\",
+    \"updated\": \"2011-09-14T20:20:21\",
+    \"capabilityValidationLevel\": \"\",
+    \"maxRecords\": 9999,
+    # ...
+    \"validate_xmllint\": true
+}
 >>> cat_keys = my_cat.keys()
 >>> cat_url = my_cat['url']
 >>> max_rad = my_cat['maxRadius']
@@ -44,15 +52,11 @@ If URL yields multiple catalogs, only first match is given:
 
 To get all the matching catalogs by URL:
 
->>> cat_list = []
->>> for key, cat in my_db.get_catalogs_by_url(cat_url):
->>>     cat_list.append(cat)
+>>> cat_list = [cat for key, cat in my_db.get_catalogs_by_url(cat_url)]
 
 To get all catalogs in the database:
 
->>> all_cat_list = []
->>> for key, cat in my_db.get_catalogs():
->>>     all_cat_list.append(cat)
+>>> all_cat_list = [cat for key, cat in my_db.get_catalogs()]
 
 Other functions listed in this module but not in the examples
 above are used indirectly by other modules in `astropy.vo`
@@ -64,18 +68,14 @@ from __future__ import print_function, division
 # STDLIB
 import json
 
-# THIRD PARTY
-import numpy as np
-
 # LOCAL
+from ...config.configuration import ConfigurationItem
 from ...io.votable import table
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils import webquery
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj
 
-# LOCAL CONFIG
-from ...config.configuration import ConfigurationItem
 
 __all__ = ['VOSCatalog', 'VOSDatabase', 'get_remote_catalog_db',
            'call_vo_service', 'list_catalogs']
@@ -168,7 +168,7 @@ class VOSDatabase(VOSCatalog):
 
         Returns
         -------
-        value : `VOSCatalog` object
+        obj : `VOSCatalog` object
 
         Raises
         ------
@@ -203,7 +203,7 @@ class VOSDatabase(VOSCatalog):
         match_string : str or `None`
             If given string is anywhere in a catalog name, it is
             considered a matching catalog. It accepts patterns as
-            in :py:module:`fnmatch` and is case-insensitive.
+            in :mod:`fnmatch` and is case-insensitive.
             By default, all catalogs are returned.
 
         sort : bool
@@ -245,7 +245,7 @@ def get_remote_catalog_db(dbname, cache=True):
 
     Returns
     -------
-    value : `VOSDatabase` object
+    obj : `VOSDatabase` object
 
     """
     with get_readable_fileobj(BASEURL() + dbname + '.json',
@@ -339,25 +339,30 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     service_type : str
         Name of the type of service, e.g., 'conesearch'.
         Used in error messages and to select a catalog database
-        if one is not provided.
+        if `catalog_db` is not provided.
 
-    catalog_db : may be one of the following, in order from easiest to
-    use to most control:
+    catalog_db
+        May be one of the following, in order from easiest to
+        use to most control:
 
-        - `None`: A database of conesearch catalogs is downloaded from
-           STScI.  The first catalog in the database to successfully
-           return a result is used.
+        - `None`
+              A database of `service_type` catalogs is downloaded from
+              `astropy.vo.client.vos_baseurl`.  The first catalog
+              in the database to successfully return a result is used.
 
-        - *catalog name*: A name in the database of conesearch catalogs
-          at STScI is used.  For a list of acceptable names, see
-          :func:`list_catalogs`.
+        - *catalog name*
+              A name in the database of `service_type` catalogs
+              at `astropy.vo.client.vos_baseurl` is used.  For a list
+              of acceptable names, see :func:`list_catalogs`.
 
-        - *url*: The prefix of a *url* to a IVOA Cone Search Service.
-          Must end in either `?` or `&`.
+        - *url*
+              The prefix of a *url* to a IVOA Service for `service_type`.
+              Must end in either '?' or '&'.
 
-        - A `~vos_catalog.VOSCatalog` instance: A specific catalog
-          manually downloaded and selected from the database using the
-          APIs in the :mod:`vos_catalog` module.
+        - `VOSCatalog` object
+              A specific catalog manually downloaded and selected
+              from the database using the APIs in
+              `~astropy.vo.client.vos_catalog`.
 
         - Any of the above 3 options combined in a list, in which case
           they are tried in order.
@@ -374,11 +379,11 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     kwargs : dictionary
         Keyword arguments to pass to the catalog service.
         No checking is done that the arguments are accepted by
-        the service etc.
+        the service, etc.
 
     Returns
     -------
-    value : `astropy.io.votable.tree.Table` object
+    obj : `astropy.io.votable.tree.Table` object
         First table from first successful VO service request.
 
     Raises
@@ -434,9 +439,8 @@ def list_catalogs(service_type, cache=True, **kwargs):
 
     Parameters
     ----------
-    service_type : {'basic', 'conesearch', 'image', 'ssa'}
-        Only 'conesearch' is supported for now.
-        Others are for testing only.
+    service_type : {'conesearch_good', 'conesearch_warn'}
+        Only Cone Search is supported for now.
 
     cache : bool
         See `get_remote_catalog_db`.
@@ -445,7 +449,7 @@ def list_catalogs(service_type, cache=True, **kwargs):
 
     Returns
     -------
-    value : list of str
+    arr : list of str
 
     """
     return get_remote_catalog_db(service_type,
