@@ -208,7 +208,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     .. note::
 
-        All cone search queries are done using RA=0, DEC=0, and SR=0.
+        All cone search queries are done using 'RA=0&DEC=0&SR=0&VERB=3'.
         A successful validation does not guarantee a successful
         search with any given search values. In some cases, when the
         search returns non-empty VO Table, it will give warnings
@@ -302,7 +302,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     uniq_rows = len(uniq_urls)
     check_sum = 0
     title_counter = defaultdict(int)
-    conesearch_pars = 'RA=0&DEC=0&SR=0'
+    conesearch_pars = 'RA=0&DEC=0&SR=0&VERB=3'
     key_lookup_by_url = {}
 
     for cur_url in uniq_urls:
