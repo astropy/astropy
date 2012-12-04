@@ -560,14 +560,30 @@ class FloatingPoint(Numeric):
         Numeric.__init__(self, field, config, pos)
 
         precision = field.precision
+        width = field.width
         if precision is None:
-            self._output_format = u'%g'
+            if width is not None:
+                self._output_format = u"%%%dg" % width
+            else:
+                self._output_format = u'%g'
         elif precision.startswith("E"):
-            self._output_format = u"%%.%dE" % (int(precision[1:]))
+            if width is not None:
+                self._output_format = u"%%%d.%dg" % (
+                    int(width), int(precision[1:]))
+            else:
+                self._output_format = u"%%.%dg" % (int(precision[1:]))
         elif precision.startswith("F"):
-            self._output_format = u"%%.%dg" % (int(precision[1:]))
+            if width is not None:
+                self._output_format = u"%%%d.%df" % (
+                    int(width), int(precision[1:]))
+            else:
+                self._output_format = u"%%.%df" % (int(precision[1:]))
         else:
-            self._output_format = u"%%.%dg" % (int(precision))
+            if width is not None:
+                self._output_format = u"%%%d.%df" % (
+                    int(width), int(precision))
+            else:
+                self._output_format = u"%%.%df" % (int(precision))
 
         self.nan = np.array(np.nan, self.format)
 
