@@ -4,13 +4,13 @@ import sys
 import warnings
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal, \
-                          assert_array_almost_equal_nulp
+from numpy.testing import (
+    assert_array_almost_equal, assert_array_almost_equal_nulp)
 
 from ...tests.helper import raises
 from ... import wcs
-from ...utils.data import get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename
-from ...tests.helper import pytest
+from ...utils.data import (
+    get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 
 
 # test_maps() is a generator
@@ -119,8 +119,8 @@ derived_units = "Hz J W V N Pa C Ohm ohm S F Wb T H lm lx".split()
 add_all_units = "eV Jy R G barn".split()
 add_sup_units = "a yr pc bit byte Byte".split()
 add_sub_units = "mag".split()
-general_units = \
-              "deg arcmin arcsec mas d h min erg Ry u D DEGREE DEGREES".split()
+general_units = (
+    "deg arcmin arcsec mas d h min erg Ry u D DEGREE DEGREES".split())
 astro_units = "Angstrom angstrom AU lyr beam solRad solMass solLum Sun".split()
 device_units = "adu bin chan count ct photon ph pixel pix voxel".split()
 
@@ -152,7 +152,7 @@ def test_all_units():
 
     # list of all the units to test
     all = sorted(basic_units + derived_units + add_all_units + add_sup_units
-            + add_sub_units + general_units + astro_units + device_units)
+                 + add_sub_units + general_units + astro_units + device_units)
 
     # Pandokia has non-case-sensitve test names; since the unit name is
     # showing up in the test name, we want to disambiguate any name collisions.
@@ -232,9 +232,9 @@ def test_outside_sky():
         'data/outside_sky.hdr', encoding='binary')
     w = wcs.WCS(header)
 
-    assert np.all(np.isnan(w.wcs_pix2world([[100.,500.]], 0)))  # outside sky
-    assert np.all(np.isnan(w.wcs_pix2world([[200.,200.]], 0)))  # outside sky
-    assert not np.any(np.isnan(w.wcs_pix2world([[1000.,1000.]], 0)))
+    assert np.all(np.isnan(w.wcs_pix2world([[100., 500.]], 0)))  # outside sky
+    assert np.all(np.isnan(w.wcs_pix2world([[200., 200.]], 0)))  # outside sky
+    assert not np.any(np.isnan(w.wcs_pix2world([[1000., 1000.]], 0)))
 
 
 def test_load_fits_path():
@@ -265,16 +265,16 @@ def test_dict_init():
     assert_array_almost_equal_nulp(yp[0], 2., 10)
 
     # Valid WCS
-    w = wcs.WCS({'CTYPE1':'GLON-CAR',
-                 'CTYPE2':'GLAT-CAR',
-                 'CUNIT1':'deg',
-                 'CUNIT2':'deg',
-                 'CRPIX1':1,
-                 'CRPIX2':1,
-                 'CRVAL1':40.,
-                 'CRVAL2':0.,
-                 'CDELT1':-0.1,
-                 'CDELT2':0.1})
+    w = wcs.WCS({'CTYPE1': 'GLON-CAR',
+                 'CTYPE2': 'GLAT-CAR',
+                 'CUNIT1': 'deg',
+                 'CUNIT2': 'deg',
+                 'CRPIX1': 1,
+                 'CRPIX2': 1,
+                 'CRVAL1': 40.,
+                 'CRVAL2': 0.,
+                 'CDELT1': -0.1,
+                 'CDELT2': 0.1})
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
@@ -303,4 +303,3 @@ def test_3d_shapes():
     result = w.wcs_pix2sky(
         data[..., 0], data[..., 1], data[..., 2], 1)
     assert len(result) == 3
-
