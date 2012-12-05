@@ -50,8 +50,8 @@ from .. import log
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
-           "astropy.wcs did not pass its sanity check for your build " \
-           "on your platform."
+        "astropy.wcs did not pass its sanity check for your build " \
+        "on your platform."
 
 if sys.version_info[0] >= 3:  # pragma: py3
     string_types = (bytes, str)
@@ -262,7 +262,7 @@ class WCS(WCSBase):
             if naxis is None:
                 naxis = 2
             wcsprm = _wcs.Wcsprm(header=None, key=key,
-                                  relax=relax, naxis=naxis)
+                                 relax=relax, naxis=naxis)
             self.naxis = wcsprm.naxis
             # Set some reasonable defaults.
             det2im = (None, None)
@@ -305,16 +305,16 @@ class WCS(WCSBase):
 
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
-                                      relax=relax, keysel=keysel_flags,
-                                      colsel=colsel)
+                                     relax=relax, keysel=keysel_flags,
+                                     colsel=colsel)
             except _wcs.NoWcsKeywordsFoundError:
                 # The header may have SIP or distortions, but no core
                 # WCS.  That isn't an error -- we want a "default"
                 # (identity) core Wcs transformation in that case.
                 if colsel is None:
                     wcsprm = _wcs.Wcsprm(header=None, key=key,
-                                          relax=relax, keysel=keysel_flags,
-                                          colsel=colsel)
+                                         relax=relax, keysel=keysel_flags,
+                                         colsel=colsel)
                 else:
                     raise
 
@@ -756,7 +756,8 @@ naxis kwarg.
             for i in range(size):
                 for j in range(size - i):
                     if a[i, j] != 0.0:
-                        keywords['{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
+                        keywords[
+                            '{0}_{1:d}_{2:d}'.format(name, i, j)] = a[i, j]
 
         write_array('A', self.sip.a)
         write_array('B', self.sip.b)
@@ -1419,7 +1420,7 @@ naxis kwarg.
     def _get_naxis(self, header=None):
         self._naxis1 = 0
         self._naxis2 = 0
-        if header != None and not isinstance(header, string_types):
+        if header is not None and not isinstance(header, string_types):
             self.naxis1 = header.get('NAXIS1', 0)
             self.naxis2 = header.get('NAXIS2', 0)
 
