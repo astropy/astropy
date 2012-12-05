@@ -11,6 +11,7 @@ from ...tests.helper import raises
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
+from ...tests.helper import pytest
 
 
 # test_maps() is a generator
@@ -261,8 +262,8 @@ def test_dict_init():
 
     xp, yp = w.wcs_world2pix(41., 2., 1)
 
-    assert_array_almost_equal_nulp(xp[0], 41., 10)
-    assert_array_almost_equal_nulp(yp[0], 2., 10)
+    assert_array_almost_equal_nulp(xp, 41., 10)
+    assert_array_almost_equal_nulp(yp, 2., 10)
 
     # Valid WCS
     w = wcs.WCS({'CTYPE1': 'GLON-CAR',
@@ -278,8 +279,8 @@ def test_dict_init():
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
-    assert_array_almost_equal_nulp(xp[0], -10., 10)
-    assert_array_almost_equal_nulp(yp[0], 20., 10)
+    assert_array_almost_equal_nulp(xp, -10., 10)
+    assert_array_almost_equal_nulp(yp, 20., 10)
 
 
 @raises(TypeError)
