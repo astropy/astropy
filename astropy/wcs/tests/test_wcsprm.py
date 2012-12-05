@@ -575,7 +575,8 @@ def test_set_pv_realloc():
 def test_spcfix():
     # TODO: We need some data with broken spectral headers here to
     # really test
-    header = get_pkg_data_contents('spectra/orion-velo-1.hdr', encoding='binary')
+    header = get_pkg_data_contents(
+        'spectra/orion-velo-1.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
     assert w.spcfix() == -1
 
@@ -682,6 +683,7 @@ def test_get_pc():
         pass
     else:
         raise AssertionError()
+
 
 @raises(_wcs.SingularMatrixError)
 def test_detailed_err():

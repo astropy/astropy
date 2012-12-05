@@ -273,8 +273,8 @@ def get_extensions():
     if debug:
         define_macros.append(('DEBUG', None))
         undef_macros.append('NDEBUG')
-        if not sys.platform.startswith('sun') and \
-           not sys.platform == 'win32':
+        if (not sys.platform.startswith('sun') and
+            not sys.platform == 'win32'):
             extra_compile_args.extend(["-fno-inline", "-O0", "-g"])
     else:
         # Define ECHO as nothing to prevent spurious newlines from
@@ -291,7 +291,7 @@ def get_extensions():
             ('_NO_OLDNAMES', None),  # for mingw32
             ('NO_OLDNAMES', None),  # for mingw64
             ('__STDC__', None)  # for MSVC
-            ])
+        ])
 
     if sys.platform.startswith('linux'):
         define_macros.append(('HAVE_SINCOS', None))
