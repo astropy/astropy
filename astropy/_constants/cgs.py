@@ -5,8 +5,8 @@ available (with approximate values) are:
 """
 # This docstring is extended by __init__.py
 
-from ._constant_definition import ConstantDefinition
-from . import _si_constants as si
+from .definition import ConstantDefinition
+from . import si
 
 # PHYSICAL CONSTANTS
 

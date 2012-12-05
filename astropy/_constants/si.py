@@ -6,7 +6,8 @@ available (with approximate values) are:
 # This docstring is extended by __init__.py
 
 import numpy as np
-from ._constant_definition import ConstantDefinition
+
+from .definition import ConstantDefinition
 
 # PHYSICAL CONSTANTS
 
