@@ -188,6 +188,27 @@ class TestOldApiHeaderFunctions(FitsTestCase):
         assert h.ascard['FOO'].cardimage == fooimg
         assert h.ascard['BAR'].cardimage == barimg
 
+    def test_cardlist_list_methods(self):
+        """Regression test for #190."""
+
+        header = fits.Header()
+        header.update('A', 'B', 'C')
+        header.update('D', 'E', 'F')
+        # The old header.update method won't let you append a duplicate keyword
+        header.append(('D', 'G', 'H'))
+
+        assert header.ascardlist().index(header.cards['A']) == 0
+        assert header.ascardlist().index(header.cards['D']) == 1
+        assert header.ascardlist().index(header.cards[('D', 1)]) == 2
+
+        # Since the original CardList class really only works on card objects
+        # the count method is mostly useless since cards didn't used to compare
+        # equal sensibly
+        assert header.ascardlist().count(header.cards['A']) == 1
+        assert header.ascardlist().count(header.cards['D']) == 1
+        assert header.ascardlist().count(header.cards[('D', 1)]) == 1
+        assert header.ascardlist().count(fits.Card('A', 'B', 'C')) == 0
+
 
 class TestHeaderFunctions(FitsTestCase):
     """Test Header and Card objects."""
@@ -380,17 +401,17 @@ class TestHeaderFunctions(FitsTestCase):
                          "column 8)")
             err_text2 = ("Card 'ABC' is not FITS standard (invalid value "
                          "string: a6")
-            assert len(w) == 2
-            assert err_text1 in str(w[0].message)
-            assert err_text2 in str(w[1].message)
+            assert len(w) == 4
+            assert err_text1 in str(w[1].message)
+            assert err_text2 in str(w[2].message)
 
     def test_fix_invalid_equal_sign(self):
         c = fits.Card.fromstring('abc= a6')
         with warnings.catch_warnings(record=True) as w:
             c.verify('fix')
             fix_text = "Fixed 'ABC' card to meet the FITS standard."
-            assert len(w) == 2
-            assert fix_text in str(w[0].message)
+            assert len(w) == 4
+            assert fix_text in str(w[1].message)
         assert str(c) == _pad("ABC     = 'a6      '")
 
     def test_long_string_value(self):
@@ -1410,12 +1431,12 @@ class TestHeaderFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test.fits'))
         with warnings.catch_warnings(record=True) as w:
             hdul.writeto(self.temp('temp.fits'), output_verify='warn')
-            assert len(w) == 3
+            assert len(w) == 5
             # The first two warnings are just the headers to the actual warning
             # message (HDU 0, Card 4).  I'm still not sure things like that
             # should be output as separate warning messages, but that's
             # something to think about...
-            msg = str(w[2].message)
+            msg = str(w[3].message)
             assert '(invalid value string: 5.0022221e-07)' in msg
 
     def test_leading_zeros(self):
@@ -1857,11 +1878,15 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_get_rvkc_by_keyword(self):
         """
-        Returning a RVKC just via the keyword name should return the floating
-        point value of the first card with that keyword.
+        Returning a RVKC just via the keyword name should return the full value
+        string of the first card with that keyword.
+
+        This test was changed to reflect the requirement in ticket
+        #184--previously it required _test_header['DP1'] to return the parsed
+        float value.
         """
 
-        assert self._test_header['DP1'] == 2.0
+        assert self._test_header['DP1'] == 'NAXIS: 2'
 
     def test_get_rvkc_by_keyword_and_field_specifier(self):
         """
@@ -2009,3 +2034,66 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         cl = self._test_header['DP1.AXIS.*']
         assert cl.cards[0].value == 1.0
         assert isinstance(cl.cards[0].value, float)
+
+    def test_overly_permissive_parsing(self):
+        """
+        Regression test for #183.
+
+        Ensures that cards with standard commentary keywords are never treated
+        as RVKCs.  Also ensures that cards not stricly matching the RVKC
+        pattern are not treated as such.
+        """
+
+        h = fits.Header()
+        h['HISTORY'] = 'AXIS.1: 2'
+        h['HISTORY'] = 'AXIS.2: 2'
+        assert 'HISTORY.AXIS' not in h
+        assert 'HISTORY.AXIS.1' not in h
+        assert 'HISTORY.AXIS.2' not in h
+        assert h['HISTORY'] == ['AXIS.1: 2', 'AXIS.2: 2']
+
+        # This is an example straight out of the ticket where everything after
+        # the '2012' in the date value was being ignored, allowing the value to
+        # successfully be parsed as a "float"
+        h = fits.Header()
+        h['HISTORY'] = 'Date: 2012-09-19T13:58:53.756061'
+        assert 'HISTORY.Date' not in h
+        assert (str(h.cards[0]) ==
+                _pad('HISTORY Date: 2012-09-19T13:58:53.756061'))
+
+        c = fits.Card.fromstring(
+            "        'Date: 2012-09-19T13:58:53.756061'")
+        assert c.keyword == ''
+        assert c.value == "'Date: 2012-09-19T13:58:53.756061'"
+        assert c.field_specifier is None
+
+        h = fits.Header()
+        h['FOO'] = 'Date: 2012-09-19T13:58:53.756061'
+        assert 'FOO.Date' not in h
+        assert (str(h.cards[0]) ==
+                _pad("FOO     = 'Date: 2012-09-19T13:58:53.756061'"))
+
+    def test_overly_aggressive_rvkc_lookup(self):
+        """
+        Regression test for #184.
+
+        Ensures that looking up a RVKC by keyword only (without the
+        field-specifier) in a header returns the full string value of that card
+        without parsing it as a RVKC.  Also ensures that a full field-specifier
+        is required to match a RVKC--a partial field-specifier that doesn't
+        explicitly match any record-valued keyword should result in a KeyError.
+        """
+
+        c1 = fits.Card.fromstring("FOO     = 'AXIS.1: 2'")
+        c2 = fits.Card.fromstring("FOO     = 'AXIS.2: 4'")
+        h = fits.Header([c1, c2])
+        assert h['FOO'] == 'AXIS.1: 2'
+        assert h[('FOO', 1)] == 'AXIS.2: 4'
+        assert h['FOO.AXIS.1'] == 2.0
+        assert h['FOO.AXIS.2'] == 4.0
+        assert 'FOO.AXIS' not in h
+        assert 'FOO.AXIS.' not in h
+        assert 'FOO.' not in h
+        pytest.raises(KeyError, lambda: h['FOO.AXIS'])
+        pytest.raises(KeyError, lambda: h['FOO.AXIS.'])
+        pytest.raises(KeyError, lambda: h['FOO.'])

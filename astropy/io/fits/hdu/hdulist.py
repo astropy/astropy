@@ -491,7 +491,9 @@ class HDUList(list, _Verify):
             name = hdu.name
             if isinstance(name, str):
                 name = name.strip().upper()
-            if name == _key and (_ver is None or _ver == hdu._extver):
+            # 'PRIMARY' should always work as a reference to the first HDU
+            if ((name == _key or (_key == 'PRIMARY' and idx == 0)) and
+                (_ver is None or _ver == hdu._extver)):
                 found = idx
                 nfound += 1
 

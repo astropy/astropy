@@ -73,7 +73,7 @@ class _Verify(object):
                 # Each line contains a single issue that was fixed--issue a
                 # separate warning for each of those issues
                 warnings.warn(line, VerifyWarning)
-            warnings.warn(u'Note: PyFITS uses zero-based indexing.\n')
+            warnings.warn(u'Note: Astropy uses zero-based indexing.\n')
         if opt == 'exception' and x:
             raise VerifyError('\n' + x)
 

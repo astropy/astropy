@@ -165,10 +165,34 @@ class TestDiff(FitsTestCase):
         assert not diff.identical
         assert diff.diff_keyword_values == {'C': [(3, 5)]}
 
+        report = diff.report()
+        assert 'Keyword B        has different values' not in report
+        assert 'Keyword C        has different values' in report
+
         # Test case-insensitivity
         diff = HeaderDiff(ha, hb, ignore_keywords=['b'])
         assert not diff.identical
         assert diff.diff_keyword_values == {'C': [(3, 5)]}
+
+    def test_ignore_keyword_comments(self):
+        ha = Header([('A', 1, 'A'), ('B', 2, 'B'), ('C', 3, 'C')])
+        hb = ha.copy()
+        hb.comments['B'] = 'D'
+        hb.comments['C'] = 'E'
+        diff = HeaderDiff(ha, hb, ignore_comments=['*'])
+        assert diff.identical
+        diff = HeaderDiff(ha, hb, ignore_comments=['B'])
+        assert not diff.identical
+        assert diff.diff_keyword_comments == {'C': [('C', 'E')]}
+
+        report = diff.report()
+        assert 'Keyword B        has different comments' not in report
+        assert 'Keyword C        has different comments' in report
+
+        # Test case-insensitivity
+        diff = HeaderDiff(ha, hb, ignore_comments=['b'])
+        assert not diff.identical
+        assert diff.diff_keyword_comments == {'C': [('C', 'E')]}
 
     def test_trivial_identical_images(self):
         ia = np.arange(100).reshape((10, 10))
@@ -183,6 +207,24 @@ class TestDiff(FitsTestCase):
         diff = ImageDataDiff(ia, ib, tolerance=1.0e-4)
         assert diff.identical
         assert diff.diff_total == 0
+
+    def test_identical_comp_image_hdus(self):
+        """Regression test for #189.
+
+        For this test we mostly just care that comparing to compressed images
+        does not crash, and returns the correct results.  Two compressed images
+        will be considered identical if the decompressed data is the same.
+        Obviously we test whether or not the same compression was used by
+        looking for (or ignoring) header differences.
+        """
+
+        data = np.arange(100.0).reshape((10, 10))
+        hdu = fits.CompImageHDU(data=data)
+        hdu.writeto(self.temp('test.fits'))
+        hdula = fits.open(self.temp('test.fits'))
+        hdulb = fits.open(self.temp('test.fits'))
+        diff = FITSDiff(hdula, hdulb)
+        assert diff.identical
 
     def test_different_dimensions(self):
         ia = np.arange(100).reshape((10, 10))
@@ -238,6 +280,23 @@ class TestDiff(FitsTestCase):
                 set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']))
         assert diff.diff_ratio == 0
         assert diff.diff_total == 0
+
+    def test_diff_empty_tables(self):
+        """
+        Regression test for #178.
+
+        Ensure that diffing tables containing empty data doesn't crash.
+        """
+
+        c1 = Column('D', format='J')
+        c2 = Column('E', format='J')
+        thdu = new_table([c1, c2], nrows=0)
+
+        hdula = fits.HDUList([thdu])
+        hdulb = fits.HDUList([thdu])
+
+        diff = FITSDiff(hdula, hdulb)
+        assert diff.identical
 
     def test_ignore_table_fields(self):
         c1 = Column('A', format='L', array=[True, False])

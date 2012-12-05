@@ -178,6 +178,7 @@ class FITS_rec(np.recarray):
         self._nfields = len(self.dtype.names)
         self._convert = [None] * len(self.dtype.names)
         self._heapoffset = 0
+        self._heapsize = 0
         self._file = None
         self._buffer = None
         self._coldefs = None
@@ -193,6 +194,7 @@ class FITS_rec(np.recarray):
         if isinstance(obj, FITS_rec):
             self._convert = obj._convert
             self._heapoffset = obj._heapoffset
+            self._heapsize = obj._heapsize
             self._file = obj._file
             self._buffer = obj._buffer
             self._coldefs = obj._coldefs
@@ -207,6 +209,7 @@ class FITS_rec(np.recarray):
             self._convert = [None] * len(obj.dtype.names)
 
             self._heapoffset = getattr(obj, '_heapoffset', 0)
+            self._heapsize = getattr(obj, '_heapsize', 0)
             self._file = getattr(obj, '_file', None)
             self._buffer = getattr(obj, '_buffer', None)
 
@@ -362,6 +365,7 @@ class FITS_rec(np.recarray):
                 self._get_scale_factors(indx)
 
             # for P format
+            buff = None
             if isinstance(recformat, _FormatP):
                 dummy = _VLF([None] * len(self), dtype=recformat.dtype)
                 for i in range(len(self)):
@@ -373,10 +377,24 @@ class FITS_rec(np.recarray):
                             return _array_from_file(self._file, dtype=dtype,
                                                     count=count, sep='')
                     else:  # There must be a _buffer or something is wrong
-                        buff = self._buffer[_offset:]
+                        # Sometimes the buffer is already a Numpy array; in
+                        # particular this can occur in compressed HDUs.
+                        # Hypothetically other cases as well.
+                        if buff is None:
+                            buff = self._buffer
+                        if not isinstance(buff, np.ndarray):
+                            # Go ahead and great a single ndarray from the
+                            # buffer if it is not already one; we will then
+                            # take slices from it.  This is more efficient than
+                            # the previous approach that created separate
+                            # arrays for each VLA.
+                            buff = np.fromstring(buff, dtype=np.uint8)
+
                         def get_pdata(dtype, count):
-                            return np.fromstring(buff, dtype=dtype,
-                                                 count=count, sep='')
+                            dtype = np.dtype(dtype)
+                            nbytes = count * dtype.itemsize
+                            slc = slice(_offset, _offset + nbytes)
+                            return buff[slc].view(dtype=dtype)
 
                     if recformat.dtype == 'a':
                         count = field[i, 0]
@@ -546,7 +564,6 @@ class FITS_rec(np.recarray):
                 widths.append(f[1])
             loc.append(loc[-1] + super(FITS_rec, self).field(idx).itemsize)
 
-        self._heapsize = 0
         for indx in range(len(self.dtype.names)):
             recformat = self._coldefs._recformats[indx]
             field = super(FITS_rec, self).field(indx)
@@ -564,10 +581,20 @@ class FITS_rec(np.recarray):
             # add the location offset of the heap area for each
             # variable length column
             if isinstance(recformat, _FormatP):
+                # Reset the heapsize and recompute it starting from the first P
+                # column
+                if indx == 0:
+                    self._heapsize = 0
+
                 field[:] = 0  # reset
                 npts = map(len, self._convert[indx])
+
+                # Irritatingly, this can return a different dtype than just
+                # doing np.dtype(recformat.dtype); but this returns the results
+                # that we want.  For example if recformat.dtype is 'a' we want
+                # an array of characters.
+                dtype = np.array([], dtype=recformat.dtype).dtype
                 field[:len(npts), 0] = npts
-                dtype = np.array([], dtype=recformat.dtype)
                 field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
                                 dtype.itemsize)
                 field[:, 1][:] += self._heapsize

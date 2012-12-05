@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import operator
 import sys
 import warnings
+
+from functools import reduce
 
 import numpy as np
 
@@ -10,7 +13,8 @@ from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
 from ..column import Column, ColDefs, _FormatP, _makep
 from ..fitsrec import FITS_rec
-from ..header import Header
+from ..header import Header, BLOCK_SIZE, _pad_length
+from ..util import _is_pseudo_unsigned, _unsigned_zero
 
 from ....utils import lazyproperty
 
@@ -29,6 +33,10 @@ DEFAULT_HCOMP_SCALE = 0
 DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
+
+# CFITSIO version-specific features
+if COMPRESSION_SUPPORTED:
+    CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
 
 
 class CompImageHeader(Header):
@@ -56,8 +64,9 @@ class CompImageHeader(Header):
         # update the underlying header (_table_header) unless the update
         # was made to a card that describes the data.
 
-        if (keyword not in ('XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
-                            'TFIELDS', 'ZIMAGE', 'ZBITPIX', 'ZCMPTYPE') and
+        if (keyword not in ('SIMPLE', 'XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT',
+                            'TFIELDS', 'EXTEND', 'ZIMAGE', 'ZBITPIX',
+                            'ZCMPTYPE') and
             keyword[:4] not in ('ZVAL') and
             keyword[:5] not in ('NAXIS', 'TTYPE', 'TFORM', 'ZTILE', 'ZNAME')
             and keyword[:6] not in ('ZNAXIS')):
@@ -86,7 +95,9 @@ class CompImageHDU(BinTableHDU):
                  tileSize=None,
                  hcompScale=DEFAULT_HCOMP_SCALE,
                  hcompSmooth=DEFAULT_HCOMP_SMOOTH,
-                 quantizeLevel=DEFAULT_QUANTIZE_LEVEL):
+                 quantizeLevel=DEFAULT_QUANTIZE_LEVEL,
+                 do_not_scale_image_data=False,
+                 uint=False, scale_back=False, **kwargs):
         """
         Parameters
         ----------
@@ -266,10 +277,27 @@ class CompImageHDU(BinTableHDU):
             self.updateHeaderData(header, name, compressionType, tileSize,
                                   hcompScale, hcompSmooth, quantizeLevel)
 
+        # TODO: A lot of this should be passed on to an internal image HDU o
+        # something like that, see ticket #88
+        self._do_not_scale_image_data = do_not_scale_image_data
+        self._uint = uint
+        self._scale_back = scale_back
+
+        self._axes = [self._header.get('ZNAXIS' + str(axis + 1), 0)
+                      for axis in xrange(self._header.get('ZNAXIS', 0))]
+
         # store any scale factors from the table header
-        self._bzero = self._header.get('BZERO', 0)
-        self._bscale = self._header.get('BSCALE', 1)
+        if do_not_scale_image_data:
+            self._bzero = 0
+            self._bscale = 1
+        else:
+            self._bzero = self._header.get('BZERO', 0)
+            self._bscale = self._header.get('BSCALE', 1)
         self._bitpix = self._header['ZBITPIX']
+
+        self._orig_bzero = self._bzero
+        self._orig_bscale = self._bscale
+        self._orig_bitpix = self._bitpix
 
     @classmethod
     def match_header(cls, header):
@@ -352,10 +380,10 @@ class CompImageHDU(BinTableHDU):
 
         image_hdu = ImageHDU(data=self.data, header=self._header)
         self._image_header = CompImageHeader(self._header, image_hdu.header)
+        self._axes = image_hdu._axes
         del image_hdu
 
         # Update the extension name in the table header
-
         if not name and not 'EXTNAME' in self._header:
             name = 'COMPRESSED_IMAGE'
 
@@ -432,20 +460,35 @@ class CompImageHDU(BinTableHDU):
             # 'UNCOMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns.
             ncols = 4
 
-            # Set up the second column for the table that will hold
-            # any uncompressable data.
-            self._header.set('TTYPE2', 'UNCOMPRESSED_DATA',
-                             'label for field 2', after='TFORM1')
+            # CFITSIO 3.28 and up automatically use the GZIP_COMPRESSED_DATA
+            # store floating point data that couldn't be quantized, instead
+            # of the UNCOMPRESSED_DATA column.  There's no way to control
+            # this behavior so the only way to determine which behavior will
+            # be employed is via the CFITSIO version
 
-            if self._image_header['BITPIX'] == -32:
-                tform2 = '1PE'
+            if CFITSIO_SUPPORTS_GZIPDATA:
+                ttype2 = 'GZIP_COMPRESSED_DATA'
+                # The required format for the GZIP_COMPRESSED_DATA is actually
+                # missing from the standard docs, but CFITSIO suggests it
+                # should be 1PB, which is logical.
+                tform2 = '1PB'
             else:
-                tform2 = '1PD'
+                ttype2 = 'UNCOMPRESSED_DATA'
+                if self._image_header['BITPIX'] == -32:
+                    tform2 = '1PE'
+                else:
+                    tform2 = '1PD'
+
+            # Set up the second column for the table that will hold any
+            # uncompressable data.
+            self._header.set('TTYPE2', ttype2, 'label for field 2',
+                             after='TFORM1')
 
             self._header.set('TFORM2', tform2,
                              'data format of field: variable length array',
                              after='TTYPE2')
-            col2 = Column(name=self._header['TTYPE2'], format=tform2)
+
+            col2 = Column(name=ttype2, format=tform2)
 
             # Set up the third column for the table that will hold
             # the scale values for quantized data.
@@ -517,9 +560,11 @@ class CompImageHDU(BinTableHDU):
         # Verify that any input tile size parameter is the appropriate
         # size to match the HDU's data.
 
+        naxis = self._image_header['NAXIS']
+
         if not tileSize:
             tileSize = []
-        elif len(tileSize) != self._image_header['NAXIS']:
+        elif len(tileSize) != naxis:
             warnings.warn('Provided tile size not appropriate for the data.  '
                           'Default tile size will be used.')
             tileSize = []
@@ -527,24 +572,28 @@ class CompImageHDU(BinTableHDU):
         # Set default tile dimensions for HCOMPRESS_1
 
         if compressionType == 'HCOMPRESS_1':
-            if self._image_header['NAXIS'] != 2:
-                raise ValueError('Hcompress can only be used with '
-                                 '2-dimensional images.')
-            elif self._image_header['NAXIS1'] < 4 or \
-            self._image_header['NAXIS2'] < 4:
+            if (self._image_header['NAXIS1'] < 4 or
+                self._image_header['NAXIS2'] < 4):
                 raise ValueError('Hcompress minimum image dimension is '
                                  '4 pixels')
-            elif tileSize and (tileSize[0] < 4 or tileSize[1] < 4):
-                # user specified tile size is too small
-                raise ValueError('Hcompress minimum tile dimension is '
-                                 '4 pixels')
+            elif tileSize:
+                if tileSize[0] < 4 or tileSize[1] < 4:
+                    # user specified tile size is too small
+                    raise ValueError('Hcompress minimum tile dimension is '
+                                     '4 pixels')
+                major_dims = len(filter(lambda x: x > 1, tileSize))
+                if major_dims > 2:
+                    raise ValueError(
+                        'HCOMPRESS can only support 2-dimensional tile sizes.'
+                        'All but two of the tileSize dimensions must be set '
+                        'to 1.')
 
             if tileSize and (tileSize[0] == 0 and tileSize[1] == 0):
                 #compress the whole image as a single tile
                 tileSize[0] = self._image_header['NAXIS1']
                 tileSize[1] = self._image_header['NAXIS2']
 
-                for i in range(2, self._image_header['NAXIS']):
+                for i in range(2, naxis):
                     # set all higher tile dimensions = 1
                     tileSize[i] = 1
             elif not tileSize:
@@ -574,6 +623,11 @@ class CompImageHDU(BinTableHDU):
                             break
                     else:
                         tileSize.append(17)
+
+                for i in range(2, naxis):
+                    # set all higher tile dimensions = 1
+                    tileSize.append(1)
+
             # check if requested tile size causes the last tile to have
             # less than 4 pixels
 
@@ -611,30 +665,31 @@ class CompImageHDU(BinTableHDU):
         # write the ZNAXISn and ZTILEn cards to the table header.
         nrows = 1
 
-        for idx in range(0, self._image_header['NAXIS']):
+        for idx, axis in enumerate(self._axes):
             naxis = 'NAXIS' + str(idx + 1)
             znaxis = 'ZNAXIS' + str(idx + 1)
             ztile = 'ZTILE' + str(idx + 1)
 
-            if tileSize:
+            if tileSize and len(tileSize) >= idx + 1:
                 ts = tileSize[idx]
-            elif not ztile in self._header:
-                # Default tile size
-                if not idx:
-                    ts = self._image_header['NAXIS1']
-                else:
-                    ts = 1
             else:
-                ts = self._header[ztile]
+                if not ztile in self._header:
+                    # Default tile size
+                    if not idx:
+                        ts = self._image_header['NAXIS1']
+                    else:
+                        ts = 1
+                else:
+                    ts = self._header[ztile]
+                tileSize.append(ts)
 
-            naxisn = self._image_header[naxis]
-            nrows = nrows * ((naxisn - 1) // ts + 1)
+            nrows = nrows * ((axis - 1) // ts + 1)
 
             if image_header and naxis in image_header:
-                self._header.set(znaxis, naxisn, image_header.comments[naxis],
+                self._header.set(znaxis, axis, image_header.comments[naxis],
                                  after=last_znaxis)
             else:
-                self._header.set(znaxis, naxisn,
+                self._header.set(znaxis, axis,
                                  'length of original image axis',
                                  after=last_znaxis)
 
@@ -647,27 +702,7 @@ class CompImageHDU(BinTableHDU):
         # rows in the table.
         self._header.set('NAXIS2', nrows, 'number of rows in table')
 
-        # Create the record array to be used for the table data.
         self.columns = cols
-        compData = np.rec.array(None, formats=','.join(cols._recformats),
-                                names=cols.names, shape=nrows)
-        self.compData = compData.view(FITS_rec)
-        self.compData._coldefs = self.columns
-        self.compData.formats = self.columns.formats
-
-        # Set up and initialize the variable length columns.  There will
-        # either be one (COMPRESSED_DATA) or two (COMPRESSED_DATA,
-        # UNCOMPRESSED_DATA) depending on whether we have floating point
-        # data or not.  Note: the ZSCALE and ZZERO columns are fixed
-        # length columns.
-        for idx in range(min(2, len(cols))):
-            self.columns._arrays[idx] = \
-                np.rec.recarray.field(self.compData, idx)
-            np.rec.recarray.field(self.compData, idx)[0:] = 0
-            self.compData._convert[idx] = \
-                _makep(self.columns._arrays[idx],
-                       np.rec.recarray.field(self.compData, idx),
-                       self.columns._recformats[idx])
 
         # Set the compression parameters in the table header.
 
@@ -739,7 +774,8 @@ class CompImageHDU(BinTableHDU):
                 bytepix = DEFAULT_BYTE_PIX
 
             self._header.set('ZVAL2', bytepix,
-                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
+                             'bytes per pixel (1, 2, 4, or 8)',
+                             after='ZNAME2')
             afterCard = 'ZVAL2'
             idx = 3
         elif compressionType == 'HCOMPRESS_1':
@@ -864,249 +900,71 @@ class CompImageHDU(BinTableHDU):
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
-
-        # First we will get the table data (the compressed
-        # data) from the file, if there is any.
-        self.compData = super(BinTableHDU, self).data
-
-        # Now that we have the compressed data, we need to uncompress
-        # it into the image data.
-        dataList = []
-        naxesList = []
-        tileSizeList = []
-        zvalList = []
-        uncompressedDataList = []
-
-        # Set up an array holding the integer value that represents
-        # undefined pixels.  This could come from the ZBLANK column
-        # from the table, or from the ZBLANK header card (if no
-        # ZBLANK column (all null values are the same for each tile)),
-        # or from the BLANK header card.
-        if not 'ZBLANK' in self.compData.names:
-            if 'ZBLANK' in self._header:
-                nullDvals = np.array(self._header['ZBLANK'],
-                                     dtype='int32')
-                cn_zblank = -1  # null value is a constant
-            elif 'BLANK' in self._header:
-                nullDvals = np.array(self._header['BLANK'],
-                                     dtype='int32')
-                cn_zblank = -1  # null value is a constant
-            else:
-                cn_zblank = 0  # no null value given so don't check
-                nullDvals = np.array(0, dtype='int32')
-        else:
-            cn_zblank = 1  # null value supplied as a column
-            nullDvals = self.compData.field('ZBLANK')
-
-        # Set up an array holding the linear scale factor values
-        # This could come from the ZSCALE column from the table, or
-        # from the ZSCALE header card (if no ZSCALE column (all
-        # linear scale factor values are the same for each tile)).
-
-        if 'BSCALE' in self._header:
-            self._bscale = self._header['BSCALE']
-            del self._header['BSCALE']
-        else:
-            self._bscale = 1.
-
-        if not 'ZSCALE' in self.compData.names:
-            if 'ZSCALE' in self._header:
-                zScaleVals = np.array(self._header['ZSCALE'],
-                                      dtype='float64')
-                cn_zscale = -1  # scale value is a constant
-            else:
-                cn_zscale = 0  # no scale factor given so don't scale
-                zScaleVals = np.array(1.0, dtype='float64')
-        else:
-            cn_zscale = 1  # scale value supplied as a column
-            zScaleVals = self.compData.field('ZSCALE')
-
-        # Set up an array holding the zero point offset values
-        # This could come from the ZZERO column from the table, or
-        # from the ZZERO header card (if no ZZERO column (all
-        # zero point offset values are the same for each tile)).
-
-        if 'BZERO' in self._header:
-            self._bzero = self._header['BZERO']
-            del self._header['BZERO']
-        else:
-            self._bzero = 0.
-
-        if not 'ZZERO' in self.compData.names:
-            if 'ZZERO' in self._header:
-                zZeroVals = np.array(self._header['ZZERO'],
-                                     dtype='float64')
-                cn_zzero = -1  # zero value is a constant
-            else:
-                cn_zzero = 0  # no zero value given so don't scale
-                zZeroVals = np.array(1.0, dtype='float64')
-        else:
-            cn_zzero = 1  # zero value supplied as a column
-            zZeroVals = self.compData.field('ZZERO')
-
-        # Is uncompressed data supplied in a column?
-        if not 'UNCOMPRESSED_DATA' in self.compData.names:
-            cn_uncompressed = 0  # no uncompressed data supplied
-        else:
-            cn_uncompressed = 1  # uncompressed data supplied as column
-
-        # Take the compressed data out of the array and put it into
-        # a list as character bytes to pass to the decompression
-        # routine.
-        # TODO: I wonder if maybe a lot of this couldn't be done in C by
-        # running directly over the array data and not copying it like this
-        for row in self.compData:
-            dataList.append(row.field('COMPRESSED_DATA').tostring())
-
-            # If we have a column with uncompressed data then create
-            # a list of lists of the data in the coulum.  Each
-            # underlying list contains the uncompressed data for a
-            # pixel in the tile.  There are one of these lists for
-            # each tile in the image.
-            if 'UNCOMPRESSED_DATA' in self.compData.names:
-                tileUncDataList = []
-
-                for byte in row.field('UNCOMPRESSED_DATA'):
-                    tileUncDataList.append(byte)
-
-                uncompressedDataList.append(tileUncDataList)
-
-        # Calculate the total number of elements (pixels) in the
-        # resulting image data array.  Create a list of the number
-        # of pixels along each axis in the image and a list of the
-        # number of pixels along each axis in the compressed tile.
-        nelem = 1
-
-        for idx in range(self._header['ZNAXIS']):
-            naxesList.append(self._header['ZNAXIS' + str(idx + 1)])
-            tileSizeList.append(self._header['ZTILE' + str(idx + 1)])
-            nelem = nelem * self._header['ZNAXIS' + str(idx + 1)]
-
-        # Create a list for the compression parameters.  The contents
-        # of the list is dependent on the compression type.
-
-        if self._header['ZCMPTYPE'] == 'RICE_1':
-            idx = 1
-            blockSize = DEFAULT_BLOCK_SIZE
-            bytePix = DEFAULT_BYTE_PIX
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'BLOCKSIZE':
-                    blockSize = self._header[zval]
-                if self._header[zname] == 'BYTEPIX':
-                    bytePix = self._header[zval]
-                idx += 1
-
-            zvalList.append(blockSize)
-            zvalList.append(bytePix)
-        elif self._header['ZCMPTYPE'] == 'HCOMPRESS_1':
-            idx = 1
-            hcompSmooth = DEFAULT_HCOMP_SMOOTH
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'SMOOTH':
-                    hcompSmooth = self._header[zval]
-                idx += 1
-
-            zvalList.append(hcompSmooth)
-
-        # Treat the NOISEBIT and SCALE parameters separately because
-        # they are floats instead of integers
-
-        quantizeLevel = DEFAULT_QUANTIZE_LEVEL
-
-        if self._header['ZBITPIX'] < 0:
-            idx = 1
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'NOISEBIT':
-                    quantizeLevel = self._header[zval]
-                idx += 1
-
-        hcompScale = DEFAULT_HCOMP_SCALE
-
-        if self._header['ZCMPTYPE'] == 'HCOMPRESS_1':
-            idx = 1
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'SCALE':
-                    hcompScale = self._header[zval]
-                idx += 1
-
-        # Create an array to hold the decompressed data.
-        naxesList.reverse()
-        data = np.empty(shape=naxesList,
-                   dtype=_ImageBaseHDU.NumCode[self._header['ZBITPIX']])
-        naxesList.reverse()
-
-        # Call the C decompression routine to decompress the data.
-        # Note that any errors in this routine will raise an
-        # exception.
-        status = compression.decompressData(dataList,
-                                            self._header['ZNAXIS'],
-                                            naxesList, tileSizeList,
-                                            zScaleVals, cn_zscale,
-                                            zZeroVals, cn_zzero,
-                                            nullDvals, cn_zblank,
-                                            uncompressedDataList,
-                                            cn_uncompressed,
-                                            quantizeLevel,
-                                            hcompScale,
-                                            zvalList,
-                                            self._header['ZCMPTYPE'],
-                                            self._header['ZBITPIX'], 1,
-                                            nelem, 0.0, data)
+        data = compression.decompress_hdu(self)
 
         # Scale the data if necessary
-        if (self._bzero != 0 or self._bscale != 1):
-            if self.header['BITPIX'] == -32:
-                data = np.array(data, dtype=np.float32)
-            else:
-                data = np.array(data, dtype=np.float64)
+        if (self._orig_bzero != 0 or self._orig_bscale != 1):
+            new_dtype = self._dtype_for_bitpix()
+            data = np.array(data, dtype=new_dtype)
 
-            if cn_zblank:
-                blanks = (data == nullDvals)
+            zblank = None
+
+            if 'ZBLANK' in self.compData.columns.names:
+                zblank = self.compData['ZBLANK']
+            else:
+                if 'ZBLANK' in self._header:
+                    zblank = np.array(self._header['ZBLANK'], dtype='int32')
+                elif 'BLANK' in self._header:
+                    zblank = np.array(self._header['BLANK'], dtype='int32')
+
+            if zblank is not None:
+                blanks = (data == zblank)
 
             if self._bscale != 1:
                 np.multiply(data, self._bscale, data)
             if self._bzero != 0:
                 data += self._bzero
 
-            if cn_zblank:
+            if zblank is not None:
                 data = np.where(blanks, np.nan, data)
+
+        # Right out of _ImageBaseHDU.data
+        self._update_header_scale_info(data.dtype)
+
         return data
 
     @data.setter
-    def data(self, value):
-        if (value is not None) and (not isinstance(value, np.ndarray) or
-             value.dtype.fields is not None):
+    def data(self, data):
+        if (data is not None) and (not isinstance(data, np.ndarray) or
+             data.dtype.fields is not None):
                 raise TypeError('CompImageHDU data has incorrect type:%s; '
                                 'dtype.fields = %s' %
-                                (type(value), value.dtype.fields))
+                                (type(data), data.dtype.fields))
 
     @lazyproperty
     def compData(self):
-        # In order to create the compressed data we will reference the
-        # image data.  Referencing the image data will cause the
-        # compressed data to be read from the file.
-        data = self.data
+        # First we will get the table data (the compressed
+        # data) from the file, if there is any.
+        compData = super(BinTableHDU, self).data
+        if isinstance(compData, np.rec.recarray):
+            del self.data
+            return compData
+        else:
+            # This will actually set self.compData with the pre-allocated space
+            # for the compression data; this is something I might do away with
+            # in the future
+            self.updateCompressedData()
+
         return self.compData
+
+    @property
+    def shape(self):
+        """
+        Shape of the image array--should be equivalent to ``self.data.shape``.
+        """
+
+        # Determine from the values read from the header
+        return tuple(reversed(self._axes))
 
     @lazyproperty
     def header(self):
@@ -1127,7 +985,7 @@ class CompImageHDU(BinTableHDU):
         # Delete cards that are related to the table.  And move
         # the values of those cards that relate to the image from
         # their corresponding table cards.  These include
-        # ZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
+        # nnnZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
         try:
             del self._image_header['ZIMAGE']
         except KeyError:
@@ -1141,14 +999,8 @@ class CompImageHDU(BinTableHDU):
         try:
             del self._image_header['ZBITPIX']
             _bitpix = self._header['ZBITPIX']
-            self._image_header['BITPIX'] = (self._header['ZBITPIX'],
+            self._image_header['BITPIX'] = (_bitpix,
                                             self._header.comments['ZBITPIX'])
-
-            if (self._bzero != 0 or self._bscale != 1):
-                if _bitpix > 16:  # scale integers to Float64
-                    self._image_header['BITPIX'] = -64
-                elif _bitpix > 0:  # scale integers to Float32
-                    self._image_header['BITPIX'] = -32
         except KeyError:
             pass
 
@@ -1201,6 +1053,24 @@ class CompImageHDU(BinTableHDU):
             except KeyError:
                 pass
 
+        # Add the appropriate BSCALE and BZERO keywords if the data is scaled;
+        # though these will be removed again as soon as the data is read
+        # (unless do_not_scale_image_data=True)
+        if 'GCOUNT' in self._image_header:
+            after = 'GCOUNT'
+        else:
+            after = None
+        if 'BSCALE' in self._header:
+            self._image_header.set('BSCALE', self._header['BSCALE'],
+                                   self._header.comments['BSCALE'],
+                                   after=after)
+            after = 'BSCALE'
+
+        if 'BZERO' in self._header:
+            self._image_header.set('BZERO', self._header['BZERO'],
+                                   self._header.comments['BZERO'],
+                                   after=after)
+
         try:
             del self._image_header['ZEXTEND']
             self._image_header.set('EXTEND', self._header['ZEXTEND'],
@@ -1237,18 +1107,6 @@ class CompImageHDU(BinTableHDU):
                 idx += 1
             except KeyError:
                 break
-
-        # delete the keywords BSCALE and BZERO
-
-        try:
-            del self._image_header['BSCALE']
-        except KeyError:
-            pass
-
-        try:
-            del self._image_header['BZERO']
-        except KeyError:
-            pass
 
         # Move the ZHECKSUM and ZDATASUM cards to the image header
         # as CHECKSUM and DATASUM
@@ -1341,205 +1199,119 @@ class CompImageHDU(BinTableHDU):
         Compress the image data so that it may be written to a file.
         """
 
-        naxesList = []
-        tileSizeList = []
-        zvalList = []
+        tilesizes = []
 
         # Check to see that the image_header matches the image data
         image_bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
         if (self.header.get('NAXIS', 0) != len(self.data.shape) or
-            self.header.get('BITPIX', 0) != image_bitpix):
+            self.header.get('BITPIX', 0) != image_bitpix or
+            self._header.get('ZNAXIS', 0) != len(self.data.shape) or
+            self._header.get('ZBITPIX', 0) != image_bitpix or
+            self.shape != self.data.shape):
             self.updateHeaderData(self.header)
 
         # Create lists to hold the number of pixels along each axis of
         # the image data and the number of pixels in each tile of the
         # compressed image.
         for idx in range(self._header['ZNAXIS']):
-            naxesList.append(self._header['ZNAXIS' + str(idx + 1)])
-            tileSizeList.append(self._header['ZTILE' + str(idx + 1)])
-
-        # Indicate if the linear scale factor is from a column, a single
-        # scale value, or not given.
-        if 'ZSCALE' in self.compData.names:
-            cn_zscale = 1  # there is a scaled column
-        elif 'ZSCALE' in self._header:
-            cn_zscale = -1  # scale value is a constant
-        else:
-            cn_zscale = 0  # no scale value given so don't scale
-
-        # Indicate if the zero point offset value is from a column, a
-        # single value, or not given.
-        if 'ZZERO' in self.compData.names:
-            cn_zzero = 1  # there is a scaled column
-        elif 'ZZERO' in self._header:
-            cn_zzero = -1  # zero value is a constant
-        else:
-            cn_zzero = 0  # no zero value given so don't scale
-
-        # Indicate if there is a UNCOMPRESSED_DATA column in the
-        # compressed data table.
-        if 'UNCOMPRESSED_DATA' in self.compData.names:
-            cn_uncompressed = 1  # there is a uncompressed data column
-        else:
-            cn_uncompressed = 0  # there is no uncompressed data column
-
-        # Create a list for the compression parameters.  The contents
-        # of the list is dependent on the compression type.
-
-        # TODO: I'm pretty sure most of this is repeated almost exactly a
-        # little bit above; take a closer look at whether we can pare this
-        # down a bit.
-
-        if self._header['ZCMPTYPE'] == 'RICE_1':
-            idx = 1
-            blockSize = DEFAULT_BLOCK_SIZE
-            bytePix = DEFAULT_BYTE_PIX
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'BLOCKSIZE':
-                    blockSize = self._header[zval]
-                if self._header[zname] == 'BYTEPIX':
-                    bytePix = self._header[zval]
-                idx += 1
-
-            zvalList.append(blockSize)
-            zvalList.append(bytePix)
-        elif self._header['ZCMPTYPE'] == 'HCOMPRESS_1':
-            idx = 1
-            hcompSmooth = DEFAULT_HCOMP_SMOOTH
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'SMOOTH':
-                    hcompSmooth = self._header[zval]
-                idx += 1
-
-            zvalList.append(hcompSmooth)
-
-        # Treat the NOISEBIT and SCALE parameters separately because
-        # they are floats instead of integers
-
-        quantizeLevel = DEFAULT_QUANTIZE_LEVEL
-
-        if self._header['ZBITPIX'] < 0:
-            idx = 1
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'NOISEBIT':
-                    quantizeLevel = self._header[zval]
-                idx += 1
-
-        hcompScale = DEFAULT_HCOMP_SCALE
-
-        if self._header['ZCMPTYPE'] == 'HCOMPRESS_1':
-            idx = 1
-
-            while True:
-                zname = 'ZNAME' + str(idx)
-                if zname not in self._header:
-                    break
-                zval = 'ZVAL' + str(idx)
-                if self._header[zname] == 'SCALE':
-                    hcompScale = self._header[zval]
-                idx += 1
-
-        # Indicate if the null value is a constant or if no null value
-        # is provided.
-        if 'ZBLANK' in self._header:
-            cn_zblank = -1  # null value is a constant
-            zblank = self._header['ZBLANK']
-        else:
-            cn_zblank = 0  # no null value so don't use
-            zblank = 0
-
-        if 'BSCALE' in self._header and self.data.dtype.str[1] == 'f':
-            # If this is scaled data (ie it has a BSCALE value and it is
-            # floating point data) then pass in the BSCALE value so the C
-            # code can unscale it before compressing.
-            cn_bscale = self._header['BSCALE']
-        else:
-            cn_bscale = 1.0
-
-        if 'BZERO' in self._header and self.data.dtype.str[1] == 'f':
-            cn_bzero = self._header['BZERO']
-        else:
-            cn_bzero = 0.0
+            tilesizes.append(self._header['ZTILE' + str(idx + 1)])
 
         # put data in machine native byteorder on little endian machines
+        # for handing off to the compression code
+        if sys.byteorder == 'little':
+            swap_types = ('>',)
+        else:
+            swap_types = ('>', '=')
 
-        byteswapped = False
+        # TODO: This is copied right out of _ImageBaseHDU._writedata_internal;
+        # it would be cool if we could use an internal ImageHDU and use that to
+        # write to a buffer for compression or something. See ticket #88
+        # deal with unsigned integer 16, 32 and 64 data
+        old_data = self.data
+        if _is_pseudo_unsigned(self.data.dtype):
+            # Convert the unsigned array to signed
+            self.data = np.array(
+                self.data - _unsigned_zero(self.data.dtype),
+                dtype='<i%d' % self.data.dtype.itemsize)
+            should_swap = False
+        else:
+            byteorder = self.data.dtype.str[0]
+            should_swap = (byteorder in swap_types)
 
-        if self.data.dtype.str[0] == '>' and sys.byteorder == 'little':
-            byteswapped = True
-            self.data = self.data.byteswap(True)
-            self.data.dtype = self.data.dtype.newbyteorder('<')
+        if should_swap:
+            self.data.byteswap(True)
+
+        # Estimate memory needed for the compressed data and allocate it;
+        # CFITSIO will handle growing allocated memory if necessary, after
+        # which the pyfits.compression module will updating self.compData to
+        # use the newly reallocated buffer
+        if self._header['ZCMPTYPE'] == 'RICE_1':
+            rice_blocksize = self._header['ZVAL1']
+        else:
+            rice_blocksize = 0
+        maxtilelen = reduce(operator.mul, tilesizes, 1)
+        nrows = self._header['NAXIS2']
+        tbsize = self._header['NAXIS1'] * nrows
+        max_elem = compression.calc_max_elem(self._header['ZCMPTYPE'],
+                                             maxtilelen,
+                                             self._header['ZBITPIX'],
+                                             rice_blocksize)
+        dataspan = tbsize + (nrows * max_elem)
+        if dataspan < BLOCK_SIZE:
+            # We must a full FITS block at a minimum
+            dataspan = BLOCK_SIZE
+        else:
+            # Still make sure to pad out to a multiple of 2880 byte blocks
+            # otherwise CFITSIO can get read errors when it tries to read
+            # a partial block that goes past the end of the file
+            dataspan += _pad_length(dataspan)
+        self.compData = np.empty((dataspan,), dtype=np.byte)
+        self.compData[:tbsize] = 0
+
+        self._header['PCOUNT'] = 0
+        if 'THEAP' in self._header:
+            del self._header['THEAP']
+        self._theap = tbsize
 
         try:
             # Compress the data.
-            status, compDataList, scaleList, zeroList, uncompDataList = \
-               compression.compressData(self.data,
-                                        self._header['ZNAXIS'],
-                                        naxesList, tileSizeList,
-                                        cn_zblank, zblank,
-                                        cn_bscale, cn_bzero, cn_zscale,
-                                        cn_zzero, cn_uncompressed,
-                                        quantizeLevel,
-                                        hcompScale,
-                                        zvalList,
-                                        self._header['ZCMPTYPE'],
-                                        self.header['BITPIX'], 1,
-                                        self.data.size)
+            # The current implementation of compress_hdu assumes the empty
+            # compressed data table has already been initialized in
+            # self.compData, and writes directly to it
+            # compress_hdu returns the size of the heap for the written
+            # compressed image table
+            heapsize = compression.compress_hdu(self)
         finally:
             # if data was byteswapped return it to its original order
-            if byteswapped:
-                self.data = self.data.byteswap(True)
-                self.data.dtype = self.data.dtype.newbyteorder('>')
+            if should_swap:
+                self.data.byteswap(True)
+            self.data = old_data
 
-        if status != 0:
-            raise RuntimeError('Unable to write compressed image')
+        # Chances are not all the space allocated for the compressed data was
+        # needed.  If not, go ahead and truncate the array:
+        dataspan = tbsize + heapsize
+        if len(self.compData) > dataspan:
+            if self.compData.flags.owndata:
+                self.compData.resize(dataspan)
+            else:
+                # Need to copy to a new array; this generally shouldn't happen
+                # at all though there are some contrived cases (such as in one
+                # of the regression tests) where it can happen.
+                self.compData = np.resize(self.compData, (dataspan,))
 
-        # Convert the compressed data from a list of byte strings to
-        # an array and set it in the COMPRESSED_DATA field of the table.
-        colDType = 'uint8'
-
-        if self._header['ZCMPTYPE'] == 'PLIO_1':
-            colDType = 'i2'
-
-        for idx in xrange(len(compDataList)):
-            self.compData[idx].setfield('COMPRESSED_DATA',
-                                        np.fromstring(compDataList[idx],
-                                                      dtype=colDType))
-
-        # Convert the linear scale factor values from a list to an
-        # array and set it in the ZSCALE field of the table.
-        if cn_zscale > 0:
-            for idx in xrange(len(scaleList)):
-                self.compData[idx].setfield('ZSCALE', scaleList[idx])
-
-        # Convert the zero point offset values from a list to an
-        # array and set it in the ZZERO field of the table.
-        if cn_zzero > 0:
-            for idx in xrange(len(zeroList)):
-                self.compData[idx].setfield('ZZERO', zeroList[idx])
-
-        # Convert the uncompressed data values from a list to an
-        # array and set it in the UNCOMPRESSED_DATA field of the table.
-        if cn_uncompressed > 0:
-            for idx in xrange(len(uncompDataList)):
-                self.compData[idx].setfield('UNCOMPRESSED_DATA',
-                                            uncompDataList[idx])
+        dtype = np.rec.format_parser(','.join(self.columns._recformats),
+                                     self.columns.names, None).dtype
+        # CFITSIO will write the compressed data in big-endian order
+        dtype = dtype.newbyteorder('>')
+        buf = self.compData
+        compData = buf[:self._theap].view(dtype=dtype, type=np.rec.recarray)
+        self.compData = compData.view(FITS_rec)
+        self.compData._coldefs = self.columns
+        self.compData._heapoffset = self._theap
+        self.compData._heapsize = heapsize
+        self.compData._buffer = buf
+        self.compData.formats = self.columns.formats
 
         # Update the table header cards to match the compressed data.
         self.updateHeader()
@@ -1592,7 +1364,8 @@ class CompImageHDU(BinTableHDU):
                 bytepix = DEFAULT_BYTE_PIX
 
             self._header.set('ZVAL2', bytepix,
-                             'bytes per pixel (1, 2, 4, or 8)', after='ZNAME2')
+                             'bytes per pixel (1, 2, 4, or 8)',
+                             after='ZNAME2')
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -1638,19 +1411,15 @@ class CompImageHDU(BinTableHDU):
             _zero = bzero
         else:
             if option == 'old':
-                _scale = self._bscale
-                _zero = self._bzero
+                _scale = self._orig_bscale
+                _zero = self._orig_bzero
             elif option == 'minmax':
                 if isinstance(_type, np.floating):
                     _scale = 1
                     _zero = 0
                 else:
-
-                    # flat the shape temporarily to save memory
-                    dims = self.data.shape
-                    self.data.shape = self.data.size
-                    min = np.minimum.reduce(self.data)
-                    max = np.maximum.reduce(self.data)
+                    min = np.minimum.reduce(self.data.flat)
+                    max = np.maximum.reduce(self.data.flat)
                     self.data.shape = dims
 
                     if _type == np.uint8:  # uint8 case
@@ -1664,40 +1433,54 @@ class CompImageHDU(BinTableHDU):
 
         # Do the scaling
         if _zero != 0:
-            self.data += -_zero  # 0.9.6.3 to avoid out of range error for
-                                 # BZERO = +32768
+            self.data += -_zero
+            self.header['BZERO'] = _zero
+        else:
+            # Delete from both headers
+            for header in (self.header, self._header):
+                try:
+                    del header['BZERO']
+                except KeyError:
+                    pass
 
         if _scale != 1:
             self.data /= _scale
+            self.header['BSCALE'] = _scale
+        else:
+            for header in (self.header, self._header):
+                try:
+                    del header['BSCALE']
+                except KeyError:
+                    pass
 
         if self.data.dtype.type != _type:
             self.data = np.array(np.around(self.data), dtype=_type)  # 0.7.7.1
-        #
-        # Update the BITPIX Card to match the data
-        #
-        self.header['BITPIX'] = _ImageBaseHDU.ImgCode[self.data.dtype.name]
 
-        #
+        # Update the BITPIX Card to match the data
+        self._bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
+        self._bzero = self.header.get('BZERO', 0)
+        self._bscale = self.header.get('BSCALE', 1)
+        # Update BITPIX for the image header specificially
+        # TODO: Make this more clear by using self._image_header, but only once
+        # this has been fixed so that the _image_header attribute is guaranteed
+        # to be valid
+        self.header['BITPIX'] = self._bitpix
+
         # Update the table header to match the scaled data
-        #
         self.updateHeaderData(self.header)
 
-        #
-        # Set the BSCALE/BZERO header cards
-        #
-        if _zero != 0:
-            self.header['BZERO'] = _zero
-        else:
-            del self.header['BZERO']
-
-        if _scale != 1:
-            self.header['BSCALE'] = _scale
-        else:
-            del self.header['BSCALE']
+        # Since the image has been manually scaled, the current
+        # bitpix/bzero/bscale now serve as the 'original' scaling of the image,
+        # as though the original image has been completely replaced
+        self._orig_bitpix = self._bitpix
+        self._orig_bzero = self._bzero
+        self._orig_bscale = self._bscale
 
     # TODO: Fix this class so that it doesn't actually inherit from
     # BinTableHDU, but instead has an internal BinTableHDU reference
     def _prewriteto(self, checksum=False, inplace=False):
+        if self._scale_back:
+            self.scale(_ImageBaseHDU.NumCode[self._orig_bitpix])
         if self._data_loaded and self.data is not None:
             self.updateCompressedData()
         # Doesn't call the super's _prewriteto, since it calls
@@ -1736,6 +1519,55 @@ class CompImageHDU(BinTableHDU):
             size += self.compData.size * self.compData.itemsize
 
         return size
+
+    # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
+    # find a way to rewrite this class as either a subclass or wrapper for an
+    # ImageHDU
+    def _dtype_for_bitpix(self):
+        """
+        Determine the dtype that the data should be converted to depending on
+        the BITPIX value in the header, and possibly on the BSCALE value as
+        well.  Returns None if there should not be any change.
+        """
+
+        bitpix = self._orig_bitpix
+        # Handle possible conversion to uints if enabled
+        if self._uint and self._orig_bscale == 1:
+            for bits, dtype in ((16, np.dtype('uint16')),
+                                (32, np.dtype('uint32')),
+                                (64, np.dtype('uint64'))):
+                if bitpix == bits and self._orig_bzero == 1 << (bits - 1):
+                    return dtype
+
+        if bitpix > 16:  # scale integers to Float64
+            return np.dtype('float64')
+        elif bitpix > 0:  # scale integers to Float32
+            return np.dtype('float32')
+
+    def _update_header_scale_info(self, dtype=None):
+        if (not self._do_not_scale_image_data and
+            not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+            for keyword in ['BSCALE', 'BZERO']:
+                # Make sure to delete from both the image header and the table
+                # header; later this will be streamlined
+                for header in (self.header, self._header):
+                    try:
+                        del header[keyword]
+                        # Since _update_header_scale_info can, currently, be
+                        # called *after* _prewriteto(), replace these with
+                        # blank cards so the header size doesn't change
+                        header.append()
+                    except KeyError:
+                        pass
+
+            if dtype is None:
+                dtype = self._dtype_for_bitpix()
+            if dtype is not None:
+                self.header['BITPIX'] = _ImageBaseHDU.ImgCode[dtype.name]
+
+            self._bzero = 0
+            self._bscale = 1
+            self._bitpix = self.header['BITPIX']
 
     def _calculate_datasum(self, blocking):
         """

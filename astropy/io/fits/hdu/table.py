@@ -73,8 +73,20 @@ class _TableLikeHDU(_ValidHDU):
         names = [n for idx, n in enumerate(columns.names)
                  if not columns[idx]._phantom]
         dtype = np.rec.format_parser(formats, names, None).dtype
-        raw_data = self._get_raw_data(columns._shape, dtype, self._datLoc)
-        data = raw_data.view(np.rec.recarray)
+
+        # TODO: Details related to variable length arrays need to be dealt with
+        # specifically in the BinTableHDU class, since they're a detail
+        # specific to FITS binary tables
+        if (_FormatP in [type(r) for r in recformats] and
+            self._datSpan > self._theap):
+            # We have a heap; include it in the raw_data
+            raw_data = self._get_raw_data(self._datSpan, np.byte, self._datLoc)
+            data = raw_data[:self._theap].view(dtype=dtype,
+                                               type=np.rec.recarray)
+        else:
+            raw_data = self._get_raw_data(columns._shape, dtype, self._datLoc)
+            data = raw_data.view(np.rec.recarray)
+
         self._init_tbdata(data)
         return data.view(self._data_type)
 
@@ -429,13 +441,11 @@ class TableHDU(_TableBaseHDU):
             # We need to pad the data to a block length before calculating
             # the datasum.
 
-            if self.size > 0:
-                d = np.append(np.fromstring(self.data, dtype='ubyte'),
-                              np.fromstring(_pad_length(self.size) * ' ',
-                                            dtype='ubyte'))
+            d = np.append(self.data.view(dtype='ubyte'),
+                          np.fromstring(_pad_length(self.size) * ' ',
+                                        dtype='ubyte'))
 
-            cs = self._compute_checksum(np.fromstring(d, dtype='ubyte'),
-                                        blocking=blocking)
+            cs = self._compute_checksum(d, blocking=blocking)
             return cs
         else:
             # This is the case where the data has not been read from the file
@@ -502,14 +512,13 @@ class BinTableHDU(_TableBaseHDU):
                             data.field(i)[:] = data.field(i).byteswap()
         data.dtype = data.dtype.newbyteorder('>')
 
-        dout = np.fromstring(data, dtype='ubyte')
+        dout = data.view(dtype='ubyte')
 
         for i in range(data._nfields):
             if isinstance(data._coldefs._recformats[i], _FormatP):
                 for coldata in data.field(i):
                     if len(coldata) > 0:
-                        dout = np.append(dout,
-                                         np.fromstring(coldata, dtype='ubyte'))
+                        dout = np.append(dout, coldata.view(dtype='ubyte'))
 
         cs = self._compute_checksum(dout, blocking=blocking)
         return cs
@@ -539,6 +548,7 @@ class BinTableHDU(_TableBaseHDU):
         return size
 
     def _binary_table_byte_swap(self, fileobj):
+        to_swap = []
         swapped = []
         nbytes = 0
         if sys.byteorder == 'little':
@@ -548,27 +558,26 @@ class BinTableHDU(_TableBaseHDU):
         try:
             if not fileobj.simulateonly:
                 for idx in range(self.data._nfields):
-                    coldata = self.data.field(idx)
-                    if isinstance(coldata, chararray.chararray):
-                        continue
-                    # only swap unswapped
-                    # deal with var length table
                     field = np.rec.recarray.field(self.data, idx)
-                    if isinstance(coldata, _VLF):
+                    if isinstance(field, chararray.chararray):
+                        continue
+                    recformat = self.data.columns._recformats[idx]
+                    # only swap unswapped
+                    if field.itemsize > 1 and field.dtype.str[0] in swap_types:
+                        to_swap.append(field)
+                    # deal with var length table
+                    if isinstance(recformat, _FormatP):
+                        coldata = self.data.field(idx)
                         for jdx, c in enumerate(coldata):
                             if (not isinstance(c, chararray.chararray) and
                                 c.itemsize > 1 and
                                 c.dtype.str[0] in swap_types):
-                                swapped.append(c)
-                            if (field[jdx:jdx + 1].dtype.str[0] in swap_types):
-                                swapped.append(field[jdx:jdx + 1])
-                    else:
-                        if (coldata.itemsize > 1 and
-                            self.data.dtype.descr[idx][1][0] in swap_types):
-                            swapped.append(field)
+                                to_swap.append(c)
 
-                for obj in swapped:
+                while to_swap:
+                    obj = to_swap.pop()
                     obj.byteswap(True)
+                    swapped.append(obj)
 
                 fileobj.writearray(self.data)
 
@@ -580,7 +589,7 @@ class BinTableHDU(_TableBaseHDU):
             nbytes = self.data._gap
 
             for idx in range(self.data._nfields):
-                if isinstance(self.data._coldefs._recformats[idx], _FormatP):
+                if isinstance(self.data.columns._recformats[idx], _FormatP):
                     field = self.data.field(idx)
                     for jdx in range(len(field)):
                         coldata = field[jdx]
