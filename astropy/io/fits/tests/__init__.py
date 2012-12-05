@@ -24,9 +24,11 @@ class FitsTestCase(object):
 
         # Ignore deprecation warnings--this only affects Python 2.5 and 2.6,
         # since deprecation warnings are ignored by defualt on 2.7
-        warnings.simplefilter('ignore', DeprecationWarning)
+        warnings.simplefilter('ignore')
+        warnings.simplefilter('always', UserWarning)
 
     def teardown(self):
+        warnings.resetwarnings()
         if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
 

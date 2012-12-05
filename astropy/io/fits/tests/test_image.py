@@ -82,6 +82,34 @@ class TestImageFunctions(FitsTestCase):
         finally:
             r.close()
 
+    def test_primary_with_extname(self):
+        """Regression test for #151.
+
+        Tests that the EXTNAME keyword works with Primary HDUs as well, and
+        interacts properly with the .name attribute.  For convenience
+        hdulist['PRIMARY'] will still refer to the first HDU even if it has an
+        EXTNAME not equal to 'PRIMARY'.
+        """
+
+        prihdr = fits.Header([('EXTNAME', 'XPRIMARY'), ('EXTVER', 1)])
+        hdul = fits.HDUList([fits.PrimaryHDU(header=prihdr)])
+        assert 'EXTNAME' in hdul[0].header
+        assert hdul[0].name == 'XPRIMARY'
+        assert hdul[0].name == hdul[0].header['EXTNAME']
+
+        info = [(0, 'XPRIMARY', 'PrimaryHDU', 5, (), 'uint8', '')]
+        assert hdul.info(output=False) == info
+
+        assert hdul['PRIMARY'] is hdul['XPRIMARY']
+        assert hdul['PRIMARY'] is hdul[('XPRIMARY', 1)]
+
+        hdul[0].name = 'XPRIMARY2'
+        assert hdul[0].header['EXTNAME'] == 'XPRIMARY2'
+
+        hdul.writeto(self.temp('test.fits'))
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[0].name == 'XPRIMARY2'
+
     def test_io_manipulation(self):
         # Get a keyword value.  An extension can be referred by name or by
         # number.  Both extension and keyword names are case insensitive.
@@ -232,13 +260,14 @@ class TestImageFunctions(FitsTestCase):
         with warnings.catch_warnings(record=True) as w:
             hdu.verify()
             text = "HDUList's 0th element is not a primary HDU."
-            assert len(w) == 1
-            assert text in str(w[0].message)
+            assert len(w) == 3
+            assert text in str(w[1].message)
 
+        with warnings.catch_warnings(record=True) as w:
             hdu.writeto(self.temp('test_new2.fits'), 'fix')
             text = ("HDUList's 0th element is not a primary HDU.  "
                     "Fixed by inserting one as 0th HDU.")
-            assert len(w) == 2
+            assert len(w) == 3
             assert text in str(w[1].message)
 
     def test_section(self):
@@ -533,12 +562,31 @@ class TestImageFunctions(FitsTestCase):
     def test_comp_image_hcompression_1_invalid_data(self):
         """
         Tests compression with the HCOMPRESS_1 algorithm with data that is
-        not 2D (and thus should not work).
+        not 2D and has a non-2D tile size.
         """
 
         pytest.raises(ValueError, fits.CompImageHDU,
                       np.zeros((2, 10, 10), dtype=np.float32), name='SCI',
-                      compressionType='HCOMPRESS_1', quantizeLevel=16)
+                      compressionType='HCOMPRESS_1', quantizeLevel=16,
+                      tileSize=[2, 10, 10])
+
+    def test_comp_image_hcompress_image_stack(self):
+        """
+        Regression test for #171.
+
+        Tests that data containing more than two dimensions can be
+        compressed with HCOMPRESS_1 so long as the user-supplied tile size can
+        be flattened to two dimensions.
+        """
+
+        cube = np.arange(300, dtype=np.float32).reshape((3, 10, 10))
+        hdu = fits.CompImageHDU(data=cube, name='SCI',
+                                compressionType='HCOMPRESS_1',
+                                quantizeLevel=16, tileSize=[5, 5, 1])
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert (hdul['SCI'].data == cube).all()
 
     def test_disable_image_compression(self):
         with warnings.catch_warnings():
@@ -660,6 +708,55 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()
 
+    def test_rewriting_large_scaled_image_compressed(self):
+        """
+        Regression test for #88 1.
+
+        Identical to test_rewriting_large_scaled_image() but with a compressed
+        image.
+        """
+
+        with fits.open(self.data('fixed-1890.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            chdu = fits.CompImageHDU(data=hdul[0].data,
+                                     header=hdul[0].header)
+            chdu.writeto(self.temp('fixed-1890-z.fits'))
+
+        hdul = fits.open(self.temp('fixed-1890-z.fits'))
+        orig_data = hdul[1].data
+        with ignore_warnings():
+            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (hdul[1].data == orig_data).all()
+        hdul.close()
+
+        # Just as before, but this time don't touch hdul[0].data before writing
+        # back out--this is the case that failed in #84
+        hdul = fits.open(self.temp('fixed-1890-z.fits'))
+        with ignore_warnings():
+            hdul.writeto(self.temp('test_new.fits'), clobber=True)
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (hdul[1].data == orig_data).all()
+        hdul.close()
+
+        # Test opening/closing/reopening a scaled file in update mode
+        hdul = fits.open(self.temp('fixed-1890-z.fits'),
+                           do_not_scale_image_data=True)
+        hdul.writeto(self.temp('test_new.fits'), clobber=True,
+                     output_verify='silentfix')
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        orig_data = hdul[1].data
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'), mode='update')
+        hdul.close()
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert (hdul[1].data == orig_data).all()
+        hdul = fits.open(self.temp('test_new.fits'))
+        hdul.close()
+
     def test_image_update_header(self):
         """
         Regression test for #105.
@@ -706,7 +803,7 @@ class TestImageFunctions(FitsTestCase):
         time.sleep(1)
 
         hdul = fits.open(self.temp('scale.fits'), 'update')
-        hdul[0].data
+        orig_data = hdul[0].data
         hdul.close()
 
         # Now the file should be updated with the rescaled data
@@ -716,6 +813,7 @@ class TestImageFunctions(FitsTestCase):
         assert hdul[0].header['BITPIX'] == -32
         assert 'BZERO' not in hdul[0].header
         assert 'BSCALE' not in hdul[0].header
+        assert (orig_data == hdul[0].data).all()
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preseved properly
@@ -728,6 +826,59 @@ class TestImageFunctions(FitsTestCase):
         assert hdul[0].header['BITPIX'] == -32
         assert 'BZERO' not in hdul[0].header
         assert 'BSCALE' not in hdul[0].header
+
+    def test_open_scaled_in_update_mode_compressed(self):
+        """
+        Regression test for #88 2.
+
+        Identical to test_open_scaled_in_update_mode() but with a compressed
+        version of the scaled image.
+        """
+
+        # Copy+compress the original file before making any possible changes to
+        # it
+        with fits.open(self.data('scale.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            chdu = fits.CompImageHDU(data=hdul[0].data,
+                                       header=hdul[0].header)
+            chdu.writeto(self.temp('scale.fits'))
+        mtime = os.stat(self.temp('scale.fits')).st_mtime
+
+        time.sleep(1)
+
+        fits.open(self.temp('scale.fits'), mode='update').close()
+
+        # Ensure that no changes were made to the file merely by immediately
+        # opening and closing it.
+        assert mtime == os.stat(self.temp('scale.fits')).st_mtime
+
+        # Insert a slight delay to ensure the mtime does change when the file
+        # is changed
+        time.sleep(1)
+
+        hdul = fits.open(self.temp('scale.fits'), 'update')
+        hdul[1].data
+        hdul.close()
+
+        # Now the file should be updated with the rescaled data
+        assert mtime != os.stat(self.temp('scale.fits')).st_mtime
+        hdul = fits.open(self.temp('scale.fits'), mode='update')
+        assert hdul[1].data.dtype == np.dtype('float32')
+        assert hdul[1].header['BITPIX'] == -32
+        assert 'BZERO' not in hdul[1].header
+        assert 'BSCALE' not in hdul[1].header
+
+        # Try reshaping the data, then closing and reopening the file; let's
+        # see if all the changes are preseved properly
+        hdul[1].data.shape = (42, 10)
+        hdul.close()
+
+        hdul = fits.open(self.temp('scale.fits'))
+        assert hdul[1].shape == (42, 10)
+        assert hdul[1].data.dtype == np.dtype('float32')
+        assert hdul[1].header['BITPIX'] == -32
+        assert 'BZERO' not in hdul[1].header
+        assert 'BSCALE' not in hdul[1].header
 
     def test_scale_back(self):
         """A simple test for #120--the scale_back feature for image HDUs."""
@@ -752,3 +903,73 @@ class TestImageFunctions(FitsTestCase):
 
         with fits.open(self.temp('scale.fits')) as hdul:
             assert (hdul[0].data[1:] == orig_data[1:]).all()
+
+    def test_scale_back_compressed(self):
+        """
+        Regression test for #88 3.
+
+        Identical to test_scale_back() but uses a compressed image.
+        """
+
+        # Create a compressed version of the scaled image
+        with fits.open(self.data('scale.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            chdu = fits.CompImageHDU(data=hdul[0].data,
+                                     header=hdul[0].header)
+            chdu.writeto(self.temp('scale.fits'))
+
+        with fits.open(self.temp('scale.fits'), mode='update',
+                       scale_back=True) as hdul:
+            orig_bitpix = hdul[1].header['BITPIX']
+            orig_bzero = hdul[1].header['BZERO']
+            orig_bscale = hdul[1].header['BSCALE']
+            orig_data = hdul[1].data.copy()
+            hdul[1].data[0] = 0
+
+        with fits.open(self.temp('scale.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            assert hdul[1].header['BITPIX'] == orig_bitpix
+            assert hdul[1].header['BZERO'] == orig_bzero
+            assert hdul[1].header['BSCALE'] == orig_bscale
+
+            zero_point = int(math.floor(-orig_bzero / orig_bscale))
+            assert (hdul[1].data[0] == zero_point).all()
+
+        with fits.open(self.temp('scale.fits')) as hdul:
+            assert (hdul[1].data[1:] == orig_data[1:]).all()
+            # Extra test to ensure that after everything the data is still the
+            # same as in the original uncompressed version of the image
+            with fits.open(self.data('scale.fits')) as hdul2:
+                # Recall we made the same modification to the data in hdul
+                # above
+                hdul2[0].data[0] = 0
+                assert (hdul[1].data == hdul2[0].data).all()
+
+    @pytest.mark.skipif("sys.platform.startswith('win')")
+    def test_insufficient_compression_allocation(self):
+        """
+        Test the scenario where not enough space is allocated to hold the
+        compressed data, and a realloc is necessary.
+
+        For some reason this test *sometimes* breaks Jenkins when run on
+        Windows. It passes when the test suite is run outside Jenkins. I intend
+        to track down the cause of this but in the meantime it's disabled on
+        Windows.  See Astropy #507.
+        """
+
+        data = np.arange(10000, dtype='int32').reshape(100, 100)
+        hdu = fits.CompImageHDU(data=data)
+        old_compress_hdu = fits.compression.compress_hdu
+
+        def hacked_compress_hdu(hdu):
+            # Long enough to hold the table, but not enough for the full heap
+            hdu.compData = np.zeros((2880,), dtype=np.uint8)
+            return old_compress_hdu(hdu)
+
+        fits.compression.compress_hdu = hacked_compress_hdu
+
+        try:
+            hdu.updateCompressedData()
+            assert (data == fits.compression.decompress_hdu(hdu)).all()
+        finally:
+            fits.compression.compress_hdu = old_compress_hdu

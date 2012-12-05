@@ -367,7 +367,7 @@ consisting only the primary HDU with image data.
 First, we create a numpy object for the data part:
 
     >>> import numpy as np
-    >>> n = np.arange(100) # a simple sequence from 0 to 99
+    >>> n = np.arange(100.0) # a simple sequence of floats from 0.0 to 99.9
 
 Next, we create a :class:`PrimaryHDU` object to encapsulate the data:
 

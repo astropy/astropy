@@ -155,6 +155,10 @@ class _ImageBaseHDU(_ValidHDU):
         raise NotImplementedError
 
     @property
+    def is_image(self):
+        return True
+
+    @property
     def section(self):
         """
         Access a section of the image array without loading the entire array
@@ -796,7 +800,8 @@ class PrimaryHDU(_ImageBaseHDU):
             data=data, header=header,
             do_not_scale_image_data=do_not_scale_image_data, uint=uint,
             scale_back=scale_back)
-        self.name = 'PRIMARY'
+
+        self._name = 'PRIMARY'
         self._extver = 1
 
         # insert the keywords EXTEND

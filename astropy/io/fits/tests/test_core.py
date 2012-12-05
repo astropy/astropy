@@ -544,6 +544,19 @@ class TestStreamingFunctions(FitsTestCase):
             shdu = self._make_streaming_hdu(f)
             shdu.write(arr)
 
+    def test_fix_invalid_extname(self, capsys):
+        phdu = fits.PrimaryHDU()
+        ihdu = fits.ImageHDU()
+        ihdu.header['EXTNAME'] = 12345678
+        hdul = fits.HDUList([phdu, ihdu])
+
+        pytest.raises(fits.VerifyError, hdul.writeto, self.temp('temp.fits'),
+                      output_verify='exception')
+        hdul.writeto(self.temp('temp.fits'), output_verify='fix')
+        with fits.open(self.temp('temp.fits')):
+            assert hdul[1].name == '12345678'
+            assert hdul[1].header['EXTNAME'] == '12345678'
+
     def _make_streaming_hdu(self, fileobj):
         hd = fits.Header()
         hd['SIMPLE'] = (True, 'conforms to FITS standard')

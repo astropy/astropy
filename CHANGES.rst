@@ -97,19 +97,79 @@ Other Changes and Additions
 
 - Added HTML represention of tables in IPython notebook [#409]
 
+- Rewrote CFITSIO-based backend for handling tile compression of FITS files.
+  It now uses a standard CFITSIO instead of heavily modified pieces of CFITSIO
+  as before.  Astropy ships with its own copy of CFITSIO v3.30, but system
+  packagers may choose instead to strip this out in favor of a
+  system-installed version of CFITSIO.  This corresponds to PyFITS ticket 169.
+  [#318]
+
 
 Bug Fixes
 ^^^^^^^^^
 
 - ``astropy.io.fits``
 
+  - Improved handling of scaled images and pseudo-unsigned integer images in
+    compressed image HDUs.  They now work more transparently like normal image
+    HDUs with support for the ``do_not_scale_image_data`` and ``uint`` options,
+    as well as ``scale_back`` and ``save_backup``.  The ``.scale()`` method
+    works better too. Corresponds to PyFITS ticket 88.
+  
+  - Permits non-string values for the EXTNAME keyword when reading in a file,
+    rather than throwing an exception due to the malformatting.  Added
+    verification for the format of the EXTNAME keyword when writing.
+    Corresponds to PyFITS ticket 96.
+  
+  - Added support for EXTNAME and EXTVER in PRIMARY HDUs.  That is, if EXTNAME
+    is specified in the header, it will also be reflected in the ``.name``
+    attribute and in ``fits.info()``.  These keywords used to be verboten in
+    PRIMARY HDUs, but the latest version of the FITS standard allows them.
+    Corresponds to PyFITS ticket 151.
+  
+  - HCOMPRESS can again be used to compress data cubes (and higher-dimensional
+    arrays) so long as the tile size is effectively 2-dimensional. In fact,
+    compatible tile sizes will automatically be used even if they're not
+    explicitly specified. Corresponds to PyFITS ticket 171.
+
   - Fixed a bug that could cause a deadlock in the filesystem on OSX when
     reading the data from certain types of FITS files. This only occurred
     when used in conjunction with Numpy 1.7. [#369]
 
+  - Added support for the optional ``endcard`` parameter in the
+    ``Header.fromtextfile()`` and ``Header.totextfile()`` methods.  Although
+    ``endcard=False`` was a reasonable default assumption, there are still text
+    dumps of FITS headers that include the END card, so this should have been
+    more flexible. Corresponds to PyFITS ticket 176.
+
+  - Fixed a crash when running fitsdiff on two empty (that is, zero row) tables.
+    Corresponds to PyFITS ticket 178.
+
   - Fixed an issue where opening a FITS file containing a random group HDU in
     update mode could result in an unnecessary rewriting of the file even if
     no changes were made. This corresponds to PyFITS ticket 179.
+
+  - Fixed a crash when generating diff reports from diffs using the
+    ``ignore_comments`` options. Corresponds to PyFITS ticket 181.
+
+  - Fixed some bugs with WCS Paper IV record-valued keyword cards:
+
+    - Cards that looked kind of like RVKCs but were not intended to be were
+      over-permissively treated as such--commentary keywords like COMMENT and
+      HISTORY were particularly affected. Corresponds to PyFITS ticket 183.
+
+    - Looking up a card in a header by its standard FITS keyword only should
+      always return the raw value of that card.  That way cards containing
+      values that happen to valid RVKCs but were not intended to be will still
+      be treated like normal cards. Corresponds to PyFITS ticket 184.
+
+    - Looking up a RVKC in a header with only part of the field-specifier (for
+      example "DP1.AXIS" instead of "DP1.AXIS.1") was implicitly treated as a
+      wildcard lookup. Corresponds to PyFITS ticket 184.
+
+  - Fixed a crash when diffing two FITS files where at least one contains a
+    compressed image HDU which was not recognized as an image instead of a
+    table. Corresponds to PyFITS ticket 187.
 
   - Fixed a bug where opening a file containing compressed image HDUs in
     'update' mode and then immediately closing it without making any changes
@@ -128,6 +188,9 @@ Bug Fixes
     largely unreadable.
 
   - Fixed a minor string formatting issue.
+
+  - Fixed bugs in the backwards compatibility layer for the ``CardList.index``
+    and ``CardList.count`` methods. Corresponds to PyFITS ticket 190.
 
 - ``astropy.io.votable``
 

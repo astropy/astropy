@@ -301,7 +301,7 @@ class FITSDiff(_BaseDiff):
         if self.ignore_comments:
             ignore_comments = ' '.join(sorted(self.ignore_comments))
             self._writeln(u' Keyword(s) whose comments are not to be compared:'
-                          '\n%s' % wrapper.fill(ignore_keywords))
+                          '\n%s' % wrapper.fill(ignore_comments))
         if self.ignore_fields:
             ignore_fields = ' '.join(sorted(self.ignore_fields))
             self._writeln(u' Table column(s) not to be compared:\n%s' %
@@ -1025,6 +1025,11 @@ class TableDataDiff(_BaseDiff):
             self.diff_rows = (len(self.a), len(self.b))
             return
 
+        # If the tables contain no rows there's no data to compare, so we're
+        # done at this point. (See ticket #178)
+        if len(self.a) == len(self.b) == 0:
+            return
+
         # Like in the old fitsdiff, compare tables on a column by column basis
         # The difficulty here is that, while FITS column names are meant to be
         # case-insensitive, PyFITS still allows, for the sake of flexibility,
@@ -1119,10 +1124,10 @@ class TableDataDiff(_BaseDiff):
                                ind=self._indent + 1)
 
         if self.diff_rows:
-            self._writeln(' Table rows differ:')
-            self._writeln('  a: %s' % self.diff_rows[0])
-            self._writeln('  b: %s' % self.diff_rows[1])
-            self._writeln(' No further data comparison performed.')
+            self._writeln(u' Table rows differ:')
+            self._writeln(u'  a: %s' % self.diff_rows[0])
+            self._writeln(u'  b: %s' % self.diff_rows[1])
+            self._writeln(u' No further data comparison performed.')
             return
 
         if not self.diff_values:
@@ -1177,7 +1182,7 @@ def report_diff_values(fileobj, a, b, ind=0):
             report_diff_values(fileobj, a[idx], b[idx], ind=ind + 1)
 
         if num_diffs:
-            fileobj.write(indent('  ...and at %d more indices.\n' %
+            fileobj.write(indent(u'  ...and at %d more indices.\n' %
                           (num_diffs - 3), ind))
         return
 
@@ -1206,7 +1211,7 @@ def report_diff_keyword_attr(fileobj, attr, diffs, keyword, ind=0):
                 dup = ''
             else:
                 dup = '[%d]' % (idx + 1)
-            fileobj.write(indent(' Keyword %-8s%s has different %s:\n' %
+            fileobj.write(indent(u' Keyword %-8s%s has different %s:\n' %
                           (keyword, dup, attr), ind))
             report_diff_values(fileobj, val[0], val[1], ind=ind + 1)
 

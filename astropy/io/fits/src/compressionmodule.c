@@ -1,30 +1,33 @@
-/* $Id$ 
-*/
-
 /* "compression module */
 
 /*****************************************************************************/
 /*                                                                           */
-/* The compression software is a python module implemented in C that, when    */
-/* accessed through the astropy module, supports the storage of compressed    */
+/* The compression software is a python module implemented in C that, when   */
+/* accessed through the astropy module, supports the storage of compressed   */
 /* images in FITS binary tables.  An n-dimensional image is divided into a   */
-/* rectabgular grid of subimages or 'tiles'.  Each tile is then compressed   */
+/* rectangular grid of subimages or 'tiles'.  Each tile is then compressed   */
 /* as a continuous block of data, and the resulting compressed byte stream   */
 /* is stored in a row of a variable length column in a FITS binary table.    */
 /* The default tiling pattern treates each row of a 2-dimensional image      */
 /* (or higher dimensional cube) as a tile, such that each tile contains      */
 /* NAXIS1 pixels.                                                            */
 /*                                                                           */
-/* This module contains two functions that are callable from python.  The    */
-/* first is compressData.  This function takes a numpy.ndarray object        */
-/* containing the uncompressed image data and returns a list of byte streams */
-/* in which each element of the list holds the compressed data for a single  */
-/* tile of the image.  The second function is decompressData.  It takes a    */
-/* list of byte streams that hold the compressed data for each tile in the   */
-/* image.  It returns a list containing the decompressed data for each tile  */
-/* in the image.                                                             */
+/* This module contains three functions that are callable from python.  The  */
+/* first is compress_hdu.  This function takes an                            */
+/* astropy.io.fits.CompImageHDU object containing the uncompressed image     */
+/* data and returns the compressed data for all tiles into the .compData     */
+/* attribute of that HDU.                                                    */
 /*                                                                           */
-/* Copyright (C) 2004 Association of Universities for Research in Astronomy  */
+/* The second function is decompress_hdu.  It takes an                       */
+/* astropy.io.fits.CompImageHDU object that already has compressed data in   */
+/* its .compData attribute. It returns the decompressed image data into the  */
+/* HDU's .data attribute.                                                    */
+/*                                                                           */
+/* Finally, the utility function calc_max_elm is used internally by the      */
+/* CompImageHDU class to estimate how much memory to allocate for the        */
+/* compressed data when compressing an image.                                */
+/*                                                                           */
+/* Copyright (C) 2012 Association of Universities for Research in Astronomy  */
 /* (AURA)                                                                    */
 /*                                                                           */
 /* Redistribution and use in source and binary forms, with or without        */
@@ -91,1062 +94,902 @@
 
 /* Include the Python C API */
 
-#include "Python.h"
+#include <math.h>
+
+#include <Python.h>
 #include <numpy/arrayobject.h>
-#include "fitsio.h"
-#include "string.h"
+#include <fitsio2.h>
+#include <string.h>
+#include "compressionmodule.h"
 
 /* Some defines for Python3 support--bytes objects should be used where */
 /* strings were previously used                                         */
 #if PY_MAJOR_VERSION >= 3
-#define PyString_AsString PyBytes_AsString
-#define PyString_FromStringAndSize PyBytes_FromStringAndSize
-#define PyString_Size PyBytes_Size
+#define IS_PY3K
 #endif
 
-/* Function to get the input long values from the input list */
-
-static long* get_long_array(PyObject* data, const char* description,
-                            int* data_size)
-{
-   int    i;
-   int    size;
-   long*  out;
-   int    seq;
-   char   errMsg[80];
-
-   seq = PyList_Check(data);
-
-   if (!seq)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," argument must be a list.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_TypeError,errMsg);
-      return NULL;
-   }
-
-   size = PyList_Size(data);
-
-   if (size < 0)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," list has invalid size.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_ValueError,errMsg);
-      return NULL;
-   }
-
-   if (data_size)
-   {
-      *data_size = size;
-   }
-
-   out = (long*) PyMem_Malloc(size * sizeof(long));
-
-   if(!out)
-   {
-      PyErr_NoMemory();
-      return NULL;
-   }
-
-   for (i = 0; i < size; i++)
-   {
-      out[i] = PyLong_AsLong(PyList_GetItem(data, i));
-   }
-
-   if ( PyErr_Occurred())
-   {
-      PyMem_Free(out);
-      out = NULL;
-   }
-
-   return out;
-}
+#ifdef IS_PY3K
+#define PyString_FromString PyUnicode_FromString
+#define PyInt_AsLong PyLong_AsLong
+#endif
 
 
-/* Function to get the input character arrays from the input list */
+/* These defaults mirror the defaults in astropy.io.fits.hdu.compressed */
+#define DEFAULT_COMPRESSION_TYPE "RICE_1"
+#define DEFAULT_QUANTIZE_LEVEL 16.0
+#define DEFAULT_HCOMP_SCALE 0
+#define DEFAULT_HCOMP_SMOOTH 0
+#define DEFAULT_BLOCK_SIZE 32
+#define DEFAULT_BYTE_PIX 4
 
-static unsigned char** get_char_array(PyObject* data, const char* description,
-                                      int* data_size, int** dataLen)
-{
-   int             i;
-   int             size;
-   unsigned char** out;
-   int             seq;
-   char            errMsg[80];
-
-   seq = PyList_Check(data);
-
-   if (!seq)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," argument must be a list.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_TypeError,errMsg);
-      return NULL;
-   }
-
-   size = PyList_Size(data);
-
-   if ( size < 0)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," list has invalid size.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_ValueError,errMsg);
-      return NULL;
-   }
-
-   if (data_size)
-   {
-      *data_size = size;
-   }
-
-   out = (unsigned char**) PyMem_Malloc(size * sizeof(char*));
-
-   if(!out)
-   {
-      PyErr_NoMemory();
-      return NULL;
-   }
-
-   *dataLen = (int*) PyMem_Malloc(size * sizeof(int));
-
-   if(!(*dataLen))
-   {
-      PyMem_Free(out);
-      PyErr_NoMemory();
-      return NULL;
-   }
-
-   for (i = 0; i < size; i++)
-   {
-      out[i] = (unsigned char*)PyString_AsString(PyList_GetItem(data,i));
-      (*dataLen)[i] = PyString_Size(PyList_GetItem(data,i));
-   }
-
-   if (PyErr_Occurred())
-   {
-      PyMem_Free(out);
-      PyMem_Free(*dataLen);
-      out = NULL;
-   }
-
-   return out;
-}
-
-/* Function to get the input float values from the input list */
-
-static float* get_float_array(PyObject* data, const char* description,
-                              int* data_size)
-{
-   int    i;
-   int    size;
-   float* out;
-   int    seq;
-   char   errMsg[80];
-
-   seq = PyList_Check(data);
-
-   if (!seq)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," argument must be a list.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_TypeError,errMsg);
-      return NULL;
-   }
-
-   size = PyList_Size(data);
-
-   if (size < 0)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," list has invalid size.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_ValueError,errMsg);
-      return NULL;
-   }
-
-   if (data_size)
-   {
-      *data_size = size;
-   }
-
-   out = (float*) PyMem_Malloc(size * sizeof(float));
-
-   if(!out)
-   {
-      PyErr_NoMemory();
-      return NULL;
-   }
-
-   for (i = 0; i < size; i++)
-   {
-      out[i] = PyFloat_AsDouble(PyList_GetItem(data, i));
-   }
-
-   if ( PyErr_Occurred())
-   {
-      PyMem_Free(out);
-      out = NULL;
-   }
-
-   return out;
-}
-
-/* Function to get the input double values from the input list */
-
-static double* get_double_array(PyObject* data, const char* description,
-                                int* data_size)
-{
-   int     i;
-   int     size;
-   double* out;
-   int     seq;
-   char    errMsg[80];
-
-   seq = PyList_Check(data);
-
-   if (!seq)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," argument must be a list.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_TypeError,errMsg);
-      return NULL;
-   }
-
-   size = PyList_Size(data);
-
-   if (size < 0)
-   {
-      strncpy(errMsg,description,79);
-      strncat(errMsg," list has invalid size.",79-strlen(errMsg));
-      PyErr_SetString(PyExc_ValueError,errMsg);
-      return NULL;
-   }
-
-   if (data_size)
-   {
-      *data_size = size;
-   }
-
-   out = (double*) PyMem_Malloc(size * sizeof(double));
-
-   if(!out)
-   {
-      PyErr_NoMemory();
-      return NULL;
-   }
-
-   for (i = 0; i < size; i++)
-   {
-      out[i] = PyFloat_AsDouble(PyList_GetItem(data, i));
-   }
-
-   if ( PyErr_Occurred())
-   {
-      PyMem_Free(out);
-      out = NULL;
-   }
-
-   return out;
-}
 
 /* Report any error based on the status returned from cfitsio. */
-
-void processStatusErr(int status)
+void process_status_err(int status)
 {
-   PyObject* exceptType;
-   char      errMsg[81];
-   char      defErrMsg[81];
+   PyObject* except_type;
+   char      err_msg[81];
+   char      def_err_msg[81];
 
-   errMsg[0] = '\0';
-   defErrMsg[0] = '\0';
+   err_msg[0] = '\0';
+   def_err_msg[0] = '\0';
 
    switch (status)
    {
       case MEMORY_ALLOCATION:
-         exceptType = PyExc_MemoryError;
+         except_type = PyExc_MemoryError;
          break;
       case OVERFLOW_ERR:
-         exceptType = PyExc_OverflowError;
+         except_type = PyExc_OverflowError;
          break;
       case BAD_COL_NUM:
-         strcpy(defErrMsg,"bad column number");
-         exceptType = PyExc_ValueError;
+         strcpy(def_err_msg, "bad column number");
+         except_type = PyExc_ValueError;
          break;
       case BAD_PIX_NUM:
-         strcpy(defErrMsg,"bad pixel number");
-         exceptType = PyExc_ValueError;
+         strcpy(def_err_msg, "bad pixel number");
+         except_type = PyExc_ValueError;
          break;
       case NEG_AXIS:
-         strcpy(defErrMsg,"negative axis number");
-         exceptType = PyExc_ValueError;
+         strcpy(def_err_msg, "negative axis number");
+         except_type = PyExc_ValueError;
          break;
       case BAD_DATATYPE:
-         strcpy(defErrMsg,"bad data type");
-         exceptType = PyExc_TypeError;
+         strcpy(def_err_msg, "bad data type");
+         except_type = PyExc_TypeError;
          break;
       case NO_COMPRESSED_TILE:
-         strcpy(defErrMsg,"no compressed or uncompressed data for tile.");
-         exceptType = PyExc_ValueError;
+         strcpy(def_err_msg, "no compressed or uncompressed data for tile.");
+         except_type = PyExc_ValueError;
          break;
       default:
-         exceptType = PyExc_RuntimeError;
+         except_type = PyExc_RuntimeError;
    }
 
-   if (_astropy_ffgmsg(errMsg))
+   if (fits_read_errmsg(err_msg))
    {
-      PyErr_SetString(exceptType,errMsg);
+      PyErr_SetString(except_type, err_msg);
    }
-   else if (*defErrMsg)
+   else if (*def_err_msg)
    {
-      PyErr_SetString(exceptType,defErrMsg);
+      PyErr_SetString(except_type, def_err_msg);
    }
    else
    {
-      PyErr_SetString(exceptType, "unknown error.");
+      PyErr_SetString(except_type, "unknown error.");
    }
 }
 
-/* Wrapper for the _astropy_fits_write_img() function */
 
-PyObject* compression_compressData(PyObject* self, PyObject* args)
-{
-   int             status;
-   PyObject*       naxesObj;
-   PyObject*       tileSizeObj;
-   PyObject*       zvalObj;
-   PyObject*       outList;
-   PyObject*       outStr;
-   PyObject*       outScale;
-   PyObject*       outZero;
-   PyObject*       outUncompressed;
-   PyObject*       uncompressedTileDataList;
-   PyObject*       returnTuple = NULL;
-   long*           tileSize = 0;
-   long*           zval = 0;
-   int             i;
-   int             loop;
-   int             numzVals;
-   char*           compressTypeStr = "";
-   int             datatype;
-   int             bitpix;
-   int             firstelem;
-   int             naxis;
-   int             ntiles;
-   int             ii;
-   int             zblank;
-   int             cn_zblank;
-   int             cn_zscale;
-   int             cn_zzero;
-   int             cn_uncompressed;
-   double          cn_bscale;
-   double          cn_bzero;
-   double          quantize_level;
-   double          hcomp_scale;
-   long*           naxes = 0;
-   long            nelem;
-
-   FITSfile        fileParms;
-   fitsfile        theFile;
-
-   PyArrayObject*  array;
-
-   status = 0;
-
-   /* Get Python arguments */
-
-   if (!PyArg_ParseTuple(args, "O!iOOiiddiiiddOsiil:compression.compressData",
-                         &PyArray_Type, &array, &naxis, &naxesObj,
-                         &tileSizeObj, &cn_zblank, &zblank, &cn_bscale, 
-                         &cn_bzero, &cn_zscale, &cn_zzero, &cn_uncompressed,
-                         &quantize_level, &hcomp_scale, &zvalObj,
-                         &compressTypeStr, &bitpix, &firstelem, &nelem))
-   {
-      PyErr_SetString(PyExc_TypeError,"Couldn't parse agruments");
-      return NULL;
-   }
-
-   /* Determine the data type based on the bitpix value from the header */
-
-   switch (bitpix)
-   {
-      case BYTE_IMG:
-         datatype = TBYTE;
-         break;
-      case SHORT_IMG:
-         datatype = TSHORT;
-         break;
-      case LONG_IMG:
-         datatype = TINT;
-         break;
-      case LONGLONG_IMG:
-         datatype = TLONGLONG;
-         break;
-      case FLOAT_IMG:
-         datatype = TFLOAT;
-         break;
-      case DOUBLE_IMG:
-         datatype = TDOUBLE;
-         break;
-      default:
-         PyErr_SetString(PyExc_ValueError,"Invalid value for BITPIX");
-         return NULL;
-   }
-
-   /* Initialize allocated array pointers to zero so we can free them */
-   /* without allocating memory for them.                             */
-
-   theFile.Fptr = &fileParms;
-   (theFile.Fptr)->c_zscale = 0;
-   (theFile.Fptr)->c_zzero = 0;
-   (theFile.Fptr)->ucDataLen = 0;
-   (theFile.Fptr)->ucData = 0;
-   (theFile.Fptr)->dataLen = 0;
-   (theFile.Fptr)->data = 0;
-
-   /* The loop allows you to break out if there is an error */
-
-   for (loop = 0; loop == 0; loop++)
-   {
-      /* Convert the NAXISn, ZTILEn, and ZVALn lists into a C type arrays */
-
-      naxes = get_long_array(naxesObj, "ZNAXISn", NULL);
-
-      if (!naxes)
-      {
-         break;
-      }
-
-      tileSize = get_long_array(tileSizeObj, "ZTILEn", NULL);
-
-      if (!tileSize)
-      {
-         break;
-      }
-
-      zval = get_long_array(zvalObj, "ZVALn", &numzVals);
-
-      if (!zval)
-      {
-         break;
-      }
-
-      /* Set up the fitsfile object */
-      /* Store the compression type and compression parameters */
-
-      (theFile.Fptr)->hcomp_smooth = 0;
-      (theFile.Fptr)->rice_blocksize = 32;
-      (theFile.Fptr)->rice_bytepix = 4;
-
-      if (strcmp(compressTypeStr, "RICE_1") == 0)
-      {
-         (theFile.Fptr)->compress_type = RICE_1;
-
-         if (numzVals > 0)
-         {
-            (theFile.Fptr)->rice_blocksize = zval[0];
-
-            if (numzVals > 1)
-            {
-               (theFile.Fptr)->rice_bytepix = zval[1];
- 
-            }
-         }
-      }
-      else if (strcmp(compressTypeStr, "GZIP_1") == 0)
-      {
-         (theFile.Fptr)->compress_type = GZIP_1;
-
-      }
-      else if (strcmp(compressTypeStr, "HCOMPRESS_1") == 0)
-      {
-         (theFile.Fptr)->compress_type = HCOMPRESS_1;
-
-         if (numzVals > 0)
-         {
-           (theFile.Fptr)->hcomp_smooth = zval[1];
-         }
-      }
-      else if (strcmp(compressTypeStr, "PLIO_1") == 0)
-      {
-         (theFile.Fptr)->compress_type = PLIO_1;
-
-      }
-      else
-      {
-         (theFile.Fptr)->compress_type = 0;
-      }
-
-      (theFile.Fptr)->zndim = naxis;
-      (theFile.Fptr)->maxtilelen = 1;
-      (theFile.Fptr)->zbitpix = bitpix;
-      (theFile.Fptr)->cn_zblank = cn_zblank;
-      (theFile.Fptr)->zblank = zblank;
-      (theFile.Fptr)->cn_bscale = cn_bscale;
-      (theFile.Fptr)->cn_bzero = cn_bzero;
-      (theFile.Fptr)->cn_zscale = cn_zscale;
-      (theFile.Fptr)->cn_zzero = cn_zzero;
-      (theFile.Fptr)->quantize_level = quantize_level;
-      (theFile.Fptr)->hcomp_scale = hcomp_scale;
-
-      /* Initialize arrays */
-
-      for (ii = 0; ii < MAX_COMPRESS_DIM; ii++)
-      {
-         ((theFile.Fptr)->tilesize)[ii] = 1;
-         ((theFile.Fptr)->znaxis)[ii] = 1;
-      }
-
-      ntiles = 1;
-
-      for (ii = 0; ii < naxis; ii++)
-      {
-         ((theFile.Fptr)->znaxis)[ii] = naxes[ii];
-         ((theFile.Fptr)->tilesize)[ii] = tileSize[ii];
-         (theFile.Fptr)->maxtilelen *= tileSize[ii];
-         ntiles *= (naxes[ii] - 1) / tileSize[ii] + 1;
-      }
-
-      (theFile.Fptr)->maxelem = _astropy_imcomp_calc_max_elem(
-                                 (theFile.Fptr)->compress_type,
-                                 (theFile.Fptr)->maxtilelen,
-                                 (theFile.Fptr)->zbitpix,
-                                 (theFile.Fptr)->rice_blocksize);
-
-      if (cn_zscale > 0)
-      {
-         (theFile.Fptr)->c_zscale = 
-                         (double*)PyMem_Malloc(ntiles * sizeof(double));
-         (theFile.Fptr)->c_zzero = 
-                         (double*)PyMem_Malloc(ntiles * sizeof(double));
-
-         if(!(theFile.Fptr)->c_zzero)
-         {
-            PyErr_NoMemory();
+void bitpix_to_datatypes(int bitpix, int* datatype, int* npdatatype) {
+    /* Given a FITS BITPIX value, returns the appropriate CFITSIO type code and
+       Numpy type code for that BITPIX into datatype and npdatatype
+       respectively.
+     */
+    switch (bitpix) {
+        case BYTE_IMG:
+            *datatype = TBYTE;
+            *npdatatype = NPY_INT8;
             break;
-         }
-      }
-
-      (theFile.Fptr)->cn_uncompressed = cn_uncompressed;
-
-      if (cn_uncompressed > 0)
-      {
-         (theFile.Fptr)->ucDataLen = 
-                          (int*)PyMem_Malloc(ntiles * sizeof(int));
-         (theFile.Fptr)->ucData =
-                          (void**)PyMem_Malloc(ntiles * sizeof(double*));
-
-         if(!(theFile.Fptr)->ucData)
-         {
-            PyErr_NoMemory();
+        case SHORT_IMG:
+            *datatype = TSHORT;
+            *npdatatype = NPY_INT16;
             break;
-         }
-
-         for (i = 0; i < ntiles; i++)
-         {
-            (theFile.Fptr)->ucDataLen[i] = 0;
-            (theFile.Fptr)->ucData[i] = 0;
-         }
-      }
-
-      (theFile.Fptr)->dataLen = 
-                         (int*) PyMem_Malloc(ntiles * sizeof(int));
-      (theFile.Fptr)->data =
-                         (unsigned char**) PyMem_Malloc(ntiles*sizeof(char*));
-
-      if(!(theFile.Fptr)->data)
-      {
-         PyErr_NoMemory();
-         break;
-      }
-
-      for (i = 0; i < ntiles; i++)
-      {
-         (theFile.Fptr)->dataLen[i] = 0;
-         (theFile.Fptr)->data[i] = 0;
-      }
-
-      status = _astropy_fits_write_img(&theFile, datatype, firstelem,
-                                      nelem, (void*)array->data, &status);
-
-      if (status == 0)
-      {
-         outList = PyList_New(0);
-         outScale = PyList_New(0);
-         outZero = PyList_New(0);
-         outUncompressed = PyList_New(0);
-
-         for ( i = 0; i < ntiles; i++)
-         {
-            outStr = PyString_FromStringAndSize(
-                (const char*)((theFile.Fptr)->data[i]),
-                (theFile.Fptr)->dataLen[i]);
-
-            PyList_Append(outList, outStr);
-
-            Py_DECREF(outStr);
-
-            free((theFile.Fptr)->data[i]);
-
-            if (cn_zscale > 0)
-            {
-               PyList_Append(outScale, 
-                             PyFloat_FromDouble((theFile.Fptr)->c_zscale[i]));
-               PyList_Append(outZero, 
-                             PyFloat_FromDouble((theFile.Fptr)->c_zzero[i]));
-            }
-
-            if (cn_uncompressed > 0)
-            {
-               uncompressedTileDataList = PyList_New(0);
-   
-               for (ii = 0; ii < (theFile.Fptr)->ucDataLen[i]; ii++)
-               {
-                   PyList_Append(uncompressedTileDataList, 
-                   PyFloat_FromDouble(
-                               ((double**)((theFile.Fptr)->ucData))[i][ii]));
-               }
-
-               free((theFile.Fptr)->ucData[i]);
-               PyList_Append(outUncompressed, uncompressedTileDataList);
-            }
-         }
-      }
-      else
-      {
-         processStatusErr(status);
-         break;
-      }
-
-      returnTuple = PyTuple_New(5);
-      PyTuple_SetItem(returnTuple, 0, Py_BuildValue("i",status));
-      PyTuple_SetItem(returnTuple, 1, outList);
-      PyTuple_SetItem(returnTuple, 2, outScale);
-      PyTuple_SetItem(returnTuple, 3, outZero);
-      PyTuple_SetItem(returnTuple, 4, outUncompressed);
+        case LONG_IMG:
+            *datatype = TINT;
+            *npdatatype = NPY_INT32;
+            break;
+        case LONGLONG_IMG:
+            *datatype = TLONGLONG;
+            *npdatatype = NPY_LONGLONG;
+            break;
+        case FLOAT_IMG:
+            *datatype = TFLOAT;
+            *npdatatype = NPY_FLOAT;
+            break;
+        case DOUBLE_IMG:
+            *datatype = TDOUBLE;
+            *npdatatype = NPY_DOUBLE;
+            break;
+        default:
+            PyErr_Format(PyExc_ValueError, "Invalid value for BITPIX: %d",
+                         bitpix);
    }
-   
-   /* Free any allocated memory */
 
-   PyMem_Free((theFile.Fptr)->dataLen);
-   PyMem_Free((theFile.Fptr)->data);
-   PyMem_Free((theFile.Fptr)->c_zscale);
-   PyMem_Free((theFile.Fptr)->c_zzero);
-   PyMem_Free((theFile.Fptr)->ucData);
-   PyMem_Free((theFile.Fptr)->ucDataLen);
-   PyMem_Free(naxes);
-   PyMem_Free(tileSize);
-   PyMem_Free(zval);
-
-   if (loop == 0)
-   {
-      /* Error has occurred */
-
-      return NULL;
-   }
-   else
-   {
-      return returnTuple;
-   }
+   return;
 }
 
-/* Wrapper for the _astropy_fits_read_img() function */
 
-PyObject* compression_decompressData(PyObject* self, PyObject* args)
+
+int compress_type_from_string(char* zcmptype) {
+    if (0 == strcmp(zcmptype, "RICE_1")) {
+        return RICE_1;
+    } else if (0 == strcmp(zcmptype, "GZIP_1")) {
+        return GZIP_1;
+    } else if (0 == strcmp(zcmptype, "PLIO_1")) {
+        return PLIO_1;
+    } else if (0 == strcmp(zcmptype, "HCOMPRESS_1")) {
+        return HCOMPRESS_1;
+    } else {
+        PyErr_Format(PyExc_ValueError, "Unrecognized compression type: %s",
+                     zcmptype);
+        return -1;
+    }
+}
+
+
+// TODO: It might be possible to simplify these further by making the
+// conversion function (eg. PyString_AsString) an argument to a macro or
+// something, but I'm not sure yet how easy it is to generalize the error
+// handling
+int get_header_string(PyObject* header, char* keyword, char** val, char* def) {
+    PyObject* keystr;
+    PyObject* keyval;
+#ifdef IS_PY3K
+    PyObject* tmp;  // Temp pointer to decoded bytes object
+#endif
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+#ifdef IS_PY3K
+        // FITS header values should always be ASCII, but Latin1 is on the
+        // safe side
+        tmp = PyUnicode_AsLatin1String(keyval);
+        *val = PyBytes_AsString(tmp);
+        Py_DECREF(tmp);
+#else
+        *val = PyString_AsString(keyval);
+#endif
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+int get_header_int(PyObject* header, char* keyword, int* val, int def) {
+    PyObject* keystr;
+    PyObject* keyval;
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+        *val = (int) PyInt_AsLong(keyval);
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+int get_header_long(PyObject* header, char* keyword, long* val, long def) {
+    PyObject* keystr;
+    PyObject* keyval;
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+        *val = PyLong_AsLong(keyval);
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+int get_header_float(PyObject* header, char* keyword, float* val,
+                     float def) {
+    PyObject* keystr;
+    PyObject* keyval;
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+        *val = (float) PyFloat_AsDouble(keyval);
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+int get_header_double(PyObject* header, char* keyword, double* val,
+                      double def) {
+    PyObject* keystr;
+    PyObject* keyval;
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+        *val = PyFloat_AsDouble(keyval);
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+int get_header_longlong(PyObject* header, char* keyword, long long* val,
+                        long long def) {
+    PyObject* keystr;
+    PyObject* keyval;
+    int retval;
+
+    keystr = PyString_FromString(keyword);
+    keyval = PyObject_GetItem(header, keystr);
+
+    if (keyval != NULL) {
+        *val = PyLong_AsLongLong(keyval);
+        retval = 0;
+    }
+    else {
+        PyErr_Clear();
+        *val = def;
+        retval = 1;
+    }
+
+    Py_DECREF(keystr);
+    Py_XDECREF(keyval);
+    return retval;
+}
+
+
+void* compression_realloc(void* ptr, size_t size) {
+    // This realloc()-like function actually just mallocs the requested
+    // size and copies from the original memory address into the new one, and
+    // returns the newly malloc'd address.
+    // This is generally less efficient than an actual realloc(), but the
+    // problem with using realloc in this case is that when it succeeds it will
+    // free() the original memory, which may still be in use by the ndarray
+    // using that memory as its data buffer.  This seems like the least hacky
+    // way around that for now.
+    // I'm open to other ideas though.
+    void* tmp;
+    tmp = malloc(size);
+    memcpy(tmp, ptr, size);
+    return tmp;
+}
+
+
+void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
+                          tcolumn** columns) {
+    // Creates the array of tcolumn structures from the table column keywords
+    // read from the astropy.io.fits.Header object; caller is responsible for
+    // freeing the memory allocated for this array
+
+    tcolumn* column;
+    char tkw[9];
+    unsigned int idx;
+
+    int tfields;
+    char* ttype;
+    char* tform;
+    int dtcode;
+    long trepeat;
+    long twidth;
+    long long totalwidth;
+    int status = 0;
+
+    get_header_int(header, "TFIELDS", &tfields, 0);
+
+    *columns = column = PyMem_New(tcolumn, (size_t) tfields);
+    if (column == NULL) {
+        return;
+    }
+
+
+    for (idx = 1; idx <= tfields; idx++, column++) {
+        /* set some invalid defaults */
+        column->ttype[0] = '\0';
+        column->tbcol = 0;
+        column->tdatatype = -9999; /* this default used by cfitsio */
+        column->trepeat = 1;
+        column->strnull[0] = '\0';
+        column->tform[0] = '\0';
+        column->twidth = 0;
+
+        snprintf(tkw, 9, "TTYPE%u", idx);
+        get_header_string(header, tkw, &ttype, "");
+        strncpy(column->ttype, ttype, 69);
+        column->ttype[69] = '\0';
+
+        snprintf(tkw, 9, "TFORM%u", idx);
+        get_header_string(header, tkw, &tform, "");
+        strncpy(column->tform, tform, 9);
+        column->tform[9] = '\0';
+        fits_binary_tform(tform, &dtcode, &trepeat, &twidth, &status);
+        if (status != 0) {
+            process_status_err(status);
+            return;
+        }
+
+        column->tdatatype = dtcode;
+        column->trepeat = trepeat;
+        column->twidth = twidth;
+
+        snprintf(tkw, 9, "TSCAL%u", idx);
+        get_header_double(header, tkw, &(column->tscale), 1.0);
+
+        snprintf(tkw, 9, "TZERO%u", idx);
+        get_header_double(header, tkw, &(column->tzero), 0.0);
+
+        snprintf(tkw, 9, "TNULL%u", idx);
+        get_header_longlong(header, tkw, &(column->tnull), NULL_UNDEFINED);
+    }
+
+    fileptr->Fptr->tableptr = *columns;
+    fileptr->Fptr->tfield = tfields;
+
+    // This routine from CFITSIO calculates the byte offset of each column
+    // and stores it in the column->tbcol field
+    ffgtbc(fileptr, &totalwidth, &status);
+    if (status != 0) {
+        process_status_err(status);
+    }
+
+    return;
+}
+
+
+
+void configure_compression(fitsfile* fileptr, PyObject* header) {
+    /* Configure the compression-related elements in the fitsfile struct
+       using values in the FITS header. */
+
+    FITSfile* Fptr;
+
+    int tfields;
+    tcolumn* columns;
+
+    char keyword[9];
+    char* zname;
+    int znaxis;
+    char* tmp;
+
+    unsigned int idx;
+
+    Fptr = fileptr->Fptr;
+    tfields = Fptr->tfield;
+    columns = Fptr->tableptr;
+
+    // Get the ZBITPIX header value; if this is missing we're in trouble
+    if (0 != get_header_int(header, "ZBITPIX", &(Fptr->zbitpix), 0)) {
+        return;
+    }
+
+    // By default assume there is no ZBLANK column and check for ZBLANK or
+    // BLANK in the header
+    Fptr->cn_zblank = Fptr->cn_zzero = Fptr->cn_zscale = -1;
+    Fptr->cn_uncompressed = 0;
+#ifdef CFITSIO_SUPPORTS_GZIPDATA
+    Fptr->cn_gzip_data = 0;
+#endif
+
+    // Check for a ZBLANK, ZZERO, ZSCALE, and
+    // UNCOMPRESSED_DATA/GZIP_COMPRESSED_DATA columns in the compressed data
+    // table
+    for (idx = 0; idx < tfields; idx++) {
+        if (0 == strncmp(columns[idx].ttype, "UNCOMPRESSED_DATA", 18)) {
+            Fptr->cn_uncompressed = idx + 1;
+#ifdef CFITSIO_SUPPORTS_GZIPDATA
+        } else if (0 == strncmp(columns[idx].ttype,
+                                "GZIP_COMPRESSED_DATA", 21)) {
+            Fptr->cn_gzip_data = idx + 1;
+#endif
+        } else if (0 == strncmp(columns[idx].ttype, "ZSCALE", 7)) {
+            Fptr->cn_zscale = idx + 1;
+        } else if (0 == strncmp(columns[idx].ttype, "ZZERO", 6)) {
+            Fptr->cn_zzero = idx + 1;
+        } else if (0 == strncmp(columns[idx].ttype, "ZBLANK", 7)) {
+            Fptr->cn_zblank = idx + 1;
+        }
+    }
+
+    Fptr->zblank = 0;
+    if (Fptr->cn_zblank < 1) {
+        // No ZBLANK column--check the ZBLANK and BLANK heard keywords
+        if(0 != get_header_int(header, "ZBLANK", &(Fptr->zblank), 0)) {
+            // ZBLANK keyword not found
+            get_header_int(header, "BLANK", &(Fptr->zblank), 0);
+        }
+    }
+
+    Fptr->zscale = 1.0;
+    if (Fptr->cn_zscale < 1) {
+        if (0 != get_header_double(header, "ZSCALE", &(Fptr->zscale), 1.0)) {
+            Fptr->cn_zscale = 0;
+        }
+    }
+    Fptr->cn_bscale = Fptr->zscale;
+
+    Fptr->zzero = 0.0;
+    if (Fptr->cn_zzero < 1) {
+        if (0 != get_header_double(header, "ZZERO", &(Fptr->zzero), 0.0)) {
+            Fptr->cn_zzero = 0;
+        }
+    }
+    Fptr->cn_bzero = Fptr->zzero;
+
+    get_header_string(header, "ZCMPTYPE", &tmp, DEFAULT_COMPRESSION_TYPE);
+    strncpy(Fptr->zcmptype, tmp, 11);
+    Fptr->zcmptype[strlen(tmp)] = '\0';
+
+    Fptr->compress_type = compress_type_from_string(Fptr->zcmptype);
+    if (PyErr_Occurred()) {
+        return;
+    }
+
+    get_header_int(header, "ZNAXIS", &znaxis, 0);
+    Fptr->zndim = znaxis;
+
+    if (znaxis > MAX_COMPRESS_DIM) {
+        // The CFITSIO compression code currently only supports up to 6
+        // dimensions by default.
+        znaxis = MAX_COMPRESS_DIM;
+    }
+
+    Fptr->maxtilelen = 1;
+    for (idx = 1; idx <= znaxis; idx++) {
+        snprintf(keyword, 9, "ZNAXIS%u", idx);
+        get_header_long(header, keyword, Fptr->znaxis + idx - 1, 0);
+        snprintf(keyword, 9, "ZTILE%u", idx);
+        get_header_long(header, keyword, Fptr->tilesize + idx - 1, 0);
+        Fptr->maxtilelen *= Fptr->tilesize[idx - 1];
+    }
+
+    // Set some more default compression options
+    Fptr->rice_blocksize = DEFAULT_BLOCK_SIZE;
+    Fptr->rice_bytepix = DEFAULT_BYTE_PIX;
+    Fptr->quantize_level = DEFAULT_QUANTIZE_LEVEL;
+    Fptr->hcomp_smooth = DEFAULT_HCOMP_SMOOTH;
+    Fptr->hcomp_scale = DEFAULT_HCOMP_SCALE;
+
+    // Now process the ZVALn keywords
+    idx = 1;
+    while (1) {
+        snprintf(keyword, 9, "ZNAME%u", idx);
+        // Assumes there are no gaps in the ZNAMEn keywords; this same
+        // assumption was made in the Python code.  This could be done slightly
+        // more flexibly by using a wildcard slice of the header
+        if (0 != get_header_string(header, keyword, &zname, "")) {
+            break;
+        }
+        snprintf(keyword, 9, "ZVAL%u", idx);
+        if (Fptr->compress_type == RICE_1) {
+            if (0 == strcmp(zname, "BLOCKSIZE")) {
+                get_header_int(header, keyword, &(Fptr->rice_blocksize),
+                               DEFAULT_BLOCK_SIZE);
+            } else if (0 == strcmp(zname, "BYTEPIX")) {
+                get_header_int(header, keyword, &(Fptr->rice_bytepix),
+                               DEFAULT_BYTE_PIX);
+            }
+        } else if (Fptr->compress_type == HCOMPRESS_1) {
+            if (0 == strcmp(zname, "SMOOTH")) {
+                get_header_int(header, keyword, &(Fptr->hcomp_smooth),
+                               DEFAULT_HCOMP_SMOOTH);
+            } else if (0 == strcmp(zname, "SCALE")) {
+                get_header_float(header, keyword, &(Fptr->hcomp_scale),
+                                 DEFAULT_HCOMP_SCALE);
+            }
+        } else if (Fptr->zbitpix < 0 && 0 == strcmp(zname, "NOISEBIT")) {
+             get_header_float(header, keyword, &(Fptr->quantize_level),
+                              DEFAULT_QUANTIZE_LEVEL);
+        }
+
+        idx++;
+    }
+
+
+    Fptr->compressimg = 1;
+    Fptr->maxelem = imcomp_calc_max_elem(Fptr->compress_type,
+                                         Fptr->maxtilelen,
+                                         Fptr->zbitpix,
+                                         Fptr->rice_blocksize);
+    Fptr->cn_compressed = 1;
+    return;
+}
+
+
+void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
+                   PyObject* hdu, tcolumn* columns) {
+    PyObject* header = NULL;
+    PyArrayObject* data = NULL;
+    PyArrayObject* base;
+    PyArrayObject* tmp;
+    FITSfile* Fptr;
+
+    int status = 0;
+    long long rowlen;
+    long long nrows;
+    long long heapsize;
+    long long theap;
+
+    header = PyObject_GetAttrString(hdu, "_header");
+    if (header == NULL) {
+        goto fail;
+    }
+
+    data = (PyArrayObject*) PyObject_GetAttrString(hdu, "compData");
+    if (data == NULL) {
+        goto fail;
+    }
+
+
+    get_header_longlong(header, "NAXIS1", &rowlen, 0);
+    get_header_longlong(header, "NAXIS2", &nrows, 0);
+
+    // The PCOUNT keyword contains the number of bytes in the table heap
+    get_header_longlong(header, "PCOUNT", &heapsize, 0);
+
+    // The THEAP keyword gives the offset of the heap from the beginning of
+    // the HDU data portion; normally this offset is 0 but it can be set
+    // to something else with THEAP
+    get_header_longlong(header, "THEAP", &theap, 0);
+
+
+    // Walk the array data bases until we find the lowest ndarray base; for
+    // CompImageHDUs there should always be at least one contiguous byte array
+    // allocated for the table and its heap
+    if (!PyObject_TypeCheck(data, &PyArray_Type)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "CompImageHDU.compData must be a numpy.ndarray");
+        goto fail;
+    }
+
+    tmp = base = data;
+    while (PyObject_TypeCheck((PyObject*) tmp, &PyArray_Type)) {
+        base = tmp;
+        *bufsize = (size_t) PyArray_NBYTES(base);
+        tmp = (PyArrayObject*) PyArray_BASE(base);
+        if (tmp == NULL) {
+            break;
+        }
+    }
+
+    *buf = PyArray_DATA(base);
+
+    fits_create_memfile(fileptr, buf, bufsize, 0, compression_realloc,
+                        &status);
+    if (status != 0) {
+        process_status_err(status);
+        goto fail;
+    }
+
+    Fptr = (*fileptr)->Fptr;
+
+    // Now we have some fun munging some of the elements in the fitsfile struct
+    Fptr->open_count = 1;
+    Fptr->hdutype = BINARY_TBL;  /* This is a binary table HDU */
+    Fptr->lasthdu = 1;
+    Fptr->headstart[0] = 0;
+    Fptr->headend = 0;
+    Fptr->datastart = 0;  /* There is no header, data starts at 0 */
+    Fptr->origrows = Fptr->numrows = nrows;
+    Fptr->rowlength = rowlen;
+    if (theap != 0) {
+        Fptr->heapstart = theap;
+    } else {
+        Fptr->heapstart = rowlen * nrows;
+    }
+
+    Fptr->heapsize = heapsize;
+
+    // Configure the array of table column structs from the Astropy header
+    // instead of allowing CFITSIO to try to read from the header
+    tcolumns_from_header(*fileptr, header, &columns);
+    if (PyErr_Occurred()) {
+        goto fail;
+    }
+
+    // If any errors occur in this function they'll bubble up from here to
+    // compression_decompress_hdu
+    configure_compression(*fileptr, header);
+
+fail:
+    Py_XDECREF(header);
+    Py_XDECREF(data);
+    return;
+}
+
+
+
+PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
 {
-   int             status;
-   int             nUcTiles = 0;
-   int*            inDataLen = 0;
-   int             naxis;
-   int             numzVals;
-   int*            numUncompressedVals = 0;
-   int             cn_zblank;
-   int             cn_zscale;
-   int             cn_zzero;
-   int             cn_uncompressed;
-   int             bitpix;
-   int             datatype;
-   int             firstelem;
-   int             anynul;
-   long            nelem;
-   long*           naxes = 0;
-   long*           tileSize = 0;
-   long*           zval = 0;
-   double          nulval;
-   double*         bscale;
-   double*         bzero;
-   double          quantize_level;
-   double          hcomp_scale;
-   long*           nullDVals;
-   unsigned char** inData = 0;
-   void**          uncompressedData = 0;
-   int             i;
-   int             ii;
-   char*           compressTypeStr = "";
+    PyObject* hdu;
+    PyObject* retval = NULL;
+    tcolumn* columns = NULL;
 
-   PyObject*       inDataObj;
-   PyObject*       naxesObj;
-   PyObject*       tileSizeObj;
-   PyObject*       uncompressedDataObj;
-   PyObject*       zvalObj;
+    void* orig_outbuf;
+    size_t orig_outbufsize;
+    void* outbuf;
+    size_t outbufsize;
 
-   FITSfile        fileParms;
-   fitsfile        theFile;
+    PyArrayObject* indata;
+    PyArrayObject* tmp;
+    long znaxis;
+    int datatype;
+    int npdatatype;
+    unsigned long long heapsize;
 
-   PyArrayObject*  bscaleArray;
-   PyArrayObject*  bzeroArray;
-   PyArrayObject*  nullDvalsArray;
-   PyArrayObject*  decompDataArray;
+    fitsfile* fileptr;
+    int status = 0;
 
-   PyArrayObject*  bscaleArray1 = 0;
-   PyArrayObject*  bzeroArray1 = 0;
-   PyArrayObject*  nullDvalsArray1 = 0;
+    if (!PyArg_ParseTuple(args, "O:compression.compress_hdu", &hdu))
+    {
+        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
+        return NULL;
+    }
 
-   /* Get Python arguments */
+    // For HDU compression never use CFITSIO to write directly to the file;
+    // although there's nothing wrong with CFITSIO, right now that would cause
+    // too much confusion to Astropy's internal book keeping.
+    // We just need to get the compressed bytes and Astropy will handle the
+    // writing of them.
+    open_from_hdu(&fileptr, &outbuf, &outbufsize, hdu, columns);
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
+    orig_outbuf = outbuf;
+    orig_outbufsize = outbufsize;
 
-   if (!PyArg_ParseTuple(args, 
-                         "OiOOO!iO!iO!iOiddOsiildO!:compression.decompressData",
-                         &inDataObj, 
-                         &naxis, &naxesObj, &tileSizeObj, &PyArray_Type, 
-                         &bscaleArray, &cn_zscale, &PyArray_Type, &bzeroArray,
-                         &cn_zzero, &PyArray_Type, &nullDvalsArray, 
-                         &cn_zblank, &uncompressedDataObj,
-                         &cn_uncompressed, &quantize_level, &hcomp_scale,
-                         &zvalObj, &compressTypeStr, &bitpix, &firstelem,
-                         &nelem, &nulval, &PyArray_Type, &decompDataArray))
-   {
-      PyErr_SetString(PyExc_TypeError,"Couldn't parse arguments");
-      return NULL;
-   }
+    bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
 
-   /* Convert the input lists into C type arrays */
+    indata = (PyArrayObject*) PyObject_GetAttrString(hdu, "data");
 
-   inData = get_char_array(inDataObj, "Compressed Data", NULL, &inDataLen);
+    fits_write_img(fileptr, datatype, 1, PyArray_SIZE(indata), indata->data,
+                   &status);
+    if (status != 0) {
+        process_status_err(status);
+        goto fail;
+    }
 
-   if (!inData)
-   {
-      goto error;
-   }
+    fits_flush_buffer(fileptr, 1, &status);
+    if (status != 0) {
+        process_status_err(status);
+        goto fail;
+    }
 
-   naxes = get_long_array(naxesObj, "ZNAXISn", NULL);
+    // It's possible that between calls to fits_write_img and fits_flush_buffer
+    // the size of the output buffer was insufficient and the buffer had to be
+    // reallocated.  The address and size of the new buffer should be in
+    // outbuf and outbufsize.  We need to create a new PyArrayObject using the
+    // new buffer and size
+    if (orig_outbuf != outbuf || orig_outbufsize != outbufsize) {
+        // It's possible, albeit unlikely, that realloc can return a block of
+        // memory with the same address but different size.
+        znaxis = (long) outbufsize;  // The output array is just one dimension.
+        tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
+                                                         outbuf);
+        PyObject_SetAttrString(hdu, "compData", (PyObject*) tmp);
+        Py_DECREF(tmp);
+    }
 
-   if (!naxes)
-   {
-      goto error;
-   }
+    heapsize = (unsigned long long) fileptr->Fptr->heapsize;
 
-   tileSize = get_long_array(tileSizeObj, "ZTILEn", NULL);
+    retval = PyLong_FromUnsignedLongLong(heapsize);
 
-   if (!tileSize)
-   {
-      goto error;
-   }
+fail:
+    if (fileptr != NULL) {
+        status = 1; // Disable header-related errors
+        fits_close_file(fileptr, &status);
+        if (status != 1) {
+            process_status_err(status);
+            retval = NULL;
+        }
+    }
 
-   if (cn_zzero != 1)
-   {
-      bzero = (double*)bzeroArray->data;
-   }
-   else
-   {
-      bzeroArray1 = (PyArrayObject*)PyArray_ContiguousFromObject(
-                     (PyObject*)bzeroArray, PyArray_DOUBLE, 1, 1);
-      bzero = (double*)bzeroArray1->data;
-   }
+    if (columns != NULL) {
+        PyMem_Free(columns);
+    }
+    Py_XDECREF(indata);
 
-   if (cn_zscale != 1)
-   {
-      bscale = (double*)bscaleArray->data;
-   }
-   else
-   {
-      bscaleArray1 = (PyArrayObject*)PyArray_ContiguousFromObject(
-                      (PyObject*)bscaleArray, PyArray_DOUBLE, 1, 1);
-      bscale = (double*)bscaleArray1->data;
-   }
+    // Clear any messages remaining in CFITSIO's error stack
+    fits_clear_errmsg();
 
-   if (cn_zblank != 1)
-   {
-      nullDVals = (long*)nullDvalsArray->data;
-   }
-   else
-   {
-      nullDvalsArray1 = (PyArrayObject*)PyArray_ContiguousFromObject(
-                         (PyObject*)nullDvalsArray, PyArray_LONG, 1, 1);
-      nullDVals = (long*)nullDvalsArray1->data;
-   }
+    return retval;
+}
 
-   zval = get_long_array(zvalObj, "ZVALn", &numzVals);
 
-   if (!zval)
-   {
-      goto error;
-   }
+PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
+{
+    PyObject* hdu;
+    tcolumn* columns = NULL;
 
-   switch (bitpix)
-   {
-      case BYTE_IMG:
-         datatype = TBYTE;
-         break;
-      case SHORT_IMG:
-         datatype = TSHORT;
-         break;
-      case LONG_IMG:
-         datatype = TINT;
-         break;
-      case LONGLONG_IMG:
-         datatype = TLONGLONG;
-         break;
-      case FLOAT_IMG:
-         datatype = TFLOAT;
+    void* inbuf;
+    size_t inbufsize;
 
-         if (cn_uncompressed == 1)
-         {
-            nUcTiles = PyList_Size(uncompressedDataObj);
-            uncompressedData = (void**) PyMem_Malloc(nUcTiles*sizeof(float*));
+    PyArrayObject* outdata;
+    int datatype;
+    int npdatatype;
+    int zndim;
+    long* znaxis;
+    long arrsize;
+    unsigned int idx;
 
-            if (!uncompressedData)
-            {
-               goto error;
-            }
+    fitsfile* fileptr;
+    int anynul = 0;
+    int status = 0;
 
-            numUncompressedVals = PyMem_Malloc(nUcTiles*sizeof(int));
+    if (!PyArg_ParseTuple(args, "O:compression.decompress_hdu", &hdu))
+    {
+        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
+        return NULL;
+    }
 
-            if (!numUncompressedVals)
-            {
-               goto error;
-            }
+    open_from_hdu(&fileptr, &inbuf, &inbufsize, hdu, columns);
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
 
-            for (i = 0; i < nUcTiles; i++)
-            {
-                uncompressedData[i] = 
-                       get_float_array(PyList_GetItem(uncompressedDataObj, i),
-                                       "Uncompressed Data",
-                                       &numUncompressedVals[i]);
+    bitpix_to_datatypes(fileptr->Fptr->zbitpix, &datatype, &npdatatype);
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
 
-                if (!uncompressedData[i])
-                {
-                   goto error;
-                }
-            }
-         }
-         break;
-      case DOUBLE_IMG:
-         datatype = TDOUBLE;
+    zndim = fileptr->Fptr->zndim;
+    znaxis = (long*) PyMem_Malloc(sizeof(long) * zndim);
+    arrsize = 1;
+    for (idx = 0; idx < zndim; idx++) {
+        znaxis[zndim - idx - 1] = fileptr->Fptr->znaxis[idx];
+        arrsize *= fileptr->Fptr->znaxis[idx];
+    }
 
-         if (cn_uncompressed == 1)
-         {
-            nUcTiles = PyList_Size(uncompressedDataObj);
-            uncompressedData = (void**) PyMem_Malloc(nUcTiles*sizeof(double*));
+    /* Create and allocate a new array for the decompressed data */
+    outdata = (PyArrayObject*) PyArray_SimpleNew(zndim, znaxis, npdatatype);
 
-            if (!uncompressedData)
-            {
-               goto error;
-            }
+    fits_read_img(fileptr, datatype, 1, arrsize, NULL, outdata->data, &anynul,
+                  &status);
+    if (status != 0) {
+        process_status_err(status);
+        outdata = NULL;
+        goto fail;
+    }
 
-            numUncompressedVals = PyMem_Malloc(nUcTiles*sizeof(int));
+fail:
+    if (fileptr != NULL) {
+        status = 1;// Disable header-related errors
+        fits_close_file(fileptr, &status);
+        if (status != 1) {
+            process_status_err(status);
+            outdata = NULL;
+        }
+    }
 
-            if (!numUncompressedVals)
-            {
-               goto error;
-            }
+    if (columns != NULL) {
+        PyMem_Free(columns);
+    }
+    PyMem_Free(znaxis);
 
-            for (i = 0; i < nUcTiles; i++)
-            {
-                uncompressedData[i] = 
-                       get_double_array(PyList_GetItem(uncompressedDataObj, i),
-                                        "Uncompressed Data",
-                                        &numUncompressedVals[i]);
+    // Clear any messages remaining in CFITSIO's error stack
+    fits_clear_errmsg();
 
-                if (!uncompressedData[i])
-                {
-                   goto error;
-                }
-            }
-         }
-         break;
-      default:
-         PyErr_SetString(PyExc_ValueError,"Invalid value for BITPIX");
-         return NULL;
-   }
+    return (PyObject*) outdata;
+}
 
-   /* Set up the fitsfile object */
 
-   theFile.Fptr = &fileParms;
+PyObject* compression_calc_max_elem(PyObject* self, PyObject* args) {
+    char* zcmptype;
+    long maxtilelen;
+    int zbitpix;
+    int rice_blocksize;
 
-   (theFile.Fptr)->rice_blocksize = 32;
-   (theFile.Fptr)->hcomp_smooth = 0;
-   (theFile.Fptr)->rice_bytepix = 4;
+    if (!PyArg_ParseTuple(args, "slii:compression.calc_max_elem", &zcmptype,
+                          &maxtilelen, &zbitpix, &rice_blocksize)) {
+        PyErr_SetString(PyExc_TypeError, "Couldn't parse arguments");
+        return NULL;
+    }
 
-   if (strcmp(compressTypeStr, "RICE_1") == 0)
-   {
-      (theFile.Fptr)->compress_type = RICE_1;
+    return PyLong_FromLong(
+        (long) imcomp_calc_max_elem(compress_type_from_string(zcmptype),
+                                    maxtilelen, zbitpix, rice_blocksize));
+}
 
-      if (numzVals > 0)
-      {
-         (theFile.Fptr)->rice_blocksize = zval[0];
 
-         if (numzVals > 1)
-         {
-            (theFile.Fptr)->rice_bytepix = zval[1];
-         }
-      }
-   }
-   else if (strcmp(compressTypeStr, "GZIP_1") == 0)
-   {
-      (theFile.Fptr)->compress_type = GZIP_1;
-   }
-   else if (strcmp(compressTypeStr, "HCOMPRESS_1") == 0)
-   {
-      (theFile.Fptr)->compress_type = HCOMPRESS_1;
+/* CFITSIO version float as returned by fits_get_version() */
+static double cfitsio_version;
 
-      if (numzVals > 0)
-      {
-        (theFile.Fptr)->hcomp_smooth = zval[1];
-      }
-   }
-   else if (strcmp(compressTypeStr, "PLIO_1") == 0)
-   {
-      (theFile.Fptr)->compress_type = PLIO_1;
-   }
-   else
-   {
-      (theFile.Fptr)->compress_type = 0;
-   }
 
-   (theFile.Fptr)->zndim = naxis;
-   (theFile.Fptr)->maxtilelen = 1;
-   (theFile.Fptr)->zbitpix = bitpix;
-   (theFile.Fptr)->data = inData;
-   (theFile.Fptr)->dataLen = inDataLen;
+void compression_module_init(PyObject* module) {
+    /* Python version-indendependent initialization routine for the
+       compression module */
+    PyObject* tmp;
+    float version_tmp;
 
-   (theFile.Fptr)->bscale = bscale;
-   (theFile.Fptr)->cn_zscale = cn_zscale;
-   (theFile.Fptr)->quantize_level = quantize_level;
-   (theFile.Fptr)->hcomp_scale = hcomp_scale;
+    fits_get_version(&version_tmp);
+    cfitsio_version = (double) version_tmp;
+    /* The conversion to double can lead to some rounding errors; round to the
+       nearest 3 decimal places, which should be accurate for any past or
+       current CFITSIO version. This is why relying on floats for version
+       comparison isn't generally a bright idea... */
+    cfitsio_version = floor((1000 * version_tmp + 0.5)) / 1000;
 
-   if (cn_zscale == -1)
-   {
-      (theFile.Fptr)->zscale = bscale[0];
-      (theFile.Fptr)->cn_bscale = bscale[0];
-   }
-   else
-   {
-      (theFile.Fptr)->zscale = 1.0;
-      (theFile.Fptr)->cn_bscale = 1.0;
-   }
+    tmp = PyFloat_FromDouble(cfitsio_version);
+    PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
+    Py_XDECREF(tmp);
 
-   (theFile.Fptr)->bzero = bzero;
-   (theFile.Fptr)->cn_zzero = cn_zzero;
-
-   if (cn_zzero == -1)
-   {
-      (theFile.Fptr)->zzero = bzero[0];
-      (theFile.Fptr)->cn_bzero = bzero[0];
-   }
-   else
-   {
-      (theFile.Fptr)->zzero = 0.0;
-      (theFile.Fptr)->cn_bzero = 0.0;
-   }
-
-   (theFile.Fptr)->blank = nullDVals;
-   (theFile.Fptr)->cn_zblank = cn_zblank;
-
-   if (cn_zblank == -1)
-   {
-      (theFile.Fptr)->zblank = nullDVals[0];
-   }
-   else
-   {
-      (theFile.Fptr)->zblank = 0;
-   }
-
-   /* Initialize arrays */
-
-   for (ii = 0; ii < MAX_COMPRESS_DIM; ii++)
-   {
-      ((theFile.Fptr)->tilesize)[ii] = 1;
-      ((theFile.Fptr)->znaxis)[ii] = 1;
-   }
-
-   for (ii = 0; ii < naxis; ii++)
-   {
-      ((theFile.Fptr)->znaxis)[ii] = naxes[ii];
-      ((theFile.Fptr)->tilesize)[ii] = tileSize[ii];
-      (theFile.Fptr)->maxtilelen *= tileSize[ii];
-   }
-
-   (theFile.Fptr)->cn_uncompressed = cn_uncompressed;
-
-   if (cn_uncompressed == 1)
-   {
-       (theFile.Fptr)->ucData = uncompressedData;
-       (theFile.Fptr)->ucDataLen = numUncompressedVals;
-   }
-
-   /* Call the C function */
-
-   status = 0;
-   status = _astropy_fits_read_img(&theFile, datatype, firstelem,
-                                  nelem, &nulval, decompDataArray->data,
-                                  &anynul, &status);
-
-   if (status != 0)
-   {
-      processStatusErr(status);
-   }
-
-   error:
-      PyMem_Free(inData);
-      PyMem_Free(inDataLen);
-      PyMem_Free(naxes);
-      PyMem_Free(tileSize);
-      PyMem_Free(zval);
-
-      if (cn_uncompressed == 1)
-      {
-         for (i = 0; i < nUcTiles; i++)
-         {
-             PyMem_Free(uncompressedData[i]);
-         }
-
-         PyMem_Free(uncompressedData);
-         PyMem_Free(numUncompressedVals);
-      }
-
-      if (bscaleArray1 != 0)
-      {
-         Py_DECREF(bscaleArray1);
-      }
-
-      if (bzeroArray1 != 0)
-      {
-         Py_DECREF(bzeroArray1);
-      }
-
-      if (nullDvalsArray1 != 0)
-      {
-         Py_DECREF(nullDvalsArray1);
-      }
-   
-      if (status != 0)
-      {
-         return NULL;
-      }
-      else
-      {
-         return Py_BuildValue("i",status);
-      }
+    /* Needed to use Numpy routines */
+    import_array();
 }
 
 
 /* Method table mapping names to wrappers */
 static PyMethodDef compression_methods[] =
 {
-   {"decompressData", compression_decompressData, METH_VARARGS},
-   {"compressData", compression_compressData, METH_VARARGS},
-   {NULL,NULL}
+   {"compress_hdu", compression_compress_hdu, METH_VARARGS},
+   {"decompress_hdu", compression_decompress_hdu, METH_VARARGS},
+   {"calc_max_elem", compression_calc_max_elem, METH_VARARGS},
+   {NULL, NULL}
 };
 
-#if PY_MAJOR_VERSION >=3
+#ifdef IS_PY3K
 static struct PyModuleDef compressionmodule = {
     PyModuleDef_HEAD_INIT,
     "compression",
@@ -1158,15 +1001,16 @@ static struct PyModuleDef compressionmodule = {
 PyObject *
 PyInit_compression(void)
 {
-    PyObject *module = PyModule_Create(&compressionmodule);
-    import_array();
+    PyObject* module = PyModule_Create(&compressionmodule);
+    compression_module_init(module);
     return module;
 }
 #else
 PyMODINIT_FUNC initcompression(void)
 {
-   Py_InitModule4("compression", compression_methods, "compression module",
-                  NULL, PYTHON_API_VERSION);
-   import_array();
+   PyObject* module = Py_InitModule4("compression", compression_methods,
+                                     "astropy.io.fits.compression module",
+                                     NULL, PYTHON_API_VERSION);
+   compression_module_init(module);
 }
 #endif
