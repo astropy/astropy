@@ -56,12 +56,12 @@ def _color_text(text, color):
     """
     Returns a string wrapped in ANSI color codes for coloring the
     text in a terminal::
-    
+
         colored_text = color_text('Here is a message', 'blue')
-    
+
     This won't actually effect the text until it is printed to the
     terminal.
-    
+
     Parameters
     ----------
     text : str
@@ -90,10 +90,10 @@ def _color_text(text, color):
         'lightmagenta': '1;35',
         'lightcyan': '1;36',
         'white': '1;37'}
-    
+
     color_code = color_mapping.get(color, '0;39')
     return u'\033[{0}m{1}\033[0m'.format(color_code, text)
-    
+
 def color_print(*args, **kwargs):
     """
     Prints colors and styles to the terminal uses ANSI escape
@@ -325,7 +325,9 @@ class ProgressBar:
     def map(cls, function, items, multiprocess=False, file=sys.stdout):
         """
         Does a `map` operation while displaying a progress bar with
-        percentage complete::
+        percentage complete.
+
+        ::
 
             def work(i):
                 print(i)
@@ -370,7 +372,9 @@ class ProgressBar:
     def iterate(cls, items, file=sys.stdout):
         """
         Iterate over a sequence while indicating progress with a progress
-        bar in the terminal::
+        bar in the terminal.
+
+        ::
 
             for item in ProgressBar.iterate(items):
                 pass

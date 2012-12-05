@@ -229,9 +229,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     boundary : {'fill', 'wrap'}
         A flag indicating how to handle boundaries:
 
-            * 'fill' : set values outside the array boundary to fill_value
-                       (default)
-            * 'wrap' : periodic boundary
+            * 'fill': set values outside the array boundary to fill_value
+              (default)
+            * 'wrap': periodic boundary
 
     interpolate_nan : bool
         The convolution will be re-weighted assuming NAN values are meant to be

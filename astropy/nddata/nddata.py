@@ -30,7 +30,7 @@ class NDData(object):
 
     Parameters
     -----------
-    data : `~numpy.ndarray` or '~astropy.nddata.NDData'
+    data : `~numpy.ndarray` or `~astropy.nddata.NDData`
         The actual data contained in this `NDData` object.
 
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
