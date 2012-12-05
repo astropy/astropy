@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.15 - an implementation of the FITS WCS standard.
+  WCSLIB 4.16 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2012, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 4.15 2012/09/26 14:26:05 cal103 Exp $
+  $Id: wcspih.l,v 4.16 2012/11/07 04:42:44 cal103 Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -984,7 +984,9 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	    if (abs(ctrl%10) > 2) {
 	      if (*nwcs == 1) {
-	        fprintf(stderr, "Found one coordinate representation.\n");
+	        if (strcmp(wcs[0]->wcsname, "DEFAULTS") != 0) {
+	          fprintf(stderr, "Found one coordinate representation.\n");
+	        }
 	      } else {
 	        fprintf(stderr, "Found %d coordinate representations.\n",
 	          *nwcs);
@@ -1075,7 +1077,7 @@ int wcspih_inits(
   struct wcsprm **wcs)
 
 {
-  int ialt, npsmax, npvmax, status = 0;
+  int ialt, defaults, npsmax, npvmax, status = 0;
   struct wcsprm *wcsp;
 
   /* Find the number of coordinate descriptions. */
@@ -1084,7 +1086,7 @@ int wcspih_inits(
     if (alts[ialt]) (*nwcs)++;
   }
 
-  if (!(*nwcs) && naxis) {
+  if ((defaults = !(*nwcs) && naxis)) {
     /* NAXIS is non-zero but there were no WCS keywords with an alternate
        version code; create a default WCS with blank alternate version. */
     wcspih_naxes(naxis, 0, 0, ' ', alts, 0x0);
@@ -1117,6 +1119,11 @@ int wcspih_inits(
         /* Record the alternate version code. */
         if (ialt) {
           wcsp->alt[0] = 'A' + ialt - 1;
+        }
+
+        /* Record in wcsname whether this is a default description. */
+        if (defaults) {
+          strcpy(wcsp->wcsname, "DEFAULTS");
         }
 
         /* On the second pass alts[] indexes the array of wcsprm structs. */

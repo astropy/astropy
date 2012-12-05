@@ -63,6 +63,13 @@ see the "What's New" section of the documentation for more details.
 
 - Added support for masked tables with missing or invalid data [#451]
 
+- ``astropy.wcs``
+
+  - From updating the the underlying wcslib 4.16:
+
+    - When `astropy.wcs.WCS` constructs a default coordinate
+      representation it will give it the special name "DEFAULTS", and
+      will not report "Found one coordinate representation".
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
