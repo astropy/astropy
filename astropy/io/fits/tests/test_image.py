@@ -945,7 +945,18 @@ class TestImageFunctions(FitsTestCase):
                 hdul2[0].data[0] = 0
                 assert (hdul[1].data == hdul2[0].data).all()
 
+    @pytest.mark.skipif("sys.platform.startswith('win')")
     def test_insufficient_compression_allocation(self):
+        """
+        Test the scenario where not enough space is allocated to hold the
+        compressed data, and a realloc is necessary.
+
+        For some reason this test *sometimes* breaks Jenkins when run on
+        Windows. It passes when the test suite is run outside Jenkins. I intend
+        to track down the cause of this but in the meantime it's disabled on
+        Windows.  See Astropy #507.
+        """
+
         data = np.arange(10000, dtype='int32').reshape(100, 100)
         hdu = fits.CompImageHDU(data=data)
         old_compress_hdu = fits.compression.compress_hdu
