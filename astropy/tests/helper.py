@@ -14,6 +14,11 @@ import subprocess
 import shutil
 import tempfile
 
+try:
+    import pkg_resources
+except ImportError:
+    pass
+
 from distutils.core import Command
 
 from .. import test
