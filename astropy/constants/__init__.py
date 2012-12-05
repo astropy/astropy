@@ -57,7 +57,7 @@ for module in si, cgs:
 
 del nm, val
 
-from ..units._constant_definition import ConstantDefinition
+from .._constants.definition import ConstantDefinition
 
 # Define actual Quantity-based Constants
 for nm, val in sorted(si.__dict__.items()):

@@ -7,7 +7,7 @@ This package defines the SI units.  They are also available in the
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import _si_constants as _si
+from .._constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy

@@ -5,4 +5,4 @@ available (with approximate values) are:
 """
 # This docstring is extended by __init__.py
 
-from ..units._cgs_constants import *
+from .._constants.cgs import *

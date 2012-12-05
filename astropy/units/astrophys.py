@@ -13,7 +13,7 @@ magnitudes library is planned to address this shortcoming.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from . import si
-from . import _si_constants as _si
+from .._constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy
