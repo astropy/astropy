@@ -1367,7 +1367,7 @@ class Table(object):
 
     def keep_columns(self, names):
         '''
-        Keep only the columns specified (remove the others)
+        Keep only the columns specified (remove the others).
 
         Parameters
         ----------

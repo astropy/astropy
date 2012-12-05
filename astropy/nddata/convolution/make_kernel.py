@@ -5,7 +5,7 @@ import numpy as np
 def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         trapslope=None, normalize_kernel=np.sum, force_odd=False):
     """
-    Create a smoothing kernel for use with `convolve` or `convolve_fft`
+    Create a smoothing kernel for use with `convolve` or `convolve_fft`.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
         * 'tophat'
             A flat circle  with radius = `kernelwidth`,
             i.e., kernel = (r < `kernelwidth`)
-        * 'birckwall' or 'airy'
+        * 'brickwall' or 'airy'
             A kernel using the airy function from optics. It requires
             `scipy.special` for the bessel function. See e.g.,
             http://en.wikipedia.org/wiki/Airy_disk.

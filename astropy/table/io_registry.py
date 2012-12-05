@@ -52,7 +52,7 @@ def register_writer(table_format, function, force=False):
 
 def register_identifier(table_format, identifier, force=False):
     '''
-    Associate an identifier function with a specific table type
+    Associate an identifier function with a specific table type.
 
     Parameters
     ----------

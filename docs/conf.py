@@ -118,6 +118,8 @@ htmlhelp_basename = project + 'doc'
 latex_documents = [('index', project + '.tex', project + u' Documentation',
                     author, 'manual')]
 
+latex_logo = '_static/astropy_logo.pdf'
+
 
 # -- Options for manual page output --------------------------------------------
 

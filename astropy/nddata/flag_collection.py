@@ -8,13 +8,15 @@ __all__ = ['FlagCollection']
 
 class FlagCollection(OrderedDict):
     """
-    The pupose of this class is to provide a dictionary for containing arrays
-    of flags for the NDData class. Flags should be stored in Numpy arrays that
-    have the same dimensions as the parent data, so the FlagCollection class
-    adds shape checking to an ordered dictionary class.
+    The purpose of this class is to provide a dictionary for
+    containing arrays of flags for the `NDData` class. Flags should be
+    stored in Numpy arrays that have the same dimensions as the parent
+    data, so the `FlagCollection` class adds shape checking to an
+    ordered dictionary class.
 
-    The FlagCollection should be initialized like an OrderedDict, but with the
-    addition of a `shape=` keyword argument used to pass the NDData shape.
+    The `FlagCollection` should be initialized like an `OrderedDict`,
+    but with the addition of a ``shape=`` keyword argument used to
+    pass the NDData shape.
     """
 
     def __init__(self, *args, **kwargs):
