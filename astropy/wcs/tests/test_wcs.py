@@ -306,7 +306,6 @@ def test_3d_shapes():
 
 
 def test_preserve_shape():
-
     w = wcs.WCS(naxis=2)
 
     x = np.random.random((2,3,4))
@@ -323,8 +322,19 @@ def test_preserve_shape():
     assert yp.shape == (2,3,4)
 
 
-def test_shape_mismatch():
+def test_broadcasting():
+    w = wcs.WCS(naxis=2)
 
+    x = np.random.random((2,3,4))
+    y = 1
+
+    xp, yp = w.wcs_world2pix(x, y, 1)
+
+    assert xp.shape == (2,3,4)
+    assert yp.shape == (2,3,4)
+
+
+def test_shape_mismatch():
     w = wcs.WCS(naxis=2)
 
     x = np.random.random((2,3,4))
@@ -332,8 +342,8 @@ def test_shape_mismatch():
 
     with pytest.raises(ValueError) as exc:
         xw, yw = w.wcs_pix2world(x, y, 1)
-    assert exc.value.args[0] == "coordinate arrays are not the same shape"
+    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
     with pytest.raises(ValueError) as exc:
         xp, yp = w.wcs_world2pix(x, y, 1)
-    assert exc.value.args[0] == "coordinate arrays are not the same shape"
+    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"

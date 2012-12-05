@@ -864,27 +864,23 @@ naxis kwarg.
                     "When providing more than two arguments, they must be " +
                     "a 1-D array for each axis, followed by an origin.")
 
-            size = axes[0].size
-            for axis in axes[1:]:
-                if axis.size != size:
-                    raise ValueError(
-                        "coordinate arrays are not the same size")
+            try:
+                axes = np.broadcast_arrays(*axes)
+            except ValueError:
+                raise ValueError(
+                    "Coordinate arrays are not broadcastable to each other")
 
-            shape = axes[0].shape
-            for axis in axes[1:]:
-                if axis.shape != shape:
-                    raise ValueError(
-                        "coordinate arrays are not the same shape")
+            xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
 
-            axes = [x.reshape((size, 1)) for x in axes]
-            xy = np.hstack(axes)
             if ra_dec_order and sky == 'input':
                 xy = self._denormalize_sky(xy)
             sky = func(xy, origin)
             if ra_dec_order and sky == 'output':
                 sky = self._normalize_sky_output(sky)
-                return sky[:, 0].reshape(shape), sky[:, 1].reshape(shape)
-            return [sky[:, i].reshape(shape) for i in range(sky.shape[1])]
+                return (sky[:, 0].reshape(axes[0].shape),
+                        sky[:, 1].reshape(axes[0].shape))
+            return [sky[:, i].reshape(axes[0].shape)
+                    for i in range(sky.shape[1])]
 
         raise TypeError(
             "Expected 2 or {0} arguments, {0} given".format(
