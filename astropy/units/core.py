@@ -760,6 +760,9 @@ class _UnitMetaClass(type):
         elif s is None:
             raise ValueError("None is not a valid Unit")
 
+        else:
+            raise TypeError("{0} can not be converted to a Unit".format(s))
+
 
 class Unit(NamedUnit):
     """
