@@ -28,9 +28,9 @@ def test_transform_classes():
     Tests the class-based/OO syntax for creating transforms
     """
     t.FunctionTransform(TestCoo1, TestCoo2,
-        lambda c: TestCoo2(c.ra.radians, c.dec.radians, unit=u.radian))
+        lambda c: TestCoo2(c.ra.radians, c.dec.radians, unit=(u.radian, u.radian)))
 
-    c1 = TestCoo1(1, 2, unit=u.radian)
+    c1 = TestCoo1(1, 2, unit=(u.radian, u.radian))
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
     npt.assert_almost_equal(c2.ra.radians, 1)
@@ -42,7 +42,7 @@ def test_transform_classes():
                 [0, 0, 1]]
     t.DynamicMatrixTransform(TestCoo1, TestCoo2, matfunc)
 
-    c3 = TestCoo1(1, 2, unit=u.degree)
+    c3 = TestCoo1(1, 2, unit=(u.degree, u.degree))
     c3._make_cart()
     c4 = c3.transform_to(TestCoo2)
 
@@ -54,11 +54,11 @@ def test_transform_decos():
     """
     Tests the decorator syntax for creating transforms
     """
-    c1 = TestCoo1(1, 2, unit=u.degree)
+    c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
 
     @t.transform_function(TestCoo1, TestCoo2)
     def trans(coo1):
-        return TestCoo2(coo1.ra.radians, coo1.dec.radians * 2, unit=u.radian)
+        return TestCoo2(coo1.ra.radians, coo1.dec.radians * 2, unit=(u.radian, u.radian))
 
     c1._make_cart()
     c2 = c1.transform_to(TestCoo2)
@@ -88,7 +88,7 @@ def test_coo_alias():
 
     t.FunctionTransform(TestCoo1, TestCoo2, lambda c: TestCoo2(c.ra, c.dec))
 
-    c1 = TestCoo1(1, 2, unit=u.degree)
+    c1 = TestCoo1(1, 2, unit=(u.degree, u.degree))
     assert c1.coo2.ra.degrees == c1.ra.degrees
     assert c1.coo2.dec.degrees == c1.dec.degrees
 
@@ -200,7 +200,7 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
 
     from ...time import Time
 
-    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=u.degree, distance=m31_dist)
+    coo1 = fromsys[0](fromcoo[0], fromcoo[1], unit=(u.degree, u.degree), distance=m31_dist)
     coo2 = coo1.transform_to(tosys[0])
     if tosys[0] is FK4Coordinates:
         coo2_prec = coo2.precess_to(Time('B1950', scale='utc'))
@@ -237,12 +237,12 @@ def test_precession():
     j1975 = Time('J1975', scale='utc')
     b1975 = Time('B1975', scale='utc')
 
-    fk4 = FK4Coordinates(1, 2, unit=u.radian)
+    fk4 = FK4Coordinates(1, 2, unit=(u.radian, u.radian))
     assert fk4.equinox.byear == b1950.byear
     fk4_2 = fk4.precess_to(b1975)
     assert fk4_2.equinox.byear == b1975.byear
 
-    fk5 = FK5Coordinates(1, 2, unit=u.radian)
+    fk5 = FK5Coordinates(1, 2, unit=(u.radian, u.radian))
     assert fk5.equinox.jyear == j2000.jyear
     fk5_2 = fk5.precess_to(j1975)
     assert fk5_2.equinox.jyear == j1975.jyear
@@ -291,8 +291,8 @@ def test_obstime():
     b1950 = Time('B1950', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
-    fk4_50 = FK4Coordinates(1, 2, unit=u.radian, obstime=b1950)  # default
-    fk4_75 = FK4Coordinates(1, 2, unit=u.radian, obstime=j1975)
+    fk4_50 = FK4Coordinates(1, 2, unit=(u.degree, u.degree), obstime=b1950)
+    fk4_75 = FK4Coordinates(1, 2, unit=(u.degree, u.degree), obstime=j1975)
 
     icrs_50 = fk4_50.transform_to(ICRSCoordinates)
     icrs_75 = fk4_75.transform_to(ICRSCoordinates)

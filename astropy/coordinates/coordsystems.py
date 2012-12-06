@@ -163,15 +163,20 @@ class SphericalCoordinatesBase(object):
                 raise ValueError('Must give a sequence of 2 units or None '
                                  'while initializing {0}. Instead got a '
                                  'non-sequence {1}'.format(sclsnm, unit))
-            try:
-                if len(units) == 2:
+
+            if len(units) == 2:
+                try:
                     if units[0] is not None:
                         units[0] = u.Unit(units[0])
                     if units[1] is not None:
                         units[1] = u.Unit(units[1])
-            except ValueError:
-                raise ValueError('Could not convert units to unit objects '
-                                 'while initializing ' + sclsnm)
+                except ValueError:
+                    raise ValueError('Could not convert units to unit objects '
+                                     'while initializing ' + sclsnm)
+            else:
+                raise ValueError('Must give a sequence of 2 units or None '
+                             'while initializing {0}. Instead got a sequence '
+                             'of {1}.'.format(sclsnm, len(units)))
 
             if coordstr is not None:
                 # need to try to parse the coordinate from a single argument

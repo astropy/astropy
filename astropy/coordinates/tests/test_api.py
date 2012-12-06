@@ -483,7 +483,7 @@ def test_create_coordinate():
     c = ICRSCoordinates(ra, dec)
     assert isinstance(c, ICRSCoordinates)
 
-    c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342")
+    c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
     assert isinstance(c.dec, Dec) # dec is a Dec object
 
     npt.assert_almost_equal(dec.degrees, -41.137545095)
@@ -513,17 +513,15 @@ def test_create_coordinate():
     # single string in the initializer. This can lead to ambiguities
     # particularly when both are different units. The solution is to accept a
     # sequence for the "unit" keyword  that one would expect to sent to Angle.
-    # The first element in 'units' refers to the first coordinate.
-    # DEGREE is assumed for the second coordinate, unless specified
-    c1 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour,))
+    # This must be a 2-sequence with the two elements' units.
+    ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
 
-    # Both can be specified and should be when there is ambiguity.
-    c2 = ICRSCoordinates('4 23 43.43  +23 45 12.324', unit=(u.hour, u.degree))
+    # If one of them is None, try to guess for unambiguous cases
+    ICRSCoordinates('12h43m32 +23:45:12.324', unit=(None, u.degree))
 
-    # test coordinate equivalence - not implemented
-    #assert c1 == c2
+    # unit=None is the same as unit=(None, None)
+    ICRSCoordinates('12h43m32 +23d45m12.324s', unit=None)
 
-    c3 = ICRSCoordinates('12h43m32 +23 45 12.324', unit=(None, u.degree))
 
     # Other types of coordinate systems have their own classes
     l = Angle(123.4, unit=u.degree)
@@ -592,7 +590,7 @@ def test_convert_api():
     def icrs_to_custom(icrs_coo):
         return CustomCoordinates(icrs_coo.ra.degrees,
                                  icrs_coo.dec.degrees + 2.5,
-                                 unit=u.degree)
+                                 unit=(u.degree, u.degree))
 
     try:
         # allows both ways of converting
@@ -618,8 +616,8 @@ def test_proj_separations():
     `separation` method.
     '''
 
-    c1 = ICRSCoordinates(ra=0, dec=0, unit=u.degree)
-    c2 = ICRSCoordinates(ra=0, dec=1, unit=u.degree)
+    c1 = ICRSCoordinates(ra=0, dec=0, unit=(u.degree, u.degree))
+    c2 = ICRSCoordinates(ra=0, dec=1, unit=(u.degree, u.degree))
 
     sep = c2.separation(c1)
     #returns an AngularSeparation object (a subclass of Angle)
@@ -634,8 +632,8 @@ def test_proj_separations():
     with raises(TypeError):
         c1 - c2
 
-    ngp = GalacticCoordinates(l=0, b=90, unit=u.degree)
-    ncp = ICRSCoordinates(ra=0, dec=90, unit=u.degree)
+    ngp = GalacticCoordinates(l=0, b=90, unit=(u.degree, u.degree))
+    ncp = ICRSCoordinates(ra=0, dec=90, unit=(u.degree, u.degree))
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
@@ -649,7 +647,7 @@ def test_proj_separations():
     class CustomCoordinate(ICRSCoordinates):
         pass  # does not specify a coordinate transform
 
-    c4 = CustomCoordinate(0, 0, unit=u.degree)
+    c4 = CustomCoordinate(0, 0, unit=(u.degree, u.degree))
     with raises(ConvertError):
         # raises an error if no conversion from the custom to equatorial
         # coordinates is available
@@ -684,7 +682,7 @@ def test_distances():
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
-    c = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree)
+    c = GalacticCoordinates(l=158.558650, b=-43.350066, unit=(u.degree, u.degree))
     c.distance = Distance(12, u.parsec)
 
     #can also set distances using tuple-format
@@ -702,7 +700,8 @@ def test_distances():
     # syntax
     #TODO: use this commented line once quantity is in
     #c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=12 * u.kpc)
-    c1 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=Distance(12, u.kpc))
+    c1 = GalacticCoordinates(l=158.558650, b=-43.350066,
+        unit=(u.degree, u.degree), distance=Distance(12, u.kpc))
 
     # Coordinate objects can be instantiated with cartesian coordinates
     # Internally they will immediately be converted to two angles + a distance
@@ -732,7 +731,7 @@ def test_distances():
     npt.assert_almost_equal(cpt.z, 8)
 
     # with no distance, the unit sphere is assumed when converting to cartesian
-    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=u.degree, distance=None)
+    c3 = GalacticCoordinates(l=158.558650, b=-43.350066, unit=(u.degree, u.degree), distance=None)
     unitcart = c3.cartesian
     npt.assert_almost_equal((unitcart.x**2 + unitcart.y**2 + unitcart.z**2)**0.5, 1.0)
 
