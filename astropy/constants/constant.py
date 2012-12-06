@@ -31,3 +31,21 @@ class Constant(Quantity):
 
     def __new__(cls, value, uncertainty, name, origin, units):
         return super(Constant, cls).__new__(cls, value)
+
+    def __repr__(self):
+        s = "<Constant: "
+        s += "name='{0}' ".format(self.name)
+        s += "value={0} ".format(self.value)
+        s += "error={0} ".format(self.uncertainty)
+        s += "units='{0}' ".format(self.unit)
+        s += "origin='{0}'".format(self.origin)
+        s += ">"
+        return s
+
+    def __str__(self):
+        s = "  Name   = {0}\n".format(self.name)
+        s += "  Value  = {0}\n".format(self.value)
+        s += "  Error  = {0}\n".format(self.uncertainty)
+        s += "  Units = {0}\n".format(self.unit)
+        s += "  Origin = {0}".format(self.origin)
+        return s
