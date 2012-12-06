@@ -449,7 +449,7 @@ def radians_to_dms(r):
     return degrees_to_dms(degrees)
 
 
-def hours_to_string(h, precision=5, pad=False, sep=("h", "m", "s")):
+def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
     """
     Takes a decimal hour value and returns a string formatted as hms with
     separator specified by the 'sep' parameter.
@@ -458,51 +458,57 @@ def hours_to_string(h, precision=5, pad=False, sep=("h", "m", "s")):
     """
 
     if pad:
-        hPad = ":02"
+        pad = 2
     else:
-        hPad = ""
+        pad = 0
+
+    if not isinstance(sep, tuple):
+        # Note: This will convert 'hms' to ('h', 'm', 's'); a potentially nice
+        # shortcut
+        sep = tuple(sep)
 
     if len(sep) == 1:
-        literal = "{0" + hPad + "}" + str(sep) + "{1:02d}" + str(
-            sep) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}"
+        sep = sep + (sep[0], '')
     elif len(sep) == 2:
-        literal = "{0" + hPad + "}" + str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}"
-    elif len(sep) == 3:
-        literal = "{0" + hPad + "}" + str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}" + str(sep[2])
-    else:
+        sep = sep + ('',)
+    elif len(sep) != 3:
         raise ValueError(
             "Invalid separator specification for converting angle to string.")
 
-    (h, m, s) = hours_to_hms(h)
-    h = "-{0}".format(int(h)) if math.copysign(1, h) == -1 else int(h)
-    return literal.format(h, abs(m), abs(s))
+    literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
+               '{sep[2]}')
+    h, m, s = hours_to_hms(h)
+    return literal.format(h, abs(m), abs(s), sep=sep, pad=pad,
+                          width=(precision + 3), precision=precision)
 
 
-def degrees_to_string(d, precision=5, pad=False, sep=":"):
+def degrees_to_string(d, precision=5, pad=False, sep=':'):
     """
     Takes a decimal hour value and returns a string formatted as dms with
     separator specified by the 'sep' parameter.
     """
 
     if pad:
-        dPad = ":02"
+        pad = 2
     else:
-        dPad = ""
+        pad = 0
+
+    if not isinstance(sep, tuple):
+        sep = tuple(sep)
 
     if len(sep) == 1:
-        literal = "{0" + dPad + "}" + str(sep) + "{1:02d}" + str(
-            sep) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}"
+        sep = sep + (sep[0], '')
     elif len(sep) == 2:
-        literal = "{0" + dPad + "}" + str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}"
-    elif len(sep) == 3:
-        literal = "{0" + dPad + "}" + str(sep[0]) + "{1:02d}" + str(sep[1]) + "{2:0" + str(precision + 3) + "." + str(precision) + "f}" + str(sep[2])
-    else:
+        sep = sep + ('',)
+    elif len(sep) != 3:
         raise ValueError(
             "Invalid separator specification for converting angle to string.")
 
+    literal = ('{0:0{pad}.0f}{sep[0]}{1:02d}{sep[1]}{2:0{width}.{precision}f}'
+               '{sep[2]}')
     d, m, s = degrees_to_dms(d)
-    d = "{0}".format(int(d)) if math.copysign(1, d) == -1 else int(d)
-    return literal.format(d, abs(m), abs(s))
+    return literal.format(d, abs(m), abs(s), sep=sep, pad=pad,
+                          width=(precision + 3), precision=precision)
 
 
 #<----------Spherical angular distances------------->
