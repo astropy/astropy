@@ -140,8 +140,10 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
+    from ...tests.compat import assert_allclose
     from ...utils import NumpyRNGContext
     from ..distances import spherical_to_cartesian, cartesian_to_spherical
+
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
     npt.assert_almost_equal(x, 1)
@@ -170,9 +172,9 @@ def test_sphere_cart():
     r, lat, lon = cartesian_to_spherical(x, y, z)
     x2, y2, z2 = spherical_to_cartesian(r, lat, lon)
 
-    assert np.allclose(x, x2)
-    assert np.allclose(y, y2)
-    assert np.allclose(z, z2)
+    assert_allclose(x, x2)
+    assert_allclose(y, y2)
+    assert_allclose(z, z2)
 
 
 m31_sys = [(ICRSCoordinates, 'icrs'), (FK5Coordinates, 'fk5'), (FK4Coordinates, 'fk4'), (GalacticCoordinates, 'galactic')]
