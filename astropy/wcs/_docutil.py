@@ -22,8 +22,9 @@ def TWO_OR_MORE_ARGS(naxis, indent=0):
         - 2 arguments: An *N* x *{0}* array of coordinates, and an
           *origin*.
 
-        - more than 2 arguments: A one-dimensional array for each
-          axis, followed by an *origin*.
+        - more than 2 arguments: An array for each axis, followed by
+          an *origin*.  These arrays must be broadcastable to one
+          another.
 
     Here, *origin* is the coordinate in the upper left corner of the
     image.  In FITS and Fortran standards, this is 1.  In Numpy and C
