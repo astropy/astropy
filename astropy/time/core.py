@@ -64,8 +64,8 @@ class Time(object):
 
     Parameters
     ----------
-    val : sequence, str, or number
-        Value(s) to initialize the time or times
+    val : sequence, str, number, or `~astropy.time.Time` object
+        Value(s) to initialize the time or times.
     val2 : sequence, str, or number; optional
         Value(s) to initialize the time or times
     format : str, optional
@@ -92,9 +92,20 @@ class Time(object):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
+    def __new__(cls, val, val2=None, format=None, scale=None,
+                precision=None, in_subfmt=None, out_subfmt=None,
+                lat=0.0, lon=0.0, copy=False):
+
+        if isinstance(val, cls):
+            self = val.replicate(format=format, copy=copy)
+        else:
+            self = super(Time, cls).__new__(cls)
+        return self
+
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
                  lat=0.0, lon=0.0, copy=False):
+
         self.lat = lat
         self.lon = lon
         if precision is not None:
@@ -103,7 +114,12 @@ class Time(object):
             self.in_subfmt = in_subfmt
         if out_subfmt is not None:
             self.out_subfmt = out_subfmt
-        self._init_from_vals(val, val2, format, scale, copy)
+
+        if isinstance(val, self.__class__):
+            if scale is not None:
+                self._set_scale(scale)
+        else:
+            self._init_from_vals(val, val2, format, scale, copy)
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -151,11 +167,15 @@ class Time(object):
         if format is None and val.dtype.kind in ('S', 'U'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeString)]
-            err_msg = 'any of format classes {0}'.format(
-                [name for name, cls in formats])
+            err_msg = 'any formats that can interpret strings {0}'.format(
+                      [name for name, cls in formats])
         elif format not in self.FORMATS:
-            raise ValueError("Format {0} is not in the allowed formats {1}"
-                             .format(repr(format), sorted(self.FORMATS)))
+            if format is None:
+                raise ValueError("No time format was given, and the input is "
+                                 "not string-like")
+            else:
+                raise ValueError("Format {0} is not one of the allowed "
+                    "formats {1}".format(repr(format), sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
             err_msg = 'the format class {0}'.format(format)
@@ -578,12 +598,14 @@ class TimeDelta(Time):
 
     Parameters
     ----------
-    val : numpy ndarray, list, str, or number
+    val : numpy ndarray, list, str, number, or `~astropy.time.TimeDelta` object
         Data to initialize table.
     val2 : numpy ndarray, list, str, or number; optional
         Data to initialize table.
     format : str, optional
         Format of input value(s)
+    copy : bool, optional
+        Make a copy of the input values
     """
     SCALES = TIME_DELTA_SCALES
     """List of time delta scales"""
@@ -594,7 +616,8 @@ class TimeDelta(Time):
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         # Note: scale is not used but is needed because of the inheritance
         # from Time.
-        self._init_from_vals(val, val2, format, 'tai', copy)
+        if not isinstance(val, self.__class__):
+            self._init_from_vals(val, val2, format, 'tai', copy)
 
 
 class TimeFormat(object):

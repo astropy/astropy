@@ -36,6 +36,30 @@ class TestBasic():
         assert np.allclose(t.cxcsec, np.array([3.15360643e+07,
                                                3.78691266e+08]))
 
+    def test_copy_time(self):
+        """Test copying the values of a Time object by passing it into the
+        Time initializer.
+        """
+        t = Time(2455197.5, format='jd', scale='utc')
+
+        t2 = Time(t, copy=False)
+        assert t.jd - t2.jd == 0
+        assert (t - t2).jd == 0
+        assert t._time.jd1 is t2._time.jd1
+        assert t._time.jd2 is t2._time.jd2
+
+        t2 = Time(t, copy=True)
+        assert t.jd - t2.jd == 0
+        assert (t - t2).jd == 0
+        assert t._time.jd1 is not t2._time.jd1
+        assert t._time.jd2 is not t2._time.jd2
+
+        # Include initializers
+        t2 = Time(t, format='iso', scale='tai', precision=1)
+        assert t2.val == '2010-01-01 00:00:34.0'
+        t2 = Time(t, format='iso', scale='tai', out_subfmt='date')
+        assert t2.val == '2010-01-01'
+
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
         UTC transformation requires a supplementary value (``delta_ut1_utc``)
