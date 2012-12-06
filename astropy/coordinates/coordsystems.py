@@ -73,18 +73,22 @@ class SphericalCoordinatesBase(object):
     cartpoint : `~astropy.coordinates.distance.CartesianPoints`
         A cartesian point with the coordinates.  Cannot be used with
         any other arguments.
-    unit : `~astropy.units.UnitBase` or tuple
+    unit
+        The `unit` parameter's interpretation depends on what other
+        parameters are given:
 
         * If `{lonnm}` and `{latnm}` or `coordstr` are given:
-            If the units cannot be determined from the angle values
-            provided, they must be specified as a tuple. The first value
-            in the tuple is paired with `{lonnm}`, and the second with
-            `{latnm}`. If `coordstr` is applied or `{latnm}` is a string
-            and a single unit is  given, it is assumed to apply to
-            `{lonnm}`. Otherwise, a single unit is applied to both.
+            `unit` must be a length-2 sequence specifying the units of
+            `{lonnm}` and `{latnm}`, respectively. They can be either
+            `~astropy.units.UnitBase` objects or strings that will be
+            converted using `~astropy.units.Unit`.  They can also be
+            None to attempt to automatically interpret the units (see
+            `~astropy.coordinates.angles.Angle` for details.) If `unit`
+            is just `None`, this will be interpreted the same as
+            ``(None, None)``.
 
         * If `x`, `y`, and `z` are given:
-            `unit` must be present have dimensions of length"""
+            `unit` must be a single unit with dimensions of length"""
 
     def _initialize_latlon(self, lonname, latname, useradec, initargs, initkwargs):
         """
