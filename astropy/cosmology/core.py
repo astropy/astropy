@@ -6,11 +6,10 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from ..constants.cgs import pc, G, c, sigma_sb
-from ..constants.si import e as q_e
-from ..constants.si import k_B
+from ..constants import cgs
 from ..config import ConfigurationItem
 from ..utils.misc import isiterable
+from .. import units as u
 
 import parameters
 
@@ -28,20 +27,21 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
 # Constants
 
 # speed of light in km/s
-c_kms = c * 1e-5
+c_kms = cgs.c.to('km/s').value
 
 # Mpc in cm
-Mpc = 1e6 * pc
+Mpc = u.Mpc.to(u.cm)
 
 # Mpc in km
-Mpc_km = 1e-5 * Mpc
+Mpc_km = u.Mpc.to(u.km)
 
 # Gyr in seconds; note these are Julian years, which are defined
-#  to be exactly 365.25 days of 86400 seconds each.
+# to be exactly 365.25 days of 86400 seconds each. If we used the units
+# framework, the days would be 365.242... days.
 Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
 #Radiation parameter over c^2
-a_B_c2 = 4 * sigma_sb / c**3
+a_B_c2 = 4 * cgs.sigma_sb.value / cgs.c.value**3
 
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
@@ -120,7 +120,7 @@ class FLRW(Cosmology):
         self._hubble_distance = c_kms / self._H0
 
         # critical density at z=0 (grams per cubic cm)
-        self._critical_density0 = 3. * H0_s**2 / (8. * pi * G)
+        self._critical_density0 = 3. * H0_s**2 / (8. * pi * cgs.G.value)
 
         # Compute photon density, Tcmb, neutrino parameters
         # Tcmb0=0 removes both photons and neutrinos, is handled 
