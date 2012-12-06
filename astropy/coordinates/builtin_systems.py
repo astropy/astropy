@@ -304,9 +304,9 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
     #North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     #transformations to/from FK4/5
-    _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=u.degree)
+    _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=(u.degree, u.degree))
     _lon0_J2000 = Angle(122.932, unit=u.degree)
-    _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=u.degree)
+    _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=(u.degree, u.degree))
     _lon0_B1950 = Angle(123, unit=u.degree)
 
     def __init__(self, *args, **kwargs):

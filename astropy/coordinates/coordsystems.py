@@ -156,77 +156,59 @@ class SphericalCoordinatesBase(object):
                     raise ValueError('Cannot give both angular and cartesian '
                                      'coordinates while initializing ' + sclsnm)
 
-            units = [] if unit is None else unit
-
-            if isinstance(units, tuple) or isinstance(units, list):
-                if len(units) > 2:
-                    raise ValueError('Cannot give more than 2 units while '
-                                     'initializing a coordinate')
-            elif isinstance(units, u.UnitBase) or isinstance(units, basestring):
-                # Only a single unit given, which is fine.  If the arguments are
-                # strings, assign it to just the lon, otherwise both
-                if coordstr is not None or isinstance(latval, basestring):
-                    units = (units, )
-                else:
-                    units = (units, units)
-            else:
-                raise ValueError("The value for units must be given as a tuple, e.g. "
-                                 "unit=(u.hour, u.degree). An object of type '{0}' "
-                                 "was given.".format(type(units).__name__))
+            try:
+                #this raises a TypeError if `unit` is not None or iterable
+                units = [None, None] if unit is None else list(unit)
+            except TypeError:
+                raise ValueError('Must give a sequence of 2 units or None '
+                                 'while initializing {0}. Instead got a '
+                                 'non-sequence {1}'.format(sclsnm, unit))
+            try:
+                if len(units) == 2:
+                    if units[0] is not None:
+                        units[0] = u.Unit(units[0])
+                    if units[1] is not None:
+                        units[1] = u.Unit(units[1])
+            except ValueError:
+                raise ValueError('Could not convert units to unit objects '
+                                 'while initializing ' + sclsnm)
 
             if coordstr is not None:
                 # need to try to parse the coordinate from a single argument
                 # populates latval and lonval variables, which then get made
                 # into coordinates below
-                x = coordstr
                 if isinstance(coordstr, basestring):
-                    parsed = False
-                    if "," in x:
-                        lonval, latval = x.split(",")
-                        parsed = True
-                    elif "\t" in x:
-                        lonval, latval = x.split("\t")
-                        parsed = True
-                    elif len(x.split()) == 6:
-                        lonval = " ".join(x.split()[0:3])
-                        latval = " ".join(x.split()[3:])
-                        parsed = True
-                    elif len(x.split()) == 2:
-                        lonval, latval = x.split()
-                        parsed = True
-
-                    if not parsed:
-                        values = x.split()
-                        i = 1
-                        while i < len(values) and not parsed:
-                            try:
-                                lonval = " ".join(values[0:i])
-                                parsed = True
-                            except:
-                                i += 1
-
-                        if parsed == True:
-                            latval = " ".join(values[i:])
-
-                    if not parsed:
-                        msg = ("Could not parse {lonname}/{latname} values "
-                               "from the string provided: '{coordstr}'.")
-                        raise ValueError(msg.format(lonname=lonname,
-                                                    latname=latname,
-                                                    coordstr=coordstr))
+                    if "," in coordstr:
+                        lonval, latval = coordstr.split(",")
+                    else:
+                        coosplit = coordstr.split()
+                        if len(coosplit) == 6:
+                            lonval = " ".join(coosplit[0:3])
+                            latval = " ".join(coosplit[3:])
+                        elif len(coosplit) == 2:
+                            lonval, latval = coosplit
+                        else:
+                            msg = ("Could not parse {lonname}/{latname} values "
+                                   "from the string provided: '{coordstr}'.")
+                            raise ValueError(msg.format(lonname=lonname,
+                                                        latname=latname,
+                                                        coordstr=coordstr))
                 else:
-                    raise ValueError("A {0} cannot be created with a value of type "
-                                     "'{1}'.".format(sclsnm, type(coordstr).__name__))
+                    raise ValueError("A {0} cannot be created with a single value of type "
+                                     "'{1}', must be a string.".format(sclsnm, type(coordstr).__name__))
+
+            #now actually create the angle objects
             if useradec:
-                lonang = RA(lonval, unit=units[0]) if len(units) > 0 else RA(lonval)
-                latang = Dec(latval, unit=units[1]) if len(units) > 1 else Dec(latval)
+                lonang = RA(lonval, unit=units[0])
+                latang = Dec(latval, unit=units[1])
             else:
                 if isinstance(lonval, RA):
                     raise TypeError('Cannot provide an RA object to non-RA/Dec system {0}'.format(sclsnm))
                 if isinstance(latval, Dec):
                     raise TypeError('Cannot provide a Dec object to non-RA/Dec system {0}'.format(sclsnm))
-                lonang = Angle(lonval, unit=units[0]) if len(units) > 0 else Angle(lonval)
-                latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
+                lonang = Angle(lonval, unit=units[0])
+                latang = Angle(latval, unit=units[1])
+
             dist = None if distval is None else Distance(distval)  # copy
 
         elif cartinit and not angleinit:
@@ -262,6 +244,8 @@ class SphericalCoordinatesBase(object):
                             '{latname}/{lonname}/(distance) or x/y/z '
                             ''.format(coordnm=sclsnm, latname=latname,
                                       lonname=lonname))
+
+        #now actually set the values
         setattr(self, lonname, lonang)
         setattr(self, latname, latang)
         self._distance = dist
