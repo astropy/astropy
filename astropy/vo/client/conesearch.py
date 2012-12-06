@@ -46,8 +46,9 @@ Extract Numpy array containing the matched objects. See
 
 >>> cone_arr = result.array.data
 >>> col_names = cone_arr.dtype.names
+>>> col_ra = col_names[1] # This depends on the catalog
 >>> n_rec = cone_arr.size
->>> ra_list = cone_arr[ col_names[1] ] # This depends on the catalog
+>>> ra_list = cone_arr[col_ra]
 >>> first_row = cone_arr[0]
 >>> last_row = cone_arr[-1]
 >>> first_ten_rows = cone_arr[:10]
@@ -56,7 +57,7 @@ Result can also be manipulated as `astropy.io.votable`
 and its unit can be manipulated as `astropy.units`:
 
 >>> from astropy import units as u
->>> ra_field = result.get_field_by_id( col_names[1] )
+>>> ra_field = result.get_field_by_id(col_ra)
 >>> print(ra_field.unit)
 deg
 >>> ra_arcsec = ra_field.unit.to(u.arcsec) * ra_list
@@ -69,6 +70,7 @@ Perform the same cone search as above but asynchronously:
 Check search status:
 
 >>> async_search.is_done()
+False
 
 Get search results with 30-sec time-out. If still not
 done after 30 seconds, `None` is returned. Otherwise,
@@ -122,6 +124,17 @@ important:
 >>> result = conesearch.conesearch(
 ...     6.088, -72.086, 0.5, catalog_db=usnoa_cats, pedantic=False)
 >>> cone_arr = result.array.data
+>>> print(cone_arr.size)
+3602
+
+Repeat cone search with a smaller search radius using
+the URL from the result above:
+
+>>> result2 = conesearch.conesearch(
+...     6.088, -72.086, 0.1, catalog_db=result.url, pedantic=False)
+>>> cone_arr2 = result2.array.data
+>>> print(cone_arr2.size)
+339
 
 To see the catalog information for the access URL used
 above (also see `astropy.vo.client.vos_catalog`):
@@ -129,6 +142,8 @@ above (also see `astropy.vo.client.vos_catalog`):
 >>> from astropy.vo.client import vos_catalog
 >>> my_db = vos_catalog.get_remote_catalog_db(conesearch.CONESEARCH_DBNAME())
 >>> my_cat = my_db.get_catalog_by_url(result.url)
+>>> print(result.url)
+http://archive.noao.edu/nvo/usno.php?cat=a&
 >>> print(my_cat)
 {
     \"validate_network_error\": null,

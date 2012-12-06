@@ -53,8 +53,7 @@ the master list directly from STScI VAO registry:
 >>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
 
 From the master list above, select Cone Search services
-hosted by 'stsci.edu' and fix selected URL strings
-(by replacing '&amp;' escape sequence with '&'):
+hosted by 'stsci.edu':
 
 >>> import numpy as np
 >>> from astropy.io.votable import parse_single_table
@@ -64,7 +63,7 @@ hosted by 'stsci.edu' and fix selected URL strings
 >>> arr = tab_all.array.data[np.where(
 ...     (tab_all.array['capabilityClass'] == 'ConeSearch') &
 ...     (np.char.count(tab_all.array['accessURL'].tolist(), 'stsci.edu') > 0))]
->>> urls = np.char.replace(arr['accessURL'].tolist(), '&amp;', '&')
+>>> urls = arr['accessURL'].tolist()
 
 Validate only the URLs found above without verbose
 outputs or multiprocessing, and write results in
@@ -229,8 +228,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     url_list : list of string
         Only check these access URLs from
         `astropy.vo.server.cs_mstr_list` and ignore the others,
-        which will not appear in output files. Unlike the master
-        list, URLs here must end with '&', not '&amp;'.
+        which will not appear in output files.
         If `None`, check everything.
 
     Raises
@@ -253,6 +251,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         assert isinstance(url_list, Iterable)
         for cur_url in url_list:
             assert isinstance(cur_url, basestring)
+        url_list = np.char.replace(url_list, '&amp;', '&')
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
@@ -292,8 +291,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         'astropy.vo.server.cs_mstr_list yields no valid result'
 
     # Fix URL syntax or queries will fail
-    fixed_urls = np.char.replace(
-        arr_cone['accessURL'].tolist(), '&amp;', '&')
+    fixed_urls = np.char.replace(arr_cone['accessURL'].tolist(), '&amp;', '&')
 
     # Re-structure dictionary for JSON file
 
