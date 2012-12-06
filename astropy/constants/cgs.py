@@ -5,6 +5,11 @@ available (with approximate values) are:
 """
 # This docstring is extended by __init__.py
 
+# The values of the constants in this module are defined in
+# `astropy/_constants/si.py` in order to avoid circular dependencies, since
+# Constant depends on Quantity, Quantity depends on Unit, and Unit depends on
+# the value of some of the units, so they need to be kept separately.
+
 from .constant import Constant
 from .._constants import cgs as _cgs
 from .._constants.definition import ConstantDefinition
