@@ -39,12 +39,12 @@ def test_basic_db():
     foo_cat1 = basic_db.get_catalog('foo')
     for k, v in basic_db.get_catalogs():
         assert k == 'foo'
-        assert v._tree == foo_cat1._tree == {'title':'bar', 'url':'bar.foo'}
+        assert v._tree == foo_cat1._tree == {'title': 'bar', 'url': 'bar.foo'}
 
     foo_cat2 = basic_db.get_catalog_by_url('bar.foo')
     for k, v in basic_db.get_catalogs_by_url('bar.foo'):
         assert k == 'foo'
-        assert v._tree == foo_cat2._tree == {'title':'bar', 'url':'bar.foo'}
+        assert v._tree == foo_cat2._tree == {'title': 'bar', 'url': 'bar.foo'}
 
     try:
         x = basic_db.get_catalog('not_there')

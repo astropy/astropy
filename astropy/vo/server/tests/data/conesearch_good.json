@@ -29,7 +29,7 @@
             "validate_expected": "good", 
             "validate_network_error": null, 
             "validate_nexceptions": 0, 
-            "validate_nwarnings": 6, 
+            "validate_nwarnings": 2, 
             "validate_out_db_name": "good", 
             "validate_version": "1.2", 
             "validate_warning_types": [
@@ -37,15 +37,11 @@
                 "W50"
             ], 
             "validate_warnings": [
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:13:0: W50: Invalid unit string 'degree'", 
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:16:0: W50: Invalid unit string 'degree'", 
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:28:0: W50: Invalid unit string 'year'", 
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:136:0: W50: Invalid unit string 'pixels'", 
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:139:0: W50: Invalid unit string 'degree'", 
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:155:0: W48: Unknown attribute 'nrows' on TABLEDATA"
+                "./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml:136:0: W50: Invalid unit string 'pixel'", 
+                "./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml:155:0: W48: Unknown attribute 'nrows' on TABLEDATA"
             ], 
             "validate_xmllint": false, 
-            "validate_xmllint_content": "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml:155: element TABLEDATA: Schemas validity error : Element '{http://www.ivoa.net/xml/VOTable/v1.2}TABLEDATA', attribute 'nrows': The attribute 'nrows' is not allowed.\n/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/5a/97/90fbfd6b31434ca23c091f13f2de/vo.xml fails to validate\n", 
+            "validate_xmllint_content": "./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml:155: element TABLEDATA: Schemas validity error : Element '{http://www.ivoa.net/xml/VOTable/v1.2}TABLEDATA', attribute 'nrows': The attribute 'nrows' is not allowed.\n./results/0b/1a/daefc22180f34be9334262a5d8c5/vo.xml fails to validate\n", 
             "version": "2.3.2", 
             "waveband": "#Optical#"
         }, 
@@ -84,10 +80,10 @@
                 "W22"
             ], 
             "validate_warnings": [
-                "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/57/4f/1898273d7498efddc5a3544da882/vo.xml:13:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring"
+                "./results/f7/bb/d44fbd316338550aed4e1c1a8fc6/vo.xml:13:0: W22: The DEFINITIONS element is deprecated in VOTable 1.1.  Ignoring"
             ], 
             "validate_xmllint": true, 
-            "validate_xmllint_content": "/eng/ssb/web/astrolib/vo_databases/daily_20121203/results/57/4f/1898273d7498efddc5a3544da882/vo.xml validates\n", 
+            "validate_xmllint_content": "./results/f7/bb/d44fbd316338550aed4e1c1a8fc6/vo.xml validates\n", 
             "version": "27-Oct-1998", 
             "waveband": "#Optical#"
         }

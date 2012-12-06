@@ -207,11 +207,13 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     .. note::
 
-        All cone search queries are done using 'RA=0&DEC=0&SR=0&VERB=3'.
-        A successful validation does not guarantee a successful
-        search with any given search values. In some cases, when the
-        search returns non-empty VO Table, it will give warnings
-        not caught by this validator.
+        All cone search queries are done using RA, DEC, and SR
+        given by `testQuery` in the registry and maximum verbosity.
+        No validation is done for erroneous and meta-data queries.
+
+        Until STScI VAO registry formally provides `testQuery`
+        parameters, they are extracted from
+        `astropy.vo.server.validate._TESTQUERYFILE`.
 
     Parameters
     ----------
@@ -300,7 +302,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     uniq_rows = len(uniq_urls)
     check_sum = 0
     title_counter = defaultdict(int)
-    conesearch_pars = 'RA=0&DEC=0&SR=0&VERB=3'
     key_lookup_by_url = {}
 
     for cur_url in uniq_urls:
@@ -325,6 +326,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
                 row_d['url'] = fixed_urls[i]
             else:
                 row_d[col] = arr_cone[i][col]
+
+        # Use testQuery to return non-empty VO table with max verbosity
+        cs_pars_arr = [
+            '='.join([key, val]) for key, val in
+            _TESTQUERY[cur_url].iteritems()] + ['VERB=3']
+        conesearch_pars = '&'.join(cs_pars_arr)
 
         js_mstr['catalogs'][cat_key] = row_d
         key_lookup_by_url[cur_url + conesearch_pars] = cat_key
@@ -415,6 +422,8 @@ def _do_validation(url):
     # If using cached data, it will not detect network error
     # like the first run, but will raise exception.
     #
+    # When SR is not 0, VOSError is raised for empty table.
+    #
     if r['expected'] in ('good', 'incorrect') and r['nexceptions'] == 0:
         nexceptions = 0
         nwarnings = 0
@@ -496,3 +505,36 @@ def _copy_r_to_db(r, db):
     for key, val in r._attributes.iteritems():
         new_key = '_'.join(['validate', key])
         db[new_key] = val
+
+
+#-------------------------------------------------------------#
+# Temporary solution until _VAO_QUERY includes testQuery tags #
+#-------------------------------------------------------------#
+
+_TESTQUERYFILE = vos_catalog.BASEURL() + 'conesearch_testquery.xml'
+
+
+def _parse_testquery():
+    """Parse testQuery pars into dict."""
+    from collections import OrderedDict
+    from xml.dom.minidom import parse
+
+    tqp = OrderedDict({'testQuery_x002F_ra': 'RA',
+                       'testQuery_x002F_dec': 'DEC',
+                       'testQuery_x002F_sr': 'SR'})
+    d = {}
+
+    with get_readable_fileobj(_TESTQUERYFILE) as fd:
+        dom = parse(fd)
+
+    for tab in dom.getElementsByTagName('Table'):
+        url = tab.getElementsByTagName('accessURL')[0].firstChild.nodeValue
+        url = url.replace('&amp;', '&')
+        d[url] = OrderedDict()
+        for key, val in tqp.iteritems():
+            d[url][val] = tab.getElementsByTagName(key)[0].firstChild.nodeValue
+
+    return d
+
+
+_TESTQUERY = _parse_testquery()
