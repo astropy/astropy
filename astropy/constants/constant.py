@@ -14,7 +14,7 @@ class Constant(Quantity):
     ----------
     name : str
         The name of this constant.
-    error : float
+    uncertainty : float
         The uncertainty in the value of this constant.
     origin : str
         The source used for the value of this constant.
@@ -23,11 +23,11 @@ class Constant(Quantity):
         `astropy.units.UnitBase`.
     """
 
-    def __init__(self, value, unit, error, name, origin):
+    def __init__(self, value, unit, uncertainty, name, origin):
         super(Constant, self).__init__(value, unit)
-        self.error = error
+        self.uncertainty = uncertainty
         self.name = name
         self.origin = origin
 
-    def __new__(cls, value, error, name, origin, units):
+    def __new__(cls, value, uncertainty, name, origin, units):
         return super(Constant, cls).__new__(cls, value)

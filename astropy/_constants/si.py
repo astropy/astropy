@@ -17,7 +17,7 @@ h = ConstantDefinition(6.62606957e-34, 0.00000029e-34,
                        'CODATA 2010', 'J.s')
 
 # Reduced Planck constant
-hbar = ConstantDefinition(h * 0.5 / np.pi, h.error * 0.5 / np.pi,
+hbar = ConstantDefinition(h * 0.5 / np.pi, h.uncertainty * 0.5 / np.pi,
                           "Reduced Planck constant",
                           'CODATA 2010', 'J.s')
 
@@ -86,13 +86,13 @@ au = ConstantDefinition(1.49597870700e11, 0.0,
 # Parsec
 
 pc = ConstantDefinition(au / np.tan(np.radians(1. / 3600.)),
-                        au.error / np.tan(np.radians(1. / 3600.)),
+                        au.uncertainty / np.tan(np.radians(1. / 3600.)),
                         "Parsec",
                         "Derived from au", 'm')
 
 # Kiloparsec
 kpc = ConstantDefinition(1000. * au / np.tan(np.radians(1. / 3600.)),
-                         1000. * au.error / np.tan(np.radians(1. / 3600.)),
+                         1000. * au.uncertainty / np.tan(np.radians(1. / 3600.)),
                          "Kiloparsec",
                          "Derived from au", 'm')
 

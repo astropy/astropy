@@ -49,18 +49,10 @@ for module in si, cgs:
     for nm, val in sorted(module.__dict__.items()):
         if isinstance(val, Constant):
             module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm, val.real, val._units, val.name)
+                nm, val.value, val.unit, val.name)
 
     module.__doc__ += """\
 ========== ============== ================ =========================
 """
 
 del nm, val
-
-from .._constants.definition import ConstantDefinition
-
-# Define actual Quantity-based Constants
-for nm, val in sorted(si.__dict__.items()):
-    if isinstance(val, ConstantDefinition):
-        c = Constant(val.value, val.units, val.error, val.name, val.origin)
-        locals()[nm] = c
