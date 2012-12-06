@@ -12,99 +12,99 @@ from . import si
 
 # Planck constant
 h = ConstantDefinition(si.h * 1.e7, si.h.uncertainty * 1.e7,
-                       si.h.name, si.h.origin, 'erg.s')
+                       si.h.name, si.h.reference, 'erg.s')
 
 # Reduced Planck constant
 hbar = ConstantDefinition(si.hbar * 1.e7, si.hbar.uncertainty * 1.e7,
-                          si.hbar.name, si.hbar.origin, 'erg.s')
+                          si.hbar.name, si.hbar.reference, 'erg.s')
 
 # Boltzmann constant [CODATA]
 k_B = ConstantDefinition(si.k_B * 1.e7, si.k_B.uncertainty * 1.e7,
-                         si.k_B.name, si.k_B.origin, 'erg.s')
+                         si.k_B.name, si.k_B.reference, 'erg.s')
 
 # Speed of light [CODATA]
 c = ConstantDefinition(si.c * 1.e2, si.c.uncertainty * 1.e2,
-                       si.c.name, si.c.origin, 'cm/s')
+                       si.c.name, si.c.reference, 'cm/s')
 
 # Gravitional constant [CODATA]
 G = ConstantDefinition(si.G * 1.e3, si.G.uncertainty * 1.e3,
-                       si.G.name, si.G.origin, 'cm3.g-1.s-2')
+                       si.G.name, si.G.reference, 'cm3.g-1.s-2')
 
 # Proton mass [CODATA]
 m_p = ConstantDefinition(si.m_p * 1.e3, si.m_p.uncertainty * 1.e3,
-                         si.m_p.name, si.m_p.origin, 'g')
+                         si.m_p.name, si.m_p.reference, 'g')
 
 # Neutron mass [CODATA]
 m_n = ConstantDefinition(si.m_n * 1.e3, si.m_n.uncertainty * 1.e3,
-                         si.m_n.name, si.m_n.origin, 'g')
+                         si.m_n.name, si.m_n.reference, 'g')
 
 # Electron mass [CODATA]
 m_e = ConstantDefinition(si.m_e * 1.e3, si.m_e.uncertainty * 1.e3,
-                         si.m_e.name, si.m_e.origin, 'g')
+                         si.m_e.name, si.m_e.reference, 'g')
 
 # Stefan-Boltzmann constant
 sigma_sb = ConstantDefinition(si.sigma_sb * 1.e3, si.sigma_sb.uncertainty * 1.e3,
-                              si.sigma_sb.name, si.sigma_sb.origin,
+                              si.sigma_sb.name, si.sigma_sb.reference,
                               'erg.cm-2.K-4.s-1')
 
 # Electron charge
 e = ConstantDefinition(si.e * si.c * 10., si.e.uncertainty * si.c * 10.,
-                       si.e.name, si.e.origin, 'statC')
+                       si.e.name, si.e.reference, 'statC')
 
 # Avogadro's number
 N_A = ConstantDefinition(si.N_A, si.N_A.uncertainty,
-                         si.N_A.name, si.N_A.origin, 'mol-1')
+                         si.N_A.name, si.N_A.reference, 'mol-1')
 
 # Gas constant
 R = ConstantDefinition(si.R * 1.e7, si.R.uncertainty * 1.e7,
-                       si.R.name, si.R.origin, 'erg.K-1.mol-1')
+                       si.R.name, si.R.reference, 'erg.K-1.mol-1')
 
 # Rydberg constant
 Ryd = ConstantDefinition(si.Ryd * 1.e-2, si.Ryd.uncertainty * 1.e-2,
-                         si.Ryd.name, si.Ryd.origin, 'cm-1')
+                         si.Ryd.name, si.Ryd.reference, 'cm-1')
 
 # DISTANCE
 
 # Astronomical Unit
 au = ConstantDefinition(si.au * 1.e2, si.au.uncertainty * 1.e2,
-                        si.au.name, si.au.origin, 'cm')
+                        si.au.name, si.au.reference, 'cm')
 
 # Parsec
 pc = ConstantDefinition(si.pc * 1.e2, si.pc.uncertainty * 1.e2,
-                        si.pc.name, si.pc.origin, 'cm')
+                        si.pc.name, si.pc.reference, 'cm')
 
 # Kiloparsec
 kpc = ConstantDefinition(si.kpc * 1.e2, si.kpc.uncertainty * 1.e2,
-                         si.kpc.name, si.kpc.origin, 'cm')
+                         si.kpc.name, si.kpc.reference, 'cm')
 
 # SOLAR QUANTITIES
 
 # Solar luminosity
 L_sun = ConstantDefinition(si.L_sun * 1.e7, si.L_sun.uncertainty * 1.e7,
-                           si.L_sun.name, si.L_sun.origin, 'erg/s')
+                           si.L_sun.name, si.L_sun.reference, 'erg/s')
 
 # Solar mass
 M_sun = ConstantDefinition(si.M_sun * 1.e3, si.M_sun.uncertainty * 1.e3,
-                           si.M_sun.name, si.M_sun.origin, 'g')
+                           si.M_sun.name, si.M_sun.reference, 'g')
 
 # Solar radius
 R_sun = ConstantDefinition(si.R_sun * 1.e2, si.R_sun.uncertainty * 1.e2,
-                           si.R_sun.name, si.R_sun.origin, 'cm')
+                           si.R_sun.name, si.R_sun.reference, 'cm')
 
 # OTHER SOLAR SYSTEM QUANTITIES
 
 # Jupiter mass
 M_jup = ConstantDefinition(si.M_jup * 1.e3, si.M_jup.uncertainty * 1.e3,
-                           si.M_jup.name, si.M_jup.origin, 'g')
+                           si.M_jup.name, si.M_jup.reference, 'g')
 
 # Jupiter equatorial radius
 R_jup = ConstantDefinition(si.R_jup * 1.e2, si.R_jup.uncertainty * 1.e2,
-                           si.R_jup.name, si.R_jup.origin, 'cm')
+                           si.R_jup.name, si.R_jup.reference, 'cm')
 
 # Earth mass
 M_earth = ConstantDefinition(si.M_earth * 1.e3, si.M_earth.uncertainty * 1.e3,
-                             si.M_earth.name, si.M_earth.origin, 'g')
+                             si.M_earth.name, si.M_earth.reference, 'g')
 
 # Earth equatorial radius
 R_earth = ConstantDefinition(si.R_earth * 1.e2, si.R_earth.uncertainty * 1.e2,
-                             si.R_earth.name, si.R_earth.origin, 'cm')
+                             si.R_earth.name, si.R_earth.reference, 'cm')

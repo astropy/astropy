@@ -12,11 +12,11 @@ def test_c():
     #make sure it has the necessary attributes and they're not blank
     assert si.c.uncertainty == 0  # c is a *defined* quantity
     assert si.c.name
-    assert si.c.origin
+    assert si.c.reference
     assert si.c.unit
     assert cgs.c.uncertainty == 0  # c is a *defined* quantity
     assert cgs.c.name
-    assert cgs.c.origin
+    assert cgs.c.reference
     assert cgs.c.unit
 
 
@@ -29,11 +29,11 @@ def test_h():
     #make sure it has the necessary attributes and they're not blank
     assert si.h.uncertainty
     assert si.h.name
-    assert si.h.origin
+    assert si.h.reference
     assert si.h.unit
     assert cgs.h.uncertainty
     assert cgs.h.name
-    assert cgs.h.origin
+    assert cgs.h.reference
     assert cgs.h.unit
 
 

@@ -13,7 +13,7 @@ from .._constants.definition import ConstantDefinition
 # of c to avoid overwriting the speed of light constant.
 for nm, val in sorted(_cgs.__dict__.items()):
     if isinstance(val, ConstantDefinition):
-        _c = Constant(val.value, val.units, val.uncertainty, val.name, val.origin)
+        _c = Constant(val.value, val.units, val.uncertainty, val.name, val.reference)
         locals()[nm] = _c
 
 del _cgs, nm, val, _c
