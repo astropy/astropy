@@ -50,7 +50,7 @@ def test_find_by_hash():
 
     import hashlib
 
-    with get_readable_fileobj(TESTURL, cache=True) as googlepage:
+    with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as googlepage:
         hash = hashlib.md5(googlepage.read())
 
     hashstr = 'hash/' + hash.hexdigest()
