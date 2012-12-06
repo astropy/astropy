@@ -144,11 +144,17 @@ class SphericalCoordinatesBase(object):
             raise TypeError('{0} got unexpected keyword argument'
                             ' {1}'.format(sclsnm, initkwargs.keys()))
 
-        ll = lonval is not None and latval is not None
-        xyz = x is not None or y is not None or z is not None
+        angleinit = ((lonval is not None and latval is not None) or
+                     coordstr is not None)
+        cartinit = ((x is not None and y is not None and z is not None) or
+                    cartpoint is not None)
 
-        if (ll or coordstr is not None) and not xyz and cartpoint is None:
+        if angleinit and not cartinit:
             # lat/lon-style initialization
+            for v in [x, y, z, cartpoint]:
+                if v is not None:
+                    raise ValueError('Cannot give both angular and cartesian '
+                                     'coordinates while initializing ' + sclsnm)
 
             units = [] if unit is None else unit
 
@@ -223,11 +229,19 @@ class SphericalCoordinatesBase(object):
                 latang = Angle(latval, unit=units[1]) if len(units) > 1 else Angle(latval)
             dist = None if distval is None else Distance(distval)  # copy
 
-        elif (xyz or cartpoint is not None) and not ll and distval is None and coordstr is None:
+        elif cartinit and not angleinit:
             #cartesian-style initialization
+            for v in [coordstr, lonval, latval, distval]:
+                if v is not None:
+                    raise ValueError('Cannot give both angular and cartesian '
+                                     'coordinates while initializing ' + sclsnm)
+
             if cartpoint is not None:
-                if xyz or unit is not None:
-                    raise ValueError('Cannot give both a CartesianPoints and x/y/z/units')
+                for v in [x, y, z, unit]:
+                    if v is not None:
+                        raise ValueError('Cannot give both a CartesianPoints '
+                                         'and x/y/z/unit parameters while '
+                                         'initializing ' + sclsnm)
                 x = cartpoint.x
                 y = cartpoint.y
                 z = cartpoint.z
