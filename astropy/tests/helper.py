@@ -15,6 +15,9 @@ import shutil
 import tempfile
 
 try:
+    # Import pkg_resources to prevent it from issuing warnings upon being
+    # imported from within py.test.  See
+    # https://github.com/astropy/astropy/pull/537 for a detailed explanation.
     import pkg_resources
 except ImportError:
     pass
