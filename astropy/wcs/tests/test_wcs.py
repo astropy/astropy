@@ -11,6 +11,7 @@ from ...tests.helper import raises
 from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
+from ...tests.helper import pytest
 
 
 # test_maps() is a generator
@@ -261,8 +262,8 @@ def test_dict_init():
 
     xp, yp = w.wcs_world2pix(41., 2., 1)
 
-    assert_array_almost_equal_nulp(xp[0], 41., 10)
-    assert_array_almost_equal_nulp(yp[0], 2., 10)
+    assert_array_almost_equal_nulp(xp, 41., 10)
+    assert_array_almost_equal_nulp(yp, 2., 10)
 
     # Valid WCS
     w = wcs.WCS({'CTYPE1': 'GLON-CAR',
@@ -278,8 +279,8 @@ def test_dict_init():
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
-    assert_array_almost_equal_nulp(xp[0], -10., 10)
-    assert_array_almost_equal_nulp(yp[0], 20., 10)
+    assert_array_almost_equal_nulp(xp, -10., 10)
+    assert_array_almost_equal_nulp(yp, 20., 10)
 
 
 @raises(TypeError)
@@ -303,3 +304,47 @@ def test_3d_shapes():
     result = w.wcs_pix2sky(
         data[..., 0], data[..., 1], data[..., 2], 1)
     assert len(result) == 3
+
+
+def test_preserve_shape():
+    w = wcs.WCS(naxis=2)
+
+    x = np.random.random((2,3,4))
+    y = np.random.random((2,3,4))
+
+    xw, yw = w.wcs_pix2world(x, y, 1)
+
+    assert xw.shape == (2,3,4)
+    assert yw.shape == (2,3,4)
+
+    xp, yp = w.wcs_world2pix(x, y, 1)
+
+    assert xp.shape == (2,3,4)
+    assert yp.shape == (2,3,4)
+
+
+def test_broadcasting():
+    w = wcs.WCS(naxis=2)
+
+    x = np.random.random((2,3,4))
+    y = 1
+
+    xp, yp = w.wcs_world2pix(x, y, 1)
+
+    assert xp.shape == (2,3,4)
+    assert yp.shape == (2,3,4)
+
+
+def test_shape_mismatch():
+    w = wcs.WCS(naxis=2)
+
+    x = np.random.random((2,3,4))
+    y = np.random.random((3,2,4))
+
+    with pytest.raises(ValueError) as exc:
+        xw, yw = w.wcs_pix2world(x, y, 1)
+    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
+
+    with pytest.raises(ValueError) as exc:
+        xp, yp = w.wcs_world2pix(x, y, 1)
+    assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
