@@ -77,7 +77,7 @@ class IllegalSecondError(RangeError):
         return "An invalid value for 'second' was found ('{0}'); must be in the range [0,60).".format(self.second)
 
 
-#TODO: consider if this should be used to `units`?
+# TODO: consider if this should be used to `units`?
 class UnitsError(ValueError):
     """
     Raised if units are missing or invalid.

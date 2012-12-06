@@ -302,8 +302,8 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     """
     __doc__ = __doc__.format(params=SphericalCoordinatesBase._init_docstring_param_templ.format(lonnm='l', latnm='b'))
 
-    #North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
-    #transformations to/from FK4/5
+    # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
+    # transformations to/from FK4/5
     _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=(u.degree, u.degree))
     _lon0_J2000 = Angle(122.932, unit=u.degree)
     _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=(u.degree, u.degree))
@@ -414,7 +414,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
 
 
 #<--------------------------------transformations------------------------------>
-#ICRS to/from FK5
+# ICRS to/from FK5
 @transformations.static_transform_matrix(ICRSCoordinates, FK5Coordinates)
 def icrs_to_fk5():
     """
@@ -433,39 +433,39 @@ def icrs_to_fk5():
     return m1 * m2 * m3
 
 
-#can't be static because the equinox is needed
+# can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK5Coordinates, ICRSCoordinates)
 def fk5_to_icrs(fk5c):
     from .earth_orientation import _precess_from_J2000_Capitaine
 
     pmat = _precess_from_J2000_Capitaine(fk5c.equinox.jyear).T
 
-    #transpose gets equinox -> J2000
+    # transpose gets equinox -> J2000
     fk5toicrsmat = icrs_to_fk5().T
 
     return fk5toicrsmat * pmat
 
 
-#ICRS to/from FK4
+# ICRS to/from FK4
 # these transformations are very slightly prioritized >1 (lower priority number means
 # better path) to prefer the FK5 path over FK4 when possible
-#can't be static because the equinox is needed
+# can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK4Coordinates, ICRSCoordinates, priority=1.01)
 def fk4_to_icrs(fk4c, bypassprec=False):
-    #bypassprec is here to make icrs_to_fk4 work more easily - it skips
-    #adding the equinox precession part
+    # bypassprec is here to make icrs_to_fk4 work more easily - it skips
+    # adding the equinox precession part
     from .earth_orientation import _precession_matrix_besselian
 
-    #B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
+    # B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
     B = np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],
-                [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
-                [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
+                [0.0111814832391717, 0.9999374848933135, -0.0000271625947142],
+                [0.0048590037723143, -0.0000271702937440, 0.9999881946023742]])
 
     if fk4c.obstime.byear != 1950:
-        #note this is *julian century*, not besselian
+        # note this is *julian century*, not besselian
         T = (fk4c.obstime.jyear - 1950) / 100
 
-        #add in correction terms for FK4 rotating system - Murray 89 eqn 29
+        # add in correction terms for FK4 rotating system - Murray 89 eqn 29
         B[0, 0] += -2.6455262e-9 * T
         B[0, 1] += -1.1539918689e-6 * T
         B[0, 2] += 2.1111346190e-6 * T
@@ -482,7 +482,7 @@ def fk4_to_icrs(fk4c, bypassprec=False):
         return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
 
-#can't be static because the equinox is needed
+# can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(ICRSCoordinates, FK4Coordinates, priority=1.01)
 def icrs_to_fk4(icrs):
     # need inverse instead of transpose because Murray's matrix is *not* a true
@@ -491,8 +491,8 @@ def icrs_to_fk4(icrs):
     return fk4_to_icrs(icrs, bypassprec=True).I
 
 
-#GalacticCoordinates to/from FK4/FK5
-#can't be static because the equinox is needed
+# GalacticCoordinates to/from FK4/FK5
+# can't be static because the equinox is needed
 @transformations.dynamic_transform_matrix(FK5Coordinates, GalacticCoordinates)
 def _fk5_to_gal(fk5coords):
     from .angles import rotation_matrix
@@ -504,7 +504,7 @@ def _fk5_to_gal(fk5coords):
     mat1 = rotation_matrix(180 - GalacticCoordinates._lon0_J2000.degrees, 'z')
     mat2 = rotation_matrix(90 - GalacticCoordinates._ngp_J2000.dec.degrees, 'y')
     mat3 = rotation_matrix(GalacticCoordinates._ngp_J2000.ra.degrees, 'z')
-    #transpose gets equinox -> J2000
+    # transpose gets equinox -> J2000
     matprec = _precess_from_J2000_Capitaine(jequinox).T
     return mat1 * mat2 * mat3 * matprec
 

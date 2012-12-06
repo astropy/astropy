@@ -401,7 +401,7 @@ class Angle(object):
                                       "float values directly.".format(type(self).__name__))
 
     def __ne__(self, other):
-        #return not self.radians == other.radians
+        # return not self.radians == other.radians
         return not self.__eq__(other)
 
     def __lt__(self, other):
@@ -471,14 +471,14 @@ class RA(Angle):
 
         if unit is u.hour:
             pass  # to Angle initializer
-            #self._radians = math.radians(decimal_hours * 15.)
+            # self._radians = math.radians(decimal_hours * 15.)
         elif unit is u.degree:
             pass  # to Angle initializer
-            #decimal_degrees = util.parse_degrees(angle)
-            #self._radians = math.radians(decimal_degrees)
+            # decimal_degrees = util.parse_degrees(angle)
+            # self._radians = math.radians(decimal_degrees)
         elif unit is u.radian:
             pass  # to Angle initializer
-            #self._radians = util.parse_radians(angle)
+            # self._radians = util.parse_radians(angle)
         elif unit is None:
             # Try to figure out the unit if we can.
             if isinstance(angle, float) or isinstance(angle, int):
@@ -499,7 +499,7 @@ class RA(Angle):
                         raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
                 elif "h" in angle:
                     # Same for "12h32m53s" for hours.
-                    #self._radians = math.radians(util.parse_hours(angle)*15.0)
+                    # self._radians = math.radians(util.parse_hours(angle)*15.0)
                     unit = u.hour
                 else:
                     # could be in a form: "54:43:26" -
@@ -680,41 +680,41 @@ def rotation_matrix(angle, axis='z', degrees=True):
     if axis == 'z':
         s = sin(angle)
         c = cos(angle)
-        return np.matrix((( c, s, 0),
+        return np.matrix(((c, s, 0),
                           (-s, c, 0),
-                          ( 0, 0, 1)))
+                          (0, 0, 1)))
     elif axis == 'y':
         s = sin(angle)
         c = cos(angle)
-        return np.matrix((( c, 0,-s),
-                          ( 0, 1, 0),
-                          ( s, 0, c)))
+        return np.matrix(((c, 0, -s),
+                          (0, 1, 0),
+                          (s, 0, c)))
     elif axis == 'x':
         s = sin(angle)
         c = cos(angle)
-        return np.matrix((( 1, 0, 0),
-                          ( 0, c, s),
-                          ( 0,-s, c)))
+        return np.matrix(((1, 0, 0),
+                          (0, c, s),
+                          (0, -s, c)))
     else:
-        x,y,z = axis
-        w = cos(angle/2)
+        x, y, z = axis
+        w = cos(angle / 2)
 
-        #normalize
+        # normalize
         if w == 1:
-            x=y=z=0
+            x = y = z = 0
         else:
-            l = sqrt((x*x + y*y + z*z)/(1 - w*w))
+            l = sqrt((x * x + y * y + z * z) / (1 - w * w))
             x /= l
             y /= l
             z /= l
 
-        wsq = w*w
-        xsq = x*x
-        ysq = y*y
-        zsq = z*z
-        return np.matrix((( wsq+xsq-ysq-zsq, 2*x*y-2*w*z, 2*x*z+2*w*y),
-                          ( 2*x*y+2*w*z, wsq-xsq+ysq-zsq,2*y*z-2*w*x),
-                          ( 2*x*z-2*w*y, 2*y*z+2*w*x, wsq-xsq-ysq+zsq)))
+        wsq = w * w
+        xsq = x * x
+        ysq = y * y
+        zsq = z * z
+        return np.matrix(((wsq + xsq - ysq - zsq, 2 * x * y - 2 * w * z, 2 * x * z + 2 * w * y),
+                          (2 * x * y + 2 * w * z, wsq - xsq + ysq - zsq, 2 * y * z - 2 * w * x),
+                          (2 * x * z - 2 * w * y, 2 * y * z + 2 * w * x, wsq - xsq - ysq + zsq)))
 
 
 def angle_axis(matrix, degrees=True):
@@ -741,17 +741,15 @@ def angle_axis(matrix, degrees=True):
     from math import sin, cos, acos, degrees, sqrt
 
     m = np.asmatrix(matrix)
-    if m.shape != (3,3):
+    if m.shape != (3, 3):
         raise ValueError('matrix is not 3x3')
 
-
-
-    angle = acos((m[0,0] + m[1,1] + m[2,2] - 1)/2)
-    denom = sqrt(2*((m[2,1]-m[1,2])+(m[0,2]-m[2,0])+(m[1,0]-m[0,1])))
-    axis = np.array((m[2,1]-m[1,2],m[0,2]-m[2,0],m[1,0]-m[0,1]))/denom
-    axis /= sqrt(np.sum(axis**2))
+    angle = acos((m[0, 0] + m[1, 1] + m[2, 2] - 1) / 2)
+    denom = sqrt(2 * ((m[2, 1] - m[1, 2]) + (m[0, 2] - m[2, 0]) + (m[1, 0] - m[0, 1])))
+    axis = np.array((m[2, 1] - m[1, 2], m[0, 2] - m[2, 0], m[1, 0] - m[0, 1])) / denom
+    axis /= sqrt(np.sum(axis ** 2))
 
     if degrees:
-        return degrees(angle),axis
+        return degrees(angle), axis
     else:
-        return angle,axis
+        return angle, axis

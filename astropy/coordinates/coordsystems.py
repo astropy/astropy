@@ -157,7 +157,7 @@ class SphericalCoordinatesBase(object):
                                      'coordinates while initializing ' + sclsnm)
 
             try:
-                #this raises a TypeError if `unit` is not None or iterable
+                # this raises a TypeError if `unit` is not None or iterable
                 units = [None, None] if unit is None else list(unit)
             except TypeError:
                 raise ValueError('Must give a sequence of 2 units or None '
@@ -202,7 +202,7 @@ class SphericalCoordinatesBase(object):
                     raise ValueError("A {0} cannot be created with a single value of type "
                                      "'{1}', must be a string.".format(sclsnm, type(coordstr).__name__))
 
-            #now actually create the angle objects
+            # now actually create the angle objects
             if useradec:
                 lonang = RA(lonval, unit=units[0])
                 latang = Dec(latval, unit=units[1])
@@ -217,7 +217,7 @@ class SphericalCoordinatesBase(object):
             dist = None if distval is None else Distance(distval)  # copy
 
         elif cartinit and not angleinit:
-            #cartesian-style initialization
+            # cartesian-style initialization
             for v in [coordstr, lonval, latval, distval]:
                 if v is not None:
                     raise ValueError('Cannot give both angular and cartesian '
@@ -250,11 +250,10 @@ class SphericalCoordinatesBase(object):
                             ''.format(coordnm=sclsnm, latname=latname,
                                       lonname=lonname))
 
-        #now actually set the values
+        # now actually set the values
         setattr(self, lonname, lonang)
         setattr(self, latname, latang)
         self._distance = dist
-
 
     @abstractproperty
     def latangle(self):

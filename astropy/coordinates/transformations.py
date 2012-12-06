@@ -88,7 +88,7 @@ class TransformGraph(object):
             if transform is None:
                 raise ValueError('cannot give all Nones to remove_transform')
 
-            #search for the requested transform by brute force and remove it
+            # search for the requested transform by brute force and remove it
             for a in self._graph:
                 agraph = self._graph[a]
                 for b in agraph:
@@ -138,7 +138,7 @@ class TransformGraph(object):
 
         inf = float('inf')
 
-        #special-case the 0-path and 1-path
+        # special-case the 0-path and 1-path
         if tosys is fromsys:
             return [tosys], 0
         elif tosys in self._graph[fromsys]:
@@ -146,17 +146,17 @@ class TransformGraph(object):
             return [fromsys, tosys], float(t.priority if hasattr(t, 'priority') else 1)
 
         if fromsys in self._shortestpaths:
-            #already have a cached result
+            # already have a cached result
             fpaths = self._shortestpaths[fromsys]
             if tosys in fpaths:
                 return fpaths[tosys]
             else:
                 return None, inf
 
-        #use Dijkstra's algorithm to find shortest path in all other cases
+        # use Dijkstra's algorithm to find shortest path in all other cases
 
         nodes = []
-        #first make the list of nodes
+        # first make the list of nodes
         for a in self._graph:
             if a not in nodes:
                 nodes.append(a)
@@ -165,8 +165,8 @@ class TransformGraph(object):
                     nodes.append(b)
 
         if fromsys not in nodes or tosys not in nodes:
-            #fromsys or tosys are isolated or not registered, so there's
-            #certainly no way to get from one to the other
+            # fromsys or tosys are isolated or not registered, so there's
+            # certainly no way to get from one to the other
             return None, inf
 
         edgeweights = {}
@@ -178,7 +178,7 @@ class TransformGraph(object):
             for b in agraph:
                 aew[b] = float(agraph[b].priority if hasattr(agraph[b], 'priority') else 1)
 
-        #entries in q are [distance, count, nodeobj, pathlist]
+        # entries in q are [distance, count, nodeobj, pathlist]
         # count is needed because in py 3.x, tie-breaking fails on the nodes.
         # this way, insertion order is preserved if the weights are the same
         q = [[inf, i, n, []] for i, n in enumerate(nodes) if n is not fromsys]
@@ -187,14 +187,14 @@ class TransformGraph(object):
         # this dict will store the distance to node from `fromsys` and the path
         result = {}
 
-        #definitely starts as a valid heap because of the insert line; from the
-        #node to itself is always the shortest distance
+        # definitely starts as a valid heap because of the insert line; from the
+        # node to itself is always the shortest distance
         while len(q) > 0:
             d, orderi, n, path = heapq.heappop(q)
 
             if d == inf:
-                #everything left is unreachable from fromsys, just copy them to
-                #the results and jump out of the loop
+                # everything left is unreachable from fromsys, just copy them to
+                # the results and jump out of the loop
                 result[n] = (None, d)
                 for d, orderi, n, path in q:
                     result[n] = (None, d)
@@ -204,7 +204,7 @@ class TransformGraph(object):
                 path.append(n)
                 for n2 in edgeweights[n]:
                     if n2 not in result:  # already visited
-                        #find where n2 is in the heap
+                        # find where n2 is in the heap
                         for i in range(len(q)):
                             if q[i][2] == n2:
                                 break
@@ -217,8 +217,7 @@ class TransformGraph(object):
                             q[i][3] = list(path)
                             heapq.heapify(q)
 
-
-        #cache for later use
+        # cache for later use
         self._shortestpaths[fromsys] = result
         return result[tosys]
 
@@ -231,7 +230,7 @@ class TransformGraph(object):
         """
         self._shortestpaths = {}
 
-    #TODO: cache composites so they don't need to be generated every time?
+    # TODO: cache composites so they don't need to be generated every time?
     def get_transform(self, fromsys, tosys):
         """
         Determines or generates a transformation between two coordinate
@@ -264,7 +263,7 @@ class TransformGraph(object):
                 transforms.append(self._graph[currsys][p])
                 currsys = p
 
-            #TODO: collapse "runs" of statics?
+            # TODO: collapse "runs" of statics?
             if all([isinstance(p, StaticMatrixTransform) for p in path]):
                 return CompositeStaticMatrixTransform(fromsys, tosys, transforms, register=False)
             else:
@@ -364,7 +363,7 @@ class TransformGraph(object):
         from subprocess import Popen, PIPE
 
         nodes = []
-        #find the node names
+        # find the node names
         for a in self._graph:
             if a not in nodes:
                 nodes.append(a)
@@ -382,16 +381,15 @@ class TransformGraph(object):
             else:
                 nodenames.append(n.__name__ + '[ shape=oval ]')
 
-
         edgenames = []
-        #Now the edges
+        # Now the edges
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
                 pri = agraph[b].priority if hasattr(agraph[b], 'priority') else 1
                 edgenames.append((a.__name__, b.__name__, pri))
 
-        #generate simple dot format graph
+        # generate simple dot format graph
         lines = ['digraph AstropyCoordinateTransformGraph {']
         lines.append('; '.join(nodenames) + ';')
         for enm1, enm2, weights in edgenames:
@@ -437,7 +435,7 @@ class TransformGraph(object):
 
         nxgraph = nx.Graph()
 
-        #first make the nodes
+        # first make the nodes
         for a in self._graph:
             if a not in nxgraph:
                 nxgraph.add_node(a)
@@ -445,7 +443,7 @@ class TransformGraph(object):
                 if b not in nxgraph:
                     nxgraph.add_node(b)
 
-        #Now the edges
+        # Now the edges
         for a in self._graph:
             agraph = self._graph[a]
             for b in agraph:
@@ -508,7 +506,7 @@ class CoordinateTransform(object):
         """
 
 
-#TODO: array: specify in the docs how arrays should be dealt with
+# TODO: array: specify in the docs how arrays should be dealt with
 class FunctionTransform(CoordinateTransform):
     """
     A coordinate transformation defined by a function that simply
@@ -570,7 +568,7 @@ class FunctionTransform(CoordinateTransform):
                 'should have been of type {1}'.format(res, self.tosys))
 
         if self.copyobstime:
-            #copy over the obstime
+            # copy over the obstime
             if hasattr(fromcoord, '_obstime') and hasattr(res, '_obstime'):
                 res._obstime = fromcoord._obstime
 
@@ -608,14 +606,14 @@ class StaticMatrixTransform(CoordinateTransform):
         self.priority = priority
         super(StaticMatrixTransform, self).__init__(fromsys, tosys)
 
-    #TODO: array: this needs some extra bits to do the broadcasting right
+    # TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
         x, y, z = np.dot(np.asarray(self.matrix), v)
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the observation time
+        # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
             result._obstime = fromcoord._obstime
 
@@ -686,14 +684,14 @@ class DynamicMatrixTransform(CoordinateTransform):
         self.priority = priority
         super(DynamicMatrixTransform, self).__init__(fromsys, tosys, register)
 
-    #TODO: array: this needs some extra bits to do the broadcasting right
+    # TODO: array: this needs some extra bits to do the broadcasting right
     def __call__(self, fromcoord):
         v = [fromcoord.x, fromcoord.y, fromcoord.z]
         x, y, z = np.dot(np.asarray(self.matrix_func(fromcoord)), v)
         unit = None if fromcoord.distance is None else fromcoord.distance._unit
         result = self.tosys(x=x, y=y, z=z, unit=unit)
 
-        #copy over the observation time
+        # copy over the observation time
         if hasattr(fromcoord, '_obstime') and hasattr(result, '_obstime'):
             result._obstime = fromcoord._obstime
 
@@ -754,7 +752,7 @@ def transform_function(fromsys, tosys, copyobstime=True, priority=1):
 
     """
     def deco(func):
-        #this doesn't do anything directly with the trasnform because
+        # this doesn't do anything directly with the trasnform because
         #``register=True`` stores it in the transform graph automatically
         FunctionTransform(fromsys, tosys, func, copyobstime=copyobstime,
                           priority=priority, register=True)

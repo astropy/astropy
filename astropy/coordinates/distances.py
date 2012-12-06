@@ -17,7 +17,7 @@ __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
 
 
-#FIXME: make this subclass Quantity once Quantity is in master
+# FIXME: make this subclass Quantity once Quantity is in master
 class Distance(object):
     """
     A one-dimensional distance.
@@ -60,7 +60,7 @@ class Distance(object):
 
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], Distance):
-            #just copy
+            # just copy
             self._value = args[0]._value
             self._unit = args[0]._unit
         elif 'z' in kwargs:
@@ -181,7 +181,7 @@ class Distance(object):
         from ..cosmology import luminosity_distance
         from scipy import optimize
 
-        #FIXME: array: need to make this calculation more vector-friendly
+        # FIXME: array: need to make this calculation more vector-friendly
 
         f = lambda z, d, cos: (luminosity_distance(z, cos) - d) ** 2
         return optimize.brent(f, (self.Mpc, cosmology))
