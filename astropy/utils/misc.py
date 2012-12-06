@@ -10,10 +10,11 @@ import collections
 import functools
 import sys
 import textwrap
+import traceback
 import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
-           'deprecated_attribute', 'NumpyRNGContext']
+           'deprecated_attribute', 'format_exception', 'NumpyRNGContext']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -480,6 +481,30 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         delattr(self, private_name)
 
     return property(get, set, delete)
+
+
+def format_exception(msg, *args, **kwargs):
+    """
+    Given an exception message string, uses new-style formatting arguments
+    ``{filename}``, ``{lineno}``, ``{func}`` and/or ``{text}`` to fill in
+    information about the exception that occurred.  For example:
+
+        try:
+            1/0
+        except:
+            raise ZeroDivisionError(
+                format_except('A divide by zero occurred in {filename} at '
+                              'line {lineno} of function {func}.'))
+
+    Any additional positional or keyword arguments passed to this function are
+    also used to format the message.
+    """
+
+    filename, lineno, func, text = traceback.extract_tb(sys.exc_info()[2],
+                                                        limit=1)[0]
+
+    return msg.format(*args, filename=filename, lineno=lineno, func=func,
+                      text=text, **kwargs)
 
 
 class NumpyRNGContext(object):
