@@ -28,7 +28,7 @@ supports both numeric angle values and (limited) string parsing::
 
     >>> from astropy import coordinates as coord
     >>> from astropy import units as u
-    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
     >>> coord.ICRSCoordinates('00h42m44.3s +41d16m9s')
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg>
@@ -36,7 +36,7 @@ supports both numeric angle values and (limited) string parsing::
 The individual components of a coordinate are `~astropy.coordinates.angles.Angle`
 objects, and their values are accessed using special attributes::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree)
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
     >>> c.ra
     <RA 10.68458 deg>
     >>> c.ra.hours
@@ -61,7 +61,7 @@ Distances from the origin (which is system-dependent, but often the Earth
 center) can also be assigned to a coordinate. This specifies a unique point
 in 3D space, which also allows conversion to cartesian coordinates::
 
-    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=u.degree, distance=coord.Distance(770, u.kpc))
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree), distance=coord.Distance(770, u.kpc))
     >>> c.x
     568.7128654235232
     >>> c.y
@@ -93,11 +93,11 @@ python class creation, using the name of the class representing that
 system.  For example::
 
     >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, GalacticCoordinates
-    >>> ICRSCoordinates(187.70592, 12.39112, unit=u.degree)
+    >>> ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
     <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
-    >>> FK4Coordinates(187.07317, 12.66715, unit=u.degree)
+    >>> FK4Coordinates(187.07317, 12.66715, unit=(u.degree, u.degree))
     <FK4Coordinates RA=187.07317 deg, Dec=12.66715 deg>
-    >>> GalacticCoordinates(-76.22237, 74.49108, unit=u.degree)
+    >>> GalacticCoordinates(-76.22237, 74.49108, unit=(u.degree, u.degree))
     <GalacticCoordinates l=-76.22237 deg, b=74.49108 deg>
 
 Note that for equatorial coordinates (those with `ra` and `dec`), the `unit` is necessary
@@ -118,9 +118,9 @@ being able to interpret any *unambiguous* string a human would interpret.  For t
 each string is parsed, see the `~astropy.coordinates.angles.Angle` documentation.  Some examples
 include::
 
-    >>> ICRSCoordinates(54.12412, "-41:08:15.162342", unit=u.degree)
+    >>> ICRSCoordinates(54.12412, "-41:08:15.162342", unit=(u.degree, u.degree))
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
-    >>> ICRSCoordinates("3:36:29.7888 -41:08:15.162342", unit=u.hour)
+    >>> ICRSCoordinates("3:36:29.7888 -41:08:15.162342", unit=(u.hour, u.degree))
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("54.12412 -41:08:15.162342")
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
