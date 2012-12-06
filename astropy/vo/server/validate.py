@@ -356,7 +356,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     t_end = time.time()
 
     if verbose:
-        log.info('Validation of {} sites took {} s'.format(uniq_rows,
+        log.info('Validation of {} sites took {:.3f} s'.format(uniq_rows,
                                                            t_end - t_beg))
 
     # Categorize validation results
