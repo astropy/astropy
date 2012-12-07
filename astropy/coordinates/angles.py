@@ -17,7 +17,7 @@ from ..utils.compat.odict import OrderedDict
 
 __all__ = ['Angle', 'RA', 'Dec', 'AngularSeparation']
 
-twopi = math.pi * 2.0  # no need to calculate this all the time
+TWOPI = math.pi * 2.0  # no need to calculate this all the time
 
 
 #used in Angle initializer to convert various strings into their parseable forms
@@ -214,7 +214,7 @@ class Angle(object):
             else:
                 if self._radians > upper_bound:
                     while True:
-                        self._radians -= twopi
+                        self._radians -= TWOPI
                         if self._radians < lower_bound:
                             raise BoundsError("The angle given falls outside of the specified bounds.")
                         elif lower_bound < self._radians < upper_bound:
@@ -222,7 +222,7 @@ class Angle(object):
 
                 if self._radians < lower_bound:
                     while True:
-                        self._radians += twopi
+                        self._radians += TWOPI
                         if self._radians > upper_bound:
                             raise BoundsError("The angle given falls outside of the specified bounds.")
                         elif lower_bound < self._radians < upper_bound:
@@ -537,7 +537,7 @@ class RA(Angle):
     #             if "d" in angle or "°" in angle:
     #                 # If in the form "12d32m53s", look for the "d" and assume degrees.
     #                 angle = math.radians(util.parse_degrees(angle))
-    #                 if 0 < angle < twopi:
+    #                 if 0 < angle < TWOPI:
     #                     unit = u.radian
     #                 else:
     #                     raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
