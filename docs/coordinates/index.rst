@@ -202,8 +202,6 @@ Angle objects can also be used for creating coordinate objects::
 
     >>> ICRSCoordinates(Angle(1, u.radian), Angle(2, u.radian))
     <ICRSCoordinates RA=57.29578 deg, Dec=114.59156 deg>
-    >>> ICRSCoordinates(Angle(1, u.radian), Angle(2, u.radian))
-    ValueError: Two angles were provided ('<astropy.coordinates.angles.Angle 57.29578 deg>', '<astropy.coordinates.angles.Angle 114.59156 deg>'), but the coordinate system was not provided. Specify the system via keywords or use the corresponding class (e.g. GalacticCoordinate).
     >>> ICRSCoordinates(RA(1, u.radian), Dec(2, u.radian))
     <ICRSCoordinates RA=57.29578 deg, Dec=114.59156 deg>
 
