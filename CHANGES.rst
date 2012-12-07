@@ -25,7 +25,7 @@ see the "What's New" section of the documentation for more details.
 - New ``astropy.time`` sub-package. [#332]
 
 - New ``astropy.units`` sub-package.  This has the following effects on
-  other subpackages:
+  other sub-packages:
 
   - In ``astropy.wcs``, the ``wcs.cunit`` list now takes and returns
     ``astropy.units.Unit`` objects.
@@ -95,7 +95,7 @@ Other Changes and Additions
 
   - Added a new option to choose whether or not to write SIP coefficients.
 
-- Added HTML represention of tables in IPython notebook [#409]
+- Added HTML representation of tables in IPython notebook [#409]
 
 - Rewrote CFITSIO-based backend for handling tile compression of FITS files.
   It now uses a standard CFITSIO instead of heavily modified pieces of CFITSIO
@@ -104,6 +104,12 @@ Other Changes and Additions
   system-installed version of CFITSIO.  This corresponds to PyFITS ticket 169.
   [#318]
 
+- Moved `astropy.config.data` to `astropy.utils.data` and re-factored the I/O
+  routines to separate out the generic I/O code that can be used to open any
+  file or resource from the code used to access Astropy-related data. The
+  'core' I/O routine is now `get_readable_fileobj`, which can be used to
+  access any local as well as remote data, supports caching, and can
+  decompress gzip and bzip2 files on-the-fly. [#425]
 
 Bug Fixes
 ^^^^^^^^^
@@ -173,7 +179,7 @@ Bug Fixes
 
   - Fixed a bug where opening a file containing compressed image HDUs in
     'update' mode and then immediately closing it without making any changes
-    caused the file to be rewritten unncessarily.
+    caused the file to be rewritten unnecessarily.
 
   - Fixed two memory leaks that could occur when writing compressed image data,
     or in some cases when opening files containing compressed image HDUs in
@@ -206,7 +212,7 @@ Bug Fixes
 - ``astropy.table``
 
   - Added a workaround for an upstream bug in Numpy 1.6.2 that could cause
-    a maxiumum recursion depth RuntimeError when printing table rows. [#341]
+    a maximum recursion depth RuntimeError when printing table rows. [#341]
 
 - ``astropy.wcs``
 
