@@ -10,7 +10,6 @@ of data to another.
 import re
 import math
 import inspect # NB: get the function name with: inspect.stack()[0][3]
-import datetime as py_datetime
 
 from .errors import *
 
@@ -165,6 +164,8 @@ def parse_hours(hours, output_hms=False):
          Returns degrees in hours form unless the keyword "output_dms" is
          True, in which case a tuple (h, m, s).
     """
+    import datetime as py_datetime
+
     from .angles import Angle
 
     # either a string or a float
@@ -209,9 +210,10 @@ def parse_hours(hours, output_hms=False):
         parsed_hours = x.hours
         parsed_hms = hours_to_hms(parsed_hours)
 
-    elif isinstance(x, py_datetime.datetime):
-        parsed_hours = datetimeToDecimalTime(x)
-        parsed_hms = hours_to_hms(parsed_hours)
+    #TODO: make a decision as to whether or not to allow datetime objects
+    #elif isinstance(x, py_datetime.datetime):
+    #    parsed_hours = datetimeToDecimalTime(x)
+    #    parsed_hms = hours_to_hms(parsed_hours)
 
     elif isinstance(x, tuple):
         if len(x) == 3:
