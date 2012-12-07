@@ -74,7 +74,7 @@ class Angle(object):
 
         self._bounds = bounds
 
-        if isinstance(angle, type(self)):
+        if isinstance(angle, Angle):
             angle = angle.radians
             unit = u.radian
 

@@ -501,7 +501,7 @@ def test_create_coordinate():
 
     # ra and dec are RA and Dec objects, or Angle objects
     c = ICRSCoordinates(ra, dec)
-    assert isinstance(c, ICRSCoordinates)
+    c = ICRSCoordinates(Angle(4.137545095, u.hour), Angle(-41.137545095, u.degree))
 
     c = ICRSCoordinates("54.12412 deg", "-41:08:15.162342 deg")
     assert isinstance(c.dec, Dec) # dec is a Dec object
