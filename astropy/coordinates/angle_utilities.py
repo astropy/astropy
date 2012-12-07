@@ -491,7 +491,7 @@ def haversine_atan_sphere_dist(lat1, lon1, lat2, lon2):
     return 2 * atan2(numerator ** 0.5, (1 - numerator) ** 0.5)
 
 
-def vicenty_sphere_dist(lat1, lon1, lat2, lon2):
+def vincenty_sphere_dist(lat1, lon1, lat2, lon2):
     """
     Vincenty formula for angular distance on a sphere: stable at poles and
     antipodes but more complex/computationally expensive.

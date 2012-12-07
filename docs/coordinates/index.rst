@@ -209,7 +209,8 @@ Angle objects can also be used for creating coordinate objects::
 Separations
 -----------
 
-The on-sky separation is easily computed with the `separation` method::
+The on-sky separation is easily computed with the `separation` method, which
+computes the great-circle distance (*not* the small-angle approximation)::
 
     >>> c1 = ICRSCoordinates('5h23m34.5s -69d45m22s')
     >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s')

@@ -10,7 +10,7 @@ distance_funcs = [angle_utilities.small_angle_sphere_dist,
                   angle_utilities.simple_sphere_dist,
                   angle_utilities.haversine_sphere_dist,
                   angle_utilities.haversine_atan_sphere_dist,
-                  angle_utilities.vicenty_sphere_dist,
+                  angle_utilities.vincenty_sphere_dist,
                  ]
 
 # lat1, lon1, lat2, lon2 in degrees

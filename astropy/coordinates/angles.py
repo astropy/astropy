@@ -654,6 +654,11 @@ class AngularSeparation(Angle):
     """
     An on-sky separation between two directions.
 
+    .. note::
+        This is computed using the Vincenty great circle distance
+        formula, and hence should be numerically stable even for
+        near antipodal points.
+
     Parameters
     ----------
     lat1 : float
@@ -680,7 +685,7 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             lon2 = units.to(u.radian, lon2)
 
-            sepval = util.vicenty_sphere_dist(lat1, lon1, lat2, lon2)
+            sepval = util.vincenty_sphere_dist(lat1, lon1, lat2, lon2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 

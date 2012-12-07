@@ -354,6 +354,9 @@ class SphericalCoordinatesBase(object):
         """
         Computes on-sky separation between this coordinate and another.
 
+        See the `~astropy.coordinates.angles.AngularSeparation` docstring
+        for further details on the actual calculation.
+
         Parameters
         ----------
         other : `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`
