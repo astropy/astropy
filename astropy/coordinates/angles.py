@@ -22,33 +22,33 @@ twopi = math.pi * 2.0  # no need to calculate this all the time
 class Angle(object):
     """ An angle.
 
-        An angle can be specified either as a float, tuple (see below),
-        or string.  If A string, it must be in one of the following formats:
+    An angle can be specified either as a float, tuple (see below),
+    or string.  If A string, it must be in one of the following formats:
 
-        * '1:2:3.4'
-        * '1 2 3.4'
-        * '1h2m3.4s'
-        * '1d2m3.4s'
+    * '1:2:3.4'
+    * '1 2 3.4'
+    * '1h2m3.4s'
+    * '1d2m3.4s'
 
-        Parameters
-        ----------
-        angle : float, int, str, tuple
-            The angle value. If a tuple, will be interpreted as (h, m s) or
-            (d, m, s) depending on `unit`. If a string, it will be interpreted
-            following the rules described above.
-        unit : `~astropy.units.UnitBase`, str
-            The unit of the value specified for the angle.  This may be any
-            string that `~astropy.units.Unit` understands, but it is better to
-            give an actual unit object.  Must be one of `~astropy.units.degree`,
-            `~astropy.units.radian`, or `~astropy.units.hour`.
-        bounds : tuple
-            A tuple indicating the upper and lower value that the new angle object may
-            have.
+    Parameters
+    ----------
+    angle : float, int, str, tuple
+        The angle value. If a tuple, will be interpreted as (h, m s) or
+        (d, m, s) depending on `unit`. If a string, it will be interpreted
+        following the rules described above.
+    unit : `~astropy.units.UnitBase`, str
+        The unit of the value specified for the angle.  This may be any
+        string that `~astropy.units.Unit` understands, but it is better to
+        give an actual unit object.  Must be one of `~astropy.units.degree`,
+        `~astropy.units.radian`, or `~astropy.units.hour`.
+    bounds : tuple
+        A tuple indicating the upper and lower value that the new angle object may
+        have.
 
-        Raises
-        ------
-        `~astropy.coordinates.errors.UnitsError`
-            If a unit is not provided or it is not hour, radian, or degree.
+    Raises
+    ------
+    `~astropy.coordinates.errors.UnitsError`
+        If a unit is not provided or it is not hour, radian, or degree.
 
     """
 
@@ -239,35 +239,35 @@ class Angle(object):
                alwayssign=False, pad=False):
         """ A string representation of the angle.
 
-            Parameters
-            ----------
-            units : `~astropy.units.UnitBase`
-                Specifies the units, should be 'degree', 'hour', or 'radian'
-            decimal : bool
-                If True, a decimal respresentation will be used, otherwise
-                the returned string will be in sexagesimal form.
-            sep : str
-                The separator between numbers in a sexagesimal representation.
-                E.g., if it is ':', the result is "12:41:11.1241". Also accepts
-                2 or 3 separators. E.g., ``sep='hms'`` would give the result
-                "12h41m11.1241s", or sep='-:' would yield "11-21:17.124".
-                Alternatively, the special string 'fromunit' means 'dms' if
-                the unit is degrees, or 'hms' if the unit is hours.
-            precision : int
-                The level of decimal precision.  if `decimal` is True, this is
-                the raw precision, otherwise it gives the precision of the last
-                place of the sexagesimal representation (seconds).
-            alwayssign : bool
-                If True, include the sign no matter what.  If False, only
-                include the sign if it is necessary (negative).
-            pad : bool
-                If True, include leading zeros when needed to ensure a fixed
-                number of characters for sexagesimal representation.
+        Parameters
+        ----------
+        units : `~astropy.units.UnitBase`
+            Specifies the units, should be 'degree', 'hour', or 'radian'
+        decimal : bool
+            If True, a decimal respresentation will be used, otherwise
+            the returned string will be in sexagesimal form.
+        sep : str
+            The separator between numbers in a sexagesimal representation.
+            E.g., if it is ':', the result is "12:41:11.1241". Also accepts
+            2 or 3 separators. E.g., ``sep='hms'`` would give the result
+            "12h41m11.1241s", or sep='-:' would yield "11-21:17.124".
+            Alternatively, the special string 'fromunit' means 'dms' if
+            the unit is degrees, or 'hms' if the unit is hours.
+        precision : int
+            The level of decimal precision.  if `decimal` is True, this is
+            the raw precision, otherwise it gives the precision of the last
+            place of the sexagesimal representation (seconds).
+        alwayssign : bool
+            If True, include the sign no matter what.  If False, only
+            include the sign if it is necessary (negative).
+        pad : bool
+            If True, include leading zeros when needed to ensure a fixed
+            number of characters for sexagesimal representation.
 
-            Returns
-            -------
-            strrepr : str
-                A string representation of the angle.
+        Returns
+        -------
+        strrepr : str
+            A string representation of the angle.
 
         """
         unit = u.Unit(unit)
@@ -442,21 +442,26 @@ class Angle(object):
 class RA(Angle):
     """ An object that represents a right ascension angle.
 
-        This object can be created from a numeric value along with a unit. If the
-        value specified is greater than "24", then a unit of degrees is assumed. Bounds
-        are fixed to [0,360] degrees.
+    This object can be created from a numeric value along with a unit. If the
+    value specified is greater than "24", then a unit of degrees is assumed. Bounds
+    are fixed to [0,360] degrees.
 
-        Parameters
-        ----------
-        angle : float, int, str
-            The angle value
-        unit : `~astropy.units` (preferred), str
-            The unit of the value specified for the angle. It is preferred that
-            the unit be an object from the `~astropy.units` package, e.g.
-            "from astropy import units as u; u.degree". Also accepts any string that the Unit class
-            maps to "degrees", "radians", "hours". If not unit value is provided and
-            the value of the angle is greater than "24.0", then the units are assumed
-            to be degrees, otherwise, an exception is raised.
+    Parameters
+    ----------
+    angle : float, int, str, tuple
+        The angle value. If a tuple, will be interpreted as (h, m s) or
+        (d, m, s) depending on `unit`. If a string, it will be interpreted
+        following the rules described above.
+    unit : `~astropy.units.UnitBase`, str
+        The unit of the value specified for the angle.  This may be any
+        string that `~astropy.units.Unit` understands, but it is better to
+        give an actual unit object.  Must be one of `~astropy.units.degree`,
+        `~astropy.units.radian`, or `~astropy.units.hour`.
+
+    Raises
+    ------
+    `~astropy.coordinates.errors.UnitsError`
+        If a unit is not provided or it is not hour, radian, or degree.
     """
 
     def __init__(self, angle, unit=None):
@@ -588,10 +593,23 @@ class Dec(Angle):
 
     Parameters
     ----------
-    angle : float, int, str
-        The angle value
-    units : `~astropy.units` (preferred), str
-        The units of the specified angle
+    angle : float, int, str, tuple
+        The angle value. If a tuple, will be interpreted as (h, m s) or
+        (d, m, s) depending on `unit`. If a string, it will be interpreted
+        following the rules described above.
+    unit : `~astropy.units.UnitBase`, str
+        The unit of the value specified for the angle.  This may be any
+        string that `~astropy.units.Unit` understands, but it is better to
+        give an actual unit object.  Must be one of `~astropy.units.degree`,
+        `~astropy.units.radian`, or `~astropy.units.hour`.
+    bounds : tuple
+        A tuple indicating the upper and lower value that the new angle object may
+        have.
+
+        Raises
+        ------
+        `~astropy.coordinates.errors.UnitsError`
+            If a unit is not provided or it is not hour, radian, or degree.
     """
     def __init__(self, angle, unit=None):
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
