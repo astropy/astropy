@@ -146,6 +146,8 @@ class ConeSearchResults(object):
             This is useful to see why a catalog failed validation.
 
         """
+        import numpy as np
+
         assert typ in self.dbtypes
         out_str = ''
 
@@ -159,10 +161,13 @@ class ConeSearchResults(object):
                 out_wt = cat_db['validate_warning_types']
                 out_ws = cat_db['validate_warnings']
 
+            # Warning types contains None if some other Exception was thrown
+            out_wt = np.array(out_wt, dtype='S5')
+
             out_str += os.linesep.join([cat, cat_db['url']])
-            if out_wt:
+            if out_wt.size > 0:
                 out_str += os.linesep + ','.join(out_wt)
-            if out_ws:
+            if len(out_ws) > 0:
                 out_str += os.linesep + os.linesep.join(out_ws)
             out_str += '{0}{0}'.format(os.linesep)
 
@@ -219,8 +224,9 @@ def _exclude_noncrit(in_list):
     out_list = []
     for s in in_list:
         n = 0
-        for w in NONCRIT_WARNINGS():
-            n += s.count(w)
+        if s is not None:
+            for w in NONCRIT_WARNINGS():
+                n += s.count(w)
         if n == 0:
             out_list.append(s)
     return out_list

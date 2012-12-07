@@ -295,6 +295,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     # Fix URL syntax or queries will fail
     fixed_urls = np.char.replace(arr_cone['accessURL'].tolist(), '&amp;', '&')
 
+    # Temporary solution for testQuery
+    _TESTQUERY = _parse_testquery()
+
     # Re-structure dictionary for JSON file
 
     col_names = arr_cone.dtype.names
@@ -407,7 +410,7 @@ def _do_validation(url):
     """Validation for multiprocessing support."""
     votable.table.reset_vo_warnings()
 
-    r = result.Result(url, root=_OUT_ROOT)
+    r = result.Result(url, root=_OUT_ROOT, timeout=vos_catalog.TIMEOUT())
     r.validate_vo()
 
     _categorize_result(r)
@@ -535,6 +538,3 @@ def _parse_testquery():
             d[url][val] = tab.getElementsByTagName(key)[0].firstChild.nodeValue
 
     return d
-
-
-_TESTQUERY = _parse_testquery()

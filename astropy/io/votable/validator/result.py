@@ -26,7 +26,7 @@ from ..util import IS_PY3K
 
 
 class Result:
-    def __init__(self, url, root='results'):
+    def __init__(self, url, root='results', timeout=10):
         self.url = url
         m = hashlib.md5()
         m.update(url)
@@ -36,6 +36,7 @@ class Result:
             self._hash[0:2], self._hash[2:4], self._hash[4:])
         if not os.path.exists(self.get_dirpath()):
             os.makedirs(self.get_dirpath())
+        self.timeout = timeout
         self.load_attributes()
 
     def __enter__(self):
@@ -107,7 +108,7 @@ class Result:
             if IS_PY3K:
                 r = urllib2.urlopen(self.url.decode('ascii'))
             else:
-                r = urllib2.urlopen(self.url, timeout=10)
+                r = urllib2.urlopen(self.url, timeout=self.timeout)
         except urllib2.URLError as e:
             if hasattr(e, 'reason'):
                 reason = e.reason
