@@ -90,7 +90,7 @@ Creating new coordinate objects is of course crucial to using
 `~astropy.coordinates`.  The typical way to create a new coordinate object
 is to directly initialize your preferred coordinate system using standard
 python class creation, using the name of the class representing that
-system.  For example::
+system and a number for the two angles.  For example::
 
     >>> from astropy.coordinates import ICRSCoordinates, FK4Coordinates, GalacticCoordinates
     >>> ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
@@ -120,7 +120,7 @@ specifying an angle. For the exact rules for how each string is parsed, see the
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
     UnitsError: Could not infer Angle units from provided string 14.12412
 
-You can also directly specify the units for both to resolve ambiguities::
+You can also directly specify the units for both to resolve ambiguities in parsing the angle strings::
 
     >>> ICRSCoordinates("14.12412 -41:08:15.162342", unit=(u.hour, u.degree))
     <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
