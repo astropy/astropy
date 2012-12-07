@@ -27,9 +27,10 @@ class ICRSCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in the ICRS.
 
-    If you're looking for "J2000" coordinates, this is probably what you
-    want; ICRS is better defined and is within a few microarcsec of
-    J2000. The ICRS is defined in reference to this single equinox.
+    If you're looking for "J2000" coordinates, and aren't sure if you
+    want to use this or `FK5Coordinates`, you probably want to use ICRS.
+    It's more well-defined as a catalog coordinate and is an inertial
+    system.
 
 
     Parameters
