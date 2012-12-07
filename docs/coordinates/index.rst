@@ -289,9 +289,12 @@ additional capabilities like arithmetic operations::
     <CartesianPoints (0.0, 0.0, 0.0) kpc>
 
 This cartesian representation can also be used to create a new coordinate
-object::
+object, either directly or through a `CartesianPoints` object::
 
     >>> ICRSCoordinates(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
+    >>> cp = CartesianPoints(x=568.7129, y=107.3009, z=507.8899, unit=u.kpc)
+    >>> ICRSCoordinates(cp)
     <ICRSCoordinates RA=10.68458 deg, Dec=41.26917 deg, Distance=7.7e+02 kpc>
 
 Finally, two coordinates with distances can be used to derive a real-space
