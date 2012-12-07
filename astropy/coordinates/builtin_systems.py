@@ -18,7 +18,7 @@ __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
           ]
 
 
-_equinox_j2000 = Time('J2000', scale='utc')
+_EQUINOX_J2000 = Time('J2000', scale='utc')
 
 
 #<--------------Coordinate definitions; transformations are below-------------->
@@ -82,7 +82,7 @@ class ICRSCoordinates(SphericalCoordinatesBase):
 
     @property
     def equinox(self):
-        return _equinox_j2000
+        return _EQUINOX_J2000
 
     @property
     def obstime(self):
@@ -115,7 +115,7 @@ class FK5Coordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(FK5Coordinates, self).__init__()
 
-        self._equinox = kwargs.pop('equinox', _equinox_j2000)
+        self._equinox = kwargs.pop('equinox', _EQUINOX_J2000)
         self._obstime = kwargs.pop('obstime', None)
 
         if not isinstance(self._equinox, Time):
@@ -367,7 +367,7 @@ class HorizontalCoordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(HorizontalCoordinates, self).__init__()
 
-        self._equinox = kwargs.pop('equinox', _equinox_j2000)
+        self._equinox = kwargs.pop('equinox', _EQUINOX_J2000)
         self._obstime = kwargs.pop('obstime', None)
 
         if not isinstance(self._equinox, Time):
