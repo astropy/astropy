@@ -356,8 +356,6 @@ class TransformGraph(object):
         dotgraph : str
             A string with the DOT format graph.
 
-
-
         .. _graphviz: http://www.graphviz.org/
         """
         from subprocess import Popen, PIPE
