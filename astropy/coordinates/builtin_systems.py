@@ -574,7 +574,7 @@ def fk4_to_fk4_no_e(fk4c):
 
 @transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1.01)
 def fk4_no_e_to_fk4(fk4c):
-  
+
     # Extract cartesian vector
     r = np.array([fk4c.x, fk4c.y, fk4c.z])
     
@@ -600,17 +600,27 @@ B1950_TO_J2000_M = \
             [0.0111814832391717,  0.9999374848933135, -0.0000271625947142],
             [0.0048590037723143, -0.0000271702937440,  0.9999881946023742]])
 
+FK4_CORR = \
+    np.mat([[-0.0026455262, -1.1539918689, +2.1111346190],
+            [+1.1540628161, -0.0129042997, +0.0236021478],
+            [-2.1112979048, -0.0056024448, +0.0102587734]]) * 1.e-6
+
 # This transformation can't be static because the observation date is needed.
 @transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1.01)
 def fk4_no_e_to_fk5(fk4c):
-    return B1950_TO_J2000_M
+
+    # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
+    # Note this is *julian century*, not besselian
+    T = (fk4c.obstime.jyear - 1950.) / 100.
+
+    return B1950_TO_J2000_M + FK4_CORR * T
 
 J2000_TO_B1950_M = B1950_TO_J2000_M.I
 
 # This transformation can't be static because the observation date is needed.
 @transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1.01)
 def fk5_to_fk4_no_e(fk5c):
-    return J2000_TO_B1950_M
+    return fk4_no_e_to_fk5(fk5c).T
 
 # GalacticCoordinates to/from FK4/FK5
 # can't be static because the equinox is needed
@@ -635,7 +645,7 @@ def _gal_to_fk5(galcoords):
     return _fk5_to_gal(galcoords).T
 
 
-@transformations.dynamic_transform_matrix(FK4Coordinates, GalacticCoordinates, priority=1.02)
+@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, GalacticCoordinates, priority=1.02)
 def _fk4_to_gal(fk4coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precession_matrix_besselian
@@ -650,7 +660,7 @@ def _fk4_to_gal(fk4coords):
     return mat1 * mat2 * mat3 * matprec
 
 
-@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4Coordinates, priority=1.02)
+@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4NoETermCoordinates, priority=1.02)
 def _gal_to_fk4(galcoords):
     return _fk4_to_gal(galcoords).T
 
