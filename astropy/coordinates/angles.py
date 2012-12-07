@@ -146,9 +146,10 @@ class Angle(object):
                         unit = u.degree
 
         if unit is None:
-            raise UnitsError("The unit parameter should be an object from the "
-                             "astropy.unit module (e.g. 'from astropy import units as u',"
-                             "then use 'u.degree').")
+            raise UnitsError("No unit was specified in Angle initializer; the "
+                "unit parameter should be an object from the  astropy.units "
+                "module (e.g. 'from astropy import units as u', then use "
+                "'u.degree').")
 
         if self.is_array:
             pass  # already performed conversions to radians above
