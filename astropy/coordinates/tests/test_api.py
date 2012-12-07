@@ -351,6 +351,12 @@ def test_angle_formatting():
     assert "Angle as DMS: {0}".format(angle.format(unit=u.degree, precision=4,
                                                   pad=True)) == res
 
+    res = 'Angle as rad: 0.062976radian'
+    assert "Angle as rad: {0}".format(angle.format(unit=u.radian)) == res
+
+    res = 'Angle as rad decimal: 0.062976'
+    assert "Angle as rad decimal: {0}".format(angle.format(unit=u.radian, decimal=True)) == res
+
 
     # check negative angles
 

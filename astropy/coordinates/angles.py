@@ -306,6 +306,8 @@ class Angle(object):
         elif unit is u.radian:
             if decimal:
                 res = ("{0:0." + str(precision) + "}").format(self.radians)
+            elif sep == 'fromunit':
+                res = ("{0:0." + str(precision) + "}").format(self.radians) + 'radian'
             else:
                 raise ValueError('Radians cannot be in sexagesimal representation')
 
