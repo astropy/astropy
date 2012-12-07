@@ -168,6 +168,10 @@ of ways of representing the value of the angle::
     '57deg17m44.80625s'
     >>> a.format(u.hour)
     '3h49m10.98708s'
+    >>> a.format(u.radian)
+    '1.0radian'
+    >>> a.format(u.radian, decimal=True)
+    '1.0'
 
 `~astropy.corodinates.angles.Angle` objects can also have bounds.  These specify
 either a limited range in which the angle is valid (if it's <360 degrees), or
