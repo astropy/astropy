@@ -460,69 +460,84 @@ class RA(Angle):
     """
 
     def __init__(self, angle, unit=None):
-
-        # This block attempts to determine the validity of the unit,
-        # particularly with regard to the specifics of RA.
-        # After this block, the normal Angle initializer handles most of the
-        # validation/creation.
-
-        if isinstance(angle, Angle):
-            return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0, 360))
-
-        if unit is u.hour:
-            pass  # to Angle initializer
-            # self._radians = math.radians(decimal_hours * 15.)
-        elif unit is u.degree:
-            pass  # to Angle initializer
-            # decimal_degrees = util.parse_degrees(angle)
-            # self._radians = math.radians(decimal_degrees)
-        elif unit is u.radian:
-            pass  # to Angle initializer
-            # self._radians = util.parse_radians(angle)
-        elif unit is None:
-            # Try to figure out the unit if we can.
-            if isinstance(angle, float) or isinstance(angle, int):
-                if angle > 24:
-                    unit = u.degree
-                else:
-                    raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
-            elif isinstance(angle, basestring):
-                # Try to deduce the units from hints in the string.
-                # Further, enforce absolute bounds here, i.e. don't let
-                # Angle +-2π to see if the angle falls in the bounds.
-                if "d" in angle or "°" in angle:
-                    # If in the form "12d32m53s", look for the "d" and assume degrees.
-                    angle = math.radians(util.parse_degrees(angle))
-                    if 0 < angle < twopi:
-                        unit = u.radian
-                    else:
-                        raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
-                elif "h" in angle:
-                    # Same for "12h32m53s" for hours.
-                    # self._radians = math.radians(util.parse_hours(angle)*15.0)
-                    unit = u.hour
-                else:
-                    # could be in a form: "54:43:26" -
-                    # if so AND the resulting decimal value is > 24 or < -24, assume degrees
-                    decimal_value = util.parse_degrees(angle)
-                    if decimal_value > 24:
-                        unit = u.degree
-                    elif 0 <= decimal_value <= 24.0:
-                        raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
-                    elif decimal_value < 0:
-                        raise RangeError("No units were specified; could not assume any since the value was less than zero.")
-            elif isinstance(angle, tuple):
-                if len(angle) == 3 and 0 <= angle[0] < 24.0:
-                    raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
-                else:
-                    unit = u.degree
-            else:
-                raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
-        if unit is None:
-            raise UnitsError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
-
-        # By here, the unit should be defined.
         super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
+
+    # The initializer as originally conceived allowed the unit to be unspecified
+    # if it's bigger  than 24, because hours typically aren't past 24.
+    # It is also then implicit that `RA` is usually in hours.
+    # This is commented out for now because in discussion for v0.2 we decided to
+    # keep things simple and just use the same behavior as Angle.
+    # In v0.3 it may be either uncommented,
+    # moved somewhere else, or eliminated completely
+    # TODO: decide if this should stay in or permanently be removed
+    #
+    # def __init__(self, angle, unit=None):
+    #
+    #     # This block attempts to determine the validity of the unit,
+    #     # particularly with regard to the specifics of RA.
+    #     # After this block, the normal Angle initializer handles most of the
+    #     # validation/creation.
+    #
+    #     if isinstance(angle, Angle):
+    #         return super(RA, self).__init__(angle.radians, unit=u.radian, bounds=(0, 360))
+    #
+    #     if unit is u.hour:
+    #         pass  # to Angle initializer
+    #         # self._radians = math.radians(decimal_hours * 15.)
+    #     elif unit is u.degree:
+    #         pass  # to Angle initializer
+    #         # decimal_degrees = util.parse_degrees(angle)
+    #         # self._radians = math.radians(decimal_degrees)
+    #     elif unit is u.radian:
+    #         pass  # to Angle initializer
+    #         # self._radians = util.parse_radians(angle)
+    #
+    #
+    #     elif unit is None:
+    #         # Try to figure out the unit if we can.
+    #         if isinstance(angle, float) or isinstance(angle, int):
+    #             if angle > 24:
+    #                 unit = u.degree
+    #             else:
+    #                 raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #         elif isinstance(angle, basestring):
+    #             # Try to deduce the units from hints in the string.
+    #             # Further, enforce absolute bounds here, i.e. don't let
+    #             # Angle +-2π to see if the angle falls in the bounds.
+    #             if "d" in angle or "°" in angle:
+    #                 # If in the form "12d32m53s", look for the "d" and assume degrees.
+    #                 angle = math.radians(util.parse_degrees(angle))
+    #                 if 0 < angle < twopi:
+    #                     unit = u.radian
+    #                 else:
+    #                     raise RangeError("The provided angle was assumed to be in degrees, but was out of the range (0,360) degrees.")
+    #             elif "h" in angle:
+    #                 # Same for "12h32m53s" for hours.
+    #                 # self._radians = math.radians(util.parse_hours(angle)*15.0)
+    #                 unit = u.hour
+    #             else:
+    #                 # could be in a form: "54:43:26" -
+    #                 # if so AND the resulting decimal value is > 24 or < -24, assume degrees
+    #                 decimal_value = util.parse_degrees(angle)
+    #                 if decimal_value > 24:
+    #                     unit = u.degree
+    #                 elif 0 <= decimal_value <= 24.0:
+    #                     raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #                 elif decimal_value < 0:
+    #                     raise RangeError("No units were specified; could not assume any since the value was less than zero.")
+    #         elif isinstance(angle, tuple):
+    #             if len(angle) == 3 and 0 <= angle[0] < 24.0:
+    #                 raise UnitsError("No units were specified, and the angle value was ambiguous between hours and degrees.")
+    #             else:
+    #                 unit = u.degree
+    #         else:
+    #             raise ValueError("Angle values of type {0} not supported.".format(type(angle).__name__))
+    #
+    #     if unit is None:
+    #         raise UnitsError("Units must be specified for RA, one of u.degree, u.hour, or u.radian.")
+    #
+    #     # By here, the unit should be defined.
+    #     super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
 
     def hour_angle(self, lst):
         """ Computes the hour angle for this RA given a local sidereal
@@ -578,12 +593,18 @@ class Dec(Angle):
     units : `~astropy.units` (preferred), str
         The units of the specified angle
     """
-
-    def __init__(self, angle, unit=u.degree):
-        if isinstance(angle, Angle):
-            return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90, 90))
-
+    def __init__(self, angle, unit=None):
         super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
+
+    # TODO: do here whatever is decided for the "smart" RA initializer above
+    #
+    # def __init__(self, angle, unit=u.degree):
+    #     super(RA, self).__init__(angle, unit=unit, bounds=(0, 360))
+    #
+    #     if isinstance(angle, Angle):
+    #         return super(Dec, self).__init__(angle.radians, unit=u.radian, bounds=(-90, 90))
+    #
+    #     super(Dec, self).__init__(angle, unit=unit, bounds=(-90, 90))
 
 
 class AngularSeparation(Angle):
