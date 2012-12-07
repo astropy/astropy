@@ -100,40 +100,39 @@ system.  For example::
     >>> GalacticCoordinates(-76.22237, 74.49108, unit=(u.degree, u.degree))
     <GalacticCoordinates l=-76.22237 deg, b=74.49108 deg>
 
-Note that for equatorial coordinates (those with `ra` and `dec`), the `unit` is necessary
-any time there might be an ambiguity between a radian, degree, or hour representation of
-the RA component.  For example::
+Note that if you do not provide units explicitly, this will fail::
 
-    >>> ICRSCoordinates(25, 1)
-    <ICRSCoordinates RA=25.00000 deg, Dec=1.00000 deg>
     >>> ICRSCoordinates(23, 1)
-    UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
-
-The latter case results in an exception because '23' could be degrees *or* hours.  When in doubt, it's
-probably better to explicitly provide a `unit`.
+    UnitsError: No unit was specified in Angle initializer; the unit parameter should be an object from the  astropy.units module (e.g. 'from astropy import units as u', then use 'u.degree').
 
 While the above example uses python numerical types, you can also provide strings to create coordinates.
-These strings will be interpreted using the `Angle` class' parsing scheme, and has a guiding principal of
-being able to interpret any *unambiguous* string a human would interpret.  For the exact rules for how
-each string is parsed, see the `~astropy.coordinates.angles.Angle` documentation.  Some examples
-include::
+If the `unit` parameter is ``(None, None)`` (the default), strings will be interpreted using the `Angle` 
+class' parsing scheme, and has a guiding principal of being able to interpret any *unambiguous* string 
+specifying an angle. For the exact rules for how each string is parsed, see the 
+`~astropy.coordinates.angles.Angle` documentation.  Some examples::
 
-    >>> ICRSCoordinates(54.12412, "-41:08:15.162342", unit=(u.degree, u.degree))
+    >>> ICRSCoordinates("3h36m29.7888s -41d08m15.162342s", unit=(None, None))
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
-    >>> ICRSCoordinates("3:36:29.7888 -41:08:15.162342", unit=(u.hour, u.degree))
+    >>> ICRSCoordinates("3h36m29.7888s -41d08m15.162342s")
     <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
-    >>> ICRSCoordinates("54.12412 -41:08:15.162342")
-    <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
+    >>> ICRSCoordinates("14.12412 hours", "-41:08:15.162342 degrees")
+    <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates("14.12412 -41:08:15.162342")
-    UnitsError: No units were specified, and the angle value was ambiguous between hours and degrees.
+    UnitsError: Could not infer Angle units from provided string 14.12412
 
-You can also directly specify the units for both to resolve ambiguities.  This, will also give you
-an error if you give a string with units that conflict with your desired units::
+You can also directly specify the units for both to resolve ambiguities::
 
+    >>> ICRSCoordinates("14.12412 -41:08:15.162342", unit=(u.hour, u.degree))
+    <ICRSCoordinates RA=211.86180 deg, Dec=-41.13755 deg>
+    >>> ICRSCoordinates("54:7:26.832 -41:08:15.162342", unit=(u.degree, u.degree))
+    <ICRSCoordinates RA=54.12412 deg, Dec=-41.13755 deg>
     >>> ICRSCoordinates('3 4 5 +6 7 8', unit=(u.hour, u.degree))
     <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
     >>> ICRSCoordinates('3h4m5s +6d7m8s', unit=(u.hour, u.degree))
     <ICRSCoordinates RA=46.02083 deg, Dec=6.11889 deg>
+
+This will also give you an error if you give a string with units that conflict with your desired units::
+
     >>> ICRSCoordinates('3d4m5s +6h7m8s', unit=(u.hour, u.degree))
     ValueError: parse_hours: Invalid input string, can't parse to HMS. (3d4m5s)
 
@@ -161,13 +160,13 @@ of ways of representing the value of the angle::
     (3.0, 49, 10.987083139757061)
     >>> a.dms
     (57.0, 17, 44.80624709636231)
-    >>> a.string()
-    '57 17 44.80625'
-    >>> a.string(sep=':')
-    '57:17:44.80625'
-    >>> a.string(sep='dms')
+    >>> a.format()
     '57d17m44.80625s'
-    >>> a.string(u.hour, sep='hms')
+    >>> a.format(sep=':')
+    '57:17:44.80625'
+    >>> a.format(sep=('deg','m','s'))
+    '57deg17m44.80625s'
+    >>> a.format(u.hour)
     '3h49m10.98708s'
 
 `~astropy.corodinates.angles.Angle` objects can also have bounds.  These specify
