@@ -707,7 +707,7 @@ def test_distances():
     # Internally they will immediately be converted to two angles + a distance
     c2 = GalacticCoordinates(x=2, y=4, z=8, unit=u.parsec)
 
-    sep12 = c1.separation3d(c2)
+    sep12 = c1.separation_3d(c2)
     # returns a *3d* distance between the c1 and c2 coordinates
     # not that this does *not*
     assert isinstance(sep12, Distance)

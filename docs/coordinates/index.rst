@@ -297,7 +297,7 @@ distance (i.e., non-projected separation)::
 
     >>> c1 = ICRSCoordinates('5h23m34.5s -69d45m22s', distance=Distance(49, u.kpc))
     >>> c2 = ICRSCoordinates('0h52m44.8s -72d49m43s', distance=Distance(61, u.kpc))
-    >>> sep3d = c1.separation3d(c2)
+    >>> sep3d = c1.separation_3d(c2)
     >>> sep3d
     <Distance 23.05685 kpc>
     >>> sep3d.kpc

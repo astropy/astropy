@@ -372,7 +372,7 @@ class SphericalCoordinatesBase(object):
         lon2 = other_in_self_system.lonangle.radians
         return AngularSeparation(lat1, lon1, lat2, lon2, u.radian)
 
-    def separation3d(self, other):
+    def separation_3d(self, other):
         """
         Computes three dimensional separation between this coordinate
         and another.
