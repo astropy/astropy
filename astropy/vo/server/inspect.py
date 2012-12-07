@@ -13,10 +13,11 @@ Load Cone Search validation results directly from
 Print tally:
 
 >>> r.tally()
-good: 18 catalogs
-warn: 11 catalogs
-exception: 1 catalogs
-error: 1 catalogs
+good: 18 catalog(s)
+warn: 11 catalog(s)
+exception: 1 catalog(s)
+error: 1 catalog(s)
+total: 31 catalog(s)
 
 Print a list of good Cone Search catalogs:
 
@@ -114,12 +115,15 @@ class ConeSearchResults(object):
 
         """
         out_str = ''
+        n_tot = 0
 
         for typ in self.dbtypes:
-            out_str += '{}: {} catalogs{}'.format(
-                typ, len(self.catkeys[typ]), os.linesep)
+            n_cur = len(self.catkeys[typ])
+            n_tot += n_cur
+            out_str += '{}: {} catalog(s){}'.format(typ, n_cur, os.linesep)
 
         if out_str:
+            out_str += 'total: {} catalog(s){}'.format(n_tot, os.linesep)
             fout.write(out_str)
 
     def list_cats(self, typ, fout=sys.stdout, ignore_noncrit=False):
