@@ -586,7 +586,7 @@ class RA(Angle):
         if hasattr(lst, 'mjd'):
             lst = Angle(np.remainder(lst.mjd, 1), unit=u.hour)
 
-        return Angle(lst.radians - self.radians, unit=u.radian, bounds=(0, 360.))
+        return Angle(lst.radians - self.radians, unit=u.radian, bounds=(0, TWOPI))
 
     def lst(self, hour_angle):
         """
@@ -604,7 +604,7 @@ class RA(Angle):
             The local siderial time as an angle.
 
         """
-        return Angle(hour_angle.radians + self.radians, unit=u.radian, bounds=(0, 360.))
+        return Angle(hour_angle.radians + self.radians, unit=u.radian, bounds=(0, TWOPI))
 
 
 class Dec(Angle):
