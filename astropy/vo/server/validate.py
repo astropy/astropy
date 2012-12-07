@@ -394,13 +394,17 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     # Write to JSON
     n = {}
+    n_tot = 0
     for key in db_file:
         n[key] = len(js_tree[key]['catalogs'])
+        n_tot += n[key]
         if verbose:
-            log.info('{}: {} catalogs'.format(key, n[key]))
+            log.info('{}: {} catalog(s)'.format(key, n[key]))
         with open(db_file[key], 'w') as f_json:
             f_json.write(json.dumps(js_tree[key], cls=NumpyScalarOrSetEncoder,
                                     sort_keys=True, indent=4))
+    if verbose:
+        log.info('total: {} catalog(s)'.format(n_tot))
 
     if n['good'] == 0:
         log.warn('No good sites available for Cone Search.')
