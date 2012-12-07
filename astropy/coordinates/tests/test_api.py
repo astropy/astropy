@@ -405,37 +405,52 @@ def test_radec():
 
     with raises(UnitsError):
         ra = RA("4:08:15.162342")  # error - hours or degrees?
-    with raises(RangeError):
-        ra = RA("-4:08:15.162342")  # same, should check sign
+    with raises(UnitsError):
+        ra = RA("-4:08:15.162342")
 
-    ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
-    npt.assert_almost_equal(ra.degrees, 26.570929342)
+    # the "smart" initializer allows >24 to automatically do degrees, but the
+    #Angle-based one does not
+    #TODO: adjust in 0.3 for whatever behavior is decided on
 
-    with raises(ValueError):
-	    ra = RA("garbage containing a d and no units")
+    #ra = RA("26:34:15.345634")  # unambiguous b/c hours don't go past 24
+    #npt.assert_almost_equal(ra.degrees, 26.570929342)
+    with raises(UnitsError):
+        ra = RA("26:34:15.345634")
 
-    ra = RA(68)
+    #ra = RA(68)
+    with raises(UnitsError):
+        ra = RA(68)
 
     with raises(UnitsError):
         ra = RA(12)
 
+    with raises(ValueError):
+        ra = RA("garbage containing a d and no units")
+
     ra = RA("12h43m23s")
     npt.assert_almost_equal(ra.hours, 12.7230555556)
 
-    ra = RA((56,14,52.52))		# can accept tuples
+    ra = RA((56, 14, 52.52), unit=u.degree)      # can accept tuples
+    #TODO: again, fix based on >24 behavior
+    #ra = RA((56,14,52.52))
     with raises(ValueError):
-	    ra = RA((12,14,52)) # ambiguous w/o units
-    ra = RA((12,14,52), unit=u.hour)
+        ra = RA((56, 14, 52.52))
+    with raises(ValueError):
+        ra = RA((12, 14, 52))  # ambiguous w/o units
+    ra = RA((12, 14, 52), unit=u.hour)
 
-    with raises(ValueError):
-        ra = RA([56,64,52.2])	# ...but not arrays (yet)
+    with raises(NotImplementedError):
+        ra = RA([56, 64, 52.2], unit=u.degree)  # ...but not arrays (yet)
 
     # Units can be specified
     ra = RA("4:08:15.162342", unit=u.hour)
 
-    # Where RA values are commonly found in hours or degrees, declination is
-    # nearly always specified in degrees, so this is the default.
-    dec = Dec("-41:08:15.162342")
+    #TODO: this was the "smart" initializer behavior - adjust in 0.3 appropriately
+    ## Where RA values are commonly found in hours or degrees, declination is
+    ## nearly always specified in degrees, so this is the default.
+    #dec = Dec("-41:08:15.162342")
+    with raises(UnitsError):
+        dec = Dec("-41:08:15.162342")
     dec = Dec("-41:08:15.162342", unit=u.degree)  # same as above
 
     # The RA and Dec objects have bounds hard-coded at (0,360) and (-90,90)
@@ -446,7 +461,6 @@ def test_radec():
     assert dec.bounds == (-90, 90)
     with raises(AttributeError):
         dec.bounds = (-45, 45)
-
 
     #RA objects can also compute hour angle and local siderial times
     ra = RA("1:00:00", unit=u.hour)
@@ -563,7 +577,7 @@ def test_convert_api():
     '''
 
     ra = RA("4:08:15.162342", unit=u.hour)
-    dec = Dec("-41:08:15.162342")
+    dec = Dec("-41:08:15.162342", unit=u.degree)
     c = ICRSCoordinates(ra=ra, dec=dec)
 
     npt.assert_almost_equal(c.galactic.l.degrees, -114.71902, 5)
