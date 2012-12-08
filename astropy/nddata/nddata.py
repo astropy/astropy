@@ -101,7 +101,7 @@ class NDData(object):
                  meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True, copy=copy)
+            self.data = np.array(data.data, subok=True)
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -294,7 +294,7 @@ class NDData(object):
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
             meta=self.meta, units=self.unit, copy=False)
 
-    def _arithmetic(self, operand, propagate_uncertainties, name, operation):
+    def _arithmetic(self, operand, operation_name):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -324,118 +324,69 @@ class NDData(object):
         either dataset before the operation are masked in the resulting
         dataset.
         """
-        if self.wcs != operand.wcs:
-            raise ValueError("WCS properties do not match")
+        operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
 
-        if not (self.unit is None and operand.unit is None):
-            if (self.unit is None or operand.unit is None
-                or not self.unit.is_equivalent(operand.unit)):
-                raise ValueError("operand units do not match")
+        operation = operation_name2operation[operation_name]
 
-        if self.shape != operand.shape:
-            raise ValueError("operand shapes do not match")
+        if isinstance(operand, Quantity):
+            new_data = getattr(self.__array__(), operation)(other.to(self.unit).value)
+            return self.__class__(new_data, unit=self.unit)
 
-        if self.unit is not None:
-            operand_data = operand.unit.to(self.unit, operand.data)
+        elif isinstance(operand, self.__class__):
+            if self.shape != operand.shape:
+                raise ValueError("operand shapes do not match")
+
+            if self.wcs != operand.wcs:
+                raise ValueError("WCS properties do not match")
+
+            if (self.flags is not None) or (operand.flags is not None):
+                log.warn('Currently flag arithmetic is not implemented. The result of this operation will have None'
+                         'as a flag')
+
+            if (self.uncertainty is not None) or (operand.uncertainty is not None):
+                log.warn('Currently uncertainty propagation is not implemented. The result of this operation '
+                         'will have None as an uncertainty')
+
+            if (self.unit is not None) and (operand.unit is not None):
+
+                if operation_name in ('add', 'subtract'):
+                    operand_data = operand.unit.to(self.unit, operand.data)
+                    new_unit = self.unit
+                    new_data = getattr(self.__array__(), operation)(operand_data)
+
+                elif operation_name in ('multiply', 'divide'):
+                    new_unit = self.unit * operand.unit
+                    new_data = getattr(self.__array__(), operation)(operand.data)
+
+            elif (self.unit is None) and (operand.unit is None):
+                new_unit = None
+                new_data = getattr(self.__array__(), operation)(operand.data)
+
+            else:
+                raise TypeError('Both units must be None or an actual Unit. For a dimensionless unit please use Unit(1)')
+
+
+            return self.__class__(new_data, unit=self.unit, wcs=self.wcs)
+
         else:
-            operand_data = operand.data
-        data = operation(self.data, operand_data)
-        result = self.__class__(data)  # in case we are dealing with an inherited type
+            raise TypeError('Cannot {operation_name} of type {self_type} with {other_type}'.format(
+                                    operation_name=operation_name, self_type=type(self), operand_type=type(operand)))
 
-        if propagate_uncertainties is None:
-            result.uncertainty = None
-        elif self.uncertainty is None and operand.uncertainty is None:
-            result.uncertainty = None
-        elif self.uncertainty is None:
-            result.uncertainty = operand.uncertainty
-        elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty
-        else:  # both self and operand have uncertainties
-            if WARN_UNSUPPORTED_CORRELATED() and \
-               (not self.uncertainty.support_correlated or \
-               not operand.uncertainty.support_correlated):
-                log.info("The uncertainty classes used do not support the "
-                         "propagation of correlated errors, so uncertainties"
-                         " will be propagated assuming they are uncorrelated")
-            try:
-                method = getattr(self.uncertainty, propagate_uncertainties)
-                result.uncertainty = method(operand, result.data)
-            except IncompatibleUncertaintiesException:
-                raise IncompatibleUncertaintiesException(
-                    "Cannot propagate uncertainties of type {0:s} with uncertainties of "
-                    "type {1:s} for {2:s}".format(
-                        self.uncertainty.__class__.__name__,
-                        operand.uncertainty.__class__.__name__,
-                        name))
 
-        if self.mask is None and operand.mask is None:
-            result.mask = None
-        elif self.mask is None:
-            result.mask = operand.mask
-        elif operand.mask is None:
-            result.mask = self.mask
-        else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
-
-        result.flags = None
-        result.wcs = self.wcs
-        result.meta = None
-        result.unit = self.unit
-
-        return result
-
-    def add(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_add"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "addition", np.add)
-    add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
-
-    def subtract(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_subtract"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "subtraction", np.subtract)
-    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
-
-    def multiply(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_multiply"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "multiplication", np.multiply)
-    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
-
-    def divide(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_divide"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "division", np.divide)
-    divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
     def __add__(self, other):
-        if isinstance(other, Quantity):
-            new_data = self.__array__() + other.to(self.unit).value
-            return self.__class__(new_data, unit=self.unit)
+        return self._arithmetic(other, 'add')
 
-        elif isinstance(other, self.__class__):
-            #TODO change to not invoke Masked array after units have been fixed
-            other_data = other.unit.to(self.unit, other.data)
-            if other.mask is not None:
-                other_data = np.ma.MaskedArray(other_data, mask=other.mask)
+    def __sub__(self, other):
+        return self._arithmetic(other, 'subtract')
 
-            new_data = self.__array__() + other_data
-            return self.__class__(new_data, unit=self.unit)
+    def __mul__(self, other):
+        return self._arithmetic(other, 'multiply')
 
-        else:
-            raise TypeError('Cannot add type blah blah blah')
+    def __div__(self, other):
+        return self._arithmetic(other, 'divide')
+
+
 
 
     def convert_units_to(self, unit):
