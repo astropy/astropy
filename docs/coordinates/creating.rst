@@ -50,3 +50,13 @@ This will also give you an error if you give a string with units that conflict w
 
     >>> ICRSCoordinates('3d4m5s +6h7m8s', unit=(u.hour, u.degree))
     ValueError: parse_hours: Invalid input string, can't parse to HMS. (3d4m5s)
+
+One final way to create coordinates is to copy them from an already existing coordinate::
+
+    >>> i1 = ICRSCoordinates(187.70592, 12.39112, unit=(u.degree, u.degree))
+    >>> i2 = ICRSCoordinates(i1)
+    >>> i1
+    <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
+    >>> i2
+    <ICRSCoordinates RA=187.70592 deg, Dec=12.39112 deg>
+    
