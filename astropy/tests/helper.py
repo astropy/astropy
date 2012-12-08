@@ -214,46 +214,60 @@ class astropy_test(Command, object):
         build_cmd = self.get_finalized_command('build')
         new_path = os.path.abspath(build_cmd.build_lib)
 
-        # Run the tests in a subprocess--this is necessary since new extension
-        # modules may have appeared, and this is the easiest way to set up a
-        # new environment
-
-        # We need to set a flag in the child's environment so that
-        # unnecessary code is not imported before py.test can start
-        # up, otherwise the coverage results will be artifically low.
-        if sys.version_info[0] >= 3:
-            set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
-        else:
-            set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
-
-        cmd = ('{0}; import {1.package_name}, sys; sys.exit('
-               '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
-               '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
-               '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
-               '{1.coverage!r}))')
-        cmd = cmd.format(set_flag, self)
-
-        #override the config locations to not make a new directory nor use
-        #existing cache or config
-        os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
-        os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
-        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
-        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+        # Copy the build to a temporary directory for the purposes of testing
+        # - this avoids creating pyc and __pycache__ directories inside the
+        # build directory
+        tmp_dir = tempfile.mkdtemp(prefix='astropy-test-')
+        testing_path = os.path.join(tmp_dir, os.path.basename(new_path))
+        shutil.copytree(new_path, testing_path)
 
         try:
-            retcode = subprocess.call([sys.executable, '-c', cmd],
-                                      cwd=new_path, close_fds=False)
-        finally:
-            # kill the temporary dirs
-            shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
-            shutil.rmtree(os.environ['XDG_CACHE_HOME'])
 
-        if self.coverage and retcode == 0:
-            # Copy the htmlcov from build/lib.../htmlcov to a more
-            # obvious place
-            if os.path.exists('htmlcov'):
-                shutil.rmtree('htmlcov')
-            shutil.copytree(os.path.join(new_path, 'htmlcov'), 'htmlcov')
+            # Run the tests in a subprocess--this is necessary since new extension
+            # modules may have appeared, and this is the easiest way to set up a
+            # new environment
+
+            # We need to set a flag in the child's environment so that
+            # unnecessary code is not imported before py.test can start
+            # up, otherwise the coverage results will be artifically low.
+            if sys.version_info[0] >= 3:
+                set_flag = "import builtins; builtins._ASTROPY_TEST_ = True"
+            else:
+                set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
+
+            cmd = ('{0}; import {1.package_name}, sys; sys.exit('
+                   '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
+                   '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
+                   '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
+                   '{1.coverage!r}))')
+            cmd = cmd.format(set_flag, self)
+
+            #override the config locations to not make a new directory nor use
+            #existing cache or config
+            os.environ['XDG_CONFIG_HOME'] = tempfile.mkdtemp('astropy_config')
+            os.environ['XDG_CACHE_HOME'] = tempfile.mkdtemp('astropy_cache')
+            os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
+            os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
+
+            try:
+                retcode = subprocess.call([sys.executable, '-c', cmd],
+                                          cwd=testing_path, close_fds=False)
+            finally:
+                # kill the temporary dirs
+                shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
+                shutil.rmtree(os.environ['XDG_CACHE_HOME'])
+
+            if self.coverage and retcode == 0:
+                # Copy the htmlcov from build/lib.../htmlcov to a more
+                # obvious place
+                if os.path.exists('htmlcov'):
+                    shutil.rmtree('htmlcov')
+                shutil.copytree(os.path.join(testing_path, 'htmlcov'), 'htmlcov')
+
+        finally:
+
+            # Remove temporary directory
+            shutil.rmtree(tmp_dir)
 
         raise SystemExit(retcode)
 
