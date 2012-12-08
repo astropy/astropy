@@ -269,6 +269,15 @@ class astropy_test(Command, object):
             # Remove temporary directory
             shutil.rmtree(tmp_dir)
 
+        # Remove any residual __pycache__ directories, otherwise this can
+        # cause issues when installing.
+        for root, dirnames, filenames in os.walk(new_path):
+            if '__pycache__' in dirnames:
+                try:
+                    shutil.rmtree(os.path.join(root, '__pycache__'))
+                except OSError:  # probably incorrect permissions
+                    pass
+
         raise SystemExit(retcode)
 
 
