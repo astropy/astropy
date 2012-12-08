@@ -8,7 +8,7 @@ available (with approximate values) are:
 # The values of constants are defined here instead of `astropy/constants` in
 # order to avoid circular dependencies, since Constant depends on Quantity,
 # Quantity depends on Unit, and Unit depends on the value of some of the
-# units, so they need to be kept separately.
+# constants, so they need to be kept separately.
 
 import numpy as np
 

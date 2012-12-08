@@ -8,7 +8,7 @@ available (with approximate values) are:
 # The values of the constants in this module are defined in
 # `astropy/_constants/si.py` in order to avoid circular dependencies, since
 # Constant depends on Quantity, Quantity depends on Unit, and Unit depends on
-# the value of some of the units, so they need to be kept separately.
+# the value of some of the constants, so they need to be kept separately.
 
 from .constant import Constant
 from .._constants import si as _si
