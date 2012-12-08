@@ -11,7 +11,7 @@ from ..config import ConfigurationItem
 from ..utils.misc import isiterable
 from .. import units as u
 
-import parameters
+from . import parameters
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
@@ -28,9 +28,6 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
 
 # speed of light in km/s
 c_kms = cgs.c.to('km/s').value
-
-# Mpc in cm
-Mpc = u.Mpc.to(u.cm)
 
 # Mpc in km
 Mpc_km = u.Mpc.to(u.km)
