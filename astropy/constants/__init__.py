@@ -49,7 +49,7 @@ for module in si, cgs:
     for nm, val in sorted(module.__dict__.items()):
         if isinstance(val, Constant):
             module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm, val.real, val._units, val.name)
+                nm, val.value, val.unit, val.name)
 
     module.__doc__ += """\
 ========== ============== ================ =========================
