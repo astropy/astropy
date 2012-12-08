@@ -4,7 +4,7 @@ A set of standard astronomical equivalencies.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..constants import si as _si
+from .._constants import si as _si
 from . import si
 from . import cgs
 
