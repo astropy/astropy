@@ -4,6 +4,8 @@
 __all__ = ['NDData']
 
 import numpy as np
+import copy
+
 
 from ..units import Unit, Quantity
 from ..logger import log
@@ -11,15 +13,48 @@ from ..logger import log
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from ..io import fits
+
 from ..config import ConfigurationItem
 
-WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
-    'warn_unsupported_correlated', True,
-    'Whether to issue a warning if NDData arithmetic is performed with '
-    'uncertainties and the uncertainties do not support the propagation '
-    'of correlated uncertainties.'
-    )
+
+
+def merge_meta(meta1, meta2, operation_name):
+    """
+    Merging meta-data for `NDData`-objects. Currently it will build a new dictionary using the operation name
+    as a dictionary key.
+
+    Parameters
+    ----------
+
+    meta1 : `~OrderedDict`
+        first meta dictionary
+
+    meta2 : `~OrderedDict`
+        second meta dictionary
+
+
+    Returns
+    -------
+        `~OrderedDict` containing the merged dictionaries
+
+    """
+
+    if (meta1 is None) and (meta2 is None):
+        new_meta = None
+    elif (meta1 is None) and (meta2 is not None):
+        new_meta = meta2
+    elif (meta1 is not None) and (meta2 is None):
+        new_meta = meta1
+
+    elif (meta1 is not None) and (meta2 is not None):
+        new_meta = OrderedDict()
+        new_meta[operation_name] = (meta1, meta2)
+
+
+
+
+    return new_meta
+
 
 
 class NDData(object):
@@ -366,7 +401,8 @@ class NDData(object):
                 raise TypeError('Both units must be None or an actual Unit. For a dimensionless unit please use Unit(1)')
 
 
-            return self.__class__(new_data, unit=self.unit, wcs=self.wcs)
+            return self.__class__(new_data, unit=self.unit, wcs=self.wcs,
+                                    meta=merge_meta(self.meta, operand.meta, operation_name))
 
         else:
             raise TypeError('Cannot {operation_name} of type {self_type} with {other_type}'.format(
