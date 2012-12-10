@@ -54,7 +54,7 @@ class TestConeSearchValidation():
             shutil.rmtree(self.out_dir)
 
         validate.check_conesearch_sites(
-            destdir=self.out_dir, multiproc=multiproc)
+            destdir=self.out_dir, multiproc=multiproc, url_list=None)
 
         for val in self.filenames.values():
             _compare_catnames(get_pkg_data_filename(

@@ -14,6 +14,7 @@ their services.
 These properties are set via Astropy configuration system:
 
     * `astropy.vo.server.cs_mstr_list`
+    * `astropy.vo.server.cs_urls`
     * `astropy.vo.server.noncrit_warnings`
     * Also depends on properties in `astropy.vo.client`
 
@@ -47,12 +48,7 @@ and write results in the current directory:
 >>> from astropy.vo.server import validate
 >>> validate.check_conesearch_sites()
 
-Change `astropy.vo.server.cs_mstr_list` to obtain
-the master list directly from STScI VAO registry:
-
->>> validate.CS_MSTR_LIST.set(validate._VAO_QUERY)
-
-From the master list above, select Cone Search services
+From the STScI VAO registry, select Cone Search URLs
 hosted by 'stsci.edu':
 
 >>> import numpy as np
@@ -72,16 +68,19 @@ outputs or multiprocessing, and write results in
 >>> validate.check_conesearch_sites(
 ...     destdir='./subset', verbose=False, multiproc=False, url_list=urls)
 
-Change `astropy.vo.server.cs_mstr_list` back to default:
-
->>> validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
-
 Add 'W24' from `astropy.io.votable.exceptions` to the list of
-ignored warnings and re-run validation. This is *not*
+ignored warnings and re-run default validation. This is *not*
 recommended unless you know exactly what you are doing:
 
 >>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS() + ['W24'])
 >>> validate.check_conesearch_sites()
+
+Reset the list of ignored warnings back to default value.
+Validate *all* Cone Search services in the STScI VAO registry
+(this will take a while) and write results in 'all' sub-directory:
+
+>>> validate.NONCRIT_WARNINGS.set(validate.NONCRIT_WARNINGS.defaultvalue)
+>>> validate.check_conesearch_sites(destdir='./all', url_list=None)
 
 """
 from __future__ import print_function, division
@@ -98,21 +97,30 @@ import warnings
 import numpy as np
 
 # LOCAL
+from .tstquery import parse_cs
 from ..client import vos_catalog
 from ...config.configuration import ConfigurationItem
 from ...io import votable
 from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
-from ...utils.data import get_readable_fileobj
+from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.misc import NumpyScalarOrSetEncoder
 
 
 __all__ = ['check_conesearch_sites']
 
 CS_MSTR_LIST = ConfigurationItem(
-    'cs_mstr_list', vos_catalog.BASEURL() + 'conesearch_sites.xml',
+    'cs_mstr_list',
+    'http://vao.stsci.edu/directory/NVORegInt.asmx/VOTCapabilityPredOpt?' \
+    'predicate=1%3D1&capability=conesearch&VOTStyleOption=2',
     'Cone Search services master list for validation.')
+
+CS_URLS = ConfigurationItem(
+    'cs_urls',
+    get_pkg_data_contents(os.sep.join(['data','conesearch_urls.txt'])).split(),
+    'Only check these Cone Search URLs.',
+    'list')
 
 NONCRIT_WARNINGS = ConfigurationItem(
     'noncrit_warnings',
@@ -123,26 +131,22 @@ NONCRIT_WARNINGS = ConfigurationItem(
 
 _OUT_ROOT = None  # Set by `check_conesearch_sites`
 
-# This obtains a master list of conesearch sites
-_VAO_QUERY = 'http://vao.stsci.edu/directory/NVORegInt.asmx/' \
-             'VOTCapabilityPredOpt?predicate=1%3D1&' \
-             'capability=conesearch&VOTStyleOption=2'
-
 
 def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
-                           url_list=None):
+                           url_list=CS_URLS()):
     """
     Validate Cone Search Services.
 
     A master list of all available Cone Search sites is
     obtained from `astropy.vo.server.cs_mstr_list`, which
-    is a URL query to an external VAO service or the resultant
-    XML file.
+    is a URL query to STScI VAO registry by default.
 
-    These sites are validated using `astropy.io.votable.validator`
-    and separated into four groups below, each is stored as a JSON
-    database in `destdir`. Existing files with same names will be
-    deleted to avoid confusion:
+    The sites in `astropy.vo.server.cs_urls` (or optionally
+    all sites found in registry or any given `url_list`) are
+    validated using `astropy.io.votable.validator` and
+    separated into 4 groups below, each is stored as a JSON
+    database in `destdir`. Existing files with same names
+    will be deleted to avoid confusion:
 
         #. *conesearch_good.json*
                Passed validation without critical warnings and
@@ -213,7 +217,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         Until STScI VAO registry formally provides `testQuery`
         parameters, they are extracted from
-        `astropy.vo.server.validate._TESTQUERYFILE`.
+        `astropy.vo.server.tstquery.parse_cs`.
+
+        Any '&amp;' in URL is replaced with '&' to avoid query failure.
 
     Parameters
     ----------
@@ -228,9 +234,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         Enable multiprocessing.
 
     url_list : list of string
-        Only check these access URLs from
+        Only check these access URLs against
         `astropy.vo.server.cs_mstr_list` and ignore the others,
         which will not appear in output files.
+        By default, check those in `astropy.vo.server.cs_urls`.
         If `None`, check everything.
 
     Raises
@@ -244,16 +251,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     """
     global _OUT_ROOT
 
+    # Start timer
+    t_beg = time.time()
+
     assert (not os.path.exists(destdir) and len(destdir) > 0) or \
         (os.path.exists(destdir) and os.path.isdir(destdir)), \
         'Invalid destination directory'
-
-    if url_list is not None:
-        from collections import Iterable
-        assert isinstance(url_list, Iterable)
-        for cur_url in url_list:
-            assert isinstance(cur_url, basestring)
-        url_list = np.char.replace(url_list, '&amp;', '&')
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
@@ -292,33 +295,43 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     assert arr_cone.size > 0, \
         'astropy.vo.server.cs_mstr_list yields no valid result'
 
-    # Fix URL syntax or queries will fail
     fixed_urls = np.char.replace(arr_cone['accessURL'].tolist(), '&amp;', '&')
+    uniq_urls = set(fixed_urls)
 
-    # Temporary solution for testQuery
-    _TESTQUERY = _parse_testquery()
+    if url_list is None:
+        url_list = uniq_urls
+    else:
+        from collections import Iterable
+        assert isinstance(url_list, Iterable)
+        for cur_url in url_list:
+            assert isinstance(cur_url, basestring)
+        url_list = set(np.char.replace(url_list, '&amp;', '&'))
+
+        if verbose:
+            log.info('Only {}/{} sites are validated'.format(
+                len(url_list), len(uniq_urls)))
 
     # Re-structure dictionary for JSON file
 
     col_names = arr_cone.dtype.names
-    uniq_urls = set(fixed_urls)
-    uniq_rows = len(uniq_urls)
-    check_sum = 0
     title_counter = defaultdict(int)
     key_lookup_by_url = {}
 
-    for cur_url in uniq_urls:
-        if url_list is not None and cur_url not in url_list:
-            if verbose:
-                log.info('Skipping {}'.format(cur_url))
+    for cur_url in url_list:
+        i_same_url = np.where(fixed_urls == cur_url)
+        num_match = len(i_same_url[0])
+
+        if num_match == 0:
+            log.warn(
+                '{} not found in cs_mstr_list! Skipping...'.format(cur_url))
             continue
 
-        i_same_url = np.where(fixed_urls == cur_url)
         i = i_same_url[0][0]
-
-        num_match = len(i_same_url[0])
-        check_sum += num_match
-        row_d = {'duplicatesIgnored': num_match - 1}
+        n_ignored = num_match - 1
+        row_d = {'duplicatesIgnored': n_ignored}
+        if verbose and n_ignored > 0:
+            log.info('{} has {} ignored duplicate entries in '
+                     'cs_mstr_list'.format(cur_url, n_ignored))
 
         cur_title = arr_cone[i]['title']
         title_counter[cur_title] += 1
@@ -330,24 +343,20 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
             else:
                 row_d[col] = arr_cone[i][col]
 
-        # Use testQuery to return non-empty VO table with max verbosity
+        # Use testQuery to return non-empty VO table
+        testquery_pars = parse_cs(arr_cone[i]['resourceID'])
         cs_pars_arr = [
-            '='.join([key, val]) for key, val in
-            _TESTQUERY[cur_url].iteritems()] + ['VERB=3']
-        conesearch_pars = '&'.join(cs_pars_arr)
+            '='.join([key, val]) for key, val in testquery_pars.iteritems()]
+
+        # Max verbosity
+        cs_pars_arr += ['VERB=3']
 
         js_mstr['catalogs'][cat_key] = row_d
-        key_lookup_by_url[cur_url + conesearch_pars] = cat_key
-
-    if url_list is None:
-        assert check_sum == arr_cone.size, 'Database checksum error'
-        assert len(js_mstr['catalogs']) == uniq_rows, \
-            'Number of database entries do not match unique access URLs'
+        key_lookup_by_url[cur_url + '&'.join(cs_pars_arr)] = cat_key
 
     # Validate URLs
 
     all_urls = key_lookup_by_url.keys()
-    t_beg = time.time()
 
     if multiproc:
         import multiprocessing
@@ -362,12 +371,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     else:
         mp_list = [_do_validation(cur_url) for cur_url in all_urls]
-
-    t_end = time.time()
-
-    if verbose:
-        log.info('Validation of {} sites took {:.3f} s'.format(uniq_rows,
-                                                           t_end - t_beg))
 
     # Categorize validation results
     for r in mp_list:
@@ -403,8 +406,14 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         with open(db_file[key], 'w') as f_json:
             f_json.write(json.dumps(js_tree[key], cls=NumpyScalarOrSetEncoder,
                                     sort_keys=True, indent=4))
+
+    # End timer
+    t_end = time.time()
+
     if verbose:
         log.info('total: {} catalog(s)'.format(n_tot))
+        log.info('Validation of {} sites took {:.3f} s'.format(uniq_rows,
+                                                           t_end - t_beg))
 
     if n['good'] == 0:
         log.warn('No good sites available for Cone Search.')
@@ -512,33 +521,3 @@ def _copy_r_to_db(r, db):
     for key, val in r._attributes.iteritems():
         new_key = '_'.join(['validate', key])
         db[new_key] = val
-
-
-#-------------------------------------------------------------#
-# Temporary solution until _VAO_QUERY includes testQuery tags #
-#-------------------------------------------------------------#
-
-_TESTQUERYFILE = vos_catalog.BASEURL() + 'conesearch_testquery.xml'
-
-
-def _parse_testquery():
-    """Parse testQuery pars into dict."""
-    from collections import OrderedDict
-    from xml.dom.minidom import parse
-
-    tqp = OrderedDict({'testQuery_x002F_ra': 'RA',
-                       'testQuery_x002F_dec': 'DEC',
-                       'testQuery_x002F_sr': 'SR'})
-    d = {}
-
-    with get_readable_fileobj(_TESTQUERYFILE) as fd:
-        dom = parse(fd)
-
-    for tab in dom.getElementsByTagName('Table'):
-        url = tab.getElementsByTagName('accessURL')[0].firstChild.nodeValue
-        url = url.replace('&amp;', '&')
-        d[url] = OrderedDict()
-        for key, val in tqp.iteritems():
-            d[url][val] = tab.getElementsByTagName(key)[0].firstChild.nodeValue
-
-    return d
