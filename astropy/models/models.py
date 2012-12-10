@@ -23,20 +23,23 @@ expect x and y coordinates to be passed separately as two scalars or aray-like
 objects. 
 The evaluation depends on the input dimensions and the number of parameter
 sets but in general normal broadcasting rules apply.
-For example ('*' below means any number):
-- A model with one parameter set works with input in any dimensionality
-- A model with N parameter sets works with 2D arrays of shape (*, N)
-  A parameter set is applied to each column. 
-- A model with N parameter sets works with multidimensional arrays if the
-  shape of the input array is (N, *, *)
-  A parameter set is applied to each plane.
-In all these cases the output has the same shape as the input.
-- A model with N parameter sets works with 1D input arrays. The shape 
-  of the output is (m, N)
+For example:
 
+-A model with one parameter set works with input in any dimensionality
+
+-A model with N parameter sets works with 2D arrays of shape (M, N)
+A parameter set is applied to each column.
+ 
+-A model with N parameter sets works with multidimensional arrays if the
+shape of the input array is (N, M, P). A parameter set is applied to each plane.
+  
+In all these cases the output has the same shape as the input.
+
+-A model with N parameter sets works with 1D input arrays. The shape 
+ of the output is (M, N)
+ 
 """
 from __future__ import division, print_function
-import math
 import operator
 import abc
 from collections import OrderedDict
@@ -46,6 +49,7 @@ try:
 except ImportError:
     from scipy.misc import comb
 from . import parameters
+from . import constraints
 from .util import pmapdomain, InputParametersException
  
 __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel', 
@@ -235,11 +239,34 @@ class ParametricModel(Model):
     """
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, parnames, paramdim=1, fittable=True):
+    def __init__(self, parnames, paramdim=1, fittable=True,
+                 fixed={}, tied={}, bounds={}, eqcons=[], ineqcons=[]):
         self.linear = True
         super(ParametricModel, self).__init__(parnames, paramdim=paramdim)
         self.fittable = fittable
         self._parameters = parameters.Parameters(self, self.parnames, paramdim=paramdim)
+        _fixed = {}.fromkeys(self.parnames, False)
+        _tied = {}.fromkeys(self.parnames, False)
+        _bounds = {}.fromkeys(self.parnames, [-1.E12, 1.E12])
+        self.constraints = constraints.Constraints(self, fixed=_fixed,
+                                                   tied=_tied, 
+                                                   bounds=_bounds,
+                                                   eqcons=eqcons, 
+                                                   ineqcons=ineqcons)
+        if fixed:
+            for name in fixed:
+                par = getattr(self, name)
+                setattr(par, 'fixed', fixed[name])
+        if tied:
+            for name in tied:
+                par = getattr(self, name)
+                setattr(par, 'tied', tied[name])
+        if bounds:
+            for name in bounds:
+                par = getattr(self, name)
+                setattr(par, 'min', bounds[0])
+                setattr(par, 'max', bounds[1])
+        
         
     def __repr__(self):
         try:
@@ -319,13 +346,6 @@ class ParametricModel(Model):
         considered common for several models and are to be fitted together.
         """
         self.joint = jpars
-    
-    @abc.abstractmethod
-    def deriv(self, x):
-        """
-        To be implemented by subclasses
-        """
-        raise NotImplementedError
 
 class PModel(ParametricModel):
     """
@@ -1119,7 +1139,8 @@ class Gauss1DModel(ParametricModel):
 
     """
     parnames = ['amplitude', 'xcen', 'xsigma']
-    def __init__(self, amplitude, xcen, fwhm=None, xsigma=None, fjac=None):
+    def __init__(self, amplitude, xcen, fwhm=None, xsigma=None,
+                            fjac=None, **cons):
         """
         Parameters
         ----------
@@ -1160,20 +1181,25 @@ class Gauss1DModel(ParametricModel):
              "Input parameters do not have the same dimension"
         except TypeError:
             paramdim = 1
-        super(Gauss1DModel, self).__init__(self.parnames, paramdim=paramdim)
+        super(Gauss1DModel, self).__init__(self.parnames, paramdim=paramdim,
+                                                                    **cons)
         self.linear = False
-        self.fjac = fjac
- 
+        if fjac:
+            self.deriv = fjac
+            
     def eval(self, x, params):
         return params[0] * np.exp((-(1/(params[2]**2)) * 
                                                 (x-params[1])**2))
  
-    def deriv(self, x):
-        if self.fjac:
-            return self.fjac(x, self.parameters)
-        else:
-            return None
-        
+    def deriv(self, p, x, y):
+        amplitude, xcen, xsigma = p
+        deriv_dict = {}
+        deriv_dict['amplitude'] = np.exp((-(1/(xsigma**2)) * (x-xcen)**2))
+        deriv_dict['xcen'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) * (x-xcen)**2)) * (x-xcen)/(xsigma**2)
+        deriv_dict['xsigma'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *  (x-xcen)**2)) * ((x-xcen)**2)/(xsigma**3)
+        derivval = [deriv_dict[par] for par in self.parnames]
+        return np.array(derivval).T
+                                    
     def __call__(self, x):
         """
         Parameters
@@ -1195,7 +1221,7 @@ class Gauss2DModel(ParametricModel):
     parnames = ['amplitude', 'xcen', 'ycen', 'xsigma', 'ysigma', 'theta']
     
     def __init__(self, amplitude, xcen, ycen, fwhm=None, xsigma=None,
-                 ysigma=None, ratio=None, theta=0.0, fjac=None):
+                 ysigma=None, ratio=None, theta=0.0, fjac=None, **cons):
         """
         Parameters
         ----------
@@ -1242,7 +1268,6 @@ class Gauss2DModel(ParametricModel):
         
         self.ndim = 2
         self.outdim = 1
-        self.fjac = fjac
         try:
             paramdim = len(self._amplitude)
             assert (len(self._amplitude) == len(self._xsigma) == \
@@ -1253,19 +1278,17 @@ class Gauss2DModel(ParametricModel):
             paramdim = 1
         super(Gauss2DModel, self).__init__(self.parnames, paramdim=paramdim)
         self.linear = False
-        
+        if fjac:
+            self.deriv = fjac
+        else:
+            self.deriv = None
+            
     def eval(self, x, y, p):
         return p[0] * np.exp(-(
             ((np.cos(p[5])/p[1])**2 + (np.sin(p[5])/p[2])**2) * ((x-p[3])**2)
             + 2*(np.cos(p[5])*np.sin(p[5])*(1/(p[1]**2)-1/(p[2]**2))) * (x-p[3])*(y-p[4])
             + ((np.sin(p[5])/p[1])**2+(np.cos(p[5])/p[2])**2) * ((y-p[4])**2))
             )
-            
-    def deriv(self, x, y):
-        if self.fjac:
-            return self.fjac(x, y, self.parameters)
-        else:
-            return None
         
     def __call__(self, x, y):
         """
@@ -1336,7 +1359,6 @@ class ScaleModel(Model):
         x, format = _convert_input(x, self.paramdim)
         result = x * self.factors
         return _convert_output(result, format)
-        x = np.asarray(x) + 0.0
 
 class _SIP1D(Model):
     """
@@ -1479,22 +1501,22 @@ class LabeledInput(dict):
     Used by CompositeModel to choose input data using labels
     
     Examples
-        --------
-        >>> x,y = np.mgrid[:10, :10]
-        >>> l = np.arange(10)
-        >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
-        >>> ado.x      
-        array([[0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1],
-        [2, 2, 2, 2, 2],
-        [3, 3, 3, 3, 3],
-        [4, 4, 4, 4, 4]])    
-        >>> ado['x']
-        array([[0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1],
-        [2, 2, 2, 2, 2],
-        [3, 3, 3, 3, 3],
-        [4, 4, 4, 4, 4]])
+    --------
+    >>> x,y = np.mgrid[:10, :10]
+    >>> l = np.arange(10)
+    >>> ado = LabeledInput([x, y, l], ['x', 'y', 'pixel'])
+    >>> ado.x      
+    array([[0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3],
+    [4, 4, 4, 4, 4]])    
+    >>> ado['x']
+    array([[0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3],
+    [4, 4, 4, 4, 4]])
         
     """
     def __init__(self,  data, labels):
@@ -1572,7 +1594,6 @@ class LabeledInput(dict):
 class _CompositeModel(OrderedDict):
     def __init__(self, transforms, inmap=None, outmap=None):
         """
-        
         A Base class for all composite models
 
         """
@@ -1581,7 +1602,6 @@ class _CompositeModel(OrderedDict):
         self.outdim = None
         self.fittable = False
         self.has_inverse = np.array([tr.has_inverse for tr in transforms]).all()
-        #self.linear = np.array([tr.linear for tr in transforms]).all()
         
     def _init_comptr(self, trans, inmap, outmap):
         # implemented by subclasses
@@ -1614,8 +1634,6 @@ class _CompositeModel(OrderedDict):
     def __call__(self):
         # implemented by subclasses
         raise NotImplementedError
-    
-Model.register(_CompositeModel)
 
 class SCompositeModel(_CompositeModel):
     """
@@ -1754,7 +1772,6 @@ class PCompositeModel(_CompositeModel):
         self.outdim = self.ndim
         self.inmap = inmap
         self.outmap = outmap
-    
 
     def _init_comptr(self, transforms, inmap, outmap):
         for tr in transforms:

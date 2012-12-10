@@ -46,7 +46,8 @@ class _Parameter(list):
     _Parameter objects behave like numbers.
 
     """
-    def __init__(self, name, val, mclass, paramdim):
+    def __init__(self, name, val, mclass, paramdim, fixed=False, tied=False, 
+                 minvalue=None, maxvalue=None):
         """
         Parameters
         ----------
@@ -84,7 +85,53 @@ class _Parameter(list):
                 "Parameter %s is not a number" % name)
         self.mclass = mclass
         self.name = name
+        self._fixed = fixed
+        self._tied = tied
+        self._min = minvalue
+        self._max = maxvalue
         
+    @property
+    def fixed(self):
+        return self._fixed
+    
+    @fixed.setter
+    def fixed(self, val):
+        assert isinstance(val, bool), "Fixed can be True or False"
+        self._fixed = val
+        self.mclass.constraints._fixed.update({self.name: val})
+        self.mclass.constraints._update()
+        
+    @property
+    def tied(self):
+        return self._tied
+    
+    @tied.setter
+    def tied(self, val):
+        assert callable(val), "Tied must be a callable"
+        self._tied = val
+        self.mclass.constraints._tied.update({self.name:val})
+        self.mclass.constraints._update()
+        
+    @property
+    def min(self):
+        return self._min
+    
+    @min.setter
+    def min(self, val):
+        assert operator.isNumberType(val), "Min value must be a number"
+        self._min = float(val)
+        self.mclass.constraints.set_range({self.name: (val, self.max or 1E12)})
+        
+    @property
+    def max(self):
+        return self._max
+    
+    @max.setter
+    def max(self, val):
+        assert operator.isNumberType(val), "Max value must be a number"
+        self._max = float(val)
+        self.mclass.constraints.set_range({self.name: (self.min or -1E12, val)})
+
     def __setslice__(self, i, j, val):
         super(_Parameter, self).__setslice__(i, j, val)
         setattr(self.mclass, self.name, self)
