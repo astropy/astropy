@@ -268,21 +268,16 @@ class Quantity(object):
 
     # Comparison operations
     def __eq__(self, other):
-        if isinstance(other, UnitBase):
-            if self.value == 1:
-                return self.unit == other
-            else:
-                raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
-        elif isinstance(other, Quantity):
+        if hasattr(other, 'value') and hasattr(other, 'to'):
             return self.value == other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            return False
 
     def __ne__(self, other):
-        if isinstance(other, Quantity):
+        if hasattr(other, 'value') and hasattr(other, 'to'):
             return self.value != other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            return True
 
     def __lt__(self, other):
         if isinstance(other, Quantity):

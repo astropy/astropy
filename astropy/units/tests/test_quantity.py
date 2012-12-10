@@ -189,9 +189,17 @@ class TestQuantityOperations():
         assert area.unit == u.cm*u.cm
 
     def test_comparison(self):
+        # equality/ non-equality is straightforward for quantity objects
+        assert (1 / (u.cm * u.cm)) == 1 * u.cm ** -2
+        assert 1 * u.m == 100 * u.cm
+        assert 1 * u.m != 1 * u.cm
 
-        assert (1 / (u.cm * u.cm)) == u.cm ** -2
-        assert 1. * u.cm * u.cm * u.cm == u.cm ** 3
+        #here one is a unit, which is an invalid comparison
+        assert 1. * u.cm * u.cm * u.cm != u.cm ** 3
+
+        #mismatched types should never work
+        assert not 1. * u.cm == 1.
+        assert 1. * u.cm != 1.
 
 
 
