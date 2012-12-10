@@ -499,12 +499,13 @@ def format_exception(msg, *args, **kwargs):
     Any additional positional or keyword arguments passed to this function are
     also used to format the message.
 
-    Note that this uses `sys.exc_info` to gather up the information needed to
-    fill in the 4 aforementioned items.  Python 2.x and 3.x have slightly
-    different behavior regarding `sys.exc_info` (the latter will not carry it
-    outside a handled exception), so it's not wise to use this outside of an
-    `except` clause - if it is, this will substitute '<unkown>' for the 4
-    formatting arguments.
+    .. note::
+        This uses `sys.exc_info` to gather up the information needed to
+        fill in the formatting arguments. Python 2.x and 3.x have slightly
+        different behavior regarding `sys.exc_info` (the latter will not carry
+        it outside a handled exception), so it's not wise to use this outside of
+        an `except` clause - if it is, this will substitute '<unkown>' for the 4
+        formatting arguments.
     """
 
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)
