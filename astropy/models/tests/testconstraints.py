@@ -1,12 +1,11 @@
 from __future__ import division
-import pytest
-import unittest
+
 from .. import models, fitting
 import numpy as np
 from scipy import optimize
 from numpy.testing import utils
 
-class TestNonLinearConstraints(unittest.TestCase):
+class TestNonLinearConstraints:
     def setUp(self):
         self.g1 = models.Gauss1DModel(10, 14.9, xsigma=.3)
         self.g2 = models.Gauss1DModel(10, 13, xsigma=.4)
@@ -18,24 +17,22 @@ class TestNonLinearConstraints(unittest.TestCase):
         self.ny2 = self.y2 + 2*n
         
     def testFixedPar(self):
-        g1 = models.Gauss1DModel(10, 14.9, xsigma=.3)
-        pmask = {'amplitude': False}
+        g1 = models.Gauss1DModel(10, 14.9, xsigma=.3, fixed={'amplitude':True})
         func = lambda p, x: 10* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
         errf = lambda p, x, y: func(p, x)-y
         p0 = [10, 14.5, 0.3]
         fitpar, s = optimize.leastsq(errf, p0, args=(self.x, self.ny1))
-        fitter = fitting.NonLinearLSQFitter(g1, fixed=['amplitude'])
+        fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
         
     def testTiedPar(self):
-        g1 = models.Gauss1DModel(10, 14.9, xsigma=.3)
+        
         def tied(model):
             xcen = 50*model.xsigma[0]
             return xcen
-        
-        pmask = {'xcen': tied}
-        fitter = fitting.NonLinearLSQFitter(g1, tied={'xcen':tied})
+        g1 = models.Gauss1DModel(10, 14.9, xsigma=.3, tied={'xcen':tied})
+        fitter = fitting.NonLinearLSQFitter(g1)
         fitter(self.x, self.ny1)
         utils.assert_allclose(g1.xcen, 50*g1.xsigma[0], rtol=10**(-5))
         
@@ -69,13 +66,15 @@ class TestNonLinearConstraints(unittest.TestCase):
         func = lambda p, x: p[0]* np.exp((-(1/(p[2]**2)) * (x-p[1])**2))
         errf = lambda p, x, y: func(p, x) - y
         p0 = [9.9, 14.5, 0.3]
-        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, self.ny1))
-        
+        y = g1(self.x)
+        n = np.random.randn(100)
+        ny = y + n
+        fitpar, s = optimize.leastsq(errf, p0, args=(self.x, n+y))
         fitter = fitting.NonLinearLSQFitter(g1)
-        fitter(self.x, self.ny1)
+        fitter(self.x, n+y)
         utils.assert_allclose(g1.parameters, fitpar, rtol=5*10**(-3))
         
-class TestLinearConstraints(unittest.TestCase):
+class TestLinearConstraints:
     def setUp(self):
         self.p1 = models.Poly1DModel(4)
         self.p1.c0 = 0
@@ -87,9 +86,9 @@ class TestLinearConstraints(unittest.TestCase):
         self.ny = self.y + n
         
     def test(self):
-        #pfit=fitting.LinearLSQFitter(self.p1, pmask={'c1':False, 'c0':False})
-        pfit=fitting.LinearLSQFitter(self.p1, fixed=['c1','c0'])
+        self.p1.c0.fixed = True
+        self.p1.c1.fixed = True
+        pfit=fitting.LinearLSQFitter(self.p1)
         pfit(self.x, self.y)
-        #print self.p1.parameters
         utils.assert_allclose(self.y, self.p1(self.x))
         

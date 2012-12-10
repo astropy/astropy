@@ -15,6 +15,7 @@ from __future__ import division, print_function
 import abc
 import numpy as np
 from numpy import linalg
+
 from scipy import optimize
 import operator
 from .util import pmapdomain
@@ -24,6 +25,11 @@ __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
 
 MAXITER = 100
 EPS = np.sqrt(np.finfo(float).eps)
+
+constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
+                  'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
+                  'LinearLSQFitter': ['fixed'],
+                  }
 
 class ModelLinearityException(Exception):
     """
@@ -37,46 +43,118 @@ class Fitter(object):
     
     The purpose of this class is to deal with constraints
     """
-    def __init__(self, model, fixed=None, tied=None, bounds=None, 
-                           eqcons=None, ineqcons=None):
+    def __init__(self, model):
         __metaclass__ = abc.ABCMeta
         
         self.model = model
-        self.constraints = Constraints(self, fixed=fixed, tied=tied, bounds=bounds,
-                                                        eqcons=eqcons, ineqcons=ineqcons)
-        if self.constraints.pmask:
-            self._fitpars = self.constraints.fitpars[:]
+        self._validate_constraints()
+        if any(self.model.constraints._fixed.values()) or \
+           any(self.model.constraints._tied.values()):
+            self._fitpars = self.model.constraints.fitpars[:]
         else:
             self._fitpars = self.model._parameters[:]
-        
-   
+        if self.model.deriv is None:
+            self.dfunc = None
+        else:
+            self.dfunc = self._wrap_deriv
+    
     @property
     def fitpars(self):
-        if self.constraints.pmask:
-            return self.constraints.fitpars
+        if any(self.model.constraints._fixed.values()) or \
+           any(self.model.constraints._tied.values()):
+            return self.model.constraints.fitpars
         else:
             return self.model._parameters
         
     @fitpars.setter
-    def fitpars(self, fps):
-        if self.constraints.pmask:
-            self.constraints.fitpars = fps
-            self._fitpars[:] = self.constraints.fitpars
+    def fitpars(self, fps, set_bounds=None):
+        """
+        Returns a list of parameters to be passed to the fitting
+        algorithm. This is either the model.parameters (if there are
+        no constrints or a modified version of model.parameters which takes
+        into account constraints.
+
+        Different fitters deal with bounds in a different way. Some set bounds 
+        internally as part of the algorithm and some don't. 
+        If a function set_bounds is provided, bounds will be dealt with here.
+        This function should be set in the individual fitters.
+        Parameters
+        ----------
+        set_bounds: callable
+            
+        """
+        if any(self.model.constraints._fixed.values()) or \
+           any(self.model.constraints._tied.values()):
+            self.model.constraints.fitpars = fps
+            self._fitpars[:] = self.model.constraints.fitpars
         else:
+            try:
+                self._set_bounds(fps)
+            except NotImplementedError:
+                pass
             self._fitpars[:] = fps
             self.model._parameters._update(fps)
-            
-    @property
-    def modelpars(self):
-        """
-        modelpars is set through constraints.fitpars 
-        or through model._parameters
-        """
-        if self.constraints.pmask:
-            return self.constraints.modelpars
+
+    def _set_bounds(self, pars):
+        raise NotImplementedError
+    
+    def _wrap_deriv(self, p, x, y, z=None):
+        fixed_and_tied = [name for name in self.model.constraints.fixed if  self.model.constraints.fixed[name]]
+        fixed_and_tied.extend([name for name in self.model.constraints.tied if  self.model.constraints.tied[name]])
+        if fixed_and_tied:
+            pars =  self.model.constraints.modelpars
+            if z is None:
+                fullderiv = self.model.deriv(pars, x, y)
+            else:
+                fullderiv = self.model.deriv(pars, x, y, z)
+            ind = range(len(self.model.parnames))
+            for name in fixed_and_tied:
+                index = self.model.parnames.index(name)
+                ind.remove(index)
+            res = np.empty((fullderiv.shape[0], fullderiv.shape[1]-len(ind)))
+            res = fullderiv[:, ind]
+            return res
         else:
-            return self.model._parameters
-        
+            pars = self.model._parameters
+            if z is None:
+                return self.model.deriv(pars, x, y)
+            else:
+                return self.model.deriv(pars, x, y, z)
+
+        if z is None:
+            res = self.model.deriv(pars, x, y)
+        else:
+            res = self.model.deriv(pars, x, y, z)
+        return res
+     
+    def _validate_constraints(self):
+        fname = self.__class__.__name__
+        try:
+            c = constraintsdef[fname]
+        except KeyError:
+            print("%s does not support fitting with constraints" % fname)
+            raise
+        if any(self.model.constraints._fixed.values()) and 'fixed' not in c:
+            raise ValueError("%s cannot handle fixed parameter constraints "\
+                                            % fname)
+        if any(self.model.constraints._tied.values()) and 'tied' not in c:
+            raise ValueError("%s cannot handle tied parameter constraints "\
+                                            % fname)
+        if any(c != (-1E12, 1E12) for c in self.model.constraints._bounds.values()) \
+                and 'bounds' not in c:            
+            raise ValueError("%s cannot handle bound parameter constraints"
+                             % fname)
+        if self.model.constraints._eqcons and 'eqcons' not in c:
+            raise ValueError("%s cannot handle equality constraints but "
+                             "eqcons given" % fname)
+        if self.model.constraints._ineqcons and 'ineqcons' not in c:
+            raise ValueError("%s cannot handle inequality constraints but "
+                             "ineqcons given" % fname)
+    
+    @property
+    def covar(self):
+        return None
+    
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError
@@ -90,7 +168,7 @@ class LinearLSQFitter(Fitter):
     model's parameters. Keeps a dictionary of auxiliary fitting information.
     
     """
-    def __init__(self, model, fixed=None):
+    def __init__(self, model):
         """
         Parameters
         ----------
@@ -106,20 +184,20 @@ class LinearLSQFitter(Fitter):
                          'singular_values': None,
                          'pars': None
                         }
-        super(LinearLSQFitter, self).__init__(model, fixed=fixed)
+        super(LinearLSQFitter, self).__init__(model)
         
     def _deriv_with_constraints(self, x, y=None):
         if y is None:
             d = self.model.deriv(x)
         else:
             d = self.model.deriv(x, y)
-        ind = []
-        for item in self.constraints.fixed:
-                ind.append(self.model.parnames.index(item))
-        ind.sort()
-        for i in range(len(ind)):
-            d = np.delete(d, ind[i]-i, 1)
-        return d
+        fixed = [name for name in self.model.constraints.fixed if  self.model.constraints.fixed[name]]
+        ind = range(len(self.model.parnames))
+        for name in fixed:
+            index = self.model.parnames.index(name)
+            ind.remove(index)
+        res = d[:,ind]
+        return res
         
     def __call__(self, x, y, z=None, w=None, rcond=None):
         """
@@ -154,13 +232,12 @@ class LinearLSQFitter(Fitter):
                     "Number of data sets (Y array is expected to equal "
                     "the number of parameter sets")
             # map domain into window
-            #xnew = self.model._set_domain_1d(x)
             if not self.model.domain:
                 self.model.domain = [x.min(), x.max()]
             if not self.model.window:
-                self.model.window = [-1, 1] #self.model.domain[:]
+                self.model.window = [-1, 1]
             xnew = pmapdomain(x, self.model.domain, self.model.window)
-            if self.constraints and self.constraints.fixed:
+            if any(self.model.constraints.fixed.values()):
                 lhs = self._deriv_with_constraints(xnew)
             else:
                 lhs = self.model.deriv(xnew)
@@ -188,7 +265,7 @@ class LinearLSQFitter(Fitter):
             xnew = pmapdomain(x, self.model.xdomain, self.model.xwindow)
             ynew = pmapdomain(y, self.model.ydomain, self.model.ywindow)
             
-            if self.constraints and self.constraints.fixed:
+            if any(self.model.constraints.fixed.values()):
                 lhs = self._deriv_with_constraints(xnew, ynew)
             else:
                 lhs = self.model.deriv(xnew, ynew)
@@ -232,30 +309,27 @@ class LinearLSQFitter(Fitter):
         self.fit_info['pars'] = lacoef
         if rank != self.model._order:
             print("The fit may be poorly conditioned\n")
-        #self.model._parameters = lacoef.flatten()[:]
         self.fitpars = lacoef.flatten()[:]
-        #self.model._parameters._update(lacoef.flatten())
         
 class NonLinearLSQFitter(Fitter):
     """
     A wrapper around scipy.optimize.leastsq
-    
     Supports tied and frozen parameters.
     
     """
-    def __init__(self, model, fixed=None, tied=None):
+    def __init__(self, model):
         """
         Parameters
         ----------
         model: a fittable :class: `models.ParametricModel`
                model to fit to data
-        ixed: iterable
-                  a tuple of parameter names to be held fixed during fitting
-        tied: dict
-                keys are parameter names
-                values are callable/function providing a relationship
-                between parameters. Currently the callable takes a model 
-                instance as an argument.
+        fixed: iterable
+               a tuple of parameter names to be held fixed during fitting
+        tied:  dict
+               keys are parameter names
+               values are callable/function providing a relationship
+               between parameters. Currently the callable takes a model 
+               instance as an argument.
                In the example below xcen is tied to the value of xsigma
                
                def tie_center(model):
@@ -279,16 +353,43 @@ class NonLinearLSQFitter(Fitter):
                          'ierr': None,
                          'status': None}
                         
-        super(NonLinearLSQFitter, self).__init__(model, fixed=fixed, tied=tied)
+        super(NonLinearLSQFitter, self).__init__(model)
         if self.model.linear:
             raise ModelLinearityException('Model is linear in parameters, '
                             'non-linear fitting methods should not be used.')
-               
+            
     def errorfunc(self, fps, *args):
         self.fitpars = fps
         meas = args[0]
         return np.ravel(self.model(*args[1:]) - meas)
     
+    def _set_bounds(self, fitpars):
+        if any(c != (-1E12, 1E12) for c in self.model.constraints.bounds.values()):
+            bounds=[self.model.constraints.bounds[par] for par in self.model.parnames]
+            [setattr(self.model, name, par if par>b[0] else b[0]) for name, par, b in \
+                zip(self.model.parnames, fitpars, bounds)]
+            [setattr(self.model, name, par if par<b[1] else b[1]) for name, par, b in \
+                zip(self.model.parnames, fitpars, bounds)]
+    
+    @property
+    def covar(self):
+        """
+        Calculate the covariance matrix 
+        (doesn't take into account constraints)
+        """
+        n = len(self.model.parameters)
+        # construct the permutation matrix
+        P = np.take(np.eye(n), self.fit_info['ipvt']-1, 0)
+        # construct the R matrix as in JP = QR
+        r = np.triu(self.fit_info['fjac'].T[:n, :])
+        r_pt = np.dot(r, P.T)
+        p_rt = np.dot(P, r.T)
+        try:
+            return np.dual.inv(np.dot(p_rt, r_pt))
+        except:
+            print("Could not construct a covariance matrix")
+            return None
+
     def __call__(self, x, y, z=None, w=None, maxiter=MAXITER, epsilon=EPS):
         """
         Parameters
@@ -331,8 +432,9 @@ class NonLinearLSQFitter(Fitter):
             farg = (meas, x, y)
  
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
-            self.errorfunc, self.fitpars, args=farg, Dfun=self.model.fjac,
+                    self.errorfunc, self.fitpars, args=farg, Dfun=self.dfunc,
                     maxfev=maxiter, epsfcn=epsilon, full_output=True)
+        
         self.fit_info.update(dinfo)
         self.fit_info['status'] = status
         self.fit_info['message'] = mess
@@ -349,8 +451,7 @@ class SLSQPFitter(Fitter):
     .. [6] http://www.netlib.org/toms/733
     
     """
-    def __init__(self, model, fixed=None, tied=None, bounds=None,
-                            eqcons=None, ineqcons=None):
+    def __init__(self, model):
         """
         Parameters
         ----------
@@ -389,8 +490,7 @@ class SLSQPFitter(Fitter):
             A linear model is passed to a nonlinear fitter
             
         """
-        super(SLSQPFitter, self).__init__(model, fixed=fixed, tied=tied, bounds=bounds, eqcons=eqcons, 
-                        ineqcons=ineqcons)
+        super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
             raise ModelLinearityException('Model is linear in parameters, '
                          'non-linear fitting methods should not be used.')
@@ -409,20 +509,7 @@ class SLSQPFitter(Fitter):
         self.fitpars = fps
         res = self.model(*args[1:]) - meas
         return np.sum(res**2)
-    
-    def _validate_constraints(self):
-        """
-        default values for the constraints arguments
-        """
-        if self.constraints:
-            if not self.constraints.eqcons:
-                self.constraints.eqcons = []
-            if not self.constraints.ineqcons:
-                self.constraints.ineqcons = []
-        else:
-            self.constraints.bounds = []
-            self.constraints.eqcons = []
-            self.constraints.ineqcons = []
+
             
     def __call__(self, x, y , z=None, w=None, verblevel=0, 
                  maxiter=MAXITER, epsilon=EPS):
@@ -465,12 +552,11 @@ class SLSQPFitter(Fitter):
             meas = np.asarray(z) + 0.0
             fargs = (meas, x, y)
         p0 = self.model._parameters[:]
-        self._validate_constraints()
-        
+        bounds = [self.model.constraints.bounds[par] for par in self.model.parnames]
         self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
             self.errorfunc, p0, args=fargs, disp=verblevel, full_output=1,
-            bounds=self.constraints._range, eqcons=self.constraints.eqcons, 
-            ieqcons=self.constraints.ineqcons, iter=maxiter, acc=1.E-6, 
+            bounds=bounds, eqcons=self.model.constraints.eqcons, 
+            ieqcons=self.model.constraints.ineqcons, iter=maxiter, acc=1.E-6, 
             epsilon=EPS)
         self.fit_info['final_func_val'] = final_func_val
         self.fit_info['numiter'] = numiter
@@ -591,236 +677,3 @@ class JointFitter(object):
                     del mfpars[:plen]
             model._parameters[:] = np.array(mpars)
 
-class Constraints(object):
-    """
-    Fitting constraints
-
-    """
-    fitters = {'NonLinearLSQFitter': ['fixed', 'tied'],
-                'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
-                'LinearLSQFitter': ['fixed'],
-                }
-    def __init__(self, fitter, fixed=(), tied={}, bounds={},
-                            eqcons=[], ineqcons=[]):
-        """
-        Parameters
-        ----------
-        fitter: object which supports fitting
-        fixed: iterable
-                  a tuple of parameter names to be held fixed during fitting
-        tied: dict
-                keys are parameter names
-                values are callable/function providing a relationship
-                between parameters. Currently the callable takes a model 
-                instance as an argument.
-               In the example below xcen is tied to the value of xsigma
-               
-               def tie_center(model):
-                   xcen = 50*model.xsigma
-                   return xcen
-        
-               tied ={'xcen':tie_center}
-        bounds: dict
-                keys: parameter names
-                values:  list of length 2 giving the desired range for hte parameter
-        eqcons: list
-                 A list of functions of length n such that
-                 eqcons[j](x0,*args) == 0.0 in a successfully optimized
-                 problem.
-        ineqcons: list
-                   A list of functions of length n such that
-                   ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
-                   problem.
-        """
-        self.fitter = fitter
-        
-        self._fixed = fixed
-        self._tied = tied
-        self._bounds = bounds
-        self._eqcons = eqcons
-        self._ineqcons = ineqcons
-        self._validate_fitter()
-        
-        self.pmask = {}
-        #it is unclear what it means to have more than one parameter 
-        #constraint on the same parameter 
-        # currently the behaviour is that it picks one of them
-        if self._fixed:
-            self.pmask.update({}.fromkeys(self._fixed, False))
-            if self._tied:
-                self.pmask.update(self._tied)
-        elif self._tied:
-            self.pmask = self._tied.copy()
-        # bounds internally are converted to self._range and this is used as an
-        # argument to the fiting routine
-        self._range = []
-        if self.pmask:
-            self._fitpars = self._model_to_fit_pars()
-        else:
-            self._fitpars = self.fitter.model._parameters[:]
-        
-    def __repr__(self):
-        fmt = "Constraints(%s, fixed=%s, tied=%s, bounds=%s, eqcons=%s, ineqcons=%s)" % \
-                        (self.fitter.__class__.__name__, repr(self.fixed), repr(self.tied), 
-                        repr(self.bounds), repr(self.eqcons), repr(self.ineqcons))
-        return fmt
-    
-    def __str__(self):
-        fmt = "%s \nConstraints:\n" % self.fitter.__class__.__name__
-        if self.fixed:
-            fmt += 'Fixed parameters: %s\n' % str(self.fixed)
-        if self.tied:
-            fmt += 'Tied parameters: %s\n' % str(self.tied)
-        if self.bounds:
-            fmt += 'Bound parameters: %s\n' % str(self.bould)
-        if self.eqcons:
-            fmt += "Equality constraints: %s\n" % str(self.eqcons)
-        if self.ineqcons:
-            fmt += "Inequality constraints: %s\n" % str(self.ineqcons)
-        return fmt
-    
-    def _validate_fitter(self):
-        fname = self.fitter.__class__.__name__
-        try:
-            c = self.fitters[fname]
-        except KeyError:
-            print("%s does not support fitting with constraints" % fname)
-            raise
-        if self._fixed and 'fixed' not in c:
-            raise ValueError("%s cannot handle fixed parameter constraints "\
-                                            % fname)
-        if self._tied and 'tied' not in c:
-            raise ValueError("%s cannot handle tied parameter constraints "\
-                                            % fname)
-        if self._bounds and 'bounds' not in c:            
-            raise ValueError("%s cannot handle bound parameter constraints"
-                             % fname)
-        if self._eqcons and 'eqcons' not in c:
-            raise ValueError("%s cannot handle equality constraints but "
-                             "eqcons given" % fname)
-        if self._ineqcons and 'ineqcons' not in c:
-            raise ValueError("%s cannot handle inequality constraints but "
-                             "ineqcons given" % fname)
-    
-    @property
-    def fixed(self):
-        return self._fixed
-    
-    @fixed.setter
-    def fixed(self, fixedparlist):
-        self._validate_fitter()
-        if self._fixed:
-            for key in self._fixed:
-                self.pmask.pop(key)
-        self._fixed = tuple(fixedparlist)
-        self.pmask.update({}.fromkeys(fixedparlist, False))
-        
-    @property
-    def tied(self):
-        return self._tied
-    
-    @tied.setter
-    def tied(self, funcdict):
-        self._validate_fitter()
-        self._tied = funcdict
-        self.pmask.update(funcdict)
-      
-    @property
-    def eqcons(self):
-        return self._eqcons
-    
-    @eqcons.setter
-    def eqcons(self, eqlist):
-        self._validate_fitter()
-        self._eqcons = eqlist
-        
-    @property
-    def ineqcons(self):
-        return self._ineqcons
-    
-    @ineqcons.setter
-    def ineqcons(self, ineqlist):
-        self._validate_fitter()
-        self._ineqcons = ineqlist
-        
-    @property
-    def bounds(self):
-        return self._bounds
-    
-    @bounds.setter
-    def bounds(self, b):
-        self._validate_fitter()
-        bl = []
-        assert(isinstance(b, dict))
-        defaultval = (-1.E12, 1.E12)
-        for pname in self.fitter.model.parnames:
-            if pname in b.keys():
-                bl.append(tuple(b[pname]))
-            else:
-                bl.append(defaultval)
-        self._range = bl[:]
-
-    def _add_range(self, mask):
-        for item in mask.items():
-            if operator.isSequenceType(item[1]) and len(item[1]) == 2:
-                self.boundary.update({item[0]: item[1]})
-                self.fitter.pmask.pop(item[0])
-                
-    @property
-    def fitpars(self):
-        """
-        Return the fitted parameters
-        """
-        return self._fitpars
-    
-    @fitpars.setter
-    def fitpars(self, fp):
-        """
-        Used by the fitting routine to set fitpars and modelpars
-        """
-        self._fitpars[:] = fp
-        self.modelpars = fp
-        
-    @property
-    def modelpars(self):
-        """
-        Return the model parameters
-        """
-        return self.fitter.model._parameters
-    
-    @modelpars.setter
-    def modelpars(self, fp):
-        """
-        Sets model parameters.
-        
-        Takes into account any constant or tied parameters
-        and inserts them into the list of fitted parameters.
-        """
-        fitpars = list(fp[:])
-        mpars = []
-        for par in self.fitter.model.parnames:
-            if par in self.pmask.keys():
-                if self.pmask[par] == False:
-                    mpars.extend(getattr(self.fitter.model, par))
-                else:
-                    mpars.extend([self.pmask[par](self.fitter.model)])
-            else:
-                sl = self.fitter.model._parameters.parinfo[par][0]
-                plen = sl.stop - sl.start
-                mpars.extend(fitpars[:plen])
-                del fitpars[:plen]
-        self.fitter.model._parameters._update(np.array(mpars))
-            
-    def _model_to_fit_pars(self):
-        """
-        Create a set of parameters to be fitted.
-        These may be a subset of the model parameters, if some
-        of them are help constant or tied.
-        """
-        pars = self.fitter.model._parameters[:]
-        for item in self.pmask.items():
-            if isinstance(item[1], bool) or operator.isCallable(item[1]):
-                sl = self.fitter.model._parameters.parinfo[item[0]][0]
-                del pars[sl]
-        return pars
-    

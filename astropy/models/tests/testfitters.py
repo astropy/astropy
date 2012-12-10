@@ -3,8 +3,6 @@ Module to test fitting routines
 """
 from __future__ import division
 import os
-import pytest
-import unittest
 from .. import models, fitting, util
 import numpy as np
 from numpy import linalg
@@ -12,7 +10,7 @@ from numpy.testing import utils
 from scipy import optimize
 from data import dpath
 
-class TestFitters(unittest.TestCase):
+class TestFitters:
     """
     Tests non-linear least squares fitting and the SLSQP algorithm
     """
@@ -24,15 +22,25 @@ class TestFitters(unittest.TestCase):
         n = np.random.randn(100)
         self.ny = self.y+2*n
         
-    def test_LSQ_SLSQP_cons(self):
-        fslsqp = fitting.SLSQPFitter(self.g1, fixed=['xcen'])
-        flsq = fitting.NonLinearLSQFitter(self.g11, fixed=['xcen'])
+    def test_LSQ_SLSQP(self):
+        fslsqp = fitting.SLSQPFitter(self.g1)
+        flsq = fitting.NonLinearLSQFitter(self.g11)
         fslsqp(self.x, self.ny)
         flsq(self.x, self.ny)
-        utils.assert_allclose(self.g1.parameters, self.g11.parameters, 
+        utils.assert_allclose(self.g11.parameters, self.g1.parameters,
                             rtol=10**(-4))
         
-class TestPoly2D(unittest.TestCase):
+    def test_LSQ_SLSQP_cons(self):
+        self.g1.xcen.fixed = True
+        self.g11.xcen.fixed = True
+        fslsqp = fitting.SLSQPFitter(self.g1)#, fixed=['xcen'])
+        flsq = fitting.NonLinearLSQFitter(self.g11)#, fixed=['xcen'])
+        fslsqp(self.x, self.ny)
+        flsq(self.x, self.ny)
+        utils.assert_allclose(self.g11.parameters, self.g1.parameters,
+                            rtol=10**(-4))
+        
+class TestPoly2D:
     """
     Tests for 2D polynomail fitting
     """
@@ -54,7 +62,7 @@ class TestPoly2D(unittest.TestCase):
         self.fitter(self.x, self.y, self.z)
         utils.assert_allclose(self.model(self.x, self.y), self.z)
         
-class TestICheb2D(unittest.TestCase):
+class TestICheb2D:
     """
     Tests 2D Chebyshev polynomial fitting
     
@@ -82,7 +90,7 @@ class TestICheb2D(unittest.TestCase):
         z1 = self.ichb(self.x, self.y)
         utils.assert_almost_equal(self.z, z1)
         
-class TestJointFitter(unittest.TestCase):
+class TestJointFitter:
     """
     Tests the joint fitting routine using 2 gaussian models
     """
@@ -127,7 +135,7 @@ class TestJointFitter(unittest.TestCase):
                                 self.ny2))
         utils.assert_allclose(coeff, self.jf.fitpars, rtol=10**(-2))
         
-class TestLinearLSQFitter(unittest.TestCase):
+class TestLinearLSQFitter:
     def setUp(self):
         f = open(os.path.join(dpath, 'idcompspec.fits'))
         lines = f.read()
