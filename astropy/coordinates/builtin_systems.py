@@ -550,12 +550,11 @@ def fk5_to_icrs(fk5c):
 # one not including them (FK4NoETermCoordinates). In the following functions,
 # we describe the transformation between these two.
 
-# Define e-terms of aberation vector
-# RADEG = 180. / np.pi
-# SEC_TO_RADIAN = 1. / RADEG / 3600.
-# A_DOT = np.array([1.244, -1.579, -0.660]) * 1.e-3
+# Define e-terms of aberation vector. The following values are those for
+# catalogue FK4 positions, and are therefore calculated for the B1950 equinox.
 ETERMS_A = np.array([-1.62557, -0.31919, -0.13843]) * 1.e-6
-# ETERMS_A = ETERMS_A + SEC_TO_RADIAN * A_DOT * 0.5
+# TODO: generalize this to arbitrary equinoxes
+
 
 @transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1.01)
 def fk4_to_fk4_no_e(fk4c):
