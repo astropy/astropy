@@ -105,6 +105,7 @@ from ...io.votable.exceptions import E19
 from ...io.votable.validator import html, result
 from ...logger import log
 from ...utils.data import get_readable_fileobj, get_pkg_data_contents
+from ...utils.data import REMOTE_TIMEOUT
 from ...utils.misc import NumpyScalarOrSetEncoder
 
 
@@ -221,6 +222,11 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         Any '&amp;' in URL is replaced with '&' to avoid query failure.
 
+        Not all units recognized by
+        `VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>_` are
+        considered valid in validation; Warning 'W50' will be
+        raised for these units, as well as the illegal ones.
+
     Parameters
     ----------
     destdir : string
@@ -285,6 +291,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
             os.remove(db_file[key])
             if verbose:
                 log.info('Existing file {} deleted'.format(db_file[key]))
+
+    # Need to change default timeout
+    REMOTE_TIMEOUT.set(30.0)
 
     # Get all Cone Search sites
     with get_readable_fileobj(CS_MSTR_LIST()) as fd:
@@ -408,6 +417,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         with open(db_file[key], 'w') as f_json:
             f_json.write(json.dumps(js_tree[key], cls=NumpyScalarOrSetEncoder,
                                     sort_keys=True, indent=4))
+
+    # Change back to default timeout
+    REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
 
     # End timer
     t_end = time.time()
