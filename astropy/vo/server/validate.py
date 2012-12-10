@@ -311,6 +311,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
             log.info('Only {}/{} sites are validated'.format(
                 len(url_list), len(uniq_urls)))
 
+    uniq_rows = len(url_list)
+
     # Re-structure dictionary for JSON file
 
     col_names = arr_cone.dtype.names
