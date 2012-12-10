@@ -52,14 +52,50 @@ array([[  1.00000000e+00,   1.00000000e+00],
        [  3.91115939e-16,   3.91115939e-16],
        [ -2.99676984e-17,  -2.99676984e-17]])
 
+Fitters support constraint fitting through `~models.constraints.Constraints`.
 
-Fitters support constraint fitting through **`fitting.Constraints`**.
+- All fitters support fixed (frozen) parameters through the **fixed** argument to models or setting the fixed attribute directly on a parameter.
+
+For linear fitters freezing a polynomial coefficient means that a 
+polynomial without that term will be fitted to the data. For example, fixing
+c0 in a polynomial model will fit a polynomial with the zero-th order term missing.
+
+>>> x=np.arange(1,10,.1)
+>>> p1= models.Poly1DModel(2, paramdim=2)
+>>> p1.parameters=[1,1,2,2,3,3]
+>>> p1.psets
+array([[ 1.,  1.],
+       [ 2.,  2.],
+       [ 3.,  3.]])
+>>> y = p1(x)
+>>> p1.c1.fixed = True
+>>> pfit=fitting.LinearLSQFitter(p1)
+>>> pfit(x, y)
+>>> p1.psets
+array([[ 5.50225913,  5.50225913],
+       [ 2.        ,  2.        ],
+       [ 3.17551299,  3.17551299]])
+
+       
+- Parameters can be tied. This can be done in two ways:
+
+>>> def tiedfunc(g1):
+    ...    xcen = 3*g1.xsigma[0]
+    ...    return xcen
+>>> g1 = models.Gauss1D(amplitude=10., xcen=3, xsigma=.5, tied={'xcen':tiedfunc})
+
+or
+
+>>> g1 = models.Gauss1D(amplitude=10., xcen=3, xsigma=.5)
+>>> g1.xcen.tied = tiedfunc
+>>> gfit = fitting.NonLinearLSQFitter(g1)
+
 
 - Print a list of available fitting constraints
 
 >>> fitting.Constraints.fitters
 {'LinearLSQFitter': ['fixed'],
- 'NonLinearLSQFitter': ['fixed', 'tied'],
+ 'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
  'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied']}
 
 
