@@ -27,6 +27,7 @@ User Documentation
    nddata/index
    units/index
    time/index
+   coordinates/index
    table/index
    cosmology/index
    io/fits/index
