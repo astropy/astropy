@@ -57,7 +57,8 @@ class Fitter(object):
             self.dfunc = None
         else:
             self.dfunc = self._wrap_deriv
-    
+        self._weights = None
+        
     @property
     def fitpars(self):
         if any(self.model.constraints._fixed.values()) or \
@@ -158,7 +159,15 @@ class Fitter(object):
     @property
     def covar(self):
         return None
+
+    @property
+    def weights(self):
+        return self._weights
     
+    @weights.setter
+    def weights(self, val):
+        self._weights = val
+        
     @abc.abstractmethod
     def __call__(self):
         raise NotImplementedError
@@ -349,10 +358,13 @@ class NonLinearLSQFitter(Fitter):
             raise ModelLinearityException('Model is linear in parameters, '
                             'non-linear fitting methods should not be used.')
             
-    def errorfunc(self, fps, *args):
+    def errorfunc(self, fps,  *args):
         self.fitpars = fps
         meas = args[0]
-        return np.ravel(self.model(*args[1:]) - meas)
+        if self.weights is None:
+            return np.ravel(self.model(*args[1:]) - meas)
+        else:
+            return np.ravel(self.weights * (self.model(*args[1:]) - meas))
     
     def _set_bounds(self, fitpars):
         if any(c != (-1E12, 1E12) for c in self.model.constraints.bounds.values()):
@@ -405,7 +417,7 @@ class NonLinearLSQFitter(Fitter):
         """
         from scipy import optimize
         x = np.asarray(x) + 0.0
-        
+        self.weights  = w
         if self.model._parameters.paramdim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit one "
@@ -471,11 +483,20 @@ class SLSQPFitter(Fitter):
         """
         Compute the sum of the squared residuals
         
+        Parameters
+        ----------
+        fps: list
+            parameters returned by the fitter
+        args: list
+            input coordinates
         """
         meas = args[0]
         self.fitpars = fps
         res = self.model(*args[1:]) - meas
-        return np.sum(res**2)
+        if self._weights is None:
+            return np.sum(res**2)
+        else:
+            return np.sum(self.weights * res**2)
             
     def __call__(self, x, y , z=None, w=None, verblevel=0, 
                  maxiter=MAXITER, epsilon=EPS):
@@ -503,6 +524,7 @@ class SLSQPFitter(Fitter):
         from scipy import optimize
         x = np.asarray(x) + 0.0
         
+        self._weights = w
         if self.model._parameters.paramdim != 1:
             # for now only single data sets ca be fitted
             raise ValueError("NonLinearLSQFitter can only fit "
