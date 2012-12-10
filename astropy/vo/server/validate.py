@@ -223,7 +223,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         Any '&amp;' in URL is replaced with '&' to avoid query failure.
 
         Not all units recognized by
-        `VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>_` are
+        `VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_ are
         considered valid in validation; Warning 'W50' will be
         raised for these units, as well as the illegal ones.
 
