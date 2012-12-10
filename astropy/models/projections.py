@@ -35,7 +35,7 @@ class Projection(Model):
         Parameters
         ----------
         parnames: list of strings
-                  parameter names
+            parameter names
         """
         super(Projection, self).__init__(parnames)
         self.ndim = 2
@@ -54,7 +54,7 @@ class Zenithal(Projection):
         Parameters
         ----------
         parnames: list of strings
-                  parameter names
+            parameter names
         """
         self.phi0 = 0.
         self.theta0 = 90.
@@ -82,10 +82,10 @@ class Pix2Sky_AZP(Zenithal):
         Parameters
         --------------
         mu: float
-               distance from point of projection to center of sphere
-               in spherical radii, default is 0.
+            distance from point of projection to center of sphere
+            in spherical radii, default is 0.
         gamma - float
-                look angle in deg, default is 0.
+            look angle in deg, default is 0.
         """
         if mu == -1:
             raise ValueError("AZP projection is not defined for mu=-1")
@@ -142,10 +142,10 @@ class Sky2Pix_AZP(Zenithal):
         Parameters
         --------------
         mu: float
-               distance from point of projection to center of sphere
-               in spherical radii, default is 0.
+            distance from point of projection to center of sphere
+            in spherical radii, default is 0.
         gamma - float
-                look angle in deg, default is 0.
+            look angle in deg, default is 0.
 
         """
         if mu == -1:
@@ -495,11 +495,11 @@ class Conic(Projection):
         Parameters
         ----------
         thetaA - float
-                 angle in deg
+            angle in deg
         eta: float
         
         parnames: list of strings
-                  parameter names
+            parameter names
                   
         """
         self._phi0 = 0.0

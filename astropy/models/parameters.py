@@ -52,12 +52,12 @@ class _Parameter(list):
         Parameters
         ----------
         name: string
-              parameter name
+            parameter name
         val:  number or an iterable of numbers
         mclass: object
-              an instance of a Model class
+            an instance of a Model class
         paramdim: int
-               parameter dimension      
+            parameter dimension      
         """
         self.paramdim = paramdim
         #NumberType covers scalars and numpy arrays
@@ -215,11 +215,11 @@ class Parameters(list):
         Parameters
         ----------
         mobj: object
-              an instance of a subclass of `fitting.ParametricModel`
+            an instance of a subclass of `fitting.ParametricModel`
         parnames: list of strings
-                  parameter names
+            parameter names
         paramdim: int
-              Number of parameter sets
+            Number of parameter sets
               
         """
         self.mobj = mobj
