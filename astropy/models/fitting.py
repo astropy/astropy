@@ -13,11 +13,10 @@ in scipy.optimize.
 """
 from __future__ import division, print_function
 import abc
+import operator
 import numpy as np
 from numpy import linalg
 
-from scipy import optimize
-import operator
 from .util import pmapdomain
 
 __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter', 
@@ -26,6 +25,7 @@ __all__ = ['LinearLSQFitter', 'NonLinearLSQFitter', 'SLSQPFitter',
 MAXITER = 100
 EPS = np.sqrt(np.finfo(float).eps)
 
+# supported constraints
 constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
                   'SLSQPFitter': ['bounds', 'eqcons', 'ineqcons', 'fixed', 'tied'],
                   'LinearLSQFitter': ['fixed'],
@@ -78,8 +78,12 @@ class Fitter(object):
         internally as part of the algorithm and some don't. 
         If a function set_bounds is provided, bounds will be dealt with here.
         This function should be set in the individual fitters.
+        
         Parameters
         ----------
+        fps: list
+            list of parameters, fitted in a succesive iteration of the
+            fitting algorithm
         set_bounds: callable
             
         """
@@ -204,17 +208,17 @@ class LinearLSQFitter(Fitter):
         Parameters
         ----------
         x: array
-           input coordinates
+            input coordinates
         y: array
-           input coordinates
+            input coordinates
         z: array (optional)
-           input coordinates
+            input coordinates
         w: array (optional)
-           weights
+            weights
         rcond:  float, optional
-                Cut-off ratio for small singular values of `a`.
-                Singular values are set to zero if they are smaller than `rcond`
-                times the largest singular value of `a`.
+            Cut-off ratio for small singular values of `a`.
+            Singular values are set to zero if they are smaller than `rcond`
+            times the largest singular value of `a`.
        
         """
         multiple = False
@@ -322,21 +326,8 @@ class NonLinearLSQFitter(Fitter):
         Parameters
         ----------
         model: a fittable :class: `models.ParametricModel`
-               model to fit to data
-        fixed: iterable
-               a tuple of parameter names to be held fixed during fitting
-        tied:  dict
-               keys are parameter names
-               values are callable/function providing a relationship
-               between parameters. Currently the callable takes a model 
-               instance as an argument.
-               In the example below xcen is tied to the value of xsigma
-               
-               def tie_center(model):
-                   xcen = 50*model.xsigma
-                   return xcen
-        
-               tied ={'xcen':tie_center}
+            model to fit to data
+
         
         Raises
         ------
@@ -412,6 +403,7 @@ class NonLinearLSQFitter(Fitter):
             of the order of the machine precision.
 
         """
+        from scipy import optimize
         x = np.asarray(x) + 0.0
         
         if self.model._parameters.paramdim != 1:
@@ -456,33 +448,7 @@ class SLSQPFitter(Fitter):
         Parameters
         ----------
         model: a fittable :class: `models.ParametricModel`
-               model to fit to data
-       fixed: iterable
-                  a tuple of parameter names to be held fixed during fitting
-        tied: dict
-                keys are parameter names
-                values are callable/function providing a relationship
-                between parameters. Currently the callable takes a model 
-                instance as an argument.
-               In the example below xcen is tied to the value of xsigma 
-               
-               def tied(model):
-                   xcen = 50*model.xsigma
-                   return xcen
-        
-               tied ={'xcen':tie_center}
-        bounds: dict
-                keys: parameter names
-                values:  list of length 2 giving the desired range for hte parameter
-        eqcons: list
-                 A list of functions of length n such that
-                 eqcons[j](x0,*args) == 0.0 in a successfully optimized
-                 problem.
-        ineqcons: list
-                   A list of functions of length n such that
-                   ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
-                   problem.
-        
+            model to fit to data
         
         Raises
         ------
@@ -496,20 +462,20 @@ class SLSQPFitter(Fitter):
                          'non-linear fitting methods should not be used.')
         
         self.fit_info = {'final_func_val': None,
-                       'numiter': None,
-                       'exit_mode': None,
-                       'message': None
-                       }
+                         'numiter': None,
+                         'exit_mode': None,
+                         'message': None
+                         }
         
     def errorfunc(self, fps, *args):
         """
         Compute the sum of the squared residuals
+        
         """
         meas = args[0]
         self.fitpars = fps
         res = self.model(*args[1:]) - meas
         return np.sum(res**2)
-
             
     def __call__(self, x, y , z=None, w=None, verblevel=0, 
                  maxiter=MAXITER, epsilon=EPS):
@@ -517,22 +483,24 @@ class SLSQPFitter(Fitter):
         Parameters
         ----------
         x: array
-           input coordinates
+            input coordinates
         y: array
-           input coordinates
+            input coordinates
         z: array (optional)
-           input coordinates
+            input coordinates
         w: array (optional)
-           weights
+            weights
         verblevel: int
-                   0-silent
-                   1-print summary upon completion, 
-                   2-print summary after each iteration
-        maxiter - maximum number of iterations
-        epsilon : float
-                  The step size for finite-difference derivative 
-                  estimates.
+            0-silent
+            1-print summary upon completion, 
+            2-print summary after each iteration
+        maxiter: int
+            maximum number of iterations
+        epsilon: float
+            the step size for finite-difference derivative estimates
+            
         """
+        from scipy import optimize
         x = np.asarray(x) + 0.0
         
         if self.model._parameters.paramdim != 1:
@@ -575,8 +543,11 @@ class JointFitter(object):
         Parameters
         ----------
         models: list
+            a list of model instances
         jointparameters: list
+            a list of joint parameters
         initvals: list
+            a list of initial values
         """
         self.models = list(models)
         self.initvals = list(initvals)
@@ -604,8 +575,12 @@ class JointFitter(object):
         
     def errorfunc(self, fps, *args):
         """
-        fps - fitted parameters
-        args - args is always passed as a tuple from optimize.leastsq
+        fps: list
+            the fitted parameters - result of an one iteration of the 
+            fitting algorithm
+        args: dict
+            tuple of measured and input coordinates
+            args is always passed as a tuple from optimize.leastsq
         """
         lstsqargs = list(args[:])
         fitted = []
@@ -647,6 +622,7 @@ class JointFitter(object):
             assert(len(self.jointpars[j]) == len(self.initvals))
       
     def __call__(self, *args):
+        from scipy import optimize
         assert(len(args) == reduce(lambda x, y: x+1 + y+1, self.modeldims))
         self.fitpars[:], s = optimize.leastsq(self.errorfunc, self.fitpars, 
                                               args=args) 

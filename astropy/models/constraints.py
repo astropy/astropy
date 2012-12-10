@@ -13,31 +13,31 @@ class Constraints(object):
         ----------
         fitter: object which supports fitting
         fixed: dict
-               (parameter_name: True/False} 
-               parameters to be held fixed during fitting
+            (parameter_name: True/False} 
+            parameters to be held fixed during fitting
         tied: dict
-                keys are parameter names
-                values are callable/function providing a relationship
-                between parameters. Currently the callable takes a model 
-                instance as an argument.
-               In the example below xcen is tied to the value of xsigma
-               
-               def tie_center(model):
-                   xcen = 50*model.xsigma
-                   return xcen
-        
-               tied ={'xcen':tie_center}
+            keys are parameter names
+            values are callable/function providing a relationship
+            between parameters. Currently the callable takes a model 
+            instance as an argument.
+            In the example below xcen is tied to the value of xsigma
+            
+            def tie_center(model):
+               xcen = 50*model.xsigma
+               return xcen
+
+            tied ={'xcen':tie_center}
         bounds: dict
-                keys: parameter names
-                values:  list of length 2 giving the desired range for hte parameter
+            keys: parameter names
+            values:  list of length 2 giving the desired range for hte parameter
         eqcons: list
-                 A list of functions of length n such that
-                 eqcons[j](x0,*args) == 0.0 in a successfully optimized
-                 problem.
+            A list of functions of length n such that
+            eqcons[j](x0,*args) == 0.0 in a successfully optimized
+            problem.
         ineqcons: list
-                   A list of functions of length n such that
-                   ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
-                   problem.
+            A list of functions of length n such that
+            ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
+            problem.
         """
         self.model = model
         

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Implements spherical rotations, defined in WCS Paper II [3]_
+Implements spherical rotations, defined in WCS Paper II [7]_
 
 RotateNative2Celestial and RotateCelestial2Native follow the convention 
 in WCS paper II to rotate to/from a native sphere and the celestial sphere.
@@ -12,7 +12,7 @@ defined in the rotations classes.
 
 References
 ----------
-.. [3] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
+.. [7] Calabretta, M.R., Greisen, E.W., 2002, A&A, 395, 1077 (Paper II)
 
 """
 from __future__ import division, print_function
@@ -38,7 +38,7 @@ class RotateNative2Celestial(Model):
         Parameters
         ----------
         phi, theta, psi - float
-                          Euler angles in deg
+            Euler angles in deg
                         
         """
         self.ndim = 2
@@ -100,7 +100,7 @@ class RotateCelestial2Native(Model):
         Parameters
         ----------
         phi, theta, psi - float
-                          Euler angles in deg
+            Euler angles in deg
              
         """
         self.ndim = 2
@@ -165,9 +165,9 @@ class MatrixRotation2D(Model):
         Parameters
         ----------
         rotmat: ndarray
-                    rotation matrix
+            rotation matrix
         angle: float
-                  angle of rotation in deg
+            angle of rotation in deg
                   
         """
         if rotmat is None and angle is None:

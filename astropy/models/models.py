@@ -44,13 +44,10 @@ import operator
 import abc
 from collections import OrderedDict
 import numpy as np
-try:
-    from scipy import comb
-except ImportError:
-    from scipy.misc import comb
+
 from . import parameters
 from . import constraints
-from .util import pmapdomain, InputParametersException
+from .util import pmapdomain, InputParametersException, comb
  
 __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel', 
            'ILegend2DModel', 'LegendreModel', 'Poly1DModel', 'Poly2DModel', 
@@ -432,7 +429,7 @@ class PModel(ParametricModel):
         # deg+1 is used to account for the difference between iraf using 
         # degree and numpy using exact degree
         if self.ndim != 1:
-            nmixed = comb(self.deg, self.ndim, exact=True)
+            nmixed = comb(self.deg, self.ndim)
         else: 
             nmixed = 0
         numc = self.deg*self.ndim + nmixed + 1
@@ -461,21 +458,21 @@ class IModel(ParametricModel):
         ----------
         
         xdeg: int
-              degree in x
+            degree in x
         ydeg: int
-              degree in y
+            degree in y
         xdomain: list or None
-                domain of the x independent variable
+            domain of the x independent variable
         ydomain: list or None
-                domain of the y independent variable
+            domain of the y independent variable
         xwindow: list or None
-                range of the x independent variable
+            range of the x independent variable
         ywindow: list or None
-                range of the y independent variable
+            range of the y independent variable
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            {keyword: value} pairs, representing {parameter_name: value}
         """
         self.ndim = 2
         self.outdim = 1
@@ -531,7 +528,7 @@ class IModel(ParametricModel):
         Returns
         -------
         numc: int
-           number of coefficients
+            number of coefficients
         
         """
         numc = (self.xdeg+1)*(self.ydeg+1)
@@ -620,15 +617,15 @@ class ChebyshevModel(PModel):
         Parameters
         ----------
         degree: int
-                degree of the series
+            degree of the series
         domain: list or None
         window: list or None
-                If None, it is set to [-1,1]
-                Fitters will remap the domain to this window
+            If None, it is set to [-1,1]
+            Fitters will remap the domain to this window
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
         self.window = window
@@ -689,15 +686,15 @@ class LegendreModel(PModel):
         Parameters
         ----------
         degree: int
-                degree of the series
+            degree of the series
         domain: list or None
         window: list or None
-                If None, it is set to [-1,1]
-                Fitters will remap the domain to this window
+            If None, it is set to [-1,1]
+            Fitters will remap the domain to this window
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
         self.window = window
@@ -758,15 +755,15 @@ class Poly1DModel(PModel):
         Parameters
         ----------
         degree: int
-                degree of the series
+            degree of the series
         domain: list or None
         window: list or None
-                If None, it is set to [-1,1]
-                Fitters will remap the domain to this window
+            If None, it is set to [-1,1]
+            Fitters will remap the domain to this window
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
         self.window = window
@@ -817,20 +814,20 @@ class Poly2DModel(PModel):
         Parameters
         ----------
         degree: int
-                highest power of the polynomial, the number of terms 
-                are degree+1
+            highest power of the polynomial, the number of terms 
+            are degree+1
         xdomain: list or None
-                domain of the x independent variable
+            domain of the x independent variable
         ydomain: list or None
-                domain of the y independent variable
+            domain of the y independent variable
         xwindow: list or None
-                range of the x independent variable
+            range of the x independent variable
         ywindow: list or None
-                range of the y independent variable
+            range of the y independent variable
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         self.ndim = 2
         self.outdim = 1
@@ -873,9 +870,6 @@ class Poly2DModel(PModel):
             y = y.flatten()
         if x.size != y.size:
             raise ValueError('Expected x and y to be of equal size')
-        
-        nmixed = comb(self.deg, 2)
-        vsize = 2*self.deg + nmixed + 1
         
         designx = x[:, None]**np.arange(self.deg+1)
         designy = y[:, None]**np.arange(1, self.deg+1)
@@ -932,21 +926,21 @@ class ICheb2DModel(IModel):
         ----------
         
         xdeg: int
-              degree in x
+            degree in x
         ydeg: int
-              degree in y
+            degree in y
         xdomain: list or None
-                domain of the x independent variable
+            domain of the x independent variable
         ydomain: list or None
-                domain of the y independent variable
+            domain of the y independent variable
         xwindow: list or None
-                range of the x independent variable
+            range of the x independent variable
         ywindow: list or None
-                range of the y independent variable
+            range of the y independent variable
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         super(ICheb2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
                         ywindow=ywindow, paramdim=paramdim, **pars)
@@ -1013,7 +1007,7 @@ class ICheb2DModel(IModel):
         --------------
         x,y: arrays, of min dimensions 2
         x/ydomain: list of two numbers
-                      polynomial domain for x and y variable
+            polynomial domain for x and y variable
                     
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -1039,21 +1033,21 @@ class ILegend2DModel(IModel):
         ----------
         
         xdeg: int
-              degree in x
+            degree in x
         ydeg: int
-              degree in y
+            degree in y
         xdomain: list or None
-                domain of the x independent variable
+            domain of the x independent variable
         ydomain: list or None
-                domain of the y independent variable
+            domain of the y independent variable
         xwindow: list or None
-                range of the x independent variable
+            range of the x independent variable
         ywindow: list or None
-                range of the y independent variable
+            range of the y independent variable
         paramdim: int
-                number of parameter sets
+            number of parameter sets
         **pars: dict
-                keyword: value pairs, representing parameter_name: value
+            keyword: value pairs, representing parameter_name: value
         """
         super(ILegend2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
                         ywindow=ywindow, paramdim=paramdim, **pars)
@@ -1121,7 +1115,7 @@ class ILegend2DModel(IModel):
         --------------
         x,y: arrays, of min dimensions 2
         x/ydomain: list of two numbers
-                      polynomial domain for x and y variable
+            polynomial domain for x and y variable
                     
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -1145,18 +1139,18 @@ class Gauss1DModel(ParametricModel):
         Parameters
         ----------
         amplitude: float
-                   Amplitude of the gaussian
+            Amplitude of the gaussian
         xcen: float
-              Center of the gaussian
+            Center of the gaussian
         fwhm: float
-              FWHM
+            FWHM
         xsigma: float
-              sigma of the gaussian
-              Either fwhm or xsigma must be specified
+            igma of the gaussian
+            Either fwhm or xsigma must be specified
         fjac: callable or None
-              if callable - a function to compute the Jacobian of 
-              func with derivatives across the rows.
-              if None - the Jacobian will be estimated
+            if callable - a function to compute the Jacobian of 
+            func with derivatives across the rows.
+            if None - the Jacobian will be estimated
         
         """
         self._amplitude = parameters._Parameter('amplitude', amplitude, self,1)
@@ -1226,27 +1220,27 @@ class Gauss2DModel(ParametricModel):
         Parameters
         ----------
         amplitude: float
-                   Amplitude of the gaussian
+            Amplitude of the gaussian
         xcen: float
-              Center of the gaussian in x
+            Center of the gaussian in x
         ycen: float
-              Center of the gaussian in y
+            Center of the gaussian in y
         fwhm: float
-              FWHM
+            FWHM
         xsigma: float
-              sigma of the gaussian in x
-              Either fwhm or xsigma must be specified
+            sigma of the gaussian in x
+            Either fwhm or xsigma must be specified
         ysigma: float
-              sigma of the gaussian in y
-              Either ysigma or ratio should be given
+            sigma of the gaussian in y
+            Either ysigma or ratio should be given
         ratio: float
-              ysigma/xsigma 
+            ysigma/xsigma 
         fjac: callable or None
-              if callable - a function to compute the Jacobian of 
-              func with derivatives across the rows.
-              if None - the Jacobian will be estimated
+            if callable - a function to compute the Jacobian of 
+            func with derivatives across the rows.
+            if None - the Jacobian will be estimated
         theta: float 
-              rotation angle in radians
+            rotation angle in radians
 
         """
         if ysigma is None and ratio is None:
@@ -1314,9 +1308,9 @@ class ShiftModel(Model):
         Parameters
         ----------
         offsets: float or a list of floats
-                 offsets to be applied to a coordinate
-                 if a list - each value in the list is an offset to be applied to a
-                 column in the input coordinate array
+            offsets to be applied to a coordinate
+            if a list - each value in the list is an offset to be applied to a
+            column in the input coordinate array
         """
         self.ndim = 1
         self.outdim = 1
@@ -1344,7 +1338,7 @@ class ScaleModel(Model):
         Parameters
         ---------------
         factors: float or a list of floats
-                  scale for a coordinate
+            scale for a coordinate
         """
         self.ndim = 1
         self.outdim = 1
@@ -1423,12 +1417,15 @@ class _SIP1D(Model):
         return fmt
     
     def get_numcoeff(self):
-        #Return the number of coefficients in one parset
+        """
+        Return the number of coefficients in one parset
+        """
+        from scipy.misc import comb as scicomb
         if self.order < 2  or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
-        nmixed = comb(self.order-1, self.ndim) 
-        numc = (self.order)*self.ndim + nmixed + 1
-        return int(numc)    
+        nmixed = scicomb(self.order-1, self.ndim) 
+        numc = self.order * int(self.ndim) + nmixed + 1
+        return numc    
     
     def _generate_coeff_names(self, coeffname):
         ncoeff = self.get_numcoeff()
@@ -1521,10 +1518,12 @@ class LabeledInput(dict):
     """
     def __init__(self,  data, labels):
         """
+        Parameters
+        ----------
         data: list 
-                a list of all input data
+            a list of all input data
         labels: list of strings
-                 names matching each coordinate in data
+            names matching each coordinate in data
         
        """
         dict.__init__(self)
@@ -1554,11 +1553,11 @@ class LabeledInput(dict):
         Parameters
         --------------
         label: string
-                  coordinate label
+            coordinate label
         value: numerical type
-                  coordinate value
+            coordinate value
         kw: dictionary
-              if given this is a dictionary of label: value pairs
+            if given this is a dictionary of {label: value} pairs
         """
         if kw:
             if label is None or value is None:
@@ -1646,17 +1645,17 @@ class SCompositeModel(_CompositeModel):
     Obviously the order of the models matters.
     
     Examples
-        --------
-        Apply a 2D rotation followed by a shift in x and y
-        
-        >>> from fitting import rotations
-        >>> rot = rotations.MatrixRotation2D(angle=23.5)
-        >>> offx = ShiftModel(-4.23)
-        >>> offy = ShiftModel(2)
-        >>> linp = LabeledInput([x,y], ["x", "y"]
-        >>> scomptr = SCompositeModel([rot, offx, offy], inmap=[['x', 'y'], ['x'], ['y']],
-                                          outmap=[['x', 'y'], ['x'], ['y']])
-        >>> result=scomptr(linp)
+    --------
+    Apply a 2D rotation followed by a shift in x and y
+    
+    >>> from fitting import rotations
+    >>> rot = rotations.MatrixRotation2D(angle=23.5)
+    >>> offx = ShiftModel(-4.23)
+    >>> offy = ShiftModel(2)
+    >>> linp = LabeledInput([x,y], ["x", "y"]
+    >>> scomptr = SCompositeModel([rot, offx, offy], inmap=[['x', 'y'], ['x'], ['y']],
+                                      outmap=[['x', 'y'], ['x'], ['y']])
+    >>> result=scomptr(linp)
         
     """
     def __init__(self, transforms, inmap=None, outmap=None):
@@ -1665,14 +1664,15 @@ class SCompositeModel(_CompositeModel):
         Parameters
         ----------
         transforms list
-                    a list of transforms in the order to be executed
+            a list of transforms in the order to be executed
         inmap: list of lists or None
-               labels in an input instance of LabeledInput
-               if None, the number of input coordinates is exactly what the transforms expect 
+            labels in an input instance of LabeledInput
+            if None, the number of input coordinates is exactly what
+            the transforms expect 
         outmap: list or None
-                labels in an input instance of LabeledInput
-                if None, the number of output coordinates is exactly what the transforms expect 
-        
+            labels in an input instance of LabeledInput
+            if None, the number of output coordinates is exactly what 
+            the transforms expect
         
         """
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
@@ -1761,10 +1761,10 @@ class PCompositeModel(_CompositeModel):
         Parameters
         --------------
         transforms: list
-                           transforms to be executed in parallel
+            transforms to be executed in parallel
         inmap: list or None
-               labels in an input instance of LabeledInput
-               if None, the number of input coordinates is exactly what the transforms expect 
+            labels in an input instance of LabeledInput
+            if None, the number of input coordinates is exactly what the transforms expect 
         """
         super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
@@ -1846,22 +1846,22 @@ class SIPModel(SCompositeModel):
         Parameters
         ----------
         crpix: list or ndarray of length(2)
-               CRPIX values
+            CRPIX values
         order: int
-               SIP polynomial order
+            SIP polynomial order
         coeff: dict
-               SIP coefficients
+            SIP coefficients
         coeffname: string: 'a', 'b', 'A' or 'B'
-               SIP coefficient preffix
+            SIP coefficient preffix
         aporder: int
-               order for the inverse transformation
+            order for the inverse transformation
         apcoeff: dict
-                coefficients for the inverse transform
+            coefficients for the inverse transform
         paramdim: int
-              number of parameter sets
+            number of parameter sets
         multiple: boolean
-              when input is 2D array, if True (default) it is to be 
-              treated as multiple 1D arrays
+            when input is 2D array, if True (default) it is to be 
+            treated as multiple 1D arrays
         """
         self.ndim = 2
         self.outdim = 1
