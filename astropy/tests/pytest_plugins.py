@@ -154,7 +154,8 @@ def pytest_configure():
     def restricted_open(filename, mode='r', *args, **kwargs):
         if (('w' in mode or 'a' in mode) and
             not os.path.abspath(filename).startswith(tmpdir)
-            and not '__pycache__' in filename):
+            and not '__pycache__' in filename and
+            not os.path.basename(filename) == 'junit.xml'):
             raise IOError(
                 "Tried to write to a non-temporary directory '%s'" %
                 filename)
