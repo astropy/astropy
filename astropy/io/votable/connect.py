@@ -59,7 +59,7 @@ def read_table_votable(input, table_id=None):
             if table_id is None:
                 raise ValueError(
                     "Multiple tables found: table id should be set via "
-                    "the id= argument. The available tables are " +
+                    "the table_id= argument. The available tables are " +
                     ', '.join(tables.keys()))
             else:
                 if table_id in tables:
