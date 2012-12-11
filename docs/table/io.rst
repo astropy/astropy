@@ -52,7 +52,8 @@ supported by `astropy.io.ascii`:
 IPAC
 ++++
 
-IPAC tables can be read with ``format='ipac'``::
+`IPAC tables <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+can be read with ``format='ipac'``::
 
   >>> t = Table.read('2mass.tbl', format='ipac')
 
@@ -90,7 +91,7 @@ this class when ``format='ipac'``).
 CDS/Machine Readable
 ++++++++++++++++++++
 
-CDS/Machine readable tables can be read with ``format='cds'``::
+`CDS/Machine readable tables <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ can be read with ``format='cds'``::
 
     >>> t = Table.read('aj285677t3.txt', format='cds')
 
@@ -106,7 +107,8 @@ this class when ``format='cds'``).
 DAOPhot
 +++++++
 
-DAOPhot tables can be read with ``format='daophot'``::
+`DAOPhot <http://stsdas.stsci.edu/cgi-bin/gethelp.cgi?daophot.hlp>`_ tables
+can be read with ``format='daophot'``::
 
   >>> t = Table.read('photometry.dat', format='daophot')
 
@@ -118,9 +120,9 @@ the filename and ``format`` are passed to this class when
 LaTeX
 +++++
 
-LaTeX tables can be read and written with ``format='latex'``. Provided
-the ``.tex``` extension is used, the format does not need to be explicitly
-specified::
+`LaTeX <http://www.latex-project.org/>`_ tables can be read and written with
+``format='latex'``. Provided the ``.tex``` extension is used, the format does
+not need to be explicitly specified::
 
       >>> t = Table.read('paper_table.tex')
       >>> t.write('new_paper_table.tex')
@@ -136,9 +138,9 @@ filename and ``format`` are passed to this class  when ``format='latex'``).
 RDB
 +++
 
-RDB tables can be read and written with ``format='rdb'``  Provided
-the ``.rdb`` extension is used, the format does not need to be explicitly
-specified::
+`RDB <http://hea-www.harvard.edu/MST/simul/software/docs/rdb.html>`_ tables
+can be read and written with ``format='rdb'`` Provided the ``.rdb`` extension
+is used, the format does not need to be explicitly specified::
 
       >>> t = Table.read('discovery_data.rdb')
       >>> t.write('updated_data.rdb')
@@ -173,11 +175,13 @@ similarly for writing).
 HDF5
 """"
 
-Reading/writing from/to HDF5 files is supported with ``format='hdf5'``. However, the
-``.hdf5`` file extension is automatically recognized when writing files, and
-HDF5 files are automatically identified (even with a different extension) when
-reading in (using the first few bytes of the file to identify the format), so
-in most cases you will not need to explicitly specify ``format='hdf5'``.
+Reading/writing from/to `HDF5 <http://www.hdfgroup.org/HDF5/>`_ files is
+supported with ``format='hdf5'`` (this requires `h5py
+<http://code.google.com/p/h5py/>`_ to be installed). However, the ``.hdf5``
+file extension is automatically recognized when writing files, and HDF5 files
+are automatically identified (even with a different extension) when reading
+in (using the first few bytes of the file to identify the format), so in most
+cases you will not need to explicitly specify ``format='hdf5'``.
 
 Since HDF5 files can contain multiple tables, the full path to the table
 should be specified via the ``path=`` argument when reading and writing.
@@ -209,10 +213,11 @@ overwriting existing files.
 VO Tables
 """""""""
 
-Reading/writing from/to VO table files is supported with
-``format='votable'``. In most cases, existing VO tables should be
-automatically identified as such based on the header of the file, but if not,
-or if writing to disk, then the format should be explicitly specified.
+Reading/writing from/to `VO table <http://www.ivoa.net/Documents/VOTable/>`_
+files is supported with ``format='votable'``. In most cases, existing VO
+tables should be automatically identified as such based on the header of the
+file, but if not, or if writing to disk, then the format should be explicitly
+specified.
 
 If a VO table file only contains a single table, then it can be read in with::
 
