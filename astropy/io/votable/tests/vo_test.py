@@ -32,6 +32,12 @@ numpy_has_complex_bug = (
     version.LooseVersion(np.__version__) < version.LooseVersion('1.5')
     )
 
+# Determine the kind of float formatting in this build of Python
+if hasattr(sys, 'float_repr_style'):
+    legacy_float_repr = (sys.float_repr_style == 'legacy')
+else:
+    legacy_float_repr = sys.platform.startswith('win')
+
 join = os.path.join
 
 
@@ -172,10 +178,12 @@ def _test_regression(_python_based=False):
     assert truth == output
 
 
+@pytest.mark.xfail('legacy_float_repr')
 def test_regression():
     _test_regression(False)
 
 
+@pytest.mark.xfail('legacy_float_repr')
 def test_regression_python_based_parser():
     _test_regression(True)
 

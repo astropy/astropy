@@ -50,7 +50,7 @@ def test_find_by_hash():
 
     import hashlib
 
-    with get_readable_fileobj(TESTURL, cache=True) as googlepage:
+    with get_readable_fileobj(TESTURL, encoding="binary", cache=True) as googlepage:
         hash = hashlib.md5(googlepage.read())
 
     hashstr = 'hash/' + hash.hexdigest()
@@ -198,7 +198,7 @@ def test_data_noastropy_fallback(monkeypatch, recwarn):
 
     #now try with no cache
     fnnocache = data.download_file(TESTURL, cache=False)
-    with open(fnnocache) as googlepage:
+    with open(fnnocache, 'rb') as googlepage:
         assert googlepage.read().decode().find('oogle</title>') > -1
 
     #no warnings should be raise in fileobj because cache is unnecessary
