@@ -12,33 +12,32 @@ The :class:`~astropy.table.table.Table` class includes two methods,
 and write to files. A number of formats are automatically supported (see
 `Built-in readers/writers`_) and new file formats and extensions can be
 registered with the :class:`~astropy.table.table.Table` class (see `Creating a
-custom reader/writer`_). The :meth:`~astropy.table.table.Table.read` method should be used as::
+custom reader/writer`_). After importing the :class:`~astropy.table.table.Table` class::
 
-    t = Table.read(filename, format='format')
+    >>> from astropy.table import Table
+
+the :meth:`~astropy.table.table.Table.read` method should be used as::
+
+    >>> t = Table.read(filename, format='format')
 
 where ``'format'`` is the format of the file to read in, e.g.::
 
-    t = Table.read('photometry.dat', format='daophot')
+    >>> t = Table.read('photometry.dat', format='daophot')
 
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
-    t = Table.read('table.tex')
+    >>> t = Table.read('table.tex')
 
 Similarly, for writing, the format can be explicitly specified::
 
-    t.write(filename, format='format')
+    >>> t.write(filename, format='format')
 
-and as for the :meth:`~astropy.table.table.Table.read` method, the format can
-be automatically identified from the extension.
+but as for the :meth:`~astropy.table.table.Table.read` method, the format may
+be automatically identified in some cases.
 
-Any additional arguments specified will be passed to the format-specific
-read/write functions (see e.g. see `Built-in readers/writers`_) - for
-example, in the following case::
-
-    t = Table.read('photometry.dat', format='ascii', data_start=2, delimiter='|')
-
-the ``data_start`` and ``delimiter`` arguments are passed to :func:`astropy.io.ascii.ui.read`.
+Any additional arguments specified will depend on the format (see e.g. see
+`Built-in readers/writers`_)
 
 Built-in readers/writers
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -50,46 +49,185 @@ The :meth:`~astropy.table.table.Table.read` and
 :meth:`~astropy.table.table.Table.write` methods can be used to read and write formats
 supported by `astropy.io.ascii`:
 
-    * ``format='ascii'`` can be used to interface to the bare
-      :func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
-      functions from `astropy.io.ascii`, e.g.::
+IPAC
+++++
 
-         t = Table.read('table.tex', format='ascii')
+IPAC tables can be read with ``format='ipac'``::
 
-         from astropy.io.ascii import Rdb
-         t.write('table.rdb', format='ascii', Writer=Rdb)
+  >>> t = Table.read('2mass.tbl', format='ipac')
 
-    * ``format='ipac'`` can be used to read IPAC tables
+Note that there are different conventions for characters occuring below the
+position of the ``|`` symbol in IPAC tables. By default, any character
+below a ``|`` will be ignored (since this is the current standard),
+but if you need to read files that assume characters below the ``|``
+symbols belong to the column before or after the ``|``, you can specify
+``definition='left'`` or ``definition='right'`` respectively when reading
+the table (the default is ``definition='ignore'``).
 
-    * ``format='cds'`` can be used to read CDS/Machine readable tables
+Advanced information is available in the :class:`~astropy.io.ascii.ipac.Ipac`
+class (any arguments apart from the filename and ``format`` are passed to
+this class when ``format='ipac'``).
 
-    * ``format='daophot'`` can be used to read DAOPhot tables
+CDS/Machine Readable
+++++++++++++++++++++
 
-    * ``format='latex'`` can be used to read and write Latex tables
+CDS/Machine readable tables can be read with ``format='cds'``::
 
-    * ``format='rdb'`` can be used to read and write RDB tables
+    >>> t = Table.read('aj285677t3.txt', format='cds')
 
-The following file extensions are automatically recognized and do not require the ``format=`` argument to be specified:
+If the table definition is given in a separate ``ReadMe`` file, this can be
+specified with::
 
-    * ``.tex`` is recognized as ``format='latex'``
-    * ``.rdb`` is recognized as ``format='rdb'``
+    >>> t = Table.read('aj285677t3.txt', format='cds', readme="ReadMe")
+
+Advanced information is available in the :class:`~astropy.io.ascii.cds.Cds`
+class (any arguments apart from the filename and ``format`` are passed to
+this class when ``format='cds'``).
+
+DAOPhot
++++++++
+
+DAOPhot tables can be read with ``format='daophot'``::
+
+  >>> t = Table.read('photometry.dat', format='daophot')
+
+Advanced information is available in the
+:class:`~astropy.io.ascii.daophot.Daophot` class (any arguments apart from
+the filename and ``format`` are passed to this class when
+``format='daophot'``).
+
+LaTeX
++++++
+
+LaTeX tables can be read and written with ``format='latex'``. Provided
+the ``.tex``` extension is used, the format does not need to be explicitly
+specified::
+
+      >>> t = Table.read('paper_table.tex')
+      >>> t.write('new_paper_table.tex')
+
+If a different extension is used, the format should be specified::
+
+      >>> t.write('new_paper_table.inc', format='latex')
+
+Advanced information is available in the
+:class:`~astropy.io.ascii.latex.Latex` class (any arguments apart from the
+filename and ``format`` are passed to this class  when ``format='latex'``).
+
+RDB
++++
+
+RDB tables can be read and written with ``format='rdb'``  Provided
+the ``.rdb`` extension is used, the format does not need to be explicitly
+specified::
+
+      >>> t = Table.read('discovery_data.rdb')
+      >>> t.write('updated_data.rdb')
+
+If a different extension is used, the format should be specified::
+
+      >>> t.write('updated_data.txt', format='rdb')
+
+Advanced information is available in the :class:`~astropy.io.ascii.basic.Rdb`
+class (any arguments apart from the filename and ``format`` are passed to
+this class when ``format='rdb'``).
+
+Arbitrary formats
++++++++++++++++++
+
+``format='ascii'`` can be used to interface to the bare
+:func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
+functions from `astropy.io.ascii`, e.g.::
+
+       >>> t = Table.read('table.tex', format='ascii')
+
+All additional arguments are passed to the `astropy.io.ascii`
+:func:`~astropy.io.ascii.ui.read` and
+:func:`~astropy.io.ascii.ui.write`. For example, in the following case::
+
+       >>> t = Table.read('photometry.dat', format='ascii', data_start=2, delimiter='|')
+
+the ``data_start`` and ``delimiter`` arguments are passed to the
+:func:`~astropy.io.ascii.ui.read` function from `astropy.io.ascii` (and
+similarly for writing).
 
 HDF5
 """"
 
-Reading/writing from/to HDF5 files is supported with ``format='hdf5'``. The
+Reading/writing from/to HDF5 files is supported with ``format='hdf5'``. However, the
 ``.hdf5`` file extension is automatically recognized when writing files, and
 HDF5 files are automatically identified (even with a different extension) when
-reading in (using the first few bytes of the file to identify the format).
+reading in (using the first few bytes of the file to identify the format), so
+in most cases you will not need to explicitly specify ``format='hdf5'``.
 
-For information on available arguments, see
-:func:`~astropy.io.misc.hdf5.read_table_hdf5` and
-:func:`~astropy.io.misc.hdf5.write_table_hdf5`.
+Since HDF5 files can contain multiple tables, the full path to the table
+should be specified via the ``path=`` argument when reading and writing.
+For example, to read a table called ``data`` from an HDF5 file named
+``observations.hdf5``, you can do::
+
+    >>> t = Table.read('observations.hdf5', path='data')
+
+To read a table nested in a group in the HDF5 file, you can do::
+
+    >>> t = Table.read('observations.hdf5', path='group/data')
+
+To write a table to a new file, the path should also be specified::
+
+    >>> t.write('new_file.hdf5', path='updated_data')
+
+It is also possible to write a table to an existing file using ``append=True``::
+
+    >>> t.write('observations.hdf5', path='updated_data', append=True)
+
+Finally, when writing to HDF5 files, the ``compression=`` argument can be
+used to ensure that the data is compressed on disk::
+
+    >>> t.write('new_file.hdf5', path='updated_data', compression=True)
+
+As with other formats, the ``overwrite=True`` argument is supported for
+overwriting existing files.
+
+VO Tables
+"""""""""
+
+Reading/writing from/to VO table files is supported with
+``format='votable'``. In most cases, existing VO tables should be
+automatically identified as such based on the header of the file, but if not,
+or if writing to disk, then the format should be explicitly specified.
+
+If a VO table file only contains a single table, then it can be read in with::
+
+    >>> t = Table.read('aj285677t3_votable.xml')
+
+If more that one table are present in the file, an error will be raised,
+unless the table ID is specified via the ``table_id=`` argument::
+
+    >>> t = Table.read('catalog.xml')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/Volumes/Raptor/Library/Python/2.7/lib/python/site-packages/astropy/table/table.py", line 1559, in read
+        table = reader(*args, **kwargs)
+      File "/Volumes/Raptor/Library/Python/2.7/lib/python/site-packages/astropy/io/votable/connect.py", line 44, in read_table_votable
+        raise ValueError("Multiple tables found: table id should be set via the id= argument. The available tables are " + ', '.join(tables.keys()))
+    ValueError: Multiple tables found: table id should be set via the table_id= argument. The available tables are twomass, spitzer
+
+    >>> t = Table.read('catalog.xml', table_id='twomass')
+
+To write to a new file, the ID of the table should also be specified (unless
+``t.meta['ID']`` is defined)::
+
+    >>> t.write('new_catalog.xml', table_id='updated_table', format='votable')
+
+When writing, the ``compression=True`` argument can be used to force
+compression of the data on disk, and the ``overwrite=True`` argument can be
+used to overwrite an existing file.
 
 Other
 """""
 
-In future, FITS and VO tables will also be supported.
+In future, FITS tables will also be supported via the
+:class:`~astropy.table.table.Table` class. For now, these can be read and
+written directly with `astropy.io.fits`.
 
 Creating a custom reader/writer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
