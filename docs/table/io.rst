@@ -153,8 +153,8 @@ Advanced information is available in the :class:`~astropy.io.ascii.basic.Rdb`
 class (any arguments apart from the filename and ``format`` are passed to
 this class when ``format='rdb'``).
 
-Arbitrary formats
-+++++++++++++++++
+Arbitrary ASCII formats
++++++++++++++++++++++++
 
 ``format='ascii'`` can be used to interface to the bare
 :func:`~astropy.io.ascii.ui.read` and :func:`~astropy.io.ascii.ui.write`
