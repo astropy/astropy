@@ -24,6 +24,7 @@ User Documentation
 
    overview
    install
+   importing
    nddata/index
    units/index
    time/index
