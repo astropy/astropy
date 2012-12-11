@@ -13,6 +13,7 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 
+
 from ..config import ConfigurationItem
 
 
@@ -360,7 +361,7 @@ class NDData(object):
         """
         operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
 
-    def _arithmetic(self, operand, operation_name):
+    def _arithmetic(self, operand, operation_name, switch_operands=False):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -368,9 +369,12 @@ class NDData(object):
         ----------
         operand : `~astropy.nddata.NDData`
             The second operand in the operation a {operator} b
-        propagate_uncertainties : bool
-            Whether to propagate uncertainties following the propagation rules
-            defined by the class used for the `uncertainty` attribute.
+
+        operation_name : `~str`
+            Name of the operation, can be 'add', 'subtract', 'multiply', 'divide'
+
+        switch_operands: `~bool`
+            Is `True` when the switched binary operations are called (e.g. `__rsub__`)
 
         Returns
         -------
@@ -394,9 +398,55 @@ class NDData(object):
 
         operation = operation_name2operation[operation_name]
 
-        if isinstance(operand, Quantity):
-            new_data = getattr(self.__array__(), operation)(other.to(self.unit).value)
-            return self.__class__(new_data, unit=self.unit)
+        if np.isscalar(operand):
+            if operation_name in ('add', 'subtract'):
+                raise ValueError('Cannot %s scalar and %s' % (operation_name, self.__class__.__name__))
+            else:
+                if (operation_name == 'divide') & switch_operands:
+                    new_data = operand / self.data
+                    new_unit = self.unit**-1
+                else:
+                    new_unit = self.unit
+                    new_data = getattr(self.__array__(), operation)(operand)
+
+            if self.flags is not None:
+                log.warn('Currently flag arithmetic is not implemented. The result of this operation will have None'
+                         'as a flag')
+
+            if self.uncertainty is not None:
+                log.warn('Currently uncertainty propagation is not implemented. The result of this operation '
+                         'will have None as an uncertainty')
+
+
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs, mask=self.mask, meta=self.meta)
+
+        elif isinstance(operand, Quantity):
+            if operation_name in ('add', 'subtract'):
+                new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+
+                if (operation_name == 'subtract') & switch_operands:
+                    new_data = operand.value - self.unit.to(operand.unit, self.data)
+                    new_unit = operand.unit
+
+                elif (operation_name == 'add') & switch_operands:
+                    new_data = operand.value + self.unit.to(operand.unit, self.data)
+                    new_unit = operand.unit
+                else:
+                    new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+                    new_unit = self.unit
+
+            if operation_name in ('multiply', 'divide'):
+                new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+
+                if (operation_name == 'divide') & switch_operands:
+                    new_data = operand.value / self.data
+                    new_unit = operand.unit/self.unit
+
+                else:
+                    new_data = getattr(self.__array__(), operation)(operand.value)
+                    new_unit = getattr(self.unit, operation)(operand.unit)
+
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs, mask=self.mask, meta=self.meta)
 
         elif isinstance(operand, self.__class__):
             if self.shape != operand.shape:
@@ -414,15 +464,21 @@ class NDData(object):
                          'will have None as an uncertainty')
 
             if (self.unit is not None) and (operand.unit is not None):
+                if switch_operands:
+                    operand2 = self
+                    operand1 = operand
+                else:
+                    operand1 = self
+                    operand2 = operand
 
                 if operation_name in ('add', 'subtract'):
-                    operand_data = operand.unit.to(self.unit, operand.data)
-                    new_unit = self.unit
-                    new_data = getattr(self.__array__(), operation)(operand_data)
+                    operand_data = operand2.unit.to(self.unit, operand2.data)
+                    new_unit = operand1.unit
+                    new_data = getattr(operand1.__array__(), operation)(operand_data)
 
                 elif operation_name in ('multiply', 'divide'):
-                    new_unit = self.unit * operand.unit
-                    new_data = getattr(self.__array__(), operation)(operand.data)
+                    new_unit = getattr(operand1.unit, operation)(operand2.unit)
+                    new_data = getattr(operand1.__array__(), operation)(operand2.data)
 
             elif (self.unit is None) and (operand.unit is None):
                 new_unit = None
@@ -432,11 +488,11 @@ class NDData(object):
                 raise TypeError('Both units must be None or an actual Unit. For a dimensionless unit please use Unit(1)')
 
 
-            return self.__class__(new_data, unit=self.unit, wcs=self.wcs,
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs,
                 meta=merge_meta(self.meta, operand.meta, operation_name))
 
         else:
-            raise TypeError('Cannot {operation_name} of type {self_type} with {other_type}'.format(
+            raise TypeError('Cannot {operation_name} of type {self_type} with {operand_type}'.format(
                 operation_name=operation_name, self_type=type(self), operand_type=type(operand)))
 
 
@@ -444,33 +500,30 @@ class NDData(object):
     def __add__(self, other):
         return self._arithmetic(other, 'add')
 
+    def __radd__(self, other):
+        return self._arithmetic(other, 'add', switch_operands=True)
+
+
     def __sub__(self, other):
         return self._arithmetic(other, 'subtract')
+
+    def __rsub__(self, other):
+        return self._arithmetic(other, 'subtract', switch_operands=True)
+
 
     def __mul__(self, other):
         return self._arithmetic(other, 'multiply')
 
+    def __rmul__(self, other):
+        return self._arithmetic(other, 'multiply', switch_operands=True)
+
+
     def __div__(self, other):
         return self._arithmetic(other, 'divide')
 
+    def __rdiv__(self, other):
+        return self._arithmetic(other, 'divide', switch_operands=True)
 
-
-    def __add__(self, other):
-        if isinstance(other, Quantity):
-            new_data = self.__array__() + other.to(self.unit).value
-            return self.__class__(new_data, unit=self.unit)
-
-        elif isinstance(other, self.__class__):
-            #TODO change to not invoke Masked array after units have been fixed
-            other_data = other.unit.to(self.unit, other.data)
-            if other.mask is not None:
-                other_data = np.ma.MaskedArray(other_data, mask=other.mask)
-
-            new_data = self.__array__() + other_data
-            return self.__class__(new_data, unit=self.unit)
-
-        else:
-            raise TypeError('Cannot add type blah blah blah')
 
 
     def convert_units_to(self, unit):
