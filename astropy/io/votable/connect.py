@@ -96,7 +96,7 @@ def write_table_votable(input, output, table_id=None, overwrite=False):
     """
 
     # Check if output file already exists
-    if os.path.exists(output):
+    if isinstance(output, basestring) and os.path.exists(output):
         if overwrite:
             os.remove(output)
         else:
