@@ -127,14 +127,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     # Get a file object to the content
     if isinstance(name_or_obj, basestring):
         if _is_url(name_or_obj):
-            fileobj = open(download_file(name_or_obj, cache=cache))
-            close_fds.append(fileobj)
+            name_or_obj = download_file(name_or_obj, cache=cache)
+        if PY3K:
+            fileobj = io.FileIO(name_or_obj, 'r')
         else:
-            if PY3K:
-                fileobj = io.FileIO(name_or_obj, 'r')
-            else:
-                fileobj = open(name_or_obj, 'rb')
-            close_fds.append(fileobj)
+            fileobj = open(name_or_obj, 'rb')
+        close_fds.append(fileobj)
     else:
         fileobj = name_or_obj
 
