@@ -44,6 +44,6 @@ import any Astropy functionality using ``*``, for example::
 
 Some components of Astropy started off as standalone packages (e.g. PyFITS, PyWCS),
 so in cases where Astropy needs to be used as a drop-in replacement, the following
-syntax is acceptable::
+syntax is also acceptable::
 
     >>> from astropy.io import fits as pyfits
