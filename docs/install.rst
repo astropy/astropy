@@ -11,10 +11,18 @@ Astropy has the following strict requirements:
 
 - `Numpy <http://www.numpy.org/>`_ 1.4 or later
 
-Astropy also depends on other projects for optional features.
+Astropy also depends on other packages for optional features:
 
-- `scipy <http://www.scipy.org/>`_: To power a variety of features.
+- `h5py <http://alfven.org/wp/hdf5-for-python/>`_: To read/write
+  :class:`~astropy.table.table.Table` objects from/to HDF5 files
+
+- `scipy <http://www.scipy.org/>`_: To power a variety of features (currently
+  mainly cosmology-related functionality)
+
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
+
+However, not that these only need to be installed if those particular features
+are needed. Astropy will import even if these dependencies are not installed.
 
 .. TODO: Link to the planned dependency checker/installer tool.
 
