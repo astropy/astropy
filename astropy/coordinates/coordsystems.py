@@ -522,9 +522,22 @@ class SphericalCoordinatesBase(object):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, *args, **kwargs):
+    def from_name(cls, name, database='all'):
         """ Given a name, query the CDS name resolver to attempt to retrieve coordinate
             information for that object.
+
+            Parameters
+            ----------
+            name : str
+                The name of the object to get coordinates for, e.g. m42.
+            database : str (optional)
+                Specify which database to search. Can be 'ned', 'simbad', 'vizier', or 'all.'
+
+            Returns
+            -------
+            Instance of a Coordinates class, specified by the class this is called on, e.g. if
+            `GalacticCoordinates.from_name('m42')`, will get an instance of `GalacticCoordinates`
+            representing the position of M42.
         """
 
         from .name_resolve import get_icrs_coordinates
