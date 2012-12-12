@@ -12,13 +12,28 @@ import pytest
 
 # Astropy
 from ..name_resolve import get_icrs_coordinates
+from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, GalacticCoordinates
 
 def test_names():
 
     with pytest.raises(ValueError):
         get_icrs_coordinates("m87h34hhh")
 
-    for name in ["ngc 3642", "m42", "castor", "pollux"]:
-        print(get_icrs_coordinates(name))
+    #for name in ["ngc 3642", "m42", "castor", "pollux"]:
+    icrs = get_icrs_coordinates("ngc 3642")
+    icrs_true = ICRSCoordinates("11h 22m 18.014s", "59d 04m 27.27s")
+    np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
+    np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
 
-    assert False
+    icrs = get_icrs_coordinates("castor")
+    icrs_true = ICRSCoordinates("07h 34m 35.87s", "+31d 53m 17.8s")
+    np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
+    np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
+
+def test_transforms():
+
+    for name in ["ngc 3642", "m42", "castor", "pollux"]:
+        icrs = ICRSCoordinates.from_name(name)
+        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+        np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 7)
+        np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 7)
