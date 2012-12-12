@@ -316,7 +316,10 @@ class SphericalCoordinatesBase(object):
         elif isinstance(val, Distance):
             self._distance = val
         else:
-            raise TypeError('Spherical coordinate distance must be a ')
+            raise TypeError(
+                'Spherical coordinate distance must be a Distance object, a '
+                'tuple that can be used to instantiate a Distance object, or '
+                'None.')
 
     @property
     def x(self):
