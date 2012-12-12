@@ -522,14 +522,14 @@ class SphericalCoordinatesBase(object):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name):
+    def from_name(cls, name, *args, **kwargs):
         """ Given a name, query the CDS name resolver to attempt to retrieve coordinate
             information for that object.
         """
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs = get_icrs_coordinates(name)
+        icrs = get_icrs_coordinates(name, *args, **kwargs)
         if cls == icrs.__class__:
             return icrs
         else:
