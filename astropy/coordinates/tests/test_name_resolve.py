@@ -35,8 +35,8 @@ def test_names():
 def test_transforms():
 
     for name in ["ngc 3642", "m42", "castor", "pollux"]:
-        icrs = ICRSCoordinates.from_name(name)
-        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+        icrs = ICRSCoordinates.resolve_name(name)
+        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 7)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 7)
 
@@ -44,8 +44,8 @@ def test_database_specify():
 
     for db in ["simbad", "ned", "vizier", "all"]:
         for name in ["ngc 3642", "m42"]:
-            icrs = ICRSCoordinates.from_name(name, database=db)
-            gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+            icrs = ICRSCoordinates.resolve_name(name, database=db)
+            gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
             np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
             np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
 
@@ -56,11 +56,11 @@ def test_database_castor():
     for db in ["simbad", "ned", "vizier", "all"]:
         if db == "ned":
             with pytest.raises(urllib2.URLError):
-                icrs = ICRSCoordinates.from_name(name, database=db)
+                icrs = ICRSCoordinates.resolve_name(name, database=db)
             continue
 
-        icrs = ICRSCoordinates.from_name(name, database=db)
-        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+        icrs = ICRSCoordinates.resolve_name(name, database=db)
+        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
 
