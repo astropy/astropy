@@ -542,7 +542,7 @@ class SphericalCoordinatesBase(object):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs = get_icrs_coordinates(name, *args, **kwargs)
+        icrs = get_icrs_coordinates(name, database=database)
         if cls == icrs.__class__:
             return icrs
         else:
