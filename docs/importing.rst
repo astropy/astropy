@@ -11,7 +11,7 @@ astropy as::
     >>> import astropy
 
 is not very useful. Instead, it is best to import the desired sub-pacakge
-with the syntax:
+with the syntax::
 
     >>> from astropy import subpackage
 
@@ -41,3 +41,9 @@ Note that for clarity, and to avoid any issues, we recommend to **never**
 import any Astropy functionality using ``*``, for example::
 
     >>> from astropy.io.fits import *  # NOT recommended
+
+Some components of Astropy started off as standalone packages (e.g. PyFITS, PyWCS),
+so in cases where Astropy needs to be used as a drop-in replacement, the following
+syntax is acceptable::
+
+    >>> from astropy.io import fits as pyfits
