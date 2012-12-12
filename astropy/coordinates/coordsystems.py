@@ -519,3 +519,18 @@ class SphericalCoordinatesBase(object):
                 dir_items.append(alias)
 
         return sorted(set(dir_items))
+
+    # Name resolve
+    @classmethod
+    def from_name(cls, name):
+        """ Given a name, query the CDS name resolver to attempt to retrieve coordinate
+            information for that object.
+        """
+
+        from .name_resolve import get_icrs_coordinates
+
+        icrs = get_icrs_coordinates(name)
+        if cls == icrs.__class__:
+            return icrs
+        else:
+            return icrs.transform_to(cls)
