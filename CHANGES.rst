@@ -7,6 +7,13 @@ New Features
 This is a brief overview of the new features included in Astropy 0.2--please
 see the "What's New" section of the documentation for more details.
 
+- ``astropy.coordinates``
+
+  - This new subpackage contains a representation of celestial coordinates,
+    and provides a wide range of related functionality.  While
+    fully-functional, it is a work in progress and parts of the API may
+    change in subsequent releases.
+
 - ``astropy.cosmology``
 
   - Update to include cosmologies with variable dark energy equations of state.
