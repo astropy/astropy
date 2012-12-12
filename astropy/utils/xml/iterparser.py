@@ -9,6 +9,9 @@ import contextlib
 import io
 import sys
 
+# ASTROPY
+from .. import data
+
 
 __all__ = ['get_xml_iterator', 'get_xml_encoding', 'xml_readlines']
 
@@ -227,7 +230,8 @@ def xml_readlines(source):
     """
     encoding = get_xml_encoding(source)
 
-    with io.open(source, 'rt', encoding=encoding) as input:
+    with data.get_readable_fileobj(source, encoding=encoding) as input:
+        input.seek(0)
         xml_lines = input.readlines()
 
     return xml_lines

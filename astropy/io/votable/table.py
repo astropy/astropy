@@ -7,6 +7,7 @@ from __future__ import division, absolute_import
 
 # STDLIB
 import io
+import os
 import sys
 import warnings
 
@@ -14,6 +15,7 @@ import warnings
 from . import exceptions
 from . import tree
 from ...utils.xml import iterparser
+from ...utils import data
 from ...config import ConfigurationItem
 
 
@@ -150,13 +152,13 @@ def writeto(table, file):
     table.to_xml(file, _debug_python_based_parser=True)
 
 
-def validate(filename, output=sys.stdout, xmllint=False):
+def validate(source, output=sys.stdout, xmllint=False, filename=None):
     """
     Prints a validation report for the given file.
 
     Parameters
     ----------
-    filename : str path
+    source : str or readable file-like object
         Path to a VOTABLE_ xml file.
 
     output : writable file-like object, optional
@@ -166,7 +168,12 @@ def validate(filename, output=sys.stdout, xmllint=False):
     xmllint : bool, optional
         When `True`, also send the file to `xmllint` for schema and
         DTD validation.  Requires that `xmllint` is installed.  The
-        default is `False`.
+        default is `False`.  `source` must be a file on the local
+        filesystem in order for `xmllint` to work.
+
+    filename : str, optional
+        A filename to use in the error messages.  If not provided, one
+        will be automatically determined from ``source``.
 
     Returns
     -------
@@ -193,20 +200,35 @@ def validate(filename, output=sys.stdout, xmllint=False):
         if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__
 
-    with io.open(filename, 'rb') as input:
-        with warnings.catch_warnings(record=True) as warning_lines:
-            warnings.resetwarnings()
-            warnings.simplefilter("always", exceptions.VOWarning, append=True)
-            try:
-                votable = parse(input, pedantic=False, filename=filename)
-            except ValueError as e:
-                lines.append(str(e))
+    with data.get_readable_fileobj(source, encoding='binary') as fd:
+        content = fd.read()
+    content_buffer = io.BytesIO(content)
+    content_buffer.seek(0)
+
+    if filename is None:
+        if isinstance(source, basestring):
+            filename = source
+        elif hasattr(source, 'name'):
+            filename = source.name
+        elif hasattr(source, 'url'):
+            filename = source.url
+        else:
+            filename = "<unknown>"
+
+    with warnings.catch_warnings(record=True) as warning_lines:
+        warnings.resetwarnings()
+        warnings.simplefilter("always", exceptions.VOWarning, append=True)
+        try:
+            votable = parse(content_buffer, pedantic=False, filename=filename)
+        except ValueError as e:
+            lines.append(str(e))
     lines = [str(x.message) for x in warning_lines] + lines
 
+    content_buffer.seek(0)
     output.write(u"Validation report for {0}\n\n".format(filename))
 
     if len(lines):
-        xml_lines = iterparser.xml_readlines(filename)
+        xml_lines = iterparser.xml_readlines(content_buffer)
 
         for warning in lines:
             w = exceptions.parse_vowarning(warning)
@@ -236,7 +258,7 @@ def validate(filename, output=sys.stdout, xmllint=False):
         output.write(u'astropy.io.votable found no violations.\n\n')
 
     success = 0
-    if xmllint:
+    if xmllint and os.path.exists(filename):
         from ...utils.xml import validate
 
         if votable is None:
