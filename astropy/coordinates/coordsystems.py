@@ -90,7 +90,8 @@ class SphericalCoordinatesBase(object):
         * If `x`, `y`, and `z` are given:
             `unit` must be a single unit with dimensions of length"""
 
-    def _initialize_latlon(self, lonname, latname, useradec, initargs, initkwargs):
+    def _initialize_latlon(self, lonname, latname, useradec, initargs,
+        initkwargs, anglebounds=None):
         """
         Subclasses should use this to initialize standard lat/lon-style
         coordinates.
@@ -110,6 +111,10 @@ class SphericalCoordinatesBase(object):
             The ``*args`` from the initializer
         initkwargs : dict
             The ``**kwargs`` from the initializer
+        anglebounds : 2-tuple of 2-tuples or None
+            The bounds to be used for the `lonname` and `latname` coordinates in
+            *degrees*, or None to use the `Angle` defaults. Ignored if
+            `useradec` is True (`RA` and `Dec` have implicit bounds).
         """
         initkwargs = dict(initkwargs)  # copy
         nargs = len(initargs)
@@ -253,6 +258,11 @@ class SphericalCoordinatesBase(object):
                             '{latname}/{lonname}/(distance) or x/y/z '
                             ''.format(coordnm=sclsnm, latname=latname,
                                       lonname=lonname))
+
+        #add in the bounds, if relevant
+        if anglebounds is not None and not useradec:
+            lonang = Angle(lonang.degrees, u.degree, bounds=anglebounds[0])
+            latang = Angle(latang.degrees, u.degree, bounds=anglebounds[1])
 
         # now actually set the values
         setattr(self, lonname, lonang)
