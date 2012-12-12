@@ -5,6 +5,8 @@ This module contains tests for the name resolve convenience module.
 """
 
 # Standard library
+import time
+import urllib2
 
 # Third party
 import numpy as np
@@ -37,3 +39,29 @@ def test_transforms():
         gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 7)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 7)
+
+def test_database_specify():
+
+    for db in ["simbad", "ned", "vizier", "all"]:
+        for name in ["ngc 3642", "m42"]:
+            icrs = ICRSCoordinates.from_name(name, database=db)
+            gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+            np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
+            np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
+
+            time.sleep(1)
+
+def test_database_castor():
+    name = "castor"
+    for db in ["simbad", "ned", "vizier", "all"]:
+        if db == "ned":
+            with pytest.raises(urllib2.URLError):
+                icrs = ICRSCoordinates.from_name(name, database=db)
+            continue
+
+        icrs = ICRSCoordinates.from_name(name, database=db)
+        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
+        np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
+        np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
+
+        time.sleep(1)

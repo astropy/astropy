@@ -9,6 +9,7 @@ from __future__ import division, print_function
 # Standard library
 import re
 import sys
+import httplib
 import urllib
 import urllib2
 
@@ -21,16 +22,35 @@ from .. import units as u
 
 __all__ = ["get_icrs_coordinates"]
 
-sesame_url = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame?{name}"
+sesame_url = "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/{db}?{name}"
+mirror_url = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
+allowed_databases = ['ned', 'simbad', 'vizier', 'all']
 
-def get_icrs_coordinates(name):
-    """ """
+def get_icrs_coordinates(name, database='all'):
+    """ Retrieve an ICRSCoordinates object by using an online name resolving
+        service to retrieve coordinates for the specified name.
 
+        Parameters
+        ----------
+        name : str
+            The name of the object to get coordinates for, e.g. m42.
+        database : str (optional)
+            Specify which database to search. Can be 'ned', 'simbad', 'vizier', or 'all.'
+    """
+
+    if database.lower() not in allowed_databases:
+        raise ValueError("Invalid database name: {0}. Allowed databases: {1}".format(database, ",".join(allowed_databases)))
+
+    # The web API just takes the first letter of the database name
+    db = database.upper()[0]
+    url = sesame_url.format(name=urllib.quote(name), db=db)
     try:
         # Retrieve ascii name resolve data from CDS
-        resp = urllib2.urlopen(sesame_url.format(name=urllib.quote(name)))
+        resp = urllib2.urlopen(url)
     except urllib2.URLError:
-        raise OSError("Unable to connect to name resolve web service. Check your internet connection, and try again.")
+        raise urllib2.URLError("Unable to connect to name resolve web server. Check your internet connection, and try again.")
+    except httplib.BadStatusLine:
+        raise urllib2.URLError("Server didn't return any data. This could mean the object was not found in the specified database. URL: {0}".format(url))
 
     resp_data = resp.read()
 
@@ -38,7 +58,12 @@ def get_icrs_coordinates(name):
     matched = pattr.search(resp_data)
 
     if matched == None:
-        raise ValueError("Unable to find coordinates for name '{0}'".format(name))
+        if db == "a":
+            err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
+        else:
+            err = "Unable to find coordinates for name '{0}'".format(name)
+
+        raise ValueError(err)
 
     ra,dec = matched.groups()
 
