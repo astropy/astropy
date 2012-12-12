@@ -21,7 +21,7 @@ Astropy also depends on other packages for optional features:
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
-However, not that these only need to be installed if those particular features
+However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
 
 .. TODO: Link to the planned dependency checker/installer tool.
