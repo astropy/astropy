@@ -522,7 +522,7 @@ class SphericalCoordinatesBase(object):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, database='all'):
+    def resolve_name(cls, name, database='all'):
         """ Given a name, query the CDS name resolver to attempt to retrieve coordinate
             information for that object.
 
