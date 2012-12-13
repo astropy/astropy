@@ -866,7 +866,7 @@ class TimeString(TimeFormat):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
-        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.encode('utf8'),
+        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.upper().encode('utf8'),
                                               iy, im, id, ihr, imin, dsec)
 
     def str_kwargs(self):
