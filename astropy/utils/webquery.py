@@ -48,9 +48,8 @@ import sys
 import urllib
 import urllib2
 
-__all__ = ['webquery_open', 'webquery', 'webget_open', 'webget']
 
-URLLIB2_HAS_TIMEOUT = (sys.hexversion >= 0x02060000)
+__all__ = ['webquery_open', 'webquery', 'webget_open', 'webget']
 
 
 class WebQueryError(Exception):  # pragma: no cover
@@ -120,18 +119,7 @@ def webquery_open(args=(), **kw):
         url = "{}?{}".format(url, query)
         query = None
 
-    if URLLIB2_HAS_TIMEOUT:
-        return urllib2.urlopen(url, query, timeout)
-    else:
-        # This is the old way to set a socket timeout prior to Python
-        # 2.6.  NOTE THIS IS NOT THREADSAFE
-        old_timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(timeout)
-        try:
-            req = urllib2.urlopen(url, query)
-        finally:
-            socket.setdefaulttimeout(old_timeout)
-        return req
+    return urllib2.urlopen(url, query, timeout)
 
 
 def webquery(args=(), **kw):
@@ -223,18 +211,7 @@ def webget_open(url, timeout=None, method='GET', **keywords):
     else:
         raise WebQueryError("method kwarg must be 'GET' or 'POST'")
 
-    if URLLIB2_HAS_TIMEOUT:
-        return urllib2.urlopen(url, query, timeout)
-    else:
-        # This is the old way to set a socket timeout prior to Python
-        # 2.6.  NOTE THIS IS NOT THREADSAFE
-        old_timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(timeout)
-        try:
-            req = urllib2.urlopen(url, query)
-        finally:
-            socket.setdefaulttimeout(old_timeout)
-        return req
+    return urllib2.urlopen(url, query, timeout)
 
 
 def webget(url, file=None, timeout=None, method='GET', **keywords):

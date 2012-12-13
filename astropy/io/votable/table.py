@@ -345,13 +345,20 @@ def is_votable(source):
 
 def reset_vo_warnings():
     """
-    This is a special variable used by the Python warnings
-    infrastructure to keep track of warnings that have
-    already been seen.  Since we want to get every single
-    warning out of this, we have to delete all of them first.
+    Resets all of the vo warning state so that warnings that
+    have already been emitted will be emitted again. This is
+    used, for example, by `validate` which must emit all
+    warnings each time it is called.
 
     """
     from . import converters, xmlutil
+
+    #-----------------------------------------------------------#
+    # This is a special variable used by the Python warnings    #
+    # infrastructure to keep track of warnings that have        #
+    # already been seen.  Since we want to get every single     #
+    # warning out of this, we have to delete all of them first. #
+    #-----------------------------------------------------------#
     for module in (converters, exceptions, tree, xmlutil):
         if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__

@@ -86,15 +86,15 @@ class TestConeSearchResults():
         self.r = inspect.ConeSearchResults()
 
     def test_catkeys(self):
-        assert self.r.catkeys['good'] == \
+        assert (self.r.catkeys['good'] ==
             ['HST Guide Star Catalog 2.3 1',
-             'The USNO-A2.0 Catalogue (Monet+ 1998) 1']
-        assert self.r.catkeys['warn'] == \
+            'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
+        assert (self.r.catkeys['warn'] ==
             ['2MASS All-Sky Point Source Catalog 1',
-             'SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs 1']
+            'SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs 1'])
         assert self.r.catkeys['exception'] == []
-        assert self.r.catkeys['error'] == \
-            ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1']
+        assert (self.r.catkeys['error'] ==
+            ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1'])
 
     def gen_cmp(self, func, oname, *args, **kwargs):
         dat_file = get_pkg_data_filename(os.path.join(self.datadir, oname))

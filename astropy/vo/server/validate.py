@@ -252,6 +252,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     AssertionError
         Parameter failed assertion test.
 
+    IOError
+        Invalid destination directory.
+
     timeout
         URL request timed out.
 
@@ -261,9 +264,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     # Start timer
     t_beg = time.time()
 
-    assert (not os.path.exists(destdir) and len(destdir) > 0) or \
-        (os.path.exists(destdir) and os.path.isdir(destdir)), \
-        'Invalid destination directory'
+    if (not isinstance(destdir, basestring) or len(destdir) == 0 or
+            os.path.exists(destdir) and not os.path.isdir(destdir)):
+        raise IOError('Invalid destination directory')
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
@@ -501,8 +504,8 @@ def _categorize_result(r):
     if 'network_error' in r and r['network_error'] is not None:
         r['out_db_name'] = 'nerr'
         r['expected'] = 'broken'
-    elif (r['nexceptions'] == 0 and r['nwarnings'] == 0) or \
-            r['warning_types'].issubset(NONCRIT_WARNINGS()):
+    elif ((r['nexceptions'] == 0 and r['nwarnings'] == 0) or
+            r['warning_types'].issubset(NONCRIT_WARNINGS())):
         r['out_db_name'] = 'good'
         r['expected'] = 'good'
     elif r['nexceptions'] > 0:

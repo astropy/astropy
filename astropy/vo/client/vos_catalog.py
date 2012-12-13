@@ -401,8 +401,8 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         catalogs = [(None, catalog_db)]
     elif isinstance(catalog_db, list):
         for x in catalog_db:
-            assert isinstance(x, (VOSCatalog, basestring)) and \
-                not isinstance(x, VOSDatabase)
+            assert (isinstance(x, (VOSCatalog, basestring)) and
+                    not isinstance(x, VOSDatabase))
         catalogs = [(None, x) for x in catalog_db]
     else:  # pragma: no cover
         raise VOSError('catalog_db must be a catalog database, '

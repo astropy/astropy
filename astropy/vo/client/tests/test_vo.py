@@ -86,10 +86,10 @@ class TestConeSearch():
         self.pedantic = False
 
     def test_cat_listing(self):
-        assert conesearch.list_catalogs(sort=True) == \
-            ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1']
-        assert conesearch.list_catalogs(match_string='usno*a', sort=True) == \
-            ['USNO ACT', 'USNO NOMAD', 'USNO-A2']
+        assert (conesearch.list_catalogs(sort=True) ==
+            ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1'])
+        assert (conesearch.list_catalogs(match_string='usno*a', sort=True) ==
+            ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
     def test_one_search(self):
         """
@@ -146,6 +146,6 @@ class TestConeSearch():
         assert n_2 > 0 and n_2 <= n_1 * 1.5
         assert t_2 > 0 and t_2 <= t_1 * 1.5
 
-  def teardown_class(self):
-      conesearch.CONESEARCH_DBNAME.set(
-          conesearch.CONESEARCH_DBNAME.defaultvalue)
+    def teardown_class(self):
+        conesearch.CONESEARCH_DBNAME.set(
+            conesearch.CONESEARCH_DBNAME.defaultvalue)
