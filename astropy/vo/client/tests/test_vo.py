@@ -30,7 +30,7 @@ def test_basic_db():
 
     """
     basic_db = vos_catalog.get_remote_catalog_db('basic')
-    assert sorted(basic_db) == ['__version__', 'catalogs', 'content']
+    assert sorted(basic_db.keys()) == ['__version__', 'catalogs', 'content']
     assert basic_db['content'] == ['A', 'B', 'C']
 
     assert basic_db.list_catalogs() == ['foo']
