@@ -115,6 +115,8 @@ Find catalog names containing 'usno-a' and sort them
 alphabetically:
 
 >>> usnoa_cats = conesearch.list_catalogs(match_string='usno-a', sort=True)
+>>> print(usnoa_cats)
+[u'USNO-A V2.0, A Catalog of Astrometric Standards 1', u'USNO-A2.0 1']
 
 Perform the same cone search as above using only USNO-A
 catalogs in this new database. As the first catalog in
@@ -215,6 +217,22 @@ class AsyncConeSearch(Future):
     Returns
     -------
     obj : see `conesearch`
+
+    Examples
+    --------
+    >>> async_search = AsyncConeSearch(6.088, -72.086, 0.5, pedantic=False)
+
+    Check search status:
+
+    >>> async_search.is_done()
+    False
+
+    Get search results with 30-sec time-out. If still not
+    done after 30 seconds, `None` is returned. If no
+    `timeout` given, it waits till completion:
+
+    >>> async_result = async_search.get(timeout=30)
+    >>> cone_arr = async_result.array.data
 
     """
     def __init__(self, *args, **kwargs):
