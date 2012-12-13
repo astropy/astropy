@@ -177,7 +177,7 @@ class VOSDatabase(VOSCatalog):
 
         """
         if not name in self._catalogs:
-            raise VOSError("No catalog '{}' found.".format(name))
+            raise VOSError("No catalog '{0}' found.".format(name))
         return VOSCatalog(self._catalogs[name])
 
     def get_catalog_by_url(self, url):
@@ -191,7 +191,7 @@ class VOSDatabase(VOSCatalog):
             out_cat = cat
             break
         if out_cat is None:
-            raise VOSError("No catalog with URL '{}' found.".format(url))
+            raise VOSError("No catalog with URL '{0}' found.".format(url))
         return out_cat
 
     def list_catalogs(self, match_string=None, sort=False):
@@ -296,7 +296,7 @@ def vo_tab_parse(tab, url, kwargs):
     """
     for param in tab.iter_fields_and_params():
         if param.ID.lower() == 'error':
-            raise VOSError("Catalog server '{}' returned error '{}'".format(
+            raise VOSError("Catalog server '{0}' returned error '{1}'".format(
                 url, param.value))
         break
 
@@ -306,11 +306,11 @@ def vo_tab_parse(tab, url, kwargs):
     for info in tab.resources[0].infos:
         if info.name == 'QUERY_STATUS' and info.value != 'OK':
             if info.content is not None:
-                long_descr = ':\n{}'.format(info.content)
+                long_descr = ':\n{0}'.format(info.content)
             else:
                 long_descr = ''
-            raise VOSError("Catalog server '{}' returned status '{}'{}".format(
-                url, info.value, long_descr))
+            raise VOSError("Catalog server '{0}' returned status "
+                           "'{1}'{2}".format(url, info.value, long_descr))
         break
 
     out_tab = tab.get_first_table()
@@ -322,7 +322,7 @@ def vo_tab_parse(tab, url, kwargs):
         sr = kwargs.get(kw_sr[0])
 
     if sr != 0 and out_tab.array.size <= 0:
-        raise VOSError("Catalog server '{}' returned {} result".format(
+        raise VOSError("Catalog server '{0}' returned {1} result".format(
             url, out_tab.array.size))
 
     out_tab.url = url  # Track the URL
@@ -423,7 +423,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             url = catalog['url']
 
         if verbose:  # pragma: no cover
-            color_print('Trying {}'.format(url), 'green')
+            color_print('Trying {0}'.format(url), 'green')
 
         try:
             return _vo_service_request(url, pedantic, kwargs)

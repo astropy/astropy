@@ -17,7 +17,7 @@ from ...utils.data import get_readable_fileobj
 def parse_cs(id):
     """Return `testQuery` pars as dict for given Resource ID."""
     url = 'http://nvo.stsci.edu/vor10/getRecord.aspx?' \
-        'id={}&format=xml'.format(id)
+        'id={0}&format=xml'.format(id)
     tqp = ['ra', 'dec', 'sr']
     d = OrderedDict()
     with get_readable_fileobj(url) as fd:

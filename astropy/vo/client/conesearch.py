@@ -379,8 +379,8 @@ def predict_search(url, *args, **kwargs):
     sr_step = (1.0 / num_datapoints) * (sr_max - sr_min)  # Radius step
 
     if verbose:  # pragma: no cover
-        log.info('predict_search latency time = {} s'.format(t_min))
-        log.info('predict_search radius step = {} deg'.format(sr_step))
+        log.info('predict_search latency time = {0} s\n'
+                 'predict_search radius step = {1} deg'.format(t_min, sr_step))
 
     # Slowly increase radius to get data points for extrapolation
     t_cur = t_min
@@ -390,8 +390,8 @@ def predict_search(url, *args, **kwargs):
         t_cur, n_cur = conesearch_timer(ra, dec, sr_cur, **kwargs)
 
         if verbose:  # pragma: no cover
-            log.info('predict_search took {} s with {} results '
-                     'at {} deg radius'.format(t_cur, n_cur, sr_cur))
+            log.info('predict_search took {0} s with {1} results '
+                     'at {2} deg radius'.format(t_cur, n_cur, sr_cur))
 
         if t_cur >= t_min:
             sr_arr.append(sr_cur)
@@ -402,7 +402,7 @@ def predict_search(url, *args, **kwargs):
 
     n_datapoints = len(sr_arr)
     if n_datapoints < min_datapoints:  # pragma: no cover
-        raise ConeSearchError('predict_search only has {} data points; '
+        raise ConeSearchError('predict_search only has {0} data points; '
                               'unable to continue.'.format(n_datapoints))
 
     sr_arr = np.array(sr_arr)
@@ -478,12 +478,12 @@ def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
     y_fit = p(x_arr)
 
     if a[0] < 0:
-        log.warn('Fitted slope for {} is negative ({})'.format(name, a[0]))
+        log.warn('Fitted slope for {0} is negative ({1})'.format(name, a[0]))
 
     if ymin is not None and y < ymin:  # pragma: no cover
-        log.warn('Predicted {} is less than {} {}'.format(name, ymin, unit))
+        log.warn('Predicted {0} is less than {1} {2}'.format(name, ymin, unit))
     elif ymax is not None and y > ymax:  # pragma: no cover
-        log.warn('Predicted {} is more than {} {}'.format(name, ymax, unit))
+        log.warn('Predicted {0} is more than {1} {2}'.format(name, ymax, unit))
 
     return y, y_fit
 

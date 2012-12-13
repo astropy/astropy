@@ -73,6 +73,7 @@ class TestConeSearchValidation():
             os.path.join(local_outdir, 'conesearch_good.json'))
 
     def teardown_class(self):
+        validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
         shutil.rmtree(self.out_dir)
 
 
@@ -115,6 +116,7 @@ class TestConeSearchResults():
                      '2MASS All-Sky Point Source Catalog 1')
 
     def teardown_class(self):
+        BASEURL.set(BASEURL.defaultvalue)
         shutil.rmtree(self.out_dir)
 
 

@@ -61,8 +61,10 @@ validation in the current directory:
 from __future__ import print_function, division
 
 # STDLIB
-import os
 import sys
+
+# THIRD PARTY
+import numpy as np
 
 # LOCAL
 from ..client.vos_catalog import get_remote_catalog_db
@@ -114,17 +116,17 @@ class ConeSearchResults(object):
             Default is screen output.
 
         """
-        out_str = ''
+        str_list = []
         n_tot = 0
 
         for typ in self.dbtypes:
             n_cur = len(self.catkeys[typ])
             n_tot += n_cur
-            out_str += '{}: {} catalog(s){}'.format(typ, n_cur, os.linesep)
+            str_list.append('{0}: {1} catalog(s)'.format(typ, n_cur))
 
-        if out_str:
-            out_str += 'total: {} catalog(s){}'.format(n_tot, os.linesep)
-            fout.write(out_str)
+        if len(str_list) > 0:
+            str_list.append('total: {0} catalog(s)\n'.format(n_tot))
+            fout.write('\n'.join(str_list))
 
     def list_cats(self, typ, fout=sys.stdout, ignore_noncrit=False):
         """
@@ -150,10 +152,8 @@ class ConeSearchResults(object):
             This is useful to see why a catalog failed validation.
 
         """
-        import numpy as np
-
         assert typ in self.dbtypes
-        out_str = ''
+        str_list = []
 
         for cat in self.catkeys[typ]:
             cat_db = self.dbs[typ].get_catalog(cat)
@@ -168,15 +168,15 @@ class ConeSearchResults(object):
             # Warning types contains None if some other Exception was thrown
             out_wt = np.array(out_wt, dtype='S5')
 
-            out_str += os.linesep.join([cat, cat_db['url']])
+            str_list += [cat, cat_db['url']]
             if out_wt.size > 0:
-                out_str += os.linesep + ','.join(out_wt)
+                str_list.append(','.join(out_wt))
             if len(out_ws) > 0:
-                out_str += os.linesep + os.linesep.join(out_ws)
-            out_str += '{0}{0}'.format(os.linesep)
+                str_list.append('\n'.join(out_ws))
+            str_list[-1] += '\n'
 
-        if out_str:
-            fout.write(out_str)
+        if len(str_list) > 0:
+            fout.write('\n'.join(str_list))
 
     def print_cat(self, key, fout=sys.stdout):
         """
@@ -193,19 +193,18 @@ class ConeSearchResults(object):
             Default is screen output.
 
         """
-        out_str = ''
+        str_list = []
 
         for typ in self.dbtypes:
             if key in self.catkeys[typ]:
-                out_str += os.linesep.join(
-                    [repr(self.dbs[typ].get_catalog(key)),
-                     '{1}Found in {0}{1}'.format(typ, os.linesep)])
+                str_list += [repr(self.dbs[typ].get_catalog(key)),
+                             '\nFound in {0}'.format(typ)]
 
                 # Only has one match, so quits when it is found
                 break
 
-        if out_str:
-            fout.write(out_str)
+        if len(str_list) > 0:
+            fout.write('\n'.join(str_list) + '\n')
 
 
 def _exclude_noncrit(in_list):

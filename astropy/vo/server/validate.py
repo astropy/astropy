@@ -88,6 +88,7 @@ from __future__ import print_function, division
 # STDLIB
 from collections import defaultdict
 from copy import deepcopy
+from xml.sax import saxutils
 import json
 import os
 import time
@@ -119,7 +120,7 @@ CS_MSTR_LIST = ConfigurationItem(
 
 CS_URLS = ConfigurationItem(
     'cs_urls',
-    get_pkg_data_contents(os.sep.join(['data','conesearch_urls.txt'])).split(),
+    get_pkg_data_contents(os.path.join('data','conesearch_urls.txt')).split(),
     'Only check these Cone Search URLs.',
     'list')
 
@@ -290,7 +291,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         if os.path.exists(db_file[key]):
             os.remove(db_file[key])
             if verbose:
-                log.info('Existing file {} deleted'.format(db_file[key]))
+                log.info('Existing file {0} deleted'.format(db_file[key]))
 
     # Need to change default timeout
     REMOTE_TIMEOUT.set(30.0)
@@ -304,7 +305,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     assert arr_cone.size > 0, \
         'astropy.vo.server.cs_mstr_list yields no valid result'
 
-    fixed_urls = np.char.replace(arr_cone['accessURL'].tolist(), '&amp;', '&')
+    fixed_urls = saxutils.unescape(np.char.array(arr_cone['accessURL']))
     uniq_urls = set(fixed_urls)
 
     if url_list is None:
@@ -314,10 +315,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         assert isinstance(url_list, Iterable)
         for cur_url in url_list:
             assert isinstance(cur_url, basestring)
-        url_list = set(np.char.replace(url_list, '&amp;', '&'))
+        url_list = set(saxutils.unescape(np.char.array(url_list)))
 
         if verbose:
-            log.info('Only {}/{} sites are validated'.format(
+            log.info('Only {0}/{1} sites are validated'.format(
                 len(url_list), len(uniq_urls)))
 
     uniq_rows = len(url_list)
@@ -334,19 +335,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         if num_match == 0:
             log.warn(
-                '{} not found in cs_mstr_list! Skipping...'.format(cur_url))
+                '{0} not found in cs_mstr_list! Skipping...'.format(cur_url))
             continue
 
         i = i_same_url[0][0]
         n_ignored = num_match - 1
         row_d = {'duplicatesIgnored': n_ignored}
         if verbose and n_ignored > 0:
-            log.info('{} has {} ignored duplicate entries in '
+            log.info('{0} has {1} ignored duplicate entries in '
                      'cs_mstr_list'.format(cur_url, n_ignored))
 
         cur_title = arr_cone[i]['title']
         title_counter[cur_title] += 1
-        cat_key = '{} {}'.format(cur_title, title_counter[cur_title])
+        cat_key = '{0} {1}'.format(cur_title, title_counter[cur_title])
 
         for col in col_names:
             if col == 'accessURL':
@@ -413,7 +414,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         n[key] = len(js_tree[key]['catalogs'])
         n_tot += n[key]
         if verbose:
-            log.info('{}: {} catalog(s)'.format(key, n[key]))
+            log.info('{0}: {1} catalog(s)'.format(key, n[key]))
         with open(db_file[key], 'w') as f_json:
             f_json.write(json.dumps(js_tree[key], cls=NumpyScalarOrSetEncoder,
                                     sort_keys=True, indent=4))
@@ -425,9 +426,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     t_end = time.time()
 
     if verbose:
-        log.info('total: {} catalog(s)'.format(n_tot))
-        log.info('Validation of {} sites took {:.3f} s'.format(uniq_rows,
-                                                           t_end - t_beg))
+        log.info('total: {0} catalog(s)'.format(n_tot))
+        log.info('Validation of {0} sites took {1:.3f} s'.format(
+            uniq_rows, t_end - t_beg))
 
     if n['good'] == 0:
         log.warn('No good sites available for Cone Search.')
@@ -512,7 +513,7 @@ def _categorize_result(r):
         r['expected'] = 'incorrect'
     else:  # pragma: no cover
         raise vos_catalog.VOSError(
-            'Unhandled validation result attributes: {}'.format(r._attributes))
+            'Unhandled validation result attributes: {0}'.format(r._attributes))
 
 
 def _html_subindex(args):
@@ -533,5 +534,5 @@ def _copy_r_to_db(r, db):
 
     """
     for key, val in r._attributes.iteritems():
-        new_key = '_'.join(['validate', key])
+        new_key = 'validate_' + key
         db[new_key] = val
