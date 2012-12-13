@@ -2114,6 +2114,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 skip_table = True
                 self._empty = True
 
+        table_id = config.get('table_id')
+        if table_id is not None:
+            if table_id != self.ID:
+                skip_table = True
+                self._empty = True
+
         if self.ref is not None:
             # This table doesn't have its own datatype descriptors, it
             # just references those from another table.
@@ -3253,14 +3259,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             table.format = format
 
     @classmethod
-    def from_table(cls, table):
+    def from_table(cls, table, table_id=None):
         """
         Create a `VOTableFile` instance from a given
         `astropy.table.Table` instance.
+
+        Parameters
+        ----------
+        table_id : str, optional
+            Set the given ID attribute on the returned Table instance.
         """
         votable_file = cls()
         resource = Resource()
         votable = Table.from_table(votable_file, table)
+        if table_id is not None:
+            votable.ID = table_id
         resource.tables.append(votable)
         votable_file.resources.append(resource)
         return votable_file

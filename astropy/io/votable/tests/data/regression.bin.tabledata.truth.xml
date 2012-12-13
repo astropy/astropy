@@ -298,7 +298,7 @@
      </TABLEDATA>
     </DATA>
    </TABLE>
-   <TABLE nrows="0" ref="main_table"/>
+   <TABLE ID="last_table" nrows="0" ref="main_table"/>
   </RESOURCE>
  </RESOURCE>
 </VOTABLE>

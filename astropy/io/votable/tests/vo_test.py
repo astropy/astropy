@@ -764,7 +764,7 @@ def test_from_scratch_example():
         try:
             _run_test_from_scratch_example()
         except ValueError as e:
-            lines.append(str(e))
+            warning_lines.append(str(e))
 
     assert len(warning_lines) == 0
 
