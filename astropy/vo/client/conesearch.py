@@ -60,7 +60,8 @@ and its unit can be manipulated as `astropy.units`:
 >>> ra_field = result.get_field_by_id(col_ra)
 >>> print(ra_field.unit)
 deg
->>> ra_arcsec = ra_field.unit.to(u.arcsec) * ra_list
+>>> ra_field.unit.to(u.arcsec) * ra_list
+array([ 16075.35  ,  16088.0112,  16090.4628, ...])
 
 Perform the same cone search as above but asynchronously:
 
