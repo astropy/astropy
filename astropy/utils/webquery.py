@@ -43,7 +43,6 @@ ftp://legacy.gsfc.nasa.gov/heasarc/software/web_batch/webquery.pl
 
 """
 # STDLIB
-import socket
 import sys
 import urllib
 import urllib2

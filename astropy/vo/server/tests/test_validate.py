@@ -35,7 +35,7 @@ from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
 
 
 @remote_data
-class TestConeSearchValidation():
+class TestConeSearchValidation(object):
     """Validation on a small subset of Cone Search sites."""
     def setup_class(self):
         self.datadir = 'data'
@@ -77,7 +77,7 @@ class TestConeSearchValidation():
         shutil.rmtree(self.out_dir)
 
 
-class TestConeSearchResults():
+class TestConeSearchResults(object):
     """Inspection of `TestConeSearchValidation` results."""
     def setup_class(self):
         self.datadir = 'data'
@@ -123,7 +123,7 @@ class TestConeSearchResults():
 def _load_catnames(fname):
     with open(fname, 'r') as fd:
         js = json.load(fd)
-        cats = sorted(js['catalogs'].keys())
+        cats = sorted(js['catalogs'])
     return cats
 
 
