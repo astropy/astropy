@@ -56,7 +56,7 @@ class Future(object):
     def _run(self, *args, **kwargs):
         try:
             self._result = self._thunk(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             self._failed = True
             self._result = e
         else:

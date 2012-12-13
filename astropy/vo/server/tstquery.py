@@ -7,10 +7,10 @@ includes `testQuery` fields.
 from __future__ import print_function, division
 
 # STDLIB
-from collections import OrderedDict
 from xml.dom import minidom
 
 # LOCAL
+from ...utils import OrderedDict  # For 2.6 compatibility
 from ...utils.data import get_readable_fileobj
 
 
