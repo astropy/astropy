@@ -558,10 +558,10 @@ ETERMS_A = np.array([-1.62557, -0.31919, -0.13843]) * 1.e-6
 
 @transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1.01)
 def fk4_to_fk4_no_e(fk4c):
-  
+
     # Extract cartesian vector
     r = np.array([fk4c.x, fk4c.y, fk4c.z])
-    
+
     # Apply E-terms of aberration
     r = r - ETERMS_A + np.dot(r, ETERMS_A) * r
 
@@ -576,12 +576,12 @@ def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
     r = np.array([fk4c.x, fk4c.y, fk4c.z])
-    
+
     # Apply E-terms of aberration
     r0 = r.copy()
     for j in range(10):
         r = (r0 + ETERMS_A) / (1. + np.dot(r, ETERMS_A))
-        
+
     unit = None if fk4c.distance is None else fk4c.distance._unit
     result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit)
 
@@ -606,20 +606,34 @@ FK4_CORR = \
 
 # This transformation can't be static because the observation date is needed.
 @transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1.01)
-def fk4_no_e_to_fk5(fk4c):
+def fk4_no_e_to_fk5(fk4c, skip_precession=False):
 
     # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
     # Note this is *julian century*, not besselian
     T = (fk4c.obstime.jyear - 1950.) / 100.
 
-    return B1950_TO_J2000_M + FK4_CORR * T
+    B = B1950_TO_J2000_M + FK4_CORR * T
 
-J2000_TO_B1950_M = B1950_TO_J2000_M.I
+    # If equinox is not B1950, need to precess first
+    if skip_precession or fk4c.equinox == _EQUINOX_B1950:
+        return B
+    else:
+        from .earth_orientation import _precession_matrix_besselian
+        return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
 # This transformation can't be static because the observation date is needed.
 @transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1.01)
 def fk5_to_fk4_no_e(fk5c):
-    return fk4_no_e_to_fk5(fk5c).T
+
+    # Get transposed matrix from FK4 -> FK5 assuming equinox B1950 -> J2000
+    B = fk4_no_e_to_fk5(fk5c, skip_precession=True).T
+
+    # If equinox is not B1950, need to precess first
+    if fk5c.equinox == _EQUINOX_J2000:
+        return B
+    else:
+        from .earth_orientation import precession_matrix_Capitaine
+        return B * precession_matrix_Capitaine(fk5c.equinox, _EQUINOX_J2000)
 
 # GalacticCoordinates to/from FK4/FK5
 # can't be static because the equinox is needed
