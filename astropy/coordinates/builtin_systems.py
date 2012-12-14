@@ -566,7 +566,7 @@ def fk4_to_fk4_no_e(fk4c):
     r = r - ETERMS_A + np.dot(r, ETERMS_A) * r
 
     unit = None if fk4c.distance is None else fk4c.distance._unit
-    result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit)
+    result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
 
     return result
 
@@ -583,7 +583,7 @@ def fk4_no_e_to_fk4(fk4c):
         r = (r0 + ETERMS_A) / (1. + np.dot(r, ETERMS_A))
 
     unit = None if fk4c.distance is None else fk4c.distance._unit
-    result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit)
+    result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
 
     return result
 
