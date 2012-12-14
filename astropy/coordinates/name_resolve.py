@@ -58,10 +58,10 @@ def get_icrs_coordinates(name, database='all'):
     matched = pattr.search(resp_data)
 
     if matched == None:
-        if db == "a":
-            err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
-        else:
+        if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)
+        else:
+            err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
 
         raise ValueError(err)
 

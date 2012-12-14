@@ -6,7 +6,7 @@ This module contains tests for the name resolve convenience module.
 
 # Standard library
 import time
-import urllib2
+import urllib,urllib2
 
 # Third party
 import numpy as np
@@ -17,6 +17,10 @@ from ..name_resolve import get_icrs_coordinates
 from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, GalacticCoordinates
 
 def test_names():
+
+    # First check that sesame is up
+    if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
+    	pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
 
     with pytest.raises(ValueError):
         get_icrs_coordinates("m87h34hhh")
@@ -32,28 +36,22 @@ def test_names():
     np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
     np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
 
-def test_transforms():
-
-    for name in ["ngc 3642", "m42", "castor", "pollux"]:
-        icrs = ICRSCoordinates.resolve_name(name)
-        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
-        np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 7)
-        np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 7)
-
 def test_database_specify():
 
+    # First check that sesame is up
+    if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
+    	pytest.skip("SESAME appears to be down, skipping test_database_specify.py:test_names()...")
+
+    name = "ngc 3642"
     for db in ["simbad", "ned", "vizier", "all"]:
-        for name in ["ngc 3642", "m42"]:
-            icrs = ICRSCoordinates.resolve_name(name, database=db)
-            gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
-            np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
-            np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
+        icrs = ICRSCoordinates.resolve_name(name, database=db)
+        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
+        np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
+        np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
 
-            time.sleep(1)
+        time.sleep(1)
 
-def test_database_castor():
     name = "castor"
-
     # Don't search ned or vizier since castor doesn't seem to be in either
     for db in ["simbad",  "all"]:
         icrs = ICRSCoordinates.resolve_name(name, database=db)
