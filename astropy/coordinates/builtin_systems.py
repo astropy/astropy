@@ -550,10 +550,43 @@ def fk5_to_icrs(fk5c):
 # one not including them (FK4NoETermCoordinates). In the following functions,
 # we describe the transformation between these two.
 
-# Define e-terms of aberation vector. The following values are those for
-# catalogue FK4 positions, and are therefore calculated for the B1950 equinox.
-ETERMS_A = np.array([-1.62557, -0.31919, -0.13843]) * 1.e-6
-# TODO: generalize this to arbitrary equinoxes
+def fk4_e_terms(equinox):
+    """
+    Return the e-terms of aberation vector
+
+    Parameters
+    ----------
+    equinox : Time object
+        The equinox for which to compute the e-terms
+    """
+
+    # Find (T - T0) in Julian centuries
+    dt = (equinox - _EQUINOX_B1950).jd / 36525.
+
+    # Constant of aberration at J2000
+    k = 0.0056932
+
+    # Eccentricity of the Earth's orbit
+    e = 0.01673011 - 0.00004193 * dt - 0.000000126 * dt * dt
+    e = np.radians(e)
+
+    # Mean longitude of perigee of the solar orbit
+    g = 282.0805419444444 \
+      + 1.719630555555555 * dt \
+      + 4.583333333333333e-4 * dt ** 2 \
+      + 3.333333333333333e-6 * dt ** 3
+    g = np.radians(g)
+
+    # Obliquity of the ecliptic
+    o = 23.44578777777777 \
+      - 0.01301375 * dt \
+      - 8.86111111111111e-07 * dt ** 2 \
+      + 5.02777777777777e-07 * dt ** 3
+    o = np.radians(o)
+
+    return e * k * np.sin(g), \
+           -e * k * np.cos(g) * np.cos(o), \
+           -e * k * np.cos(g) * np.sin(o)
 
 
 @transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1.01)
@@ -563,7 +596,8 @@ def fk4_to_fk4_no_e(fk4c):
     r = np.array([fk4c.x, fk4c.y, fk4c.z])
 
     # Apply E-terms of aberration
-    r = r - ETERMS_A + np.dot(r, ETERMS_A) * r
+    eterms_a = fk4_e_terms(fk4c.equinox)
+    r = r - eterms_a + np.dot(r, eterms_a) * r
 
     unit = None if fk4c.distance is None else fk4c.distance._unit
     result = FK4NoETermCoordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
@@ -578,9 +612,10 @@ def fk4_no_e_to_fk4(fk4c):
     r = np.array([fk4c.x, fk4c.y, fk4c.z])
 
     # Apply E-terms of aberration
+    eterms_a = fk4_e_terms(fk4c.equinox)
     r0 = r.copy()
     for j in range(10):
-        r = (r0 + ETERMS_A) / (1. + np.dot(r, ETERMS_A))
+        r = (r0 + eterms_a) / (1. + np.dot(r, eterms_a))
 
     unit = None if fk4c.distance is None else fk4c.distance._unit
     result = FK4Coordinates(x=r[0], y=r[1], z=r[2], unit=unit, equinox=fk4c.equinox)
