@@ -292,7 +292,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 </TABLEDATA>
 </DATA>
 </TABLE>
-<TABLE ref="main_table">
+<TABLE ref="main_table" ID="last_table">
 <DATA>
 <TABLEDATA/> <!-- Add an empty table because it's a useful thing to test -->
 </DATA>

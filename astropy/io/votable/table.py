@@ -30,7 +30,7 @@ PEDANTIC = ConfigurationItem(
 
 def parse(source, columns=None, invalid='exception', pedantic=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
-          filename=None,
+          table_id=None, filename=None,
           _debug_python_based_parser=False):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
@@ -70,7 +70,11 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         The number of table in the file to read in.  If `None`, all
         tables will be read.  If a number, 0 refers to the first table
         in the file, and only that numbered table will be parsed and
-        read in.
+        read in.  Should not be used with `table_id`.
+
+    table_id : str, optional
+        The ID of the table in the file to read in.  Should not be
+        used with `table_number`.
 
     filename : str, optional
         A filename, URL or other identifier to use in error messages.
@@ -280,7 +284,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     return len(lines) == 0 and success == 0
 
 
-def from_table(table):
+def from_table(table, table_id=None):
     """
     Given an `astropy.table.Table` object, return a
     `~astropy.io.votable.tree.VOTableFile` file structure containing
@@ -290,8 +294,43 @@ def from_table(table):
     ----------
     table : `astropy.table.Table` instance
 
+    table_id : str, optional
+        If not `None`, set the given id on the returned
+        `~astropy.tree.Table` instance.
+
     Returns
     -------
     votable : `astropy.io.votable.tree.VOTableFile` instance
     """
-    return tree.VOTableFile.from_table(table)
+    return tree.VOTableFile.from_table(table, table_id=table_id)
+
+
+def is_votable(source):
+    """
+    Reads the header of a file to determine if it is a VOTable file.
+
+    Parameters
+    ----------
+    source : str or readable file-like object
+        Path or file object containing a VOTABLE_ xml file.
+
+    Returns
+    -------
+    is_votable : bool
+        Returns `True` if the given file is a VOTable file.
+    """
+    try:
+        with iterparser.get_xml_iterator(source) as iterator:
+            for start, tag, data, pos in iterator:
+                if tag != 'xml':
+                    return False
+                break
+
+            for start, tag, data, pos in iterator:
+                if tag != 'VOTABLE':
+                    return False
+                break
+
+            return True
+    except ValueError:
+        return False
