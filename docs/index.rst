@@ -24,7 +24,7 @@ User Documentation
 
    overview
    install
-   importing
+   getting_started
    nddata/index
    units/index
    time/index

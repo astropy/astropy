@@ -1,6 +1,9 @@
-*****************
+****************************
+Getting Started with Astropy
+****************************
+
 Importing Astropy
-*****************
+=================
 
 In order to encourage consistency amongst users in importing and using Astropy
 functionality, we have put together the following guidelines.
