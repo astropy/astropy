@@ -190,91 +190,93 @@ class Quantity(object):
 
     # Arithmetic operations
     def __add__(self, other):
-        """ Addition between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
+        """ Addition between `Quantity` objects and other objects.  If
+        they are both `Quantity` objects, results in the units of the
+        **left** object if they are compatible, otherwise this fails.
         """
-        if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(other.__class__))
-        return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
+        if isinstance(other, Quantity):
+            return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
+        else:
+            raise TypeError("Object of type '{0}' cannot be added with a "
+                "Quantity object. Addition is only supported between Quantity "
+                "objects with compatible units.".format(other.__class__))
+
 
     def __sub__(self, other):
-        """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
+        """ Subtraction between `Quantity` objects and other objects.
+        If they are both `Quantity` objects, results in the units of the
+        **left** object if they are compatible, otherwise this fails.
         """
-        if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be subtracted with a Quantity object. Subtraction is only supported between Quantity objects.".format(other.__class__))
-        return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
+        if isinstance(other, Quantity):
+            return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
+        else:
+            raise TypeError("Object of type '{0}' cannot be added with a "
+                "Quantity object. Addition is only supported between Quantity "
+                "objects with compatible units.".format(other.__class__))
+
 
     def __mul__(self, other):
-        """ Multiplication between `Quantity` objects or numbers with `Quantity` objects. For operations between two `Quantity` instances,
-        returns a new `Quantity` object with the units of the **left** object.
+        """ Multiplication between `Quantity` objects and other objects.
         """
         if isinstance(other, Quantity):
-            return Quantity(self.value * other.value, unit=self.unit*other.unit)
-
-        elif isinstance(other, numbers.Number):
-            return Quantity(other*self.value, unit=self.unit)
-
+            return Quantity(self.value * other.value, unit=self.unit * other.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit*other)
-
+            return Quantity(self.value, unit=other * self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
-
+            try:
+                return Quantity(other * self.value, unit=self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
 
     def __rmul__(self, other):
-        """ Right multiplication between `Quantity` object and a number. """
-
-        if isinstance(other, numbers.Number):
-            return Quantity(other*self.value, unit=self.unit)
-
-        elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit*other)
-
-        else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
+        """ Right Multiplication between `Quantity` objects and other
+        objects.
+        """
+        return self.__mul__(other)
 
     def __div__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects and other objects.
+        """
         if isinstance(other, Quantity):
-            return Quantity(self.value / other.value, unit=self.unit/other.unit)
-
-        elif isinstance(other, numbers.Number):
-            return Quantity(self.value / other, unit=self.unit)
-
+            return Quantity(self.value / other.value, unit=self.unit / other.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit/other)
-
+            return Quantity(self.value, unit=self.unit / other)
+        elif isinstance(other, numbers.Number) and hasattr(self.unit, "bases"):
+            new_unit_bases = copy.copy(self.unit.bases)
+            new_unit_powers = [-p for p in self.unit.powers]
+            return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
+            try:
+                return Quantity(self.value / other, unit=self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
 
     def __rdiv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if isinstance(other, numbers.Number):
-            if hasattr(self.unit, "bases"):
-                new_unit_bases = copy.copy(self.unit.bases)
-                new_unit_powers = [-p for p in self.unit.powers]
-                return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
-            else:
-                return Quantity(other / self.value, unit=1./self.unit)
-
+        """ Right Division between `Quantity` objects and other objects.
+        """
+        if isinstance(other, Quantity):
+            return Quantity(other.value / self.value, unit=other.unit / self.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(1./self.value, unit=other/self.unit)
-
+            return Quantity(1. / self.value, unit=other / self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
+            try:
+                return Quantity(other / self.value, unit=1. / self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
 
     def __truediv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects. """
         return self.__div__(other)
 
     def __rtruediv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects. """
         return self.__rdiv__(other)
 
     def __pow__(self, p):
-        """ Raise quantity object to a power. """
-        return Quantity(self.value**p, unit=self.unit**p)
+        """ Raise `Quantity` object to a power. """
+        if hasattr(p, 'unit'):
+            raise TypeError('Cannot raise a Quantity object to a power of something with a unit')
+        return Quantity(self.value ** p, unit=self.unit ** p)
 
     # Comparison operations
     def __eq__(self, other):
