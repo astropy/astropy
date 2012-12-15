@@ -26,7 +26,12 @@ def is_votable(origin, args, kwargs):
     """
     from . import is_votable
     if origin == 'read':
-        return is_votable(args[0])
+        if isinstance(args[0], basestring) or hasattr(args[0], 'read'):
+            return is_votable(args[0])
+        elif isinstance(args[0], (VOTableFile, Table)):
+            return True
+        else:
+            return False
     else:
         return False
 
