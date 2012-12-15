@@ -7,7 +7,7 @@ from astropy.table import Table, Column
 
 np.random.seed(12345)
 
-N = 100
+N = 200
 
 # Sample uniformly on the unit sphere. These will be either the FK4
 # coordinates for the transformation to FK5, or the FK5 coordinates for the
