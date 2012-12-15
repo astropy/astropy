@@ -26,8 +26,8 @@ def test_fk4_no_e_fk5():
         c1 = FK4NoETermCoordinates(r['ra_in'], r['dec_in'],
                                    unit=(u.degree, u.degree),
                                    obstime=Time(r['obstime'], scale='utc'),
-                                   equinox=Time(r['equinox_in'], scale='utc'))
-        c2 = c1.transform_to(FK5Coordinates).precess_to(Time(r['equinox_out'], scale='utc'))
+                                   equinox=Time(r['equinox_fk4'], scale='utc'))
+        c2 = c1.transform_to(FK5Coordinates).precess_to(Time(r['equinox_fk5'], scale='utc'))
 
         # Find difference
         diff = vincenty_sphere_dist(c2.dec.radians, c2.ra.radians,
@@ -39,8 +39,8 @@ def test_fk4_no_e_fk5():
         c1 = FK5Coordinates(r['ra_in'], r['dec_in'],
                             unit=(u.degree, u.degree),
                             obstime=Time(r['obstime'], scale='utc'),
-                            equinox=Time(r['equinox_out'], scale='utc'))
-        c2 = c1.transform_to(FK4NoETermCoordinates).precess_to(Time(r['equinox_in'], scale='utc'))
+                            equinox=Time(r['equinox_fk5'], scale='utc'))
+        c2 = c1.transform_to(FK4NoETermCoordinates).precess_to(Time(r['equinox_fk4'], scale='utc'))
 
         # Find difference
         diff = vincenty_sphere_dist(c2.dec.radians, c2.ra.radians,
