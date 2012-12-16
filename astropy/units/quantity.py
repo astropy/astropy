@@ -128,7 +128,7 @@ class Quantity(object):
                 is_si = True
                 for si_unit in si_unit_set:
                     if base_unit.is_equivalent(si_unit) and base_unit != si_unit:
-                        scale = (base_unit / si_unit).dimensionless_constant()**power
+                        scale = (base_unit / si_unit).dimensionless_constant() ** power
                         si_quantity_value *= scale
                         is_si = False
                         si_quantity_bases.append(si_unit)
@@ -151,7 +151,6 @@ class Quantity(object):
 
             return self.copy()
 
-
     @property
     def cgs(self):
         """ Returns a copy of the current `Quantity` instance with CGS units. The value of the
@@ -168,7 +167,7 @@ class Quantity(object):
 
             for base_unit, power in zip(si_quantity.unit.bases, si_quantity.unit.powers):
                 if base_unit in _cgs._cgs_bases.keys():
-                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant()**power
+                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant() ** power
                     cgs_quantity_value *= scale
                     cgs_quantity_bases.append(_cgs._cgs_bases[base_unit])
                     cgs_quantity_powers.append(power)
