@@ -27,7 +27,7 @@ for i in range(N):
 
     # Set up frames for AST
     frame_fk4 = Ast.SkyFrame('System=FK4-NO-E,Epoch={epoch},Equinox={equinox_fk4}'.format(epoch=obstime[i], equinox_fk4=equinox_fk4[i]))
-    frame_fk5 = Ast.SkyFrame('System=FK5,Equinox={equinox_fk5}'.format(equinox_fk5=equinox_fk5[i]))
+    frame_fk5 = Ast.SkyFrame('System=FK5,Epoch={epoch},Equinox={equinox_fk5}'.format(epoch=obstime[i],equinox_fk5=equinox_fk5[i]))
 
     # FK4 to FK5
     frameset = frame_fk4.convert(frame_fk5)
