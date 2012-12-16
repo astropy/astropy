@@ -51,6 +51,10 @@ class UnitBase(object):
     _registry = []
     _namespace = {}
 
+    # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
+    # arrays to avoid element-wise multiplication.
+    __array_priority__ = 1000
+
     def __deepcopy__(self, memo):
         # This may look odd, but the units conversion will be very
         # broken after deep-copying if we don't guarantee that a given
