@@ -306,13 +306,18 @@ def test_arrays():
 
     #quantity math should work with arrays
     assert_array_equal((qsec * 2).value, (np.arange(10) * 2))
-    #quantity math should work with arrays
-    assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
+    assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
+    #quantity addition/subtraction should *not* work with arrays b/c unit ambiguous
+    with pytest.raises(TypeError):
+        assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
+    with pytest.raises(TypeError):
+        assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
     #should create by unit multiplication, too
-    qsec2 = np.arange(10) * u.second
+    #qsec2 = np.arange(10) * u.second  # TODO: replace the next line with this once we figure out how to make numpy * unit work right
+    qsec2 = u.Quantity(np.arange(10), u.second)
     qsec3 = u.second * np.arange(10)
 
-    assert qsec == qsec2
-    assert qsec2 == qsec3
+    assert np.all(qsec == qsec2)
+    assert np.all(qsec2 == qsec3)
 

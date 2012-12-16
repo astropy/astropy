@@ -119,18 +119,13 @@ class UnitBase(object):
         # same way whether __future__ division is being used or not
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
-        elif isinstance(m, numbers.Number):
-            from .quantity import Quantity
-            return Quantity(1./m, self)
         else:
-            return CompositeUnit(1.0 / m, [self], [1]).simplify()
+            from .quantity import Quantity
+            return Quantity(1. / m, self)
 
     def __rdiv__(self, m):
-        if isinstance(m, numbers.Number):
-            from .quantity import Quantity
-            return Quantity(m, CompositeUnit(1.0, [self], [-1]).simplify())
-        else:
-            return CompositeUnit(m, [self], [-1]).simplify()
+        from .quantity import Quantity
+        return Quantity(m, CompositeUnit(1.0, [self], [-1]).simplify())
 
     def __truediv__(self, m):
         return self.__div__(m)
@@ -141,18 +136,13 @@ class UnitBase(object):
     def __mul__(self, m):
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, 1]).simplify()
-        elif isinstance(m, numbers.Number):
+        else:
             from .quantity import Quantity
             return Quantity(m, self)
-        else:
-            return CompositeUnit(m, [self], [1]).simplify()
 
     def __rmul__(self, m):
-        if isinstance(m, numbers.Number):
-            from .quantity import Quantity
-            return Quantity(m, self)
-        else:
-            return CompositeUnit(m, [self], [1]).simplify()
+        from .quantity import Quantity
+        return Quantity(m, self)
 
     if sys.version_info[0] >= 3:
         def __hash__(self):
