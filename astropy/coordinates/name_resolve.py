@@ -53,10 +53,9 @@ def get_icrs_coordinates(name, database='all'):
         raise urllib2.URLError("Server didn't return any data. This could mean the object was not found in the specified database. URL: {0}".format(url))
 
     resp_data = resp.read()
-    resp_data.encode('utf-8')
 
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
-    matched = pattr.search(resp_data)
+    matched = pattr.search(resp_data.encode('utf-8'))
 
     if matched == None:
         if db == "A":
