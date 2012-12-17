@@ -50,10 +50,10 @@ def test_2dseparations(coord, correctsep, dfunc):
     lat1, lon1, lat2, lon2 = coord
 
     print('distance function', dfunc)
-    print('({0},{1}) - ({2},{3})'.format(lat1, lon1, lat2, lon2))
+    print('({0},{1}) - ({2},{3})'.format(lon1, lat1, lon2, lat2))
     print('Correct separation', correctsep)
 
-    inputs = (radians(lat1), radians(lon1), radians(lat2), radians(lon2))
+    inputs = (radians(lon1), radians(lat1), radians(lon2), radians(lat2))
     sep = degrees(dfunc(*inputs))
     print('Reported:', sep)
     print('Deviation from correct:', sep - correctsep)
