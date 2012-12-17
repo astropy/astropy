@@ -685,7 +685,7 @@ class AngularSeparation(Angle):
             lat2 = units.to(u.radian, lat2)
             lon2 = units.to(u.radian, lon2)
 
-            sepval = util.vincenty_sphere_dist(lat1, lon1, lat2, lon2)
+            sepval = util.vincenty_sphere_dist(lon1, lat1, lon2, lat2)
 
         super(AngularSeparation, self).__init__(sepval, u.radian)
 

@@ -514,7 +514,7 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
 
 
 #<----------Spherical angular distances------------->
-def small_angle_sphere_dist(lat1, lon1, lat2, lon2):
+def small_angle_sphere_dist(lon1, lat1, lon2, lat2):
     """
     Euclidean angular distance "on a sphere" - only valid on sphere in the
     small-angle approximation.
@@ -535,7 +535,7 @@ def small_angle_sphere_dist(lat1, lon1, lat2, lon2):
     return (dlat ** 2 + dlon ** 2) ** 0.5
 
 
-def simple_sphere_dist(lat1, lon1, lat2, lon2):
+def simple_sphere_dist(lon1, lat1, lon2, lat2):
     """
     Simple formula for angular distance on a sphere: numerically unstable
     for small distances.
@@ -550,7 +550,7 @@ def simple_sphere_dist(lat1, lon1, lat2, lon2):
     return acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(-lat2) * cdlon)
 
 
-def haversine_sphere_dist(lat1, lon1, lat2, lon2):
+def haversine_sphere_dist(lon1, lat1, lon2, lat2):
     """
     Haversine formula for angular distance on a sphere: more stable at poles
 
@@ -567,7 +567,7 @@ def haversine_sphere_dist(lat1, lon1, lat2, lon2):
     return 2 * asin((sdlat ** 2 + coslats * sdlon ** 2) ** 0.5)
 
 
-def haversine_atan_sphere_dist(lat1, lon1, lat2, lon2):
+def haversine_atan_sphere_dist(lon1, lat1, lon2, lat2):
     """
     Haversine formula for angular distance on a sphere: more stable at poles.
     This version uses arctan instead of arcsin and thus does better with sign
@@ -588,7 +588,7 @@ def haversine_atan_sphere_dist(lat1, lon1, lat2, lon2):
     return 2 * atan2(numerator ** 0.5, (1 - numerator) ** 0.5)
 
 
-def vincenty_sphere_dist(lat1, lon1, lat2, lon2):
+def vincenty_sphere_dist(lon1, lat1, lon2, lat2):
     """
     Vincenty formula for angular distance on a sphere: stable at poles and
     antipodes but more complex/computationally expensive.
