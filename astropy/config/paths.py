@@ -99,7 +99,7 @@ def get_config_dir(create=True):
     #first look for XDG_CONFIG_HOME
     xch = environ.get('XDG_CONFIG_HOME')
 
-    if xch is not None:
+    if xch is not None and path.exists(xch):
         xchpth = path.join(xch, 'astropy')
         if not path.islink(xchpth):
             if path.exists(xchpth):
@@ -133,7 +133,7 @@ def get_cache_dir():
     #first look for XDG_CACHE_HOME
     xch = environ.get('XDG_CACHE_HOME')
 
-    if xch is not None:
+    if xch is not None and path.exists(xch):
         xchpth = path.join(xch, 'astropy')
         if not path.islink(xchpth):
             if path.exists(xchpth):
