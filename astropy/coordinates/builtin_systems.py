@@ -17,9 +17,9 @@ __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
            'FK4NoETermCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
           ]
 
-
+# For B1950, use TAI since UTC will emit a warning
 _EQUINOX_J2000 = Time('J2000', scale='utc')
-_EQUINOX_B1950 = Time('B1950', scale='utc')
+_EQUINOX_B1950 = Time('B1950', scale='tai')
 
 
 #<--------------Coordinate definitions; transformations are below-------------->
@@ -310,7 +310,7 @@ class FK4NoETermCoordinates(SphericalCoordinatesBase):
     def __init__(self, *args, **kwargs):
         super(FK4NoETermCoordinates, self).__init__()
 
-        self._equinox = kwargs.pop('equinox', Time('B1950', scale='utc'))
+        self._equinox = kwargs.pop('equinox', _EQUINOX_B1950)
         self._obstime = kwargs.pop('obstime', None)
 
         if not isinstance(self._equinox, Time):
