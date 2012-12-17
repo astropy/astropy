@@ -55,7 +55,7 @@ def get_icrs_coordinates(name, database='all'):
     resp_data = resp.read()
 
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
-    matched = pattr.search(resp_data.encode('utf-8'))
+    matched = pattr.search(resp_data.decode('utf-8'))
 
     if matched == None:
         if db == "A":
