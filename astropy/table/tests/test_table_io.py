@@ -109,6 +109,22 @@ def test_write_noformat():
     assert exc.value.args[0] == "Format could not be identified"
 
 
+def test_read_noformat_arbitrary():
+    """Test that all identifier functions can accept arbitary input"""
+    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    with pytest.raises(Exception) as exc:
+        Table.read(object())
+    assert exc.value.args[0] == "Format could not be identified"
+
+
+def test_write_noformat_arbitrary():
+    """Test that all identifier functions can accept arbitary input"""
+    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    with pytest.raises(Exception) as exc:
+        Table().write(object())
+    assert exc.value.args[0] == "Format could not be identified"
+
+
 def test_read_toomanyformats():
     io_registry.register_identifier('test1', lambda o, x, y: True)
     io_registry.register_identifier('test2', lambda o, x, y: True)
