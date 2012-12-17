@@ -24,6 +24,8 @@ from distutils.command.build import build as DistutilsBuild
 from distutils.command.install import install as DistutilsInstall
 from distutils.command.build_ext import build_ext as DistutilsBuildExt
 
+from setuptools.command.register import register as SetuptoolsRegister
+
 from .tests.helper import astropy_test
 
 
@@ -129,10 +131,45 @@ class AstropyInstall(DistutilsInstall):
         cls.user_options.append((name, None, doc))
         cls.custom_options.append(name)
 
+
+class AstropyRegister(SetuptoolsRegister):
+    """Extends the built in 'register' command to support a ``--hidden`` option
+    to make the registered version hidden on PyPI by default.
+
+    The result of this is that when a version is registered as "hidden" it can
+    still be downloaded from PyPI, but it does not show up in the list of
+    actively supported versions under http://pypi.python.org/pypi/astropy, and
+    is not set as the most recent version.
+
+    Although this can always be set through the web interface it may be more
+    convenient to be able to specify via the 'register' command.  Hidden may
+    also be considered a safer default when running the 'register' command,
+    though this command uses distutils' normal behavior if the ``--hidden``
+    option is omitted.
+    """
+
+    user_options = SetuptoolsRegister.user_options + [
+        ('hidden', None, 'mark this release as hidden on PyPI by default')
+    ]
+    boolean_options = SetuptoolsRegister.boolean_options + ['hidden']
+
+    def initialize_options(self):
+        SetuptoolsRegister.initialize_options(self)
+        self.hidden = False
+
+    def build_post_data(self, action):
+        data = SetuptoolsRegister.build_post_data(self, action)
+        if action == 'submit' and self.hidden:
+            data['_pypi_hidden'] = '1'
+        return data
+
 # Need to set the name here so that the commandline options
-# are presented as being related to the "build" command.
+# are presented as being related to the "build" command, for example; this
+# only affects the display of the help text, which does not obtain the the
+# command name in the correct way.
 AstropyBuild.__name__ = 'build'
 AstropyInstall.__name__ = 'install'
+AstropyRegister.__name__ = 'register'
 
 
 def wrap_build_ext(basecls=DistutilsBuildExt):
