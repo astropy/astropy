@@ -296,6 +296,10 @@ boolean indicating whether the input matches that expected for the format::
         return isinstance(args[0], basestring) and \
                args[0].lower().split('.')[-1] in ['fits', 'fit']
 
+.. note:: Identifier functions should be prepared for arbitrary input - in
+          particular, the first argument may not be a filename or file
+          object, so it should not assume that this is the case.
+
 We then register this identifier function with ``astropy.table``::
 
     io_registry.register_identifier('fits', fits_identify)
