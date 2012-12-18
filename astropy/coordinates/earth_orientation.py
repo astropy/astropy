@@ -25,7 +25,7 @@ def eccentricity(jd):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute obliquity
+        julian date at which to compute the eccentricity
 
     returns
     -------
@@ -52,7 +52,7 @@ def mean_lon_of_perigee(jd):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute obliquity
+        julian date at which to compute the mean longitude of perigee
 
     returns
     -------
@@ -78,7 +78,7 @@ def obliquity(jd, algorithm=2006):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute obliquity
+        julian date at which to compute the obliquity
     algorithm : int
         Year of algorithm based on IAU adoption. Can be 2006, 2000 or 1980. The
         2006 algorithm is mentioned in Circular 179, but the canonical reference
