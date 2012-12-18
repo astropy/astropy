@@ -19,6 +19,7 @@ from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
 
 __all__ = ["Quantity"]
 
+
 def _validate_value(value):
     """ Make sure that the input is a Python numeric type.
 
@@ -42,6 +43,7 @@ def _validate_value(value):
         raise TypeError("The value must be a valid Python numeric type.")
 
     return value_obj
+
 
 class Quantity(object):
     """ A `Quantity` represents a number with some associated unit.
@@ -105,10 +107,6 @@ class Quantity(object):
     def unit(self):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
-
-    def copy(self):
-        """ Return a copy of this `Quantity` instance """
-        return Quantity(self.value, unit=self.unit)
 
     @property
     def si(self):
@@ -186,6 +184,9 @@ class Quantity(object):
             else:
                 return Quantity(si_quantity.value, si_quantity.unit)
 
+    def copy(self):
+        """ Return a copy of this `Quantity` instance """
+        return Quantity(self.value, unit=self.unit)
 
     # Arithmetic operations
     def __add__(self, other):
@@ -200,7 +201,6 @@ class Quantity(object):
                 "Quantity object. Addition is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
 
-
     def __sub__(self, other):
         """ Subtraction between `Quantity` objects and other objects.
         If they are both `Quantity` objects, results in the units of the
@@ -212,7 +212,6 @@ class Quantity(object):
             raise TypeError("Object of type '{0}' cannot be added with a "
                 "Quantity object. Addition is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
-
 
     def __mul__(self, other):
         """ Multiplication between `Quantity` objects and other objects.
