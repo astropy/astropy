@@ -17,7 +17,7 @@ Getting Started
 
 The Astropy configuration options are most easily set by modifying the
 configuration file.  It will be automatically generated with all the
-default values the first time you import Astropy.  You can fine the
+default values the first time you import Astropy.  You can find the
 exact location by doing::
 
     from astropy.config import get_config_dir
