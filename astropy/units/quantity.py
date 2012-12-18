@@ -329,8 +329,21 @@ class Quantity(object):
         else:
             raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
+    #other overrides of special functions
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
+
+    def __getitem__(self, key):
+        if self.isscalar:
+            raise TypeError("'{cls}' object with a scalar value does not support indexing".format(cls=self.__class__.__name__))
+        else:
+            return Quantity(self.value[key], unit=self.unit)
+
+    def __len__(self):
+        if self.isscalar:
+            raise TypeError("'{cls}' object with a scalar value has no len()".format(cls=self.__class__.__name__))
+        else:
+            return len(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
