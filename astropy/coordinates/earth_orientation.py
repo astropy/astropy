@@ -12,7 +12,7 @@ import numpy as np
 from ..time import Time
 from .. import units as u
 
-jd1950 = Time('J2000', scale='tai').jd
+jd1950 = Time('B1950', scale='tai').jd
 jd2000 = Time('J2000', scale='utc').jd
 _asecperrad = u.radian.to(u.arcsec)
 

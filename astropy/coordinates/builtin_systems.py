@@ -576,7 +576,7 @@ def fk4_e_terms(equinox):
     g = np.radians(g)
 
     # Obliquity of the ecliptic
-    o = earth.obliquity(equinox.jd)
+    o = earth.obliquity(equinox.jd, algorithm=1980)
     o = np.radians(o)
 
     return e * k * np.sin(g), \
