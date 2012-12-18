@@ -68,7 +68,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Constants have recently been changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects.
+                Constants have been changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2.
             </td>
         </tr>
         <tr>
@@ -79,7 +79,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Recently been added and is under very active development, so API changes are possible.
+                New in v0.2
             </td>
         </tr>
         <tr>
@@ -178,7 +178,7 @@ The current planned and existing sub-packages are:
                 <img alt="stable" src="_images/stable.png">
             </td>
             <td>
-                Recently heavily adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy. The API is likely stable.
+                New in v0.2. Adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy.
             </td>
         </tr>
         <tr>
