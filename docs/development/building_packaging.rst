@@ -153,9 +153,9 @@ that will not be available in the source tree.  In this case,
 Release
 -------
 
-The release procedure for the first version of Astropy will involve a
-combination of an automated release script and some manual steps.  Future
-versions will automate more of the process, if not all.
+The current release procedure for Astropy involves a combination of an
+automated release script and some manual steps.  Future versions will automate
+more of the process, if not all.
 
 One of the main steps in performing a release is to create a tag in the git
 repository representing the exact state of the repository that represents the
@@ -203,9 +203,9 @@ both your public and private key::
     $ gpg --export --armor > public.key
     $ gpg --export-secret-key --armor > private.key
 
-Back up these files to a trusted location--preferably a write-one physical
-medium that can be stored safely somewhere.  I also back up my keys to a
-trusted online encrypted storage, though some might not find that secure
+Back up these files to a trusted location--preferably a write-once physical
+medium that can be stored safely somewhere.  One may also back up their keys to
+a trusted online encrypted storage, though some might not find that secure
 enough--it's up to you and what you're comfortable with.
 
 Add your public key to a keyserver
@@ -322,9 +322,10 @@ procedure is that ensures a consistent release process each time.
     Cython .pyx files, and the .c files are necessary for the source
     distribution.
 
- 6. Install zest.releaser into the virtualenv::
+ 6. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
+    ensure that the latest version is installed in the virtualenv::
 
-    $ pip install zest.releaser
+    $ pip install zest.releaser --upgrade --force
 
  7. Ensure that all changes to the code have been committed, then start the
     release by running::
