@@ -155,6 +155,7 @@ class Quantity(object):
             resulting object will be scaled.
         """
 
+
         from . import cgs as _cgs
         si_quantity = self.si
         cgs_quantity_value = si_quantity.value
@@ -183,6 +184,21 @@ class Quantity(object):
                 return Quantity(cgs_quantity_value, _cgs._cgs_bases[si_quantity.unit])
             else:
                 return Quantity(si_quantity.value, si_quantity.unit)
+
+    @property
+    def isscalar(self):
+        """
+        True if the `value` of this quantity is a scalar, or False if it
+        is an array-like object.
+
+        .. note::
+            This is subtly different from `numpy.isscalar` in that
+            `numpy.isscalar` returns False for a zero-dimensional array
+            (e.g. ``np.array(1)``), while this is True in that case.
+        """
+        from ..utils.misc import isiterable
+
+        return not isiterable(self.value)
 
     def copy(self):
         """ Return a copy of this `Quantity` instance """
