@@ -65,6 +65,32 @@ testing guidelines.
    development/scripts
    development/sphinxext
 
+***********************
+Getting help
+***********************
+
+If you want to get help or discuss issues with other Astropy users, you can
+sign up for the `astropy <http://mail.scipy.org/mailman/listinfo/astropy>`_
+mailing list.  Alternatively, the `astropy-dev
+<http://groups.google.com/group/astropy-dev>`_ list is where you should go to
+discuss more technical aspects of Astropy with the developers.
+
+***********************
+Reporting issues
+***********************
+
+If you have come across something that you believe is a bug, please open a
+ticket in the Astropy `issue tracker
+<http://github.com/astropy/astropy/issues>`_, and we will look into it
+promptly.
+
+Please try to include an example that demonstrates the issue and will allow the
+developers to reproduce and fix the problem.  If you are seeing a crash
+then frequently it will help to include the full Python stack trace as well as
+information about your operating system (e.g. MacOSX version or Linux version).
+
+
+
 ******************
 Indices and Tables
 ******************
