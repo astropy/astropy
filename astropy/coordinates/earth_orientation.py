@@ -12,8 +12,63 @@ import numpy as np
 from ..time import Time
 from .. import units as u
 
+jd1950 = Time('B1950', scale='tai').jd
 jd2000 = Time('J2000', scale='utc').jd
 _asecperrad = u.radian.to(u.arcsec)
+
+
+def eccentricity(jd):
+    """
+    Computes the eccentricity of the Earth's orbit at the requested Julian
+    Date.
+
+    Parameters
+    ----------
+    jd : scalar or array-like
+        julian date at which to compute the eccentricity
+
+    returns
+    -------
+    eccentricity : scalar or array
+        The eccentricity in degrees (or array of eccentricities)
+
+    References
+    ----------
+    * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
+      Seidelmann (ed), University Science Books (1992).
+    """
+    T = (jd - jd1950) / 36525.0
+
+    p = (-0.000000126, - 0.00004193, 0.01673011)
+
+    return np.polyval(p, T)
+
+
+def mean_lon_of_perigee(jd):
+    """
+    Computes the mean longitude of perigee of the Earth's orbit at the
+    requested Julian Date.
+
+    Parameters
+    ----------
+    jd : scalar or array-like
+        julian date at which to compute the mean longitude of perigee
+
+    returns
+    -------
+    mean_lon_of_perigee : scalar or array
+        Mean longitude of perigee in degrees (or array of mean longitudes)
+
+    References
+    ----------
+    * Explanatory Supplement to the Astronomical Almanac: P. Kenneth
+      Seidelmann (ed), University Science Books (1992).
+    """
+    T = (jd - jd1950) / 36525.0
+
+    p = (0.012, 1.65, 6190.67, 1015489.951)
+
+    return np.polyval(p, T) / 3600.
 
 
 def obliquity(jd, algorithm=2006):
@@ -23,7 +78,7 @@ def obliquity(jd, algorithm=2006):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute obliquity
+        julian date at which to compute the obliquity
     algorithm : int
         Year of algorithm based on IAU adoption. Can be 2006, 2000 or 1980. The
         2006 algorithm is mentioned in Circular 179, but the canonical reference
@@ -63,31 +118,31 @@ def obliquity(jd, algorithm=2006):
 
 # TODO: replace this with SOFA equivalent
 def precession_matrix_Capitaine(fromepoch, toepoch):
-        """
-        Computes the precession matrix from one julian epoch to another.
-        The exact method is based on Capitaine et al. 2003, which should
-        match the IAU 2006 standard.
+    """
+    Computes the precession matrix from one julian epoch to another.
+    The exact method is based on Capitaine et al. 2003, which should
+    match the IAU 2006 standard.
 
-        Parameters
-        ----------
-        fromepoch : `~astropy.time.Time`
-            The epoch to precess from.
-        toepoch : `~astropy.time.Time`
-            The epoch to precess to.
+    Parameters
+    ----------
+    fromepoch : `~astropy.time.Time`
+        The epoch to precess from.
+    toepoch : `~astropy.time.Time`
+        The epoch to precess to.
 
-        Returns
-        -------
-        pmatrix : 3x3 array
-            Precession matrix to get from `fromepoch` to `toepoch`
+    Returns
+    -------
+    pmatrix : 3x3 array
+        Precession matrix to get from `fromepoch` to `toepoch`
 
-        References
-        ----------
-        USNO Circular 179
-        """
-        mat_fromto2000 = _precess_from_J2000_Capitaine(fromepoch.jyear).T
-        mat_2000toto = _precess_from_J2000_Capitaine(toepoch.jyear)
+    References
+    ----------
+    USNO Circular 179
+    """
+    mat_fromto2000 = _precess_from_J2000_Capitaine(fromepoch.jyear).T
+    mat_2000toto = _precess_from_J2000_Capitaine(toepoch.jyear)
 
-        return np.dot(mat_2000toto, mat_fromto2000)
+    return np.dot(mat_2000toto, mat_fromto2000)
 
 
 def _precess_from_J2000_Capitaine(epoch):
