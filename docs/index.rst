@@ -40,6 +40,7 @@ User Documentation
    utils/index
    configs/index
    logging
+   stability
    creditsandlicense
 
 .. _developer-docs:
