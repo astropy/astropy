@@ -591,7 +591,7 @@ def fk4_e_terms(equinox):
            -e * k * np.cos(g) * np.sin(o)
 
 
-@transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1.01)
+@transformations.transform_function(FK4Coordinates, FK4NoETermCoordinates, priority=1)
 def fk4_to_fk4_no_e(fk4c):
 
     # Extract cartesian vector
@@ -616,7 +616,7 @@ def fk4_to_fk4_no_e(fk4c):
     return result
 
 
-@transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1.01)
+@transformations.transform_function(FK4NoETermCoordinates, FK4Coordinates, priority=1)
 def fk4_no_e_to_fk4(fk4c):
 
     # Extract cartesian vector
@@ -660,7 +660,7 @@ FK4_CORR = \
             [-2.1112979048, -0.0056024448, +0.0102587734]]) * 1.e-6
 
 # This transformation can't be static because the observation date is needed.
-@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1.01)
+@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, FK5Coordinates, priority=1)
 def fk4_no_e_to_fk5(fk4c, skip_precession=False):
 
     # Add in correction terms for FK4 rotating system - Murray 89 eqn 29
@@ -677,7 +677,7 @@ def fk4_no_e_to_fk5(fk4c, skip_precession=False):
         return B * _precession_matrix_besselian(fk4c.equinox.byear, 1950)
 
 # This transformation can't be static because the observation date is needed.
-@transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1.01)
+@transformations.dynamic_transform_matrix(FK5Coordinates, FK4NoETermCoordinates, priority=1)
 def fk5_to_fk4_no_e(fk5c):
 
     # Get transposed matrix from FK4 -> FK5 assuming equinox B1950 -> J2000
@@ -713,7 +713,7 @@ def _gal_to_fk5(galcoords):
     return _fk5_to_gal(galcoords).T
 
 
-@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, GalacticCoordinates, priority=1.02)
+@transformations.dynamic_transform_matrix(FK4NoETermCoordinates, GalacticCoordinates, priority=1)
 def _fk4_to_gal(fk4coords):
     from .angles import rotation_matrix
     from .earth_orientation import _precession_matrix_besselian
@@ -728,7 +728,7 @@ def _fk4_to_gal(fk4coords):
     return mat1 * mat2 * mat3 * matprec
 
 
-@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4NoETermCoordinates, priority=1.02)
+@transformations.dynamic_transform_matrix(GalacticCoordinates, FK4NoETermCoordinates, priority=1)
 def _gal_to_fk4(galcoords):
     return _fk4_to_gal(galcoords).T
 

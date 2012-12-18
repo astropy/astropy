@@ -278,7 +278,7 @@ def test_transform_path_pri():
     #but direct from FK4 to Galactic should still be possible
     tpath, td = t.master_transform_graph.find_shortest_path(FK4Coordinates, GalacticCoordinates)
     assert tpath == [FK4Coordinates, FK4NoETermCoordinates, GalacticCoordinates]
-    assert td == 1.01 + 1.02
+    assert td == 2
 
 
 def test_obstime():
