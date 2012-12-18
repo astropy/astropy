@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from ..constants import cgs
+from .. import constants as const
 from ..config import ConfigurationItem
 from ..utils.misc import isiterable
 from .. import units as u
@@ -27,7 +27,7 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
 # Constants
 
 # speed of light in km/s
-c_kms = cgs.c.to('km/s').value
+c_kms = const.c.to('km/s').value
 
 # Mpc in km
 Mpc_km = u.Mpc.to(u.km)
@@ -42,7 +42,7 @@ arcmin_in_radians = 1 / 60. * pi / 180
 
 
 #Radiation parameter over c^2
-a_B_c2 = 4 * cgs.sigma_sb.value / cgs.c.value**3
+a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value**3
 
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
@@ -121,7 +121,7 @@ class FLRW(Cosmology):
         self._hubble_distance = c_kms / self._H0
 
         # critical density at z=0 (grams per cubic cm)
-        self._critical_density0 = 3. * H0_s**2 / (8. * pi * cgs.G.value)
+        self._critical_density0 = 3. * H0_s**2 / (8. * pi * const.G.cgs.value)
 
         # Compute photon density, Tcmb, neutrino parameters
         # Tcmb0=0 removes both photons and neutrinos, is handled
