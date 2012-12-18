@@ -19,9 +19,10 @@ from . import si
 
 # Electron charge
 
-e_esu = ConstantDefinition(si.e_si * si.c * 10., si.e_si.uncertainty * si.c * 10.,
-                           si.e_si.name, si.e_si.reference, 'statC', em=True)
+e_esu = ConstantDefinition(si.e * si.c * 10.,
+                           si.e.uncertainty * si.c * 10.,
+                           si.e.name, si.e.reference, 'statC', em=True)
 
-e_gauss = ConstantDefinition(si.e_si * si.c * 10., si.e_si.uncertainty * si.c * 10.,
-                             si.e_si.name, si.e_si.reference, 'Fr', em=True)
-
+e_gauss = ConstantDefinition(si.e * si.c * 10.,
+                             si.e.uncertainty * si.c * 10.,
+                             si.e.name, si.e.reference, 'Fr', em=True)

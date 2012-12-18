@@ -56,11 +56,4 @@ class EMConstant(Constant):
                         "are different systems for E.M constants within the "
                         "c.g.s system (ESU, Gaussian, etc.). Instead, "
                         "directly use the constant with the appropriate "
-                        "suffix (e.g. e_esu, e_gaussian, etc.).")
-
-    @property
-    def si(self):
-        raise TypeError("Cannot convert EM constants to S.I. Instead, "
-                        "directly use the constant with the ``_si`` "
-                        "suffix (e.g. e_si).")
-
+                        "suffix (e.g. e.esu, e.gauss, etc.).")
