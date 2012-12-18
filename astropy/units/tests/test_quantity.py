@@ -299,6 +299,11 @@ def test_arrays():
 
     qsec = u.Quantity(np.arange(10), u.second)
     assert isinstance(qsec.value, np.ndarray)
+    assert not qsec.isscalar
+
+    #make sure isscalar behaves correcly for non-arrays.
+    qsecnotarray = u.Quantity(10., u.second)
+    assert qsecnotarray.isscalar
 
     #can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(range(10), u.second)
