@@ -24,8 +24,8 @@ def test_icrs_no_e_fk5():
 
         # FK4 to FK5
         c1 = ICRSCoordinates(r['ra_in'], r['dec_in'],
-                                   unit=(u.degree, u.degree),
-                                   obstime=Time(r['obstime'], scale='utc'))
+                             unit=(u.degree, u.degree),
+                             obstime=Time(r['obstime'], scale='utc'))
         c2 = c1.transform_to(FK5Coordinates).precess_to(Time(r['equinox_fk5'], scale='utc'))
 
         # Find difference

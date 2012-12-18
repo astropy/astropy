@@ -24,8 +24,8 @@ def test_gal_no_e_fk4():
 
         # FK4 to FK5
         c1 = GalacticCoordinates(r['lon_in'], r['lat_in'],
-                                   unit=(u.degree, u.degree),
-                                   obstime=Time(r['obstime'], scale='utc'))
+                                 unit=(u.degree, u.degree),
+                                 obstime=Time(r['obstime'], scale='utc'))
         c2 = c1.transform_to(FK4Coordinates).precess_to(Time(r['equinox_fk4'], scale='utc'))
 
         # Find difference

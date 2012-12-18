@@ -27,7 +27,7 @@ for i in range(N):
 
     # Set up frames for AST
     frame_icrs = Ast.SkyFrame('System=ICRS,Epoch={epoch}'.format(epoch=obstime[i]))
-    frame_fk5 = Ast.SkyFrame('System=FK5,Epoch={epoch},Equinox={equinox_fk5}'.format(epoch=obstime[i],equinox_fk5=equinox_fk5[i]))
+    frame_fk5 = Ast.SkyFrame('System=FK5,Epoch={epoch},Equinox={equinox_fk5}'.format(epoch=obstime[i], equinox_fk5=equinox_fk5[i]))
 
     # ICRS to FK5
     frameset = frame_icrs.convert(frame_fk5)
