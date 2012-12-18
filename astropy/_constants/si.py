@@ -62,7 +62,7 @@ sigma_sb = ConstantDefinition(5.670373e-8, 0.000021e-8,
                               'CODATA 2010', 'W.m-2.K-4')
 
 # Electron charge
-e_si = ConstantDefinition(1.602176565e-19, 0.000000035e-19,
+e = ConstantDefinition(1.602176565e-19, 0.000000035e-19,
                        "Electron charge",
                        'CODATA 2010', 'C', em=True)
 

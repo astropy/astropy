@@ -23,27 +23,39 @@ from .constant import Constant, EMConstant
 
 # Import SI constants
 from .._constants import si as _si
-for nm, val in sorted(_si.__dict__.items()):
+for nm, val in sorted(vars(_si).iteritems()):
     if isinstance(val, ConstantDefinition):
         if val.em:
-            _c = EMConstant(val.value, val.units, val.uncertainty, val.name, val.reference)
+            _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
+                            val.reference)
         else:
-            _c = Constant(val.value, val.units, val.uncertainty, val.name, val.reference)
+            _c = Constant(val.value, val.units, val.uncertainty, val.name,
+                          val.reference)
         locals()[nm] = _c
 
 del _si, nm, val, _c
 
 # Import cgs constants that don't exist in S.I.
 from .._constants import cgs as _cgs
-for nm, val in sorted(_cgs.__dict__.items()):
+for nm, val in sorted(vars(_cgs).iteritems()):
     if isinstance(val, ConstantDefinition):
         if val.em:
-            _c = EMConstant(val.value, val.units, val.uncertainty, val.name, val.reference)
+            # EM constants have _gauss, _esu, etc. appended
+            nm, system = nm.rsplit('_', 1)
+            _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
+                            val.reference)
+            if nm in locals():
+                _c_si = locals()[nm]
+                setattr(_c_si, system, _c)
+            else:
+                locals()[nm] = _c
         else:
-            _c = Constant(val.value, val.units, val.uncertainty, val.name, val.reference)
-        if nm in locals():
-            raise ValueError("Constant {0} has already been imported".format(nm))
-        locals()[nm] = _c
+            _c = Constant(val.value, val.units, val.uncertainty, val.name,
+                          val.reference)
+            if nm in locals():
+                raise ValueError(
+                    "Constant {0} has already been imported".format(nm))
+            locals()[nm] = _c
 
 del _cgs, nm, val, _c
 

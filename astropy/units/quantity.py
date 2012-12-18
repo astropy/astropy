@@ -115,8 +115,9 @@ class Quantity(object):
 
     @property
     def si(self):
-        """ Returns a copy of the current `Quantity` instance with SI
-            units. The value of the resulting object will be scaled.
+        """
+        Returns a copy of the current `Quantity` instance with SI
+        units. The value of the resulting object will be scaled.
         """
         from . import si
         si_unit = self.unit.to_system(si)[0]
@@ -124,8 +125,9 @@ class Quantity(object):
 
     @property
     def cgs(self):
-        """ Returns a copy of the current `Quantity` instance with CGS
-            units. The value of the resulting object will be scaled.
+        """
+        Returns a copy of the current `Quantity` instance with CGS
+        units. The value of the resulting object will be scaled.
         """
         from . import cgs
         cgs_unit = self.unit.to_system(cgs)[0]
