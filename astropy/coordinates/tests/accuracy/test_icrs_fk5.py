@@ -8,7 +8,7 @@ from ....time import Time
 from ....table import Table
 from ...angle_utilities import vincenty_sphere_dist
 
-TOLERANCE = 0.025  # arcseconds
+TOLERANCE = 0.03  # arcseconds
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
