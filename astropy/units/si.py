@@ -126,7 +126,7 @@ def_unit(['N', 'Newton', 'newton'], kg * m * s ** -2, register=True, prefixes=Tr
 
 def_unit(['J', 'Joule', 'joule'], N * m, register=True, prefixes=True,
          doc="Joule: energy")
-def_unit(['eV', 'electronvolt'], _si.e * J, register=True, prefixes=True,
+def_unit(['eV', 'electronvolt'], _si.e_si * J, register=True, prefixes=True,
          doc="Electron Volt")
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, register=True, prefixes=True,
          doc="Pascal: pressure")

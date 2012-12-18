@@ -14,44 +14,53 @@ case might be::
 
 """
 
-from . import cgs
-from . import si
-from .constant import Constant
+from .._constants.definition import ConstantDefinition
 
+from .constant import Constant, EMConstant
 
-# Update the docstring to include a list of units from the si
-# module. The rows with lots of '=' signs are to tell Sphinx to
-# display a table in the documentation.
+# Define actual Quantity-based Constants. Need to use _c in the loop instead
+# of c to avoid overwriting the speed of light constant.
 
-__doc__ += """
-The following constants are defined in `~astropy.constants.cgs` and
-`~astropy.constants.si`. The `si` and `cgs` docstrings list the units
-and values in each system.
+# Import SI constants
+from .._constants import si as _si
+for nm, val in sorted(_si.__dict__.items()):
+    if isinstance(val, ConstantDefinition):
+        if val.em:
+            _c = EMConstant(val.value, val.units, val.uncertainty, val.name, val.reference)
+        else:
+            _c = Constant(val.value, val.units, val.uncertainty, val.name, val.reference)
+        locals()[nm] = _c
 
-========== ==============================
-"""
+del _si, nm, val, _c
 
-for nm, val in sorted(si.__dict__.items()):
-    if isinstance(val, Constant):
-        __doc__ += '{0:^10} {1}\n'.format(nm, val.name)
+# Import cgs constants that don't exist in S.I.
+from .._constants import cgs as _cgs
+for nm, val in sorted(_cgs.__dict__.items()):
+    if isinstance(val, ConstantDefinition):
+        if val.em:
+            _c = EMConstant(val.value, val.units, val.uncertainty, val.name, val.reference)
+        else:
+            _c = Constant(val.value, val.units, val.uncertainty, val.name, val.reference)
+        if nm in locals():
+            raise ValueError("Constant {0} has already been imported".format(nm))
+        locals()[nm] = _c
 
-__doc__ += """\
-========== ==============================
-"""
+del _cgs, nm, val, _c
 
 # update the si cand cgs module doctrings.
-for module in si, cgs:
-    module.__doc__ += """
+__doc__ += """
+The following constants are available:
+
 ========== ============== ================ =========================
    Name        Value            Unit       Description
 ========== ============== ================ =========================
 """
-    for nm, val in sorted(module.__dict__.items()):
-        if isinstance(val, Constant):
-            module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm, val.value, val.unit, val.name)
+for nm, val in sorted(locals().items()):
+    if isinstance(val, Constant):
+        __doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
+            nm, val.value, val.unit, val.name)
 
-    module.__doc__ += """\
+__doc__ += """\
 ========== ============== ================ =========================
 """
 
