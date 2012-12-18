@@ -562,28 +562,21 @@ def fk4_e_terms(equinox):
         The equinox for which to compute the e-terms
     """
 
-    # Find (T - T0) in Julian centuries
-    dt = (equinox - _EQUINOX_B1950).jd / 36525.
+    from . import earth_orientation as earth
 
     # Constant of aberration at J2000
     k = 0.0056932
 
     # Eccentricity of the Earth's orbit
-    e = 0.01673011 - 0.00004193 * dt - 0.000000126 * dt * dt
+    e = earth.eccentricity(equinox.jd)
     e = np.radians(e)
 
     # Mean longitude of perigee of the solar orbit
-    g = 282.0805419444444 \
-      + 1.719630555555555 * dt \
-      + 4.583333333333333e-4 * dt ** 2 \
-      + 3.333333333333333e-6 * dt ** 3
+    g = earth.mean_lon_of_perigee(equinox.jd)
     g = np.radians(g)
 
     # Obliquity of the ecliptic
-    o = 23.44578777777777 \
-      - 0.01301375 * dt \
-      - 8.86111111111111e-07 * dt ** 2 \
-      + 5.02777777777777e-07 * dt ** 3
+    o = earth.obliquity(equinox.jd)
     o = np.radians(o)
 
     return e * k * np.sin(g), \
