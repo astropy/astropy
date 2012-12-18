@@ -17,7 +17,9 @@ __all__ = ['ICRSCoordinates', 'FK5Coordinates', 'FK4Coordinates',
            'FK4NoETermCoordinates', 'GalacticCoordinates', 'HorizontalCoordinates'
           ]
 
-# For B1950, use TAI since UTC will emit a warning
+# The UTC time scale is not properly defined prior to 1960, so Time('B1950',
+# scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
+# which is equivalent, but does not emit a warning.
 _EQUINOX_J2000 = Time('J2000', scale='utc')
 _EQUINOX_B1950 = Time('B1950', scale='tai')
 
