@@ -39,6 +39,9 @@ def _validate_value(value):
         value_obj = value
     elif isiterable(value):
         value_obj = np.array(value, copy=True)
+    elif isinstance(value, np.ndarray):
+        # A length-0 numpy array (i.e. numpy scalar) which we accept as-is
+        value_obj = np.array(value, copy=True)
     else:
         raise TypeError("The value must be a valid Python numeric type.")
 

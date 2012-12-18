@@ -316,6 +316,16 @@ def test_arrays():
     with pytest.raises(TypeError):
         qsecnotarray[0]
 
+    qseclen0array = u.Quantity(np.array(10), u.second)
+    # 0d numpy array should act basically like a scalar, but still keep its identity as a numpy array
+    assert qseclen0array.isscalar
+    with pytest.raises(TypeError):
+        len(qseclen0array)
+    with pytest.raises(TypeError):
+        qseclen0array[0]
+    assert isinstance(qseclen0array.value, np.ndarray)
+
+
     #can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(range(10), u.second)
     assert isinstance(qsec.value, np.ndarray)
