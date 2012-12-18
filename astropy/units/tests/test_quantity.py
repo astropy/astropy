@@ -314,8 +314,7 @@ def test_arrays():
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
     #should create by unit multiplication, too
-    #qsec2 = np.arange(10) * u.second  # TODO: replace the next line with this once we figure out how to make numpy * unit work right
-    qsec2 = u.Quantity(np.arange(10), u.second)
+    qsec2 = np.arange(10) * u.second
     qsec3 = u.second * np.arange(10)
 
     assert np.all(qsec == qsec2)
