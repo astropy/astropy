@@ -205,8 +205,8 @@ class TestQuantityOperations():
         q = u.Quantity(1.23, u.m)
 
         assert float(q) == 1.23
-        assert int(1) == 1
-        assert long(1) == 1L
+        assert int(q) == 1
+        assert long(q) == 1L
 
 
 def test_quantity_conversion():
