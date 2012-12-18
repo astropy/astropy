@@ -1,3 +1,4 @@
+# This file was generated with the ref_fk4_no_e_fk4.py script, and the reference values were computed using AST
 obstime,ra_in,dec_in,ra_fk4ne,dec_fk4ne,ra_fk4,dec_fk4
 B1995.95,334.661793414,43.9385116594,334.661871722,43.9384643913,334.661715106,43.9385589276
 B1954.56,113.895199649,-14.1109832563,113.895104206,-14.1109806856,113.895295093,-14.110985827

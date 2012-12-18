@@ -1,6 +1,7 @@
 # Accuracy tests for the FK4 (with no E-terms of aberration) to/from FK4
 # conversion, with arbitrary equinoxes and epoch of observation.
 
+import os
 import numpy as np
 import starlink.Ast as Ast
 from astropy.table import Table, Column
@@ -48,4 +49,7 @@ t.add_column(Column('ra_fk4ne', ra_fk4ne))
 t.add_column(Column('dec_fk4ne', dec_fk4ne))
 t.add_column(Column('ra_fk4', ra_fk4))
 t.add_column(Column('dec_fk4', dec_fk4))
-t.write('fk4_no_e_fk4.csv', format='ascii', delimiter=',')
+f = open('fk4_no_e_fk4.csv', 'wb')
+f.write("# This file was generated with the {0} script, and the reference "
+        "values were computed using AST\n".format(os.path.basename(__file__)))
+t.write(f, format='ascii', delimiter=',')

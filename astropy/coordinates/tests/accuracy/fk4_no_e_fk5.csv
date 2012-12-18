@@ -1,3 +1,4 @@
+# This file was generated with the ref_fk4_no_e_fk5.py script, and the reference values were computed using AST
 equinox_fk4,equinox_fk5,obstime,ra_in,dec_in,ra_fk5,dec_fk5,ra_fk4,dec_fk4
 B1948.36,J1992.59,B1995.95,334.661793414,43.9385116594,335.127505587,44.1614743713,334.19703321,43.7164045503
 B1971.64,J2006.23,B1954.56,113.895199649,-14.1109832563,114.294239451,-14.189617335,113.496041526,-14.0335757922

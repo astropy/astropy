@@ -1,3 +1,4 @@
+# This file was generated with the ref_icrs_fk5.py script, and the reference values were computed using AST
 equinox_fk5,obstime,ra_in,dec_in,ra_fk5,dec_fk5,ra_icrs,dec_icrs
 J1998.36,B1995.95,334.661793414,43.9385116594,334.644564717,43.9302620645,334.679023415,43.9467624314
 J2021.64,B1954.56,113.895199649,-14.1109832563,114.144749047,-14.1600275394,113.645603942,-14.0624187531

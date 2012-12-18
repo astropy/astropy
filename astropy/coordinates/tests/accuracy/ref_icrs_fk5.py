@@ -1,6 +1,7 @@
 # Accuracy tests for the ICRS (with no E-terms of aberration) to/from FK5
 # conversion, with arbitrary equinoxes and epoch of observation.
 
+import os
 import numpy as np
 import starlink.Ast as Ast
 from astropy.table import Table, Column
@@ -50,4 +51,7 @@ t.add_column(Column('ra_fk5', ra_fk5))
 t.add_column(Column('dec_fk5', dec_fk5))
 t.add_column(Column('ra_icrs', ra_icrs))
 t.add_column(Column('dec_icrs', dec_icrs))
-t.write('icrs_fk5.csv', format='ascii', delimiter=',')
+f = open('icrs_fk5.csv', 'wb')
+f.write("# This file was generated with the {0} script, and the reference "
+        "values were computed using AST\n".format(os.path.basename(__file__)))
+t.write(f, format='ascii', delimiter=',')
