@@ -389,6 +389,17 @@ class GalacticCoordinates(SphericalCoordinatesBase):
     """
     A coordinate in Galactic Coordinates.
 
+    .. note::
+
+        Transformations from Galactic Coordinates to other systems are
+        not well-defined because of ambiguities in the definition of
+        Galactic Coordinates. See
+        `Lie et al. 2011 <http://dx.doi.org/10.1051/0004-6361/201014961>`
+        for more details on this.  Here, we use the
+        `Reid & Brunthaler 2004 <http://dx.doi.org/10.1086/424960>`
+        definition for converting to/from FK5, and assume the IAU
+        definition applies for converting to FK4 *without* e-terms.
+
     Parameters
     ----------
     {params}
@@ -404,8 +415,11 @@ class GalacticCoordinates(SphericalCoordinatesBase):
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     # transformations to/from FK4/5
+
+    # These are from Reid & Brunthaler 2004
     _ngp_J2000 = FK5Coordinates(192.859508, 27.128336, unit=(u.degree, u.degree))
     _lon0_J2000 = Angle(122.932, unit=u.degree)
+    # These are from the IAU's definition of galactic coordinates
     _ngp_B1950 = FK4Coordinates(192.25, 27.4, unit=(u.degree, u.degree))
     _lon0_B1950 = Angle(123, unit=u.degree)
 
