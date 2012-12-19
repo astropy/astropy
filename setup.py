@@ -62,8 +62,9 @@ cmdclassd = {'test': setup_helpers.setup_test_command('astropy'),
 
              # Use a custom install command which understands additional
              # commandline arguments
-             'install': setup_helpers.AstropyInstall
+             'install': setup_helpers.AstropyInstall,
 
+             'register': setup_helpers.AstropyRegister
              }
 
 try:
