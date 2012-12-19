@@ -343,9 +343,9 @@ procedure is that ensures a consistent release process each time.
     Enter 'Y' to confirm and run the command.
 
  10. When asked "Check out the tag (for tweaks or pypi/distutils server
-     upload)" enter 'N': We will be uploading the source to GitHub instead of
-     PyPI, so for now registering on PyPI and uploading the source will be
-     performed manually.
+     upload)" enter 'N': zest.releaser does not offer enough control yet over
+     how the register and upload are performed so we will do this manually
+     until the release scripts have been improved.
 
  11. You will be asked to enter a new development version.  Normally the next
      logical version will be selected--press enter to accept the default, or
@@ -405,6 +405,10 @@ procedure is that ensures a consistent release process each time.
      and "0.1.2", while allowing development of new features to continue in
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
+
+ 20. Create a bug fix label on GitHub; this should have the same name as the
+     just created bug fix branch.  This label should be applied to all issues
+     that should be backported to the bug fix branch.
 
 
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags
