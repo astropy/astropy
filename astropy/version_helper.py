@@ -26,7 +26,11 @@ def _version_split(version):
     optional, defaulting to 0).
     """
 
-    versplit = version.split('.dev')[0].split('.')
+    for prerel in ('.dev', 'a', 'b', 'rc'):
+        if prerel in version:
+            version = version.split(prerel)[0]
+
+    versplit = version.split('.')
     major = int(versplit[0])
     minor = int(versplit[1])
     bugfix = 0 if len(versplit) < 3 else int(versplit[2])
