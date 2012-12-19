@@ -175,11 +175,11 @@ class MatrixRotation2D(Model):
         if rotmat is not None:
             self._validate_rotmat(rotmat)
             self._rotmat = _Parameter('rotmat', np.asarray(rotmat) + 0., self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], pdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], paramdim=1)
         else:
             self._validate_angle(angle)
             self._angle = _Parameter('angle', np.deg2rad(angle), self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=[], pdim=1)
+            super(MatrixRotation2D, self).__init__(parnames=[], paramdim=1)
             self.parnames = ['angle']
             self._rotmat = _Parameter('rotmat', self._compute_matrix(angle), self, 1)
         self.ndim = self._rotmat[0].shape[0]
@@ -189,11 +189,12 @@ class MatrixRotation2D(Model):
     
     @property
     def angle(self):
-        return _Parameter('angle', np.rad2deg(self._angle), self)
+        return _Parameter('angle', np.rad2deg(self._angle), self, paramdim=1)
+        #return self._angle
     
     @angle.setter
     def angle(self, val):
-        self._angle = _Parameter('angle', np.deg2rad(val), self)
+        self._angle = _Parameter('angle', np.deg2rad(val), self, paramdim=1)
         
     def _validate_rotmat(self, rotmat):
         assert rotmat.ndim == 2, "Expected rotation matrix to be a 2D array"

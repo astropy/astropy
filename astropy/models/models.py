@@ -84,20 +84,20 @@ def _convert_output(x, format):
 
 def getpar(self, name):
     """
-    Create a getter property for a class attribute 
-    based on the attribute name
+    Create a getter property for a class attribute
+
     """
     par = getattr(self, '_'+name)
     return par
     
 def setpar(self,  name, val):
     """
-    Create a setter property for a class attribute 
-    based on the attribute name
+    Create a setter property for a class attribute
+    
     """ 
     if name in self._parcheck:
         self._parcheck[name](val)
-    if isinstance(self, Model):
+    if isinstance(self, ParametricModel):
         if not self._parameters._changed:
             par = parameters._Parameter(name, val, self, self.paramdim)
             if not getattr(self, name).parshape == par.parshape:
@@ -1315,8 +1315,9 @@ class ShiftModel(Model):
         self.outdim = 1
         
         if not operator.isSequenceType(offsets):
-            offsets = [offsets]
-        paramdim = len(offsets)
+            paramdim = 1
+        else:
+            paramdim = len(offsets)
         self._offsets = parameters._Parameter('offsets', offsets, self, paramdim)
         super(ShiftModel, self).__init__(self.parnames, paramdim=paramdim)
 
@@ -1343,8 +1344,9 @@ class ScaleModel(Model):
         self.outdim = 1
         
         if not operator.isSequenceType(factors):
-            factors = [factors]
-        paramdim = len(factors)
+            paramdim = 1
+        else:
+            paramdim = len(factors)
         self._factors = parameters._Parameter('factors', factors, self, paramdim)
         super(ScaleModel, self).__init__(self.parnames, paramdim=paramdim)
     
