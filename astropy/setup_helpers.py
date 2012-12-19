@@ -170,6 +170,11 @@ class AstropyRegister(SetuptoolsRegister):
         # with the default,
         # If you do not have a .pypirc using the -r option will just crash.
         # Way to go distutils
+
+        # If we don't set self.repository back to a default value _set_config
+        # can crash if there was a user-supplied value for this option; don't
+        # worry, we'll get the real value back afterwards
+        self.repository = 'pypi'
         SetuptoolsRegister._set_config(self)
         options = self.distribution.get_option_dict('register')
         if 'repository' in options:
