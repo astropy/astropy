@@ -44,7 +44,6 @@ import operator
 import abc
 from collections import OrderedDict
 import numpy as np
-
 from . import parameters
 from . import constraints
 from .util import pmapdomain, InputParametersException, comb
@@ -60,7 +59,7 @@ def _convert_input(x, pdim):
     if pdim == 1:
         return x, format
     else:
-        if x.ndim < 2: #== 1:
+        if x.ndim < 2:
             format = 'N'
             return np.array([x]).T, format
         elif x.ndim == 2:
@@ -1420,12 +1419,11 @@ class _SIP1D(Model):
         """
         Return the number of coefficients in one parset
         """
-        from scipy.misc import comb as scicomb
         if self.order < 2  or self.order > 9:
             raise ValueError("Degree of polynomial must be 2< deg < 9")
-        nmixed = scicomb(self.order-1, self.ndim) 
-        numc = self.order * int(self.ndim) + nmixed + 1
-        return numc    
+        nmixed = comb(self.order-1, self.ndim)
+        numc = self.order * self.ndim + nmixed + 1
+        return numc
     
     def _generate_coeff_names(self, coeffname):
         ncoeff = self.get_numcoeff()
