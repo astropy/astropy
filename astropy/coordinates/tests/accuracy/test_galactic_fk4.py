@@ -13,7 +13,7 @@ TOLERANCE = 0.5  # arcseconds
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_gal_no_e_fk4():
+def test_galactic_fk4():
 
     t = Table.read(os.path.join(ROOT, 'galactic_fk4.csv'), format='ascii')
 
