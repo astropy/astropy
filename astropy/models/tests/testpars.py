@@ -2,7 +2,8 @@
 Tests models.parameters
 """
 import os.path
-from .. import models, fitting, util
+from .. import models, fitting
+from . import irafutil
 from ..util import InputParametersException
 import pytest
 import numpy as np
@@ -25,7 +26,7 @@ class ParametersTester(unittest.TestCase):
         lines = f.read()
         reclist = lines.split("begin")
         f.close()
-        record = util.IdentifyRecord(reclist[1])
+        record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
         self.model = models.ChebyshevModel(order-1)
@@ -151,4 +152,17 @@ class ParametersTester(unittest.TestCase):
         p2=models.Poly2DModel(2, **kw)
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5, 1, 1, 2, 2, 5, 5])
         
+    def test_non_fittable_model_parameters1d(self):
+        sh1 = models.ShiftModel(2)
+        sh1.offsets  = 3
+        assert(sh1.offsets[0]== 3)
+
+    def test_non_fittable_model_parametersnd(self):
+        sc1 = models.ScaleModel([2,2])
+        sc1.factors  = [3,3]
+        assert(sc1.factors == [3,3])
     
+    def test_non_fittable_model_parameters_wrong_shape(self):
+        sh1 = models.ShiftModel(2)
+        with pytest.raises(InputParametersException):
+            sh1.offsets  = [3, 3]

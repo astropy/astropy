@@ -3,7 +3,8 @@ Module to test fitting routines
 """
 from __future__ import division
 import os
-from .. import models, fitting, util
+from .. import models, fitting
+from . import irafutil
 import numpy as np
 from numpy import linalg
 from numpy.testing import utils
@@ -141,7 +142,7 @@ class TestLinearLSQFitter:
         lines = f.read()
         reclist = lines.split("begin")
         f.close()
-        record = util.IdentifyRecord(reclist[1])
+        record = irafutil.IdentifyRecord(reclist[1])
         self.icoeff = record.coeff
         order = int(record.fields['order'])
         self.model = models.ChebyshevModel(order-1)
