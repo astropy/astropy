@@ -57,7 +57,7 @@ for nm, val in sorted(vars(_cgs).iteritems()):
                     "Constant {0} has already been imported".format(nm))
             locals()[nm] = _c
 
-del _cgs, nm, val, _c
+del _cgs, nm, val, _c, _c_si
 
 # update the si cand cgs module doctrings.
 __doc__ += """
@@ -68,7 +68,12 @@ The following constants are available:
 ========== ============== ================ =========================
 """
 for nm, val in sorted(locals().items()):
-    if isinstance(val, Constant):
+    if isinstance(val, EMConstant):
+        for system in ['si', 'gauss', 'esu']:
+            val_system = getattr(val, system)
+            __doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
+                nm + '.' + system, val_system.value, val_system.unit, val.name)
+    elif isinstance(val, Constant):
         __doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
             nm, val.value, val.unit, val.name)
 
