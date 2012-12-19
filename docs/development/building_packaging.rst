@@ -323,7 +323,8 @@ procedure is that ensures a consistent release process each time.
     distribution.
 
  6. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
-    ensure that the latest version is installed in the virtualenv::
+    ensure that the latest version is installed in the virtualenv (if you're
+    running a csh variant make sure to run ``rehash`` afterwards too)::
 
     $ pip install zest.releaser --upgrade --force
 
@@ -372,8 +373,8 @@ procedure is that ensures a consistent release process each time.
      $ python setup.py sdist
 
      Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
-     build it, and get all the tests to pass. If all looks good, upload the
-     file to the GitHub "downloads" section.
+     build it, and get all the tests to pass.  It would be best to create a new
+     virtualenv in which to do this.
 
  16. Register the release on PyPI with::
 
