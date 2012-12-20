@@ -210,13 +210,13 @@ card image.  The latter will be discussed later.
 
 Most of the time the details of dealing with cards are handled by the
 :class:`Header` object, and it is not necessary to directly manipulate cards.
-In fact, most :class:`Header` methods that accept a (keyword, value) or
-(keyword, value, comment) tuple as an argument can also take a :class:`Card`
-object as an argument.  :class:`Card` objects are just wrappers around that
-header that provide the logic for parsing and formatting individual cards in a
-header.  But there's nothing gained by manually using a :class:`Card` object,
-except to examine how a card might appear in a header before actually adding it
-to the header.
+In fact, most :class:`Header` methods that accept a ``(keyword, value)`` or
+``(keyword, value, comment)`` tuple as an argument can also take a
+:class:`Card` object as an argument.  :class:`Card` objects are just wrappers
+around such tuples that provide the logic for parsing and formatting individual
+cards in a header.  But there's usually nothing gained by manually using a
+:class:`Card` object, except to examine how a card might appear in a header
+before actually adding it to the header.
 
 A new Card object is created with the :class:`Card` constructor:
 ``Card(key, value, comment)``. For example:

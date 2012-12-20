@@ -24,7 +24,9 @@ FIX_FP_TABLE = maketrans('de', 'DE')
 FIX_FP_TABLE2 = maketrans('dD', 'eE')
 
 
-BLANK_CARD = ' ' * 80
+CARD_LENGTH = 80
+BLANK_CARD = ' ' * CARD_LENGTH
+KEYWORD_LENGTH = 8  # The max length for FITS-standard keywords
 
 
 class Undefined:
@@ -299,10 +301,10 @@ class CardList(list):
 
 
 class Card(_Verify):
-    length = 80
+    length = CARD_LENGTH
 
     # String for a FITS standard compliant (FSC) keyword.
-    _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,8}$')
+    _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)
     # This will match any printable ASCII character excluding '='
     _keywd_hierarch_RE = re.compile(r'^(?:HIERARCH )?(?:^[ -<>-~]+ ?)+$', re.I)
 
@@ -480,7 +482,8 @@ class Card(_Verify):
             # should be strictly disallowed.
             keyword = keyword.rstrip()
             keyword_upper = keyword.upper()
-            if len(keyword) <= 8 and self._keywd_FSC_RE.match(keyword_upper):
+            if (len(keyword) <= KEYWORD_LENGTH and
+                self._keywd_FSC_RE.match(keyword_upper)):
                 # For keywords with length > 8 they will be HIERARCH cards,
                 # and can have arbitrary case keywords
                 if keyword_upper == 'END':
@@ -821,13 +824,13 @@ class Card(_Verify):
         if self._check_if_rvkc(self._image):
             return self._keyword
 
-        keyword = self._image[:8].strip()
+        keyword = self._image[:KEYWORD_LENGTH].strip()
         keyword_upper = keyword.upper()
         value_indicator = self._image.find('= ')
 
         special = self._commentary_keywords + ['CONTINUE']
 
-        if keyword_upper in special or 0 <= value_indicator <= 8:
+        if keyword_upper in special or 0 <= value_indicator <= KEYWORD_LENGTH:
             # The value indicator should appear in byte 8, but we are flexible
             # and allow this to be fixed
             if value_indicator >= 0:
@@ -857,7 +860,7 @@ class Card(_Verify):
         # for commentary cards, no need to parse further
         # Likewise for invalid cards
         if self.keyword.upper() in self._commentary_keywords or self._invalid:
-            return self._image[8:].rstrip()
+            return self._image[KEYWORD_LENGTH:].rstrip()
 
         if self._check_if_rvkc(self._image):
             return self._value
@@ -965,8 +968,8 @@ class Card(_Verify):
             # The equal sign may not be any higher than column 10; anything
             # past that must be considered part of the card value
             if delim_index is None:
-                keyword = image[:8]
-                valuecomment = image[8:]
+                keyword = image[:KEYWORD_LENGTH]
+                valuecomment = image[KEYWORD_LENGTH:]
             elif delim_index > 10 and image[:9] != 'HIERARCH ':
                 keyword = image[:8]
                 valuecomment = image[8:]
@@ -1025,13 +1028,13 @@ class Card(_Verify):
     def _format_keyword(self):
         if self.keyword:
             if self.field_specifier:
-                return '%-8s' % self.keyword.split('.', 1)[0]
+                return '%-*s' % (KEYWORD_LENGTH, self.keyword.split('.', 1)[0])
             elif self._hierarch:
                 return 'HIERARCH %s ' % self.keyword
             else:
-                return '%-8s' % self.keyword
+                return '%-*s' % (KEYWORD_LENGTH, self.keyword)
         else:
-            return ' ' * 8
+            return ' ' * KEYWORD_LENGTH
 
     def _format_value(self):
         # value string
@@ -1058,7 +1061,7 @@ class Card(_Verify):
             value = _format_value(value)
 
         # For HIERARCH cards the value should be shortened to conserve space
-        if not self.field_specifier and len(self.keyword) > 8:
+        if not self.field_specifier and len(self.keyword) > KEYWORD_LENGTH:
             value = value.strip()
 
         return value
@@ -1138,7 +1141,7 @@ class Card(_Verify):
         words = _words_group(value, value_length)
         for idx, word in enumerate(words):
             if idx == 0:
-                headstr = '%-8s= ' % self.keyword
+                headstr = '%-*s= ' % (KEYWORD_LENGTH, self.keyword)
             else:
                 headstr = 'CONTINUE  '
             value = value_format % word
@@ -1161,7 +1164,7 @@ class Card(_Verify):
         same type.
         """
 
-        maxlen = Card.length - len(self.keyword) - 1
+        maxlen = Card.length - KEYWORD_LENGTH
         value = self._format_value()
         output = []
         idx = 0

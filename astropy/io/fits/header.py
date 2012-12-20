@@ -11,7 +11,7 @@ import re
 import sys
 import warnings
 
-from .card import Card, CardList, _pad, BLANK_CARD
+from .card import Card, CardList, _pad, BLANK_CARD, KEYWORD_LENGTH
 from .file import _File, PYTHON_MODES
 from .util import (encode_ascii, decode_ascii, fileobj_mode,
                    fileobj_is_binary)
@@ -530,7 +530,16 @@ class Header(object):
             A string representing a FITS header.
         """
 
-        s = sep.join(str(card) for card in self._cards)
+        lines = []
+        for card in self._cards:
+            s = str(card)
+            # Cards with CONTINUE cards may be longer than 80 chars; so break
+            # them into multiple lines
+            while s:
+                lines.append(s[:Card.length])
+                s = s[Card.length:]
+
+        s = sep.join(lines)
         if endcard:
             s += sep + _pad('END')
         if padding:
@@ -780,7 +789,8 @@ class Header(object):
         # Don't try to make a temporary card though if they keyword looks like
         # it might be a HIERARCH card or is otherwise invalid--this step is
         # only for validating RVKCs.
-        if (len(keyword) <= 8 and Card._keywd_FSC_RE.match(keyword) and
+        if (len(keyword) <= KEYWORD_LENGTH and
+            Card._keywd_FSC_RE.match(keyword) and
             keyword not in self._keyword_indices):
             new_card = Card(keyword, value, comment)
             new_keyword = new_card.keyword
@@ -1574,7 +1584,7 @@ class Header(object):
             # Returns the index into _cards for the n-th card with the given
             # keyword (where n is 0-based)
             if keyword and keyword not in self._keyword_indices:
-                if len(keyword) > 8 or '.' in keyword:
+                if len(keyword) > KEYWORD_LENGTH or '.' in keyword:
                     raise KeyError("Keyword %r not found." % keyword)
                 # Great--now we have to check if there's a RVKC that starts
                 # with the given keyword, making failed lookups fairly
@@ -1726,8 +1736,9 @@ class Header(object):
         """
 
         # The maximum value in each card can be the maximum card length minus
-        # the key length minus a space (or just minus one if the key is blank)
-        maxlen = Card.length - len(keyword) - 1
+        # the maximum key length (which can include spaces if they key length
+        # less than 8
+        maxlen = Card.length - KEYWORD_LENGTH
         valuestr = str(value)
 
         if len(valuestr) <= maxlen:
@@ -2023,10 +2034,10 @@ class _HeaderComments(_CardAccessor):
     def __repr__(self):
         """Returns a simple list of all keywords and their comments."""
 
-        keyword_width = 8
+        keyword_length = KEYWORD_LENGTH
         for card in self._header._cards:
-            keyword_width = max(keyword_width, len(card.keyword))
-        return '\n'.join('%*s  %s' % (keyword_width, c.keyword, c.comment)
+            keyword_length = max(keyword_length, len(card.keyword))
+        return '\n'.join('%*s  %s' % (keyword_length, c.keyword, c.comment)
                          for c in self._header._cards)
 
     def __getitem__(self, item):

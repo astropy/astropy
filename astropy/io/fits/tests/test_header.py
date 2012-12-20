@@ -425,6 +425,49 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
             "CONTINUE  '&' / long comment                                                    ")
 
+    def test_long_string_repr(self):
+        """Regression test for #193
+
+        Ensure that the __repr__() for cards represented with CONTINUE cards is
+        split across multiple lines (broken at each *physical* card).
+        """
+
+        header = fits.Header()
+        header['TEST1'] = ('Regular value', 'Regular comment')
+        header['TEST2'] = ('long string value ' * 10, 'long comment ' * 10)
+        header['TEST3'] = ('Regular value', 'Regular comment')
+
+        assert (repr(header).splitlines() ==
+            [str(fits.Card('TEST1', 'Regular value', 'Regular comment')),
+             "TEST2   = 'long string value long string value long string value long string &' ",
+             "CONTINUE  'value long string value long string value long string value long &'  ",
+             "CONTINUE  'string value long string value long string value &'                  ",
+             "CONTINUE  '&' / long comment long comment long comment long comment long        ",
+             "CONTINUE  '&' / comment long comment long comment long comment long comment     ",
+             "CONTINUE  '&' / long comment                                                    ",
+             str(fits.Card('TEST3', 'Regular value', 'Regular comment'))])
+
+    def test_blank_keyword_long_value(self):
+        """Regression test for #194
+
+        Test that a blank keyword ('') can be assigned a too-long value that is
+        continued across multiple cards with blank keywords, just like COMMENT
+        and HISTORY cards.
+        """
+
+        value = 'long string value ' * 10
+        header = fits.Header()
+        header[''] = value
+
+        assert len(header) == 3
+        assert ' '.join(header['']) == value.rstrip()
+
+        # Ensure that this works like other commentary keywords
+        header['COMMENT'] = value
+        header['HISTORY'] = value
+        assert header['COMMENT'] == header['HISTORY']
+        assert header['COMMENT'] == header['']
+
     def test_long_string_from_file(self):
         c = fits.Card('abc', 'long string value ' * 10, 'long comment ' * 10)
         hdu = fits.PrimaryHDU()

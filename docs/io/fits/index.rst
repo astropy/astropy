@@ -240,7 +240,7 @@ to flux:
 
     >>> photflam = hdulist[1].header['photflam']
     >>> exptime = prihdr['exptime']
-    >>> scidata \*= photflam / exptime
+    >>> scidata *= photflam / exptime
 
 This example performs the math on the array in-place, thereby keeping the
 memory usage to a minimum.

@@ -12,7 +12,6 @@ standard, see the NASA/Science Office of Standards and Technology
 publication, NOST 100-2.0.
 """
 
-import os
 
 from . import py3compat
 

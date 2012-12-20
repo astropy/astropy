@@ -975,8 +975,7 @@ void compression_module_init(PyObject* module) {
     PyObject_SetAttrString(module, "CFITSIO_VERSION", tmp);
     Py_XDECREF(tmp);
 
-    /* Needed to use Numpy routines */
-    import_array();
+    return;
 }
 
 
@@ -1003,6 +1002,13 @@ PyInit_compression(void)
 {
     PyObject* module = PyModule_Create(&compressionmodule);
     compression_module_init(module);
+
+    /* Needed to use Numpy routines */
+    /* Note -- import_array() is a macro that behaves differently in Python2.x
+     * vs. Python 3. See the discussion at:
+     * https://groups.google.com/d/topic/astropy-dev/6_AesAsCauM/discussion
+     */
+    import_array();
     return module;
 }
 #else
@@ -1012,5 +1018,6 @@ PyMODINIT_FUNC initcompression(void)
                                      "astropy.io.fits.compression module",
                                      NULL, PYTHON_API_VERSION);
    compression_module_init(module);
+   import_array();
 }
 #endif
