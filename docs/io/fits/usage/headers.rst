@@ -222,9 +222,9 @@ A new Card object is created with the :class:`Card` constructor:
 ``Card(key, value, comment)``. For example:
 
     >>> c1 = fits.Card('TEMP', 80.0, 'temperature, floating value')
-    >>> c2 = fits.Card('DETECTOR', 1) # comment is optional
+    >>> c2 = fits.Card('DETECTOR', 1)  # comment is optional
     >>> c3 = fits.Card('MIR_REVR', True,
-    ...                'mirror reversed? Boolean value)
+    ...                'mirror reversed? Boolean value')
     >>> c4 = fits.Card('ABC', 2+3j, 'complex value')
     >>> c5 = fits.Card('OBSERVER', 'Hubble', 'string value')
 
