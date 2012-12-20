@@ -380,12 +380,18 @@ procedure is that ensures a consistent release process each time.
 
      $ python setup.py register
 
- 17. Update the website to reflect the fact there is now a stable release.
+ 17. Upload the source distribution to PyPI; this is preceded by re-running
+     the sdist command, which is necessary for the upload command to know
+     which distribution to upload::
 
- 18. Update Readthedocs so that it builds docs for the corresponding github tag,
+     $ python setup.py sdist upload
+
+ 18. Update the website to reflect the fact there is now a stable release.
+
+ 19. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
 
- 19. Create a bug fix branch.  If the version just was released was a "X.Y.0"
+ 20. Create a bug fix branch.  If the version just was released was a "X.Y.0"
      version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
      it is good to create a bug fix branch as well.  Starting from the tagged
      changset, just checkout a new branch and push it to the remote server.
@@ -407,7 +413,7 @@ procedure is that ensures a consistent release process each time.
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
 
- 20. Create a bug fix label on GitHub; this should have the same name as the
+ 21. Create a bug fix label on GitHub; this should have the same name as the
      just created bug fix branch.  This label should be applied to all issues
      that should be backported to the bug fix branch.
 
