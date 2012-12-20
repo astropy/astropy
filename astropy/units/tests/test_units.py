@@ -5,6 +5,7 @@ Regression tests for the units package
 
 from __future__ import absolute_import, unicode_literals, division, print_function
 
+from fractions import Fraction
 import warnings
 
 from ...tests.helper import pytest, raises
@@ -225,3 +226,60 @@ def test_steradian():
     Issue #599
     """
     assert u.sr.is_equivalent(u.rad * u.rad)
+
+
+def test_decompose_bases():
+    """
+    From issue #576
+    """
+    from .. import cgs
+    from ...constants import cgs as cgs_constants
+
+    d = cgs_constants.e.unit.decompose(bases=cgs.bases)
+    assert d._bases == [u.cm, u.g, u.s]
+    assert d._powers == [Fraction(3, 2), Fraction(1, 2), -1]
+    assert d._scale == 1.0
+
+
+def test_complex_compose():
+    complex = u.cd * u.sr * u.Wb
+    composed = complex.compose()
+
+    assert set(composed[0]._bases) == set([u.lm, u.Wb])
+
+
+def test_equiv_compose():
+    composed = u.m.compose(equivs=u.spectral())
+    assert u.Hz in composed
+
+
+def test_compose_roundtrip():
+    def _test_compose_roundtrip(unit):
+        composed_list = unit.decompose().compose()
+        found = False
+        for composed in composed_list:
+            if len(composed._bases):
+                if composed._bases[0] is unit:
+                    found = True
+                    break
+            elif len(unit._bases) == 0:
+                found = True
+                break
+        assert found
+
+    from ... import units as u
+
+    for val in u.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_roundtrip, val
+
+
+def test_to_cgs():
+    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+
+
+def test_decompose_to_cgs():
+    from .. import cgs
+    assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm

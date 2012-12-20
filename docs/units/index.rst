@@ -33,6 +33,17 @@ Units that "cancel out" become a special unit called the
   >>> u.m / u.m
   Unit(dimensionless)
 
+`astropy` is able to match compound units against the units it already
+knows about::
+
+  >>> (u.s ** -1).compose()
+  [Unit("Hz")]
+
+And it can convert between unit systems::
+
+  >>> u.Pa.to_system(u.cgs)
+  [Unit("1.000000e+01 Ba")]
+
 `astropy.units` also handles equivalencies, such as that between
 wavelength and frequency.  To use that feature, equivalence objects
 are passed to the `~astropy.units.core.UnitBase.to` conversion method::
@@ -50,7 +61,7 @@ Also included in the `astropy.units` package is the
 `~astropy.units.quantity.Quantity` object, which represents a
 numerical value with an associated unit. These objects support
 arithmetic with other numbers and `~astropy.units.quantity.Quantity`
-objects and preserve units::
+objects and preserve their units::
 
    >>> from astropy import units as u
    >>> 15.1*u.meter / (32.0*u.second)
@@ -68,6 +79,7 @@ Using `astropy.units`
 
    standard_units
    composing_and_defining
+   decomposing
    conversion
    format
    equivalencies

@@ -15,10 +15,16 @@ from .core import UnitBase, def_unit
 
 UnitBase._set_namespace(globals())
 
+def_unit(['cm', 'centimeter'], si.cm, register=True, prefixes=False)
+g = si.g
+s = si.s
+C = si.C
+
+
 ##########################################################################
 # ACCELERATION
 
-def_unit(['Gal', 'gal'], si.cm / si.s ** 2, register=True, prefixes=True,
+def_unit(['Gal', 'gal'], cm / s ** 2, register=True, prefixes=True,
          doc="Gal: CGS unit of acceleration")
 
 
@@ -26,14 +32,14 @@ def_unit(['Gal', 'gal'], si.cm / si.s ** 2, register=True, prefixes=True,
 # ENERGY
 
 # Use CGS definition of erg
-def_unit(['erg'], si.g * si.cm ** 2 / si.s ** 2, register=True, prefixes=True,
+def_unit(['erg'], g * cm ** 2 / s ** 2, register=True, prefixes=True,
          doc="erg: CGS unit of energy")
 
 
 ##########################################################################
 # FORCE
 
-def_unit(['dyn', 'dyne'], si.g * si.cm / si.s ** 2, register=True,
+def_unit(['dyn', 'dyne'], g * cm / s ** 2, register=True,
          prefixes=True,
          doc="dyne: CGS unit of force")
 
@@ -41,7 +47,7 @@ def_unit(['dyn', 'dyne'], si.g * si.cm / si.s ** 2, register=True,
 ##########################################################################
 # PRESSURE
 
-def_unit(['Ba', 'Barye', 'barye'], si.g / (si.cm * si.s ** 2), register=True,
+def_unit(['Ba', 'Barye', 'barye'], g / (cm * s ** 2), register=True,
          prefixes=True,
          doc="Barye: CGS unit of pressure")
 
@@ -49,7 +55,7 @@ def_unit(['Ba', 'Barye', 'barye'], si.g / (si.cm * si.s ** 2), register=True,
 ##########################################################################
 # DYNAMIC VISCOSITY
 
-def_unit(['P', 'poise'], si.g / (si.cm * si.s), register=True,
+def_unit(['P', 'poise'], g / (cm * s), register=True,
          prefixes=True,
          doc="poise: CGS unit of dynamic viscosity")
 
@@ -57,7 +63,7 @@ def_unit(['P', 'poise'], si.g / (si.cm * si.s), register=True,
 ##########################################################################
 # KINEMATIC VISCOSITY
 
-def_unit(['St', 'stokes'], si.cm ** 2 / si.s, register=True,
+def_unit(['St', 'stokes'], cm ** 2 / s, register=True,
          prefixes=True,
          doc="stokes: CGS unit of kinematic viscosity")
 
@@ -65,7 +71,7 @@ def_unit(['St', 'stokes'], si.cm ** 2 / si.s, register=True,
 ##########################################################################
 # WAVENUMBER
 
-def_unit(['k', 'Kayser', 'kayser'], si.cm ** -1, register=True,
+def_unit(['k', 'Kayser', 'kayser'], cm ** -1, register=True,
          prefixes=True,
          doc="kayser: CGS unit of wavenumber")
 
@@ -73,12 +79,12 @@ def_unit(['k', 'Kayser', 'kayser'], si.cm ** -1, register=True,
 ###########################################################################
 # ELECTRICAL
 
-def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * si.C * si.m,
+def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * C * si.m,
          register=True,
          doc="Debye: CGS unit of electric dipole moment")
 
 def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
-         si.g ** Fraction(1, 2) * si.cm ** Fraction(3, 2) * si.s ** -1,
+         g ** Fraction(1, 2) * cm ** Fraction(3, 2) * s ** -1,
          register=True)
 
 ###########################################################################
@@ -88,14 +94,11 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, register=True, prefixes=True,
          doc="Gauss: CGS unit for magnetic field")
 
 
-# Mapping from SI units to CGS units
-_cgs_bases = {si.meter : si.cm,
-              si.joule : erg,
-              si.newton : dyne,
-              si.pascal : barye,
-              si.tesla : gauss,
-              si.coulomb : statcoulomb,
-              si.kilogram : si.g}
+###########################################################################
+# BASES
+
+bases = set([cm, g, s, C, si.sr, si.cd])
+
 
 ###########################################################################
 # CLEANUP

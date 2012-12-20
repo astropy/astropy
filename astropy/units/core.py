@@ -114,7 +114,7 @@ class UnitBase(object):
                 raise ValueError(
                     "floating values for unit powers must be integers or "
                     "integers + 0.5")
-        return CompositeUnit(1, [self], [p]).simplify()
+        return CompositeUnit(1, [self], [p])._simplify()
 
     def __div__(self, m):
         # Strictly speaking, we should be using old-style division here.
@@ -126,11 +126,14 @@ class UnitBase(object):
         elif isinstance(m, Quantity):
             return Quantity(1, self) / m
         else:
-            return Quantity(1. / m, self)
+            return CompositeUnit(1.0 / m, [self], [1])._simplify()
 
     def __rdiv__(self, m):
-        from .quantity import Quantity
-        return Quantity(m, CompositeUnit(1.0, [self], [-1]).simplify())
+        if isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(m, CompositeUnit(1.0, [self], [-1])._simplify())
+        else:
+            return CompositeUnit(m, [self], [-1])._simplify()
 
     def __truediv__(self, m):
         return self.__div__(m)
@@ -145,11 +148,14 @@ class UnitBase(object):
         elif isinstance(m, Quantity):
             return Quantity(1, self) * m
         else:
-            return Quantity(m, self)
+            return CompositeUnit(m, [self], [1])._simplify()
 
     def __rmul__(self, m):
-        from .quantity import Quantity
-        return Quantity(m, self)
+        if isinstance(m, numbers.Number):
+            from .quantity import Quantity
+            return Quantity(m, self)
+        else:
+            return CompositeUnit(m, [self], [1])._simplify()
 
     if sys.version_info[0] >= 3:
         def __hash__(self):
@@ -186,7 +192,7 @@ class UnitBase(object):
     def __neg__(self):
         return self * -1.
 
-    def simplify(self):
+    def _simplify(self):
         """
         Compresses a possibly composite unit down to a single
         instance.
@@ -376,20 +382,184 @@ class UnitBase(object):
         return self.to(
             other, value=value, equivalencies=equivalencies)
 
-    def decompose(self):
+    def decompose(self, bases=[]):
         """
         Return a unit object composed of only irreducible units.
 
         Parameters
         ----------
-        None
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsException` if it's not possible
+            to do so.
 
         Returns
         -------
         unit : CompositeUnit object
             New object containing only irreducible unit objects.
         """
-        return self
+        raise NotImplementedError()
+
+    def _compose(self, equivs=[], namespace=None, max_depth=2, depth=0):
+        def calc_complexity(unit):
+            return sum(abs(x) for x in unit._powers)
+
+        def len_bases(pair):
+            return len(pair[0]._bases)
+
+        def results_of_length(results, length):
+            subresults = []
+            for composed, tunit in results:
+                if len(composed._bases) > length:
+                    break
+                else:
+                    subresults.append(composed * tunit)
+            return subresults
+
+        unit = self.decompose()
+
+        # Prevent recursion too far
+        if depth >= max_depth:
+            return [unit]
+
+        # Special case for dimensionless unit
+        if len(unit._bases) == 0:
+            return [unit]
+
+        # Make a list including all of the equivalent units
+        units = [unit]
+        for equiv in equivs:
+            funit, tunit = equiv[:2]
+            if self.is_equivalent(funit):
+                units.append(tunit.decompose())
+            elif self.is_equivalent(tunit):
+                units.append(funit.decompose())
+
+        # Create a first pass at the results.  Only store results if
+        # they reduce complexity (since the unit is already fully
+        # decomposed, any further decomposition doesn't get us closer
+        # to our result).
+        results = []
+        for u in units:
+            complexity = calc_complexity(u)
+            for tunit in namespace:
+                composed = u / tunit.decompose()
+                if (calc_complexity(composed) <=
+                    complexity):
+                    results.append((composed, tunit))
+
+        if len(results):
+            results.sort(key=len_bases)
+
+            # If we have any results that factor away to nothing or a
+            # single unit, we can just return all of those...
+            min_length = len_bases(results[0])
+            if min_length in (0, 1):
+                return results_of_length(results, min_length)
+            else:
+                # ...otherwise we have to recurse and try to further
+                # compose
+                subresults = []
+                for composed, tunit in results:
+                    composed_list = composed._compose(
+                        equivs=equivs, namespace=namespace,
+                        max_depth=max_depth, depth=depth + 1)
+                    for subcomposed in composed_list:
+                        if len(subcomposed._bases) <= len(composed._bases):
+                            subresults.append((subcomposed, tunit))
+
+                results = subresults
+                results.sort(key=len_bases)
+
+                min_length = len(results[0][0]._bases)
+                return results_of_length(results, min_length)
+
+        return [self]
+
+    def compose(self, equivs=[], units=None, max_depth=2):
+        """
+        Return the simplest possible composite unit(s) that represent
+        the given unit.  Since there may be multiple equally simple
+        compositions of the unit, a list of units is always returned.
+
+        Parameters
+        ----------
+        equivs : list of equivalence pairs, optional
+            A list of equivalence pairs to also list.  See
+            :ref:`unit_equivalencies`.
+
+        units : set of units to compose to, optional
+            If not provided, all defined units may be used to compose
+            into.  Otherwise, may be a dict, module or sequence
+            containing the units to compose into as values.
+
+        max_depth : int, optional
+            The maximum recursion depth to use when composing into
+            composite units.
+
+        Returns
+        -------
+        units : list of `CompositeUnit`
+            A list of candidate compositions.  These will all be
+            equally simple, but it may not be possible to
+            automatically determine which of the candidates are
+            better.
+        """
+        if units is None:
+            units = UnitBase._registry
+        elif isinstance(units, dict):
+            units = units.values()
+        elif inspect.ismodule(units):
+            units = units.__dict__.values()
+        # list, set, other sequences should just fall through
+
+        filtered_namespace = set()
+        for tunit in units:
+            if (isinstance(tunit, UnitBase) and
+                not isinstance(tunit, PrefixUnit)):
+                filtered_namespace.add(tunit)
+
+        return self._compose(
+            equivs=equivs, namespace=filtered_namespace,
+            max_depth=max_depth, depth=0)
+
+    def to_system(self, system):
+        """
+        Converts this unit into ones belonging to the given system.
+        Since more than one result may be possible, a list is always
+        returned.
+
+        Parameters
+        ----------
+        system : module
+            The module that defines the unit system.  Commonly used
+            ones include `astropy.units.si` and `astropy.units.cgs`.
+
+            To use your own module it must contain a number of unit
+            objects and a sequence member named `bases` containing the
+            base units of the system.
+
+        Returns
+        -------
+        units : list of `CompositeUnit`
+            The list is ranked so that units containing only the base
+            units of that system will appear first.
+        """
+        bases = set(system.bases)
+
+        def score(compose):
+            sum = 0
+            for base in compose._bases:
+                if base in bases:
+                    sum += 1
+            return sum / float(len(compose._bases))
+
+        x = self.decompose(bases=bases)
+        composed = x.compose(units=system)
+        composed = sorted(composed, key=score, reverse=True)
+        return composed
 
     @property
     def physical_type(self):
@@ -435,7 +605,7 @@ class UnitBase(object):
                          [']'])
                 return '\n'.join(lines)
 
-    def find_equivalent_units(self, equivalencies=[]):
+    def find_equivalent_units(self, equivalencies=[], units=None):
         """
         Return a list of all the units that are the same type as the
         specified unit.
@@ -449,6 +619,11 @@ class UnitBase(object):
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
 
+        units : set of units to search in, optional
+            If not provided, all defined units will be searched for
+            equivalencies.  Otherwise, may be a dict, module or
+            sequence containing the units to search for equivalencies.
+
         Returns
         -------
         units : list of `UnitBase`
@@ -456,26 +631,10 @@ class UnitBase(object):
             `list` (`EquivalentUnitsList`) is returned that
             pretty-prints the list of units when output.
         """
-        units = [self]
-        for equiv in equivalencies:
-            funit, tunit = equiv[:2]
-            if self.is_equivalent(funit):
-                units.append(tunit)
-            elif self.is_equivalent(tunit):
-                units.append(funit)
-
-        equivalencies = set()
-        for tunit in UnitBase._registry:
-            if not isinstance(tunit, PrefixUnit):
-                for u in units:
-                    try:
-                        tunit.get_converter(u)
-                    except UnitsException:
-                        pass
-                    else:
-                        equivalencies.add(tunit)
-
-        return self.EquivalentUnitsList(equivalencies)
+        results = self.compose(equivs=equivs, units=units, max_depth=1)
+        results = [
+            x._bases[0] for x in results if len(x._bases) == 1]
+        return self.EquivalentUnitsList(results)
 
 
 class NamedUnit(UnitBase):
@@ -632,7 +791,18 @@ class IrreducibleUnit(NamedUnit):
     Examples are meters, seconds, kilograms, amperes, etc.  There is
     only once instance of such a unit per type.
     """
-    def decompose(self):
+    def decompose(self, bases=[]):
+        bases = set(bases)
+
+        if len(bases) and not self in bases:
+            for base in bases:
+                if self.is_equivalent(base):
+                    return CompositeUnit(self.to(base), [base], [1])
+
+            raise UnitsException(
+                "{0} can not be reduced into the requested bases".format(
+                    self))
+
         return CompositeUnit(1, [self], [1])
     decompose.__doc__ = UnitBase.decompose.__doc__
 
@@ -857,8 +1027,8 @@ class Unit(NamedUnit):
         NamedUnit.__init__(self, st, register=register, doc=doc,
                            format=format)
 
-    def decompose(self):
-        return self._represents.decompose()
+    def decompose(self, bases=[]):
+        return self._represents.decompose(bases=bases)
     decompose.__doc__ = UnitBase.decompose.__doc__
 
 
@@ -931,27 +1101,37 @@ class CompositeUnit(UnitBase):
         """
         return self._powers
 
-    def _expand_and_gather(self, decompose=False):
-        bases = {}
+    def _expand_and_gather(self, decompose=False, bases=[]):
+        def add_unit(unit, power, scale):
+            if len(bases) and unit not in bases:
+                for base in bases:
+                    if unit.is_equivalent(base):
+                        scale *= unit.to(base) ** power
+                        unit = base
+                        break
+
+            new_parts[unit] = power + new_parts.get(unit, 0)
+            return scale
+
+        new_parts = {}
         scale = self.scale
 
-        for i, (b, p) in enumerate(zip(self.bases, self.powers)):
-            if decompose:
-                b = b.decompose()
+        for b, p in zip(self.bases, self.powers):
+            if decompose and (not len(bases) or b not in bases):
+                b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):
                 scale *= b.scale ** p
                 for b_sub, p_sub in zip(b.bases, b.powers):
-                    bases[b_sub] = p_sub * p + bases.get(b_sub, 0)
-
+                    scale = add_unit(b_sub, p_sub * p, scale)
             else:
-                bases[b] = p + bases.get(b, 0)
+                scale = add_unit(b, p, scale)
 
-        bases = [(b, p) for (b, p) in bases.items() if p != 0]
-        bases.sort(key=lambda x: x[1], reverse=True)
+        new_parts = [(b, p) for (b, p) in new_parts.items() if p != 0]
+        new_parts.sort(key=lambda x: x[1], reverse=True)
 
-        self._bases = [x[0] for x in bases]
-        self._powers = [x[1] for x in bases]
+        self._bases = [x[0] for x in new_parts]
+        self._powers = [x[1] for x in new_parts]
         self._scale = scale
 
     def __copy__(self):
@@ -960,14 +1140,14 @@ class CompositeUnit(UnitBase):
         """
         return CompositeUnit(self._scale, self._bases[:], self._powers[:])
 
-    def simplify(self):
+    def _simplify(self):
         self._expand_and_gather()
         return self
-    simplify.__doc__ = UnitBase.simplify.__doc__
+    _simplify.__doc__ = UnitBase._simplify.__doc__
 
-    def decompose(self):
+    def decompose(self, bases=[]):
         x = CompositeUnit(self.scale, self.bases, self.powers)
-        x._expand_and_gather(True)
+        x._expand_and_gather(True, bases=bases)
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 

@@ -1,9 +1,9 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module defines the `Quantity` object, which represents a number with some associated
-units. `Quantity` objects support operations like ordinary numbers, but will deal with
-unit conversions internally.
+This module defines the `Quantity` object, which represents a number
+with some associated units. `Quantity` objects support operations like
+ordinary numbers, but will deal with unit conversions internally.
 """
 
 from __future__ import absolute_import, unicode_literals, division, print_function
@@ -15,7 +15,7 @@ import numbers
 import numpy as np
 
 # AstroPy
-from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
+from .core import Unit, UnitBase, CompositeUnit
 
 __all__ = ["Quantity"]
 
@@ -56,15 +56,17 @@ class Quantity(object):
     value : number
         The numerical value of this quantity in the units given by unit.
     unit : `~astropy.units.UnitBase` instance, str
-        An object that represents the unit associated with the input value. Must be an `~astropy.units.UnitBase`
-        object or a string parseable by the `units` package.
+        An object that represents the unit associated with the input
+        value. Must be an `~astropy.units.UnitBase` object or a string
+        parseable by the `units` package.
 
     Raises
     ------
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not either a `Unit` object or a parseable string unit.
+        If the unit provided is not either a `Unit` object or a
+        parseable string unit.
     """
 
     def __init__(self, value, unit):
@@ -77,8 +79,10 @@ class Quantity(object):
         Parameters
         ----------
         unit : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit to convert to. Must be an `~astropy.units.UnitBase`
-            object or a string parseable by the `units` package.
+            An object that represents the unit to convert to. Must be
+            an `~astropy.units.UnitBase` object or a string parseable
+            by the `units` package.
+
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
@@ -94,13 +98,15 @@ class Quantity(object):
 
     @value.setter
     def value(self, obj):
-        """ Setter for the value attribute. We allow the user to change the value by setting this attribute,
-        so this will validate the new object.
+        """ Setter for the value attribute. We allow the user to
+        change the value by setting this attribute, so this will
+        validate the new object.
 
         Parameters
         ----------
         obj : number
-            The numerical value of this quantity in the same units as stored internally.
+            The numerical value of this quantity in the same units as
+            stored internally.
 
         Raises
         ------
@@ -111,85 +117,27 @@ class Quantity(object):
 
     @property
     def unit(self):
-        """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
+        """ A `~astropy.units.UnitBase` object representing the unit
+        of this quantity."""
         return self._unit
 
     @property
     def si(self):
-        """ Returns a copy of the current `Quantity` instance with SI units. The value of the
-            resulting object will be scaled.
+        """ Returns a copy of the current `Quantity` instance with SI
+            units. The value of the resulting object will be scaled.
         """
-
-        from . import si as _si
-        si_unit_set = set([ss for ss in _si.__dict__.values() if isinstance(ss, IrreducibleUnit)])
-        si_quantity_value = self.value
-
-        if isinstance(self.unit, CompositeUnit):
-            si_quantity_bases = []
-            si_quantity_powers = []
-
-            for base_unit, power in zip(self.unit.bases, self.unit.powers):
-                is_si = True
-                for si_unit in si_unit_set:
-                    if base_unit.is_equivalent(si_unit) and base_unit != si_unit:
-                        scale = (base_unit / si_unit).dimensionless_constant() ** power
-                        si_quantity_value *= scale
-                        is_si = False
-                        si_quantity_bases.append(si_unit)
-                        si_quantity_powers.append(power)
-                        break
-
-                if is_si:
-                    si_quantity_bases.append(base_unit)
-                    si_quantity_powers.append(power)
-
-            return Quantity(si_quantity_value, CompositeUnit(1., si_quantity_bases, si_quantity_powers).simplify())
-        else:
-            for si_unit in si_unit_set:
-                if self.unit.is_equivalent(si_unit) and self.unit != si_unit:
-                    # Don't have to worry about power here because if it has a power, it's a CompositeUnit
-                    scale = (self.unit / si_unit).dimensionless_constant()
-                    si_quantity_value *= scale
-
-                    return Quantity(si_quantity_value, si_unit)
-
-            return self.copy()
+        from . import si
+        si_unit = self.unit.to_system(si)[0]
+        return Quantity(self.value * si_unit.scale, si_unit / si_unit.scale)
 
     @property
     def cgs(self):
-        """ Returns a copy of the current `Quantity` instance with CGS units. The value of the
-            resulting object will be scaled.
+        """ Returns a copy of the current `Quantity` instance with CGS
+            units. The value of the resulting object will be scaled.
         """
-
-
-        from . import cgs as _cgs
-        si_quantity = self.si
-        cgs_quantity_value = si_quantity.value
-
-        if isinstance(si_quantity.unit, CompositeUnit):
-            cgs_quantity_bases = []
-            cgs_quantity_powers = []
-
-            for base_unit, power in zip(si_quantity.unit.bases, si_quantity.unit.powers):
-                if base_unit in _cgs._cgs_bases.keys():
-                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant() ** power
-                    cgs_quantity_value *= scale
-                    cgs_quantity_bases.append(_cgs._cgs_bases[base_unit])
-                    cgs_quantity_powers.append(power)
-                else:
-                    cgs_quantity_bases.append(base_unit)
-                    cgs_quantity_powers.append(power)
-
-            return Quantity(cgs_quantity_value, CompositeUnit(1., cgs_quantity_bases, cgs_quantity_powers).simplify())
-        else:
-            if si_quantity.unit in _cgs._cgs_bases.keys():
-                # Don't have to worry about power here because if it has a power, it's a CompositeUnit
-                scale = (si_quantity.unit / _cgs._cgs_bases[si_quantity.unit]).dimensionless_constant()
-                cgs_quantity_value *= scale
-
-                return Quantity(cgs_quantity_value, _cgs._cgs_bases[si_quantity.unit])
-            else:
-                return Quantity(si_quantity.value, si_quantity.unit)
+        from . import cgs
+        cgs_unit = self.unit.to_system(cgs)[0]
+        return Quantity(self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale)
 
     @property
     def isscalar(self):
@@ -200,7 +148,7 @@ class Quantity(object):
         .. note::
             This is subtly different from `numpy.isscalar` in that
             `numpy.isscalar` returns False for a zero-dimensional array
-            (e.g. ``np.array(1)``), while this is True in that case.
+            (e.g. ``np.array(`)``), while this is True in that case.
         """
         from ..utils.misc import isiterable
 
@@ -212,86 +160,107 @@ class Quantity(object):
 
     # Arithmetic operations
     def __add__(self, other):
-        """ Addition between `Quantity` objects and other objects.  If
-        they are both `Quantity` objects, results in the units of the
-        **left** object if they are compatible, otherwise this fails.
+        """ Addition between `Quantity` objects. All operations return
+        a new `Quantity` object with the units of the **left** object.
         """
-        if isinstance(other, Quantity):
-            return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
-        else:
-            raise TypeError("Object of type '{0}' cannot be added with a "
-                "Quantity object. Addition is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+        if not isinstance(other, Quantity):
+            raise TypeError(
+                "Object of type '{0}' cannot be added with a Quantity object. "
+                "Addition is only supported between Quantity "
+                "objects.".format(other.__class__))
+        return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
 
     def __sub__(self, other):
-        """ Subtraction between `Quantity` objects and other objects.
-        If they are both `Quantity` objects, results in the units of the
-        **left** object if they are compatible, otherwise this fails.
+        """ Subtraction between `Quantity` objects. All operations
+        return a new `Quantity` object with the units of the **left**
+        object.
         """
-        if isinstance(other, Quantity):
-            return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
-        else:
-            raise TypeError("Object of type '{0}' cannot be added with a "
-                "Quantity object. Addition is only supported between Quantity "
-                "objects with compatible units.".format(other.__class__))
+        if not isinstance(other, Quantity):
+            raise TypeError(
+                "Object of type '{0}' cannot be subtracted with a Quantity "
+                "object. Subtraction is only supported between Quantity "
+                "objects.".format(other.__class__))
+        return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
 
     def __mul__(self, other):
-        """ Multiplication between `Quantity` objects and other objects.
+        """ Multiplication between `Quantity` objects or numbers with
+        `Quantity` objects. For operations between two `Quantity`
+        instances, returns a new `Quantity` object with the units of
+        the **left** object.
         """
         if isinstance(other, Quantity):
-            return Quantity(self.value * other.value, unit=self.unit * other.unit)
+            return Quantity(self.value * other.value,
+                            unit=self.unit * other.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=other * self.unit)
         else:
-            try:
-                return Quantity(other * self.value, unit=self.unit)
-            except TypeError:
-                raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
+            raise TypeError(
+                "Object of type '{0}' cannot be multiplied with a Quantity "
+                "object.".format(other.__class__))
 
     def __rmul__(self, other):
-        """ Right Multiplication between `Quantity` objects and other
-        objects.
-        """
-        return self.__mul__(other)
+        """ Right multiplication between `Quantity` object and a number. """
+
+        if isinstance(other, numbers.Number):
+            return Quantity(other * self.value, unit=self.unit)
+
+        elif isinstance(other, UnitBase):
+            return Quantity(self.value, unit=self.unit * other)
+
+        else:
+            raise TypeError(
+                "Object of type '{0}' cannot be multiplied with a Quantity "
+                "object.".format(other.__class__))
 
     def __div__(self, other):
-        """ Division between `Quantity` objects and other objects.
-        """
+        """ Division between `Quantity` objects. This operation
+        returns a dimensionless object."""
         if isinstance(other, Quantity):
-            return Quantity(self.value / other.value, unit=self.unit / other.unit)
+            return Quantity(self.value / other.value,
+                            unit=self.unit / other.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=self.unit / other)
         else:
-            try:
-                return Quantity(self.value / other, unit=self.unit)
-            except TypeError:
-                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
+            raise TypeError(
+                "Object of type '{0}' cannot be divided with a Quantity "
+                "object.".format(other.__class__))
 
     def __rdiv__(self, other):
-        """ Right Division between `Quantity` objects and other objects.
-        """
-        if isinstance(other, Quantity):
-            return Quantity(other.value / self.value, unit=other.unit / self.unit)
+        """ Division between `Quantity` objects. This operation
+        returns a dimensionless object."""
+        if isinstance(other, numbers.Number):
+            if hasattr(self.unit, "bases"):
+                new_unit_bases = copy.copy(self.unit.bases)
+                new_unit_powers = [-p for p in self.unit.powers]
+                return Quantity(
+                    other / self.value,
+                    unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
+            else:
+                return Quantity(other / self.value, unit=1. / self.unit)
+
         elif isinstance(other, UnitBase):
             return Quantity(1. / self.value, unit=other / self.unit)
         else:
-            try:
-                return Quantity(other / self.value, unit=1. / self.unit)
-            except TypeError:
-                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
+            raise TypeError(
+                "Object of type '{0}' cannot be divided with a Quantity "
+                "object.".format(other.__class__))
 
     def __truediv__(self, other):
-        """ Division between `Quantity` objects. """
+        """ Division between `Quantity` objects. This operation
+        returns a dimensionless object."""
         return self.__div__(other)
 
     def __rtruediv__(self, other):
-        """ Division between `Quantity` objects. """
+        """ Division between `Quantity` objects. This operation
+        returns a dimensionless object."""
         return self.__rdiv__(other)
 
     def __pow__(self, p):
         """ Raise `Quantity` object to a power. """
         if hasattr(p, 'unit'):
-            raise TypeError('Cannot raise a Quantity object to a power of something with a unit')
+            raise TypeError(
+                'Cannot raise a Quantity object to a power of something '
+                'with a unit')
         return Quantity(self.value ** p, unit=self.unit ** p)
 
     def __neg__(self):
@@ -329,25 +298,33 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return self.value < other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError(
+                "Quantity object cannot be compared to an object of type "
+                "{0}".format(other.__class__))
 
     def __le__(self, other):
         if isinstance(other, Quantity):
             return self.value <= other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError(
+                "Quantity object cannot be compared to an object of type "
+                "{0}".format(other.__class__))
 
     def __gt__(self, other):
         if isinstance(other, Quantity):
             return self.value > other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError(
+                "Quantity object cannot be compared to an object of type "
+                "{0}".format(other.__class__))
 
     def __ge__(self, other):
         if isinstance(other, Quantity):
             return self.value >= other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError(
+                "Quantity object cannot be compared to an object of type "
+                "{0}".format(other.__class__))
 
     #other overrides of special functions
     def __hash__(self):
@@ -355,30 +332,38 @@ class Quantity(object):
 
     def __getitem__(self, key):
         if self.isscalar:
-            raise TypeError("'{cls}' object with a scalar value does not support indexing".format(cls=self.__class__.__name__))
+            raise TypeError(
+                "'{cls}' object with a scalar value does not support "
+                "indexing".format(
+                    cls=self.__class__.__name__))
         else:
             return Quantity(self.value[key], unit=self.unit)
 
     def __len__(self):
         if self.isscalar:
-            raise TypeError("'{cls}' object with a scalar value has no len()".format(cls=self.__class__.__name__))
+            raise TypeError(
+                "'{cls}' object with a scalar value has no len()".format(
+                    cls=self.__class__.__name__))
         else:
             return len(self.value)
 
     # Numerical types
     def __float__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError(
+                'Only scalar quantities can be converted to Python scalars')
         return float(self.value)
 
     def __int__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError(
+                'Only scalar quantities can be converted to Python scalars')
         return int(self.value)
 
     def __long__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError(
+                'Only scalar quantities can be converted to Python scalars')
         return long(self.value)
 
     # Array types
@@ -416,41 +401,57 @@ class Quantity(object):
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
     @property
-    def decomposed_unit(self):
+    def decomposed_unit(self, bases=[]):
         """
-        Generates a new `Quantity` with the units decomposed. Decomposed
-        units have only irreducible units in them (see
-        `astropy.units.UnitBase.decompose`).
+        Generates a new `Quantity` with the units
+        decomposed. Decomposed units have only irreducible units in
+        them (see `astropy.units.UnitBase.decompose`).
+
+        Parameters
+        ----------
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsException` if it's not possible
+            to do so.
 
         Returns
         -------
         newq : `~astropy.units.quantity.Quantity`
             A new object equal to this quantity with units decomposed.
         """
-        return self._decomposed_unit(False)
+        return self._decomposed_unit(False, bases=bases)
 
-    def _decomposed_unit(self, allowscaledunits=False):
+    def _decomposed_unit(self, allow_scaled_units=False, bases=[]):
         """
-        Generates a new `Quantity` with the units decomposed. Decomposed
-        units have only irreducible units in them (see
-        `astropy.units.UnitBase.decompose`).
+        Generates a new `Quantity` with the units
+        decomposed. Decomposed units have only irreducible units in
+        them (see `~astropy.units.UnitBase.decompose`).
 
         Parameters
         ----------
-        allowscaledunits : bool
+        allow_scaled_units : bool
             If True, the resulting `Quantity` may have a scale factor
             associated with it.  If False, any scaling in the unit will
             be subsumed into the value of the resulting `Quantity`
 
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsException` if it's not possible
+            to do so.
+
         Returns
         -------
         newq : `~astropy.units.quantity.Quantity`
             A new object equal to this quantity with units decomposed.
 
         """
-        newu = self.unit.decompose()
+        newu = self.unit.decompose(bases=bases)
         newval = self.value
-        if not allowscaledunits and hasattr(newu, 'scale'):
+        if not allow_scaled_units and hasattr(newu, 'scale'):
             newval *= newu.scale
             newu = newu / Unit(newu.scale)
 
