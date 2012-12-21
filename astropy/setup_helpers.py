@@ -114,15 +114,14 @@ class AstropyBuild(DistutilsBuild):
 
         from astropy.config.configuration import generate_all_config_items
 
-        os.chdir('{libdir}')
         genfn = generate_all_config_items('{pkgnm}', True)
         print(genfn)
-        """).format(libdir=libdir, pkgnm=self.distribution.packages[0])
-        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        """).format(pkgnm=self.distribution.packages[0], libdir=libdir)
+        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=libdir)
         stdout, stderr = proc.communicate(subproccode.encode('ascii'))
 
         if proc.returncode == 0:
-            genfn = stdout.strip()
+            genfn = stdout.strip().decode('UTF-8').split('\n')[-1]
 
             configpath = os.path.join(os.path.split(genfn)[0], 'config')
             if os.path.isdir(configpath):
