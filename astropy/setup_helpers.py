@@ -119,7 +119,7 @@ class AstropyBuild(DistutilsBuild):
         print(genfn)
         """).format(libdir=libdir, pkgnm=self.distribution.packages[0])
         proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate(subproccode.encode('UTF-8'))
+        stdout, stderr = proc.communicate(subproccode.encode('ascii'))
 
         if proc.returncode == 0:
             genfn = stdout.strip()
@@ -130,9 +130,10 @@ class AstropyBuild(DistutilsBuild):
                 shutil.move(genfn, newfn)
         else:
             msg = ('Generation of default configuration item failed! Stdout '
-                  'and stderr are shown below.\n'
-                  'Stdout:\n{stdout}\nStderr:\n{stderr}')
-            log.error(msg.format(stdout=stdout, stderr=stderr))
+                   'and stderr are shown below.\n'
+                   'Stdout:\n{stdout}\nStderr:\n{stderr}')
+            log.error(msg.format(stdout=stdout.decode('UTF-8'),
+                                 stderr=stderr.decode('UTF-8')))
 
 
 class AstropyInstall(DistutilsInstall):
