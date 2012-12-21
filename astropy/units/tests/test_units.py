@@ -283,3 +283,26 @@ def test_to_cgs():
 def test_decompose_to_cgs():
     from .. import cgs
     assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm
+
+
+def test_compose_issue_579():
+    unit = u.kg * u.s ** 2 / u.m
+
+    result = unit.compose(units=[u.N, u.s, u.m])
+
+    assert len(result) == 1
+    assert result[0]._bases == [u.s, u.N, u.m]
+    assert result[0]._powers == [4, 1, -2]
+
+
+def test_self_compose():
+    unit = u.kg * u.s
+
+    assert len(unit.compose(units=[u.g, u.s])) == 1
+
+
+@raises(u.UnitsException)
+def test_compose_failed():
+    unit = u.kg
+
+    result = unit.compose(units=[u.N])

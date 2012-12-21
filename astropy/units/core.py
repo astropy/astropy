@@ -403,24 +403,17 @@ class UnitBase(object):
         raise NotImplementedError()
 
     def _compose(self, equivs=[], namespace=None, max_depth=2, depth=0):
-        def calc_complexity(unit):
-            return sum(abs(x) for x in unit._powers)
-
-        def len_bases(pair):
-            return len(pair[0]._bases)
-
-        def results_of_length(results, length):
-            subresults = []
-            for composed, tunit in results:
-                if len(composed._bases) > length:
-                    break
-                else:
-                    subresults.append(composed * tunit)
-            return subresults
+        def is_final_result(unit):
+            # Returns True if this result contains only the expected
+            # units
+            for base in unit._bases:
+                if base not in namespace:
+                    return False
+            return True
 
         unit = self.decompose()
 
-        # Prevent recursion too far
+        # Prevent too many levels of recursion
         if depth >= max_depth:
             return [unit]
 
@@ -437,46 +430,60 @@ class UnitBase(object):
             elif self.is_equivalent(tunit):
                 units.append(funit.decompose())
 
-        # Create a first pass at the results.  Only store results if
-        # they reduce complexity (since the unit is already fully
-        # decomposed, any further decomposition doesn't get us closer
-        # to our result).
-        results = []
-        for u in units:
-            complexity = calc_complexity(u)
-            for tunit in namespace:
-                composed = u / tunit.decompose()
-                if (calc_complexity(composed) <=
-                    complexity):
-                    results.append((composed, tunit))
+        # Store partial results
+        partial_results = []
+        # Store final results that reduce to a single unit or pair of
+        # units
+        final_results = [set(), set()]
 
-        if len(results):
-            results.sort(key=len_bases)
+        for tunit in namespace:
+            tunit_decomposed = tunit.decompose()
+            for u in units:
+                composed = u / tunit_decomposed
+                factored = composed * tunit
+                len_bases = len(composed._bases)
+                if is_final_result(factored) and len_bases <= 1:
+                    final_results[len_bases].add(factored)
+                else:
+                    partial_results.append(
+                        (len_bases, composed, tunit))
 
-            # If we have any results that factor away to nothing or a
-            # single unit, we can just return all of those...
-            min_length = len_bases(results[0])
-            if min_length in (0, 1):
-                return results_of_length(results, min_length)
-            else:
-                # ...otherwise we have to recurse and try to further
-                # compose
-                subresults = []
-                for composed, tunit in results:
-                    composed_list = composed._compose(
-                        equivs=equivs, namespace=namespace,
-                        max_depth=max_depth, depth=depth + 1)
-                    for subcomposed in composed_list:
-                        if len(subcomposed._bases) <= len(composed._bases):
-                            subresults.append((subcomposed, tunit))
+        if len(final_results[0]):
+            return list(final_results[0])
+        elif len(final_results[1]):
+            return list(final_results[1])
+        else:
+            partial_results.sort(key=lambda x: x[0])
 
-                results = subresults
-                results.sort(key=len_bases)
+            # ...we have to recurse and try to further compose
+            results = []
+            for len_bases, composed, tunit in partial_results:
+                composed_list = composed._compose(
+                    equivs=equivs, namespace=namespace,
+                    max_depth=max_depth, depth=depth + 1)
+                for subcomposed in composed_list:
+                    results.append(
+                        (len(subcomposed._bases), subcomposed, tunit))
 
-                min_length = len(results[0][0]._bases)
-                return results_of_length(results, min_length)
+            if len(results):
+                results.sort(key=lambda x: x[0])
 
-        return [self]
+                min_length = results[0][0]
+                subresults = set()
+                for len_bases, composed, tunit in results:
+                    if len_bases > min_length:
+                        break
+                    else:
+                        factored = composed * tunit
+                        if is_final_result(factored):
+                            subresults.add(composed * tunit)
+
+                if len(subresults):
+                    return list(subresults)
+
+        raise UnitsException(
+            "Cannot represent unit {0} in terms of the given "
+            "units".format(unit))
 
     def compose(self, equivs=[], units=None, max_depth=2):
         """
@@ -491,9 +498,9 @@ class UnitBase(object):
             :ref:`unit_equivalencies`.
 
         units : set of units to compose to, optional
-            If not provided, all defined units may be used to compose
-            into.  Otherwise, may be a dict, module or sequence
-            containing the units to compose into as values.
+            If not provided, any known units may be used to compose
+            into.  Otherwise, ``units`` is a dict, module or sequence
+            containing the units to compose into.
 
         max_depth : int, optional
             The maximum recursion depth to use when composing into
@@ -507,22 +514,27 @@ class UnitBase(object):
             automatically determine which of the candidates are
             better.
         """
+        def filter_units(units):
+            filtered_namespace = set()
+            for tunit in units:
+                if (isinstance(tunit, UnitBase) and
+                    not isinstance(tunit, PrefixUnit)):
+                    filtered_namespace.add(tunit)
+            return filtered_namespace
+
         if units is None:
-            units = UnitBase._registry
+            units = filter_units(UnitBase._registry)
         elif isinstance(units, dict):
-            units = units.values()
+            units = set(units.values())
         elif inspect.ismodule(units):
-            units = units.__dict__.values()
+            units = filter_units(units.__dict__.values())
+        else:
+            units = set(units)
+
         # list, set, other sequences should just fall through
 
-        filtered_namespace = set()
-        for tunit in units:
-            if (isinstance(tunit, UnitBase) and
-                not isinstance(tunit, PrefixUnit)):
-                filtered_namespace.add(tunit)
-
         return self._compose(
-            equivs=equivs, namespace=filtered_namespace,
+            equivs=equivs, namespace=units,
             max_depth=max_depth, depth=0)
 
     def to_system(self, system):
@@ -800,8 +812,8 @@ class IrreducibleUnit(NamedUnit):
                     return CompositeUnit(self.to(base), [base], [1])
 
             raise UnitsException(
-                "{0} can not be reduced into the requested bases".format(
-                    self))
+                "Unit {0} can not be decomposed into the requested "
+                "bases".format(self))
 
         return CompositeUnit(1, [self], [1])
     decompose.__doc__ = UnitBase.decompose.__doc__
@@ -1079,6 +1091,11 @@ class CompositeUnit(UnitBase):
             return super(CompositeUnit, self).__repr__()
         else:
             return 'Unit(dimensionless)'
+
+    def __hash__(self):
+        parts = zip((hash(x) for x in self._bases), self._powers)
+        parts.sort()
+        return hash(tuple([self._scale] + parts))
 
     @property
     def scale(self):
