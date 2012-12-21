@@ -277,8 +277,8 @@ has a *relax* argument which may be either `True`, `False` or an
 
 - If `True`, write all recognized extensions.
 
-- If `False` (default), none of the extensions (even those in the
-  errata) will be written.
+- If `False` (default), write all extensions that are considered to be
+  safe and recommended, equivalent to `WCSHDO_safe` (described below).
 
 - If an `int`, is is a bit field to provide fine-grained control over
   what non-standard WCS keywords to accept.  The flag bits are subject

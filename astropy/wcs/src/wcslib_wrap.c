@@ -1647,7 +1647,7 @@ PyWcsprm_to_header(
   if (relax_obj == Py_True) {
     relax = WCSHDO_all;
   } else if (relax_obj == NULL || relax_obj == Py_False) {
-    relax = WCSHDO_none;
+    relax = WCSHDO_safe;
   } else {
     #if PY3K
     relax = (int)PyLong_AsLong(relax_obj);

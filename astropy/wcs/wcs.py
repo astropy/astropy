@@ -1267,8 +1267,8 @@ naxis kwarg.
         relax : bool or int, optional
             Degree of permissiveness:
 
-            - `False` (default): Write out only FITS keywords defined
-              by the published WCS standard.
+            - `False` (default): Write all extensions that are
+              considered to be safe and recommended.
 
             - `True`: Write all recognized informal extensions of the
               WCS standard.
@@ -1310,10 +1310,10 @@ naxis kwarg.
         relax : bool or int, optional
             Degree of permissiveness:
 
-            - `False` (default): Recognize only FITS keywords defined by the
-              published WCS standard.
+            - `False` (default): Write all extensions that are
+              considered to be safe and recommended.
 
-            - `True`: Admit all recognized informal extensions of the
+            - `True`: Write all recognized informal extensions of the
               WCS standard.
 
             - `int`: a bit field selecting specific extensions to
