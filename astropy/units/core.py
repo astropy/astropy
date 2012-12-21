@@ -531,8 +531,6 @@ class UnitBase(object):
         else:
             units = set(units)
 
-        # list, set, other sequences should just fall through
-
         return self._compose(
             equivs=equivs, namespace=units,
             max_depth=max_depth, depth=0)
@@ -549,9 +547,9 @@ class UnitBase(object):
             The module that defines the unit system.  Commonly used
             ones include `astropy.units.si` and `astropy.units.cgs`.
 
-            To use your own module it must contain a number of unit
-            objects and a sequence member named `bases` containing the
-            base units of the system.
+            To use your own module it must contain unit objects and a
+            sequence member named `bases` containing the base units of
+            the system.
 
         Returns
         -------
