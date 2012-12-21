@@ -29,7 +29,7 @@ version = '0.2.dev'
 # Indicates if this version is a release version
 release = 'dev' not in version
 
-download_base_url = 'http://cloud.github.com/downloads/astropy/astropy'
+download_base_url = 'http://pypi.python.org/packages/source/a/astropy'
 
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.

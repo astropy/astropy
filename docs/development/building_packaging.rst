@@ -153,9 +153,9 @@ that will not be available in the source tree.  In this case,
 Release
 -------
 
-The release procedure for the first version of Astropy will involve a
-combination of an automated release script and some manual steps.  Future
-versions will automate more of the process, if not all.
+The current release procedure for Astropy involves a combination of an
+automated release script and some manual steps.  Future versions will automate
+more of the process, if not all.
 
 One of the main steps in performing a release is to create a tag in the git
 repository representing the exact state of the repository that represents the
@@ -203,9 +203,9 @@ both your public and private key::
     $ gpg --export --armor > public.key
     $ gpg --export-secret-key --armor > private.key
 
-Back up these files to a trusted location--preferably a write-one physical
-medium that can be stored safely somewhere.  I also back up my keys to a
-trusted online encrypted storage, though some might not find that secure
+Back up these files to a trusted location--preferably a write-once physical
+medium that can be stored safely somewhere.  One may also back up their keys to
+a trusted online encrypted storage, though some might not find that secure
 enough--it's up to you and what you're comfortable with.
 
 Add your public key to a keyserver
@@ -322,9 +322,11 @@ procedure is that ensures a consistent release process each time.
     Cython .pyx files, and the .c files are necessary for the source
     distribution.
 
- 6. Install zest.releaser into the virtualenv::
+ 6. Install zest.releaser into the virtualenv; use ``--upgrade --force`` to
+    ensure that the latest version is installed in the virtualenv (if you're
+    running a csh variant make sure to run ``rehash`` afterwards too)::
 
-    $ pip install zest.releaser
+    $ pip install zest.releaser --upgrade --force
 
  7. Ensure that all changes to the code have been committed, then start the
     release by running::
@@ -342,9 +344,9 @@ procedure is that ensures a consistent release process each time.
     Enter 'Y' to confirm and run the command.
 
  10. When asked "Check out the tag (for tweaks or pypi/distutils server
-     upload)" enter 'N': We will be uploading the source to GitHub instead of
-     PyPI, so for now registering on PyPI and uploading the source will be
-     performed manually.
+     upload)" enter 'N': zest.releaser does not offer enough control yet over
+     how the register and upload are performed so we will do this manually
+     until the release scripts have been improved.
 
  11. You will be asked to enter a new development version.  Normally the next
      logical version will be selected--press enter to accept the default, or
@@ -371,19 +373,25 @@ procedure is that ensures a consistent release process each time.
      $ python setup.py sdist
 
      Copy the produced ``.tar.gz`` somewhere and verify that you can unpack it,
-     build it, and get all the tests to pass. If all looks good, upload the
-     file to the GitHub "downloads" section.
+     build it, and get all the tests to pass.  It would be best to create a new
+     virtualenv in which to do this.
 
  16. Register the release on PyPI with::
 
      $ python setup.py register
 
- 17. Update the website to reflect the fact there is now a stable release.
+ 17. Upload the source distribution to PyPI; this is preceded by re-running
+     the sdist command, which is necessary for the upload command to know
+     which distribution to upload::
 
- 18. Update Readthedocs so that it builds docs for the corresponding github tag,
+     $ python setup.py sdist upload
+
+ 18. Update the website to reflect the fact there is now a stable release.
+
+ 19. Update Readthedocs so that it builds docs for the corresponding github tag,
      and set the default page to the new release.
 
- 19. Create a bug fix branch.  If the version just was released was a "X.Y.0"
+ 20. Create a bug fix branch.  If the version just was released was a "X.Y.0"
      version ("0.1" or "0.2" for example--the final ".0" is typically ommitted)
      it is good to create a bug fix branch as well.  Starting from the tagged
      changset, just checkout a new branch and push it to the remote server.
@@ -404,6 +412,10 @@ procedure is that ensures a consistent release process each time.
      and "0.1.2", while allowing development of new features to continue in
      the master branch.  Only changesets that fix bugs without making
      significant API changes should be merged to the bug fix branches.
+
+ 21. Create a bug fix label on GitHub; this should have the same name as the
+     just created bug fix branch.  This label should be applied to all issues
+     that should be backported to the bug fix branch.
 
 
 .. _signed tags: http://git-scm.com/book/en/Git-Basics-Tagging#Signed-Tags

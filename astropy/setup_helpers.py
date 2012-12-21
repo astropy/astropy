@@ -163,6 +163,26 @@ class AstropyRegister(SetuptoolsRegister):
             data['_pypi_hidden'] = '1'
         return data
 
+    def _set_config(self):
+        # The original register command is buggy--if you use .pypirc with a
+        # server-login section *at all* the repository you specify with the -r
+        # option will be overwritten with either the repository in .pypirc or
+        # with the default,
+        # If you do not have a .pypirc using the -r option will just crash.
+        # Way to go distutils
+
+        # If we don't set self.repository back to a default value _set_config
+        # can crash if there was a user-supplied value for this option; don't
+        # worry, we'll get the real value back afterwards
+        self.repository = 'pypi'
+        SetuptoolsRegister._set_config(self)
+        options = self.distribution.get_option_dict('register')
+        if 'repository' in options:
+            source, value = options['repository']
+            # Really anything that came from setup.cfg or the command line
+            # should override whatever was in .pypirc
+            self.repository = value
+
 # Need to set the name here so that the commandline options
 # are presented as being related to the "build" command, for example; this
 # only affects the display of the help text, which does not obtain the the
