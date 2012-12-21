@@ -266,22 +266,6 @@ class Parameters(list):
         """
         parsize = _tofloat(newpars).size
         return parsize == self.__len__()
-    
-    def _update(self, value):
-        """
-        Update a model's parameters attribute
-        
-        """
-        if isinstance(value, (list, np.ndarray)):
-            _val = _tofloat(value)
-            if self._is_same_length(_val):
-                self._changed = True
-                self[:] = _val
-            else:
-                raise InputParametersException("Expected the list of parameters"
-                                "to be the same length as the initial list.")
-        else:
-            raise TypeError("Parameters must be of type 'list' or 'Parameters'")
 
     def _flatten(self, parnames, parlist):
         """

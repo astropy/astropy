@@ -22,10 +22,12 @@ import numpy as np
 projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR', 
                     'CYP', 'CEA', 'MER']
 
-__all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR', 'Pix2Sky_CEA', 
-           'Sky2Pix_CEA', 'Pix2Sky_COP', 'Sky2Pix_COP', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
-           'Pix2Sky_MER', 'Sky2Pix_MER', 'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 
-           'Sky2Pix_STG', 'Pix2Sky_TAN', 'Sky2Pix_TAN']
+__all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
+           'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_COP', 'Sky2Pix_COP',
+           'Pix2Sky_CYP', 'Sky2Pix_CYP', 'Pix2Sky_MER', 'Sky2Pix_MER',
+           'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 'Sky2Pix_STG',
+           'Pix2Sky_TAN', 'Sky2Pix_TAN']
+
 class Projection(Model):
     """
     Base class for all sky projections
@@ -118,13 +120,13 @@ class Pix2Sky_AZP(Zenithal):
         theta1 = np.rad2deg(psi - omega)
         theta2 = np.rad2deg(psi + omega) + 180
         if np.abs(self.mu) < 1:
-            if theta1< 90 and theta1 > -90:
+            if theta1 < 90 and theta1 > -90:
                 theta = theta1
             else:
                 theta = theta2
         else:
-            theta1dif = 90 - theta1
-            theta2dif = 90 - theta2
+            #theta1dif = 90 - theta1
+            #theta2dif = 90 - theta2
             if theta1 < theta2:
                 theta = theta1
             else:
@@ -163,8 +165,10 @@ class Sky2Pix_AZP(Zenithal):
         return Pix2Sky_AZP(self.mu[0], self.gamma[0])
     
     def _compute_rtheta(self, phi, theta):
-        rtheta = (self.r0* (self.mu + 1) * np.cos(theta)) / ((self.mu + np.sin(theta)) + 
-                                                np.cos(theta) * np.cos(phi) * np.tan(self._gamma))
+        rtheta = (self.r0* (self.mu + 1) * 
+                  np.cos(theta)) / ((self.mu + np.sin(theta)) +
+                                    np.cos(theta) * np.cos(phi) *
+                                    np.tan(self._gamma))
         return rtheta
    
     def __call__(self, phi, theta):
@@ -247,7 +251,7 @@ class Sky2Pix_STG(Zenithal):
 
     """
     def __init__(self):
-            super(Sky2Pix_STG, self).__init__(parnames=[])
+        super(Sky2Pix_STG, self).__init__(parnames=[])
             
     def inverse(self):
         return Pix2Sky_STG()
@@ -272,7 +276,7 @@ class Pix2Sky_SIN(Zenithal):
         super(Pix2Sky_SIN, self).__init__([])
     
     def inverse(self):
-            return Sky2Pix_SIN()
+        return Sky2Pix_SIN()
     
     def _compute_rtheta(self, x, y):
         return np.sqrt(x**2 + y**2)
@@ -351,7 +355,8 @@ class Pix2Sky_CYP(Cylindrical):
         y = np.asarray(y) + 0.
         phi = np.rad2deg(x / self.lam)
         eta = y / (self.r0 * (self.mu + self.lam))
-        theta = np.arctan2(eta, 1) + np.arcsin(eta * self.mu / (np.sqrt(eta**2 + 1)))
+        theta = np.arctan2(eta, 1) + np.arcsin(eta * self.mu /
+                                               (np.sqrt(eta**2 + 1)))
         return phi, np.rad2deg(theta)
     
 class Sky2Pix_CYP(Cylindrical):
@@ -369,7 +374,7 @@ class Sky2Pix_CYP(Cylindrical):
         
     def check_mu(self, val):
         if   val == -1:
-            raise ValueError("CYP projection is not defined for mu=-lambda")     
+            raise ValueError("CYP projection is not defined for mu=-lambda")    
    
     def inverse(self):
         return Pix2Sky_CYP(self.mu[0], self.lam[0])
@@ -378,7 +383,8 @@ class Sky2Pix_CYP(Cylindrical):
         phi = np.asarray(np.deg2rad(phi)) +0.
         theta = np.asarray(np.deg2rad(theta)) +0.
         x = self._lam * phi
-        y = self.r0 * ((self.mu + self.lam) / (self.mu+np.cos(theta))) * np.sin(theta)
+        y = self.r0 * ((self.mu + self.lam) / (self.mu+np.cos(theta))) * \
+                                                np.sin(theta)
         return x, y
     
 class Pix2Sky_CEA(Cylindrical):
@@ -396,7 +402,7 @@ class Pix2Sky_CEA(Cylindrical):
     
     def __call__(self, x, y):
         phi = np.rad2deg(x)
-        lam = np.asaraay(lam)
+        lam = np.asarray(lam)
         theta = np.rad2deg(np.arcsin(self.r0 * lam * y))
         return phi, theta
     
@@ -506,11 +512,11 @@ class Conic(Projection):
         theta1 = thetaA - eta
         theta2 = thetaA + eta
         if theta1 >= 90 or theta1 <= -90:
-            raise ValueError("Conic projection with thetaA=%d and eta=%d is not "
-                             "defined" % (thetaA, eta))
+            raise ValueError("Conic projection with thetaA=%d and eta=%d is not"
+                             " defined" % (thetaA, eta))
         if theta2 >= 90 or theta2 <= -90:
-            raise ValueError("Conic projection with thetaA=%d and eta=%d is not "
-                             "defined" % (thetaA, eta))
+            raise ValueError("Conic projection with thetaA=%d and eta=%d is not"
+                             " defined" % (thetaA, eta))
         self._theta1 = np.deg2rad(theta1)
         self._theta2 = np.deg2rad(theta2)
         self._thetaA = np.deg2rad(thetaA)
@@ -558,7 +564,7 @@ class Sky2Pix_COP(Conic):
     def __init__(self, thetaA, eta):
         super(Sky2Pix_COP, self).__init__(thetaA, eta, parnames=[])
         
-    def _compute_rtheta(self, phi, theta):
+    def _compute_rtheta(self, theta):
         return self.r0 * np.cos(self._eta) * \
                     (1/np.tan(self._thetaA) - np.tan(theta - self._thetaA))
     

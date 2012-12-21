@@ -23,7 +23,8 @@ from .models import Model
 from .parameters import _Parameter
 from .util import InputParametersException
 
-__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'MatrixRotation2D']
+__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
+           'MatrixRotation2D']
 
 class RotateNative2Celestial(Model):
     """
@@ -79,10 +80,13 @@ class RotateNative2Celestial(Model):
     def __call__(self, nphi, ntheta):
         nphi = np.deg2rad(nphi)
         ntheta = np.deg2rad(ntheta)
-        calpha = np.rad2deg(self._phi+ np.arctan2(-np.cos(ntheta)*np.sin(nphi-self._psi),
-                        np.sin(ntheta)*np.cos(self._theta)-np.cos(ntheta)*np.sin(self._theta)*np.cos(nphi-self._psi)))
-        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta)*np.sin(self._theta) + np.cos(ntheta)*\
-                        np.cos(self._theta)*np.cos(nphi-self._psi)))
+        calpha = np.rad2deg(self._phi + np.arctan2(-np.cos(ntheta) * 
+                                                   np.sin(nphi - self._psi),
+                        np.sin(ntheta) * np.cos(self._theta) - np.cos(ntheta)
+                        * np.sin(self._theta) * np.cos(nphi - self._psi)))
+        cdelta = np.rad2deg(np.arcsin(np.sin(ntheta) * np.sin(self._theta) + 
+                                      np.cos(ntheta) * np.cos(self._theta) *
+                                      np.cos(nphi-self._psi)))
         ind = calpha < 0
         calpha[ind] += 360
         return calpha, cdelta
@@ -142,11 +146,13 @@ class RotateCelestial2Native(Model):
     def __call__(self, calpha, cdelta):
         calpha = np.deg2rad(calpha)
         cdelta = np.deg2rad(cdelta)
-        nphi = np.rad2deg(self._psi + np.arctan2(-np.cos(cdelta)* np.sin(calpha-self._phi),
-                    np.sin(cdelta)*np.cos(self._theta) - np.cos(cdelta)*np.sin(self._theta)*
-                    np.cos(calpha-self._phi)))
-        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta)*np.sin(self._theta) + np.cos(cdelta) * 
-                        np.cos(self._theta) * np.cos(calpha-self._phi)))
+        nphi = np.rad2deg(self._psi + np.arctan2(-np.cos(cdelta) * 
+                                                 np.sin(calpha - self._phi),
+                    np.sin(cdelta) * np.cos(self._theta) - np.cos(cdelta) *
+                    np.sin(self._theta) * np.cos(calpha-self._phi)))
+        ntheta = np.rad2deg(np.arcsin(np.sin(cdelta) * np.sin(self._theta) +
+                                      np.cos(cdelta) * np.cos(self._theta) *
+                                      np.cos(calpha-self._phi)))
         ind = nphi > 180
         nphi[ind] -= 360
         return nphi, ntheta
@@ -158,7 +164,8 @@ class MatrixRotation2D(Model):
     """
     def __init__(self, rotmat=None, angle=None):
         """
-        Perform a clockwise 2D matrix rotation given either an angle or a rotation matrix
+        Perform a clockwise 2D matrix rotation given either an angle or a 
+        rotation matrix
         
         If both rotmat and angle are given, angle will be ignored.
         
@@ -171,17 +178,21 @@ class MatrixRotation2D(Model):
                   
         """
         if rotmat is None and angle is None:
-            raise InputParametersException("Expected at least one argument - a rotation matrix or an angle") 
+            raise InputParametersException("Expected at least one argument - " 
+                                           "a rotation matrix or an angle")
         if rotmat is not None:
             self._validate_rotmat(rotmat)
-            self._rotmat = _Parameter('rotmat', np.asarray(rotmat) + 0., self, 1)
-            super(MatrixRotation2D, self).__init__(parnames=['rotmat'], paramdim=1)
+            self._rotmat = _Parameter('rotmat', np.asarray(rotmat) + 0.,
+                                      self, 1)
+            super(MatrixRotation2D, self).__init__(parnames=['rotmat'],
+                                                   paramdim=1)
         else:
             self._validate_angle(angle)
             self._angle = _Parameter('angle', np.deg2rad(angle), self, 1)
             super(MatrixRotation2D, self).__init__(parnames=[], paramdim=1)
             self.parnames = ['angle']
-            self._rotmat = _Parameter('rotmat', self._compute_matrix(angle), self, 1)
+            self._rotmat = _Parameter('rotmat', self._compute_matrix(angle),
+                                      self, 1)
         self.ndim = self._rotmat[0].shape[0]
         self.outdim = self.ndim
         self._parcheck = {'rotmat': self._validate_rotmat,
@@ -227,7 +238,7 @@ class MatrixRotation2D(Model):
         assert x.shape == y.shape
         shape = x.shape
         inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
-        assert inarr.shape[0] == 2 and inarr.ndim ==2, \
+        assert inarr.shape[0] == 2 and inarr.ndim == 2, \
                     "Incompatible shape in MatrixRotation"
         result = np.dot(self._rotmat[0], inarr)
         x, y = result[0], result[1]
