@@ -93,6 +93,17 @@ Bug Fixes
 - Fixed bugs in the backwards compatibility layer for the ``CardList.index``
   and ``CardList.count`` methods. (#190)
 
+- Improved ``__repr__`` and text file representation of cards with long values
+  that are split into CONTINUE cards. (#193)
+
+- Fixed a crash when trying to assign a long (> 72 character) value to blank
+  ('') keywords. This also changed how blank keywords are represented--there
+  are still exactly 8 spaces before any commentary content can begin; this
+  *may* affect the exact display of header cards that assumed there could be
+  fewer spaces in a blank keyword card before the content begins. However, the
+  current approach is more in line with the requirements of the FITS standard.
+  (#194)
+
 
 3.0.10 (unreleased)
 -------------------
