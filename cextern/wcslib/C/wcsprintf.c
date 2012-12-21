@@ -78,7 +78,7 @@ const char *wcsprintf_buf(void)
 
 /*--------------------------------------------------------------------------*/
 
-int wcsprintf(const char *format, ...)
+int wcsprintf(FILE *stream, const char *format, ...)
 {
   int  nbytes;
   size_t  used;
@@ -86,7 +86,7 @@ int wcsprintf(const char *format, ...)
 
   if (wcsprintf_buff == 0x0 && wcsprintf_file == 0x0) {
     /* Send output to stdout if wcsprintf_set() hasn't been called. */
-    wcsprintf_file = stdout;
+    wcsprintf_file = stream;
   }
 
   va_start(arg_list, format);

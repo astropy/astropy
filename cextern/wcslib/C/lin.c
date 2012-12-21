@@ -305,80 +305,80 @@ const struct linprm *lin;
   if (lin == 0x0) return LINERR_NULL_POINTER;
 
   if (lin->flag != LINSET) {
-    wcsprintf("The linprm struct is UNINITIALIZED.\n");
+    wcsprintf(stdout, "The linprm struct is UNINITIALIZED.\n");
     return 0;
   }
 
-  wcsprintf("       flag: %d\n", lin->flag);
-  wcsprintf("      naxis: %d\n", lin->naxis);
-  WCSPRINTF_PTR("      crpix: ", lin->crpix, "\n");
-  wcsprintf("            ");
+  wcsprintf(stdout, "       flag: %d\n", lin->flag);
+  wcsprintf(stdout, "      naxis: %d\n", lin->naxis);
+  WCSPRINTF_PTR(stdout, "      crpix: ", lin->crpix, "\n");
+  wcsprintf(stdout, "            ");
   for (i = 0; i < lin->naxis; i++) {
-    wcsprintf("  %- 11.5g", lin->crpix[i]);
+    wcsprintf(stdout, "  %- 11.5g", lin->crpix[i]);
   }
-  wcsprintf("\n");
+  wcsprintf(stdout, "\n");
 
   k = 0;
-  WCSPRINTF_PTR("         pc: ", lin->pc, "\n");
+  WCSPRINTF_PTR(stdout, "         pc: ", lin->pc, "\n");
   for (i = 0; i < lin->naxis; i++) {
-    wcsprintf("    pc[%d][]:", i);
+    wcsprintf(stdout, "    pc[%d][]:", i);
     for (j = 0; j < lin->naxis; j++) {
-      wcsprintf("  %- 11.5g", lin->pc[k++]);
+      wcsprintf(stdout, "  %- 11.5g", lin->pc[k++]);
     }
-    wcsprintf("\n");
+    wcsprintf(stdout, "\n");
   }
 
-  WCSPRINTF_PTR("      cdelt: ", lin->cdelt, "\n");
-  wcsprintf("            ");
+  WCSPRINTF_PTR(stdout, "      cdelt: ", lin->cdelt, "\n");
+  wcsprintf(stdout, "            ");
   for (i = 0; i < lin->naxis; i++) {
-    wcsprintf("  %- 11.5g", lin->cdelt[i]);
+    wcsprintf(stdout, "  %- 11.5g", lin->cdelt[i]);
   }
-  wcsprintf("\n");
+  wcsprintf(stdout, "\n");
 
-  wcsprintf("      unity: %d\n", lin->unity);
+  wcsprintf(stdout, "      unity: %d\n", lin->unity);
 
-  WCSPRINTF_PTR("        err: ", lin->err, "\n");
+  WCSPRINTF_PTR(stdout, "        err: ", lin->err, "\n");
   if (lin->err) {
     wcserr_prt(lin->err, "             ");
   }
 
   if (lin->piximg == 0x0) {
-    wcsprintf("     piximg: (nil)\n");
+    wcsprintf(stdout, "     piximg: (nil)\n");
   } else {
     k = 0;
     for (i = 0; i < lin->naxis; i++) {
-      wcsprintf("piximg[%d][]:", i);
+      wcsprintf(stdout, "piximg[%d][]:", i);
       for (j = 0; j < lin->naxis; j++) {
-        wcsprintf("  %- 11.5g", lin->piximg[k++]);
+        wcsprintf(stdout, "  %- 11.5g", lin->piximg[k++]);
       }
-      wcsprintf("\n");
+      wcsprintf(stdout, "\n");
     }
   }
 
   if (lin->imgpix == 0x0) {
-    wcsprintf("     imgpix: (nil)\n");
+    wcsprintf(stdout, "     imgpix: (nil)\n");
   } else {
     k = 0;
     for (i = 0; i < lin->naxis; i++) {
-      wcsprintf("imgpix[%d][]:", i);
+      wcsprintf(stdout, "imgpix[%d][]:", i);
       for (j = 0; j < lin->naxis; j++) {
-        wcsprintf("  %- 11.5g", lin->imgpix[k++]);
+        wcsprintf(stdout, "  %- 11.5g", lin->imgpix[k++]);
       }
-      wcsprintf("\n");
+      wcsprintf(stdout, "\n");
     }
   }
 
-  wcsprintf("     m_flag: %d\n", lin->m_flag);
-  wcsprintf("    m_naxis: %d\n", lin->m_naxis);
-  WCSPRINTF_PTR("    m_crpix: ", lin->m_crpix, "");
-  if (lin->m_crpix == lin->crpix) wcsprintf("  (= crpix)");
-  wcsprintf("\n");
-  WCSPRINTF_PTR("       m_pc: ", lin->m_pc, "");
-  if (lin->m_pc == lin->pc) wcsprintf("  (= pc)");
-  wcsprintf("\n");
-  WCSPRINTF_PTR("    m_cdelt: ", lin->m_cdelt, "");
-  if (lin->m_cdelt == lin->cdelt) wcsprintf("  (= cdelt)");
-  wcsprintf("\n");
+  wcsprintf(stdout, "     m_flag: %d\n", lin->m_flag);
+  wcsprintf(stdout, "    m_naxis: %d\n", lin->m_naxis);
+  WCSPRINTF_PTR(stdout, "    m_crpix: ", lin->m_crpix, "");
+  if (lin->m_crpix == lin->crpix) wcsprintf(stdout, "  (= crpix)");
+  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR(stdout, "       m_pc: ", lin->m_pc, "");
+  if (lin->m_pc == lin->pc) wcsprintf(stdout, "  (= pc)");
+  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR(stdout, "    m_cdelt: ", lin->m_cdelt, "");
+  if (lin->m_cdelt == lin->cdelt) wcsprintf(stdout, "  (= cdelt)");
+  wcsprintf(stdout, "\n");
 
   return 0;
 }

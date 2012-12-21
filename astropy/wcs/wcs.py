@@ -300,6 +300,8 @@ class WCS(WCSBase):
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
 
+            header_string = header_string.strip()
+
             if isinstance(header_string, unicode):
                 header_bytes = header_string.encode('ascii')
                 header_string = header_string

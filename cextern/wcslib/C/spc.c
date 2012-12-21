@@ -140,68 +140,68 @@ int spcprt(const struct spcprm *spc)
 
   if (spc == 0x0) return SPCERR_NULL_POINTER;
 
-  wcsprintf("       flag: %d\n", spc->flag);
-  wcsprintf("       type: \"%s\"\n", spc->type);
-  wcsprintf("       code: \"%s\"\n", spc->code);
+  wcsprintf(stdout, "       flag: %d\n", spc->flag);
+  wcsprintf(stdout, "       type: \"%s\"\n", spc->type);
+  wcsprintf(stdout, "       code: \"%s\"\n", spc->code);
   if (undefined(spc->crval)) {
-    wcsprintf("      crval: UNDEFINED\n");
+    wcsprintf(stdout, "      crval: UNDEFINED\n");
   } else {
-    wcsprintf("      crval: %- 11.4g\n", spc->crval);
+    wcsprintf(stdout, "      crval: %- 11.4g\n", spc->crval);
   }
-  wcsprintf("    restfrq: %f\n", spc->restfrq);
-  wcsprintf("    restwav: %f\n", spc->restwav);
+  wcsprintf(stdout, "    restfrq: %f\n", spc->restfrq);
+  wcsprintf(stdout, "    restwav: %f\n", spc->restwav);
 
-  wcsprintf("         pv:");
+  wcsprintf(stdout, "         pv:");
   if (spc->isGrism) {
     for (i = 0; i < 5; i++) {
       if (undefined(spc->pv[i])) {
-        wcsprintf("  UNDEFINED   ");
+        wcsprintf(stdout, "  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.4g", spc->pv[i]);
+        wcsprintf(stdout, "  %- 11.4g", spc->pv[i]);
       }
     }
-    wcsprintf("\n            ");
+    wcsprintf(stdout, "\n            ");
     for (i = 5; i < 7; i++) {
       if (undefined(spc->pv[i])) {
-        wcsprintf("  UNDEFINED   ");
+        wcsprintf(stdout, "  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.4g", spc->pv[i]);
+        wcsprintf(stdout, "  %- 11.4g", spc->pv[i]);
       }
     }
-    wcsprintf("\n");
+    wcsprintf(stdout, "\n");
 
   } else {
-    wcsprintf(" (not used)\n");
+    wcsprintf(stdout, " (not used)\n");
   }
 
-  wcsprintf("          w:");
+  wcsprintf(stdout, "          w:");
   for (i = 0; i < 3; i++) {
-    wcsprintf("  %- 11.4g", spc->w[i]);
+    wcsprintf(stdout, "  %- 11.4g", spc->w[i]);
   }
   if (spc->isGrism) {
-    wcsprintf("\n            ");
+    wcsprintf(stdout, "\n            ");
     for (i = 3; i < 6; i++) {
-      wcsprintf("  %- 11.4g", spc->w[i]);
+      wcsprintf(stdout, "  %- 11.4g", spc->w[i]);
     }
-    wcsprintf("\n");
+    wcsprintf(stdout, "\n");
   } else {
-    wcsprintf("  (remainder unused)\n");
+    wcsprintf(stdout, "  (remainder unused)\n");
   }
 
-  wcsprintf("    isGrism: %d\n", spc->isGrism);
+  wcsprintf(stdout, "    isGrism: %d\n", spc->isGrism);
 
-  WCSPRINTF_PTR("        err: ", spc->err, "\n");
+  WCSPRINTF_PTR(stdout, "        err: ", spc->err, "\n");
   if (spc->err) {
     wcserr_prt(spc->err, "             ");
   }
 
-  wcsprintf("     spxX2P: %s\n",
+  wcsprintf(stdout, "     spxX2P: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxX2P, hext));
-  wcsprintf("     spxP2S: %s\n",
+  wcsprintf(stdout, "     spxP2S: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2S, hext));
-  wcsprintf("     spxS2P: %s\n",
+  wcsprintf(stdout, "     spxS2P: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxS2P, hext));
-  wcsprintf("     spxP2X: %s\n",
+  wcsprintf(stdout, "     spxP2X: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
 
   return SPCERR_SUCCESS;

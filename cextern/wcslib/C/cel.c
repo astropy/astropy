@@ -110,49 +110,49 @@ const struct celprm *cel;
 
   if (cel == 0x0) return CELERR_NULL_POINTER;
 
-  wcsprintf("      flag: %d\n",  cel->flag);
-  wcsprintf("     offset: %d\n",  cel->offset);
+  wcsprintf(stdout, "      flag: %d\n",  cel->flag);
+  wcsprintf(stdout, "     offset: %d\n",  cel->offset);
   if (undefined(cel->phi0)) {
-    wcsprintf("       phi0: UNDEFINED\n");
+    wcsprintf(stdout, "       phi0: UNDEFINED\n");
   } else {
-    wcsprintf("       phi0: %9f\n", cel->phi0);
+    wcsprintf(stdout, "       phi0: %9f\n", cel->phi0);
   }
   if (undefined(cel->theta0)) {
-    wcsprintf("     theta0: UNDEFINED\n");
+    wcsprintf(stdout, "     theta0: UNDEFINED\n");
   } else {
-    wcsprintf("     theta0: %9f\n", cel->theta0);
+    wcsprintf(stdout, "     theta0: %9f\n", cel->theta0);
   }
-  wcsprintf("       ref:");
+  wcsprintf(stdout, "       ref:");
   for (i = 0; i < 4; i++) {
-    wcsprintf("  %- 11.5g", cel->ref[i]);
+    wcsprintf(stdout, "  %- 11.5g", cel->ref[i]);
   }
-  wcsprintf("\n");
-  wcsprintf("       prj: (see below)\n");
+  wcsprintf(stdout, "\n");
+  wcsprintf(stdout, "       prj: (see below)\n");
 
-  wcsprintf("     euler:");
+  wcsprintf(stdout, "     euler:");
   for (i = 0; i < 5; i++) {
-    wcsprintf("  %- 11.5g", cel->euler[i]);
+    wcsprintf(stdout, "  %- 11.5g", cel->euler[i]);
   }
-  wcsprintf("\n");
-  wcsprintf("    latpreq: %d", cel->latpreq);
+  wcsprintf(stdout, "\n");
+  wcsprintf(stdout, "    latpreq: %d", cel->latpreq);
   if (cel->latpreq == 0) {
-    wcsprintf(" (not required)\n");
+    wcsprintf(stdout, " (not required)\n");
   } else if (cel->latpreq == 1) {
-    wcsprintf(" (disambiguation)\n");
+    wcsprintf(stdout, " (disambiguation)\n");
   } else if (cel->latpreq == 2) {
-    wcsprintf(" (specification)\n");
+    wcsprintf(stdout, " (specification)\n");
   } else {
-    wcsprintf(" (UNDEFINED)\n");
+    wcsprintf(stdout, " (UNDEFINED)\n");
   }
-  wcsprintf("     isolat: %d\n", cel->isolat);
+  wcsprintf(stdout, "     isolat: %d\n", cel->isolat);
 
-  WCSPRINTF_PTR("        err: ", cel->err, "\n");
+  WCSPRINTF_PTR(stdout, "        err: ", cel->err, "\n");
   if (cel->err) {
     wcserr_prt(cel->err, "             ");
   }
 
-  wcsprintf("\n");
-  wcsprintf("   prj.*\n");
+  wcsprintf(stdout, "\n");
+  wcsprintf(stdout, "   prj.*\n");
   prjprt(&(cel->prj));
 
   return 0;

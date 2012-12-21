@@ -157,7 +157,8 @@
 *                           3: As above, but also report all non-WCS
 *                              keyrecords that were discarded, and the number
 *                              of coordinate representations (nwcs) found.
-*                       The report is written to stderr.
+*                       The report is written to stderr, by default, or
+*                       the stream set by wcsprintf_set().
 *
 *                       For ctrl < 0, WCS keyrecords processed by wcspih()
 *                       are removed from header[]:
@@ -285,7 +286,8 @@
 *                           3: As above, but also report all non-WCS
 *                              keyrecords that were discarded, and the number
 *                              of coordinate representations (nwcs) found.
-*                       The report is written to stderr.
+*                       The report is written to stderr, by default, or the
+*                       stream set by wcsprintf_set(), if called.
 *
 *                       For ctrl < 0, WCS keyrecords processed by wcsbth()
 *                       are removed from header[]:
@@ -423,10 +425,11 @@
 *
 *      - WCSHDR_all: Accept all extensions recognized by the parser.
 *
-*      - WCSHDR_reject: Reject non-standard keywords (that are not otherwise
-*              accepted).  A message will optionally be printed on stderr, as
-*              determined by the ctrl argument, and nreject will be
-*              incremented.
+*      - WCSHDR_reject: Reject non-standard keywords (that are not
+*              otherwise accepted).  A message will optionally be
+*              printed on stderr (or the stream set by
+*              wcsprintf_set()), as determined by the ctrl argument,
+*              and nreject will be incremented.
 *
 *              This flag may be used to signal the presence of non-standard
 *              keywords, otherwise they are simply passed over as though they

@@ -73,6 +73,7 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
+#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -102,8 +103,6 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
-
-#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -161,15 +160,7 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k.
- * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
- * Ditto for the __ia64__ case accordingly.
- */
-#define YY_BUF_SIZE 32768
-#else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -8175,7 +8166,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcspih.l,v 4.16 2012/11/07 04:42:44 cal103 Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -8238,6 +8229,7 @@ char *wcspihtext;
 #include "wcs.h"
 #include "wcshdr.h"
 #include "wcsmath.h"
+#include "wcsprintf.h"
 #include "wcsutil.h"
 
 #define INTEGER 0
@@ -8274,7 +8266,7 @@ void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr);
 jmp_buf wcspih_abort_jmp_env;
 #define exit(status) longjmp(wcspih_abort_jmp_env, status)
 
-#line 8278 "wcspih.c"
+#line 8270 "wcspih.c"
 
 #define INITIAL 0
 #define CROTAi 1
@@ -8370,12 +8362,7 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k */
-#define YY_READ_BUF_SIZE 16384
-#else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -8463,12 +8450,12 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 146 "wcspih.l"
+#line 147 "wcspih.l"
 
 	/* Keyword indices, as used in the WCS papers, e.g. PCi_ja, PVi_ma. */
 	char a;
 	int  i, j, m;
-	
+
 	char *cptr, *errmsg, errtxt[80], *hptr, *keep;
 	int  altlin, alts[27], ialt, idx, ipx, ix, jx, naxis, *npptr,
 	     nps[27], npv[27], pass, status, valtype, voff;
@@ -8476,7 +8463,7 @@ YY_DECL
 	void *vptr, *wptr;
 	struct wcsprm *wcsp;
 	int wcspihlex_destroy(void);
-	
+
 	naxis = 0;
 	for (ialt = 0; ialt < 27; ialt++) {
 	  alts[ialt] = 0;
@@ -8485,44 +8472,44 @@ YY_DECL
 	  epoch[ialt]   = UNDEFINED;
 	  vsource[ialt] = UNDEFINED;
 	}
-	
+
 	/* Parameters used to implement YY_INPUT. */
 	wcspih_hdr = header;
 	wcspih_nkeyrec = nkeyrec;
-	
+
 	/* Our handle on the input stream. */
 	hptr = header;
 	keep = 0x0;
 	*nreject = 0;
-	
+
 	/* Keyword parameters. */
 	i = j = m = 0;
 	a = ' ';
-	
+
 	/* For decoding the keyvalue. */
 	valtype = -1;
 	idx     = -1;
 	vptr    = 0x0;
-	
+
 	/* For keywords that require special handling. */
 	altlin = 0;
 	npptr  = 0x0;
-	
+
 	/* The data structures produced. */
 	*nwcs = 0;
 	*wcs  = 0x0;
-	
+
 	pass = 1;
-	
+
 	/* Return here via longjmp() invoked by yy_fatal_error(). */
 	if (setjmp(wcspih_abort_jmp_env)) {
 	  return 3;
 	}
-	
+
 	BEGIN(INITIAL);
 
 
-#line 8526 "wcspih.c"
+#line 8513 "wcspih.c"
 
 	if ( !(yy_init) )
 		{
@@ -8596,12 +8583,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 204 "wcspih.l"
+#line 205 "wcspih.l"
 {
 	  if (pass == 1) {
 	    sscanf(wcspihtext, "NAXIS   = %d", &naxis);
 	  }
-	
+
 	  if (naxis < 0) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Negative value of NAXIS ignored: %d", naxis);
@@ -8614,7 +8601,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 219 "wcspih.l"
+#line 220 "wcspih.l"
 {
 	  if (pass == 1) {
 	    sscanf(wcspihtext, "WCSAXES%c= %d", &a, &i);
@@ -8625,7 +8612,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 227 "wcspih.l"
+#line 228 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->crpix);
@@ -8634,7 +8621,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 233 "wcspih.l"
+#line 234 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->pc);
@@ -8644,7 +8631,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 240 "wcspih.l"
+#line 241 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->cd);
@@ -8654,7 +8641,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 247 "wcspih.l"
+#line 248 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->cdelt);
@@ -8663,7 +8650,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 253 "wcspih.l"
+#line 254 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->crota);
@@ -8673,7 +8660,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 260 "wcspih.l"
+#line 261 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = &((*wcs)->cunit);
@@ -8682,7 +8669,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 266 "wcspih.l"
+#line 267 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = &((*wcs)->ctype);
@@ -8691,7 +8678,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 272 "wcspih.l"
+#line 273 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->crval);
@@ -8700,7 +8687,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 278 "wcspih.l"
+#line 279 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->lonpole);
@@ -8709,7 +8696,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 284 "wcspih.l"
+#line 285 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->latpole);
@@ -8718,7 +8705,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 290 "wcspih.l"
+#line 291 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->restfrq);
@@ -8727,7 +8714,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 296 "wcspih.l"
+#line 297 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->restfrq);
@@ -8737,7 +8724,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 303 "wcspih.l"
+#line 304 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->restwav);
@@ -8746,7 +8733,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 309 "wcspih.l"
+#line 310 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->pv);
@@ -8756,7 +8743,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 316 "wcspih.l"
+#line 317 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->pv);
@@ -8766,7 +8753,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 323 "wcspih.l"
+#line 324 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = &((*wcs)->ps);
@@ -8776,7 +8763,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 330 "wcspih.l"
+#line 331 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = &((*wcs)->cname);
@@ -8785,7 +8772,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 336 "wcspih.l"
+#line 337 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->crder);
@@ -8794,7 +8781,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 342 "wcspih.l"
+#line 343 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->csyer);
@@ -8803,7 +8790,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 348 "wcspih.l"
+#line 349 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->dateavg;
@@ -8813,7 +8800,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 355 "wcspih.l"
+#line 356 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->dateobs;
@@ -8823,10 +8810,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 362 "wcspih.l"
+#line 363 "wcspih.l"
 {
 	  sscanf(wcspihtext, "EPOCH%c", &a);
-	
+
 	  if (a == ' ' || relax & WCSHDR_EPOCHa) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -8835,14 +8822,14 @@ YY_RULE_SETUP
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-	
+
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "EPOCH keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -8850,7 +8837,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 386 "wcspih.l"
+#line 387 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->equinox);
@@ -8859,7 +8846,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 392 "wcspih.l"
+#line 393 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->mjdavg);
@@ -8869,7 +8856,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 399 "wcspih.l"
+#line 400 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->mjdobs);
@@ -8879,7 +8866,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 406 "wcspih.l"
+#line 407 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = (*wcs)->obsgeo;
@@ -8889,7 +8876,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 413 "wcspih.l"
+#line 414 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = (*wcs)->obsgeo + 1;
@@ -8899,7 +8886,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 420 "wcspih.l"
+#line 421 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = (*wcs)->obsgeo + 2;
@@ -8909,7 +8896,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 427 "wcspih.l"
+#line 428 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->radesys;
@@ -8918,18 +8905,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 433 "wcspih.l"
+#line 434 "wcspih.l"
 {
 	  if (relax & WCSHDR_RADECSYS) {
 	    valtype = STRING;
 	    if (pass == 2) vptr = (*wcs)->radesys;
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "RADECSYS is non-standard, use RADESYSa";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -8937,7 +8924,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 449 "wcspih.l"
+#line 450 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->specsys;
@@ -8946,7 +8933,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 455 "wcspih.l"
+#line 456 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->ssysobs;
@@ -8955,7 +8942,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 461 "wcspih.l"
+#line 462 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->ssyssrc;
@@ -8964,7 +8951,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 467 "wcspih.l"
+#line 468 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->velangl);
@@ -8973,7 +8960,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 473 "wcspih.l"
+#line 474 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->velosys);
@@ -8982,21 +8969,21 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 479 "wcspih.l"
+#line 480 "wcspih.l"
 {
 	  sscanf(wcspihtext, "VELREF%c", &a);
-	
+
 	  if (a == ' ' || relax & WCSHDR_VELREFa) {
 	    valtype = INTEGER;
 	    if (pass == 2) vptr = &((*wcs)->velref);
-	
+
 	    unput(a);
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "VELREF keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9004,10 +8991,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 498 "wcspih.l"
+#line 499 "wcspih.l"
 {
 	  sscanf(wcspihtext, "VSOURCE%c", &a);
-	
+
 	  if (relax & WCSHDR_VSOURCE) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -9016,14 +9003,14 @@ YY_RULE_SETUP
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-	
+
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Deprecated VSOURCEa keyword rejected";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9031,7 +9018,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 522 "wcspih.l"
+#line 523 "wcspih.l"
 {
 	  valtype = STRING;
 	  if (pass == 2) vptr = (*wcs)->wcsname;
@@ -9040,7 +9027,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 528 "wcspih.l"
+#line 529 "wcspih.l"
 {
 	  valtype = FLOAT;
 	  if (pass == 2) vptr = &((*wcs)->zsource);
@@ -9049,7 +9036,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 534 "wcspih.l"
+#line 535 "wcspih.l"
 {
 	  yyless(0);
 	  if (wcspih_nkeyrec) {
@@ -9063,16 +9050,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 545 "wcspih.l"
+#line 546 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 44:
-#line 550 "wcspih.l"
+#line 551 "wcspih.l"
 case 45:
 YY_RULE_SETUP
-#line 550 "wcspih.l"
+#line 551 "wcspih.l"
 {
 	  sscanf(wcspihtext, "%d%c", &i, &a);
 	  idx = i - 1;
@@ -9081,7 +9068,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 556 "wcspih.l"
+#line 557 "wcspih.l"
 {
 	  /* Invalid axis number will be caught by <VALUE>. */
 	  sscanf(wcspihtext, "%3d", &i);
@@ -9090,20 +9077,20 @@ YY_RULE_SETUP
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 562 "wcspih.l"
+#line 563 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 48:
-#line 567 "wcspih.l"
-case 49:
 #line 568 "wcspih.l"
-case 50:
+case 49:
 #line 569 "wcspih.l"
+case 50:
+#line 570 "wcspih.l"
 case 51:
 YY_RULE_SETUP
-#line 569 "wcspih.l"
+#line 570 "wcspih.l"
 {
 	  sscanf(wcspihtext, "%d_%d%c", &i, &j, &a);
 	  if (pass == 2) {
@@ -9111,25 +9098,25 @@ YY_RULE_SETUP
 	    if (a != ' ') {
 	      wcsp += alts[a-'A'+1];
 	    }
-	
+
 	    idx = (i-1)*(wcsp->naxis) + j - 1;
 	  }
 	  BEGIN(VALUE);
 	}
 	YY_BREAK
 case 52:
-#line 583 "wcspih.l"
-case 53:
 #line 584 "wcspih.l"
-case 54:
+case 53:
 #line 585 "wcspih.l"
-case 55:
+case 54:
 #line 586 "wcspih.l"
-case 56:
+case 55:
 #line 587 "wcspih.l"
+case 56:
+#line 588 "wcspih.l"
 case 57:
 YY_RULE_SETUP
-#line 587 "wcspih.l"
+#line 588 "wcspih.l"
 {
 	  /* Invalid axis numbers will be caught by <VALUE>. */
 	  sscanf(wcspihtext, "%d_%d", &i, &j);
@@ -9138,7 +9125,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 593 "wcspih.l"
+#line 594 "wcspih.l"
 {
 	  /* This covers the defunct forms CD00i00j and PC00i00j. */
 	  if (((relax & WCSHDR_PC00i00j) && (altlin == 1)) ||
@@ -9149,13 +9136,13 @@ YY_RULE_SETUP
 	      idx = (i-1)*((*wcs)->naxis) + j - 1;
 	    }
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Defunct form of %si_ja keyword",
 	                     (altlin==1) ? "PC" : "CD");
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9163,26 +9150,26 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 615 "wcspih.l"
+#line 616 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 60:
-#line 620 "wcspih.l"
+#line 621 "wcspih.l"
 case 61:
 YY_RULE_SETUP
-#line 620 "wcspih.l"
+#line 621 "wcspih.l"
 {
 	  sscanf(wcspihtext, "%d%c", &i, &a);
 	  if (a == ' ' || relax & WCSHDR_CROTAia) {
 	    idx = i - 1;
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "CROTAn keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9190,7 +9177,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 635 "wcspih.l"
+#line 636 "wcspih.l"
 {
 	  sscanf(wcspihtext, "%d", &i);
 	  a = ' ';
@@ -9200,19 +9187,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 642 "wcspih.l"
+#line 643 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 64:
-#line 647 "wcspih.l"
+#line 648 "wcspih.l"
 case 65:
 YY_RULE_SETUP
-#line 647 "wcspih.l"
+#line 648 "wcspih.l"
 {
 	  idx = -1;
-	
+
 	  if (YY_START == CCCCCCCa) {
 	    sscanf(wcspihtext, "%c", &a);
 	  } else {
@@ -9224,20 +9211,20 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 659 "wcspih.l"
+#line 660 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 67:
-#line 664 "wcspih.l"
-case 68:
 #line 665 "wcspih.l"
-case 69:
+case 68:
 #line 666 "wcspih.l"
+case 69:
+#line 667 "wcspih.l"
 case 70:
 YY_RULE_SETUP
-#line 666 "wcspih.l"
+#line 667 "wcspih.l"
 {
 	  sscanf(wcspihtext, "%d_%d%c", &i, &m, &a);
 	  idx = -1;
@@ -9245,18 +9232,18 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 71:
-#line 673 "wcspih.l"
-case 72:
 #line 674 "wcspih.l"
-case 73:
+case 72:
 #line 675 "wcspih.l"
-case 74:
+case 73:
 #line 676 "wcspih.l"
-case 75:
+case 74:
 #line 677 "wcspih.l"
+case 75:
+#line 678 "wcspih.l"
 case 76:
 YY_RULE_SETUP
-#line 677 "wcspih.l"
+#line 678 "wcspih.l"
 {
 	  /* Invalid parameters will be caught by <VALUE>. */
 	  sscanf(wcspihtext, "%d_%d", &i, &m);
@@ -9265,14 +9252,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 683 "wcspih.l"
+#line 684 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 687 "wcspih.l"
+#line 688 "wcspih.l"
 {
 	  if (relax & WCSHDR_PROJPn) {
 	    sscanf(wcspihtext, "%d", &m);
@@ -9280,11 +9267,11 @@ YY_RULE_SETUP
 	    a = ' ';
 	    idx = -1;
 	    BEGIN(VALUE);
-	
+
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Defunct PROJPn keyword rejected";
 	    BEGIN(ERROR);
-	
+
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9292,14 +9279,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 704 "wcspih.l"
+#line 705 "wcspih.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 708 "wcspih.l"
+#line 709 "wcspih.l"
 {
 	  /* Do checks on i, j & m. */
 	  if (i > 99 || j > 99 || m > 99) {
@@ -9311,12 +9298,12 @@ YY_RULE_SETUP
 	        sprintf(errmsg, "Parameter number exceeds 99");
 	      }
 	      BEGIN(ERROR);
-	
+
 	    } else {
 	      /* Pretend we don't recognize it. */
 	      BEGIN(DISCARD);
 	    }
-	
+
 	  } else {
 	    if (valtype == INTEGER) {
 	      BEGIN(INTEGER_VAL);
@@ -9335,7 +9322,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 741 "wcspih.l"
+#line 742 "wcspih.l"
 {
 	  errmsg = "Invalid KEYWORD = VALUE syntax";
 	  BEGIN(ERROR);
@@ -9343,12 +9330,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 746 "wcspih.l"
+#line 747 "wcspih.l"
 {
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9358,26 +9345,26 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((int **)wptr) + idx;
 	        }
-	
+
 	        /* Read the keyvalue. */
 	        sscanf(wcspihtext, "%d", (int *)wptr);
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null int pointer";
 	      BEGIN(ERROR);
@@ -9387,7 +9374,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 787 "wcspih.l"
+#line 788 "wcspih.l"
 {
 	  errmsg = "An integer value was expected";
 	  BEGIN(ERROR);
@@ -9395,12 +9382,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 792 "wcspih.l"
+#line 793 "wcspih.l"
 {
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9410,38 +9397,38 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((double **)wptr) + idx;
-	
+
 	        } else if (npptr == npv) {
 	          ipx = (*wcs+ialt)->npv++;
 	          (*wcs+ialt)->pv[ipx].i = i;
 	          (*wcs+ialt)->pv[ipx].m = m;
 	          wptr = &((*wcs+ialt)->pv[ipx].value);
 	        }
-	
+
 	        /* Read the keyvalue. */
 	        wcsutil_str2double(wcspihtext, "%lf", (double *)wptr);
-	
+
 	        /* Flag the presence of PCi_ja, or CDi_ja and/or CROTAia. */
 	        if (altlin) {
 	          (*wcs+ialt)->altlin |= altlin;
 	          altlin = 0;
 	        }
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null float pointer";
 	      BEGIN(ERROR);
@@ -9451,7 +9438,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 845 "wcspih.l"
+#line 846 "wcspih.l"
 {
 	  errmsg = "A floating-point value was expected";
 	  BEGIN(ERROR);
@@ -9460,12 +9447,12 @@ YY_RULE_SETUP
 case 86:
 /* rule 86 can match eol */
 YY_RULE_SETUP
-#line 850 "wcspih.l"
+#line 851 "wcspih.l"
 {
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-	
+
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9475,50 +9462,50 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-	
+
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-	
+
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((char (**)[72])wptr) + idx;
-	
+
 	        } else if (npptr == nps) {
 	          ipx = (*wcs+ialt)->nps++;
 	          (*wcs+ialt)->ps[ipx].i = i;
 	          (*wcs+ialt)->ps[ipx].m = m;
 	          wptr = (*wcs+ialt)->ps[ipx].value;
 	        }
-	
+
 	        /* Read the keyvalue. */
 	        cptr = (char *)wptr;
 	        strcpy(cptr, wcspihtext+1);
-	
+
 	        /* Squeeze out repeated quotes. */
 	        ix = 0;
 	        for (jx = 0; jx < 72; jx++) {
 	          if (ix < jx) {
 	            cptr[ix] = cptr[jx];
 	          }
-	
+
 	          if (cptr[jx] == '\0') {
 	            if (ix) cptr[ix-1] = '\0';
 	            break;
 	          } else if (cptr[jx] == '\'' && cptr[jx+1] == '\'') {
 	            jx++;
 	          }
-	
+
 	          ix++;
 	        }
-	
+
 	        if (a) break;
 	      }
-	
+
 	      BEGIN(COMMENT);
-	
+
 	    } else {
 	      errmsg = "Internal parser ERROR, null string pointer";
 	      BEGIN(ERROR);
@@ -9528,24 +9515,24 @@ YY_RULE_SETUP
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 915 "wcspih.l"
+#line 916 "wcspih.l"
 {
 	  errmsg = "A string value was expected";
 	  BEGIN(ERROR);
 	}
 	YY_BREAK
 case 88:
-#line 921 "wcspih.l"
+#line 922 "wcspih.l"
 case 89:
 YY_RULE_SETUP
-#line 921 "wcspih.l"
+#line 922 "wcspih.l"
 {
 	  BEGIN(FLUSH);
 	}
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 925 "wcspih.l"
+#line 926 "wcspih.l"
 {
 	  errmsg = "Malformed keycomment";
 	  BEGIN(ERROR);
@@ -9553,15 +9540,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 930 "wcspih.l"
+#line 931 "wcspih.l"
 {
 	  if (pass == 2) {
 	    if (ctrl < 0) {
 	      /* Preserve discards. */
 	      keep = wcspih_hdr - 80;
-	
+
 	    } else if (ctrl > 2) {
-	      fprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
+	      wcsprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
 	    }
 	  }
 	  BEGIN(FLUSH);
@@ -9569,7 +9556,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 943 "wcspih.l"
+#line 944 "wcspih.l"
 {
 	  (*nreject)++;
 	  if (pass == 2) {
@@ -9577,9 +9564,9 @@ YY_RULE_SETUP
 	      /* Preserve rejects. */
 	      keep = wcspih_hdr - 80;
 	    }
-	
+
 	    if (abs(ctrl%10) > 1) {
-	      fprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
+	      wcsprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
 	        errmsg);
 	    }
 	  }
@@ -9589,7 +9576,7 @@ YY_RULE_SETUP
 case 93:
 /* rule 93 can match eol */
 YY_RULE_SETUP
-#line 959 "wcspih.l"
+#line 960 "wcspih.l"
 {
 	  if (pass == 2 && keep) {
 	    if (hptr < keep) {
@@ -9597,7 +9584,7 @@ YY_RULE_SETUP
 	    }
 	    hptr += 80;
 	  }
-	
+
 	  i = j = m = 0;
 	  a = ' ';
 	  valtype = -1;
@@ -9623,7 +9610,7 @@ case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(DISCARD):
 case YY_STATE_EOF(ERROR):
 case YY_STATE_EOF(FLUSH):
-#line 976 "wcspih.l"
+#line 977 "wcspih.l"
 {
 	  /* End-of-input. */
 	  if (pass == 1) {
@@ -9632,49 +9619,49 @@ case YY_STATE_EOF(FLUSH):
 	      wcspihlex_destroy();
 	      return status;
 	    }
-	
+
 	    if (abs(ctrl%10) > 2) {
 	      if (*nwcs == 1) {
 	        if (strcmp(wcs[0]->wcsname, "DEFAULTS") != 0) {
-	          fprintf(stderr, "Found one coordinate representation.\n");
+	          wcsprintf(stderr, "Found one coordinate representation.\n");
 	        }
 	      } else {
-	        fprintf(stderr, "Found %d coordinate representations.\n",
+	        wcsprintf(stderr, "Found %d coordinate representations.\n",
 	          *nwcs);
 	      }
 	    }
-	
+
 	    wcspih_hdr = header;
 	    wcspih_nkeyrec = nkeyrec;
 	    *nreject = 0;
-	
+
 	    pass = 2;
 	    i = j = m = 0;
 	    a = ' ';
 	    valtype = -1;
-	
+
 	    wcspihrestart(wcspihin);
-	
+
 	  } else {
 	    wcspihlex_destroy();
-	
+
 	    if (ctrl < 0) {
 	      *hptr = '\0';
 	    } else if (ctrl == 1) {
-	      fprintf(stderr, "%d WCS keyrecords were rejected.\n",
+	      wcsprintf(stderr, "%d WCS keyrecords were rejected.\n",
 	        *nreject);
 	    }
-	
+
 	    return wcspih_final(alts, epoch, vsource, nwcs, wcs);
 	  }
 	}
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 1021 "wcspih.l"
+#line 1022 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 9678 "wcspih.c"
+#line 9665 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -10424,8 +10411,8 @@ YY_BUFFER_STATE wcspih_scan_string (yyconst char * yystr )
 
 /** Setup the input buffer state to scan the given bytes. The next call to wcspihlex() will
  * scan from a @e copy of @a bytes.
- * @param yybytes the byte buffer to scan
- * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
+ * @param bytes the byte buffer to scan
+ * @param len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */
@@ -10664,7 +10651,7 @@ void wcspihfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 1021 "wcspih.l"
+#line 1022 "wcspih.l"
 
 
 

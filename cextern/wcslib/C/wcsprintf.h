@@ -42,6 +42,10 @@
 * or string buffer via wcsprintf_set().  By default output goes to stdout.
 *
 * Given:
+*   stream    FILE*     The default stream to write to, in the event that
+*                       wcsprintf_set has not been called to set a custom
+*                       stream.
+*
 *   format    char*     Format string, passed to one of the printf(3) family
 *                       of stdio library functions.
 *
@@ -107,15 +111,15 @@
 extern "C" {
 #endif
 
-#define WCSPRINTF_PTR(str1, ptr, str2) \
+#define WCSPRINTF_PTR(stream, str1, ptr, str2)   \
   if (ptr) { \
-    wcsprintf("%s%#lx%s", (str1), (unsigned long)(ptr), (str2)); \
+    wcsprintf(stream, "%s%#lx%s", (str1), (unsigned long)(ptr), (str2)); \
   } else { \
-    wcsprintf("%s0x0%s", (str1), (str2)); \
+    wcsprintf(stream, "%s0x0%s", (str1), (str2));        \
   }
 
 int wcsprintf_set(FILE *wcsout);
-int wcsprintf(const char *format, ...);
+int wcsprintf(FILE *stream, const char *format, ...);
 const char *wcsprintf_buf(void);
 
 #ifdef __cplusplus

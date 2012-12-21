@@ -208,79 +208,79 @@ const struct prjprm *prj;
 
   if (prj == 0x0) return PRJERR_NULL_POINTER;
 
-  wcsprintf("       flag: %d\n",  prj->flag);
-  wcsprintf("       code: \"%s\"\n",  prj->code);
-  wcsprintf("         r0: %9f\n", prj->r0);
-  wcsprintf("         pv:");
+  wcsprintf(stdout, "       flag: %d\n",  prj->flag);
+  wcsprintf(stdout, "       code: \"%s\"\n",  prj->code);
+  wcsprintf(stdout, "         r0: %9f\n", prj->r0);
+  wcsprintf(stdout, "         pv:");
   if (prj->pvrange) {
     n = (prj->pvrange)%100;
 
     if (prj->pvrange/100) {
-      wcsprintf(" (0)");
+      wcsprintf(stdout, " (0)");
     } else {
-      wcsprintf(" %- 11.5g", prj->pv[0]);
+      wcsprintf(stdout, " %- 11.5g", prj->pv[0]);
       n--;
     }
 
     for (i = 1; i <= n; i++) {
       if (i%5 == 1) {
-        wcsprintf("\n           ");
+        wcsprintf(stdout, "\n           ");
       }
 
       if (undefined(prj->pv[i])) {
-        wcsprintf("  UNDEFINED   ");
+        wcsprintf(stdout, "  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.5g", prj->pv[i]);
+        wcsprintf(stdout, "  %- 11.5g", prj->pv[i]);
       }
     }
-    wcsprintf("\n");
+    wcsprintf(stdout, "\n");
   } else {
-    wcsprintf(" (not used)\n");
+    wcsprintf(stdout, " (not used)\n");
   }
   if (undefined(prj->phi0)) {
-    wcsprintf("       phi0: UNDEFINED\n");
+    wcsprintf(stdout, "       phi0: UNDEFINED\n");
   } else {
-    wcsprintf("       phi0: %9f\n", prj->phi0);
+    wcsprintf(stdout, "       phi0: %9f\n", prj->phi0);
   }
   if (undefined(prj->theta0)) {
-    wcsprintf("     theta0: UNDEFINED\n");
+    wcsprintf(stdout, "     theta0: UNDEFINED\n");
   } else {
-    wcsprintf("     theta0: %9f\n", prj->theta0);
+    wcsprintf(stdout, "     theta0: %9f\n", prj->theta0);
   }
-  wcsprintf("     bounds: %d\n",  prj->bounds);
+  wcsprintf(stdout, "     bounds: %d\n",  prj->bounds);
 
-  wcsprintf("\n");
-  wcsprintf("       name: \"%s\"\n", prj->name);
-  wcsprintf("   category: %d (%s)\n", prj->category,
+  wcsprintf(stdout, "\n");
+  wcsprintf(stdout, "       name: \"%s\"\n", prj->name);
+  wcsprintf(stdout, "   category: %d (%s)\n", prj->category,
                                       prj_categories[prj->category]);
-  wcsprintf("    pvrange: %d\n", prj->pvrange);
-  wcsprintf("  simplezen: %d\n", prj->simplezen);
-  wcsprintf("  equiareal: %d\n", prj->equiareal);
-  wcsprintf("  conformal: %d\n", prj->conformal);
-  wcsprintf("     global: %d\n", prj->global);
-  wcsprintf("  divergent: %d\n", prj->divergent);
-  wcsprintf("         x0: %f\n", prj->x0);
-  wcsprintf("         y0: %f\n", prj->y0);
+  wcsprintf(stdout, "    pvrange: %d\n", prj->pvrange);
+  wcsprintf(stdout, "  simplezen: %d\n", prj->simplezen);
+  wcsprintf(stdout, "  equiareal: %d\n", prj->equiareal);
+  wcsprintf(stdout, "  conformal: %d\n", prj->conformal);
+  wcsprintf(stdout, "     global: %d\n", prj->global);
+  wcsprintf(stdout, "  divergent: %d\n", prj->divergent);
+  wcsprintf(stdout, "         x0: %f\n", prj->x0);
+  wcsprintf(stdout, "         y0: %f\n", prj->y0);
 
-  WCSPRINTF_PTR("        err: ", prj->err, "\n");
+  WCSPRINTF_PTR(stdout, "        err: ", prj->err, "\n");
   if (prj->err) {
     wcserr_prt(prj->err, "             ");
   }
 
-  wcsprintf("        w[]:");
+  wcsprintf(stdout, "        w[]:");
   for (i = 0; i < 5; i++) {
-    wcsprintf("  %- 11.5g", prj->w[i]);
+    wcsprintf(stdout, "  %- 11.5g", prj->w[i]);
   }
-  wcsprintf("\n            ");
+  wcsprintf(stdout, "\n            ");
   for (i = 5; i < 10; i++) {
-    wcsprintf("  %- 11.5g", prj->w[i]);
+    wcsprintf(stdout, "  %- 11.5g", prj->w[i]);
   }
-  wcsprintf("\n");
-  wcsprintf("          m: %d\n", prj->m);
-  wcsprintf("          n: %d\n", prj->n);
-  wcsprintf("     prjx2s: %s\n",
+  wcsprintf(stdout, "\n");
+  wcsprintf(stdout, "          m: %d\n", prj->m);
+  wcsprintf(stdout, "          n: %d\n", prj->n);
+  wcsprintf(stdout, "     prjx2s: %s\n",
     wcsutil_fptr2str((int (*)(void))prj->prjx2s, hext));
-  wcsprintf("     prjs2x: %s\n",
+  wcsprintf(stdout, "     prjs2x: %s\n",
     wcsutil_fptr2str((int (*)(void))prj->prjs2x, hext));
 
   return 0;

@@ -52,7 +52,7 @@ int wcserr_prt(
 
 {
   if (!wcserr_enabled) {
-    wcsprintf("Error messaging is not enabled, use wcserr_enable().\n");
+    wcsprintf(stdout, "Error messaging is not enabled, use wcserr_enable().\n");
     return 2;
   }
 
@@ -64,12 +64,12 @@ int wcserr_prt(
     if (prefix == 0x0) prefix = "";
 
     if (err->status > 0) {
-      wcsprintf("%sERROR %d in %s() at line %d of file %s:\n%s%s.\n",
+      wcsprintf(stdout, "%sERROR %d in %s() at line %d of file %s:\n%s%s.\n",
         prefix, err->status, err->function, err->line_no, err->file, prefix,
         err->msg);
     } else {
       /* An informative message only. */
-      wcsprintf("%sINFORMATIVE message from %s() at line %d of file "
+      wcsprintf(stdout, "%sINFORMATIVE message from %s() at line %d of file "
         "%s:\n%s%s.\n", prefix, err->function, err->line_no, err->file,
         prefix, err->msg);
     }
