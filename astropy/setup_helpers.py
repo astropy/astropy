@@ -119,7 +119,7 @@ class AstropyBuild(DistutilsBuild):
         print(genfn)
         """).format(libdir=libdir, pkgnm=self.distribution.packages[0])
         proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate(subproccode)
+        stdout, stderr = proc.communicate(subproccode.encode('UTF-8'))
 
         if proc.returncode == 0:
             genfn = stdout.strip()
