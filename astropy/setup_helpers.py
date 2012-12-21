@@ -129,7 +129,9 @@ class AstropyBuild(DistutilsBuild):
                 newfn = os.path.join(configpath, os.path.split(genfn)[1])
                 shutil.move(genfn, newfn)
         else:
-            msg = 'Generation of default configuration item failed!\nstdout:\n{stdout}\n\nstderr:\n{stderr}'
+            msg = ('Generation of default configuration item failed! Stdout '
+                  'and stderr are shown below.\n'
+                  'Stdout:\n{stdout}\nStderr:\n{stderr}')
             log.error(msg.format(stdout=stdout, stderr=stderr))
 
 
