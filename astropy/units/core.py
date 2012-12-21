@@ -120,10 +120,12 @@ class UnitBase(object):
         # Strictly speaking, we should be using old-style division here.
         # However, I think it's less surprising for this to behave the
         # same way whether __future__ division is being used or not
+        from .quantity import Quantity
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, -1]).simplify()
+        elif isinstance(m, Quantity):
+            return Quantity(1, self) / m
         else:
-            from .quantity import Quantity
             return Quantity(1. / m, self)
 
     def __rdiv__(self, m):
@@ -137,10 +139,12 @@ class UnitBase(object):
         return self.__rdiv__(m)
 
     def __mul__(self, m):
+        from .quantity import Quantity
         if isinstance(m, UnitBase):
             return CompositeUnit(1, [self, m], [1, 1]).simplify()
+        elif isinstance(m, Quantity):
+            return Quantity(1, self) * m
         else:
-            from .quantity import Quantity
             return Quantity(m, self)
 
     def __rmul__(self, m):
