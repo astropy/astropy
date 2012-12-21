@@ -31,11 +31,23 @@ see the "What's New" section of the documentation for more details.
 
 - New ``astropy.time`` sub-package. [#332]
 
-- New ``astropy.units`` sub-package.  This has the following effects on
-  other sub-packages:
+- New ``astropy.units`` sub-package that includes a class for units
+  (``astropy.units.Unit``) and scalar quantities that have units
+  (``astropy.units.Quantity``). [#370, #445]
+
+  This has the following effects on other sub-packages:
 
   - In ``astropy.wcs``, the ``wcs.cunit`` list now takes and returns
-    ``astropy.units.Unit`` objects.
+    ``astropy.units.Unit`` objects. [#379]
+
+  - In ``astropy.nddata``, units are now stored as ``astropy.units.Unit``
+    objects. [#382]
+
+  - In ``astropy.table``, units on columns are now stored as
+    ``astropy.units.Unit`` objects. [#380]
+
+  - In ``astropy.constants``, constants are now stored as
+    ``astropy.units.Quantity`` objects. [#529]
 
 - ``astropy.io.ascii``
 
@@ -128,18 +140,18 @@ Bug Fixes
     HDUs with support for the ``do_not_scale_image_data`` and ``uint`` options,
     as well as ``scale_back`` and ``save_backup``.  The ``.scale()`` method
     works better too. Corresponds to PyFITS ticket 88.
-  
+
   - Permits non-string values for the EXTNAME keyword when reading in a file,
     rather than throwing an exception due to the malformatting.  Added
     verification for the format of the EXTNAME keyword when writing.
     Corresponds to PyFITS ticket 96.
-  
+
   - Added support for EXTNAME and EXTVER in PRIMARY HDUs.  That is, if EXTNAME
     is specified in the header, it will also be reflected in the ``.name``
     attribute and in ``fits.info()``.  These keywords used to be verboten in
     PRIMARY HDUs, but the latest version of the FITS standard allows them.
     Corresponds to PyFITS ticket 151.
-  
+
   - HCOMPRESS can again be used to compress data cubes (and higher-dimensional
     arrays) so long as the tile size is effectively 2-dimensional. In fact,
     compatible tile sizes will automatically be used even if they're not
