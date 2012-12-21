@@ -13,9 +13,11 @@ package as of the most recent release:
  * Paul Barrett
  * Erik Bray
  * Neil Crighton
+ * Alex Conley
  * Matt Davis
  * Christoph Deil
  * Michael Droettboom
+ * Henry Ferguson
  * Adam Ginsburg
  * Perry Greenfield
  * Frédéric Grollier
@@ -25,8 +27,12 @@ package as of the most recent release:
  * Roban Kramer
  * Prasanth Nair
  * Thomas Robitaille
+ * Adrian Price-Whelan
+ * Leo Singer
  * James Taylor
  * Erik Tollerud
+ * James Turner
+ * Julien Woillez
 
 
 License
