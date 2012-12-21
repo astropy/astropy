@@ -54,31 +54,42 @@ __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel',
            'PCompositeModel', 'SCompositeModel', 'LabeledInput']
 
 def _convert_input(x, pdim):
+    """
+    format the input into appropriate shape
+    
+    'N' - normal (don't do anything to the output)
+    'T' - transposed
+    'S' - scalar
+    """
     x = np.asarray(x) + 0.
-    format = 'N'
+    fmt = 'N'
     if pdim == 1:
-        return x, format
+        if x.ndim == 0:
+            fmt = 'S'
+            return x, fmt
+        else:
+            return x, fmt
     else:
         if x.ndim < 2:
-            format = 'N'
-            return np.array([x]).T, format
+            fmt = 'N'
+            return np.array([x]).T, fmt
         elif x.ndim == 2:
             assert x.shape[-1] == pdim, "Cannot broadcast with shape " \
-                                                            "(%d, %d)" % (x.shape[0], x.shape[1])
-            return x, format
+                   "(%d, %d)" % (x.shape[0], x.shape[1])
+            return x, fmt
         elif x.ndim > 2:
             assert x.shape[0] == pdim, "Cannot broadcast with shape " \
-                                                            "(%d, %d, %d)" % (x.shape[0], x.shape[1], x.shape[2])
-            format = 'T'
-            return x.T, format
+                   "(%d, %d, %d)" % (x.shape[0], x.shape[1], x.shape[2])
+            fmt = 'T'
+            return x.T, fmt
     
-def _convert_output(x, format):
-    if format == 'N':
+def _convert_output(x, fmt):
+    if fmt == 'N':
         return x
-    elif format == 'T':
+    elif fmt == 'T':
         return x.T
-    elif format == 'DT':
-        return x.T[0]
+    elif fmt == 'S':
+        return x[0]
     else:
         raise ValueError("Unrecognized output conversion format")
 
@@ -107,15 +118,16 @@ def setpar(self,  name, val):
             else:
                 setattr(self, '_'+name, par)
             self._parameters = parameters.Parameters(self, 
-                                            self.parnames, paramdim=self.paramdim)
+                                                     self.parnames,
+                                                     paramdim=self.paramdim)
         else:
             setattr(self, '_'+name, val)
     else:
         par = parameters._Parameter(name, val, self, self.paramdim)
         if not getattr(self, name).parshape == par.parshape:
-                raise InputParametersException(
-                    "Input parameter '%s' does not "
-                    "have the required shape" % name)
+            raise InputParametersException(
+                "Input parameter '%s' does not "
+                "have the required shape" % name)
         else:
             setattr(self, '_'+name, par)
             
@@ -151,7 +163,7 @@ class Model(object):
                                                   lambda self, value, par=par: 
                                                   setpar(self, par, value)))
     def __repr__(self):
-        fmt = "%s(" %self.__class__.__name__
+        fmt = "%s(" % self.__class__.__name__
         for i in range(len(self.parnames)):
             fmt1 = """
             %s= %s,
@@ -183,7 +195,7 @@ class Model(object):
         Return parameters as a pset
         """
         psets = np.asarray([getattr(self, attr) for attr in self.parnames])
-        psets.shape =(len(self.parnames), self.paramdim)
+        psets.shape = (len(self.parnames), self.paramdim)
         return psets
     
     def inverse(self):
@@ -193,7 +205,9 @@ class Model(object):
         raise NotImplementedError
     
     def invert(self):
-        # invert coordinates iteratively if possible
+        """
+        Invert coordinates iteratively if possible
+        """
         raise NotImplementedError
 
     def add_model(self, newtr, mode):
@@ -228,7 +242,7 @@ class ParametricModel(Model):
     Notes
     -----
     All models which can be fit to data and provide a `deriv` method
-    shuld subclass this class.
+    should subclass this class.
     
     Sets the parameters attributes
     
@@ -240,7 +254,8 @@ class ParametricModel(Model):
         self.linear = True
         super(ParametricModel, self).__init__(parnames, paramdim=paramdim)
         self.fittable = fittable
-        self._parameters = parameters.Parameters(self, self.parnames, paramdim=paramdim)
+        self._parameters = parameters.Parameters(self, self.parnames,
+                                                 paramdim=paramdim)
         _fixed = {}.fromkeys(self.parnames, False)
         _tied = {}.fromkeys(self.parnames, False)
         _bounds = {}.fromkeys(self.parnames, [-1.E12, 1.E12])
@@ -368,7 +383,7 @@ class PModel(ParametricModel):
             if paramdim != lenpars:
                 print("Creating a model with %d parameter sets\n" %lenpars)
                 paramdim = lenpars
-            self._validate_pars(paramdim, **pars)  
+            self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
         super(PModel, self).__init__(self.parnames, paramdim=paramdim)
     
@@ -398,11 +413,14 @@ class PModel(ParametricModel):
                         names.append('c%s_%s' % (i, j))
         return names
         
-    def _validate_pars(self, pardim, **pars):
+    def _validate_pars(self, **pars):
         numcoeff = self.get_numcoeff()
         assert(len(pars) == numcoeff)
     
     def set_coeff(self, pardim=1, **pars):
+        """
+        Set default values for coefficients
+        """
         if not pars:
             # default values
             for name in self.parnames:
@@ -421,7 +439,7 @@ class PModel(ParametricModel):
              
     def get_numcoeff(self):
         """
-        Return the number of coefficients in one parset
+        Return the number of coefficients in one parameter set
         """
         if self.deg < 1  or self.deg > 16:
             raise ValueError("Degree of polynomial must be 1< deg < 16")
@@ -433,17 +451,31 @@ class PModel(ParametricModel):
             nmixed = 0
         numc = self.deg*self.ndim + nmixed + 1
         return numc
-    
-    def get_coeff(self, pardim):
-        numc = self.get_numcoeff()
-        if pardim == 1:
-            coeff = np.ones((numc,), dtype=np.float)
-            coeff[0] = 0.
-        else:
-            coeff = np.ones((pardim, numc), dtype=np.float)
-            coeff[:, 0] = 0
-        return coeff
-    
+
+    def set_domain(self, x, y=None):
+        """
+        Map the input data into a [-1, 1] window
+        """
+        if self.ndim == 1:
+            if not self.domain:
+                self.domain = [x.min(), x.max()]
+            if not self.window:
+                self.window = [-1, 1]
+            return pmapdomain(x, self.domain, self.window)
+        if self.ndim == 2:
+            assert y is not None, ("Expected 2 input coordinates")
+            if not self.xdomain:
+                self.xdomain = [x.min(), x.max()]
+            if not self.xwindow:
+                self.xwindow = [-1, 1]
+            if not self.ydomain:
+                self.ydomain = [y.min(), y.max()]
+            if not self.ywindow:
+                self.ywindow = [-1, 1]
+            xnew = pmapdomain(x, self.xdomain, self.xwindow)
+            ynew = pmapdomain(x, self.ydomain, self.ywindow)
+            return xnew, ynew
+            
 class IModel(ParametricModel):
     """
     
@@ -496,7 +528,7 @@ class IModel(ParametricModel):
             if paramdim != lenpars:
                 print("Creating a model with %d parameter sets\n" %lenpars)
                 paramdim = lenpars
-            self._validate_pars(paramdim, **pars)  
+            self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)        
         super(IModel, self).__init__(self.parnames, paramdim=paramdim)
     
@@ -512,13 +544,13 @@ class IModel(ParametricModel):
             # default values
             for name in self.parnames:
                 uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(name, 
-                                                        [0.]*pardim, self, pardim))
+                self.__setattr__(uname, parameters._Parameter(
+                                 name, [0.]*pardim, self, pardim))
         else:
             for name in self.parnames:
                 uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(name, 
-                                                        pars[name], self, pardim))
+                self.__setattr__(uname, parameters._Parameter(
+                    name, pars[name], self, pardim))
     
     def get_numcoeff(self):
         """
@@ -534,7 +566,7 @@ class IModel(ParametricModel):
         return numc
     
     
-    def _validate_pars(self, pardim, **pars):
+    def _validate_pars(self, **pars):
         numcoeff = self.get_numcoeff()
         assert(len(pars) == numcoeff) 
  
@@ -628,7 +660,8 @@ class ChebyshevModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(ChebyshevModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
+        super(ChebyshevModel, self).__init__(degree, ndim=1,
+                                             paramdim=paramdim, **pars)
         self.outdim = 1
             
     def clenshaw(self, x, coeff):
@@ -670,9 +703,9 @@ class ChebyshevModel(PModel):
         """
         if self.domain is None:
             self.domain = [x.min(), x.max()]
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = self.clenshaw(x, self.psets)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
         
 class LegendreModel(PModel):
     """
@@ -697,7 +730,8 @@ class LegendreModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(LegendreModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
+        super(LegendreModel, self).__init__(degree, ndim=1,
+                                            paramdim=paramdim, **pars)
         self.outdim = 1
            
     def clenshaw(self, x, coeff):
@@ -739,9 +773,9 @@ class LegendreModel(PModel):
         """
         if self.domain is None:
             self.domain = [x.min(), x.max()]
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = self.clenshaw(x, self.psets)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
         
 class Poly1DModel(PModel):
     """
@@ -749,7 +783,9 @@ class Poly1DModel(PModel):
     1D Polynomial model
     
     """ 
-    def __init__(self, degree, domain=[-1, 1], window=[-1, 1], paramdim=1, **pars):
+    def __init__(self, degree,
+                 domain=[-1, 1], window=[-1, 1],
+                 paramdim=1, **pars):
         """
         Parameters
         ----------
@@ -766,7 +802,8 @@ class Poly1DModel(PModel):
         """
         self.domain = domain
         self.window = window
-        super(Poly1DModel, self).__init__(degree, ndim=1, paramdim=paramdim, **pars)
+        super(Poly1DModel, self).__init__(degree, ndim=1,
+                                          paramdim=paramdim, **pars)
         self.outdim = 1
             
     def deriv(self, x):
@@ -792,9 +829,9 @@ class Poly1DModel(PModel):
        
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = self.horner(x, self.psets)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
             
 class Poly2DModel(PModel):
     """
@@ -830,7 +867,8 @@ class Poly2DModel(PModel):
         """
         self.ndim = 2
         self.outdim = 1
-        super(Poly2DModel, self).__init__(degree, ndim=self.ndim, paramdim=paramdim, **pars)
+        super(Poly2DModel, self).__init__(degree, ndim=self.ndim,
+                                          paramdim=paramdim, **pars)
         self.xdomain = xdomain
         self.ydomain = ydomain
         self.xwindow = xwindow
@@ -904,11 +942,13 @@ class Poly2DModel(PModel):
         Note: See the module docstring for rules for model evaluation. 
         """
         invcoeff = self.invlex_coeff()
-        assert x.shape == y.shape, "Expected input arrays to have the same shape"
-        x, format = _convert_input(x, self.paramdim)
-        y, format = _convert_input(y, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
+        y, fmt = _convert_input(y, self.paramdim)
+        assert x.shape == y.shape, \
+               "Expected input arrays to have the same shape"
+        
         result = self.mhorner(x, y, invcoeff)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
         
 class ICheb2DModel(IModel):
     """
@@ -941,8 +981,10 @@ class ICheb2DModel(IModel):
         **pars: dict
             keyword: value pairs, representing parameter_name: value
         """
-        super(ICheb2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
-                        ywindow=ywindow, paramdim=paramdim, **pars)
+        super(ICheb2DModel, self).__init__(xdeg, ydeg,
+                                           xdomain=xdomain, ydomain=ydomain, 
+                                           xwindow=xwindow, ywindow=ywindow,
+                                           paramdim=paramdim, **pars)
                         
     
     def _fcache(self, x, y):
@@ -1010,12 +1052,13 @@ class ICheb2DModel(IModel):
                     
         Note: See the module docstring for rules for model evaluation. 
         """
-        assert x.shape == y.shape, "Expected input arrays to have the same shape"
+        assert x.shape == y.shape, \
+               "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, format = _convert_input(x, self.paramdim)
-        y, format = _convert_input(y, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
+        y, fmt = _convert_input(y, self.paramdim)
         result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
     
 class ILegend2DModel(IModel):
     """
@@ -1025,8 +1068,8 @@ class ILegend2DModel(IModel):
     Pnm(x,y) = Cn_m * Ln(x )* Lm(y)
 
     """
-    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1,1], 
-                            ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
+    def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
+                            ydomain=None, ywindow=[-1, 1], paramdim=1, **pars):
         """
         Parameters
         ----------
@@ -1048,8 +1091,10 @@ class ILegend2DModel(IModel):
         **pars: dict
             keyword: value pairs, representing parameter_name: value
         """
-        super(ILegend2DModel, self).__init__(xdeg, ydeg, xdomain=xdomain, ydomain=ydomain, 
-                        ywindow=ywindow, paramdim=paramdim, **pars)
+        super(ILegend2DModel, self).__init__(xdeg, ydeg,
+                                             xdomain=xdomain, ydomain=ydomain, 
+                                             xwindow=xwindow, ywindow=ywindow,
+                                             paramdim=paramdim, **pars)
 
     def _fcache(self, x, y):
         """
@@ -1118,12 +1163,13 @@ class ILegend2DModel(IModel):
                     
         Note: See the module docstring for rules for model evaluation. 
         """
-        assert x.shape == y.shape, "Expected input arrays to have the same shape"
+        assert x.shape == y.shape, \
+               "Expected input arrays to have the same shape"
         invcoeff = self.invlex_coeff()
-        x, format = _convert_input(x, self.paramdim)
-        y, format = _convert_input(y, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
+        y, fmt = _convert_input(y, self.paramdim)
         result = self.imhorner(x, y, invcoeff)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
     
 class Gauss1DModel(ParametricModel):
     """
@@ -1152,7 +1198,7 @@ class Gauss1DModel(ParametricModel):
             if None - the Jacobian will be estimated
         
         """
-        self._amplitude = parameters._Parameter('amplitude', amplitude, self,1)
+        self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
         if xsigma is None and fwhm is None:
             raise InputParametersException(
                 "Either fwhm or xsigma must be specified")
@@ -1188,8 +1234,10 @@ class Gauss1DModel(ParametricModel):
         amplitude, xcen, xsigma = p
         deriv_dict = {}
         deriv_dict['amplitude'] = np.exp((-(1/(xsigma**2)) * (x-xcen)**2))
-        deriv_dict['xcen'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) * (x-xcen)**2)) * (x-xcen)/(xsigma**2)
-        deriv_dict['xsigma'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *  (x-xcen)**2)) * ((x-xcen)**2)/(xsigma**3)
+        deriv_dict['xcen'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
+                                (x-xcen)**2)) * (x-xcen)/(xsigma**2)
+        deriv_dict['xsigma'] = 2 * amplitude * np.exp((-(1/(xsigma**2)) *
+                                (x-xcen)**2)) * ((x-xcen)**2)/(xsigma**3)
         derivval = [deriv_dict[par] for par in self.parnames]
         return np.array(derivval).T
                                     
@@ -1201,9 +1249,9 @@ class Gauss1DModel(ParametricModel):
         
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = self.eval(x, self.psets)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
     
 class Gauss2DModel(ParametricModel):
     """
@@ -1279,9 +1327,9 @@ class Gauss2DModel(ParametricModel):
     def eval(self, x, y, p):
         return p[0] * np.exp(-(
             ((np.cos(p[5])/p[1])**2 + (np.sin(p[5])/p[2])**2) * ((x-p[3])**2)
-            + 2*(np.cos(p[5])*np.sin(p[5])*(1/(p[1]**2)-1/(p[2]**2))) * (x-p[3])*(y-p[4])
-            + ((np.sin(p[5])/p[1])**2+(np.cos(p[5])/p[2])**2) * ((y-p[4])**2))
-            )
+            + 2*(np.cos(p[5])*np.sin(p[5])*(1/(p[1]**2)-1/(p[2]**2))) *
+            (x-p[3])*(y-p[4]) + ((np.sin(p[5])/p[1])**2+(np.cos(p[5])/p[2])**2)*
+            ((y-p[4])**2)))
         
     def __call__(self, x, y):
         """
@@ -1291,10 +1339,10 @@ class Gauss2DModel(ParametricModel):
         
         Note: See the module docstring for rules for model evaluation. 
         """
-        x, format = _convert_input(x, self.paramdim)
-        y, format = _convert_input(y, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
+        y, fmt = _convert_input(y, self.paramdim)
         result = self.eval(x, y, self.psets)
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
 
 class ShiftModel(Model):
     """
@@ -1322,9 +1370,9 @@ class ShiftModel(Model):
         super(ShiftModel, self).__init__(self.parnames, paramdim=paramdim)
 
     def __call__(self, x):
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = x + self.offsets
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
  
 class ScaleModel(Model):
     """
@@ -1351,16 +1399,16 @@ class ScaleModel(Model):
         super(ScaleModel, self).__init__(self.parnames, paramdim=paramdim)
     
     def __call__(self, x):
-        x, format = _convert_input(x, self.paramdim)
+        x, fmt = _convert_input(x, self.paramdim)
         result = x * self.factors
-        return _convert_output(result, format)
+        return _convert_output(result, fmt)
 
 class _SIP1D(Model):
     """
     This implements the Simple Imaging Protocol Model in 1D. 
     
-    It's unlikely it will be used in 1D so this class is private and SIPModel should
-    be used instead.
+    It's unlikely it will be used in 1D so this class is private
+    and SIPModel should be used instead.
     
     """
     def __init__(self, order, coeffname='a', paramdim=1, **pars):
@@ -1381,7 +1429,7 @@ class _SIP1D(Model):
             if paramdim != lenpars:
                 print("Creating a model with %d parameter sets\n" % lenpars)
                 paramdim = lenpars
-            self._validate_pars(paramdim, **pars)  
+            self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
         
         super(_SIP1D, self).__init__(self.parnames, paramdim=paramdim)
@@ -1396,7 +1444,7 @@ class _SIP1D(Model):
               self.__class__.__name__,
               self.ndim,
               self.order,
-              self._parameters.paramdim
+              self.paramdim
                 )
         return fmt
     
@@ -1412,8 +1460,9 @@ class _SIP1D(Model):
               self.__class__.__name__,
               self.ndim,
               self.order,
-              self._parameters.paramdim,
-              "\n                   ".join(i+':  ' + str(getattr(self,i)) for i in self.parnames)
+              self.paramdim,
+              "\n                   ".join(i+':  ' + str(getattr(self,i)) for
+                                           i in self.parnames)
                 )
         return fmt
     
@@ -1428,7 +1477,6 @@ class _SIP1D(Model):
         return numc
     
     def _generate_coeff_names(self, coeffname):
-        ncoeff = self.get_numcoeff()
         names = []
         for i in range(2, self.order+1):
             names.append('%s%s%s' % (coeffname, i, 0))
@@ -1444,20 +1492,20 @@ class _SIP1D(Model):
         if not pars:
             # default values
             for name in self.parnames:
-                uname = '_'+name
                 if pardim == 1:
-                    self.__setattr__(uname, parameters._Parameter(name, 1, self, 1))
-                    self._c0 = parameters._Parameter('c0', 0., self, 1)
+                    self.__setattr__('_'+name, 
+                                     parameters._Parameter(name, 0, self, 1))
                 else:
-                    self.__setattr__(uname, parameters._Parameter(name, [1.]*pardim, self, pardim))
-                    self._c0 = parameters._Parameter('c0', [0.]*pardim, self, pardim)
+                    self.__setattr__('_'+name, 
+                                     parameters._Parameter(name, [0]*pardim,
+                                                           self, pardim))
         else:
             for name in self.parnames:
-                uname = '_'+name
-                self.__setattr__(uname, parameters._Parameter(name, 
-                                                                        pars[name], self, pardim))
+                self.__setattr__('_'+name, 
+                                 parameters._Parameter(name, pars[name],
+                                                       self, pardim))
                 
-    def _validate_pars(self, pardim, **pars):
+    def _validate_pars(self, **pars):
         numcoeff = self.get_numcoeff()
         assert(len(pars) == numcoeff)
  
@@ -1577,9 +1625,9 @@ class LabeledInput(dict):
             
     def _set_properties(self, attributes):
         for attr in attributes:
-            setattr(self.__class__, attr , property(lambda self, attr=attr: 
+            setattr(self.__class__, attr , property(lambda self, attr=attr:
                                                   self._getlabel(attr),
-                                                  lambda self, value, attr=attr: 
+                                                  lambda self, value, attr=attr:
                                                   self._setlabel(attr, value),
                                                   lambda self, attr=attr:
                                                   self._dellabel(attr)
@@ -1653,8 +1701,9 @@ class SCompositeModel(_CompositeModel):
     >>> offx = ShiftModel(-4.23)
     >>> offy = ShiftModel(2)
     >>> linp = LabeledInput([x,y], ["x", "y"]
-    >>> scomptr = SCompositeModel([rot, offx, offy], inmap=[['x', 'y'], ['x'], ['y']],
-                                      outmap=[['x', 'y'], ['x'], ['y']])
+    >>> scomptr = SCompositeModel([rot, offx, offy], 
+                                  inmap=[['x', 'y'], ['x'], ['y']],
+                                  outmap=[['x', 'y'], ['x'], ['y']])
     >>> result=scomptr(linp)
         
     """
@@ -1678,7 +1727,8 @@ class SCompositeModel(_CompositeModel):
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
             assert len(transforms) == len(inmap) == len(outmap), \
-                   "Expected sequences of transform, inmap and outmap to have the same length"
+                   "Expected sequences of transform, " \
+                   "inmap and outmap to have the same length"
         if inmap is None:
             inmap = [None] * len(transforms)
         if outmap is None:
@@ -1764,9 +1814,11 @@ class PCompositeModel(_CompositeModel):
             transforms to be executed in parallel
         inmap: list or None
             labels in an input instance of LabeledInput
-            if None, the number of input coordinates is exactly what the transforms expect 
+            if None, the number of input coordinates is exactly what the
+            transforms expect 
         """
-        super(PCompositeModel, self).__init__(transforms, inmap=None, outmap=None)
+        super(PCompositeModel, self).__init__(transforms,
+                                              inmap=None, outmap=None)
         self._init_comptr(transforms, inmap, outmap)
         self.ndim = self.keys()[0].ndim
         self.outdim = self.ndim
@@ -1867,13 +1919,15 @@ class SIPModel(SCompositeModel):
         self.outdim = 1
         self.shifta = ShiftModel(crpix[0])
         self.shiftb = ShiftModel(crpix[1])
-        self.sip1d = _SIP1D(order, coeffname=coeffname, paramdim=paramdim, **coeff)
+        self.sip1d = _SIP1D(order, coeffname=coeffname,
+                            paramdim=paramdim, **coeff)
         if aporder is not None and apcoeff is not None:
             self.inverse = Poly1DModel(aporder, **apcoeff)
         else:
             self.inverse = None
-        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1d], inmap = [['x'], ['y'], ['x', 'y']], 
-                                                outmap=[['x'], ['y'], ['z']])
+        super(SIPModel, self).__init__([self.shifta, self.shiftb, self.sip1d], 
+                                       inmap = [['x'], ['y'], ['x', 'y']], 
+                                       outmap=[['x'], ['y'], ['z']])
         
     def __repr__(self):
         models = [self.shifta, self.shiftb, self.sip1d]

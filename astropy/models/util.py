@@ -7,8 +7,8 @@ import numpy as np
 class InputParametersException(Exception):
     pass
 
-_all__ = ['pmapdomain', 'iraf_models_map', 'comb', 
-          'FitcoordsRecord', 'ReidentifyRecord', 'IdentifyRecord']
+__all__ = ['pmapdomain', 'comb', 'InputParametersException']
+          
 
 def pmapdomain(oldx, domain, window):
     """

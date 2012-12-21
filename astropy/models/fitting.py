@@ -13,7 +13,6 @@ in scipy.optimize.
 """
 from __future__ import division, print_function
 import abc
-import operator
 import numpy as np
 from numpy import linalg
 
@@ -68,7 +67,7 @@ class Fitter(object):
             return self.model._parameters
         
     @fitpars.setter
-    def fitpars(self, fps, set_bounds=None):
+    def fitpars(self, fps):
         """
         Returns a list of parameters to be passed to the fitting
         algorithm. This is either the model.parameters (if there are
@@ -98,14 +97,40 @@ class Fitter(object):
             except NotImplementedError:
                 pass
             self._fitpars[:] = fps
-            self.model._parameters._update(fps)
+            self.model.parameters = fps
 
     def _set_bounds(self, pars):
+        """
+        This method is to be implemented by subcclasses of Fitter if necessary
+        
+        Diferent fitting algorithms deal with bounds in a different way.
+        For example, the SLSQP algorithm accepts bounds as input while 
+        the leastsq algorithm does not handle bounds at all and they are
+        dealt with in a separate method.
+        
+        """
         raise NotImplementedError
     
     def _wrap_deriv(self, p, x, y, z=None):
-        fixed_and_tied = [name for name in self.model.constraints.fixed if  self.model.constraints.fixed[name]]
-        fixed_and_tied.extend([name for name in self.model.constraints.tied if  self.model.constraints.tied[name]])
+        """
+        Wraps the method calculating the Jacobian of the function to
+        account for model constraints
+        
+        Currently the only fitter that uses a derivative is the
+        NonLinearLSQFitter. This wrapper may neeed to be revised when 
+        when other fitters using function derivative are added or when
+        the statistic is separated from the fitting routines.
+        
+        optimize.leastsq expects the function derivative to have the
+        above signature (parlist, (argtuple)), but again, in order to
+        accomodate model constraints, instead of using p directly, we set
+        the parameter list in the wrapper.
+        
+        """
+        fixed_and_tied = [name for name in self.model.constraints.fixed if
+                          self.model.constraints.fixed[name]]
+        fixed_and_tied.extend([name for name in self.model.constraints.tied if
+                               self.model.constraints.tied[name]])
         if fixed_and_tied:
             pars =  self.model.constraints.modelpars
             if z is None:
@@ -145,8 +170,8 @@ class Fitter(object):
         if any(self.model.constraints._tied.values()) and 'tied' not in c:
             raise ValueError("%s cannot handle tied parameter constraints "\
                                             % fname)
-        if any(c != (-1E12, 1E12) for c in self.model.constraints._bounds.values()) \
-                and 'bounds' not in c:            
+        if any(c != (-1E12, 1E12) for c in
+               self.model.constraints._bounds.values()) and 'bounds' not in c:
             raise ValueError("%s cannot handle bound parameter constraints"
                              % fname)
         if self.model.constraints._eqcons and 'eqcons' not in c:
@@ -204,12 +229,13 @@ class LinearLSQFitter(Fitter):
             d = self.model.deriv(x)
         else:
             d = self.model.deriv(x, y)
-        fixed = [name for name in self.model.constraints.fixed if  self.model.constraints.fixed[name]]
+        fixed = [name for name in self.model.constraints.fixed if
+                 self.model.constraints.fixed[name]]
         ind = range(len(self.model.parnames))
         for name in fixed:
             index = self.model.parnames.index(name)
             ind.remove(index)
-        res = d[:,ind]
+        res = d[:, ind]
         return res
         
     def __call__(self, x, y, z=None, w=None, rcond=None):
@@ -367,12 +393,14 @@ class NonLinearLSQFitter(Fitter):
             return np.ravel(self.weights * (self.model(*args[1:]) - meas))
     
     def _set_bounds(self, fitpars):
-        if any(c != (-1E12, 1E12) for c in self.model.constraints.bounds.values()):
-            bounds=[self.model.constraints.bounds[par] for par in self.model.parnames]
-            [setattr(self.model, name, par if par>b[0] else b[0]) for name, par, b in \
-                zip(self.model.parnames, fitpars, bounds)]
-            [setattr(self.model, name, par if par<b[1] else b[1]) for name, par, b in \
-                zip(self.model.parnames, fitpars, bounds)]
+        if any(c != (-1E12, 1E12) for c in
+               self.model.constraints.bounds.values()):
+            bounds = [self.model.constraints.bounds[par] for
+                    par in self.model.parnames]
+            [setattr(self.model, name, par if par>b[0] else b[0]) for
+             name, par, b in zip(self.model.parnames, fitpars, bounds)]
+            [setattr(self.model, name, par if par<b[1] else b[1]) for
+             name, par, b in zip(self.model.parnames, fitpars, bounds)]
     
     @property
     def covar(self):
@@ -542,7 +570,8 @@ class SLSQPFitter(Fitter):
             meas = np.asarray(z) + 0.0
             fargs = (meas, x, y)
         p0 = self.model._parameters[:]
-        bounds = [self.model.constraints.bounds[par] for par in self.model.parnames]
+        bounds = [self.model.constraints.bounds[par] for
+                  par in self.model.parnames]
         self.fitpars, final_func_val, numiter, exit_mode, mess = optimize.fmin_slsqp(
             self.errorfunc, p0, args=fargs, disp=verblevel, full_output=1,
             bounds=bounds, eqcons=self.model.constraints.eqcons, 
@@ -666,7 +695,8 @@ class JointFitter(object):
             for pname in model.parnames:
                 if pname in model.joint:
                     index = model.joint.index(pname)
-                    # should do this with slices in case the parameter is not a number
+                    # should do this with slices in case the parameter
+                    # is not a number
                     mpars.extend([jointfitpars[index]])
                 else:
                     sl = model._parameters.parinfo[pname][0]

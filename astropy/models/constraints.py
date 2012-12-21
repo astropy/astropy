@@ -58,10 +58,13 @@ class Constraints(object):
             fixedstr = [par for par in self._fixed if self._fixed[par]]
             fmt += "fixed=%s, " % str(fixedstr)
         if any(self._tied.values()):
-            tiedstr = [par+": "+self._tied[par].__name__+"()" for par in self._tied if self._tied[par]]
+            tiedstr = [par+": "+self._tied[par].__name__+"()" for
+                       par in self._tied if self._tied[par]]
             fmt += "tied=%s, " % str(tiedstr)
         if not all([(-np.inf, np.inf)==b for b in self._bounds.values()]):
-            boundsstr = [par+":"+str(self._bounds[par]) for par in self._bounds if self._bounds[par]!= (-np.inf, np.inf)]
+            boundsstr = [par+":"+str(self._bounds[par]) for
+                         par in self._bounds if
+                         self._bounds[par]!= (-np.inf, np.inf)]
             fmt += "bounds=%s, " % str(boundsstr)
         if self._eqcons:
             fmt += "eqcons=%s, " % str(self._eqcons)
@@ -69,7 +72,7 @@ class Constraints(object):
             fmt += "ineqcons=%s, " % str(self._ineqcons)
         name = "Constraints(%s, " % self.model.__class__.__name__
         if fmt:
-            fmt= name + fmt +")"
+            fmt = name + fmt +")"
         return fmt
     
     def __repr__(self):
@@ -110,7 +113,7 @@ class Constraints(object):
 
     def set_range(self, b):
         for key in b:
-            b[key]= tuple(b[key])
+            b[key] = tuple(b[key])
         self._bounds.update(b)
         
     @property
@@ -146,8 +149,6 @@ class Constraints(object):
         fitpars = list(fp[:])
         mpars = []
         for par in self.model.parnames:
-            #if par in self.pmask.keys():
-                #if self.pmask[par] == False:
             if self.fixed[par]:
                 mpars.extend(getattr(self.model, par))
             elif self.tied[par]:
@@ -157,7 +158,7 @@ class Constraints(object):
                 plen = sl.stop - sl.start
                 mpars.extend(fitpars[:plen])
                 del fitpars[:plen]
-        self.model._parameters._update(np.array(mpars))
+        self.model.parameters = mpars
             
     def _model_to_fit_pars(self):
         """
