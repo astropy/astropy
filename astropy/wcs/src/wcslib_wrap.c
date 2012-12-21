@@ -127,13 +127,6 @@ PyWcsprm_init(
   }
 
   if (header_obj == NULL || header_obj == Py_None) {
-    if (relax_obj != NULL && relax_obj != Py_False) {
-      PyErr_SetString(
-          PyExc_ValueError,
-          "If no header is provided, relax may not be provided either.");
-      return -1;
-    }
-
     if (keysel > 0) {
       PyErr_SetString(
           PyExc_ValueError,

@@ -5,6 +5,16 @@
 Relax constants
 ===============
 
+The `relax` keyword argument controls the handling of non-standard
+FITS WCS keywords.
+
+Note that the default value of `relax` is `True` for reading (to
+accept all non standard keywords), and `False` for writing (to write
+out only standard keywords), in accordance with `Postel's prescription
+<http://catb.org/jargon/html/P/Postels-Prescription.html>`_:
+
+    “Be liberal in what you accept, and conservative in what you send.”
+
 .. _relaxread:
 
 Header-reading relaxation constants
@@ -14,10 +24,10 @@ Header-reading relaxation constants
 `~astropy.wcs.find_all_wcs` have a *relax* argument, which may be
 either `True`, `False` or an `int`.
 
-- If `True`, all non-standard WCS extensions recognized by the parser
+- If `True`, (default), all non-standard WCS extensions recognized by the parser
   will be handled.
 
-- If `False` (default), none of the extensions (even those in the
+- If `False`, none of the extensions (even those in the
   errata) will be handled.  Non-conformant keywords will be handled in
   the same way as non-WCS keywords in the header, i.e. by simply
   ignoring them.
@@ -43,10 +53,10 @@ The flag bits are:
 - `WCSHDR_none`: Don't accept any extensions (not even those in the
   errata).  Treat non-conformant keywords in the same way as non-WCS
   keywords in the header, i.e. simply ignore them.  (This is
-  equivalent to the default behavior or passing `False`)
+  equivalent to passing `False`)
 
 - `WCSHDR_all`: Accept all extensions recognized by the parser.  (This
-  is equivalent to passing `True`).
+  is equivalent to the default behavior or passing `True`).
 
 - `WCSHDR_CROTAia`: Accept ``CROTAia``, ``iCROTna``, ``TCROTna``
 - `WCSHDR_EPOCHa`:  Accept ``EPOCHa``.
@@ -62,7 +72,7 @@ The flag bits are:
 
 - `WCSHDR_CD00i00j`: Accept ``CD00i00j``.
 - `WCSHDR_PC00i00j`: Accept ``PC00i00j``.
-- `WCSHDR_PROJPn`: Accept ``PROJPn``
+- `WCSHDR_PROJPn`: Accept ``PROJPn``.
 
         These appeared in early drafts of WCS Paper I+II (before they
         were split) and are equivalent to ``CDi_ja``, ``PCi_ja``, and
@@ -71,9 +81,9 @@ The flag bits are:
         9, and is associated exclusively with the latitude axis.
 
 - `WCSHDR_RADECSYS`: Accept ``RADECSYS``.  This appeared in early
-   drafts of WCS Paper I+II and was subsequently replaced by
-   ``RADESYSa``.  The construtor accepts ``RADECSYS`` only if
-   `WCSHDR_AUXIMG` is also enabled.
+  drafts of WCS Paper I+II and was subsequently replaced by
+  ``RADESYSa``.  The construtor accepts ``RADECSYS`` only if
+  `WCSHDR_AUXIMG` is also enabled.
 
 - `WCSHDR_VSOURCE`: Accept ``VSOURCEa`` or ``VSOUna``.  This appeared
   in early drafts of WCS Paper III and was subsequently dropped in
