@@ -12,10 +12,13 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 import copy
 import numbers
 
+import numpy as np
+
 # AstroPy
 from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
 
 __all__ = ["Quantity"]
+
 
 def _validate_value(value):
     """ Make sure that the input is a Python numeric type.
@@ -24,14 +27,26 @@ def _validate_value(value):
     ----------
     value : number
         An object that will be checked whether it is a numeric type or not.
+
+    Returns
+    -------
+    newval
+        The new value either as an array or a scalar
     """
+    from ..utils.misc import isiterable
 
     if isinstance(value, numbers.Number):
         value_obj = value
+    elif isiterable(value):
+        value_obj = np.array(value, copy=True)
+    elif isinstance(value, np.ndarray):
+        # A length-0 numpy array (i.e. numpy scalar) which we accept as-is
+        value_obj = np.array(value, copy=True)
     else:
         raise TypeError("The value must be a valid Python numeric type.")
 
     return value_obj
+
 
 class Quantity(object):
     """ A `Quantity` represents a number with some associated unit.
@@ -96,10 +111,6 @@ class Quantity(object):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
 
-    def copy(self):
-        """ Return a copy of this `Quantity` instance """
-        return Quantity(self.value, unit=self.unit)
-
     @property
     def si(self):
         """ Returns a copy of the current `Quantity` instance with SI units. The value of the
@@ -118,7 +129,7 @@ class Quantity(object):
                 is_si = True
                 for si_unit in si_unit_set:
                     if base_unit.is_equivalent(si_unit) and base_unit != si_unit:
-                        scale = (base_unit / si_unit).dimensionless_constant()**power
+                        scale = (base_unit / si_unit).dimensionless_constant() ** power
                         si_quantity_value *= scale
                         is_si = False
                         si_quantity_bases.append(si_unit)
@@ -141,12 +152,12 @@ class Quantity(object):
 
             return self.copy()
 
-
     @property
     def cgs(self):
         """ Returns a copy of the current `Quantity` instance with CGS units. The value of the
             resulting object will be scaled.
         """
+
 
         from . import cgs as _cgs
         si_quantity = self.si
@@ -158,7 +169,7 @@ class Quantity(object):
 
             for base_unit, power in zip(si_quantity.unit.bases, si_quantity.unit.powers):
                 if base_unit in _cgs._cgs_bases.keys():
-                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant()**power
+                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant() ** power
                     cgs_quantity_value *= scale
                     cgs_quantity_bases.append(_cgs._cgs_bases[base_unit])
                     cgs_quantity_powers.append(power)
@@ -177,94 +188,112 @@ class Quantity(object):
             else:
                 return Quantity(si_quantity.value, si_quantity.unit)
 
+    @property
+    def isscalar(self):
+        """
+        True if the `value` of this quantity is a scalar, or False if it
+        is an array-like object.
+
+        .. note::
+            This is subtly different from `numpy.isscalar` in that
+            `numpy.isscalar` returns False for a zero-dimensional array
+            (e.g. ``np.array(1)``), while this is True in that case.
+        """
+        from ..utils.misc import isiterable
+
+        return not isiterable(self.value)
+
+    def copy(self):
+        """ Return a copy of this `Quantity` instance """
+        return Quantity(self.value, unit=self.unit)
 
     # Arithmetic operations
     def __add__(self, other):
-        """ Addition between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
+        """ Addition between `Quantity` objects and other objects.  If
+        they are both `Quantity` objects, results in the units of the
+        **left** object if they are compatible, otherwise this fails.
         """
-        if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be added with a Quantity object. Addition is only supported between Quantity objects.".format(other.__class__))
-        return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
+        if isinstance(other, Quantity):
+            return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
+        else:
+            raise TypeError("Object of type '{0}' cannot be added with a "
+                "Quantity object. Addition is only supported between Quantity "
+                "objects with compatible units.".format(other.__class__))
 
     def __sub__(self, other):
-        """ Subtraction between `Quantity` objects. All operations return a new `Quantity` object
-        with the units of the **left** object.
+        """ Subtraction between `Quantity` objects and other objects.
+        If they are both `Quantity` objects, results in the units of the
+        **left** object if they are compatible, otherwise this fails.
         """
-        if not isinstance(other, Quantity):
-            raise TypeError("Object of type '{0}' cannot be subtracted with a Quantity object. Subtraction is only supported between Quantity objects.".format(other.__class__))
-        return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
+        if isinstance(other, Quantity):
+            return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
+        else:
+            raise TypeError("Object of type '{0}' cannot be added with a "
+                "Quantity object. Addition is only supported between Quantity "
+                "objects with compatible units.".format(other.__class__))
 
     def __mul__(self, other):
-        """ Multiplication between `Quantity` objects or numbers with `Quantity` objects. For operations between two `Quantity` instances,
-        returns a new `Quantity` object with the units of the **left** object.
+        """ Multiplication between `Quantity` objects and other objects.
         """
         if isinstance(other, Quantity):
-            return Quantity(self.value * other.value, unit=self.unit*other.unit)
-
-        elif isinstance(other, numbers.Number):
-            return Quantity(other*self.value, unit=self.unit)
-
+            return Quantity(self.value * other.value, unit=self.unit * other.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit*other)
-
+            return Quantity(self.value, unit=other * self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
-
+            try:
+                return Quantity(other * self.value, unit=self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
 
     def __rmul__(self, other):
-        """ Right multiplication between `Quantity` object and a number. """
-
-        if isinstance(other, numbers.Number):
-            return Quantity(other*self.value, unit=self.unit)
-
-        elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit*other)
-
-        else:
-            raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
+        """ Right Multiplication between `Quantity` objects and other
+        objects.
+        """
+        return self.__mul__(other)
 
     def __div__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects and other objects.
+        """
         if isinstance(other, Quantity):
-            return Quantity(self.value / other.value, unit=self.unit/other.unit)
-
-        elif isinstance(other, numbers.Number):
-            return Quantity(self.value / other, unit=self.unit)
-
+            return Quantity(self.value / other.value, unit=self.unit / other.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(self.value, unit=self.unit/other)
-
+            return Quantity(self.value, unit=self.unit / other)
+        elif isinstance(other, numbers.Number) and hasattr(self.unit, "bases"):
+            new_unit_bases = copy.copy(self.unit.bases)
+            new_unit_powers = [-p for p in self.unit.powers]
+            return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
+            try:
+                return Quantity(self.value / other, unit=self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
 
     def __rdiv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
-        if isinstance(other, numbers.Number):
-            if hasattr(self.unit, "bases"):
-                new_unit_bases = copy.copy(self.unit.bases)
-                new_unit_powers = [-p for p in self.unit.powers]
-                return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
-            else:
-                return Quantity(other / self.value, unit=1./self.unit)
-
+        """ Right Division between `Quantity` objects and other objects.
+        """
+        if isinstance(other, Quantity):
+            return Quantity(other.value / self.value, unit=other.unit / self.unit)
         elif isinstance(other, UnitBase):
-            return Quantity(1./self.value, unit=other/self.unit)
-
+            return Quantity(1. / self.value, unit=other / self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be divided with a Quantity object.".format(other.__class__))
+            try:
+                return Quantity(other / self.value, unit=1. / self.unit)
+            except TypeError:
+                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
 
     def __truediv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects. """
         return self.__div__(other)
 
     def __rtruediv__(self, other):
-        """ Division between `Quantity` objects. This operation returns a dimensionless object. """
+        """ Division between `Quantity` objects. """
         return self.__rdiv__(other)
 
     def __pow__(self, p):
-        """ Raise quantity object to a power. """
-        return Quantity(self.value**p, unit=self.unit**p)
+        """ Raise `Quantity` object to a power. """
+        if hasattr(p, 'unit'):
+            raise TypeError('Cannot raise a Quantity object to a power of something with a unit')
+        return Quantity(self.value ** p, unit=self.unit ** p)
 
     # Comparison operations
     def __eq__(self, other):
@@ -303,8 +332,21 @@ class Quantity(object):
         else:
             raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
 
+    #other overrides of special functions
     def __hash__(self):
         return hash(self.value) ^ hash(self.unit)
+
+    def __getitem__(self, key):
+        if self.isscalar:
+            raise TypeError("'{cls}' object with a scalar value does not support indexing".format(cls=self.__class__.__name__))
+        else:
+            return Quantity(self.value[key], unit=self.unit)
+
+    def __len__(self):
+        if self.isscalar:
+            raise TypeError("'{cls}' object with a scalar value has no len()".format(cls=self.__class__.__name__))
+        else:
+            return len(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?

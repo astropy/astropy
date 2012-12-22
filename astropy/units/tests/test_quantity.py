@@ -290,3 +290,59 @@ class TestQuantityDisplay():
 def test_decompose():
     q1 = 5 * u.N
     assert q1.decomposed_unit == (5 * u.kg * u.m * u.s ** -2)
+
+def test_arrays():
+    """
+    Test using quantites with array values
+    """
+    from numpy.testing import assert_array_equal
+
+    qsec = u.Quantity(np.arange(10), u.second)
+    assert isinstance(qsec.value, np.ndarray)
+    assert not qsec.isscalar
+
+    #len and indexing should work for arrays
+    assert len(qsec) == len(qsec.value)
+    qsecsub25 = qsec[2:5]
+    assert qsecsub25.unit == qsec.unit
+    assert isinstance(qsecsub25, u.Quantity)
+    assert len(qsecsub25) == 3
+
+    #make sure isscalar, len, and indexing behave correcly for non-arrays.
+    qsecnotarray = u.Quantity(10., u.second)
+    assert qsecnotarray.isscalar
+    with pytest.raises(TypeError):
+        len(qsecnotarray)
+    with pytest.raises(TypeError):
+        qsecnotarray[0]
+
+    qseclen0array = u.Quantity(np.array(10), u.second)
+    # 0d numpy array should act basically like a scalar, but still keep its identity as a numpy array
+    assert qseclen0array.isscalar
+    with pytest.raises(TypeError):
+        len(qseclen0array)
+    with pytest.raises(TypeError):
+        qseclen0array[0]
+    assert isinstance(qseclen0array.value, np.ndarray)
+
+
+    #can also create from lists, will auto-convert to arrays
+    qsec = u.Quantity(range(10), u.second)
+    assert isinstance(qsec.value, np.ndarray)
+
+    #quantity math should work with arrays
+    assert_array_equal((qsec * 2).value, (np.arange(10) * 2))
+    assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
+    #quantity addition/subtraction should *not* work with arrays b/c unit ambiguous
+    with pytest.raises(TypeError):
+        assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
+    with pytest.raises(TypeError):
+        assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
+
+    #should create by unit multiplication, too
+    qsec2 = np.arange(10) * u.second
+    qsec3 = u.second * np.arange(10)
+
+    assert np.all(qsec == qsec2)
+    assert np.all(qsec2 == qsec3)
+
