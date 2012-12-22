@@ -350,12 +350,18 @@ class Quantity(object):
 
     #Numerical types
     def __float__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
         return float(self.value)
 
     def __int__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
         return int(self.value)
 
     def __long__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
         return long(self.value)
 
     # Display
