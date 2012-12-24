@@ -19,6 +19,9 @@ and astrophysics with Python.
 User Documentation
 ******************
 
+:ref:`whatsnew-0.2`
+===================
+
 .. toctree::
    :maxdepth: 1
 
@@ -41,6 +44,7 @@ User Documentation
    configs/index
    logging
    stability
+   whatsnew/index
    creditsandlicense
 
 ***********************
@@ -88,6 +92,7 @@ testing guidelines.
    development/building_packaging
    development/scripts
    development/sphinxext
+   changelog
 
 ******************
 Indices and Tables
