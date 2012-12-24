@@ -24,7 +24,7 @@ from astropy import setup_helpers
 from astropy.version_helper import get_git_devstr, generate_version_py
 
 #version should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-version = '0.2.dev'
+version = '0.2b1'
 
 # Indicates if this version is a release version
 release = 'dev' not in version
