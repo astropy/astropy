@@ -1,0 +1,26 @@
+=========================
+What's New in Astropy 0.1
+=========================
+
+This was the initial version of Astropy, released on June 19, 2012.  It was
+released primarily as a "developer preview" for developers interested in
+working directly on Astropy, on affiliated packages, or on other software that
+might integrate with Astropy.
+
+Astropy 0.1 integrated several existing packages under a single ``astropy``
+package with a unified installer, including:
+
+ * asciitable as :mod:`astropy.io.ascii`
+ * PyFITS as :mod:`astropy.io.fits`
+ * votable as :mod:`astropy.io.vo`
+ * PyWCS as :mod:`astropy.wcs`
+
+It also added the beginnings of the :mod:`astropy.cosmology` package, and new
+common data structures for science data in the :mod:`astropy.nddata` and
+:mod:`astropy.table` packages.
+
+It also laid much of the groundwork for Astropy's installation and
+documentation frameworks, as well as tools for managing configuration and data
+management.  These facilities are designed to be shared by Astropy's affiliated
+packages in the hopes of providing a framework on which other Astronomy-related
+Python packages can build.
