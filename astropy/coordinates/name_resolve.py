@@ -22,9 +22,10 @@ from .. import units as u
 
 __all__ = ["get_icrs_coordinates"]
 
-sesame_url = "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/{db}?{name}"
-mirror_url = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
-allowed_databases = ['ned', 'simbad', 'vizier', 'all']
+SESAME_URL = "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/{db}?{name}"
+MIRROR_URL = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
+ALLOWED_DATABASES = ['ned', 'simbad', 'vizier', 'all']
+NAME_RESOLVE_TIMEOUT = 30 # seconds
 
 def get_icrs_coordinates(name, database='all'):
     """ Retrieve an ICRSCoordinates object by using an online name resolving
@@ -36,17 +37,22 @@ def get_icrs_coordinates(name, database='all'):
             The name of the object to get coordinates for, e.g. m42.
         database : str (optional)
             Specify which database to search. Can be 'ned', 'simbad', 'vizier', or 'all.'
+
+        Returns
+        -------
+        coord : SphericalCoordinatesBase
+            An `ICRSCoordinates` instance for the object name specified.
     """
 
-    if database.lower() not in allowed_databases:
-        raise ValueError("Invalid database name: {0}. Allowed databases: {1}".format(database, ",".join(allowed_databases)))
+    if database.lower() not in ALLOWED_DATABASES:
+        raise ValueError("Invalid database name: {0}. Allowed databases: {1}".format(database, ",".join(ALLOWED_DATABASES)))
 
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
-    url = sesame_url.format(name=urllib.quote(name), db=db)
+    url = SESAME_URL.format(name=urllib.quote(name), db=db)
     try:
         # Retrieve ascii name resolve data from CDS
-        resp = urllib2.urlopen(url)
+        resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT)
     except urllib2.URLError:
         raise urllib2.URLError("Unable to connect to name resolve web server. Check your internet connection, and try again.")
     except httplib.BadStatusLine:
