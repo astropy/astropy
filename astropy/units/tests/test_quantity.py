@@ -201,6 +201,12 @@ class TestQuantityOperations():
         assert not 1. * u.cm == 1.
         assert 1. * u.cm != 1.
 
+    def test_numeric_converters(self):
+        q = u.Quantity(1.23, u.m)
+
+        assert float(q) == 1.23
+        assert int(q) == 1
+        assert long(q) == 1L
 
 
 def test_quantity_conversion():
@@ -346,3 +352,10 @@ def test_arrays():
     assert np.all(qsec == qsec2)
     assert np.all(qsec2 == qsec3)
 
+    # make sure numerical-converters fail when arrays are present
+    with pytest.raises(TypeError):
+        float(qsec)
+    with pytest.raises(TypeError):
+        int(qsec)
+    with pytest.raises(TypeError):
+        long(qsec)
