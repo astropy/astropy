@@ -205,7 +205,7 @@ class Time(object):
     @property
     def scale(self):
         """Time scale"""
-        return self._scale
+        return self._time.scale
 
     def _set_scale(self, scale):
         """
@@ -689,22 +689,18 @@ class TimeFormat(object):
         scales.  Provide a different error message if None (no value) was
         supplied.
         """
-        if hasattr(self.__class__, 'required_scale'):
-            # This format class has a required time scale
-            cls_scale = getattr(self.__class__, 'required_scale')
-            if (scale is not None and scale != cls_scale):
-                raise ScaleValueError('Class {0} requires scale={1} or None'
-                                 .format(self.__class__.__name__, cls_scale))
-            scale = cls_scale
-        else:
-            if scale not in TIME_SCALES:
-                if scale is None:
-                    raise ScaleValueError("No scale value supplied but it is "
-                                        "required for class {0}"
-                                        .format(self.__class__.__name__))
-                raise ScaleValueError("Scale value '{0}' not in "
-                                      "allowed values {1}"
-                                    .format(scale, TIME_SCALES))
+        if hasattr(self.__class__, 'epoch_scale') and scale is None:
+            scale = self.__class__.epoch_scale
+
+        if scale not in TIME_SCALES:
+            if scale is None:
+                raise ScaleValueError("No scale value supplied but it is "
+                                    "required for class {0}"
+                                    .format(self.__class__.__name__))
+            raise ScaleValueError("Scale value '{0}' not in "
+                                  "allowed values {1}"
+                                .format(scale, TIME_SCALES))
+
         return scale
 
     def set_jds(self, val1, val2):
@@ -764,20 +760,36 @@ class TimeFromEpoch(TimeFormat):
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
         self.scale = scale
+        # Initialize the reference epoch which is a single time defined in subclasses
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
                      format=self.epoch_format)
-        self.epoch = getattr(epoch, self.scale)
+        # Convert the epoch time to TAI so that calculations involving adding/subtracting
+        # JDs are always linear and well-defined (a JD in TAI is always 86400 uniform
+        # seconds, unlike other scales, in particular UTC where one JD isn't always the
+        # same duration).
+        self.epoch = epoch.tai
         super(TimeFromEpoch, self).__init__(val1, val2, scale, precision,
                                             in_subfmt, out_subfmt, from_jd)
 
     def set_jds(self, val1, val2):
-        self.jd1 = self.epoch.jd1 + val2 * self.unit
-        self.jd2 = self.epoch.jd2 + val1 * self.unit
+        # Form new JDs based on epoch time (TAI) + time from epoch (converted to JD)
+        jd1 = self.epoch.jd1 + val2 * self.unit
+        jd2 = self.epoch.jd2 + val1 * self.unit
+
+        # Create a Time object corresponding to the new (jd1, jd2) in TAI, then convert
+        # that to the time scale for this object.
+        tm = getattr(Time(jd1, jd2, scale='tai', format='jd'), self.scale)
+
+        self.jd1 = tm.jd1
+        self.jd2 = tm.jd2
 
     @property
     def vals(self):
-        return ((self.jd1 - self.epoch.jd1) +
-                (self.jd2 - self.epoch.jd2)) / self.unit
+        # Convert current JDs to TAI
+        tm = Time(self.jd1, self.jd2, scale=self.scale, format='jd').tai
+        time_from_epoch = ((tm.jd1 - self.epoch.jd1) +
+                           (tm.jd2 - self.epoch.jd2)) / self.unit
+        return time_from_epoch
 
 
 class TimeUnix(TimeFromEpoch):
@@ -796,7 +808,7 @@ class TimeUnix(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'utc'
     epoch_format = 'iso'
-    required_scale = 'utc'
+    # required_scale = 'utc'
 
 
 class TimeCxcSec(TimeFromEpoch):
@@ -807,7 +819,7 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'tt'
     epoch_format = 'iso'
-    required_scale = 'tai'
+    # required_scale = 'tai'
 
 
 class TimeString(TimeFormat):
