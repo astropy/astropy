@@ -348,6 +348,22 @@ class Quantity(object):
         else:
             return len(self.value)
 
+    #Numerical types
+    def __float__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
+        return float(self.value)
+
+    def __int__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
+        return int(self.value)
+
+    def __long__(self):
+        if not self.isscalar:
+            raise TypeError('Only scalar quantities can be converted to Python scalars')
+        return long(self.value)
+
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
     def __str__(self):
