@@ -123,7 +123,7 @@ class Time(object):
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
-        Set the internal _format, _scale, and _time attrs from user
+        Set the internal _format, scale, and _time attrs from user
         inputs.  This handles coercion into the correct shapes and
         some basic input validation.
         """
@@ -152,7 +152,6 @@ class Time(object):
 
         # Parse / convert input values into internal jd1, jd2 based on format
         self._format, self._time = self._get_time_fmt(val, val2, format, scale)
-        self._scale = scale
 
     def _get_time_fmt(self, val, val2, format, scale):
         """
@@ -213,7 +212,7 @@ class Time(object):
         This is not public and not connected to the read-only scale property.
         """
 
-        if scale == self._scale:
+        if scale == self.scale:
             return
         if scale not in self.SCALES:
             raise ValueError("Scale {0} is not in the allowed scales {1}"
@@ -223,7 +222,7 @@ class Time(object):
         # scale to the new scale.  MULTI_HOPS contains a dict of all
         # transformations (xforms) that require intermediate xforms.
         # The MULTI_HOPS dict is keyed by (sys1, sys2) in alphabetical order.
-        xform = (self._scale, scale)
+        xform = (self.scale, scale)
         xform_sort = tuple(sorted(xform))
         multi = MULTI_HOPS.get(xform_sort, ())
         xforms = xform_sort[:1] + multi + xform_sort[-1:]
@@ -255,7 +254,6 @@ class Time(object):
         self._time = self.FORMATS[self.format](jd1, jd2, scale, self.precision,
                                                self.in_subfmt, self.out_subfmt,
                                                from_jd=True)
-        self._scale = scale
 
     @property
     def precision(self):
@@ -808,7 +806,6 @@ class TimeUnix(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'utc'
     epoch_format = 'iso'
-    # required_scale = 'utc'
 
 
 class TimeCxcSec(TimeFromEpoch):
@@ -819,7 +816,6 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'tt'
     epoch_format = 'iso'
-    # required_scale = 'tai'
 
 
 class TimeString(TimeFormat):
