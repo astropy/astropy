@@ -296,6 +296,11 @@ class TestSubFormat():
         """Test time formats derived from EpochFromTime"""
         t = Time(0.0, format='cxcsec', scale='tai')
         assert t.tt.iso == '1998-01-01 00:00:00.000'
+
+        # Create new time object from this one and change scale, format
+        t2 = Time(t, scale='tt', format='iso')
+        assert t2.val == '1998-01-01 00:00:00.000'
+
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
         t = Time(378691266.184, format='cxcsec', scale='utc')
         assert t.yday == '2010:001:00:00:00.000'
