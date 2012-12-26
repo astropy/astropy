@@ -44,8 +44,8 @@ def test_database_specify():
 
     name = "ngc 3642"
     for db in ["simbad", "ned", "vizier", "all"]:
-        icrs = ICRSCoordinates.resolve_name(name, database=db)
-        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
+        icrs = ICRSCoordinates.from_name(name, database=db)
+        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
 
@@ -54,8 +54,8 @@ def test_database_specify():
     name = "castor"
     # Don't search ned or vizier since castor doesn't seem to be in either
     for db in ["simbad",  "all"]:
-        icrs = ICRSCoordinates.resolve_name(name, database=db)
-        gal = GalacticCoordinates.resolve_name(name).transform_to(ICRSCoordinates)
+        icrs = ICRSCoordinates.from_name(name, database=db)
+        gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
 
