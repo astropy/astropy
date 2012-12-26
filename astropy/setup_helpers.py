@@ -192,6 +192,27 @@ AstropyInstall.__name__ = 'install'
 AstropyRegister.__name__ = 'register'
 
 
+def build_with_cython(release=None):
+    """Returns `True` if Cython should be used to build extension modules from
+    pyx files.  If the ``release`` parameter is not specified an attempt is
+    made to determine the release flag from `astropy.version`.
+    """
+
+    if release is None:
+        try:
+            from astropy.version import release
+        except ImportError:
+            pass
+
+    try:
+        from astropy.version import cython_version
+    except ImportError:
+        cython_version = 'unknown'
+
+    return (HAVE_CYTHON and
+            (not release or cython_version != Cython.__version__))
+
+
 def wrap_build_ext(basecls=SetuptoolsBuildExt):
     """
     Creates a custom 'build_ext' command that allows for manipulating some of
@@ -207,7 +228,6 @@ def wrap_build_ext(basecls=SetuptoolsBuildExt):
     orig_run = getattr(basecls, 'run', None)
 
     def run(self):
-        from astropy.version import release
         # For extensions that require 'numpy' in their include dirs, replace
         # 'numpy' with the actual paths
         np_include = get_numpy_include_path()
@@ -227,7 +247,7 @@ def wrap_build_ext(basecls=SetuptoolsBuildExt):
                     cfn = src
 
                 if os.path.isfile(pyxfn):
-                    if HAVE_CYTHON and not release:
+                    if build_with_cython():
                         extension.sources[jdx] = pyxfn
                     else:
                         if os.path.isfile(cfn):

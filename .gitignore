@@ -12,6 +12,7 @@ __pycache__
 # Other generated files
 MANIFEST
 astropy/version.py
+astropy/utils/src/cython.pyx
 astropy/wcs/include/wcsconfig.h
 
 # Sphinx
