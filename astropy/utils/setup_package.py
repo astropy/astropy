@@ -34,7 +34,7 @@ def _generate_cython_pyx():
         import Cython
         current_cython_version = Cython.__version__
     except ImportError:
-        current_cytion_version = 'unknown'
+        current_cython_version = 'unknown'
 
     if exists(cython_pyx):
         try:
