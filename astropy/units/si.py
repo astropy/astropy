@@ -32,7 +32,7 @@ def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, register=True,
 ###########################################################################
 # VOLUMES
 
-def_unit(['l', 'L', 'liter'], 1000 * cm ** 3, register=True, prefixes=True,
+def_unit(['l', 'L', 'liter'], 1000 * cm ** 3.0, register=True, prefixes=True,
          doc="liter: metric unit of volume")
 
 
