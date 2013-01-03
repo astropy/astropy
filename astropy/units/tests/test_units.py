@@ -227,6 +227,9 @@ def test_steradian():
     """
     assert u.sr.is_equivalent(u.rad * u.rad)
 
+    results = u.sr.compose(units=u.cgs.bases)
+    assert results[0].bases[0] is u.rad
+
 
 def test_decompose_bases():
     """
