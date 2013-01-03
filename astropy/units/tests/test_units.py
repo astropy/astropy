@@ -5,7 +5,6 @@ Regression tests for the units package
 
 from __future__ import absolute_import, unicode_literals, division, print_function
 
-from fractions import Fraction
 import warnings
 
 from ...tests.helper import pytest, raises
