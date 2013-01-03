@@ -259,12 +259,20 @@ class Generic(Base):
         for base, power in units:
             if power == 1:
                 out.append(self._get_unit_name(base))
-            elif isinstance(power, Fraction):
-                out.append('{0}({1})'.format(
-                    self._get_unit_name(base), power))
             else:
-                out.append('{0}{1}'.format(
-                    self._get_unit_name(base), power))
+                if not isinstance(power, Fraction):
+                    if power % 1.0 != 0.0:
+                        power = Fraction(power).limit_denominator(10)
+                        if power.denominator == 1:
+                            power = int(power.numerator)
+                    else:
+                        power = int(power)
+                if isinstance(power, Fraction):
+                    out.append('{0}({1})'.format(
+                        self._get_unit_name(base), power))
+                else:
+                    out.append('{0}{1}'.format(
+                        self._get_unit_name(base), power))
         return ' '.join(out)
 
     def to_string(self, unit):
