@@ -5,16 +5,15 @@ Core units classes and functions
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from fractions import Fraction
 import re
 import sys
 import textwrap
 import warnings
-import numbers
 
 import numpy as np
 from numpy import ma
 
+from ..utils.compat.fractions import Fraction
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)

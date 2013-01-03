@@ -9,6 +9,7 @@ import warnings
 
 from ...tests.helper import pytest, raises
 from ...tests.compat import assert_allclose
+from ...utils.compat.fractions import Fraction
 
 from ... import units as u
 
