@@ -4,10 +4,10 @@ Handles a "generic" string format for units
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from fractions import Fraction
 
 from .base import Base
 from . import utils
+from ...utils.compat.fractions import Fraction
 
 
 class Generic(Base):
