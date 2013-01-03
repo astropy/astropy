@@ -78,8 +78,8 @@ Using `astropy.units`
    :maxdepth: 2
 
    standard_units
-   composing_and_defining
-   decomposing
+   combining_and_defining
+   decomposing_and_composing
    conversion
    format
    equivalencies
