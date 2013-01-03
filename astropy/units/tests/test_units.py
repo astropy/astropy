@@ -217,3 +217,10 @@ def test_invalid_type():
         pass
 
     u.Unit(A())
+
+
+def test_steradian():
+    """
+    Issue #599
+    """
+    assert u.sr.is_equivalent(u.rad * u.rad)
