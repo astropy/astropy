@@ -37,7 +37,7 @@ Units that "cancel out" become a special unit called the
 knows about::
 
   >>> (u.s ** -1).compose()
-  [Unit("Hz")]
+  [Unit("Hz"), ...]
 
 And it can convert between unit systems::
 

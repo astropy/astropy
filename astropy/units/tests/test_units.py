@@ -306,3 +306,34 @@ def test_compose_failed():
     unit = u.kg
 
     result = unit.compose(units=[u.N])
+
+
+def test_compose_fractional_powers():
+    x = (u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+
+    factored = x.compose()
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+    factored = x.compose(units=u.cgs)
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+    factored = x.compose(units=u.si)
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+
+def test_compose_best_unit_first():
+    results = u.l.compose()
+    assert len(results[0].bases) == 1
+    assert results[0].bases[0] is u.l
+
+    results = (u.s ** -1).compose()
+    assert results[0].bases[0] is u.Hz
+
+    results = (u.Ry.decompose()).compose()
+    assert results[0].bases[0] is u.Ry

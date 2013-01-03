@@ -34,26 +34,60 @@ may be multiple equally good results, a list is always returned::
 
   >>> x = u.Ry.decompose()
   >>> x.compose()
-  [Unit("1.000000e+00 Ry"), Unit("2.179872e-18 J"), Unit("2.066120e-21 BTU"),
-   Unit("5.210019e-22 kcal"), Unit("5.210019e-19 cal"),
-   Unit("1.360569e+01 eV"), Unit("2.179872e-11 erg")]
+  [Unit("1.000000e+00 Ry"),
+   Unit("5.210019e-22 kcal"),
+   Unit("5.210019e-19 cal"),
+   Unit("2.066120e-21 BTU"),
+   Unit("1.360569e+01 eV"),
+   Unit("2.179872e-18 J"),
+   Unit("2.179872e-11 erg")]
 
 Some other interesting examples::
 
    >>> (u.s ** -1).compose()
-   [Unit("Hz")]
+   [Unit("Hz"),
+    Unit("1 / (s)"),
+    Unit("3.155693e+07 / (yr)"),
+    Unit("8.640000e+04 / (d)"),
+    Unit("6.000000e+01 / (min)"),
+    Unit("3.600000e+03 / (h)"),
+    Unit("6.048000e+05 / (wk)"),
+    Unit("3.155693e+07 / (a)"),
+    Unit("8.616409e+04 / (sday)"),
+    Unit("1.209600e+06 / (fortnight)")]
 
 Composition can be combined with :ref:`unit-equivalencies`::
 
    >>> (u.s ** -1).compose(equivs=u.spectral())
-   [Unit("Hz"), Unit("1.437798e-09 solRad"), Unit("1.057001e-16 lyr"),
-    Unit("1.000000e+06 micron"), Unit("m"), Unit("3.240779e-17 pc"),
-    Unit("1.000000e+10 Angstrom"), Unit("6.684587e-12 AU"),
-    Unit("1.000000e+02 cm"), Unit("3.937008e+01 inch"),
-    Unit("3.280840e+00 ft"), Unit("1.093613e+00 yd"), Unit("6.213712e-04 mi"),
-    Unit("4.587425e+17 Ry"), Unit("J"), Unit("9.478171e-04 BTU"),
-    Unit("2.390057e-04 kcal"), Unit("2.390057e-01 cal"),
-    Unit("6.241509e+18 eV"), Unit("1.000000e+07 erg")]
+   [Unit("Hz"),
+    Unit("J"),
+    Unit("m"),
+    Unit("1 / (s)"),
+    Unit("2.390057e-01 cal"),
+    Unit("1.057001e-16 lyr"),
+    Unit("1.093613e+00 yd"),
+    Unit("3.240779e-17 pc"),
+    Unit("4.587425e+17 Ry"),
+    Unit("1.000000e+06 micron"),
+    Unit("3.937008e+01 inch"),
+    Unit("6.684587e-12 AU"),
+    Unit("1.000000e+02 cm"),
+    Unit("1.437798e-09 solRad"),
+    Unit("6.241509e+18 eV"),
+    Unit("3.280840e+00 ft"),
+    Unit("2.390057e-04 kcal"),
+    Unit("1.000000e+10 Angstrom"),
+    Unit("1.000000e+07 erg"),
+    Unit("9.478171e-04 BTU"),
+    Unit("6.213712e-04 mi"),
+    Unit("6.000000e+01  / (min)"),
+    Unit("3.600000e+03  / (h)"),
+    Unit("6.048000e+05  / (wk)"),
+    Unit("8.616409e+04  / (sday)"),
+    Unit("1.209600e+06  / (fortnight)"),
+    Unit("8.640000e+04  / (d)"),
+    Unit("3.155693e+07  / (yr)"),
+    Unit("3.155693e+07  / (a)")]
 
 Obviously a name doesn't exist for every arbitrary derived unit
 imaginable.  In that case, the system will do its best to reduce the
@@ -72,7 +106,9 @@ between unit systems.
    [Unit("1.000000e+01 Ba")]
 
 This is equivalent to decomposing into the new system and then
-composing into the most complex units possible::
+composing into the most complex units possible, though `to_system`
+adds some extra logic to return the results sorted in the most useful
+order::
 
    >>> u.Pa.decompose(bases=u.cgs.bases)
    Unit("1.000000e+01 g / (cm s2)")

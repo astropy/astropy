@@ -19,6 +19,9 @@ def_unit(['cm', 'centimeter'], si.cm, register=True, prefixes=False)
 g = si.g
 s = si.s
 C = si.C
+rad = si.rad
+sr = si.sr
+cd = si.cd
 
 
 ##########################################################################
@@ -97,7 +100,7 @@ def_unit(['G', 'Gauss', 'gauss'], 1e-4 * si.T, register=True, prefixes=True,
 ###########################################################################
 # BASES
 
-bases = set([cm, g, s, C, si.sr, si.cd])
+bases = set([cm, g, s, C, sr, cd])
 
 
 ###########################################################################

@@ -402,7 +402,7 @@ class UnitBase(object):
         """
         raise NotImplementedError()
 
-    def _compose(self, equivs=[], namespace=None, max_depth=2, depth=0):
+    def _compose(self, equivs=[], namespace=[], max_depth=2, depth=0):
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -410,6 +410,18 @@ class UnitBase(object):
                 if base not in namespace:
                     return False
             return True
+
+        def sort_results(results):
+            # Sort the results so the simplest ones appear first.
+            # Simplest is defined as "the minimum sum of absolute
+            # powers" (i.e. the fewest bases), and preference should
+            # be given to results where the sum of powers is positive
+            # and the scale is exactly equal to 1.0
+            results = list(results)
+            results.sort(key=lambda x: np.sum(np.abs(x.powers)))
+            results.sort(key=lambda x: np.sum(x.powers) < 0.0)
+            results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
+            return results
 
         unit = self.decompose()
 
@@ -439,7 +451,19 @@ class UnitBase(object):
         for tunit in namespace:
             tunit_decomposed = tunit.decompose()
             for u in units:
-                composed = u / tunit_decomposed
+                # If the unit is a base unit, look for an exact match
+                # to one of the bases of the target unit.  If found,
+                # factor by the same power as the target unit's base.
+                # This allows us to factor out fractional powers
+                # without needing to do an exhaustive search.
+                if len(tunit_decomposed.bases) == 1:
+                    for base, power in zip(u._bases, u._powers):
+                        if tunit_decomposed.is_equivalent(base):
+                            tunit = tunit ** power
+                            tunit_decomposed = tunit_decomposed ** power
+                            break
+
+                composed = (u / tunit_decomposed).decompose()
                 factored = composed * tunit
                 len_bases = len(composed._bases)
                 if is_final_result(factored) and len_bases <= 1:
@@ -448,42 +472,49 @@ class UnitBase(object):
                     partial_results.append(
                         (len_bases, composed, tunit))
 
-        if len(final_results[0]):
-            return list(final_results[0])
-        elif len(final_results[1]):
-            return list(final_results[1])
-        else:
-            partial_results.sort(key=lambda x: x[0])
+        # Do we have any minimal results?
+        for final_result in final_results:
+            if len(final_result):
+                return sort_results(final_result)
 
-            # ...we have to recurse and try to further compose
-            results = []
-            for len_bases, composed, tunit in partial_results:
+        partial_results.sort(key=lambda x: x[0])
+
+        # ...we have to recurse and try to further compose
+        results = []
+        for len_bases, composed, tunit in partial_results:
+            try:
                 composed_list = composed._compose(
                     equivs=equivs, namespace=namespace,
                     max_depth=max_depth, depth=depth + 1)
-                for subcomposed in composed_list:
-                    results.append(
-                        (len(subcomposed._bases), subcomposed, tunit))
+            except UnitsException:
+                composed_list = []
+            for subcomposed in composed_list:
+                results.append(
+                    (len(subcomposed._bases), subcomposed, tunit))
 
-            if len(results):
-                results.sort(key=lambda x: x[0])
+        if len(results):
+            results.sort(key=lambda x: x[0])
 
-                min_length = results[0][0]
-                subresults = set()
-                for len_bases, composed, tunit in results:
-                    if len_bases > min_length:
-                        break
-                    else:
-                        factored = composed * tunit
-                        if is_final_result(factored):
-                            subresults.add(composed * tunit)
+            min_length = results[0][0]
+            subresults = set()
+            for len_bases, composed, tunit in results:
+                if len_bases > min_length:
+                    break
+                else:
+                    factored = composed * tunit
+                    if is_final_result(factored):
+                        subresults.add(composed * tunit)
 
-                if len(subresults):
-                    return list(subresults)
+            if len(subresults):
+                return sort_results(subresults)
 
-        raise UnitsException(
-            "Cannot represent unit {0} in terms of the given "
-            "units".format(unit))
+        for base in self.bases:
+            if base not in namespace:
+                raise UnitsException(
+                    "Cannot represent unit {0} in terms of the given "
+                    "units".format(self))
+
+        return [self]
 
     def compose(self, equivs=[], units=None, max_depth=2):
         """
@@ -801,6 +832,27 @@ class IrreducibleUnit(NamedUnit):
     Examples are meters, seconds, kilograms, amperes, etc.  There is
     only once instance of such a unit per type.
     """
+    @property
+    def scale(self):
+        """
+        Return the scale of the unit.
+        """
+        return 1.0
+
+    @property
+    def bases(self):
+        """
+        Return the bases of the unit.
+        """
+        return [self]
+
+    @property
+    def powers(self):
+        """
+        Return the powers of the unit.
+        """
+        return [1.0]
+
     def decompose(self, bases=[]):
         bases = set(bases)
 
