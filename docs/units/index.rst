@@ -39,9 +39,9 @@ are passed to the `~astropy.units.core.UnitBase.to` conversion method::
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
   # ...but by passing an equivalency unit (spectral()), it does...
-  >>> u.nm.to(u.Hz, [1000, 2000], equivs=u.spectral())
+  >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
-  >>> u.nm.to(u.eV, [1000, 2000], equivs=u.spectral())
+  >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
   array([ 1.23984201,  0.61992101])
 
 Also included in the `astropy.units` package is the `~astropy.units.quantity.Quantity` object,

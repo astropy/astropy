@@ -14,8 +14,8 @@ include in `astropy.units` and then describe how to define new
 equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
-`equivs` keyword argument of `~astropy.units.core.UnitBase.to` or
-`~astropy.units.core.UnitBase.get_converter` methods.
+`equivalencies` keyword argument of `~astropy.units.core.UnitBase.to`
+or `~astropy.units.core.UnitBase.get_converter` methods.
 
 Built-in equivalencies
 ----------------------
@@ -38,15 +38,15 @@ However, when passing the result of `~astropy.units.equivalencies.spectral`
 as the third argument to the `~astropy.units.core.UnitBase.to` method,
 wavelength, frequency and energy can be converted.
 
-  >>> u.nm.to(u.Hz, [1000, 2000], equivs=u.spectral())
+  >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
-  >>> u.nm.to(u.eV, [1000, 2000], equivs=u.spectral())
+  >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
   array([ 1.23984201,  0.61992101])
 
 These equivalencies even work with non-base units::
 
   >>> # Inches to calories
-  >>> u.inch.to(u.Cal, 1, equivs=u.spectral())
+  >>> u.inch.to(u.Cal, 1, equivalencies=u.spectral())
   1.869180759162485e-27
 
 Spectral Flux Density Units
@@ -59,10 +59,12 @@ The function that handles these unit conversions is
 `~astropy.units.equivalencies.spectral_density`. This function takes as its
 arguments the unit and value for the spectral location. For example::
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1., equivs=u.spectral_density(u.AA, 3500))
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.Hz, 1.,
+              equivalencies=u.spectral_density(u.AA, 3500))
   1.0000000000000001e-23
 
-  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1., equivs=u.spectral_density(u.AA, 3500))
+  >>> u.Jy.to(u.erg / u.cm**2 / u.s / u.micron, 1.,
+              equivalencies=u.spectral_density(u.AA, 3500))
   2.4472853714285712e-08
 
 Writing new equivalencies
@@ -85,17 +87,17 @@ for them::
   >>> liters_water = [
          (u.l, u.g, lambda x: 1000.0 * x, lambda x: x / 1000.0)
       ]
-  >>> u.l.to(u.kg, 1, equivs=liters_water)
+  >>> u.l.to(u.kg, 1, equivalencies=liters_water)
   1.0
 
 Note that the equivalency can be used with any other compatible units::
 
-  >>> u.gallon.to(u.pound, 1, equivs=liters_water)
+  >>> u.gallon.to(u.pound, 1, equivalencies=liters_water)
   8.345404463333525
 
 And it also works in the other direction::
 
-  >>> u.lb.to(u.pint, 1, equivs=liters_water)
+  >>> u.lb.to(u.pint, 1, equivalencies=liters_water)
   0.9586114172355458
 
 Displaying available equivalencies
@@ -114,7 +116,7 @@ units for `Hz` in the standard set::
 However, when passing the spectral equivalency, you can see there are
 all kinds of things that `Hz` can be converted to::
 
-  >>> u.Hz.find_equivalent_units(equivs=u.spectral())
+  >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
     Primary name | Unit definition           | Aliases
   [
     AU           | 1.495979e+11 m            | au                                 ,
