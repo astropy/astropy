@@ -55,8 +55,8 @@ def_unit(['mas'], 1.0 / 3600000 * deg, register=True,
          doc="milliarc second: angular measurement",
          format={'latex': r'\third', 'unicode': '‴'})
 
-def_unit(['sr', 'steradian'], register=True, prefixes=True,
-         doc="steradian: base unit of solid angle in SI")
+def_unit(['sr', 'steradian'], rad ** 2, register=True, prefixes=True,
+         doc="steradian: unit of solid angle in SI")
 
 
 ###########################################################################
