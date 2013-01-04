@@ -81,6 +81,7 @@ class Generic(Base):
             (p.Optional(factor, default=1.0) +
              p.Optional(product_of_units, default=1.0) +
              p.Suppress(division) +
+             p.Suppress(p.ZeroOrMore(p.White())) +
              unit_expression +
              p.StringEnd()))
 
