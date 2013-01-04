@@ -20,7 +20,7 @@
    Dos Equis
   </DESCRIPTION>
  </PARAM>
- <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK"/>
+ <INFO ID="QUERY_STATUS" name="QUERY_STATUS" value="OK">This is some information.</INFO>
  <RESOURCE type="results">
   <DESCRIPTION>
    This is a resource description
