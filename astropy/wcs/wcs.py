@@ -153,11 +153,11 @@ class WCS(WCSBase):
     relax : bool or int, optional
         Degree of permissiveness:
 
+        - `True` (default): Admit all recognized informal extensions
+          of the WCS standard.
+
         - `False`: Recognize only FITS keywords defined by the
           published WCS standard.
-
-        - `True`: Admit all recognized informal extensions of the WCS
-          standard.
 
         - `int`: a bit field selecting specific extensions to accept.
           See :ref:`relaxread` for details.
@@ -256,7 +256,7 @@ class WCS(WCSBase):
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
-                 relax=False, naxis=None, keysel=None, colsel=None,
+                 relax=True, naxis=None, keysel=None, colsel=None,
                  fix=True):
         if header is None:
             if naxis is None:
@@ -1267,10 +1267,10 @@ naxis kwarg.
         relax : bool or int, optional
             Degree of permissiveness:
 
-            - `False`: Recognize only FITS keywords defined by the
-              published WCS standard.
+            - `False` (default): Write all extensions that are
+              considered to be safe and recommended.
 
-            - `True`: Admit all recognized informal extensions of the
+            - `True`: Write all recognized informal extensions of the
               WCS standard.
 
             - `int`: a bit field selecting specific extensions to
@@ -1310,10 +1310,10 @@ naxis kwarg.
         relax : bool or int, optional
             Degree of permissiveness:
 
-            - `False`: Recognize only FITS keywords defined by the
-              published WCS standard.
+            - `False` (default): Write all extensions that are
+              considered to be safe and recommended.
 
-            - `True`: Admit all recognized informal extensions of the
+            - `True`: Write all recognized informal extensions of the
               WCS standard.
 
             - `int`: a bit field selecting specific extensions to
@@ -1579,7 +1579,7 @@ def __WCS_unpickle__(cls, dct, fits_data):
     return self
 
 
-def find_all_wcs(header, relax=False, keysel=None):
+def find_all_wcs(header, relax=True, keysel=None):
     """
     Find all the WCS transformations in the given header.
 
@@ -1590,11 +1590,11 @@ def find_all_wcs(header, relax=False, keysel=None):
     relax : bool or int, optional
         Degree of permissiveness:
 
+        - `True` (default): Admit all recognized informal extensions of the
+          WCS standard.
+
         - `False`: Recognize only FITS keywords defined by the
           published WCS standard.
-
-        - `True`: Admit all recognized informal extensions of the
-          WCS standard.
 
         - `int`: a bit field selecting specific extensions to accept.
           See :ref:`relaxread` for details.
