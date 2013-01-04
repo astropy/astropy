@@ -4,22 +4,57 @@
 __all__ = ['NDData']
 
 import numpy as np
+import copy
 
-from ..units import Unit
+from ..units import Unit, Quantity
 from ..logger import log
 
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from ..io import fits
+
+
 from ..config import ConfigurationItem
 
-WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
-    'warn_unsupported_correlated', True,
-    'Whether to issue a warning if NDData arithmetic is performed with '
-    'uncertainties and the uncertainties do not support the propagation '
-    'of correlated uncertainties.'
-    )
+
+
+def merge_meta(meta1, meta2, operation_name):
+    """
+    Merging meta-data for `NDData`-objects. Currently it will build a new dictionary using the operation name
+    as a dictionary key.
+
+    Parameters
+    ----------
+
+    meta1 : `~OrderedDict`
+        first meta dictionary
+
+    meta2 : `~OrderedDict`
+        second meta dictionary
+
+
+    Returns
+    -------
+        `~OrderedDict` containing the merged dictionaries
+
+    """
+
+    if (meta1 is None) and (meta2 is None):
+        new_meta = None
+    elif (meta1 is None) and (meta2 is not None):
+        new_meta = meta2
+    elif (meta1 is not None) and (meta2 is None):
+        new_meta = meta1
+
+    elif (meta1 is not None) and (meta2 is not None):
+        new_meta = OrderedDict()
+        new_meta[operation_name] = (meta1, meta2)
+
+
+
+
+    return new_meta
+
 
 
 class NDData(object):
@@ -65,10 +100,6 @@ class NDData(object):
     units : `astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
-    copy : bool, optional
-        If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` :attr:`copy`
-        argument for details).
 
     Raises
     ------
@@ -102,10 +133,10 @@ class NDData(object):
     """
 
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
-                 meta=None, units=None, copy=True):
+                 meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True, copy=copy)
+            self.data = np.array(data.data, subok=True)
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -127,18 +158,25 @@ class NDData(object):
                 self.meta = meta
                 log.info("Overwriting NDData's current meta being overwritten with specified meta")
 
-            if units is not None:
+            if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
 
         else:
-            self.data = np.array(data, subok=True, copy=copy)
+            if hasattr(data, 'mask'):
+                self.data = np.array(data.data, subok=True)
+                self.mask = data.mask
+            else:
+                self.data = np.array(data, subok=True)
+                self.mask = mask
+
 
             self.uncertainty = uncertainty
-            self.mask = mask
             self.flags = flags
             self.wcs = wcs
             self.meta = meta
-            self.units = units
+            self.unit = unit
+
+
 
     @property
     def mask(self):
@@ -213,11 +251,11 @@ class NDData(object):
 
 
     @property
-    def units(self):
+    def unit(self):
         return self._units
 
-    @units.setter
-    def units(self, value):
+    @unit.setter
+    def unit(self, value):
         if value is None:
             self._units = None
         else:
@@ -289,9 +327,9 @@ class NDData(object):
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, units=self.units, copy=False)
+            meta=self.meta, units=self.unit, copy=False)
 
-    def _arithmetic(self, operand, propagate_uncertainties, name, operation):
+    def _arithmetic(self, operand, operation_name):
         """
         {name} another dataset (`operand`) to this dataset.
 
@@ -321,101 +359,172 @@ class NDData(object):
         either dataset before the operation are masked in the resulting
         dataset.
         """
-        if self.wcs != operand.wcs:
-            raise ValueError("WCS properties do not match")
+        operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
 
-        if not (self.units is None and operand.units is None):
-            if (self.units is None or operand.units is None
-                or not self.units.is_equivalent(operand.units)):
-                raise ValueError("operand units do not match")
+    def _arithmetic(self, operand, operation_name, switch_operands=False):
+        """
+        {name} another dataset (`operand`) to this dataset.
 
-        if self.shape != operand.shape:
-            raise ValueError("operand shapes do not match")
+        Parameters
+        ----------
+        operand : `~astropy.nddata.NDData`
+            The second operand in the operation a {operator} b
 
-        if self.units is not None:
-            operand_data = operand.units.to(self.units, operand.data)
+        operation_name : `~str`
+            Name of the operation, can be 'add', 'subtract', 'multiply', 'divide'
+
+        switch_operands: `~bool`
+            Is `True` when the switched binary operations are called (e.g. `__rsub__`)
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`
+            The resulting dataset
+
+        Notes
+        -----
+        This method requires the datasets to have identical WCS properties,
+        equivalent units, and identical shapes. Flags and meta-data get set to
+        None in the resulting dataset. The unit in the result is the same as
+        the unit in `self`. Uncertainties are propagated, although correlated
+        errors are not supported by any of the built-in uncertainty classes.
+        If uncertainties are assumed to be correlated, a warning is issued by
+        default (though this can be disabled via the
+        `WARN_UNSUPPORTED_CORRELATED` configuration item). Values masked in
+        either dataset before the operation are masked in the resulting
+        dataset.
+        """
+        operation_name2operation = {'add':'__add__', 'subtract':'__sub__', 'multiply':'__mul__', 'divide':'__div__'}
+
+        operation = operation_name2operation[operation_name]
+
+        if np.isscalar(operand):
+            if operation_name in ('add', 'subtract'):
+                raise ValueError('Cannot %s scalar and %s' % (operation_name, self.__class__.__name__))
+            else:
+                if (operation_name == 'divide') & switch_operands:
+                    new_data = operand / self.data
+                    new_unit = self.unit**-1
+                else:
+                    new_unit = self.unit
+                    new_data = getattr(self.__array__(), operation)(operand)
+
+            if self.flags is not None:
+                log.warn('Currently flag arithmetic is not implemented. The result of this operation will have None'
+                         'as a flag')
+
+            if self.uncertainty is not None:
+                log.warn('Currently uncertainty propagation is not implemented. The result of this operation '
+                         'will have None as an uncertainty')
+
+
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs, mask=self.mask, meta=self.meta)
+
+        elif isinstance(operand, Quantity):
+            if operation_name in ('add', 'subtract'):
+                new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+
+                if (operation_name == 'subtract') & switch_operands:
+                    new_data = operand.value - self.unit.to(operand.unit, self.data)
+                    new_unit = operand.unit
+
+                elif (operation_name == 'add') & switch_operands:
+                    new_data = operand.value + self.unit.to(operand.unit, self.data)
+                    new_unit = operand.unit
+                else:
+                    new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+                    new_unit = self.unit
+
+            if operation_name in ('multiply', 'divide'):
+                new_data = getattr(self.__array__(), operation)(operand.to(self.unit).value)
+
+                if (operation_name == 'divide') & switch_operands:
+                    new_data = operand.value / self.data
+                    new_unit = operand.unit/self.unit
+
+                else:
+                    new_data = getattr(self.__array__(), operation)(operand.value)
+                    new_unit = getattr(self.unit, operation)(operand.unit)
+
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs, mask=self.mask, meta=self.meta)
+
+        elif isinstance(operand, self.__class__):
+            if self.shape != operand.shape:
+                raise ValueError("operand shapes do not match")
+
+            if self.wcs != operand.wcs:
+                raise ValueError("WCS properties do not match")
+
+            if (self.flags is not None) or (operand.flags is not None):
+                log.warn('Currently flag arithmetic is not implemented. The result of this operation will have None'
+                         'as a flag')
+
+            if (self.uncertainty is not None) or (operand.uncertainty is not None):
+                log.warn('Currently uncertainty propagation is not implemented. The result of this operation '
+                         'will have None as an uncertainty')
+
+            if (self.unit is not None) and (operand.unit is not None):
+                if switch_operands:
+                    operand2 = self
+                    operand1 = operand
+                else:
+                    operand1 = self
+                    operand2 = operand
+
+                if operation_name in ('add', 'subtract'):
+                    operand_data = operand2.unit.to(self.unit, operand2.data)
+                    new_unit = operand1.unit
+                    new_data = getattr(operand1.__array__(), operation)(operand_data)
+
+                elif operation_name in ('multiply', 'divide'):
+                    new_unit = getattr(operand1.unit, operation)(operand2.unit)
+                    new_data = getattr(operand1.__array__(), operation)(operand2.data)
+
+            elif (self.unit is None) and (operand.unit is None):
+                new_unit = None
+                new_data = getattr(self.__array__(), operation)(operand.data)
+
+            else:
+                raise TypeError('Both units must be None or an actual Unit. For a dimensionless unit please use Unit(1)')
+
+
+            return self.__class__(new_data, unit=new_unit, wcs=self.wcs,
+                meta=merge_meta(self.meta, operand.meta, operation_name))
+
         else:
-            operand_data = operand.data
-        data = operation(self.data, operand_data)
-        result = self.__class__(data)  # in case we are dealing with an inherited type
+            raise TypeError('Cannot {operation_name} of type {self_type} with {operand_type}'.format(
+                operation_name=operation_name, self_type=type(self), operand_type=type(operand)))
 
-        if propagate_uncertainties is None:
-            result.uncertainty = None
-        elif self.uncertainty is None and operand.uncertainty is None:
-            result.uncertainty = None
-        elif self.uncertainty is None:
-            result.uncertainty = operand.uncertainty
-        elif operand.uncertainty is None:
-            result.uncertainty = self.uncertainty
-        else:  # both self and operand have uncertainties
-            if WARN_UNSUPPORTED_CORRELATED() and \
-               (not self.uncertainty.support_correlated or \
-               not operand.uncertainty.support_correlated):
-                log.info("The uncertainty classes used do not support the "
-                         "propagation of correlated errors, so uncertainties"
-                         " will be propagated assuming they are uncorrelated")
-            try:
-                method = getattr(self.uncertainty, propagate_uncertainties)
-                result.uncertainty = method(operand, result.data)
-            except IncompatibleUncertaintiesException:
-                raise IncompatibleUncertaintiesException(
-                    "Cannot propagate uncertainties of type {0:s} with uncertainties of "
-                    "type {1:s} for {2:s}".format(
-                        self.uncertainty.__class__.__name__,
-                        operand.uncertainty.__class__.__name__,
-                        name))
 
-        if self.mask is None and operand.mask is None:
-            result.mask = None
-        elif self.mask is None:
-            result.mask = operand.mask
-        elif operand.mask is None:
-            result.mask = self.mask
-        else:  # combine masks as for Numpy masked arrays
-            result.mask = self.mask & operand.mask
 
-        result.flags = None
-        result.wcs = self.wcs
-        result.meta = None
-        result.units = self.units
+    def __add__(self, other):
+        return self._arithmetic(other, 'add')
 
-        return result
+    def __radd__(self, other):
+        return self._arithmetic(other, 'add', switch_operands=True)
 
-    def add(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_add"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "addition", np.add)
-    add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
-    def subtract(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_subtract"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "subtraction", np.subtract)
-    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
+    def __sub__(self, other):
+        return self._arithmetic(other, 'subtract')
 
-    def multiply(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_multiply"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "multiplication", np.multiply)
-    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
+    def __rsub__(self, other):
+        return self._arithmetic(other, 'subtract', switch_operands=True)
 
-    def divide(self, operand, propagate_uncertainties=True):
-        if propagate_uncertainties:
-            propagate_uncertainties = "propagate_divide"
-        else:
-            propagate_uncertainties = None
-        return self._arithmetic(
-            operand, propagate_uncertainties, "division", np.divide)
-    divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
+
+    def __mul__(self, other):
+        return self._arithmetic(other, 'multiply')
+
+    def __rmul__(self, other):
+        return self._arithmetic(other, 'multiply', switch_operands=True)
+
+
+    def __div__(self, other):
+        return self._arithmetic(other, 'divide')
+
+    def __rdiv__(self, other):
+        return self._arithmetic(other, 'divide', switch_operands=True)
+
+
 
     def convert_units_to(self, unit):
         """
@@ -437,9 +546,9 @@ class NDData(object):
         UnitsException
             If units are inconsistent.
         """
-        if self.units is None:
+        if self.unit is None:
             raise ValueError("No units specified on source data")
-        data = self.units.to(unit, self.data)
+        data = self.unit.to(unit, self.data)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
         result.uncertainty = self.uncertainty
@@ -447,6 +556,6 @@ class NDData(object):
         result.flags = None
         result.wcs = self.wcs
         result.meta = self.meta
-        result.units = unit
+        result.unit = unit
 
         return result
