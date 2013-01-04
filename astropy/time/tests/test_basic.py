@@ -274,11 +274,11 @@ class TestSubFormat():
     def test_scale_input(self):
         """Test for issues related to scale input"""
         # Check case where required scale is defined by the TimeFormat.
-        # The first two should succeed, the third should fail
-        Time(100.0, format='cxcsec')
-        Time(100.0, format='cxcsec', scale='tai')
-        with pytest.raises(ScaleValueError):
-            Time(100.0, format='cxcsec', scale='utc')
+        # All three should work.
+        t = Time(100.0, format='cxcsec', scale='utc')
+        assert t.scale == 'utc'
+        t = Time(100.0, format='unix', scale='tai')
+        assert t.scale == 'tai'
 
         # Check that bad scale is caught when format is specified
         with pytest.raises(ScaleValueError):
@@ -291,6 +291,26 @@ class TestSubFormat():
             Time('2000:001:00:00:00')
         with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+    def test_epoch_times(self):
+        """Test time formats derived from EpochFromTime"""
+        t = Time(0.0, format='cxcsec', scale='tai')
+        assert t.tt.iso == '1998-01-01 00:00:00.000'
+
+        # Create new time object from this one and change scale, format
+        t2 = Time(t, scale='tt', format='iso')
+        assert t2.val == '1998-01-01 00:00:00.000'
+
+        # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
+        t = Time(378691266.184, format='cxcsec', scale='utc')
+        assert t.yday == '2010:001:00:00:00.000'
+
+        # Round trip through epoch time
+        for scale in ('utc', 'tt'):
+            t = Time('2000:001', scale=scale)
+            t2 = Time(t.unix, scale=scale, format='unix')
+            assert getattr(t2, scale).iso == '2000-01-01 00:00:00.000'
+
 
 class TestSofaErrors():
     """Test that sofa_time.pyx handles sofa status return values correctly"""
