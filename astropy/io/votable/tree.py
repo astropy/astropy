@@ -411,6 +411,17 @@ class SimpleElementWithContent(SimpleElement):
 
         self._content = None
 
+    def parse(self, iterator, config):
+        for start, tag, data, pos in iterator:
+            if start and tag != self._element_name:
+                self._add_unknown_tag(iterator, tag, data, config, pos)
+            elif tag == self._element_name:
+                if data:
+                    self.content = data
+                break
+
+        return self
+
     def to_xml(self, w, **kwargs):
         w.element(self._element_name, self._content,
                   attrib=w.object_attrs(self, self._attr_list))
@@ -2228,16 +2239,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 break
 
         for start, tag, data, pos in iterator:
-            if tag == 'INFO':
-                if start:
-                    if not config.get('version_1_2_or_later'):
-                        warn_or_raise(
-                            W26, W26, ('INFO', 'TABLE', '1.2'), config, pos)
-                    info = Info(config=config, pos=pos, **data)
-                    self.infos.append(info)
-                    info.parse(iterator, config)
-                else:
-                    info.content = data
+            if start and tag == 'INFO':
+                if not config.get('version_1_2_or_later'):
+                    warn_or_raise(
+                        W26, W26, ('INFO', 'TABLE', '1.2'), config, pos)
+                info = Info(config=config, pos=pos, **data)
+                self.infos.append(info)
+                info.parse(iterator, config)
             elif not start and tag == 'TABLE':
                 break
 
@@ -2866,8 +2874,6 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                 if self.description is not None:
                     warn_or_raise(W17, W17, 'RESOURCE', config, pos)
                 self.description = data or None
-            elif tag == 'INFO':
-                self.infos[-1].content = data
 
         del self._votable
 
@@ -3081,8 +3087,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 if self.description is not None:
                     warn_or_raise(W17, W17, 'VOTABLE', config, pos)
                 self.description = data or None
-            elif tag == 'INFO':
-                self.infos[-1].content = data
+
         return self
 
     def to_xml(self, fd, write_null_values=False,
