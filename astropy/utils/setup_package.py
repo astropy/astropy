@@ -1,5 +1,5 @@
 from distutils.core import Extension
-from os.path import dirname, join, relpath, exists
+from os.path import dirname, join, relpath
 
 ASTROPY_UTILS_ROOT = dirname(__file__)
 
