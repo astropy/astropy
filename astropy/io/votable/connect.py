@@ -5,9 +5,10 @@ from __future__ import print_function
 import os
 
 from . import parse, from_table
-from .tree import VOTableFile, Table
+from .tree import VOTableFile, Table as VOTable
 from ...utils import OrderedDict
-from ...table import io_registry
+from .. import registry as io_registry
+from ...table import Table
 
 
 def is_votable(origin, args, kwargs):
@@ -28,7 +29,7 @@ def is_votable(origin, args, kwargs):
     if origin == 'read':
         if isinstance(args[0], basestring) or hasattr(args[0], 'read'):
             return is_votable(args[0])
-        elif isinstance(args[0], (VOTableFile, Table)):
+        elif isinstance(args[0], (VOTableFile, VOTable)):
             return True
         else:
             return False
@@ -50,7 +51,7 @@ def read_table_votable(input, table_id=None):
     table_id : str, optional
         The ID of the table to read in.
     """
-    if not isinstance(input, (VOTableFile, Table)):
+    if not isinstance(input, (VOTableFile, VOTable)):
         input = parse(input, table_id=table_id)
 
     # Parse all table objects
@@ -76,7 +77,7 @@ def read_table_votable(input, table_id=None):
             table = tables[tables.keys()[0]]
         else:
             raise ValueError("No table found")
-    elif isinstance(input, Table):
+    elif isinstance(input, VOTable):
         table = input
 
     # Convert to an astropy.table.Table object
@@ -114,6 +115,6 @@ def write_table_votable(input, output, table_id=None, overwrite=False):
     table_file.to_xml(output)
 
 
-io_registry.register_reader('votable', read_table_votable)
-io_registry.register_writer('votable', write_table_votable)
-io_registry.register_identifier('votable', is_votable)
+io_registry.register_reader('votable', Table, read_table_votable)
+io_registry.register_writer('votable', Table, write_table_votable)
+io_registry.register_identifier('votable', Table, is_votable)
