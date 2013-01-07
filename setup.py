@@ -37,8 +37,6 @@ setup_helpers.adjust_compiler()
 
 if not release:
     version += get_git_devstr(False)
-generate_version_py('astropy', version, release,
-                    setup_helpers.get_debug_option())
 
 # Use the find_packages tool to locate all packages and modules
 packagenames = find_packages()
@@ -88,6 +86,11 @@ if setup_helpers.HAVE_SPHINX:
 # Set our custom command class mapping in setup_helpers, so that
 # setup_helpers.get_distutils_option will use the custom classes.
 setup_helpers.cmdclassd = cmdclassd
+
+# Generate/update the version.py module; this should be deferred until after
+# cmdclassd is populated so that setup_helpers.get_debug_option() will work
+generate_version_py('astropy', version, release,
+                    setup_helpers.get_debug_option())
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
