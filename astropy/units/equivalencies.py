@@ -36,6 +36,7 @@ def spectral_density(sunit, sfactor):
 
     flambda = cgs.erg / si.angstrom / si.cm ** 2 / si.s
     fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
+    nufnu = cgs.erg / si.cm ** 2 / si.s
 
     def converter(x):
         return x * (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
@@ -43,9 +44,16 @@ def spectral_density(sunit, sfactor):
     def iconverter(x):
         return x / (sunit.to(si.AA, sfactor, spectral()) ** 2 / c_Aps)
 
+    def converter_fnu_nufnu(x):
+        return x * sunit.to(si.Hz, sfactor, spectral())
+
+    def iconverter_fnu_nufnu(x):
+        return x / sunit.to(si.Hz, sfactor, spectral())
+
     return [
         (si.AA, fnu, converter, iconverter),
         (flambda, fnu, converter, iconverter),
         (si.AA, si.Hz, converter, iconverter),
-        (flambda, si.Hz, converter, iconverter)
+        (flambda, si.Hz, converter, iconverter),
+        (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         ]
