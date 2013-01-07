@@ -75,7 +75,7 @@ else:
     # Use a custom command to build a dmg (on MacOS X)
     cmdclassd['bdist_dmg'] = setup_helpers.bdist_dmg
 
-if setup_helpers.build_with_cython(release):
+if setup_helpers.should_build_with_cython(release):
     from Cython.Distutils import build_ext
     # Builds Cython->C if in dev mode and Cython is present
     cmdclassd['build_ext'] = setup_helpers.wrap_build_ext(build_ext)

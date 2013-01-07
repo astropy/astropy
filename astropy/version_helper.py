@@ -165,7 +165,7 @@ except ImportError:
     compiler = "unknown"
 
 try:
-    from astropy.utils._cython import cython_version
+    from astropy.cython_version import cython_version
 except ImportError:
     cython_version = "unknown"
 """[1:]

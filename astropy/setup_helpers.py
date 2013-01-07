@@ -192,11 +192,16 @@ AstropyInstall.__name__ = 'install'
 AstropyRegister.__name__ = 'register'
 
 
-def build_with_cython(release=None):
+_should_build_with_cython = None
+def should_build_with_cython(release=None):
     """Returns `True` if Cython should be used to build extension modules from
     pyx files.  If the ``release`` parameter is not specified an attempt is
     made to determine the release flag from `astropy.version`.
     """
+
+    global _should_build_with_cython
+    if _should_build_with_cython is not None:
+        return _should_build_with_cython
 
     if release is None:
         try:
@@ -209,8 +214,24 @@ def build_with_cython(release=None):
     except ImportError:
         cython_version = 'unknown'
 
-    return (HAVE_CYTHON and
-            (not release or cython_version != Cython.__version__))
+    use_cython = (HAVE_CYTHON and
+                  (not release or (release and cython_version == 'unknown')))
+
+    if use_cython and cython_version != Cython.__version__:
+        # Make sure that if building with a different Cython version that all
+        # generated C files get regenerated with the new Cython
+        sys.argv.extend(['build_ext', '--force'])
+
+        # Regenerate the appropriate cython_version.py
+        cython_py = os.path.join(os.path.dirname(__file__),
+                                 'cython_version.py')
+        with open(cython_py, 'w') as f:
+            f.write('# Generated file; do not modify\n')
+            f.write('cython_version = {0!r}\n'.format(Cython.__version__))
+
+    _should_build_with_cython = use_cython
+
+    return use_cython
 
 
 def wrap_build_ext(basecls=SetuptoolsBuildExt):
@@ -247,7 +268,7 @@ def wrap_build_ext(basecls=SetuptoolsBuildExt):
                     cfn = src
 
                 if os.path.isfile(pyxfn):
-                    if build_with_cython():
+                    if should_build_with_cython():
                         extension.sources[jdx] = pyxfn
                     else:
                         if os.path.isfile(cfn):
