@@ -297,6 +297,17 @@ file with just a single table::
   votable = from_table(table)
   writeto(votable, "output.xml")
 
+.. note::
+
+  By default, `to_table` will use the `ID` attribute from the files to
+  create the column names for the `Table` object.  However, it may be
+  that you want to use the `name` attributes instead.  For this, set
+  the `use_names_over_ids` keyword to `True`.  Note that since field
+  `names` are not guaranteed to be unique in the VOTable
+  specification, but column names are required to be unique in Numpy
+  structured arrays (and thus `astropy.table.Table` objects), the
+  names may be renamed by appending numbers to the end in some cases.
+
 Performance considerations
 --------------------------
 

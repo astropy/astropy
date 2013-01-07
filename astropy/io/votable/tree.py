@@ -8,6 +8,7 @@ from .util import IS_PY3K
 import codecs
 import io
 import re
+import sys
 if IS_PY3K:
     string_types = (str, bytes)
 else:
@@ -2623,9 +2624,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                 w._flush()
                 w.write(base64.b64encode(data.getvalue()).decode('ascii'))
 
-    def to_table(self):
+    def to_table(self, use_names_over_ids=False):
         """
         Convert this VO Table to an `astropy.table.Table` instance.
+
+        Parameters
+        ----------
+        use_names_over_ids : boolean, optional
+           When `True` use the `name` attributes of columns as the
+           names of columns in the `astropy.table.Table` instance.
+           Since names are not guaranteed to be unique, this may cause
+           some columns to be renamed by appending numbers to the end.
+           Otherwise (default), use the ID attributes as the column
+           names.
 
         .. warning::
 
@@ -2641,10 +2652,29 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             if val is not None:
                 meta[key] = val
 
+        if use_names_over_ids:
+            names = [field.name for field in self.fields]
+            unique_names = []
+            for i, name in enumerate(names):
+                new_name = name
+                i = 2
+                while new_name in unique_names:
+                    new_name = '{0}{1}'.format(name, i)
+                    i += 1
+                if sys.version_info[0] < 3:
+                    new_name = str(new_name, errors='replace')
+                unique_names.append(new_name)
+            array = self.array.copy()
+            array.dtype.names = unique_names
+            names = unique_names
+        else:
+            array = self.array
+            names = [field.ID for field in self.fields]
+
         table = Table(self.array, meta=meta)
 
-        for field in self.fields:
-            column = table[field.ID]
+        for name, field in zip(names, self.fields):
+            column = table[name]
             field.to_table_column(column)
 
         return table
