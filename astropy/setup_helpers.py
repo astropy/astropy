@@ -21,8 +21,8 @@ from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
 from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
-from distutils.command.install import install as DistutilsInstall
-from distutils.command.build_ext import build_ext as DistutilsBuildExt
+from setuptools.command.install import install as SetuptoolsInstall
+from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 
 from setuptools.command.register import register as SetuptoolsRegister
 
@@ -88,17 +88,17 @@ class AstropyBuild(DistutilsBuild):
         cls.custom_options.append(name)
 
 
-class AstropyInstall(DistutilsInstall):
+class AstropyInstall(SetuptoolsInstall):
     """
     A custom 'install' command that allows for adding extra install
     options.
     """
-    user_options = DistutilsInstall.user_options[:]
-    boolean_options = DistutilsInstall.boolean_options[:]
+    user_options = SetuptoolsInstall.user_options[:]
+    boolean_options = SetuptoolsInstall.boolean_options[:]
     custom_options = []
 
     def initialize_options(self):
-        DistutilsInstall.initialize_options(self)
+        SetuptoolsInstall.initialize_options(self)
         # Create member variables for all of the custom options that
         # were added.
         for option in self.custom_options:
@@ -192,7 +192,7 @@ AstropyInstall.__name__ = 'install'
 AstropyRegister.__name__ = 'register'
 
 
-def wrap_build_ext(basecls=DistutilsBuildExt):
+def wrap_build_ext(basecls=SetuptoolsBuildExt):
     """
     Creates a custom 'build_ext' command that allows for manipulating some of
     the C extension options at build time.  We use a function to build the
@@ -1194,7 +1194,9 @@ class bdist_dmg(Command):
         # at the start of the script, our pkg should be the only file there.
         files = os.listdir(pkg_dir)
         if len(files) != 1:
-            raise DistutilsFileError("Expected a single file in the {pkg_dir} directory".format(pkg_dir=pkg_dir))
+            raise DistutilsFileError(
+                "Expected a single file in the {pkg_dir} "
+                "directory".format(pkg_dir=pkg_dir))
         pkg_file = os.path.basename(files[0])
         pkg_name = os.path.splitext(pkg_file)[0]
 
