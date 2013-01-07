@@ -208,6 +208,16 @@ class TestQuantityOperations():
         assert int(q) == 1
         assert long(q) == 1L
 
+    def test_array_converters(self):
+
+        # Scalar quantity
+        q = u.Quantity(1.23, u.m)
+        assert np.all(np.array(q) == np.array([1.23]))
+
+        # Array quantity
+        q = u.Quantity([1., 2., 3.], u.m)
+        assert np.all(np.array(q) == np.array([1., 2., 3.]))
+
 
 def test_quantity_conversion():
     q1 = u.Quantity(0.1, unit=u.meter)
