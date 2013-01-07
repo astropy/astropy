@@ -12,6 +12,7 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
+from ..io.registry import DataIO
 from ..config import ConfigurationItem
 
 WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
@@ -22,7 +23,7 @@ WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
     )
 
 
-class NDData(object):
+class NDData(DataIO):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of additional
