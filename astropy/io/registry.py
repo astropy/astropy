@@ -27,6 +27,9 @@ def register_reader(data_format, data_class, function, force=False):
         Whether to override any existing function if already present.
     '''
 
+    if not issubclass(data_class, DataIO):
+        raise Exception("data_class should be a sub-class of DataIO")
+
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
@@ -49,6 +52,9 @@ def register_writer(data_format, data_class, function, force=False):
     force : bool
         Whether to override any existing function if already present.
     '''
+
+    if not issubclass(data_class, DataIO):
+        raise Exception("data_class should be a sub-class of DataIO")
 
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
@@ -87,6 +93,9 @@ def register_identifier(data_format, data_class, identifier, force=False):
     >>> register_identifier('ipac', lambda args, kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
     '''
 
+    if not issubclass(data_class, DataIO):
+        raise Exception("data_class should be a sub-class of DataIO")
+
     if not (data_format, data_class) in _identifiers or force:
         _identifiers[(data_format, data_class)] = identifier
     else:
@@ -119,7 +128,7 @@ def get_writer(data_format, data_class):
 
 
 class DataIO(object):
-    
+
     @classmethod
     def read(cls, *args, **kwargs):
         '''
