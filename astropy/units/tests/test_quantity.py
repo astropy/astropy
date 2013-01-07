@@ -218,6 +218,11 @@ def test_quantity_conversion():
     with pytest.raises(u.UnitsException):
         q1.to(u.zettastokes)
 
+def test_quantity_conversion_with_equiv():
+    q1 = u.Quantity(0.1, unit=u.meter)
+    q2 = q1.to(u.Hz, equivalencies=u.spectral())
+    assert_allclose(q2.value, 2997924580.0)
+
 def test_si():
     q1 = 10. * u.m * u.s**2 / (200. * u.ms)**2 # 250 meters
     assert q1.si.value == 250

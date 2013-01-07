@@ -71,7 +71,7 @@ class Quantity(object):
         self._value = _validate_value(value)
         self._unit = Unit(unit)
 
-    def to(self, unit):
+    def to(self, unit, equivalencies=[]):
         """ Returns a new `Quantity` object with the specified units.
 
         Parameters
@@ -79,8 +79,11 @@ class Quantity(object):
         unit : `~astropy.units.UnitBase` instance, str
             An object that represents the unit to convert to. Must be an `~astropy.units.UnitBase`
             object or a string parseable by the `units` package.
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
         """
-        new_val = self.unit.to(unit, self.value)
+        new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
         return Quantity(new_val, new_unit)
 
