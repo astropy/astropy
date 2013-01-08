@@ -27,6 +27,9 @@ MIRROR_URL = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
 ALLOWED_DATABASES = ['ned', 'simbad', 'vizier', 'all']
 NAME_RESOLVE_TIMEOUT = 30 # seconds
 
+class NameResolveException(Exception):
+    pass
+
 def get_icrs_coordinates(name, database='all'):
     """ Retrieve an ICRSCoordinates object by using an online name resolving
         service to retrieve coordinates for the specified name.
@@ -53,10 +56,8 @@ def get_icrs_coordinates(name, database='all'):
     try:
         # Retrieve ascii name resolve data from CDS
         resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT)
-    except urllib2.URLError:
-        raise urllib2.URLError("Unable to connect to name resolve web server. Check your internet connection, and try again.")
-    except httplib.BadStatusLine:
-        raise urllib2.URLError("Server didn't return any data. This could mean the object was not found in the specified database. URL: {0}".format(url))
+    except:
+        raise NameResolveException("Unable to retrieve coordinates for name '{0}'".format(name))
 
     resp_data = resp.read()
 
@@ -69,7 +70,7 @@ def get_icrs_coordinates(name, database='all'):
         else:
             err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
 
-        raise ValueError(err)
+        raise NameResolveException(err)
 
     ra,dec = matched.groups()
 
