@@ -165,11 +165,14 @@ class ConeSearchResults(object):
                 out_wt = cat_db['validate_warning_types']
                 out_ws = cat_db['validate_warnings']
 
-            # Warning types contains None if some other Exception was thrown
-            out_wt = np.array(out_wt, dtype='S5')
+            # Warning types contains None if some other Exception was thrown.
+            # There should be only 1 occurence for each warning type.
+            # But will put in a loop anyway, just in case.
+            while None in out_wt:
+                out_wt[out_wt.index(None)] = 'None'
 
             str_list += [cat, cat_db['url']]
-            if out_wt.size > 0:
+            if len(out_wt) > 0:
                 str_list.append(','.join(out_wt))
             if len(out_ws) > 0:
                 str_list.append('\n'.join(out_ws))
