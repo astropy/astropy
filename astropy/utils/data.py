@@ -17,7 +17,8 @@ from ..config.configuration import ConfigurationItem
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',
            'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
-           'clear_download_cache', 'CacheMissingWarning', 'download_file']
+           'clear_download_cache', 'CacheMissingWarning', 'download_file',
+           'download_files_in_parallel']
 
 DATAURL = ConfigurationItem(
     'dataurl', 'http://data.astropy.org/', 'URL for astropy remote data site.')
@@ -241,6 +242,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             fd.close()
         for fd in delete_fds:
             os.remove(fd.name)
+
 
 def get_file_contents(name_or_obj, encoding=None, cache=False):
     """
@@ -811,6 +813,48 @@ def download_file(remote_url, cache=False):
         raise e
 
     return local_path
+
+
+def _do_download_files_in_parallel(args):
+    orig_stdout = sys.stdout
+    sys.stdout = io.BytesIO()
+    try:
+        return download_file(*args)
+    finally:
+        sys.stdout = orig_stdout
+
+
+def download_files_in_parallel(urls, cache=False):
+    """
+    Downloads multiple files in parallel from the given URLs.  Blocks until
+    all files have downloaded.  The result is a list of local file paths
+    corresponding to the given urls.
+
+    Parameters
+    ----------
+    urls : list of str
+        The URLs to retrieve.
+
+    cache : bool, optional
+        Whether to use the cache
+
+    Returns
+    -------
+    paths : list of str
+        The local file paths corresponding to the downloaded URLs.
+    """
+    from .console import ProgressBar
+
+    # Combine duplicate URLs
+    combined_urls = list(set(urls))
+    combined_paths = ProgressBar.map(
+        _do_download_files_in_parallel,
+        [(x, cache) for x in combined_urls],
+        multiprocess=True)
+    paths = []
+    for url in urls:
+        paths.append(combined_paths[combined_urls.index(url)])
+    return paths
 
 
 # This is used by download_file and _deltemps to determine the files to delete

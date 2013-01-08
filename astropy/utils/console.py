@@ -359,6 +359,8 @@ class ProgressBar:
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
         """
+        results = []
+
         with cls(len(items), file=file) as bar:
             step_size = max(200, bar._bar_length)
             steps = max(int(float(len(items)) / step_size), 1)
@@ -370,9 +372,12 @@ class ProgressBar:
             else:
                 import multiprocessing
                 p = multiprocessing.Pool()
-                for i, _ in enumerate(
+                for i, result in enumerate(
                     p.imap_unordered(function, items, steps)):
                     bar.update(i)
+                    results.append(result)
+
+        return results
 
     @classmethod
     def iterate(cls, items, file=sys.stdout):
