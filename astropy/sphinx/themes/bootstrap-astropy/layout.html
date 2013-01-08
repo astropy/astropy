@@ -64,9 +64,10 @@
 {%- block footer %}
 <footer class="footer">
   <p class="pull-right">
-    {% block sidebarsourcelink %}
-    {% include "sourcelink.html" %}
-    {% endblock %} &nbsp;
+    {%- if show_source and has_source and sourcename %}
+    <a href="{{ pathto('_sources/' + sourcename, true)|e }}"
+       rel="nofollow">{{ _('Page Source') }}</a>
+    {%- endif %} &nbsp;
     <a href="#">Back to top</a></p>
   <p>
     {%- if show_copyright %}
