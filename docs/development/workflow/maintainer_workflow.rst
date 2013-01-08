@@ -102,4 +102,43 @@ Push to trunk
 This pushes the ``my-new-feature`` branch in this repository to the ``master``
 branch in the ``upstream-rw`` repository.
 
+***************************
+Using Milestones and Labels
+***************************
+
+These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/IPython-on-GitHub>`_
+followed by IPython:
+
+ * 100% of confirmed issues and new features should have a milestone
+ * Only the following criteria should result in an issue being closed without a milestone:
+   * Not actually an issue (user error, etc.)
+   * Duplicate of an existing issue
+   * A pull request superceded by a new pull request providing an alternate implementation
+ * Open issues should only lack a milestone if:
+   * More clarification is required
+   * Which milestone it belongs in requires some discussion
+ * Corollary: When an issue is closed without a milestone that means that the issue will not be fixed, or that it was
+   not a real issue at all.
+ * In general there should be the following open milestones:
+   * The next bug fix releases for any still-supported version lines; for example if 0.4 is in development and
+     0.2.x and 0.3.x are still supported there should be milestones for the next 0.2.x and 0.3.x releases.
+   * The next X.Y release, ie. the next minor release; this is generally the next release that all development in
+     master is aimed toward.
+   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
+     issues that are important, but that we know won't be resolved in the next release.
+   * Future--this is for all issues that require attention at some point but for which no immediate solution is in
+     sight.
+ * Bug fix release milestones should only be used for deferring issues that won't be fixed in the next minor release,
+   or for issues is previous releases that no longer apply to the mainline.
+ * When in doubt about which milestone to use for an issue, use the next minor release--it can always be moved once
+   it's been more closely reviewed prior to release.
+ * Active milestones associated with a specific release (eg. v0.3.0) should contain at least one issue with the
+   'release' label representing the actual task for releasing that version (this also works around the GitHub annoyance
+   that milestones without any open issues are automatically closed).
+ * Issues that require fixing in the mainline, but that also are confirmed to apply to supported stable version lines
+   should be marked with one or more `backport-*` labels for each v0.X.Y branch that has the issue.
+   * In some cases it may require extra work beyond a simple merge to port bug fixes to older lines of development; if
+     such additional work is required it is not a bad idea to open a "Backport #nnn to v0.X.Y" issue in the appropriate
+     v0.X.Y milestone.
+
 .. include:: links.inc
