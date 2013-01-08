@@ -37,6 +37,10 @@ Mpc_km = u.Mpc.to(u.km)
 # framework, the days would be 365.242... days.
 Gyr = 1e9 * 365.25 * 24 * 60 * 60
 
+arcsec_in_radians = 1 / 3600. * pi / 180
+arcmin_in_radians = 1 / 60. * pi / 180
+
+
 #Radiation parameter over c^2
 a_B_c2 = 4 * cgs.sigma_sb.value / cgs.c.value**3
 
@@ -881,6 +885,80 @@ class FLRW(Cosmology):
             return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsinh(term3))
         else:
             return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsin(term3))
+
+    def kpc_comoving_per_arcmin(self, z):
+        """ Separation in transverse comoving kpc corresponding to an
+        arcminute at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          The distance in comoving kpc corresponding to an arcmin at each
+          input redshift.
+        """
+        return self.comoving_transverse_distance(z) * 1.e3 * arcmin_in_radians
+
+
+    def kpc_proper_per_arcmin(self, z):
+        """ Separation in transverse proper kpc corresponding to an
+        arcminute at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          The distance in proper kpc corresponding to an arcmin at each
+          input redshift.
+        """
+        return self.angular_diameter_distance(z) * 1.e3 * arcmin_in_radians
+
+
+    def arcsec_per_kpc_comoving(self, z):
+        """ Angular separation in arcsec corresponding to a comoving kpc
+        at redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        theta : ndarray, or float if input scalar
+          The angular separation in arcsec corresponding to a comoving kpc
+          at each input redshift.
+        """
+        return 1 / (self.comoving_transverse_distance(z) *
+                    1.e3 * arcsec_in_radians)
+
+
+    def arcsec_per_kpc_proper(self, z):
+        """ Angular separation in arcsec corresponding to a proper kpc at
+        redshift `z`.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        theta : ndarray, or float if input scalar
+          The angular separation in arcsec corresponding to a proper kpc
+          at each input redshift.
+        """
+        return 1 / (self.angular_diameter_distance(z) * 1.e3 *
+                    arcsec_in_radians)
+
 
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.

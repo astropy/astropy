@@ -3,11 +3,6 @@
 Convenience functions for `astropy.cosmology`.
 """
 from .core import get_current as _get_current
-from math import pi as _pi
-
-_arcsec_in_radians = 1 / 3600. * _pi / 180
-_arcmin_in_radians = 1 / 60. * _pi / 180
-
 
 def kpc_comoving_per_arcmin(z, cosmo=None):
     """ Separation in transverse comoving kpc corresponding to an
@@ -24,11 +19,9 @@ def kpc_comoving_per_arcmin(z, cosmo=None):
       The distance in comoving kpc corresponding to an arcmin at each
       input redshift.
     """
-
-
     if cosmo is None:
         cosmo = _get_current()
-    return cosmo.comoving_transverse_distance(z) * 1.e3 * _arcmin_in_radians
+    return cosmo.kpc_comoving_per_arcmin(z)
 
 
 def kpc_proper_per_arcmin(z, cosmo=None):
@@ -48,7 +41,7 @@ def kpc_proper_per_arcmin(z, cosmo=None):
     """
     if cosmo is None:
         cosmo = _get_current()
-    return cosmo.angular_diameter_distance(z) * 1.e3 * _arcmin_in_radians
+    return cosmo.kpc_proper_per_arcmin(z)
 
 
 def arcsec_per_kpc_comoving(z, cosmo=None):
@@ -68,8 +61,7 @@ def arcsec_per_kpc_comoving(z, cosmo=None):
     """
     if cosmo is None:
         cosmo = _get_current()
-    return 1 / (cosmo.comoving_transverse_distance(z) *
-                1.e3 * _arcsec_in_radians)
+    return cosmo.arcsec_per_kpc_comoving(z)
 
 
 def arcsec_per_kpc_proper(z, cosmo=None):
@@ -89,7 +81,7 @@ def arcsec_per_kpc_proper(z, cosmo=None):
     """
     if cosmo is None:
         cosmo = _get_current()
-    return 1 / (cosmo.angular_diameter_distance(z) * 1.e3 * _arcsec_in_radians)
+    return cosmo.arcsec_per_kpc_proper(z)
 
 
 def distmod(z, cosmo=None):
