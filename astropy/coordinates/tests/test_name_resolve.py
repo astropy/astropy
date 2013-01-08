@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 # Astropy
-from ..name_resolve import get_icrs_coordinates
+from ..name_resolve import get_icrs_coordinates, NameResolveError
 from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, GalacticCoordinates
 
 def test_names():
@@ -22,7 +22,7 @@ def test_names():
     if urllib.urlopen("http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame").getcode() != 200:
     	pytest.skip("SESAME appears to be down, skipping test_name_resolve.py:test_names()...")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(NameResolveError):
         get_icrs_coordinates("m87h34hhh")
 
     #for name in ["ngc 3642", "m42", "castor", "pollux"]:

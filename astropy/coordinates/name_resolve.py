@@ -27,7 +27,7 @@ MIRROR_URL = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
 ALLOWED_DATABASES = ['ned', 'simbad', 'vizier', 'all']
 NAME_RESOLVE_TIMEOUT = 30 # seconds
 
-class NameResolveException(Exception):
+class NameResolveError(Exception):
     pass
 
 def get_icrs_coordinates(name, database='all'):
@@ -57,7 +57,7 @@ def get_icrs_coordinates(name, database='all'):
         # Retrieve ascii name resolve data from CDS
         resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT)
     except:
-        raise NameResolveException("Unable to retrieve coordinates for name '{0}'".format(name))
+        raise NameResolveError("Unable to retrieve coordinates for name '{0}'".format(name))
 
     resp_data = resp.read()
 
@@ -70,7 +70,7 @@ def get_icrs_coordinates(name, database='all'):
         else:
             err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
 
-        raise NameResolveException(err)
+        raise NameResolveError(err)
 
     ra,dec = matched.groups()
 
