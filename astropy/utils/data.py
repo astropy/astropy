@@ -30,7 +30,7 @@ DOWNLOAD_CACHE_BLOCK_SIZE = ConfigurationItem(
     'download_block_size', 2 ** 16,  # 64K
     'Number of bytes of remote data to download per step.')
 DOWNLOAD_CACHE_LOCK_ATTEMPTS = ConfigurationItem(
-    'download_cache_lock_attempts', 3, 'Number of times to try to get the lock ' +
+    'download_cache_lock_attempts', 5, 'Number of times to try to get the lock ' +
     'while accessing the data cache before giving up.')
 DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = ConfigurationItem(
     'delete_temporary_downloads_at_exit', True, 'If True, temporary download' +
@@ -77,7 +77,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     This supports passing filenames, URLs, and readable file-like
     objects, any of which can be compressed in gzip or bzip2.
 
-
     Notes
     -----
 
@@ -111,7 +110,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
         objects, decoded from binary using the given encoding.
 
     cache : bool, optional
-        Whether to cache the contents of remote URLs
+        Whether to cache the contents of remote URLs.
     """
     import tempfile
 
@@ -366,9 +365,10 @@ def get_pkg_data_filename(data_name):
     Retrieves a data file from the standard locations for the package and
     provides a local filename for the data.
 
-    This function is similar to `get_pkg_data_fileobj` but returns the file *name*
-    instead of a readable file-like object.  This means that this function must
-    always cache remote files locally, unlike `get_pkg_data_fileobj`.
+    This function is similar to `get_pkg_data_fileobj` but returns the
+    file *name* instead of a readable file-like object.  This means
+    that this function must always cache remote files locally, unlike
+    `get_pkg_data_fileobj`.
 
     Parameters
     ----------
@@ -741,7 +741,6 @@ def download_file(remote_url, cache=False):
     missing_cache = False
 
     if cache:
-
         try:
             dldir, urlmapfn = _get_download_cache_locs()
         except (IOError, OSError) as e:
@@ -750,17 +749,14 @@ def download_file(remote_url, cache=False):
             warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
             cache = False
             missing_cache = True  # indicates that the cache is missing to raise a warning later
-
-        if not missing_cache:
-            _acquire_download_cache_lock()
     try:
         if cache:
+            # We don't need to acquire the lock here, since we are only reading
             with _open_shelve(urlmapfn, True) as url2hash:
                 if str(remote_url) in url2hash:
                     return url2hash[str(remote_url)]
 
         with closing(urllib2.urlopen(remote_url, timeout=REMOTE_TIMEOUT())) as remote:
-
             #keep a hash to rename the local file to the hashed name
             hash = hashlib.md5()
 
@@ -786,10 +782,19 @@ def download_file(remote_url, cache=False):
                         block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
 
         if cache:
-            with _open_shelve(urlmapfn, True) as url2hash:
-                local_path = os.path.join(dldir, hash.hexdigest())
-                move(f.name, local_path)
-                url2hash[str(remote_url)] = local_path
+            _acquire_download_cache_lock()
+            try:
+                with _open_shelve(urlmapfn, True) as url2hash:
+                    # We check now to see if another process has
+                    # inadvertently written the file underneath us
+                    # already
+                    if str(remote_url) in url2hash:
+                        return url2hash[str(remote_url)]
+                    local_path = os.path.join(dldir, hash.hexdigest())
+                    move(f.name, local_path)
+                    url2hash[str(remote_url)] = local_path
+            finally:
+                _release_download_cache_lock()
         else:
             local_path = f.name
             if missing_cache:
@@ -799,14 +804,11 @@ def download_file(remote_url, cache=False):
             if DELETE_TEMPORARY_DOWNLOADS_AT_EXIT():
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         if e.reason.errno == 8:
             e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
             e.reason.args = (e.reason.errno, e.reason.strerror)
         raise e
-    finally:
-        if cache and not missing_cache:
-            _release_download_cache_lock()
 
     return local_path
 
@@ -858,7 +860,6 @@ def clear_download_cache(hashorurl=None):
 
     _acquire_download_cache_lock()
     try:
-
         if hashorurl is None:
             if exists(dldir):
                 rmtree(dldir)
@@ -892,7 +893,8 @@ def clear_download_cache(hashorurl=None):
 
 
 def _get_download_cache_locs():
-    """ Finds the path to the data cache directory.
+    """ Finds the path to the data cache directory and makes them if
+    they don't exist.
 
     Returns
     -------
@@ -907,8 +909,13 @@ def _get_download_cache_locs():
 
     datadir = join(get_cache_dir(), 'download')
     shelveloc = join(get_cache_dir(), 'download_urlmap')
+
     if not exists(datadir):
-        mkdir(datadir)
+        try:
+            mkdir(datadir)
+        except OSError as e:
+            if not exists(datadir):
+                raise
     elif not isdir(datadir):
         msg = 'Data cache directory {0} is not a directory'
         raise IOError(msg.format(datadir))
