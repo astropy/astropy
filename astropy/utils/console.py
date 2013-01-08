@@ -7,7 +7,9 @@ from __future__ import division, print_function
 
 import re
 import math
+import multiprocessing
 import sys
+import threading
 import time
 
 try:
@@ -44,6 +46,10 @@ def isatty(file):
     but some user-defined types may not, so this assumes those are not
     ttys.
     """
+    if (multiprocessing.current_process().name != 'MainProcess' or
+        threading.current_thread().getName() != 'MainThread'):
+        return False
+
     if (OutStream is not None and
         isinstance(file, OutStream) and
         file.name == 'stdout'):
