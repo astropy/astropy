@@ -351,7 +351,7 @@ class Quantity(object):
         else:
             return len(self.value)
 
-    #Numerical types
+    # Numerical types
     def __float__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
@@ -366,6 +366,10 @@ class Quantity(object):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
         return long(self.value)
+
+    # Array types
+    def __array__(self):
+        return np.array(self.value)
 
     # Display
     # TODO: we may want to add a hook for dimensionless quantities?
