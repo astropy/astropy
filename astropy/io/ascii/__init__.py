@@ -55,6 +55,4 @@ from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthHeader, FixedWidthData)
 from .ui import (set_guess, get_reader, read, get_writer, write)
 
-from .version import version as __version__
-
 from . import connect
