@@ -214,8 +214,12 @@ def should_build_with_cython(release=None):
     except ImportError:
         cython_version = 'unknown'
 
-    use_cython = (HAVE_CYTHON and
-                  (not release or (release and cython_version == 'unknown')))
+    # Only build with Cython if, of course, Cython is installed, we're in a
+    # development version (i.e. not release) or the Cython-generated source
+    # files haven't been created yet (cython_version == 'unknown'). The latter
+    # case can happen even when release is True if checking out a release tag
+    # from the repository
+    use_cython = (HAVE_CYTHON and (not release or cython_version == 'unknown'))
 
     if use_cython and cython_version != Cython.__version__:
         # Make sure that if building with a different Cython version that all
@@ -229,6 +233,8 @@ def should_build_with_cython(release=None):
             f.write('# Generated file; do not modify\n')
             f.write('cython_version = {0!r}\n'.format(Cython.__version__))
 
+    # Cache result so that repeated calls don't repeat any possible side
+    # effects
     _should_build_with_cython = use_cython
 
     return use_cython
