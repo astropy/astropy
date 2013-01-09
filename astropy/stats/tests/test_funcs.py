@@ -50,6 +50,57 @@ def test_sigma_clip():
         #now just make sure the iters=None method works at all.
         maskedarr = funcs.sigma_clip(randvar, 3, None, maout=True)
 
+def test_median_absolute_deviation():
+    from numpy.random import randn
+
+    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
+    #random number that breaks one of the tests
+
+    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+
+        #test that it runs
+        randvar = randn(10000)
+        mad = funcs.median_absolute_deviation(randvar)
+
+        #test whether an array is returned if an axis is used
+        randvar=randvar.reshape((10,1000))
+        mad = funcs.median_absolute_deviation(randvar, axis=1)
+        assert len(mad) == 10
+        assert mad.size < randvar.size
+
+def test_biweight_locater():
+    from numpy.random import randn
+
+    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
+    #random number that breaks one of the tests
+
+    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+
+        #test that it runs
+        randvar = randn(10000)
+        cbl = funcs.biweight_locater(randvar)
+
+        assert abs(cbl-0)<1e-2
+
+
+def test_biweight_scale():
+    from numpy.random import randn
+
+    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
+    #random number that breaks one of the tests
+
+    with NumpyRNGContext(12345):  # Amazing, I've got the same combination on my luggage!
+
+        #test that it runs
+        randvar = randn(10000)
+        scl = funcs.biweight_scale(randvar)
+
+        assert abs(scl-1) < 1e-2
+
+
+
+
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
