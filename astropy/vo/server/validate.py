@@ -107,7 +107,7 @@ from ...io.votable.validator import html, result
 from ...logger import log
 from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
-from ...utils.misc import NumpyScalarOrSetEncoder
+from ...utils.misc import NumpyOrSetEncoder
 
 
 __all__ = ['check_conesearch_sites']
@@ -374,9 +374,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     all_urls = key_lookup_by_url.keys()
 
     if multiproc:
-        import multiprocessing
+        from multiprocessing import Pool
         mp_list = []
-        pool = multiprocessing.Pool()
+        pool = Pool()
         mp_proc = pool.map_async(_do_validation, all_urls,
                                  callback=mp_list.append)
         mp_proc.wait()
@@ -402,7 +402,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     if multiproc:
         html_subindex_args = [(html_subset, uniq_rows)
                               for html_subset in html_subsets]
-        pool = multiprocessing.Pool()
         mp_proc = pool.map_async(_html_subindex, html_subindex_args)
         mp_proc.wait()
 
@@ -419,7 +418,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         if verbose:
             log.info('{0}: {1} catalog(s)'.format(key, n[key]))
         with open(db_file[key], 'w') as f_json:
-            f_json.write(json.dumps(js_tree[key], cls=NumpyScalarOrSetEncoder,
+            f_json.write(json.dumps(js_tree[key], cls=NumpyOrSetEncoder,
                                     sort_keys=True, indent=4))
 
     # Change back to default timeout
