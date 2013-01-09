@@ -105,6 +105,39 @@ In detail
 
    Your fork is now set up correctly, and you are ready to hack away.
 
+Installing Astropy in develop mode
+==================================
+
+Astropy is designed so that the ``astropy`` package can generally be used
+directly out of the source tree by using ``import astropy`` when running Python
+in the source of an Astropy repository clone.  There are some caveats, however:
+
+1. It is necessary to build C extensions in "inline" mode which copies the
+   built shared libraries into the source tree::
+
+       ./setup.py build_ext --inline
+
+2. If you change directories from the root of the repository clone the
+   ``astropy`` package will no longer be importable, and other features may not
+   work properly.
+
+A more robust solution is to use the ``./setup.py develop`` command.  This
+semi-permanently installs Astropy on your path in such a way that ``astropy``
+is always imported from your repository clone regardless of your working
+directory.  This way any edits you make to the code in your repository will
+always be immediately available next time you start a Python interpreter and
+``import astropy``.
+
+Develop mode can be easily disabled again by running
+``./setup.py develop -u``.
+
+.. note::
+
+    When switching branches it is not *generally* required to re-run
+    ``./setup.py develop``, though it may be necessary to run
+    ``./setup.py build_ext --inline`` again in case you think there might be
+    differences in the C extensions between the two branches.
+
 Workflow summary
 ================
 
