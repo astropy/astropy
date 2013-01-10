@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+:tocdepth: 2
+
 ###################################
 Welcome to Astropy's Documentation!
 ###################################
@@ -21,6 +23,7 @@ User Documentation
 
 :ref:`whatsnew-0.2`
 ===================
+
 
 .. toctree::
    :maxdepth: 1
@@ -46,6 +49,7 @@ User Documentation
    stability
    whatsnew/index
    creditsandlicense
+
 
 ***********************
 Getting help
