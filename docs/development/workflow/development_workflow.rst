@@ -105,7 +105,7 @@ In detail
 
    Your fork is now set up correctly, and you are ready to hack away.
 
-.. develop-mode::
+.. _develop-mode:
 
 Installing Astropy in develop mode
 ==================================
@@ -142,7 +142,7 @@ Develop mode can be easily disabled again by running
 
 Another useful technique to avoid having to switch develop mode on and off
 without disrupting production use of Astropy is to use virtualenv as explained
-:ref:`below<virtualenv>`.
+:ref:`below<using-virtualenv>`.
 
 Workflow summary
 ================
@@ -321,7 +321,7 @@ When you are ready to ask for someone to review your code and consider a merge:
    pull request message.  This is still a good way of getting some preliminary
    code review.
 
-.. _virtualenv:
+.. _using-virtualenv:
 
 Using virtualenv
 ================
@@ -398,6 +398,36 @@ default Python version:
    will automatically install into your virtualenv instead of the system
    site-packages.  Consider installing Astropy in develop mode into the
    virtualenv as described :ref:`above<develop-mode>`.
+
+virtualenvwrapper
+-----------------
+
+`virtualenvwrapper`_ is a set of enhancements to virtualenv mostly implemented
+through simple shell scripts and aliases.  It automatically organizes all your
+virtualenvs under a single directory (as suggested above)--to create a new
+virtualenv you can just use the `mkvirtualenv <env_name>` command and it will
+automatically create a new virtualenv of that name in the default location.
+
+To activate a virtualenv with virtualenvwrapper you don't need to think about
+the environment's location of the filesystem or which activate script to run.
+Simply run `workon <env_name>`.  You can also list all virtualenvs with
+`lsvirtualenv`.  That just scratches the surface of the goodies included with
+virtualenvwrapper.
+
+The one caveat is that it does not support csh-like shells.  For csh-like
+shells there exists `virtualenvwrapper-csh`_ which implements most of the
+virtualenvwrapper functionality and is otherwise compatible with the original.
+There also exists `virtualenvwrapper-win`_ which ports virtualenvwrapper to
+Windows batch scripts.
+
+venv
+----
+
+virtualenv is so commonly used in the Python development community that its
+functionality was finally added to the standard library in Python 3.3 under
+the name `venv`_.  venv has not gained wide use yet and is not explicitly
+supported by tools like virtualenvwrapper, but it is expected to see wider
+adoption in the future.
 
 Some other things you might want to do
 ======================================

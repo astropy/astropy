@@ -458,5 +458,3 @@ upcoming standard library `packaging` module, derived from the
 `distutils2 <http://packages.python.org/Distutils2/library/distutils2.html>`_
 project.  Until it's working right, however, we will be using `distribute` and
 `distutils`.
-
-.. include:: links.inc
