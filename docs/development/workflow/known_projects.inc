@@ -39,3 +39,6 @@
 .. _marsbar: http://marsbar.sourceforge.net
 .. _`marsbar github`: http://github.com/matthew-brett/marsbar
 .. _`MarsBaR mailing list`: https://lists.sourceforge.net/lists/listinfo/marsbar-users
+
+.. virtualenv
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
