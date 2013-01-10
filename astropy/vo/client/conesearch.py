@@ -114,7 +114,7 @@ caution:
 Find catalog names containing 'usno-a' and sort them
 alphabetically:
 
->>> usnoa_cats = conesearch.list_catalogs(match_string='usno-a', sort=True)
+>>> usnoa_cats = conesearch.list_catalogs(pattern='usno-a', sort=True)
 >>> print(usnoa_cats)
 [u'USNO-A V2.0, A Catalog of Astrometric Standards 1', u'USNO-A2.0 1']
 

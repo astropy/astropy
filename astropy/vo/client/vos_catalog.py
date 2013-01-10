@@ -25,7 +25,7 @@ For more cone search examples, see `astropy.vo.client.conesearch`:
 
 Find catalog names containing 'usno*a2':
 
->>> cat_names = my_db.list_catalogs(match_string='usno*a2', sort=True)
+>>> cat_names = my_db.list_catalogs(pattern='usno*a2', sort=True)
 
 Get information for first catalog from above. Catalog
 fields may vary:
@@ -194,13 +194,13 @@ class VOSDatabase(VOSCatalog):
             raise VOSError("No catalog with URL '{0}' found.".format(url))
         return out_cat
 
-    def list_catalogs(self, match_string=None, sort=False):
+    def list_catalogs(self, pattern=None, sort=False):
         """
         List of catalog names.
 
         Parameters
         ----------
-        match_string : str or `None`
+        pattern : str or `None`
             If given string is anywhere in a catalog name, it is
             considered a matching catalog. It accepts patterns as
             in :mod:`fnmatch` and is case-insensitive.
@@ -213,12 +213,12 @@ class VOSDatabase(VOSCatalog):
         """
         all_catalogs = self._catalogs.keys()
 
-        if match_string is None or len(all_catalogs) == 0:
+        if pattern is None or len(all_catalogs) == 0:
             out_arr = all_catalogs
         else:
             import fnmatch
             import re
-            pattern = re.compile(fnmatch.translate('*' + match_string + '*'),
+            pattern = re.compile(fnmatch.translate('*' + pattern + '*'),
                                  re.IGNORECASE)
             out_arr = [s for s in all_catalogs if pattern.match(s)]
 
