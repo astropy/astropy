@@ -399,6 +399,52 @@ default Python version:
    site-packages.  Consider installing Astropy in develop mode into the
    virtualenv as described :ref:`above<develop-mode>`.
 
+Using virtualenv with IPython
+-----------------------------
+
+Each virtualenv has its own ``bin/``, and as IPython is written in pure Python
+one can always install IPython directly into a virtualenv.  However, if you
+would rather not have to install IPython every time you create a virtualenv, it
+also suffices to make IPython virtualenv-aware.
+
+1. Check to see if you already have an IPython profile in
+   ``~/.ipython/profile_default/``; if not, create one::
+
+       $ ipython profile create
+
+2. Edit ``~/.ipython/profile_default/ipython_config.py`` and add the
+   following to the end::
+
+       import os
+
+       execfile(os.path.join(os.environ['HOME'], '.ipython', 'virtualenv.py'))
+
+3. Finally, create the ``~/.ipython/virtualenv.py`` module::
+
+    import site
+    from os import environ
+    from os.path import join
+    from sys import version_info
+
+    if 'VIRTUAL_ENV' in environ:
+        virtual_env = join(environ.get('VIRTUAL_ENV'),
+                           'lib',
+                           'python%d.%d' % version_info[:2],
+                           'site-packages')
+        site.addsitedir(virtual_env)
+        print 'VIRTUAL_ENV ->', virtual_env
+        del virtual_env
+    del site, environ, join, version_info
+
+Now IPython will import all packages from your virtualenv where applicable.
+
+.. note::
+
+    This is not magic. If you switch to a virtualenv that uses a different
+    Python version from your main IPython installation this won't help you--
+    instead use the appropriate IPython installation for the Python version
+    in question.
+
 virtualenvwrapper
 -----------------
 
