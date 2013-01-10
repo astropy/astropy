@@ -102,7 +102,8 @@ extensions = [
     'astropy.sphinx.ext.numpydoc',
     'astropy.sphinx.ext.astropyautosummary',
     'astropy.sphinx.ext.automodsumm',
-    'astropy.sphinx.ext.automodapi'
+    'astropy.sphinx.ext.automodapi',
+    'astropy.sphinx.ext.tocdepthfix'
     ]
 
 try:
