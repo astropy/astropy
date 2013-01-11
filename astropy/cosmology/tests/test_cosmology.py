@@ -340,6 +340,8 @@ def test_current():
     assert cosmo == core.WMAP7
     core.set_current('WMAP5')
     assert core.get_current() == core.WMAP5
+    core.set_current('WMAP9')
+    assert core.get_current() == core.WMAP9
     core.set_current(cosmo)
     assert core.get_current() == cosmo
 

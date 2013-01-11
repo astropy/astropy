@@ -30,7 +30,7 @@ the number of transverse proper kpc corresponding to an arcminute at z=3:
 All the functions available are listed in the `Reference/API`_
 section. These will use the "current" cosmology to calculate the
 values (see `The Current Cosmology`_ section below for more
-details). If you haven't set this explicitly, they will use the 7-year
+details). If you haven't set this explicitly, they will use the 9-year
 WMAP cosmological parameters and print a warning message.
 
 There are also several standard cosmologies already defined. These are
@@ -162,6 +162,12 @@ message:
   WARNING: No default cosmology has been specified, using 7-year WMAP.
   [astropy.cosmology.core]
   7.787767002228743
+
+The 9-year WMAP cosmology is also available
+
+  >>> from astropy.cosmology import WMAP9   # WMAP 9-year
+  >>> WMAP9.lookback_time(2)                # lookback time in Gyr at z=2
+  10.444367272683863
 
 .. note::
 
