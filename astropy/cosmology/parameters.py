@@ -37,11 +37,11 @@ Both these cosmologies are flat (omega matter + omega dark energy = 1)
 and assume dark enegy is the cosmological constant (w0 = -1, wa = 0).
 """
 
-# Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4)
+# Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4, last column)
 WMAP9 = dict(
-    Oc0 = 0.23995,
-    Ob0 = 0.04626,
-    Om0 = 0.28621,
+    Oc0 = 0.2402,
+    Ob0 = 0.04628,
+    Om0 = 0.2865,
     H0 = 69.32,
     n = 0.9608,
     sigma8 = 0.820,
