@@ -1,4 +1,4 @@
-0.2 (unreleased)
+0.3 (unreleased)
 ----------------
 
 - A configuration file with all options set to their defaults is now generated 
