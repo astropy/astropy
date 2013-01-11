@@ -228,7 +228,7 @@ def test_log_to_list(level):
 
     with log.log_to_list() as log_list:
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
         log.info("Information message")
         log.debug("Debug message")
 
@@ -268,7 +268,7 @@ def test_log_to_list_level():
 
     with log.log_to_list(filter_level='ERROR') as log_list:
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     assert len(log_list) == 1 and log_list[0].levelname == 'ERROR'
 
@@ -277,7 +277,7 @@ def test_log_to_list_origin1():
 
     with log.log_to_list(filter_origin='astropy.tests') as log_list:
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     assert len(log_list) == 2
 
@@ -286,7 +286,7 @@ def test_log_to_list_origin2():
 
     with log.log_to_list(filter_origin='astropy.wcs') as log_list:
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     assert len(log_list) == 0
 
@@ -303,7 +303,7 @@ def test_log_to_file(tmpdir, level):
 
     with log.log_to_file(log_path):
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
         log.info("Information message")
         log.debug("Debug message")
 
@@ -345,7 +345,7 @@ def test_log_to_file_level(tmpdir):
 
     with log.log_to_file(log_path, filter_level='ERROR'):
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     log_file.close()
 
@@ -364,7 +364,7 @@ def test_log_to_file_origin1(tmpdir):
 
     with log.log_to_file(log_path, filter_origin='astropy.tests'):
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     log_file.close()
 
@@ -383,7 +383,7 @@ def test_log_to_file_origin2(tmpdir):
 
     with log.log_to_file(log_path, filter_origin='astropy.wcs'):
         log.error("Error message")
-        log.warn("Warning message")
+        log.warning("Warning message")
 
     log_file.close()
 
