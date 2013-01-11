@@ -693,7 +693,7 @@ def test_detailed_err():
 
 
 def test_header_parse():
-    from astropy.io import fits
+    from ...io import fits
     with get_pkg_data_fileobj(
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)

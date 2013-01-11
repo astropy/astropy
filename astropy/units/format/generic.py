@@ -39,7 +39,7 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         product = p.Literal("*") | p.Literal(".") | p.White()
         division = p.Literal("/")
@@ -173,7 +173,7 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_unit(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         if toks[0] in cls._unit_namespace:
             return cls._unit_namespace[toks[0]]
@@ -214,7 +214,7 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_function(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         # TODO: Add support for more functions here
         if toks[0] == 'sqrt':
@@ -225,7 +225,7 @@ class Generic(Base):
                     toks[0]))
 
     def parse(self, s):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         if utils.DEBUG:
             print("parse", s)
