@@ -98,6 +98,15 @@ def test(package=None, test_path=None, args=None, plugins=None,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
         coverage=coverage)
 
-#if we are *not* in setup mode, import the logger
+# if we are *not* in setup mode, import the logger and possibly populate the
+# configuration file with the defaults
 if not _ASTROPY_SETUP_:
     from .logger import log
+    from . import config
+
+    import os
+
+    if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
+        config_dir = os.path.split(config.__file__)[0]
+        config.configuration.update_default_config(__package__, config_dir)
+    del os  # clean up namespace

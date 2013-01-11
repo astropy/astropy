@@ -10,9 +10,12 @@ configuration files for Astropy and affiliated packages.
 """
 
 from __future__ import division
+
+import re
 import textwrap
-from ..extern.configobj import configobj, validate
 from contextlib import contextmanager
+
+from ..extern.configobj import configobj, validate
 
 __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'ConfigurationMissingWarning', 'get_config', 'save_config',
@@ -384,6 +387,7 @@ def get_config(packageormod=None, reload=False):
             cfgfn = join(get_config_dir(), rootname + '.cfg')
             _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
                 interpolation=False)
+
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
             msg2 = 'cannot be saved due to '
@@ -488,10 +492,11 @@ def get_config_items(packageormod=None):
 
     configitems = {}
     for n, obj in packageormod.__dict__.iteritems():
-        objcls = obj.__class__
-        fqn = objcls.__module__ + '.' + objcls.__name__
-        if fqn == 'astropy.config.configuration.ConfigurationItem':
-            configitems[n] = obj
+        #if it's not a new-style object, it's certainly not a ConfigurationItem
+        if hasattr(obj, '__class__'):
+            fqn = obj.__class__.__module__ + '.' + obj.__class__.__name__
+            if fqn == 'astropy.config.configuration.ConfigurationItem':
+                configitems[n] = obj
 
     return configitems
 
@@ -523,21 +528,38 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
         if recurse:
             _fix_section_blank_lines(sec[snm], True, False)
 
+_unsafe_import_regex = [r'astropy\.sphinx\.ext.*',
+                           r'astropy\.utils\.compat\._gzip_32']
+_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
+_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
 
-def _generate_all_config_items(pkgornm=None, reset_to_default=False):
-    """ Given a root package name or package, this function simply walks
+
+def generate_all_config_items(pkgornm=None, reset_to_default=False):
+    """ Given a root package name or package, this function walks
     through all the subpackages and modules, which should populate any
     ConfigurationItem objects defined at the module level. If
     `reset_to_default` is True, it also sets all of the items to their default
     values, regardless of what the file's value currently is. It then saves the
     `ConfigObj`.
 
-    If `pkgname` is None, it determines the package based on the root package
-    of the function where this function is called. Be a bit cautious about
-    this, though - this might not always be what you want.
+    Parameters
+    ----------
+    pkgname : str, module, or None
+        The package for which to generate configuration items.  If None,
+        the package of the function that calls this one will be used.
+
+    reset_to_default : bool
+        If True, the configuration items will all be set to their defaults.
+
+    Returns
+    -------
+    cfgfn : str
+        The filename of the generated configuration item.
+
     """
-    from pkgutil import get_loader, walk_packages
+    from os.path import split
     from types import ModuleType
+    from pkgutil import get_loader, walk_packages
 
     from ..utils import find_current_module
 
@@ -549,16 +571,72 @@ def _generate_all_config_items(pkgornm=None, reset_to_default=False):
     elif isinstance(pkgornm, ModuleType) and '__init__' in pkgornm.__file__:
         package = pkgornm
     else:
-        msg = '_generate_all_config_items was not given a package/package name'
+        msg = 'generate_all_config_items was not given a package/package name'
         raise TypeError(msg)
 
-    for imper, nm, ispkg in walk_packages(package.__path__,
-                                          package.__name__ + '.'):
-        mod = imper.find_module(nm)
-        if reset_to_default:
-            for v in mod.__dict__.itervalues():
-                if isinstance(v, ConfigurationItem):
-                    v.set(v.defaultvalue)
+    if hasattr(package, '__path__'):
+        pkgpath = package.__path__
+    elif hasattr(package, '__file__'):
+        pkgpath = split(package.__file__)[0]
+    else:
+        raise AttributeError('package to generate config items for does not '
+                             'have __file__ or __path__')
+
+    for imper, nm, ispkg in walk_packages(pkgpath, package.__name__ + '.'):
+        if not _unsafe_import_regex.match(nm):
+            imper.find_module(nm)
+            if reset_to_default:
+                for cfgitem in get_config_items(nm).itervalues():
+                    cfgitem.set(cfgitem.defaultvalue)
 
     _fix_section_blank_lines(package.__name__, True, True)
+
     save_config(package.__name__)
+
+    return get_config(package.__name__).filename
+
+
+def update_default_config(pkg, default_cfg_dir_or_fn):
+    """
+    Checks if the configuration file for the specified package exists, and if
+    not, will copy over the default configuration.
+
+    Parameters
+    ----------
+    pkg : str
+        The package to be updated.
+    default_cfg_dir_or_fn : str
+        The filename or directory name where the default configuration file is.
+        If a directory name, `pkg`.cfg will be used in that directory.
+
+    Returns
+    -------
+    updated : bool
+        If the profile needed to be updated, True, otherwise False.
+    """
+    import os
+
+    cfgfn = get_config(pkg).filename
+
+    if os.path.exists(cfgfn):
+        with open(cfgfn) as f:
+            doupdate = f.read() == ''
+    else:
+        doupdate = True
+
+    if doupdate:
+        if os.path.isdir(default_cfg_dir_or_fn):
+            deault_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+        else:
+            deault_cfgfn = default_cfg_dir_or_fn
+
+        if not os.path.isfile(deault_cfgfn):
+            raise ValueError('Requested default configuration file {0} is not a file.'.format(deault_cfgfn))
+
+        with open(cfgfn, 'w') as fw:
+            with open(deault_cfgfn) as fr:
+                fw.write(fr.read())
+        return True
+
+    else:
+        return False
