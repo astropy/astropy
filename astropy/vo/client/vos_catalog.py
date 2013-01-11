@@ -12,8 +12,8 @@ a `cache` keyword that can be set to `False`.
 These properties are set via Astropy configuration system:
 
     * `astropy.io.votable.pedantic`
+    * `astropy.utils.remote_timeout`
     * `astropy.vo.client.vos_baseurl`
-    * `astropy.vo.client.vos_timeout`
 
 Examples
 --------
@@ -22,6 +22,12 @@ For more cone search examples, see `astropy.vo.client.conesearch`:
 
 >>> from astropy.vo.client import vos_catalog
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
+
+To run the command above using custom timeout of 30 seconds:
+
+>>> from astropy.utils.data import REMOTE_TIMEOUT
+>>> with REMOTE_TIMEOUT.set_temp(30):
+...     my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 
 Find catalog names containing 'usno*a2':
 
@@ -67,12 +73,12 @@ from __future__ import print_function, division
 
 # STDLIB
 import json
+import urllib
 
 # LOCAL
 from ...config.configuration import ConfigurationItem
 from ...io.votable import table
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
-from ...utils import webquery
 from ...utils.console import color_print
 from ...utils.data import get_readable_fileobj
 
@@ -87,9 +93,6 @@ VO_PEDANTIC = table.PEDANTIC()
 BASEURL = ConfigurationItem('vos_baseurl',
                             'http://stsdas.stsci.edu/astrolib/vo_databases/',
                             'URL where VO Service database file is stored.')
-
-TIMEOUT = ConfigurationItem('vos_timeout', 30.0,
-                            'Timeout in seconds for VO Service query')
 
 
 class VOSError(Exception):  # pragma: no cover
@@ -256,11 +259,17 @@ def get_remote_catalog_db(dbname, cache=True):
 
 
 def _vo_service_request(url, pedantic, kwargs):
-    req = webquery.webget_open(url, timeout=TIMEOUT(), **kwargs)
-    try:
-        tab = table.parse(req, filename=req.geturl(), pedantic=pedantic)
-    finally:
-        req.close()
+    if len(kwargs) and not (url.endswith('?') or url.endswith('&')):
+        raise VOSError("url should already end with '?' or '&'")
+
+    query = []
+    for key, value in kwargs.iteritems():
+        query.append('{}={}'.format(
+            urllib.quote(key), urllib.quote_plus(str(value))))
+
+    parsed_url = url + '&'.join(query)
+    with get_readable_fileobj(parsed_url) as req:
+        tab = table.parse(req, filename=parsed_url, pedantic=pedantic)
 
     return vo_tab_parse(tab, url, kwargs)
 

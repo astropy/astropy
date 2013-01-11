@@ -20,6 +20,7 @@ import numpy as np
 # LOCAL
 from .. import conesearch, vos_catalog
 from ....tests.helper import remote_data
+from ....utils.data import REMOTE_TIMEOUT
 
 
 @remote_data
@@ -128,7 +129,7 @@ class TestConeSearch(object):
         async_search = conesearch.AsyncConeSearch(
             self.ra, self.dec, self.sr, pedantic=self.pedantic)
 
-        tab = async_search.get(timeout=vos_catalog.TIMEOUT())
+        tab = async_search.get(timeout=REMOTE_TIMEOUT())
 
         assert async_search.is_done()
         assert tab.array.size > 0

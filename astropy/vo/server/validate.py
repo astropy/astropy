@@ -13,6 +13,7 @@ their services.
 
 These properties are set via Astropy configuration system:
 
+    * `astropy.utils.remote_timeout`
     * `astropy.vo.server.cs_mstr_list`
     * `astropy.vo.server.cs_urls`
     * `astropy.vo.server.noncrit_warnings`
@@ -47,6 +48,12 @@ and write results in the current directory:
 
 >>> from astropy.vo.server import validate
 >>> validate.check_conesearch_sites()
+
+To validate using a custom timeout of 30 seconds:
+
+>>> from astropy.utils.data import REMOTE_TIMEOUT
+>>> with REMOTE_TIMEOUT.set_temp(30):
+...     validate.check_conesearch_sites()
 
 From the STScI VAO registry, select Cone Search URLs
 hosted by 'stsci.edu':
@@ -296,9 +303,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
             if verbose:
                 log.info('Existing file {0} deleted'.format(db_file[key]))
 
-    # Need to change default timeout
-    REMOTE_TIMEOUT.set(30.0)
-
     # Get all Cone Search sites
     with get_readable_fileobj(CS_MSTR_LIST()) as fd:
         tab_all = votable.parse_single_table(fd, pedantic=False)
@@ -421,9 +425,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
             f_json.write(json.dumps(js_tree[key], cls=NumpyOrSetEncoder,
                                     sort_keys=True, indent=4))
 
-    # Change back to default timeout
-    REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
-
     # End timer
     t_end = time.time()
 
@@ -440,7 +441,7 @@ def _do_validation(url):
     """Validation for multiprocessing support."""
     votable.table.reset_vo_warnings()
 
-    r = result.Result(url, root=_OUT_ROOT, timeout=vos_catalog.TIMEOUT())
+    r = result.Result(url, root=_OUT_ROOT, timeout=REMOTE_TIMEOUT())
     r.validate_vo()
 
     _categorize_result(r)

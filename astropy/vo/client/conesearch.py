@@ -25,6 +25,7 @@ locally in a session via AstroPy configuration system.
 
 These properties are set via Astropy configuration system:
 
+    * `astropy.utils.remote_timeout`
     * `astropy.vo.client.conesearch_dbname`
     * Also depends on properties set by `astropy.vo.client.vos_catalog`
 
@@ -40,6 +41,13 @@ using cached data, set `cache` keyword to `False`:
 
 >>> from astropy.vo.client import conesearch
 >>> result = conesearch.conesearch(6.088, -72.086, 0.5, pedantic=False)
+
+To run the command above using custom timeout of
+30 seconds for each URL query in Cone Search:
+
+>>> from astropy.utils.data import REMOTE_TIMEOUT
+>>> with REMOTE_TIMEOUT.set_temp(30):
+...     result = conesearch.conesearch(6.088, -72.086, 0.5, pedantic=False)
 
 Extract Numpy array containing the matched objects. See
 `numpy.ndarray` for available operations:
@@ -63,7 +71,9 @@ deg
 >>> ra_field.unit.to(u.arcsec) * ra_list
 array([ 16075.35  ,  16088.0112,  16090.4628, ...])
 
-Perform the same cone search as above but asynchronously:
+Perform the same cone search as above but asynchronously
+(queries to individual URLs are still governed by
+`astropy.utils.remote_timeout`):
 
 >>> async_search = conesearch.AsyncConeSearch(
 ...     6.088, -72.086, 0.5, pedantic=False)
@@ -73,10 +83,13 @@ Check search status:
 >>> async_search.is_done()
 False
 
-Get search results with 30-sec time-out. If still not
+Get search results after a 30-sec wait (not to be
+confused with `astropy.utils.remote_timeout` that
+governs individual URL queries). If still not
 done after 30 seconds, `None` is returned. Otherwise,
 conesearch result is returned and can be manipulated as
-above. If no `timeout` given, it waits till completion:
+above. If no `timeout` keyword given, it waits till
+completion:
 
 >>> async_result = async_search.get(timeout=30)
 >>> cone_arr = async_result.array.data
@@ -85,10 +98,12 @@ Estimate the execution time and the number of results for
 the cone search above. The function naively assumes a
 linear model, which might not be accurate for some cases.
 It also uses the normal cone search function, not the
-asynchronous version:
+asynchronous version. This example uses a custom timeout
+of 30 seconds:
 
->>> t_est, n_est = conesearch.predict_search(
-...     result.url, 6.088, -72.086, 0.5, pedantic=False)
+>>> with REMOTE_TIMEOUT.set_temp(30):
+...     t_est, n_est = conesearch.predict_search(
+...         result.url, 6.088, -72.086, 0.5, pedantic=False)
 
 .. image:: images/client_predict_search.png
     :width: 450px
@@ -183,6 +198,7 @@ import numpy as np
 from . import vos_catalog
 from ...config.configuration import ConfigurationItem
 from ...logger import log
+from ...utils.data import REMOTE_TIMEOUT
 from ...utils.misc import Future
 
 
@@ -220,16 +236,21 @@ class AsyncConeSearch(Future):
 
     Examples
     --------
-    >>> async_search = AsyncConeSearch(6.088, -72.086, 0.5, pedantic=False)
+    >>> async_search = conesearch.AsyncConeSearch(
+    ...     6.088, -72.086, 0.5, pedantic=False)
 
     Check search status:
 
     >>> async_search.is_done()
     False
 
-    Get search results with 30-sec time-out. If still not
-    done after 30 seconds, `None` is returned. If no
-    `timeout` given, it waits till completion:
+    Get search results after a 30-sec wait (not to be
+    confused with `astropy.utils.remote_timeout` that
+    governs individual URL queries). If still not
+    done after 30 seconds, `None` is returned. Otherwise,
+    conesearch result is returned and can be manipulated as
+    above. If no `timeout` keyword given, it waits till
+    completion:
 
     >>> async_result = async_search.get(timeout=30)
     >>> cone_arr = async_result.array.data
@@ -329,7 +350,7 @@ def predict_search(url, *args, **kwargs):
     at 0.05 and 0.5 of the given radius, respectively. Searches
     that take longer than network latency time will be used to
     extrapolate the search time and number of results. Searches
-    will stop when search time reaches `astropy.vo.client.vos_timeout`
+    will stop when search time reaches `astropy.utils.remote_timeout`
     or radius reaches half of the given value.
 
     Extrapolation uses least-square straight line fitting,
@@ -340,7 +361,7 @@ def predict_search(url, *args, **kwargs):
     Warnings (controlled by :mod:`warnings`) are given upon:
 
         #. Fitted slope is negative.
-        #. Estimated time exceeds `astropy.vo.client.vos_timeout`.
+        #. Estimated time exceeds `astropy.utils.remote_timeout`.
         #. Estimated number of results is 0 or exceeds 10,000.
 
     .. note::
@@ -390,7 +411,7 @@ def predict_search(url, *args, **kwargs):
     min_datapoints = 3  # Minimum successful searches needed for extrapolation
     num_datapoints = 10  # Number of desired data points for extrapolation
     t_min = 0.5 * t_0  # Min time to be considered not due to network latency
-    t_max = vos_catalog.TIMEOUT()  # Max time to be considered too long
+    t_max = REMOTE_TIMEOUT()  # Max time to be considered too long
     n_min = 1      # Min number of results to be considered valid (inclusive)
     n_max = 10000  # Max number of results to be considered valid (inclusive)
     sr_min = 0.05 * sr  # Min radius to start the timer

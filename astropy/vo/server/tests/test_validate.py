@@ -32,6 +32,7 @@ from .. import inspect, validate
 from ...client.vos_catalog import BASEURL
 from ....tests.helper import pytest, remote_data
 from ....utils.data import _find_pkg_data_path, get_pkg_data_filename
+from ....utils.data import REMOTE_TIMEOUT
 
 
 @remote_data
@@ -47,6 +48,8 @@ class TestConeSearchValidation(object):
 
         validate.CS_MSTR_LIST.set(get_pkg_data_filename(os.path.join(
             self.datadir, 'vao_conesearch_sites_121107_subset.xml')))
+
+        REMOTE_TIMEOUT.set(30)
 
     @pytest.mark.parametrize(('multiproc'), [True, False])
     def test_validation(self, multiproc):
@@ -74,6 +77,7 @@ class TestConeSearchValidation(object):
 
     def teardown_class(self):
         validate.CS_MSTR_LIST.set(validate.CS_MSTR_LIST.defaultvalue)
+        REMOTE_TIMEOUT.set(REMOTE_TIMEOUT.defaultvalue)
         shutil.rmtree(self.out_dir)
 
 
