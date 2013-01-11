@@ -1,8 +1,9 @@
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- A configuration file with all options set to their defaults is now generated 
+  when astropy is installed.  This file will be pulled in as the users' 
+  astropy configuration file the first time they ``import astropy``.  [#498] 
 
 0.2b1 (2012-12-24)
 ------------------
