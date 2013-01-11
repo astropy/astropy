@@ -39,7 +39,7 @@
    <FIELD ID="string_array_test" arraysize="4" datatype="char" name="string array test"/>
    <FIELD ID="unsignedByte" datatype="unsignedByte" name="unsignedByte"/>
    <FIELD ID="short" datatype="short" name="short"/>
-   <FIELD ID="int" datatype="int" name="int">
+   <FIELD ID="int" datatype="int" name="int" utype="myint">
     <VALUES ID="int_nulls" null="123456789">
      <MIN inclusive="no" value="-1000"/>
      <MAX inclusive="yes" value="1000"/>

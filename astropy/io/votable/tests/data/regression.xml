@@ -40,7 +40,7 @@ The VOTable format is an XML standard for the interchange of data represented as
 <FIELD ID="string_array_test" name="string array test" datatype="string" arraysize="4*"/>
 <FIELD ID="unsignedByte" name="unsignedByte" datatype="unsignedByte"/>
 <FIELD ID="short" name="short" datatype="short"/>
-<FIELD ID="int" name="int" datatype="int">
+<FIELD ID="int" name="int" datatype="int" utype="myint">
   <VALUES null="123456789" ID="int_nulls">
     <MIN value="-1000" inclusive="no"/>
     <MAX value="1000" inclusive="yes"/>
