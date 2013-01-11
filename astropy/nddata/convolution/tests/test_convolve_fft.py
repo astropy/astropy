@@ -1,7 +1,7 @@
 import numpy as np
 
-from astropy.tests.helper import pytest
-from astropy.config import ConfigurationItem
+from ....tests.helper import pytest
+from ....config import ConfigurationItem
 
 from ..convolve import convolve_fft
 

@@ -3,7 +3,7 @@
 import io
 import sys
 
-from astropy.tests.helper import raises
+from ...tests.helper import raises
 
 from .. import console
 
