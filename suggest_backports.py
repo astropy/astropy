@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # I wasn't happy with any of the GitHub libraries for Python that I tried so I
 # just used the GitHub API directly.  If someone would like to rewrite this
 # using a library please be my guest
