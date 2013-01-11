@@ -8,8 +8,6 @@ just `numpy.ndarray` objects, because it provides metadata that cannot
 be easily provided by a single array.
 """
 
-from astropy import setup_helpers
-
 from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
