@@ -12,12 +12,11 @@ import unittest
 import inspect
 import pickle
 import copy
-from ...tests.helper import pytest
 from random import shuffle
 
-import astropy.utils.tests.odict_mapping as mapping_tests
-
-from astropy.utils.compat.odict import OrderedDict
+from . import odict_mapping as mapping_tests
+from ..compat.odict import OrderedDict
+from ...tests.helper import pytest
 
 #Skips all of these tests if the builtin ordered dict is available
 pytestmark = pytest.mark.skipif("sys.version_info >= (2,7)")
