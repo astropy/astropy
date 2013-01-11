@@ -61,7 +61,7 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _parse_unit(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         unit = toks[0]
 

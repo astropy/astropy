@@ -1,4 +1,4 @@
-from astropy.tests.helper import raises
+from ...tests.helper import raises
 
 from .. import collections
 

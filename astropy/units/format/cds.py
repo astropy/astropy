@@ -68,7 +68,7 @@ class CDS(Base):
         YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.
         """
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         product = p.Literal(".")
         division = p.Literal("/")
@@ -174,7 +174,7 @@ class CDS(Base):
     @classmethod
     @utils._trace
     def _parse_unit(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         unit = toks[0]
         if unit not in cls._units:
@@ -205,7 +205,7 @@ class CDS(Base):
         return Unit(toks[0] * toks[1])
 
     def parse(self, s):
-        from astropy.extern import pyparsing as p
+        from ...extern import pyparsing as p
 
         if utils.DEBUG:
             print("parse", s)
