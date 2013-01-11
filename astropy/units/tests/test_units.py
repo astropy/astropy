@@ -339,3 +339,9 @@ def test_compose_best_unit_first():
 
     results = (u.Ry.decompose()).compose()
     assert results[0].bases[0] is u.Ry
+
+
+def test_compose_no_duplicates():
+    new = u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2
+    composed = new.compose(units=u.cgs.bases)
+    assert len(composed) == 1

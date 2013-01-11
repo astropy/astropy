@@ -159,7 +159,10 @@ class UnitBase(object):
             return id(self)
 
     def __eq__(self, other):
-        other = Unit(other, parse_strict='silent')
+        try:
+            other = Unit(other, parse_strict='silent')
+        except (ValueError, UnitsException):
+            return False
         try:
             return np.allclose(self.to(other, 1), 1.0)
         except UnitsException:
@@ -407,16 +410,29 @@ class UnitBase(object):
             return True
 
         def sort_results(results):
+            if not len(results):
+                return []
+
             # Sort the results so the simplest ones appear first.
             # Simplest is defined as "the minimum sum of absolute
             # powers" (i.e. the fewest bases), and preference should
             # be given to results where the sum of powers is positive
             # and the scale is exactly equal to 1.0
             results = list(results)
+            results.sort(key=lambda x: str(x))
             results.sort(key=lambda x: np.sum(np.abs(x.powers)))
             results.sort(key=lambda x: np.sum(x.powers) < 0.0)
             results.sort(key=lambda x: not np.allclose(x.scale, 1.0))
-            return results
+
+            last_result = results[0]
+            filtered = [last_result]
+            for result in results[1:]:
+                if str(result) != str(last_result):
+                    filtered.append(result)
+                last_result = result
+
+            print(results, filtered)
+            return filtered
 
         unit = self.decompose()
 
