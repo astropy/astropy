@@ -104,7 +104,7 @@ class Distance(object):
         return "<{0} {1:.5f} {2!s}>".format(type(self).__name__, self._value, self._unit)
 
     @property
-    def lightyear(self):
+    def lyr(self):
         """
         The value of this distance in light years
         """
