@@ -257,6 +257,7 @@ class GithubSuggestBackports(object):
         next_ms_num = next_milestone['number']
         log.info("Finding PRs in milestone {0} that haven't been merged into "
                  "{1}".format(next_milestone['title'], self.branch))
+        log.info('Merge these into {0} by doing "git checkout {0}; git pull; git cherry-pick -m 1 <SHA>"'.format(self.branch))
         last_tag_commit = self.get_last_tag_commit()
         last_tag_date = last_tag_commit['commit']['committer']['date']
 
