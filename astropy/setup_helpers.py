@@ -87,6 +87,53 @@ class AstropyBuild(DistutilsBuild):
         cls.user_options.append((name, None, doc))
         cls.custom_options.append(name)
 
+    def run(self):
+        """
+        Override run to generate the default configuration file after build is
+        done
+        """
+        from subprocess import Popen, PIPE
+        from textwrap import dedent
+
+        DistutilsBuild.run(self)
+
+        # Now generate the default configuration file in a subprocess.  We have
+        # to use a subprocess because already some imports have been done
+
+        # This file gets placed in <package>/config/<packagenm>.cfg if 'config'
+        # exists, otherwise it gets put in <package>/<packagenm>.cfg.
+
+        libdir = os.path.abspath(self.build_lib)
+
+        subproccode = dedent("""
+        from __future__ import print_function
+        import os
+
+        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
+        os.environ['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
+
+        from astropy.config.configuration import generate_all_config_items
+
+        genfn = generate_all_config_items('{pkgnm}', True)
+        print(genfn)
+        """).format(pkgnm=self.distribution.packages[0], libdir=libdir)
+        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=libdir)
+        stdout, stderr = proc.communicate(subproccode.encode('ascii'))
+
+        if proc.returncode == 0:
+            genfn = stdout.strip().decode('UTF-8').split('\n')[-1]
+
+            configpath = os.path.join(os.path.split(genfn)[0], 'config')
+            if os.path.isdir(configpath):
+                newfn = os.path.join(configpath, os.path.split(genfn)[1])
+                shutil.move(genfn, newfn)
+        else:
+            msg = ('Generation of default configuration item failed! Stdout '
+                   'and stderr are shown below.\n'
+                   'Stdout:\n{stdout}\nStderr:\n{stderr}')
+            log.error(msg.format(stdout=stdout.decode('UTF-8'),
+                                 stderr=stderr.decode('UTF-8')))
+
 
 class AstropyInstall(SetuptoolsInstall):
     """
@@ -910,7 +957,12 @@ def adjust_compiler():
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
-                print("Compiler specified by CC environment variable ({0:s}: {1:s}) will fail to compile Astropy. Please set CC={2:s} and try again. You can do this for example by doing:\n\n    CC={2:s} python setup.py <command>\n\nwhere <command> is the command you ran.".format(c_compiler, version, fixed))
+                print("Compiler specified by CC environment variable ({0:s}: "
+                      "{1:s}) will fail to compile Astropy. Please set CC={2:s}"
+                      " and try again. You can do this for example by "
+                      "doing:\n\n    CC={2:s} python setup.py "
+                      "<command>\n\nwhere <command> is the command you "
+                      "ran.".format(c_compiler, version, fixed))
                 sys.exit(1)
 
     if get_distutils_build_option('compiler'):
