@@ -196,9 +196,9 @@ class AstropyLogger(Logger):
                     break
 
         if mod_name is not None:
-            self.warn(message, extra={'origin': mod_name})
+            self.warning(message, extra={'origin': mod_name})
         else:
-            self.warn(message)
+            self.warning(message)
 
     def warnings_logging_enabled(self):
         return self._showwarning_orig is not None
