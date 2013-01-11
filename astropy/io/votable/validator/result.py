@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Contains a class to handle a validation result for a single VOTable
 file.

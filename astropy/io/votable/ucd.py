@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This file contains routines to verify the correctness of UCD strings.
 """

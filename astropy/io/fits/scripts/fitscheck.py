@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 fitscheck is a command line script based on astropy.io.fits for verifying and
 updating the CHECKSUM and DATASUM keywords of .fits files.  Fitscheck can also
