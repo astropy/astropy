@@ -29,9 +29,6 @@ class Constant(Quantity):
         self.name = name
         self.reference = reference
 
-    def __new__(cls, value, uncertainty, name, reference, units):
-        return super(Constant, cls).__new__(cls, value)
-
     def __repr__(self):
         s = "<Constant: "
         s += "name='{0}' ".format(self.name)
