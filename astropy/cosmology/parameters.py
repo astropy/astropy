@@ -52,7 +52,7 @@ WMAP9 = dict(
     Neff = 3.04,
     flat = True,
     reference = ("Hinshaw et al. 2012, arXiv 1212.5226."
-                 "Table 4 (WMAP + eCMB + BAO + H0")
+                 "Table 4 (WMAP + eCMB + BAO + H0)")
     )
 
 # Komatsu et al. 2011, WMAP + BAO + H0 ML (table 1).
