@@ -117,13 +117,13 @@ in the source of an Astropy repository clone.  There are some caveats, however:
 1. It is necessary to build C extensions in "inline" mode which copies the
    built shared libraries into the source tree::
 
-       ./setup.py build_ext --inline
+       $ python setup.py build_ext --inline
 
 2. If you change directories from the root of the repository clone the
    ``astropy`` package will no longer be importable, and other features may not
    work properly.
 
-A more robust solution is to use the ``./setup.py develop`` command.  This
+A more robust solution is to use the ``setup.py develop`` command.  This
 semi-permanently installs Astropy on your path in such a way that ``astropy``
 is always imported from your repository clone regardless of your working
 directory.  This way any edits you make to the code in your repository will
@@ -131,13 +131,13 @@ always be immediately available next time you start a Python interpreter and
 ``import astropy``.
 
 Develop mode can be easily disabled again by running
-``./setup.py develop -u``.
+``setup.py develop -u``.
 
 .. note::
 
     When switching branches it is not *generally* required to re-run
-    ``./setup.py develop``, though it may be necessary to run
-    ``./setup.py build_ext --inline`` again in case you think there might be
+    ``setup.py develop``, though it may be necessary to run
+    ``setup.py build_ext --inline`` again in case you think there might be
     differences in the C extensions between the two branches.
 
 Another useful technique to avoid having to switch develop mode on and off
@@ -329,7 +329,7 @@ Using virtualenv
 `virtualenv`_ is a tool for creating and activating isolated Python
 environments that allow installing and experimenting with Python packages
 without disrupting your production Python environment.  When using commands
-such as ``./setup.py develop``, for example, it is strong recommended to do
+such as ``setup.py develop``, for example, it is strong recommended to do
 so within a virtualenv.  This is generally preferable to installing a
 development version of Astropy into your system site-packages and having to
 keep track of whether or not your environment is in a "known good"
@@ -394,9 +394,9 @@ default Python version:
        (astropy-dev) $ deactivate
 
 6. Now as long as the virtualenv is activated packages you install with
-   ``pip``, ``easy_install``, or by manually running ``./setup.py install``
-   will automatically install into your virtualenv instead of the system
-   site-packages.  Consider installing Astropy in develop mode into the
+   ``pip``, ``easy_install``, or by manually running ``python setup.py
+   install`` will automatically install into your virtualenv instead of the
+   system site-packages.  Consider installing Astropy in develop mode into the
    virtualenv as described :ref:`above<develop-mode>`.
 
 Using virtualenv with IPython
