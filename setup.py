@@ -4,7 +4,9 @@
 # Use "distribute" - the setuptools fork that supports python 3.
 try:
     import setuptools
-except ImportError:
+    # vanilla setuptools causes issues - make sure that we are using distribute
+    setuptools._distribute
+except (ImportError, AttributeError):
     from distribute_setup import use_setuptools
     use_setuptools()
     import setuptools
