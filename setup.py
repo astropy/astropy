@@ -6,7 +6,11 @@ try:
     import setuptools
     # vanilla setuptools causes issues - make sure that we are using distribute
     setuptools._distribute
-except (ImportError, AttributeError):
+except AttributeError:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+    reload(setuptools)
+except ImportError:
     from distribute_setup import use_setuptools
     use_setuptools()
     import setuptools
