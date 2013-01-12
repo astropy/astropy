@@ -1,19 +1,27 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import print_function
+
 # Use "distribute" - the setuptools fork that supports python 3.
 try:
     import setuptools
     # vanilla setuptools causes issues - make sure that we are using distribute
     setuptools._distribute
+    print("Worked")
 except AttributeError:
     from distribute_setup import use_setuptools
     use_setuptools()
     reload(setuptools)
+    print("Reloaded via AttributeError")
 except ImportError:
     from distribute_setup import use_setuptools
     use_setuptools()
     import setuptools
+    print("Imported via ImportError")
+
+print("Using setuptools", setuptools.__version__, setuptools.__path__)
+print("And: ", setuptools._distribute)
 
 from distutils.command import sdist
 
@@ -134,7 +142,7 @@ setup(name='astropy',
       ext_modules=extensions,
       scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended
-      install_requires=['numpy'],
+      install_requires=['numpy', 'distribute'],
       provides=['astropy'],
       author='The Astropy Developers',
       author_email='astropy.team@gmail.com',
