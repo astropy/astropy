@@ -259,7 +259,8 @@ class GithubSuggestBackports(object):
         next_ms_num = next_milestone['number']
         log.info("Finding PRs in milestone {0} that haven't been merged into "
                  "{1}".format(next_milestone['title'], self.branch))
-        log.info('Merge these into {0} by doing "git checkout {0}; git pull; git cherry-pick -m 1 <SHA>"'.format(self.branch))
+        log.info('Merge these into {0} by doing "git checkout {0}; git pull; '
+                 'git cherry-pick -m 1 <SHA>"'.format(self.branch))
         last_tag_commit = self.get_last_tag_commit()
         last_tag_date = last_tag_commit['commit']['committer']['date']
 
@@ -284,7 +285,7 @@ class GithubSuggestBackports(object):
 
             if not self.find_unmerged_commit(merge_commit,
                                              since=last_tag_date):
-                yield pr['number'], pr['title'], merge_commit['sha']
+                yield pr, merge_commit['sha']
 
 
 def main(argv):
@@ -320,8 +321,19 @@ def main(argv):
     password = getpass.getpass('Password: ')
     suggester = GithubSuggestBackports(args.owner, args.repo, args.branch,
                                        username, password)
-    for num, title, sha in suggester.iter_suggested_prs():
-        log.info('[#{0}] {1}: {2}'.format(num, title, sha))
+
+    suggestions = []
+    for pr, sha in suggester.iter_suggested_prs():
+        log.info('[#{0}] {1}: {2}'.format(pr['number'], pr['title'], sha))
+        suggestions.append((pr['merged_at'], sha))
+
+    suggestions.sort()
+
+    log.info('git commands:')
+    log.info('git checkout {0}'.format(args.branch))
+    log.info('git pull')
+    for _, sha in suggestions:
+        log.info('git cherry-pick -m 1 {0}'.format(sha))
 
 
 if __name__ == '__main__':
