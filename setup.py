@@ -1,13 +1,45 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import print_function
+
+# First find out whether setuptools is available, and was provided by
+# distribute. We have to do this is a thread otherwise we can't unload and
+# reload the right one. We use a Queue for process-safe communication. We have
+# to use Process not Thread to ensure that importing setuptools in the process
+# has zero impact on the main thread.
+
+from multiprocessing import Process, Queue
+
+def test_setuptools(q):
+    try:
+        import setuptools
+        setuptools._distribute
+        q.put(True)
+    except ImportError:
+        q.put(False)
+    except AttributeError:
+        q.put(False)
+
+_q = Queue()
+_p = Process(target=test_setuptools, args=(_q,))
+_p.start()
+_p.join()
+
+distribute_available = _q.get()
+
+del _p, _q
+
 # Use "distribute" - the setuptools fork that supports python 3.
-try:
+if distribute_available:
     import setuptools
-except ImportError:
+else:
     from distribute_setup import use_setuptools
     use_setuptools()
     import setuptools
+
+print("Using setuptools", setuptools.__version__, setuptools.__path__)
+print("And: ", setuptools._distribute)
 
 from distutils.command import sdist
 
