@@ -154,12 +154,20 @@ def _find_or_create_astropy_dir(dirnm, linkto):
     if not path.exists(maindir):
         #first create .astropy dir if needed
         if not path.exists(innerdir):
-            mkdir(innerdir)
+            try:
+                mkdir(innerdir)
+            except OSError:
+                if not path.isdir(innerdir):
+                    raise
         elif not path.isdir(innerdir):
             msg = 'Intended Astropy directory {0} is actually a file.'
             raise IOError(msg.format(innerdir))
 
-        mkdir(maindir)
+        try:
+            mkdir(maindir)
+        except OSError:
+            if not path.isdir(maindir):
+                raise
 
         if (not sys.platform.startswith('win') and
             linkto is not None and

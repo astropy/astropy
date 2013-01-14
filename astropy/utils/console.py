@@ -7,7 +7,9 @@ from __future__ import division, print_function
 
 import re
 import math
+import multiprocessing
 import sys
+import threading
 import time
 
 try:
@@ -44,6 +46,10 @@ def isatty(file):
     but some user-defined types may not, so this assumes those are not
     ttys.
     """
+    if (multiprocessing.current_process().name != 'MainProcess' or
+        threading.current_thread().getName() != 'MainThread'):
+        return False
+
     if (OutStream is not None and
         isinstance(file, OutStream) and
         file.name == 'stdout'):
@@ -353,6 +359,8 @@ class ProgressBar:
             calling its `isatty` member, if any), the scrollbar will
             be completely silent.
         """
+        results = []
+
         with cls(len(items), file=file) as bar:
             step_size = max(200, bar._bar_length)
             steps = max(int(float(len(items)) / step_size), 1)
@@ -364,9 +372,12 @@ class ProgressBar:
             else:
                 import multiprocessing
                 p = multiprocessing.Pool()
-                for i, _ in enumerate(
+                for i, result in enumerate(
                     p.imap_unordered(function, items, steps)):
                     bar.update(i)
+                    results.append(result)
+
+        return results
 
     @classmethod
     def iterate(cls, items, file=sys.stdout):
