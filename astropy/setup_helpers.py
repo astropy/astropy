@@ -1189,7 +1189,12 @@ def pkg_config(
 
     try:
         output = subprocess.check_output(command, shell=True)
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        print('-' * 60)
+        print("pkg-config failed.  This may cause the build to fail below.")
+        print("  command:", e.cmd)
+        print("  returncode:", e.returncode)
+        print("  output:", e.output)
         libraries.extend(default_libraries)
     else:
         for token in output.split():
