@@ -140,6 +140,15 @@ class TestQuantityOperations():
         assert new_quantity.value == 1.
         assert new_quantity.unit == u.Unit("1/m")
 
+    def test_commutativity(self):
+        """Regression test for issue #587."""
+
+        new_q = u.Quantity(11.42, 'm*s')
+
+        assert self.q1 * u.s == u.s * self.q1 == new_q
+        assert self.q1 / u.s == u.Quantity(11.42, 'm/s')
+        assert u.s / self.q1 == u.Quantity(1 / 11.42, 's/m')
+
     def test_power(self):
         # raise quantity to a power
         new_quantity = self.q1**2
