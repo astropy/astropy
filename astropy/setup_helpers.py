@@ -737,14 +737,19 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
                     packagenames.append(pkg)
                     package_dirs[pkg] = dir
         if len(installed) > 0:
-            print('-' * 60)
-            print("The compatibility packages cannot be installed because the\n"
-                  "following legacy packages are already installed:\n")
+            lines = [
+                '-' * 60,
+                'The compatibility packages cannot be installed because the',
+                'following legacy packages are already installed:']
             for pkg in installed:
-                print("    * {0:s}".format(pkg))
-            print("\nThe compatibility packages can only installed if none of"
-                  " the\ncorresponding legacy packages are present.")
-            print('-' * 60)
+                lines.append("    * {0:s}".format(pkg))
+            lines.extend([
+                '',
+                'The compatibility packages can only be installed if none of',
+                'the corresponding legacy packages are present.',
+                '-' * 60
+                ])
+            log.warn('\n'.join(lines))
             sys.exit(1)
 
     for setuppkg in iter_setup_packages(srcdir):
@@ -957,12 +962,17 @@ def adjust_compiler():
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
-                print("Compiler specified by CC environment variable ({0:s}: "
-                      "{1:s}) will fail to compile Astropy. Please set CC={2:s}"
-                      " and try again. You can do this for example by "
-                      "doing:\n\n    CC={2:s} python setup.py "
-                      "<command>\n\nwhere <command> is the command you "
-                      "ran.".format(c_compiler, version, fixed))
+                lines = [
+                    "Compiler specified by CC environment variable ",
+                    "({0:s}:{1:s}) will fail to compile Astropy.".format(c_compiler, version),
+                    "Please set CC={0:s} and try again.".format(fixed),
+                    "You can do this, for example, by doing:",
+                    "",
+                    "    CC={0:s} python setup.py <command>".format(fixed),
+                    "",
+                    "where <command> is the command you ran."
+                    ]
+                log.warn('\n'.join(lines))
                 sys.exit(1)
 
     if get_distutils_build_option('compiler'):
@@ -1190,11 +1200,13 @@ def pkg_config(
     try:
         output = subprocess.check_output(command, shell=True)
     except subprocess.CalledProcessError as e:
-        print('-' * 60)
-        print("pkg-config failed.  This may cause the build to fail below.")
-        print("  command:", e.cmd)
-        print("  returncode:", e.returncode)
-        print("  output:", e.output)
+        lines = [
+            "pkg-config failed.  This may cause the build to fail below.",
+            "  command: {0}".format(e.cmd),
+            "  returncode: {0}".format(e.returncode),
+            "  output: {0}".format(e.output)
+            ]
+        log.warn('\n'.join(lines))
         libraries.extend(default_libraries)
     else:
         for token in output.split():
