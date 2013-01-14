@@ -581,9 +581,9 @@ class TestParse:
         assert coosys.system == 'eq_FK5'
 
     def test_get_field_by_utype(self):
-        field = self.votable.get_field_by_utype("myint")
-        assert field.name == "int"
-        assert field.values.min == -1000
+        fields = list(self.votable.get_fields_by_utype("myint"))
+        assert fields[0].name == "int"
+        assert fields[0].values.min == -1000
 
 
 class TestThroughTableData(TestParse):
