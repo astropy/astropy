@@ -2,13 +2,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
+import imp
 try:
     import pkg_resources
     distribute = pkg_resources.get_distribution('distribute')
     if pkg_resources.get_distribution('setuptools') != distribute:
         sys.path.insert(1, distribute.location)
         distribute.activate()
-        reload(pkg_resources)
+        imp.reload(pkg_resources)
 except:  # There are several types of exceptions that can occur here
     from distribute_setup import use_setuptools
     use_setuptools()
