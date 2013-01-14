@@ -18,7 +18,7 @@ Units can be converted to one another:
   >>> u.pc.to(u.m)
   3.0856776e+16
 
-It also handles equivalencies the hold true in certain contexts, such
+It also handles equivalencies that hold true in certain contexts, such
 as that between wavelength and frequency::
 
   # Wavelength to frequency doesn't normally work
