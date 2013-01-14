@@ -2662,7 +2662,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     new_name = '{0}{1}'.format(name, i)
                     i += 1
                 if sys.version_info[0] < 3:
-                    new_name = str(new_name, errors='replace')
+                    new_name = new_name.encode(
+                        sys.getdefaultencoding(), 'replace')
                 unique_names.append(new_name)
             array = self.array.copy()
             array.dtype.names = unique_names
