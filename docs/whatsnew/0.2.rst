@@ -3,3 +3,26 @@
 =========================
 What's New in Astropy 0.2
 =========================
+
+WCS
+===
+
+When reading FITS headers, the default value of `relax` is `True`, in
+order to accept all non-standard keywords that `wcslib` understands.
+This should make `astropy.wcs` handle more FITS files by default, but
+may introduce a change in behavior in some edge cases.  Likewise for
+writing FITS headers, the default value of `relax` is `WCSHDO_safe`,
+meaning it will write all non-standard exceptions that are considered
+safe and unambiguous.  This should make the FITS files produced by
+`astropy.wcs` supported by a larger range of third-party tools, but
+may introduce changes in behavior in some edge cases.
+
+The WCS transformation functions, when provided for a separate array
+for each input axis, will now broadcast the arrays correctly and
+return the output in the broadcasted shape.  This makes using a
+constant for one of the axes possible.
+
+The units in a WCS object (`CUNITij`) are now `astropy.units.Unit`
+objects, so operations on those units may be performed.
+
+The included version of `wcslib` has been upgraded to version 4.16.
