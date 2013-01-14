@@ -846,9 +846,7 @@ def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
     prevsourcepaths = []
     for ext in prevextensions:
         for s in ext.sources:
-            if s.endswith('.pyx'):
-                prevsourcepaths.append(os.path.realpath(os.path.splitext(s)[0]))
-            elif s.endswith('.c'):
+            if s.endswith(('.pyx', '.c')):
                 prevsourcepaths.append(os.path.realpath(os.path.splitext(s)[0]))
 
     ext_modules = []
