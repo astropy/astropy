@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# Use "distribute" - the setuptools fork that supports python 3.
-try:
+import sys
+
+# Use "distribute" - the setuptools fork that supports python 3. We allow
+# users to specify to use the system installation if needed, mainly for
+# package managers.
+if '--use-system-distribute' in sys.argv:
     import setuptools
-except ImportError:
+    sys.argv.remove('--use-system-distribute')
+else:
     from distribute_setup import use_setuptools
     use_setuptools()
     import setuptools
@@ -13,7 +18,6 @@ from distutils.command import sdist
 
 import glob
 import os
-import sys
 from setuptools import setup, find_packages
 
 #A dirty hack to get around some early import/configurations ambiguities

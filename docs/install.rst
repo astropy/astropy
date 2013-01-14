@@ -118,6 +118,21 @@ To install Astropy (from the root of the source tree)::
 
     python setup.py install
 
+Using a system installation of distribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, and for any command, the ``setup.py`` script will download the
+`distribute <http://pypi.python.org/pypi/distribute>`_ package if a recent
+version is not available. However, in some cases, users may want to force
+``setup.py`` to use an already-installed version of distribute (for example
+in package managers). This can be done with the ``--use-system-distribute``
+option, e.g.::
+
+    python setup.py build --use-system-distribute
+
+The distribute package is imported at the start of ``setup.py``, so the
+option should be used regardless of the command.
+
 External C libraries
 ^^^^^^^^^^^^^^^^^^^^
 
