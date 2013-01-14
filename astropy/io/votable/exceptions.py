@@ -993,6 +993,9 @@ class W50(VOTableSpecWarning):
     Invalid unit string as defined in the `Standards for Astronomical
     Catalogues, Version 2.0
     <http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx>`_.
+
+    Consider passing an explicit `unit_format` parameter if the units
+    in this file conform to another specification.
     """
 
     message = "Invalid unit string '%s'"
