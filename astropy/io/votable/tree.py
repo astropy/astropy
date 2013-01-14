@@ -147,6 +147,27 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     return lookup_by_id
 
 
+def _get_default_unit_format(config):
+    """
+    Get the default unit format as specified in the VOTable spec.
+    """
+    # In the future, this should take into account the VOTable
+    # version.
+    return 'cds'
+
+
+def _get_unit_format(config):
+    """
+    Get the unit format based on the configuration.
+    """
+    if config['unit_format'] is None:
+        format = _get_default_unit_format(config)
+    else:
+        format = config['unit_format']
+    return format
+
+
+
 ######################################################################
 # ATTRIBUTE CHECKERS
 def check_astroyear(year, field, config={}, pos=None):
@@ -685,10 +706,20 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
             warn_or_raise(W28, W28, ('unit', 'INFO', '1.2'),
                           self._config, self._pos)
 
-        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        # First, parse the unit in the default way, so that we can
+        # still emit a warning if the unit is not to spec.
+        default_format = _get_default_unit_format(self._config)
+        unit = u.Unit(
+            unit, format=default_format, parse_strict='silent')
         if isinstance(unit, u.UnrecognizedUnit):
             warn_or_raise(W50, W50, (unit.to_string(),),
                           self._config, self._pos)
+
+        format = _get_unit_format(self._config)
+        if format != default_format:
+            unit = u.Unit(
+                unit, format=format, parse_strict='silent')
+
         self._unit = unit
 
     @unit.deleter
@@ -1260,11 +1291,20 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
         from ... import units as u
 
-        unit = u.Unit(unit, format='cds', parse_strict='silent')
+        # First, parse the unit in the default way, so that we can
+        # still emit a warning if the unit is not to spec.
+        default_format = _get_default_unit_format(self._config)
+        unit = u.Unit(
+            unit, format=default_format, parse_strict='silent')
         if isinstance(unit, u.UnrecognizedUnit):
-            warn_or_raise(
-                W50, W50, (unit.to_string(),),
-                self._config, self._pos)
+            warn_or_raise(W50, W50, (unit.to_string(),),
+                          self._config, self._pos)
+
+        format = _get_unit_format(self._config)
+        if format != default_format:
+            unit = u.Unit(
+                unit, format=format, parse_strict='silent')
+
         self._unit = unit
 
     @unit.deleter
