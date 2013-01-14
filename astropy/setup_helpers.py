@@ -837,15 +837,23 @@ def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
         include any already in `prevextensions`).
     """
 
-    prevpyxpaths = []
+    # Vanilla setuptools and old versions of distribute include Cython files
+    # as .c files in the sources, not .pyx, so we cannot simply look for
+    # existing .pyx sources in the previous sources, but we should also check
+    # for .c files with the same remaining filename. So we look for .pyx and
+    # .c files, and we strip the extension.
+
+    prevsourcepaths = []
     for ext in prevextensions:
         for s in ext.sources:
             if s.endswith('.pyx'):
-                prevpyxpaths.append(os.path.realpath(s))
+                prevsourcepaths.append(os.path.realpath(os.path.splitext(s)[0]))
+            elif s.endswith('.c'):
+                prevsourcepaths.append(os.path.realpath(os.path.splitext(s)[0]))
 
     ext_modules = []
     for extmod, pyxfn in iter_pyx_files(srcdir):
-        if os.path.realpath(pyxfn) not in prevpyxpaths:
+        if os.path.realpath(os.path.splitext(pyxfn)[0]) not in prevsourcepaths:
             ext_modules.append(Extension(extmod, [pyxfn],
                                          include_dirs=extincludedirs))
 
