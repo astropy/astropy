@@ -13,7 +13,7 @@ import numpy as np
 
 from ... import log
 
-HDF5_SIGNATURE = u'\x89HDF\r\n\x1a\n'
+HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
@@ -23,7 +23,7 @@ def is_hdf5(origin, args, kwargs):
     if isinstance(args[0], basestring):
         if os.path.exists(args[0]):
             with open(args[0], 'rb') as f:
-                if f.read(8).decode('iso-8859-15') == HDF5_SIGNATURE:
+                if f.read(8) == HDF5_SIGNATURE:
                     return True
                 else:
                     return False
