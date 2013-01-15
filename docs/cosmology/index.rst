@@ -30,7 +30,7 @@ the number of transverse proper kpc corresponding to an arcminute at z=3:
 All the functions available are listed in the `Reference/API`_
 section. These will use the "current" cosmology to calculate the
 values (see `The Current Cosmology`_ section below for more
-details). If you haven't set this explicitly, they will use the 9-year
+details). If you haven't set this explicitly, they will use the 7-year
 WMAP cosmological parameters and print a warning message.
 
 There are also several standard cosmologies already defined. These are
