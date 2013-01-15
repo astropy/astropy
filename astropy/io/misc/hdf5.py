@@ -13,7 +13,7 @@ import numpy as np
 
 from ... import log
 
-HDF5_SIGNATURE = '\x89HDF\r\n\x1a\n'
+HDF5_SIGNATURE = u'\x89HDF\r\n\x1a\n'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
@@ -85,7 +85,7 @@ def read_table_hdf5(input, path=None):
             raise IOError("Group {0} does not exist".format(group))
 
     # Check whether table exists
-    if name not in g.keys():
+    if name not in g:
         raise IOError("Table {0} does not exist".format(path))
 
     # Read the table from the file
@@ -173,7 +173,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             g = f
 
     # Check whether table already exists
-    if name in g.keys():
+    if name in g:
         raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
@@ -181,17 +181,16 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     # Write the meta-data to the file
     for key in table.meta:
-
-        if isinstance(table.meta[key], basestring):
+        val = table.meta[key]
+        if isinstance(val, bytes):
             # Use np.string_ to ensure that fixed-length attributes are used.
-            dset.attrs[key] = np.string_(table.meta[key])
+            dset.attrs[key] = np.string_(val)
         else:
             try:
-                dset.attrs[key] = table.meta[key]
+                dset.attrs[key] = val
             except TypeError:
                 log.warn("Attribute `{0}` of type {1} cannot be written to "
-                         "HDF5 files - skipping".format(key,
-                         type(table.meta[key])))
+                         "HDF5 files - skipping".format(key, type(val)))
 
     if f is not None:
         f.close()
