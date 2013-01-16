@@ -18,6 +18,7 @@ if sys.platform.startswith('win'):
     import ctypes
     import ctypes.wintypes
 
+from .....tests.helper import pytest
 from ... import futures
 from .._base import (
     PENDING, RUNNING, CANCELLED, CANCELLED_AND_NOTIFIED, FINISHED, Future,
@@ -169,7 +170,7 @@ class ExecutorShutdownTest(unittest.TestCase):
             call3.close()
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestThreadPoolShutdown(ExecutorShutdownTest):
     def setUp(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=5)
@@ -203,7 +204,7 @@ class TestThreadPoolShutdown(ExecutorShutdownTest):
             t.join()
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestProcessPoolShutdown(ExecutorShutdownTest):
     def setUp(self):
         self.executor = futures.ProcessPoolExecutor(max_workers=5)
@@ -455,7 +456,7 @@ class WaitTests(unittest.TestCase):
             call2.close()
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestThreadPoolWait(WaitTests):
     def setUp(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=1)
@@ -464,7 +465,7 @@ class TestThreadPoolWait(WaitTests):
         self.executor.shutdown(wait=True)
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestProcessPoolWait(WaitTests):
     def setUp(self):
         self.executor = futures.ProcessPoolExecutor(max_workers=1)
@@ -531,7 +532,7 @@ class AsCompletedTests(unittest.TestCase):
             call1.close()
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestThreadPoolAsCompleted(AsCompletedTests):
     def setUp(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=1)
@@ -540,7 +541,7 @@ class TestThreadPoolAsCompleted(AsCompletedTests):
         self.executor.shutdown(wait=True)
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestProcessPoolAsCompleted(AsCompletedTests):
     def setUp(self):
         self.executor = futures.ProcessPoolExecutor(max_workers=1)
@@ -593,7 +594,7 @@ class ExecutorTest(unittest.TestCase):
         self.assertEquals([42, 42], results)
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestThreadPoolExecutor(ExecutorTest):
     def setUp(self):
         self.executor = futures.ThreadPoolExecutor(max_workers=1)
@@ -602,7 +603,7 @@ class TestThreadPoolExecutor(ExecutorTest):
         self.executor.shutdown(wait=True)
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestProcessPoolExecutor(ExecutorTest):
     def setUp(self):
         self.executor = futures.ProcessPoolExecutor(max_workers=1)
@@ -611,7 +612,7 @@ class TestProcessPoolExecutor(ExecutorTest):
         self.executor.shutdown(wait=True)
 
 
-@unittest.skipIf(sys.version_info >= (3, 2), 'Python 3.2 has built-in futures')
+@pytest.mark.skipif("sys.version_info >= (3, 2)")
 class TestFuture(unittest.TestCase):
     def test_done_callback_with_result(self):
         self.callback_result = None
