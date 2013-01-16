@@ -5,6 +5,13 @@
   when astropy is installed.  This file will be pulled in as the users' 
   astropy configuration file the first time they ``import astropy``.  [#498] 
 
+- ``astropy.cosmology``
+
+  - Add a WMAP9 object using the 9-year WMAP parameters from Hinshaw et al.
+    Once this paper is accepted, this should be made the default, but for
+    now WMAP7 remains the default. [#629]
+
+
 0.2b1 (2012-12-24)
 ------------------
 
