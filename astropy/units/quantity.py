@@ -310,6 +310,12 @@ class Quantity(object):
         """
         return Quantity(self.value, unit=self.unit)
 
+    def __abs__(self):
+        """
+        Absolute value of the quantity.
+        """
+        return Quantity(abs(self.value), unit=self.unit)
+
     # Comparison operations
     def __eq__(self, other):
         if hasattr(other, 'value') and hasattr(other, 'to'):
