@@ -2,17 +2,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
-
-# Use "distribute" - the setuptools fork that supports python 3. We allow
-# users to specify to use the system installation if needed, mainly for
-# package managers.
-if '--use-system-distribute' in sys.argv:
-    import setuptools
-    sys.argv.remove('--use-system-distribute')
-else:
+import imp
+try:
+    import pkg_resources
+    distribute = pkg_resources.get_distribution('distribute')
+    if pkg_resources.get_distribution('setuptools') != distribute:
+        sys.path.insert(1, distribute.location)
+        distribute.activate()
+        imp.reload(pkg_resources)
+except:  # There are several types of exceptions that can occur here
     from distribute_setup import use_setuptools
     use_setuptools()
-    import setuptools
 
 from distutils.command import sdist
 
@@ -157,4 +157,4 @@ setup(name='astropy',
       zip_safe=False,
       use_2to3=True,
       entry_points=entry_points
-      )
+)
