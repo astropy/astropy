@@ -159,6 +159,24 @@ class TestQuantityOperations():
         np.testing.assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
+    def test_unary(self):
+
+        # Test the minus unary operator
+
+        new_quantity = -self.q1
+        assert new_quantity.value == -self.q1.value
+        assert new_quantity.unit == self.q1.unit
+
+        new_quantity = -(-self.q1)
+        assert new_quantity.value == self.q1.value
+        assert new_quantity.unit == self.q1.unit
+
+        # Test the plus unary operator
+
+        new_quantity = +self.q1
+        assert new_quantity.value == self.q1.value
+        assert new_quantity.unit == self.q1.unit
+
     def test_incompatible_units(self):
         """ When trying to add or subtract units that aren't compatible, throw an error """
 

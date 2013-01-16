@@ -298,6 +298,18 @@ class Quantity(object):
             raise TypeError('Cannot raise a Quantity object to a power of something with a unit')
         return Quantity(self.value ** p, unit=self.unit ** p)
 
+    def __neg__(self):
+        """
+        Minus the quantity. This is useful for doing -q where q is a quantity.
+        """
+        return Quantity(-self.value, unit=self.unit)
+
+    def __pos__(self):
+        """
+        Plus the quantity. This is implemented in case users use +q where q is a quantity.
+        """
+        return Quantity(self.value, unit=self.unit)
+
     # Comparison operations
     def __eq__(self, other):
         if hasattr(other, 'value') and hasattr(other, 'to'):
