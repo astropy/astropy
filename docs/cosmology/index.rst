@@ -163,6 +163,12 @@ message:
   [astropy.cosmology.core]
   7.787767002228743
 
+The 9-year WMAP cosmology is also available
+
+  >>> from astropy.cosmology import WMAP9   # WMAP 9-year
+  >>> WMAP9.lookback_time(2)                # lookback time in Gyr at z=2
+  10.444367272683863
+
 .. note::
 
     In general it's better to use an explicit cosmology (for example
