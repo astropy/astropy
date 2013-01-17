@@ -1,7 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains...
+This module contains convenience functions for getting a coordinate object
+for a named object by querying SESAME and getting the first returned result.
+Note that this is intended to be a convenience, and is very simple. If you
+need precise coordinates for an object you should find the appropriate 
+reference for that measurement and input the coordinates manually.
 """
 
 from __future__ import division, print_function
