@@ -39,3 +39,10 @@
 .. _marsbar: http://marsbar.sourceforge.net
 .. _`marsbar github`: http://github.com/matthew-brett/marsbar
 .. _`MarsBaR mailing list`: https://lists.sourceforge.net/lists/listinfo/marsbar-users
+
+.. virtualenv
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _virtualenvwrapper: http://pypi.python.org/pypi/virtualenvwrapper
+.. _virtualenvwrapper-csh: https://bitbucket.org/embray/virtualenvwrapper-csh
+.. _virtualenvwrapper-win: https://github.com/davidmarble/virtualenvwrapper-win
+.. _venv: http://docs.python.org/dev/library/venv.html
