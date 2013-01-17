@@ -104,56 +104,91 @@ class Distance(object):
         return "<{0} {1:.5f} {2!s}>".format(type(self).__name__, self._value, self._unit)
 
     @property
-    def lightyear(self):
+    def lightyears(self):
         """
         The value of this distance in light years
         """
         return self._unit.to(u.lyr, self._value)
 
     @property
-    def pc(self):
+    def lyr(self):
+        """Short for :attr:`.lightyears`"""
+        return self.lightyears
+
+    @property
+    def parsecs(self):
         """
         The value of this distance in parsecs
         """
         return self._unit.to(u.parsec, self._value)
 
     @property
-    def kpc(self):
+    def pc(self):
+        """Short for :attr:`.parsecs`"""
+        return self.parsecs
+
+    @property
+    def kiloparsecs(self):
         """
         The value of this distance in kiloparsecs
         """
         return self._unit.to(u.kpc, self._value)
 
     @property
-    def Mpc(self):
+    def kpc(self):
+        """Short for :attr:`.kiloparsecs`"""
+        return self.kiloparsecs
+
+    @property
+    def megaparsecs(self):
         """
         The value of this distance in megaparsecs
         """
         return self._unit.to(u.Mpc, self._value)
 
     @property
-    def au(self):
+    def Mpc(self):
+        """Short for :attr:`.megaparsecs`"""
+        return self.megaparsecs
+
+    @property
+    def astronomical_units(self):
         """
         The value of this distance in astronomical units
         """
         return self._unit.to(u.au, self._value)
 
     @property
-    def m(self):
+    def au(self):
+        """Short for :attr:`.astronomical_units`"""
+        return self.astronomical_units
+
+    @property
+    def meters(self):
         """
         The value of this distance in meters
         """
         return self._unit.to(u.m, self._value)
 
     @property
-    def km(self):
+    def m(self):
+        """Short for :attr:`.meters`"""
+        return self.meters
+
+    @property
+    def kilometers(self):
         """
         The value of this distance in kilometers
         """
         return self._unit.to(u.km, self._value)
 
     @property
-    def z(self):
+    def km(self):
+        """Short for :attr:`.kilometers`"""
+        return self.kilometers
+
+    @property
+    def redshift(self):
         """
         The redshift for this distance assuming its physical distance is
         a luminosity distance.
@@ -165,6 +200,11 @@ class Distance(object):
 
         """
         return self.compute_z()
+
+    @property
+    def z(self):
+        """Short for :attr:`.redshift`"""
+        return self.redshift
 
     def compute_z(self, cosmology=None):
         """

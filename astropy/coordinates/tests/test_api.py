@@ -82,7 +82,7 @@ def test_create_angles():
         #raises an exception because this is ambiguous
 
     with raises(ValueError):
-    	a13 = Angle(12.34, unit="not a unit")
+        a13 = Angle(12.34, unit="not a unit")
 
     a14 = Angle("12h43m32") # no trailing 's', but unambiguous
 
@@ -236,7 +236,7 @@ def test_angle_bounds():
     a10.degrees == 0
 
     with raises(AttributeError):
-	    a10.bounds = (0,34)
+        a10.bounds = (0,34)
 
 def test_angle_convert():
     """
@@ -513,7 +513,7 @@ def test_create_coordinate():
         c = ICRSCoordinates("12 34 56  -56 23 21") # ambiguous
 
     with raises(TypeError):
-	    c = ICRSCoordinates() # not allowed
+        c = ICRSCoordinates() # not allowed
 
     c = ICRSCoordinates(ra="12 43 12", dec=dec, unit=(u.hour, u.hour))
 
@@ -697,7 +697,7 @@ def test_distances():
         Distance(12)
 
     # standard units are pre-defined
-    npt.assert_almost_equal(distance.lightyear, 39.13876728075561)
+    npt.assert_almost_equal(distance.lyr, 39.13876728075561)
     npt.assert_almost_equal(distance.km, 370281309776063.0)
 
     # Coordinate objects can be assigned a distance object, giving them a full
