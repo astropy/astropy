@@ -402,6 +402,12 @@ default Python version:
 Using virtualenv with IPython
 -----------------------------
 
+.. note::
+
+    As of IPython 0.13 this functionality is built into IPython and these steps
+    are not necessary for IPython to recognize that it's running with a
+    virtualenv enabled.
+
 Each virtualenv has its own ``bin/``, and as IPython is written in pure Python
 one can always install IPython directly into a virtualenv.  However, if you
 would rather not have to install IPython every time you create a virtualenv, it
