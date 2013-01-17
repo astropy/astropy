@@ -25,7 +25,7 @@ def _default_values(dtype):
     if dtype == np.bool:
         return [0, 1, 1]
     elif dtype == '|S3':
-        return ['abc', 'def', 'ghi']
+        return [b'abc', b'def', b'ghi']
     else:
         return [1, 2, 3]
 
