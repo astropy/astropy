@@ -71,6 +71,29 @@ in 3D space, which also allows conversion to cartesian coordinates::
     >>> c.z
     507.88994291875713
 
+The `Coordinates` subpackage also provides a quick way to get coordinates
+for named objects (with an internet connection). All subclasses of 
+`~astropy.coordinates.coordsystems.SphericalCoordinatesBase` have a special
+class method, `from_name()`, that accepts a string and queries `Sesame 
+<http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates for
+that object::
+
+    >>> c = coord.ICRSCoordinates.from_name("M42")
+    >>> c.ra, c.dec
+    (<RA 83.82208 deg>, <Dec -5.39111 deg>)
+
+This works for any subclass of `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
+    
+    >>> c = coord.GalacticCoordinates.from_name("M42")
+    >>> c.l, c.b
+    (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
+
+.. note::
+    
+    This is intended to be a convenience, and is very simple. If you
+    need precise coordinates for an object you should find the appropriate 
+    reference for that measurement and input the coordinates manually.
+
 
 Using `astropy.coordinates`
 ===========================
