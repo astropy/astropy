@@ -21,6 +21,7 @@ import urllib2
 import numpy as np
 
 # Astropy
+from ..config import ConfigurationItem
 from .builtin_systems import ICRSCoordinates
 from .. import units as u
 
@@ -28,13 +29,26 @@ __all__ = ["get_icrs_coordinates"]
 
 SESAME_URL = "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/{db}?{name}"
 MIRROR_URL = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
+
+DEFAULT_SESAME_DATABASE = ConfigurationItem('default_sesame_database', 'all',
+                                            "This specified the default database "
+                                            "that SESAME will query when using "
+                                            "the name resolve mechanism in the "
+                                            "coordinates subpackage. Default is "
+                                            "to search all databases, but this "
+                                            "can be 'all', 'simbad', 'ned', or "
+                                            "'vizier'.")
+NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 30,
+                                         "This is the maximum time to wait "
+                                         "for a response from a name resolve "
+                                         "query to SESAME in seconds.")
+
 ALLOWED_DATABASES = ['ned', 'simbad', 'vizier', 'all']
-NAME_RESOLVE_TIMEOUT = 30 # seconds
 
 class NameResolveError(Exception):
     pass
 
-def get_icrs_coordinates(name, database='all'):
+def get_icrs_coordinates(name, database=DEFAULT_SESAME_DATABASE()):
     """ Retrieve an ICRSCoordinates object by using an online name resolving
         service to retrieve coordinates for the specified name.
 
@@ -59,7 +73,7 @@ def get_icrs_coordinates(name, database='all'):
     url = SESAME_URL.format(name=urllib.quote(name), db=db)
     try:
         # Retrieve ascii name resolve data from CDS
-        resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT)
+        resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
     except:
         raise NameResolveError("Unable to retrieve coordinates for name '{0}'".format(name))
 
