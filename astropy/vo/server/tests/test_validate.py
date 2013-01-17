@@ -10,6 +10,11 @@ Tests for `astropy.vo.server`
 
 Examples
 --------
+Running inside Python:
+
+>>> import astropy
+>>> astropy.test('vo.server', remote_data=True)
+
 Running from top level via command line::
 
     python setup.py test -P vo.server --remote-data

@@ -80,13 +80,15 @@ Perform the same cone search as above but asynchronously
 
 Check search status:
 
->>> async_search.is_done()
+>>> async_search.running()
+True
+>>> async_search.done()
 False
 
 Get search results after a 30-sec wait (not to be
 confused with `astropy.utils.remote_timeout` that
 governs individual URL queries). If still not
-done after 30 seconds, `None` is returned. Otherwise,
+done after 30 seconds, TimeoutError is raised. Otherwise,
 conesearch result is returned and can be manipulated as
 above. If no `timeout` keyword given, it waits till
 completion:
@@ -199,7 +201,7 @@ from . import vos_catalog
 from ...config.configuration import ConfigurationItem
 from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
-from ...utils.misc import Future
+from ...utils.compat.futures import ThreadPoolExecutor
 
 
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
@@ -213,26 +215,31 @@ class ConeSearchError(Exception):  # pragma: no cover
     pass
 
 
-class AsyncConeSearch(Future):
+class AsyncConeSearch(object):
     """
     Perform a cone search asynchronously using
-    :py:class:`threading.Thread`.
+    :py:class:`concurrent.futures.ThreadPoolExecutor`.
 
     Cone search will be forced to run in silent
     mode. Warnings are controled by :mod:`warnings`
     module.
 
-    .. seealso::
+    .. note::
 
-        `astropy.utils.misc.Future`
+        Methods of the attributes can be accessed directly,
+        with priority given to `executor`.
 
     Parameters
     ----------
     args, kwargs : see `conesearch`
 
-    Returns
-    -------
-    obj : see `conesearch`
+    Attributes
+    ----------
+    executor : :py:class:`concurrent.futures.ThreadPoolExecutor`
+        Executor running `conesearch` on single thread.
+
+    future : :py:class:`concurrent.futures.Future`
+        Asynchronous execution created by `executor`.
 
     Examples
     --------
@@ -241,13 +248,15 @@ class AsyncConeSearch(Future):
 
     Check search status:
 
-    >>> async_search.is_done()
+    >>> async_search.running()
+    True
+    >>> async_search.done()
     False
 
     Get search results after a 30-sec wait (not to be
     confused with `astropy.utils.remote_timeout` that
     governs individual URL queries). If still not
-    done after 30 seconds, `None` is returned. Otherwise,
+    done after 30 seconds, TimeoutError is raised. Otherwise,
     conesearch result is returned and can be manipulated as
     above. If no `timeout` keyword given, it waits till
     completion:
@@ -258,7 +267,45 @@ class AsyncConeSearch(Future):
     """
     def __init__(self, *args, **kwargs):
         kwargs['verbose'] = False
-        Future.__init__(self, conesearch, *args, **kwargs)
+        self.executor = ThreadPoolExecutor(1)
+        self.future = self.executor.submit(conesearch, *args, **kwargs)
+
+    def __getattr__(self, what):
+        """Expose `executor` and `future` methods."""
+        try:
+            return getattr(self.executor, what)
+        except AttributeError:
+            return getattr(self.future, what)
+
+    def get(self, timeout=None):
+        """
+        Get result, if available, then shut down thread.
+
+        Parameters
+        ----------
+        timeout : int or float
+            Wait the given amount of time in seconds before
+            obtaining result. If not given, wait indefinitely
+            until function is done.
+
+        Returns
+        -------
+        result : see `conesearch`
+
+        Raises
+        ------
+        Exception
+            Errors raised by :py:class:`concurrent.futures.Future`.
+
+        """
+        try:
+            result = self.future.result(timeout=timeout)
+        except Exception as e:
+            result = None
+            raise e
+        finally:
+            self.executor.shutdown(wait=False)
+            return result
 
 
 def conesearch(ra, dec, sr, verb=1, **kwargs):

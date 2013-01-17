@@ -4,6 +4,11 @@ Tests for `astropy.vo.client`
 
 Examples
 --------
+Running inside Python:
+
+>>> import astropy
+>>> astropy.test('vo.client', remote_data=True)
+
 Running from top level via command line::
 
     python setup.py test -P vo.client --remote-data
@@ -131,7 +136,7 @@ class TestConeSearch(object):
 
         tab = async_search.get(timeout=REMOTE_TIMEOUT())
 
-        assert async_search.is_done()
+        assert async_search.done()
         assert tab.array.size > 0
 
     def test_prediction(self):
