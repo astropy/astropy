@@ -39,6 +39,41 @@ class, so that a list of lists is interpreted as a list of columns:
 Finally, a reader class to read SExtractor table outputs is now available.
 
 
+Data Tables
+-----------
+
+The :ref:`astropy.table <astropy-table>` subpackage was first introduced for
+preview in Astropy 0.1 and provides functionality for storing and manipulating
+heterogenous tables of data in a way that is familiar to numpy users.  Some key
+features include:
+
+* Modify a table by adding or removing columns, changing column names,
+  or adding new rows of data.
+* Include table and column metadata as flexible data structures.
+* Specify a description, units and output formatting for columns.
+* Interactively scroll through long tables similar to using ``more``.
+
+Astropy 0.2 brings the addition of integrated support for missing values via
+the Numpy `masked array
+<http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ class.  This
+feature requires Numpy version 1.5 or greater because of issues
+with masked arrays in previous versions.
+
+The :class:`~astropy.table.table.Table` class now connects to the new `I/O
+infrastructure`_ read and write methods.  For example, assume you have a table
+of magnitudes called ``mags`` with columns ``B`` and ``V``.  You can add a new
+column ``B-V`` and write out to an ASCII table with::
+
+    >>> BV = Column('B-V', mags['B'] - mags['V'])
+    >>> mags.add_column(BV)
+    >>> mags.write('mags_BV.dat', format='ascii')
+
+
+I/O infrastructure
+------------------
+
+TBD
+
 Units and quantities
 --------------------
 
