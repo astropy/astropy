@@ -23,7 +23,6 @@ from distutils.core import Extension
 from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
 from distutils.command.sdist import sdist as DistutilsSdist
-from setuptools.command.install import install as SetuptoolsInstall
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 
 from setuptools.command.register import register as SetuptoolsRegister
@@ -137,13 +136,11 @@ def get_compiler_version(compiler):
     return version
 
 
-_dummy_distribution = None
 def get_dummy_distribution():
     """Returns a distutils Distribution object used to instrument the setup
     environment before calling the actual setup() function.
     """
 
-    global _dummy_distribution
     global _registered_commands
 
     if _registered_commands is None:
@@ -151,27 +148,23 @@ def get_dummy_distribution():
                            'called before using '
                            'astropy.setup_helpers.get_dummy_distribution()')
 
-    if _dummy_distribution is None:
-        # Pre-parse the Distutils command-line options and config files to if
-        # the option is set.
-        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                             'script_args': sys.argv[1:]})
-        dist.cmdclass.update(_registered_commands)
+    # Pre-parse the Distutils command-line options and config files to if
+    # the option is set.
+    dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                         'script_args': sys.argv[1:]})
+    dist.cmdclass.update(_registered_commands)
 
-        with silence():
-            try:
-                dist.parse_config_files()
-                dist.parse_command_line()
-            except (DistutilsError, AttributeError, SystemExit):
-                # Let distutils handle DistutilsErrors itself
-                # AttributeErrors can get raise for ./setup.py --help
-                # SystemExit can be raised if a display option was used,
-                # for example
-                pass
+    with silence():
+        try:
+            dist.parse_config_files()
+            dist.parse_command_line()
+        except (DistutilsError, AttributeError, SystemExit):
+            # Let distutils handle DistutilsErrors itself AttributeErrors can
+            # get raise for ./setup.py --help SystemExit can be raised if a
+            # display option was used, for example
+            pass
 
-        _dummy_distribution = dist
-
-    return _dummy_distribution
+    return dist
 
 
 def get_distutils_option(option, commands):
@@ -320,17 +313,11 @@ def register_commands(package, version, release):
          # MANIFEST.in
          'sdist': DistutilsSdist,
 
-         # Use a custom build command which understands additional commandline
-         # arguments
          'build': AstropyBuild,
 
          # The exact form of the build_ext command depends on whether or not
          # we're building a release version
          'build_ext': generate_build_ext_command(release),
-
-         # Use a custom install command which understands additional
-         # commandline arguments
-         'install': AstropyInstall,
 
          'register': AstropyRegister
     }
@@ -347,6 +334,23 @@ def register_commands(package, version, release):
     if HAVE_SPHINX:
         _registered_commands['build_sphinx'] = AstropyBuildSphinx
 
+    # Need to override the __name__ here so that the commandline options are
+    # presented as being related to the "build" command, for example; normally
+    # this wouldn't be necessary since commands also have a command_name
+    # attribute, but there is a bug in distutils' help display code that it
+    # uses __name__ instead of command_name. Yay distutils!
+    for name, cls in _registered_commands.items():
+        cls.__name__ = name
+
+    # Add a few custom options; more of these can be added by specific packages
+    # later
+    for option in [
+            ('enable-legacy',
+             "Install legacy shims", True),
+            ('use-system-libraries',
+             "Use system libraries whenever possible", True)]:
+        add_command_option('build', *option)
+        add_command_option('install', *option)
 
     return _registered_commands
 
@@ -431,6 +435,58 @@ def generate_build_ext_command(release):
     return type('build_ext', (basecls, object), attrs)
 
 
+def add_command_option(command, name, doc, is_bool=False):
+    """
+    Add a custom option to a setup command.
+
+    Issues a warning if the option already exists on that command.
+
+    Parameters
+    ----------
+    command : str
+        The name of the command as given on the command line
+
+    name : str
+        The name of the build option
+
+    doc : str
+        A short description of the option, for the `--help` message
+
+    is_bool : bool, optional
+        When `True`, the option is a boolean option and doesn't
+        require an associated value.
+    """
+
+    dist = get_dummy_distribution()
+    cmdcls = dist.get_command_class(command)
+
+    attr = name.replace('-', '_')
+
+    if hasattr(cmdcls, attr):
+        raise RuntimeError(
+            '{0!r} already has a {1!r} class attribute, barring {2!r} from '
+            'being usable as a custom option name.'.format(cmdcls, attr, name))
+
+    for idx, cmd in enumerate(cmdcls.user_options):
+        if cmd[0] == name:
+            log.warning('Overriding existing {0!r} option '
+                        '{1!r}'.format(command, name))
+            del cmdcls.user_options[idx]
+            if name in cmdcls.boolean_options:
+                cmdcls.boolean_options.remove(name)
+            break
+
+    cmdcls.user_options.append((name, None, doc))
+
+    if is_bool:
+        cmdcls.boolean_options.append(name)
+
+    # Distutils' command parsing requires that a command object have an
+    # attribute with the same name as the option (with '-' replaced with '_')
+    # in order for that option to be recognized as valid
+    setattr(cmdcls, attr, None)
+
+
 class AstropyBuild(DistutilsBuild):
     """
     A custom 'build' command that allows for adding extra build
@@ -446,33 +502,6 @@ class AstropyBuild(DistutilsBuild):
         # were added.
         for option in self.custom_options:
             setattr(self, option.replace('-', '_'), None)
-
-    @classmethod
-    def add_build_option(cls, name, doc, is_bool=False):
-        """
-        Add a build option.
-
-        Parameters
-        ----------
-        name : str
-            The name of the build option
-
-        doc : str
-            A short description of the option, for the `--help` message.
-
-        is_bool : bool, optional
-            When `True`, the option is a boolean option and doesn't
-            require an associated value.
-        """
-        if name in cls.custom_options:
-            return
-
-        if is_bool:
-            cls.boolean_options.append(name)
-        else:
-            name = name + '='
-        cls.user_options.append((name, None, doc))
-        cls.custom_options.append(name)
 
     def run(self):
         """
@@ -521,50 +550,6 @@ class AstropyBuild(DistutilsBuild):
                    'Stdout:\n{stdout}\nStderr:\n{stderr}')
             log.error(msg.format(stdout=stdout.decode('UTF-8'),
                                  stderr=stderr.decode('UTF-8')))
-
-
-class AstropyInstall(SetuptoolsInstall):
-    """
-    A custom 'install' command that allows for adding extra install
-    options.
-    """
-    user_options = SetuptoolsInstall.user_options[:]
-    boolean_options = SetuptoolsInstall.boolean_options[:]
-    custom_options = []
-
-    def initialize_options(self):
-        SetuptoolsInstall.initialize_options(self)
-        # Create member variables for all of the custom options that
-        # were added.
-        for option in self.custom_options:
-            setattr(self, option.replace('-', '_'), None)
-
-    @classmethod
-    def add_install_option(cls, name, doc, is_bool=False):
-        """
-        Add a install option.
-
-        Parameters
-        ----------
-        name : str
-            The name of the install option
-
-        doc : str
-            A short description of the option, for the `--help` message.
-
-        is_bool : bool, optional
-            When `True`, the option is a boolean option and doesn't
-            require an associated value.
-        """
-        if name in cls.custom_options:
-            return
-
-        if is_bool:
-            cls.boolean_options.append(name)
-        else:
-            name = name + '='
-        cls.user_options.append((name, None, doc))
-        cls.custom_options.append(name)
 
 
 class AstropyRegister(SetuptoolsRegister):
@@ -617,23 +602,6 @@ class AstropyRegister(SetuptoolsRegister):
             # Really anything that came from setup.cfg or the command line
             # should override whatever was in .pypirc
             self.repository = value
-
-# Need to set the name here so that the commandline options
-# are presented as being related to the "build" command, for example; this
-# only affects the display of the help text, which does not obtain the the
-# command name in the correct way.
-AstropyBuild.__name__ = 'build'
-AstropyInstall.__name__ = 'install'
-AstropyRegister.__name__ = 'register'
-
-
-for option in [
-        ('enable-legacy',
-         "Install legacy shims", True),
-        ('use-system-libraries',
-         "Use system libraries whenever possible", True)]:
-    AstropyBuild.add_build_option(*option)
-    AstropyInstall.add_install_option(*option)
 
 
 if HAVE_SPHINX:
@@ -854,7 +822,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         if hasattr(setuppkg, 'get_build_options'):
             options = setuppkg.get_build_options()
             for option in options:
-                AstropyBuild.add_build_option(*option)
+                add_command_option('build', *option)
         if hasattr(setuppkg, 'get_external_libraries'):
             libraries = setuppkg.get_external_libraries()
             for library in libraries:
@@ -1316,14 +1284,11 @@ def add_external_library(library):
         The name of the library.  If the library is `foo`, the build
         option will be called `--use-system-foo`.
     """
-    AstropyBuild.add_build_option(
-        'use-system-{0}'.format(library),
-        'Use the system {0} library'.format(library),
-        is_bool=True)
-    AstropyInstall.add_install_option(
-        'use-system-{0}'.format(library),
-        'Use the system {0} library'.format(library),
-        is_bool=True)
+
+    for command in ['build', 'build_ext', 'install']:
+        add_command_option(command, 'use-system-' + library,
+                           'Use the system {0} library'.format(library),
+                           is_bool=True)
 
 
 def use_system_library(library):
