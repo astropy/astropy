@@ -37,9 +37,16 @@ class ConfigurationMissingWarning(Warning):
     """
 
 
-# this is not in __all__ because it's not intended that a user ever see it
+# these are not in __all__ because it's not intended that a user ever see them
 class ConfigurationDefaultMissingError(ValueError):
     """ An exception that is raised when the configuration defaults (which
+    should be generated at build-time) are missing.
+    """
+
+
+#this is used in astropy/__init__.py
+class ConfigurationDefaultMissingWarning(Warning):
+    """ A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
     """
 
