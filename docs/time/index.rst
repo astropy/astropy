@@ -1,6 +1,6 @@
-.. _astropy_time:
-
 .. include:: references.txt
+
+.. _astropy-time:
 
 ****************************************************
 Time and Dates (`astropy.time`)
@@ -77,6 +77,8 @@ different `time scale`_ is always performed by returning a copy of the original
 |Time| object which has been converted to the new time scale.
 
 
+.. _time-format:
+
 Time Format
 ^^^^^^^^^^^
 
@@ -126,6 +128,8 @@ Format     Subformat  Input / output
 ``yday``   date       2001:032
 =========  ========== ===========================
 
+
+.. _time-scale:
 
 Time Scale
 ^^^^^^^^^^

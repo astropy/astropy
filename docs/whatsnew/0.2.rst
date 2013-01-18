@@ -4,6 +4,94 @@
 What's New in Astropy 0.2
 =========================
 
+ASCII table I/O
+---------------
+
+The :ref:`astropy.io.ascii <io-ascii>` subpackage allows reading and writing of
+table data in ASCII format.  A number of improvements have been made to this
+package, some of which break compatibility with the original `asciitable
+<https://asciitable.readthedocs.org/>`_ package.
+
+The biggest change is full integration with the :ref:`Table <astropy-table>` class
+so that table and column metadata (e.g. keywords, units, description,
+formatting) are directly available in the output table object.  The CDS,
+DAOphot, and IPAC format readers now provide this type of integrated metadata.
+Missing value support is now provided using :ref:`masked tables <astropy-table>`
+instead of NumPy masked arrays.
+
+There is an important change in way that input data are parsed in the
+:func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of `astropy`, a
+list of lists was interpreted to be a *list of data rows*, corresponding to the
+behavior in `asciitable <https://asciitable.readthedocs.org/>`_.  Starting from
+version 0.2, a list of lists is interpreted as a *list of data columns*.  This corresponds
+to the behavior of the :class:`~astropy.table.table.Table` class.
+
+Finally, a reader class to read SExtractor table outputs is now available.
+
+
+Data Tables
+-----------
+
+The :ref:`astropy.table <astropy-table>` subpackage was first introduced for
+preview in Astropy 0.1 and provides functionality for storing and manipulating
+heterogenous tables of data in a way that is familiar to numpy users.  Some key
+features include:
+
+* Modify a table by adding or removing columns, changing column names,
+  or adding new rows of data.
+* Include table and column metadata as flexible data structures.
+* Specify a description, units and output formatting for columns.
+* Interactively scroll through long tables similar to using ``more``.
+
+Astropy 0.2 brings the addition of integrated support for missing values via
+the Numpy `masked array
+<http://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ class.  This
+feature requires Numpy version 1.5 or greater because of issues
+with masked arrays in previous versions.
+
+The :class:`~astropy.table.table.Table` class now connects to the new `I/O
+infrastructure`_ read and write methods.  For example, assume you have a table
+of magnitudes called ``mags`` with columns ``B`` and ``V``.  You can add a new
+column ``B-V`` and write out to an ASCII table with::
+
+    >>> BV = Column('B-V', mags['B'] - mags['V'])
+    >>> mags.add_column(BV)
+    >>> mags.write('mags_BV.dat', format='ascii')
+
+
+I/O infrastructure
+------------------
+
+TBD
+
+
+Time
+-----
+
+The :ref:`astropy.time <astropy-time>` package is new in Astropy 0.2 and
+provides functionality for manipulating times and dates.  Specific emphasis is
+placed on supporting time scales (e.g. UTC, TAI, UT1) and time representations
+(e.g. JD, MJD, ISO 8601) that are used in astronomy.  The underlying
+computations are mostly done with the C language `SOFA`_ time and calendar
+routines.  A simple example follows::
+
+  >>> from astropy.time import Time
+  >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
+  >>> t = Time(times, format='iso', scale='utc')
+
+The ``format`` argument specifies how to interpret :ref:`time-format` of the
+input values, e.g. ISO or JD or Unix time.  The ``scale`` argument specifies
+the :ref:`time-scale` for the values, e.g. UTC or TT or UT1.  Converting to
+another time ``format`` or time ``scale`` is a snap::
+
+  >>> t.jd  # Get an array of JD times
+  array([ 2451179.50000143,  2455197.5       ])
+  >>> t.tt  # Get a new Time object with values in the TT time scale
+  <Time object: scale='tt' format='iso' vals=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
+
+.. _SOFA: http://www.iausofa.org/index.html
+
+
 Units and quantities
 --------------------
 
