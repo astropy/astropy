@@ -107,6 +107,9 @@ if not _ASTROPY_SETUP_:
     import os
     from warnings import warn
 
+    # add these here so we only need to cleanup the namespace at the end
+    config_dir = e = None
+
     if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
         config_dir = os.path.split(config.__file__)[0]
         try:
@@ -118,4 +121,4 @@ if not _ASTROPY_SETUP_:
             else:
                 raise
 
-    del os  # clean up namespace
+    del os, warn, config_dir, e  # clean up namespace
