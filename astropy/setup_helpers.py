@@ -137,7 +137,43 @@ def get_compiler_version(compiler):
     return version
 
 
-_command_options = None
+_dummy_distribution = None
+def get_dummy_distribution():
+    """Returns a distutils Distribution object used to instrument the setup
+    environment before calling the actual setup() function.
+    """
+
+    global _dummy_distribution
+    global _registered_commands
+
+    if _registered_commands is None:
+        raise RuntimeError('astropy.setup_helpers.register_commands() must be '
+                           'called before using '
+                           'astropy.setup_helpers.get_dummy_distribution()')
+
+    if _dummy_distribution is None:
+        # Pre-parse the Distutils command-line options and config files to if
+        # the option is set.
+        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                             'script_args': sys.argv[1:]})
+        dist.cmdclass.update(_registered_commands)
+
+        with silence():
+            try:
+                dist.parse_config_files()
+                dist.parse_command_line()
+            except (DistutilsError, AttributeError, SystemExit):
+                # Let distutils handle DistutilsErrors itself
+                # AttributeErrors can get raise for ./setup.py --help
+                # SystemExit can be raised if a display option was used,
+                # for example
+                pass
+
+        _dummy_distribution = dist
+
+    return _dummy_distribution
+
+
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -156,36 +192,10 @@ def get_distutils_option(option, commands):
         returns None.
     """
 
-    global _command_options
-    global _registered_commands
-
-    if _registered_commands is None:
-        raise RuntimeError('astropy.setup_helpers.register_commands() must be '
-                           'called before using '
-                           'astropy.setup_helpers.get_distutils_options()')
-
-    if _command_options is None:
-        # Pre-parse the Distutils command-line options and config files to if
-        # the option is set.
-        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                             'script_args': sys.argv[1:]})
-        dist.cmdclass.update(_registered_commands)
-
-        with silence():
-            try:
-                dist.parse_config_files()
-                dist.parse_command_line()
-            except (DistutilsError, AttributeError, SystemExit):
-                # Let distutils handle DistutilsErrors itself
-                # AttributeErrors can get raise for ./setup.py --help
-                # SystemExit can be raised if a display option was used,
-                # for example
-                pass
-
-        _command_options = dist.command_options
+    dist = get_dummy_distribution()
 
     for cmd in commands:
-        cmd_opts = _command_options.get(cmd)
+        cmd_opts = dist.command_options.get(cmd)
         if cmd_opts is not None and option in cmd_opts:
             return cmd_opts[option][1]
     else:
@@ -275,16 +285,22 @@ def get_debug_option():
 
     """
 
-    debug = bool(get_distutils_build_option('debug'))
-
     try:
         from .version import debug as current_debug
     except ImportError:
         current_debug = None
 
+    # Only modify the debug flag if one of the build commands was explicitly
+    # run (i.e. not as a sub-command of something else)
+    dist = get_dummy_distribution()
+    if any(cmd in dist.commands for cmd in ['build', 'build_ext']):
+        debug = bool(get_distutils_build_option('debug'))
+    else:
+        debug = bool(current_debug)
+
     if current_debug is not None and current_debug != debug:
-        # Force rebuild of extension modules
-        sys.argv.extend(['build', '--force'])
+        build_ext_cmd = dist.get_command_class('build_ext')
+        build_ext_cmd.force_rebuild = True
 
     return debug
 
@@ -358,6 +374,16 @@ def generate_build_ext_command(release):
 
     attrs = dict(basecls.__dict__)
     orig_run = getattr(basecls, 'run', None)
+    orig_finalize = getattr(basecls, 'finalize_options', None)
+
+    def finalize_options(self):
+        if orig_finalize is not None:
+            orig_finalize(self)
+
+        # Regardless of the value of the '--force' option, force a rebuild if
+        # the debug flag changed from the last build
+        if self.force_rebuild:
+            self.force = True
 
     def run(self):
         # For extensions that require 'numpy' in their include dirs, replace
@@ -399,6 +425,8 @@ def generate_build_ext_command(release):
             orig_run(self)
 
     attrs['run'] = run
+    attrs['finalize_options'] = finalize_options
+    attrs['force_rebuild'] = False
 
     return type('build_ext', (basecls, object), attrs)
 
@@ -476,7 +504,8 @@ class AstropyBuild(DistutilsBuild):
         genfn = generate_all_config_items('{pkgnm}', True)
         print(genfn)
         """).format(pkgnm=self.distribution.packages[0], libdir=libdir)
-        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=libdir)
+        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                     cwd=libdir)
         stdout, stderr = proc.communicate(subproccode.encode('ascii'))
 
         if proc.returncode == 0:
@@ -622,15 +651,17 @@ if HAVE_SPHINX:
 
         description = 'Build Sphinx documentation for Astropy environment'
         user_options = SphinxBuildDoc.user_options[:]
-        user_options.append(('clean-docs', 'l', 'Completely clean previously '
-                                                'builds, including auotmodapi-'
-                                                'generated files before '
-                                                'building new ones'))
-        user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
-                                                    'conf.py says to use it'))
-        user_options.append(('open-docs-in-browser', 'o', 'Open the docs in a '
-                                'browser (using the webbrowser module) if the '
-                                'build finishes successfully.'))
+        user_options.append(('clean-docs', 'l',
+                             'Completely clean previous builds, including '
+                             'automodapi-generated files before building new '
+                             'ones'))
+        user_options.append(('no-intersphinx', 'n',
+                             'Skip intersphinx, even if conf.py says to use '
+                             'it'))
+        user_options.append(('open-docs-in-browser', 'o',
+                             'Open the docs in a browser (using the '
+                             'webbrowser module) if the build finishes '
+                             'successfully.'))
 
         boolean_options = SphinxBuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
@@ -957,7 +988,7 @@ def should_build_with_cython(release=None):
     if use_cython and cython_version != Cython.__version__:
         # Make sure that if building with a different Cython version that all
         # generated C files get regenerated with the new Cython
-        sys.argv.extend(['build_ext', '--force'])
+        # sys.argv.extend(['build_ext', '--force'])
 
         # Regenerate the appropriate cython_version.py
         cython_py = os.path.join(os.path.dirname(__file__),
