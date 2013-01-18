@@ -485,7 +485,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr
-=======
+
 def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation
 
@@ -529,7 +529,7 @@ def median_absolute_deviation(a, axis=None):
     a_median = np.median(a, axis=axis)
 
     #re-broadcast the output median array to subtract it
-    if axis > 0:
+    if axis is not None:
         shape = list(a_median.shape)
         shape.append(1)
         a_median = a_median.reshape(shape)
@@ -538,15 +538,15 @@ def median_absolute_deviation(a, axis=None):
     return np.median(np.abs(a - a_median), axis=axis)
 
 
-def biweight_locater(a, c=6.0, M=None):
+def biweight_location(a, c=6.0, M=None):
     """
-    Compute the biweight locater for an array
+    Compute the biweight location for an array
 
-    Returns the biweight locater for the array elements.  The biweight
+    Returns the biweight location for the array elements.  The biweight
     is a robust statistic for determining the central location of a
     distribution.
 
-    The biweight locater is given by the follow equation::
+    The biweight location is given by the follow equation::
     ..math::
         C_{bl}= M+\frac{\Sigma_{|u_i|<1} (x_i-M)(1-u_i^2)^2}
         {\Sigma_{|u_i|<1} (1-u_i^2)^2}
@@ -565,12 +565,12 @@ def biweight_locater(a, c=6.0, M=None):
     c : float
         Tuning constant for the biweight estimator.  Default value is 6.0.
     M : float, optional
-        Initial gues for the biweight locater.
+        Initial gues for the biweight location.
 
     Returns
     -------
-    biweight_locater: float
-        Returns the biweight locater for the array elements.
+    biweight_location: float
+        Returns the biweight location for the array elements.
 
     Examples
     --------
@@ -578,14 +578,14 @@ def biweight_locater(a, c=6.0, M=None):
     This will generate random variates from a Gaussian distribution and return
     the median absolute deviation for that distribution::
 
-        >>> from astropy.tools.alg import biweight_locater
+        >>> from astropy.tools.alg import biweight_location
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> cbl = biweight_locater(randvar)
+        >>> cbl = biweight_location(randvar)
 
     See Also
     --------
-    median absolute deviation, biweight_scale
+    median absolute deviation, biweight_midvariance
     """
 
     a = np.array(a, copy=False)
@@ -606,22 +606,22 @@ def biweight_locater(a, c=6.0, M=None):
     return M+(d[mask]*u[mask]).sum()/u[mask].sum()
 
 
-def biweight_scale(a, c=9.0, M=None):
+def biweight_midvariance(a, c=9.0, M=None):
     """
-    Compute the biweight scale for an array
+    Compute the biweight midvariance for an array
 
-    Returns the biweight scale for the array elements.  The biweight
-    scale is a robust statistic for determining the scale (ie. the
+    Returns the biweight midvariance for the array elements.  The biweight
+    midvariance is a robust statistic for determining the midvariance (ie. the
     standard deviation) of a distribution.
 
-    The biweight locater is given by the follow equation::
+    The biweight location is given by the follow equation::
     ..math::
         C_{bl}= n^{1/2} \frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
         {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
     where  u_i is given by::
     ..math::a
         u_{i} = \frac{(x_i-M)}{cMAD}
-    where MAD is the median absolute deviation.  For the scale parameter, c is
+    where MAD is the median absolute deviation.  For the midvariance  parameter, c is
     typically uses a value of 9.0.
 
     For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
@@ -633,12 +633,12 @@ def biweight_scale(a, c=9.0, M=None):
     c : float
         Tuning constant for the biweight estimator.  Default value is 9.0.
     M : float, optional
-        Initial gues for the biweight locater.
+        Initial gues for the biweight location.
 
     Returns
     -------
-    biweight_scale: float
-        Returns the biweight scale for the array elements.
+    biweight_midvariance: float
+        Returns the biweight midvariance for the array elements.
 
     Examples
     --------
@@ -646,14 +646,14 @@ def biweight_scale(a, c=9.0, M=None):
     This will generate random variates from a Gaussian distribution and return
     the median absolute deviation for that distribution::
 
-        >>> from astropy.tools.alg import biweight_scale
+        >>> from astropy.tools.alg import biweight_midvariance
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> scl = biweight_scale(randvar)
+        >>> scl = biweight_midvariance(randvar)
 
     See Also
     --------
-    median absolute deviation, biweight_locater
+    median absolute deviation, biweight_location
     """
 
     a = np.array(a, copy=False)

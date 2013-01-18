@@ -68,7 +68,7 @@ def test_median_absolute_deviation():
         assert len(mad) == 10
         assert mad.size < randvar.size
 
-def test_biweight_locater():
+def test_biweight_location():
     from numpy.random import randn
 
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
@@ -78,12 +78,12 @@ def test_biweight_locater():
 
         #test that it runs
         randvar = randn(10000)
-        cbl = funcs.biweight_locater(randvar)
+        cbl = funcs.biweight_location(randvar)
 
         assert abs(cbl-0)<1e-2
 
 
-def test_biweight_scale():
+def test_biweight_midvariance():
     from numpy.random import randn
 
     #need to seed the numpy RNG to make sure we don't get some amazingly flukey
@@ -93,7 +93,7 @@ def test_biweight_scale():
 
         #test that it runs
         randvar = randn(10000)
-        scl = funcs.biweight_scale(randvar)
+        scl = funcs.biweight_midvariance(randvar)
 
         assert abs(scl-1) < 1e-2
 
