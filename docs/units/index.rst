@@ -1,3 +1,5 @@
+.. _astropy-units:
+
 ***********************
 Units (`astropy.units`)
 ***********************
@@ -7,9 +9,9 @@ Units (`astropy.units`)
 Introduction
 ============
 
-``astropy.units`` is a Python package to handle defining and converting
-between physical units, and performing arithmetic with physical quantities
-(numbers with associated units).
+``astropy.units`` handles defining and converting between physical
+units, and performing arithmetic with physical quantities (numbers
+with associated units).
 
 Getting Started
 ===============
@@ -44,10 +46,11 @@ are passed to the `~astropy.units.core.UnitBase.to` conversion method::
   >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
   array([ 1.23984201,  0.61992101])
 
-Also included in the `astropy.units` package is the `~astropy.units.quantity.Quantity` object,
-which represents a numerical value with an associated unit. These objects
-support arithmetic with other numbers and `~astropy.units.quantity.Quantity`  objects and preserve
-units::
+Also included in the `astropy.units` package is the
+`~astropy.units.quantity.Quantity` object, which represents a
+numerical value with an associated unit. These objects support
+arithmetic with other numbers and `~astropy.units.quantity.Quantity`
+objects and preserve units::
 
    >>> from astropy import units as u
    >>> 15.1*u.meter / (32.0*u.second)
