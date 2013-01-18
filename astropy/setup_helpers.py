@@ -371,7 +371,9 @@ def generate_build_ext_command(release):
     Uses the default distutils.command.build_ext by default.
     """
 
-    if should_build_with_cython(release):
+    uses_cython = should_build_with_cython(release)
+
+    if uses_cython:
         from Cython.Distutils import build_ext as basecls
     else:
         basecls = SetuptoolsBuildExt
@@ -383,6 +385,20 @@ def generate_build_ext_command(release):
     def finalize_options(self):
         if orig_finalize is not None:
             orig_finalize(self)
+
+        # Generate
+        if self.uses_cython:
+            try:
+                from Cython import __version__ as cython_version
+            except ImportError:
+                # This shouldn't happen if we made it this far
+                cython_version = None
+
+            if (cython_version is not None and
+                    cython_version != self.uses_cython):
+                self.force_rebuild = True
+                # Update the used cython version
+                self.uses_cython = cython_version
 
         # Regardless of the value of the '--force' option, force a rebuild if
         # the debug flag changed from the last build
@@ -409,7 +425,7 @@ def generate_build_ext_command(release):
                     cfn = src
 
                 if os.path.isfile(pyxfn):
-                    if should_build_with_cython():
+                    if self.uses_cython:
                         extension.sources[jdx] = pyxfn
                     else:
                         if os.path.isfile(cfn):
@@ -423,6 +439,21 @@ def generate_build_ext_command(release):
                                                       extension.name))
                             raise IOError(errno.ENOENT, msg, cfn)
 
+        # Update cython_version.py if building with Cython
+        try:
+            from .version import cython_version
+        except ImportError:
+            cython_version = 'unknown'
+        if self.uses_cython and self.uses_cython != cython_version:
+            astropy_dir = os.path.relpath(os.path.dirname(__file__))
+            cython_py = os.path.join(astropy_dir, 'cython_version.py')
+            with open(cython_py, 'w') as f:
+                f.write('# Generated file; do not modify\n')
+                f.write('cython_version = {0!r}\n'.format(self.uses_cython))
+
+            self.copy_file(cython_py, os.path.join(self.build_lib, cython_py),
+                           preserve_mode=False)
+
         if orig_run is not None:
             # This should always be the case for a correctly implemented
             # distutils command.
@@ -431,6 +462,7 @@ def generate_build_ext_command(release):
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
     attrs['force_rebuild'] = False
+    attrs['uses_cython'] = uses_cython
 
     return type('build_ext', (basecls, object), attrs)
 
@@ -924,16 +956,12 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
-_should_build_with_cython = None
 def should_build_with_cython(release=None):
-    """Returns `True` if Cython should be used to build extension modules from
+    """Returns the previously used Cython version (or 'unknown' if not
+    previously built) if Cython should be used to build extension modules from
     pyx files.  If the ``release`` parameter is not specified an attempt is
     made to determine the release flag from `astropy.version`.
     """
-
-    global _should_build_with_cython
-    if _should_build_with_cython is not None:
-        return _should_build_with_cython
 
     if release is None:
         try:
@@ -951,25 +979,10 @@ def should_build_with_cython(release=None):
     # files haven't been created yet (cython_version == 'unknown'). The latter
     # case can happen even when release is True if checking out a release tag
     # from the repository
-    use_cython = (HAVE_CYTHON and (not release or cython_version == 'unknown'))
-
-    if use_cython and cython_version != Cython.__version__:
-        # Make sure that if building with a different Cython version that all
-        # generated C files get regenerated with the new Cython
-        # sys.argv.extend(['build_ext', '--force'])
-
-        # Regenerate the appropriate cython_version.py
-        cython_py = os.path.join(os.path.dirname(__file__),
-                                 'cython_version.py')
-        with open(cython_py, 'w') as f:
-            f.write('# Generated file; do not modify\n')
-            f.write('cython_version = {0!r}\n'.format(Cython.__version__))
-
-    # Cache result so that repeated calls don't repeat any possible side
-    # effects
-    _should_build_with_cython = use_cython
-
-    return use_cython
+    if HAVE_CYTHON and (not release or cython_version == 'unknown'):
+        return cython_version
+    else:
+        return False
 
 
 def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
