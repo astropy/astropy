@@ -27,6 +27,7 @@ from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 from setuptools.command.register import register as SetuptoolsRegister
 
 from .tests.helper import astropy_test
+from .utils import silence
 
 
 try:
@@ -535,6 +536,8 @@ def is_distutils_display_option():
 
 
 cmdclassd = {}
+
+_command_options = None
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -553,34 +556,31 @@ def get_distutils_option(option, commands):
         returns None.
     """
 
-    display_opts = get_distutils_display_options()
-    args = [arg for arg in sys.argv[1:] if arg not in display_opts]
+    global _command_options
 
-    # Pre-parse the Distutils command-line options and config files to
-    # if the option is set.
-    dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                         'script_args': args})
-    dist.cmdclass.update(cmdclassd)
+    if _command_options is None:
+        # Pre-parse the Distutils command-line options and config files to if
+        # the option is set.
+        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                             'script_args': sys.argv[1:]})
+        dist.cmdclass.update(cmdclassd)
 
-    try:
-        dist.parse_config_files()
-        dist.parse_command_line()
-    except DistutilsError:
-        # Let distutils handle this itself
-        return None
-    except AttributeError:
-        # This seems to get thrown for ./setup.py --help
-        return None
+        with silence():
+            try:
+                dist.parse_config_files()
+                dist.parse_command_line()
+            except (DistutilsError, AttributeError, SystemExit):
+                # Let distutils handle DistutilsErrors itself
+                # AttributeErrors can get raise for ./setup.py --help
+                # SystemExit can be raised if a display option was used,
+                # for example
+                pass
 
-    for cmd in commands:
-        if cmd in dist.commands:
-            break
-    else:
-        return None
+        _command_options = dist.command_options
 
     for cmd in commands:
-        cmd_opts = dist.get_option_dict(cmd)
-        if option in cmd_opts:
+        cmd_opts = _command_options.get(cmd)
+        if cmd_opts is not None and option in cmd_opts:
             return cmd_opts[option][1]
     else:
         return None

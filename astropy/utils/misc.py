@@ -7,6 +7,7 @@ a clear module/package to live in.
 from __future__ import absolute_import
 
 import collections
+import contextlib
 import functools
 import sys
 import textwrap
@@ -14,7 +15,8 @@ import traceback
 import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
-           'deprecated_attribute', 'format_exception', 'NumpyRNGContext']
+           'deprecated_attribute', 'silence', 'format_exception',
+           'NumpyRNGContext']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -481,6 +483,27 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         delattr(self, private_name)
 
     return property(get, set, delete)
+
+
+class _DummyFile(object):
+    """A noop writeable object."""
+
+    def write(self, s):
+        pass
+
+
+@contextlib.contextmanager
+def silence():
+    """A context manager that silences sys.stdout and sys.stderr."""
+
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = _DummyFile()
+    sys.stderr = _DummyFile()
+    yield
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+
 
 
 def format_exception(msg, *args, **kwargs):
