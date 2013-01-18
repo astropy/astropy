@@ -9,11 +9,12 @@ from __future__ import absolute_import, print_function
 import errno
 import imp
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import sys
-import re
-import shlex
+import textwrap
 
 from distutils import log
 from distutils.dist import Distribution
@@ -21,6 +22,7 @@ from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
 from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
+from distutils.command.sdist import sdist as DistutilsSdist
 from setuptools.command.install import install as SetuptoolsInstall
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 
@@ -43,6 +45,362 @@ try:
     HAVE_SPHINX = True
 except ImportError:
     HAVE_SPHINX = False
+
+
+_adjusted_compiler = False
+def adjust_compiler(package):
+    """
+    This function detects broken compilers and switches to another.  If
+    the environment variable CC is explicitly set, or a compiler is
+    specified on the commandline, no override is performed -- the purpose
+    here is to only override a default compiler.
+
+    The specific compilers with problems are:
+
+        * The default compiler in XCode-4.2, llvm-gcc-4.2,
+          segfaults when compiling wcslib.
+
+    The set of broken compilers can be updated by changing the
+    compiler_mapping variable.  It is a list of 2-tuples where the
+    first in the pair is a regular expression matching the version
+    of the broken compiler, and the second is the compiler to change
+    to.
+    """
+
+    from distutils import ccompiler, sysconfig
+    import re
+
+    compiler_mapping = [
+        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
+        ]
+
+    global _adjusted_compiler
+    if _adjusted_compiler:
+        return
+
+    # Whatever the result of this function is, it only needs to be run once
+    _adjusted_compiler = True
+
+    if 'CC' in os.environ:
+
+        # Check that CC is not set to llvm-gcc-4.2
+        c_compiler = os.environ['CC']
+
+        version = get_compiler_version(c_compiler)
+
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                msg = textwrap.dedent(
+                    """Compiler specified by CC environment variable
+                    ({compiler:s}:{version:s}) will fail to compile {pkg:s}.
+                    Please set CC={fixed:s} and try again.
+                    You can do this, for example, by running:
+
+                        CC={fixed:s} python setup.py <command>
+
+                    where <command> is the command you ran.
+                    """.format(compiler=c_compiler, version=version,
+                               pkg=package, fixed=fixed))
+                log.warn(msg)
+                sys.exit(1)
+
+    if get_distutils_build_option('compiler'):
+        return
+
+    compiler_type = ccompiler.get_default_compiler()
+
+    if compiler_type == 'unix':
+
+        # We have to get the compiler this way, as this is the one that is
+        # used if os.environ['CC'] is not set. It is actually read in from
+        # the Python Makefile. Note that this is not necessarily the same
+        # compiler as returned by ccompiler.new_compiler()
+        c_compiler = sysconfig.get_config_var('CC')
+
+        version = get_compiler_version(c_compiler)
+
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                os.environ['CC'] = fixed
+                break
+
+
+def get_compiler_version(compiler):
+    import subprocess
+
+    process = subprocess.Popen(
+    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
+
+    output = process.communicate()[0].strip()
+    version = output.split()[0]
+
+    return version
+
+
+_command_options = None
+def get_distutils_option(option, commands):
+    """ Returns the value of the given distutils option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    commands : list of str
+        The list of commands on which this option is available
+
+    Returns
+    -------
+    val : str or None
+        the value of the given distutils option. If the option is not set,
+        returns None.
+    """
+
+    global _command_options
+    global _registered_commands
+
+    if _registered_commands is None:
+        raise RuntimeError('astropy.setup_helpers.register_commands() must be '
+                           'called before using '
+                           'astropy.setup_helpers.get_distutils_options()')
+
+    if _command_options is None:
+        # Pre-parse the Distutils command-line options and config files to if
+        # the option is set.
+        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                             'script_args': sys.argv[1:]})
+        dist.cmdclass.update(_registered_commands)
+
+        with silence():
+            try:
+                dist.parse_config_files()
+                dist.parse_command_line()
+            except (DistutilsError, AttributeError, SystemExit):
+                # Let distutils handle DistutilsErrors itself
+                # AttributeErrors can get raise for ./setup.py --help
+                # SystemExit can be raised if a display option was used,
+                # for example
+                pass
+
+        _command_options = dist.command_options
+
+    for cmd in commands:
+        cmd_opts = _command_options.get(cmd)
+        if cmd_opts is not None and option in cmd_opts:
+            return cmd_opts[option][1]
+    else:
+        return None
+
+
+def get_distutils_build_option(option):
+    """ Returns the value of the given distutils build option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build option. If the option
+        is not set, returns None.
+    """
+    return get_distutils_option(option, ['build', 'build_ext', 'build_clib'])
+
+
+def get_distutils_install_option(option):
+    """ Returns the value of the given distutils install option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build option. If the option
+        is not set, returns None.
+    """
+    return get_distutils_option(option, ['install'])
+
+
+def get_distutils_build_or_install_option(option):
+    """ Returns the value of the given distutils build or install option.
+
+    Parameters
+    ----------
+    option : str
+        The name of the option
+
+    Returns
+    -------
+    val : str or None
+        The value of the given distutils build or install option. If the
+        option is not set, returns None.
+    """
+    return get_distutils_option(option, ['build', 'build_ext', 'build_clib',
+                                         'install'])
+
+
+def get_compiler_option():
+    """ Determines the compiler that will be used to build extension modules.
+
+    Returns
+    -------
+    compiler : str
+        The compiler option specificied for the build, build_ext, or build_clib
+        command; or the default compiler for the platform if none was
+        specified.
+
+    """
+
+    compiler = get_distutils_build_option('compiler')
+    if compiler is None:
+        import distutils.ccompiler
+        return distutils.ccompiler.get_default_compiler()
+
+    return compiler
+
+
+def get_debug_option():
+    """ Determines if the build is in debug mode.
+
+    Returns
+    -------
+    debug : bool
+        True if the current build was started with the debug option, False
+        otherwise.
+
+    """
+
+    debug = bool(get_distutils_build_option('debug'))
+
+    try:
+        from .version import debug as current_debug
+    except ImportError:
+        current_debug = None
+
+    if current_debug is not None and current_debug != debug:
+        # Force rebuild of extension modules
+        sys.argv.extend(['build', '--force'])
+
+    return debug
+
+
+_registered_commands = None
+def register_commands(package, version, release):
+    global _registered_commands
+
+    if _registered_commands is not None:
+        return _registered_commands
+
+    _registered_commands = {
+        'test': generate_test_command(package),
+
+         # Use distutils' sdist because it respects package_data.
+         # setuptools/distributes sdist requires duplication of information in
+         # MANIFEST.in
+         'sdist': DistutilsSdist,
+
+         # Use a custom build command which understands additional commandline
+         # arguments
+         'build': AstropyBuild,
+
+         # The exact form of the build_ext command depends on whether or not
+         # we're building a release version
+         'build_ext': generate_build_ext_command(release),
+
+         # Use a custom install command which understands additional
+         # commandline arguments
+         'install': AstropyInstall,
+
+         'register': AstropyRegister
+    }
+
+    try:
+        import bdist_mpkg
+    except ImportError:
+        pass
+    else:
+        # Use a custom command to build a dmg (on MacOS X)
+        _registered_commands['bdist_dmg'] = bdist_dmg
+
+
+    if HAVE_SPHINX:
+        _registered_commands['build_sphinx'] = AstropyBuildSphinx
+
+
+    return _registered_commands
+
+
+def generate_test_command(package_name):
+    return type(package_name + '_test_command', (astropy_test,),
+                {'package_name': package_name})
+
+
+def generate_build_ext_command(release):
+    """
+    Creates a custom 'build_ext' command that allows for manipulating some of
+    the C extension options at build time.  We use a function to build the
+    class since the base class for build_ext may be different depending on
+    certain build-time parameters (for example, we may use Cython's build_ext
+    instead of the default version in distutils).
+
+    Uses the default distutils.command.build_ext by default.
+    """
+
+    if should_build_with_cython(release):
+        from Cython.Distutils import build_ext as basecls
+    else:
+        basecls = SetuptoolsBuildExt
+
+    attrs = dict(basecls.__dict__)
+    orig_run = getattr(basecls, 'run', None)
+
+    def run(self):
+        # For extensions that require 'numpy' in their include dirs, replace
+        # 'numpy' with the actual paths
+        np_include = get_numpy_include_path()
+        for extension in self.extensions:
+            if 'numpy' in extension.include_dirs:
+                idx = extension.include_dirs.index('numpy')
+                extension.include_dirs.insert(idx, np_include)
+                extension.include_dirs.remove('numpy')
+
+            # Replace .pyx with C-equivalents, unless c files are missing
+            for jdx, src in enumerate(extension.sources):
+                if src.endswith('.pyx'):
+                    pyxfn = src
+                    cfn = src[:-4] + '.c'
+                elif src.endswith('.c'):
+                    pyxfn = src[:-2] + '.pyx'
+                    cfn = src
+
+                if os.path.isfile(pyxfn):
+                    if should_build_with_cython():
+                        extension.sources[jdx] = pyxfn
+                    else:
+                        if os.path.isfile(cfn):
+                            extension.sources[jdx] = cfn
+                        else:
+                            msg = (
+                                'Could not find C file {0} for Cython file '
+                                '{1} when building extension {2}. '
+                                'Cython must be installed to build from a '
+                                'git checkout'.format(cfn, pyxfn,
+                                                      extension.name))
+                            raise IOError(errno.ENOENT, msg, cfn)
+
+        if orig_run is not None:
+            # This should always be the case for a correctly implemented
+            # distutils command.
+            orig_run(self)
+
+    attrs['run'] = run
+
+    return type('build_ext', (basecls, object), attrs)
 
 
 class AstropyBuild(DistutilsBuild):
@@ -240,112 +598,6 @@ AstropyInstall.__name__ = 'install'
 AstropyRegister.__name__ = 'register'
 
 
-_should_build_with_cython = None
-def should_build_with_cython(release=None):
-    """Returns `True` if Cython should be used to build extension modules from
-    pyx files.  If the ``release`` parameter is not specified an attempt is
-    made to determine the release flag from `astropy.version`.
-    """
-
-    global _should_build_with_cython
-    if _should_build_with_cython is not None:
-        return _should_build_with_cython
-
-    if release is None:
-        try:
-            from astropy.version import release
-        except ImportError:
-            pass
-
-    try:
-        from astropy.version import cython_version
-    except ImportError:
-        cython_version = 'unknown'
-
-    # Only build with Cython if, of course, Cython is installed, we're in a
-    # development version (i.e. not release) or the Cython-generated source
-    # files haven't been created yet (cython_version == 'unknown'). The latter
-    # case can happen even when release is True if checking out a release tag
-    # from the repository
-    use_cython = (HAVE_CYTHON and (not release or cython_version == 'unknown'))
-
-    if use_cython and cython_version != Cython.__version__:
-        # Make sure that if building with a different Cython version that all
-        # generated C files get regenerated with the new Cython
-        sys.argv.extend(['build_ext', '--force'])
-
-        # Regenerate the appropriate cython_version.py
-        cython_py = os.path.join(os.path.dirname(__file__),
-                                 'cython_version.py')
-        with open(cython_py, 'w') as f:
-            f.write('# Generated file; do not modify\n')
-            f.write('cython_version = {0!r}\n'.format(Cython.__version__))
-
-    # Cache result so that repeated calls don't repeat any possible side
-    # effects
-    _should_build_with_cython = use_cython
-
-    return use_cython
-
-
-def wrap_build_ext(basecls=SetuptoolsBuildExt):
-    """
-    Creates a custom 'build_ext' command that allows for manipulating some of
-    the C extension options at build time.  We use a function to build the
-    class since the base class for build_ext may be different depending on
-    certain build-time parameters (for example, we may use Cython's build_ext
-    instead of the default version in distutils).
-
-    Uses the default distutils.command.build_ext by default.
-    """
-
-    attrs = dict(basecls.__dict__)
-    orig_run = getattr(basecls, 'run', None)
-
-    def run(self):
-        # For extensions that require 'numpy' in their include dirs, replace
-        # 'numpy' with the actual paths
-        np_include = get_numpy_include_path()
-        for extension in self.extensions:
-            if 'numpy' in extension.include_dirs:
-                idx = extension.include_dirs.index('numpy')
-                extension.include_dirs.insert(idx, np_include)
-                extension.include_dirs.remove('numpy')
-
-            # Replace .pyx with C-equivalents, unless c files are missing
-            for jdx, src in enumerate(extension.sources):
-                if src.endswith('.pyx'):
-                    pyxfn = src
-                    cfn = src[:-4] + '.c'
-                elif src.endswith('.c'):
-                    pyxfn = src[:-2] + '.pyx'
-                    cfn = src
-
-                if os.path.isfile(pyxfn):
-                    if should_build_with_cython():
-                        extension.sources[jdx] = pyxfn
-                    else:
-                        if os.path.isfile(cfn):
-                            extension.sources[jdx] = cfn
-                        else:
-                            msg = (
-                                'Could not find C file {0} for Cython file '
-                                '{1} when building extension {2}. '
-                                'Cython must be installed to build from a '
-                                'git checkout'.format(cfn, pyxfn,
-                                                      extension.name))
-                            raise IOError(errno.ENOENT, msg, cfn)
-
-        if orig_run is not None:
-            # This should always be the case for a correctly implemented
-            # distutils command.
-            orig_run(self)
-
-    attrs['run'] = run
-
-    return type('build_ext', (basecls, object), attrs)
-
-
 for option in [
         ('enable-legacy',
          "Install legacy shims", True),
@@ -535,154 +787,6 @@ def is_distutils_display_option():
     return bool(set(sys.argv[1:]).intersection(display_options))
 
 
-cmdclassd = {}
-
-_command_options = None
-def get_distutils_option(option, commands):
-    """ Returns the value of the given distutils option.
-
-    Parameters
-    ----------
-    option : str
-        The name of the option
-
-    commands : list of str
-        The list of commands on which this option is available
-
-    Returns
-    -------
-    val : str or None
-        the value of the given distutils option. If the option is not set,
-        returns None.
-    """
-
-    global _command_options
-
-    if _command_options is None:
-        # Pre-parse the Distutils command-line options and config files to if
-        # the option is set.
-        dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                             'script_args': sys.argv[1:]})
-        dist.cmdclass.update(cmdclassd)
-
-        with silence():
-            try:
-                dist.parse_config_files()
-                dist.parse_command_line()
-            except (DistutilsError, AttributeError, SystemExit):
-                # Let distutils handle DistutilsErrors itself
-                # AttributeErrors can get raise for ./setup.py --help
-                # SystemExit can be raised if a display option was used,
-                # for example
-                pass
-
-        _command_options = dist.command_options
-
-    for cmd in commands:
-        cmd_opts = _command_options.get(cmd)
-        if cmd_opts is not None and option in cmd_opts:
-            return cmd_opts[option][1]
-    else:
-        return None
-
-
-def get_distutils_build_option(option):
-    """ Returns the value of the given distutils build option.
-
-    Parameters
-    ----------
-    option : str
-        The name of the option
-
-    Returns
-    -------
-    val : str or None
-        The value of the given distutils build option. If the option
-        is not set, returns None.
-    """
-    return get_distutils_option(option, ['build', 'build_ext', 'build_clib'])
-
-
-def get_distutils_install_option(option):
-    """ Returns the value of the given distutils install option.
-
-    Parameters
-    ----------
-    option : str
-        The name of the option
-
-    Returns
-    -------
-    val : str or None
-        The value of the given distutils build option. If the option
-        is not set, returns None.
-    """
-    return get_distutils_option(option, ['install'])
-
-
-def get_distutils_build_or_install_option(option):
-    """ Returns the value of the given distutils build or install option.
-
-    Parameters
-    ----------
-    option : str
-        The name of the option
-
-    Returns
-    -------
-    val : str or None
-        The value of the given distutils build or install option. If the
-        option is not set, returns None.
-    """
-    return get_distutils_option(option, ['build', 'build_ext', 'build_clib',
-                                         'install'])
-
-
-def get_compiler_option():
-    """ Determines the compiler that will be used to build extension modules.
-
-    Returns
-    -------
-    compiler : str
-        The compiler option specificied for the build, build_ext, or build_clib
-        command; or the default compiler for the platform if none was
-        specified.
-
-    """
-
-    compiler = get_distutils_build_option('compiler')
-    if compiler is None:
-        import distutils.ccompiler
-        return distutils.ccompiler.get_default_compiler()
-
-    return compiler
-
-
-def get_debug_option():
-    """ Determines if the build is in debug mode.
-
-    Returns
-    -------
-    debug : bool
-        True if the current build was started with the debug option, False
-        otherwise.
-
-    """
-
-    debug = bool(get_distutils_build_option('debug'))
-
-    try:
-        from astropy.version import debug as current_debug
-    except ImportError:
-        current_debug = None
-
-    if current_debug is not None and current_debug != debug:
-        # Force rebuild of extension modules
-        sys.argv.extend(['build', '--force'])
-
-    return debug
-
-
 def update_package_files(srcdir, extensions, package_data, packagenames,
                          package_dirs):
     """ Extends existing extensions, package_data, packagenames and
@@ -821,6 +925,54 @@ def iter_pyx_files(srcdir):
                 yield (extmod, fullfn)
 
 
+_should_build_with_cython = None
+def should_build_with_cython(release=None):
+    """Returns `True` if Cython should be used to build extension modules from
+    pyx files.  If the ``release`` parameter is not specified an attempt is
+    made to determine the release flag from `astropy.version`.
+    """
+
+    global _should_build_with_cython
+    if _should_build_with_cython is not None:
+        return _should_build_with_cython
+
+    if release is None:
+        try:
+            from .version import release
+        except ImportError:
+            pass
+
+    try:
+        from .version import cython_version
+    except ImportError:
+        cython_version = 'unknown'
+
+    # Only build with Cython if, of course, Cython is installed, we're in a
+    # development version (i.e. not release) or the Cython-generated source
+    # files haven't been created yet (cython_version == 'unknown'). The latter
+    # case can happen even when release is True if checking out a release tag
+    # from the repository
+    use_cython = (HAVE_CYTHON and (not release or cython_version == 'unknown'))
+
+    if use_cython and cython_version != Cython.__version__:
+        # Make sure that if building with a different Cython version that all
+        # generated C files get regenerated with the new Cython
+        sys.argv.extend(['build_ext', '--force'])
+
+        # Regenerate the appropriate cython_version.py
+        cython_py = os.path.join(os.path.dirname(__file__),
+                                 'cython_version.py')
+        with open(cython_py, 'w') as f:
+            f.write('# Generated file; do not modify\n')
+            f.write('cython_version = {0!r}\n'.format(Cython.__version__))
+
+    # Cache result so that repeated calls don't repeat any possible side
+    # effects
+    _should_build_with_cython = use_cython
+
+    return use_cython
+
+
 def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
     """ Looks for Cython files and generates Extensions if needed.
 
@@ -921,102 +1073,6 @@ def get_numpy_include_path():
     except AttributeError:
         numpy_include = numpy.get_numpy_include()
     return numpy_include
-
-
-_adjusted_compiler = False
-
-
-def adjust_compiler():
-    """
-    This function detects broken compilers and switches to another.  If
-    the environment variable CC is explicitly set, or a compiler is
-    specified on the commandline, no override is performed -- the purpose
-    here is to only override a default compiler.
-
-    The specific compilers with problems are:
-
-        * The default compiler in XCode-4.2, llvm-gcc-4.2,
-          segfaults when compiling wcslib.
-
-    The set of broken compilers can be updated by changing the
-    compiler_mapping variable.  It is a list of 2-tuples where the
-    first in the pair is a regular expression matching the version
-    of the broken compiler, and the second is the compiler to change
-    to.
-    """
-
-    from distutils import ccompiler, sysconfig
-    import re
-
-    compiler_mapping = [
-        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
-        ]
-
-    global _adjusted_compiler
-    if _adjusted_compiler:
-        return
-
-    # Whatever the result of this function is, it only needs to be run once
-    _adjusted_compiler = True
-
-    if 'CC' in os.environ:
-
-        # Check that CC is not set to llvm-gcc-4.2
-        c_compiler = os.environ['CC']
-
-        version = get_compiler_version(c_compiler)
-
-        for broken, fixed in compiler_mapping:
-            if re.match(broken, version):
-                lines = [
-                    "Compiler specified by CC environment variable ",
-                    "({0:s}:{1:s}) will fail to compile Astropy.".format(c_compiler, version),
-                    "Please set CC={0:s} and try again.".format(fixed),
-                    "You can do this, for example, by doing:",
-                    "",
-                    "    CC={0:s} python setup.py <command>".format(fixed),
-                    "",
-                    "where <command> is the command you ran."
-                    ]
-                log.warn('\n'.join(lines))
-                sys.exit(1)
-
-    if get_distutils_build_option('compiler'):
-        return
-
-    compiler_type = ccompiler.get_default_compiler()
-
-    if compiler_type == 'unix':
-
-        # We have to get the compiler this way, as this is the one that is
-        # used if os.environ['CC'] is not set. It is actually read in from
-        # the Python Makefile. Note that this is not necessarily the same
-        # compiler as returned by ccompiler.new_compiler()
-        c_compiler = sysconfig.get_config_var('CC')
-
-        version = get_compiler_version(c_compiler)
-
-        for broken, fixed in compiler_mapping:
-            if re.match(broken, version):
-                os.environ['CC'] = fixed
-                break
-
-def get_compiler_version(compiler):
-
-    import subprocess
-
-    process = subprocess.Popen(
-    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
-
-    output = process.communicate()[0].strip()
-    version = output.split()[0]
-
-    return version
-
-
-def setup_test_command(package_name):
-    return type(package_name + '_test_command', (astropy_test,),
-                {'package_name': package_name})
 
 
 def import_file(filename):
@@ -1169,9 +1225,8 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     return (old_package, shim_dir)
 
 
-def pkg_config(
-        packages, default_libraries, include_dirs, library_dirs,
-        libraries):
+def pkg_config(packages, default_libraries, include_dirs, library_dirs,
+               libraries):
     """
     Uses pkg-config to update a set of distutils Extension arguments
     to include the flags necessary to link against the given packages.
@@ -1200,6 +1255,7 @@ def pkg_config(
         results from pkg-config, or if pkg-config fails, updated from
         *default_libraries*.
     """
+
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     command = "pkg-config --libs --cflags {0}".format(' '.join(packages)),
 
@@ -1333,9 +1389,10 @@ class bdist_dmg(Command):
 
         # Copy over the background to the disk image
         if self.background is not None:
-            os.mkdir(os.path.join(pkg_dir, '.background'))
+            background_dir = os.path.join(pkg_dir, '.background')
+            os.mkdir(background_dir)
             shutil.copy2(self.background,
-                         os.path.join(pkg_dir, '.background', 'background.png'))
+                         os.path.join(background_dir, 'background.png'))
 
         # Start creating the volume
         dmg_path = os.path.join(self.dist_dir, pkg_name + '.dmg')
@@ -1349,8 +1406,11 @@ class bdist_dmg(Command):
             os.remove(dmg_path_tmp)
 
         # Check if a volume is already mounted
-        if os.path.exists('/Volumes/{volume_name}'.format(volume_name=volume_name)):
-            raise DistutilsFileError("A volume named {volume_name} is already mounted - please eject this and try again".format(volume_name=volume_name))
+        volume_path = os.path.join('/', 'Volumes', volume_name)
+        if os.path.exists(volume_path):
+            raise DistutilsFileError(
+                "A volume named {volume_name} is already mounted - please "
+                "eject this and try again".format(volume_name=volume_name))
 
         shell_script = """
 
