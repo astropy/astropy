@@ -686,7 +686,7 @@ class Row(object):
         return np.array(self._data)
 
     def __len__(self):
-        return len(self._data)
+        return len(self._data.dtype)
 
     @property
     def table(self):
