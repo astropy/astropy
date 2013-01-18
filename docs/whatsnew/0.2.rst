@@ -3,3 +3,30 @@
 =========================
 What's New in Astropy 0.2
 =========================
+
+VOTable XML support
+===================
+
+The name of the VOTable XML handling package has changed from
+`astropy.io.vo` to `astropy.io.votable`.
+
+The `unit` attribute is now an `astropy.units.Unit` object, so unit
+conversions can easily be supported.  The CDS unit format used by
+VOTable XML is now fully supported as a result.
+
+Masked values are now handled by a single array, rather than a pair of
+arrays.
+
+The `precision` and `width` attributes of each field are now handled
+correctly as per the VOTable XML specification.  This may result in
+the output changing.
+
+Each `TABLE` section of a `VOTable` XML file can be converted to/from
+an `astropy.table.Table` object, which allows much easier editing of
+the columns than a regular Numpy structured array.
+
+A standalone `volint` script is available to validate the contents of
+VOTable XML files.
+
+The default setting for `pedantic` mode can be set using a
+configuration parameter (`astropy.io.vo.PEDANTIC`).
