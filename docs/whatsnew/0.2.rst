@@ -21,20 +21,10 @@ instead of NumPy masked arrays.
 
 There is an important change in way that input data are parsed in the
 :func:`~astropy.io.ascii.ui.write` function.  In version 0.1 of `astropy`, a
-list of lists was interpreted to be a list of data rows, corresponding
-to the behavior in `asciitable <https://asciitable.readthedocs.org/>`_:
-
-    >>> asciitable.write([[1, 2]])
-    col1 col2
-    1 2
-
-Starting from version 0.2, the parsing is done using the :class:`~astropy.table.table.Table`
-class, so that a list of lists is interpreted as a list of columns:
-
-    >>> astropy.io.ascii.write([[1, 2]])
-    col0
-    1
-    2
+list of lists was interpreted to be a *list of data rows*, corresponding to the
+behavior in `asciitable <https://asciitable.readthedocs.org/>`_.  Starting from
+version 0.2, a list of lists is interpreted as a *list of data columns*.  This corresponds
+to the behavior of the :class:`~astropy.table.table.Table` class.
 
 Finally, a reader class to read SExtractor table outputs is now available.
 
