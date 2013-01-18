@@ -216,7 +216,7 @@ def human_time(seconds):
     return u'  ~inf'
 
 
-class ProgressBar:
+class ProgressBar(object):
     """
     A class to display a progress bar in the terminal.
 
@@ -412,7 +412,7 @@ class ProgressBar:
                 bar.update()
 
 
-class Spinner():
+class Spinner(object):
     """
     A class to display a spinner in the terminal.
 
@@ -514,7 +514,7 @@ class Spinner():
             yield
 
 
-class ProgressBarOrSpinner:
+class ProgressBarOrSpinner(object):
     """
     A class that displays either a `ProgressBar` or `Spinner`
     depending on whether the total size of the operation is
@@ -709,7 +709,7 @@ class _GetchWindows(object):
         return msvcrt.getch()
 
 
-class _GetchMacCarbon:
+class _GetchMacCarbon(object):
     """
     A function which returns the current ASCII key that is down;
     if no ASCII key is down, the null string is returned.  The
