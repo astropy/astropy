@@ -114,11 +114,8 @@ if not _ASTROPY_SETUP_:
         config_dir = os.path.split(config.__file__)[0]
         try:
             config.configuration.update_default_config(__package__, config_dir)
-        except ValueError as e:
-            if e.args[0].startswith('Requested default configuration file'):
-                warn(e.args[0] + " Cannot install default profile. (If you are "
-                                 "importing from source, this is expected.)")
-            else:
-                raise
+        except config.configuration.ConfigurationDefaultMissingError as e:
+            warn(e.args[0] + " Cannot install default profile. (If you are "
+                "importing from source, this is expected.)")
 
     del os, warn, config_dir, e  # clean up namespace
