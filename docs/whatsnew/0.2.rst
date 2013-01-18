@@ -7,9 +7,9 @@ What's New in Astropy 0.2
 ASCII table I/O
 ---------------
 
-A number of improvements have been made to the :ref:`astropy.io.ascii
-<io-ascii>` subpackage which allows reading and writing of table data in ASCII
-format.  Some of these break compatibility with the original `asciitable
+The :ref:`astropy.io.ascii <io-ascii>` subpackage allows reading and writing of
+table data in ASCII format.  A number of improvements have been made to this
+package, some of which break compatibility with the original `asciitable
 <https://asciitable.readthedocs.org/>`_ package.
 
 The biggest change is full integration with the :ref:`Table <astropy-table>` class
@@ -63,6 +63,34 @@ I/O infrastructure
 ------------------
 
 TBD
+
+
+Time
+-----
+
+The :ref:`astropy.time <astropy-time>` package is new in Astropy 0.2 and
+provides functionality for manipulating times and dates.  Specific emphasis is
+placed on supporting time scales (e.g. UTC, TAI, UT1) and time representations
+(e.g. JD, MJD, ISO 8601) that are used in astronomy.  The underlying
+computations are mostly done with the C language `SOFA`_ time and calendar
+routines.  A simple example follows::
+
+  >>> from astropy.time import Time
+  >>> times = ['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00']
+  >>> t = Time(times, format='iso', scale='utc')
+
+The ``format`` argument specifies how to interpret :ref:`time-format` of the
+input values, e.g. ISO or JD or Unix time.  The ``scale`` argument specifies
+the :ref:`time-scale` for the values, e.g. UTC or TT or UT1.  Converting to
+another time ``format`` or time ``scale`` is a snap::
+
+  >>> t.jd  # Get an array of JD times
+  array([ 2451179.50000143,  2455197.5       ])
+  >>> t.tt  # Get a new Time object with values in the TT time scale
+  <Time object: scale='tt' format='iso' vals=['1999-01-01 00:01:04.307' '2010-01-01 00:01:06.184']>
+
+.. _SOFA: http://www.iausofa.org/index.html
+
 
 Units and quantities
 --------------------
