@@ -335,6 +335,15 @@ class TestAddRow(SetupData):
                 self._t = Table([self.a, self.b, self.c])
             return self._t
 
+    def test_add_table_row(self):
+        t = self.t
+        t2 = Table([self.a, self.b, self.c])
+        t.add_row(t2[0])
+        assert len(t) == 4
+        assert np.all(t['a'] == np.array([1, 2, 3, 1]))
+        assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
+        assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
+
     def test_add_with_tuple(self):
         t = self.t
         t.add_row((4, 7.2, '1'))
