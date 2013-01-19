@@ -29,7 +29,7 @@ __all__ = ["get_icrs_coordinates"]
 
 SESAME_URL = ConfigurationItem("sesame_url", 
                                "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
-                               
+                               "The URL to Sesame's web-queryable database.")
 
 SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned', 
                                     'vizier'],
