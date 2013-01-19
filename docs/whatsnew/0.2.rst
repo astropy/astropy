@@ -50,7 +50,7 @@ feature requires Numpy version 1.5 or greater because of issues
 with masked arrays in previous versions.
 
 The :class:`~astropy.table.table.Table` class now connects to the new `I/O
-infrastructure`_ read and write methods.  For example, assume you have a table
+framework`_ read and write methods.  For example, assume you have a table
 of magnitudes called ``mags`` with columns ``B`` and ``V``.  You can add a new
 column ``B-V`` and write out to an ASCII table with::
 
@@ -59,11 +59,22 @@ column ``B-V`` and write out to an ASCII table with::
     >>> mags.write('mags_BV.dat', format='ascii')
 
 
-I/O infrastructure
-------------------
+I/O framework
+-------------
 
-TBD
+This version sees the introduction of a framework that makes it easy to read
+in or write out data objects. This can be used for
+:class:`~astropy.table.table.Table` objects, by doing e.g.::
 
+    >>> from astropy.table import Table
+    >>> t = Table.read('my_table.xml', format='vo')
+    >>> t.write('my_table.hdf5')
+
+At this time, this framework supports ASCII formats, HDF5, and VO tables, and
+will be extended to support FITS files in the next version. Users can also
+register their own file formats directly, in case these are not present in
+Astropy. More information about the I/O framework, how to read/write data, and
+how to register new file formats can be found in :ref:`table_io`.
 
 Time
 -----
