@@ -1,7 +1,6 @@
-.. _astropy_table:
-
 .. include:: references.txt
 
+.. _astropy-table:
 
 *****************************
 Data Tables (`astropy.table`)
