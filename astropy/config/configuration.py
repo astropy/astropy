@@ -649,16 +649,16 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
 
     if doupdate:
         if os.path.isdir(default_cfg_dir_or_fn):
-            deault_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+            default_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
         else:
-            deault_cfgfn = default_cfg_dir_or_fn
+            default_cfgfn = default_cfg_dir_or_fn
 
-        if not os.path.isfile(deault_cfgfn):
-            raise ConfigurationDefaultMissingError('Requested default '
-                'configuration file {0} is not a file.'.format(deault_cfgfn))
+        if not os.path.isfile(default_cfgfn):
+            raise ValueError('Requested default configuration file {0} is '
+                             'not a file.'.format(default_cfgfn))
 
         with open(cfgfn, 'w') as fw:
-            with open(deault_cfgfn) as fr:
+            with open(default_cfgfn) as fr:
                 fw.write(fr.read())
         return True
 

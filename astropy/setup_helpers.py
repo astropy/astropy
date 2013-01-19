@@ -21,7 +21,6 @@ from distutils.dist import Distribution
 from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
 from distutils.core import Command
-from distutils.command.build import build as DistutilsBuild
 from distutils.command.sdist import sdist as DistutilsSdist
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 
@@ -313,8 +312,6 @@ def register_commands(package, version, release):
          # MANIFEST.in
          'sdist': DistutilsSdist,
 
-         'build': AstropyBuild,
-
          # The exact form of the build_ext command depends on whether or not
          # we're building a release version
          'build_ext': generate_build_ext_command(release),
@@ -459,6 +456,17 @@ def generate_build_ext_command(release):
             # distutils command.
             orig_run(self)
 
+        # Finally, generate the default astropy.cfg; this can only be done
+        # after extension modules are built as some extension modules include
+        # config items
+        default_cfg = generate_default_config(os.path.abspath(self.build_lib),
+                                              self.distribution.packages[0])
+        if default_cfg:
+            default_cfg = os.path.relpath(default_cfg)
+            self.copy_file(default_cfg,
+                           os.path.join(self.build_lib, default_cfg),
+                           preserve_mode=False)
+
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
     attrs['force_rebuild'] = False
@@ -466,6 +474,42 @@ def generate_build_ext_command(release):
 
     return type('build_ext', (basecls, object), attrs)
 
+
+def generate_default_config(build_lib, package):
+    pkg_dir = os.path.relpath(os.path.dirname(__file__))
+    config_home = os.path.abspath(os.path.join(pkg_dir, os.pardir))
+
+    env = {'XDG_CONFIG_HOME': config_home,
+           'ASTROPY_SKIP_CONFIG_UPDATE': 'True'}
+
+    import pdb; pdb.set_trace()
+    subproccode = (
+        'from __future__ import print_function;'
+        'from astropy.config.configuration import generate_all_config_items;'
+        'print(generate_all_config_items({pkgnm!r}, True))')
+    subproccode = subproccode.format(pkgnm=package)
+
+    # Note that cwd=build_lib--we're importing astropy from the build/ dir
+    # but using the astropy/ source dir as the config directory
+    proc = subprocess.Popen([sys.executable, '-c', subproccode],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             cwd=build_lib, env=env)
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode == 0:
+        pathname = stdout.decode('UTF-8').strip()
+        path, filename = os.path.split(pathname)
+        dest = os.path.join(path, 'config', filename)
+        if os.path.exists(dest):
+            os.remove(dest)
+        shutil.move(pathname, dest)
+        return dest
+    else:
+        msg = ('Generation of default configuration item failed! Stdout '
+               'and stderr are shown below.\n'
+               'Stdout:\n{stdout}\nStderr:\n{stderr}')
+        log.error(msg.format(stdout=stdout.decode('UTF-8'),
+                             stderr=stderr.decode('UTF-8')))
 
 def add_command_option(command, name, doc, is_bool=False):
     """
@@ -517,71 +561,6 @@ def add_command_option(command, name, doc, is_bool=False):
     # attribute with the same name as the option (with '-' replaced with '_')
     # in order for that option to be recognized as valid
     setattr(cmdcls, attr, None)
-
-
-class AstropyBuild(DistutilsBuild):
-    """
-    A custom 'build' command that allows for adding extra build
-    options.
-    """
-    user_options = DistutilsBuild.user_options[:]
-    boolean_options = DistutilsBuild.boolean_options[:]
-    custom_options = []
-
-    def initialize_options(self):
-        DistutilsBuild.initialize_options(self)
-        # Create member variables for all of the custom options that
-        # were added.
-        for option in self.custom_options:
-            setattr(self, option.replace('-', '_'), None)
-
-    def run(self):
-        """
-        Override run to generate the default configuration file after build is
-        done
-        """
-        from subprocess import Popen, PIPE
-        from textwrap import dedent
-
-        DistutilsBuild.run(self)
-
-        # Now generate the default configuration file in a subprocess.  We have
-        # to use a subprocess because already some imports have been done
-
-        # This file gets placed in <package>/config/<packagenm>.cfg if 'config'
-        # exists, otherwise it gets put in <package>/<packagenm>.cfg.
-
-        libdir = os.path.abspath(self.build_lib)
-
-        subproccode = dedent("""
-        from __future__ import print_function
-        import os
-
-        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
-        os.environ['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
-
-        from astropy.config.configuration import generate_all_config_items
-
-        genfn = generate_all_config_items('{pkgnm}', True)
-        print(genfn)
-        """).format(pkgnm=self.distribution.packages[0], libdir=libdir)
-        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE,
-                     cwd=libdir)
-        stdout, stderr = proc.communicate(subproccode.encode('ascii'))
-
-        if proc.returncode == 0:
-            genfn = stdout.strip().decode('UTF-8').split('\n')[-1]
-
-            configpath = os.path.join(os.path.split(genfn)[0], 'config')
-            if os.path.isdir(configpath):
-                newfn = os.path.join(configpath, os.path.split(genfn)[1])
-                shutil.move(genfn, newfn)
-        else:
-            msg = ('Generation of default configuration item failed! Stdout '
-                   'and stderr are shown below.\n'
-                   'Stdout:\n{stdout}\nStderr:\n{stderr}')
-            log.error(msg.format(stdout=stdout.decode('UTF-8'),
-                                 stderr=stderr.decode('UTF-8')))
 
 
 class AstropyRegister(SetuptoolsRegister):
@@ -677,9 +656,6 @@ if HAVE_SPHINX:
             self.open_docs_in_browser = False
 
         def finalize_options(self):
-            from os.path import isdir
-            from shutil import rmtree
-
             #Clear out previous sphinx builds, if requested
             if self.clean_docs:
                 dirstorm = ['docs/_generated']
@@ -689,9 +665,9 @@ if HAVE_SPHINX:
                     dirstorm.append(self.build_dir)
 
                 for d in dirstorm:
-                    if isdir(d):
+                    if os.path.isdir(d):
                         log.info('Cleaning directory ' + d)
-                        rmtree(d)
+                        shutil.rmtree(d)
                     else:
                         log.info('Not cleaning directory ' + d + ' because '
                                  'not present or not a directory')
@@ -702,7 +678,6 @@ if HAVE_SPHINX:
             from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
             from subprocess import Popen, PIPE
-            from textwrap import dedent
             from inspect import getsourcelines
             from urllib import pathname2url
             import webbrowser
@@ -733,7 +708,7 @@ if HAVE_SPHINX:
             #version
 
             runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
-            subproccode = dedent("""
+            subproccode = textwrap.dedent("""
             from sphinx.setup_command import *
 
             os.chdir('{srcdir}')
@@ -741,7 +716,7 @@ if HAVE_SPHINX:
 
             """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
             #runlines[1:] removes 'def run(self)' on the first line
-            subproccode += dedent(''.join(runlines[1:]))
+            subproccode += textwrap.dedent(''.join(runlines[1:]))
 
             # All "self.foo" in the subprocess code needs to be replaced by the
             # values taken from the current self in *this* process
@@ -782,8 +757,6 @@ if HAVE_SPHINX:
             else:
                 log.warn('Sphinx Documentation subprocess failed with return '
                          'code ' + str(proc.returncode))
-
-    AstropyBuildSphinx.__name__ = 'build_sphinx'
 
 
 def get_distutils_display_options():
