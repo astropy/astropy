@@ -413,3 +413,21 @@ def test_arrays():
         int(qsec)
     with pytest.raises(TypeError):
         long(qsec)
+
+
+def test_logvalue():
+    """
+    Test the logvalue attribute of Quantity
+    """
+    from numpy.testing import assert_array_equal
+
+    q = u.Quantity(100, u.second)
+    assert q.logvalue == 2
+
+    #also check setting
+    q.logvalue = 3
+    assert q.value == 1000
+
+    #check that it works for arrays
+    q = u.Quantity([10, 100], u.kilometer)
+    assert_array_equal(q.logvalue, [1, 2])
