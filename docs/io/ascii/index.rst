@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. _io-ascii:
+
 *********************************
 ASCII Tables (`astropy.io.ascii`)
 *********************************
