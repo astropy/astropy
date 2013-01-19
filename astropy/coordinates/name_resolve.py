@@ -4,7 +4,7 @@
 This module contains convenience functions for getting a coordinate object
 for a named object by querying SESAME and getting the first returned result.
 Note that this is intended to be a convenience, and is very simple. If you
-need precise coordinates for an object you should find the appropriate 
+need precise coordinates for an object you should find the appropriate
 reference for that measurement and input the coordinates manually.
 """
 
@@ -27,28 +27,28 @@ from .. import units as u
 
 __all__ = ["get_icrs_coordinates"]
 
-SESAME_URL = "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/{db}?{name}"
-MIRROR_URL = "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/{db}?{name}"
+SESAME_URL = ConfigurationItem("sesame_url", 
+                               "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
+                               
 
-DEFAULT_SESAME_DATABASE = ConfigurationItem('default_sesame_database', 'all',
-                                            "This specified the default database "
-                                            "that SESAME will query when using "
-                                            "the name resolve mechanism in the "
-                                            "coordinates subpackage. Default is "
-                                            "to search all databases, but this "
-                                            "can be 'all', 'simbad', 'ned', or "
-                                            "'vizier'.")
+SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned', 
+                                    'vizier'],
+                                    "This specifies the default database that "
+                                    "SESAME will query when using the name "
+                                    "resolve mechanism in the coordinates "
+                                    "subpackage. Default is to search all "
+                                    "databases, but this can be 'all', "
+                                    "'simbad', 'ned', or 'vizier'.")
+                                    
 NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 30,
                                          "This is the maximum time to wait "
                                          "for a response from a name resolve "
                                          "query to SESAME in seconds.")
 
-ALLOWED_DATABASES = ['ned', 'simbad', 'vizier', 'all']
-
 class NameResolveError(Exception):
     pass
 
-def get_icrs_coordinates(name, database=DEFAULT_SESAME_DATABASE()):
+def get_icrs_coordinates(name, database=None):
     """ Retrieve an ICRSCoordinates object by using an online name resolving
         service to retrieve coordinates for the specified name.
 
@@ -57,25 +57,27 @@ def get_icrs_coordinates(name, database=DEFAULT_SESAME_DATABASE()):
         name : str
             The name of the object to get coordinates for, e.g. m42.
         database : str (optional)
-            Specify which database to search. Can be 'ned', 'simbad', 'vizier', or 'all.'
+            Specify which database to search. Can be 'ned', 'simbad', 'vizier', 
+            or 'all.'
 
         Returns
         -------
         coord : SphericalCoordinatesBase
             An `ICRSCoordinates` instance for the object name specified.
     """
-
-    if database.lower() not in ALLOWED_DATABASES:
-        raise ValueError("Invalid database name: {0}. Allowed databases: {1}".format(database, ",".join(ALLOWED_DATABASES)))
-
+    
+    database = DEFAULT_SESAME_DATABASE() if database is None else database
+    url = os.path.join(SESAME_URL(), "{db}?{name}")
+    
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
-    url = SESAME_URL.format(name=urllib.quote(name), db=db)
+    url = url.format(name=urllib.quote(name), db=db)
     try:
         # Retrieve ascii name resolve data from CDS
         resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
     except:
-        raise NameResolveError("Unable to retrieve coordinates for name '{0}'".format(name))
+        raise NameResolveError("Unable to retrieve coordinates for name '{0}'"
+                               .format(name))
 
     resp_data = resp.read()
 
@@ -86,7 +88,8 @@ def get_icrs_coordinates(name, database=DEFAULT_SESAME_DATABASE()):
         if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)
         else:
-            err = "Unable to find coordinates for name '{0}' in database {1}".format(name, database)
+            err = "Unable to find coordinates for name '{0}' in database {1}"
+                  .format(name, database)
 
         raise NameResolveError(err)
 
