@@ -11,6 +11,7 @@ reference for that measurement and input the coordinates manually.
 from __future__ import division, print_function
 
 # Standard library
+import os
 import re
 import sys
 import httplib
@@ -66,7 +67,7 @@ def get_icrs_coordinates(name, database=None):
             An `ICRSCoordinates` instance for the object name specified.
     """
     
-    database = DEFAULT_SESAME_DATABASE() if database is None else database
+    database = SESAME_DATABASE() if database is None else database
     url = os.path.join(SESAME_URL(), "{db}?{name}")
     
     # The web API just takes the first letter of the database name
@@ -76,7 +77,7 @@ def get_icrs_coordinates(name, database=None):
         # Retrieve ascii name resolve data from CDS
         resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
     except:
-        raise NameResolveError("Unable to retrieve coordinates for name '{0}'"
+        raise NameResolveError("Unable to retrieve coordinates for name '{0}'"\
                                .format(name))
 
     resp_data = resp.read()
@@ -88,7 +89,7 @@ def get_icrs_coordinates(name, database=None):
         if db == "A":
             err = "Unable to find coordinates for name '{0}'".format(name)
         else:
-            err = "Unable to find coordinates for name '{0}' in database {1}"
+            err = "Unable to find coordinates for name '{0}' in database {1}"\
                   .format(name, database)
 
         raise NameResolveError(err)
