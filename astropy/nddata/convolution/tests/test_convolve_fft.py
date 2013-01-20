@@ -9,12 +9,6 @@ from numpy.testing import assert_array_almost_equal_nulp
 
 import itertools
 
-try:
-    import scipy.fftpack
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
 VALID_DTYPES = []
 for dtype_array in ['>f4', '<f4', '>f8', '<f8']:
     for dtype_kernel in ['>f4', '<f4', '>f8', '<f8']:
