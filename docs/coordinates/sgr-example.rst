@@ -120,27 +120,22 @@ We will define the coordinate transformation as a function that accepts a
 `~astropy.coordinates.builtin_systems.GalacticCoordinates` object and returns an
 `SgrCoordinates` object. We could alternatively define the transformation by 
 specifying a transformation matrix (
-`~astropy.coordinates.transformations.static_transform_matrix`). In fact, we'll
-start by constructing the rotation matrix by hand::
+`~astropy.coordinates.transformations.static_transform_matrix`), but in this 
+case the transformation is from a left-handed coordinate system to a right-
+handed system, so we have to have more control over the transformation. We'll
+start by constructing the rotation matrix, using the helper function 
+`astropy.coordinates.angles.rotation_matrix` ::
 
-    # Define the Euler angles
+    # Define the Euler angles (from Law & Majewski 2010)
     phi = radians(180+3.75)
     theta = radians(90-13.46)
     psi = radians(180+14.111534)
     
-    rot11 = cos(psi)*cos(phi)-cos(theta)*sin(phi)*sin(psi)
-    rot12 = cos(psi)*sin(phi)+cos(theta)*cos(phi)*sin(psi)
-    rot13 = sin(psi)*sin(theta)
-    rot21 = -sin(psi)*cos(phi)-cos(theta)*sin(phi)*cos(psi)
-    rot22 = -sin(psi)*sin(phi)+cos(theta)*cos(phi)*cos(psi)
-    rot23 = cos(psi)*sin(theta)
-    rot31 = sin(theta)*sin(phi)
-    rot32 = -sin(theta)*cos(phi)
-    rot33 = cos(theta)
-    
-    rotation_matrix = np.array([[rot11, rot12, rot13], 
-                                [rot21, rot22, rot23], 
-                                [rot31, rot32, rot33]])
+    # Generate the rotation matrix using the x-convention (see Goldstein)
+    D = rotation_matrix(phi, "z", degrees=False)
+    C = rotation_matrix(theta, "x", degrees=False)
+    B = rotation_matrix(psi, "z", degrees=False)
+    sgr_matrix = np.array(B.dot(C).dot(D))
 
 This is done at the module level, since it will be used by both the 
 transformation from Sgr to Galactic as well as the inverse from Galactic to Sgr.
@@ -162,7 +157,7 @@ Now we can define our first transformation function::
     
         # Calculate X,Y,Z,distance in the Sgr system
         Xs, Ys, Zs = rotation_matrix.dot(np.array([X, Y, Z]))    
-        Zs = -Zs # sign convention
+        Zs = -Zs # left-handed to right-handed
     
         # Calculate the angular coordinates lambda,beta
         Lambda = degrees(np.arctan2(Ys,Xs))
