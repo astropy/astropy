@@ -168,7 +168,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
                  min_wt=0.0, normalize_kernel=False, fftn=np.fft.fftn,
-                 ifftn=np.fft.ifftn):
+                 ifftn=np.fft.ifftn, complex_dtype=np.complex64):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -239,6 +239,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         The fft and inverse fft functions.  Can be overridden to use your own
         ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
         `fftn=scipy.fftpack.fftn`
+    complex_dtype : np.complex
+        Which complex dtype to use.  `numpy` has a range of options, from 64 to
+        256.  
 
     See Also
     --------
@@ -385,8 +388,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernslices += [slice(center - kerndimsize // 2,
             center + (kerndimsize + 1) // 2)]
 
-    bigarray = np.ones(newshape, dtype=np.complex128) * fill_value
-    bigkernel = np.zeros(newshape, dtype=np.complex128)
+    bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+    bigkernel = np.zeros(newshape, dtype=complex_dtype)
     bigarray[arrayslices] = array
     bigkernel[kernslices] = kernel
     arrayfft = fftn(bigarray)
@@ -395,9 +398,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     fftmult = arrayfft * kernfft
     if (interpolate_nan or ignore_edge_zeros) and kernel_is_normalized:
         if ignore_edge_zeros:
-            bigimwt = np.zeros(newshape, dtype=np.complex128)
+            bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
-            bigimwt = np.ones(newshape, dtype=np.complex128)
+            bigimwt = np.ones(newshape, dtype=complex_dtype)
         bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
         wtfft = fftn(bigimwt)
         # I think this one HAS to be normalized (i.e., the weights can't be
