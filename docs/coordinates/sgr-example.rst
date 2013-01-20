@@ -2,7 +2,7 @@ Example: Defining a new spherical coordinate system
 ---------------------------------------------------
 
 This document describes in detail how to subclass and define a custom spherical
-coordinate system, as mentioned in :ref:`designing` and the docstring for
+coordinate system, as mentioned in :doc:`designing` and the docstring for
 `~astropy.coordinates.coordsystems.SphericalCoordinatesBase`. In this example,
 we will define a coordinate system defined by the plane of orbit of the
 Sagitarrius Dwarf Galaxy (hereafter Sgr; as defined in Majewski et al. 2003). 
@@ -75,7 +75,7 @@ the arguments and keyword arguments that the user passed in. We do this with the
 of the longitude coordinate, the name of the latitude coordinate, a boolean 
 parameter to specify whether to use `RA` and `Dec` objects to store the angles 
 internally, or to use `~astropy.coordinates.angles.Angle` objects instead (we 
-want to use `~astropy.coordinates.angles.Angle`s so we set it to False), the 
+want to use `~astropy.coordinates.angles.Angle` s so we set it to False), the 
 arguments and keyword arguments passed to this initializer, and finally an 
 optional parameter to specify the bounds of the coordinate system. This function
 will handle parsing the args and kwargs to validate and sanitize the input from 
@@ -222,10 +222,10 @@ See Also
 ========
 
 * Majewski et al. 2003, "A Two Micron All Sky Survey View of the Sagittarius 
-    Dwarf Galaxy. I. Morphology of the Sagittarius Core and Tidal Arms",
+  Dwarf Galaxy. I. Morphology of the Sagittarius Core and Tidal Arms",
   http://arxiv.org/abs/astro-ph/0304198
 * Law & Majewski 2010, "The Sagittarius Dwarf Galaxy: A Model for Evolution in a
-    Triaxial Milky Way Halo", http://arxiv.org/abs/1003.1132
+  Triaxial Milky Way Halo", http://arxiv.org/abs/1003.1132
 * David Law's Sgr info page http://www.astro.virginia.edu/~srm4n/Sgr/
 
 Complete Code for Example
