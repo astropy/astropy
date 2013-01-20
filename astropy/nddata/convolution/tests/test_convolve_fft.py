@@ -1,7 +1,7 @@
 import numpy as np
 
-from astropy.tests.helper import pytest
-from astropy.config import ConfigurationItem
+from ....tests.helper import pytest
+from ....config import ConfigurationItem
 
 from ..convolve import convolve_fft
 
@@ -379,6 +379,8 @@ class TestConvolve2D(object):
                                       [6., 6., 6.],
                                       [6., 6., 6.]], dtype='float64'),
                 }
+        answer_dict['average'] = answer_dict['sum'] / w_z
+        answer_dict['average_ignan'] = answer_dict['sum'] / w_n
         answer_dict['average_wrap_ignan'] = answer_dict['sum_wrap'] / 8.
         answer_dict['average_wrap'] = answer_dict['sum_wrap'] / 9.
         answer_dict['average_withzeros'] = answer_dict['sum'] / 9.
