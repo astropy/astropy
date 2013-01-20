@@ -5,45 +5,6 @@ import warnings
 from ...config import ConfigurationItem
 from ... import log
 
-FFT_TYPE = ConfigurationItem("fft_type", ['fftw', 'scipy', 'numpy'],
-    """
-Which FFT should be used?  FFTW uses the fftw3 package and is fastest and can
-be multi-threaded, but it can be memory intensive.  Scipy's FFT is more precise
-than numpy's.
-""")
-NTHREADS = ConfigurationItem('nthreads', 1,
-        "Number of threads to use if fftw is available")
-
-try:
-    import scipy.fftpack
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
-try:
-    import fftw3
-    HAS_FFTW = True
-except ImportError:
-    HAS_FFTW = False
-
-if HAS_FFTW:
-    def fftwn(array, nthreads=NTHREADS()):
-        array = array.astype('complex').copy()
-        outarray = array.copy()
-        fft_forward = fftw3.Plan(array, outarray, direction='forward',
-                flags=['estimate'], nthreads=nthreads)
-        fft_forward.execute()
-        return outarray
-
-    def ifftwn(array, nthreads=NTHREADS()):
-        array = array.astype('complex').copy()
-        outarray = array.copy()
-        fft_backward = fftw3.Plan(array, outarray, direction='backward',
-                flags=['estimate'], nthreads=nthreads)
-        fft_backward.execute()
-        return outarray / np.size(array)
-
-
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
     '''
@@ -203,11 +164,11 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     return result.astype(array_dtype)
 
 
-def convolve_fft(array, kernel, boundary='fill', fill_value=0,
-        crop=True, return_fft=False, fft_pad=True,
-        psf_pad=False, interpolate_nan=False, quiet=False,
-        ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        fft_type=None, nthreads=None):
+def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
+                 return_fft=False, fft_pad=True, psf_pad=False,
+                 interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
+                 min_wt=0.0, normalize_kernel=False, fftn=np.fft.fftn,
+                 ifftn=np.fft.ifftn):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -274,9 +235,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     nthreads : int
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
-    fft_type : [None, 'fftw', 'scipy', 'numpy']
-        Which FFT implementation to use.  If not specified, defaults to the type
-        specified in the FFT_TYPE ConfigurationItem
+    fftn, ifftn : functions
+        The fft and inverse fft functions.  Can be overridden to use your own
+        ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
+        `fftn=scipy.fftpack.fftn`
 
     See Also
     --------
@@ -317,20 +279,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     array([ 1.,  2.,  3.])
 
     """
-    if fft_type is None:
-        fft_type = FFT_TYPE()
-        if fft_type == 'fftw' and not HAS_FFTW:
-            if HAS_SCIPY:
-                log.warn("fftw3 is not installed, using scipy for the FFT calculations")
-                fft_type = 'scipy'
-            else:
-                log.warn("fftw3 and scipy are not installed, using numpy for the FFT calculations")
-                fft_type = 'numpy'
-        elif fft_type == 'scipy' and not HAS_SCIPY:
-            log.warn("scipy is not installed, using numpy for the FFT calculations")
-            fft_type = 'numpy'
-    if nthreads is None:
-        nthreads = NTHREADS()
 
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
@@ -359,29 +307,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         mask = kernel.mask
         kernel = np.array(kernel)
         kernel[mask] = np.nan
-
-    # replace fftn if HAS_FFTW so that nthreads can be passed
-    global fftn, ifftn
-    if fft_type == "fftw":
-        if HAS_FFTW:
-            def fftn(*args, **kwargs):
-                return fftwn(*args, nthreads=nthreads, **kwargs)
-
-            def ifftn(*args, **kwargs):
-                return ifftwn(*args, nthreads=nthreads, **kwargs)
-        else:
-            raise ValueError("fft_type=fftw specified, but fftw3 is not installed")
-    elif fft_type == "scipy":
-        if HAS_SCIPY:
-            fftn = scipy.fftpack.fftn
-            ifftn = scipy.fftpack.ifftn
-        else:
-            raise ValueError("fft_type=scipy specified, but scipy is not installed")
-    elif fft_type == "numpy":
-        fftn = np.fft.fftn
-        ifftn = np.fft.ifftn
-    else:
-        raise ValueError("Invalid fft_type specified: %s" % fft_type)
 
     # NAN catching
     nanmaskarray = (array != array)
