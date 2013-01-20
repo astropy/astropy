@@ -176,7 +176,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
 
     * can treat NaN's as zeros or interpolate over them
-    * defaults to using the faster FFTW algorithm if installed
     * (optionally) pads to the nearest 2^n size to improve FFT speed
     * only operates in mode='same' (i.e., the same shape array is returned) mode
 
@@ -334,6 +333,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
+            WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
+                "and interpolate_nan will be ignored.")
+            warnings.warn(WARNING)
 
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
