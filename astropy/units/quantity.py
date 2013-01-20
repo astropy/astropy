@@ -110,6 +110,22 @@ class Quantity(object):
         self._value = _validate_value(obj)
 
     @property
+    def logvalue(self):
+        """ The (base 10) log of the numerical value of this quantity. """
+        import math
+
+        if self.isscalar:
+            return math.log10(self._value)
+        else:
+            return np.log10(self._value)
+
+    @logvalue.setter
+    def logvalue(self, logval):
+        newval = 10 ** logval
+        self._value = _validate_value(newval)
+
+
+    @property
     def unit(self):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
         return self._unit
