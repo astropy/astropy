@@ -309,9 +309,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         kernel[mask] = np.nan
 
     # NAN catching
-    nanmaskarray = (array != array)
+    nanmaskarray = np.isnan(array)
     array[nanmaskarray] = 0
-    nanmaskkernel = (kernel != kernel)
+    nanmaskkernel = np.isnan(kernel)
     kernel[nanmaskkernel] = 0
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not interpolate_nan
             and not quiet):
@@ -351,8 +351,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     arrayshape = array.shape
     kernshape = kernel.shape
-    ndim = len(array.shape)
-    if ndim != len(kernshape):
+    if array.ndim != len(kernshape):
         raise ValueError("Image and kernel must " +
             "have same number of dimensions")
     # find ideal size (power of 2) for fft.
@@ -366,7 +365,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
             fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(ndim)])
+        newshape = np.array([fsize for ii in range(array.ndim)])
     else:
         if psf_pad:
             # just add the biggest dimensions
