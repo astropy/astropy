@@ -109,6 +109,7 @@ More details of using `astropy.coordinates` are provided in the following sectio
    distances
    transforming
    designing
+   sgr-example
 
 
 In addition, another resource for the capabilities of this package is the
