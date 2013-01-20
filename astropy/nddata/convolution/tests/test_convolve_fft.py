@@ -408,4 +408,6 @@ class TestConvolve2D(object):
         print "z: ", z
         print "answer: ", a
         print "ratio: ", z / a
+        # for reasons unknown, the Windows FFT returns an answer for the [0,0]
+        # component that is EXACTLY 10*np.spacing
         assert np.all(np.abs(z - a) <= np.spacing(np.where(z > a, z, a)) * 10)
