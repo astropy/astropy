@@ -168,7 +168,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
                  return_fft=False, fft_pad=True, psf_pad=False,
                  interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
                  min_wt=0.0, normalize_kernel=False, fftn=np.fft.fftn,
-                 ifftn=np.fft.ifftn, complex_dtype=np.complex64):
+                 ifftn=np.fft.ifftn, complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
