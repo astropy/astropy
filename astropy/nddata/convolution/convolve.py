@@ -356,7 +356,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     arrayshape = array.shape
     kernshape = kernel.shape
-    if array.ndim != len(kernshape):
+    if array.ndim != kernel.ndim:
         raise ValueError("Image and kernel must " +
             "have same number of dimensions")
     # find ideal size (power of 2) for fft.
