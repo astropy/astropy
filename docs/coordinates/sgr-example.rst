@@ -122,8 +122,8 @@ We will define the coordinate transformation as a function that accepts a
 specifying a transformation matrix (
 `~astropy.coordinates.transformations.static_transform_matrix`), but in this 
 case the transformation is from a left-handed coordinate system to a right-
-handed system, so we have to have more control over the transformation. We'll
-start by constructing the rotation matrix, using the helper function 
+handed system, so we need more control over the transformation. We'll start by 
+constructing the rotation matrix, using the helper function 
 `astropy.coordinates.angles.rotation_matrix` ::
 
     # Define the Euler angles (from Law & Majewski 2010)
