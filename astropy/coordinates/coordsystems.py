@@ -522,16 +522,16 @@ class SphericalCoordinatesBase(object):
 
     # Name resolve
     @classmethod
-    def from_name(cls, name, database='all'):
-        """ Given a name, query the CDS name resolver to attempt to retrieve coordinate
-            information for that object.
+    def from_name(cls, name):
+        """ Given a name, query the CDS name resolver to attempt to retrieve 
+            coordinate information for that object. The search database and
+            query timeout can be set through configuration items in 
+            `astropy.coordinates.name_resolve` .
 
             Parameters
             ----------
             name : str
                 The name of the object to get coordinates for, e.g. m42.
-            database : str (optional)
-                Specify which database to search. Can be 'ned', 'simbad', 'vizier', or 'all.'
 
             Returns
             -------
@@ -543,7 +543,7 @@ class SphericalCoordinatesBase(object):
 
         from .name_resolve import get_icrs_coordinates
 
-        icrs = get_icrs_coordinates(name, database=database)
+        icrs = get_icrs_coordinates(name)
         if cls == icrs.__class__:
             return icrs
         else:

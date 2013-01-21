@@ -41,7 +41,7 @@ SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned',
                                     "databases, but this can be 'all', "
                                     "'simbad', 'ned', or 'vizier'.")
                                     
-NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 30,
+NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 10,
                                          "This is the maximum time to wait "
                                          "for a response from a name resolve "
                                          "query to SESAME in seconds.")
@@ -49,17 +49,17 @@ NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 30,
 class NameResolveError(Exception):
     pass
 
-def get_icrs_coordinates(name, database=None):
+def get_icrs_coordinates(name):
     """ Retrieve an ICRSCoordinates object by using an online name resolving
-        service to retrieve coordinates for the specified name.
+        service to retrieve coordinates for the specified name. By default,
+        this will search all available databases until a match is found. If
+        you would like to specify the database, use the configuration item
+        `name_resolve.SESAME_DATABASE` .
 
         Parameters
         ----------
         name : str
             The name of the object to get coordinates for, e.g. m42.
-        database : str (optional)
-            Specify which database to search. Can be 'ned', 'simbad', 'vizier', 
-            or 'all.'
 
         Returns
         -------
@@ -67,7 +67,7 @@ def get_icrs_coordinates(name, database=None):
             An `ICRSCoordinates` instance for the object name specified.
     """
     
-    database = SESAME_DATABASE() if database is None else database
+    database = SESAME_DATABASE()
     url = os.path.join(SESAME_URL(), "{db}?{name}")
     
     # The web API just takes the first letter of the database name
