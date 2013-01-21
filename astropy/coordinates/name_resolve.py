@@ -17,6 +17,8 @@ import sys
 import httplib
 import urllib
 import urllib2
+from urlparse import urlparse
+import socket
 
 # Third party
 import numpy as np
@@ -31,6 +33,10 @@ __all__ = ["get_icrs_coordinates"]
 SESAME_URL = ConfigurationItem("sesame_url", 
                                "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
                                "The URL to Sesame's web-queryable database.")
+SESAME_MIRROR_URL = ConfigurationItem("sesame_mirror_url", 
+                            "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/",
+                            "The URL to a mirror of Sesame's web-queryable "
+                            "database.")
 
 SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned', 
                                     'vizier'],
@@ -68,17 +74,45 @@ def get_icrs_coordinates(name):
     """
     
     database = SESAME_DATABASE()
-    url = os.path.join(SESAME_URL(), "{db}?{name}")
-    
     # The web API just takes the first letter of the database name
     db = database.upper()[0]
-    url = url.format(name=urllib.quote(name), db=db)
-    try:
-        # Retrieve ascii name resolve data from CDS
-        resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
-    except:
-        raise NameResolveError("Unable to retrieve coordinates for name '{0}'"\
-                               .format(name))
+    
+    # Make sure we don't have duplicates in the url list
+    urls = []
+    domains = []
+    for url in [SESAME_URL(), SESAME_MIRROR_URL()]:
+        domain = urlparse(url).netloc
+        
+        if domain not in domains:
+            domains.append(domain)
+            
+            # Add the query to the end of the url, add to url list
+            fmt_url = os.path.join(url, "{db}?{name}")
+            fmt_url = fmt_url.format(name=urllib.quote(name), db=db)
+            urls.append(fmt_url)
+    
+    resp = None
+    for url in urls:
+        try:
+            # Retrieve ascii name resolve data from CDS
+            resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
+        except urllib2.URLError, e:
+            # This catches a timeout error, see:
+            #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
+            if isinstance(e.reason, socket.timeout):
+                # If it was a timeout, try with the next URL
+                continue
+            else:
+                raise NameResolveError("Unable to retrieve coordinates for name "
+                                       "'{0}'".format(name))
+        
+        if resp is not None:
+            break
+    
+    # All Sesame URL's timed out...
+    if resp is None:
+        raise NameResolveError("All Sesame queries timed out. Unable to "
+                               "retrieve coordinates.")
 
     resp_data = resp.read()
 
