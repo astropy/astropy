@@ -14,8 +14,8 @@ import traceback
 import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
-           'deprecated_attribute', 'format_exception', 'NumpyRNGContext', 
-           'open_api_page']
+           'deprecated_attribute', 'format_exception', 'NumpyRNGContext',
+           'find_api_page']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -565,19 +565,22 @@ class NumpyRNGContext(object):
         random.set_state(self.startstate)
 
 
-def open_api_page(obj, version='dev'):
+def find_api_page(obj, version='dev', openinbrowser=True):
     """
-    Opens the API page for the specified object in a web browser (chosen using
-    the `webbrowser` module).
+    Determines the URL of the API page for the specified object, and
+    optionally open that page in a web browser.
 
     Packages
     --------
     obj
-        The object to open the docs for or its fully-qualified name (as a str).
-
+        The object to open the docs for or its fully-qualified name
+        (as a str).
     version : str
         The doc version - either a version number like '0.1' or 'dev'
         for the development/latest docs.
+    openinbrowser : bool
+        If True, the `webbrowser` package will be used to open the doc
+        page in a new web browser window.
 
     Returns
     -------
@@ -633,7 +636,7 @@ def open_api_page(obj, version='dev'):
 
     if resurl is None:
         raise ValueError('Could not find the docs for the object {obj}'.format(obj=obj))
-    else:
+    elif openinbrowser:
         webbrowser.open(resurl)
 
     return resurl
