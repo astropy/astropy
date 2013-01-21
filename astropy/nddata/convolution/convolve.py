@@ -1,48 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import numpy as np
-import warnings
 from ...config import ConfigurationItem
 from ... import log
-
-FFT_TYPE = ConfigurationItem("fft_type", ['fftw', 'scipy', 'numpy'],
-    """
-Which FFT should be used?  FFTW uses the fftw3 package and is fastest and can
-be multi-threaded, but it can be memory intensive.  Scipy's FFT is more precise
-than numpy's.
-""")
-NTHREADS = ConfigurationItem('nthreads', 1,
-        "Number of threads to use if fftw is available")
-
-try:
-    import scipy.fftpack
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
-try:
-    import fftw3
-    HAS_FFTW = True
-except ImportError:
-    HAS_FFTW = False
-
-if HAS_FFTW:
-    def fftwn(array, nthreads=NTHREADS()):
-        array = array.astype('complex').copy()
-        outarray = array.copy()
-        fft_forward = fftw3.Plan(array, outarray, direction='forward',
-                flags=['estimate'], nthreads=nthreads)
-        fft_forward.execute()
-        return outarray
-
-    def ifftwn(array, nthreads=NTHREADS()):
-        array = array.astype('complex').copy()
-        outarray = array.copy()
-        fft_backward = fftw3.Plan(array, outarray, direction='backward',
-                flags=['estimate'], nthreads=nthreads)
-        fft_backward.execute()
-        return outarray / np.size(array)
-
 
 def convolve(array, kernel, boundary=None, fill_value=0.,
              normalize_kernel=False):
@@ -203,11 +163,11 @@ def convolve(array, kernel, boundary=None, fill_value=0.,
     return result.astype(array_dtype)
 
 
-def convolve_fft(array, kernel, boundary='fill', fill_value=0,
-        crop=True, return_fft=False, fft_pad=True,
-        psf_pad=False, interpolate_nan=False, quiet=False,
-        ignore_edge_zeros=False, min_wt=0.0, normalize_kernel=False,
-        fft_type=None, nthreads=None):
+def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
+                 return_fft=False, fft_pad=True, psf_pad=False,
+                 interpolate_nan=False, quiet=False, ignore_edge_zeros=False,
+                 min_wt=0.0, normalize_kernel=False, fftn=np.fft.fftn,
+                 ifftn=np.fft.ifftn, complex_dtype=np.complex):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
@@ -215,9 +175,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
 
     * can treat NaN's as zeros or interpolate over them
-    * defaults to using the faster FFTW algorithm if installed
     * (optionally) pads to the nearest 2^n size to improve FFT speed
     * only operates in mode='same' (i.e., the same shape array is returned) mode
+    * can use your own fft, e.g. pyFFTW or pyFFTW3, which can lead to
+      performance improvements, depending on your system configuration.  fftw3
+      is threaded, and therefore may yield significant performance benefits on
+      multi-core machines at the cost of greater memory requirements.  Specify
+      the :param:`fftn` and :param:`ifftn` keyword to override the default, which
+      is numpy's fft
 
     Parameters
     ----------
@@ -274,9 +239,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     nthreads : int
         if fftw3 is installed, can specify the number of threads to allow FFTs
         to use.  Probably only helpful for large arrays
-    fft_type : [None, 'fftw', 'scipy', 'numpy']
-        Which FFT implementation to use.  If not specified, defaults to the type
-        specified in the FFT_TYPE ConfigurationItem
+    fftn, ifftn : functions
+        The fft and inverse fft functions.  Can be overridden to use your own
+        ffts, e.g. an fftw3 wrapper or scipy's fftn, e.g.
+        `fftn=scipy.fftpack.fftn`
+    complex_dtype : np.complex
+        Which complex dtype to use.  `numpy` has a range of options, from 64 to
+        256.  
 
     See Also
     --------
@@ -313,24 +282,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True)
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, normalize_kernel=True)
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
+                     normalize_kernel=True, ignore_edge_zeros=True)
+    array([ 1.,  2.,  3.])
+
+    # optional - requires scipy
+    >>> import scipy.fftpack
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
+                      normalize_kernel=True, ignore_edge_zeros=True,
+                      fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
     array([ 1.,  2.,  3.])
 
     """
-    if fft_type is None:
-        fft_type = FFT_TYPE()
-        if fft_type == 'fftw' and not HAS_FFTW:
-            if HAS_SCIPY:
-                log.warn("fftw3 is not installed, using scipy for the FFT calculations")
-                fft_type = 'scipy'
-            else:
-                log.warn("fftw3 and scipy are not installed, using numpy for the FFT calculations")
-                fft_type = 'numpy'
-        elif fft_type == 'scipy' and not HAS_SCIPY:
-            log.warn("scipy is not installed, using numpy for the FFT calculations")
-            fft_type = 'numpy'
-    if nthreads is None:
-        nthreads = NTHREADS()
 
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
@@ -360,37 +323,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         kernel = np.array(kernel)
         kernel[mask] = np.nan
 
-    # replace fftn if HAS_FFTW so that nthreads can be passed
-    global fftn, ifftn
-    if fft_type == "fftw":
-        if HAS_FFTW:
-            def fftn(*args, **kwargs):
-                return fftwn(*args, nthreads=nthreads, **kwargs)
-
-            def ifftn(*args, **kwargs):
-                return ifftwn(*args, nthreads=nthreads, **kwargs)
-        else:
-            raise ValueError("fft_type=fftw specified, but fftw3 is not installed")
-    elif fft_type == "scipy":
-        if HAS_SCIPY:
-            fftn = scipy.fftpack.fftn
-            ifftn = scipy.fftpack.ifftn
-        else:
-            raise ValueError("fft_type=scipy specified, but scipy is not installed")
-    elif fft_type == "numpy":
-        fftn = np.fft.fftn
-        ifftn = np.fft.ifftn
-    else:
-        raise ValueError("Invalid fft_type specified: %s" % fft_type)
-
     # NAN catching
-    nanmaskarray = (array != array)
+    nanmaskarray = np.isnan(array)
     array[nanmaskarray] = 0
-    nanmaskkernel = (kernel != kernel)
+    nanmaskkernel = np.isnan(kernel)
     kernel[nanmaskkernel] = 0
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not interpolate_nan
             and not quiet):
-        warnings.warn("NOT ignoring nan values even though they are present" +
+        log.warn("NOT ignoring nan values even though they are present" +
                 " (they are treated as 0)")
 
     if normalize_kernel is True:
@@ -406,12 +346,16 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
+            if (interpolate_nan or ignore_edge_zeros):
+                WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
+                    "and interpolate_nan will be ignored.")
+                log.warn(WARNING)
 
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
                 " to the convolve boundary='fill'.  There is no FFT " +
                 " equivalent to convolve's zero-if-kernel-leaves-boundary")
-        warnings.warn(WARNING)
+        log.warn(WARNING)
         psf_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
@@ -426,8 +370,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
 
     arrayshape = array.shape
     kernshape = kernel.shape
-    ndim = len(array.shape)
-    if ndim != len(kernshape):
+    if array.ndim != kernel.ndim:
         raise ValueError("Image and kernel must " +
             "have same number of dimensions")
     # find ideal size (power of 2) for fft.
@@ -441,7 +384,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
             # add the shape lists (max of a list of length 4) (smaller)
             # also makes the shapes square
             fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.array([fsize for ii in range(ndim)])
+        newshape = np.array([fsize for ii in range(array.ndim)])
     else:
         if psf_pad:
             # just add the biggest dimensions
@@ -461,8 +404,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
         kernslices += [slice(center - kerndimsize // 2,
             center + (kerndimsize + 1) // 2)]
 
-    bigarray = np.ones(newshape, dtype=np.complex128) * fill_value
-    bigkernel = np.zeros(newshape, dtype=np.complex128)
+    bigarray = np.ones(newshape, dtype=complex_dtype) * fill_value
+    bigkernel = np.zeros(newshape, dtype=complex_dtype)
     bigarray[arrayslices] = array
     bigkernel[kernslices] = kernel
     arrayfft = fftn(bigarray)
@@ -471,9 +414,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0,
     fftmult = arrayfft * kernfft
     if (interpolate_nan or ignore_edge_zeros) and kernel_is_normalized:
         if ignore_edge_zeros:
-            bigimwt = np.zeros(newshape, dtype=np.complex128)
+            bigimwt = np.zeros(newshape, dtype=complex_dtype)
         else:
-            bigimwt = np.ones(newshape, dtype=np.complex128)
+            bigimwt = np.ones(newshape, dtype=complex_dtype)
         bigimwt[arrayslices] = 1.0 - nanmaskarray * interpolate_nan
         wtfft = fftn(bigimwt)
         # I think this one HAS to be normalized (i.e., the weights can't be
