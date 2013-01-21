@@ -570,6 +570,10 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     Determines the URL of the API page for the specified object, and
     optionally open that page in a web browser.
 
+    .. note::
+        You must be connected to the internet for this to function even
+        if `openinbrowser` is False.
+
     Packages
     --------
     obj
