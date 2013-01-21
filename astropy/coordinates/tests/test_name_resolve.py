@@ -13,9 +13,11 @@ import numpy as np
 import pytest
 
 # Astropy
-from ..name_resolve import get_icrs_coordinates, NameResolveError
+from ..name_resolve import get_icrs_coordinates, NameResolveError, SESAME_DATABASE
 from ..builtin_systems import ICRSCoordinates, FK5Coordinates, FK4Coordinates, GalacticCoordinates
+from ...tests.helper import remote_data
 
+@remote_data
 def test_names():
 
     # First check that sesame is up
@@ -36,6 +38,7 @@ def test_names():
     np.testing.assert_almost_equal(icrs.ra.degrees, icrs_true.ra.degrees, 3)
     np.testing.assert_almost_equal(icrs.dec.degrees, icrs_true.dec.degrees, 3)
 
+@remote_data
 def test_database_specify():
 
     # First check that sesame is up
@@ -44,7 +47,8 @@ def test_database_specify():
 
     name = "ngc 3642"
     for db in ["simbad", "ned", "vizier", "all"]:
-        icrs = ICRSCoordinates.from_name(name, database=db)
+        SESAME_DATABASE.set(db)
+        icrs = ICRSCoordinates.from_name(name)
         gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
@@ -54,7 +58,8 @@ def test_database_specify():
     name = "castor"
     # Don't search ned or vizier since castor doesn't seem to be in either
     for db in ["simbad",  "all"]:
-        icrs = ICRSCoordinates.from_name(name, database=db)
+        SESAME_DATABASE.set(db)
+        icrs = ICRSCoordinates.from_name(name)
         gal = GalacticCoordinates.from_name(name).transform_to(ICRSCoordinates)
         np.testing.assert_almost_equal(icrs.ra.degrees, gal.ra.degrees, 1)
         np.testing.assert_almost_equal(icrs.dec.degrees, gal.dec.degrees, 1)
