@@ -41,7 +41,7 @@ SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned',
                                     "databases, but this can be 'all', "
                                     "'simbad', 'ned', or 'vizier'.")
                                     
-NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 10,
+NAME_RESOLVE_TIMEOUT = ConfigurationItem('name_resolve_timeout', 5,
                                          "This is the maximum time to wait "
                                          "for a response from a name resolve "
                                          "query to SESAME in seconds.")
