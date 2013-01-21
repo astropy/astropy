@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import numpy as np
-import warnings
 from ...config import ConfigurationItem
 from ... import log
 
@@ -317,7 +316,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     kernel[nanmaskkernel] = 0
     if ((nanmaskarray.sum() > 0 or nanmaskkernel.sum() > 0) and not interpolate_nan
             and not quiet):
-        warnings.warn("NOT ignoring nan values even though they are present" +
+        log.warn("NOT ignoring nan values even though they are present" +
                 " (they are treated as 0)")
 
     if normalize_kernel is True:
@@ -335,13 +334,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             kernel_is_normalized = False
             WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
                 "and interpolate_nan will be ignored.")
-            warnings.warn(WARNING)
+            log.warn(WARNING)
 
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
                 " to the convolve boundary='fill'.  There is no FFT " +
                 " equivalent to convolve's zero-if-kernel-leaves-boundary")
-        warnings.warn(WARNING)
+        log.warn(WARNING)
         psf_pad = True
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
