@@ -177,6 +177,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     * can treat NaN's as zeros or interpolate over them
     * (optionally) pads to the nearest 2^n size to improve FFT speed
     * only operates in mode='same' (i.e., the same shape array is returned) mode
+    * can use your own fft, e.g. pyFFTW or pyFFTW3, which can lead to
+      performance improvements, depending on your system configuration.  fftw3
+      is threaded, and therefore may yield significant performance benefits on
+      multi-core machines at the cost of greater memory requirements.  Specify
+      the :param:`fftn` and :param:`ifftn` keyword to override the default, which
+      is numpy's fft
 
     Parameters
     ----------
@@ -276,7 +282,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True)
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, normalize_kernel=True)
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
+                     normalize_kernel=True, ignore_edge_zeros=True)
+    array([ 1.,  2.,  3.])
+
+    # optional - requires scipy
+    >>> import scipy.fftpack
+    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
+                      normalize_kernel=True, ignore_edge_zeros=True,
+                      fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
     array([ 1.,  2.,  3.])
 
     """
@@ -332,9 +346,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
             kernel_is_normalized = True
         else:
             kernel_is_normalized = False
-            WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
-                "and interpolate_nan will be ignored.")
-            log.warn(WARNING)
+            if (interpolate_nan or ignore_edge_zeros):
+                WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
+                    "and interpolate_nan will be ignored.")
+                log.warn(WARNING)
 
     if boundary is None:
         WARNING = ("The convolve_fft version of boundary=None is equivalent" +
