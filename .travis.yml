@@ -5,29 +5,34 @@ python:
     - 2.6
     - 3.2
 env:
-    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false
-    - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
-    - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
-    
+    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=false
+    - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
+    - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
+
 matrix:
     include:
-        - python: 2.7 
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
-        - python: 3.2 
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true
-    exclude:
-        - python: 3.2 
-          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
+        - python: 2.7
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=true
+        - python: 2.7
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
         - python: 3.2
-          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
-
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
+    exclude:
+        - python: 3.2
+          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
+        - python: 3.2
+          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
    - sudo apt-get update -qq
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
-install: 
+   - sudo apt-get install -qq libhdf5-serial-1.8.4 libhdf5-serial-dev
+install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" --use-mirrors
+   - if $OPTIONAL; then pip -q install h5py scipy --use-mirrors; fi
    - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
-script: if $ONLY_EGG_INFO;then python setup.py egg_info;else python setup.py test;fi
+script:
+   - if $ONLY_EGG_INFO; then python setup.py egg_info; fi
+   - if ! $ONLY_EGG_INFO; then python setup.py test; fi
