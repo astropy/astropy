@@ -32,7 +32,7 @@ Finally, a reader class to read SExtractor table outputs is now available.
 Coordinates
 -----------
 
-The :ref:`astropy-coordinates` subpackage was added in Astropy 0.2, and
+The :ref:`astropy.coordinates <astropy-coordinates>` subpackage was added in Astropy 0.2, and
 adds a framework for defining celestial and other astronomical coordinate
 systems, as well as transformations between them. A few simple usage examples
 include::
