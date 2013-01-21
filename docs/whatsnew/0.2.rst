@@ -29,6 +29,35 @@ to the behavior of the :class:`~astropy.table.table.Table` class.
 Finally, a reader class to read SExtractor table outputs is now available.
 
 
+Coordinates
+-----------
+
+The :ref:`astropy-coordinates` subpackage was added in Astropy 0.2, and
+adds a framework for defining celestial and other astronomical coordinate
+systems, as well as transformations between them. A few simple usage examples
+include::
+
+    >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
+    >>> c.ra
+    <RA 10.68458 deg>
+    >>> c.galactic
+    <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
+
+Currently a limited set of standard coordinate systems are included, but more will be
+added in the next release.
+
+The package also includes a representation of angles (:class:`~astropy.coordinates.angles.Angle`)
+that may be useful in other contexts. It also supports distances in
+celestial coordinates, which allows a complete mapping to 3D coordinates::
+
+    >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=Distance(770, u.kpc))
+    >>> c.cartesian
+    <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
+
+Note that this subpackage is still under heavy development, and likely will
+undergo significant changes in the next few versions.
+
+
 Data Tables
 -----------
 
