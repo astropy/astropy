@@ -595,6 +595,7 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     """
     import webbrowser
 
+    from inspect import ismodule
     from zlib import decompress
     from urllib2 import urlopen
 
@@ -602,6 +603,8 @@ def find_api_page(obj, version='dev', openinbrowser=True):
             hasattr(obj, '__module__') and
             hasattr(obj, '__name__')):
         obj = obj.__module__ + '.' + obj.__name__
+    elif ismodule(obj):
+        obj = obj.__name__
 
     if version == 'dev':
         baseurl = 'http://devdocs.astropy.org/'
