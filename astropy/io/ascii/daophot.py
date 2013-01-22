@@ -87,17 +87,17 @@ class Daophot(core.BaseReader):
         if len(self.comment_lines) > 0:
             re_header_keyword = re.compile(r'[#]K'
                                            r'\s+ (?P<name> \w+)'
-                                           r'\s* ='
-                                           r'\s* (?P<value> \S*)'  # Allow blank field
-                                           r'\s+ (?P<units> \S+)'
-                                           r'\s+ (?P<format> \S+)'
-                                           r'\s* $', re.VERBOSE)
+                                           r'\s* = (?P<stuff> .+) $',
+                                           re.VERBOSE)
 
             out.meta['keywords'] = OrderedDict()
             for line in self.comment_lines:
                 m = re_header_keyword.match(line)
                 if m:
-                    keyword_dict = dict((x, m.group(x)) for x in ('value', 'units', 'format'))
+                    vals = m.group('stuff').strip().rsplit(None, 2)
+                    keyword_dict = {'units': vals[-2],
+                                    'format': vals[-1]}
+                    keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
                     out.meta['keywords'][m.group('name')] = keyword_dict
 
         self.cols = self.header.cols

@@ -10,7 +10,7 @@
 #K GRPFILE = test.psg.1 filename %-23s
 #K PSFIMAGE = test.psf.1 imagename %-23s
 #K NSTARFILE = test.nst.1 filename %-23s
-#K REJFILE = hello_world filename %-23s
+#K REJFILE = "hello world" filename %-23s
 #K SCALE = 1. units/pix %-23.7g
 #K DATAMIN = 50. counts %-23.7g
 #K DATAMAX = 24500. counts %-23.7g
