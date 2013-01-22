@@ -1,3 +1,5 @@
+.. _astropy-coordinates:
+
 *******************************************************
 Astronomical Coordinate Systems (`astropy.coordinates`)
 *******************************************************
