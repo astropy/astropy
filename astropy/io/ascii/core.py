@@ -740,8 +740,9 @@ class TableOutputter(BaseOutputter):
     def __call__(self, cols):
         self._convert_vals(cols)
 
-        # XXX: Maybe replace the logic below with an explicit masked arg in read()
-        masked = any(col.fill_values for col in cols)
+        # If there are any values that were filled and tagged with a mask bit then this
+        # will be a masked table.  Otherwise use a plain table.
+        masked = any(hasattr(col, 'mask') and numpy.any(col.mask) for col in cols)
 
         out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked)
         for col, out_col in zip(cols, out.columns.values()):
@@ -751,7 +752,6 @@ class TableOutputter(BaseOutputter):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
 
-        # To Do: add support for column and table metadata
         return out
 
 
