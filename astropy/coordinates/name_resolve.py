@@ -31,12 +31,10 @@ from .. import units as u
 __all__ = ["get_icrs_coordinates"]
 
 SESAME_URL = ConfigurationItem("sesame_url", 
-                               "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
-                               "The URL to Sesame's web-queryable database.")
-SESAME_MIRROR_URL = ConfigurationItem("sesame_mirror_url", 
-                            "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/",
-                            "The URL to a mirror of Sesame's web-queryable "
-                            "database.")
+                        ["http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/",
+                         "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/"],
+                        "The URL to Sesame's web-queryable database.",
+                        cfgtype='string_list')
 
 SESAME_DATABASE = ConfigurationItem("sesame_database", ['all', 'simbad', 'ned', 
                                     'vizier'],
@@ -80,9 +78,10 @@ def get_icrs_coordinates(name):
     # Make sure we don't have duplicates in the url list
     urls = []
     domains = []
-    for url in [SESAME_URL(), SESAME_MIRROR_URL()]:
+    for url in SESAME_URL():
         domain = urlparse(url).netloc
         
+        # Check for duplicates
         if domain not in domains:
             domains.append(domain)
             
