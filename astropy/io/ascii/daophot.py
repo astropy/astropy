@@ -85,14 +85,21 @@ class Daophot(core.BaseReader):
 
         # Read keywords as a table embedded in the header comments
         if len(self.comment_lines) > 0:
-            names = ('temp1', 'name', 'temp2', 'value', 'units', 'format')
-            reader = core._get_reader(Reader=basic.NoHeader, comment=r'(?!#K)', names=names)
-            headerkeywords = reader.read(self.comment_lines)
+            re_header_keyword = re.compile(r'[#]K'
+                                           r'\s+ (?P<name> \w+)'
+                                           r'\s* ='
+                                           r'\s* (?P<value> \S*)'  # Allow blank field
+                                           r'\s+ (?P<units> \S+)'
+                                           r'\s+ (?P<format> \S+)'
+                                           r'\s* $', re.VERBOSE)
 
             out.meta['keywords'] = OrderedDict()
-            for headerkeyword in headerkeywords:
-                keyword_dict = dict((x, headerkeyword[x]) for x in ('value', 'units', 'format'))
-                out.meta['keywords'][headerkeyword['name']] = keyword_dict
+            for line in self.comment_lines:
+                m = re_header_keyword.match(line)
+                if m:
+                    keyword_dict = dict((x, m.group(x)) for x in ('value', 'units', 'format'))
+                    out.meta['keywords'][m.group('name')] = keyword_dict
+
         self.cols = self.header.cols
 
         return out

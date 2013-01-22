@@ -1,6 +1,6 @@
 #K MERGERAD   = INDEF                   scaleunit  %-23.7g  
 #K IRAF = NOAO/IRAFV2.10EXPORT version %-23s
-#K USER = davis name %-23s
+#K USER =   name %-23s
 #K HOST = tucana computer %-23s
 #K DATE = 05-28-93 mm-dd-yy %-23s
 #K TIME = 14:46:13 hh:mm:ss %-23s
@@ -10,7 +10,7 @@
 #K GRPFILE = test.psg.1 filename %-23s
 #K PSFIMAGE = test.psf.1 imagename %-23s
 #K NSTARFILE = test.nst.1 filename %-23s
-#K REJFILE = "hello world" filename %-23s
+#K REJFILE = hello_world filename %-23s
 #K SCALE = 1. units/pix %-23.7g
 #K DATAMIN = 50. counts %-23.7g
 #K DATAMAX = 24500. counts %-23.7g
