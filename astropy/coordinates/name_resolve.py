@@ -58,12 +58,19 @@ def get_icrs_coordinates(name):
         service to retrieve coordinates for the specified name. By default,
         this will search all available databases until a match is found. If
         you would like to specify the database, use the configuration item
-        `name_resolve.SESAME_DATABASE` .
+        `name_resolve.SESAME_DATABASE` . You can also specify a list of servers 
+        to use for querying Sesame using the configuration item 
+        `name_resolve.SESAME_URL`. This will try each one in order until a valid
+        response is returned. By default, this list includes the main Sesame 
+        host and a mirror at vizier. A final configuration item, 
+        `name_resolve.NAME_RESOLVE_TIMEOUT`, is the number of seconds to wait
+        for a response from the server before giving up. By default this is 
+        5 seconds.
 
         Parameters
         ----------
         name : str
-            The name of the object to get coordinates for, e.g. m42.
+            The name of the object to get coordinates for, e.g. M42.
 
         Returns
         -------
@@ -90,11 +97,11 @@ def get_icrs_coordinates(name):
             fmt_url = fmt_url.format(name=urllib.quote(name), db=db)
             urls.append(fmt_url)
     
-    resp = None
     for url in urls:
         try:
             # Retrieve ascii name resolve data from CDS
             resp = urllib2.urlopen(url, timeout=NAME_RESOLVE_TIMEOUT())
+            break
         except urllib2.URLError, e:
             # This catches a timeout error, see:
             #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
@@ -104,12 +111,9 @@ def get_icrs_coordinates(name):
             else:
                 raise NameResolveError("Unable to retrieve coordinates for name "
                                        "'{0}'".format(name))
-        
-        if resp is not None:
-            break
     
     # All Sesame URL's timed out...
-    if resp is None:
+    else:
         raise NameResolveError("All Sesame queries timed out. Unable to "
                                "retrieve coordinates.")
 
