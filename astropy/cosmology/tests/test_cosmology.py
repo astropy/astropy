@@ -152,6 +152,14 @@ def test_ogamma():
     assert np.allclose(cosmo.comoving_distance(z), targvals, rtol=1e-5)
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_kpc_methods():
+    cosmo = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
+    assert np.allclose(cosmo.arcsec_per_kpc_comoving(3), 0.0317179)
+    assert np.allclose(cosmo.arcsec_per_kpc_proper(3), 0.1268716668)
+    assert np.allclose(cosmo.kpc_comoving_per_arcmin(3), 1891.6753126)
+    assert np.allclose(cosmo.kpc_proper_per_arcmin(3), 472.918828)
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_convenience():
     #these are all for WMAP7 with Tcmb = 0
     tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
