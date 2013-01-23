@@ -276,10 +276,8 @@ The code in this sub-package is tested against several widely-used
 online cosmology calculators, and has been used to perform
 calculations in refereed papers. You can check the range of redshifts
 over which the code is regularly tested in the module
-`astropy.cosmology.tests.test_cosmology`. Note that the energy density
-due to radiation is assumed to be negligible, which is valid for
-redshifts less than about 10. If you find any bugs, please let us know
-by `opening an issue at the github repository
+`astropy.cosmology.tests.test_cosmology`. If you find any bugs, please
+let us know by `opening an issue at the github repository
 <https://github.com/astropy/astropy/issues>`_!
 
 Reference/API
