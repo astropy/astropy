@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """ Verify item access API in:
 https://github.com/astropy/astropy/wiki/Table-item-access-definition
 """

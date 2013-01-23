@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 The astropy.time package provides functionality for manipulating times and
 dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,

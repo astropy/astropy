@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .table import Column, Table, TableColumns, Row, MaskedColumn
 
 # Import routines that connect readers/writers to astropy.table
