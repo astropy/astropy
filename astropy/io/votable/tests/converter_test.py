@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 # THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal

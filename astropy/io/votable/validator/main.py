@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Validates a large collection of web-accessible VOTable files,
 and generates a report as a directory tree of HTML files.

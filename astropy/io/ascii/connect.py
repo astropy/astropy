@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This file connects the readers/writers to the astropy.table.Table class
 
 

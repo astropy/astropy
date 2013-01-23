@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from distutils.core import Extension
 from os.path import join
 import sys
