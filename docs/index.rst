@@ -48,6 +48,7 @@ User Documentation
    logging
    stability
    whatsnew/index
+   known_issues
    creditsandlicense
 
 
