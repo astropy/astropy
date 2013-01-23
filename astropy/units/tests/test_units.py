@@ -260,10 +260,11 @@ def test_decompose_bases():
     """
     From issue #576
     """
-    from .. import cgs
-    from ...constants import cgs as cgs_constants
 
-    d = cgs_constants.e.unit.decompose(bases=cgs.bases)
+    from .. import cgs
+    from ...constants import e
+
+    d = e.esu.unit.decompose(bases=cgs.bases)
     assert d._bases == [u.cm, u.g, u.s]
     assert d._powers == [Fraction(3, 2), Fraction(1, 2), -1]
     assert d._scale == 1.0

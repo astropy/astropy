@@ -25,7 +25,7 @@ from .constant import Constant, EMConstant
 from .._constants import si as _si
 for nm, val in sorted(vars(_si).iteritems()):
     if isinstance(val, ConstantDefinition):
-        if val.em:
+        if val.system:
             _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
                             val.reference)
         else:
@@ -39,14 +39,14 @@ del _si, nm, val, _c
 from .._constants import cgs as _cgs
 for nm, val in sorted(vars(_cgs).iteritems()):
     if isinstance(val, ConstantDefinition):
-        if val.em:
+        if val.system:
             # EM constants have _gauss, _esu, etc. appended
-            nm, system = nm.rsplit('_', 1)
+            nm, _ = nm.rsplit('_', 1)
             _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
                             val.reference)
             if nm in locals():
                 _c_si = locals()[nm]
-                setattr(_c_si, system, _c)
+                setattr(_c_si, val.system, _c)
             else:
                 locals()[nm] = _c
         else:

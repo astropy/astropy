@@ -61,10 +61,10 @@ sigma_sb = ConstantDefinition(5.670373e-8, 0.000021e-8,
                               "Stefan-Boltzmann constant",
                               'CODATA 2010', 'W.m-2.K-4')
 
-# Electron charge
+# Electron charge; EM constants require a system to be specified
 e = ConstantDefinition(1.602176565e-19, 0.000000035e-19,
                        "Electron charge",
-                       'CODATA 2010', 'C', em=True)
+                       'CODATA 2010', 'C', system='si')
 
 # Avogadro's number
 N_A = ConstantDefinition(6.02214129e23, 0.00000027e23,

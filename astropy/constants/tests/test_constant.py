@@ -2,6 +2,8 @@
 
 
 from .. import Constant
+from ...units import Quantity as Q
+from ...tests.helper import pytest
 
 
 def test_c():
@@ -35,6 +37,29 @@ def test_h():
     assert h.name
     assert h.reference
     assert h.unit
+
+
+def test_e():
+    """Tests for #572 demonstrating how EM constants should behave."""
+
+    from .. import e
+
+    # A test quantity
+    E = Q(100, 'V/m')
+
+    # Without specifying a system e should not combine with other quantities
+    pytest.raises(TypeError, lambda: e * E)
+
+    # e.cgs is too ambiguous and should not work at all
+    pytest.raises(TypeError, lambda: e.cgs * E)
+
+    assert isinstance(e.si, Q)
+    assert isinstance(e.gauss, Q)
+    assert isinstance(e.esu, Q)
+
+    assert e.si * E == Q(100, 'eV/m')
+    assert e.gauss * E == Q(100, 'Fr V/m')
+    assert e.esu * E == Q(100, 'Fr V/m')
 
 
 def test_unit():

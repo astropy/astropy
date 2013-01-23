@@ -21,8 +21,8 @@ from . import si
 
 e_esu = ConstantDefinition(si.e * si.c * 10.,
                            si.e.uncertainty * si.c * 10.,
-                           si.e.name, si.e.reference, 'statC', em=True)
+                           si.e.name, si.e.reference, 'statC', system='esu')
 
 e_gauss = ConstantDefinition(si.e * si.c * 10.,
                              si.e.uncertainty * si.c * 10.,
-                             si.e.name, si.e.reference, 'Fr', em=True)
+                             si.e.name, si.e.reference, 'Fr', system='gauss')
