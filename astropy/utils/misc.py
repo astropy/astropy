@@ -505,7 +505,6 @@ def silence():
     sys.stderr = old_stderr
 
 
-
 def format_exception(msg, *args, **kwargs):
     """
     Given an exception message string, uses new-style formatting arguments

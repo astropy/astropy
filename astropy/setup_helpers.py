@@ -477,17 +477,21 @@ def generate_build_ext_command(release):
 
 def generate_default_config(build_lib, package):
     pkg_dir = os.path.relpath(os.path.dirname(__file__))
-    config_home = os.path.abspath(os.path.join(pkg_dir, os.pardir))
+    config_path = os.path.join(pkg_dir, 'config')
+    filename = os.path.join(config_path, package + '.cfg')
 
-    env = {'XDG_CONFIG_HOME': config_home,
-           'ASTROPY_SKIP_CONFIG_UPDATE': 'True'}
+    if os.path.exists(filename):
+        log.info('regenerating default {0}.cfg file'.format(package))
+    else:
+        log.info('generating default {0}.cfg file'.format(package))
 
-    import pdb; pdb.set_trace()
+    env = {'ASTROPY_SKIP_CONFIG_UPDATE': 'True'}
+
     subproccode = (
-        'from __future__ import print_function;'
         'from astropy.config.configuration import generate_all_config_items;'
-        'print(generate_all_config_items({pkgnm!r}, True))')
-    subproccode = subproccode.format(pkgnm=package)
+        'generate_all_config_items({pkgnm!r}, True, filename={filenm!r})')
+    subproccode = subproccode.format(pkgnm=package,
+                                     filenm=os.path.abspath(filename))
 
     # Note that cwd=build_lib--we're importing astropy from the build/ dir
     # but using the astropy/ source dir as the config directory
@@ -496,20 +500,15 @@ def generate_default_config(build_lib, package):
                              cwd=build_lib, env=env)
     stdout, stderr = proc.communicate()
 
-    if proc.returncode == 0:
-        pathname = stdout.decode('UTF-8').strip()
-        path, filename = os.path.split(pathname)
-        dest = os.path.join(path, 'config', filename)
-        if os.path.exists(dest):
-            os.remove(dest)
-        shutil.move(pathname, dest)
-        return dest
+    if proc.returncode == 0 and os.path.exists(filename):
+        return filename
     else:
         msg = ('Generation of default configuration item failed! Stdout '
                'and stderr are shown below.\n'
                'Stdout:\n{stdout}\nStderr:\n{stderr}')
         log.error(msg.format(stdout=stdout.decode('UTF-8'),
                              stderr=stderr.decode('UTF-8')))
+
 
 def add_command_option(command, name, doc, is_bool=False):
     """

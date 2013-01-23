@@ -111,12 +111,13 @@ if not _ASTROPY_SETUP_:
     config_dir = e = None
 
     if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
-        config_dir = os.path.split(config.__file__)[0]
+        config_dir = os.path.dirname(config.__file__)
         try:
             config.configuration.update_default_config(__package__, config_dir)
         except config.configuration.ConfigurationDefaultMissingError as e:
             wmsg = (e.args[0] + " Cannot install default profile. If you are "
-                "importing from source, this is expected.")
+                    "importing from source, this is expected.")
             warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
 
     del os, warn, config_dir, e  # clean up namespace
+

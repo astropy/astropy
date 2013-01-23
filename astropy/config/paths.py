@@ -37,8 +37,8 @@ def _find_home():
         if 'HOME' in env:
             homedir = decodepath(env['HOME'])
         else:
-            raise OSError('Could not find unix home directory to search for' +\
-                          ' astropy config dir')
+            raise OSError('Could not find unix home directory to search for '
+                          'astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         #Try for a network home first
         if 'HOMESHARE' in env:
@@ -54,7 +54,7 @@ def _find_home():
             try:
                 import _winreg as wreg
                 key = wreg.OpenKey(wreg.HKEY_CURRENT_USER,
-            'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+            r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
 
                 homedir = wreg.QueryValueEx(key, 'Personal')[0]
                 homedir = decodepath(homedir)
@@ -64,15 +64,16 @@ def _find_home():
                 if 'HOME' in env:
                     homedir = decodepath(env['HOME'])
                 else:
-                    raise OSError('Could not find windows home directory to' +\
-                                  ' search for astropy config dir')
+                    raise OSError('Could not find windows home directory to '
+                                  'search for astropy config dir')
     else:
         #for other platforms, try HOME, although it probably isn't there
         if 'HOME' in env:
             homedir = decodepath(env['HOME'])
         else:
-            raise OSError('Could not find a home directory to search for ' +\
-                 'astropy config dir - are you on an unspported platform?')
+            raise OSError('Could not find a home directory to search for '
+                          'astropy config dir - are you on an unspported '
+                          'platform?')
     return homedir
 
 
@@ -92,6 +93,7 @@ def get_config_dir(create=True):
         The absolute path to the configuration directory.
 
     """
+
     from os import path, environ
 
     #symlink will be set to this if the directory is created
@@ -106,7 +108,6 @@ def get_config_dir(create=True):
                 return path.abspath(xchpth)
             else:
                 linkto = xchpth
-
     return path.abspath(_find_or_create_astropy_dir('config', linkto))
 
 
