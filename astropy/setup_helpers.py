@@ -574,14 +574,9 @@ def get_distutils_option(option, commands):
 
     for cmd in commands:
         if cmd in dist.commands:
-            break
-    else:
-        return None
-
-    for cmd in commands:
-        cmd_opts = dist.get_option_dict(cmd)
-        if option in cmd_opts:
-            return cmd_opts[option][1]
+            cmd_opts = dist.get_option_dict(cmd)
+            if option in cmd_opts:
+                return cmd_opts[option][1]
     else:
         return None
 
