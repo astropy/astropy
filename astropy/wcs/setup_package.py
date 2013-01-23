@@ -30,7 +30,11 @@ if sys.version_info[0] >= 3:
 else:
 
     def string_escape(s):
-        return s.encode('string_escape')
+        # string_escape has subtle differences with the escaping done in Python
+        # 3 so correct for those too
+        s = s.encode('string_escape')
+        s = s.replace(r'\x00', r'\0')
+        return s.replace(r"\'", "'")
 
     from cStringIO import StringIO
     string_types = (str, unicode)
