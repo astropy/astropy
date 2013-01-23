@@ -431,7 +431,6 @@ class UnitBase(object):
                     filtered.append(result)
                 last_result = result
 
-            print(results, filtered)
             return filtered
 
         unit = self.decompose()
