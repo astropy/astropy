@@ -5,8 +5,8 @@ Known Issues
 While most bugs and issues are managed using the `astropy issue
 tracker <https://github.com/astropy/astropy/issues>`_, this document
 lists issues that are too difficult to fix, may require some
-intervention from the user to workaround, or require upstream fixes in
-other projects.
+intervention from the user to workaround, or are due to bugs in other
+projects or packages.
 
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
@@ -34,7 +34,7 @@ However, in general if your application does not deal with text
 processing and you just want docstrings to work, this may be
 acceptable.
 
-The IPython issue: `https://github.com/ipython/ipython/pull/2738`_
+The IPython issue: `<https://github.com/ipython/ipython/pull/2738>`_
 
 Floating point precision issues on Python 2.6 on Microsoft Windows
 ------------------------------------------------------------------
@@ -45,4 +45,4 @@ lost.
 
 The easiest workaround is to install Python 2.7.
 
-The Python issue: `http://bugs.python.org/issue7117`_
+The Python issue: `<http://bugs.python.org/issue7117>`_
