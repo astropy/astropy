@@ -358,7 +358,6 @@ class Quantity(object):
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
-    @property
     def decomposed_unit(self, bases=[]):
         """
         Generates a new `Quantity` with the units

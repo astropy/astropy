@@ -58,7 +58,7 @@ Some other interesting examples::
 
 Composition can be combined with :ref:`unit-equivalencies`::
 
-   >>> (u.s ** -1).compose(equivs=u.spectral())
+   >>> (u.s ** -1).compose(equivalencies=u.spectral())
    [Unit("Hz"),
     Unit("J"),
     Unit("m"),

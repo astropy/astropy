@@ -251,7 +251,7 @@ def test_complex_compose():
 
 
 def test_equiv_compose():
-    composed = u.m.compose(equivs=u.spectral())
+    composed = u.m.compose(equivalencies=u.spectral())
     assert u.Hz in composed
 
 

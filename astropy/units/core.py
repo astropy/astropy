@@ -123,11 +123,11 @@ class UnitBase(object):
         # same way whether __future__ division is being used or not
         from .quantity import Quantity
         if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, -1]).simplify()
+            return CompositeUnit(1, [self, m], [1, -1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) / m
         else:
-            return CompositeUnit(1.0 / m, [self], [1])._simplify()
+            return Quantity(1. / m, self)
 
     def __rdiv__(self, m):
         from .quantity import Quantity
@@ -142,11 +142,11 @@ class UnitBase(object):
     def __mul__(self, m):
         from .quantity import Quantity
         if isinstance(m, UnitBase):
-            return CompositeUnit(1, [self, m], [1, 1]).simplify()
+            return CompositeUnit(1, [self, m], [1, 1])._simplify()
         elif isinstance(m, Quantity):
             return Quantity(1, self) * m
         else:
-            return CompositeUnit(m, [self], [1])._simplify()
+            return Quantity(m, self)
 
     def __rmul__(self, m):
         from .quantity import Quantity
@@ -400,7 +400,7 @@ class UnitBase(object):
         """
         raise NotImplementedError()
 
-    def _compose(self, equivs=[], namespace=[], max_depth=2, depth=0):
+    def _compose(self, equivalencies=[], namespace=[], max_depth=2, depth=0):
         def is_final_result(unit):
             # Returns True if this result contains only the expected
             # units
@@ -446,7 +446,7 @@ class UnitBase(object):
 
         # Make a list including all of the equivalent units
         units = [unit]
-        for equiv in equivs:
+        for equiv in equivalencies:
             funit, tunit = equiv[:2]
             if self.is_equivalent(funit):
                 units.append(tunit.decompose())
@@ -495,7 +495,7 @@ class UnitBase(object):
         for len_bases, composed, tunit in partial_results:
             try:
                 composed_list = composed._compose(
-                    equivs=equivs, namespace=namespace,
+                    equivalencies=equivalencies, namespace=namespace,
                     max_depth=max_depth, depth=depth + 1)
             except UnitsException:
                 composed_list = []
@@ -527,7 +527,7 @@ class UnitBase(object):
 
         return [self]
 
-    def compose(self, equivs=[], units=None, max_depth=2):
+    def compose(self, equivalencies=[], units=None, max_depth=2):
         """
         Return the simplest possible composite unit(s) that represent
         the given unit.  Since there may be multiple equally simple
@@ -535,7 +535,7 @@ class UnitBase(object):
 
         Parameters
         ----------
-        equivs : list of equivalence pairs, optional
+        equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
 
@@ -574,7 +574,7 @@ class UnitBase(object):
             units = set(units)
 
         return self._compose(
-            equivs=equivs, namespace=units,
+            equivalencies=equivalencies, namespace=units,
             max_depth=max_depth, depth=0)
 
     def to_system(self, system):
@@ -683,7 +683,8 @@ class UnitBase(object):
             `list` (`EquivalentUnitsList`) is returned that
             pretty-prints the list of units when output.
         """
-        results = self.compose(equivs=equivs, units=units, max_depth=1)
+        results = self.compose(
+            equivalencies=equivalencies, units=units, max_depth=1)
         results = [
             x._bases[0] for x in results if len(x._bases) == 1]
         return self.EquivalentUnitsList(results)
