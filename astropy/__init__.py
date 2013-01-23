@@ -105,8 +105,18 @@ if not _ASTROPY_SETUP_:
     from . import config
 
     import os
+    from warnings import warn
+
+    # add these here so we only need to cleanup the namespace at the end
+    config_dir = e = None
 
     if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
         config_dir = os.path.split(config.__file__)[0]
-        config.configuration.update_default_config(__package__, config_dir)
-    del os  # clean up namespace
+        try:
+            config.configuration.update_default_config(__package__, config_dir)
+        except config.configuration.ConfigurationDefaultMissingError as e:
+            wmsg = (e.args[0] + " Cannot install default profile. If you are "
+                "importing from source, this is expected.")
+            warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+
+    del os, warn, config_dir, e  # clean up namespace
