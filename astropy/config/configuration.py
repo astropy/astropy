@@ -37,6 +37,20 @@ class ConfigurationMissingWarning(Warning):
     """
 
 
+# these are not in __all__ because it's not intended that a user ever see them
+class ConfigurationDefaultMissingError(ValueError):
+    """ An exception that is raised when the configuration defaults (which
+    should be generated at build-time) are missing.
+    """
+
+
+#this is used in astropy/__init__.py
+class ConfigurationDefaultMissingWarning(Warning):
+    """ A warning that is issued when the configuration defaults (which
+    should be generated at build-time) are missing.
+    """
+
+
 class ConfigurationItem(object):
     """ A setting and associated value stored in the astropy configuration
     files.
@@ -598,10 +612,11 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False):
     return get_config(package.__name__).filename
 
 
+# this is not in __all__ because it's not intended that a user uses it
 def update_default_config(pkg, default_cfg_dir_or_fn):
     """
     Checks if the configuration file for the specified package exists, and if
-    not, will copy over the default configuration.
+    not, copy over the default configuration.
 
     Parameters
     ----------
@@ -615,6 +630,12 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
     -------
     updated : bool
         If the profile needed to be updated, True, otherwise False.
+
+    Raises
+    ------
+    ConfigurationDefaultMissingError
+        If the default configuration could not be found.
+
     """
     import os
 
@@ -633,7 +654,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
             deault_cfgfn = default_cfg_dir_or_fn
 
         if not os.path.isfile(deault_cfgfn):
-            raise ValueError('Requested default configuration file {0} is not a file.'.format(deault_cfgfn))
+            raise ConfigurationDefaultMissingError('Requested default '
+                'configuration file {0} is not a file.'.format(deault_cfgfn))
 
         with open(cfgfn, 'w') as fw:
             with open(deault_cfgfn) as fr:
