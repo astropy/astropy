@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """ sextractor.py:
   Classes to read SExtractor table format
 

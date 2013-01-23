@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
 .. _Paper IV: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html

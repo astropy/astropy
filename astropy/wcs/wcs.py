@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Under the hood, there are 3 separate classes that perform different
 parts of the transformation:

@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import print_function  # For print debugging with python 2 or 3
 
 from distutils import version

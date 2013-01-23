@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Facilities for diffing two FITS files.  Includes objects for diffing entire
 FITS files, individual HDUs, FITS headers, or just FITS data.
