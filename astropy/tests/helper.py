@@ -149,6 +149,15 @@ class TestRunner(object):
 
         # check for opened files after each test
         if open_files:
+            try:
+                subprocess.check_output(
+                    ['lsof -F0 -n -p {0}'.format(os.getpid())],
+                    shell=True)
+            except subprocess.CalledProcessError:
+                raise SystemError(
+                    "open file detection requested, but could not "
+                    "successfully run the 'lsof' command")
+
             all_args += ' --open-files'
 
         try:
