@@ -147,7 +147,6 @@ def test_unknown_unit():
         warnings.simplefilter("always", u.UnitsWarning, append=True)
         u.Unit("FOO", parse_strict='warn')
 
-    print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
     assert 'FOO' in str(warning_lines[0].message)
 
@@ -158,7 +157,6 @@ def test_unknown_unit2():
         warnings.simplefilter("always", u.UnitsWarning, append=True)
         assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
 
-    print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
     assert 'm/s/kg' in str(warning_lines[0].message)
 
@@ -275,6 +273,29 @@ def test_compose_roundtrip():
         if (isinstance(val, u.UnitBase) and
             not isinstance(val, u.PrefixUnit)):
             yield _test_compose_roundtrip, val
+
+
+def test_compose_cgs_to_si():
+    def _test_compose_cgs_to_si(unit):
+        composed_list = unit.to_system(u.si)
+
+    for val in u.cgs.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_cgs_to_si, val
+
+
+def test_compose_si_to_cgs():
+    def _test_compose_si_to_cgs(unit):
+        # Can't convert things with Ampere or mol to CGS without more context
+        if u.A in unit.decompose().bases:
+            return
+        composed_list = unit.to_system(u.cgs)
+
+    for val in u.si.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_si_to_cgs, val
 
 
 def test_to_cgs():

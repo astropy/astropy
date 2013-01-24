@@ -180,33 +180,9 @@ def_unit(['lx', 'lux'], lm * m ** -2, register=True, prefixes=True,
 
 
 ###########################################################################
-# EVENTS
-
-def_unit(['ct', 'count'], register=True)
-def_unit(['ph', 'photon'], register=True)
-def_unit(['pix', 'pixel'], register=True)
-
-
-###########################################################################
-# MISCELLANEOUS
-
-# Some of these are very FITS-specific and perhaps considered a mistake.
-# Maybe they should be moved into the FITS format class?
-# TODO: This is defined by the FITS standard as "relative to the sun".
-# Is that mass, volume, what?
-def_unit(['chan'], register=True)
-def_unit(['bin'], register=True)
-def_unit(['vox', 'voxel'], register=True)
-def_unit(['bit'], register=True, prefixes=True)
-def_unit(['byte'], register=True, prefixes=True)
-def_unit(['adu'], register=True)
-def_unit(['beam'], register=True)
-
-
-###########################################################################
 # BASES
 
-bases = set([m, s, kg, A, cd, rad, deg, K])
+bases = set([m, s, kg, A, cd, rad, deg, K, mol])
 
 
 ###########################################################################
