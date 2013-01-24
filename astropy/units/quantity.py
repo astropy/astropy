@@ -1,12 +1,13 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module defines the `Quantity` object, which represents a number with some associated
-units. `Quantity` objects support operations like ordinary numbers, but will deal with
-unit conversions internally.
+This module defines the `Quantity` object, which represents a number with some
+associated units. `Quantity` objects support operations like ordinary numbers,
+but will deal with unit conversions internally.
 """
 
-from __future__ import absolute_import, unicode_literals, division, print_function
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 # Standard library
 import copy
@@ -70,15 +71,17 @@ class Quantity(object):
     value : number
         The numerical value of this quantity in the units given by unit.
     unit : `~astropy.units.UnitBase` instance, str
-        An object that represents the unit associated with the input value. Must be an `~astropy.units.UnitBase`
-        object or a string parseable by the `units` package.
+        An object that represents the unit associated with the input value.
+        Must be an `~astropy.units.UnitBase` object or a string parseable by
+        the `units` package.
 
     Raises
     ------
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not either a `Unit` object or a parseable string unit.
+        If the unit provided is not either a `Unit` object or a parseable
+        string unit.
     """
 
     def __init__(self, value, unit):
@@ -110,7 +113,10 @@ class Quantity(object):
 
     @property
     def unit(self):
-        """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
+        """
+        A `~astropy.units.UnitBase` object representing the unit of this
+        quantity.
+        """
         return self._unit
 
     @property
@@ -150,7 +156,7 @@ class Quantity(object):
 
     def copy(self):
         """ Return a copy of this `Quantity` instance """
-        return Quantity(self.value, unit=self.unit)
+        return self.__class__(self.value, unit=self.unit)
 
     # Arithmetic operations
     def __add__(self, other):

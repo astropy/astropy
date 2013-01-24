@@ -48,7 +48,7 @@ class UnitBase(object):
 
     Should not be instantiated by users directly.
     """
-    _registry = []
+    _registry = {}
     _namespace = {}
 
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
@@ -550,11 +550,11 @@ class UnitBase(object):
             return filtered_namespace
 
         if units is None:
-            units = filter_units(UnitBase._registry)
+            units = filter_units(UnitBase._registry.values())
         elif isinstance(units, dict):
             units = set(units.values())
         elif inspect.ismodule(units):
-            units = filter_units(units.__dict__.values())
+            units = filter_units(vars(units).values())
         else:
             units = set(units)
 
@@ -818,7 +818,7 @@ class NamedUnit(UnitBase):
                         "in namespace".format(st))
                 self._namespace[st] = self
 
-        self._registry.append(self)
+            self._registry[st] = self
 
 
 class IrreducibleUnit(NamedUnit):

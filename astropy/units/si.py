@@ -5,9 +5,10 @@ This package defines the SI units.  They are also available in the
 `astropy.units` namespace.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from .._constants import si as _si
+from ..constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy
@@ -126,7 +127,7 @@ def_unit(['N', 'Newton', 'newton'], kg * m * s ** -2, register=True, prefixes=Tr
 
 def_unit(['J', 'Joule', 'joule'], N * m, register=True, prefixes=True,
          doc="Joule: energy")
-def_unit(['eV', 'electronvolt'], _si.e * J, register=True, prefixes=True,
+def_unit(['eV', 'electronvolt'], _si.e.value * J, register=True, prefixes=True,
          doc="Electron Volt")
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, register=True, prefixes=True,
          doc="Pascal: pressure")

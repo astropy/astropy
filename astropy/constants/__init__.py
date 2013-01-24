@@ -14,71 +14,43 @@ case might be::
 
 """
 
-from .._constants.definition import ConstantDefinition
+import itertools
+
+# Hack to make circular imports with units work
+try:
+    from .. import units
+    del units
+except ImportError:
+    pass
 
 from .constant import Constant, EMConstant
+from . import si
+from . import cgs
 
-# Define actual Quantity-based Constants. Need to use _c in the loop instead
-# of c to avoid overwriting the speed of light constant.
+for const in itertools.chain(vars(si).values(), vars(cgs).values()):
+    if isinstance(const, Constant) and const.abbrev not in locals():
+        locals()[const.abbrev] = const.__class__(const.abbrev, const.name,
+                                                 const.value, const._unit,
+                                                 const.uncertainty,
+                                                 const.reference)
 
-# Import SI constants
-from .._constants import si as _si
-for nm, val in sorted(vars(_si).iteritems()):
-    if isinstance(val, ConstantDefinition):
-        if val.system:
-            _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
-                            val.reference)
-        else:
-            _c = Constant(val.value, val.units, val.uncertainty, val.name,
-                          val.reference)
-        locals()[nm] = _c
+# update the constants module docstring
+_lines = [
+    'The following constants are available:\n',
+    '========== ============== ================ ========================='
+    '   Name        Value            Unit       Description'
+    '========== ============== ================ ========================='
+]
 
-del _si, nm, val, _c
 
-# Import cgs constants that don't exist in S.I.
-from .._constants import cgs as _cgs
-for nm, val in sorted(vars(_cgs).iteritems()):
-    if isinstance(val, ConstantDefinition):
-        if val.system:
-            # EM constants have _gauss, _esu, etc. appended
-            nm, _ = nm.rsplit('_', 1)
-            _c = EMConstant(val.value, val.units, val.uncertainty, val.name,
-                            val.reference)
-            if nm in locals():
-                _c_si = locals()[nm]
-                setattr(_c_si, val.system, _c)
-            else:
-                locals()[nm] = _c
-        else:
-            _c = Constant(val.value, val.units, val.uncertainty, val.name,
-                          val.reference)
-            if nm in locals():
-                raise ValueError(
-                    "Constant {0} has already been imported".format(nm))
-            locals()[nm] = _c
+#for nm, val in sorted(locals().items()):
+#    if not isinstance(val, Constant):
+#        continue
+#    _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
+#                  nm + '.' + val.system, val.value, val.unit, val.name))
 
-del _cgs, nm, val, _c, _c_si
+#_lines.append(_lines[1])
 
-# update the si cand cgs module doctrings.
-__doc__ += """
-The following constants are available:
+#__doc__ += '\n'.join(_lines)
 
-========== ============== ================ =========================
-   Name        Value            Unit       Description
-========== ============== ================ =========================
-"""
-for nm, val in sorted(locals().items()):
-    if isinstance(val, EMConstant):
-        for system in ['si', 'gauss', 'esu']:
-            val_system = getattr(val, system)
-            __doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm + '.' + system, val_system.value, val_system.unit, val.name)
-    elif isinstance(val, Constant):
-        __doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-            nm, val.value, val.unit, val.name)
-
-__doc__ += """\
-========== ============== ================ =========================
-"""
-
-del nm, val
+del _lines, const

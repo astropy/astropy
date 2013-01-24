@@ -12,17 +12,17 @@ available (with approximate values) are:
 
 # Only constants that cannot be converted directly from S.I. are defined here.
 
-from .definition import ConstantDefinition
+from .constant import EMConstant
 from . import si
 
 # PHYSICAL CONSTANTS
 
 # Electron charge
 
-e_esu = ConstantDefinition(si.e * si.c * 10.,
-                           si.e.uncertainty * si.c * 10.,
-                           si.e.name, si.e.reference, 'Fr', system='esu')
+e_esu = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
+                   'Fr', si.e.uncertainty * si.c.value * 10.0, si.e.reference,
+                   system='esu')
 
-e_gauss = ConstantDefinition(si.e * si.c * 10.,
-                             si.e.uncertainty * si.c * 10.,
-                             si.e.name, si.e.reference, 'statC', system='gauss')
+e_gauss = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
+                     'statC', si.e.uncertainty * si.c.value * 10.0,
+                     si.e.reference, system='gauss')

@@ -10,19 +10,22 @@ code under a BSD license.
 """
 
 from .core import *
+from .quantity import *
+
+from . import si
+from . import cgs
 from .si import *
 from .astrophys import *
 from .cgs import *
 from .imperial import *
-from .equivalencies import *
 from .physical import *
-from .quantity import *
-from . import si
-from . import cgs
+
+from .equivalencies import *
 
 # Create a special singleton for the dimensionless unit
 dimensionless_unscaled = Unit(1)
 
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
-UnitBase._set_namespace(globals())
+UnitBase._set_namespace(locals())
+

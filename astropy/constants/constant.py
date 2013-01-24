@@ -1,8 +1,55 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import functools
+import types
+import warnings
+
+from ..units.core import Unit, UnitsException
 from ..units.quantity import Quantity
+from ..utils import lazyproperty
 
 __all__ = ['Constant']
+
+
+class ConstantMeta(type):
+    def __new__(mcls, name, bases, d):
+        def wrap(meth):
+            @functools.wraps(meth)
+            def wrapper(self, *args, **kwargs):
+                name_lower = self.name.lower()
+                if not self._checked_units:
+                    instances = Constant._registry[name_lower]
+                    for inst in instances.values():
+                        try:
+                            self.unit.to(inst.unit)
+                        except UnitsException:
+                            Constant._has_incompatible_units.add(name_lower)
+                    self._checked_units = True
+
+                if (not self.system and
+                        name_lower in Constant._has_incompatible_units):
+                    systems = sorted(instances)
+                    raise TypeError(
+                        'Constant {0!r} does not have physically compatible '
+                        'units across all systems of units and cannot be '
+                        'combined with other values without specifying a '
+                        'system (eg. {1}.{2})'.format(self.abbrev, self.abbrev,
+                                                      systems[0]))
+
+                return meth(self, *args, **kwargs)
+
+            return wrapper
+
+        # The wrapper applies to so many of the __ methods that it's easier to
+        # just exclude the ones it doesn't apply to
+        exclude = set(['__init__', '__str__', '__repr__'])
+        for attr, value in vars(Quantity).items():
+            if (isinstance(value, types.FunctionType) and
+                    attr.startswith('__') and attr.endswith('__') and
+                    attr not in exclude):
+                d[attr] = wrap(value)
+
+        return super(ConstantMeta, mcls).__new__(mcls, name, bases, d)
 
 
 class Constant(Quantity):
@@ -23,29 +70,89 @@ class Constant(Quantity):
         `astropy.units.UnitBase`.
     """
 
-    def __init__(self, value, unit, uncertainty, name, reference):
-        super(Constant, self).__init__(value, unit)
-        self.uncertainty = uncertainty
-        self.name = name
-        self.reference = reference
+    __metaclass__ = ConstantMeta
+
+    _registry = {}
+    _has_incompatible_units = set()
+
+    def __new__(cls, abbrev, name, value, unit, uncertainty, reference,
+                system=None):
+        name_lower = name.lower()
+        instances = Constant._registry.setdefault(name_lower, {})
+        if system in instances:
+            warnings.warn('Constant {0!r} is already has a definition in the '
+                          '{1!r} system'.format(name, system))
+
+        inst = super(Constant, cls).__new__(cls, abbrev, name, value, unit,
+                                            uncertainty, reference, system)
+
+        for c in instances.values():
+            if system is not None:
+                try:
+                    setattr(c, system, inst)
+                except AttributeError:
+                    pass
+            if c.system is not None:
+                try:
+                    setattr(inst, c.system, c)
+                except AttributeError:
+                    pass
+
+        instances[system] = inst
+
+        return inst
+
+    def __init__(self, abbrev, name, value, unit, uncertainty, reference,
+                 system=None):
+        self._abbrev = abbrev
+        self._name = name
+        self._value = value
+        self._unit = unit
+        self._uncertainty = uncertainty
+        self._reference = reference
+        self._system = system
+
+        self._checked_units = False
 
     def __repr__(self):
-        s = "<Constant: "
-        s += "name='{0}' ".format(self.name)
-        s += "value={0} ".format(self.value)
-        s += "error={0} ".format(self.uncertainty)
-        s += "units='{0}' ".format(self.unit)
-        s += "reference='{0}'".format(self.reference)
-        s += ">"
-        return s
+        return ('<Constant name={0!r} value={1} error={2} units={3!r} '
+                'reference={4!r}>'.format(self.name, self.value,
+                                          self.uncertainty, str(self.unit),
+                                          self.reference))
 
     def __str__(self):
-        s = "  Name   = {0}\n".format(self.name)
-        s += "  Value  = {0}\n".format(self.value)
-        s += "  Error  = {0}\n".format(self.uncertainty)
-        s += "  Units = {0}\n".format(self.unit)
-        s += "  Reference = {0}".format(self.reference)
-        return s
+        return ('  Name   = {0}\n'
+                '  Value  = {1}\n'
+                '  Error  = {2}\n'
+                '  Units  = {3}\n'
+                '  Reference = {4}'.format(self.name, self.value,
+                                           self.uncertainty, self.unit,
+                                           self.reference))
+
+    @property
+    def abbrev(self):
+        return self._abbrev
+
+    @property
+    def name(self):
+        return self._name
+
+    @lazyproperty
+    def unit(self):
+        return Unit(self._unit)
+
+    @property
+    def uncertainty(self):
+        return self._uncertainty
+
+    @property
+    def reference(self):
+        return self._reference
+
+    @property
+    def system(self):
+        return self._system
+
 
 class EMConstant(Constant):
     """An electromagnetic constant"""

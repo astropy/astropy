@@ -201,7 +201,7 @@ def test_register():
         assert hasattr(u, 'foo')
     finally:
         if hasattr(u, 'foo'):
-            del u.UnitBase._registry[u.UnitBase._registry.index(u.foo)]
+            del u.UnitBase._registry['foo']
             del u.foo
 
 
