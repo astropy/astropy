@@ -104,6 +104,7 @@ class ConfigurationItem(object):
                       module=None):
         from warnings import warn
         from ..utils import find_current_module
+        from ..utils import isiterable
 
         if module is None:
             module = find_current_module(2)
@@ -120,7 +121,8 @@ class ConfigurationItem(object):
 
         #now determine cfgtype if it is not given
         if cfgtype is None:
-            if isinstance(defaultvalue, list):
+            if (isiterable(defaultvalue) and not
+                isinstance(defaultvalue, basestring)):
                 #it is an options list
                 dvstr = [str(v) for v in defaultvalue]
                 cfgtype = 'option(' + ', '.join(dvstr) + ')'
