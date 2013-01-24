@@ -9,24 +9,25 @@ from __future__ import absolute_import, print_function
 import errno
 import imp
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import sys
-import re
-import shlex
+import textwrap
 
 from distutils import log
 from distutils.dist import Distribution
 from distutils.errors import DistutilsError, DistutilsFileError
 from distutils.core import Extension
 from distutils.core import Command
-from distutils.command.build import build as DistutilsBuild
-from setuptools.command.install import install as SetuptoolsInstall
+from distutils.command.sdist import sdist as DistutilsSdist
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
 
 from setuptools.command.register import register as SetuptoolsRegister
 
 from .tests.helper import astropy_test
+from .utils import silence
 
 
 try:
@@ -44,497 +45,127 @@ except ImportError:
     HAVE_SPHINX = False
 
 
-class AstropyBuild(DistutilsBuild):
+_adjusted_compiler = False
+def adjust_compiler(package):
     """
-    A custom 'build' command that allows for adding extra build
-    options.
-    """
-    user_options = DistutilsBuild.user_options[:]
-    boolean_options = DistutilsBuild.boolean_options[:]
-    custom_options = []
+    This function detects broken compilers and switches to another.  If
+    the environment variable CC is explicitly set, or a compiler is
+    specified on the commandline, no override is performed -- the purpose
+    here is to only override a default compiler.
 
-    def initialize_options(self):
-        DistutilsBuild.initialize_options(self)
-        # Create member variables for all of the custom options that
-        # were added.
-        for option in self.custom_options:
-            setattr(self, option.replace('-', '_'), None)
+    The specific compilers with problems are:
 
-    @classmethod
-    def add_build_option(cls, name, doc, is_bool=False):
-        """
-        Add a build option.
+        * The default compiler in XCode-4.2, llvm-gcc-4.2,
+          segfaults when compiling wcslib.
 
-        Parameters
-        ----------
-        name : str
-            The name of the build option
-
-        doc : str
-            A short description of the option, for the `--help` message.
-
-        is_bool : bool, optional
-            When `True`, the option is a boolean option and doesn't
-            require an associated value.
-        """
-        if name in cls.custom_options:
-            return
-
-        if is_bool:
-            cls.boolean_options.append(name)
-        else:
-            name = name + '='
-        cls.user_options.append((name, None, doc))
-        cls.custom_options.append(name)
-
-    def run(self):
-        """
-        Override run to generate the default configuration file after build is
-        done
-        """
-        from subprocess import Popen, PIPE
-        from textwrap import dedent
-
-        DistutilsBuild.run(self)
-
-        # Now generate the default configuration file in a subprocess.  We have
-        # to use a subprocess because already some imports have been done
-
-        # This file gets placed in <package>/config/<packagenm>.cfg if 'config'
-        # exists, otherwise it gets put in <package>/<packagenm>.cfg.
-
-        libdir = os.path.abspath(self.build_lib)
-
-        subproccode = dedent("""
-        from __future__ import print_function
-        import os
-
-        os.environ['XDG_CONFIG_HOME'] = '{libdir}'
-        os.environ['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
-
-        from astropy.config.configuration import generate_all_config_items
-
-        genfn = generate_all_config_items('{pkgnm}', True)
-        print(genfn)
-        """).format(pkgnm=self.distribution.packages[0], libdir=libdir)
-        proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=libdir)
-        stdout, stderr = proc.communicate(subproccode.encode('ascii'))
-
-        if proc.returncode == 0:
-            genfn = stdout.strip().decode('UTF-8').split('\n')[-1]
-
-            configpath = os.path.join(os.path.split(genfn)[0], 'config')
-            if os.path.isdir(configpath):
-                newfn = os.path.join(configpath, os.path.split(genfn)[1])
-                shutil.move(genfn, newfn)
-        else:
-            msg = ('Generation of default configuration item failed! Stdout '
-                   'and stderr are shown below.\n'
-                   'Stdout:\n{stdout}\nStderr:\n{stderr}')
-            log.error(msg.format(stdout=stdout.decode('UTF-8'),
-                                 stderr=stderr.decode('UTF-8')))
-
-
-class AstropyInstall(SetuptoolsInstall):
-    """
-    A custom 'install' command that allows for adding extra install
-    options.
-    """
-    user_options = SetuptoolsInstall.user_options[:]
-    boolean_options = SetuptoolsInstall.boolean_options[:]
-    custom_options = []
-
-    def initialize_options(self):
-        SetuptoolsInstall.initialize_options(self)
-        # Create member variables for all of the custom options that
-        # were added.
-        for option in self.custom_options:
-            setattr(self, option.replace('-', '_'), None)
-
-    @classmethod
-    def add_install_option(cls, name, doc, is_bool=False):
-        """
-        Add a install option.
-
-        Parameters
-        ----------
-        name : str
-            The name of the install option
-
-        doc : str
-            A short description of the option, for the `--help` message.
-
-        is_bool : bool, optional
-            When `True`, the option is a boolean option and doesn't
-            require an associated value.
-        """
-        if name in cls.custom_options:
-            return
-
-        if is_bool:
-            cls.boolean_options.append(name)
-        else:
-            name = name + '='
-        cls.user_options.append((name, None, doc))
-        cls.custom_options.append(name)
-
-
-class AstropyRegister(SetuptoolsRegister):
-    """Extends the built in 'register' command to support a ``--hidden`` option
-    to make the registered version hidden on PyPI by default.
-
-    The result of this is that when a version is registered as "hidden" it can
-    still be downloaded from PyPI, but it does not show up in the list of
-    actively supported versions under http://pypi.python.org/pypi/astropy, and
-    is not set as the most recent version.
-
-    Although this can always be set through the web interface it may be more
-    convenient to be able to specify via the 'register' command.  Hidden may
-    also be considered a safer default when running the 'register' command,
-    though this command uses distutils' normal behavior if the ``--hidden``
-    option is omitted.
+    The set of broken compilers can be updated by changing the
+    compiler_mapping variable.  It is a list of 2-tuples where the
+    first in the pair is a regular expression matching the version
+    of the broken compiler, and the second is the compiler to change
+    to.
     """
 
-    user_options = SetuptoolsRegister.user_options + [
-        ('hidden', None, 'mark this release as hidden on PyPI by default')
-    ]
-    boolean_options = SetuptoolsRegister.boolean_options + ['hidden']
+    from distutils import ccompiler, sysconfig
+    import re
 
-    def initialize_options(self):
-        SetuptoolsRegister.initialize_options(self)
-        self.hidden = False
+    compiler_mapping = [
+        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
+        ]
 
-    def build_post_data(self, action):
-        data = SetuptoolsRegister.build_post_data(self, action)
-        if action == 'submit' and self.hidden:
-            data['_pypi_hidden'] = '1'
-        return data
+    global _adjusted_compiler
+    if _adjusted_compiler:
+        return
 
-    def _set_config(self):
-        # The original register command is buggy--if you use .pypirc with a
-        # server-login section *at all* the repository you specify with the -r
-        # option will be overwritten with either the repository in .pypirc or
-        # with the default,
-        # If you do not have a .pypirc using the -r option will just crash.
-        # Way to go distutils
+    # Whatever the result of this function is, it only needs to be run once
+    _adjusted_compiler = True
 
-        # If we don't set self.repository back to a default value _set_config
-        # can crash if there was a user-supplied value for this option; don't
-        # worry, we'll get the real value back afterwards
-        self.repository = 'pypi'
-        SetuptoolsRegister._set_config(self)
-        options = self.distribution.get_option_dict('register')
-        if 'repository' in options:
-            source, value = options['repository']
-            # Really anything that came from setup.cfg or the command line
-            # should override whatever was in .pypirc
-            self.repository = value
+    if 'CC' in os.environ:
 
-# Need to set the name here so that the commandline options
-# are presented as being related to the "build" command, for example; this
-# only affects the display of the help text, which does not obtain the the
-# command name in the correct way.
-AstropyBuild.__name__ = 'build'
-AstropyInstall.__name__ = 'install'
-AstropyRegister.__name__ = 'register'
+        # Check that CC is not set to llvm-gcc-4.2
+        c_compiler = os.environ['CC']
+
+        version = get_compiler_version(c_compiler)
+
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                msg = textwrap.dedent(
+                    """Compiler specified by CC environment variable
+                    ({compiler:s}:{version:s}) will fail to compile {pkg:s}.
+                    Please set CC={fixed:s} and try again.
+                    You can do this, for example, by running:
+
+                        CC={fixed:s} python setup.py <command>
+
+                    where <command> is the command you ran.
+                    """.format(compiler=c_compiler, version=version,
+                               pkg=package, fixed=fixed))
+                log.warn(msg)
+                sys.exit(1)
+
+    if get_distutils_build_option('compiler'):
+        return
+
+    compiler_type = ccompiler.get_default_compiler()
+
+    if compiler_type == 'unix':
+
+        # We have to get the compiler this way, as this is the one that is
+        # used if os.environ['CC'] is not set. It is actually read in from
+        # the Python Makefile. Note that this is not necessarily the same
+        # compiler as returned by ccompiler.new_compiler()
+        c_compiler = sysconfig.get_config_var('CC')
+
+        version = get_compiler_version(c_compiler)
+
+        for broken, fixed in compiler_mapping:
+            if re.match(broken, version):
+                os.environ['CC'] = fixed
+                break
 
 
-_should_build_with_cython = None
-def should_build_with_cython(release=None):
-    """Returns `True` if Cython should be used to build extension modules from
-    pyx files.  If the ``release`` parameter is not specified an attempt is
-    made to determine the release flag from `astropy.version`.
+def get_compiler_version(compiler):
+    import subprocess
+
+    process = subprocess.Popen(
+    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
+
+    output = process.communicate()[0].strip()
+    version = output.split()[0]
+
+    return version
+
+
+def get_dummy_distribution():
+    """Returns a distutils Distribution object used to instrument the setup
+    environment before calling the actual setup() function.
     """
 
-    global _should_build_with_cython
-    if _should_build_with_cython is not None:
-        return _should_build_with_cython
+    global _registered_commands
 
-    if release is None:
+    if _registered_commands is None:
+        raise RuntimeError('astropy.setup_helpers.register_commands() must be '
+                           'called before using '
+                           'astropy.setup_helpers.get_dummy_distribution()')
+
+    # Pre-parse the Distutils command-line options and config files to if
+    # the option is set.
+    dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
+                         'script_args': sys.argv[1:]})
+    dist.cmdclass.update(_registered_commands)
+
+    with silence():
         try:
-            from astropy.version import release
-        except ImportError:
+            dist.parse_config_files()
+            dist.parse_command_line()
+        except (DistutilsError, AttributeError, SystemExit):
+            # Let distutils handle DistutilsErrors itself AttributeErrors can
+            # get raise for ./setup.py --help SystemExit can be raised if a
+            # display option was used, for example
             pass
 
-    try:
-        from astropy.version import cython_version
-    except ImportError:
-        cython_version = 'unknown'
-
-    # Only build with Cython if, of course, Cython is installed, we're in a
-    # development version (i.e. not release) or the Cython-generated source
-    # files haven't been created yet (cython_version == 'unknown'). The latter
-    # case can happen even when release is True if checking out a release tag
-    # from the repository
-    use_cython = (HAVE_CYTHON and (not release or cython_version == 'unknown'))
-
-    if use_cython and cython_version != Cython.__version__:
-        # Make sure that if building with a different Cython version that all
-        # generated C files get regenerated with the new Cython
-        sys.argv.extend(['build_ext', '--force'])
-
-        # Regenerate the appropriate cython_version.py
-        cython_py = os.path.join(os.path.dirname(__file__),
-                                 'cython_version.py')
-        with open(cython_py, 'w') as f:
-            f.write('# Generated file; do not modify\n')
-            f.write('cython_version = {0!r}\n'.format(Cython.__version__))
-
-    # Cache result so that repeated calls don't repeat any possible side
-    # effects
-    _should_build_with_cython = use_cython
-
-    return use_cython
+    return dist
 
 
-def wrap_build_ext(basecls=SetuptoolsBuildExt):
-    """
-    Creates a custom 'build_ext' command that allows for manipulating some of
-    the C extension options at build time.  We use a function to build the
-    class since the base class for build_ext may be different depending on
-    certain build-time parameters (for example, we may use Cython's build_ext
-    instead of the default version in distutils).
-
-    Uses the default distutils.command.build_ext by default.
-    """
-
-    attrs = dict(basecls.__dict__)
-    orig_run = getattr(basecls, 'run', None)
-
-    def run(self):
-        # For extensions that require 'numpy' in their include dirs, replace
-        # 'numpy' with the actual paths
-        np_include = get_numpy_include_path()
-        for extension in self.extensions:
-            if 'numpy' in extension.include_dirs:
-                idx = extension.include_dirs.index('numpy')
-                extension.include_dirs.insert(idx, np_include)
-                extension.include_dirs.remove('numpy')
-
-            # Replace .pyx with C-equivalents, unless c files are missing
-            for jdx, src in enumerate(extension.sources):
-                if src.endswith('.pyx'):
-                    pyxfn = src
-                    cfn = src[:-4] + '.c'
-                elif src.endswith('.c'):
-                    pyxfn = src[:-2] + '.pyx'
-                    cfn = src
-
-                if os.path.isfile(pyxfn):
-                    if should_build_with_cython():
-                        extension.sources[jdx] = pyxfn
-                    else:
-                        if os.path.isfile(cfn):
-                            extension.sources[jdx] = cfn
-                        else:
-                            msg = (
-                                'Could not find C file {0} for Cython file '
-                                '{1} when building extension {2}. '
-                                'Cython must be installed to build from a '
-                                'git checkout'.format(cfn, pyxfn,
-                                                      extension.name))
-                            raise IOError(errno.ENOENT, msg, cfn)
-
-        if orig_run is not None:
-            # This should always be the case for a correctly implemented
-            # distutils command.
-            orig_run(self)
-
-    attrs['run'] = run
-
-    return type('build_ext', (basecls, object), attrs)
-
-
-for option in [
-        ('enable-legacy',
-         "Install legacy shims", True),
-        ('use-system-libraries',
-         "Use system libraries whenever possible", True)]:
-    AstropyBuild.add_build_option(*option)
-    AstropyInstall.add_install_option(*option)
-
-
-if HAVE_SPHINX:
-    class AstropyBuildSphinx(SphinxBuildDoc):
-        """ A version of the ``build_sphinx`` command that uses the
-        version of Astropy that is built by the setup ``build`` command,
-        rather than whatever is installed on the system - to build docs
-        against the installed version, run ``make html`` in the
-        ``astropy/docs`` directory.
-
-        This also automatically creates the docs/_static directories -
-        this is needed because github won't create the _static dir
-        because it has no tracked files.
-        """
-
-        description = 'Build Sphinx documentation for Astropy environment'
-        user_options = SphinxBuildDoc.user_options[:]
-        user_options.append(('clean-docs', 'l', 'Completely clean previously '
-                                                'builds, including auotmodapi-'
-                                                'generated files before '
-                                                'building new ones'))
-        user_options.append(('no-intersphinx', 'n', 'Skip intersphinx, even if '
-                                                    'conf.py says to use it'))
-        user_options.append(('open-docs-in-browser', 'o', 'Open the docs in a '
-                                'browser (using the webbrowser module) if the '
-                                'build finishes successfully.'))
-
-        boolean_options = SphinxBuildDoc.boolean_options[:]
-        boolean_options.append('clean-docs')
-        boolean_options.append('no-intersphinx')
-        boolean_options.append('open-docs-in-browser')
-
-        _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
-
-        def initialize_options(self):
-            SphinxBuildDoc.initialize_options(self)
-            self.clean_docs = False
-            self.no_intersphinx = False
-            self.open_docs_in_browser = False
-
-        def finalize_options(self):
-            from os.path import isdir
-            from shutil import rmtree
-
-            #Clear out previous sphinx builds, if requested
-            if self.clean_docs:
-                dirstorm = ['docs/_generated']
-                if self.build_dir is None:
-                    dirstorm.append('docs/_build')
-                else:
-                    dirstorm.append(self.build_dir)
-
-                for d in dirstorm:
-                    if isdir(d):
-                        log.info('Cleaning directory ' + d)
-                        rmtree(d)
-                    else:
-                        log.info('Not cleaning directory ' + d + ' because '
-                                 'not present or not a directory')
-
-            SphinxBuildDoc.finalize_options(self)
-
-        def run(self):
-            from os.path import split, join, abspath
-            from distutils.cmd import DistutilsOptionError
-            from subprocess import Popen, PIPE
-            from textwrap import dedent
-            from inspect import getsourcelines
-            from urllib import pathname2url
-            import webbrowser
-
-            # If possible, create the _static dir
-            if self.build_dir is not None:
-                # the _static dir should be in the same place as the _build dir
-                # for Astropy
-                basedir, subdir = split(self.build_dir)
-                if subdir == '':  # the path has a trailing /...
-                    basedir, subdir = split(basedir)
-                staticdir = join(basedir, '_static')
-                if os.path.isfile(staticdir):
-                    raise DistutilsOptionError(
-                        'Attempted to build_sphinx in a location where' +
-                        staticdir + 'is a file.  Must be a directory.')
-                self.mkpath(staticdir)
-
-            #Now make sure Astropy is built and determine where it was built
-            build_cmd = self.reinitialize_command('build')
-            build_cmd.inplace = 0
-            self.run_command('build')
-            build_cmd = self.get_finalized_command('build')
-            build_cmd_path = os.path.abspath(build_cmd.build_lib)
-
-            #Now generate the source for and spawn a new process that runs the
-            #command.  This is needed to get the correct imports for the built
-            #version
-
-            runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
-            subproccode = dedent("""
-            from sphinx.setup_command import *
-
-            os.chdir('{srcdir}')
-            sys.path.insert(0,'{build_cmd_path}')
-
-            """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
-            #runlines[1:] removes 'def run(self)' on the first line
-            subproccode += dedent(''.join(runlines[1:]))
-
-            # All "self.foo" in the subprocess code needs to be replaced by the
-            # values taken from the current self in *this* process
-            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)
-            for i in range(1, len(subproccode), 2):
-                iden = subproccode[i]
-                val = getattr(self, iden)
-                if iden.endswith('_dir'):
-                    #Directories should be absolute, because the `chdir` call
-                    #in the new process moves to a different directory
-                    subproccode[i] = repr(os.path.abspath(val))
-                else:
-                    subproccode[i] = repr(val)
-            subproccode = ''.join(subproccode)
-
-            if self.no_intersphinx:
-                #the confoverrides variable in sphinx.setup_command.BuildDoc can
-                #be used to override the conf.py ... but this could well break
-                #if future versions of sphinx change the internals of BuildDoc,
-                #so remain vigilant!
-                subproccode = subproccode.replace('confoverrides = {}',
-                    'confoverrides = {\'intersphinx_mapping\':{}}')
-
-            log.debug('Starting subprocess of {0} with python code:\n{1}\n'
-                      '[CODE END])'.format(sys.executable, subproccode))
-
-            proc = Popen([sys.executable], stdin=PIPE)
-            proc.communicate(subproccode)
-            if proc.returncode == 0:
-                if self.open_docs_in_browser:
-                    if self.builder == 'html':
-                        absdir = abspath(self.builder_target_dir)
-                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
-                        webbrowser.open(fileurl)
-                    else:
-                        log.warn('open-docs-in-browser option was given, but '
-                                 'the builder is not html! Ignogring.')
-            else:
-                log.warn('Sphinx Documentation subprocess failed with return '
-                         'code ' + str(proc.returncode))
-
-    AstropyBuildSphinx.__name__ = 'build_sphinx'
-
-
-def get_distutils_display_options():
-    """ Returns a set of all the distutils display options in their long and
-    short forms.  These are the setup.py arguments such as --name or --version
-    which print the project's metadata and then exit.
-
-    Returns
-    -------
-    opts : set
-        The long and short form display option arguments, including the - or --
-    """
-
-    short_display_opts = set('-' + o[1] for o in Distribution.display_options
-                             if o[1])
-    long_display_opts = set('--' + o[0] for o in Distribution.display_options)
-
-    # Include -h and --help which are not explicitly listed in
-    # Distribution.display_options (as they are handled by optparse)
-    short_display_opts.add('-h')
-    long_display_opts.add('--help')
-
-    return short_display_opts.union(long_display_opts)
-
-
-def is_distutils_display_option():
-    """ Returns True if sys.argv contains any of the distutils display options
-    such as --version or --name.
-    """
-
-    display_options = get_distutils_display_options()
-    return bool(set(sys.argv[1:]).intersection(display_options))
-
-
-cmdclassd = {}
 def get_distutils_option(option, commands):
     """ Returns the value of the given distutils option.
 
@@ -553,34 +184,11 @@ def get_distutils_option(option, commands):
         returns None.
     """
 
-    display_opts = get_distutils_display_options()
-    args = [arg for arg in sys.argv[1:] if arg not in display_opts]
-
-    # Pre-parse the Distutils command-line options and config files to
-    # if the option is set.
-    dist = Distribution({'script_name': os.path.basename(sys.argv[0]),
-                         'script_args': args})
-    dist.cmdclass.update(cmdclassd)
-
-    try:
-        dist.parse_config_files()
-        dist.parse_command_line()
-    except DistutilsError:
-        # Let distutils handle this itself
-        return None
-    except AttributeError:
-        # This seems to get thrown for ./setup.py --help
-        return None
+    dist = get_dummy_distribution()
 
     for cmd in commands:
-        if cmd in dist.commands:
-            break
-    else:
-        return None
-
-    for cmd in commands:
-        cmd_opts = dist.get_option_dict(cmd)
-        if option in cmd_opts:
+        cmd_opts = dist.command_options.get(cmd)
+        if cmd_opts is not None and option in cmd_opts:
             return cmd_opts[option][1]
     else:
         return None
@@ -669,18 +277,517 @@ def get_debug_option():
 
     """
 
-    debug = bool(get_distutils_build_option('debug'))
-
     try:
-        from astropy.version import debug as current_debug
+        from .version import debug as current_debug
     except ImportError:
         current_debug = None
 
+    # Only modify the debug flag if one of the build commands was explicitly
+    # run (i.e. not as a sub-command of something else)
+    dist = get_dummy_distribution()
+    if any(cmd in dist.commands for cmd in ['build', 'build_ext']):
+        debug = bool(get_distutils_build_option('debug'))
+    else:
+        debug = bool(current_debug)
+
     if current_debug is not None and current_debug != debug:
-        # Force rebuild of extension modules
-        sys.argv.extend(['build', '--force'])
+        build_ext_cmd = dist.get_command_class('build_ext')
+        build_ext_cmd.force_rebuild = True
 
     return debug
+
+
+_registered_commands = None
+def register_commands(package, version, release):
+    global _registered_commands
+
+    if _registered_commands is not None:
+        return _registered_commands
+
+    _registered_commands = {
+        'test': generate_test_command(package),
+
+         # Use distutils' sdist because it respects package_data.
+         # setuptools/distributes sdist requires duplication of information in
+         # MANIFEST.in
+         'sdist': DistutilsSdist,
+
+         # The exact form of the build_ext command depends on whether or not
+         # we're building a release version
+         'build_ext': generate_build_ext_command(release),
+
+         'register': AstropyRegister
+    }
+
+    try:
+        import bdist_mpkg
+    except ImportError:
+        pass
+    else:
+        # Use a custom command to build a dmg (on MacOS X)
+        _registered_commands['bdist_dmg'] = bdist_dmg
+
+
+    if HAVE_SPHINX:
+        _registered_commands['build_sphinx'] = AstropyBuildSphinx
+
+    # Need to override the __name__ here so that the commandline options are
+    # presented as being related to the "build" command, for example; normally
+    # this wouldn't be necessary since commands also have a command_name
+    # attribute, but there is a bug in distutils' help display code that it
+    # uses __name__ instead of command_name. Yay distutils!
+    for name, cls in _registered_commands.items():
+        cls.__name__ = name
+
+    # Add a few custom options; more of these can be added by specific packages
+    # later
+    for option in [
+            ('enable-legacy',
+             "Install legacy shims", True),
+            ('use-system-libraries',
+             "Use system libraries whenever possible", True)]:
+        add_command_option('build', *option)
+        add_command_option('install', *option)
+
+    return _registered_commands
+
+
+def generate_test_command(package_name):
+    return type(package_name + '_test_command', (astropy_test,),
+                {'package_name': package_name})
+
+
+def generate_build_ext_command(release):
+    """
+    Creates a custom 'build_ext' command that allows for manipulating some of
+    the C extension options at build time.  We use a function to build the
+    class since the base class for build_ext may be different depending on
+    certain build-time parameters (for example, we may use Cython's build_ext
+    instead of the default version in distutils).
+
+    Uses the default distutils.command.build_ext by default.
+    """
+
+    uses_cython = should_build_with_cython(release)
+
+    if uses_cython:
+        from Cython.Distutils import build_ext as basecls
+    else:
+        basecls = SetuptoolsBuildExt
+
+    attrs = dict(basecls.__dict__)
+    orig_run = getattr(basecls, 'run', None)
+    orig_finalize = getattr(basecls, 'finalize_options', None)
+
+    def finalize_options(self):
+        if orig_finalize is not None:
+            orig_finalize(self)
+
+        # Generate
+        if self.uses_cython:
+            try:
+                from Cython import __version__ as cython_version
+            except ImportError:
+                # This shouldn't happen if we made it this far
+                cython_version = None
+
+            if (cython_version is not None and
+                    cython_version != self.uses_cython):
+                self.force_rebuild = True
+                # Update the used cython version
+                self.uses_cython = cython_version
+
+        # Regardless of the value of the '--force' option, force a rebuild if
+        # the debug flag changed from the last build
+        if self.force_rebuild:
+            self.force = True
+
+    def run(self):
+        # For extensions that require 'numpy' in their include dirs, replace
+        # 'numpy' with the actual paths
+        np_include = get_numpy_include_path()
+        for extension in self.extensions:
+            if 'numpy' in extension.include_dirs:
+                idx = extension.include_dirs.index('numpy')
+                extension.include_dirs.insert(idx, np_include)
+                extension.include_dirs.remove('numpy')
+
+            # Replace .pyx with C-equivalents, unless c files are missing
+            for jdx, src in enumerate(extension.sources):
+                if src.endswith('.pyx'):
+                    pyxfn = src
+                    cfn = src[:-4] + '.c'
+                elif src.endswith('.c'):
+                    pyxfn = src[:-2] + '.pyx'
+                    cfn = src
+
+                if os.path.isfile(pyxfn):
+                    if self.uses_cython:
+                        extension.sources[jdx] = pyxfn
+                    else:
+                        if os.path.isfile(cfn):
+                            extension.sources[jdx] = cfn
+                        else:
+                            msg = (
+                                'Could not find C file {0} for Cython file '
+                                '{1} when building extension {2}. '
+                                'Cython must be installed to build from a '
+                                'git checkout'.format(cfn, pyxfn,
+                                                      extension.name))
+                            raise IOError(errno.ENOENT, msg, cfn)
+
+        # Update cython_version.py if building with Cython
+        try:
+            from .version import cython_version
+        except ImportError:
+            cython_version = 'unknown'
+        if self.uses_cython and self.uses_cython != cython_version:
+            astropy_dir = os.path.relpath(os.path.dirname(__file__))
+            cython_py = os.path.join(astropy_dir, 'cython_version.py')
+            with open(cython_py, 'w') as f:
+                f.write('# Generated file; do not modify\n')
+                f.write('cython_version = {0!r}\n'.format(self.uses_cython))
+
+            self.copy_file(cython_py, os.path.join(self.build_lib, cython_py),
+                           preserve_mode=False)
+
+        if orig_run is not None:
+            # This should always be the case for a correctly implemented
+            # distutils command.
+            orig_run(self)
+
+        # Finally, generate the default astropy.cfg; this can only be done
+        # after extension modules are built as some extension modules include
+        # config items
+        default_cfg = generate_default_config(os.path.abspath(self.build_lib),
+                                              self.distribution.packages[0])
+        if default_cfg:
+            default_cfg = os.path.relpath(default_cfg)
+            self.copy_file(default_cfg,
+                           os.path.join(self.build_lib, default_cfg),
+                           preserve_mode=False)
+
+    attrs['run'] = run
+    attrs['finalize_options'] = finalize_options
+    attrs['force_rebuild'] = False
+    attrs['uses_cython'] = uses_cython
+
+    return type('build_ext', (basecls, object), attrs)
+
+
+def generate_default_config(build_lib, package):
+    pkg_dir = os.path.relpath(os.path.dirname(__file__))
+    config_path = os.path.join(pkg_dir, 'config')
+    filename = os.path.join(config_path, package + '.cfg')
+
+    if os.path.exists(filename):
+        log.info('regenerating default {0}.cfg file'.format(package))
+    else:
+        log.info('generating default {0}.cfg file'.format(package))
+
+    env = {'ASTROPY_SKIP_CONFIG_UPDATE': 'True'}
+
+    subproccode = (
+        'from astropy.config.configuration import generate_all_config_items;'
+        'generate_all_config_items({pkgnm!r}, True, filename={filenm!r})')
+    subproccode = subproccode.format(pkgnm=package,
+                                     filenm=os.path.abspath(filename))
+
+    # Note that cwd=build_lib--we're importing astropy from the build/ dir
+    # but using the astropy/ source dir as the config directory
+    proc = subprocess.Popen([sys.executable, '-c', subproccode],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             cwd=build_lib, env=env)
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode == 0 and os.path.exists(filename):
+        return filename
+    else:
+        msg = ('Generation of default configuration item failed! Stdout '
+               'and stderr are shown below.\n'
+               'Stdout:\n{stdout}\nStderr:\n{stderr}')
+        log.error(msg.format(stdout=stdout.decode('UTF-8'),
+                             stderr=stderr.decode('UTF-8')))
+
+
+def add_command_option(command, name, doc, is_bool=False):
+    """
+    Add a custom option to a setup command.
+
+    Issues a warning if the option already exists on that command.
+
+    Parameters
+    ----------
+    command : str
+        The name of the command as given on the command line
+
+    name : str
+        The name of the build option
+
+    doc : str
+        A short description of the option, for the `--help` message
+
+    is_bool : bool, optional
+        When `True`, the option is a boolean option and doesn't
+        require an associated value.
+    """
+
+    dist = get_dummy_distribution()
+    cmdcls = dist.get_command_class(command)
+
+    attr = name.replace('-', '_')
+
+    if hasattr(cmdcls, attr):
+        raise RuntimeError(
+            '{0!r} already has a {1!r} class attribute, barring {2!r} from '
+            'being usable as a custom option name.'.format(cmdcls, attr, name))
+
+    for idx, cmd in enumerate(cmdcls.user_options):
+        if cmd[0] == name:
+            log.warning('Overriding existing {0!r} option '
+                        '{1!r}'.format(command, name))
+            del cmdcls.user_options[idx]
+            if name in cmdcls.boolean_options:
+                cmdcls.boolean_options.remove(name)
+            break
+
+    cmdcls.user_options.append((name, None, doc))
+
+    if is_bool:
+        cmdcls.boolean_options.append(name)
+
+    # Distutils' command parsing requires that a command object have an
+    # attribute with the same name as the option (with '-' replaced with '_')
+    # in order for that option to be recognized as valid
+    setattr(cmdcls, attr, None)
+
+
+class AstropyRegister(SetuptoolsRegister):
+    """Extends the built in 'register' command to support a ``--hidden`` option
+    to make the registered version hidden on PyPI by default.
+
+    The result of this is that when a version is registered as "hidden" it can
+    still be downloaded from PyPI, but it does not show up in the list of
+    actively supported versions under http://pypi.python.org/pypi/astropy, and
+    is not set as the most recent version.
+
+    Although this can always be set through the web interface it may be more
+    convenient to be able to specify via the 'register' command.  Hidden may
+    also be considered a safer default when running the 'register' command,
+    though this command uses distutils' normal behavior if the ``--hidden``
+    option is omitted.
+    """
+
+    user_options = SetuptoolsRegister.user_options + [
+        ('hidden', None, 'mark this release as hidden on PyPI by default')
+    ]
+    boolean_options = SetuptoolsRegister.boolean_options + ['hidden']
+
+    def initialize_options(self):
+        SetuptoolsRegister.initialize_options(self)
+        self.hidden = False
+
+    def build_post_data(self, action):
+        data = SetuptoolsRegister.build_post_data(self, action)
+        if action == 'submit' and self.hidden:
+            data['_pypi_hidden'] = '1'
+        return data
+
+    def _set_config(self):
+        # The original register command is buggy--if you use .pypirc with a
+        # server-login section *at all* the repository you specify with the -r
+        # option will be overwritten with either the repository in .pypirc or
+        # with the default,
+        # If you do not have a .pypirc using the -r option will just crash.
+        # Way to go distutils
+
+        # If we don't set self.repository back to a default value _set_config
+        # can crash if there was a user-supplied value for this option; don't
+        # worry, we'll get the real value back afterwards
+        self.repository = 'pypi'
+        SetuptoolsRegister._set_config(self)
+        options = self.distribution.get_option_dict('register')
+        if 'repository' in options:
+            source, value = options['repository']
+            # Really anything that came from setup.cfg or the command line
+            # should override whatever was in .pypirc
+            self.repository = value
+
+
+if HAVE_SPHINX:
+    class AstropyBuildSphinx(SphinxBuildDoc):
+        """ A version of the ``build_sphinx`` command that uses the
+        version of Astropy that is built by the setup ``build`` command,
+        rather than whatever is installed on the system - to build docs
+        against the installed version, run ``make html`` in the
+        ``astropy/docs`` directory.
+
+        This also automatically creates the docs/_static directories -
+        this is needed because github won't create the _static dir
+        because it has no tracked files.
+        """
+
+        description = 'Build Sphinx documentation for Astropy environment'
+        user_options = SphinxBuildDoc.user_options[:]
+        user_options.append(('clean-docs', 'l',
+                             'Completely clean previous builds, including '
+                             'automodapi-generated files before building new '
+                             'ones'))
+        user_options.append(('no-intersphinx', 'n',
+                             'Skip intersphinx, even if conf.py says to use '
+                             'it'))
+        user_options.append(('open-docs-in-browser', 'o',
+                             'Open the docs in a browser (using the '
+                             'webbrowser module) if the build finishes '
+                             'successfully.'))
+
+        boolean_options = SphinxBuildDoc.boolean_options[:]
+        boolean_options.append('clean-docs')
+        boolean_options.append('no-intersphinx')
+        boolean_options.append('open-docs-in-browser')
+
+        _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
+
+        def initialize_options(self):
+            SphinxBuildDoc.initialize_options(self)
+            self.clean_docs = False
+            self.no_intersphinx = False
+            self.open_docs_in_browser = False
+
+        def finalize_options(self):
+            #Clear out previous sphinx builds, if requested
+            if self.clean_docs:
+                dirstorm = ['docs/_generated']
+                if self.build_dir is None:
+                    dirstorm.append('docs/_build')
+                else:
+                    dirstorm.append(self.build_dir)
+
+                for d in dirstorm:
+                    if os.path.isdir(d):
+                        log.info('Cleaning directory ' + d)
+                        shutil.rmtree(d)
+                    else:
+                        log.info('Not cleaning directory ' + d + ' because '
+                                 'not present or not a directory')
+
+            SphinxBuildDoc.finalize_options(self)
+
+        def run(self):
+            from os.path import split, join, abspath
+            from distutils.cmd import DistutilsOptionError
+            from subprocess import Popen, PIPE
+            from inspect import getsourcelines
+            from urllib import pathname2url
+            import webbrowser
+
+            # If possible, create the _static dir
+            if self.build_dir is not None:
+                # the _static dir should be in the same place as the _build dir
+                # for Astropy
+                basedir, subdir = split(self.build_dir)
+                if subdir == '':  # the path has a trailing /...
+                    basedir, subdir = split(basedir)
+                staticdir = join(basedir, '_static')
+                if os.path.isfile(staticdir):
+                    raise DistutilsOptionError(
+                        'Attempted to build_sphinx in a location where' +
+                        staticdir + 'is a file.  Must be a directory.')
+                self.mkpath(staticdir)
+
+            #Now make sure Astropy is built and determine where it was built
+            build_cmd = self.reinitialize_command('build')
+            build_cmd.inplace = 0
+            self.run_command('build')
+            build_cmd = self.get_finalized_command('build')
+            build_cmd_path = os.path.abspath(build_cmd.build_lib)
+
+            #Now generate the source for and spawn a new process that runs the
+            #command.  This is needed to get the correct imports for the built
+            #version
+
+            runlines, runlineno = getsourcelines(SphinxBuildDoc.run)
+            subproccode = textwrap.dedent("""
+            from sphinx.setup_command import *
+
+            os.chdir('{srcdir}')
+            sys.path.insert(0,'{build_cmd_path}')
+
+            """).format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)
+            #runlines[1:] removes 'def run(self)' on the first line
+            subproccode += textwrap.dedent(''.join(runlines[1:]))
+
+            # All "self.foo" in the subprocess code needs to be replaced by the
+            # values taken from the current self in *this* process
+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)
+            for i in range(1, len(subproccode), 2):
+                iden = subproccode[i]
+                val = getattr(self, iden)
+                if iden.endswith('_dir'):
+                    #Directories should be absolute, because the `chdir` call
+                    #in the new process moves to a different directory
+                    subproccode[i] = repr(os.path.abspath(val))
+                else:
+                    subproccode[i] = repr(val)
+            subproccode = ''.join(subproccode)
+
+            if self.no_intersphinx:
+                #the confoverrides variable in sphinx.setup_command.BuildDoc can
+                #be used to override the conf.py ... but this could well break
+                #if future versions of sphinx change the internals of BuildDoc,
+                #so remain vigilant!
+                subproccode = subproccode.replace('confoverrides = {}',
+                    'confoverrides = {\'intersphinx_mapping\':{}}')
+
+            log.debug('Starting subprocess of {0} with python code:\n{1}\n'
+                      '[CODE END])'.format(sys.executable, subproccode))
+
+            proc = Popen([sys.executable], stdin=PIPE)
+            proc.communicate(subproccode)
+            if proc.returncode == 0:
+                if self.open_docs_in_browser:
+                    if self.builder == 'html':
+                        absdir = abspath(self.builder_target_dir)
+                        fileurl = 'file://' + pathname2url(join(absdir, 'index.html'))
+                        webbrowser.open(fileurl)
+                    else:
+                        log.warn('open-docs-in-browser option was given, but '
+                                 'the builder is not html! Ignogring.')
+            else:
+                log.warn('Sphinx Documentation subprocess failed with return '
+                         'code ' + str(proc.returncode))
+
+
+def get_distutils_display_options():
+    """ Returns a set of all the distutils display options in their long and
+    short forms.  These are the setup.py arguments such as --name or --version
+    which print the project's metadata and then exit.
+
+    Returns
+    -------
+    opts : set
+        The long and short form display option arguments, including the - or --
+    """
+
+    short_display_opts = set('-' + o[1] for o in Distribution.display_options
+                             if o[1])
+    long_display_opts = set('--' + o[0] for o in Distribution.display_options)
+
+    # Include -h and --help which are not explicitly listed in
+    # Distribution.display_options (as they are handled by optparse)
+    short_display_opts.add('-h')
+    long_display_opts.add('--help')
+
+    return short_display_opts.union(long_display_opts)
+
+
+def is_distutils_display_option():
+    """ Returns True if sys.argv contains any of the distutils display options
+    such as --version or --name.
+    """
+
+    display_options = get_distutils_display_options()
+    return bool(set(sys.argv[1:]).intersection(display_options))
 
 
 def update_package_files(srcdir, extensions, package_data, packagenames,
@@ -719,7 +826,7 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
         if hasattr(setuppkg, 'get_build_options'):
             options = setuppkg.get_build_options()
             for option in options:
-                AstropyBuild.add_build_option(*option)
+                add_command_option('build', *option)
         if hasattr(setuppkg, 'get_external_libraries'):
             libraries = setuppkg.get_external_libraries()
             for library in libraries:
@@ -819,6 +926,35 @@ def iter_pyx_files(srcdir):
                 # Package must match file name
                 extmod = modbase + '.' + fn[:-4]
                 yield (extmod, fullfn)
+
+
+def should_build_with_cython(release=None):
+    """Returns the previously used Cython version (or 'unknown' if not
+    previously built) if Cython should be used to build extension modules from
+    pyx files.  If the ``release`` parameter is not specified an attempt is
+    made to determine the release flag from `astropy.version`.
+    """
+
+    if release is None:
+        try:
+            from .version import release
+        except ImportError:
+            pass
+
+    try:
+        from .version import cython_version
+    except ImportError:
+        cython_version = 'unknown'
+
+    # Only build with Cython if, of course, Cython is installed, we're in a
+    # development version (i.e. not release) or the Cython-generated source
+    # files haven't been created yet (cython_version == 'unknown'). The latter
+    # case can happen even when release is True if checking out a release tag
+    # from the repository
+    if HAVE_CYTHON and (not release or cython_version == 'unknown'):
+        return cython_version
+    else:
+        return False
 
 
 def get_cython_extensions(srcdir, prevextensions=tuple(), extincludedirs=None):
@@ -921,102 +1057,6 @@ def get_numpy_include_path():
     except AttributeError:
         numpy_include = numpy.get_numpy_include()
     return numpy_include
-
-
-_adjusted_compiler = False
-
-
-def adjust_compiler():
-    """
-    This function detects broken compilers and switches to another.  If
-    the environment variable CC is explicitly set, or a compiler is
-    specified on the commandline, no override is performed -- the purpose
-    here is to only override a default compiler.
-
-    The specific compilers with problems are:
-
-        * The default compiler in XCode-4.2, llvm-gcc-4.2,
-          segfaults when compiling wcslib.
-
-    The set of broken compilers can be updated by changing the
-    compiler_mapping variable.  It is a list of 2-tuples where the
-    first in the pair is a regular expression matching the version
-    of the broken compiler, and the second is the compiler to change
-    to.
-    """
-
-    from distutils import ccompiler, sysconfig
-    import re
-
-    compiler_mapping = [
-        (b'i686-apple-darwin[0-9]*-llvm-gcc-4.2', 'clang')
-        ]
-
-    global _adjusted_compiler
-    if _adjusted_compiler:
-        return
-
-    # Whatever the result of this function is, it only needs to be run once
-    _adjusted_compiler = True
-
-    if 'CC' in os.environ:
-
-        # Check that CC is not set to llvm-gcc-4.2
-        c_compiler = os.environ['CC']
-
-        version = get_compiler_version(c_compiler)
-
-        for broken, fixed in compiler_mapping:
-            if re.match(broken, version):
-                lines = [
-                    "Compiler specified by CC environment variable ",
-                    "({0:s}:{1:s}) will fail to compile Astropy.".format(c_compiler, version),
-                    "Please set CC={0:s} and try again.".format(fixed),
-                    "You can do this, for example, by doing:",
-                    "",
-                    "    CC={0:s} python setup.py <command>".format(fixed),
-                    "",
-                    "where <command> is the command you ran."
-                    ]
-                log.warn('\n'.join(lines))
-                sys.exit(1)
-
-    if get_distutils_build_option('compiler'):
-        return
-
-    compiler_type = ccompiler.get_default_compiler()
-
-    if compiler_type == 'unix':
-
-        # We have to get the compiler this way, as this is the one that is
-        # used if os.environ['CC'] is not set. It is actually read in from
-        # the Python Makefile. Note that this is not necessarily the same
-        # compiler as returned by ccompiler.new_compiler()
-        c_compiler = sysconfig.get_config_var('CC')
-
-        version = get_compiler_version(c_compiler)
-
-        for broken, fixed in compiler_mapping:
-            if re.match(broken, version):
-                os.environ['CC'] = fixed
-                break
-
-def get_compiler_version(compiler):
-
-    import subprocess
-
-    process = subprocess.Popen(
-    shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
-
-    output = process.communicate()[0].strip()
-    version = output.split()[0]
-
-    return version
-
-
-def setup_test_command(package_name):
-    return type(package_name + '_test_command', (astropy_test,),
-                {'package_name': package_name})
 
 
 def import_file(filename):
@@ -1169,9 +1209,8 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     return (old_package, shim_dir)
 
 
-def pkg_config(
-        packages, default_libraries, include_dirs, library_dirs,
-        libraries):
+def pkg_config(packages, default_libraries, include_dirs, library_dirs,
+               libraries):
     """
     Uses pkg-config to update a set of distutils Extension arguments
     to include the flags necessary to link against the given packages.
@@ -1200,6 +1239,7 @@ def pkg_config(
         results from pkg-config, or if pkg-config fails, updated from
         *default_libraries*.
     """
+
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     command = "pkg-config --libs --cflags {0}".format(' '.join(packages)),
 
@@ -1229,14 +1269,11 @@ def add_external_library(library):
         The name of the library.  If the library is `foo`, the build
         option will be called `--use-system-foo`.
     """
-    AstropyBuild.add_build_option(
-        'use-system-{0}'.format(library),
-        'Use the system {0} library'.format(library),
-        is_bool=True)
-    AstropyInstall.add_install_option(
-        'use-system-{0}'.format(library),
-        'Use the system {0} library'.format(library),
-        is_bool=True)
+
+    for command in ['build', 'build_ext', 'install']:
+        add_command_option(command, 'use-system-' + library,
+                           'Use the system {0} library'.format(library),
+                           is_bool=True)
 
 
 def use_system_library(library):
@@ -1333,9 +1370,10 @@ class bdist_dmg(Command):
 
         # Copy over the background to the disk image
         if self.background is not None:
-            os.mkdir(os.path.join(pkg_dir, '.background'))
+            background_dir = os.path.join(pkg_dir, '.background')
+            os.mkdir(background_dir)
             shutil.copy2(self.background,
-                         os.path.join(pkg_dir, '.background', 'background.png'))
+                         os.path.join(background_dir, 'background.png'))
 
         # Start creating the volume
         dmg_path = os.path.join(self.dist_dir, pkg_name + '.dmg')
@@ -1349,8 +1387,11 @@ class bdist_dmg(Command):
             os.remove(dmg_path_tmp)
 
         # Check if a volume is already mounted
-        if os.path.exists('/Volumes/{volume_name}'.format(volume_name=volume_name)):
-            raise DistutilsFileError("A volume named {volume_name} is already mounted - please eject this and try again".format(volume_name=volume_name))
+        volume_path = os.path.join('/', 'Volumes', volume_name)
+        if os.path.exists(volume_path):
+            raise DistutilsFileError(
+                "A volume named {volume_name} is already mounted - please "
+                "eject this and try again".format(volume_name=volume_name))
 
         shell_script = """
 

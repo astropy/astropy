@@ -499,7 +499,7 @@ class AstropyLogger(Logger):
 
         # Set up the main log file handler if requested (but this might fail if
         # configuration directory or log file is not writeable).
-        if LOG_TO_FILE() and not os.environ.get('ASTROPY_TESTS_RUNNING'):
+        if LOG_TO_FILE():
             log_file_path = LOG_FILE_PATH()
 
             # "None" as a string because it comes from config
@@ -509,19 +509,18 @@ class AstropyLogger(Logger):
             except NameError:
                 testing_mode = False
 
-            if log_file_path == '' or testing_mode:
-                log_file_path = os.path.join(
-                    config.get_config_dir(), "astropy.log")
-            else:
-                log_file_path = os.path.expanduser(log_file_path)
-
             try:
+                if log_file_path == '' or testing_mode:
+                    log_file_path = os.path.join(
+                        config.get_config_dir(), "astropy.log")
+                else:
+                    log_file_path = os.path.expanduser(log_file_path)
+
                 fh = FileHandler(log_file_path)
-            except IOError:
+            except (IOError, OSError) as e:
                 warnings.warn(
-                    "log file {0!r} could not be opened for writing".format(
-                        log_file_path),
-                    RuntimeWarning)
+                    'log file {0!r} could not be opened for writing: '
+                    '{1}'.format(log_file_path, unicode(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(LOG_FILE_FORMAT())
                 fh.setFormatter(formatter)
@@ -533,6 +532,7 @@ class AstropyLogger(Logger):
 
         if LOG_EXCEPTIONS():
             self.enable_exception_logging()
+
 
 # Set up the class and initialize logger
 _orig_logger_cls = logging.getLoggerClass()

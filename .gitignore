@@ -13,6 +13,7 @@ __pycache__
 MANIFEST
 astropy/version.py
 astropy/cython_version.py
+astropy/config/astropy.cfg
 astropy/wcs/include/wcsconfig.h
 
 # Sphinx
