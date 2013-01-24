@@ -399,8 +399,8 @@ def get_config(packageormod=None, reload=False):
     if cobj is None:
         try:
             cfgfn = join(get_config_dir(), rootname + '.cfg')
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj(cfgfn,
-                interpolation=False)
+            cobj = configobj.ConfigObj(cfgfn, interpolation=False)
+            _cfgobjs[rootname] = cobj
 
         except (IOError, OSError) as e:
             msg1 = 'Configuration defaults will be used, and configuration '
@@ -409,9 +409,10 @@ def get_config(packageormod=None, reload=False):
             wmsg = msg1 + msg2 + e.__class__.__name__ + errstr
             warn(ConfigurationMissingWarning(wmsg))
 
-            #This caches the object, so if the file becomes acessible, this
-            #function won't see it unless the module is reloaded
-            _cfgobjs[rootname] = cobj = configobj.ConfigObj(interpolation=False)
+            # This caches the object, so if the file becomes accessible, this
+            # function won't see it unless the module is reloaded
+            cobj = configobj.ConfigObj(interpolation=False)
+            _cfgobjs[rootname] = cobj
 
     if secname:  # not the root package
         if secname not in cobj:
@@ -421,7 +422,7 @@ def get_config(packageormod=None, reload=False):
         return cobj
 
 
-def save_config(packageormod=None):
+def save_config(packageormod=None, filename=None):
     """ Saves all configuration settings to the configuration file for the
     root package of the requested package/module.
 
@@ -439,12 +440,21 @@ def save_config(packageormod=None):
     ----------
     packageormod : str or None
         The package or module name - see `get_config` for details.
+
+    filename : str, optional
+        Save the config to a given filename instead of to the default location.
+
     """
+
     sec = get_config(packageormod)
     #look for the section that is its own parent - that's the base object
     while sec.parent is not sec:
         sec = sec.parent
-    sec.write()
+    if filename is not None:
+        with open(filename, 'w') as f:
+            sec.write(outfile=f)
+    else:
+        sec.write()
 
 
 def reload_config(packageormod=None):
@@ -550,7 +560,8 @@ _unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
 _unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
 
 
-def generate_all_config_items(pkgornm=None, reset_to_default=False):
+def generate_all_config_items(pkgornm=None, reset_to_default=False,
+                              filename=None):
     """ Given a root package name or package, this function walks
     through all the subpackages and modules, which should populate any
     ConfigurationItem objects defined at the module level. If
@@ -566,6 +577,10 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False):
 
     reset_to_default : bool
         If True, the configuration items will all be set to their defaults.
+
+    filename : str, optional
+        Save the generated config items to the given filename instead of to
+        the default config file path.
 
     Returns
     -------
@@ -607,9 +622,12 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False):
 
     _fix_section_blank_lines(package.__name__, True, True)
 
-    save_config(package.__name__)
+    save_config(package.__name__, filename=filename)
 
-    return get_config(package.__name__).filename
+    if filename is None:
+        return get_config(package.__name__).filename
+    else:
+        return filename
 
 
 # this is not in __all__ because it's not intended that a user uses it
@@ -649,16 +667,16 @@ def update_default_config(pkg, default_cfg_dir_or_fn):
 
     if doupdate:
         if os.path.isdir(default_cfg_dir_or_fn):
-            deault_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
+            default_cfgfn = os.path.join(default_cfg_dir_or_fn, pkg + '.cfg')
         else:
-            deault_cfgfn = default_cfg_dir_or_fn
+            default_cfgfn = default_cfg_dir_or_fn
 
-        if not os.path.isfile(deault_cfgfn):
-            raise ConfigurationDefaultMissingError('Requested default '
-                'configuration file {0} is not a file.'.format(deault_cfgfn))
+        if not os.path.isfile(default_cfgfn):
+            raise ValueError('Requested default configuration file {0} is '
+                             'not a file.'.format(default_cfgfn))
 
         with open(cfgfn, 'w') as fw:
-            with open(deault_cfgfn) as fr:
+            with open(default_cfgfn) as fr:
                 fw.write(fr.read())
         return True
 
