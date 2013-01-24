@@ -555,6 +555,9 @@ def _fix_section_blank_lines(sec, recurse=True, gotoroot=True):
 _unsafe_import_regex = [r'astropy\.sphinx\.ext.*',
                         r'astropy\.utils\.compat\._gzip_32',
                         r'astropy\.utils\.compat\._fractions_27',
+                        r'.*.setup_package',
+                        r'astropy\.version_helpers',
+                        r'astropy\.setup_helpers'
                         ]
 _unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
 _unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
