@@ -47,6 +47,28 @@ def test_guess_all_files():
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
+def test_daophot_indef():
+    """Test that INDEF is correctly interpreted as a missing value"""
+    table = asciitable.read('t/daophot2.dat', Reader=asciitable.Daophot)
+    for colname in table.colnames:
+        # Three columns have all INDEF values and are masked
+        mask_value = colname in ('OTIME', 'MAG', 'MERR', 'XAIRMASS')
+        assert np.all(table[colname].mask == mask_value)
+
+
+def test_daophot_types():
+    """
+    Test specific data types which are different from what would be
+    inferred automatically based only data values.  DAOphot reader uses
+    the header information to assign types.
+    """
+    table = asciitable.read('t/daophot2.dat', Reader=asciitable.Daophot)
+    assert table['LID'].dtype.char in 'fd'  # float or double
+    assert table['MAG'].dtype.char in 'fd'  # even without any data values
+    assert table['PIER'].dtype.char == 'S'  # string (data values are consistent with int)
+    assert table['ID'].dtype.char in 'il'  # int or long
+
+
 def test_daophot_header_keywords():
     table = asciitable.read('t/daophot.dat', Reader=asciitable.Daophot)
     expected_keywords = (('NSTARFILE', 'test.nst.1', 'filename', '%-23s'),
