@@ -113,6 +113,9 @@ class GithubSuggestBackports(object):
                     next = filter(lambda e: e['event'] == filter_, next)
                 events.extend(next)
                 page += 1
+                # Either continue to the next page of events or start popping
+                # any found events off the first page
+                continue
             yield events.pop(0)
             count -= 1
 
