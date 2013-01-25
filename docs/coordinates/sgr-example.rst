@@ -1,3 +1,5 @@
+.. _sgr-example:
+
 Example: Defining a new spherical coordinate system
 ---------------------------------------------------
 
