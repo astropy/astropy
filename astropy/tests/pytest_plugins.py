@@ -41,16 +41,16 @@ def _get_open_file_list():
         ['lsof -F0 -n -p {0}'.format(os.getpid())],
         shell=True)
     files = []
-    for line in output.split('\n'):
-        columns = line.split('\0')
+    for line in output.split(b'\n'):
+        columns = line.split(b'\0')
         mapping = {}
         for column in columns:
             if len(column) >= 2:
                 mapping[column[0]] = column[1:]
-        if (mapping.get('f') and
-            mapping.get('a', ' ') != ' ' and
-            mapping.get('t') == 'REG'):
-            files.append(mapping['n'])
+        if (mapping.get(b'f') and
+            mapping.get(b'a', ' ') != ' ' and
+            mapping.get(b't') == 'REG'):
+            files.append(mapping[b'n'])
 
     return set(files)
 
@@ -97,10 +97,11 @@ if SUPPORTS_OPEN_FILE_DETECTION:
                 not_closed.add(filename)
 
         if len(not_closed):
-            msg = ['File(s) not closed:']
+            msg = [u'File(s) not closed:']
             for name in not_closed:
-                msg.append('  {0}'.format(name))
-            raise AssertionError('\n'.join(msg))
+                msg.append(u'  {0}'.format(
+                    name.decode(sys.getfilesystemencoding())))
+            raise AssertionError(u'\n'.join(msg))
 
 
 def pytest_report_header(config):
