@@ -55,7 +55,7 @@ celestial coordinates, which allows a complete mapping to 3D coordinates::
   >>> c.cartesian
   <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
 
-The package also supports a simple interface for retrieving coordinates for an object object by 
+The package also supports a simple interface for retrieving coordinates for an object by 
 name using the `Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works 
 on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
