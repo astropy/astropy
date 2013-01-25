@@ -63,7 +63,7 @@ class NDData(object):
         of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
 
-    units : `astropy.units.UnitBase` instance or str, optional
+    unit : `astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
 
@@ -218,14 +218,14 @@ class NDData(object):
 
     @property
     def unit(self):
-        return self._units
+        return self._unit
 
     @unit.setter
     def unit(self, value):
         if value is None:
-            self._units = None
+            self._unit = None
         else:
-            self._units = Unit(value)
+            self._unit = Unit(value)
 
     @property
     def shape(self):
@@ -293,7 +293,7 @@ class NDData(object):
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, units=self.unit, copy=False)
+            meta=self.meta, unit=self.unit, copy=False)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
@@ -421,7 +421,7 @@ class NDData(object):
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
-    def convert_units_to(self, unit, equivalencies=[]):
+    def convert_unit_to(self, unit, equivalencies=[]):
         """
         Returns a new `NDData` object whose values have been converted
         to a new unit.
@@ -446,7 +446,7 @@ class NDData(object):
             If units are inconsistent.
         """
         if self.unit is None:
-            raise ValueError("No units specified on source data")
+            raise ValueError("No unit specified on source data")
         data = self.unit.to(unit, self.data, equivalencies=equivalencies)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
