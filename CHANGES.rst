@@ -147,6 +147,10 @@ Other Changes and Additions
 Bug Fixes
 ^^^^^^^^^
 
+- ``astropy.io.ascii``
+
+  - Fixed a failure to read DAOphot files with empty keyword values [#666].
+
 - ``astropy.io.fits``
 
   - Improved handling of scaled images and pseudo-unsigned integer images in
