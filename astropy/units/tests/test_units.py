@@ -277,7 +277,7 @@ def test_compose_roundtrip():
 
 def test_compose_cgs_to_si():
     def _test_compose_cgs_to_si(unit):
-        composed_list = unit.to_system(u.si)
+        unit.to_system(u.si)
 
     for val in u.cgs.__dict__.values():
         if (isinstance(val, u.UnitBase) and
@@ -287,10 +287,14 @@ def test_compose_cgs_to_si():
 
 def test_compose_si_to_cgs():
     def _test_compose_si_to_cgs(unit):
-        # Can't convert things with Ampere or mol to CGS without more context
-        if u.A in unit.decompose().bases:
-            return
-        composed_list = unit.to_system(u.cgs)
+        # Can't convert things with Ampere to CGS without more context
+        try:
+            unit.to_system(u.cgs)
+        except u.UnitsException:
+            if u.A in unit.decompose().bases:
+                pass
+            else:
+                raise
 
     for val in u.si.__dict__.values():
         if (isinstance(val, u.UnitBase) and
