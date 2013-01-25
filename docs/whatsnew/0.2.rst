@@ -45,7 +45,8 @@ include::
   <GalacticCoordinates l=121.17430 deg, b=-21.57280 deg>
 
 Currently a limited set of standard coordinate systems are included, but more will be
-added in the next release.
+added in the next release.  There is also an 
+:ref:`example of creating a custom coordinate system <sgr-example>`  in the documentation.
 
 The package also includes a representation of angles (:class:`~astropy.coordinates.angles.Angle`)
 that may be useful in other contexts. It also supports distances in

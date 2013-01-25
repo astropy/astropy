@@ -11,6 +11,14 @@
     Once this paper is accepted, this should be made the default, but for
     now WMAP7 remains the default. [#629]
 
+- ``astropy.coordinates``
+
+  - Add name resolver that uses sesame to get coordinates from an object
+    name. [#556]
+
+  - Added an example of subclassing `SphericalCoordinatesBase` based on
+    Sgr dSph-centric coordinate system. [#645] 
+
 
 0.2 (unreleased)
 ----------------

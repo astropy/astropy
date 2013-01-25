@@ -101,7 +101,7 @@ Using `astropy.coordinates`
 More details of using `astropy.coordinates` are provided in the following sections:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    angles
    creating
@@ -109,6 +109,7 @@ More details of using `astropy.coordinates` are provided in the following sectio
    distances
    transforming
    designing
+   sgr-example
 
 
 In addition, another resource for the capabilities of this package is the
