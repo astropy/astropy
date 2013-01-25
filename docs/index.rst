@@ -31,6 +31,7 @@ User Documentation
    overview
    install
    getting_started
+   constants/index
    nddata/index
    units/index
    time/index
