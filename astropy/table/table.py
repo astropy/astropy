@@ -14,6 +14,7 @@ from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabco
 from ..utils.console import color_print
 from ..config import ConfigurationItem
 from  .io_registry import get_reader, get_writer, identify_format
+
 # Python 2 and 3 source compatibility
 try:
     unicode
@@ -770,29 +771,40 @@ class Table(object):
         # function, number of columns, and potentially the default col names
 
         default_names = None
+        #Checking for iterable types first
 
-        if isinstance(data, (list, tuple)):
-            init_func = self._init_from_list
-            n_cols = len(data)
+        if isiterable(data):
 
-        elif isinstance(data, np.ndarray):
-            if data.dtype.names:
-                init_func = self._init_from_ndarray  # _struct
-                n_cols = len(data.dtype.names)
-                default_names = data.dtype.names
+            if isinstance(data, Table):
+                init_func = self._init_from_table
+                n_cols = len(data.colnames)
+                default_names = data.colnames
+
+
+            # Duck-typing ndarray-like structure
+            elif hasattr(data, 'dtype'):
+                #converting to ndarray for .view method
+                if not isinstance(data, np.ndarray):
+                    data = np.asarray(data)
+
+                if data.dtype.names is not None:
+                    init_func = self._init_from_ndarray  # _struct
+                    n_cols = len(data.dtype.names)
+                    default_names = data.dtype.names
+                else:
+                    init_func = self._init_from_ndarray  # _homog
+                    n_cols = data.shape[1]
+
+
+            elif isinstance(data, dict):
+                init_func = self._init_from_dict
+                n_cols = len(data.keys())
+                default_names = data.keys()
+
             else:
-                init_func = self._init_from_ndarray  # _homog
-                n_cols = data.shape[1]
+                init_func = self._init_from_list
+                n_cols = len(data)
 
-        elif isinstance(data, dict):
-            init_func = self._init_from_dict
-            n_cols = len(data.keys())
-            default_names = data.keys()
-
-        elif isinstance(data, Table):
-            init_func = self._init_from_table
-            n_cols = len(data.colnames)
-            default_names = data.colnames
 
         elif data is None:
             if names is None:
