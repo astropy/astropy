@@ -5,7 +5,7 @@ __all__ = ['NDData']
 
 import numpy as np
 
-from ..units import Unit, Quantity
+from ..units import Unit
 from ..logger import log
 
 from .flag_collection import FlagCollection
@@ -420,24 +420,6 @@ class NDData(object):
         return self._arithmetic(
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
-
-    def __add__(self, other):
-        if isinstance(other, Quantity):
-            new_data = self.__array__() + other.to(self.unit).value
-            return self.__class__(new_data, unit=self.unit)
-
-        elif isinstance(other, self.__class__):
-            #TODO change to not invoke Masked array after units have been fixed
-            other_data = other.unit.to(self.unit, other.data)
-            if other.mask is not None:
-                other_data = np.ma.MaskedArray(other_data, mask=other.mask)
-
-            new_data = self.__array__() + other_data
-            return self.__class__(new_data, unit=self.unit)
-
-        else:
-            raise TypeError('Cannot add type blah blah blah')
-
 
     def convert_units_to(self, unit, equivalencies=[]):
         """
