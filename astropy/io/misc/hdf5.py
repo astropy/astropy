@@ -82,10 +82,13 @@ def read_table_hdf5(input, path=None):
         try:
             g = f[group] if group else f
         except KeyError:
+            f.close()
             raise IOError("Group {0} does not exist".format(group))
 
     # Check whether table exists
     if name not in g:
+        if f is not None:
+            f.close()
         raise IOError("Table {0} does not exist".format(path))
 
     # Read the table from the file
@@ -174,6 +177,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     # Check whether table already exists
     if name in g:
+        if f is not None:
+            f.close()
         raise IOError("Table {0} already exists".format(path))
 
     # Write the table to the file
