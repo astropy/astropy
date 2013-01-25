@@ -11,7 +11,6 @@ from ..logger import log
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from ..io import fits
 from  ..io import registry as io_registry
 from ..config import ConfigurationItem
 
@@ -102,7 +101,7 @@ class NDData(object):
                  meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True, copy=copy)
+            self.data = np.array(data.data, subok=True)
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -135,14 +134,11 @@ class NDData(object):
                 self.data = np.array(data, subok=True)
                 self.mask = mask
 
-
             self.uncertainty = uncertainty
             self.flags = flags
             self.wcs = wcs
             self.meta = meta
             self.unit = unit
-
-
 
     @property
     def mask(self):
@@ -214,7 +210,6 @@ class NDData(object):
                 self._meta = OrderedDict(value)
             except ValueError:
                 raise TypeError('NDData meta attribute must be dict-like')
-
 
     @property
     def unit(self):
