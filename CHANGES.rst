@@ -1,6 +1,9 @@
 0.2 (unreleased)
 ----------------
 
+New Features
+^^^^^^^^^^^^
+
 - A configuration file with all options set to their defaults is now generated 
   when astropy is installed.  This file will be pulled in as the users' 
   astropy configuration file the first time they ``import astropy``.  [#498] 
@@ -11,6 +14,38 @@
     Once this paper is accepted, this should be made the default, but for
     now WMAP7 remains the default. [#629]
 
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``astropy.wcs`` uses the ``relax`` option by default so that non-standard
+  keywords are allowed. [#585]
+
+- ``astropy.nddata.convolution`` removed requirement of PyFFTW3; uses Numpy's
+  FFT by default instead with the added ability to specify an FFT
+  implementation to use. [#660]
+
+Bug Fixes
+^^^^^^^^^
+
+- Improved multiprocessing compatibility for file downloads. [#615]
+
+- Fixed handling of Cython modules when building from a source checkout of a
+  tagged release version. [#594]
+
+- Added a workaround for a bug in Sphinx that could occur when using the
+  ``:tocdepth:`` directive. [#595]
+
+- Several minor VOTable fixes [#596]
+
+- Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
+  ``VersionConflict`` errors when an older version of distribute is already
+  installed on the user's system. [#616][#640]
+
+- Changed use of ``log.warn`` in the logging module to ``log.warning`` since
+  the former is deprecated. [#624]
+
+- Fixed a failure in ``astropy.io.ascii`` to read DAOphot files with empty
+  keyword values [#666].
 
 0.2b1 (2012-12-24)
 ------------------
@@ -146,10 +181,6 @@ Other Changes and Additions
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.io.ascii``
-
-  - Fixed a failure to read DAOphot files with empty keyword values [#666].
 
 - ``astropy.io.fits``
 
