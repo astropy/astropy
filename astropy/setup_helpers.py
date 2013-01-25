@@ -485,7 +485,8 @@ def generate_default_config(build_lib, package):
     else:
         log.info('generating default {0}.cfg file'.format(package))
 
-    env = {'ASTROPY_SKIP_CONFIG_UPDATE': 'True'}
+    env = os.environ.copy()
+    env['ASTROPY_SKIP_CONFIG_UPDATE'] = 'True'
 
     subproccode = (
         'from astropy.config.configuration import generate_all_config_items;'
