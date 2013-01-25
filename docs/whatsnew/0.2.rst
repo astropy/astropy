@@ -55,18 +55,9 @@ celestial coordinates, which allows a complete mapping to 3D coordinates::
   >>> c.cartesian
   <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
 
-Note that this subpackage is still under heavy development, and likely will
-undergo significant changes in the next few versions.
-
-An additional feature of the `Coordinates` subpackage is a simple interface for
-retrieving coordinates for a named object. The classmethod 
-:func:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.from_name` 
-accepts a single `name` argument, for example "M42" or "NGC 4651", and returns 
-the coordinates for this object resolved using the 
-`Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works 
-on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`. 
-For example, we could get the coordinates in either ICRS coordinates or Galactic
-coordinates::
+The package also supports a simple interface for retrieving coordinates for an object object by 
+name using the `Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works 
+on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
 
   >>> c = coord.ICRSCoordinates.from_name("M42")
   >>> c.ra, c.dec
@@ -75,9 +66,13 @@ coordinates::
   >>> c.l, c.b
   (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
 
-For more details about controlling the search database, Sesame URL, and request
-timeout, see the documentation for 
-:func:`~astropy.coordinates.name_resolve.get_icrs_coordinates` .
+For more details about this feature, see 
+:func:`~astropy.coordinates.name_resolve.get_icrs_coordinates` and 
+:meth:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.from_name`.
+
+Note that this subpackage is still under heavy development, and likely will
+undergo significant changes in the next few versions.
+
 
 Data Tables
 -----------
