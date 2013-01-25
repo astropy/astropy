@@ -413,3 +413,22 @@ def test_arrays():
         int(qsec)
     with pytest.raises(TypeError):
         long(qsec)
+
+
+def test_inverse_quantity():
+    """
+    Regression test from issue #679
+    """
+    q = u.Quantity(4., u.meter / u.second)
+    qot = q / 2
+    toq = 2 / q
+    npqot = q / np.array(2)
+
+    assert npqot.value == 2.0
+    assert npqot.unit == (u.meter / u.second)
+
+    assert qot.value == 2.0
+    assert qot.unit == (u.meter / u.second)
+
+    assert toq.value == 0.5
+    assert toq.unit == (u.second / u.meter)
