@@ -165,31 +165,103 @@ following manner::
     """
     from astropy.config import ConfigurationItem
 
-    SOME_OPTION = ConfigurationItem('some_option', 1, 'A description.')
-    ANOTHER_OPTION = ConfigurationItem('annother_opt', 'a string val',
+    SOME_SETTING = ConfigurationItem('some_setting', 1, 'A description.')
+    ANOTHER_SETTING = ConfigurationItem('another_set', 'a string val',
                                        'A longer description of what this does.')
 
     ... implementation ...
     def some_func():
         #to get the value of these options, I might do:
-        something = SOME_OPTION() + 2
-        return ANOTHER_OPTION() + ' Also, I added text.'
+        something = SOME_SETTING() + 2
+        return ANOTHER_SETTING() + ' Also, I added text.'
 
 It is highly recommended that any configuration items be placed at the
 top of a module like this, as they can then be easily found when viewing
 the source code and the automated tools to generate the default
 configuration files can also locate these items.
 
+Item Types and Validation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If not otherwise specified, a `ConfigurationItem` gets its type from the type of
+the `defaultvalue` it is given when it is created.  The item can only be set
+to be an object of this type.  Hence::
+
+    SOME_SETTING = ConfigurationItem('some_setting', 1, 'A description.')
+    SOME_SETTING.set(1.2)
+
+will fail, because ``1.2`` is a float and ``1`` is an int.
+
+Note that if you want the configuration item to be limited to a particular set
+of specific options, you should pass in a list as the `defaultvalue` option.
+The first entry in the list will be taken as the default, and the list as a whole
+gives all the valid options.  For example::
+
+    AN_OPTION = ConfigurationItem('an_option', ['a', 'b', 'c'], "This option can be 'a', 'b', or 'c'")
+    AN_OPTION.set('b')  # succeeds
+    AN_OPTION.set('c')  # succeeds
+    AN_OPTION.set('d')  # fails!
+    AN_OPTION.set(6)  # fails!
+
+Finally, a ConfigurationItem can be explicitly give a type via the `cfgtype` option::
+
+    AN_INT_SETTING = ConfigurationItem('an_int_setting', 1, 'A description.', cfgtype='integer')
+    AN_INT_SETTING.set(3)  # works fine
+    AN_INT_SETTING.set(4.2)  #fails!
+
+If the default value's type doesn't match `cfgtype`, the `ConfigurationItem` cannot be created::
+
+    >>> AN_INT_SETTING = ConfigurationItem('an_int_setting', 4.2, 'A description.', cfgtype='integer')
+    VdtTypeError: the value "4.2" is of the wrong type.
+
+hence the default behavior (of automatically determining `cfgtype`) is usually what
+you want.  The main exception is when you want your configuration item to be a list.
+The default behavior will treat that as a list of *options* unless you explicitly
+tell it that the `ConfigurationItem` itself is supposed to be a list::
+
+    >>> A_LIST_SETTING = ConfigurationItem(a_list_setting', [1, 2, 3], 'A description.')
+    >>> A_LIST_SETTING()
+    1
+    >>> A_LIST_SETTING = ConfigurationItem(a_list_setting', [1, 2, 3], 'A description.', cfgtype='list')
+    >>> A_LIST_SETTING()
+    [1, 2, 3]
+
+Details of all the valid `cfgtype` items can be found in the
+`validation section of the configobj  manual <http://www.voidspace.org.uk/python/validate.html#the-standard-functions>`_.
+We simply list the valid values here for quick reference:
+
+* 'integer'
+* 'float'
+* 'boolean'
+* 'string'
+* 'ip_addr'
+* 'list'
+* 'tuple'
+* 'int_list'
+* 'float_list'
+* 'bool_list'
+* 'string_list'
+* 'ip_addr_list'
+* 'mixed_list'
+* 'option'
+* 'pass'
+
+
+
+
+Usage Tips
+^^^^^^^^^^
+
 There are a couple important gotchas to remember about using configuration
 items in your code. First, it is tempting to do something like::
 
-    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
+    SOME_SETTING = ConfigurationItem('SOME_SETTING' ,1 ,'A description.')
 
     def some_func():
-        return SOME_OPTION + 2  # WRONG, you wanted SOME_OPTION() + 2
+        return SOME_SETTING + 2  # WRONG, you wanted SOME_SETTING() + 2
 
-but this is incorrect, because ``SOME_OPTION`` instead of
-``SOME_OPTION()`` will yield a `ConfigurationItem` object, instead of the
+but this is incorrect, because ``SOME_SETTING`` instead of
+``SOME_SETTING()`` will yield a `ConfigurationItem` object, instead of the
 *value* of that item (an integer, in this case).
 
 The second point to keep in mind is that `ConfigurationItem` objects can
@@ -198,9 +270,9 @@ of just storing their initial value to some other variable (or used as a
 default for a function). For example, the following will work, but is
 incorrect usage::
 
-    SOME_OPTION = ConfigurationItem('some_option',1,'A description.')
+    SOME_SETTING = ConfigurationItem('SOME_SETTING',1,'A description.')
 
-    def some_func(val=SOME_OPTION()):
+    def some_func(val=SOME_SETTING()):
         return val + 2
 
 This works fine as long as the user doesn't change its value during
@@ -208,7 +280,7 @@ runtime, but if they do, the function won't know about the change::
 
     >>> some_func()
     3
-    >>> SOME_OPTION.set(3)
+    >>> SOME_SETTING.set(3)
     >>> some_func()  # naively should return 5, because 3 + 2 = 5
     3
 
@@ -216,17 +288,19 @@ There are two ways around this.  The typical/intended way is::
 
     def some_func():
         """
-        The `SOME_OPTION` configuration item influences this output
+        The `SOME_SETTING` configuration item influences this output
         """
-        return SOME_OPTION() + 2
+        return SOME_SETTING() + 2
 
 Or, if the option needs to be available as a function parameter::
 
     def some_func(val=None):
         """
-        If not specified, `val` is set by the `SOME_OPTION` configuration item.
+        If not specified, `val` is set by the `SOME_SETTING` configuration item.
         """
-        return (SOME_OPTION() if val is None else val) + 2
+        return (SOME_SETTING() if val is None else val) + 2
+
+
 
 
 
