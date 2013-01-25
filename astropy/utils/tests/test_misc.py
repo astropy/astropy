@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .. import misc
+from ...tests.helper import remote_data
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
@@ -99,3 +100,11 @@ def test_deprecated_attribute():
         dummy.set_private()
 
     assert len(w) == 0
+
+@remote_data
+def test_api_lookup():
+    strurl = misc.find_api_page('astropy.utils.misc', 'dev', False)
+    objurl = misc.find_api_page(misc, 'dev', False)
+
+    assert strurl == objurl
+    assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'

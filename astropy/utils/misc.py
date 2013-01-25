@@ -16,7 +16,7 @@ import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
-           'NumpyRNGContext']
+           'NumpyRNGContext', 'find_api_page']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -584,3 +584,87 @@ class NumpyRNGContext(object):
         from numpy import random
 
         random.set_state(self.startstate)
+
+
+def find_api_page(obj, version='dev', openinbrowser=True):
+    """
+    Determines the URL of the API page for the specified object, and
+    optionally open that page in a web browser.
+
+    .. note::
+        You must be connected to the internet for this to function even
+        if `openinbrowser` is False.
+
+    Packages
+    --------
+    obj
+        The object to open the docs for or its fully-qualified name
+        (as a str).
+    version : str
+        The doc version - either a version number like '0.1' or 'dev'
+        for the development/latest docs.
+    openinbrowser : bool
+        If True, the `webbrowser` package will be used to open the doc
+        page in a new web browser window.
+
+    Returns
+    -------
+    url : str
+        The loaded URL
+
+    Raises
+    ------
+    ValueError
+        If the documentation can't be found
+
+    """
+    import webbrowser
+
+    from inspect import ismodule
+    from zlib import decompress
+    from urllib2 import urlopen
+
+    if (not isinstance(obj, basestring) and
+            hasattr(obj, '__module__') and
+            hasattr(obj, '__name__')):
+        obj = obj.__module__ + '.' + obj.__name__
+    elif ismodule(obj):
+        obj = obj.__name__
+
+    if version == 'dev':
+        baseurl = 'http://devdocs.astropy.org/'
+    else:
+        baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
+
+    uf = urlopen(baseurl + 'objects.inv')
+
+    try:
+        isvers = uf.readline().rstrip().decode('utf-8')  # intersphinx version line
+        proj = uf.readline().rstrip().decode('utf-8')  # project name
+        vers = uf.readline().rstrip().decode('utf-8')  # project version
+        uf.readline().rstrip().decode('utf-8')
+        oistr = uf.read()
+    finally:
+        uf.close()
+
+    oistr = decompress(oistr)
+
+    resurl = None
+
+    for l in oistr.strip().split('\n'):
+        ls = l.split()
+        name = ls[0]
+        loc = ls[3]
+        if loc.endswith('$'):
+            loc = loc[:-1] + name
+
+        if name == obj:
+            resurl = baseurl + loc
+            break
+
+    if resurl is None:
+        raise ValueError('Could not find the docs for the object {obj}'.format(obj=obj))
+    elif openinbrowser:
+        webbrowser.open(resurl)
+
+    return resurl
