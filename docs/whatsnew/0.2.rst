@@ -37,6 +37,7 @@ adds a framework for defining celestial and other astronomical coordinate
 systems, as well as transformations between them. A few simple usage examples
 include::
 
+  >>> import astropy.coordinates as coord
   >>> c = coord.ICRSCoordinates(ra=10.68458, dec=41.26917, unit=(u.degree, u.degree))
   >>> c.ra
   <RA 10.68458 deg>
@@ -50,9 +51,24 @@ The package also includes a representation of angles (:class:`~astropy.coordinat
 that may be useful in other contexts. It also supports distances in
 celestial coordinates, which allows a complete mapping to 3D coordinates::
 
-  >>> c = ICRSCoordinates('00h42m44.3s +41d16m9s', distance=Distance(770, u.kpc))
+  >>> c = coord.ICRSCoordinates('00h42m44.3s +41d16m9s', distance=Distance(770, u.kpc))
   >>> c.cartesian
   <CartesianPoints (568.712888217, 107.300935969, 507.889909249) kpc>
+
+The package also supports a simple interface for retrieving coordinates for an object by 
+name using the `Sesame Name Resolver <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ . This works 
+on all subclasses of :class:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase`::
+
+  >>> c = coord.ICRSCoordinates.from_name("M42")
+  >>> c.ra, c.dec
+  (<RA 83.82208 deg>, <Dec -5.39111 deg>)
+  >>> c = coord.GalacticCoordinates.from_name("M42")
+  >>> c.l, c.b
+  (<Angle -150.98622 deg>, <Angle -19.38162 deg>)
+
+For more details about this feature, see 
+:func:`~astropy.coordinates.name_resolve.get_icrs_coordinates` and 
+:meth:`~astropy.coordinates.coordsystems.SphericalCoordinatesBase.from_name`.
 
 Note that this subpackage is still under heavy development, and likely will
 undergo significant changes in the next few versions.
