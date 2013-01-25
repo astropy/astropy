@@ -12,5 +12,6 @@ from .coordsystems import *
 from .distances import *
 from .transformations import *
 from .builtin_systems import *
+from .name_resolve import *
 
 __doc__ += builtin_systems._transform_graph_docs
