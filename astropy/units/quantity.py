@@ -261,10 +261,6 @@ class Quantity(object):
             return Quantity(self.value / other.value, unit=self.unit / other.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=self.unit / other)
-        elif isinstance(other, numbers.Number) and hasattr(self.unit, "bases"):
-            new_unit_bases = copy.copy(self.unit.bases)
-            new_unit_powers = [-p for p in self.unit.powers]
-            return Quantity(other / self.value, unit=CompositeUnit(1., new_unit_bases, new_unit_powers))
         else:
             try:
                 return Quantity(self.value / other, unit=self.unit)
