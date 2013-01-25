@@ -16,7 +16,7 @@ import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
-           'NumpyRNGContext']
+           'open_api_page', 'NumpyRNGContext']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -584,3 +584,77 @@ class NumpyRNGContext(object):
         from numpy import random
 
         random.set_state(self.startstate)
+
+
+def open_api_page(obj, version='dev'):
+    """
+    Opens the API page for the specified object in a web browser (chosen using
+    the `webbrowser` module).
+
+    Packages
+    --------
+    obj
+        The object to open the docs for or its fully-qualified name (as a str).
+
+    version : str
+        The doc version - either a version number like '0.1' or 'dev'
+        for the development/latest docs.
+
+    Returns
+    -------
+    url : str
+        The loaded URL
+
+    Raises
+    ------
+    ValueError
+        If the documentation can't be found
+
+    """
+    import webbrowser
+
+    from zlib import decompress
+    from urllib2 import urlopen
+
+    if (not isinstance(obj, basestring) and
+            hasattr(obj, '__module__') and
+            hasattr(obj, '__name__')):
+        obj = obj.__module__ + '.' + obj.__name__
+
+    if version == 'dev':
+        baseurl = 'http://devdocs.astropy.org/'
+    else:
+        baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
+
+    uf = urlopen(baseurl + 'objects.inv')
+
+    try:
+        isvers = uf.readline().rstrip().decode('utf-8')  # intersphinx version line
+        proj = uf.readline().rstrip().decode('utf-8')  # project name
+        vers = uf.readline().rstrip().decode('utf-8')  # project version
+        uf.readline().rstrip().decode('utf-8')
+        oistr = uf.read()
+    finally:
+        uf.close()
+
+    oistr = decompress(oistr)
+
+    resurl = None
+
+    for l in oistr.strip().split('\n'):
+        ls = l.split()
+        name = ls[0]
+        loc = ls[3]
+        if loc.endswith('$'):
+            loc = loc[:-1] + name
+
+        if name == obj:
+            resurl = baseurl + loc
+            break
+
+    if resurl is None:
+        raise ValueError('Could not find the docs for the object {obj}'.format(obj=obj))
+    else:
+        webbrowser.open(resurl)
+
+    return resurl
