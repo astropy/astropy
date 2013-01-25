@@ -523,25 +523,26 @@ class SphericalCoordinatesBase(object):
     # Name resolve
     @classmethod
     def from_name(cls, name):
-        """ Given a name, query the CDS name resolver to attempt to retrieve 
-            coordinate information for that object. The search database, sesame
-            url, and  query timeout can be set through configuration items in 
-            `astropy.coordinates.name_resolve` -- see docstring for 
-            `astropy.coordinates.name_resolve.get_icrs_coordinates` for more 
-            information.
+        """ 
+        Given a name, query the CDS name resolver to attempt to retrieve 
+        coordinate information for that object. The search database, sesame
+        url, and  query timeout can be set through configuration items in 
+        `astropy.coordinates.name_resolve` -- see docstring for 
+        `astropy.coordinates.name_resolve.get_icrs_coordinates` for more 
+        information.
 
-            Parameters
-            ----------
-            name : str
-                The name of the object to get coordinates for, e.g. m42.
+        Parameters
+        ----------
+        name : str
+            The name of the object to get coordinates for, e.g. m42.
 
-            Returns
-            -------
-            coord : SphericalCoordinatesBase
-                Instance of a Coordinates class, specified by the class this is 
-                called on, e.g. if `GalacticCoordinates.from_name('m42')`, will 
-                get an instance of `GalacticCoordinates` representing the 
-                position of M42.
+        Returns
+        -------
+        coord : SphericalCoordinatesBase
+            Instance of a Coordinates class, specified by the class this is 
+            called on, e.g. if `GalacticCoordinates.from_name('m42')`, will 
+            get an instance of `GalacticCoordinates` representing the 
+            position of M42.
         """
 
         from .name_resolve import get_icrs_coordinates

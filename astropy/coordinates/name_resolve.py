@@ -54,28 +54,30 @@ class NameResolveError(Exception):
     pass
 
 def get_icrs_coordinates(name):
-    """ Retrieve an ICRSCoordinates object by using an online name resolving
-        service to retrieve coordinates for the specified name. By default,
-        this will search all available databases until a match is found. If
-        you would like to specify the database, use the configuration item
-        `name_resolve.SESAME_DATABASE` . You can also specify a list of servers 
-        to use for querying Sesame using the configuration item 
-        `name_resolve.SESAME_URL`. This will try each one in order until a valid
-        response is returned. By default, this list includes the main Sesame 
-        host and a mirror at vizier. A final configuration item, 
-        `name_resolve.NAME_RESOLVE_TIMEOUT`, is the number of seconds to wait
-        for a response from the server before giving up. By default this is 
-        5 seconds.
+    """ 
+    Retrieve an ICRSCoordinates object by using an online name resolving
+    service to retrieve coordinates for the specified name. By default,
+    this will search all available databases until a match is found. If
+    you would like to specify the database, use the configuration item
+    `name_resolve.SESAME_DATABASE` . You can also specify a list of servers 
+    to use for querying Sesame using the configuration item 
+    `name_resolve.SESAME_URL`. This will try each one in order until a valid
+    response is returned. By default, this list includes the main Sesame 
+    host and a mirror at vizier. A final configuration item, 
+    `name_resolve.NAME_RESOLVE_TIMEOUT`, is the number of seconds to wait
+    for a response from the server before giving up. By default this is 
+    5 seconds.
 
-        Parameters
-        ----------
-        name : str
-            The name of the object to get coordinates for, e.g. M42.
+    Parameters
+    ----------
+    name : str
+        The name of the object to get coordinates for, e.g. M42.
 
-        Returns
-        -------
-        coord : SphericalCoordinatesBase
-            An `ICRSCoordinates` instance for the object name specified.
+    Returns
+    -------
+    coord : SphericalCoordinatesBase
+        An `ICRSCoordinates` instance for the object name specified.
+        
     """
     
     database = SESAME_DATABASE()
