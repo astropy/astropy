@@ -79,12 +79,13 @@ def_unit(['solLum', 'L_sun'], _si.L_sun * si.W, register=True, prefixes=True,
 ###########################################################################
 # SPECTRAL DENSITY
 
+def_unit(['ph', 'photon'], register=True)
 def_unit(['Jy', 'Jansky', 'jansky'], 1e-26 * si.W / si.m ** 2 / si.Hz,
          register=True, prefixes=True,
          doc="Jansky: spectral flux density")
 def_unit(['R', 'Rayleigh', 'rayleigh'],
          (1e10 / (4 * _numpy.pi)) *
-         si.ph * si.m ** -2 * si.s ** -1 * si.sr ** -1,
+         ph * si.m ** -2 * si.s ** -1 * si.sr ** -1,
          register=True, prefixes=True,
          doc="Rayleigh: photon flux")
 
@@ -100,6 +101,25 @@ def_unit(['mag'], register=True, prefixes=True,
 # TODO: This is defined by the FITS standard as "relative to the sun".
 # Is that mass, volume, what?
 def_unit(['Sun'], register=True)
+
+
+###########################################################################
+# EVENTS
+
+def_unit(['ct', 'count'], register=True)
+def_unit(['pix', 'pixel'], register=True)
+
+
+###########################################################################
+# MISCELLANEOUS
+
+def_unit(['chan'], register=True)
+def_unit(['bin'], register=True)
+def_unit(['vox', 'voxel'], register=True)
+def_unit(['bit'], register=True, prefixes=True)
+def_unit(['byte'], register=True, prefixes=True)
+def_unit(['adu'], register=True)
+def_unit(['beam'], register=True)
 
 
 ###########################################################################
