@@ -17,6 +17,8 @@ from .imperial import *
 from .equivalencies import *
 from .physical import *
 from .quantity import *
+from . import si
+from . import cgs
 
 # Create a special singleton for the dimensionless unit
 dimensionless = Unit(1)

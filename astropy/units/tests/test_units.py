@@ -147,7 +147,6 @@ def test_unknown_unit():
         warnings.simplefilter("always", u.UnitsWarning, append=True)
         u.Unit("FOO", parse_strict='warn')
 
-    print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
     assert 'FOO' in str(warning_lines[0].message)
 
@@ -158,7 +157,6 @@ def test_unknown_unit2():
         warnings.simplefilter("always", u.UnitsWarning, append=True)
         assert u.Unit("m/s/kg", parse_strict='warn').to_string() == 'm/s/kg'
 
-    print(dir(warning_lines[0]))
     assert warning_lines[0].category == u.UnitsWarning
     assert 'm/s/kg' in str(warning_lines[0].message)
 
@@ -225,3 +223,150 @@ def test_steradian():
     Issue #599
     """
     assert u.sr.is_equivalent(u.rad * u.rad)
+
+    results = u.sr.compose(units=u.cgs.bases)
+    assert results[0].bases[0] is u.rad
+
+
+def test_decompose_bases():
+    """
+    From issue #576
+    """
+    from .. import cgs
+    from ...constants import cgs as cgs_constants
+
+    d = cgs_constants.e.unit.decompose(bases=cgs.bases)
+    assert d._bases == [u.cm, u.g, u.s]
+    assert d._powers == [Fraction(3, 2), Fraction(1, 2), -1]
+    assert d._scale == 1.0
+
+
+def test_complex_compose():
+    complex = u.cd * u.sr * u.Wb
+    composed = complex.compose()
+
+    assert set(composed[0]._bases) == set([u.lm, u.Wb])
+
+
+def test_equiv_compose():
+    composed = u.m.compose(equivalencies=u.spectral())
+    assert u.Hz in composed
+
+
+def test_compose_roundtrip():
+    def _test_compose_roundtrip(unit):
+        composed_list = unit.decompose().compose()
+        found = False
+        for composed in composed_list:
+            if len(composed._bases):
+                if composed._bases[0] is unit:
+                    found = True
+                    break
+            elif len(unit._bases) == 0:
+                found = True
+                break
+        assert found
+
+    from ... import units as u
+
+    for val in u.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_roundtrip, val
+
+
+def test_compose_cgs_to_si():
+    def _test_compose_cgs_to_si(unit):
+        unit.to_system(u.si)
+
+    for val in u.cgs.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_cgs_to_si, val
+
+
+def test_compose_si_to_cgs():
+    def _test_compose_si_to_cgs(unit):
+        # Can't convert things with Ampere to CGS without more context
+        try:
+            unit.to_system(u.cgs)
+        except u.UnitsException:
+            if u.A in unit.decompose().bases:
+                pass
+            else:
+                raise
+
+    for val in u.si.__dict__.values():
+        if (isinstance(val, u.UnitBase) and
+            not isinstance(val, u.PrefixUnit)):
+            yield _test_compose_si_to_cgs, val
+
+
+def test_to_cgs():
+    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+
+
+def test_decompose_to_cgs():
+    from .. import cgs
+    assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm
+
+
+def test_compose_issue_579():
+    unit = u.kg * u.s ** 2 / u.m
+
+    result = unit.compose(units=[u.N, u.s, u.m])
+
+    assert len(result) == 1
+    assert result[0]._bases == [u.s, u.N, u.m]
+    assert result[0]._powers == [4, 1, -2]
+
+
+def test_self_compose():
+    unit = u.kg * u.s
+
+    assert len(unit.compose(units=[u.g, u.s])) == 1
+
+
+@raises(u.UnitsException)
+def test_compose_failed():
+    unit = u.kg
+
+    result = unit.compose(units=[u.N])
+
+
+def test_compose_fractional_powers():
+    x = (u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+
+    factored = x.compose()
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+    factored = x.compose(units=u.cgs)
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+    factored = x.compose(units=u.si)
+
+    for unit in factored:
+        assert x.decompose() == unit.decompose()
+
+
+def test_compose_best_unit_first():
+    results = u.l.compose()
+    assert len(results[0].bases) == 1
+    assert results[0].bases[0] is u.l
+
+    results = (u.s ** -1).compose()
+    assert results[0].bases[0] is u.Hz
+
+    results = (u.Ry.decompose()).compose()
+    assert results[0].bases[0] is u.Ry
+
+
+def test_compose_no_duplicates():
+    new = u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2
+    composed = new.compose(units=u.cgs.bases)
+    assert len(composed) == 1

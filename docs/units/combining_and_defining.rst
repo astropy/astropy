@@ -1,7 +1,7 @@
-Composing and defining units
+Combining and defining units
 ============================
 
-Units can be composed together using the regular Python numeric
+Units can be combined together using the regular Python numeric
 operators.  For example::
 
   >>> from astropy import units as u
@@ -27,16 +27,3 @@ Creating a new fundamental unit is simple::
   >>> death_by_laughing = u.def_unit('death_by_laughing', 10 * rofl)
   >>> rofl.to(titter, 1)
   240
-
-Reducing a unit to its irreducible parts
-----------------------------------------
-
-A unit can be decomposed into its irreducible parts using the
-`~astropy.units.core.UnitBase.decompose` method::
-
-  >>> u.Ry
-  Unit("Ry")
-  >>> u.Ry.decompose()
-  Unit("2.18e-18 m2 kg / (s2)")
-
-.. TODO: Add function and description to factor units into high-level pieces
