@@ -100,6 +100,7 @@ def test_read_missing_group_fileobj(tmpdir):
     with pytest.raises(IOError) as exc:
         Table.read(f, path='test/path/table')
     assert exc.value.args[0] == "Group test/path does not exist"
+    f.close()
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -131,6 +132,7 @@ def test_read_write_memory(tmpdir):
     t1.write(output_file, path='the_table')
     t2 = Table.read(output_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
+    output_file.close()
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -203,6 +205,8 @@ def test_read_fileobj(tmpdir):
     t2 = Table.read(input_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
+    input_file.close()
+
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_filobj_path(tmpdir):
@@ -219,6 +223,8 @@ def test_read_filobj_path(tmpdir):
     t2 = Table.read(input_file, path='path/to/data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
 
+    input_file.close()
+
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_filobj_group_path(tmpdir):
@@ -230,10 +236,12 @@ def test_read_filobj_group_path(tmpdir):
     t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
-    input_file = h5py.File(test_file, 'r')['path/to']
+    input_file = h5py.File(test_file, 'r')
 
-    t2 = Table.read(input_file, path='data/the_table')
+    t2 = Table.read(input_file['path/to'], path='data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
+
+    input_file.close()
 
 
 @pytest.mark.skipif('not HAS_H5PY')
