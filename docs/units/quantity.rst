@@ -12,18 +12,18 @@ Creating Quantity instances
 :math:`15\frac{m}{s}`
 
     >>> import astropy.units as u
-    >>> 15*u.m/u.s
+    >>> 15*u.m / u.s
     <Quantity 15 m / (s)>
 
 or :math:`1.14s^{-1}`
 
-    >>> 1.14/u.s
+    >>> 1.14 / u.s
     <Quantity 1.14 1 / (s)>
 
 You can also create instances using the `Quantity` constructor directly,
 by specifying a value and unit
 
-    >>> u.Quantity(15, u.m/u.s)
+    >>> u.Quantity(15, u.m / u.s)
     <Quantity 15 m / (s)>
 
 Arithmetic
@@ -56,8 +56,9 @@ resulting object **has units of the object on the left**
 Addition and subtraction is not supported between `Quantity` objects and
 basic numeric types
 
-    >>> 13.5*u.km + 19.412
-    TypeError: Object of type '<type 'float'>' cannot be added with a Quantity object. Addition is only supported between Quantity objects.
+    >>> 13.5 * u.km + 19.412
+    TypeError: Object of type '<type 'float'>' cannot be added with a Quantity
+    object. Addition is only supported between Quantity objects.
 
 Multiplication and Division
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

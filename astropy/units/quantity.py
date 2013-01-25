@@ -15,7 +15,7 @@ import numbers
 import numpy as np
 
 # AstroPy
-from .core import Unit, UnitBase, IrreducibleUnit, CompositeUnit
+from .core import Unit, UnitBase, CompositeUnit
 
 __all__ = ["Quantity"]
 
@@ -77,8 +77,10 @@ class Quantity(object):
         Parameters
         ----------
         unit : `~astropy.units.UnitBase` instance, str
-            An object that represents the unit to convert to. Must be an `~astropy.units.UnitBase`
-            object or a string parseable by the `units` package.
+            An object that represents the unit to convert to. Must be
+            an `~astropy.units.UnitBase` object or a string parseable
+            by the `units` package.
+
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
@@ -116,80 +118,21 @@ class Quantity(object):
 
     @property
     def si(self):
-        """ Returns a copy of the current `Quantity` instance with SI units. The value of the
-            resulting object will be scaled.
+        """ Returns a copy of the current `Quantity` instance with SI
+            units. The value of the resulting object will be scaled.
         """
-
-        from . import si as _si
-        si_unit_set = set([ss for ss in _si.__dict__.values() if isinstance(ss, IrreducibleUnit)])
-        si_quantity_value = self.value
-
-        if isinstance(self.unit, CompositeUnit):
-            si_quantity_bases = []
-            si_quantity_powers = []
-
-            for base_unit, power in zip(self.unit.bases, self.unit.powers):
-                is_si = True
-                for si_unit in si_unit_set:
-                    if base_unit.is_equivalent(si_unit) and base_unit != si_unit:
-                        scale = (base_unit / si_unit).dimensionless_constant() ** power
-                        si_quantity_value *= scale
-                        is_si = False
-                        si_quantity_bases.append(si_unit)
-                        si_quantity_powers.append(power)
-                        break
-
-                if is_si:
-                    si_quantity_bases.append(base_unit)
-                    si_quantity_powers.append(power)
-
-            return Quantity(si_quantity_value, CompositeUnit(1., si_quantity_bases, si_quantity_powers).simplify())
-        else:
-            for si_unit in si_unit_set:
-                if self.unit.is_equivalent(si_unit) and self.unit != si_unit:
-                    # Don't have to worry about power here because if it has a power, it's a CompositeUnit
-                    scale = (self.unit / si_unit).dimensionless_constant()
-                    si_quantity_value *= scale
-
-                    return Quantity(si_quantity_value, si_unit)
-
-            return self.copy()
+        from . import si
+        si_unit = self.unit.to_system(si)[0]
+        return Quantity(self.value * si_unit.scale, si_unit / si_unit.scale)
 
     @property
     def cgs(self):
-        """ Returns a copy of the current `Quantity` instance with CGS units. The value of the
-            resulting object will be scaled.
+        """ Returns a copy of the current `Quantity` instance with CGS
+            units. The value of the resulting object will be scaled.
         """
-
-
-        from . import cgs as _cgs
-        si_quantity = self.si
-        cgs_quantity_value = si_quantity.value
-
-        if isinstance(si_quantity.unit, CompositeUnit):
-            cgs_quantity_bases = []
-            cgs_quantity_powers = []
-
-            for base_unit, power in zip(si_quantity.unit.bases, si_quantity.unit.powers):
-                if base_unit in _cgs._cgs_bases.keys():
-                    scale = (base_unit / _cgs._cgs_bases[base_unit]).dimensionless_constant() ** power
-                    cgs_quantity_value *= scale
-                    cgs_quantity_bases.append(_cgs._cgs_bases[base_unit])
-                    cgs_quantity_powers.append(power)
-                else:
-                    cgs_quantity_bases.append(base_unit)
-                    cgs_quantity_powers.append(power)
-
-            return Quantity(cgs_quantity_value, CompositeUnit(1., cgs_quantity_bases, cgs_quantity_powers).simplify())
-        else:
-            if si_quantity.unit in _cgs._cgs_bases.keys():
-                # Don't have to worry about power here because if it has a power, it's a CompositeUnit
-                scale = (si_quantity.unit / _cgs._cgs_bases[si_quantity.unit]).dimensionless_constant()
-                cgs_quantity_value *= scale
-
-                return Quantity(cgs_quantity_value, _cgs._cgs_bases[si_quantity.unit])
-            else:
-                return Quantity(si_quantity.value, si_quantity.unit)
+        from . import cgs
+        cgs_unit = self.unit.to_system(cgs)[0]
+        return Quantity(self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale)
 
     @property
     def isscalar(self):
@@ -415,21 +358,29 @@ class Quantity(object):
 
         return u'${0} \; {1}$'.format(latex_value, latex_unit)
 
-    @property
-    def decomposed_unit(self):
+    def decomposed_unit(self, bases=[]):
         """
-        Generates a new `Quantity` with the units decomposed. Decomposed
-        units have only irreducible units in them (see
-        `astropy.units.UnitBase.decompose`).
+        Generates a new `Quantity` with the units
+        decomposed. Decomposed units have only irreducible units in
+        them (see `astropy.units.UnitBase.decompose`).
+
+        Parameters
+        ----------
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsException` if it's not possible
+            to do so.
 
         Returns
         -------
         newq : `~astropy.units.quantity.Quantity`
             A new object equal to this quantity with units decomposed.
         """
-        return self._decomposed_unit(False)
+        return self._decomposed_unit(False, bases=bases)
 
-    def _decomposed_unit(self, allowscaledunits=False):
+    def _decomposed_unit(self, allowscaledunits=False, bases=[]):
         """
         Generates a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
@@ -442,13 +393,20 @@ class Quantity(object):
             associated with it.  If False, any scaling in the unit will
             be subsumed into the value of the resulting `Quantity`
 
+        bases : sequence of UnitBase, optional
+            The bases to decompose into.  When not provided,
+            decomposes down to any irreducible units.  When provided,
+            the decomposed result will only contain the given units.
+            This will raises a `UnitsException` if it's not possible
+            to do so.
+
         Returns
         -------
         newq : `~astropy.units.quantity.Quantity`
             A new object equal to this quantity with units decomposed.
 
         """
-        newu = self.unit.decompose()
+        newu = self.unit.decompose(bases=bases)
         newval = self.value
         if not allowscaledunits and hasattr(newu, 'scale'):
             newval *= newu.scale
