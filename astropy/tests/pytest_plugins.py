@@ -32,11 +32,14 @@ def pytest_addoption(parser):
 # multi-threaded, but that is worth noting.
 
 SUPPORTS_OPEN_FILE_DETECTION = (
-    sys.platform in ('linux2', 'darwin'))
+    sys.platform in ('linux', 'linux2', 'darwin'))
 
 
 def _get_open_file_list():
+    import imp
     import subprocess
+    fsencoding = sys.getfilesystemencoding()
+
     output = subprocess.check_output(
         ['lsof -F0 -n -p {0}'.format(os.getpid())],
         shell=True)
@@ -46,11 +49,19 @@ def _get_open_file_list():
         mapping = {}
         for column in columns:
             if len(column) >= 2:
-                mapping[column[0]] = column[1:]
+                mapping[column[0:1]] = column[1:]
+
         if (mapping.get(b'f') and
-            mapping.get(b'a', ' ') != ' ' and
-            mapping.get(b't') == 'REG'):
-            files.append(mapping[b'n'])
+            mapping.get(b'a', b' ') != b' ' and
+            mapping.get(b't') == b'REG'):
+            # Ignore extension modules -- they may be imported by a
+            # test but are never again closed by the runtime.  That's
+            # ok.
+            for suffix, mode, filetype in imp.get_suffixes():
+                if mapping[b'n'].decode(fsencoding).endswith(suffix):
+                    break
+            else:
+                files.append(mapping[b'n'])
 
     return set(files)
 
