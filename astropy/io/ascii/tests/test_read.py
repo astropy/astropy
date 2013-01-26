@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import re
-import glob
-import math
 
 import numpy as np
 
@@ -45,6 +43,30 @@ def test_guess_all_files():
             assert_equal(table.dtype.names, testfile['cols'])
             for colname in table.dtype.names:
                 assert_equal(len(table[colname]), testfile['nrows'])
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_daophot_indef():
+    """Test that INDEF is correctly interpreted as a missing value"""
+    table = asciitable.read('t/daophot2.dat', Reader=asciitable.Daophot)
+    for colname in table.colnames:
+        # Three columns have all INDEF values and are masked
+        mask_value = colname in ('OTIME', 'MAG', 'MERR', 'XAIRMASS')
+        assert np.all(table[colname].mask == mask_value)
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_daophot_types():
+    """
+    Test specific data types which are different from what would be
+    inferred automatically based only data values.  DAOphot reader uses
+    the header information to assign types.
+    """
+    table = asciitable.read('t/daophot2.dat', Reader=asciitable.Daophot)
+    assert table['LID'].dtype.char in 'fd'  # float or double
+    assert table['MAG'].dtype.char in 'fd'  # even without any data values
+    assert table['PIER'].dtype.char in 'US'  # string (data values are consistent with int)
+    assert table['ID'].dtype.char in 'il'  # int or long
 
 
 def test_daophot_header_keywords():
@@ -361,43 +383,6 @@ def get_testfiles(name=None):
                   'PIER',
                   'PERROR'),
          'name': 't/daophot.dat',
-         'nrows': 2,
-         'requires_numpy': True,
-         'opts': {'Reader': asciitable.Daophot}},
-        {'cols': ('IMAGE',
-                  'XINIT',
-                  'YINIT',
-                  'ID',
-                  'COORDS',
-                  'LID',
-                  'XCENTER',
-                  'YCENTER',
-                  'XSHIFT',
-                  'YSHIFT',
-                  'XERR',
-                  'YERR',
-                  'CIER',
-                  'CERROR',
-                  'MSKY',
-                  'STDEV',
-                  'SSKEW',
-                  'NSKY',
-                  'NSREJ',
-                  'SIER',
-                  'SERROR',
-                  'ITIME',
-                  'XAIRMASS',
-                  'IFILTER',
-                  'OTIME',
-                  'RAPERT',
-                  'SUM',
-                  'AREA',
-                  'FLUX',
-                  'MAG',
-                  'MERR',
-                  'PIER',
-                  'PERROR'),
-         'name': 't/daophot2.dat',
          'nrows': 2,
          'requires_numpy': True,
          'opts': {'Reader': asciitable.Daophot}},

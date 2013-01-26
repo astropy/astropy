@@ -1,6 +1,6 @@
 #N IMAGE               XINIT     YINIT     ID    COORDS                 LID    \
 #U imagename           pixels    pixels    ##    filename               ##     \
-#F %-23s               %-10.3f   %-10.3f   %-6d  %-23s                  %-6d    
+#F %-23s               %-10.3f   %-10.3f   %-6d  %-23s                  %-6.0f  
 #
 #N XCENTER    YCENTER    XSHIFT  YSHIFT  XERR    YERR            CIER CERROR   \
 #U pixels     pixels     pixels  pixels  pixels  pixels          ##   cerrors  \
@@ -16,7 +16,7 @@
 #
 #N RAPERT   SUM           AREA       FLUX          MAG    MERR   PIER PERROR   \
 #U scale    counts        pixels     counts        mag    mag    ##   perrors  \
-#F %-12.2f  %-14.7g       %-11.7g    %-14.7g       %-7.3f %-6.3f %-5d %-9s      
+#F %-12.2f  %-14.7g       %-11.7g    %-14.7g       %-7.3f %-6.3f %-5s %-9s      
 #
 n8q624e8q12_cal.fits[1]76.102    2.280     1     test.stars             1      \
    76.150     2.182      0.048   -0.098  0.016   0.014          108  BadPixels \
