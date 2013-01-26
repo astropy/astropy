@@ -38,9 +38,11 @@ class NDData(object):
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values must be ``False`` where the
-        data is *valid* and ``True`` when it is not (as for Numpy masked
-        arrays).
+        matching that of the data. The values must be ``False`` where
+        the data is *valid* and ``True`` when it is not (like Numpy
+        masked arrays). If `data` is a numpy masked array, providing
+        `mask` here will causes the mask from the masked array to be
+        ignored.
 
     flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
@@ -125,11 +127,18 @@ class NDData(object):
 
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
-
         else:
             if hasattr(data, 'mask'):
                 self.data = np.array(data.data, subok=True)
-                self.mask = data.mask
+
+                if mask is not None:
+                    self.mask = mask
+                    log.info("NDData was created with a masked array, and a "
+                        "mask was explictly provided to NDData. The explicitly "
+                        "passed-in mask will be used and the masked array's "
+                        "mask will be ignored.")
+                else:
+                    self.mask = data.mask
             else:
                 self.data = np.array(data, subok=True)
                 self.mask = mask
