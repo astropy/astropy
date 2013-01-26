@@ -50,13 +50,13 @@ class Daophot(core.BaseReader):
       #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER    \\
       #U ##    pixels    pixels    magnitudes  magnitudes    counts         ##       \\
       #F %-9d  %-10.3f   %-10.3f   %-12.3f     %-14.3f       %-15.7g        %-6d     
-      #
+      #                                                                              
       #N         SHARPNESS   CHI         PIER  PERROR                                \\
       #U         ##          ##          ##    perrors                               \\
-      #F         %-23.3f     %-12.3f     %-6d  %-13s
-      #
-      14       138.538   256.405   15.461      0.003         34.85955       4        \\
-      -0.032      0.802       0     No_error
+      #F         %-23.3f     %-12.3f     %-6d  %-13s                                 
+      #                                                                              
+      14       138.538     INDEF   15.461      0.003         34.85955       4        \\
+                  -0.032      0.802       0     No_error                             
 
     The keywords defined in the #K records are available via output table
     ``meta`` attribute::
@@ -70,6 +70,9 @@ class Daophot(core.BaseReader):
       for colname in data.colnames:
            col = data[colname]
            print colname, col.units, col.format
+
+    Any column values of INDEF are interpreted as a missing value and will be
+    masked out in the resultant table.
     """
 
     def __init__(self):
@@ -187,10 +190,19 @@ class DaophotHeader(core.BaseHeader):
 
         # Set column start and end positions.  Also re-index the cols because
         # the FixedWidthSplitter does NOT return the ignored cols (as is the
-        # case for typical delimiter-based splitters)
+        # case for typical delimiter-based splitters).
         for i, col in enumerate(self.cols):
             col.start = starts[col.index]
             col.end = ends[col.index]
             col.index = i
-        
+            if hasattr(col, 'format'):
+                if any(x in col.format for x in 'fg'):
+                    col.type = core.FloatType
+                elif 'd' in col.format:
+                    col.type = core.IntType
+                elif 's' in col.format:
+                    col.type = core.StrType
+
         self.n_data_cols = len(self.cols)
+        # INDEF is the missing value marker
+        self.data.fill_values.append(('INDEF', '0'))
