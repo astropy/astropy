@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from .._constants import si as _si
 from . import si
 from . import cgs
+from . import astrophys
 
 __all__ = ['spectral', 'spectral_density']
 
@@ -64,6 +65,14 @@ def spectral_density(sunit, sfactor):
     def iconverter_fla_lafla(x):
         return x / sunit.to(si.AA, sfactor, spectral())
 
+    # Photons
+
+    def converter_photons_to_ergs(x):
+        return x * _si.h * sunit.to(si.Hz, sfactor, spectral())
+
+    def converter_ergs_to_photons(x):
+        return x / _si.h / sunit.to(si.Hz, sfactor, spectral())
+
     return [
         (fla, fnu, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
@@ -71,4 +80,5 @@ def spectral_density(sunit, sfactor):
         (lla, lnu, converter, iconverter),
         (lnu, nulnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         (lla, lalla, converter_fla_lafla, iconverter_fla_lafla),
+        (astrophys.photon, cgs.erg, converter_photons_to_ergs, converter_ergs_to_photons),
         ]
