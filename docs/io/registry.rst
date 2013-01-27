@@ -3,6 +3,14 @@
 I/O Registry
 ============
 
+.. note:: The I/O registry is only meant to be used directly by users who want
+          to define their own custom readers/writers. Users who want to find
+          out more about what formats are supported by
+          :class:`~astropy.table.table.Table` by default should see
+          :ref:`table_io` (no formats are currently defined for
+          :class:`~astropy.nddata.nddata.NDData`, but this will be added in
+          future).
+
 The I/O registry is a sub-module used to define the readers/writers available
 for the :class:`~astropy.table.table.Table` and
 :class:`~astropy.nddata.nddata.NDData` classes.
@@ -18,7 +26,7 @@ simplistic FITS reader which just reads the data as a structured array::
         data = fits.open(filename)[hdu].data
         return Table(data)
 
-and then register it with astropy.table::
+and then register it with `astropy.table`::
 
     from astropy.table import io_registry
     io_registry.register_reader('fits', fits_reader)
