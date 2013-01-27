@@ -1,19 +1,26 @@
 .. _io_registry:
 
-I/O Registry
-============
+************************************
+I/O Registry (`astropy.io.registry`)
+************************************
 
 .. note:: The I/O registry is only meant to be used directly by users who want
           to define their own custom readers/writers. Users who want to find
-          out more about what formats are supported by
+          out more about what built-in formats are supported by
           :class:`~astropy.table.table.Table` by default should see
-          :ref:`table_io` (no formats are currently defined for
+          :ref:`table_io`. No built-in formats are currently defined for
           :class:`~astropy.nddata.nddata.NDData`, but this will be added in
           future).
+
+Introduction
+============
 
 The I/O registry is a sub-module used to define the readers/writers available
 for the :class:`~astropy.table.table.Table` and
 :class:`~astropy.nddata.nddata.NDData` classes.
+
+Using `io.registry`
+===================
 
 The following example demonstrates how to create a reader for the
 :class:`~astropy.table.table.Table` class. First, we can create a highly
@@ -21,19 +28,18 @@ simplistic FITS reader which just reads the data as a structured array::
 
     from astropy.table import Table
 
-    def fits_reader(filename, hdu=1):
+    def fits_table_reader(filename, hdu=1):
         from astropy.io import fits
         data = fits.open(filename)[hdu].data
         return Table(data)
 
-and then register it with `astropy.table`::
+and then register it::
 
-    from astropy.table import io_registry
-    io_registry.register_reader('fits', fits_reader)
+    from astropy.io import registry
+    registry.register_reader('fits', Table, fits_table_reader)
 
 Reader functions can take any arguments except ``format`` (since this
-is reserved for the ``Table.read`` method) and should return a
-``Table`` object.
+is reserved for :func:`~astropy.io.registry.read`) and should return an instance of the class specified as the second argument of ``register_reader`` (:class:`~astropy.table.table.Table` in the above case.)
 
 We can then read in a FITS table with::
 
@@ -59,9 +65,9 @@ boolean indicating whether the input matches that expected for the format::
           particular, the first argument may not be a filename or file
           object, so it should not assume that this is the case.
 
-We then register this identifier function with ``astropy.table``::
+We then register this identifier function::
 
-    io_registry.register_identifier('fits', fits_identify)
+    registry.register_identifier('fits', Table, fits_identify)
 
 And we can then do::
 
@@ -74,14 +80,14 @@ keyword argument.
 
 Similarly, it is possible to create custom writers. To go with our simplistic FITS reader above, we can write a simplistic FITS writer::
 
-   def fits_writer(table, filename, clobber=False):
+   def fits_table_writer(table, filename, clobber=False):
        import numpy as np
        from astropy.io import fits
        fits.writeto(filename, np.array(table), clobber=clobber)
 
 We then register the writer::
 
-   io_registry.register_writer('fits', fits_writer)
+   io_registry.register_writer('fits', Table, fits_table_writer)
 
 And we can then write the file out to a FITS file::
 
