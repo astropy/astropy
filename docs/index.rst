@@ -46,6 +46,7 @@ User Documentation
    stats/index
    utils/index
    configs/index
+   io/registry
    logging
    stability
    whatsnew/index
