@@ -97,6 +97,7 @@ class NDData(object):
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
         >>> plt.imshow(x)
+
     """
 
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
