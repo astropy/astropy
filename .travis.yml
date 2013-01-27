@@ -31,8 +31,9 @@ before_install:
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" --use-mirrors
-   - if $OPTIONAL; then pip -q install h5py scipy --use-mirrors; fi
-   - if ! $ONLY_EGG_INFO; then pip -q install Cython --use-mirrors; fi
+   - if $OPTIONAL; then pip install scipy --use-mirrors; fi
+   - if $OPTIONAL; then pip install h5py --use-mirrors; fi
+   - if ! $ONLY_EGG_INFO; then pip install Cython --use-mirrors; fi
 script:
    - if $ONLY_EGG_INFO; then python setup.py egg_info; fi
    - if ! $ONLY_EGG_INFO; then python setup.py test; fi
