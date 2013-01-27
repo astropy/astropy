@@ -75,8 +75,7 @@ def test_read_invalid_path(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_missing_group(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.close()
+    h5py.File(test_file, 'w').close()  # create empty file
     with pytest.raises(IOError) as exc:
         Table.read(test_file, path='test/path/table')
     assert exc.value.args[0] == "Group test/path does not exist"
@@ -85,9 +84,8 @@ def test_read_missing_group(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_missing_table(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.create_group('test').create_group('path')
-    f.close()
+    with h5py.File(test_file, 'w') as f:
+        f.create_group('test').create_group('path')
     with pytest.raises(IOError) as exc:
         Table.read(test_file, path='test/path/table')
     assert exc.value.args[0] == "Table test/path/table does not exist"
@@ -96,11 +94,10 @@ def test_read_missing_table(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_missing_group_fileobj(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    with pytest.raises(IOError) as exc:
-        Table.read(f, path='test/path/table')
-    assert exc.value.args[0] == "Group test/path does not exist"
-    f.close()
+    with h5py.File(test_file, 'w') as f:
+        with pytest.raises(IOError) as exc:
+            Table.read(f, path='test/path/table')
+        assert exc.value.args[0] == "Group test/path does not exist"
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -126,20 +123,18 @@ def test_read_write_existing_table(tmpdir):
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_memory(tmpdir):
-    output_file = h5py.File('test', driver='core', backing_store=False)
-    t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(output_file, path='the_table')
-    t2 = Table.read(output_file, path='the_table')
-    assert np.all(t2['a'] == [1, 2, 3])
-    output_file.close()
+    with h5py.File('test', driver='core', backing_store=False) as output_file:
+        t1 = Table()
+        t1.add_column(Column('a', [1, 2, 3]))
+        t1.write(output_file, path='the_table')
+        t2 = Table.read(output_file, path='the_table')
+        assert np.all(t2['a'] == [1, 2, 3])
 
 
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_existing(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.close()
+    h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
     with pytest.raises(IOError) as exc:
@@ -150,8 +145,7 @@ def test_read_write_existing(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_existing_overwrite(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.close()
+    h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
     t1.write(test_file, path='the_table', overwrite=True)
@@ -162,8 +156,7 @@ def test_read_write_existing_overwrite(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_existing_append(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.close()
+    h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
     t1.write(test_file, path='the_table_1', append=True)
@@ -177,9 +170,8 @@ def test_read_write_existing_append(tmpdir):
 @pytest.mark.skipif('not HAS_H5PY')
 def test_read_write_existing_append_groups(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
-    f = h5py.File(test_file, 'w')
-    f.create_group('test_1')
-    f.close()
+    with h5py.File(test_file, 'w') as f:
+        f.create_group('test_1')
     t1 = Table()
     t1.add_column(Column('a', [1, 2, 3]))
     t1.write(test_file, path='test_1/the_table_1', append=True)
@@ -200,12 +192,9 @@ def test_read_fileobj(tmpdir):
     t1.write(test_file, path='the_table')
 
     import h5py
-    input_file = h5py.File(test_file, 'r')
-
-    t2 = Table.read(input_file, path='the_table')
-    assert np.all(t2['a'] == [1, 2, 3])
-
-    input_file.close()
+    with h5py.File(test_file, 'r') as input_file:
+        t2 = Table.read(input_file, path='the_table')
+        assert np.all(t2['a'] == [1, 2, 3])
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -218,12 +207,9 @@ def test_read_filobj_path(tmpdir):
     t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
-    input_file = h5py.File(test_file, 'r')
-
-    t2 = Table.read(input_file, path='path/to/data/the_table')
-    assert np.all(t2['a'] == [1, 2, 3])
-
-    input_file.close()
+    with h5py.File(test_file, 'r') as input_file:
+        t2 = Table.read(input_file, path='path/to/data/the_table')
+        assert np.all(t2['a'] == [1, 2, 3])
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -236,12 +222,9 @@ def test_read_filobj_group_path(tmpdir):
     t1.write(test_file, path='path/to/data/the_table')
 
     import h5py
-    input_file = h5py.File(test_file, 'r')
-
-    t2 = Table.read(input_file['path/to'], path='data/the_table')
-    assert np.all(t2['a'] == [1, 2, 3])
-
-    input_file.close()
+    with h5py.File(test_file, 'r') as input_file:
+        t2 = Table.read(input_file['path/to'], path='data/the_table')
+        assert np.all(t2['a'] == [1, 2, 3])
 
 
 @pytest.mark.skipif('not HAS_H5PY')
@@ -250,12 +233,10 @@ def test_write_fileobj(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     import h5py
-    output_file = h5py.File(test_file, 'w')
-
-    t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(output_file, path='the_table')
-    output_file.close()
+    with h5py.File(test_file, 'w') as output_file:
+        t1 = Table()
+        t1.add_column(Column('a', [1, 2, 3]))
+        t1.write(output_file, path='the_table')
 
     t2 = Table.read(test_file, path='the_table')
     assert np.all(t2['a'] == [1, 2, 3])
@@ -267,12 +248,10 @@ def test_write_filobj_group(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     import h5py
-    output_file = h5py.File(test_file, 'w')
-
-    t1 = Table()
-    t1.add_column(Column('a', [1, 2, 3]))
-    t1.write(output_file, path='path/to/data/the_table')
-    output_file.close()
+    with h5py.File(test_file, 'w') as output_file:
+        t1 = Table()
+        t1.add_column(Column('a', [1, 2, 3]))
+        t1.write(output_file, path='path/to/data/the_table')
 
     t2 = Table.read(test_file, path='path/to/data/the_table')
     assert np.all(t2['a'] == [1, 2, 3])
