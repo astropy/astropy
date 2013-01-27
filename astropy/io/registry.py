@@ -137,7 +137,9 @@ def read(cls, *args, **kwargs):
         if len(valid_formats) == 0:
             raise Exception("Format could not be identified")
         elif len(valid_formats) > 1:
-            raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
+            raise Exception(
+                "Format is ambiguous - options are: {0:s}".format(
+                    ', '.join(sorted(valid_formats))))
         else:
             format = valid_formats[0]
 
@@ -167,7 +169,9 @@ def write(data, *args, **kwargs):
         if len(valid_formats) == 0:
             raise Exception("Format could not be identified")
         elif len(valid_formats) > 1:
-            raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
+            raise Exception(
+                "Format is ambiguous - options are: {0:s}".format(
+                    ', '.join(sorted(valid_formats))))
         else:
             format = valid_formats[0]
 
