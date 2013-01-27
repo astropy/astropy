@@ -104,16 +104,7 @@ def test_spectral3():
     assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
 
 
-def test_spectraldensity():
-
-    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
-    assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-
-    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
-    assert_allclose(b, 1)
-
-
-def test_spectraldensity2():
+def test_spectraldensity1():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
@@ -121,7 +112,7 @@ def test_spectraldensity2():
     assert_allclose(a, 4.086160166177361e-12)
 
 
-def test_spectraldensity3():
+def test_spectraldensity2():
 
     # Define F_nu in Jy
     f_nu = u.Jy

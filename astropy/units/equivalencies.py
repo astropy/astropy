@@ -58,10 +58,7 @@ def spectral_density(sunit, sfactor):
         return x / sunit.to(si.AA, sfactor, spectral())
 
     return [
-        (si.AA, fnu, converter, iconverter),
         (fla, fnu, converter, iconverter),
-        (si.AA, si.Hz, converter, iconverter),
-        (fla, si.Hz, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
         ]
