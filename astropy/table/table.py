@@ -13,7 +13,7 @@ from .structhelper import _drop_fields
 from .pprint import _pformat_table, _pformat_col, _pformat_col_iter, _more_tabcol
 from ..utils.console import color_print
 from ..config import ConfigurationItem
-from  ..io.registry import DataIO
+from  ..io import registry as io_registry
 
 # Python 2 and 3 source compatibility
 try:
@@ -723,7 +723,7 @@ class Row(object):
             self.index, self.data, self.dtype)
 
 
-class Table(DataIO):
+class Table(object):
     """A class to represent tables of heterogeneous data.
 
     `Table` provides a class for heterogeneous tabular data, making use of a
@@ -1537,3 +1537,6 @@ class Table(DataIO):
         in place and there are no function arguments.
         '''
         self._data[:] = self._data[::-1].copy()
+
+    read = classmethod(io_registry.read)
+    write = io_registry.write

@@ -27,9 +27,6 @@ def register_reader(data_format, data_class, function, force=False):
         Whether to override any existing function if already present.
     '''
 
-    if not issubclass(data_class, DataIO):
-        raise Exception("data_class should be a sub-class of DataIO")
-
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function
     else:
@@ -52,9 +49,6 @@ def register_writer(data_format, data_class, function, force=False):
     force : bool
         Whether to override any existing function if already present.
     '''
-
-    if not issubclass(data_class, DataIO):
-        raise Exception("data_class should be a sub-class of DataIO")
 
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function
@@ -93,9 +87,6 @@ def register_identifier(data_format, data_class, identifier, force=False):
     >>> register_identifier('ipac', lambda args, kwargs: isinstance(args[0], basestring) and args[0].endswith('.tbl'))
     '''
 
-    if not issubclass(data_class, DataIO):
-        raise Exception("data_class should be a sub-class of DataIO")
-
     if not (data_format, data_class) in _identifiers or force:
         _identifiers[(data_format, data_class)] = identifier
     else:
@@ -127,60 +118,58 @@ def get_writer(data_format, data_class):
         raise Exception("No writer defined for format '{0}' and class '{1}'".format(data_format, data_class.__name__))
 
 
-class DataIO(object):
+def read(cls, *args, **kwargs):
+    '''
+    Read in data
 
-    @classmethod
-    def read(cls, *args, **kwargs):
-        '''
-        Read in data
+    The arguments passed to this method depend on the format
+    '''
 
-        The arguments passed to this method depend on the format
-        '''
+    if 'format' in kwargs:
+        format = kwargs.pop('format')
+    else:
+        format = None
 
-        if 'format' in kwargs:
-            format = kwargs.pop('format')
+    if format is None:
+
+        valid_formats = identify_format('read', cls, args, kwargs)
+
+        if len(valid_formats) == 0:
+            raise Exception("Format could not be identified")
+        elif len(valid_formats) > 1:
+            raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
         else:
-            format = None
+            format = valid_formats[0]
 
-        if format is None:
+    reader = get_reader(format, cls)
+    table = reader(*args, **kwargs)
+    if not isinstance(table, cls):
+        raise TypeError("reader should return a {0:s} instance".format(cls.__name__))
+    return table
 
-            valid_formats = identify_format('read', cls, args, kwargs)
 
-            if len(valid_formats) == 0:
-                raise Exception("Format could not be identified")
-            elif len(valid_formats) > 1:
-                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
-            else:
-                format = valid_formats[0]
+def write(data, *args, **kwargs):
+    '''
+    Write out data
 
-        reader = get_reader(format, cls)
-        table = reader(*args, **kwargs)
-        if not isinstance(table, cls):
-            raise TypeError("reader should return a {0:s} instance".format(cls.__name__))
-        return table
+    The arguments passed to this method depend on the format
+    '''
 
-    def write(self, *args, **kwargs):
-        '''
-        Write out data
+    if 'format' in kwargs:
+        format = kwargs.pop('format')
+    else:
+        format = None
 
-        The arguments passed to this method depend on the format
-        '''
+    if format is None:
 
-        if 'format' in kwargs:
-            format = kwargs.pop('format')
+        valid_formats = identify_format('write', data.__class__, args, kwargs)
+
+        if len(valid_formats) == 0:
+            raise Exception("Format could not be identified")
+        elif len(valid_formats) > 1:
+            raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
         else:
-            format = None
+            format = valid_formats[0]
 
-        if format is None:
-
-            valid_formats = identify_format('write', self.__class__, args, kwargs)
-
-            if len(valid_formats) == 0:
-                raise Exception("Format could not be identified")
-            elif len(valid_formats) > 1:
-                raise Exception("Format is ambiguous - options are: {0:s}".format(', '.join(valid_formats)))
-            else:
-                format = valid_formats[0]
-
-        writer = get_writer(format, self.__class__)
-        writer(self, *args, **kwargs)
+    writer = get_writer(format, data.__class__)
+    writer(data, *args, **kwargs)

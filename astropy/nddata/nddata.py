@@ -12,7 +12,7 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
-from ..io.registry import DataIO
+from  ..io import registry as io_registry
 from ..config import ConfigurationItem
 
 WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
@@ -23,7 +23,7 @@ WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
     )
 
 
-class NDData(DataIO):
+class NDData(object):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of additional
@@ -456,3 +456,6 @@ class NDData(DataIO):
         result.units = unit
 
         return result
+
+    read = classmethod(io_registry.read)
+    write = io_registry.write
