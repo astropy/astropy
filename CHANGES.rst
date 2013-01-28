@@ -14,6 +14,9 @@ New Features
     Once this paper is accepted, this should be made the default, but for
     now WMAP7 remains the default. [#629]
 
+- Generalized I/O infrastructure so that ``astropy.nddata`` can also have
+  custom readers/writers [#659]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

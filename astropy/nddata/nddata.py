@@ -12,6 +12,7 @@ from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
 from ..io import fits
+from  ..io import registry as io_registry
 from ..config import ConfigurationItem
 
 WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
@@ -455,3 +456,6 @@ class NDData(object):
         result.units = unit
 
         return result
+
+    read = classmethod(io_registry.read)
+    write = io_registry.write
