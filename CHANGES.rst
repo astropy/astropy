@@ -35,7 +35,7 @@ Bug Fixes
 - Added a workaround for a bug in Sphinx that could occur when using the
   ``:tocdepth:`` directive. [#595]
 
-- Several minor VOTable fixes [#596]
+- Minor VOTable fixes [#596]
 
 - Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
   ``VersionConflict`` errors when an older version of distribute is already
@@ -44,8 +44,12 @@ Bug Fixes
 - Changed use of ``log.warn`` in the logging module to ``log.warning`` since
   the former is deprecated. [#624]
 
-- Fixed a failure in ``astropy.io.ascii`` to read DAOphot files with empty
-  keyword values [#666].
+- ``astropy.io.ascii``
+
+  - Fixed crash when pprinting a row with INDEF values. [#511]
+
+  - Fixed failure when reading DAOphot files with empty keyword values [#666].
+
 
 0.2b1 (2012-12-24)
 ------------------
