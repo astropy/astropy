@@ -4,6 +4,7 @@ Handles a "generic" string format for units
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import sys
 
 from .base import Base
 from . import utils
@@ -262,7 +263,7 @@ class Generic(Base):
             else:
                 if not isinstance(power, Fraction):
                     if power % 1.0 != 0.0:
-                        power = Fraction(power).limit_denominator(10)
+                        power = Fraction.from_float(power).limit_denominator(10)
                         if power.denominator == 1:
                             power = int(power.numerator)
                     else:
