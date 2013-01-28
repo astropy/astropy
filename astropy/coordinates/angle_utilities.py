@@ -460,7 +460,10 @@ def hours_to_string(h, precision=5, pad=False, sep=('h', 'm', 's')):
     """
 
     if pad:
-        pad = 2
+        if h < 0:
+            pad = 3
+        else:
+            pad = 2
     else:
         pad = 0
 
@@ -491,7 +494,10 @@ def degrees_to_string(d, precision=5, pad=False, sep=':'):
     """
 
     if pad:
-        pad = 2
+        if d < 0:
+            pad = 3
+        else:
+            pad = 2
     else:
         pad = 0
 

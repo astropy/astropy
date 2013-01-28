@@ -361,9 +361,12 @@ def test_angle_formatting():
     # check negative angles
 
     angle = Angle(-1.23456789, unit=u.degree)
+    angle2 = Angle(-1.23456789, unit=u.hour)
 
     assert angle.format() == '-1d14m04.44440s'
+    assert angle.format(pad=True) == '-01d14m04.44440s'
     assert angle.format(unit=u.hour) == '-0h04m56.29629s'
+    assert angle2.format(unit=u.hour, pad=True) == '-01h14m04.44440s'
     assert angle.format(unit=u.radian, decimal=True) == '-0.021547'
 
 def test_angle_format_roundtripping():
