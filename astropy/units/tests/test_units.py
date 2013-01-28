@@ -157,6 +157,9 @@ def test_spectraldensity2():
     # Convert to ergs / s at 10 microns
     assert_allclose(f_lambda.to(u.erg / u.s, 1., equivalencies=u.spectral_density(u.micron, 10.)), 10.)
 
+    # Convert ergs / s to ph / s
+    assert_allclose((u.erg / u.s).to(u.ph / u.s, equivalencies=u.spectral_density(u.micron, 10.)), 5.0341170081942266e+19)
+
 
 def test_units_conversion():
     assert_allclose(u.kpc.to(u.Mpc), 0.001)
