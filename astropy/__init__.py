@@ -111,7 +111,7 @@ if not _ASTROPY_SETUP_:
     config_dir = e = None
 
     if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
-        config_dir = os.path.dirname(config.__file__)
+        config_dir = os.path.dirname(__file__)
         try:
             config.configuration.update_default_config(__package__, config_dir)
         except config.configuration.ConfigurationDefaultMissingError as e:
