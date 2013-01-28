@@ -1,6 +1,10 @@
 0.3 (unreleased)
 ----------------
 
+
+0.2 (unreleased)
+----------------
+
 - A configuration file with all options set to their defaults is now generated 
   when astropy is installed.  This file will be pulled in as the users' 
   astropy configuration file the first time they ``import astropy``.  [#498] 
@@ -10,19 +14,6 @@
   - Add a WMAP9 object using the 9-year WMAP parameters from Hinshaw et al.
     Once this paper is accepted, this should be made the default, but for
     now WMAP7 remains the default. [#629]
-
-- ``astropy.coordinates``
-
-  - Add name resolver that uses sesame to get coordinates from an object
-    name. [#556]
-
-  - Added an example of subclassing `SphericalCoordinatesBase` based on
-    Sgr dSph-centric coordinate system. [#645] 
-
-
-0.2 (unreleased)
-----------------
-
 
 0.2b1 (2012-12-24)
 ------------------
