@@ -1,7 +1,7 @@
 {% extends "basic/layout.html" %}
 
 {# Explicitly include the css file because it is overridden by conf settings #}
-{% set css_files = ['_static/bootstrap-astropy.css'] + css_files %} 
+{% set css_files = ['_static/bootstrap-astropy.css'] + css_files %}
 
 {# Collapsible sidebar script from default/layout.html in Sphinx #}
 {% set script_files = script_files + ['_static/sidebar.js'] %}
@@ -64,6 +64,9 @@
 {%- block footer %}
 <footer class="footer">
   <p class="pull-right">
+    {%- if edit_on_github %}
+    <a href="{{ edit_on_github }}">{{ edit_on_github_page_message }}</a> &nbsp;
+    {%- endif %}
     {%- if show_source and has_source and sourcename %}
     <a href="{{ pathto('_sources/' + sourcename, true)|e }}"
        rel="nofollow">{{ _('Page Source') }}</a>
