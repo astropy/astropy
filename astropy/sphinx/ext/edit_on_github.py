@@ -71,6 +71,12 @@ def import_object(modname, name):
         return None
 
 
+def get_url_base(app):
+    return  'http://github.com/%s/tree/%s/' % (
+        app.config.edit_on_github_project,
+        app.config.edit_on_github_branch)
+
+
 def doctree_read(app, doctree):
     # Get the configuration parameters
     if app.config.edit_on_github_project == 'REQUIRED':
@@ -79,32 +85,9 @@ def doctree_read(app, doctree):
             "provided in the conf.py")
 
     source_root = app.config.edit_on_github_source_root
-    if source_root != '' and not source_root.endswith('/'):
-        source_root += '/'
-    doc_root = app.config.edit_on_github_doc_root
-    if doc_root != '' and not doc_root.endswith('/'):
-        doc_root += '/'
-    url = 'http://github.com/%s/tree/%s/' % (
-        app.config.edit_on_github_project,
-        app.config.edit_on_github_branch)
+    url = get_url_base(app)
 
     docstring_message = app.config.edit_on_github_docstring_message
-    page_message = app.config.edit_on_github_page_message
-
-    # Handle the "edit this page" link
-    doc_path = os.path.relpath(doctree.get('source'), app.builder.srcdir)
-    if not re.match(app.config.edit_on_github_skip_regex, doc_path):
-        path = url + doc_root + doc_path
-        section = nodes.section()
-        para = nodes.paragraph()
-        section += para
-        onlynode = addnodes.only(expr='html')
-        para += onlynode
-        onlynode += nodes.reference(
-            reftitle=app.config.edit_on_github_help_message, refuri=path)
-        onlynode[0] += nodes.inline(
-            '', page_message, classes=['edit-on-github'])
-        doctree += section
 
     # Handle the docstring-editing links
     for objnode in doctree.traverse(addnodes.desc):
@@ -145,6 +128,23 @@ def doctree_read(app, doctree):
                 signode += onlynode
 
 
+def html_page_context(app, pagename, templatename, context, doctree):
+    if (templatename == 'page.html' and
+        not re.match(app.config.edit_on_github_skip_regex, pagename)):
+
+        doc_root = app.config.edit_on_github_doc_root
+        if doc_root != '' and not doc_root.endswith('/'):
+            doc_root += '/'
+        doc_path = os.path.relpath(doctree.get('source'), app.builder.srcdir)
+        url = get_url_base(app)
+
+        page_message = app.config.edit_on_github_page_message
+
+        context['edit_on_github'] = url + doc_root + doc_path
+        context['edit_on_github_page_message'] = (
+            app.config.edit_on_github_page_message)
+
+
 def setup(app):
     app.add_config_value('edit_on_github_project', 'REQUIRED', True)
     app.add_config_value('edit_on_github_branch', 'master', True)
@@ -160,3 +160,4 @@ def setup(app):
                          '_.*', True)
 
     app.connect('doctree-read', doctree_read)
+    app.connect('html-page-context', html_page_context)
