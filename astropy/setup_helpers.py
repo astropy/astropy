@@ -476,8 +476,7 @@ def generate_build_ext_command(release):
 
 
 def generate_default_config(build_lib, package):
-    pkg_dir = os.path.relpath(os.path.dirname(__file__))
-    config_path = os.path.join(pkg_dir, 'config')
+    config_path = os.path.relpath(package)
     filename = os.path.join(config_path, package + '.cfg')
 
     if os.path.exists(filename):
