@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from ..nddata import NDData
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import pytest, raises
 from ...io import fits
-
-np.random.seed(12345)
+from ...utils import NumpyRNGContext
 
 
 class FakeUncertainty(NDUncertainty):
@@ -30,20 +30,23 @@ def test_nddata_empty():
         NDData()  # empty initializer should fail
 
 def test_nddata_simple():
-    nd = NDData(np.random.random((10, 10)))
+    with NumpyRNGContext(123):
+        nd = NDData(np.random.random((10, 10)))
     assert nd.shape == (10, 10)
     assert nd.size == 100
     assert nd.dtype == np.dtype(float)
 
 
 def test_nddata_mask_valid():
-    NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
+    with NumpyRNGContext(456):
+        NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
 
 
 @pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
 def test_nddata_mask_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:
-        NDData(np.random.random((10, 10)), mask=np.random.random(shape) > 0.5)
+        with NumpyRNGContext(789):
+            NDData(np.random.random((10, 10)), mask=np.random.random(shape) > 0.5)
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
 
@@ -248,8 +251,6 @@ def test_meta2ordered_dict_fail():
     d1 = NDData(np.ones((5, 5)), meta=hdr)
 
 def test_masked_array_input():
-    from numpy.testing import assert_array_equal
-    from ...utils import NumpyRNGContext
 
     with NumpyRNGContext(12345):
         a = np.random.randn(100)
