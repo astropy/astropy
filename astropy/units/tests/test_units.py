@@ -396,3 +396,10 @@ def test_compose_no_duplicates():
     new = u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2
     composed = new.compose(units=u.cgs.bases)
     assert len(composed) == 1
+
+def test_long_int():
+    """
+    Issue #672
+    """
+    sigma = 10 ** 21 * u.M_p / u.cm ** 2
+    sigma.to(u.M_sun / u.pc ** 2)

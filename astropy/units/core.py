@@ -1396,7 +1396,6 @@ def _condition_arg(value):
     Parameters
     ----------
     value: int or float value, or sequence of such values
-        that can be converted into an array if not scalar
 
     Returns
     -------
@@ -1407,7 +1406,7 @@ def _condition_arg(value):
     ValueError
         If value is not as expected
     """
-    if isinstance(value, float) or isinstance(value, int):
+    if isinstance(value, (float, int, long)):
         return value
     else:
         try:
