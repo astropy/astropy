@@ -515,3 +515,19 @@ also be marked so that they will be ignored when appropriate by
         do_it_the_python3_way()
     else:  # pragma: py2
         do_it_the_python2_way()
+
+Testing for open files
+======================
+
+Astropy can test whether any of the unit tests inadvertently leave any
+files open.  Since this greatly slows down the time it takes to run
+the tests, it is turned off by default.
+
+To use it from the commandline, do::
+
+    python setup.py test --open-files
+
+To use it from Python, do::
+
+    >>> import astropy
+    >>> astropy.test(open_files=True)
