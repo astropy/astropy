@@ -30,10 +30,10 @@ before_install:
    - sudo apt-get install -qq libhdf5-serial-1.8.4 libhdf5-serial-dev
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
-   - pip install --upgrade "numpy==$NUMPY_VERSION" --use-mirrors
-   - if $OPTIONAL; then pip install scipy --use-mirrors; fi
-   - if $OPTIONAL; then pip install h5py --use-mirrors; fi
-   - if ! $ONLY_EGG_INFO; then pip install Cython --use-mirrors; fi
+   - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
+   - if $OPTIONAL; then pip install scipy -q --use-mirrors; fi
+   - if $OPTIONAL; then pip install h5py -q --use-mirrors; fi
+   - if ! $ONLY_EGG_INFO; then pip install Cython -q --use-mirrors; fi
 script:
    - if $ONLY_EGG_INFO; then python setup.py egg_info; fi
    - if ! $ONLY_EGG_INFO; then python setup.py test; fi
