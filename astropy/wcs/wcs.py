@@ -259,6 +259,8 @@ class WCS(WCSBase):
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
                  relax=True, naxis=None, keysel=None, colsel=None,
                  fix=True):
+        close_fds = []
+
         if header is None:
             if naxis is None:
                 naxis = 2
@@ -279,6 +281,7 @@ class WCS(WCSBase):
                             "Can not provide both a FITS filename to "
                             "argument 1 and a FITS file object to argument 2")
                     fobj = fits.open(header)
+                    close_fds.append(fobj)
                     header = fobj[0].header
                     header_string = header.tostring()
                 else:
@@ -359,6 +362,9 @@ naxis kwarg.
 
         self._get_naxis(header)
         WCSBase.__init__(self, sip, cpdis, wcsprm, det2im)
+
+        for fd in close_fds:
+            fd.close()
 
     def __copy__(self):
         new_copy = self.__class__()
