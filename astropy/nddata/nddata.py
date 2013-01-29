@@ -25,13 +25,16 @@ WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
 class NDData(object):
     """A Superclass for array-based data in Astropy.
 
-    The key distinction from raw numpy arrays is the presence of additional
-    metadata such as uncertainties, a mask, units, flags, and/or a coordinate system.
+    The key distinction from raw numpy arrays is the presence of
+    additional metadata such as uncertainties, a mask, units, flags,
+    and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray` or `~astropy.nddata.NDData`
-        The actual data contained in this `NDData` object.
+        The actual data contained in this `NDData` object. Not that this
+        will always be copies by *reference* , so you should make copy
+        the `data` before passing it in if that's the  desired behavior.
 
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
@@ -104,7 +107,7 @@ class NDData(object):
                  meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True)
+            self.data = np.array(data.data, subok=True, copy=False)
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -130,7 +133,7 @@ class NDData(object):
                 raise ValueError('To convert to different unit please use .to')
         else:
             if hasattr(data, 'mask'):
-                self.data = np.array(data.data, subok=True)
+                self.data = np.array(data.data, subok=True, copy=False)
 
                 if mask is not None:
                     self.mask = mask
@@ -141,7 +144,7 @@ class NDData(object):
                 else:
                     self.mask = data.mask
             else:
-                self.data = np.array(data, subok=True)
+                self.data = np.array(data, subok=True, copy=False)
                 self.mask = mask
 
             self.uncertainty = uncertainty
