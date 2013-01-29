@@ -74,13 +74,14 @@ def test_nddata_uncertainty_invalid_type(uncertainty):
     assert exc.value.args[0] == 'Uncertainty must be an instance of a NDUncertainty object'
 
 
-def test_nddata_copy():
+def test_nddata_copy_ref():
+    """
+    Tests to ensure that creating a new NDData object copies by *reference*.
+    """
     a = np.ones((10, 10))
-    nd_copy = NDData(a, copy=True)
-    nd_ref = NDData(a, copy=False)
+    nd_ref = NDData(a)
     a[0, 0] = 0
     assert nd_ref.data[0, 0] == 0
-    assert nd_copy.data[0, 0] == 1
 
 
 def test_nddata_conversion():
@@ -193,10 +194,10 @@ def test_nddata_subtract_uncertainties_mismatch():
     assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for subtraction'
 
 
-def test_convert_units_to():
+def test_convert_unit_to():
     d = NDData(np.ones((5, 5)))
     d.unit = 'km'
-    d1 = d.convert_units_to('m')
+    d1 = d.convert_unit_to('m')
     assert np.all(d1 == np.array(1000.0))
 
 
@@ -222,7 +223,7 @@ def test_slicing_reference():
 
 def test_initializing_from_nddata():
     d1 = NDData(np.ones((5, 5)))
-    d2 = NDData(d1, copy=False)
+    d2 = NDData(d1)
 
     assert d1.data is d2.data
 
