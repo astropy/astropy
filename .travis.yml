@@ -31,6 +31,7 @@ before_install:
    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran; fi
    - if $OPTIONAL_DEPS; then sudo apt-get install -qq python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng; fi
+
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
@@ -38,5 +39,8 @@ install:
    - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx --use-mirrors; fi
    - if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
+
 script:
-   - python setup.py $SETUP_CMD
+   - export OPEN_FILES=""
+   - if [[ $TRAVIS_PYTHON_VERSION == "2.7" ]] || [[ $TRAVIS_PYTHON_VERSION == "3.2" ]] && [[ $NUMPY_VERSION == "1.6.2" ]] && [[ $SETUP_CMD == "test" ]]; then export OPEN_FILES=--open-files; fi
+   - python setup.py $SETUP_CMD $OPEN_FILES
