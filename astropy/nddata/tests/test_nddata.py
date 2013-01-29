@@ -131,7 +131,7 @@ def test_nddata_add_uncertainties():
     d2 = NDData(np.ones((5, 5)), uncertainty=u2)
     d3 = d1.add(d2)
     assert np.all(d3.data == 2.)
-    assert np.all(d3.uncertainty.array == np.sqrt(10.))
+    assert_array_equal(d3.uncertainty.array, np.sqrt(10.))
 
 
 def test_nddata_add_uncertainties_mismatch():
@@ -183,7 +183,7 @@ def test_nddata_subtract_uncertainties():
     d2 = NDData(np.ones((5, 5)) * 2., uncertainty=u2)
     d3 = d1.subtract(d2)
     assert np.all(d3.data == -1.)
-    assert np.all(d3.uncertainty.array == np.sqrt(10.))
+    assert_array_equal(d3.uncertainty.array, np.sqrt(10.))
 
 
 def test_nddata_subtract_uncertainties_mismatch():
