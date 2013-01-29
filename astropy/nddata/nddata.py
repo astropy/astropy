@@ -298,7 +298,7 @@ class NDData(object):
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, unit=self.unit, copy=False)
+            meta=self.meta, unit=self.unit)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
