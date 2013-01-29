@@ -11,7 +11,6 @@ from ..logger import log
 from .flag_collection import FlagCollection
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 from ..utils.compat.odict import OrderedDict
-from ..io import fits
 from  ..io import registry as io_registry
 from ..config import ConfigurationItem
 
@@ -26,22 +25,27 @@ WARN_UNSUPPORTED_CORRELATED = ConfigurationItem(
 class NDData(object):
     """A Superclass for array-based data in Astropy.
 
-    The key distinction from raw numpy arrays is the presence of additional
-    metadata such as uncertainties, a mask, units, flags, and/or a coordinate system.
+    The key distinction from raw numpy arrays is the presence of
+    additional metadata such as uncertainties, a mask, units, flags,
+    and/or a coordinate system.
 
     Parameters
     -----------
     data : `~numpy.ndarray` or `~astropy.nddata.NDData`
-        The actual data contained in this `NDData` object.
+        The actual data contained in this `NDData` object. Not that this
+        will always be copies by *reference* , so you should make copy
+        the `data` before passing it in if that's the  desired behavior.
 
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
 
     mask : `~numpy.ndarray`, optional
         Mask for the data, given as a boolean Numpy array with a shape
-        matching that of the data. The values must be ``False`` where the
-        data is *valid* and ``True`` when it is not (as for Numpy masked
-        arrays).
+        matching that of the data. The values must be ``False`` where
+        the data is *valid* and ``True`` when it is not (like Numpy
+        masked arrays). If `data` is a numpy masked array, providing
+        `mask` here will causes the mask from the masked array to be
+        ignored.
 
     flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
@@ -63,13 +67,9 @@ class NDData(object):
         of this particular object.  e.g., creation date, unique identifier,
         simulation parameters, exposure time, telescope name, etc.
 
-    units : `astropy.units.UnitBase` instance or str, optional
+    unit : `astropy.units.UnitBase` instance or str, optional
         The units of the data.
 
-    copy : bool, optional
-        If True, the array will be *copied* from the provided `data`, otherwise
-        it will be referenced if possible (see `numpy.array` :attr:`copy`
-        argument for details).
 
     Raises
     ------
@@ -100,13 +100,14 @@ class NDData(object):
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
         >>> plt.imshow(x)
+
     """
 
     def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
-                 meta=None, units=None, copy=True):
+                 meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True, copy=copy)
+            self.data = np.array(data.data, subok=True, copy=False)
 
             if uncertainty is not None:
                 self.uncertainty = uncertainty
@@ -128,18 +129,29 @@ class NDData(object):
                 self.meta = meta
                 log.info("Overwriting NDData's current meta being overwritten with specified meta")
 
-            if units is not None:
+            if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
-
         else:
-            self.data = np.array(data, subok=True, copy=copy)
+            if hasattr(data, 'mask'):
+                self.data = np.array(data.data, subok=True, copy=False)
+
+                if mask is not None:
+                    self.mask = mask
+                    log.info("NDData was created with a masked array, and a "
+                        "mask was explictly provided to NDData. The explicitly "
+                        "passed-in mask will be used and the masked array's "
+                        "mask will be ignored.")
+                else:
+                    self.mask = data.mask
+            else:
+                self.data = np.array(data, subok=True, copy=False)
+                self.mask = mask
 
             self.uncertainty = uncertainty
-            self.mask = mask
             self.flags = flags
             self.wcs = wcs
             self.meta = meta
-            self.units = units
+            self.unit = unit
 
     @property
     def mask(self):
@@ -212,17 +224,16 @@ class NDData(object):
             except ValueError:
                 raise TypeError('NDData meta attribute must be dict-like')
 
-
     @property
-    def units(self):
-        return self._units
+    def unit(self):
+        return self._unit
 
-    @units.setter
-    def units(self, value):
+    @unit.setter
+    def unit(self, value):
         if value is None:
-            self._units = None
+            self._unit = None
         else:
-            self._units = Unit(value)
+            self._unit = Unit(value)
 
     @property
     def shape(self):
@@ -290,7 +301,7 @@ class NDData(object):
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty, mask=new_mask, flags=new_flags, wcs=new_wcs,
-            meta=self.meta, units=self.units, copy=False)
+            meta=self.meta, unit=self.unit)
 
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """
@@ -325,16 +336,16 @@ class NDData(object):
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
 
-        if not (self.units is None and operand.units is None):
-            if (self.units is None or operand.units is None
-                or not self.units.is_equivalent(operand.units)):
+        if not (self.unit is None and operand.unit is None):
+            if (self.unit is None or operand.unit is None
+                or not self.unit.is_equivalent(operand.unit)):
                 raise ValueError("operand units do not match")
 
         if self.shape != operand.shape:
             raise ValueError("operand shapes do not match")
 
-        if self.units is not None:
-            operand_data = operand.units.to(self.units, operand.data)
+        if self.unit is not None:
+            operand_data = operand.unit.to(self.unit, operand.data)
         else:
             operand_data = operand.data
         data = operation(self.data, operand_data)
@@ -378,7 +389,7 @@ class NDData(object):
         result.flags = None
         result.wcs = self.wcs
         result.meta = None
-        result.units = self.units
+        result.unit = self.unit
 
         return result
 
@@ -418,7 +429,7 @@ class NDData(object):
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
-    def convert_units_to(self, unit, equivalencies=[]):
+    def convert_unit_to(self, unit, equivalencies=[]):
         """
         Returns a new `NDData` object whose values have been converted
         to a new unit.
@@ -442,10 +453,9 @@ class NDData(object):
         UnitsException
             If units are inconsistent.
         """
-        if self.units is None:
-            raise ValueError("No units specified on source data")
-        data = self.units.to(
-            unit, self.data, equivalencies=equivalencies)
+        if self.unit is None:
+            raise ValueError("No unit specified on source data")
+        data = self.unit.to(unit, self.data, equivalencies=equivalencies)
         result = self.__class__(data)  # in case we are dealing with an inherited type
 
         result.uncertainty = self.uncertainty
@@ -453,7 +463,7 @@ class NDData(object):
         result.flags = None
         result.wcs = self.wcs
         result.meta = self.meta
-        result.units = unit
+        result.unit = unit
 
         return result
 
