@@ -709,18 +709,18 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
         # First, parse the unit in the default way, so that we can
         # still emit a warning if the unit is not to spec.
         default_format = _get_default_unit_format(self._config)
-        unit = u.Unit(
+        unit_obj = u.Unit(
             unit, format=default_format, parse_strict='silent')
-        if isinstance(unit, u.UnrecognizedUnit):
-            warn_or_raise(W50, W50, (unit.to_string(),),
+        if isinstance(unit_obj, u.UnrecognizedUnit):
+            warn_or_raise(W50, W50, (unit,),
                           self._config, self._pos)
 
         format = _get_unit_format(self._config)
         if format != default_format:
-            unit = u.Unit(
+            unit_obj = u.Unit(
                 unit, format=format, parse_strict='silent')
 
-        self._unit = unit
+        self._unit = unit_obj
 
     @unit.deleter
     def unit(self):
@@ -1294,18 +1294,18 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         # First, parse the unit in the default way, so that we can
         # still emit a warning if the unit is not to spec.
         default_format = _get_default_unit_format(self._config)
-        unit = u.Unit(
+        unit_obj = u.Unit(
             unit, format=default_format, parse_strict='silent')
-        if isinstance(unit, u.UnrecognizedUnit):
-            warn_or_raise(W50, W50, (unit.to_string(),),
+        if isinstance(unit_obj, u.UnrecognizedUnit):
+            warn_or_raise(W50, W50, (unit,),
                           self._config, self._pos)
 
         format = _get_unit_format(self._config)
         if format != default_format:
-            unit = u.Unit(
+            unit_obj = u.Unit(
                 unit, format=format, parse_strict='silent')
 
-        self._unit = unit
+        self._unit = unit_obj
 
     @unit.deleter
     def unit(self):
