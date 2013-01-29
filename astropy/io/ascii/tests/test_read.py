@@ -180,7 +180,7 @@ def test_custom_splitters():
     assert_almost_equal(data.field('p1.ampl')[2], 0.000696444029148)
     assert_equal(data.field('statname')[2], 'chi2modvar')
     assert_almost_equal(data.field('statval')[2], 497.56468441)
-    
+
 
 def test_start_end():
     data = asciitable.read('t/test5.dat', header_start=1, data_start=3, data_end=-5)
@@ -201,7 +201,8 @@ def test_set_converters():
 
 def test_from_string():
     f = 't/simple.txt'
-    table = open(f).read()
+    with open(f) as fd:
+        table = fd.read()
     testfile = get_testfiles(f)
     data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
@@ -210,16 +211,17 @@ def test_from_string():
 
 def test_from_filelike():
     f = 't/simple.txt'
-    table = open(f, 'rb')
     testfile = get_testfiles(f)
-    data = asciitable.read(table, **testfile['opts'])
+    with open(f, 'rb') as fd:
+        data = asciitable.read(fd, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
 
 
 def test_from_lines():
     f = 't/simple.txt'
-    table = open(f).readlines()
+    with open(f) as fd:
+        table = fd.readlines()
     testfile = get_testfiles(f)
     data = asciitable.read(table, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
@@ -295,7 +297,7 @@ def test_fill_values_list():
 def test_masking_Cds():
     f = 't/cds.dat'
     testfile = get_testfiles(f)
-    data = asciitable.read(f, 
+    data = asciitable.read(f,
                            **testfile['opts'])
     assert_true(data['AK'].mask[0])
     assert_true(not data['Fit'].mask[0])
