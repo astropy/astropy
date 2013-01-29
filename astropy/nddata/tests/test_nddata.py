@@ -246,3 +246,24 @@ def test_meta2ordered_dict():
 def test_meta2ordered_dict_fail():
     hdr = 'this is not a valid header'
     d1 = NDData(np.ones((5, 5)), meta=hdr)
+
+def test_masked_array_input():
+    from numpy.testing import assert_array_equal
+    from ...utils import NumpyRNGContext
+
+    with NumpyRNGContext(12345):
+        a = np.random.randn(100)
+        marr = np.ma.masked_where(a > 0, a)
+
+    nd = NDData(marr)
+
+    #check that masks and data match
+    assert_array_equal(nd.mask, marr.mask)
+    assert_array_equal(nd.data, marr.data)
+
+    #check that they are both by reference
+    marr.mask[10] = ~marr.mask[10]
+    marr.data[11] = 123456789
+
+    assert_array_equal(nd.mask, marr.mask)
+    assert_array_equal(nd.data, marr.data)
