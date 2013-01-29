@@ -64,7 +64,7 @@ class TestRunner(object):
 
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False):
+                  pdb=False, coverage=False, open_files=False):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -146,6 +146,20 @@ class TestRunner(object):
                 all_args += (
                     ' --cov-report html --cov astropy'
                     ' --cov-config {0}'.format(tmp.name))
+
+        # check for opened files after each test
+        if open_files:
+            try:
+                subprocess.check_output(
+                    ['lsof -F0 -n -p {0}'.format(os.getpid())],
+                    shell=True)
+            except subprocess.CalledProcessError:
+                raise SystemError(
+                    "open file detection requested, but could not "
+                    "successfully run the 'lsof' command")
+
+            all_args += ' --open-files'
+
         try:
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
@@ -186,7 +200,8 @@ class astropy_test(Command, object):
         ('pdb', 'd', 'Turn on PDB post-mortem analysis for failing tests. '
          'Same as specifying `--pdb` in `args`.'),
         ('coverage', 'c', 'Create a coverage report. Requires the pytest-cov '
-         'plugin is installed')
+         'plugin is installed'),
+        ('open-files', 'o', 'Fail if any tests leave files open')
     ]
 
     package_name = None
@@ -202,6 +217,7 @@ class astropy_test(Command, object):
         self.pep8 = False
         self.pdb = False
         self.coverage = False
+        self.open_files = False
 
     def finalize_options(self):
         # Normally we would validate the options here, but that's handled in
@@ -239,7 +255,7 @@ class astropy_test(Command, object):
                    '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
                    '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
                    '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
-                   '{1.coverage!r}))')
+                   '{1.coverage!r}, {1.open_files!r}))')
             cmd = cmd.format(set_flag, self)
 
             #override the config locations to not make a new directory nor use
