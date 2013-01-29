@@ -68,7 +68,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     only the points that are within 2 *sample* standard deviation from the
     median::
 
-        >>> from astropy.tools.alg import sigma_clip
+        >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
         >>> data,mask = sigma_clip(randvar, 2, 1)
@@ -77,7 +77,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
     the sample *mean*, will clip until converged, and produces a
     `numpy.masked.MaskedArray`::
 
-        >>> from astropy.tools.alg import sigma_clip
+        >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
