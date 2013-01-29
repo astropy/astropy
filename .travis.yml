@@ -5,23 +5,23 @@ python:
     - 2.6
     - 3.2
 env:
-    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=false
-    - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
-    - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
+    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL_DEPS=false
 
 matrix:
     include:
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=true
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL_DEPS=true
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
+          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL_DEPS=false
     exclude:
         - python: 3.2
-          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
+          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
+          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL_DEPS=false
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
@@ -31,8 +31,8 @@ before_install:
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
-   - if $OPTIONAL; then pip install scipy -q --use-mirrors; fi
-   - if $OPTIONAL; then pip install h5py -q --use-mirrors; fi
+   - if $OPTIONAL_DEPS; then pip install scipy -q --use-mirrors; fi
+   - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
    - if ! $ONLY_EGG_INFO; then pip install Cython -q --use-mirrors; fi
 script:
    - if $ONLY_EGG_INFO; then python setup.py egg_info; fi
