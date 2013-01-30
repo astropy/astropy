@@ -5,6 +5,33 @@ This module contains hooks for zest.releaser for use in semi-automated releases
 of Astropy.
 """
 
+
+def prereleaser_middle(data):
+    """
+    prereleaser.middle hook to replace the version string in setup.py;
+    zest.releaser already does this normally but it's a little inflexible about
+    the format.
+    """
+
+    if data['name'] != 'astropy':
+        return
+
+    import re
+    from StringIO import StringIO
+
+    pattern = re.compile(r'^VERSION\s*=\s*[\'"]{1,3}')
+    output = StringIO()
+    with open('setup.py') as setup_py:
+        for line in setup_py:
+            if not pattern.match(line):
+                output.write(line)
+            else:
+                output.write('VERSION = {0!r}\n'.format(data['new_version']))
+
+    with open('setup.py', 'w') as setup_py:
+        setup_py.write(output.getvalue())
+
+
 def releaser_middle(data):
     """
     releaser.middle hook to monkey-patch zest.releaser to support signed

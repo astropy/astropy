@@ -84,7 +84,8 @@ update_package_files(NAME, extensions, package_data, packagenames,
 # Currently the only entry points installed by Astropy are hooks to
 # zest.releaser for doing Astropy's releases
 entry_points = {}
-for hook in [('releaser', 'middle'), ('postreleaser', 'before')]:
+for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
+             ('postreleaser', 'before')]:
     hook_ep = 'zest.releaser.' + '.'.join(hook)
     hook_name = 'astropy.release.' + '.'.join(hook)
     hook_func = 'astropy.utils.release:' + '_'.join(hook)
