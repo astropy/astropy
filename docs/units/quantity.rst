@@ -8,8 +8,9 @@ Creating Quantity instances
 ---------------------------
 
 :class:`~astropy.units.quantity.Quantity` objects are created through
-multiplication or divison with `Unit` objects. For example, to create a
-:class:`~astropy.units.quantity.Quantity` to represent 15 m/s:
+multiplication or divison with :class:`~astropy.units.core.Unit` objects. For
+example, to create a :class:`~astropy.units.quantity.Quantity` to represent 15
+m/s:
 
     >>> import astropy.units as u
     >>> 15 * u.m / u.s
@@ -22,7 +23,7 @@ or 1.14/s:
 
 You can also create instances using the
 :class:`~astropy.units.quantity.Quantity` constructor directly, by specifying
-a value and unit
+a value and unit:
 
     >>> u.Quantity(15, u.m / u.s)
     <Quantity 15 m / (s)>
@@ -69,9 +70,8 @@ Addition and Subtraction
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Addition or subtraction between :class:`~astropy.units.quantity.Quantity`
-objects is supported when their units are equivalent (see `Unit`
-documentation). When the units are equal, the resulting object has the same
-unit
+objects is supported when their units are equivalent. When the units are
+equal, the resulting object has the same unit:
 
     >>> 11 * u.s + 30 * u.s
     <Quantity 41 s>
@@ -79,7 +79,7 @@ unit
     <Quantity 19 s>
 
 If the units are equivalent, but not equal (e.g. kilometer and meter), the
-resulting object **has units of the object on the left**
+resulting object **has units of the object on the left**:
 
     >>> 1100.1 * u.m + 13.5 * u.km
     <Quantity 14600.1 m>
@@ -91,7 +91,7 @@ resulting object **has units of the object on the left**
     <Quantity 12.3999 km>
 
 Addition and subtraction is not supported between
-:class:`~astropy.units.quantity.Quantity` objects and basic numeric types
+:class:`~astropy.units.quantity.Quantity` objects and basic numeric types:
 
     >>> 13.5 * u.km + 19.412
     TypeError: Object of type '<type 'float'>' cannot be added with a Quantity
