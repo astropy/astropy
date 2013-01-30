@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcs.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1085,368 +1085,368 @@ int wcsprt(const struct wcsprm *wcs)
   if (wcs == 0x0) return WCSERR_NULL_POINTER;
 
   if (wcs->flag != WCSSET) {
-    wcsprintf(stdout, "The wcsprm struct is UNINITIALIZED.\n");
+    wcsprintf("The wcsprm struct is UNINITIALIZED.\n");
     return 0;
   }
 
-  wcsprintf(stdout, "       flag: %d\n", wcs->flag);
-  wcsprintf(stdout, "      naxis: %d\n", wcs->naxis);
-  WCSPRINTF_PTR(stdout, "      crpix: ", wcs->crpix, "\n");
-  wcsprintf(stdout, "            ");
+  wcsprintf("       flag: %d\n", wcs->flag);
+  wcsprintf("      naxis: %d\n", wcs->naxis);
+  WCSPRINTF_PTR("      crpix: ", wcs->crpix, "\n");
+  wcsprintf("            ");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "  %- 11.5g", wcs->crpix[i]);
+    wcsprintf("  %- 11.5g", wcs->crpix[i]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Linear transformation. */
   k = 0;
-  WCSPRINTF_PTR(stdout, "         pc: ", wcs->pc, "\n");
+  WCSPRINTF_PTR("         pc: ", wcs->pc, "\n");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "    pc[%d][]:", i);
+    wcsprintf("    pc[%d][]:", i);
     for (j = 0; j < wcs->naxis; j++) {
-      wcsprintf(stdout, "  %- 11.5g", wcs->pc[k++]);
+      wcsprintf("  %- 11.5g", wcs->pc[k++]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
   /* Coordinate increment at reference point. */
-  WCSPRINTF_PTR(stdout, "      cdelt: ", wcs->cdelt, "\n");
-  wcsprintf(stdout, "            ");
+  WCSPRINTF_PTR("      cdelt: ", wcs->cdelt, "\n");
+  wcsprintf("            ");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "  %- 11.5g", wcs->cdelt[i]);
+    wcsprintf("  %- 11.5g", wcs->cdelt[i]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Coordinate value at reference point. */
-  WCSPRINTF_PTR(stdout, "      crval: ", wcs->crval, "\n");
-  wcsprintf(stdout, "            ");
+  WCSPRINTF_PTR("      crval: ", wcs->crval, "\n");
+  wcsprintf("            ");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "  %- 11.5g", wcs->crval[i]);
+    wcsprintf("  %- 11.5g", wcs->crval[i]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Coordinate units and type. */
-  WCSPRINTF_PTR(stdout, "      cunit: ", wcs->cunit, "\n");
+  WCSPRINTF_PTR("      cunit: ", wcs->cunit, "\n");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "             \"%s\"\n", wcs->cunit[i]);
+    wcsprintf("             \"%s\"\n", wcs->cunit[i]);
   }
 
-  WCSPRINTF_PTR(stdout, "      ctype: ", wcs->ctype, "\n");
+  WCSPRINTF_PTR("      ctype: ", wcs->ctype, "\n");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "             \"%s\"\n", wcs->ctype[i]);
+    wcsprintf("             \"%s\"\n", wcs->ctype[i]);
   }
 
   /* Celestial and spectral transformation parameters. */
   if (undefined(wcs->lonpole)) {
-    wcsprintf(stdout, "    lonpole: UNDEFINED\n");
+    wcsprintf("    lonpole: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    lonpole: %9f\n", wcs->lonpole);
+    wcsprintf("    lonpole: %9f\n", wcs->lonpole);
   }
-  wcsprintf(stdout, "    latpole: %9f\n", wcs->latpole);
-  wcsprintf(stdout, "    restfrq: %f\n", wcs->restfrq);
-  wcsprintf(stdout, "    restwav: %f\n", wcs->restwav);
+  wcsprintf("    latpole: %9f\n", wcs->latpole);
+  wcsprintf("    restfrq: %f\n", wcs->restfrq);
+  wcsprintf("    restwav: %f\n", wcs->restwav);
 
   /* Parameter values. */
-  wcsprintf(stdout, "        npv: %d\n", wcs->npv);
-  wcsprintf(stdout, "     npvmax: %d\n", wcs->npvmax);
-  WCSPRINTF_PTR(stdout, "         pv: ", wcs->pv, "\n");
+  wcsprintf("        npv: %d\n", wcs->npv);
+  wcsprintf("     npvmax: %d\n", wcs->npvmax);
+  WCSPRINTF_PTR("         pv: ", wcs->pv, "\n");
   for (i = 0; i < wcs->npv; i++) {
-    wcsprintf(stdout, "             %3d%4d  %- 11.5g\n", (wcs->pv[i]).i,
+    wcsprintf("             %3d%4d  %- 11.5g\n", (wcs->pv[i]).i,
       (wcs->pv[i]).m, (wcs->pv[i]).value);
   }
-  wcsprintf(stdout, "        nps: %d\n", wcs->nps);
-  wcsprintf(stdout, "     npsmax: %d\n", wcs->npsmax);
-  WCSPRINTF_PTR(stdout, "         ps: ", wcs->ps, "\n");
+  wcsprintf("        nps: %d\n", wcs->nps);
+  wcsprintf("     npsmax: %d\n", wcs->npsmax);
+  WCSPRINTF_PTR("         ps: ", wcs->ps, "\n");
   for (i = 0; i < wcs->nps; i++) {
-    wcsprintf(stdout, "             %3d%4d  %s\n", (wcs->ps[i]).i,
+    wcsprintf("             %3d%4d  %s\n", (wcs->ps[i]).i,
       (wcs->ps[i]).m, (wcs->ps[i]).value);
   }
 
   /* Alternate linear transformations. */
   k = 0;
-  WCSPRINTF_PTR(stdout, "         cd: ", wcs->cd, "\n");
+  WCSPRINTF_PTR("         cd: ", wcs->cd, "\n");
   if (wcs->cd) {
     for (i = 0; i < wcs->naxis; i++) {
-      wcsprintf(stdout, "    cd[%d][]:", i);
+      wcsprintf("    cd[%d][]:", i);
       for (j = 0; j < wcs->naxis; j++) {
-        wcsprintf(stdout, "  %- 11.5g", wcs->cd[k++]);
+        wcsprintf("  %- 11.5g", wcs->cd[k++]);
       }
-      wcsprintf(stdout, "\n");
+      wcsprintf("\n");
     }
   }
 
-  WCSPRINTF_PTR(stdout, "      crota: ", wcs->crota, "\n");
+  WCSPRINTF_PTR("      crota: ", wcs->crota, "\n");
   if (wcs->crota) {
-    wcsprintf(stdout, "            ");
+    wcsprintf("            ");
     for (i = 0; i < wcs->naxis; i++) {
-      wcsprintf(stdout, "  %- 11.5g", wcs->crota[i]);
+      wcsprintf("  %- 11.5g", wcs->crota[i]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  wcsprintf(stdout, "     altlin: %d\n", wcs->altlin);
-  wcsprintf(stdout, "     velref: %d\n", wcs->velref);
+  wcsprintf("     altlin: %d\n", wcs->altlin);
+  wcsprintf("     velref: %d\n", wcs->velref);
 
 
 
   /* Auxiliary coordinate system information. */
-  wcsprintf(stdout, "        alt: '%c'\n", wcs->alt[0]);
-  wcsprintf(stdout, "     colnum: %d\n", wcs->colnum);
+  wcsprintf("        alt: '%c'\n", wcs->alt[0]);
+  wcsprintf("     colnum: %d\n", wcs->colnum);
 
-  WCSPRINTF_PTR(stdout, "      colax: ", wcs->colax, "\n");
+  WCSPRINTF_PTR("      colax: ", wcs->colax, "\n");
   if (wcs->colax) {
-    wcsprintf(stdout, "           ");
+    wcsprintf("           ");
     for (i = 0; i < wcs->naxis; i++) {
-      wcsprintf(stdout, "  %5d", wcs->colax[i]);
+      wcsprintf("  %5d", wcs->colax[i]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
   if (wcs->wcsname[0] == '\0') {
-    wcsprintf(stdout, "    wcsname: UNDEFINED\n");
+    wcsprintf("    wcsname: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    wcsname: \"%s\"\n", wcs->wcsname);
+    wcsprintf("    wcsname: \"%s\"\n", wcs->wcsname);
   }
 
-  WCSPRINTF_PTR(stdout, "      cname: ", wcs->cname, "\n");
+  WCSPRINTF_PTR("      cname: ", wcs->cname, "\n");
   if (wcs->cname) {
     for (i = 0; i < wcs->naxis; i++) {
       if (wcs->cname[i][0] == '\0') {
-        wcsprintf(stdout, "             UNDEFINED\n");
+        wcsprintf("             UNDEFINED\n");
       } else {
-        wcsprintf(stdout, "             \"%s\"\n", wcs->cname[i]);
+        wcsprintf("             \"%s\"\n", wcs->cname[i]);
       }
     }
   }
 
-  WCSPRINTF_PTR(stdout, "      crder: ", wcs->crder, "\n");
+  WCSPRINTF_PTR("      crder: ", wcs->crder, "\n");
   if (wcs->crder) {
-    wcsprintf(stdout, "           ");
+    wcsprintf("           ");
     for (i = 0; i < wcs->naxis; i++) {
       if (undefined(wcs->crder[i])) {
-        wcsprintf(stdout, "  UNDEFINED   ");
+        wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf(stdout, "  %- 11.5g", wcs->crder[i]);
+        wcsprintf("  %- 11.5g", wcs->crder[i]);
       }
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "      csyer: ", wcs->csyer, "\n");
+  WCSPRINTF_PTR("      csyer: ", wcs->csyer, "\n");
   if (wcs->csyer) {
-    wcsprintf(stdout, "           ");
+    wcsprintf("           ");
     for (i = 0; i < wcs->naxis; i++) {
       if (undefined(wcs->csyer[i])) {
-        wcsprintf(stdout, "  UNDEFINED   ");
+        wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf(stdout, "  %- 11.5g", wcs->csyer[i]);
+        wcsprintf("  %- 11.5g", wcs->csyer[i]);
       }
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
   if (wcs->radesys[0] == '\0') {
-    wcsprintf(stdout, "    radesys: UNDEFINED\n");
+    wcsprintf("    radesys: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    radesys: \"%s\"\n", wcs->radesys);
+    wcsprintf("    radesys: \"%s\"\n", wcs->radesys);
   }
 
   if (undefined(wcs->equinox)) {
-    wcsprintf(stdout, "    equinox: UNDEFINED\n");
+    wcsprintf("    equinox: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    equinox: %9f\n", wcs->equinox);
+    wcsprintf("    equinox: %9f\n", wcs->equinox);
   }
 
   if (wcs->specsys[0] == '\0') {
-    wcsprintf(stdout, "    specsys: UNDEFINED\n");
+    wcsprintf("    specsys: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    specsys: \"%s\"\n", wcs->specsys);
+    wcsprintf("    specsys: \"%s\"\n", wcs->specsys);
   }
 
   if (wcs->ssysobs[0] == '\0') {
-    wcsprintf(stdout, "    ssysobs: UNDEFINED\n");
+    wcsprintf("    ssysobs: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    ssysobs: \"%s\"\n", wcs->ssysobs);
+    wcsprintf("    ssysobs: \"%s\"\n", wcs->ssysobs);
   }
 
   if (undefined(wcs->velosys)) {
-    wcsprintf(stdout, "    velosys: UNDEFINED\n");
+    wcsprintf("    velosys: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    velosys: %9f\n", wcs->velosys);
+    wcsprintf("    velosys: %9f\n", wcs->velosys);
   }
 
   if (wcs->ssyssrc[0] == '\0') {
-    wcsprintf(stdout, "    ssyssrc: UNDEFINED\n");
+    wcsprintf("    ssyssrc: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    ssyssrc: \"%s\"\n", wcs->ssyssrc);
+    wcsprintf("    ssyssrc: \"%s\"\n", wcs->ssyssrc);
   }
 
   if (undefined(wcs->zsource)) {
-    wcsprintf(stdout, "    zsource: UNDEFINED\n");
+    wcsprintf("    zsource: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    zsource: %9f\n", wcs->zsource);
+    wcsprintf("    zsource: %9f\n", wcs->zsource);
   }
 
-  wcsprintf(stdout, "     obsgeo: ");
+  wcsprintf("     obsgeo: ");
   for (i = 0; i < 3; i++) {
     if (undefined(wcs->obsgeo[i])) {
-      wcsprintf(stdout, "UNDEFINED     ");
+      wcsprintf("UNDEFINED     ");
     } else {
-      wcsprintf(stdout, "%- 11.5g  ", wcs->obsgeo[i]);
+      wcsprintf("%- 11.5g  ", wcs->obsgeo[i]);
     }
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   if (wcs->dateobs[0] == '\0') {
-    wcsprintf(stdout, "    dateobs: UNDEFINED\n");
+    wcsprintf("    dateobs: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    dateobs: \"%s\"\n", wcs->dateobs);
+    wcsprintf("    dateobs: \"%s\"\n", wcs->dateobs);
   }
 
   if (wcs->dateavg[0] == '\0') {
-    wcsprintf(stdout, "    dateavg: UNDEFINED\n");
+    wcsprintf("    dateavg: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "    dateavg: \"%s\"\n", wcs->dateavg);
+    wcsprintf("    dateavg: \"%s\"\n", wcs->dateavg);
   }
 
   if (undefined(wcs->mjdobs)) {
-    wcsprintf(stdout, "     mjdobs: UNDEFINED\n");
+    wcsprintf("     mjdobs: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "     mjdobs: %9f\n", wcs->mjdobs);
+    wcsprintf("     mjdobs: %9f\n", wcs->mjdobs);
   }
 
   if (undefined(wcs->mjdavg)) {
-    wcsprintf(stdout, "     mjdavg: UNDEFINED\n");
+    wcsprintf("     mjdavg: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "     mjdavg: %9f\n", wcs->mjdavg);
+    wcsprintf("     mjdavg: %9f\n", wcs->mjdavg);
   }
 
-  wcsprintf(stdout, "       ntab: %d\n", wcs->ntab);
-  WCSPRINTF_PTR(stdout, "        tab: ", wcs->tab, "");
-  if (wcs->tab != 0x0) wcsprintf(stdout, "  (see below)");
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "       nwtb: %d\n", wcs->nwtb);
-  WCSPRINTF_PTR(stdout, "        wtb: ", wcs->wtb, "");
-  if (wcs->wtb != 0x0) wcsprintf(stdout, "  (see below)");
-  wcsprintf(stdout, "\n");
+  wcsprintf("       ntab: %d\n", wcs->ntab);
+  WCSPRINTF_PTR("        tab: ", wcs->tab, "");
+  if (wcs->tab != 0x0) wcsprintf("  (see below)");
+  wcsprintf("\n");
+  wcsprintf("       nwtb: %d\n", wcs->nwtb);
+  WCSPRINTF_PTR("        wtb: ", wcs->wtb, "");
+  if (wcs->wtb != 0x0) wcsprintf("  (see below)");
+  wcsprintf("\n");
 
   /* Derived values. */
-  WCSPRINTF_PTR(stdout, "      types: ", wcs->types, "\n           ");
+  WCSPRINTF_PTR("      types: ", wcs->types, "\n           ");
   for (i = 0; i < wcs->naxis; i++) {
-    wcsprintf(stdout, "%5d", wcs->types[i]);
+    wcsprintf("%5d", wcs->types[i]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
-  wcsprintf(stdout, "     lngtyp: \"%s\"\n", wcs->lngtyp);
-  wcsprintf(stdout, "     lattyp: \"%s\"\n", wcs->lattyp);
-  wcsprintf(stdout, "        lng: %d\n", wcs->lng);
-  wcsprintf(stdout, "        lat: %d\n", wcs->lat);
-  wcsprintf(stdout, "       spec: %d\n", wcs->spec);
-  wcsprintf(stdout, "   cubeface: %d\n", wcs->cubeface);
+  wcsprintf("     lngtyp: \"%s\"\n", wcs->lngtyp);
+  wcsprintf("     lattyp: \"%s\"\n", wcs->lattyp);
+  wcsprintf("        lng: %d\n", wcs->lng);
+  wcsprintf("        lat: %d\n", wcs->lat);
+  wcsprintf("       spec: %d\n", wcs->spec);
+  wcsprintf("   cubeface: %d\n", wcs->cubeface);
 
-  WCSPRINTF_PTR(stdout, "        err: ", wcs->err, "\n");
+  WCSPRINTF_PTR("        err: ", wcs->err, "\n");
   if (wcs->err) {
     wcserr_prt(wcs->err, "             ");
   }
 
-  wcsprintf(stdout, "        lin: (see below)\n");
-  wcsprintf(stdout, "        cel: (see below)\n");
-  wcsprintf(stdout, "        spc: (see below)\n");
+  wcsprintf("        lin: (see below)\n");
+  wcsprintf("        cel: (see below)\n");
+  wcsprintf("        spc: (see below)\n");
 
   /* Memory management. */
-  wcsprintf(stdout, "     m_flag: %d\n", wcs->m_flag);
-  wcsprintf(stdout, "    m_naxis: %d\n", wcs->m_naxis);
-  WCSPRINTF_PTR(stdout, "    m_crpix: ", wcs->m_crpix, "");
-  if (wcs->m_crpix == wcs->crpix) wcsprintf(stdout, "  (= crpix)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "       m_pc: ", wcs->m_pc, "");
-  if (wcs->m_pc == wcs->pc) wcsprintf(stdout, "  (= pc)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_cdelt: ", wcs->m_cdelt, "");
-  if (wcs->m_cdelt == wcs->cdelt) wcsprintf(stdout, "  (= cdelt)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_crval: ", wcs->m_crval, "");
-  if (wcs->m_crval == wcs->crval) wcsprintf(stdout, "  (= crval)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_cunit: ", wcs->m_cunit, "");
-  if (wcs->m_cunit == wcs->cunit) wcsprintf(stdout, "  (= cunit)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_ctype: ", wcs->m_ctype, "");
-  if (wcs->m_ctype == wcs->ctype) wcsprintf(stdout, "  (= ctype)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "       m_pv: ", wcs->m_pv, "");
-  if (wcs->m_pv == wcs->pv) wcsprintf(stdout, "  (= pv)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "       m_ps: ", wcs->m_ps, "");
-  if (wcs->m_ps == wcs->ps) wcsprintf(stdout, "  (= ps)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "       m_cd: ", wcs->m_cd, "");
-  if (wcs->m_cd == wcs->cd) wcsprintf(stdout, "  (= cd)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_crota: ", wcs->m_crota, "");
-  if (wcs->m_crota == wcs->crota) wcsprintf(stdout, "  (= crota)");
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_colax: ", wcs->m_colax, "");
-  if (wcs->m_colax == wcs->colax) wcsprintf(stdout, "  (= colax)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_cname: ", wcs->m_cname, "");
-  if (wcs->m_cname == wcs->cname) wcsprintf(stdout, "  (= cname)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_crder: ", wcs->m_crder, "");
-  if (wcs->m_crder == wcs->crder) wcsprintf(stdout, "  (= crder)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "    m_csyer: ", wcs->m_csyer, "");
-  if (wcs->m_csyer == wcs->csyer) wcsprintf(stdout, "  (= csyer)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "      m_tab: ", wcs->m_tab, "");
-  if (wcs->m_tab == wcs->tab) wcsprintf(stdout, "  (= tab)");
-  wcsprintf(stdout, "\n");
-  WCSPRINTF_PTR(stdout, "      m_wtb: ", wcs->m_wtb, "");
-  if (wcs->m_wtb == wcs->wtb) wcsprintf(stdout, "  (= wtb)");
-  wcsprintf(stdout, "\n");
+  wcsprintf("     m_flag: %d\n", wcs->m_flag);
+  wcsprintf("    m_naxis: %d\n", wcs->m_naxis);
+  WCSPRINTF_PTR("    m_crpix: ", wcs->m_crpix, "");
+  if (wcs->m_crpix == wcs->crpix) wcsprintf("  (= crpix)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("       m_pc: ", wcs->m_pc, "");
+  if (wcs->m_pc == wcs->pc) wcsprintf("  (= pc)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_cdelt: ", wcs->m_cdelt, "");
+  if (wcs->m_cdelt == wcs->cdelt) wcsprintf("  (= cdelt)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_crval: ", wcs->m_crval, "");
+  if (wcs->m_crval == wcs->crval) wcsprintf("  (= crval)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_cunit: ", wcs->m_cunit, "");
+  if (wcs->m_cunit == wcs->cunit) wcsprintf("  (= cunit)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_ctype: ", wcs->m_ctype, "");
+  if (wcs->m_ctype == wcs->ctype) wcsprintf("  (= ctype)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("       m_pv: ", wcs->m_pv, "");
+  if (wcs->m_pv == wcs->pv) wcsprintf("  (= pv)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("       m_ps: ", wcs->m_ps, "");
+  if (wcs->m_ps == wcs->ps) wcsprintf("  (= ps)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("       m_cd: ", wcs->m_cd, "");
+  if (wcs->m_cd == wcs->cd) wcsprintf("  (= cd)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_crota: ", wcs->m_crota, "");
+  if (wcs->m_crota == wcs->crota) wcsprintf("  (= crota)");
+  wcsprintf("\n");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_colax: ", wcs->m_colax, "");
+  if (wcs->m_colax == wcs->colax) wcsprintf("  (= colax)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_cname: ", wcs->m_cname, "");
+  if (wcs->m_cname == wcs->cname) wcsprintf("  (= cname)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_crder: ", wcs->m_crder, "");
+  if (wcs->m_crder == wcs->crder) wcsprintf("  (= crder)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("    m_csyer: ", wcs->m_csyer, "");
+  if (wcs->m_csyer == wcs->csyer) wcsprintf("  (= csyer)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("      m_tab: ", wcs->m_tab, "");
+  if (wcs->m_tab == wcs->tab) wcsprintf("  (= tab)");
+  wcsprintf("\n");
+  WCSPRINTF_PTR("      m_wtb: ", wcs->m_wtb, "");
+  if (wcs->m_wtb == wcs->wtb) wcsprintf("  (= wtb)");
+  wcsprintf("\n");
 
   /* Tabular transformation parameters. */
   if ((wtbp = wcs->wtb)) {
     for (j = 0; j < wcs->nwtb; j++, wtbp++) {
-      wcsprintf(stdout, "\n");
-      wcsprintf(stdout, "wtb[%d].*\n", j);
-      wcsprintf(stdout, "          i: %d\n", wtbp->i);
-      wcsprintf(stdout, "          m: %d\n", wtbp->m);
-      wcsprintf(stdout, "       kind: %c\n", wtbp->kind);
-      wcsprintf(stdout, "     extnam: %s\n", wtbp->extnam);
-      wcsprintf(stdout, "     extver: %d\n", wtbp->extver);
-      wcsprintf(stdout, "     extlev: %d\n", wtbp->extlev);
-      wcsprintf(stdout, "      ttype: %s\n", wtbp->ttype);
-      wcsprintf(stdout, "        row: %ld\n", wtbp->row);
-      wcsprintf(stdout, "       ndim: %d\n", wtbp->ndim);
-      WCSPRINTF_PTR(stdout, "     dimlen: ", wtbp->dimlen, "\n");
-      WCSPRINTF_PTR(stdout, "     arrayp: ", wtbp->arrayp, " -> ");
-      WCSPRINTF_PTR(stdout, "", *(wtbp->arrayp), "\n");
+      wcsprintf("\n");
+      wcsprintf("wtb[%d].*\n", j);
+      wcsprintf("          i: %d\n", wtbp->i);
+      wcsprintf("          m: %d\n", wtbp->m);
+      wcsprintf("       kind: %c\n", wtbp->kind);
+      wcsprintf("     extnam: %s\n", wtbp->extnam);
+      wcsprintf("     extver: %d\n", wtbp->extver);
+      wcsprintf("     extlev: %d\n", wtbp->extlev);
+      wcsprintf("      ttype: %s\n", wtbp->ttype);
+      wcsprintf("        row: %ld\n", wtbp->row);
+      wcsprintf("       ndim: %d\n", wtbp->ndim);
+      WCSPRINTF_PTR("     dimlen: ", wtbp->dimlen, "\n");
+      WCSPRINTF_PTR("     arrayp: ", wtbp->arrayp, " -> ");
+      WCSPRINTF_PTR("", *(wtbp->arrayp), "\n");
     }
   }
 
   if (wcs->tab) {
     for (j = 0; j < wcs->ntab; j++) {
-      wcsprintf(stdout, "\n");
-      wcsprintf(stdout, "tab[%d].*\n", j);
+      wcsprintf("\n");
+      wcsprintf("tab[%d].*\n", j);
       tabprt(wcs->tab + j);
     }
   }
 
   /* Linear transformation parameters. */
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "   lin.*\n");
+  wcsprintf("\n");
+  wcsprintf("   lin.*\n");
   linprt(&(wcs->lin));
 
   /* Celestial transformation parameters. */
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "   cel.*\n");
+  wcsprintf("\n");
+  wcsprintf("   cel.*\n");
   celprt(&(wcs->cel));
 
   /* Spectral transformation parameters. */
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "   spc.*\n");
+  wcsprintf("\n");
+  wcsprintf("   spc.*\n");
   spcprt(&(wcs->spc));
 
   return 0;

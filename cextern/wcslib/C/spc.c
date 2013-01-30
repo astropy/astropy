@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: spc.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -140,68 +140,68 @@ int spcprt(const struct spcprm *spc)
 
   if (spc == 0x0) return SPCERR_NULL_POINTER;
 
-  wcsprintf(stdout, "       flag: %d\n", spc->flag);
-  wcsprintf(stdout, "       type: \"%s\"\n", spc->type);
-  wcsprintf(stdout, "       code: \"%s\"\n", spc->code);
+  wcsprintf("       flag: %d\n", spc->flag);
+  wcsprintf("       type: \"%s\"\n", spc->type);
+  wcsprintf("       code: \"%s\"\n", spc->code);
   if (undefined(spc->crval)) {
-    wcsprintf(stdout, "      crval: UNDEFINED\n");
+    wcsprintf("      crval: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "      crval: %- 11.4g\n", spc->crval);
+    wcsprintf("      crval: %- 11.4g\n", spc->crval);
   }
-  wcsprintf(stdout, "    restfrq: %f\n", spc->restfrq);
-  wcsprintf(stdout, "    restwav: %f\n", spc->restwav);
+  wcsprintf("    restfrq: %f\n", spc->restfrq);
+  wcsprintf("    restwav: %f\n", spc->restwav);
 
-  wcsprintf(stdout, "         pv:");
+  wcsprintf("         pv:");
   if (spc->isGrism) {
     for (i = 0; i < 5; i++) {
       if (undefined(spc->pv[i])) {
-        wcsprintf(stdout, "  UNDEFINED   ");
+        wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf(stdout, "  %- 11.4g", spc->pv[i]);
+        wcsprintf("  %- 11.4g", spc->pv[i]);
       }
     }
-    wcsprintf(stdout, "\n            ");
+    wcsprintf("\n            ");
     for (i = 5; i < 7; i++) {
       if (undefined(spc->pv[i])) {
-        wcsprintf(stdout, "  UNDEFINED   ");
+        wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf(stdout, "  %- 11.4g", spc->pv[i]);
+        wcsprintf("  %- 11.4g", spc->pv[i]);
       }
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
 
   } else {
-    wcsprintf(stdout, " (not used)\n");
+    wcsprintf(" (not used)\n");
   }
 
-  wcsprintf(stdout, "          w:");
+  wcsprintf("          w:");
   for (i = 0; i < 3; i++) {
-    wcsprintf(stdout, "  %- 11.4g", spc->w[i]);
+    wcsprintf("  %- 11.4g", spc->w[i]);
   }
   if (spc->isGrism) {
-    wcsprintf(stdout, "\n            ");
+    wcsprintf("\n            ");
     for (i = 3; i < 6; i++) {
-      wcsprintf(stdout, "  %- 11.4g", spc->w[i]);
+      wcsprintf("  %- 11.4g", spc->w[i]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   } else {
-    wcsprintf(stdout, "  (remainder unused)\n");
+    wcsprintf("  (remainder unused)\n");
   }
 
-  wcsprintf(stdout, "    isGrism: %d\n", spc->isGrism);
+  wcsprintf("    isGrism: %d\n", spc->isGrism);
 
-  WCSPRINTF_PTR(stdout, "        err: ", spc->err, "\n");
+  WCSPRINTF_PTR("        err: ", spc->err, "\n");
   if (spc->err) {
     wcserr_prt(spc->err, "             ");
   }
 
-  wcsprintf(stdout, "     spxX2P: %s\n",
+  wcsprintf("     spxX2P: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxX2P, hext));
-  wcsprintf(stdout, "     spxP2S: %s\n",
+  wcsprintf("     spxP2S: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2S, hext));
-  wcsprintf(stdout, "     spxS2P: %s\n",
+  wcsprintf("     spxS2P: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxS2P, hext));
-  wcsprintf(stdout, "     spxP2X: %s\n",
+  wcsprintf("     spxP2X: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
 
   return SPCERR_SUCCESS;

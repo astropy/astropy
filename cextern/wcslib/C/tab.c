@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: tab.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -493,55 +493,55 @@ int tabprt(const struct tabprm *tab)
   if (tab == 0x0) return TABERR_NULL_POINTER;
 
   if (tab->flag != TABSET) {
-    wcsprintf(stdout, "The tabprm struct is UNINITIALIZED.\n");
+    wcsprintf("The tabprm struct is UNINITIALIZED.\n");
     return 0;
   }
 
-  wcsprintf(stdout, "       flag: %d\n", tab->flag);
-  wcsprintf(stdout, "          M: %d\n", tab->M);
+  wcsprintf("       flag: %d\n", tab->flag);
+  wcsprintf("          M: %d\n", tab->M);
 
   /* Array dimensions. */
-  WCSPRINTF_PTR(stdout, "          K: ", tab->K, "\n");
-  wcsprintf(stdout, "            ");
+  WCSPRINTF_PTR("          K: ", tab->K, "\n");
+  wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf(stdout, "%6d", tab->K[m]);
+    wcsprintf("%6d", tab->K[m]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Map vector. */
-  WCSPRINTF_PTR(stdout, "        map: ", tab->map, "\n");
-  wcsprintf(stdout, "            ");
+  WCSPRINTF_PTR("        map: ", tab->map, "\n");
+  wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf(stdout, "%6d", tab->map[m]);
+    wcsprintf("%6d", tab->map[m]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Reference index value. */
-  WCSPRINTF_PTR(stdout, "      crval: ", tab->crval, "\n");
-  wcsprintf(stdout, "            ");
+  WCSPRINTF_PTR("      crval: ", tab->crval, "\n");
+  wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf(stdout, "  %- 11.5g", tab->crval[m]);
+    wcsprintf("  %- 11.5g", tab->crval[m]);
   }
-  wcsprintf(stdout, "\n");
+  wcsprintf("\n");
 
   /* Index vectors. */
-  WCSPRINTF_PTR(stdout, "      index: ", tab->index, "\n");
+  WCSPRINTF_PTR("      index: ", tab->index, "\n");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf(stdout, "   index[%d]: ", m);
-    WCSPRINTF_PTR(stdout, "", tab->index[m], "");
+    wcsprintf("   index[%d]: ", m);
+    WCSPRINTF_PTR("", tab->index[m], "");
     if (tab->index[m]) {
       for (k = 0; k < tab->K[m]; k++) {
         if (k%5 == 0) {
-          wcsprintf(stdout, "\n            ");
+          wcsprintf("\n            ");
         }
-        wcsprintf(stdout, "  %- 11.5g", tab->index[m][k]);
+        wcsprintf("  %- 11.5g", tab->index[m][k]);
       }
-      wcsprintf(stdout, "\n");
+      wcsprintf("\n");
     }
   }
 
   /* Coordinate array. */
-  WCSPRINTF_PTR(stdout, "      coord: ", tab->coord, "\n");
+  WCSPRINTF_PTR("      coord: ", tab->coord, "\n");
   dp = tab->coord;
   for (n = 0; n < tab->nc; n++) {
     /* Array index. */
@@ -554,43 +554,43 @@ int tabprt(const struct tabprm *tab)
       cp += strlen(cp);
     }
 
-    wcsprintf(stdout, "             (*%s)", text);
+    wcsprintf("             (*%s)", text);
     for (m = 0; m < tab->M; m++) {
-      wcsprintf(stdout, "  %- 11.5g", *(dp++));
+      wcsprintf("  %- 11.5g", *(dp++));
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  wcsprintf(stdout, "         nc: %d\n", tab->nc);
+  wcsprintf("         nc: %d\n", tab->nc);
 
-  WCSPRINTF_PTR(stdout, "      sense: ", tab->sense, "\n");
+  WCSPRINTF_PTR("      sense: ", tab->sense, "\n");
   if (tab->sense) {
-    wcsprintf(stdout, "            ");
+    wcsprintf("            ");
     for (m = 0; m < tab->M; m++) {
-      wcsprintf(stdout, "%6d", tab->sense[m]);
+      wcsprintf("%6d", tab->sense[m]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "         p0: ", tab->p0, "\n");
+  WCSPRINTF_PTR("         p0: ", tab->p0, "\n");
   if (tab->p0) {
-    wcsprintf(stdout, "            ");
+    wcsprintf("            ");
     for (m = 0; m < tab->M; m++) {
-      wcsprintf(stdout, "%6d", tab->p0[m]);
+      wcsprintf("%6d", tab->p0[m]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "      delta: ", tab->delta, "\n");
+  WCSPRINTF_PTR("      delta: ", tab->delta, "\n");
   if (tab->delta) {
-    wcsprintf(stdout, "            ");
+    wcsprintf("            ");
     for (m = 0; m < tab->M; m++) {
-      wcsprintf(stdout, "  %- 11.5g", tab->delta[m]);
+      wcsprintf("  %- 11.5g", tab->delta[m]);
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "    extrema: ", tab->extrema, "\n");
+  WCSPRINTF_PTR("    extrema: ", tab->extrema, "\n");
   dp = tab->extrema;
   for (n = 0; n < tab->nc/tab->K[0]; n++) {
     /* Array index. */
@@ -604,49 +604,49 @@ int tabprt(const struct tabprm *tab)
       cp += strlen(cp);
     }
 
-    wcsprintf(stdout, "             (*,*%s)", text);
+    wcsprintf("             (*,*%s)", text);
     for (m = 0; m < 2*tab->M; m++) {
-      if (m == tab->M) wcsprintf(stdout, "->  ");
-      wcsprintf(stdout, "  %- 11.5g", *(dp++));
+      if (m == tab->M) wcsprintf("->  ");
+      wcsprintf("  %- 11.5g", *(dp++));
     }
-    wcsprintf(stdout, "\n");
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "        err: ", tab->err, "\n");
+  WCSPRINTF_PTR("        err: ", tab->err, "\n");
   if (tab->err) {
     wcserr_prt(tab->err, "             ");
   }
 
   /* Memory management. */
-  wcsprintf(stdout, "     m_flag: %d\n", tab->m_flag);
-  wcsprintf(stdout, "        m_M: %d\n", tab->m_M);
-  wcsprintf(stdout, "        m_N: %d\n", tab->m_N);
+  wcsprintf("     m_flag: %d\n", tab->m_flag);
+  wcsprintf("        m_M: %d\n", tab->m_M);
+  wcsprintf("        m_N: %d\n", tab->m_N);
 
-  WCSPRINTF_PTR(stdout, "        m_K: ", tab->m_K, "");
-  if (tab->m_K == tab->K) wcsprintf(stdout, "  (= K)");
-  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR("        m_K: ", tab->m_K, "");
+  if (tab->m_K == tab->K) wcsprintf("  (= K)");
+  wcsprintf("\n");
 
-  WCSPRINTF_PTR(stdout, "      m_map: ", tab->m_map, "");
-  if (tab->m_map == tab->map) wcsprintf(stdout, "  (= map)");
-  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR("      m_map: ", tab->m_map, "");
+  if (tab->m_map == tab->map) wcsprintf("  (= map)");
+  wcsprintf("\n");
 
-  WCSPRINTF_PTR(stdout, "    m_crval: ", tab->m_crval, "");
-  if (tab->m_crval == tab->crval) wcsprintf(stdout, "  (= crval)");
-  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR("    m_crval: ", tab->m_crval, "");
+  if (tab->m_crval == tab->crval) wcsprintf("  (= crval)");
+  wcsprintf("\n");
 
-  WCSPRINTF_PTR(stdout, "    m_index: ", tab->m_index, "");
-  if (tab->m_index == tab->index) wcsprintf(stdout, "  (= index)");
-  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR("    m_index: ", tab->m_index, "");
+  if (tab->m_index == tab->index) wcsprintf("  (= index)");
+  wcsprintf("\n");
   for (m = 0; m < tab->M; m++) {
-    wcsprintf(stdout, " m_indxs[%d]: ", m);
-    WCSPRINTF_PTR(stdout, "", tab->m_indxs[m], "");
-    if (tab->m_indxs[m] == tab->index[m]) wcsprintf(stdout, "  (= index[%d])", m);
-    wcsprintf(stdout, "\n");
+    wcsprintf(" m_indxs[%d]: ", m);
+    WCSPRINTF_PTR("", tab->m_indxs[m], "");
+    if (tab->m_indxs[m] == tab->index[m]) wcsprintf("  (= index[%d])", m);
+    wcsprintf("\n");
   }
 
-  WCSPRINTF_PTR(stdout, "    m_coord: ", tab->m_coord, "");
-  if (tab->m_coord == tab->coord) wcsprintf(stdout, "  (= coord)");
-  wcsprintf(stdout, "\n");
+  WCSPRINTF_PTR("    m_coord: ", tab->m_coord, "");
+  if (tab->m_coord == tab->coord) wcsprintf("  (= coord)");
+  wcsprintf("\n");
 
   return 0;
 }

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: cel.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -110,49 +110,49 @@ const struct celprm *cel;
 
   if (cel == 0x0) return CELERR_NULL_POINTER;
 
-  wcsprintf(stdout, "      flag: %d\n",  cel->flag);
-  wcsprintf(stdout, "     offset: %d\n",  cel->offset);
+  wcsprintf("      flag: %d\n",  cel->flag);
+  wcsprintf("     offset: %d\n",  cel->offset);
   if (undefined(cel->phi0)) {
-    wcsprintf(stdout, "       phi0: UNDEFINED\n");
+    wcsprintf("       phi0: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "       phi0: %9f\n", cel->phi0);
+    wcsprintf("       phi0: %9f\n", cel->phi0);
   }
   if (undefined(cel->theta0)) {
-    wcsprintf(stdout, "     theta0: UNDEFINED\n");
+    wcsprintf("     theta0: UNDEFINED\n");
   } else {
-    wcsprintf(stdout, "     theta0: %9f\n", cel->theta0);
+    wcsprintf("     theta0: %9f\n", cel->theta0);
   }
-  wcsprintf(stdout, "       ref:");
+  wcsprintf("       ref:");
   for (i = 0; i < 4; i++) {
-    wcsprintf(stdout, "  %- 11.5g", cel->ref[i]);
+    wcsprintf("  %- 11.5g", cel->ref[i]);
   }
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "       prj: (see below)\n");
+  wcsprintf("\n");
+  wcsprintf("       prj: (see below)\n");
 
-  wcsprintf(stdout, "     euler:");
+  wcsprintf("     euler:");
   for (i = 0; i < 5; i++) {
-    wcsprintf(stdout, "  %- 11.5g", cel->euler[i]);
+    wcsprintf("  %- 11.5g", cel->euler[i]);
   }
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "    latpreq: %d", cel->latpreq);
+  wcsprintf("\n");
+  wcsprintf("    latpreq: %d", cel->latpreq);
   if (cel->latpreq == 0) {
-    wcsprintf(stdout, " (not required)\n");
+    wcsprintf(" (not required)\n");
   } else if (cel->latpreq == 1) {
-    wcsprintf(stdout, " (disambiguation)\n");
+    wcsprintf(" (disambiguation)\n");
   } else if (cel->latpreq == 2) {
-    wcsprintf(stdout, " (specification)\n");
+    wcsprintf(" (specification)\n");
   } else {
-    wcsprintf(stdout, " (UNDEFINED)\n");
+    wcsprintf(" (UNDEFINED)\n");
   }
-  wcsprintf(stdout, "     isolat: %d\n", cel->isolat);
+  wcsprintf("     isolat: %d\n", cel->isolat);
 
-  WCSPRINTF_PTR(stdout, "        err: ", cel->err, "\n");
+  WCSPRINTF_PTR("        err: ", cel->err, "\n");
   if (cel->err) {
     wcserr_prt(cel->err, "             ");
   }
 
-  wcsprintf(stdout, "\n");
-  wcsprintf(stdout, "   prj.*\n");
+  wcsprintf("\n");
+  wcsprintf("   prj.*\n");
   prjprt(&(cel->prj));
 
   return 0;

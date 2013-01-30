@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsprintf.h,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcsprintf.h,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.16 - C routines that implement the FITS World Coordinate System
+* WCSLIB 4.17 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.
 *
 * Summary of the wcsprintf routines
@@ -33,18 +33,37 @@
 * These routines allow diagnostic output from celprt(), linprt(), prjprt(),
 * spcprt(), tabprt(), wcsprt(), and wcserr_prt() to be redirected to a file or
 * captured in a string buffer.  Those routines all use wcsprintf() for output.
+* Likewise wcsfprintf() is used by wcsbth() and wcspih().  Both functions may
+* be used by application programmers to have other output go to the same
+* place.
 *
 *
 * wcsprintf() - Print function used by WCSLIB diagnostic routines
 * ---------------------------------------------------------------
-* wcsprintf() is used by the celprt(), linprt(), prjprt(), spcprt(), tabprt(),
-* wcsprt(), and wcserr_prt() routines.  Its output may be redirected to a file
-* or string buffer via wcsprintf_set().  By default output goes to stdout.
+* wcsprintf() is used by celprt(), linprt(), prjprt(), spcprt(), tabprt(),
+* wcsprt(), and wcserr_prt() for diagnostic output which by default goes to
+* stdout.  However, it may be redirected to a file or string buffer via
+* wcsprintf_set().
 *
 * Given:
-*   stream    FILE*     The default stream to write to, in the event that
-*                       wcsprintf_set has not been called to set a custom
-*                       stream.
+*   format    char*     Format string, passed to one of the printf(3) family
+*                       of stdio library functions.
+*
+*   ...       mixed     Argument list matching format, as per printf(3).
+*
+* Function return value:
+*             int       Number of bytes written.
+*
+*
+* wcsfprintf() - Print function used by WCSLIB diagnostic routines
+* ----------------------------------------------------------------
+* wcsfprintf() is used by wcsbth(), and wcspih() for diagnostic output which
+* they send to stderr.  However, it may be redirected to a file or string
+* buffer via wcsprintf_set().
+*
+* Given:
+*   stream    FILE*     The output stream if not overridden by a call to
+*                       wcsprintf_set().
 *
 *   format    char*     Format string, passed to one of the printf(3) family
 *                       of stdio library functions.
@@ -55,13 +74,12 @@
 *             int       Number of bytes written.
 *
 *
-* wcsprintf_set() - Set output disposition for wcsprintf()
-* --------------------------------------------------------
+* wcsprintf_set() - Set output disposition for wcsprintf() and wcsfprintf()
+* -------------------------------------------------------------------------
 * wcsprintf_set() sets the output disposition for wcsprintf() which is used by
 * the celprt(), linprt(), prjprt(), spcprt(), tabprt(), wcsprt(), and
-* wcserr_prt() routines.
-*
-* Output goes to stdout by default if wcsprintf_set() has not been called.
+* wcserr_prt() routines, and for wcsfprintf() which is used by wcsbth() and
+* wcspih().
 *
 * Given:
 *   wcsout    FILE*     Pointer to an output stream that has been opened for
@@ -107,19 +125,22 @@
 #ifndef WCSLIB_WCSPRINTF
 #define WCSLIB_WCSPRINTF
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define WCSPRINTF_PTR(stream, str1, ptr, str2)   \
+#define WCSPRINTF_PTR(str1, ptr, str2) \
   if (ptr) { \
-    wcsprintf(stream, "%s%#lx%s", (str1), (unsigned long)(ptr), (str2)); \
+    wcsprintf("%s%#lx%s", (str1), (unsigned long)(ptr), (str2)); \
   } else { \
-    wcsprintf(stream, "%s0x0%s", (str1), (str2));        \
+    wcsprintf("%s0x0%s", (str1), (str2)); \
   }
 
 int wcsprintf_set(FILE *wcsout);
-int wcsprintf(FILE *stream, const char *format, ...);
+int wcsprintf(const char *format, ...);
+int wcsfprintf(FILE *stream, const char *format, ...);
 const char *wcsprintf_buf(void);
 
 #ifdef __cplusplus

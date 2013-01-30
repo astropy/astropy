@@ -73,7 +73,6 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
-#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -103,6 +102,8 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
+
+#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -160,7 +161,15 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -8144,8 +8153,8 @@ char *wcspihtext;
 #line 1 "wcspih.l"
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -8166,7 +8175,7 @@ char *wcspihtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcspih.c,v 4.17 2013/01/29 05:29:21 cal103 Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -8266,7 +8275,7 @@ void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr);
 jmp_buf wcspih_abort_jmp_env;
 #define exit(status) longjmp(wcspih_abort_jmp_env, status)
 
-#line 8270 "wcspih.c"
+#line 8279 "wcspih.c"
 
 #define INITIAL 0
 #define CROTAi 1
@@ -8362,7 +8371,12 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -8455,7 +8469,7 @@ YY_DECL
 	/* Keyword indices, as used in the WCS papers, e.g. PCi_ja, PVi_ma. */
 	char a;
 	int  i, j, m;
-
+	
 	char *cptr, *errmsg, errtxt[80], *hptr, *keep;
 	int  altlin, alts[27], ialt, idx, ipx, ix, jx, naxis, *npptr,
 	     nps[27], npv[27], pass, status, valtype, voff;
@@ -8463,7 +8477,7 @@ YY_DECL
 	void *vptr, *wptr;
 	struct wcsprm *wcsp;
 	int wcspihlex_destroy(void);
-
+	
 	naxis = 0;
 	for (ialt = 0; ialt < 27; ialt++) {
 	  alts[ialt] = 0;
@@ -8472,44 +8486,44 @@ YY_DECL
 	  epoch[ialt]   = UNDEFINED;
 	  vsource[ialt] = UNDEFINED;
 	}
-
+	
 	/* Parameters used to implement YY_INPUT. */
 	wcspih_hdr = header;
 	wcspih_nkeyrec = nkeyrec;
-
+	
 	/* Our handle on the input stream. */
 	hptr = header;
 	keep = 0x0;
 	*nreject = 0;
-
+	
 	/* Keyword parameters. */
 	i = j = m = 0;
 	a = ' ';
-
+	
 	/* For decoding the keyvalue. */
 	valtype = -1;
 	idx     = -1;
 	vptr    = 0x0;
-
+	
 	/* For keywords that require special handling. */
 	altlin = 0;
 	npptr  = 0x0;
-
+	
 	/* The data structures produced. */
 	*nwcs = 0;
 	*wcs  = 0x0;
-
+	
 	pass = 1;
-
+	
 	/* Return here via longjmp() invoked by yy_fatal_error(). */
 	if (setjmp(wcspih_abort_jmp_env)) {
 	  return 3;
 	}
-
+	
 	BEGIN(INITIAL);
 
 
-#line 8513 "wcspih.c"
+#line 8527 "wcspih.c"
 
 	if ( !(yy_init) )
 		{
@@ -8588,7 +8602,7 @@ YY_RULE_SETUP
 	  if (pass == 1) {
 	    sscanf(wcspihtext, "NAXIS   = %d", &naxis);
 	  }
-
+	
 	  if (naxis < 0) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Negative value of NAXIS ignored: %d", naxis);
@@ -8813,7 +8827,7 @@ YY_RULE_SETUP
 #line 363 "wcspih.l"
 {
 	  sscanf(wcspihtext, "EPOCH%c", &a);
-
+	
 	  if (a == ' ' || relax & WCSHDR_EPOCHa) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -8822,14 +8836,14 @@ YY_RULE_SETUP
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-
+	
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "EPOCH keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -8912,11 +8926,11 @@ YY_RULE_SETUP
 	    if (pass == 2) vptr = (*wcs)->radesys;
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "RADECSYS is non-standard, use RADESYSa";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -8972,18 +8986,18 @@ YY_RULE_SETUP
 #line 480 "wcspih.l"
 {
 	  sscanf(wcspihtext, "VELREF%c", &a);
-
+	
 	  if (a == ' ' || relax & WCSHDR_VELREFa) {
 	    valtype = INTEGER;
 	    if (pass == 2) vptr = &((*wcs)->velref);
-
+	
 	    unput(a);
 	    BEGIN(CCCCCCCa);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "VELREF keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -8994,7 +9008,7 @@ YY_RULE_SETUP
 #line 499 "wcspih.l"
 {
 	  sscanf(wcspihtext, "VSOURCE%c", &a);
-
+	
 	  if (relax & WCSHDR_VSOURCE) {
 	    valtype = FLOAT;
 	    if (pass == 2) {
@@ -9003,14 +9017,14 @@ YY_RULE_SETUP
 	        vptr = (void *)((double *)vptr + alts[a-'A'+1]);
 	      }
 	    }
-
+	
 	    unput(' ');
 	    BEGIN(CCCCCCCa);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Deprecated VSOURCEa keyword rejected";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9098,7 +9112,7 @@ YY_RULE_SETUP
 	    if (a != ' ') {
 	      wcsp += alts[a-'A'+1];
 	    }
-
+	
 	    idx = (i-1)*(wcsp->naxis) + j - 1;
 	  }
 	  BEGIN(VALUE);
@@ -9136,13 +9150,13 @@ YY_RULE_SETUP
 	      idx = (i-1)*((*wcs)->naxis) + j - 1;
 	    }
 	    BEGIN(VALUE);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
 	    sprintf(errmsg, "Defunct form of %si_ja keyword",
 	                     (altlin==1) ? "PC" : "CD");
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9165,11 +9179,11 @@ YY_RULE_SETUP
 	  if (a == ' ' || relax & WCSHDR_CROTAia) {
 	    idx = i - 1;
 	    BEGIN(VALUE);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "CROTAn keyword may not have an alternate version code";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9199,7 +9213,7 @@ YY_RULE_SETUP
 #line 648 "wcspih.l"
 {
 	  idx = -1;
-
+	
 	  if (YY_START == CCCCCCCa) {
 	    sscanf(wcspihtext, "%c", &a);
 	  } else {
@@ -9267,11 +9281,11 @@ YY_RULE_SETUP
 	    a = ' ';
 	    idx = -1;
 	    BEGIN(VALUE);
-
+	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = "Defunct PROJPn keyword rejected";
 	    BEGIN(ERROR);
-
+	
 	  } else {
 	    BEGIN(DISCARD);
 	  }
@@ -9298,12 +9312,12 @@ YY_RULE_SETUP
 	        sprintf(errmsg, "Parameter number exceeds 99");
 	      }
 	      BEGIN(ERROR);
-
+	
 	    } else {
 	      /* Pretend we don't recognize it. */
 	      BEGIN(DISCARD);
 	    }
-
+	
 	  } else {
 	    if (valtype == INTEGER) {
 	      BEGIN(INTEGER_VAL);
@@ -9335,7 +9349,7 @@ YY_RULE_SETUP
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-
+	
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9345,26 +9359,26 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-
+	
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-
+	
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((int **)wptr) + idx;
 	        }
-
+	
 	        /* Read the keyvalue. */
 	        sscanf(wcspihtext, "%d", (int *)wptr);
-
+	
 	        if (a) break;
 	      }
-
+	
 	      BEGIN(COMMENT);
-
+	
 	    } else {
 	      errmsg = "Internal parser ERROR, null int pointer";
 	      BEGIN(ERROR);
@@ -9387,7 +9401,7 @@ YY_RULE_SETUP
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-
+	
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9397,38 +9411,38 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-
+	
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-
+	
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((double **)wptr) + idx;
-
+	
 	        } else if (npptr == npv) {
 	          ipx = (*wcs+ialt)->npv++;
 	          (*wcs+ialt)->pv[ipx].i = i;
 	          (*wcs+ialt)->pv[ipx].m = m;
 	          wptr = &((*wcs+ialt)->pv[ipx].value);
 	        }
-
+	
 	        /* Read the keyvalue. */
 	        wcsutil_str2double(wcspihtext, "%lf", (double *)wptr);
-
+	
 	        /* Flag the presence of PCi_ja, or CDi_ja and/or CROTAia. */
 	        if (altlin) {
 	          (*wcs+ialt)->altlin |= altlin;
 	          altlin = 0;
 	        }
-
+	
 	        if (a) break;
 	      }
-
+	
 	      BEGIN(COMMENT);
-
+	
 	    } else {
 	      errmsg = "Internal parser ERROR, null float pointer";
 	      BEGIN(ERROR);
@@ -9452,7 +9466,7 @@ YY_RULE_SETUP
 	  if (pass == 1) {
 	    wcspih_naxes(naxis, i, j, a, alts, npptr);
 	    BEGIN(FLUSH);
-
+	
 	  } else {
 	    if (vptr) {
 	      /* Determine the coordinate representation. */
@@ -9462,50 +9476,50 @@ YY_RULE_SETUP
 	        if (a >= 'A') {
 	          ialt = alts[a-'A'+1];
 	        }
-
+	
 	        wptr = vptr;
 	        if (ialt) {
 	          voff = (char *)(*wcs+ialt) - (char *)(*wcs);
 	          wptr = (void *)((char *)vptr + voff);
 	        }
-
+	
 	        /* Apply keyword parameterization. */
 	        if (idx >= 0) {
 	          wptr = *((char (**)[72])wptr) + idx;
-
+	
 	        } else if (npptr == nps) {
 	          ipx = (*wcs+ialt)->nps++;
 	          (*wcs+ialt)->ps[ipx].i = i;
 	          (*wcs+ialt)->ps[ipx].m = m;
 	          wptr = (*wcs+ialt)->ps[ipx].value;
 	        }
-
+	
 	        /* Read the keyvalue. */
 	        cptr = (char *)wptr;
 	        strcpy(cptr, wcspihtext+1);
-
+	
 	        /* Squeeze out repeated quotes. */
 	        ix = 0;
 	        for (jx = 0; jx < 72; jx++) {
 	          if (ix < jx) {
 	            cptr[ix] = cptr[jx];
 	          }
-
+	
 	          if (cptr[jx] == '\0') {
 	            if (ix) cptr[ix-1] = '\0';
 	            break;
 	          } else if (cptr[jx] == '\'' && cptr[jx+1] == '\'') {
 	            jx++;
 	          }
-
+	
 	          ix++;
 	        }
-
+	
 	        if (a) break;
 	      }
-
+	
 	      BEGIN(COMMENT);
-
+	
 	    } else {
 	      errmsg = "Internal parser ERROR, null string pointer";
 	      BEGIN(ERROR);
@@ -9546,9 +9560,9 @@ YY_RULE_SETUP
 	    if (ctrl < 0) {
 	      /* Preserve discards. */
 	      keep = wcspih_hdr - 80;
-
+	
 	    } else if (ctrl > 2) {
-	      wcsprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
+	      wcsfprintf(stderr, "%.80s\n  Discarded.\n", wcspih_hdr-80);
 	    }
 	  }
 	  BEGIN(FLUSH);
@@ -9564,9 +9578,9 @@ YY_RULE_SETUP
 	      /* Preserve rejects. */
 	      keep = wcspih_hdr - 80;
 	    }
-
+	
 	    if (abs(ctrl%10) > 1) {
-	      wcsprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
+	      wcsfprintf(stderr, "%.80s\n%4d: %s.\n", wcspih_hdr-80, *nreject,
 	        errmsg);
 	    }
 	  }
@@ -9584,7 +9598,7 @@ YY_RULE_SETUP
 	    }
 	    hptr += 80;
 	  }
-
+	
 	  i = j = m = 0;
 	  a = ' ';
 	  valtype = -1;
@@ -9619,39 +9633,39 @@ case YY_STATE_EOF(FLUSH):
 	      wcspihlex_destroy();
 	      return status;
 	    }
-
+	
 	    if (abs(ctrl%10) > 2) {
 	      if (*nwcs == 1) {
 	        if (strcmp(wcs[0]->wcsname, "DEFAULTS") != 0) {
-	          wcsprintf(stderr, "Found one coordinate representation.\n");
+	          wcsfprintf(stderr, "Found one coordinate representation.\n");
 	        }
 	      } else {
-	        wcsprintf(stderr, "Found %d coordinate representations.\n",
+	        wcsfprintf(stderr, "Found %d coordinate representations.\n",
 	          *nwcs);
 	      }
 	    }
-
+	
 	    wcspih_hdr = header;
 	    wcspih_nkeyrec = nkeyrec;
 	    *nreject = 0;
-
+	
 	    pass = 2;
 	    i = j = m = 0;
 	    a = ' ';
 	    valtype = -1;
-
+	
 	    wcspihrestart(wcspihin);
-
+	
 	  } else {
 	    wcspihlex_destroy();
-
+	
 	    if (ctrl < 0) {
 	      *hptr = '\0';
 	    } else if (ctrl == 1) {
-	      wcsprintf(stderr, "%d WCS keyrecords were rejected.\n",
+	      wcsfprintf(stderr, "%d WCS keyrecords were rejected.\n",
 	        *nreject);
 	    }
-
+	
 	    return wcspih_final(alts, epoch, vsource, nwcs, wcs);
 	  }
 	}
@@ -9661,7 +9675,7 @@ YY_RULE_SETUP
 #line 1022 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 9665 "wcspih.c"
+#line 9679 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -10411,8 +10425,8 @@ YY_BUFFER_STATE wcspih_scan_string (yyconst char * yystr )
 
 /** Setup the input buffer state to scan the given bytes. The next call to wcspihlex() will
  * scan from a @e copy of @a bytes.
- * @param bytes the byte buffer to scan
- * @param len the number of bytes in the buffer pointed to by @a bytes.
+ * @param yybytes the byte buffer to scan
+ * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */
