@@ -124,7 +124,25 @@ def adjust_compiler(package):
         # compiler as returned by ccompiler.new_compiler()
         c_compiler = sysconfig.get_config_var('CC')
 
-        version = get_compiler_version(c_compiler)
+        try:
+            version = get_compiler_version(c_compiler)
+        except OSError:
+            msg = textwrap.dedent(
+                    """
+                    The C compiler used to compile Python {compiler:s}, and
+                    which is normally used to compile C extensions, is not
+                    available. You can explicitly specifiy which compiler to
+                    use by setting the CC environment variable, for example:
+
+                        CC=gcc python setup.py <command>
+
+                    or if you are using MacOS X, you can try:
+
+                        CC=clang python setup.py <command>
+                    """.format(compiler=c_compiler))
+            log.warn(msg)
+            sys.exit(1)
+
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
