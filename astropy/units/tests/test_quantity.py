@@ -414,6 +414,10 @@ def test_arrays():
     with pytest.raises(TypeError):
         long(qsec)
 
+def test_array_indexing_slicing():
+    q = np.array([1., 2., 3.]) * u.m
+    assert q[0] == 1. * u.m
+    assert np.all(q[0:2] == u.Quantity([1., 2.], u.m))
 
 def test_inverse_quantity():
     """
