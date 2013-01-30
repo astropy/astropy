@@ -46,7 +46,8 @@ Finally, the current unit and value can be accessed via the ``unit`` and
 Converting to different units
 -----------------------------
 
-:class:`~astropy.units.quantity.Quantity` objects can be converted to different units using the :meth:`~astropy.units.quantity.Quantity.to` method::
+:class:`~astropy.units.quantity.Quantity` objects can be converted to
+different units using the :meth:`~astropy.units.quantity.Quantity.to` method::
 
     >>> q = 2.3 * u.m / u.s
     >>> q.to(u.km / u.h)
@@ -123,14 +124,14 @@ using the `~astropy.units.quantity.Quantity.to` method:
 
 For division, if the units are equivalent, you may want to make the resulting
 object dimensionless by reducing the units. To do this, use the
-:meth:`~astropy.units.quantity.Quantity.decomposed_units()` method:
+:meth:`~astropy.units.quantity.Quantity.decompose()` method:
 
-    >>> (20. * u.cm / (1. * u.m)).decomposed_units()
+    >>> (20. * u.cm / (1. * u.m)).decompose()
     <Quantity 0.2 >
 
 This method is also useful for more complicated arithmetic:
 
     >>> 15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)
     <Quantity 0.341950972779 cm kg m / (ms s)>
-    >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decomposed_units()
+    >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()
     <Quantity 3.41950972779 kg m2 / (s2)>

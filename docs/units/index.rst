@@ -46,12 +46,14 @@ And it can convert between unit systems::
 
 `astropy.units` also handles equivalencies, such as that between wavelength
 and frequency. To use that feature, equivalence objects are passed to the
-:meth:`~astropy.units.core.UnitBase.to` conversion method::
+:meth:`~astropy.units.core.UnitBase.to` conversion method. For instance, a
+conversion from wavelength to frequency doesn't normally work:
 
-  # Wavelength to frequency doesn't normally work
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
-  # ...but by passing an equivalency unit (spectral()), it does...
+
+but by passing an equivalency list, in this case ``spectral()``, it does:
+
   >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
   >>> u.nm.to(u.eV, [1000, 2000], equivalencies=u.spectral())
@@ -68,7 +70,7 @@ their units::
    <Quantity 0.471875 m / (s)>
    >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
    <Quantity 0.0229867443108 km s / (m)>
-   >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decomposed_units()
+   >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
    <Quantity 22.9867443108 s>
 
 Using `astropy.units`
