@@ -595,8 +595,8 @@ def find_api_page(obj, version='dev', openinbrowser=True):
         You must be connected to the internet for this to function even
         if `openinbrowser` is False.
 
-    Packages
-    --------
+    Parameters
+    ----------
     obj
         The object to open the docs for or its fully-qualified name
         (as a str).
