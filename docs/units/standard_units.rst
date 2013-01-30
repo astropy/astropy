@@ -56,19 +56,19 @@ physical dimension.  This is distinct in concept from unit that is
 equal to `None`: that indicates that no unit was specified in the data
 or by the user.
 
-To obtain the dimensionless unit, use the
+To obtain the dimensionless and unscaled unit, use the
 `~astropy.units.dimensionless` object::
 
    >>> from astropy import units as u
    >>> u.dimensionless
-   Unit(dimensionless)
+   Unit(1 dimensionless)
 
 Dimensionless quantities are often defined as products or ratios of
 quantities that are not dimensionless, but whose dimensions cancel out
 when their powers are multiplied.  For example::
 
    >>> u.m / u.m
-   Unit(dimensionless)
+   Unit(1 dimensionless)
 
 For compatibility with the supported unit string formats, this is
 equivalent to ``Unit('')`` and ``Unit(1)``, though using
@@ -78,3 +78,9 @@ equivalent to ``Unit('')`` and ``Unit(1)``, though using
    True
    >>> u.dimensionless == u.Unit(1)
    True
+
+Note that in many cases, the dimensionless unit may also have a scale.
+For example::
+
+   >>> (u.km / u.m).decompose()
+   Unit(1000.0 dimensionless)
