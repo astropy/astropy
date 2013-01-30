@@ -287,11 +287,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     ...               normalize_kernel=True, ignore_edge_zeros=True)
     array([ 1.,  2.,  3.])
 
-    # optional - requires scipy
-    >>> import scipy.fftpack
+    >>> import scipy.fftpack  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], interpolate_nan=True,
-    ...              normalize_kernel=True, ignore_edge_zeros=True,
-    ...              fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
+                      normalize_kernel=True, ignore_edge_zeros=True,
+                      fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
     array([ 1.,  2.,  3.])
 
     """
