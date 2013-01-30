@@ -640,11 +640,15 @@ if HAVE_SPHINX:
                              'Open the docs in a browser (using the '
                              'webbrowser module) if the build finishes '
                              'successfully.'))
+        user_options.append(('warnings-returncode', 'w',
+                             'Parses the sphinx output and returns the number '
+                             'of warnings as the return code.'))
 
         boolean_options = SphinxBuildDoc.boolean_options[:]
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
         boolean_options.append('open-docs-in-browser')
+        boolean_options.append('warnings-returncode')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
@@ -653,6 +657,7 @@ if HAVE_SPHINX:
             self.clean_docs = False
             self.no_intersphinx = False
             self.open_docs_in_browser = False
+            self.warnings_returncode = False
 
         def finalize_options(self):
             #Clear out previous sphinx builds, if requested
@@ -674,12 +679,15 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
+            import re
+            import atexit
+            import webbrowser
+
             from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
-            from subprocess import Popen, PIPE
+            from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
             from urllib import pathname2url
-            import webbrowser
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -742,8 +750,36 @@ if HAVE_SPHINX:
             log.debug('Starting subprocess of {0} with python code:\n{1}\n'
                       '[CODE END])'.format(sys.executable, subproccode))
 
-            proc = Popen([sys.executable], stdin=PIPE)
-            proc.communicate(subproccode)
+            # To return the number of warnings, we need to capture stdout. This
+            # prevents a continuous updating at the terminal, but there's no
+            # apparent way around this.
+            if self.warnings_returncode:
+                proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+                stdo, stde = proc.communicate(subproccode)
+
+                print(stdo)
+
+                stdolines = stdo.split('\n')
+
+                if stdolines[-2] == 'build succeeded.':
+                    retcode = 0
+                else:
+                    mtch = re.match('build succeeded, ([0-9].*) warning[s]?.',
+                                    stdolines[-2])
+                    if mtch is not None:
+                        retcode = int(mtch.group(1))
+                    else:
+                        retcode = 1
+
+                if retcode != 0:
+                    def overrideexitcode():
+                        raise SystemExit(retcode)
+                    atexit.register(overrideexitcode)
+
+            else:
+                proc = Popen([sys.executable], stdin=PIPE)
+                proc.communicate(subproccode)
+
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
