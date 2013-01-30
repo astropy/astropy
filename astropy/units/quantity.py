@@ -21,7 +21,7 @@ __all__ = ["Quantity"]
 
 
 def _validate_value(value):
-    """ Make sure that the input is a Python numeric type.
+    """ Make sure that the input is a Python or Numpy numeric type.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def _validate_value(value):
     """
     from ..utils.misc import isiterable
 
-    if isinstance(value, numbers.Number):
+    if isinstance(value, (numbers.Number, np.number)):
         value_obj = value
     elif isiterable(value):
         value_obj = np.array(value, copy=True)
@@ -43,7 +43,7 @@ def _validate_value(value):
         # A length-0 numpy array (i.e. numpy scalar) which we accept as-is
         value_obj = np.array(value, copy=True)
     else:
-        raise TypeError("The value must be a valid Python numeric type.")
+        raise TypeError("The value must be a valid Python or Numpy numeric type.")
 
     return value_obj
 
