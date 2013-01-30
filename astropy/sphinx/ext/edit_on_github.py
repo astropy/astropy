@@ -153,7 +153,7 @@ def setup(app):
     app.add_config_value('edit_on_github_docstring_message',
                          '[edit on github]', True)
     app.add_config_value('edit_on_github_page_message',
-                         '[edit this page on github]', True)
+                         'Edit This Page on Github', True)
     app.add_config_value('edit_on_github_help_message',
                          'Push the Edit button on the next page', True)
     app.add_config_value('edit_on_github_skip_regex',
