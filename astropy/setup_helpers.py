@@ -102,6 +102,15 @@ def adjust_compiler(package):
                 log.warn(msg)
                 sys.exit(1)
 
+        # If C compiler is set via CC, and isn't broken, we are good to go. We
+        # should definitely not try accessing the compiler specified by
+        # ``sysconfig.get_config_var('CC')`` lower down, because this may fail
+        # if the compiler used to compile Python is missing (and maybe this is
+        # why the user is setting CC). For example, the official Python 2.7.3
+        # MacOS X binary was compled with gcc-4.2, which is no longer available
+        # in XCode 4.
+        return
+
     if get_distutils_build_option('compiler'):
         return
 
@@ -115,7 +124,25 @@ def adjust_compiler(package):
         # compiler as returned by ccompiler.new_compiler()
         c_compiler = sysconfig.get_config_var('CC')
 
-        version = get_compiler_version(c_compiler)
+        try:
+            version = get_compiler_version(c_compiler)
+        except OSError:
+            msg = textwrap.dedent(
+                    """
+                    The C compiler used to compile Python {compiler:s}, and
+                    which is normally used to compile C extensions, is not
+                    available. You can explicitly specifiy which compiler to
+                    use by setting the CC environment variable, for example:
+
+                        CC=gcc python setup.py <command>
+
+                    or if you are using MacOS X, you can try:
+
+                        CC=clang python setup.py <command>
+                    """.format(compiler=c_compiler))
+            log.warn(msg)
+            sys.exit(1)
+
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
@@ -124,7 +151,6 @@ def adjust_compiler(package):
 
 
 def get_compiler_version(compiler):
-    import subprocess
 
     process = subprocess.Popen(
     shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
