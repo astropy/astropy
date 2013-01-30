@@ -44,31 +44,32 @@ And it can convert between unit systems::
   >>> u.Pa.to_system(u.cgs)
   [Unit("1.000000e+01 Ba")]
 
-`astropy.units` also handles equivalencies, such as that between
-wavelength and frequency.  To use that feature, equivalence objects
-are passed to the `~astropy.units.core.UnitBase.to` conversion method::
+`astropy.units` also handles equivalencies, such as that between wavelength
+and frequency. To use that feature, equivalence objects are passed to the
+:meth:`~astropy.units.core.UnitBase.to` conversion method. For instance, a
+conversion from wavelength to frequency doesn't normally work:
 
-  # Wavelength to frequency doesn't normally work
   >>> u.nm.to(u.Hz, [1000, 2000])
   UnitsException: 'nm' (length) and 'Hz' (frequency) are not convertible
-  # ...but by passing an equivalency unit (spectral()), it does...
-  >>> u.nm.to(u.Hz, [1000, 2000], equivs=u.spectral())
+
+but by passing an equivalency list, in this case ``spectral()``, it does:
+
+  >>> u.nm.to(u.Hz, [1000, 2000], equivalencies=u.spectral())
   array([  2.99792458e+14,   1.49896229e+14])
   >>> u.nm.to(u.eV, [1000, 2000], equivs=u.spectral())
   array([ 1.23984201,  0.61992101])
 
 Also included in the `astropy.units` package is the
-`~astropy.units.quantity.Quantity` object, which represents a
-numerical value with an associated unit. These objects support
-arithmetic with other numbers and `~astropy.units.quantity.Quantity`
-objects and preserve their units::
+:class:`~astropy.units.quantity.Quantity` object, which represents a numerical
+value with an associated unit. These objects support arithmetic with other
+numbers and :class:`~astropy.units.quantity.Quantity` objects and preserve
+their units::
 
-   >>> from astropy import units as u
-   >>> 15.1*u.meter / (32.0*u.second)
+   >>> 15.1 * u.meter / (32.0 * u.second)
    <Quantity 0.471875 m / (s)>
-   >>> 3.0*u.kilometer / (130.51*u.meter/u.second)
+   >>> 3.0 * u.kilometer / (130.51 * u.meter / u.second)
    <Quantity 0.0229867443108 km s / (m)>
-   >>> (3.0*u.kilometer / (130.51*u.meter/u.second)).simplify_units()
+   >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
    <Quantity 22.9867443108 s>
 
 Using `astropy.units`

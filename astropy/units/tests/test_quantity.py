@@ -349,7 +349,7 @@ class TestQuantityDisplay():
 
 def test_decompose():
     q1 = 5 * u.N
-    assert q1.decomposed_unit() == (5 * u.kg * u.m * u.s ** -2)
+    assert q1.decompose() == (5 * u.kg * u.m * u.s ** -2)
 
 def test_arrays():
     """
