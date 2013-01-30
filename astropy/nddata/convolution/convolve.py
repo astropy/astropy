@@ -181,8 +181,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
       performance improvements, depending on your system configuration.  fftw3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
-      the :param:`fftn` and :param:`ifftn` keyword to override the default, which
-      is numpy's fft
+      the `fftn` and `ifftn` keyword to override the default, which is numpy's
+      fft.
 
     Parameters
     ----------
