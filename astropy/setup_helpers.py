@@ -630,11 +630,11 @@ if HAVE_SPHINX:
         description = 'Build Sphinx documentation for Astropy environment'
         user_options = SphinxBuildDoc.user_options[:]
         user_options.append(('warnings-returncode', 'w',
-                             'Parses the sphinx output and returns the number '
-                             'of warnings as the return code. Note that this '
-                             'will cause the sphinx log to only update when '
-                             'it completes, rather than continuously as is '
-                             'normally the case. '))
+                             'Parses the sphinx output and sets the return '
+                             'code to 1 if there are any warnings. Note that '
+                             'this will cause the sphinx log to only update '
+                             'when it completes, rather than continuously as '
+                             'is normally the case.'))
         user_options.append(('clean-docs', 'l',
                              'Completely clean previous builds, including '
                              'automodapi-generated files before building new '
@@ -682,7 +682,6 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
-            import re
             import atexit
             import webbrowser
 
@@ -767,12 +766,7 @@ if HAVE_SPHINX:
                 if stdolines[-2] == 'build succeeded.':
                     retcode = 0
                 else:
-                    mtch = re.match('build succeeded, ([0-9].*) warning[s]?.',
-                                    stdolines[-2])
-                    if mtch is not None:
-                        retcode = int(mtch.group(1))
-                    else:
-                        retcode = 1
+                    retcode = 1
 
                 if retcode != 0:
                     def overrideexitcode():
