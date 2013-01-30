@@ -52,22 +52,22 @@ def make_kernel(kernelshape, kernelwidth=3, kerneltype='gaussian',
     Examples
     --------
 
-    >>> make_kernel([3,3],1,'boxcar')
+    >>> make_kernel([3, 3], 1, 'boxcar')
     array([[ 0.  0.  0.]
            [ 0.  1.  0.]
            [ 0.  0.  0.]])
 
-    >>> make_kernel([9],1) # Gaussian by default
+    >>> make_kernel([9], 1)  # Gaussian by default
     array([  1.33830625e-04   4.43186162e-03   5.39911274e-02   2.41971446e-01
              3.98943469e-01   2.41971446e-01   5.39911274e-02   4.43186162e-03
              1.33830625e-04])
 
-    >>> make_kernel([3,3],3,'boxcar')
+    >>> make_kernel([3, 3], 3, 'boxcar')
     array([[ 0.11111111,  0.11111111,  0.11111111],
            [ 0.11111111,  0.11111111,  0.11111111],
            [ 0.11111111,  0.11111111,  0.11111111]])
 
-    >>> make_kernel([3,3],1.4,'tophat')
+    >>> make_kernel([3, 3], 1.4, 'tophat')
     array([[ 0. ,  0.2,  0. ],
            [ 0.2,  0.2,  0.2],
            [ 0. ,  0.2,  0. ]])
