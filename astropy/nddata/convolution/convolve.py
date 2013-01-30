@@ -172,17 +172,19 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     shape = array.shape.  Assumes kernel is centered.
 
-    convolve_fft differs from `scipy.signal.fftconvolve` in a few ways:
+    `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
 
-    * can treat NaN's as zeros or interpolate over them
-    * (optionally) pads to the nearest 2^n size to improve FFT speed
-    * only operates in mode='same' (i.e., the same shape array is returned) mode
-    * can use your own fft, e.g. pyFFTW or pyFFTW3, which can lead to
-      performance improvements, depending on your system configuration.  fftw3
+    * It can treat NaN's as zeros or interpolate over them.
+    * (optionally) It pads to the nearest 2^n size to improve FFT speed.
+    * Its only valid `mode` is 'same' (i.e., the same shape array is returned)
+    * It lets you use your own fft, e.g.,
+      `pyFFTW <http://pypi.python.org/pypi/pyFFTW>`_ or
+      `pyFFTW3 <http://pypi.python.org/pypi/PyFFTW3/0.2.1>`_ , which can lead to
+      performance improvements, depending on your system configuration.  pyFFTW3
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
-      the `fftn` and `ifftn` keyword to override the default, which is numpy's
-      fft.
+      the `fftn` and `ifftn` keywords to override the default, which is
+      `numpy.fft.fft` and `numpy.fft.ifft`.
 
     Parameters
     ----------
