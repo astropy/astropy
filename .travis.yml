@@ -2,17 +2,17 @@ language: python
 
 python:
     - 2.7
-    #- 2.6
-    #- 3.2
+    - 2.6
+    - 3.2
 env:
     - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-    #- NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-    #- NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
 
 matrix:
     include:
-        #- python: 2.7
-        #  env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
+        - python: 2.7
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
         - python: 3.2
