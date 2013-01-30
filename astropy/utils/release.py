@@ -16,20 +16,7 @@ def prereleaser_middle(data):
     if data['name'] != 'astropy':
         return
 
-    import re
-    from StringIO import StringIO
-
-    pattern = re.compile(r'^VERSION\s*=\s*[\'"]{1,3}')
-    output = StringIO()
-    with open('setup.py') as setup_py:
-        for line in setup_py:
-            if not pattern.match(line):
-                output.write(line)
-            else:
-                output.write('VERSION = {0!r}\n'.format(data['new_version']))
-
-    with open('setup.py', 'w') as setup_py:
-        setup_py.write(output.getvalue())
+    _update_setup_py_version(data['new_version'])
 
 
 def releaser_middle(data):
@@ -125,3 +112,30 @@ def postreleaser_before(data):
         return
 
     data['dev_version_template'] = '%(new_version)s.dev'
+
+
+def postreleaser_middle(data):
+    """
+    postreleaser.middle hook to update the setup.py with the new version. See
+    prereleaser_middle for more details.
+    """
+
+    _update_setup_py_version(data['dev_version'])
+
+
+def _update_setup_py_version(version):
+    import re
+    from StringIO import StringIO
+
+    pattern = re.compile(r'^VERSION\s*=\s*[\'"]{1,3}')
+    output = StringIO()
+    with open('setup.py') as setup_py:
+        for line in setup_py:
+            if not pattern.match(line):
+                output.write(line)
+            else:
+                output.write('VERSION = {0!r}\n'.format(version))
+
+    with open('setup.py', 'w') as setup_py:
+        setup_py.write(output.getvalue())
+
