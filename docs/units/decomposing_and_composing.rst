@@ -56,7 +56,7 @@ Some other interesting examples::
     Unit("8.616409e+04 / (sday)"),
     Unit("1.209600e+06 / (fortnight)")]
 
-Composition can be combined with :ref:`unit-equivalencies`::
+Composition can be combined with :ref:`unit_equivalencies`::
 
    >>> (u.s ** -1).compose(equivalencies=u.spectral())
    [Unit("Hz"),
