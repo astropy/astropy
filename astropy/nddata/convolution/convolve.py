@@ -245,7 +245,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         `fftn=scipy.fftpack.fftn`
     complex_dtype : np.complex
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
-        256.  
+        256.
 
     See Also
     --------
@@ -261,36 +261,37 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
 
     Examples
     --------
-    >>> convolve_fft([1,0,3],[1,1,1])
+    >>> convolve_fft([1, 0, 3], [1, 1, 1])
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1])
+    >>> convolve_fft([1, np.nan, 3], [1, 1, 1])
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,0,3],[0,1,0])
+    >>> convolve_fft([1, 0, 3], [0, 1, 0])
     array([ 1.,  0.,  3.])
 
-    >>> convolve_fft([1,2,3],[1])
+    >>> convolve_fft([1, 2, 3], [1])
     array([ 1.,  2.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True)
+    >>> convolve_fft([1, np.nan, 3], [0, 1, 0], interpolate_nan=True)
     array([ 1.,  0.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[0,1,0], interpolate_nan=True, min_wt=1e-8)
+    >>> convolve_fft([1, np.nan, 3], [0, 1, 0], interpolate_nan=True,
+    ...              min_wt=1e-8)
     array([ 1.,  nan,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True)
+    >>> convolve_fft([1, np.nan, 3], [1, 1, 1], interpolate_nan=True)
     array([ 1.,  4.,  3.])
 
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
-                     normalize_kernel=True, ignore_edge_zeros=True)
+    >>> convolve_fft([1, np.nan, 3], [1, 1, 1], interpolate_nan=True,
+    ...               normalize_kernel=True, ignore_edge_zeros=True)
     array([ 1.,  2.,  3.])
 
     # optional - requires scipy
     >>> import scipy.fftpack
-    >>> convolve_fft([1,np.nan,3],[1,1,1], interpolate_nan=True, 
-                      normalize_kernel=True, ignore_edge_zeros=True,
-                      fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
+    >>> convolve_fft([1, np.nan, 3], [1, 1, 1], interpolate_nan=True,
+    ...              normalize_kernel=True, ignore_edge_zeros=True,
+    ...              fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
     array([ 1.,  2.,  3.])
 
     """
@@ -347,7 +348,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         else:
             kernel_is_normalized = False
             if (interpolate_nan or ignore_edge_zeros):
-                WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+ 
+                WARNING = ("Kernel is not normalized, therefore ignore_edge_zeros"+
                     "and interpolate_nan will be ignored.")
                 log.warn(WARNING)
 
