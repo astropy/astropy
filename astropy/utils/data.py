@@ -154,7 +154,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
             from .compat import gzip
             fileobj_new = gzip.GzipFile(fileobj=fileobj, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really gzip
-        except IOError:  # invalid gzip file
+        except (IOError, EOFError):  # invalid gzip file
             fileobj.seek(0)
             fileobj_new.close()
         except struct.error:  # invalid gzip file on Python 3
