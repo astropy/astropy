@@ -124,7 +124,6 @@ def adjust_compiler(package):
 
 
 def get_compiler_version(compiler):
-    import subprocess
 
     process = subprocess.Popen(
     shlex.split(compiler) + ['--version'], stdout=subprocess.PIPE)
