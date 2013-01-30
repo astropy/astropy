@@ -629,6 +629,12 @@ if HAVE_SPHINX:
 
         description = 'Build Sphinx documentation for Astropy environment'
         user_options = SphinxBuildDoc.user_options[:]
+        user_options.append(('warnings-returncode', 'w',
+                             'Parses the sphinx output and returns the number '
+                             'of warnings as the return code. Note that this '
+                             'will cause the sphinx log to only update when '
+                             'it completes, rather than continuously as is '
+                             'normally the case. '))
         user_options.append(('clean-docs', 'l',
                              'Completely clean previous builds, including '
                              'automodapi-generated files before building new '
@@ -640,15 +646,12 @@ if HAVE_SPHINX:
                              'Open the docs in a browser (using the '
                              'webbrowser module) if the build finishes '
                              'successfully.'))
-        user_options.append(('warnings-returncode', 'w',
-                             'Parses the sphinx output and returns the number '
-                             'of warnings as the return code.'))
 
         boolean_options = SphinxBuildDoc.boolean_options[:]
+        boolean_options.append('warnings-returncode')
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
         boolean_options.append('open-docs-in-browser')
-        boolean_options.append('warnings-returncode')
 
         _self_iden_rex = re.compile(r"self\.([^\d\W][\w]+)", re.UNICODE)
 
