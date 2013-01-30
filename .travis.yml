@@ -37,3 +37,4 @@ install:
 script:
    - if $ONLY_EGG_INFO; then python setup.py egg_info; fi
    - if ! $ONLY_EGG_INFO; then python setup.py test --remote-data; fi
+
