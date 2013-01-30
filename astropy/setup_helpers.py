@@ -102,6 +102,15 @@ def adjust_compiler(package):
                 log.warn(msg)
                 sys.exit(1)
 
+        # If C compiler is set via CC, and isn't broken, we are good to go. We
+        # should definitely not try accessing the compiler specified by
+        # ``sysconfig.get_config_var('CC')`` lower down, because this may fail
+        # if the compiler used to compile Python is missing (and maybe this is
+        # why the user is setting CC). For example, the official Python 2.7.3
+        # MacOS X binary was compled with gcc-4.2, which is no longer available
+        # in XCode 4.
+        return
+
     if get_distutils_build_option('compiler'):
         return
 
