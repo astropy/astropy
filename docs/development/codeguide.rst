@@ -49,9 +49,7 @@ Interface and Dependencies
   utilities will be moved to the :mod:`astropy.utils` module when the
   package is integrated into the core package. If a utility is already
   present in :mod:`astropy.utils`, the package should always use that
-  utility instead of re-implementing it in :mod:`packagename.utils`. Note
-  that the same applies to :mod:`astropy.tools`, which is intended for
-  Astronomy-specific utilities.
+  utility instead of re-implementing it in :mod:`packagename.utils`.
 
 
 Documentation and Testing
@@ -70,15 +68,15 @@ Data and Configuration
 
 * Packages can include data in a directory named `data` inside a subpackage
   source directory as long as it is less than about 100 kb. These data should
-  always be accessed via the :func:`astropy.config.get_data_fileobj` or
-  :func:`astropy.config.get_data_filename` functions. If the data exceeds this
-  size, it should be hosted outside the source code repository, either at a
-  third-party location on the internet or the astropy data server. In either
-  case, it should always be downloaded using the
-  :func:`astropy.config.get_data_fileobj` or
-  :func:`astropy.config.get_data_filename` functions. If a specific version of
-  a data file is needed, the hash mechanism described in :doc:`/configs/index`
-  should be used.
+  always be accessed via the :func:`astropy.utils.data.get_pkg_data_fileobj` or
+  :func:`astropy.utils.data.get_pkg_data_filename` functions. If the data
+  exceeds this size, it should be hosted outside the source code repository,
+  either at a third-party location on the internet or the astropy data server.
+  In either case, it should always be downloaded using the
+  :func:`astropy.utils.data.get_pkg_data_fileobj` or
+  :func:`astropy.utils.data.get_pkg_data_filename` functions. If a specific
+  version of a data file is needed, the hash mechanism described in
+  :mod:`astropy.utils.data` should be used.
 
 * All persistent configuration should use the
   `astropy.config.ConfigurationItem` mechanism.  Such configuration items
