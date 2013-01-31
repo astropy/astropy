@@ -20,10 +20,11 @@ from .. import log
 from ..config import ConfigurationItem
 
 WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
-                                          "warn_implicit_numeric_conversion", True,
-                                          "Whether to show an INFO message "
-                                          "when converting a Quantity to a "
-                                          "float/int")
+                                          "warn_implicit_numeric_conversion",
+                                          True,
+                                          "Whether to show a warning message "
+                                          "in the log when converting a "
+                                          "Quantity to a float/int")
 
 __all__ = ["Quantity"]
 
