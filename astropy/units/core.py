@@ -211,6 +211,22 @@ class UnitBase(object):
         """
         return False
 
+    def is_unity(self):
+        """
+        Returns `True` if this unit translates into a scalar quantity
+        without a unit or a scale.
+
+        Examples
+        --------
+        >>> ((2 * u.m) / (3 * u.m)).is_dimensionless()
+        True
+        >>> ((2 * u.m) / (3 * u.m)).is_unity()
+        False
+        >>> ((2 * u.m) / (2 * u.m)).is_unity()
+        True
+        """
+        return False
+
     def is_equivalent(self, other, equivalencies=[]):
         """
         Returns `True` if this unit is equivalent to `other`.
@@ -1233,6 +1249,11 @@ class CompositeUnit(UnitBase):
         x = self.decompose()
         return (len(x.powers) == 0)
     is_dimensionless.__doc__ = UnitBase.is_dimensionless.__doc__
+
+    def is_unity(self):
+        x = self.decompose()
+        return (len(x.bases) == 0 and x.scale == 1.0)
+    is_unity.__doc__ = UnitBase.is_unity.__doc__
 
     def dimensionless_constant(self):
         """
