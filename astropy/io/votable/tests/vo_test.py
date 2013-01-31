@@ -813,3 +813,22 @@ def test_fileobj():
                 assert isinstance(fd, io.FileIO)
             else:
                 assert isinstance(fd, file)
+
+
+def test_nonstandard_units():
+    from .... import units as u
+
+    votable = parse(
+        get_pkg_data_filename('data/nonstandard_units.xml'),
+        pedantic=False)
+
+    assert isinstance(
+        votable.get_first_table().fields[0].unit, u.UnrecognizedUnit)
+
+    votable = parse(
+        get_pkg_data_filename('data/nonstandard_units.xml'),
+        pedantic=False,
+        unit_format='generic')
+
+    assert not isinstance(
+        votable.get_first_table().fields[0].unit, u.UnrecognizedUnit)

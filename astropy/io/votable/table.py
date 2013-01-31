@@ -31,7 +31,7 @@ PEDANTIC = ConfigurationItem(
 
 def parse(source, columns=None, invalid='exception', pedantic=None,
           chunk_size=tree.DEFAULT_CHUNK_SIZE, table_number=None,
-          table_id=None, filename=None,
+          table_id=None, filename=None, unit_format=None,
           _debug_python_based_parser=False):
     """
     Parses a VOTABLE_ xml file (or file-like object), and returns a
@@ -84,6 +84,17 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         Therefore, *filename* is only required when source is a
         file-like object.
 
+    unit_format : str, astropy.units.format.Base instance or None, optional
+        The unit format to use when parsing unit attributes.  If a
+        string, must be the name of a unit formatter. The built-in
+        formats include ``generic``, ``fits``, ``cds``, and
+        ``vounit``.  A custom formatter may be provided by passing a
+        `astropy.units.format.Base` instance.  If `None` (default),
+        the unit format to use will be the one specified by the
+        VOTable specification (which is `cds` up to version 1.2 of
+        VOTable, and (probably) `vounit` in future versions of the
+        spec).
+
     Returns
     -------
     votable : `astropy.io.votable.tree.VOTableFile` object
@@ -104,7 +115,8 @@ def parse(source, columns=None, invalid='exception', pedantic=None,
         'pedantic'     :     pedantic,
         'chunk_size'   :   chunk_size,
         'table_number' : table_number,
-        'filename'     :     filename}
+        'filename'     :     filename,
+        'unit_format'  :  unit_format}
 
     if filename is None and isinstance(source, basestring):
         config['filename'] = source

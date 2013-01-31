@@ -1,13 +1,19 @@
 0.3 (unreleased)
 ----------------
 
+- ``io.votable``
+
+  - The format of the units in the VOTable file can be specified using
+    the `unit_format` parameter.  Note that units are still always
+    written out using the CDS format, to ensure compatibility with the
+    standard.
 
 0.2 (unreleased)
 ----------------
 
-- A configuration file with all options set to their defaults is now generated 
-  when astropy is installed.  This file will be pulled in as the users' 
-  astropy configuration file the first time they ``import astropy``.  [#498] 
+- A configuration file with all options set to their defaults is now generated
+  when astropy is installed.  This file will be pulled in as the users'
+  astropy configuration file the first time they ``import astropy``.  [#498]
 
 - ``astropy.cosmology``
 
@@ -150,10 +156,10 @@ Other Changes and Additions
   access any local as well as remote data, supports caching, and can
   decompress gzip and bzip2 files on-the-fly. [#425]
 
-- Added a classmethod to 
-  `astropy.coordinates.coordsystems.SphericalCoordinatesBase` that performs a 
+- Added a classmethod to
+  `astropy.coordinates.coordsystems.SphericalCoordinatesBase` that performs a
   name resolve query using Sesame to retrieve coordinates for the requested
-  object. This works for any subclass of `SphericalCoordinatesBase`, but 
+  object. This works for any subclass of `SphericalCoordinatesBase`, but
   requires an internet connection. [#556]
 
 Bug Fixes
