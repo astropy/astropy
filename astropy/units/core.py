@@ -1167,7 +1167,11 @@ class CompositeUnit(UnitBase):
         if len(self._bases):
             return super(CompositeUnit, self).__repr__()
         else:
-            return 'Unit({0} dimensionless)'.format(self._scale)
+            if self._scale != 1.0:
+                return 'Unit(dimensionless with a scale of {0})'.format(
+                    self._scale)
+            else:
+                return 'Unit(dimensionless)'
 
     def __hash__(self):
         parts = zip((hash(x) for x in self._bases), self._powers)
