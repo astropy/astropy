@@ -140,8 +140,8 @@ Converting to Python or Numpy types
 -----------------------------------
 
 :class:`~astropy.units.quantity.Quantity` objects can easily be converted to
-Python scalars or Numpy arrays, either by explicitly using ``float()``,
-``int()``, ``long()``, or ``np.array()``, e.g:
+Python scalars or Numpy arrays, either by explicitly using :func:`float`,
+:func:`int`, :func:`long`, or :func:`numpy.array`, e.g:
 
     >>> q = 2.5 * u.m / u.s
     >>> float(q)
