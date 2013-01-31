@@ -324,7 +324,7 @@ class Quantity(object):
         # In the following, we check that unit is not the dimensionless unit
         # (note that this is different from ``is_dimensionless``, which checks
         # if the decomposed - not current - units are dimensionless.
-        if (self.unit.bases or [] and self.unit.scale != 1.) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+        if not self.unit.is_unity() and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return float(self.value)
 
@@ -334,7 +334,7 @@ class Quantity(object):
         # In the following, we check that unit is not the dimensionless unit
         # (note that this is different from ``is_dimensionless``, which checks
         # if the decomposed - not current - units are dimensionless.
-        if (self.unit.bases or [] and self.unit.scale != 1.) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+        if not self.unit.is_unity() and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return int(self.value)
 
@@ -344,7 +344,7 @@ class Quantity(object):
         # In the following, we check that unit is not the dimensionless unit
         # (note that this is different from ``is_dimensionless``, which checks
         # if the decomposed - not current - units are dimensionless.
-        if (self.unit.bases or [] and self.unit.scale != 1.) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+        if not self.unit.is_unity() and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return long(self.value)
 
@@ -353,7 +353,7 @@ class Quantity(object):
         # In the following, we check that unit is not the dimensionless unit
         # (note that this is different from ``is_dimensionless``, which checks
         # if the decomposed - not current - units are dimensionless.
-        if (self.unit.bases or [] and self.unit.scale != 1.) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+        if not self.unit.is_unity() and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Numpy array".format(self.unit))
         return np.array(self.value)
 
