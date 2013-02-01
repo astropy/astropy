@@ -197,20 +197,6 @@ class UnitBase(object):
         """
         return self
 
-    def is_dimensionless(self):
-        """
-        Returns `True` if this unit translates into a scalar quantity
-        without a unit.
-
-        Examples
-        --------
-        >>> ((2 * u.m) / (3 * u.m)).is_dimensionless()
-        True
-        >>> (2 * u.m).is_dimensionless()
-        False
-        """
-        return False
-
     def is_unity(self):
         """
         Returns `True` if this unit translates into a scalar quantity
@@ -1248,11 +1234,6 @@ class CompositeUnit(UnitBase):
         x._expand_and_gather(True, bases=bases)
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
-
-    def is_dimensionless(self):
-        x = self.decompose()
-        return (len(x.powers) == 0)
-    is_dimensionless.__doc__ = UnitBase.is_dimensionless.__doc__
 
     def is_unity(self):
         x = self.decompose()
