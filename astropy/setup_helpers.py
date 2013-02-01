@@ -84,7 +84,19 @@ def adjust_compiler(package):
         # Check that CC is not set to llvm-gcc-4.2
         c_compiler = os.environ['CC']
 
-        version = get_compiler_version(c_compiler)
+        try:
+            version = get_compiler_version(c_compiler)
+        except OSError:
+            msg = textwrap.dedent(
+                    """
+                    The C compiler set by the CC environment variable:
+
+                        {compiler:s}
+
+                    cannot be found or executed.
+                    """.format(compiler=c_compiler))
+            log.warn(msg)
+            sys.exit(1)
 
         for broken, fixed in compiler_mapping:
             if re.match(broken, version):
