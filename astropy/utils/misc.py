@@ -651,7 +651,7 @@ def find_api_page(obj, version='dev', openinbrowser=True):
 
     resurl = None
 
-    for l in oistr.strip().split('\n'):
+    for l in oistr.strip().splitlines():
         ls = l.split()
         name = ls[0]
         loc = ls[3]
