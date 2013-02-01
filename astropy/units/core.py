@@ -204,8 +204,6 @@ class UnitBase(object):
 
         Examples
         --------
-        >>> ((2 * u.m) / (3 * u.m)).is_dimensionless()
-        True
         >>> ((2 * u.m) / (3 * u.m)).is_unity()
         False
         >>> ((2 * u.m) / (2 * u.m)).is_unity()
