@@ -30,7 +30,8 @@ __all__ = ["Quantity"]
 
 
 def _is_unity(value):
-    return not value.bases and value.scale == 1.
+    x = value.decompose()
+    return (len(x.bases) == 0 and x.scale == 1.0)
 
 
 def _validate_value(value):
