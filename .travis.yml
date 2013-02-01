@@ -30,7 +30,7 @@ before_install:
    - sudo apt-get update -qq
    - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
    - sudo apt-get install -qq libhdf5-serial-1.8.4 libhdf5-serial-dev
-   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-recommended; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra; fi
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
    - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
