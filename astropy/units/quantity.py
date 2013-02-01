@@ -30,7 +30,7 @@ __all__ = ["Quantity"]
 
 
 def _is_unity(value):
-    return value.bases and value.scale == 1.
+    return not value.bases and value.scale == 1.
 
 
 def _validate_value(value):
