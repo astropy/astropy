@@ -61,14 +61,14 @@ To obtain the dimensionless and unscaled unit, use the
 
    >>> from astropy import units as u
    >>> u.dimensionless
-   Unit(1 dimensionless)
+   Unit(dimensionless)
 
 Dimensionless quantities are often defined as products or ratios of
 quantities that are not dimensionless, but whose dimensions cancel out
 when their powers are multiplied.  For example::
 
    >>> u.m / u.m
-   Unit(1 dimensionless)
+   Unit(dimensionless)
 
 For compatibility with the supported unit string formats, this is
 equivalent to ``Unit('')`` and ``Unit(1)``, though using
@@ -83,4 +83,16 @@ Note that in many cases, the dimensionless unit may also have a scale.
 For example::
 
    >>> (u.km / u.m).decompose()
-   Unit(1000.0 dimensionless)
+   Unit(dimensionless with a scale of 1000.0)
+
+To determine if a unit is dimensionless (but regardless of the scale),
+use the `physical_type` property::
+
+   >>> (u.km / u.m).physical_type
+   u'dimensionless'
+   # This also has a scale, so it is not the same as u.dimensionless
+   >>> (u.km / u.m) == u.dimensionless
+   False
+   # However, this has a scale of 1.0, so it is the same
+   >>> (u.m / u.m) == u.dimensionless
+   True
