@@ -36,7 +36,7 @@ To install Astropy with `pip`, simply run::
 
     pip install astropy
 
-.. note:: that you will need a C compiler (e.g. ``gcc`` or ``clang``) to be
+.. note:: You will need a C compiler (e.g. ``gcc`` or ``clang``) to be
           installed (see `Building from source`_ below) for the installation
           to succeed.
 
