@@ -403,3 +403,12 @@ def test_long_int():
     """
     sigma = 10 ** 21 * u.M_p / u.cm ** 2
     sigma.to(u.M_sun / u.pc ** 2)
+
+
+def test_is_unity():
+    x = u.Unit(1000.0 * u.m) / u.km
+    assert x.is_unity()
+
+    assert (u.m / u.m).is_unity()
+
+    assert not (u.m / u.km).is_unity()
