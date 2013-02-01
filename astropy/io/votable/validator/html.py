@@ -120,7 +120,7 @@ def write_result(result):
         return
 
     xml = result.get_xml_content()
-    xml_lines = xml.split(b'\n')
+    xml_lines = xml.splitlines()
 
     path = os.path.join(result.get_dirpath(), 'index.html')
 
@@ -156,7 +156,7 @@ def write_result(result):
                         content = content.decode('ascii')
                     with w.tag(u'pre'):
                         w._flush()
-                        for line in content.split('\n'):
+                        for line in content.splitlines():
                             write_votlint_warning(w, line, xml_lines)
 
 
