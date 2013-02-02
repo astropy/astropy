@@ -113,7 +113,7 @@ if not _ASTROPY_SETUP_:
     from warnings import warn
 
     # add these here so we only need to cleanup the namespace at the end
-    config_dir = e = None
+    config_dir = None
 
     if not os.environ.get('ASTROPY_SKIP_CONFIG_UPDATE', False):
         config_dir = os.path.dirname(__file__)
@@ -123,6 +123,7 @@ if not _ASTROPY_SETUP_:
             wmsg = (e.args[0] + " Cannot install default profile. If you are "
                     "importing from source, this is expected.")
             warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+            del e
 
-    del os, warn, config_dir, e  # clean up namespace
+    del os, warn, config_dir  # clean up namespace
 
