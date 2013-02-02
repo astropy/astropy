@@ -115,7 +115,7 @@ numeric types. For these operations between objects with equivalent units, the
     <Quantity 20.0 cm / (m)>
 
 For multiplication, you can change how to represent the resulting object by
-using the `~astropy.units.quantity.Quantity.to` method:
+using the :meth:`~astropy.units.quantity.Quantity.to` method:
 
     >>> (1.1 * u.m * 140.3 * u.cm).to(u.m**2)
     <Quantity 1.5433 m2>
@@ -135,3 +135,64 @@ This method is also useful for more complicated arithmetic:
     <Quantity 0.341950972779 cm kg m / (ms s)>
     >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()
     <Quantity 3.41950972779 kg m2 / (s2)>
+
+Converting to Python or Numpy types
+-----------------------------------
+
+:class:`~astropy.units.quantity.Quantity` objects can easily be converted to
+Python scalars or Numpy arrays, either by explicitly using :func:`float`,
+:func:`int`, :func:`long`, or :func:`numpy.array`, e.g:
+
+    >>> q = 2.5 * u.m / u.s
+    >>> float(q)
+    WARNING: Converting Quantity object in units 'm / (s)' to a Python scalar
+    2.5
+    >>> np.array(q)
+    WARNING: Converting Quantity object in units 'm / (s)' to a Numpy array
+    array(2.5)
+
+or by using them directly in e.g. Numpy functions:
+
+    >>> q = 10. * u.km / u.h
+    >>> np.log10(q)
+    WARNING: Converting Quantity object in units 'km / (h)' to a Numpy array
+    1.0
+
+but note that in all cases, a warning is emitted to indicate that the
+resulting floating point value is in the units of the original
+:class:`~astropy.units.quantity.Quantity` object. There is **no conversion**
+to a different or simpler set of units. For example, in the following case::
+
+    >>> q = 100. * u.cm / u.m
+    >>> np.log10(q)
+    WARNING: Converting Quantity object in units 'cm / (m)' to a Numpy array
+    2.0
+
+The result is ``2.`` because the quantity is 100 cm/m, and so the numerical
+value is 100 (and the units are cm/m). If you want to simplify e.g.
+dimensionless quantities to their true dimensionless value, then you can make
+use of the :meth:`~astropy.units.quantity.Quantity.decompose` method:
+
+    >>> q.decompose()
+    <Quantity 1.0 >
+    >>> np.log10(q.decompose())
+    0.0
+
+and note that in that case, there is no warning emitted, because
+``q.decompose()`` has no units, so conversion to floating point is
+unambiguous.
+
+If you want to disable the warnings, you can use the following configuration
+item to silence them:
+
+    >>> u.quantity.WARN_IMPLICIT_NUMERIC_CONVERSION.set(False)
+
+which then gives e.g.:
+
+    >>> np.log10(1. * u.m)
+    0.0
+
+without a warning. As for all configuration items, one can also directly set
+the ``warn_implicit_numeric_conversion`` item in ``astropy.cfg``.
+
+
