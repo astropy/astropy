@@ -16,8 +16,22 @@ import numpy as np
 
 # AstroPy
 from .core import Unit, UnitBase, CompositeUnit
+from .. import log
+from ..config import ConfigurationItem
+
+WARN_IMPLICIT_NUMERIC_CONVERSION = ConfigurationItem(
+                                          "warn_implicit_numeric_conversion",
+                                          True,
+                                          "Whether to show a warning message "
+                                          "in the log when converting a "
+                                          "Quantity to a float/int")
 
 __all__ = ["Quantity"]
+
+
+def _is_unity(value):
+    x = value.decompose()
+    return (len(x.bases) == 0 and x.scale == 1.0)
 
 
 def _validate_value(value):
@@ -312,20 +326,36 @@ class Quantity(object):
     def __float__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
+        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return float(self.value)
 
     def __int__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
+        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return int(self.value)
 
     def __long__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
+        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return long(self.value)
 
     # Array types
     def __array__(self):
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
+        if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
+            log.warn("Converting Quantity object in units '{0}' to a Numpy array".format(self.unit))
         return np.array(self.value)
 
     # Display
