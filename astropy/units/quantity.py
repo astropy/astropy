@@ -326,9 +326,8 @@ class Quantity(object):
     def __float__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
-        # In the following, we check that unit is not the dimensionless unit
-        # (note that this is different from ``is_dimensionless``, which checks
-        # if the decomposed - not current - units are dimensionless.
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return float(self.value)
@@ -336,9 +335,8 @@ class Quantity(object):
     def __int__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
-        # In the following, we check that unit is not the dimensionless unit
-        # (note that this is different from ``is_dimensionless``, which checks
-        # if the decomposed - not current - units are dimensionless.
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return int(self.value)
@@ -346,18 +344,16 @@ class Quantity(object):
     def __long__(self):
         if not self.isscalar:
             raise TypeError('Only scalar quantities can be converted to Python scalars')
-        # In the following, we check that unit is not the dimensionless unit
-        # (note that this is different from ``is_dimensionless``, which checks
-        # if the decomposed - not current - units are dimensionless.
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
         return long(self.value)
 
     # Array types
     def __array__(self):
-        # In the following, we check that unit is not the dimensionless unit
-        # (note that this is different from ``is_dimensionless``, which checks
-        # if the decomposed - not current - units are dimensionless.
+        # We show a warning unless the unit is equivalent to unity (i.e. not
+        # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
             log.warn("Converting Quantity object in units '{0}' to a Numpy array".format(self.unit))
         return np.array(self.value)
