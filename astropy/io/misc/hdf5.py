@@ -187,15 +187,11 @@ def write_table_hdf5(table, output, path=None, compression=False,
     # Write the meta-data to the file
     for key in table.meta:
         val = table.meta[key]
-        if isinstance(val, (bytes, basestring)):
-            # Use np.string_ to ensure that fixed-length attributes are used.
-            dset.attrs[key] = np.string_(val)
-        else:
-            try:
-                dset.attrs[key] = val
-            except TypeError:
-                log.warn("Attribute `{0}` of type {1} cannot be written to "
-                         "HDF5 files - skipping".format(key, type(val)))
+        try:
+            dset.attrs[key] = val
+        except TypeError:
+            log.warn("Attribute `{0}` of type {1} cannot be written to "
+                     "HDF5 files - skipping".format(key, type(val)))
 
     if f is not None:
         f.close()
