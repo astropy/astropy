@@ -2029,7 +2029,7 @@ _current = get_cosmology_from_string(DEFAULT_COSMOLOGY())
 def get_current():
     """ Get the current cosmology.
 
-    If no current has been set, the WMAP7 comology is returned and a
+    If no current has been set, the WMAP9 comology is returned and a
     warning is given.
 
     Returns
@@ -2042,8 +2042,8 @@ def get_current():
     """
     if _current is None:
         warnings.warn('No default cosmology has been specified, '
-                      'using 7-year WMAP.')
-        return WMAP7
+                      'using 9-year WMAP.')
+        return WMAP9
 
     return _current
 
