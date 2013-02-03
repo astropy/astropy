@@ -41,7 +41,7 @@ a_B_c2 = 4 * const.sigma_sb.cgs.value / const.c.cgs.value ** 3
 DEFAULT_COSMOLOGY = ConfigurationItem(
     'default_cosmology', 'no_default',
     'The default cosmology to use. Note this is only read on import, '
-    'changing this value at runtime has no effect.')
+    'so changing this value at runtime has no effect.')
 
 
 class CosmologyError(Exception):
