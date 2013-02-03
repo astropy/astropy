@@ -32,7 +32,7 @@ the number of transverse proper kpc corresponding to an arcminute at z=3:
 All the functions available are listed in the `Reference/API`_
 section. These will use the "current" cosmology to calculate the
 values (see `The Current Cosmology`_ section below for more
-details). If you haven't set this explicitly, they will use the 7-year
+details). If you haven't set this explicitly, they will use the 9-year
 WMAP cosmological parameters and print a warning message.
 
 Also note that the cosmology subpackage makes use of `~astropy.units`, so
@@ -164,23 +164,20 @@ use the `~astropy.cosmology.core.set_current` function to set a
 cosmology for the current Python session.
 
 If you haven't set a current cosmology using one of the methods
-described above, then the cosmology module will use the 7-year WMAP
+described above, then the cosmology module will use the 9-year WMAP
 parameters and print a warning message letting you know this. For
 example, if you call a convenience function without setting the
 current cosmology or using the `cosmo=` keyword you see the following
 message:
 
   >>> from astropy import cosmology
-  >>> cosmology.lookback_time(1) # lookback time in Gyr at z=1
-  WARNING: No default cosmology has been specified, using 7-year WMAP.
+  >>> cosmology.lookback_time(1)  # lookback time in Gyr at z=1
+  WARNING: No default cosmology has been specified, using 9-year WMAP.
   [astropy.cosmology.core]
-  7.787766946
+  7.846670734240066
 
-The 9-year WMAP and Planck 2013 cosmologies are also available
+The Planck 2013 cosmology is also available
 
-  >>> from astropy.cosmology import WMAP9   # WMAP 9-year
-  >>> WMAP9.lookback_time(2).value          # lookback time in Gyr at z=2
-  10.442114507
   >>> from astropy.cosmology import Planck13  # Planck 2013
   >>> Planck13.lookback_time(2).value       # lookback time in Gyr at z=2
   10.522149614
@@ -197,14 +194,14 @@ uses a single neutrino species with mass 0.06 eV. Future versions of
 .. note::
 
     In general it's better to use an explicit cosmology (for example
-    ``WMAP7.H(0)`` instead of ``cosmology.H(0)``). The motivation for
+    ``WMAP9.H(0)`` instead of ``cosmology.H(0)``). The motivation for
     this is that when you go back to use the code at a later date or
     share your scripts with someone else, the default cosmology may
     have changed. Use of the convenience functions should generally be
     reserved for interactive work or cases where the flexibility of
     quickly changing between different cosmologies is for some reason
     useful. Alternatively, putting (for example)
-    ``cosmology.set_current(WMAP7)`` at the top of your code will
+    ``cosmology.set_current(WMAP9)`` at the top of your code will
     ensure that the right cosmology is always used.
 
 Using `cosmology` inside Astropy
