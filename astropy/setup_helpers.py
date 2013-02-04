@@ -667,6 +667,12 @@ if HAVE_SPHINX:
 
         description = 'Build Sphinx documentation for Astropy environment'
         user_options = SphinxBuildDoc.user_options[:]
+        user_options.append(('warnings-returncode', 'w',
+                             'Parses the sphinx output and sets the return '
+                             'code to 1 if there are any warnings. Note that '
+                             'this will cause the sphinx log to only update '
+                             'when it completes, rather than continuously as '
+                             'is normally the case.'))
         user_options.append(('clean-docs', 'l',
                              'Completely clean previous builds, including '
                              'automodapi-generated files before building new '
@@ -680,6 +686,7 @@ if HAVE_SPHINX:
                              'successfully.'))
 
         boolean_options = SphinxBuildDoc.boolean_options[:]
+        boolean_options.append('warnings-returncode')
         boolean_options.append('clean-docs')
         boolean_options.append('no-intersphinx')
         boolean_options.append('open-docs-in-browser')
@@ -691,6 +698,7 @@ if HAVE_SPHINX:
             self.clean_docs = False
             self.no_intersphinx = False
             self.open_docs_in_browser = False
+            self.warnings_returncode = False
 
         def finalize_options(self):
             #Clear out previous sphinx builds, if requested
@@ -712,12 +720,14 @@ if HAVE_SPHINX:
             SphinxBuildDoc.finalize_options(self)
 
         def run(self):
+            import atexit
+            import webbrowser
+
             from os.path import split, join, abspath
             from distutils.cmd import DistutilsOptionError
-            from subprocess import Popen, PIPE
+            from subprocess import Popen, PIPE, STDOUT
             from inspect import getsourcelines
             from urllib import pathname2url
-            import webbrowser
 
             # If possible, create the _static dir
             if self.build_dir is not None:
@@ -780,8 +790,31 @@ if HAVE_SPHINX:
             log.debug('Starting subprocess of {0} with python code:\n{1}\n'
                       '[CODE END])'.format(sys.executable, subproccode))
 
-            proc = Popen([sys.executable], stdin=PIPE)
-            proc.communicate(subproccode)
+            # To return the number of warnings, we need to capture stdout. This
+            # prevents a continuous updating at the terminal, but there's no
+            # apparent way around this.
+            if self.warnings_returncode:
+                proc = Popen([sys.executable], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+                stdo, stde = proc.communicate(subproccode)
+
+                print(stdo)
+
+                stdolines = stdo.split('\n')
+
+                if stdolines[-2] == 'build succeeded.':
+                    retcode = 0
+                else:
+                    retcode = 1
+
+                if retcode != 0:
+                    def overrideexitcode():
+                        raise SystemExit(retcode)
+                    atexit.register(overrideexitcode)
+
+            else:
+                proc = Popen([sys.executable], stdin=PIPE)
+                proc.communicate(subproccode)
+
             if proc.returncode == 0:
                 if self.open_docs_in_browser:
                     if self.builder == 'html':
