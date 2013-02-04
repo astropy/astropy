@@ -21,7 +21,7 @@ from . import si
 from . import cgs
 
 # Create a special singleton for the dimensionless unit
-dimensionless = Unit(1)
+dimensionless_unscaled = Unit(1)
 
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
