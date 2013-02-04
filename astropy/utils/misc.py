@@ -655,7 +655,7 @@ def find_api_page(obj, version='dev', openinbrowser=True):
         ls = l.split()
         name = ls[0]
         loc = ls[3]
-        if loc.endswith('$'):
+        if loc.endswith(b'$'):
             loc = loc[:-1] + name
 
         if name == obj:
