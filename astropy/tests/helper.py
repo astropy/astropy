@@ -252,10 +252,18 @@ class astropy_test(Command, object):
                 set_flag = "import __builtin__; __builtin__._ASTROPY_TEST_ = True"
 
             cmd = ('{0}; import {1.package_name}, sys; sys.exit('
-                   '{1.package_name}.test({1.package!r}, {1.test_path!r}, '
-                   '{1.args!r}, {1.plugins!r}, {1.verbose_results!r}, '
-                   '{1.pastebin!r}, {1.remote_data!r}, {1.pep8!r}, {1.pdb!r}, '
-                   '{1.coverage!r}, {1.open_files!r}))')
+                   '{1.package_name}.test('
+                   'package={1.package!r}, '
+                   'test_path={1.test_path!r}, '
+                   'args={1.args!r}, '
+                   'plugins={1.plugins!r}, '
+                   'verbose={1.verbose_results!r}, '
+                   'pastebin={1.pastebin!r}, '
+                   'remote_data={1.remote_data!r}, '
+                   'pep8={1.pep8!r}, '
+                   'pdb={1.pdb!r}, '
+                   'coverage={1.coverage!r}, '
+                   'open_files={1.open_files!r}))')
             cmd = cmd.format(set_flag, self)
 
             #override the config locations to not make a new directory nor use
