@@ -69,6 +69,11 @@ def _is_url(string):
     return url[0].lower() in ['http', 'https', 'ftp']
 
 
+def _is_inside(path, parent_path):
+    # We have to use realpath to avoid issues with symlinks
+    return os.path.realpath(path).startswith(os.path.realpath(parent_path))
+
+
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
     """
@@ -674,7 +679,7 @@ def _find_pkg_data_path(data_name):
     Look for data in the source-included data directories and return the
     path.
     """
-    from os.path import abspath, dirname, join
+    from os.path import dirname, join
     from ..utils.misc import find_current_module
 
     module = find_current_module(1, True)
@@ -689,7 +694,7 @@ def _find_pkg_data_path(data_name):
     path = join(module_path, data_name)
 
     root_dir = dirname(rootpkg.__file__)
-    assert abspath(path).startswith(abspath(root_dir)), \
+    assert _is_inside(path, root_dir), \
            ("attempted to get a local data file outside "
             "of the " + rootpkgname + " tree")
 
@@ -890,7 +895,7 @@ def clear_download_cache(hashorurl=None):
 
     """
     from os import unlink
-    from os.path import join, exists, abspath
+    from os.path import join, exists
     from shutil import rmtree
     from warnings import warn
 
@@ -912,7 +917,7 @@ def clear_download_cache(hashorurl=None):
         else:
             with _open_shelve(urlmapfn, True) as url2hash:
                 filepath = join(dldir, hashorurl)
-                assert abspath(filepath).startswith(abspath(dldir)), \
+                assert _is_inside(filepath, dldir), \
                        ("attempted to use clear_download_cache on a location" +
                         " that's not inside the data cache directory")
 
