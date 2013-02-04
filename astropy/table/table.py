@@ -1312,12 +1312,22 @@ class Table(object):
                              .format(type(item)))
 
     def __setitem__(self, item, value):
-        try:
+        if item in self.colnames:
             self._data[item] = value
-        except (ValueError, KeyError, TypeError):
-            raise KeyError("Column {0} does not exist".format(item))
-        except:
-            raise
+        else:
+            # Assigning to a non-existent column name results in creation of column
+            NewColumn = MaskedColumn if self.masked else Column
+
+            # Make sure value is an ndarray so we can get the dtype
+            if not isinstance(value, np.ndarray):
+                value = np.array(value)
+
+            # Make new column and assign the value
+            new_column = NewColumn(item, length=len(self), dtype=value.dtype)
+            new_column[:] = value
+
+            # Now add new column to the table
+            self.add_column(new_column)
 
     def __delitem__(self, item):
         if isinstance(item, basestring):
