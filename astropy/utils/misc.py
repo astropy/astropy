@@ -26,6 +26,7 @@ __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'walk_skip_hidden', 'NumpyOrSetEncoder']
 
 
+
 def find_current_module(depth=1, finddiff=False):
     """ Determines the module/package from which this function is called.
 
