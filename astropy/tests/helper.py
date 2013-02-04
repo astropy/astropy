@@ -160,6 +160,8 @@ class TestRunner(object):
 
             all_args += ' --open-files'
 
+            print("Checking for unclosed files")
+
         try:
             all_args = shlex.split(
                 all_args, posix=not sys.platform.startswith('win'))
