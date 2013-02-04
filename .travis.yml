@@ -5,23 +5,27 @@ python:
     - 2.6
     - 3.2
 env:
-    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=false
-    - NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
-    - NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
+    - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
 
 matrix:
     include:
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false OPTIONAL=true
-        - python: 2.7
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
         - python: 3.2
-          env: NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=true OPTIONAL=false
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
+        - python: 2.7
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        - python: 3.2
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        - python: 2.7
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='build_sphinx -w' OPTIONAL_DEPS=false
     exclude:
         - python: 3.2
-          env: NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false OPTIONAL=false
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
-          env: NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false OPTIONAL=false
+          env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
