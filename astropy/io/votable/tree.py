@@ -2637,7 +2637,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         from ...table import Table
 
         meta = {}
-        for key in [u'ID', u'name', u'ref', u'ucd', u'utype', u'description']:
+        for key in ['ID', 'name', 'ref', 'ucd', 'utype', 'description']:
             val = getattr(self, key, None)
             if val is not None:
                 meta[key] = val
@@ -2657,7 +2657,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         instance.
         """
         kwargs = {}
-        for key in [u'ID', u'name', u'ref', u'ucd', u'utype']:
+        for key in ['ID', 'name', 'ref', 'ucd', 'utype']:
             val = table.meta.get(key)
             if val is not None:
                 kwargs[key] = val
