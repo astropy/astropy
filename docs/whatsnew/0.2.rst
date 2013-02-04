@@ -75,6 +75,58 @@ Note that this subpackage is still under heavy development, and likely will
 undergo significant changes in the next few versions.
 
 
+Cosmology
+---------
+
+There have been several improvements to :ref:`astropy.cosmology
+<astropy-cosmology>` subpackage, some of which required minor API
+changes. Contributions to the energy density from photons and
+neutrinos are now taken into account, and so cosmological quantities
+should be accurate all the way up to z ~ 1100, corresponding to the
+CMB surface of last scattering. There are also new classes to
+represent flat cosmologies, optionally with a time-varying dark energy
+parameter ``w`` using the popular parameterisations by `Linder 2003
+<http://adsabs.harvard.edu/abs/2003PhRvL..90i1301L>`_.
+
+There are two API changes:
+
+  * Previously the ``Om``, ``Ol`` and ``Ok`` attributes of a
+    `Cosmology` class referred to densities at z = 0. These have been
+    renamed to ``Om0``, ``Ol0``, and ``Ok0``. ``Om``, ``Ol`` and
+    ``Ok`` are now methods that give the relevant density as a
+    function of redshift. This change makes their behaviour consistent
+    with that of the Hubble parameter attribute and method (``H0`` and
+    ``H``).
+
+  * The `FLRWCosmology` class has been renamed to
+    :class:`~astropy.cosmology.core.FLRW`.
+
+So while in version 0.1 you could define a flat cosmology in following way::
+
+  >>> from astropy.cosmology import FLRWCosmology
+  >>> cosmo = FLRWCosmology(H0=70, Om=0.3, Ol=0.7)
+
+Now you would do the same thing using::
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+
+The convenience functions
+:func:`~astropy.cosmology.funcs.kpc_proper_per_arcmin`,
+:func:`~astropy.cosmology.funcs.kpc_comoving_per_arcmin`,
+:func:`~astropy.cosmology.funcs.arcsec_per_kpc_proper` and
+:func:`~astropy.cosmology.funcs.arcsec_per_kpc_comoving` are now all
+available as methods of the :class:`~astropy.cosmology.Cosmology`
+object.
+
+Finally, a new set of cosmological parameters from the 9 year WMAP
+results (`astropy.cosmology.WMAP9`) has been added from the recently
+submitted paper by `Hinshaw et
+al. <http://arxiv.org/abs/1212.5226>`_. Since this paper has not yet
+been refereed, convenience functions still use the 7 year WMAP results
+if you don't explicitly specify a cosmology.
+
+
 Data Tables
 -----------
 
