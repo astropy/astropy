@@ -1,3 +1,5 @@
+.. _astropy-cosmology:
+
 ***********************************************
 Cosmological Calculations (`astropy.cosmology`)
 ***********************************************

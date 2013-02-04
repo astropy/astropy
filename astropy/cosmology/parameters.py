@@ -32,9 +32,6 @@ WMAP 7 year parameters from Komatsu et al. 2011, ApJS, 192, 18. Table
 
 WMAP 5 year parameters from Komatsu et al. 2009, ApJS, 180, 330. Table
 1 (WMAP + BAO + SN ML).
-
-Both these cosmologies are flat (omega matter + omega dark energy = 1)
-and assume dark enegy is the cosmological constant (w0 = -1, wa = 0).
 """
 
 # Hinshaw et al. 2012, WMAP9 + eCMB + BAO + H0 (Table 4, last column)
