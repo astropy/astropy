@@ -22,3 +22,7 @@ def test_speed():
 
 def test_unknown():
     assert (u.m * u.s).physical_type == 'unknown'
+
+
+def test_dimensionless():
+    assert (u.m / u.m).physical_type == 'dimensionless'

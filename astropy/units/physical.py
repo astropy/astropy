@@ -9,6 +9,7 @@ property.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from . import core
 from . import si
 from . import astrophys
 
@@ -84,6 +85,7 @@ def get_physical_type(unit):
 
 
 for unit, name in [
+    (core.Unit(1), 'dimensionless'),
     (si.m, 'length'),
     (si.m ** 2, 'area'),
     (si.m ** 3, 'volume'),

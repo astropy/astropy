@@ -52,15 +52,15 @@ The dimensionless unit
 
 In addition to these units, `astropy.units` includes the concept of
 the dimensionless unit, used to indicate quantities that don't have a
-physical dimension.  This is distinct in concept from unit that is
+physical dimension.  This is distinct in concept from a unit that is
 equal to `None`: that indicates that no unit was specified in the data
 or by the user.
 
-To obtain the dimensionless unit, use the
-`~astropy.units.dimensionless` object::
+For convenience, there is a unit that is both dimensionless and
+unscaled: the `~astropy.units.dimensionless_unscaled` object::
 
    >>> from astropy import units as u
-   >>> u.dimensionless
+   >>> u.dimensionless_unscaled
    Unit(dimensionless)
 
 Dimensionless quantities are often defined as products or ratios of
@@ -72,9 +72,30 @@ when their powers are multiplied.  For example::
 
 For compatibility with the supported unit string formats, this is
 equivalent to ``Unit('')`` and ``Unit(1)``, though using
-``u.dimensionless`` in Python code is preferred for readability::
+``u.dimensionless_unscaled`` in Python code is preferred for
+readability::
 
-   >>> u.dimensionless == u.Unit('')
+   >>> u.dimensionless_unscaled == u.Unit('')
    True
-   >>> u.dimensionless == u.Unit(1)
+   >>> u.dimensionless_unscaled == u.Unit(1)
+   True
+
+Note that in many cases, a dimensionless unit may also have a scale.
+For example::
+
+   >>> (u.km / u.m).decompose()
+   Unit(dimensionless with a scale of 1000.0)
+   >>> (u.km / u.m).decompose() == u.dimensionless_unscaled
+   False
+
+To determine if a unit is dimensionless (but regardless of the scale),
+use the `physical_type` property::
+
+   >>> (u.km / u.m).physical_type
+   u'dimensionless'
+   # This also has a scale, so it is not the same as u.dimensionless_unscaled
+   >>> (u.km / u.m) == u.dimensionless_unscaled
+   False
+   # However, (u.m / u.m) has a scale of 1.0, so it is the same
+   >>> (u.m / u.m) == u.dimensionless_unscaled
    True

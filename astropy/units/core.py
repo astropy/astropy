@@ -197,20 +197,6 @@ class UnitBase(object):
         """
         return self
 
-    def is_dimensionless(self):
-        """
-        Returns `True` if this unit translates into a scalar quantity
-        without a unit.
-
-        Examples
-        --------
-        >>> ((2 * u.m) / (3 * u.m)).is_dimensionless()
-        True
-        >>> (2 * u.m).is_dimensionless()
-        False
-        """
-        return False
-
     def is_equivalent(self, other, equivalencies=[]):
         """
         Returns `True` if this unit is equivalent to `other`.
@@ -234,7 +220,7 @@ class UnitBase(object):
             return False
 
         try:
-            (self / other).dimensionless_constant()
+            (self / other)._dimensionless_constant()
         except UnitsException:
             unit = self.decompose()
             other = other.decompose()
@@ -280,13 +266,13 @@ class UnitBase(object):
                 raise ValueError("Invalid equivalence entry")
             if (unit.is_equivalent(funit) and
                 other.is_equivalent(tunit)):
-                scale1 = (unit / funit).dimensionless_constant()
-                scale2 = (tunit / other).dimensionless_constant()
+                scale1 = (unit / funit)._dimensionless_constant()
+                scale2 = (tunit / other)._dimensionless_constant()
                 return make_converter(scale1, a, scale2)
             elif (other.is_equivalent(funit) and
                   unit.is_equivalent(tunit)):
-                scale1 = (unit / tunit).dimensionless_constant()
-                scale2 = (funit / other).dimensionless_constant()
+                scale1 = (unit / tunit)._dimensionless_constant()
+                scale2 = (funit / other)._dimensionless_constant()
                 return make_converter(scale1, b, scale2)
 
         def get_err_str(unit):
@@ -335,7 +321,7 @@ class UnitBase(object):
         other = Unit(other)
 
         try:
-            scale = (self / other).dimensionless_constant()
+            scale = (self / other)._dimensionless_constant()
         except UnitsException:
             return self._apply_equivalences(
                 self, other, equivalencies)
@@ -1151,7 +1137,11 @@ class CompositeUnit(UnitBase):
         if len(self._bases):
             return super(CompositeUnit, self).__repr__()
         else:
-            return 'Unit(dimensionless)'
+            if self._scale != 1.0:
+                return 'Unit(dimensionless with a scale of {0})'.format(
+                    self._scale)
+            else:
+                return 'Unit(dimensionless)'
 
     def __hash__(self):
         parts = zip((hash(x) for x in self._bases), self._powers)
@@ -1229,12 +1219,7 @@ class CompositeUnit(UnitBase):
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
-    def is_dimensionless(self):
-        x = self.decompose()
-        return (len(x.powers) == 0)
-    is_dimensionless.__doc__ = UnitBase.is_dimensionless.__doc__
-
-    def dimensionless_constant(self):
+    def _dimensionless_constant(self):
         """
         If this unit is dimensionless, return its scalar quantity.
 
