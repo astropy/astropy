@@ -220,7 +220,7 @@ class UnitBase(object):
             return False
 
         try:
-            (self / other).dimensionless_constant()
+            (self / other)._dimensionless_constant()
         except UnitsException:
             unit = self.decompose()
             other = other.decompose()
@@ -266,13 +266,13 @@ class UnitBase(object):
                 raise ValueError("Invalid equivalence entry")
             if (unit.is_equivalent(funit) and
                 other.is_equivalent(tunit)):
-                scale1 = (unit / funit).dimensionless_constant()
-                scale2 = (tunit / other).dimensionless_constant()
+                scale1 = (unit / funit)._dimensionless_constant()
+                scale2 = (tunit / other)._dimensionless_constant()
                 return make_converter(scale1, a, scale2)
             elif (other.is_equivalent(funit) and
                   unit.is_equivalent(tunit)):
-                scale1 = (unit / tunit).dimensionless_constant()
-                scale2 = (funit / other).dimensionless_constant()
+                scale1 = (unit / tunit)._dimensionless_constant()
+                scale2 = (funit / other)._dimensionless_constant()
                 return make_converter(scale1, b, scale2)
 
         def get_err_str(unit):
@@ -321,7 +321,7 @@ class UnitBase(object):
         other = Unit(other)
 
         try:
-            scale = (self / other).dimensionless_constant()
+            scale = (self / other)._dimensionless_constant()
         except UnitsException:
             return self._apply_equivalences(
                 self, other, equivalencies)
@@ -1219,7 +1219,7 @@ class CompositeUnit(UnitBase):
         return x
     decompose.__doc__ = UnitBase.decompose.__doc__
 
-    def dimensionless_constant(self):
+    def _dimensionless_constant(self):
         """
         If this unit is dimensionless, return its scalar quantity.
 
