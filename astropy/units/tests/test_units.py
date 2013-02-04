@@ -104,16 +104,7 @@ def test_spectral3():
     assert_allclose(a, [2.99792458e+14, 1.49896229e+14])
 
 
-def test_spectraldensity():
-
-    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
-    assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-
-    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
-    assert_allclose(b, 1)
-
-
-def test_spectraldensity2():
+def test_spectraldensity1():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
 
@@ -121,28 +112,53 @@ def test_spectraldensity2():
     assert_allclose(a, 4.086160166177361e-12)
 
 
-def test_spectraldensity3():
+def test_spectraldensity2():
+
+    # Flux density (power / area / spectral unit)
 
     # Define F_nu in Jy
     f_nu = u.Jy
 
     # Convert to ergs / cm^2 / s / Hz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.Hz, 1.), 1.e-23, 10)
+    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.Hz, 1.), 1.e-23)
 
     # Convert to ergs / cm^2 / s at 10 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13, 10)
+    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13)
 
     # Convert to ergs / cm^2 / s / micron at 1 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 3.335640951981521e-20, 10)
+    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 3.335640951981521e-20)
 
     # Define F_lambda in ergs / cm^2 / s / micron
     f_lambda = u.erg / u.cm ** 2 / u.s / u.micron
 
     # Convert to Jy at 1 Ghz
-    assert_allclose(f_lambda.to(u.Jy, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 1. / 3.335640951981521e-20, 10)
+    assert_allclose(f_lambda.to(u.Jy, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 1. / 3.335640951981521e-20)
 
     # Convert to ergs / cm^2 / s at 10 microns
-    assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.micron, 10.)), 10., 10)
+    assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.micron, 10.)), 10.)
+
+    # Luminosity density (power / spectral unit)
+
+    # Define F_nu in ergs / s / Hz
+    f_nu = u.erg / u.s / u.Hz
+
+    # Convert to ergs / s at 10 Ghz
+    assert_allclose(f_nu.to(u.erg / u.s, 1., equivalencies=u.spectral_density(u.GHz, 10)), 1.e10)
+
+    # Convert to ergs / s / micron at 1 Ghz
+    assert_allclose(f_nu.to(u.erg / u.s / u.micron, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 3.335640951981521e+03)
+
+    # Define F_lambda in ergs / s / micron
+    f_lambda = u.erg / u.s / u.micron
+
+    # Convert to ergs / s at 1 Ghz
+    assert_allclose(f_lambda.to(u.erg / u.s, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 1. / 3.335640951981521e-06)
+
+    # Convert to ergs / s at 10 microns
+    assert_allclose(f_lambda.to(u.erg / u.s, 1., equivalencies=u.spectral_density(u.micron, 10.)), 10.)
+
+    # Convert ergs / s to ph / s
+    assert_allclose((u.erg / u.s).to(u.ph / u.s, equivalencies=u.spectral_density(u.micron, 10.)), 5.0341170081942266e+19)
 
 
 def test_units_conversion():

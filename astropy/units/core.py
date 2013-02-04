@@ -234,7 +234,7 @@ class UnitBase(object):
             return False
 
         try:
-            (self / other).dimensionless_constant()
+            (self / other)._dimensionless_constant()
         except UnitsException:
             unit = self.decompose()
             other = other.decompose()
@@ -256,11 +256,6 @@ class UnitBase(object):
         Internal function (used from `get_converter`) to apply
         equivalence pairs.
         """
-        def make_converter(scale1, func, scale2):
-            def convert(v):
-                return func(_condition_arg(v) * scale1) * scale2
-            return convert
-
         orig_unit = unit
         orig_other = other
 
@@ -278,16 +273,18 @@ class UnitBase(object):
                 funit, tunit, a, b = equiv
             else:
                 raise ValueError("Invalid equivalence entry")
-            if (unit.is_equivalent(funit) and
-                other.is_equivalent(tunit)):
-                scale1 = (unit / funit).dimensionless_constant()
-                scale2 = (tunit / other).dimensionless_constant()
-                return make_converter(scale1, a, scale2)
-            elif (other.is_equivalent(funit) and
-                  unit.is_equivalent(tunit)):
-                scale1 = (unit / tunit).dimensionless_constant()
-                scale2 = (funit / other).dimensionless_constant()
-                return make_converter(scale1, b, scale2)
+
+            for from_unit, to_unit, func in [
+                    (funit, tunit, a),
+                    (tunit, funit, b)]:
+                from_ratio = (unit / from_unit).decompose()
+                to_ratio = (other / to_unit).decompose()
+                if from_ratio.is_equivalent(to_ratio):
+                    scale1 = from_ratio.scale
+                    scale2 = 1.0 / to_ratio.scale
+                    def convert(v):
+                        return func(_condition_arg(v) * scale1) * scale2
+                    return convert
 
         def get_err_str(unit):
             unit_str = unit.to_string('unscaled')
@@ -335,7 +332,7 @@ class UnitBase(object):
         other = Unit(other)
 
         try:
-            scale = (self / other).dimensionless_constant()
+            scale = (self / other)._dimensionless_constant()
         except UnitsException:
             return self._apply_equivalences(
                 self, other, equivalencies)
@@ -1234,13 +1231,9 @@ class CompositeUnit(UnitBase):
         return (len(x.powers) == 0)
     is_dimensionless.__doc__ = UnitBase.is_dimensionless.__doc__
 
-    def dimensionless_constant(self):
+    def _dimensionless_constant(self):
         """
         If this unit is dimensionless, return its scalar quantity.
-
-        Direct use of this method is not recommended. It is generally
-        better to use the `to` or `get_converter` methods
-        instead.
         """
         x = self.decompose()
         c = x.scale
