@@ -155,7 +155,8 @@ def read(cls, *args, **kwargs):
             valid_formats = identify_format('read', cls, fileobj, *args, **kwargs)
 
             if len(valid_formats) == 0:
-                raise Exception("Format could not be identified")
+                raise Exception("Format could not be identified. ",
+                            "Valid formats are {0:s}".format(", ".join(_readers)))
             elif len(valid_formats) > 1:
                 raise Exception(
                     "Format is ambiguous - options are: {0:s}".format(
@@ -195,7 +196,9 @@ def write(data, *args, **kwargs):
         valid_formats = identify_format('write', data.__class__, None, *args, **kwargs)
 
         if len(valid_formats) == 0:
-            raise Exception("Format could not be identified")
+            raise Exception("Format could not be identified. ",
+                    "Valid formats are {0:s}".format(", ".join(_writers)))
+        
         elif len(valid_formats) > 1:
             raise Exception(
                 "Format is ambiguous - options are: {0:s}".format(

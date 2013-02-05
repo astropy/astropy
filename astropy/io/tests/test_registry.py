@@ -106,13 +106,13 @@ def test_register_identifier_force():
 def test_read_noformat():
     with pytest.raises(Exception) as exc:
         TestData.read()
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_write_noformat():
     with pytest.raises(Exception) as exc:
         TestData().write()
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_read_noformat_arbitrary():
@@ -120,7 +120,7 @@ def test_read_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData.read(object())
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_write_noformat_arbitrary():
@@ -128,7 +128,7 @@ def test_write_noformat_arbitrary():
     _identifiers.update(_IDENTIFIERS_ORIGINAL)
     with pytest.raises(Exception) as exc:
         TestData().write(object())
-    assert exc.value.args[0] == "Format could not be identified"
+    assert exc.value.args[0] == "Format could not be identified. "
 
 
 def test_read_toomanyformats():
