@@ -268,7 +268,7 @@ def _vo_service_request(url, pedantic, kwargs):
             urllib.quote(key), urllib.quote_plus(str(value))))
 
     parsed_url = url + '&'.join(query)
-    with get_readable_fileobj(parsed_url) as req:
+    with get_readable_fileobj(parsed_url, encoding='binary') as req:
         tab = table.parse(req, filename=parsed_url, pedantic=pedantic)
 
     return vo_tab_parse(tab, url, kwargs)
