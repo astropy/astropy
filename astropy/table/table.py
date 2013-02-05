@@ -158,15 +158,13 @@ class BaseColumn(object):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        if self.name:
-            units = None if self.units is None else str(self.units)
-            out = "<{0} name={1} units={2} format={3} " \
-                "description={4}>\n{5}".format(
-                self.__class__.__name__,
-                repr(self.name), repr(units),
-                repr(self.format), repr(self.description), repr(self.data))
-        else:
-            out = repr(self.data)
+        units = None if self.units is None else str(self.units)
+        out = "<{0} name={1} units={2} format={3} " \
+            "description={4}>\n{5}".format(
+            self.__class__.__name__,
+            repr(self.name), repr(units),
+            repr(self.format), repr(self.description), repr(self.data))
+
         return out
 
     def iter_str_vals(self):
@@ -417,7 +415,7 @@ class Column(BaseColumn, np.ndarray):
       element.
     """
 
-    def __new__(cls, name, data=None,
+    def __new__(cls, name=None, data=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -470,7 +468,7 @@ class Column(BaseColumn, np.ndarray):
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
 
-    def __new__(cls, name, data=None, mask=None, fill_value=None,
+    def __new__(cls, name=None, data=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 

@@ -45,11 +45,13 @@ class TestColumn():
     def test_view(self, Column):
         c = np.array([1, 2, 3]).view(Column)
         if Column == table.MaskedColumn:
-            assert repr(c) == ('masked_array(data = [1 2 3],\n'
+            assert repr(c) == ('<MaskedColumn name=None units=None format=None description=None>\n'
+                               'masked_array(data = [1 2 3],\n'
                                '             mask = False,\n'
                                '       fill_value = 999999)\n')
         else:
-            assert repr(c) == 'array([1, 2, 3])'
+            assert repr(c) == ('<Column name=None units=None format=None description=None>\n'
+                               'array([1, 2, 3])')
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
