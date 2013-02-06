@@ -647,7 +647,7 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     finally:
         uf.close()
 
-    oistr = decompress(oistr)
+    oistr = decompress(oistr).decode('utf-8')
 
     resurl = None
 
