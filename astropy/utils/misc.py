@@ -13,11 +13,12 @@ import functools
 import os
 import io
 import json
-import numpy as np
 import sys
 import textwrap
 import traceback
 import warnings
+
+import numpy as np
 
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
