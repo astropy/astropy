@@ -42,6 +42,9 @@ Reference/API
 .. automodapi:: astropy.utils.console
     :no-inheritance-diagram:
 
+.. automodapi:: astropy.utils.timer
+    :no-inheriance-diagram:
+
 File Downloads
 --------------
 
