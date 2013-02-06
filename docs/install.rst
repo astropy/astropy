@@ -78,15 +78,17 @@ from source, unless you are installing a numbered release. (The releases
 packages have the necessary C files packaged with them, and hence do not
 require Cython.)
 
-.. note:: If you are using MacOS X, you will need to download the XCode 
-          command line tools.  If you do not have XCode, you can download them
-          from https://developer.apple.com/downloads/index.action (requires an
-          Apple developer account).  Alternatively, you can install 
-          `XCode <https://developer.apple.com/xcode/>`_ from the App Store, 
-          after which you must also install the command line tools. You will 
-          need to open the XCode application, go to **Preferences**, then 
-          **Downloads**, and then under **Components**, click on the Install 
-          button to the right of **Command Line Tools**.
+.. note:: If you are using MacOS X, you will need to the XCode command line
+          tools.  One way to get them is to install `XCode
+          <https://developer.apple.com/xcode/>`_. If you are using OS X 10.7
+          (Lion) or later, you must also explicitly install the command line
+          tools. You can do this by opening the XCode application, going to
+          **Preferences**, then **Downloads**, and then under **Components**,
+          click on the Install button to the right of **Command Line Tools**.
+          Alternatively, on 10.7 (Lion) or later, you do not need to install
+          XCode, you can download just the command line tools from
+          https://developer.apple.com/downloads/index.action (requires an Apple
+          developer account).
 
 Obtaining the source packages
 -----------------------------
