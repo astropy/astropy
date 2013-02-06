@@ -34,7 +34,7 @@ However, in general if your application does not deal with text
 processing and you just want docstrings to work, this may be
 acceptable.
 
-The IPython issue: `<https://github.com/ipython/ipython/pull/2738>`_
+The IPython issue: https://github.com/ipython/ipython/pull/2738
 
 Floating point precision issues on Python 2.6 on Microsoft Windows
 ------------------------------------------------------------------
@@ -45,4 +45,14 @@ lost.
 
 The easiest workaround is to install Python 2.7.
 
-The Python issue: `<http://bugs.python.org/issue7117>`_
+The Python issue: http://bugs.python.org/issue7117
+
+Failing logging tests when running the tests in IPython
+-------------------------------------------------------
+
+When running the Astropy tests using ``astropy.test()`` in an IPython
+interpreter some of the tests in the ``astropy/tests/test_logger.py`` fail.
+This is due to mutually incompatible behaviors in IPython and py.test, and is
+not due to a problem with the test itself or the feature being tested.
+
+See: https://github.com/astropy/astropy/issues/717
