@@ -187,8 +187,8 @@ The 9-year WMAP cosmology is also available
 Using `cosmology` inside Astropy
 --------------------------------
 
-If you are writing code for the `astropy` core or an affiliated package,
-it is strongly recommended that you use the the current cosmology
+If you are writing code for the `astropy` core or an affiliated
+package, it is strongly recommended that you use the current cosmology
 through the `~astropy.cosmology.core.get_current` function. It is also
 recommended that you provide an override option something like the
 following::
