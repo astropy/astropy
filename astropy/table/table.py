@@ -467,6 +467,89 @@ class Column(BaseColumn, np.ndarray):
 
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
+    """Define a masked data column for use in a Table object.
+
+    Parameters
+    ----------
+    name : str
+        Column name and key for reference within Table
+    data : list, ndarray or None
+        Column data values
+    mask : list, ndarray or None
+        Boolean mask for which True indicates missing or invalid data
+    fill_value : float, int, str or None
+        Value used when filling masked column elements
+    dtype : numpy.dtype compatible value
+        Data type for column
+    shape : tuple or ()
+        Dimensions of a single row element in the column data
+    length : int or 0
+        Number of row elements in column data
+    description : str or None
+        Full description of column
+    units : str or None
+        Physical units
+    format : str or None
+        Format string for outputting column values.  This can be an
+        "old-style" (``format % value``) or "new-style" (`str.format`)
+        format specification string.
+    meta : dict-like or None
+        Meta-data associated with the column
+
+    Examples
+    --------
+    A MaskedColumn is similar to a Column except that it includes ``mask`` and
+    ``fill_value`` attributes.  It can be created in two different ways:
+
+    - Provide a ``data`` value but not ``shape`` or ``length`` (which are
+      inferred from the data).
+
+      Examples::
+
+        col = MaskedColumn(data=[1, 2], name='name')
+        col = MaskedColumn(data=[1, 2], name='name', mask=[True, False])
+        col = MaskedColumn(data=[1, 2], name='name', dtype=float, fill_value=99)
+
+      The ``mask`` argument will be cast as a boolean array and specifies
+      which elements are considered to be missing or invalid.
+
+      The ``dtype`` argument can be any value which is an acceptable
+      fixed-size data-type initializer for the numpy.dtype() method.  See
+      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      Examples include:
+
+      - Python non-string type (float, int, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+
+      If no ``dtype`` value is provide then the type is inferred using
+      ``np.array(data)``.  When ``data`` is provided then the ``shape``
+      and ``length`` arguments are ignored.
+
+    - Provide ``length`` and optionally ``shape``, but not ``data``
+
+      Examples::
+
+        col = MaskedColumn(name='name', length=5)
+        col = MaskedColumn(name='name', dtype=int, length=10, shape=(3,4))
+
+      The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
+      array shape of a single cell in the column.
+
+    .. warning::
+
+       In the next major release of `astropy` (0.3), the order of function
+       arguments for creating a |MaskedColumn| will change.  Currently the order is
+       ``MaskedColumn(name, data, ...)``, but in 0.3 and later it will be
+       ``MaskedColumn(data, name, ...)``.  This improves consistency with |Table|
+       and `numpy`.
+
+       In order to use the same code for Astropy 0.2 and 0.3, column objects
+       should always be created using named keyword arguments for ``data`` and
+       ``name``, for instance ``c = MaskedColumn(data=[1, 2], name='col')``.  When
+       Astropy 0.3 is released then the the keyword identifiers can be dropped,
+       allowing for ``c = MaskedColumn([1, 2], 'c')``.
+    """
 
     def __new__(cls, name=None, data=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
