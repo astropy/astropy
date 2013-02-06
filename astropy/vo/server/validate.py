@@ -61,7 +61,8 @@ hosted by 'stsci.edu':
 >>> import numpy as np
 >>> from astropy.io.votable import parse_single_table
 >>> from astropy.utils.data import get_readable_fileobj
->>> with get_readable_fileobj(validate.CS_MSTR_LIST()) as fd:
+>>> with get_readable_fileobj(validate.CS_MSTR_LIST(),
+...                           encoding='binary') as fd:
 ...     tab_all = parse_single_table(fd, pedantic=False)
 >>> arr = tab_all.array.data[np.where(
 ...     (tab_all.array['capabilityClass'] == 'ConeSearch') &
@@ -281,6 +282,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     # Output dir created by votable.validator
     _OUT_ROOT = os.path.join(destdir, 'results')
 
+    if not os.path.exists(_OUT_ROOT):
+        os.mkdir(_OUT_ROOT)
+
     # Output files
     db_file = {}
     db_file['good'] = os.path.join(destdir, 'conesearch_good.json')
@@ -304,7 +308,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
                 log.info('Existing file {0} deleted'.format(db_file[key]))
 
     # Get all Cone Search sites
-    with get_readable_fileobj(CS_MSTR_LIST()) as fd:
+    with get_readable_fileobj(CS_MSTR_LIST(), encoding='binary') as fd:
         tab_all = votable.parse_single_table(fd, pedantic=False)
     arr_cone = tab_all.array.data[np.where(
         tab_all.array['capabilityClass'] == 'ConeSearch')]
@@ -312,7 +316,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     assert arr_cone.size > 0, \
         'astropy.vo.server.cs_mstr_list yields no valid result'
 
-    fixed_urls = saxutils.unescape(np.char.array(arr_cone['accessURL']))
+    fixed_urls = [saxutils.unescape(cur_url)
+                  for cur_url in arr_cone['accessURL']]
     uniq_urls = set(fixed_urls)
 
     if url_list is None:
@@ -322,7 +327,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         assert isinstance(url_list, Iterable)
         for cur_url in url_list:
             assert isinstance(cur_url, basestring)
-        url_list = set(saxutils.unescape(np.char.array(url_list)))
+        url_list = set([saxutils.unescape(cur_url) for cur_url in url_list])
 
         if verbose:
             log.info('Only {0}/{1} sites are validated'.format(
@@ -332,20 +337,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     # Re-structure dictionary for JSON file
 
-    col_names = arr_cone.dtype.names
+    col_names = tab_all.array.dtype.names
     title_counter = defaultdict(int)
     key_lookup_by_url = {}
 
     for cur_url in url_list:
-        i_same_url = np.where(fixed_urls == cur_url)
-        num_match = len(i_same_url[0])
+        num_match = fixed_urls.count(cur_url)
 
         if num_match == 0:
             log.warn(
                 '{0} not found in cs_mstr_list! Skipping...'.format(cur_url))
             continue
 
-        i = i_same_url[0][0]
+        i = fixed_urls.index(cur_url)
         n_ignored = num_match - 1
         row_d = {'duplicatesIgnored': n_ignored}
         if verbose and n_ignored > 0:
