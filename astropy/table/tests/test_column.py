@@ -114,6 +114,12 @@ class TestColumn():
             assert np.allclose(c.sum(), 3.)
             assert isinstance(c.sum(), (np.floating, float))
 
+    def test_name_none(self, Column):
+        """Can create a column without supplying name, which defaults to None"""
+        c = Column(data=[1, 2])
+        assert c.name is None
+        assert np.all(c == np.array([1, 2]))
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

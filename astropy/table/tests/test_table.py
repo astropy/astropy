@@ -121,6 +121,13 @@ class TestNewFromColumns():
         with pytest.raises(ValueError):
             Table(cols)
 
+    def test_name_none(self):
+        """Column with name=None can init a table IFF names are supplied"""
+        c = Column(data=[1, 2])
+        Table([c], names=('c',))
+        with pytest.raises(TypeError):
+            Table([c])
+
 
 @pytest.mark.usefixtures('set_global_Table')
 class TestReverse():
