@@ -1,8 +1,5 @@
 {% extends "basic/layout.html" %}
 
-{# Explicitly include the css file because it is overridden by conf settings #}
-{% set css_files = ['_static/bootstrap-astropy.css'] + css_files %}
-
 {# Collapsible sidebar script from default/layout.html in Sphinx #}
 {% set script_files = script_files + ['_static/sidebar.js'] %}
 
