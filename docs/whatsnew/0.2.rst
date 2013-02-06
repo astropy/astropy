@@ -152,7 +152,7 @@ framework`_ read and write methods.  For example, assume you have a table
 of magnitudes called ``mags`` with columns ``B`` and ``V``.  You can add a new
 column ``B-V`` and write out to an ASCII table with::
 
-  >>> BV = Column('B-V', mags['B'] - mags['V'])
+  >>> BV = Column(data=mags['B'] - mags['V'], name='B-V')
   >>> mags.add_column(BV)
   >>> mags.write('mags_BV.dat', format='ascii')
 

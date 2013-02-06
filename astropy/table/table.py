@@ -379,15 +379,16 @@ class Column(BaseColumn, np.ndarray):
     --------
     A Column can be created in two different ways:
 
-    - Provide a ``data`` value and optionally a ``dtype`` value
+    - Provide a ``data`` value but not ``shape`` or ``length`` (which are
+      inferred from the data).
 
       Examples::
 
-        col = Column('name', data=[1, 2, 3])         # shape=(3,)
-        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-        col = Column('name', data=[1, 2, 3], dtype=float)
-        col = Column('name', np.array([1, 2, 3]))
-        col = Column('name', ['hello', 'world'])
+        col = Column(data=[1, 2], name='name')  # shape=(2,)
+        col = Column(data=[[1, 2], [3, 4]], name='name')  # shape=(2, 2)
+        col = Column(data=[1, 2], name='name', dtype=float)
+        col = Column(data=np.array([1, 2]), name='name')
+        col = Column(data=['hello', 'world'], name='name')
 
       The ``dtype`` argument can be any value which is an acceptable
       fixed-size data-type initializer for the numpy.dtype() method.  See
@@ -399,20 +400,31 @@ class Column(BaseColumn, np.ndarray):
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
-      ``np.array(data)``.  When ``data`` is provided then the ``shape``
-      and ``length`` arguments are ignored.
+      ``np.array(data)``.
 
-    - Provide zero or more of ``dtype``, ``shape``, ``length``
+    - Provide ``length`` and optionally ``shape``, but not ``data``
 
       Examples::
 
-        col = Column('name')
-        col = Column('name', dtype=int, length=10, shape=(3,4))
+        col = Column(name='name', length=5)
+        col = Column(name='name', dtype=int, length=10, shape=(3,4))
 
-      The default ``dtype`` is ``np.float64`` and the default ``length`` is
-      zero.  The ``shape`` argument is the array shape of a single cell in the
-      column.  The default ``shape`` is () which means a single value in each
-      element.
+      The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
+      array shape of a single cell in the column.
+
+    .. warning::
+
+       In the next major release of `astropy` (0.3), the order of function
+       arguments for creating a |Column| will change.  Currently the order is
+       ``Column(name, data, ...)``, but in 0.3 and later it will be
+       ``Column(data, name, ...)``.  This improves consistency with |Table| and
+       `numpy`.
+
+       In order to use the same code for Astropy 0.2 and 0.3, column objects
+       should always be created using named keyword arguments for ``data`` and
+       ``name``, for instance ``c = Column(data=[1, 2], name='col')``.  When
+       Astropy 0.3 is released then the the keyword identifiers can be dropped,
+       allowing for ``c = Column([1, 2], 'c')``.
     """
 
     def __new__(cls, name=None, data=None,
