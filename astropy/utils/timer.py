@@ -20,7 +20,52 @@ __all__ = ['timeit', 'SimpleRunTimePredictor']
 
 
 def timeit(num_tries=1, verbose=True):
-    """Decorator to time a function or method."""
+    """Decorator to time a function or method.
+
+    Parameters
+    ----------
+    num_tries : int, optional
+        Number of calls to make. Timer will take the
+        average run time.
+
+    verbose : bool, optional
+        Extra log INFO.
+
+    function
+        Function to time.
+
+    args, kwargs
+        Arguments to the function.
+
+    Returns
+    -------
+    tt : float
+        Average run time in seconds.
+
+    result
+        Output(s) from the function.
+
+    Examples
+    --------
+    To add timer to time `np.log` for 100 times with
+    verbose output::
+
+        import numpy as np
+
+        @timeit(100)
+        def timed_log(x):
+            return np.log(x)
+
+    To run the decorated function above:
+
+    >>> t, y = timed_log(100)
+    INFO: timed_log took 9.29832458496e-06 s on AVERAGE for 100 calls. [...]
+    >>> t
+    9.298324584960938e-06
+    >>> y
+    4.6051701859880918
+
+    """
     def real_decorator(function):
         def wrapper(*args, **kwargs):
             ts = time.time()
@@ -29,7 +74,8 @@ def timeit(num_tries=1, verbose=True):
             te = time.time()
             tt = (te - ts) / num_tries
             if verbose:
-                log.info('{0} took {1} s on AVERAGE for {2} calls.'.format(function.__name__, tt, num_tries))
+                log.info('{0} took {1} s on AVERAGE for {2} calls.'.format(
+                    function.__name__, tt, num_tries))
             return tt, result
         return wrapper
     return real_decorator
@@ -38,7 +84,7 @@ def timeit(num_tries=1, verbose=True):
 class SimpleRunTimePredictor(object):
     """Class to predict run time.
 
-    .. note: Only predict for single varying numeric input parameter.
+    .. note:: Only predict for single varying numeric input parameter.
 
     Parameters
     ----------
@@ -51,14 +97,62 @@ class SimpleRunTimePredictor(object):
     kwargs : dict
         Fixed keyword argument(s) for the function.
 
+    Examples
+    --------
+    Set up a predictor for ``10**X``:
+
+    >>> p = SimpleRunTimePredictor(pow, 10)
+
+    Give it baseline data to use for prediction and
+    get the function output values:
+
+    >>> p.time_func(range(10, 1000, 200))
+    >>> p.results
+    {10: 10000000000,
+     210: 10000000000...,
+     410: 10000000000...,
+     610: 10000000000...,
+     810: 10000000000...}
+
+    Fit a straight line assuming ``arg**1`` relationship
+    (coefficients are returned):
+
+    >>> p.do_fit()
+    array([  1.00135803e-08,   1.16777420e-05])
+
+    Predict run time for ``10**5000``:
+
+    >>> p.predict_time(5000)
+    6.174564361572262e-05
+
+    Plot the prediction:
+
+    >>> p.plot(xlabeltext='Power of 10')
+
+    .. image:: images/timer_prediction_pow10.png
+        :width: 450px
+        :alt: Example plot from `astropy.utils.timer.SimpleRunTimePredictor`
+
     """
     def __init__(self, func, *args, **kwargs):
+        self._funcname = func.__name__
         self._pfunc = partial(func, *args, **kwargs)
         self._cache_good = OrderedDict()
         self._cache_bad = []
         self._cache_est = OrderedDict()
+        self._cache_out = {}
         self._fit_func = None
         self._power = None
+
+    @property
+    def results(self):
+        """Function outputs from `time_func`.
+
+        A dictionary mapping input arguments (fixed arguments
+        are not included) to their respective output values.
+
+        """
+        return self._cache_out
 
     @timeit(num_tries=1, verbose=False)
     def _timed_pfunc(self, arg):
@@ -74,12 +168,15 @@ class SimpleRunTimePredictor(object):
                 log.warn(e.message)
                 self._cache_bad.append(arg)
             else:
-                self._cache_good[arg] = result[0]  # Only run time is kept
+                self._cache_good[arg] = result[0]  # Run time
+                self._cache_out[arg] = result[1]  # Function output
 
     def time_func(self, arglist):
         """Time the partial function for a list of single args
-        and store results in a cache. This forms a baseline for
+        and store run time in a cache. This forms a baseline for
         the prediction.
+
+        This also stores function outputs in `results`.
 
         Parameters
         ----------
@@ -97,7 +194,7 @@ class SimpleRunTimePredictor(object):
 
         Function::
 
-            t = a[0] + a[1] * arg**power + ... + a[deg] * (arg**power)**deg
+            t = a[deg] + a[deg-1] * arg**power + ... + a[0] * (arg**power)**deg
 
         Parameters
         ----------
@@ -123,7 +220,8 @@ class SimpleRunTimePredictor(object):
 
         x_arr = np.array(self._cache_good.keys())
         assert x_arr.size >= min_datapoints, \
-            'Requires {0} points but has {1}'.format(min_datapoints, x_arr.size)
+            'Requires {0} points but has {1}'.format(min_datapoints,
+                                                     x_arr.size)
 
         a = np.polyfit(x_arr**power, self._cache_good.values(), deg)
         self._fit_func = np.poly1d(a)
@@ -153,7 +251,7 @@ class SimpleRunTimePredictor(object):
             self._cache_est[arg] = t_est
         return t_est
 
-    def plot(self, xlabeltext='args', save_as=''):
+    def plot(self, xlabeltext='args', save_as=''):  # pragma: no cover
         """Plot prediction.
 
         .. note:: Uses :mod:`matplotlib`.
@@ -181,17 +279,19 @@ class SimpleRunTimePredictor(object):
         # Fitted data
         if self._fit_func is not None:
             x_est = self._cache_est.keys()
-            ax.scatter(x_est, self._cache_est.values(), marker='o', c='r', label='Fitted')
+            ax.scatter(x_est, self._cache_est.values(), marker='o', c='r',
+                       label='Predicted')
 
             x_fit = np.array(sorted(x_arr + x_est))
             y_fit = self._fit_func(x_fit**self._power)
             ax.plot(x_fit, y_fit, 'b--', label='Fit')
 
         ax.set_xlabel(xlabeltext)
-        ax.set_ylabel('t (s)')
+        ax.set_ylabel('Run time (s)')
+        ax.set_title(self._funcname)
         ax.legend(loc='best', numpoints=1)
 
         plt.draw()
 
-        if save_as:  # pragma: no cover
+        if save_as:
             plt.savefig(save_as)
