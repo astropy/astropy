@@ -28,7 +28,7 @@ class ConstantMeta(type):
 
                 if (not self.system and
                         name_lower in Constant._has_incompatible_units):
-                    systems = sorted(instances)
+                    systems = sorted(filter(None, instances))
                     raise TypeError(
                         'Constant {0!r} does not have physically compatible '
                         'units across all systems of units and cannot be '
