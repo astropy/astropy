@@ -269,7 +269,7 @@ To look up more information about a field in a table, one can use the
 the `~astropy.io.votable.tree.Field` object with the given ID.  For
 example::
 
-  >>> field = table.get_field_or_param_by_id('Dec')
+  >>> field = table.get_field_by_id('Dec')
   >>> field.datatype
   'char'
   >>> field.unit
