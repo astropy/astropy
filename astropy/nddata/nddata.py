@@ -99,7 +99,7 @@ class NDData(object):
         >>> from astropy.nddata import NDData
         >>> from matplotlib import pyplot as plt
         >>> x = NDData([[1,2,3], [4,5,6]])
-        >>> plt.imshow(x)
+        >>> # plt.imshow(x)
 
     """
 

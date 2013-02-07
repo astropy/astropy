@@ -769,8 +769,10 @@ class UnitBase(object):
 
         Examples
         --------
+        >>> from astropy import units as u
         >>> u.m.physical_type
-        'length'
+        u'length'
+
         """
         from . import physical
         return physical.get_physical_type(self)
