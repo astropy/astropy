@@ -91,7 +91,7 @@ class SimpleRunTimePredictor(object):
     func : function
         Function to time.
 
-    args : tuple of numbers
+    args : tuple
         Fixed positional argument(s) for the function.
 
     kwargs : dict
@@ -129,7 +129,7 @@ class SimpleRunTimePredictor(object):
 
     >>> p.plot(xlabeltext='Power of 10')
 
-    .. image:: images/timer_prediction_pow10.png
+    .. image:: ../../docs/_static/timer_prediction_pow10.png
         :width: 450px
         :alt: Example plot from `astropy.utils.timer.SimpleRunTimePredictor`
 
@@ -165,7 +165,7 @@ class SimpleRunTimePredictor(object):
             try:
                 result = self._timed_pfunc(arg)
             except Exception as e:
-                log.warn(e.message)
+                log.warn(str(e))
                 self._cache_bad.append(arg)
             else:
                 self._cache_good[arg] = result[0]  # Run time

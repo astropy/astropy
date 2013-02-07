@@ -43,7 +43,7 @@ Reference/API
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.timer
-    :no-inheriance-diagram:
+    :no-inheritance-diagram:
 
 File Downloads
 --------------

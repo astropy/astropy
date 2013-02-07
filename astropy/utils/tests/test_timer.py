@@ -36,12 +36,12 @@ class TestSimpleRunTimePredictor(object):
         try:
             self.p.do_fit()
         except AssertionError as e:
-            assert e.message == 'Requires 3 points but has 0'
+            assert str(e) == 'Requires 3 points but has 0'
 
         try:
             self.p.predict_time(100)
         except AssertionError as e:
-            assert e.message == 'No fitted data for prediction'
+            assert str(e) == 'No fitted data for prediction'
 
     def test_baseline(self):
         self.p.time_func([0.1, 0.2, 0.5, -1, 1.5])
