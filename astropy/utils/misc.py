@@ -639,6 +639,8 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     uf = urlopen(baseurl + 'objects.inv')
 
     try:
+        # we read these lines so that `oistr` only gets the compressed
+        # contents, not the header information
         isvers = uf.readline().rstrip().decode('utf-8')  # intersphinx version line
         proj = uf.readline().rstrip().decode('utf-8')  # project name
         vers = uf.readline().rstrip().decode('utf-8')  # project version
