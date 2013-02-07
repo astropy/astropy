@@ -18,7 +18,6 @@ from . import si
 # PHYSICAL CONSTANTS
 
 # Electron charge
-
 e_esu = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
                    'Fr', si.e.uncertainty * si.c.value * 10.0, si.e.reference,
                    system='esu')

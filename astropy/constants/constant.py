@@ -87,16 +87,10 @@ class Constant(Quantity):
                                             uncertainty, reference, system)
 
         for c in instances.values():
-            if system is not None:
-                try:
-                    setattr(c, system, inst)
-                except AttributeError:
-                    pass
-            if c.system is not None:
-                try:
-                    setattr(inst, c.system, c)
-                except AttributeError:
-                    pass
+            if system is not None and not hasattr(c.__class__, system):
+                setattr(c, system, inst)
+            if c.system is not None and not hasattr(inst.__class__, c.system):
+                setattr(inst, c.system, c)
 
         instances[system] = inst
 
@@ -152,6 +146,24 @@ class Constant(Quantity):
     @property
     def system(self):
         return self._system
+
+    @property
+    def si(self):
+        """If the Constant is defined in the SI system return that instance of
+        the constant, else convert to a Quantity in the appropriate SI units.
+        """
+
+        instances = Constant._registry[self.name.lower()]
+        return instances.get('si', super(Constant, self).si)
+
+    @property
+    def cgs(self):
+        """If the Constant is defined in the CGS system return that instance of
+        the constant, else convert to a Quantity in the appropriate CGS units.
+        """
+
+        instances = Constant._registry[self.name.lower()]
+        return instances.get('cgs', super(Constant, self).cgs)
 
 
 class EMConstant(Constant):
