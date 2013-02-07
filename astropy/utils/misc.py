@@ -586,7 +586,7 @@ class NumpyRNGContext(object):
         random.set_state(self.startstate)
 
 
-def find_api_page(obj, version='dev', openinbrowser=True):
+def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
     """
     Determines the URL of the API page for the specified object, and
     optionally open that page in a web browser.
@@ -606,6 +606,10 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     openinbrowser : bool
         If True, the `webbrowser` package will be used to open the doc
         page in a new web browser window.
+    timeout : number, optional
+        The number of seconds to wait before timing-out the query to the
+        astropy documentation.  If not given, the default for
+        `urllib2.urlopen` will be used.
 
     Returns
     -------
@@ -636,7 +640,10 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     else:
         baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
 
-    uf = urlopen(baseurl + 'objects.inv')
+    if timeout is None:
+        uf = urlopen(baseurl + 'objects.inv')
+    else:
+        uf = urlopen(baseurl + 'objects.inv', timeout=timeout)
 
     try:
         # we read these lines so that `oistr` only gets the compressed
