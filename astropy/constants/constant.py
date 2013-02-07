@@ -46,3 +46,14 @@ class Constant(Quantity):
         s += "  Units = {0}\n".format(self.unit)
         s += "  Reference = {0}".format(self.reference)
         return s
+
+class EMConstant(Constant):
+    """An electromagnetic constant"""
+
+    @property
+    def cgs(self):
+        raise TypeError("Cannot convert EM constants to cgs because there "
+                        "are different systems for E.M constants within the "
+                        "c.g.s system (ESU, Gaussian, etc.). Instead, "
+                        "directly use the constant with the appropriate "
+                        "suffix (e.g. e.esu, e.gauss, etc.).")
