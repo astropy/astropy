@@ -53,7 +53,7 @@ def _check_column_new_args(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if len(args) > 1:
+        if len(args) > 1 and WARN_COLUMN_ARGS():
             cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
             warnings.warn(WARN_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__))
         return func(*args, **kwargs)
