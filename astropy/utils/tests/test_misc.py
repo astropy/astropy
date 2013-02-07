@@ -103,8 +103,8 @@ def test_deprecated_attribute():
 
 @remote_data
 def test_api_lookup():
-    strurl = misc.find_api_page('astropy.utils.misc', 'dev', False)
-    objurl = misc.find_api_page(misc, 'dev', False)
+    strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
+    objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
 
     assert strurl == objurl
     assert strurl == 'http://devdocs.astropy.org/utils/index.html#module-astropy.utils.misc'

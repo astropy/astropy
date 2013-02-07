@@ -586,7 +586,7 @@ class NumpyRNGContext(object):
         random.set_state(self.startstate)
 
 
-def find_api_page(obj, version='dev', openinbrowser=True):
+def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
     """
     Determines the URL of the API page for the specified object, and
     optionally open that page in a web browser.
@@ -606,7 +606,10 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     openinbrowser : bool
         If True, the `webbrowser` package will be used to open the doc
         page in a new web browser window.
-
+    timeout : number, optional
+        The number of seconds to wait before timing-out the query to
+        the astropy documentation.  If not given, the default python
+        stdlib timeout will be used.
     Returns
     -------
     url : str
@@ -636,9 +639,14 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     else:
         baseurl = 'http://docs.astropy.org/en/{vers}/'.format(vers=version)
 
-    uf = urlopen(baseurl + 'objects.inv')
+    if timeout is None:
+        uf = urlopen(baseurl + 'objects.inv')
+    else:
+        uf = urlopen(baseurl + 'objects.inv', timeout=timeout)
 
     try:
+        # we read these lines so that `oistr` only gets the compressed
+        # contents, not the header information
         isvers = uf.readline().rstrip().decode('utf-8')  # intersphinx version line
         proj = uf.readline().rstrip().decode('utf-8')  # project name
         vers = uf.readline().rstrip().decode('utf-8')  # project version
@@ -647,7 +655,7 @@ def find_api_page(obj, version='dev', openinbrowser=True):
     finally:
         uf.close()
 
-    oistr = decompress(oistr)
+    oistr = decompress(oistr).decode('utf-8')
 
     resurl = None
 
