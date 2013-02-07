@@ -13,13 +13,13 @@ numpy_lt_1p5 = version.LooseVersion(np.__version__) < version.LooseVersion('1.5'
 
 class SetupData(object):
     def setup_method(self, method):
-        self.a = MaskedColumn('a', [1, 2, 3], fill_value=1)
-        self.b = MaskedColumn('b', [4, 5, 6], mask=True)
-        self.c = MaskedColumn('c', [7, 8, 9], mask=False)
+        self.a = MaskedColumn(name='a', data=[1, 2, 3], fill_value=1)
+        self.b = MaskedColumn(name='b', data=[4, 5, 6], mask=True)
+        self.c = MaskedColumn(name='c', data=[7, 8, 9], mask=False)
         self.d_mask = np.array([False, True, False])
-        self.d = MaskedColumn('d', [7, 8, 7], mask=self.d_mask)
+        self.d = MaskedColumn(name='d', data=[7, 8, 7], mask=self.d_mask)
         self.t = Table([self.a, self.b], masked=True)
-        self.ca = Column('ca', [1, 2, 3])
+        self.ca = Column(name='ca', data=[1, 2, 3])
 
 
 @pytest.mark.xfail('numpy_lt_1p5')
@@ -34,9 +34,9 @@ class TestFilled(object):
     def setup_method(self, method):
         mask = [True, False, False]
         self.meta = {'a': 1, 'b': [2, 3]}
-        a = self.a = MaskedColumn('a', [1, 2, 3], fill_value=10, mask=mask, meta={'a': 1})
-        b = self.b = MaskedColumn('b', [4.0, 5.0, 6.0], fill_value=10.0, mask=mask)
-        c = self.c = MaskedColumn('c', ['7', '8', '9'], fill_value='1', mask=mask)
+        a = self.a = MaskedColumn(name='a', data=[1, 2, 3], fill_value=10, mask=mask, meta={'a': 1})
+        b = self.b = MaskedColumn(name='b', data=[4.0, 5.0, 6.0], fill_value=10.0, mask=mask)
+        c = self.c = MaskedColumn(name='c', data=['7', '8', '9'], fill_value='1', mask=mask)
 
     def test_filled_column(self):
         f = self.a.filled()
@@ -103,7 +103,7 @@ class TestFillValue(SetupData):
     def test_init_set_fill_value(self):
         """Check that setting fill_value in the MaskedColumn init works"""
         assert self.a.fill_value == 1
-        c = MaskedColumn('c', ['xxxx', 'yyyy'], fill_value='none')
+        c = MaskedColumn(name='c', data=['xxxx', 'yyyy'], fill_value='none')
         assert c.fill_value == 'none'
 
     def test_set_get_fill_value_for_bare_column(self):
@@ -113,7 +113,7 @@ class TestFillValue(SetupData):
         assert np.all(self.d.filled() == [7, -999, 7])
 
     def test_set_get_fill_value_for_str_column(self):
-        c = MaskedColumn('c', ['xxxx', 'yyyy'], mask=[True, False])
+        c = MaskedColumn(name='c', data=['xxxx', 'yyyy'], mask=[True, False])
         # assert np.all(c.filled() == ['N/A', 'yyyy'])
         c.fill_value = 'ABCDEF'
         assert c.fill_value == 'ABCD'  # string truncated to dtype length
@@ -156,19 +156,19 @@ class TestMaskedColumnInit(SetupData):
     def test_set_mask_from_list(self):
         """Set mask from a list"""
         mask_list = [False, True, False]
-        a = MaskedColumn('a', [1, 2, 3], mask=mask_list)
+        a = MaskedColumn(name='a', data=[1, 2, 3], mask=mask_list)
         assert np.all(a.mask == mask_list)
 
     def test_override_existing_mask(self):
         """Override existing mask values"""
         mask_list = [False, True, False]
-        b = MaskedColumn('b', self.b, mask=mask_list)
+        b = MaskedColumn(name='b', data=self.b, mask=mask_list)
         assert np.all(b.mask == mask_list)
 
     def test_incomplete_mask_spec(self):
         """Incomplete mask specification (mask values cycle through available)"""
         mask_list = [False, True]
-        b = MaskedColumn('b', length=4, mask=mask_list)
+        b = MaskedColumn(name='b', length=4, mask=mask_list)
         assert np.all(b.mask == mask_list + mask_list)
 
 
@@ -204,9 +204,9 @@ class TestAddColumn(object):
     def test_add_masked_column_to_masked_table(self):
         t = Table(masked=True)
         assert t.masked
-        t.add_column(MaskedColumn('a', [1,2,3], mask=[0,1,0]))
+        t.add_column(MaskedColumn(name='a', data=[1,2,3], mask=[0,1,0]))
         assert t.masked
-        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
         assert t.masked
         assert np.all(t['a'] == np.array([1,2,3]))
         assert np.all(t['a'].mask == np.array([0,1,0], bool))
@@ -216,9 +216,9 @@ class TestAddColumn(object):
     def test_add_masked_column_to_non_masked_table(self):
         t = Table(masked=False)
         assert not t.masked
-        t.add_column(Column('a', [1,2,3]))
+        t.add_column(Column(name='a', data=[1,2,3]))
         assert not t.masked
-        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
         assert t.masked
         assert np.all(t['a'] == np.array([1,2,3]))
         assert np.all(t['a'].mask == np.array([0,0,0], bool))
@@ -228,9 +228,9 @@ class TestAddColumn(object):
     def test_add_non_masked_column_to_masked_table(self):
         t = Table(masked=True)
         assert t.masked
-        t.add_column(Column('a', [1,2,3]))
+        t.add_column(Column(name='a', data=[1,2,3]))
         assert t.masked
-        t.add_column(MaskedColumn('b', [4,5,6], mask=[1,0,1]))
+        t.add_column(MaskedColumn(name='b', data=[4,5,6], mask=[1,0,1]))
         assert t.masked
         assert np.all(t['a'] == np.array([1,2,3]))
         assert np.all(t['a'].mask == np.array([0,0,0], bool))
@@ -243,8 +243,8 @@ class TestAddRow(object):
 
     def test_add_masked_row_to_masked_table_iterable(self):
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         t.add_row([2,5], mask=[1,0])
         t.add_row([3,6], mask=[0,1])
         assert t.masked
@@ -255,8 +255,8 @@ class TestAddRow(object):
 
     def test_add_masked_row_to_masked_table_mapping1(self):
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         t.add_row({'b':5, 'a':2}, mask={'a':1, 'b':0})
         t.add_row({'a':3, 'b':6}, mask={'b':1, 'a':0})
         assert t.masked
@@ -269,8 +269,8 @@ class TestAddRow(object):
         # When adding values to a masked table, if the mask is specified as a
         # dict, then values not specified will have mask values set to True
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         t.add_row({'b':5}, mask={'b':0})
         t.add_row({'a':3}, mask={'a':0})
         assert t.masked
@@ -284,8 +284,8 @@ class TestAddRow(object):
         # add_row, then the mask should be set to False if values are present
         # and True if not.
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         t.add_row({'b':5})
         t.add_row({'a':3})
         assert t.masked
@@ -298,16 +298,16 @@ class TestAddRow(object):
         # When adding values to a masked table, if the mask is specified as a
         # dict, then keys in values should match keys in mask
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         with pytest.raises(ValueError) as exc:
             t.add_row({'b':5}, mask={'a':True})
         assert exc.value.args[0] == 'keys in mask should match keys in vals'
 
     def test_add_masked_row_to_masked_table_mismatch(self):
         t = Table(masked=True)
-        t.add_column(MaskedColumn('a', [1], mask=[0]))
-        t.add_column(MaskedColumn('b', [4], mask=[1]))
+        t.add_column(MaskedColumn(name='a', data=[1], mask=[0]))
+        t.add_column(MaskedColumn(name='b', data=[4], mask=[1]))
         with pytest.raises(TypeError) as exc:
             t.add_row([2,5], mask={'a':1, 'b':0})
         assert exc.value.args[0] == "Mismatch between type of vals and mask"
@@ -317,8 +317,8 @@ class TestAddRow(object):
 
     def test_add_masked_row_to_non_masked_table_iterable(self):
         t = Table(masked=False)
-        t.add_column(Column('a', [1]))
-        t.add_column(Column('b', [4]))
+        t.add_column(Column(name='a', data=[1]))
+        t.add_column(Column(name='b', data=[4]))
         assert not t.masked
         t.add_row([2,5])
         assert not t.masked
