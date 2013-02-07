@@ -2,6 +2,8 @@
 import abc
 import sys
 from copy import deepcopy
+import functools
+import warnings
 
 import numpy as np
 from numpy import ma
@@ -26,6 +28,36 @@ NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
 AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
+
+WARN_COLUMN_ARGS = ConfigurationItem("warn_column_args",
+                                     True,
+                                     "Show a warning when a Column is created "
+                                     "in a way that will break in Astropy 0.3")
+WARN_COLUMN_ARGS_MESSAGE = \
+"""In the next major release of astropy (0.3), the order of function
+arguments for creating a {class_name} will change.  Currently the order is
+{class_name}(name, data, ...), but in 0.3 and later it will be
+{class_name}(data, name, ...).  This is consistent with Table and NumPy.
+
+In order to use the same code for Astropy 0.2 and 0.3, column objects
+should be created using named keyword arguments for data and name, e.g.:
+{class_name}(name='a', data=[1, 2])."""
+
+
+def _check_column_new_args(func):
+    """
+    Decorator for Column and MaskedColumn __new__(cls, ...) to check that there
+    is only one ``args`` value (which is the class).  Everything else
+    should be a keyword argument.  Otherwise the calling code will break
+    when the name and data args are swapped in 0.3.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if len(args) > 1:
+            cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
+            warnings.warn(WARN_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__))
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def _auto_names(n_cols):
@@ -58,7 +90,7 @@ class TableColumns(OrderedDict):
         """Get items from a TableColumns object.
         ::
 
-          tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')])
+          tc = TableColumns(cols=[Column(name='a'), Column(name='b'), Column(name='c')])
           tc['a']  # Column('a')
           tc[1] # Column('b')
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
@@ -427,6 +459,7 @@ class Column(BaseColumn, np.ndarray):
        allowing for ``c = Column([1, 2], 'c')``.
     """
 
+    @_check_column_new_args
     def __new__(cls, name=None, data=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
@@ -474,7 +507,7 @@ class Column(BaseColumn, np.ndarray):
             if copy_data:
                 data = data.copy()
 
-        return Column(self.name, data, units=self.units, format=self.format,
+        return Column(name=self.name, data=data, units=self.units, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
 
@@ -563,6 +596,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
        allowing for ``c = MaskedColumn([1, 2], 'c')``.
     """
 
+    @_check_column_new_args
     def __new__(cls, name=None, data=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
@@ -681,7 +715,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
-        out = Column(self.name, data, units=self.units, format=self.format,
+        out = Column(name=self.name, data=data, units=self.units, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
         return out
 
@@ -707,7 +741,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             if copy_data:
                 data = data.copy()
 
-        return MaskedColumn(self.name, data, units=self.units, format=self.format,
+        return MaskedColumn(name=self.name, data=data, units=self.units, format=self.format,
                             # Do not include mask=self.mask since `data` has the mask
                             fill_value=self.fill_value,
                             description=self.description, meta=deepcopy(self.meta))
@@ -1004,9 +1038,9 @@ class Table(object):
         def_names = _auto_names(n_cols)
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass((name or col.name), col, dtype=dtype)
+                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass((name or def_name), col, dtype=dtype)
+                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -1035,7 +1069,7 @@ class Table(object):
             columns = TableColumns()
 
             for name in names:
-                columns[name] = self.ColumnClass(name, self._data[name])
+                columns[name] = self.ColumnClass(name=name, data=self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
 
@@ -1077,7 +1111,7 @@ class Table(object):
                              .format(lengths))
 
         self._set_masked_from_cols(cols)
-        cols = [self.ColumnClass(col.name, col) for col in cols]
+        cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
         names = [col.name for col in cols]
         dtypes = [col.descr for col in cols]
@@ -1607,7 +1641,8 @@ class Table(object):
         # Add_row() probably corrupted the Column views of self._data.  Rebuild
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
-        cols = [self.ColumnClass(c.name, c).copy(self._data[c.name]) for c in self.columns.values()]
+        cols = [self.ColumnClass(name=c.name, data=c).copy(self._data[c.name])
+                for c in self.columns.values()]
         self.columns = TableColumns(cols)
 
     def sort(self, keys):
