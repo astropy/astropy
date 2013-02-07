@@ -307,6 +307,13 @@ class Quantity(object):
         else:
             return Quantity(self.value[key], unit=self.unit)
 
+    def __nonzero__(self):
+        """Quantities should always be treated as non-False; there is too much
+        potential for ambiguity otherwise.
+        """
+
+        return True
+
     def __len__(self):
         if self.isscalar:
             raise TypeError("'{cls}' object with a scalar value has no len()".format(cls=self.__class__.__name__))

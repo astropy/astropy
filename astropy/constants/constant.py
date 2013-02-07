@@ -154,7 +154,7 @@ class Constant(Quantity):
         """
 
         instances = Constant._registry[self.name.lower()]
-        return instances.get('si', super(Constant, self).si)
+        return instances.get('si') or super(Constant, self).si
 
     @property
     def cgs(self):
@@ -163,7 +163,7 @@ class Constant(Quantity):
         """
 
         instances = Constant._registry[self.name.lower()]
-        return instances.get('cgs', super(Constant, self).cgs)
+        return instances.get('cgs') or super(Constant, self).cgs
 
 
 class EMConstant(Constant):
