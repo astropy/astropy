@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """General purpose timer related functions."""
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, print_function, division
 
 # STDLIB
 import time
@@ -73,7 +73,7 @@ def timeit(num_tries=1, verbose=True):
                 result = function(*args, **kwargs)
             te = time.time()
             tt = (te - ts) / num_tries
-            if verbose:
+            if verbose:  # pragma: no cover
                 log.info('{0} took {1} s on AVERAGE for {2} calls.'.format(
                     function.__name__, tt, num_tries))
             return tt, result
@@ -192,9 +192,9 @@ class SimpleRunTimePredictor(object):
         """Fit a function to the lists of arguments and
         their respective run time in the cache.
 
-        Function::
+        .. math::
 
-            t = a[deg] + a[deg-1] * arg**power + ... + a[0] * (arg**power)**deg
+            t = a[deg] + a[deg-1] * arg^{power} + ... + a[0] * (arg^{power})^{deg}
 
         Parameters
         ----------
