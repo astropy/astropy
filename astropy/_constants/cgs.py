@@ -25,7 +25,7 @@ hbar = ConstantDefinition(si.hbar * 1.e7, si.hbar.uncertainty * 1.e7,
 
 # Boltzmann constant [CODATA]
 k_B = ConstantDefinition(si.k_B * 1.e7, si.k_B.uncertainty * 1.e7,
-                         si.k_B.name, si.k_B.reference, 'erg.s')
+                         si.k_B.name, si.k_B.reference, 'erg/K')
 
 # Speed of light [CODATA]
 c = ConstantDefinition(si.c * 1.e2, si.c.uncertainty * 1.e2,
