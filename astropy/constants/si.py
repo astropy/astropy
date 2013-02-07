@@ -17,23 +17,23 @@ from .constant import Constant, EMConstant
 # PHYSICAL CONSTANTS
 
 # Planck constant
-h = Constant('h', "Planck constant", 6.62606957e-34, 'J.s', 0.00000029e-34,
+h = Constant('h', "Planck constant", 6.62606957e-34, 'J s', 0.00000029e-34,
              'CODATA 2010', system='si')
 
 # Reduced Planck constant
 hbar = Constant('hbar', "Reduced Planck constant", h.value * 0.5 / np.pi,
-                'J.s', h.uncertainty * 0.5 / np.pi, h.reference, system='si')
+                'J s', h.uncertainty * 0.5 / np.pi, h.reference, system='si')
 
 # Boltzmann constant
-k_B = Constant('k_B', "Boltzmann constant", 1.3806488e-23, 'J/K',
+k_B = Constant('k_B', "Boltzmann constant", 1.3806488e-23, 'J / (K)',
                0.0000013e-23, 'CODATA 2010', system='si')
 
 # Speed of light
-c = Constant('c', "Speed of light in vacuum", 2.99792458e8, 'm/s', 0.,
+c = Constant('c', "Speed of light in vacuum", 2.99792458e8, 'm / (s)', 0.,
              'CODATA 2010', system='si')
 
 # Gravitional constant
-G = Constant('G', "Gravitational constant", 6.67384e-11, 'm3.kg-1.s-2',
+G = Constant('G', "Gravitational constant", 6.67384e-11, 'm3 / (kg s2)',
              0.00080e-11, 'CODATA 2010', system='si')
 
 # Proton mass
@@ -50,22 +50,22 @@ m_e = Constant('m_e', "Electron mass", 9.10938291e-31, 'kg', 0.00000040e-31,
 
 # Stefan-Boltzmann constant
 sigma_sb = Constant('sigma_sb', "Stefan-Boltzmann constant", 5.670373e-8,
-                    'W.m-2.K-4', 0.000021e-8, 'CODATA 2010', system='si')
+                    'W / (K4 m2)', 0.000021e-8, 'CODATA 2010', system='si')
 
 # Electron charge; EM constants require a system to be specified
 e = EMConstant('e', 'Electron charge', 1.602176565e-19, 'C', 0.000000035e-19,
                'CODATA 2010', system='si')
 
 # Avogadro's number
-N_A = Constant('N_A', "Avogadro's number", 6.02214129e23, 'mol-1',
+N_A = Constant('N_A', "Avogadro's number", 6.02214129e23, '1 / (mol)',
                0.00000027e23, 'CODATA 2010', system='si')
 
 # Gas constant
-R = Constant('R', "Gas constant", 8.3144621, 'J.mol-1.K-1', 0.0000075,
+R = Constant('R', "Gas constant", 8.3144621, 'J / (K mol)', 0.0000075,
              'CODATA 2010', system='si')
 
 # Rydberg constant
-Ryd = Constant('Ryd', 'Rydberg constant', 10973731.568539, 'm-1', 0.000055,
+Ryd = Constant('Ryd', 'Rydberg constant', 10973731.568539, '1 / (m)', 0.000055,
                'CODATA 2010', system='si')
 
 # DISTANCE

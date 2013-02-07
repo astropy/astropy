@@ -27,30 +27,26 @@ from .constant import Constant, EMConstant
 from . import si
 from . import cgs
 
-for const in itertools.chain(vars(si).values(), vars(cgs).values()):
-    if isinstance(const, Constant) and const.abbrev not in locals():
-        locals()[const.abbrev] = const.__class__(const.abbrev, const.name,
-                                                 const.value, const._unit,
-                                                 const.uncertainty,
-                                                 const.reference)
-
-# update the constants module docstring
+# for updating the constants module docstring
 _lines = [
     'The following constants are available:\n',
-    '========== ============== ================ ========================='
-    '   Name        Value            Unit       Description'
-    '========== ============== ================ ========================='
+    '========== ============== ================ =========================',
+    '   Name        Value            Unit       Description',
+    '========== ============== ================ =========================',
 ]
 
+for _nm, _c in itertools.chain(sorted(vars(si).items()),
+                               sorted(vars(cgs).items())):
+    if isinstance(_c, Constant) and _c.abbrev not in locals():
+        locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
+                                           _c._unit, _c.uncertainty,
+                                           _c.reference)
 
-#for nm, val in sorted(locals().items()):
-#    if not isinstance(val, Constant):
-#        continue
-#    _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-#                  nm + '.' + val.system, val.value, val.unit, val.name))
+        _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}'.format(
+            _c.abbrev, _c.value, _c._unit, _c.name))
 
-#_lines.append(_lines[1])
+_lines.append(_lines[1])
 
-#__doc__ += '\n'.join(_lines)
+__doc__ += '\n'.join(_lines)
 
-del _lines, const
+del _lines, _nm, _c
