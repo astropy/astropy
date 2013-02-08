@@ -31,11 +31,11 @@ def set_global_Table_DATA(request):
 
     Table = MaskedTable if request.param else table.Table
     Column = table.MaskedColumn if request.param else table.Column
-    COLS = [Column('a', [1, 2, 3], description='da',
+    COLS = [Column(name='a', data=[1, 2, 3], description='da',
                    format='fa', meta={'ma': 1}, units='ua'),
-            Column('b', [4, 5, 6], description='db',
+            Column(name='b', data=[4, 5, 6], description='db',
                    format='fb', meta={'mb': 1}, units='ub'),
-            Column('c', [7, 8, 9], description='dc',
+            Column(name='c', data=[7, 8, 9], description='dc',
                    format='fc', meta={'mc': 1}, units='ub')]
     DATA = Table(COLS)
 

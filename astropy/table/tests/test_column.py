@@ -17,10 +17,10 @@ def Column(request):
 class TestColumn():
 
     def test_1(self, Column):
-        Column('a')
+        Column(name='a')
 
     def test_subclass(self, Column):
-        c = Column('a')
+        c = Column(name='a')
         assert isinstance(c, np.ndarray)
         c2 = c * 2
         assert isinstance(c2, Column)
@@ -30,7 +30,7 @@ class TestColumn():
         """Show that basic numpy operations with Column behave sensibly"""
 
         arr = np.array([1, 2, 3])
-        c = Column('a', arr)
+        c = Column(name='a', data=arr)
         eq = c == arr
         assert np.all(eq)
         assert len(eq) == 3
@@ -45,11 +45,13 @@ class TestColumn():
     def test_view(self, Column):
         c = np.array([1, 2, 3]).view(Column)
         if Column == table.MaskedColumn:
-            assert repr(c) == ('masked_array(data = [1 2 3],\n'
+            assert repr(c) == ('<MaskedColumn name=None units=None format=None description=None>\n'
+                               'masked_array(data = [1 2 3],\n'
                                '             mask = False,\n'
                                '       fill_value = 999999)\n')
         else:
-            assert repr(c) == 'array([1, 2, 3])'
+            assert repr(c) == ('<Column name=None units=None format=None description=None>\n'
+                               'array([1, 2, 3])')
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
@@ -62,7 +64,7 @@ class TestColumn():
         table.pprint.MAX_LINES.set(MAX_LINES_val)
 
     def test_convert_numpy_array(self, Column):
-        d = Column('a', [1, 2, 3], dtype='i8')
+        d = Column(name='a', data=[1, 2, 3], dtype='i8')
 
         np_data = np.array(d)
         assert np.all(np_data == d)
@@ -72,7 +74,7 @@ class TestColumn():
         assert np.all(np_data == d)
 
     def test_convert_units(self, Column):
-        d = Column('a', [1, 2, 3], dtype="f8", units="m")
+        d = Column(name='a', data=[1, 2, 3], dtype="f8", units="m")
         d.convert_units_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
@@ -81,7 +83,7 @@ class TestColumn():
         output that has a different shape into an ndarray view.  Without this a
         method call like c.mean() returns a Column array object with length=1."""
         # Mean and sum for a 1-d float column
-        c = table.Column('a', [1., 2., 3.])
+        c = table.Column(name='a', data=[1., 2., 3.])
         assert np.allclose(c.mean(), 2.0)
         assert isinstance(c.mean(), (np.floating, float))
         assert np.allclose(c.sum(), 6.)
@@ -91,13 +93,13 @@ class TestColumn():
         assert isinstance(np.cos(c), table.Column)
 
         # Sum for a 1-d int column
-        c = table.Column('a', [1, 2, 3])
+        c = table.Column(name='a', data=[1, 2, 3])
         assert np.allclose(c.sum(), 6)
         assert isinstance(c.sum(), (np.integer, int))
 
         # Sum for a 2-d int column
-        c = table.Column('a', [[1, 2, 3],
-                               [4, 5, 6]])
+        c = table.Column(name='a', data=[[1, 2, 3],
+                                         [4, 5, 6]])
         assert c.sum() == 21
         assert isinstance(c.sum(), (np.integer, int))
         assert np.all(c.sum(axis=0) == [5, 7, 9])
@@ -106,11 +108,17 @@ class TestColumn():
 
         if not numpy_lt_1p5:
             # Sum and mean for a 1-d masked column
-            c = table.MaskedColumn('a', [1., 2., 3.], mask=[0, 0, 1])
+            c = table.MaskedColumn(name='a', data=[1., 2., 3.], mask=[0, 0, 1])
             assert np.allclose(c.mean(), 1.5)
             assert isinstance(c.mean(), (np.floating, float))
             assert np.allclose(c.sum(), 3.)
             assert isinstance(c.sum(), (np.floating, float))
+
+    def test_name_none(self, Column):
+        """Can create a column without supplying name, which defaults to None"""
+        c = Column(data=[1, 2])
+        assert c.name is None
+        assert np.all(c == np.array([1, 2]))
 
 
 class TestAttrEqual():
