@@ -57,8 +57,8 @@ available for a masked table.
 
 **Create a table with one or more columns as a MaskedColumn object**
 
-  >>> a = MaskedColumn('a', [1, 2])
-  >>> b = Column('b', [3, 4])
+  >>> a = MaskedColumn(data=[1, 2], name='a')
+  >>> b = Column(data=[3, 4], name='b')
   >>> t = Table([a, b])
 
 The |MaskedColumn| is the masked analog of the |Column| class and
@@ -77,8 +77,8 @@ different classes for these two cases.
 
 **Add a MaskedColumn object to an existing table**
 
-  >>> a = Column('a', [1, 2])
-  >>> b = MaskedColumn('b', [3, 4], mask=[True, False])
+  >>> a = Column(data=[1, 2], name='a')
+  >>> b = MaskedColumn(data=[3, 4], name='b', mask=[True, False])
   >>> t = Table([a])
   >>> t.add_column(b)
   INFO: Upgrading Table to masked Table [astropy.table.table]
@@ -87,8 +87,8 @@ Note the INFO message because the underlying type of the table is modified in th
 
 **Add a new row to an existing table and specify a mask argument**
 
-  >>> a = Column('a', [1, 2])
-  >>> b = Column('b', [3, 4])
+  >>> a = Column(data=[1, 2], name='a')
+  >>> b = Column(data=[3, 4], name='b')
   >>> t = Table([a, b])
   >>> t.add_row([3, 6], mask=[True, False])
   INFO: Upgrading Table to masked Table [astropy.table.table]

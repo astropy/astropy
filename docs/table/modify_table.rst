@@ -35,9 +35,14 @@ The code below shows the basics of modifying a table and its data.
   >>> t[0:3]['c'] = 100           # Set column 'c' of rows 0, 1, 2
 
 **Add a column or columns**
+
+The :func:`~astropy.table.table.add_column` and :func:`~astropy.table.table.add_columns`
+functions can be used to add one or multiple columns to a table.  In both cases the new
+columns must be specified as |Column| or |MaskedColumn| objects.
 ::
 
-  >>> t.add_column(Column('d', np.arange(5)))
+  >>> c = Column(data=np.arange(5), name='d')
+  >>> t.add_column(c)
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))

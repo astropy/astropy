@@ -40,9 +40,9 @@ size, columns, or data are not known.
 ::
 
   >>> t = Table()
-  >>> t.add_column(Column('a', [1, 4]))
-  >>> t.add_column(Column('b', [2.0, 5.0]))
-  >>> t.add_column(Column('c', ['x', 'y']))
+  >>> t.add_column(Column(data=[1, 4], name='a'))
+  >>> t.add_column(Column(data=[2.0, 5.0], name='b'))
+  >>> t.add_column(Column(data=['x', 'y'], name='c'))
 
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
   >>> t.add_row((1, 2.0, 'x'))
@@ -98,7 +98,7 @@ of different data types to initialize a table::
 
   >>> a = (1, 4)
   >>> b = np.array([[2, 3], [5, 6]])  # vector column
-  >>> c = Column('axis', ['x', 'y'])
+  >>> c = Column(data=['x', 'y'], name='axis')
   >>> arr = (a, b, c)
   >>> Table(arr)  # Data column named "c" has a name "axis" that table
   <Table rows=2 names=('col0','col1','axis')>
@@ -134,7 +134,7 @@ The input column data can be any data type that can initialize a |Column| object
 
   >>> arr = {'a': (1, 4),
              'b': np.array([[2, 3], [5, 6]]),
-             'c': Column('axis', ['x', 'y'])}
+             'c': Column(data=['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))
   <Table rows=2 names=('a','b','c')>
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
@@ -483,9 +483,13 @@ Column
 """"""
 
 A |Column| object can be created as follows, where in all cases the column
-``name`` is required as the first argument and one can optionally provide
+``name`` should be provided as a keyword argument and one can optionally provide
 these values:
 
+``data`` : list, ndarray or None
+    Column data values
+``dtype`` : numpy.dtype compatible value
+    Data type for column
 ``description`` : str
     Full description of column
 ``units`` : str
@@ -500,15 +504,15 @@ Initialization options
 
 The column data values, shape, and data type are specified in one of two ways:
 
-**Provide a ``data`` value and optionally a ``dtype`` value**
+**Provide a ``data`` value but not a ``length`` or ``shape``**
 
   Examples::
 
-    col = Column('a', data=[1, 2, 3])         # shape=(3,)
-    col = Column('a', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-    col = Column('a', data=[1, 2, 3], dtype=float)
-    col = Column('a', np.array([1, 2, 3]))
-    col = Column('a', ['hello', 'world'])
+    col = Column(data=[1, 2], name='a')  # shape=(2,)
+    col = Column(data=[[1, 2], [3, 4]], name='a')  # shape=(2, 2)
+    col = Column(data=[1, 2], name='a', dtype=float)
+    col = Column(data=np.array([1, 2]), name='a')
+    col = Column(data=['hello', 'world'], name='a')
 
   The ``dtype`` argument can be any value which is an acceptable
   fixed-size data-type initializer for the numpy.dtype() method.  See
@@ -523,17 +527,29 @@ The column data values, shape, and data type are specified in one of two ways:
   ``np.array(data)``.  When ``data`` is provided then the ``shape``
   and ``length`` arguments are ignored.
 
-**Provide zero or more of ``dtype``, ``shape``, ``length``**
+**Provide ``length`` and optionally ``shape``, but not ``data``**
 
   Examples::
 
-    col = Column('a')
-    col = Column('a', dtype=int, length=10, shape=(3,4))
+    col = Column(name='a', length=5)
+    col = Column(name='a', dtype=int, length=10, shape=(3,4))
 
-  The default ``dtype`` is ``np.float64`` and the default ``length`` is
-  zero.  The ``shape`` argument is the array shape of a single cell in the
-  column.  The default ``shape`` is () which means a single value in each
-  element.
+  The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the array shape of a
+  single cell in the column.  The default ``shape`` is () which means a single value in
+  each element.
+
+.. warning::
+
+   In the next major release of `astropy` (0.3), the order of function arguments
+   for creating a |Column| or |MaskedColumn| will change.  Currently the order
+   is ``Column(name, data, ...)``, but in 0.3 and later it will be
+   ``Column(data, name, ...)``.  This improves consistency with |Table| and `numpy`.
+
+   In order to use the same code for Astropy 0.2 and 0.3, column objects should
+   always be created using named keyword arguments for ``data`` and ``name``,
+   as demonstrated in the examples above.  When Astropy 0.3 is released then the
+   the keyword identifiers can be dropped, for instance
+   ``c = Column([1, 2], 'd')``.
 
 .. _table_format_string:
 

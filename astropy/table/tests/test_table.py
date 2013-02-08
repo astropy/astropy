@@ -33,28 +33,28 @@ class SetupData(object):
     def a(self):
         if Column is not None:
             if not hasattr(self, '_a'):
-                self._a = Column('a', [1, 2, 3], meta={'aa': np.arange(5)})
+                self._a = Column(name='a', data=[1, 2, 3], meta={'aa': np.arange(5)})
             return self._a
 
     @property
     def b(self):
         if Column is not None:
             if not hasattr(self, '_b'):
-                self._b = Column('b', [4, 5, 6])
+                self._b = Column(name='b', data=[4, 5, 6])
             return self._b
 
     @property
     def c(self):
         if Column is not None:
             if not hasattr(self, '_c'):
-                self._c = Column('c', [7, 8, 9])
+                self._c = Column(name='c', data=[7, 8, 9])
             return self._c
 
     @property
     def d(self):
         if Column is not None:
             if not hasattr(self, '_d'):
-                self._d = Column('d', [7, 8, 7])
+                self._d = Column(name='d', data=[7, 8, 7])
             return self._d
 
     @property
@@ -70,27 +70,27 @@ class TestEmptyData():
 
     def test_1(self):
         t = Table()
-        t.add_column(Column('a', dtype=int, length=100))
+        t.add_column(Column(name='a', dtype=int, length=100))
         assert len(t['a']) == 100
 
     def test_2(self):
         t = Table()
-        t.add_column(Column('a', dtype=int, shape=(3, ), length=100))
+        t.add_column(Column(name='a', dtype=int, shape=(3, ), length=100))
         assert len(t['a']) == 100
 
     def test_3(self):
         t = Table()  # length is not given
-        t.add_column(Column('a', dtype=int))
+        t.add_column(Column(name='a', dtype=int))
         assert len(t['a']) == 0
 
     def test_4(self):
         t = Table()  # length is not given
-        t.add_column(Column('a', dtype=int, shape=(3, 4)))
+        t.add_column(Column(name='a', dtype=int, shape=(3, 4)))
         assert len(t['a']) == 0
 
     def test_5(self):
         t = Table()
-        t.add_column(Column('a'))  # dtype is not specified
+        t.add_column(Column(name='a'))  # dtype is not specified
         assert len(t['a']) == 0
 
 
@@ -98,17 +98,17 @@ class TestEmptyData():
 class TestNewFromColumns():
 
     def test_simple(self):
-        cols = [Column('a', [1, 2, 3]),
-                Column('b', [4, 5, 6], dtype=np.float32)]
+        cols = [Column(name='a', data=[1, 2, 3]),
+                Column(name='b', data=[4, 5, 6], dtype=np.float32)]
         t = Table(cols)
         assert np.all(t['a'].data == np.array([1, 2, 3]))
         assert np.all(t['b'].data == np.array([4, 5, 6], dtype=np.float32))
         assert type(t['b'][1]) == np.float32
 
     def test_from_np_array(self):
-        cols = [Column('a', np.array([1, 2, 3], dtype=np.int64),
+        cols = [Column(name='a', data=np.array([1, 2, 3], dtype=np.int64),
                        dtype=np.float64),
-                Column('b', np.array([4, 5, 6], dtype=np.float32))]
+                Column(name='b', data=np.array([4, 5, 6], dtype=np.float32))]
         t = Table(cols)
         assert np.all(t['a'] == np.array([1, 2, 3], dtype=np.float64))
         assert np.all(t['b'] == np.array([4, 5, 6], dtype=np.float32))
@@ -116,10 +116,17 @@ class TestNewFromColumns():
         assert type(t['b'][1]) == np.float32
 
     def test_size_mismatch(self):
-        cols = [Column('a', [1, 2, 3]),
-                Column('b', [4, 5, 6, 7])]
+        cols = [Column(name='a', data=[1, 2, 3]),
+                Column(name='b', data=[4, 5, 6, 7])]
         with pytest.raises(ValueError):
             Table(cols)
+
+    def test_name_none(self):
+        """Column with name=None can init a table IFF names are supplied"""
+        c = Column(data=[1, 2])
+        Table([c], names=('c',))
+        with pytest.raises(TypeError):
+            Table([c])
 
 
 @pytest.mark.usefixtures('set_global_Table')
@@ -155,7 +162,7 @@ class TestColumnAccess():
 
     def test_2(self):
         t = Table()
-        t.add_column(Column('a', [1, 2, 3]))
+        t.add_column(Column(name='a', data=[1, 2, 3]))
         assert np.all(t['a'] == np.array([1, 2, 3]))
         with pytest.raises(KeyError):
             t['b']  # column does not exist
@@ -171,12 +178,12 @@ class TestAddLength(SetupData):
     def test_too_long(self):
         t = Table([self.a])
         with pytest.raises(ValueError):
-            t.add_column(Column('b', [4, 5, 6, 7]))  # data too long
+            t.add_column(Column(name='b', data=[4, 5, 6, 7]))  # data too long
 
     def test_too_short(self):
         t = Table([self.a])
         with pytest.raises(ValueError):
-            t.add_column(Column('b', [4, 5]))  # data too short
+            t.add_column(Column(name='b', data=[4, 5]))  # data too short
 
 
 @pytest.mark.usefixtures('set_global_Table')
@@ -299,7 +306,7 @@ class TestAddColumns(SetupData):
         t = Table()
         t.add_column(self.a)
         with pytest.raises(ValueError):
-            t.add_column(Column('a', [0, 1, 2]))
+            t.add_column(Column(name='a', data=[0, 1, 2]))
         t.add_column(self.b)
         t.add_column(self.c)
         assert t.colnames == ['a', 'b', 'c']
@@ -307,7 +314,7 @@ class TestAddColumns(SetupData):
     def test_add_duplicate_columns(self):
         t = Table([self.a, self.b, self.c])
         with pytest.raises(ValueError):
-            t.add_columns([Column('a', [0, 1, 2]), Column('b', [0, 1, 2])])
+            t.add_columns([Column(name='a', data=[0, 1, 2]), Column(name='b', data=[0, 1, 2])])
         t.add_column(self.d)
         assert t.colnames == ['a', 'b', 'c', 'd']
 
@@ -319,14 +326,14 @@ class TestAddRow(SetupData):
     def b(self):
         if Column is not None:
             if not hasattr(self, '_b'):
-                self._b = Column('b', [4.0, 5.1, 6.2])
+                self._b = Column(name='b', data=[4.0, 5.1, 6.2])
             return self._b
 
     @property
     def c(self):
         if Column is not None:
             if not hasattr(self, '_c'):
-                self._c = Column('c', ['7', '8', '9'])
+                self._c = Column(name='c', data=['7', '8', '9'])
             return self._c
 
     @property
@@ -425,14 +432,14 @@ class TestTableColumn(SetupData):
 class TestArrayColumns(SetupData):
 
     def test_1d(self):
-        b = Column('b', dtype=int, shape=(2, ), length=3)
+        b = Column(name='b', dtype=int, shape=(2, ), length=3)
         t = Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2)
         assert t['b'][0].shape == (2, )
 
     def test_2d(self):
-        b = Column('b', dtype=int, shape=(2, 4), length=3)
+        b = Column(name='b', dtype=int, shape=(2, 4), length=3)
         t = Table([self.a])
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4)
@@ -440,7 +447,7 @@ class TestArrayColumns(SetupData):
 
     def test_3d(self):
         t = Table([self.a])
-        b = Column('b', dtype=int, shape=(2, 4, 6), length=3)
+        b = Column(name='b', dtype=int, shape=(2, 4, 6), length=3)
         t.add_column(b)
         assert t['b'].shape == (3, 2, 4, 6)
         assert t['b'][0].shape == (2, 4, 6)
@@ -544,8 +551,8 @@ class TestSort():
 
     def test_single(self):
         t = Table()
-        t.add_column(Column('a', [2, 1, 3]))
-        t.add_column(Column('b', [6, 5, 4]))
+        t.add_column(Column(name='a', data=[2, 1, 3]))
+        t.add_column(Column(name='b', data=[6, 5, 4]))
         assert np.all(t['a'] == np.array([2, 1, 3]))
         assert np.all(t['b'] == np.array([6, 5, 4]))
         t.sort('a')
@@ -557,8 +564,8 @@ class TestSort():
 
     def test_multiple(self):
         t = Table()
-        t.add_column(Column('a', [2, 1, 3, 2, 3, 1]))
-        t.add_column(Column('b', [6, 5, 4, 3, 5, 4]))
+        t.add_column(Column(name='a', data=[2, 1, 3, 2, 3, 1]))
+        t.add_column(Column(name='b', data=[6, 5, 4, 3, 5, 4]))
         assert np.all(t['a'] == np.array([2, 1, 3, 2, 3, 1]))
         assert np.all(t['b'] == np.array([6, 5, 4, 3, 5, 4]))
         t.sort(['a', 'b'])
