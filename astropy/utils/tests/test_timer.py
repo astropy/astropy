@@ -15,7 +15,7 @@ import time
 import numpy as np
 
 # LOCAL
-from ..timer import timeit, SimpleRunTimePredictor
+from ..timer import SimpleRunTimePredictor
 
 
 ACCURACY_DECIMAL = 3  # For np.testing.assert_almost_equal()

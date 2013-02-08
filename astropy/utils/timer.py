@@ -16,10 +16,10 @@ from . import OrderedDict
 from ..logger import log
 
 
-__all__ = ['timeit', 'SimpleRunTimePredictor']
+__all__ = ['timefunc', 'SimpleRunTimePredictor']
 
 
-def timeit(num_tries=1, verbose=True):
+def timefunc(num_tries=1, verbose=True):
     """Decorator to time a function or method.
 
     Parameters
@@ -52,7 +52,7 @@ def timeit(num_tries=1, verbose=True):
 
         import numpy as np
 
-        @timeit(100)
+        @timefunc(100)
         def timed_log(x):
             return np.log(x)
 
@@ -162,7 +162,7 @@ class SimpleRunTimePredictor(object):
         """
         return self._cache_out
 
-    @timeit(num_tries=1, verbose=False)
+    @timefunc(num_tries=1, verbose=False)
     def _timed_pfunc(self, arg):
         """Run partial func once for single arg and time it."""
         return self._pfunc(arg)
