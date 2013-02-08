@@ -9,6 +9,8 @@ import base64
 import getpass
 import json
 import logging
+import os
+import stat
 import sys
 import urllib
 import urllib2
@@ -300,6 +302,9 @@ def main(argv):
     parser.add_argument('repo', metavar='REPO', help='the repository name')
     parser.add_argument('branch', metavar='BRANCH',
                         help='the name of the bug fix branch (eg. v0.2.x)')
+    parser.add_argument('-f', '--file', metavar='FILE',
+                        help='save the cherry-pick script to a file; '
+                             'otherwise it is written to stdout')
     parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args(argv)
@@ -325,18 +330,32 @@ def main(argv):
     suggester = GithubSuggestBackports(args.owner, args.repo, args.branch,
                                        username, password)
 
+    pr_format = '[#{0}][{1}]: {2}'
     suggestions = []
     for pr, sha in suggester.iter_suggested_prs():
-        log.info('[#{0}] {1}: {2}'.format(pr['number'], pr['title'], sha))
-        suggestions.append((pr['merged_at'], sha))
+        log.info(pr_format.format(pr['number'], sha, pr['title']))
+        suggestions.append((pr, sha))
 
-    suggestions.sort()
+    suggestions.sort(key=lambda p: p[0]['merged_at'])
 
-    log.info('git commands:')
-    log.info('git checkout {0}'.format(args.branch))
-    log.info('git pull')
-    for _, sha in suggestions:
-        log.info('git cherry-pick -m 1 {0}'.format(sha))
+    script_lines = [
+        '#!/bin/bash',
+        '# git commands:',
+        'git checkout {0} || exit 1'.format(args.branch),
+        'git pull upstream {0} || exit 1'.format(args.branch)
+    ]
+    for pr, sha in suggestions:
+        script_lines.append('# ' + pr_format.format(pr['number'], sha,
+                                                    pr['title']))
+        script_lines.append('git cherry-pick -m 1 {0} || exit 1'.format(sha))
+
+    if args.file:
+        with open(args.file, 'w') as f:
+            f.writelines(line + '\n' for line in script_lines)
+        os.chmod(args.file, stat.S_IRWXU)
+    else:
+        for line in script_lines:
+            log.info(line)
 
 
 if __name__ == '__main__':
