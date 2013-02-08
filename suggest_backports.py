@@ -10,6 +10,7 @@ import getpass
 import json
 import logging
 import os
+import re
 import stat
 import sys
 import urllib
@@ -21,8 +22,13 @@ import pkg_resources
 
 BASE_URL = 'https://api.github.com/repos/'
 
+# This regex ensures that only the 'Conflicts:' section at the end of the
+# commit message is matched (in case there are multiple 'Conflicts' sections
+# which can happen).
+CONFLICTS_RE = re.compile(r'((?:.|\n)+)\nConflicts:(\n.*)+', flags=re.M)
 
 log = logging.getLogger()
+
 
 
 class _MaxLevelFilter(logging.Filter):
@@ -211,6 +217,13 @@ class GithubSuggestBackports(object):
             # author and commit message should be close enough
             a = commit['commit']
             b = merged_commit['commit']
+
+            # Remove conflicts from the cherry-picked commit's commit message;
+            # conflicts can cause the message to be different where it
+            # otherwise wouldn't have been, and we don't care if there were
+            # conflicts so long as it was merged successfully
+            b['message'] = CONFLICTS_RE.sub(r'\1', b['message'])
+
             if a['author'] == b['author'] and a['message'] == b['message']:
                 return merged_commit
 
