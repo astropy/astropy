@@ -54,6 +54,7 @@ from .sextractor import SExtractor
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
                          FixedWidthHeader, FixedWidthData)
+from .asciitable import AsciiTable
 from .ui import (set_guess, get_reader, read, get_writer, write)
 
 from . import connect

@@ -881,6 +881,7 @@ class BaseReader(object):
         :returns: list of strings corresponding to ASCII table
         """
         # link information about the columns to the writer object (i.e. self)
+        self.header.table_meta = table.meta
         self.header.cols = table.cols
         self.data.cols = table.cols
 
