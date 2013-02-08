@@ -1641,7 +1641,12 @@ def find_all_wcs(header, relax=True, keysel=None):
 
     keysel_flags = _parse_keysel(keysel)
 
-    wcsprms = _wcs.find_all_wcs(header_string, relax, keysel_flags)
+    if isinstance(header_string, unicode):
+        header_bytes = header_string.encode('ascii')
+    else:
+        header_bytes = header_string
+
+    wcsprms = _wcs.find_all_wcs(header_bytes, relax, keysel_flags)
 
     result = []
     for wcsprm in wcsprms:
