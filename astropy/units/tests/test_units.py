@@ -418,7 +418,6 @@ def test_endian_independence():
     """
     for endian in ['<', '>']:
         for ntype in ['i', 'f']:
-            for bytes in ['2', '4', '8']:
-                print(endian + ntype + bytes)
+            for bytes in ['4', '8']:
                 x = np.array([1,2,3], dtype=endian + ntype + bytes)
                 u.m.to(u.cm, x)
