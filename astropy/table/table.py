@@ -2,6 +2,8 @@
 import abc
 import sys
 from copy import deepcopy
+import functools
+import warnings
 
 import numpy as np
 from numpy import ma
@@ -26,6 +28,36 @@ NUMPY_LT_1P5 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 5]
 AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
+
+WARN_COLUMN_ARGS = ConfigurationItem("warn_column_args",
+                                     True,
+                                     "Show a warning when a Column is created "
+                                     "in a way that will break in Astropy 0.3")
+WARN_COLUMN_ARGS_MESSAGE = \
+"""In the next major release of astropy (0.3), the order of function
+arguments for creating a {class_name} will change.  Currently the order is
+{class_name}(name, data, ...), but in 0.3 and later it will be
+{class_name}(data, name, ...).  This is consistent with Table and NumPy.
+
+In order to use the same code for Astropy 0.2 and 0.3, column objects
+should be created using named keyword arguments for data and name, e.g.:
+{class_name}(name='a', data=[1, 2])."""
+
+
+def _check_column_new_args(func):
+    """
+    Decorator for Column and MaskedColumn __new__(cls, ...) to check that there
+    is only one ``args`` value (which is the class).  Everything else
+    should be a keyword argument.  Otherwise the calling code will break
+    when the name and data args are swapped in 0.3.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if len(args) > 1 and WARN_COLUMN_ARGS():
+            cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
+            warnings.warn(WARN_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__))
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def _auto_names(n_cols):
@@ -58,7 +90,7 @@ class TableColumns(OrderedDict):
         """Get items from a TableColumns object.
         ::
 
-          tc = TableColumns(cols=[Column('a'), Column('b'), Column('c')])
+          tc = TableColumns(cols=[Column(name='a'), Column(name='b'), Column(name='c')])
           tc['a']  # Column('a')
           tc[1] # Column('b')
           tc['a', 'b'] # <TableColumns names=('a', 'b')>
@@ -158,15 +190,13 @@ class BaseColumn(object):
         return (self.name, self.dtype.str, self.shape[1:])
 
     def __repr__(self):
-        if self.name:
-            units = None if self.units is None else str(self.units)
-            out = "<{0} name={1} units={2} format={3} " \
-                "description={4}>\n{5}".format(
-                self.__class__.__name__,
-                repr(self.name), repr(units),
-                repr(self.format), repr(self.description), repr(self.data))
-        else:
-            out = repr(self.data)
+        units = None if self.units is None else str(self.units)
+        out = "<{0} name={1} units={2} format={3} " \
+            "description={4}>\n{5}".format(
+            self.__class__.__name__,
+            repr(self.name), repr(units),
+            repr(self.format), repr(self.description), repr(self.data))
+
         return out
 
     def iter_str_vals(self):
@@ -381,15 +411,16 @@ class Column(BaseColumn, np.ndarray):
     --------
     A Column can be created in two different ways:
 
-    - Provide a ``data`` value and optionally a ``dtype`` value
+    - Provide a ``data`` value but not ``shape`` or ``length`` (which are
+      inferred from the data).
 
       Examples::
 
-        col = Column('name', data=[1, 2, 3])         # shape=(3,)
-        col = Column('name', data=[[1, 2], [3, 4]])  # shape=(2, 2)
-        col = Column('name', data=[1, 2, 3], dtype=float)
-        col = Column('name', np.array([1, 2, 3]))
-        col = Column('name', ['hello', 'world'])
+        col = Column(data=[1, 2], name='name')  # shape=(2,)
+        col = Column(data=[[1, 2], [3, 4]], name='name')  # shape=(2, 2)
+        col = Column(data=[1, 2], name='name', dtype=float)
+        col = Column(data=np.array([1, 2]), name='name')
+        col = Column(data=['hello', 'world'], name='name')
 
       The ``dtype`` argument can be any value which is an acceptable
       fixed-size data-type initializer for the numpy.dtype() method.  See
@@ -401,23 +432,35 @@ class Column(BaseColumn, np.ndarray):
       - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
 
       If no ``dtype`` value is provide then the type is inferred using
-      ``np.array(data)``.  When ``data`` is provided then the ``shape``
-      and ``length`` arguments are ignored.
+      ``np.array(data)``.
 
-    - Provide zero or more of ``dtype``, ``shape``, ``length``
+    - Provide ``length`` and optionally ``shape``, but not ``data``
 
       Examples::
 
-        col = Column('name')
-        col = Column('name', dtype=int, length=10, shape=(3,4))
+        col = Column(name='name', length=5)
+        col = Column(name='name', dtype=int, length=10, shape=(3,4))
 
-      The default ``dtype`` is ``np.float64`` and the default ``length`` is
-      zero.  The ``shape`` argument is the array shape of a single cell in the
-      column.  The default ``shape`` is () which means a single value in each
-      element.
+      The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
+      array shape of a single cell in the column.
+
+    .. warning::
+
+       In the next major release of `astropy` (0.3), the order of function
+       arguments for creating a |Column| will change.  Currently the order is
+       ``Column(name, data, ...)``, but in 0.3 and later it will be
+       ``Column(data, name, ...)``.  This improves consistency with |Table| and
+       `numpy`.
+
+       In order to use the same code for Astropy 0.2 and 0.3, column objects
+       should always be created using named keyword arguments for ``data`` and
+       ``name``, for instance ``c = Column(data=[1, 2], name='col')``.  When
+       Astropy 0.3 is released then the the keyword identifiers can be dropped,
+       allowing for ``c = Column([1, 2], 'c')``.
     """
 
-    def __new__(cls, name, data=None,
+    @_check_column_new_args
+    def __new__(cls, name=None, data=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -464,13 +507,97 @@ class Column(BaseColumn, np.ndarray):
             if copy_data:
                 data = data.copy()
 
-        return Column(self.name, data, units=self.units, format=self.format,
+        return Column(name=self.name, data=data, units=self.units, format=self.format,
                       description=self.description, meta=deepcopy(self.meta))
 
 
 class MaskedColumn(BaseColumn, ma.MaskedArray):
+    """Define a masked data column for use in a Table object.
 
-    def __new__(cls, name, data=None, mask=None, fill_value=None,
+    Parameters
+    ----------
+    name : str
+        Column name and key for reference within Table
+    data : list, ndarray or None
+        Column data values
+    mask : list, ndarray or None
+        Boolean mask for which True indicates missing or invalid data
+    fill_value : float, int, str or None
+        Value used when filling masked column elements
+    dtype : numpy.dtype compatible value
+        Data type for column
+    shape : tuple or ()
+        Dimensions of a single row element in the column data
+    length : int or 0
+        Number of row elements in column data
+    description : str or None
+        Full description of column
+    units : str or None
+        Physical units
+    format : str or None
+        Format string for outputting column values.  This can be an
+        "old-style" (``format % value``) or "new-style" (`str.format`)
+        format specification string.
+    meta : dict-like or None
+        Meta-data associated with the column
+
+    Examples
+    --------
+    A MaskedColumn is similar to a Column except that it includes ``mask`` and
+    ``fill_value`` attributes.  It can be created in two different ways:
+
+    - Provide a ``data`` value but not ``shape`` or ``length`` (which are
+      inferred from the data).
+
+      Examples::
+
+        col = MaskedColumn(data=[1, 2], name='name')
+        col = MaskedColumn(data=[1, 2], name='name', mask=[True, False])
+        col = MaskedColumn(data=[1, 2], name='name', dtype=float, fill_value=99)
+
+      The ``mask`` argument will be cast as a boolean array and specifies
+      which elements are considered to be missing or invalid.
+
+      The ``dtype`` argument can be any value which is an acceptable
+      fixed-size data-type initializer for the numpy.dtype() method.  See
+      `<http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_.
+      Examples include:
+
+      - Python non-string type (float, int, bool)
+      - Numpy non-string type (e.g. np.float32, np.int64, np.bool)
+      - Numpy.dtype array-protocol type strings (e.g. 'i4', 'f8', 'S15')
+
+      If no ``dtype`` value is provide then the type is inferred using
+      ``np.array(data)``.  When ``data`` is provided then the ``shape``
+      and ``length`` arguments are ignored.
+
+    - Provide ``length`` and optionally ``shape``, but not ``data``
+
+      Examples::
+
+        col = MaskedColumn(name='name', length=5)
+        col = MaskedColumn(name='name', dtype=int, length=10, shape=(3,4))
+
+      The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
+      array shape of a single cell in the column.
+
+    .. warning::
+
+       In the next major release of `astropy` (0.3), the order of function
+       arguments for creating a |MaskedColumn| will change.  Currently the order is
+       ``MaskedColumn(name, data, ...)``, but in 0.3 and later it will be
+       ``MaskedColumn(data, name, ...)``.  This improves consistency with |Table|
+       and `numpy`.
+
+       In order to use the same code for Astropy 0.2 and 0.3, column objects
+       should always be created using named keyword arguments for ``data`` and
+       ``name``, for instance ``c = MaskedColumn(data=[1, 2], name='col')``.  When
+       Astropy 0.3 is released then the the keyword identifiers can be dropped,
+       allowing for ``c = MaskedColumn([1, 2], 'c')``.
+    """
+
+    @_check_column_new_args
+    def __new__(cls, name=None, data=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -588,7 +715,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
         fill_value = self._fix_fill_value(fill_value)
 
         data = super(MaskedColumn, self).filled(fill_value)
-        out = Column(self.name, data, units=self.units, format=self.format,
+        out = Column(name=self.name, data=data, units=self.units, format=self.format,
                      description=self.description, meta=deepcopy(self.meta))
         return out
 
@@ -614,7 +741,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
             if copy_data:
                 data = data.copy()
 
-        return MaskedColumn(self.name, data, units=self.units, format=self.format,
+        return MaskedColumn(name=self.name, data=data, units=self.units, format=self.format,
                             # Do not include mask=self.mask since `data` has the mask
                             fill_value=self.fill_value,
                             description=self.description, meta=deepcopy(self.meta))
@@ -911,9 +1038,9 @@ class Table(object):
         def_names = _auto_names(n_cols)
         for col, name, def_name, dtype in zip(data, names, def_names, dtypes):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass((name or col.name), col, dtype=dtype)
+                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass((name or def_name), col, dtype=dtype)
+                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -942,7 +1069,7 @@ class Table(object):
             columns = TableColumns()
 
             for name in names:
-                columns[name] = self.ColumnClass(name, self._data[name])
+                columns[name] = self.ColumnClass(name=name, data=self._data[name])
                 columns[name].parent_table = self
             self.columns = columns
 
@@ -984,7 +1111,7 @@ class Table(object):
                              .format(lengths))
 
         self._set_masked_from_cols(cols)
-        cols = [self.ColumnClass(col.name, col) for col in cols]
+        cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
         names = [col.name for col in cols]
         dtypes = [col.descr for col in cols]
@@ -1514,7 +1641,8 @@ class Table(object):
         # Add_row() probably corrupted the Column views of self._data.  Rebuild
         # self.columns.  Col.copy() takes an optional data reference that it
         # uses in the copy.
-        cols = [self.ColumnClass(c.name, c).copy(self._data[c.name]) for c in self.columns.values()]
+        cols = [self.ColumnClass(name=c.name, data=c).copy(self._data[c.name])
+                for c in self.columns.values()]
         self.columns = TableColumns(cols)
 
     def sort(self, keys):

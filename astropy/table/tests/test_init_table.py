@@ -123,7 +123,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 
     def setup_method(self, method):
         self.data = [(np.int32(1), np.int32(3)),
-                     Column('col1', [2, 4], dtype=np.int32),
+                     Column(name='col1', data=[2, 4], dtype=np.int32),
                      np.array([3, 5], dtype=np.int32)]
 
     def test_default_names(self):
@@ -150,7 +150,7 @@ class TestInitFromListOfLists(BaseInitFromListLike):
 class TestInitFromColsList(BaseInitFromListLike):
 
     def setup_method(self, method):
-        self.data = [Column('x', [1, 3], dtype=np.int32),
+        self.data = [Column(name='x', data=[1, 3], dtype=np.int32),
                      np.array([2, 4], dtype=np.int32),
                      np.array([3, 5], dtype='i8')]
 
@@ -212,7 +212,7 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
 class TestInitFromDict(BaseInitFromDictLike):
 
     def setup_method(self, method):
-        self.data = dict([('a', Column('x', [1, 3])),
+        self.data = dict([('a', Column(name='x', data=[1, 3])),
                           ('b', [2, 4]),
                           ('c', np.array([3, 5], dtype='i8'))])
 
@@ -221,7 +221,7 @@ class TestInitFromDict(BaseInitFromDictLike):
 class TestInitFromOrderedDict(BaseInitFromDictLike):
 
     def setup_method(self, method):
-        self.data = OrderedDict([('a', Column('x', [1, 3])),
+        self.data = OrderedDict([('a', Column(name='x', data=[1, 3])),
                                  ('b', [2, 4]),
                                  ('c', np.array([3, 5], dtype='i8'))])
 

@@ -39,8 +39,8 @@ class TestRow():
         if Column is None:
             return None
         if not hasattr(self, '_t'):
-            a = Column('a', [1, 2, 3], dtype='i8')
-            b = Column('b', [4, 5, 6], dtype='i8')
+            a = Column(name='a', data=[1, 2, 3], dtype='i8')
+            b = Column(name='b', data=[4, 5, 6], dtype='i8')
             self._t = Table([a, b])
         return self._t
 
