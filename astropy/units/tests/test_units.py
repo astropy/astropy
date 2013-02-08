@@ -7,6 +7,8 @@ from __future__ import absolute_import, unicode_literals, division, print_functi
 
 import warnings
 
+import numpy as np
+
 from ...tests.helper import pytest, raises
 from ...tests.compat import assert_allclose
 from ...utils.compat.fractions import Fraction
@@ -397,9 +399,28 @@ def test_compose_no_duplicates():
     composed = new.compose(units=u.cgs.bases)
     assert len(composed) == 1
 
+
 def test_long_int():
     """
     Issue #672
     """
     sigma = 10 ** 21 * u.M_p / u.cm ** 2
     sigma.to(u.M_sun / u.pc ** 2)
+
+
+def test_endian_independence():
+    """
+    Regression test for #744
+
+    A logic issue in the units code meant that big endian arrays could not be
+    converted because the dtype is '>f4', not 'float32', and the code was
+    looking for the strings 'float' or 'int'.
+    """
+    for endian in ['<', '>']:
+        for ntype in ['i', 'f']:
+            for byte in ['4', '8']:
+                # Note, we have to use encode() because we've imported
+                # unicode_literals from __future__, and Numpy 1.4.1 crashes if
+                # a unicode dtype is passed.
+                x = np.array([1,2,3], dtype=(endian + ntype + byte).encode('ascii'))
+                u.m.to(u.cm, x)

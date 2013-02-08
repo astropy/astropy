@@ -1396,8 +1396,7 @@ def _condition_arg(value):
     else:
         try:
             avalue = np.array(value)
-            dt = str(avalue.dtype)
-            if not (dt.startswith('int') or dt.startswith('float')):
+            if not avalue.dtype.kind in ['i', 'f']:
                 raise ValueError("Must be convertable to int or float array")
             if ma.isMaskedArray(value):
                 return value
