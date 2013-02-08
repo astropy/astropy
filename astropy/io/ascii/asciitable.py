@@ -48,6 +48,34 @@ ASCIITABLE_FORMAT_HEADER = '-*- ASCIITABLE-FORMAT-HEADER-JSON-{} -*-'
 """
 
 
+def _decode_list(data):
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = _decode_list(item)
+        elif isinstance(item, dict):
+            item = _decode_dict(item)
+        rv.append(item)
+    return rv
+
+
+def _decode_dict(data):
+    rv = OrderedDict()
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = _decode_list(value)
+        elif isinstance(value, dict):
+            value = _decode_dict(value)
+        rv[key] = value
+    return rv
+
+
 def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
@@ -55,7 +83,7 @@ def _get_col_attributes(col):
     """
     attrs = OrderedDict()
     attrs['name'] = col.name
-    attrs['units'] = col.units
+    attrs['units'] = str(col.units)
     attrs['format'] = col.format
     attrs['description'] = col.description
     attrs['dtype'] = col.dtype.type.__name__
@@ -70,12 +98,12 @@ class AsciiTableHeader(core.BaseHeader):
     """
     def process_lines(self, lines):
         """Return only lines that start with the comment regexp.  For these
-        lines strip out the matching characters."""
+        lines strip out the matching characters and leading/trailing whitespace."""
         re_comment = re.compile(self.comment)
         for line in lines:
             match = re_comment.match(line)
             if match:
-                yield line[match.end():]
+                yield line[match.end():].strip()
 
     def write(self, lines):
         """
@@ -122,10 +150,22 @@ class AsciiTableHeader(core.BaseHeader):
                 raise core.InconsistentTableError('No AsciiTable format {} line found '
                                                   .format(position))
 
+        # Now actually load the JSON data structure into `meta`
         meta_json = '\n'.join(lines[idx['start'] + 1:idx['stop']])
         meta = json.loads(meta_json, object_pairs_hook=OrderedDict)
-        print meta
-        
+        meta = _decode_dict(meta)
+        self.table_meta = meta['table_meta']
+
+        # Create the list of io.ascii column objects from `meta`
+        meta_cols = OrderedDict((x['name'], x) for x in meta['cols'])
+        self.names = meta_cols.keys()
+        self._set_cols_from_names()  # BaseHeader method to create self.cols
+
+        # Transfer attributes from the column descriptor stored in the input
+        # header JSON metadata to the new columns to create this table.
+        for col in self.cols:
+            for attr in ('description', 'format', 'units', 'dtype', 'meta'):
+                setattr(col, attr, meta_cols[col.name][attr])
 
 
 class AsciiTable(core.BaseReader):
