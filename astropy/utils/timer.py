@@ -13,6 +13,7 @@ import numpy as np
 
 # LOCAL
 from . import OrderedDict
+from .. import units as u
 from ..logger import log
 
 
@@ -47,10 +48,11 @@ def timefunc(num_tries=1, verbose=True):
 
     Examples
     --------
-    To add timer to time `np.log` for 100 times with
+    To add timer to time `numpy.log` for 100 times with
     verbose output::
 
         import numpy as np
+        from astropy.utils.timer import timefunc
 
         @timefunc(100)
         def timed_log(x):
@@ -99,6 +101,8 @@ class RunTimePredictor(object):
 
     Examples
     --------
+    >>> from astropy.utils.timer import RunTimePredictor
+
     Set up a predictor for ``10**X``:
 
     >>> p = RunTimePredictor(pow, 10)
@@ -109,10 +113,10 @@ class RunTimePredictor(object):
     >>> p.time_func(range(10, 1000, 200))
     >>> p.results
     {10: 10000000000,
-     210: 10000000000...,
-     410: 10000000000...,
-     610: 10000000000...,
-     810: 10000000000...}
+     210: 10000000000...L,
+     410: 10000000000...L,
+     610: 10000000000...L,
+     810: 10000000000...L}
 
     Fit a straight line assuming ``arg**1`` relationship
     (coefficients are returned):
@@ -136,7 +140,7 @@ class RunTimePredictor(object):
     When the changing argument is not the last, e.g.,
     `pow(x, 2)`, something like this might work:
 
-    >>> p = timer.RunTimePredictor(lambda x: pow(x, 2))
+    >>> p = RunTimePredictor(lambda x: pow(x, 2))
     >>> p.time_func([2,3,5])
     >>> p.results
     {2: 4, 3: 9, 5: 25}
@@ -196,6 +200,7 @@ class RunTimePredictor(object):
             arglist = [arglist]
         dummy = map(self._cache_time, arglist)
 
+    # FUTURE: Implement N^x * O(log(N)) fancy fitting.
     def do_fit(self, power=1, deg=1, min_datapoints=3):
         """Fit a function to the lists of arguments and
         their respective run time in the cache.
@@ -259,13 +264,17 @@ class RunTimePredictor(object):
             self._cache_est[arg] = t_est
         return t_est
 
-    def plot(self, xlabeltext='args', save_as=''):  # pragma: no cover
+    def plot(self, xscale='linear', yscale='linear', xlabeltext='args',
+             save_as=''):  # pragma: no cover
         """Plot prediction.
 
         .. note:: Uses :mod:`matplotlib`.
 
         Parameters
         ----------
+        xscale, yscale : {'linear', 'log', 'symlog'}
+            Scaling for `matplotlib.axes.Axes`.
+
         xlabeltext : str, optional
             Text for X-label.
 
@@ -277,9 +286,18 @@ class RunTimePredictor(object):
 
         # Actual data
         x_arr = sorted(self._cache_good)
-        y_arr = [self._cache_good[x] for x in x_arr]
+        y_arr = np.array([self._cache_good[x] for x in x_arr])
 
         assert len(x_arr) > 1, 'Insufficient data for plotting'
+
+        # Auto-ranging
+        qmean = y_arr.mean() * u.second
+        for cur_u in (u.minute, u.second, u.millisecond, u.microsecond,
+                      u.nanosecond):
+            val = qmean.to(cur_u).value
+            if 1000 > val >= 1:
+                break
+        y_arr = (y_arr * u.second).to(cur_u).value
 
         fig, ax = plt.subplots()
         ax.plot(x_arr, y_arr, 'kx-', label='Actual')
@@ -287,15 +305,20 @@ class RunTimePredictor(object):
         # Fitted data
         if self._fit_func is not None:
             x_est = self._cache_est.keys()
-            ax.scatter(x_est, self._cache_est.values(), marker='o', c='r',
-                       label='Predicted')
+            y_est = (np.array(self._cache_est.values()) *
+                     u.second).to(cur_u).value
+            ax.scatter(x_est, y_est, marker='o', c='r', label='Predicted')
 
             x_fit = np.array(sorted(x_arr + x_est))
-            y_fit = self._fit_func(x_fit**self._power)
+            y_fit = (self._fit_func(x_fit**self._power) *
+                     u.second).to(cur_u).value
             ax.plot(x_fit, y_fit, 'b--', label='Fit')
 
+        ax.set_xscale(xscale)
+        ax.set_yscale(yscale)
+
         ax.set_xlabel(xlabeltext)
-        ax.set_ylabel('Run time (s)')
+        ax.set_ylabel('Run time ({})'.format(cur_u.to_string()))
         ax.set_title(self._funcname)
         ax.legend(loc='best', numpoints=1)
 
