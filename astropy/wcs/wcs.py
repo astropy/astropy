@@ -1634,7 +1634,7 @@ def find_all_wcs(header, relax=True, keysel=None):
     if isinstance(header, string_types):
         header_string = header
     elif isinstance(header, fits.Header):
-        header_string = repr(header)
+        header_string = header.tostring()
     else:
         raise TypeError(
             "header must be a string or astropy.io.fits.Header object")

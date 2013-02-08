@@ -350,7 +350,7 @@ def test_shape_mismatch():
         xp, yp = w.wcs_world2pix(x, y, 1)
     assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
-@raises(wcs._wcs.InconsistentAxisTypesError)
+@raises(wcs._wcs.InvalidTransformError)
 def test_find_all_wcs_crash():
     """
     Causes a double free without a recent fix in wcslib_wrap.C
