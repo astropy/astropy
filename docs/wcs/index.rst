@@ -85,6 +85,30 @@ saves those settings to a new FITS header.
 .. literalinclude:: examples/programmatic.py
    :language: python
 
+Validating the WCS keywords in a FITS file
+------------------------------------------
+
+`astropy` includes a commandline tool, `wcslint` to check the WCS
+keywords in a FITS file::
+
+    > wcslint invalid.fits
+    HDU 1:
+      WCS key ' ':
+        - RADECSYS= 'ICRS ' / Astrometric system
+          RADECSYS is non-standard, use RADESYSa.
+        - The WCS transformation has more axes (2) than the image it is
+          associated with (0)
+        - 'celfix' made the change 'PV1_5 : Unrecognized coordinate
+          transformation parameter'.
+
+    HDU 2:
+      WCS key ' ':
+        - The WCS transformation has more axes (3) than the image it is
+          associated with (0)
+        - 'celfix' made the change 'In CUNIT2 : Mismatched units type
+          'length': have 'Hz', want 'm''.
+        - 'unitfix' made the change 'Changed units: 'HZ      ' -> 'Hz''.
+
 Other information
 =================
 

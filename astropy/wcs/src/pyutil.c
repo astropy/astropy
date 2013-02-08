@@ -8,6 +8,8 @@
 /* util.h must be imported first */
 #include "pyutil.h"
 
+#include "docstrings.h"
+
 #include "wcsfix.h"
 #include "wcsprintf.h"
 #include "wcsunits.h"
@@ -203,6 +205,7 @@ wcsprm_python2c(
  * Exceptions                                                              *
  ***************************************************************************/
 
+PyObject* WcsExc_Wcs;
 PyObject* WcsExc_SingularMatrix;
 PyObject* WcsExc_InconsistentAxisTypes;
 PyObject* WcsExc_InvalidTransform;
@@ -220,7 +223,11 @@ PyObject* WcsExc_InvalidTabularParameters;
 PyObject** wcs_errexc[14];
 
 #define DEFINE_EXCEPTION(exc) \
-  WcsExc_##exc = PyErr_NewException("astropy.wcs._wcs." #exc "Error", PyExc_ValueError, NULL); \
+  WcsExc_##exc = PyErr_NewExceptionWithDoc(                             \
+      "astropy.wcs._wcs." #exc "Error",                                 \
+      doc_##exc,                                                        \
+      WcsExc_Wcs,                                                 \
+      NULL);                                                            \
   if (WcsExc_##exc == NULL) \
     return 1; \
   PyModule_AddObject(m, #exc "Error", WcsExc_##exc); \
@@ -228,6 +235,16 @@ PyObject** wcs_errexc[14];
 int
 _define_exceptions(
     PyObject* m) {
+
+  WcsExc_Wcs = PyErr_NewExceptionWithDoc(
+      "astropy.wcs._wcs.WcsError",
+      doc_WcsError,
+      PyExc_ValueError,
+      NULL);
+  if (WcsExc_Wcs == NULL) {
+    return 1;
+  }
+  PyModule_AddObject(m, "WcsError", WcsExc_Wcs);
 
   DEFINE_EXCEPTION(SingularMatrix);
   DEFINE_EXCEPTION(InconsistentAxisTypes);

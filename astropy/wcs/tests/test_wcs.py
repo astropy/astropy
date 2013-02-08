@@ -397,3 +397,21 @@ def test_to_header_string():
 def test_to_fits():
     w = wcs.WCS()
     w.to_fits()
+
+
+@raises(wcs.InvalidTransformError)
+def test_find_all_wcs_crash():
+    """
+    Causes a double free without a recent fix in wcslib_wrap.C
+    """
+    with open(get_pkg_data_filename("data/too_many_pv.hdr")) as fd:
+        header = fd.read()
+    wcses = wcs.find_all_wcs(header)
+
+
+def test_validate():
+    results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
+    results_txt = repr(results)
+    with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
+        assert [x.strip() for x in fd.readlines()] == [
+            x.strip() for x in results_txt.splitlines()]
