@@ -15,7 +15,7 @@ import time
 import numpy as np
 
 # LOCAL
-from ..timer import SimpleRunTimePredictor
+from ..timer import RunTimePredictor
 
 
 ACCURACY_DECIMAL = 3  # For np.testing.assert_almost_equal()
@@ -27,10 +27,10 @@ def func_to_time(x):
     return 'Slept for {0} second(s)'.format(x)
 
 
-class TestSimpleRunTimePredictor(object):
-    """Test `astropy.utils.timer.SimpleRunTimePredictor`."""
+class TestRunTimePredictor(object):
+    """Test `astropy.utils.timer.RunTimePredictor`."""
     def setup_class(self):
-        self.p = SimpleRunTimePredictor(func_to_time)
+        self.p = RunTimePredictor(func_to_time)
 
     def test_expected_errors(self):
         try:

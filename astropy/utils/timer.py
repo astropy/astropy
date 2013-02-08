@@ -16,7 +16,7 @@ from . import OrderedDict
 from ..logger import log
 
 
-__all__ = ['timefunc', 'SimpleRunTimePredictor']
+__all__ = ['timefunc', 'RunTimePredictor']
 
 
 def timefunc(num_tries=1, verbose=True):
@@ -81,7 +81,7 @@ def timefunc(num_tries=1, verbose=True):
     return real_decorator
 
 
-class SimpleRunTimePredictor(object):
+class RunTimePredictor(object):
     """Class to predict run time.
 
     .. note:: Only predict for single varying numeric input parameter.
@@ -101,7 +101,7 @@ class SimpleRunTimePredictor(object):
     --------
     Set up a predictor for ``10**X``:
 
-    >>> p = SimpleRunTimePredictor(pow, 10)
+    >>> p = RunTimePredictor(pow, 10)
 
     Give it baseline data to use for prediction and
     get the function output values:
@@ -131,12 +131,12 @@ class SimpleRunTimePredictor(object):
 
     .. image:: ../../docs/_static/timer_prediction_pow10.png
         :width: 450px
-        :alt: Example plot from `astropy.utils.timer.SimpleRunTimePredictor`
+        :alt: Example plot from `astropy.utils.timer.RunTimePredictor`
 
     When the changing argument is not the last, e.g.,
     `pow(x, 2)`, something like this might work:
 
-    >>> p = timer.SimpleRunTimePredictor(lambda x: pow(x, 2))
+    >>> p = timer.RunTimePredictor(lambda x: pow(x, 2))
     >>> p.time_func([2,3,5])
     >>> p.results
     {2: 4, 3: 9, 5: 25}
