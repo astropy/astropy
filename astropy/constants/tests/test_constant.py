@@ -49,6 +49,10 @@ def test_e():
 
     # Without specifying a system e should not combine with other quantities
     pytest.raises(TypeError, lambda: e * E)
+    # Try it again (as regression test on a minor issue mentioned in #745 where
+    # repeated attempts to use e in an expression resulted in UnboundLocalError
+    # instead of TypeError)
+    pytest.raises(TypeError, lambda: e * E)
 
     # e.cgs is too ambiguous and should not work at all
     pytest.raises(TypeError, lambda: e.cgs * E)

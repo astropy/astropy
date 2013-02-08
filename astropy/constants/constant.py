@@ -17,8 +17,8 @@ class ConstantMeta(type):
             @functools.wraps(meth)
             def wrapper(self, *args, **kwargs):
                 name_lower = self.name.lower()
+                instances = Constant._registry[name_lower]
                 if not self._checked_units:
-                    instances = Constant._registry[name_lower]
                     for inst in instances.values():
                         try:
                             self.unit.to(inst.unit)
@@ -55,19 +55,8 @@ class ConstantMeta(type):
 class Constant(Quantity):
     """A physical or astronomical constant.
 
-    These objects are quantities that are meant to represent physical constants
-
-    Attributes
-    ----------
-    name : str
-        The name of this constant.
-    uncertainty : float
-        The uncertainty in the value of this constant.
-    reference : str
-        The source used for the value of this constant.
-    units : `astropy.units.UnitBase` instance
-        The units of this constant. Can be set either as a string or
-        `astropy.units.UnitBase`.
+    These objects are quantities that are meant to represent physical
+    constants.
     """
 
     __metaclass__ = ConstantMeta
@@ -125,26 +114,43 @@ class Constant(Quantity):
 
     @property
     def abbrev(self):
+        """A typical ASCII text abbreviation of the constant, also generally
+        the same as the Python variable used for this constant.
+        """
+
         return self._abbrev
 
     @property
     def name(self):
+        """The full name of the constant."""
+
         return self._name
 
     @lazyproperty
     def unit(self):
+        """The unit(s) in which this constant is defined."""
+
         return Unit(self._unit)
 
     @property
     def uncertainty(self):
+        """The known uncertainty in this constant's value."""
+
         return self._uncertainty
 
     @property
     def reference(self):
+        """The source used for the value of this constant."""
+
         return self._reference
 
     @property
     def system(self):
+        """The system of units in which this constant is defined (typically
+        `None` so long as the constant's units can be directly converted
+        between systems).
+        """
+
         return self._system
 
     @property
@@ -167,10 +173,14 @@ class Constant(Quantity):
 
 
 class EMConstant(Constant):
-    """An electromagnetic constant"""
+    """An electromagnetic constant."""
 
     @property
     def cgs(self):
+        """Overridden for EMConstant to raise a `TypeError` emphasizing that
+        there are multiple EM extensions to CGS.
+        """
+
         raise TypeError("Cannot convert EM constants to cgs because there "
                         "are different systems for E.M constants within the "
                         "c.g.s system (ESU, Gaussian, etc.). Instead, "
