@@ -133,6 +133,14 @@ class SimpleRunTimePredictor(object):
         :width: 450px
         :alt: Example plot from `astropy.utils.timer.SimpleRunTimePredictor`
 
+    When the changing argument is not the last, e.g.,
+    `pow(x, 2)`, something like this might work:
+
+    >>> p = timer.SimpleRunTimePredictor(lambda x: pow(x, 2))
+    >>> p.time_func([2,3,5])
+    >>> p.results
+    {2: 4, 3: 9, 5: 25}
+
     """
     def __init__(self, func, *args, **kwargs):
         self._funcname = func.__name__
