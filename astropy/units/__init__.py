@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This subpackage contains classes and functions for defining and converting
 between different physical units.
@@ -28,4 +29,3 @@ dimensionless_unscaled = Unit(1)
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
 UnitBase._set_namespace(locals())
-

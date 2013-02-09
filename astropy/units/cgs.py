@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This package defines the CGS units.  They are also available in the
 top-level `astropy.units` namespace.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from ..utils.compat.fractions import Fraction
 

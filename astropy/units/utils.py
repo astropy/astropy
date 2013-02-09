@@ -1,11 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Miscellaneous utilities for `astropy.units`.
 
 None of the functions in the module are meant for use outside of the
 package.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from . import core
 

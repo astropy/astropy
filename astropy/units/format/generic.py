@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Handles a "generic" string format for units
 """
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -100,7 +102,7 @@ class Generic(Base):
             (function) ^
             (unit_with_power) ^
             (p.Suppress(open_p) + product_of_units + p.Suppress(close_p))
-            )
+        )
 
         factor << (
             (unsigned_integer + signed_integer) ^
@@ -110,7 +112,7 @@ class Generic(Base):
             (floating_point + p.Suppress(p.White()) +
              unsigned_integer + p.Suppress(power) + numeric_power) ^
             (floating_point)
-            )
+        )
 
         unit << p.Word(p.alphas, p.alphas + '_')
 
@@ -252,7 +254,8 @@ class Generic(Base):
             else:
                 if not isinstance(power, Fraction):
                     if power % 1.0 != 0.0:
-                        power = Fraction.from_float(power).limit_denominator(10)
+                        frac = Fraction.from_float(power)
+                        power = frac.limit_denominator(10)
                         if power.denominator == 1:
                             power = int(power.numerator)
                     else:

@@ -3,7 +3,8 @@
 Regression tests for the units.format package
 """
 
-from __future__ import absolute_import, unicode_literals, division, print_function
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 from ...tests.helper import raises
 from ...tests.compat import assert_allclose
@@ -28,10 +29,10 @@ def test_unit_grammar():
         (["m**(1.5)", "m(3/2)", "m**(3/2)", "m^(3/2)"], u.m ** 1.5),
         (["2.54cm"], u.Unit(u.cm * 2.54)),
         (["10+8m"], u.Unit(u.m * 1e8)),
-        # # This is the VOUnits documentation, but doesn't seem to follow the unity grammar
-        # (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy) #
+        # This is the VOUnits documentation, but doesn't seem to follow the
+        # unity grammar (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy)
         (["sqrt(m)"], u.m ** -2)
-        ]
+    ]
 
     for strings, unit in data:
         for s in strings:
@@ -71,7 +72,6 @@ def test_cds_grammar_fail():
 
     for s in data:
         yield _test_cds_grammar_fail, s
-
 
 
 def test_roundtrip():

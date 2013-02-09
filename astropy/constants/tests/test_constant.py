@@ -62,7 +62,7 @@ def test_e():
     assert isinstance(e.esu, Q)
 
     assert e.si * E == Q(100, 'eV/m')
-    assert e.gauss * E == Q(e.gauss.value  * E.value, 'Fr V/m')
+    assert e.gauss * E == Q(e.gauss.value * E.value, 'Fr V/m')
     assert e.esu * E == Q(e.esu.value * E.value, 'Fr V/m')
 
 

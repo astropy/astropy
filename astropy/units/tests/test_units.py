@@ -3,7 +3,8 @@
 Regression tests for the units package
 """
 
-from __future__ import absolute_import, unicode_literals, division, print_function
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import warnings
 
@@ -132,19 +133,25 @@ def test_spectraldensity3():
     assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.Hz, 1.), 1.e-23, 10)
 
     # Convert to ergs / cm^2 / s at 10 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13, 10)
+    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s, 1.,
+                    equivalencies=u.spectral_density(u.GHz, 10)), 1.e-13, 10)
 
     # Convert to ergs / cm^2 / s / micron at 1 Ghz
-    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 3.335640951981521e-20, 10)
+    assert_allclose(f_nu.to(u.erg / u.cm ** 2 / u.s / u.micron, 1.,
+                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
+                    3.335640951981521e-20, 10)
 
     # Define F_lambda in ergs / cm^2 / s / micron
     f_lambda = u.erg / u.cm ** 2 / u.s / u.micron
 
     # Convert to Jy at 1 Ghz
-    assert_allclose(f_lambda.to(u.Jy, 1., equivalencies=u.spectral_density(u.Hz, 1.e9)), 1. / 3.335640951981521e-20, 10)
+    assert_allclose(f_lambda.to(u.Jy, 1.,
+                    equivalencies=u.spectral_density(u.Hz, 1.e9)),
+                    1. / 3.335640951981521e-20, 10)
 
     # Convert to ergs / cm^2 / s at 10 microns
-    assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1., equivalencies=u.spectral_density(u.micron, 10.)), 10., 10)
+    assert_allclose(f_lambda.to(u.erg / u.cm ** 2 / u.s, 1.,
+                    equivalencies=u.spectral_density(u.micron, 10.)), 10., 10)
 
 
 def test_units_conversion():
@@ -215,8 +222,8 @@ def test_null_unit():
 
 
 def test_unrecognized_equivalency():
-    assert u.m.is_equivalent('foo') == False
-    assert u.m.is_equivalent('foot') == True
+    assert u.m.is_equivalent('foo') is False
+    assert u.m.is_equivalent('foot') is True
 
 
 @raises(TypeError)
@@ -300,7 +307,7 @@ def test_compose_roundtrip():
 
     for val in u.__dict__.values():
         if (isinstance(val, u.UnitBase) and
-            not isinstance(val, u.PrefixUnit)):
+                not isinstance(val, u.PrefixUnit)):
             yield _test_compose_roundtrip, val
 
 
@@ -310,7 +317,7 @@ def test_compose_cgs_to_si():
 
     for val in u.cgs.__dict__.values():
         if (isinstance(val, u.UnitBase) and
-            not isinstance(val, u.PrefixUnit)):
+                not isinstance(val, u.PrefixUnit)):
             yield _test_compose_cgs_to_si, val
 
 
@@ -327,7 +334,7 @@ def test_compose_si_to_cgs():
 
     for val in u.si.__dict__.values():
         if (isinstance(val, u.UnitBase) and
-            not isinstance(val, u.PrefixUnit)):
+                not isinstance(val, u.PrefixUnit)):
             yield _test_compose_si_to_cgs, val
 
 
@@ -365,7 +372,7 @@ def test_compose_failed():
 
 
 def test_compose_fractional_powers():
-    x = (u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
+    x = (u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2)
 
     factored = x.compose()
 
@@ -396,7 +403,7 @@ def test_compose_best_unit_first():
 
 
 def test_compose_no_duplicates():
-    new = u.kg / u.s**3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2
+    new = u.kg / u.s ** 3 * u.au ** 2.5 / u.yr ** 0.5 / u.sr ** 2
     composed = new.compose(units=u.cgs.bases)
     assert len(composed) == 1
 

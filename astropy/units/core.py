@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Core units classes and functions
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import inspect
 import re
@@ -227,11 +230,9 @@ class UnitBase(object):
             for equiv in equivalencies:
                 a = equiv[0]
                 b = equiv[1]
-                if (unit.is_equivalent(a) and
-                    other.is_equivalent(b)):
+                if (unit.is_equivalent(a) and other.is_equivalent(b)):
                     return True
-                elif (unit.is_equivalent(b) and
-                      other.is_equivalent(a)):
+                elif (unit.is_equivalent(b) and other.is_equivalent(a)):
                     return True
             return False
         else:
@@ -264,13 +265,11 @@ class UnitBase(object):
                 funit, tunit, a, b = equiv
             else:
                 raise ValueError("Invalid equivalence entry")
-            if (unit.is_equivalent(funit) and
-                other.is_equivalent(tunit)):
+            if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
                 scale1 = (unit / funit)._dimensionless_constant()
                 scale2 = (tunit / other)._dimensionless_constant()
                 return make_converter(scale1, a, scale2)
-            elif (other.is_equivalent(funit) and
-                  unit.is_equivalent(tunit)):
+            elif (other.is_equivalent(funit) and unit.is_equivalent(tunit)):
                 scale1 = (unit / tunit)._dimensionless_constant()
                 scale2 = (funit / other)._dimensionless_constant()
                 return make_converter(scale1, b, scale2)
@@ -355,9 +354,9 @@ class UnitBase(object):
         UnitException
             If units are inconsistent
         """
+
         other = Unit(other)
-        return self.get_converter(
-            other, equivalencies=equivalencies)(value)
+        return self.get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -545,7 +544,7 @@ class UnitBase(object):
             filtered_namespace = set()
             for tunit in units:
                 if (isinstance(tunit, UnitBase) and
-                    not isinstance(tunit, PrefixUnit)):
+                        not isinstance(tunit, PrefixUnit)):
                     filtered_namespace.add(tunit)
             return filtered_namespace
 
@@ -897,9 +896,9 @@ class UnrecognizedUnit(IrreducibleUnit):
             "The unit {0!r} is unrecognized, so all arithmetic operations "
             "with it are invalid.".format(self.name))
 
-    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
-      __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
-      _unrecognized_operator
+    __pow__ = (__div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ =
+               __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ =
+               _unrecognized_operator)
 
     def __eq__(self, other):
         other = Unit(other, parse_strict='silent')
@@ -927,24 +926,29 @@ class _UnitMetaClass(type):
     the constructor before the new instance is actually created, so we
     can return an existing one.
     """
+
     def __call__(self, s, represents=None, format=None, register=False,
                  doc=None, parse_strict='raise'):
 
-
         from .quantity import Quantity
+
         if isinstance(represents, Quantity):
             if represents.value == 1:
                 represents = represents.unit
             elif isinstance(represents.unit, CompositeUnit):
-                represents = CompositeUnit(represents.value, bases=represents.unit.bases, powers=represents.unit.powers)
+                represents = CompositeUnit(represents.value,
+                                           bases=represents.unit.bases,
+                                           powers=represents.unit.powers)
             else:
-                represents = CompositeUnit(represents.value, bases=[represents.unit], powers=[1])
+                represents = CompositeUnit(represents.value,
+                                           bases=[represents.unit], powers=[1])
 
         if isinstance(s, Quantity):
             if s.value == 1:
                 s = s.unit
             elif isinstance(s.unit, CompositeUnit):
-                s = CompositeUnit(s.value*s.unit.scale, bases=s.unit.bases, powers=s.unit.powers)
+                s = CompositeUnit(s.value * s.unit.scale, bases=s.unit.bases,
+                                  powers=s.unit.powers)
             else:
                 s = CompositeUnit(s.value, bases=[s.unit], powers=[1])
 
@@ -975,8 +979,7 @@ class _UnitMetaClass(type):
                 elif parse_strict == 'warn':
                     warnings.warn(
                         "'{0}' did not parse using format '{1}'. {2}".format(
-                            s, format, str(e)),
-                            UnitsWarning)
+                            s, format, str(e)), UnitsWarning)
                 elif parse_strict != 'silent':
                     raise ValueError(
                         "'parse_strict' must be 'warn', 'raise' or 'silent'")
@@ -1256,7 +1259,7 @@ si_prefixes = [
     (['a'], ['atto'], 1e-18),
     (['z'], ['zepto'], 1e-21),
     (['y'], ['yocto'], 1e-24)
-    ]
+]
 
 
 def _add_prefixes(u, excludes=[], register=False):
@@ -1303,7 +1306,9 @@ def _add_prefixes(u, excludes=[], register=False):
                 if len(alias) > 2:
                     names.append(prefix + alias)
 
-        PrefixUnit(names, CompositeUnit(factor, [u], [1]), register=register, format=format)
+        PrefixUnit(names, CompositeUnit(factor, [u], [1]), register=register,
+                   format=format)
+
 
 def def_unit(s, represents=None, register=None, doc=None,
              format=None, prefixes=False, exclude_prefixes=[]):

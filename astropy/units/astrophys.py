@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
@@ -10,7 +11,9 @@ and can not be converted to any other unit.  A future astropy
 magnitudes library is planned to address this shortcoming.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from . import si
 from ..constants import si as _si

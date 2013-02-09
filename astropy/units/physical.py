@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Defines physical unit names.
 
@@ -7,7 +8,9 @@ This module is not intended for use by user code directly.  Instead,
 the physical unit name of a `Unit` can be obtained using its `ptype`
 property.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from . import core
 from . import si
@@ -118,5 +121,5 @@ for unit, name in [
     (si.lx, 'luminous emittence'),
     (astrophys.Jy, 'spectral flux density'),
     (astrophys.R, 'photon flux'),
-    ]:
+]:
     def_physical_type(unit, name)
