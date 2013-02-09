@@ -461,7 +461,6 @@ PyWcsprm_find_all_wcs(
 
     subresult->x.flag = 0;
     if (PyWcsprm_cset(subresult, 0)) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       wcsvfree(&nwcs, &wcs);
       return NULL;

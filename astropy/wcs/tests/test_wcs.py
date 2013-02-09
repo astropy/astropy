@@ -349,3 +349,13 @@ def test_shape_mismatch():
     with pytest.raises(ValueError) as exc:
         xp, yp = w.wcs_world2pix(x, y, 1)
     assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
+
+@raises(wcs._wcs.InvalidTransformError)
+def test_find_all_wcs_crash():
+    """
+    Causes a double free without a recent fix in wcslib_wrap.C
+    """
+    from ...io import fits
+
+    with fits.open(get_pkg_data_filename("data/too_many_pv.hdr")) as hdulist:
+        wcses = wcs.find_all_wcs(hdulist[0].header)
