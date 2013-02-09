@@ -11,6 +11,8 @@ import time
 import itertools
 import numpy as np
 
+from .. import units
+
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeString',
            'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
@@ -585,7 +587,7 @@ class Time(object):
             raise OperandTypeError(self, other)
 
 
-class TimeDelta(Time):
+class TimeDelta(Time, units.Quantity):
     """
     Represent the time difference between two times.
 
@@ -617,6 +619,14 @@ class TimeDelta(Time):
         # from Time.
         if not isinstance(val, self.__class__):
             self._init_from_vals(val, val2, format, 'tai', copy)
+
+    @property
+    def _value(self):
+        return self.sec
+
+    @property
+    def _unit(self):
+        return units.second
 
 
 class TimeFormat(object):
