@@ -8,10 +8,25 @@ from ..units.core import Unit, UnitsException
 from ..units.quantity import Quantity
 from ..utils import lazyproperty
 
-__all__ = ['Constant']
+__all__ = ['Constant', 'EMConstant']
 
 
 class ConstantMeta(type):
+    """Metaclass for the :class:`Constant`. The primary purpose of this is to
+    wrap the double-underscore methods of :class:`Quantity` which is the
+    superclass of :class:`Constant`.
+
+    In particular this wraps the operator overloads such as `__add__` to
+    prevent their use with constants such as ``e`` from being used in
+    expressions without specifying a system.  The wrapper checks to see if the
+    constant is listed (by name) in ``Constant._has_incompatible_units``, a set
+    of those constants that are defined in different systems of units are
+    physically incompatible.  It also performs this check on each `Constant` if
+    it hasn't already been performed (the check is deferred until the
+    `Constant` is actually used in an expression to speed up import times,
+    among other reasons).
+    """
+
     def __new__(mcls, name, bases, d):
         def wrap(meth):
             @functools.wraps(meth)

@@ -179,8 +179,8 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be added with a "
-                "Quantity object. Addition is only supported between Quantity "
+            raise TypeError("Object of type '{0}' cannot be subtracted from a "
+                "Quantity object. Subtraction is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
 
     def __mul__(self, other):
