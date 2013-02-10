@@ -1323,7 +1323,7 @@ class Table(object):
                 value = np.array(value)
 
             # Make new column and assign the value
-            new_column = NewColumn(item, length=len(self), dtype=value.dtype)
+            new_column = NewColumn(item, length=len(self), dtype=value.dtype, shape=value.shape[1:])
             new_column[:] = value
 
             # Now add new column to the table
