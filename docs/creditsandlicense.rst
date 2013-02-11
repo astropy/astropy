@@ -17,6 +17,7 @@ package as of the most recent release:
  * Simon Conseil
  * Matt Davis
  * Christoph Deil
+ * Nadia Dencheva
  * Michael Droettboom
  * Henry Ferguson
  * Adam Ginsburg
