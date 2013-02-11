@@ -896,9 +896,9 @@ class UnrecognizedUnit(IrreducibleUnit):
             "The unit {0!r} is unrecognized, so all arithmetic operations "
             "with it are invalid.".format(self.name))
 
-    __pow__ = (__div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ =
-               __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ =
-               _unrecognized_operator)
+    __pow__ = __div__ = __rdiv__ = __truediv__ = __rtruediv__ = __mul__ = \
+               __rmul__ = __lt__ = __gt__ = __le__ = __ge__ = __neg__ = \
+               _unrecognized_operator
 
     def __eq__(self, other):
         other = Unit(other, parse_strict='silent')
