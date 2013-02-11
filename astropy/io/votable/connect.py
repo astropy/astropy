@@ -37,7 +37,7 @@ def is_votable(origin, args, kwargs):
         return False
 
 
-def read_table_votable(input, table_id=None):
+def read_table_votable(input, table_id=None, use_names_over_ids=False):
     """
     Read a Table object from an VO table file
 
@@ -48,8 +48,16 @@ def read_table_votable(input, table_id=None):
         :class:`~astropy.io.votable.tree.VOTableFile` or
         :class:`~astropy.io.votable.tree.Table` object, the object to extract
         the table from.
+
     table_id : str, optional
         The ID of the table to read in.
+
+    use_names_over_ids : boolean, optional
+        When `True` use the `name` attributes of columns as the names
+        of columns in the `astropy.table.Table` instance.  Since names
+        are not guaranteed to be unique, this may cause some columns
+        to be renamed by appending numbers to the end.  Otherwise
+        (default), use the ID attributes as the column names.
     """
     if not isinstance(input, (VOTableFile, VOTable)):
         input = parse(input, table_id=table_id)
@@ -81,7 +89,7 @@ def read_table_votable(input, table_id=None):
         table = input
 
     # Convert to an astropy.table.Table object
-    return table.to_table()
+    return table.to_table(use_names_over_ids=use_names_over_ids)
 
 
 def write_table_votable(input, output, table_id=None, overwrite=False):

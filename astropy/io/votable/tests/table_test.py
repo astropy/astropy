@@ -108,3 +108,15 @@ def test_read_through_table_interface2():
         t = Table.read(fd, format='votable', table_id='last_table')
 
     assert len(t) == 0
+
+
+def test_names_over_ids():
+    with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
+        votable = parse(fd)
+
+    table = votable.get_first_table().to_table(use_names_over_ids=True)
+
+    assert table.colnames == [
+        'Name', 'GLON', 'GLAT', 'RAdeg', 'DEdeg', 'Jmag', 'Hmag', 'Kmag',
+        'G3.6mag', 'G4.5mag', 'G5.8mag', 'G8.0mag', '4.5mag', '8.0mag',
+        'Emag', '24mag', 'f_Name']
