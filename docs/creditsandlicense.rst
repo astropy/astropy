@@ -14,6 +14,7 @@ package as of the most recent release:
  * Erik Bray
  * Neil Crighton
  * Alex Conley
+ * Simon Conseil
  * Matt Davis
  * Christoph Deil
  * Michael Droettboom
@@ -21,19 +22,23 @@ package as of the most recent release:
  * Adam Ginsburg
  * Perry Greenfield
  * Frédéric Grollier
+ * Hans Moritz Günther
  * Chris Hanley
  * JC Hsu
  * Wolfgang Kerzendorf
  * Roban Kramer
+ * Pey Lian Lim
+ * Demitri Muna
  * Prasanth Nair
  * Thomas Robitaille
  * Adrian Price-Whelan
+ * David Shiga
  * Leo Singer
  * James Taylor
  * Erik Tollerud
  * James Turner
  * Julien Woillez
-
+ * Victor Zabalza
 
 License
 =======
