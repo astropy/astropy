@@ -110,6 +110,7 @@ def test_read_through_table_interface2():
     assert len(t) == 0
 
 
+@pytest.mark.xfail('numpy_lt_1p5')
 def test_names_over_ids():
     with get_pkg_data_fileobj('data/names.xml', encoding='binary') as fd:
         votable = parse(fd)
