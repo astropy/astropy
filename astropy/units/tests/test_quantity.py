@@ -436,3 +436,12 @@ def test_inverse_quantity():
 
     assert toq.value == 0.5
     assert toq.unit == (u.second / u.meter)
+
+def test_quantity_mutability():
+    q = u.Quantity(9.8, u.meter / u.second / u.second)
+
+    with pytest.raises(AttributeError):
+        q.value = 3
+
+    with pytest.raises(AttributeError):
+        q.unit = u.kg
