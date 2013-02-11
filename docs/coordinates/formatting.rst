@@ -16,7 +16,7 @@ more).  For example::
   >>> rahmsstr = c.ra.format(u.hour)
   >>>> rahmsstr
   '12h30m49.42080s'
-  >>> decdmsstr = c.dec.format(u.degree,alwayssign=True)
+  >>> decdmsstr = c.dec.format(u.degree, alwayssign=True)
   >>> decdmsstr
   '+12d23m28.03200s'
   >>> rahmsstr + ' ' + decdmsstr
