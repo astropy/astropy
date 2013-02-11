@@ -498,16 +498,18 @@ def generate_build_ext_command(release):
             # distutils command.
             orig_run(self)
 
-        # Finally, generate the default astropy.cfg; this can only be done
-        # after extension modules are built as some extension modules include
-        # config items
-        default_cfg = generate_default_config(os.path.abspath(self.build_lib),
-                                              self.distribution.packages[0])
-        if default_cfg:
-            default_cfg = os.path.relpath(default_cfg)
-            self.copy_file(default_cfg,
-                           os.path.join(self.build_lib, default_cfg),
-                           preserve_mode=False)
+        if not self.distribution.is_pure():
+            # Finally, generate the default astropy.cfg; this can only be done
+            # after extension modules are built as some extension modules include
+            # config items.  We only do this if it's not pure python, though,
+            # because if it is, we already did it in build_py
+            default_cfg = generate_default_config(os.path.abspath(self.build_lib),
+                                                  self.distribution.packages[0])
+            if default_cfg:
+                default_cfg = os.path.relpath(default_cfg)
+                self.copy_file(default_cfg,
+                               os.path.join(self.build_lib, default_cfg),
+                               preserve_mode=False)
 
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
@@ -519,17 +521,13 @@ def generate_build_ext_command(release):
 
 class AstropyBuildPy(SetuptoolsBuildPy):
 
-    generate_config = True
-
     def run(self):
         # first run the normal build_py
         SetuptoolsBuildPy.run(self)
 
-        if self.generate_config:
-
-            # Generate the default astropy.cfg - this will actually run twice if
-            # build_ext is run, but both are needed for affiliated packages that
-            # do not run build_ext
+        if self.distribution.is_pure():
+            # Generate the default astropy.cfg - we only do this here if it's
+            # pure python.  Otherwise, it'll happen at the end of build_exp
             default_cfg = generate_default_config(os.path.abspath(self.build_lib),
                                                   self.distribution.packages[0])
             if default_cfg:
@@ -981,12 +979,6 @@ def update_package_files(srcdir, extensions, package_data, packagenames,
     if get_compiler_option() == 'msvc':
         for ext in extensions:
             ext.extra_link_args.append('/MANIFEST')
-
-    # If any extensions need to be built, then we don't generate the
-    # configuration file in build_py but in build_ext. We can change the
-    # `generate_config` class-level attribute here.
-    if len(extensions) > 0:
-        AstropyBuildPy.generate_config = False
 
 
 def iter_setup_packages(srcdir):
