@@ -453,6 +453,8 @@ def generate_automodsumm_docs(lines, srcfn, suffix='.rst', warn=None,
                                  get_members_class(obj, 'method', ['__init__'])
                 ns['attributes'], ns['all_attributes'] = \
                                  get_members_class(obj, 'attribute')
+                ns['methods'].sort()
+                ns['attributes'].sort()
 
             parts = name.split('.')
             if doc.objtype in ('method', 'attribute'):
