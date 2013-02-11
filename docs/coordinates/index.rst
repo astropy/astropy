@@ -105,6 +105,7 @@ More details of using `astropy.coordinates` are provided in the following sectio
 
    angles
    creating
+   formatting
    separations
    distances
    transforming
