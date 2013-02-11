@@ -72,12 +72,21 @@ def _resize(masked, new_size):
     return new_array
 
 
-def _lookup_by_id_factory(iterator, element_name, doc):
+def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
     """
-    Creates a function useful for looking up an element by ID.
+    Creates a function useful for looking up an element by a given
+    attribute.
 
     Parameters
     ----------
+    attr : str
+        The attribute name
+
+    unique : bool
+        Should be `True` if the attribute is unique and therefore this
+        should return only one value.  Otherwise, returns a list of
+        values.
+
     iterator : generator
         A generator that iterates over some arbitrary set of elements
 
@@ -91,38 +100,47 @@ def _lookup_by_id_factory(iterator, element_name, doc):
     Returns
     -------
     factory : function
-        A function that looks up an element by ID
+        A function that looks up an element by the given attribute.
     """
-    def lookup_by_id(self, ref, before=None):
+    def lookup_by_attr(self, ref, before=None):
         """
-        Given an XML id *ref*, finds the first element in the iterator
-        with the attribute ID == *ref*.  If *before* is provided, will
-        stop searching at the object *before*.  This is important,
-        since "forward references" are not allowed in the VOTABLE
-        format.
+        Given a string *ref*, finds the first element in the iterator
+        where the given attribute == *ref*.  If *before* is provided,
+        will stop searching at the object *before*.  This is
+        important, since "forward references" are not allowed in the
+        VOTABLE format.
         """
         for element in getattr(self, iterator)():
             if element is before:
-                if element.ID == ref:
+                if getattr(element, attr, None) == ref:
                     vo_raise(
                         "%s references itself" % element_name,
                         element._config, element._pos, KeyError)
                 break
-            if element.ID == ref:
-                return element
-        raise KeyError(
-            "No %s with ID '%s' found before the referencing %s" %
-            (element_name, ref, element_name))
+            if getattr(element, attr, None) == ref:
+                yield element
 
-    lookup_by_id.__doc__ = doc
-    return lookup_by_id
+    def lookup_by_attr_unique(self, ref, before=None):
+        for element in lookup_by_attr(self, ref, before=before):
+            return element
+        raise KeyError(
+            "No %s with %s '%s' found before the referencing %s" %
+            (element_name, attr, ref, element_name))
+
+    if unique:
+        lookup_by_attr_unique.__doc__ = doc
+        return lookup_by_attr_unique
+    else:
+        lookup_by_attr.__doc__ = doc
+        return lookup_by_attr
 
 
 def _lookup_by_id_or_name_factory(iterator, element_name, doc):
     """
-    Like `_lookup_by_id_factory`, but also looks in the "name" attribute.
+    Like `_lookup_by_attr_factory`, but looks in both the "ID" and
+    "name" attributes.
     """
-    def lookup_by_id(self, ref, before=None):
+    def lookup_by_id_or_name(self, ref, before=None):
         """
         Given an key *ref*, finds the first element in the iterator
         with the attribute ID == *ref* or name == *ref*.  If *before*
@@ -143,8 +161,8 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             "No %s with ID or name '%s' found before the referencing %s" %
             (element_name, ref, element_name))
 
-    lookup_by_id.__doc__ = doc
-    return lookup_by_id
+    lookup_by_id_or_name.__doc__ = doc
+    return lookup_by_id_or_name
 
 
 def _get_default_unit_format(config):
@@ -2726,8 +2744,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             for field in group.iter_fields_and_params():
                 yield field
 
-    get_field_by_id = _lookup_by_id_factory(
-        'iter_fields_and_params', 'FIELD or PARAM',
+    get_field_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_fields_and_params', 'FIELD or PARAM',
         """
         Looks up a FIELD or PARAM element by the given ID.
         """)
@@ -2736,6 +2754,13 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         'iter_fields_and_params', 'FIELD or PARAM',
         """
         Looks up a FIELD or PARAM element by the given ID or name.
+        """)
+
+    get_fields_by_utype = _lookup_by_attr_factory(
+        'utype', False, 'iter_fields_and_params', 'FIELD or PARAM',
+        """
+        Looks up a FIELD or PARAM element by the given utype and
+        returns an iterator emitting all matches.
         """)
 
     def iter_groups(self):
@@ -2747,13 +2772,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
             for g in group.iter_groups():
                 yield g
 
-    get_group_by_id = _lookup_by_id_factory(
-        'iter_groups', 'GROUP',
+    get_group_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_groups', 'GROUP',
         """
         Looks up a GROUP element by the given ID.  Used by the group's
         "ref" attribute
         """)
 
+    get_groups_by_utype = _lookup_by_attr_factory(
+        'utype', False, 'iter_groups', 'GROUP',
+        """
+        Looks up a GROUP element by the given utype and returns an
+        iterator emitting all matches.
+        """)
 
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
@@ -3213,11 +3244,18 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 return table
         raise IndexError("No table found in VOTABLE file.")
 
-    get_table_by_id = _lookup_by_id_factory(
-        'iter_tables', 'TABLE',
+    get_table_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_tables', 'TABLE',
         """
         Looks up a TABLE_ element by the given ID.  Used by the table
         "ref" attribute.
+        """)
+
+    get_tables_by_utype = _lookup_by_attr_factory(
+        'utype', False, 'iter_tables', 'TABLE',
+        """
+        Looks up a TABLE_ element by the given utype, and returns an
+        iterator emitting all matches.
         """)
 
     def get_table_by_index(self, idx):
@@ -3238,11 +3276,18 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             for field in resource.iter_fields_and_params():
                 yield field
 
-    get_field_by_id = _lookup_by_id_factory(
-        'iter_fields_and_params', 'FIELD',
+    get_field_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_fields_and_params', 'FIELD',
         """
         Looks up a FIELD_ element by the given ID_.  Used by the field's
         "ref" attribute.
+        """)
+
+    get_fields_by_utype = _lookup_by_attr_factory(
+        'utype', False, 'iter_fields_and_params', 'FIELD',
+        """
+        Looks up a FIELD_ element by the given utype and returns an
+        iterator emitting all matches.
         """)
 
     get_field_by_id_or_name = _lookup_by_id_or_name_factory(
@@ -3259,8 +3304,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         for field in self.iter_fields_and_params():
             yield field.values
 
-    get_values_by_id = _lookup_by_id_factory(
-        'iter_values', 'VALUES',
+    get_values_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_values', 'VALUES',
         """
         Looks up a VALUES_ element by the given ID.  Used by the values
         "ref" attribute.
@@ -3275,11 +3320,18 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             for group in table.iter_groups():
                 yield group
 
-    get_group_by_id = _lookup_by_id_factory(
-        'iter_groups', 'GROUP',
+    get_group_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_groups', 'GROUP',
         """
         Looks up a GROUP_ element by the given ID.  Used by the group's
         "ref" attribute
+        """)
+
+    get_groups_by_utype = _lookup_by_attr_factory(
+        'utype', False, 'iter_groups', 'GROUP',
+        """
+        Looks up a GROUP_ element by the given utype and returns an
+        iterator emitting all matches.
         """)
 
     def iter_coosys(self):
@@ -3293,8 +3345,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             for coosys in resource.iter_coosys():
                 yield coosys
 
-    get_coosys_by_id = _lookup_by_id_factory(
-        'iter_coosys', 'COOSYS',
+    get_coosys_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_coosys', 'COOSYS',
         """Looks up a COOSYS_ element by the given ID.""")
 
     def set_all_tables_format(self, format):

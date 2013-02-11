@@ -272,9 +272,10 @@ def test_select_columns_by_name():
 
 class TestParse:
     def setup_class(self):
-        self.table = parse(
+        self.votable = parse(
             get_pkg_data_filename('data/regression.xml'),
-            pedantic=False).get_first_table()
+            pedantic=False)
+        self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
 
@@ -576,6 +577,15 @@ class TestParse:
         assert not np.any(self.mask['bitarray2'][0])
         assert np.all(self.mask['bitarray2'][1:])
 
+    def test_get_coosys_by_id(self):
+        coosys = self.votable.get_coosys_by_id('J2000')
+        assert coosys.system == 'eq_FK5'
+
+    def test_get_field_by_utype(self):
+        fields = list(self.votable.get_fields_by_utype("myint"))
+        assert fields[0].name == "int"
+        assert fields[0].values.min == -1000
+
 
 class TestThroughTableData(TestParse):
     def setup_class(self):
@@ -583,8 +593,9 @@ class TestThroughTableData(TestParse):
             get_pkg_data_filename('data/regression.xml'),
             pedantic=False)
         votable.to_xml(join(TMP_DIR, "test_through_tabledata.xml"))
-        self.table = parse(join(TMP_DIR, "test_through_tabledata.xml"),
-                           pedantic=False).get_first_table()
+        self.votable = parse(join(TMP_DIR, "test_through_tabledata.xml"),
+                           pedantic=False)
+        self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
 
@@ -599,8 +610,9 @@ class TestThroughBinary(TestParse):
             pedantic=False)
         votable.get_first_table().format = 'binary'
         votable.to_xml(join(TMP_DIR, "test_through_binary.xml"))
-        self.table = parse(join(TMP_DIR, "test_through_binary.xml"),
-                           pedantic=False).get_first_table()
+        self.votable = parse(join(TMP_DIR, "test_through_binary.xml"),
+                           pedantic=False)
+        self.table = self.votable.get_first_table()
         self.array = self.table.array
         self.mask = self.table.array.mask
 
