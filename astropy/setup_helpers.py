@@ -1339,7 +1339,8 @@ def pkg_config(packages, default_libraries, include_dirs, library_dirs,
     command = "pkg-config --libs --cflags {0}".format(' '.join(packages)),
 
     try:
-        output = subprocess.check_output(command, shell=True)
+        pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        output = pipe.communicate()[0].strip()
     except subprocess.CalledProcessError as e:
         lines = [
             "pkg-config failed.  This may cause the build to fail below.",
