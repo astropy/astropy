@@ -3,9 +3,9 @@
 
 .. note::
 
-    The tests might fail if function being timed
-    deviates from expected run time by more than
-    `ACCURACY_DECIMAL` decimals.
+    The tests only compare fitted results rounded to
+    nearest integer. More accurate comparisons might
+    fail on some machines.
 
 """
 # STDLIB
@@ -16,9 +16,6 @@ import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor
-
-
-ACCURACY_DECIMAL = 3  # For np.testing.assert_almost_equal()
 
 
 def func_to_time(x):
@@ -58,7 +55,7 @@ class TestRunTimePredictor(object):
     def test_fitting(self):
         a = self.p.do_fit()
         assert self.p._power == 1
-        np.testing.assert_almost_equal(a, (1, 0), ACCURACY_DECIMAL)
+        np.testing.assert_array_equal(np.round(np.array(a)), (1, 0))
 
     def test_prediction(self):
         t = self.p.predict_time(100)
