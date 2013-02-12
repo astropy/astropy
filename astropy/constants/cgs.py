@@ -13,9 +13,14 @@ from . import si
 
 # Electron charge
 e_esu = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
-                   'Fr', si.e.uncertainty * si.c.value * 10.0, si.e.reference,
-                   system='esu')
+                   'statC', si.e.uncertainty * si.c.value * 10.0,
+                   si.e.reference, system='esu')
+
+
+e_emu = EMConstant(si.e.abbrev, si.e.name, si.e.value / 10, 'abC',
+                   si.e.uncertainty / 10, si.e.reference, system='emu')
+
 
 e_gauss = EMConstant(si.e.abbrev, si.e.name, si.e.value * si.c.value * 10.0,
-                     'statC', si.e.uncertainty * si.c.value * 10.0,
+                     'Fr', si.e.uncertainty * si.c.value * 10.0,
                      si.e.reference, system='gauss')

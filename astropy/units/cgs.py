@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 This package defines the CGS units.  They are also available in the
 top-level `astropy.units` namespace.
 
 """
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ..utils.compat.fractions import Fraction
 
@@ -93,7 +90,18 @@ def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * C * si.m,
 
 def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],
          g ** Fraction(1, 2) * cm ** Fraction(3, 2) * s ** -1,
-         register=True)
+         register=True,
+         doc='Franklin: CGS (ESU) unit of charge')
+
+def_unit(['statA', 'statampere'], Fr * s ** -1, register=True,
+         doc='statampere: CGS (ESU) unit of current')
+
+def_unit(['Bi', 'Biot', 'abA', 'abampere', 'emu'],
+         g ** Fraction(1, 2) * cm ** Fraction(1, 2) * s ** -1, register=True,
+         doc='Biot: CGS (EMU) unit of current')
+
+def_unit(['abC', 'abcoulomb'], Bi * s, register=True,
+         doc='abcoulomb: CGS (EMU) of charge')
 
 ###########################################################################
 # MAGNETIC
