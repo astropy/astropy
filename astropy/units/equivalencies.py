@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 A set of standard astronomical equivalencies.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .._constants import si as _si
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+from ..constants import si as _si
 from . import si
 from . import cgs
 
@@ -64,4 +67,4 @@ def spectral_density(sunit, sfactor):
         (fla, si.Hz, converter, iconverter),
         (fnu, nufnu, converter_fnu_nufnu, iconverter_fnu_nufnu),
         (fla, lafla, converter_fla_lafla, iconverter_fla_lafla),
-        ]
+    ]

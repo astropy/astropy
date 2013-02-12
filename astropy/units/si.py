@@ -5,9 +5,10 @@ This package defines the SI units.  They are also available in the
 `astropy.units` namespace.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from .._constants import si as _si
+from ..constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy
@@ -63,7 +64,7 @@ def_unit(['sr', 'steradian'], rad ** 2, register=True, prefixes=True,
 # TIME
 
 def_unit(['s', 'second'], register=True, prefixes=True,
-     doc="second: base unit of time in SI.")
+         doc="second: base unit of time in SI.")
 
 def_unit(['min', 'minute'], 60 * s, register=True)
 def_unit(['h', 'hour', 'hr'], 3600 * s, register=True)
@@ -73,11 +74,9 @@ def_unit(['sday'], 86164.09053 * s, register=True,
 def_unit(['wk', 'week'], 7 * day, register=True)
 def_unit(['fortnight'], 2 * wk, register=True)
 
-def_unit(['a', 'annum'], 3.1556926e7 * s, register=True,
-     prefixes=True, exclude_prefixes=['P'])
-def_unit(['yr', 'year'], 3.1556926e7 * s, register=True,
-     prefixes=True)
-
+def_unit(['a', 'annum'], 3.1556926e7 * s, register=True, prefixes=True,
+         exclude_prefixes=['P'])
+def_unit(['yr', 'year'], 3.1556926e7 * s, register=True, prefixes=True)
 
 
 ###########################################################################
@@ -103,7 +102,7 @@ def_unit(['t', 'tonne'], 1000 * kg, register=True,
 # AMOUNT OF SUBSTANCE
 
 def_unit(['mol', 'mole'], register=True, prefixes=True,
-     doc="mole: amount of a chemical substance in SI.")
+         doc="mole: amount of a chemical substance in SI.")
 
 
 ###########################################################################
@@ -117,8 +116,8 @@ def_unit(
 ###########################################################################
 # FORCE
 
-def_unit(['N', 'Newton', 'newton'], kg * m * s ** -2, register=True, prefixes=True,
-         doc="Newton: force")
+def_unit(['N', 'Newton', 'newton'], kg * m * s ** -2, register=True,
+         prefixes=True, doc="Newton: force")
 
 
 ##########################################################################
@@ -126,7 +125,7 @@ def_unit(['N', 'Newton', 'newton'], kg * m * s ** -2, register=True, prefixes=Tr
 
 def_unit(['J', 'Joule', 'joule'], N * m, register=True, prefixes=True,
          doc="Joule: energy")
-def_unit(['eV', 'electronvolt'], _si.e * J, register=True, prefixes=True,
+def_unit(['eV', 'electronvolt'], _si.e.value * J, register=True, prefixes=True,
          doc="Electron Volt")
 def_unit(['Pa', 'Pascal', 'pascal'], J * m ** -3, register=True, prefixes=True,
          doc="Pascal: pressure")
@@ -151,8 +150,8 @@ def_unit(['V', 'Volt', 'volt'], J * C ** -1, register=True, prefixes=True,
 def_unit(['Ohm', 'ohm'], V * A ** -1, register=True, prefixes=True,
          doc="Ohm: electrical resistance",
          format={'latex': r'\Omega', 'unicode': 'Ω'})
-def_unit(['S', 'Siemens', 'siemens'], A * V ** -1, register=True, prefixes=True,
-         doc="Siemens: electrical conductance")
+def_unit(['S', 'Siemens', 'siemens'], A * V ** -1, register=True,
+         prefixes=True, doc="Siemens: electrical conductance")
 def_unit(['F', 'Farad', 'farad'], C * V ** -1, register=True, prefixes=True,
          doc="Farad: electrical capacitance")
 

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Handles the "Console" unit format.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from . import base
 from . import utils
@@ -83,7 +86,8 @@ class Console(base.Base):
                         f.format('', positives),
                         f.format(s, self._line * r),
                         f.format('', negatives)
-                        ]
+                    ]
+
                     s = '\n'.join(lines)
                 else:
                     positives = self._format_unit_list(positives)

@@ -2,7 +2,8 @@
 """
 Handles the "VOUnit" unit format.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import warnings
 
@@ -19,8 +20,8 @@ class VOUnit(generic.Generic):
     """
     def __init__(self):
         if not '_units' in VOUnit.__dict__:
-            VOUnit._units, VOUnit._deprecated_units = \
-              VOUnit._generate_unit_names()
+            unit_names = VOUnit._generate_unit_names()
+            VOUnit._units, VOUnit._deprecated_units = unit_names
 
         if not '_parser' in VOUnit.__dict__:
             VOUnit._parser = self._make_parser()
@@ -31,9 +32,9 @@ class VOUnit(generic.Generic):
         names = {}
         deprecated_names = set()
 
-        bases = ['m', 's', 'A', 'K', 'mol', 'cd', 'g', 'rad', 'sr',
-                'Hz', 'N', 'Pa', 'J', 'W', 'C', 'V', 'S', 'F',
-                'Wb', 'T', 'H', 'lm', 'lx', 'Ohm']
+        bases = [
+            'm', 's', 'A', 'K', 'mol', 'cd', 'g', 'rad', 'sr', 'Hz', 'N', 'Pa',
+            'J', 'W', 'C', 'V', 'S', 'F', 'Wb', 'T', 'H', 'lm', 'lx', 'Ohm']
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
@@ -43,14 +44,15 @@ class VOUnit(generic.Generic):
                 key = prefix + base
                 names[key] = getattr(u, key)
 
-        simple_units = ['min', 'h', 'd',
-            'a', 'yr', 'deg', 'arcsec', 'arcmin', 'deg', 'mas', 'AU',
-            'pc', 'u', 'eV', 'Jy']
-        deprecated_units = ['angstrom', 'Angstrom',
-            'barn', 'erg', 'G', 'mag', 'solMass', 'solLum', 'solRad',
-            'lyr', 'ct', 'count', 'photon', 'ph', 'R', 'pix',
-            'pixel', 'D', 'Sun', 'chan', 'bin', 'voxel', 'bit',
-            'byte', 'adu', 'beam']
+        simple_units = [
+            'min', 'h', 'd', 'a', 'yr', 'deg', 'arcsec', 'arcmin', 'deg',
+            'mas', 'AU', 'pc', 'u', 'eV', 'Jy']
+
+        deprecated_units = [
+            'angstrom', 'Angstrom', 'barn', 'erg', 'G', 'mag', 'solMass',
+            'solLum', 'solRad', 'lyr', 'ct', 'count', 'photon', 'ph', 'R',
+            'pix', 'pixel', 'D', 'Sun', 'chan', 'bin', 'voxel', 'bit', 'byte',
+            'adu', 'beam']
 
         for unit in simple_units + deprecated_units:
             names[unit] = getattr(u, unit)

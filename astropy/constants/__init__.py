@@ -3,56 +3,50 @@
 Contains astronomical and physical constants for use in Astropy or other
 places.
 
-The package contains a `~astropy.constants.cgs` and `~astropy.constants.si`
-module that define constants in CGS and SI units, respectively.  A typical use
-case might be::
+A typical use case might be::
 
-    from astropy.constants.cgs import c
-
-    ... define the mass of something you want the rest energy of as m ...
-    E = m*c**2
+    >>> from astropy.constants import c, m_e
+    >>> # ... define the mass of something you want the rest energy of as m ...
+    >>> m = m_e
+    >>> E = m * c**2
+    >>> E.to('MeV')
+    <Quantity 0.510998927603 MeV>
 
 """
 
-from . import cgs
+import itertools
+
+# Hack to make circular imports with units work
+try:
+    from .. import units
+    del units
+except ImportError:
+    pass
+
+from .constant import Constant, EMConstant
 from . import si
-from .constant import Constant
+from . import cgs
 
+# for updating the constants module docstring
+_lines = [
+    'The following constants are available:\n',
+    '========== ============== ================ =========================',
+    '   Name        Value            Unit       Description',
+    '========== ============== ================ =========================',
+]
 
-# Update the docstring to include a list of units from the si
-# module. The rows with lots of '=' signs are to tell Sphinx to
-# display a table in the documentation.
+for _nm, _c in itertools.chain(sorted(vars(si).items()),
+                               sorted(vars(cgs).items())):
+    if isinstance(_c, Constant) and _c.abbrev not in locals():
+        locals()[_c.abbrev] = _c.__class__(_c.abbrev, _c.name, _c.value,
+                                           _c._unit, _c.uncertainty,
+                                           _c.reference)
 
-__doc__ += """
-The following constants are defined in `~astropy.constants.cgs` and
-`~astropy.constants.si`. The `si` and `cgs` docstrings list the units
-and values in each system.
+        _lines.append('{0:^10} {1:^14.9g} {2:^16} {3}'.format(
+            _c.abbrev, _c.value, _c._unit, _c.name))
 
-========== ==============================
-"""
+_lines.append(_lines[1])
 
-for nm, val in sorted(si.__dict__.items()):
-    if isinstance(val, Constant):
-        __doc__ += '{0:^10} {1}\n'.format(nm, val.name)
+__doc__ += '\n'.join(_lines)
 
-__doc__ += """\
-========== ==============================
-"""
-
-# update the si cand cgs module doctrings.
-for module in si, cgs:
-    module.__doc__ += """
-========== ============== ================ =========================
-   Name        Value            Unit       Description
-========== ============== ================ =========================
-"""
-    for nm, val in sorted(module.__dict__.items()):
-        if isinstance(val, Constant):
-            module.__doc__ += '{0:^10} {1:^14.9g} {2:^16} {3}\n'.format(
-                nm, val.value, val.unit, val.name)
-
-    module.__doc__ += """\
-========== ============== ================ =========================
-"""
-
-del nm, val
+del _lines, _nm, _c
