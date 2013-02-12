@@ -24,8 +24,7 @@ import numpy as np
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
            'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden', 'NumpyOrSetEncoder']
-
+           'walk_skip_hidden', 'JsonCustomEncoder']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -760,7 +759,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
         yield root, dirs, files
 
 
-class NumpyOrSetEncoder(json.JSONEncoder):
+class JsonCustomEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (np.ndarray, np.number)):
             return obj.tolist()
@@ -768,4 +767,6 @@ class NumpyOrSetEncoder(json.JSONEncoder):
             return [obj.real, obj.imag]
         elif isinstance(obj, set):
             return list(obj)
+        elif isinstance(obj, bytes):
+            return obj.decode('ascii')
         return json.JSONEncoder.default(self, obj)

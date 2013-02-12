@@ -16,6 +16,8 @@ from ...utils.data import get_readable_fileobj
 
 def parse_cs(id):
     """Return `testQuery` pars as dict for given Resource ID."""
+    if isinstance(id, bytes):  # pragma: py3
+        id = id.decode('ascii')
     url = 'http://nvo.stsci.edu/vor10/getRecord.aspx?' \
         'id={0}&format=xml'.format(id)
     tqp = ['ra', 'dec', 'sr']

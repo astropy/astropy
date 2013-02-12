@@ -64,10 +64,11 @@ hosted by 'stsci.edu':
 >>> with get_readable_fileobj(validate.CS_MSTR_LIST(),
 ...                           encoding='binary') as fd:
 ...     tab_all = parse_single_table(fd, pedantic=False)
->>> arr = tab_all.array.data[np.where(
-...     (tab_all.array['capabilityClass'] == 'ConeSearch') &
-...     (np.char.count(tab_all.array['accessURL'].tolist(), 'stsci.edu') > 0))]
->>> urls = arr['accessURL'].tolist()
+>>> arr = tab_all.array.data[
+...     np.where(tab_all.array['capabilityClass'] == b'ConeSearch')]
+>>> urls = [s for s in arr['accessURL'] if b'stsci.edu' in s]
+>>> print(urls[0])
+b'http://archive.stsci.edu/hst/search.php?sci_data_set_name=Y*&amp;'
 
 Validate only the URLs found above without verbose
 outputs or multiprocessing, and write results in
@@ -96,7 +97,6 @@ from __future__ import print_function, division
 # STDLIB
 from collections import defaultdict
 from copy import deepcopy
-from xml.sax import saxutils
 import json
 import os
 import time
@@ -115,7 +115,8 @@ from ...io.votable.validator import html, result
 from ...logger import log
 from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
-from ...utils.misc import NumpyOrSetEncoder
+from ...utils.misc import JsonCustomEncoder
+from ...utils.xml.unescaper import unescape_all
 
 
 __all__ = ['check_conesearch_sites']
@@ -311,23 +312,20 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     with get_readable_fileobj(CS_MSTR_LIST(), encoding='binary') as fd:
         tab_all = votable.parse_single_table(fd, pedantic=False)
     arr_cone = tab_all.array.data[np.where(
-        tab_all.array['capabilityClass'] == 'ConeSearch')]
+        tab_all.array['capabilityClass'] == b'ConeSearch')]
 
     assert arr_cone.size > 0, \
         'astropy.vo.server.cs_mstr_list yields no valid result'
 
-    fixed_urls = [saxutils.unescape(cur_url)
-                  for cur_url in arr_cone['accessURL']]
+    fixed_urls = [unescape_all(cur_url) for cur_url in arr_cone['accessURL']]
     uniq_urls = set(fixed_urls)
 
     if url_list is None:
         url_list = uniq_urls
     else:
-        from collections import Iterable
-        assert isinstance(url_list, Iterable)
-        for cur_url in url_list:
-            assert isinstance(cur_url, basestring)
-        url_list = set([saxutils.unescape(cur_url) for cur_url in url_list])
+        tmp_list = [cur_url.encode('utf-8') if isinstance(cur_url, str)
+                    else cur_url for cur_url in set(url_list)]
+        url_list = [unescape_all(cur_url) for cur_url in tmp_list]
 
         if verbose:
             log.info('Only {0}/{1} sites are validated'.format(
@@ -358,7 +356,12 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         cur_title = arr_cone[i]['title']
         title_counter[cur_title] += 1
-        cat_key = '{0} {1}'.format(cur_title, title_counter[cur_title])
+
+        if isinstance(cur_title, bytes):  # pragma: py3
+            cat_key = '{0} {1}'.format(cur_title.decode('ascii'),
+                                       title_counter[cur_title])
+        else:  # pragma: py2
+            cat_key = '{0} {1}'.format(cur_title, title_counter[cur_title])
 
         for col in col_names:
             if col == 'accessURL':
@@ -368,14 +371,13 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         # Use testQuery to return non-empty VO table
         testquery_pars = parse_cs(arr_cone[i]['resourceID'])
-        cs_pars_arr = [
-            '='.join([key, val]) for key, val in testquery_pars.iteritems()]
+        cs_pars_arr = ['='.join([key, testquery_pars[key]]).encode('utf-8')
+                       for key in testquery_pars]
 
         # Max verbosity
-        cs_pars_arr += ['VERB=3']
-
+        cs_pars_arr += [b'VERB=3']
         js_mstr['catalogs'][cat_key] = row_d
-        key_lookup_by_url[cur_url + '&'.join(cs_pars_arr)] = cat_key
+        key_lookup_by_url[cur_url + b'&'.join(cs_pars_arr)] = cat_key
 
     # Validate URLs
 
@@ -426,7 +428,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         if verbose:
             log.info('{0}: {1} catalog(s)'.format(key, n[key]))
         with open(db_file[key], 'w') as f_json:
-            f_json.write(json.dumps(js_tree[key], cls=NumpyOrSetEncoder,
+            f_json.write(json.dumps(js_tree[key], cls=JsonCustomEncoder,
                                     sort_keys=True, indent=4))
 
     # End timer
@@ -540,6 +542,6 @@ def _copy_r_to_db(r, db):
     db : dict
 
     """
-    for key, val in r._attributes.iteritems():
+    for key in r._attributes:
         new_key = 'validate_' + key
-        db[new_key] = val
+        db[new_key] = r._attributes[key]

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import io
 
-from ..xml import check, writer
+from ..xml import check, unescaper, writer
 
 
 def test_writer():
@@ -39,3 +39,19 @@ def test_check_mime_content_type():
 
 def test_check_anyuri():
     assert check.check_anyuri("https://github.com/astropy/astropy")
+
+
+def test_unescape_all():
+    # str
+    url_in = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+             'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
+    url_out = 'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+              'DSACAT=IDR&DSATAB=Emitters&'
+    assert unescaper.unescape_all(url_in) == url_out
+
+    # bytes
+    url_in = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+             'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
+    url_out = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
+              'DSACAT=IDR&DSATAB=Emitters&'
+    assert unescaper.unescape_all(url_in) == url_out

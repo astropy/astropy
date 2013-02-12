@@ -13,9 +13,9 @@ Load Cone Search validation results directly from
 Print tally:
 
 >>> r.tally()
-good: 18 catalog(s)
-warn: 11 catalog(s)
-exception: 1 catalog(s)
+good: 15 catalog(s)
+warn: 15 catalog(s)
+exception: 0 catalog(s)
 error: 1 catalog(s)
 total: 31 catalog(s)
 
