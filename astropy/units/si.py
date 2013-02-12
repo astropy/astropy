@@ -66,7 +66,7 @@ def_unit(['s', 'second'], register=True, prefixes=True,
      doc="second: base unit of time in SI.")
 
 def_unit(['min', 'minute'], 60 * s, register=True)
-def_unit(['h', 'hour'], 3600 * s, register=True)
+def_unit(['h', 'hour', 'hr'], 3600 * s, register=True)
 def_unit(['d', 'day'], 24 * h, register=True)
 def_unit(['sday'], 86164.09053 * s, register=True,
          doc="Sidereal day (sday) is the time of one rotation of the Earth.")
