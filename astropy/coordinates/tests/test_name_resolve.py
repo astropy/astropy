@@ -117,7 +117,7 @@ def test_names():
     
     try:
         icrs = get_icrs_coordinates("ngc 3642")
-    except:
+    except NameResolveError:
         ra,dec = _parse_response(_cached_ngc3642["all"])
         icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
         
@@ -127,7 +127,7 @@ def test_names():
     
     try:
         icrs = get_icrs_coordinates("castor")
-    except:
+    except NameResolveError:
         ra,dec = _parse_response(_cached_castor["all"])
         icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
 
@@ -147,7 +147,7 @@ def test_database_specify():
         SESAME_DATABASE.set(db)
         try:
             icrs = ICRSCoordinates.from_name(name)
-        except:
+        except NameResolveError:
             ra,dec = _cached_ngc3642[db]
             icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
 
@@ -159,7 +159,7 @@ def test_database_specify():
         SESAME_DATABASE.set(db)
         try:
             icrs = ICRSCoordinates.from_name(name)
-        except:
+        except NameResolveError:
             ra,dec = _cached_castor[db]
             icrs = ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
 
