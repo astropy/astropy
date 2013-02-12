@@ -4,7 +4,8 @@
     Test the Quantity class and related.
 """
 
-from __future__ import absolute_import, unicode_literals, division, print_function
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 import pytest
 import numpy as np
@@ -15,23 +16,24 @@ from ... import units as u
 
 """ The Quantity class will represent a number + unit + uncertainty """
 
+
 class TestQuantityCreation():
 
     def test_1(self):
         # create objects through operations with Unit objects:
 
-        quantity = 11.42 * u.meter # returns a Quantity object
-        assert isinstance(quantity,u.Quantity)
-        quantity = u.meter * 11.42 # returns a Quantity object
-        assert isinstance(quantity,u.Quantity)
+        quantity = 11.42 * u.meter  # returns a Quantity object
+        assert isinstance(quantity, u.Quantity)
+        quantity = u.meter * 11.42  # returns a Quantity object
+        assert isinstance(quantity, u.Quantity)
 
         quantity = 11.42 / u.meter
-        assert isinstance(quantity,u.Quantity)
+        assert isinstance(quantity, u.Quantity)
         quantity = u.meter / 11.42
-        assert isinstance(quantity,u.Quantity)
+        assert isinstance(quantity, u.Quantity)
 
         quantity = 11.42 * u.meter / u.second
-        assert isinstance(quantity,u.Quantity)
+        assert isinstance(quantity, u.Quantity)
 
         with pytest.raises(TypeError):
             quantity = 182.234 + u.meter
@@ -51,8 +53,8 @@ class TestQuantityCreation():
             q3 = u.Quantity(11.412)
 
     def test_3(self):
-        #with pytest.raises(u.UnitsException):
-        with pytest.raises(ValueError): # Until @mdboom fixes the errors in units
+        # with pytest.raises(u.UnitsException):
+        with pytest.raises(ValueError):  # Until @mdboom fixes the errors in units
             q1 = u.Quantity(11.412, unit="testingggg")
 
     def test_unit_property(self):
@@ -61,6 +63,7 @@ class TestQuantityCreation():
 
         with pytest.raises(AttributeError):
             q1.unit = u.centimeter
+
 
 class TestQuantityOperations():
     q1 = u.Quantity(11.42, u.meter)
@@ -77,7 +80,7 @@ class TestQuantityOperations():
         assert new_quantity.value == 1150.0
         assert new_quantity.unit == u.centimeter
 
-        new_q = u.Quantity(1500.1,u.m) + u.Quantity(13.5,u.km)
+        new_q = u.Quantity(1500.1, u.m) + u.Quantity(13.5, u.km)
         assert new_q.unit == u.m
         assert new_q.value == 15000.1
 
@@ -96,12 +99,12 @@ class TestQuantityOperations():
         # Take units from left object, q1
         new_quantity = self.q1 * self.q2
         assert new_quantity.value == 91.36
-        assert new_quantity.unit == (u.meter*u.centimeter)
+        assert new_quantity.unit == (u.meter * u.centimeter)
 
         # Take units from left object, q2
         new_quantity = self.q2 * self.q1
         assert new_quantity.value == 91.36
-        assert new_quantity.unit == (u.centimeter*u.meter)
+        assert new_quantity.unit == (u.centimeter * u.meter)
 
         # Multiply with a number
         new_quantity = 15. * self.q1
@@ -116,18 +119,21 @@ class TestQuantityOperations():
     def test_division(self):
         # Take units from left object, q1
         new_quantity = self.q1 / self.q2
-        np.testing.assert_array_almost_equal(new_quantity.value, 1.4275, decimal=5)
+        np.testing.assert_array_almost_equal(
+            new_quantity.value, 1.4275, decimal=5)
         assert new_quantity.unit == (u.meter / u.centimeter)
 
         # Take units from left object, q2
         new_quantity = self.q2 / self.q1
-        np.testing.assert_array_almost_equal(new_quantity.value, 0.70052539404553416, decimal=16)
+        np.testing.assert_array_almost_equal(
+            new_quantity.value, 0.70052539404553416, decimal=16)
         assert new_quantity.unit == (u.centimeter / u.meter)
 
         q1 = u.Quantity(11.4, unit=u.meter)
         q2 = u.Quantity(10.0, unit=u.second)
         new_quantity = q1 / q2
-        np.testing.assert_array_almost_equal(new_quantity.value, 1.14, decimal=10)
+        np.testing.assert_array_almost_equal(
+            new_quantity.value, 1.14, decimal=10)
         assert new_quantity.unit == (u.meter / u.second)
 
         # divide with a number
@@ -151,12 +157,14 @@ class TestQuantityOperations():
 
     def test_power(self):
         # raise quantity to a power
-        new_quantity = self.q1**2
-        np.testing.assert_array_almost_equal(new_quantity.value, 130.4164, decimal=5)
+        new_quantity = self.q1 ** 2
+        np.testing.assert_array_almost_equal(
+            new_quantity.value, 130.4164, decimal=5)
         assert new_quantity.unit == u.Unit("m^2")
 
-        new_quantity = self.q1**3
-        np.testing.assert_array_almost_equal(new_quantity.value, 1489.355288, decimal=7)
+        new_quantity = self.q1 ** 3
+        np.testing.assert_array_almost_equal(
+            new_quantity.value, 1489.355288, decimal=7)
         assert new_quantity.unit == u.Unit("m^3")
 
     def test_unary(self):
@@ -199,7 +207,8 @@ class TestQuantityOperations():
             new_q = q1 + q2
 
     def test_dimensionless_operations(self):
-        # this test will check that operations with dimensionless Quantities don't work
+        # this test will check that operations with dimensionless Quantities
+        # don't work
 
         with pytest.raises(u.UnitsException):
             self.q1 + u.Quantity(0.1, unit=u.Unit(""))
@@ -214,18 +223,19 @@ class TestQuantityOperations():
         distance = u.Quantity(15., u.meter)
         time = u.Quantity(11., u.second)
 
-        velocity = (distance / time).to(u.mile/u.hour)
-        np.testing.assert_array_almost_equal(velocity.value, 3.05037, decimal=5)
+        velocity = (distance / time).to(u.mile / u.hour)
+        np.testing.assert_array_almost_equal(
+            velocity.value, 3.05037, decimal=5)
 
-        G = u.Quantity(6.673E-11, u.m**3/u.kg/u.s**2)
-        new_q = ((1. / (4.*np.pi*G)).to(u.pc**-3/u.s**-2*u.kg))
+        G = u.Quantity(6.673E-11, u.m ** 3 / u.kg / u.s ** 2)
+        new_q = ((1. / (4. * np.pi * G)).to(u.pc ** -3 / u.s ** -2 * u.kg))
 
         # Area
         side1 = u.Quantity(11., u.centimeter)
         side2 = u.Quantity(7., u.centimeter)
         area = side1 * side2
         np.testing.assert_array_almost_equal(area.value, 77., decimal=15)
-        assert area.unit == u.cm*u.cm
+        assert area.unit == u.cm * u.cm
 
     def test_comparison(self):
         # equality/ non-equality is straightforward for quantity objects
@@ -233,10 +243,10 @@ class TestQuantityOperations():
         assert 1 * u.m == 100 * u.cm
         assert 1 * u.m != 1 * u.cm
 
-        #here one is a unit, which is an invalid comparison
+        # here one is a unit, which is an invalid comparison
         assert 1. * u.cm * u.cm * u.cm != u.cm ** 3
 
-        #mismatched types should never work
+        # mismatched types should never work
         assert not 1. * u.cm == 1.
         assert 1. * u.cm != 1.
 
@@ -267,40 +277,44 @@ def test_quantity_conversion():
     with pytest.raises(u.UnitsException):
         q1.to(u.zettastokes)
 
+
 def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, 2997924580.0)
 
+
 def test_si():
-    q1 = 10. * u.m * u.s**2 / (200. * u.ms)**2 # 250 meters
+    q1 = 10. * u.m * u.s ** 2 / (200. * u.ms) ** 2  # 250 meters
     assert q1.si.value == 250
     assert q1.si.unit == u.m
 
-    q = 10.*u.m # 10 meters
+    q = 10. * u.m  # 10 meters
     assert q.si.value == 10
     assert q.si.unit == u.m
 
-    q = 10./u.m # 10 1 / meters
+    q = 10. / u.m  # 10 1 / meters
     assert q.si.value == 10
-    assert q.si.unit == (1/u.m)
+    assert q.si.unit == (1 / u.m)
+
 
 def test_cgs():
-    q1 = 10. * u.cm * u.s**2 / (200. * u.ms)**2 # 250 centimeters
+    q1 = 10. * u.cm * u.s ** 2 / (200. * u.ms) ** 2  # 250 centimeters
     assert q1.cgs.value == 250
     assert q1.cgs.unit == u.cm
 
-    q = 10.*u.m # 10 centimeters
+    q = 10. * u.m  # 10 centimeters
     assert q.cgs.value == 1000
     assert q.cgs.unit == u.cm
 
-    q = 10./u.cm # 10 1 / centimeters
+    q = 10. / u.cm  # 10 1 / centimeters
     assert q.cgs.value == 10
-    assert q.cgs.unit == (1/u.cm)
+    assert q.cgs.unit == (1 / u.cm)
 
-    q = 10.*u.Pa # 10 pascals
+    q = 10. * u.Pa  # 10 pascals
     assert q.cgs.value == 100
     assert q.cgs.unit == u.barye
+
 
 class TestQuantityComparison():
     def test_quantity_equality(self):
@@ -326,7 +340,8 @@ class TestQuantityComparison():
         assert u.Quantity(1000, unit=u.meter) <= u.Quantity(1, unit=u.kilometer)
 
         with pytest.raises(u.UnitsException):
-            assert u.Quantity(1100, unit=u.meter) >= u.Quantity(1, unit=u.second)
+            assert u.Quantity(
+                1100, unit=u.meter) >= u.Quantity(1, unit=u.second)
 
         with pytest.raises(u.UnitsException):
             assert u.Quantity(1100, unit=u.meter) <= u.Quantity(1, unit=u.second)
@@ -335,6 +350,7 @@ class TestQuantityComparison():
 
         with pytest.raises(u.UnitsException):
             assert u.Quantity(1100, unit=u.meter) != u.Quantity(1, unit=u.second)
+
 
 class TestQuantityDisplay():
 
@@ -351,6 +367,7 @@ def test_decompose():
     q1 = 5 * u.N
     assert q1.decompose() == (5 * u.kg * u.m * u.s ** -2)
 
+
 def test_arrays():
     """
     Test using quantites with array values
@@ -361,14 +378,14 @@ def test_arrays():
     assert isinstance(qsec.value, np.ndarray)
     assert not qsec.isscalar
 
-    #len and indexing should work for arrays
+    # len and indexing should work for arrays
     assert len(qsec) == len(qsec.value)
     qsecsub25 = qsec[2:5]
     assert qsecsub25.unit == qsec.unit
     assert isinstance(qsecsub25, u.Quantity)
     assert len(qsecsub25) == 3
 
-    #make sure isscalar, len, and indexing behave correcly for non-arrays.
+    # make sure isscalar, len, and indexing behave correcly for non-arrays.
     qsecnotarray = u.Quantity(10., u.second)
     assert qsecnotarray.isscalar
     with pytest.raises(TypeError):
@@ -377,7 +394,8 @@ def test_arrays():
         qsecnotarray[0]
 
     qseclen0array = u.Quantity(np.array(10), u.second)
-    # 0d numpy array should act basically like a scalar, but still keep its identity as a numpy array
+    # 0d numpy array should act basically like a scalar, but still keep its
+    # identity as a numpy array
     assert qseclen0array.isscalar
     with pytest.raises(TypeError):
         len(qseclen0array)
@@ -385,21 +403,21 @@ def test_arrays():
         qseclen0array[0]
     assert isinstance(qseclen0array.value, np.ndarray)
 
-
-    #can also create from lists, will auto-convert to arrays
+    # can also create from lists, will auto-convert to arrays
     qsec = u.Quantity(range(10), u.second)
     assert isinstance(qsec.value, np.ndarray)
 
-    #quantity math should work with arrays
+    # quantity math should work with arrays
     assert_array_equal((qsec * 2).value, (np.arange(10) * 2))
     assert_array_equal((qsec / 2).value, (np.arange(10) / 2))
-    #quantity addition/subtraction should *not* work with arrays b/c unit ambiguous
+    # quantity addition/subtraction should *not* work with arrays b/c unit
+    # ambiguous
     with pytest.raises(TypeError):
         assert_array_equal((qsec + 2).value, (np.arange(10) + 2))
     with pytest.raises(TypeError):
         assert_array_equal((qsec - 2).value, (np.arange(10) + 2))
 
-    #should create by unit multiplication, too
+    # should create by unit multiplication, too
     qsec2 = np.arange(10) * u.second
     qsec3 = u.second * np.arange(10)
 
@@ -414,10 +432,12 @@ def test_arrays():
     with pytest.raises(TypeError):
         long(qsec)
 
+
 def test_array_indexing_slicing():
     q = np.array([1., 2., 3.]) * u.m
     assert q[0] == 1. * u.m
     assert np.all(q[0:2] == u.Quantity([1., 2.], u.m))
+
 
 def test_inverse_quantity():
     """

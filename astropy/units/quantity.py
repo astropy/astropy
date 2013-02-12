@@ -1,12 +1,13 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module defines the `Quantity` object, which represents a number with some associated
-units. `Quantity` objects support operations like ordinary numbers, but will deal with
-unit conversions internally.
+This module defines the `Quantity` object, which represents a number with some
+associated units. `Quantity` objects support operations like ordinary numbers,
+but will deal with unit conversions internally.
 """
 
-from __future__ import absolute_import, unicode_literals, division, print_function
+from __future__ import (absolute_import, unicode_literals, division,
+                        print_function)
 
 # Standard library
 import copy
@@ -47,6 +48,7 @@ def _validate_value(value):
     newval
         The new value either as an array or a scalar
     """
+
     from ..utils.misc import isiterable
 
     if isinstance(value, (numbers.Number, np.number)):
@@ -57,7 +59,8 @@ def _validate_value(value):
         # A length-0 numpy array (i.e. numpy scalar) which we accept as-is
         value_obj = np.array(value, copy=True)
     else:
-        raise TypeError("The value must be a valid Python or Numpy numeric type.")
+        raise TypeError("The value must be a valid Python or Numpy numeric "
+                        "type.")
 
     return value_obj
 
@@ -70,15 +73,17 @@ class Quantity(object):
     value : number
         The numerical value of this quantity in the units given by unit.
     unit : `~astropy.units.UnitBase` instance, str
-        An object that represents the unit associated with the input value. Must be an `~astropy.units.UnitBase`
-        object or a string parseable by the `units` package.
+        An object that represents the unit associated with the input value.
+        Must be an `~astropy.units.UnitBase` object or a string parseable by
+        the `units` package.
 
     Raises
     ------
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not either a `Unit` object or a parseable string unit.
+        If the unit provided is not either a `Unit` object or a parseable
+        string unit.
     """
 
     def __init__(self, value, unit):
@@ -99,6 +104,7 @@ class Quantity(object):
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
         """
+
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         new_unit = Unit(unit)
         return Quantity(new_val, new_unit)
@@ -106,27 +112,36 @@ class Quantity(object):
     @property
     def value(self):
         """ The numerical value of this quantity. """
+
         return self._value
 
     @property
     def unit(self):
-        """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
+        """
+        A `~astropy.units.UnitBase` object representing the unit of this
+        quantity.
+        """
+
         return self._unit
 
     @property
     def si(self):
-        """ Returns a copy of the current `Quantity` instance with SI
-            units. The value of the resulting object will be scaled.
         """
+        Returns a copy of the current `Quantity` instance with SI units. The
+        value of the resulting object will be scaled.
+        """
+
         from . import si
         si_unit = self.unit.to_system(si)[0]
         return Quantity(self.value * si_unit.scale, si_unit / si_unit.scale)
 
     @property
     def cgs(self):
-        """ Returns a copy of the current `Quantity` instance with CGS
-            units. The value of the resulting object will be scaled.
         """
+        Returns a copy of the current `Quantity` instance with CGS units. The
+        value of the resulting object will be scaled.
+        """
+
         from . import cgs
         cgs_unit = self.unit.to_system(cgs)[0]
         return Quantity(self.value * cgs_unit.scale, cgs_unit / cgs_unit.scale)
@@ -142,13 +157,15 @@ class Quantity(object):
             `numpy.isscalar` returns False for a zero-dimensional array
             (e.g. ``np.array(1)``), while this is True in that case.
         """
+
         from ..utils.misc import isiterable
 
         return not isiterable(self.value)
 
     def copy(self):
         """ Return a copy of this `Quantity` instance """
-        return Quantity(self.value, unit=self.unit)
+
+        return self.__class__(self.value, unit=self.unit)
 
     # Arithmetic operations
     def __add__(self, other):
@@ -156,11 +173,14 @@ class Quantity(object):
         they are both `Quantity` objects, results in the units of the
         **left** object if they are compatible, otherwise this fails.
         """
+
         if isinstance(other, Quantity):
-            return Quantity(self.value + other.to(self.unit).value, unit=self.unit)
+            return Quantity(self.value + other.to(self.unit).value,
+                            unit=self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be added with a "
-                "Quantity object. Addition is only supported between Quantity "
+            raise TypeError(
+                "Object of type '{0}' cannot be added with a Quantity "
+                "object. Addition is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
 
     def __sub__(self, other):
@@ -168,57 +188,70 @@ class Quantity(object):
         If they are both `Quantity` objects, results in the units of the
         **left** object if they are compatible, otherwise this fails.
         """
+
         if isinstance(other, Quantity):
-            return Quantity(self.value - other.to(self.unit).value, unit=self.unit)
+            return Quantity(self.value - other.to(self.unit).value,
+                            unit=self.unit)
         else:
-            raise TypeError("Object of type '{0}' cannot be added with a "
-                "Quantity object. Addition is only supported between Quantity "
+            raise TypeError(
+                "Object of type '{0}' cannot be subtracted from a Quantity "
+                "object. Subtraction is only supported between Quantity "
                 "objects with compatible units.".format(other.__class__))
 
     def __mul__(self, other):
-        """ Multiplication between `Quantity` objects and other objects.
-        """
+        """ Multiplication between `Quantity` objects and other objects."""
+
         if isinstance(other, Quantity):
-            return Quantity(self.value * other.value, unit=self.unit * other.unit)
+            return Quantity(self.value * other.value,
+                            unit=self.unit * other.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=other * self.unit)
         else:
             try:
                 return Quantity(other * self.value, unit=self.unit)
             except TypeError:
-                raise TypeError("Object of type '{0}' cannot be multiplied with a Quantity object.".format(other.__class__))
+                raise TypeError(
+                    "Object of type '{0}' cannot be multiplied with a "
+                    "Quantity object.".format(other.__class__))
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
         objects.
         """
+
         return self.__mul__(other)
 
     def __div__(self, other):
-        """ Division between `Quantity` objects and other objects.
-        """
+        """ Division between `Quantity` objects and other objects."""
+
         if isinstance(other, Quantity):
-            return Quantity(self.value / other.value, unit=self.unit / other.unit)
+            return Quantity(self.value / other.value,
+                            unit=self.unit / other.unit)
         elif isinstance(other, UnitBase):
             return Quantity(self.value, unit=self.unit / other)
         else:
             try:
                 return Quantity(self.value / other, unit=self.unit)
             except TypeError:
-                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
+                raise TypeError(
+                    "Object of type '{0}' cannot be diveded with a Quantity "
+                    "object.".format(other.__class__))
 
     def __rdiv__(self, other):
-        """ Right Division between `Quantity` objects and other objects.
-        """
+        """ Right Division between `Quantity` objects and other objects."""
+
         if isinstance(other, Quantity):
-            return Quantity(other.value / self.value, unit=other.unit / self.unit)
+            return Quantity(other.value / self.value,
+                            unit=other.unit / self.unit)
         elif isinstance(other, UnitBase):
             return Quantity(1. / self.value, unit=other / self.unit)
         else:
             try:
                 return Quantity(other / self.value, unit=1. / self.unit)
             except TypeError:
-                raise TypeError("Object of type '{0}' cannot be diveded with a Quantity object.".format(other.__class__))
+                raise TypeError(
+                    "Object of type '{0}' cannot be diveded with a Quantity "
+                    "object.".format(other.__class__))
 
     def __truediv__(self, other):
         """ Division between `Quantity` objects. """
@@ -230,26 +263,33 @@ class Quantity(object):
 
     def __pow__(self, p):
         """ Raise `Quantity` object to a power. """
+
         if hasattr(p, 'unit'):
-            raise TypeError('Cannot raise a Quantity object to a power of something with a unit')
+            raise TypeError(
+                'Cannot raise a Quantity object to a power of something '
+                'with a unit')
         return Quantity(self.value ** p, unit=self.unit ** p)
 
     def __neg__(self):
         """
         Minus the quantity. This is useful for doing -q where q is a quantity.
         """
+
         return Quantity(-self.value, unit=self.unit)
 
     def __pos__(self):
         """
-        Plus the quantity. This is implemented in case users use +q where q is a quantity.
+        Plus the quantity. This is implemented in case users use +q where q is
+        a quantity.
         """
+
         return Quantity(self.value, unit=self.unit)
 
     def __abs__(self):
         """
         Absolute value of the quantity.
         """
+
         return Quantity(abs(self.value), unit=self.unit)
 
     # Comparison operations
@@ -269,25 +309,29 @@ class Quantity(object):
         if isinstance(other, Quantity):
             return self.value < other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError("Quantity object cannot be compared to an object "
+                            "of type {0}".format(other.__class__))
 
     def __le__(self, other):
         if isinstance(other, Quantity):
             return self.value <= other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError("Quantity object cannot be compared to an object "
+                            "of type {0}".format(other.__class__))
 
     def __gt__(self, other):
         if isinstance(other, Quantity):
             return self.value > other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError("Quantity object cannot be compared to an object "
+                            "of type {0}".format(other.__class__))
 
     def __ge__(self, other):
         if isinstance(other, Quantity):
             return self.value >= other.to(self.unit).value
         else:
-            raise TypeError("Quantity object cannot be compared to an object of type {0}".format(other.__class__))
+            raise TypeError("Quantity object cannot be compared to an object "
+                            "of type {0}".format(other.__class__))
 
     #other overrides of special functions
     def __hash__(self):
@@ -295,42 +339,58 @@ class Quantity(object):
 
     def __getitem__(self, key):
         if self.isscalar:
-            raise TypeError("'{cls}' object with a scalar value does not support indexing".format(cls=self.__class__.__name__))
+            raise TypeError(
+                "'{cls}' object with a scalar value does not support "
+                "indexing".format(cls=self.__class__.__name__))
         else:
             return Quantity(self.value[key], unit=self.unit)
 
+    def __nonzero__(self):
+        """Quantities should always be treated as non-False; there is too much
+        potential for ambiguity otherwise.
+        """
+
+        return True
+
     def __len__(self):
         if self.isscalar:
-            raise TypeError("'{cls}' object with a scalar value has no len()".format(cls=self.__class__.__name__))
+            raise TypeError("'{cls}' object with a scalar value has no "
+                            "len()".format(cls=self.__class__.__name__))
         else:
             return len(self.value)
 
     # Numerical types
     def __float__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError('Only scalar quantities can be converted to '
+                            'Python scalars')
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
+            log.warn("Converting Quantity object in units '{0}' to a Python "
+                     "scalar".format(self.unit))
         return float(self.value)
 
     def __int__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError('Only scalar quantities can be converted to '
+                            'Python scalars')
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
+            log.warn("Converting Quantity object in units '{0}' to a Python "
+                     "scalar".format(self.unit))
         return int(self.value)
 
     def __long__(self):
         if not self.isscalar:
-            raise TypeError('Only scalar quantities can be converted to Python scalars')
+            raise TypeError('Only scalar quantities can be converted to '
+                            'Python scalars')
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Python scalar".format(self.unit))
+            log.warn("Converting Quantity object in units '{0}' to a Python "
+                     "scalar".format(self.unit))
         return long(self.value)
 
     # Array types
@@ -338,7 +398,8 @@ class Quantity(object):
         # We show a warning unless the unit is equivalent to unity (i.e. not
         # just dimensionless, but also with a scale of 1)
         if not _is_unity(self.unit) and WARN_IMPLICIT_NUMERIC_CONVERSION():
-            log.warn("Converting Quantity object in units '{0}' to a Numpy array".format(self.unit))
+            log.warn("Converting Quantity object in units '{0}' to a Numpy "
+                     "array".format(self.unit))
         return np.array(self.value)
 
     # Display

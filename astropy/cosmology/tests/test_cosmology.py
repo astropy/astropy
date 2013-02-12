@@ -397,8 +397,8 @@ def test_critical_density():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_angular_diameter_distance_z1z2():
     tcos = core.FlatLambdaCDM(70.4,0.272,Tcmb0=0.0)
-    assert (tcos.angular_diameter_distance_z1z2(1, 2) ==
-            646.22968662822018)
+    assert np.allclose(tcos.angular_diameter_distance_z1z2(1, 2),
+                       646.22968662822018)
     z1 = 0, 0, 1, 0.5, 1
     z2 = 2, 1, 2, 2.5, 1.1
     results = (1760.0628637762106,
