@@ -1,8 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 A collection of different unit formats.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from .base import Base
 from .generic import Generic, Unscaled
@@ -43,7 +46,6 @@ def get_format(format=None):
     format = format.lower()
     for key in __all__:
         val = globals()[key]
-        if (issubclass(val, Base) and
-            key.lower() == format.lower()):
+        if (issubclass(val, Base) and key.lower() == format.lower()):
             return val()
     raise ValueError("Unknown format {0!r}".format(format))

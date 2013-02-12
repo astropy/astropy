@@ -1,13 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Handles a "generic" string format for units
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import sys
 
-from .base import Base
 from . import utils
+from .base import Base
+from ...extern import pyparsing as p
 from ...utils.compat.fractions import Fraction
 
 
@@ -19,6 +23,7 @@ class Generic(Base):
     but instead of only supporting the units that FITS knows about, it
     supports any unit available in the `astropy.units` namespace.
     """
+
     _show_scale = True
 
     def __init__(self):
@@ -40,7 +45,6 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
-        from astropy.extern import pyparsing as p
 
         product = p.Literal("*") | p.Literal(".") | p.White()
         division = p.Literal("/")
@@ -98,7 +102,7 @@ class Generic(Base):
             (function) ^
             (unit_with_power) ^
             (p.Suppress(open_p) + product_of_units + p.Suppress(close_p))
-            )
+        )
 
         factor << (
             (unsigned_integer + signed_integer) ^
@@ -108,7 +112,7 @@ class Generic(Base):
             (floating_point + p.Suppress(p.White()) +
              unsigned_integer + p.Suppress(power) + numeric_power) ^
             (floating_point)
-            )
+        )
 
         unit << p.Word(p.alphas, p.alphas + '_')
 
@@ -174,10 +178,9 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_unit(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
-
-        if toks[0] in cls._unit_namespace:
-            return cls._unit_namespace[toks[0]]
+        from ..core import UnitBase
+        if toks[0] in UnitBase._registry:
+            return UnitBase._registry[toks[0]]
         raise p.ParseException(
             s, loc, "{0!r} is not a recognized unit".format(toks[0]))
 
@@ -215,8 +218,6 @@ class Generic(Base):
     @classmethod
     @utils._trace
     def _parse_function(cls, s, loc, toks):
-        from astropy.extern import pyparsing as p
-
         # TODO: Add support for more functions here
         if toks[0] == 'sqrt':
             return toks[1] ** -2.0
@@ -226,18 +227,8 @@ class Generic(Base):
                     toks[0]))
 
     def parse(self, s):
-        from astropy.extern import pyparsing as p
-
         if utils.DEBUG:
             print("parse", s)
-
-        if '_unit_namespace' not in Generic.__dict__:
-            from ... import units as u
-            ns = {}
-            for key, val in u.__dict__.items():
-                if isinstance(val, u.UnitBase):
-                    ns[key] = val
-            Generic._unit_namespace = ns
 
         # This is a short circuit for the case where the string
         # is just a single unit name
@@ -263,7 +254,8 @@ class Generic(Base):
             else:
                 if not isinstance(power, Fraction):
                     if power % 1.0 != 0.0:
-                        power = Fraction.from_float(power).limit_denominator(10)
+                        frac = Fraction.from_float(power)
+                        power = frac.limit_denominator(10)
                         if power.denominator == 1:
                             power = int(power.numerator)
                     else:

@@ -1,8 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Handles the "FITS" unit format.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import warnings
 
@@ -37,10 +40,8 @@ class Fits(generic.Generic):
             'Hz', 'J', 'W', 'V', 'N', 'Pa', 'C', 'Ohm', 'S',
             'F', 'Wb', 'T', 'H', 'lm', 'lx', 'a', 'yr', 'eV',
             'pc', 'Jy', 'mag', 'R', 'bit', 'byte'
-            ]
-        deprecated_bases = [
-            'G', 'barn'
-            ]
+        ]
+        deprecated_bases = ['G', 'barn']
         prefixes = [
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
@@ -58,10 +59,8 @@ class Fits(generic.Generic):
             'solMass', 'u', 'solLum', 'solRad', 'AU', 'lyr', 'count',
             'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan', 'bin',
             'voxel', 'adu', 'beam'
-            ]
-        deprecated_units = [
-            'erg', 'Angstrom'
         ]
+        deprecated_units = ['erg', 'Angstrom']
 
         for unit in simple_units + deprecated_units:
             names[unit] = getattr(u, unit)

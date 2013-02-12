@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
@@ -10,10 +11,12 @@ and can not be converted to any other unit.  A future astropy
 magnitudes library is planned to address this shortcoming.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from . import si
-from .._constants import si as _si
+from ..constants import si as _si
 from .core import UnitBase, def_unit
 
 import numpy as _numpy
@@ -23,14 +26,14 @@ UnitBase._set_namespace(globals())
 ###########################################################################
 # LENGTH
 
-def_unit(['AU', 'au'], _si.au * si.m, register=True, prefixes=True,
+def_unit(['AU', 'au'], _si.au.value * si.m, register=True, prefixes=True,
          doc="astronomical unit: approximately the mean Earth--Sun "
          "distance.")
 
-def_unit(['pc', 'parsec'], _si.pc * si.m, register=True, prefixes=True,
+def_unit(['pc', 'parsec'], _si.pc.value * si.m, register=True, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
-def_unit(['solRad', 'R_sun'], _si.R_sun * si.m, register=True,
+def_unit(['solRad', 'R_sun'], _si.R_sun.value * si.m, register=True,
          doc="Solar radius")
 def_unit(['lyr', 'lightyear'], 9.460730e15 * si.m, register=True,
          doc="Light year")
@@ -46,13 +49,13 @@ def_unit(['barn'], 10 ** -28 * si.m ** 2, register=True, prefixes=True,
 ###########################################################################
 # MASS
 
-def_unit(['solMass', 'M_sun'], _si.M_sun * si.kg, register=True, prefixes=True,
-         doc="Solar mass",
+def_unit(['solMass', 'M_sun'], _si.M_sun.value * si.kg, register=True,
+         prefixes=True, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
-def_unit(['M_p'], _si.m_p * si.kg, register=True,
+def_unit(['M_p'], _si.m_p.value * si.kg, register=True,
          doc="Proton mass",
          format={'latex': r'M_{p}', 'unicode': 'Mₚ'})
-def_unit(['M_e'], _si.m_e * si.kg, register=True,
+def_unit(['M_e'], _si.m_e.value * si.kg, register=True,
          doc="Electron mass",
          format={'latex': r'M_{e}', 'unicode': 'Mₑ'})
 # Unified atomic mass unit
@@ -72,8 +75,8 @@ def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, register=True,
 ###########################################################################
 # ILLUMINATION
 
-def_unit(['solLum', 'L_sun'], _si.L_sun * si.W, register=True, prefixes=True,
-         doc="Solar luminance")
+def_unit(['solLum', 'L_sun'], _si.L_sun.value * si.W, register=True,
+         prefixes=True, doc="Solar luminance")
 
 
 ###########################################################################
