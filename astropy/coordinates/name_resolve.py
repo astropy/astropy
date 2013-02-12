@@ -73,19 +73,12 @@ def _parse_response(resp_data):
     
     pattr = re.compile(r"%J\s*([0-9\.]+)\s*([\+\-\.0-9]+)")
     matched = pattr.search(resp_data.decode('utf-8'))
-
-    if matched == None:
-        if db == "A":
-            err = "Unable to find coordinates for name '{0}'".format(name)
-        else:
-            err = "Unable to find coordinates for name '{0}' in database {1}"\
-                  .format(name, database)
-
-        raise NameResolveError(err)
-
-    ra,dec = matched.groups()
     
-    return ra,dec
+    if matched == None:
+        return None, None
+    else:
+        ra,dec = matched.groups()
+        return ra,dec
 
 def get_icrs_coordinates(name):
     """ 
@@ -156,5 +149,14 @@ def get_icrs_coordinates(name):
     resp_data = resp.read()
 
     ra,dec = _parse_response(resp_data)
+    
+    if ra == None and dec == None:
+        if db == "A":
+            err = "Unable to find coordinates for name '{0}'".format(name)
+        else:
+            err = "Unable to find coordinates for name '{0}' in database {1}"\
+                  .format(name, database)
+
+        raise NameResolveError(err)
 
     return ICRSCoordinates(ra, dec, unit=(u.degree, u.degree))
