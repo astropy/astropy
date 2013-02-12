@@ -108,23 +108,6 @@ class Quantity(object):
         """ The numerical value of this quantity. """
         return self._value
 
-    @value.setter
-    def value(self, obj):
-        """ Setter for the value attribute. We allow the user to change the value by setting this attribute,
-        so this will validate the new object.
-
-        Parameters
-        ----------
-        obj : number
-            The numerical value of this quantity in the same units as stored internally.
-
-        Raises
-        ------
-        TypeError
-            If the value provided is not a Python numeric type.
-        """
-        self._value = _validate_value(obj)
-
     @property
     def unit(self):
         """ A `~astropy.units.UnitBase` object representing the unit of this quantity. """
