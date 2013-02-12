@@ -23,6 +23,7 @@ from distutils.core import Extension
 from distutils.core import Command
 from distutils.command.sdist import sdist as DistutilsSdist
 from setuptools.command.build_ext import build_ext as SetuptoolsBuildExt
+from setuptools.command.build_py import build_py as SetuptoolsBuildPy
 
 from setuptools.command.register import register as SetuptoolsRegister
 
@@ -354,6 +355,9 @@ def register_commands(package, version, release):
          # we're building a release version
          'build_ext': generate_build_ext_command(release),
 
+         # We have a custom build_py to generate the default configuration file
+         'build_py': AstropyBuildPy,
+
          'register': AstropyRegister
     }
 
@@ -494,16 +498,18 @@ def generate_build_ext_command(release):
             # distutils command.
             orig_run(self)
 
-        # Finally, generate the default astropy.cfg; this can only be done
-        # after extension modules are built as some extension modules include
-        # config items
-        default_cfg = generate_default_config(os.path.abspath(self.build_lib),
-                                              self.distribution.packages[0])
-        if default_cfg:
-            default_cfg = os.path.relpath(default_cfg)
-            self.copy_file(default_cfg,
-                           os.path.join(self.build_lib, default_cfg),
-                           preserve_mode=False)
+        if not self.distribution.is_pure():
+            # Finally, generate the default astropy.cfg; this can only be done
+            # after extension modules are built as some extension modules include
+            # config items.  We only do this if it's not pure python, though,
+            # because if it is, we already did it in build_py
+            default_cfg = generate_default_config(os.path.abspath(self.build_lib),
+                                                  self.distribution.packages[0])
+            if default_cfg:
+                default_cfg = os.path.relpath(default_cfg)
+                self.copy_file(default_cfg,
+                               os.path.join(self.build_lib, default_cfg),
+                               preserve_mode=False)
 
     attrs['run'] = run
     attrs['finalize_options'] = finalize_options
@@ -511,6 +517,24 @@ def generate_build_ext_command(release):
     attrs['uses_cython'] = uses_cython
 
     return type('build_ext', (basecls, object), attrs)
+
+
+class AstropyBuildPy(SetuptoolsBuildPy):
+
+    def run(self):
+        # first run the normal build_py
+        SetuptoolsBuildPy.run(self)
+
+        if self.distribution.is_pure():
+            # Generate the default astropy.cfg - we only do this here if it's
+            # pure python.  Otherwise, it'll happen at the end of build_exp
+            default_cfg = generate_default_config(os.path.abspath(self.build_lib),
+                                                  self.distribution.packages[0])
+            if default_cfg:
+                default_cfg = os.path.relpath(default_cfg)
+                self.copy_file(default_cfg,
+                               os.path.join(self.build_lib, default_cfg),
+                               preserve_mode=False)
 
 
 def generate_default_config(build_lib, package):
