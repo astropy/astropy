@@ -4,7 +4,9 @@
 I/O Registry (`astropy.io.registry`)
 ************************************
 
-.. note:: The I/O registry is only meant to be used directly by users who want
+.. note::
+
+          The I/O registry is only meant to be used directly by users who want
           to define their own custom readers/writers. Users who want to find
           out more about what built-in formats are supported by
           :class:`~astropy.table.table.Table` by default should see
