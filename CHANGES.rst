@@ -1,68 +1,6 @@
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
-
-0.2b2 (2013-01-29)
-------------------
-
-New Features
-^^^^^^^^^^^^
-
-- A configuration file with all options set to their defaults is now generated 
-  when astropy is installed.  This file will be pulled in as the users' 
-  astropy configuration file the first time they ``import astropy``.  [#498] 
-
-- ``astropy.cosmology``
-
-  - Add a WMAP9 object using the 9-year WMAP parameters from Hinshaw et al.
-    Once this paper is accepted, this should be made the default, but for
-    now WMAP7 remains the default. [#629]
-
-- Generalized I/O infrastructure so that ``astropy.nddata`` can also have
-  custom readers/writers [#659]
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- ``astropy.wcs`` uses the ``relax`` option by default so that non-standard
-  keywords are allowed. [#585]
-
-- ``astropy.nddata.convolution`` removed requirement of PyFFTW3; uses Numpy's
-  FFT by default instead with the added ability to specify an FFT
-  implementation to use. [#660]
-
-Bug Fixes
-^^^^^^^^^
-
-- Improved multiprocessing compatibility for file downloads. [#615]
-
-- Fixed handling of Cython modules when building from a source checkout of a
-  tagged release version. [#594]
-
-- Added a workaround for a bug in Sphinx that could occur when using the
-  ``:tocdepth:`` directive. [#595]
-
-- Minor VOTable fixes [#596]
-
-- Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
-  ``VersionConflict`` errors when an older version of distribute is already
-  installed on the user's system. [#616][#640]
-
-- Changed use of ``log.warn`` in the logging module to ``log.warning`` since
-  the former is deprecated. [#624]
-
-- ``astropy.io.ascii``
-
-  - Fixed crash when pprinting a row with INDEF values. [#511]
-
-  - Fixed failure when reading DAOphot files with empty keyword values [#666].
-
-
-0.2b1 (2012-12-24)
-------------------
-
 New Features
 ^^^^^^^^^^^^
 
@@ -86,10 +24,16 @@ see the "What's New" section of the documentation for more details.
     astropy.cosmology classes. The current treatment assumes that neutrinos are
     massless. [#365]
 
+  - Add a WMAP9 object using the 9-year WMAP parameters from Hinshaw et al.
+    Once this paper is accepted, this should be made the default, but for
+    now WMAP7 remains the default. [#629]
+
 - ``astropy.table`` I/O infrastructure for custom readers/writers
   implemented. [#305]
 
   - Added support for reading/writing HDF5 files [#461]
+
+  - Added support for masked tables with missing or invalid data [#451]
 
 - New ``astropy.time`` sub-package. [#332]
 
@@ -142,7 +86,8 @@ see the "What's New" section of the documentation for more details.
 
   - Fixed a bug in reading IPAC tables with null values.
 
-- Added support for masked tables with missing or invalid data [#451]
+- Generalized I/O infrastructure so that ``astropy.nddata`` can also have
+  custom readers/writers [#659]
 
 - ``astropy.wcs``
 
@@ -154,6 +99,10 @@ see the "What's New" section of the documentation for more details.
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- A configuration file with all options set to their defaults is now generated 
+  when astropy is installed.  This file will be pulled in as the users' 
+  astropy configuration file the first time they ``import astropy``.  [#498] 
 
 - Astropy doc themes moved into ``astropy.sphinx`` to allow affiliated packages
   to access them.
@@ -175,6 +124,10 @@ Other Changes and Additions
   - Improved the reading of distortion images.
 
   - Added a new option to choose whether or not to write SIP coefficients.
+
+  - Uses the ``relax`` option by default so that non-standard keywords are
+    allowed. [#585]
+
 
 - Added HTML representation of tables in IPython notebook [#409]
 
@@ -198,8 +151,19 @@ Other Changes and Additions
   object. This works for any subclass of `SphericalCoordinatesBase`, but 
   requires an internet connection. [#556]
 
+- ``astropy.nddata.convolution`` removed requirement of PyFFTW3; uses Numpy's
+  FFT by default instead with the added ability to specify an FFT
+  implementation to use. [#660]
+
+
 Bug Fixes
 ^^^^^^^^^
+
+- ``astropy.io.ascii``
+
+  - Fixed crash when pprinting a row with INDEF values. [#511]
+
+  - Fixed failure when reading DAOphot files with empty keyword values [#666].
 
 - ``astropy.io.fits``
 
@@ -331,6 +295,22 @@ Bug Fixes
   to replace the system-installed pytest with the one bundled with Astropy.
   [#454]
 
+- Improved multiprocessing compatibility for file downloads. [#615]
+
+- Fixed handling of Cython modules when building from a source checkout of a
+  tagged release version. [#594]
+
+- Added a workaround for a bug in Sphinx that could occur when using the
+  ``:tocdepth:`` directive. [#595]
+
+- Minor VOTable fixes [#596]
+
+- Fixed how ``setup.py`` uses ``distribute_setup.py`` to prevent possible
+  ``VersionConflict`` errors when an older version of distribute is already
+  installed on the user's system. [#616][#640]
+
+- Changed use of ``log.warn`` in the logging module to ``log.warning`` since
+  the former is deprecated. [#624]
 
 
 0.1 (2012-06-19)
