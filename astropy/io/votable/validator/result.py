@@ -100,13 +100,14 @@ class Result:
         def fail(reason):
             reason = str(reason)
             with open(path, 'wb') as fd:
-                fd.write("FAILED: %s\n" % reason)
+                fd.write('FAILED: {}\n'.format(reason).encode('utf-8'))
             self['network_error'] = reason
 
         r = None
         try:
             if IS_PY3K:
-                r = urllib2.urlopen(self.url.decode('ascii'))
+                r = urllib2.urlopen(self.url.decode('ascii'),
+                                    timeout=self.timeout)
             else:
                 r = urllib2.urlopen(self.url, timeout=self.timeout)
         except urllib2.URLError as e:
@@ -119,7 +120,7 @@ class Result:
         except httplib.HTTPException as e:
             fail("HTTPException: %s" % str(e))
             return
-        except socket.timeout as e:
+        except (socket.timeout, socket.error) as e:
             fail("Timeout")
             return
 

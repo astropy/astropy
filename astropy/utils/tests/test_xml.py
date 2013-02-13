@@ -51,7 +51,7 @@ def test_unescape_all():
 
     # bytes
     url_in = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
-             'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
+             b'DSACAT=IDR&amp;amp;DSATAB=Emitters&amp;amp;'
     url_out = b'http://casu.ast.cam.ac.uk/ag/iphas-dsa/SubmitCone?' \
-              'DSACAT=IDR&DSATAB=Emitters&'
+              b'DSACAT=IDR&DSATAB=Emitters&'
     assert unescaper.unescape_all(url_in) == url_out
