@@ -87,8 +87,7 @@ class Constant(Quantity):
             warnings.warn('Constant {0!r} is already has a definition in the '
                           '{1!r} system'.format(name, system))
 
-        inst = super(Constant, cls).__new__(cls, abbrev, name, value, unit,
-                                            uncertainty, reference, system)
+        inst = super(Constant, cls).__new__(cls)
 
         for c in instances.values():
             if system is not None and not hasattr(c.__class__, system):
