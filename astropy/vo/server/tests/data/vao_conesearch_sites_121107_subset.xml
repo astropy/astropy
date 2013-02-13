@@ -116,35 +116,6 @@ This particular record describes access to the position-based catalog data in th
           </TR>
           <TR>
             <TD>Catalog</TD>
-            <TD>2MASS-PSC</TD>
-            <TD>2MASS All-Sky Point Source Catalog</TD>
-            <TD>2MASS has uniformly scanned the entire sky in three near-infrared bands to detect and characterize point sources brighter than about 1 mJy in each band, with signal-to-noise ratio (SNR) greater than 1.
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>NASA/IPAC Infrared Science Archive</TD>
-            <TD>#Infrared#</TD>
-            <TD>ivo://irsa.ipac/2MASS-PSC#1</TD>
-            <TD>2008-04-07T11:31:44.24</TD>
-            <TD>#Infrared Astronomy#Surveys#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD>0.14</TD>
-            <TD>1</TD>
-            <TD>ivo://irsa.ipac/2MASS-PSC</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc&amp;amp;</TD>
-            <TD>1</TD>
-            <TD>1000</TD>
-            <TD>ivo://irsa.ipac/IRSA</TD>
-            <TD>http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec2_2.html</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
             <TD/>
             <TD>GSC: HST Guide Star Catalog Version 1.2 (LEDAS)</TD>
             <TD>Cone Search service for GSC: HST Guide Star Catalog Version 1.2 (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service

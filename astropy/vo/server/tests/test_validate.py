@@ -98,9 +98,8 @@ class TestConeSearchResults(object):
         assert (self.r.catkeys['good'] ==
             ['HST Guide Star Catalog 2.3 1',
             'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
-        assert (self.r.catkeys['warn'] ==
-            ['2MASS All-Sky Point Source Catalog 1',
-            'SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs 1'])
+        assert (self.r.catkeys['warn'] == ['SDSS DR7 - '
+            'Data release 7 of Sloan Digital Sky Survey catalogs 1'])
         assert self.r.catkeys['exception'] == []
         assert (self.r.catkeys['error'] ==
             ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1'])
@@ -122,7 +121,7 @@ class TestConeSearchResults(object):
 
     def test_printcat(self):
         self.gen_cmp(self.r.print_cat, 'printcat.out',
-                     '2MASS All-Sky Point Source Catalog 1')
+                     'The USNO-A2.0 Catalogue (Monet+ 1998) 1')
 
     def teardown_class(self):
         BASEURL.set(BASEURL.defaultvalue)
