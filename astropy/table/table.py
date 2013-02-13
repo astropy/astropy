@@ -1312,10 +1312,9 @@ class Table(object):
                              .format(type(item)))
 
     def __setitem__(self, item, value):
-        if item in self.colnames:
-            self._data[item] = value
-        else:
-            # Assigning to a non-existent column name results in creation of column
+        # If the item is a string then it must be the name of a column.
+        # If that column doesn't already exist then create it now.
+        if isinstance(item, basestring) and item not in self.colnames:
             NewColumn = MaskedColumn if self.masked else Column
 
             # Make sure value is an ndarray so we can get the dtype
@@ -1328,6 +1327,9 @@ class Table(object):
 
             # Now add new column to the table
             self.add_column(new_column)
+        else:
+            # Otherwise just delegate to the numpy item setter.
+            self._data[item] = value
 
     def __delitem__(self, item):
         if isinstance(item, basestring):
