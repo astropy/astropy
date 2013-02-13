@@ -1321,9 +1321,16 @@ class Table(object):
             if not isinstance(value, np.ndarray):
                 value = np.array(value)
 
-            # Make new column and assign the value
-            new_column = NewColumn(item, length=len(self), dtype=value.dtype, shape=value.shape[1:])
-            new_column[:] = value
+            # Make new column and assign the value.  If the table currently has
+            # no rows (len=0) then define new column directly from value.  Otherwise
+            # define a new column with the right length and shape and then set
+            # it from value.  This allows for broadcasting, e.g. t['a'] = 1.
+            if len(self) == 0:
+                new_column = NewColumn(name=item, data=value)
+            else:
+                new_column = NewColumn(item, length=len(self), dtype=value.dtype,
+                                       shape=value.shape[1:])
+                new_column[:] = value
 
             # Now add new column to the table
             self.add_column(new_column)
