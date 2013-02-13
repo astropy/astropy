@@ -7,9 +7,9 @@ downloaded to a local cache. Otherwise, cached data
 are used. To by-pass cached data, some functions have
 a `cache` keyword that can be set to `False`.
 
-*CONFIGURABLE PROPERTIES*
-
-These properties are set via Astropy configuration system:
+Configurable Items
+------------------
+These parameters are set via Astropy configuration system:
 
     * `astropy.io.votable.pedantic`
     * `astropy.utils.remote_timeout`

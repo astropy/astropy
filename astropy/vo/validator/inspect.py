@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Inspect results from `astropy.vo.server.validate`.
+Inspect results from `astropy.vo.validator.validate`.
 
 Examples
 --------
 Load Cone Search validation results directly from
 `astropy.vo.client.vos_baseurl`:
 
->>> from astropy.vo.server import inspect
+>>> from astropy.vo.validator import inspect
 >>> r = inspect.ConeSearchResults()
 
 Print tally:
@@ -29,7 +29,7 @@ W22,W03
 
 List Cone Search catalogs with warnings,
 excluding warnings that were ignored in
-`astropy.vo.server.noncrit_warnings`,
+`astropy.vo.validator.noncrit_warnings`,
 and writes the output to a file:
 
 >>> with open('warn_cats.txt', 'w') as fout:
@@ -148,7 +148,7 @@ class ConeSearchResults(object):
             Default is screen output.
 
         ignore_noncrit : bool
-            Exclude warnings in `astropy.vo.server.noncrit_warnings`.
+            Exclude warnings in `astropy.vo.validator.noncrit_warnings`.
             This is useful to see why a catalog failed validation.
 
         """
@@ -213,7 +213,7 @@ class ConeSearchResults(object):
 def _exclude_noncrit(in_list):
     """
     Exclude any items in input list containing
-    `astropy.vo.server.crit_warnings`.
+    `astropy.vo.validator.crit_warnings`.
 
     Parameters
     ----------

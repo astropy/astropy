@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Tests for `astropy.vo.server`
+Tests for `astropy.vo.validator`
 
 .. note::
 
@@ -13,13 +13,13 @@ Examples
 Running inside Python:
 
 >>> import astropy
->>> astropy.test('vo.server', remote_data=True)
+>>> astropy.test('vo.validator', remote_data=True)
 
 Running from top level via command line::
 
-    python setup.py test -P vo.server --remote-data
+    python setup.py test -P vo.validator --remote-data
 
-Running from `astropy/vo/server/tests` directory::
+Running from `astropy/vo/validator/tests` directory::
 
     setenv ASTROPY_USE_SYSTEM_PYTEST 1
     py.test test_validate.py --remote-data

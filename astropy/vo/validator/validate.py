@@ -9,14 +9,14 @@ their services.
 
     This is not meant to be used by a typical AstroPy user.
 
-*CONFIGURABLE PROPERTIES*
-
-These properties are set via Astropy configuration system:
+Configurable Items
+------------------
+These parameters are set via Astropy configuration system:
 
     * `astropy.utils.remote_timeout`
-    * `astropy.vo.server.cs_mstr_list`
-    * `astropy.vo.server.cs_urls`
-    * `astropy.vo.server.noncrit_warnings`
+    * `astropy.vo.validator.cs_mstr_list`
+    * `astropy.vo.validator.cs_urls`
+    * `astropy.vo.validator.noncrit_warnings`
     * Also depends on properties in `astropy.vo.client`
 
 *DEFAULT CONE SEARCH SERVICES*
@@ -46,7 +46,7 @@ Examples
 Validate default Cone Search sites with multiprocessing
 and write results in the current directory:
 
->>> from astropy.vo.server import validate
+>>> from astropy.vo.validator import validate
 >>> validate.check_conesearch_sites()
 
 To validate using a custom timeout of 30 seconds:
@@ -149,10 +149,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     Validate Cone Search Services.
 
     A master list of all available Cone Search sites is
-    obtained from `astropy.vo.server.cs_mstr_list`, which
+    obtained from `astropy.vo.validator.cs_mstr_list`, which
     is a URL query to STScI VAO registry by default.
 
-    The sites in `astropy.vo.server.cs_urls` (or optionally
+    The sites in `astropy.vo.validator.cs_urls` (or optionally
     all sites found in registry or any given `url_list`) are
     validated using `astropy.io.votable.validator` and
     separated into 4 groups below, each is stored as a JSON
@@ -183,7 +183,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     *WARNINGS AND EXCEPTIONS*
 
     A subset of `astropy.io.votable.exceptions` that is considered
-    non-critical is defined by `astropy.vo.server.noncrit_warnings`
+    non-critical is defined by `astropy.vo.validator.noncrit_warnings`
     configurable property. This means validation will ignore them
     (but `astropy.io.votable.table.pedantic` still needs to be set
     to `False` if user wants to use results from sites with these
@@ -228,7 +228,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
         Until STScI VAO registry formally provides `testQuery`
         parameters, they are extracted from
-        `astropy.vo.server.tstquery.parse_cs`.
+        `astropy.vo.validator.tstquery.parse_cs`.
 
         Any '&amp;' in URL is replaced with '&' to avoid query failure.
 
@@ -251,9 +251,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     url_list : list of string
         Only check these access URLs against
-        `astropy.vo.server.cs_mstr_list` and ignore the others,
+        `astropy.vo.validator.cs_mstr_list` and ignore the others,
         which will not appear in output files.
-        By default, check those in `astropy.vo.server.cs_urls`.
+        By default, check those in `astropy.vo.validator.cs_urls`.
         If `None`, check everything.
 
     Raises
@@ -315,7 +315,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
         tab_all.array['capabilityClass'] == b'ConeSearch')]
 
     assert arr_cone.size > 0, \
-        'astropy.vo.server.cs_mstr_list yields no valid result'
+        'astropy.vo.validator.cs_mstr_list yields no valid result'
 
     fixed_urls = [unescape_all(cur_url) for cur_url in arr_cone['accessURL']]
     uniq_urls = set(fixed_urls)

@@ -30,10 +30,6 @@ def unescape_all(url):
     clean_url : str or bytes
         Unescaped URL.
 
-    See Also
-    --------
-    `xml.sax.saxutils.unescape`
-
     """
     if isinstance(url, bytes):
         func2use = _unescape_bytes

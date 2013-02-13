@@ -13,12 +13,12 @@ Client
 
    client.rst
 
-Server
-======
+Validator
+=========
 This module is only included for completeness. A typical user
-should not need to set up the server.
+should not need to set up the validator.
 
 .. toctree::
    :maxdepth: 2
 
-   server.rst
+   validator.rst
