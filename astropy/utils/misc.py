@@ -760,6 +760,25 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
 
 
 class JsonCustomEncoder(json.JSONEncoder):
+    """Support for data types that JSON default encoder
+    does not do.
+
+    This includes:
+
+        * Numpy array or number
+        * Complex number
+        * Set
+        * Bytes (Python 3)
+
+    Examples
+    --------
+    >>> import json
+    >>> import numpy as np
+    >>> from astropy.utils.misc import JsonCustomEncoder
+    >>> json.dumps(np.arange(3), cls=JsonCustomEncoder)
+    '[0, 1, 2]'
+
+    """
     def default(self, obj):
         if isinstance(obj, (np.ndarray, np.number)):
             return obj.tolist()
@@ -767,6 +786,6 @@ class JsonCustomEncoder(json.JSONEncoder):
             return [obj.real, obj.imag]
         elif isinstance(obj, set):
             return list(obj)
-        elif isinstance(obj, bytes):
+        elif isinstance(obj, bytes):  # pragma: py3
             return obj.decode('ascii')
         return json.JSONEncoder.default(self, obj)
