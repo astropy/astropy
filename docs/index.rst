@@ -53,7 +53,8 @@ User Documentation
    stability
    whatsnew/index
    known_issues
-   creditsandlicense
+   credits
+   license
 
 
 ***********************
