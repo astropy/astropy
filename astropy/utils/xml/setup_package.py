@@ -23,6 +23,8 @@ def get_extensions(build_type='release'):
     if setup_helpers.use_system_library('expat'):
         setup_helpers.pkg_config(
             ['expat'], ['expat'], include_dirs, library_dirs, libraries)
+        if not libraries:
+            libraries.append('expat')
     else:
         EXPAT_DIR = 'cextern/expat/lib'
         source_files.extend([
