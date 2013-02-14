@@ -75,7 +75,7 @@ outputs or multiprocessing, and write results in
 'subset' sub-directory:
 
 >>> validate.check_conesearch_sites(
-...     destdir='./subset', verbose=False, multiproc=False, url_list=urls)
+...     destdir='./subset', verbose=False, parallel=False, url_list=urls)
 
 Add 'W24' from `astropy.io.votable.exceptions` to the list of
 ignored warnings and re-run default validation. This is *not*
@@ -143,7 +143,7 @@ NONCRIT_WARNINGS = ConfigurationItem(
 _OUT_ROOT = None  # Set by `check_conesearch_sites`
 
 
-def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
+def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
                            url_list=CS_URLS()):
     """
     Validate Cone Search Services.
@@ -246,7 +246,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     verbose : bool
         Print extra info to log.
 
-    multiproc : bool
+    parallel : bool
         Enable multiprocessing.
 
     url_list : list of string
@@ -383,7 +383,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
 
     all_urls = key_lookup_by_url.keys()
 
-    if multiproc:
+    if parallel:
         from multiprocessing import Pool
         mp_list = []
         pool = Pool()
@@ -409,7 +409,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, multiproc=True,
     html_subsets = result.get_result_subsets(mp_list, _OUT_ROOT)
     html.write_index(html_subsets, all_urls, _OUT_ROOT)
 
-    if multiproc:
+    if parallel:
         html_subindex_args = [(html_subset, uniq_rows)
                               for html_subset in html_subsets]
         mp_proc = pool.map_async(_html_subindex, html_subindex_args)

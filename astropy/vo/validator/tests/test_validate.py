@@ -56,13 +56,13 @@ class TestConeSearchValidation(object):
 
         REMOTE_TIMEOUT.set(30)
 
-    @pytest.mark.parametrize(('multiproc'), [True, False])
-    def test_validation(self, multiproc):
+    @pytest.mark.parametrize(('parallel'), [True, False])
+    def test_validation(self, parallel):
         if os.path.exists(self.out_dir):
             shutil.rmtree(self.out_dir)
 
         validate.check_conesearch_sites(
-            destdir=self.out_dir, multiproc=multiproc, url_list=None)
+            destdir=self.out_dir, parallel=parallel, url_list=None)
 
         for val in self.filenames.values():
             _compare_catnames(get_pkg_data_filename(
