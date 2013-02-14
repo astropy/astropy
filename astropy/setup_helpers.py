@@ -1351,8 +1351,17 @@ def pkg_config(packages, default_libraries, include_dirs, library_dirs,
         log.warn('\n'.join(lines))
         libraries.extend(default_libraries)
     else:
-        for token in output.split():
-            locals()[flag_map.get(token[:2])].append(token[2:])
+        if pipe.returncode != 0:
+            lines = [
+                "pkg-config could not lookup up package(s) {0}.".format(
+                    ", ".join(packages)),
+                "This may cause the build to fail below."
+                ]
+            log.warn('\n'.join(lines))
+            libraries.extend(default_libraries)
+        else:
+            for token in output.split():
+                locals()[flag_map.get(token[:2])].append(token[2:])
 
 
 def add_external_library(library):
