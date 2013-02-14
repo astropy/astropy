@@ -156,6 +156,7 @@ def test_exception_logging_overridden():
     assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'
 
 
+@pytest.mark.xfail("ip is not None")
 def test_exception_logging():
 
     # Without exception logging
@@ -197,6 +198,7 @@ def test_exception_logging():
     assert len(log_list) == 0
 
 
+@pytest.mark.xfail("ip is not None")
 def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly
