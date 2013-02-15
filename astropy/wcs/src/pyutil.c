@@ -222,12 +222,46 @@ PyObject* WcsExc_InvalidTabularParameters;
  */
 PyObject** wcs_errexc[14];
 
+static PyObject*
+_new_exception_with_doc(char *name, char *doc, PyObject *base)
+{
+#if PYTHON_VERSION_HEX >= 0x02070000
+  return PyErr_NewExceptionWithDoc(name, doc, base, NULL);
+#else
+  /* Python 2.6 doesn't have PyErr_NewExceptionWithDoc */
+  PyObject *dict;
+  PyObject *docobj;
+  int result;
+
+  dict = PyDict_New();
+  if (dict == NULL) {
+    return NULL;
+  }
+
+  if (doc != NULL) {
+    docobj = PyString_FromString(doc);
+    if (docobj == NULL) {
+      Py_DECREF(dict);
+      return NULL;
+    }
+
+    result = PyDict_SetItemString(dict, "__doc__", docobj);
+    Py_DECREF(docobj);
+    if (result < 0) {
+      Py_DECREF(dict);
+      return NULL;
+    }
+
+    return PyErr_NewException(name, base, dict);
+  }
+#endif
+}
+
 #define DEFINE_EXCEPTION(exc) \
-  WcsExc_##exc = PyErr_NewExceptionWithDoc(                             \
+  WcsExc_##exc = _new_exception_with_doc(                             \
       "astropy.wcs._wcs." #exc "Error",                                 \
       doc_##exc,                                                        \
-      WcsExc_Wcs,                                                 \
-      NULL);                                                            \
+      WcsExc_Wcs);                                                      \
   if (WcsExc_##exc == NULL) \
     return 1; \
   PyModule_AddObject(m, #exc "Error", WcsExc_##exc); \
@@ -236,11 +270,10 @@ int
 _define_exceptions(
     PyObject* m) {
 
-  WcsExc_Wcs = PyErr_NewExceptionWithDoc(
+  WcsExc_Wcs = _new_exception_with_doc(
       "astropy.wcs._wcs.WcsError",
       doc_WcsError,
-      PyExc_ValueError,
-      NULL);
+      PyExc_ValueError);
   if (WcsExc_Wcs == NULL) {
     return 1;
   }
