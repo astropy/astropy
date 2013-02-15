@@ -96,10 +96,10 @@ completion:
 >>> async_result = async_search.get(timeout=30)
 >>> cone_arr = async_result.array.data
 
-Estimate the execution time and the number of results for
+Estimate the execution time and the number of objects for
 the cone search above. The function naively assumes a
 linear model, which might not be accurate for some cases.
-It also uses the normal cone search function, not the
+It also uses the normal Cone Search function, not the
 asynchronous version. This example uses a custom timeout
 of 30 seconds:
 
@@ -116,8 +116,9 @@ and compare with the prediction above. Keep in mind that
 running this for every prediction would defeat the purpose
 of the prediction itself:
 
->>> t_real, n_real = conesearch.conesearch_timer(
+>>> t_real, tab = conesearch.conesearch_timer(
 ...     6.088, -72.086, 0.5, catalog_db=result.url, pedantic=False)
+>>> n_real = tab.array.size
 
 If one is unable to obtain any results using the default
 cone search database that only contains sites that cleanly
@@ -190,10 +191,7 @@ for the catalog above:
 """
 from __future__ import print_function, division
 
-# STDLIB
-import time
-
-# THIRD PARTY
+# THIRD-PARTY
 import numpy as np
 
 # LOCAL
@@ -202,6 +200,7 @@ from ...config.configuration import ConfigurationItem
 from ...logger import log
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.compat.futures import ThreadPoolExecutor
+from ...utils.timer import timefunc, RunTimePredictor
 
 
 __all__ = ['AsyncConeSearch', 'conesearch', 'list_catalogs', 'predict_search',
@@ -383,38 +382,32 @@ def list_catalogs(**kwargs):
 
 def predict_search(url, *args, **kwargs):
     """
-    Predict the execution time needed and the number of results
+    Predict the execution time needed and the number of objects
     for a cone search for the given access URL, position, and
     radius.
 
-    A search is first done with zero radius to establish network
-    latency time, which does not account for variability in
-    latency. Since the first call can take longer than usual
-    due to non-network activities, latency time is defined as
-    half of this search time.
+    Baseline searches are done by `astropy.utils.timer.RunTimePredictor`
+    with starting and ending radii at 0.05 and 0.5 of the given radius,
+    respectively.
 
-    Subsequent searches are done with starting and ending radii
-    at 0.05 and 0.5 of the given radius, respectively. Searches
-    that take longer than network latency time will be used to
-    extrapolate the search time and number of results. Searches
-    will stop when search time reaches `astropy.utils.remote_timeout`
-    or radius reaches half of the given value.
-
-    Extrapolation uses least-square straight line fitting,
-    assuming linear increase of search time and number of results
+    Extrapolation on good data uses least-square straight line fitting,
+    assuming linear increase of search time and number of objects
     with radius, which might not be accurate for some cases. If
-    there are less than three data points in the fit, it fails.
+    there are less than 3 data points in the fit, it fails.
 
     Warnings (controlled by :mod:`warnings`) are given upon:
 
         #. Fitted slope is negative.
-        #. Estimated time exceeds `astropy.utils.remote_timeout`.
-        #. Estimated number of results is 0 or exceeds 10,000.
+        #. Any of the estimated results is negative.
+        #. Estimated runtime exceeds `astropy.utils.remote_timeout`.
 
     .. note::
 
-        If `verbose` keyword is set to `True`, extra log INFO
-        and plot will be displayed. The plot uses :mod:`matplotlib`.
+        If `verbose=True` is given, extra log info will be provided.
+        But unlike `conesearch_timer`, timer info is suppressed.
+
+        If `plot=True` is given, plot will be displayed.
+        Plotting uses :mod:`matplotlib`.
 
         The predicted results are just *rough* estimates.
 
@@ -427,6 +420,8 @@ def predict_search(url, *args, **kwargs):
         Cone Search access URL to use.
 
     args, kwargs : see `conesearch`
+        Extra keyword `plot` is allowed and only used by this
+        function and not `conesearch`.
 
     Returns
     -------
@@ -434,12 +429,15 @@ def predict_search(url, *args, **kwargs):
         Estimated time in seconds needed for the search.
 
     n_est : int
-        Estimated number of results the search will yield.
+        Estimated number of objects the search will yield.
 
     Raises
     ------
     ConeSearchError
-        If input args are invalid or prediction fails.
+        If input paramters are invalid.
+
+    AssertionError
+        If prediction fails.
 
     """
     if len(args) != 3 or args[2] <= 0:  # pragma: no cover
@@ -447,82 +445,73 @@ def predict_search(url, *args, **kwargs):
             'conesearch must have exactly 3 arguments and search radius '
             'has to be > 0.')
 
+    plot = kwargs.get('plot', False)
+    if 'plot' in kwargs:
+        del kwargs['plot']
+
     ra, dec, sr = args
     verbose = kwargs.get('verbose', True)
 
-    # First search with radius=0 to establish network latency time
     kwargs['catalog_db'] = url
-    t_0, n_cur = conesearch_timer(ra, dec, 0, **kwargs)
+    cs_pred = RunTimePredictor(conesearch, ra, dec, **kwargs)
 
     # Search properties for timer extrapolation
-    min_datapoints = 3  # Minimum successful searches needed for extrapolation
     num_datapoints = 10  # Number of desired data points for extrapolation
-    t_min = 0.5 * t_0  # Min time to be considered not due to network latency
-    t_max = REMOTE_TIMEOUT()  # Max time to be considered too long
-    n_min = 1      # Min number of results to be considered valid (inclusive)
-    n_max = 10000  # Max number of results to be considered valid (inclusive)
     sr_min = 0.05 * sr  # Min radius to start the timer
     sr_max = 0.5 * sr   # Max radius to stop the timer
     sr_step = (1.0 / num_datapoints) * (sr_max - sr_min)  # Radius step
 
-    if verbose:  # pragma: no cover
-        log.info('predict_search latency time = {0} s\n'
-                 'predict_search radius step = {1} deg'.format(t_min, sr_step))
-
     # Slowly increase radius to get data points for extrapolation
-    t_cur = t_min
-    sr_cur = sr_min
-    sr_arr, t_arr, n_arr = [], [], []
-    while t_cur < t_max and sr_cur < sr_max:
-        t_cur, n_cur = conesearch_timer(ra, dec, sr_cur, **kwargs)
-
-        if verbose:  # pragma: no cover
-            log.info('predict_search took {0} s with {1} results '
-                     'at {2} deg radius'.format(t_cur, n_cur, sr_cur))
-
-        if t_cur >= t_min:
-            sr_arr.append(sr_cur)
-            t_arr.append(t_cur)
-            n_arr.append(n_cur)
-
-        sr_cur += sr_step
-
-    n_datapoints = len(sr_arr)
-    if n_datapoints < min_datapoints:  # pragma: no cover
-        raise ConeSearchError('predict_search only has {0} data points; '
-                              'unable to continue.'.format(n_datapoints))
-
-    sr_arr = np.array(sr_arr)
-    t_arr = np.array(t_arr)
-    n_arr = np.array(n_arr)
+    sr_arr = np.arange(sr_min, sr_max + sr_step, sr_step)
+    cs_pred.time_func(sr_arr)
 
     # Predict execution time
-    t_est, t_fit = _extrapolate(sr_arr, t_arr, sr, ymax=t_max,
-                                name='execution time', unit='s')
+    t_coeffs = cs_pred.do_fit()
+    t_est = cs_pred.predict_time(sr)
 
-    # Predict number of results
-    n_est, n_fit = _extrapolate(sr_arr, n_arr, sr, ymin=n_min, ymax=n_max,
-                                name='number of results')
+    if t_est < 0 or t_coeffs[0] < 0:
+        log.warn('Estimated runtime ({0} s) is non-physical with slope of '
+                 '{1}'.format(t_est, t_coeffs[0]))
+    elif t_est > REMOTE_TIMEOUT():
+        log.warn('Estimated runtime is longer than timeout of '
+                 '{0} s'.format(REMOTE_TIMEOUT()))
 
-    if verbose:  # pragma: no cover
-        from matplotlib import pyplot as plt
-        fig = plt.figure()
+    # Predict number of objects
+    sr_arr = sorted(cs_pred.results)  # Orig with floating point error
+    n_arr = [cs_pred.results[key].array.size for key in sr_arr]
+    n_coeffs = np.polyfit(sr_arr, n_arr, 1)
+    n_fitfunc = np.poly1d(n_coeffs)
+    n_est = int(round(n_fitfunc(sr)))
 
-        ax1 = fig.add_subplot(211)
-        _plot_predictions(ax1, sr_arr, t_arr, t_fit, sr, t_est, 't (s)')
+    if n_est < 0 or n_coeffs[0] < 0:
+        log.warn('Estimated #objects ({0}) is non-physical with slope of '
+                 '{1}'.format(n_est, n_coeffs[0]))
 
-        ax2 = fig.add_subplot(212)
-        _plot_predictions(ax2, sr_arr, n_arr, n_fit, sr, n_est, 'N')
-        ax2.set_xlabel('radius (deg)')
+    if plot:  # pragma: no cover
+        import matplotlib.pyplot as plt
 
+        xlabeltext = 'radius (deg)'
+        sr_fit = np.append(sr_arr, sr)
+        n_fit = n_fitfunc(sr_fit)
+
+        cs_pred.plot(xlabeltext=xlabeltext)
+
+        fig, ax = plt.subplots()
+        ax.plot(sr_arr, n_arr, 'kx-', label='Actual')
+        ax.plot(sr_fit, n_fit, 'b--', label='Fit')
+        ax.scatter([sr], [n_est], marker='o', c='r', label='Predicted')
+        ax.set_xlabel(xlabeltext)
+        ax.set_ylabel('#objects')
+        ax.legend(loc='best', numpoints=1)
         plt.draw()
 
-    return t_est, int(n_est)
+    return t_est, n_est
 
 
+@timefunc(1)
 def conesearch_timer(*args, **kwargs):
-    """
-    Time a single conesearch. For use by `predict_search`.
+    """Time a single conesearch using `astropy.utils.timer.timefunc`
+    with single try and verbose timer.
 
     Parameters
     ----------
@@ -533,19 +522,10 @@ def conesearch_timer(*args, **kwargs):
     t : float
         Execution time in seconds.
 
-    n : int
-        Number of results.
+    obj : see `conesearch`
 
     """
-    t_beg = time.time()
-    try:
-        out_votable = conesearch(*args, **kwargs)
-    except vos_catalog.VOSError:
-        n = 0
-    else:
-        n = out_votable.array.size
-    t_end = time.time()
-    return t_end - t_beg, n
+    return conesearch(*args, **kwargs)
 
 
 def _local_conversion(func, x):
@@ -553,32 +533,6 @@ def _local_conversion(func, x):
     try:
         y = func(x)
     except ValueError as e:  # pragma: no cover
-        raise ConeSearchError(e.message)
-    return y
-
-
-def _extrapolate(x_arr, y_arr, x, ymin=None, ymax=None, name='data', unit=''):
-    """For use by `predict_search`."""
-    a = np.polyfit(x_arr, y_arr, 1)
-    p = np.poly1d(a)
-    y = p(x)
-    y_fit = p(x_arr)
-
-    if a[0] < 0:
-        log.warn('Fitted slope for {0} is negative ({1})'.format(name, a[0]))
-
-    if ymin is not None and y < ymin:  # pragma: no cover
-        log.warn('Predicted {0} is less than {1} {2}'.format(name, ymin, unit))
-    elif ymax is not None and y > ymax:  # pragma: no cover
-        log.warn('Predicted {0} is more than {1} {2}'.format(name, ymax, unit))
-
-    return y, y_fit
-
-
-def _plot_predictions(ax, x_arr, y_arr, y_fit, x, y,
-                      ylabel):  # pragma: no cover
-    """For use by `predict_search`."""
-    ax.plot(x_arr, y_arr, 'kx-')
-    ax.plot(x_arr, y_fit, 'b--')
-    ax.scatter([x], [y], marker='o', c='r')
-    ax.set_ylabel(ylabel)
+        raise ConeSearchError(str(e))
+    else:
+        return y

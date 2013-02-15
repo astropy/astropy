@@ -141,9 +141,10 @@ class TestConeSearch(object):
 
     def test_prediction(self):
         """Prediction tests are not very accurate but will have to do."""
-        t_1, n_1 = conesearch.conesearch_timer(
+        t_1, tab_1 = conesearch.conesearch_timer(
             self.ra, self.dec, self.sr, catalog_db=self.url,
             pedantic=self.pedantic, verbose=self.verbose)
+        n_1 = tab_1.array.size
 
         t_2, n_2 = conesearch.predict_search(
             self.url, self.ra, self.dec, self.sr,
