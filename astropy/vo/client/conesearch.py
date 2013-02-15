@@ -12,8 +12,7 @@ locally in a session via AstroPy configuration system.
 
 .. note::
 
-    Currently, setting the `pedantic` keyword to `True`
-    will not yield any results.
+    Most services currently fail to parse when `pedantic` is `True`.
 
 .. warning::
 
