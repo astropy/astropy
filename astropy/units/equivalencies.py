@@ -24,9 +24,9 @@ def spectral():
     """
 
     return [
-        (si.m, si.Hz, lambda x: _si.c / x),
-        (si.m, si.J, lambda x: (_si.c * _si.h) / x),
-        (si.Hz, si.J, lambda x: _si.h * x)
+        (si.m, si.Hz, lambda x: _si.c.value / x),
+        (si.m, si.J, lambda x: (_si.c.value * _si.h.value) / x),
+        (si.Hz, si.J, lambda x: _si.h.value * x)
     ]
 
 
@@ -35,7 +35,7 @@ def spectral_density(sunit, sfactor):
     Returns a list of equivalence pairs that handle spectral density
     with regard to wavelength and frequency.
     """
-    c_Aps = _si.c * 10 ** 10
+    c_Aps = _si.c.value * 10 ** 10
 
     fla = cgs.erg / si.angstrom / si.cm ** 2 / si.s
     fnu = cgs.erg / si.Hz / si.cm ** 2 / si.s
