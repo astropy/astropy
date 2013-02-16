@@ -1,12 +1,17 @@
 language: python
 
+
+python:
+    - 2.7
+    - 3.3
+    # Note that these are *only* for the egg_info builds rather than the actual tests.
+    # The tests are run in the matrix/include section below, to give more fine-grained control.
+    # Also, Travis doesn't seem to like having nothing in the "python" or "env" sections.
+env:
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+
 matrix:
     include:
-        # Make sure egg_info command works on both 2.x and 3.x - do this first because it's fast-running
-        - python: 2.7
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
-        - python: 3.3
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
         #try all python versions with the latest numpy
         - python: 2.7
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
