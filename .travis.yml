@@ -3,29 +3,35 @@ language: python
 python:
     - 2.7
     - 2.6
+    - 3.3
     - 3.2
 env:
-    - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-    - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-    - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
 
 matrix:
     include:
+        #try alternate numpy versions on both 2.7 and 3.3
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=true
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
-        - python: 3.2
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
-        - python: 2.7
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
-    exclude:
-        - python: 3.2
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.2
-          env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+        # Make sure all the tests also pass with the optional dependences on both 2.x and 3.x
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
+        - python: 3.3
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
+        # Make sure egg_info command works on both 2.x and 3.x
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        # Check for sphinx doc build warnings
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
