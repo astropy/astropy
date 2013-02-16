@@ -26,18 +26,14 @@ matrix:
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.2 #numpy 1.6.2 only seems to work in 3.2 - not 3.1 or 3.3
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.1 #numpy 1.6.2 only seems to work in 3.2 - not 3.1 or 3.3
-          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.3 #numpy 1.6.2 only seems to work in 3.2 - not 3.1 or 3.3
+        - python: 3.2 #numpy 1.6.2 w/ py3.x only seems to work in 3.2 - not 3.3
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         # Make sure all the tests also pass with the optional dependences on both 2.x and 3.x
         - python: 2.7
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.2 #build errors in 1.7?
+        - python: 3.2 #choose *either* this or 3.3
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.3 #build errors in 1.7?
+        - python: 3.3 #choose *either* this or 3.2
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
         # Check for sphinx doc build warnings
         - python: 2.7
