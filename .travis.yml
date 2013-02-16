@@ -1,16 +1,22 @@
 language: python
 
-python:
-    - 2.7
-    - 2.6
-    - 3.3
-    - 3.2
-env:
-    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
-
 matrix:
     include:
-        #try alternate numpy versions on both 2.7 and 3.2 - using 3.2 because the numpy builds fail on 3.3
+        # Make sure egg_info command works on both 2.x and 3.x - do this first because it's fast-running
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
+        #try all python versions with the latest numpy
+        - python: 2.7
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 2.6
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.2
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
+        #try alternate numpy versions on both 2.7 and 3.2 - using 3.2 because the numpy builds fail on 3.3 for older numpys
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
@@ -24,11 +30,6 @@ matrix:
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
         - python: 3.3
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-        # Make sure egg_info command works on both 2.x and 3.x
-        - python: 2.7
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
-        - python: 3.3
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
         # Check for sphinx doc build warnings
         - python: 2.7
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
