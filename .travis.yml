@@ -10,14 +10,14 @@ env:
 
 matrix:
     include:
-        #try alternate numpy versions on both 2.7 and 3.3
+        #try alternate numpy versions on both 2.7 and 3.2 - using 3.2 because the numpy builds fail on 3.3
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.3
+        - python: 3.2
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.3
+        - python: 3.2
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         # Make sure all the tests also pass with the optional dependences on both 2.x and 3.x
         - python: 2.7
