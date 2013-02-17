@@ -4,7 +4,9 @@ python:
     - 2.7
     - 2.6
     - 3.2
+    - 3.3
 env:
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
     - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
     - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
     - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
@@ -22,6 +24,12 @@ matrix:
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
     exclude:
+        - python: 3.3
+          env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+        - python: 3.3
+          env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
