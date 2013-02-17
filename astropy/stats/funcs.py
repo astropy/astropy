@@ -11,7 +11,7 @@ from __future__ import division
 
 import numpy as np
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'effhist']
+__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_efficiency']
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
@@ -112,8 +112,8 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         return data[mask], mask.reshape(oldshape)
 
 
-def binom_conf_interval(k, n, conf=0.68269):
-    r"""Confidence interval on binomial probability given k successes,
+def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
+    r"""Binomial proportion confidence interval given k successes,
     n trials.
 
     Parameters
@@ -124,113 +124,185 @@ def binom_conf_interval(k, n, conf=0.68269):
         Number of trials (`n` > 0).
     conf : float, optional
         Desired probability content of interval. Default is 0.68269.
+    interval : {'wilson', 'jeffreys'}, optional
+        Formula used for confidence interval (see notes). Default is 'wilson'.
 
     Returns
     -------
-    interval : numpy.ndarray
-        `interval[0]` and `interval[1]` correspond to the lower and upper
-        limits, respectively, for each element in `k`, `n`.
+    conf_interval : numpy.ndarray
+        `conf_interval[0]` and `conf_interval[1]` correspond to the lower
+        and upper limits, respectively, for each element in `k`, `n`.
 
     Notes
     -----
+    In situations where a probability of success is not known, it can
+    be estimated from a number of trials (N) and number of
+    observed successes (k). For example, this is done in Monte
+    Carlo experiments designed to estimate a detection efficiency. It
+    is simple to take the sample proportion of successes (k/N)
+    as a reasonable best estimate of the true probability
+    :math:`\epsilon`. However, deriving an accurate confidence
+    interval on :math:`\epsilon` is non-trivial. There are several
+    formulas for this interval (see [1]_). Two intervals are implemented
+    here:
 
-    In situations where a probability of success is not known, it can be
-    estimated from an observed number of trials and successes. For example,
-    this is done in Monte Carlo experiments designed to estimate a detection
-    efficiency. Given a *known* probability of success :math:`\epsilon`,
-    and number of trials ``N``, the binomial distribution gives the
-    probability of observing ``k`` successes:
-
-    .. math::
-
-        P(k | \epsilon, N) = \frac{N!}{k!(N-k)!} \epsilon^k (1-\epsilon)^{N-k}
-
-    Using Bayes' theorem and a flat prior on :math:`\epsilon` gives
-    the desired posterior probability distribtion for
-    :math:`\epsilon`, given ``k`` observed successes out of ``N``
-    trials:
+    **1. The Wilson Interval.** This interval, attributed to Wilson [2]_,
+    is given by
 
     .. math::
 
-        P(\epsilon|k,N) = \frac{\Gamma(N+2)}{\Gamma(k+1)\Gamma(N-k+1)}
-        \epsilon^k (1-\epsilon)^{N-k}
+        CI_W = \frac{k + \kappa^2/2}{N + \kappa^2}
+        \pm \frac{\kappa n^{1/2}}{n + \kappa^2}
+        ((\hat{\epsilon}(1 - \hat{\epsilon}) + \kappa^2/(4n))^{1/2}
 
-    This probability density function peaks at :math:`\epsilon` = ``k / N``,
-    as expected for the best estimate of :math:`\epsilon`. The
-    PDF fully describes one's knowledge about :math:`\epsilon`, but it
-    is often desirable to calculate an interval that contains a given
-    fraction :math:`\lambda` of the total probability content (for
-    example, 68.3%).
+    where :math:`\hat{\epsilon} = k / N` and :math:`\kappa` is the
+    number of standard deviations corresponding to the desired
+    confidence interval for a *normal* distribution (for example,
+    1.0 for a confidence interval of 68.269%). For a
+    confidence interval of 100(1 - :math:`\alpha`)%,
 
-    There is not a unique interval that satisfies this criterion.
-    One choice is an interval that contains :math:`\lambda` of the
-    total probability content below the peak of the distribution and
-    :math:`\lambda` of the total probability content above the peak.
-    This has the advantage of being easy to calculate with existing tools,
-    and is what this function does. (Another well-motivated choice is
-    the *shortest* interval that contains :math:`\lambda` of the total
-    probability content. However, this is more difficult to implement
-    and it should not differ significantly from the above interval.)
+    .. math::
+
+        \kappa = \Phi^{-1}(1-\alpha/2) = \sqrt{2}{\rm erf}^{-1}(1-\alpha).
+
+    **2. The Jeffreys Interval.** This interval is derived by applying
+    Bayes' theorem to the binomial distribution with the
+    noninformative Jeffreys prior [3]_, [4]_. The noninformative Jeffreys
+    prior is the Beta distribution, Beta(1/2, 1/2), which has the density
+    function
+
+    .. math::
+
+        f(\epsilon) = \pi^{-1} \epsilon^{-1/2}(1-\epsilon)^{-1/2}.
+
+    The posterior density function is also a Beta distribution: Beta(k
+    + 1/2, N - k + 1/2). The interval is then chosen so that it is
+    *equal-tailed*: Each tail (outside the interval) contains
+    :math:`\alpha`/2 of the posterior probability, and the interval
+    itself contains 1 - :math:`\alpha`. This interval must be
+    calculated numerically. Additionally, when k = 0 the lower limit
+    is set to 0 and when k = N the upper limit is set to 1, so that in
+    these cases, there is only one tail containing :math:`\alpha`/2
+    and the interval itself contains 1 - :math:`\alpha`/2 rather than
+    the nominal 1 - :math:`\alpha`.
+
+    References
+    ----------
+    .. [1] Brown, Lawrence D.; Cai, T. Tony; DasGupta, Anirban (2001).
+       "Interval Estimation for a Binomial Proportion". Statistical
+       Science 16 (2): 101-133. doi:10.1214/ss/1009213286
+
+    .. [2] Wilson, E. B. (1927). "Probable inference, the law of
+       succession, and statistical inference". Journal of the American
+       Statistical Association 22: 209-212.
+
+    .. [3] Jeffreys, Harold (1946). "An Invariant Form for the Prior
+       Probability in Estimation Problems". Proc. R. Soc. Lond.. A 24 186
+       (1007): 453-461. doi:10.1098/rspa.1946.0056
+
+    .. [4] Jeffreys, Harold (1998). Theory of Probability. Oxford
+       University Press, 3rd edition. ISBN 978-0198503682
 
     Examples
     --------
+    Integer inputs return an array with shape (2,):
 
-    >>> binom_conf_interval(4, 5)
-    array([ 0.5831211 ,  0.90251087])
+    >>> binom_conf_interval(4, 5, interval='wilson')
+    array([ 0.57921724,  0.92078259])
 
-    >>> binom_conf_interval([4, 2, 0, 5], 5)
-    array([[ 0.5831211 ,  0.23375493,  0.        ,  0.82587432],
-           [ 0.90251087,  0.60473566,  0.17412568,  1.        ]])
+    Arrays of arbitrary dimension are supported. The Wilson and Jeffreys
+    intervals give similar results, even for small k, N:
 
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wilson')
+    array([[ 0.        ,  0.07921741,  0.21597328,  0.83333304],
+           [ 0.16666696,  0.42078276,  0.61736012,  1.        ]])
+
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='jeffreys')
+    array([[ 0.        ,  0.0842525 ,  0.21789949,  0.82788246],
+           [ 0.17211754,  0.42218001,  0.61753691,  1.        ]])
     """
 
-    from scipy.special import betainc, betaincinv
-
+    # Check conf.
     if conf < 0. or conf > 1.:
         raise ValueError('conf must be between 0. and 1.')
-    tails = 1. - conf
+    alpha = 1. - conf
 
-    k = np.array(k).astype(np.int)
-    n = np.array(n).astype(np.int)
+    # Check k and n.
+    k = np.asarray(k).astype(np.int)
+    n = np.asarray(n).astype(np.int)
     if (n <= 0).any():
         raise ValueError('n must be positive')
     if (k < 0).any() or (k > n).any():
-        raise ValueError('k must be in {0, 1, .., k}')
+        raise ValueError('k must be in {0, 1, .., n}')
 
-    p_peak = k / n  # Peak of PDF.
+    if interval == 'wilson':
+        from scipy.special import erfinv
 
-    # Probability content below and above the peak.
-    p_below = betainc(k + 1, n - k + 1, p_peak)
-    p_above = 1. - p_below
+        kappa = np.sqrt(2.) * erfinv(conf)
+        if kappa > 1.e10: kappa = 1.e10  # Avoid floating point overflows.
+        k = k.astype(np.float)
+        n = n.astype(np.float)
+        p = k / n
+        midpoint = (k + kappa ** 2 / 2.) / (n + kappa ** 2)
+        halflength = (kappa * np.sqrt(n)) / (n + kappa ** 2) * \
+            np.sqrt(p * (1 - p) + kappa ** 2 / (4 * n))
+        conf_interval = np.array([midpoint - halflength,
+                                  midpoint + halflength])
 
-    interval0 = betaincinv(k + 1, n - k + 1, tails * p_below)
-    interval1 = betaincinv(k + 1, n - k + 1, 1. - tails * p_above)
+        # Interval can be out of range [0, 1]
+        # due to floating point errors. Correct this.
+        conf_interval[conf_interval < 0.] = 0.
+        conf_interval[conf_interval > 1.] = 1.
 
-    return np.array([interval0, interval1])
+        return conf_interval
+
+    elif interval == 'jeffreys':
+        from scipy.special import betainc, betaincinv
+
+        lowerbound = betaincinv(k + 0.5, n - k + 0.5, alpha / 2.)
+        upperbound = betaincinv(k + 0.5, n - k + 0.5, 1. - alpha / 2.)
+    
+        # Set lower or upper bound to k/n when k/n = 0 or 1. 
+        lowerbound[k == 0] = 0.
+        upperbound[k == n] = 1.
+
+        return np.array([lowerbound, upperbound])
+    
+    else:
+        raise ValueError('Unrecognized interval: {0:s}'.format(interval))
 
 
-def effhist(x, success, bins=10, range=None, conf=0.68269):
-    """Estimate success probability (e.g., efficiency) and uncertainty in
-    bins in `x`.
+def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
+                      interval='wilson'):
+    """Binomial proportion (efficiency) and confidence interval in bins
+    in `x`.
+
+    For a set of success/failure trials, each corresponding to some
+    value of the parameter `x`, place the trials into bins and return
+    an estimate of the efficiency (number of successes / number of
+    failures) and its uncertainty in each bin.
 
     Parameters
     ----------
     x : list_like
-        Values
+        Values.
     success : list_like (bool)
-        Success (True) or failure (False) corresponding to items in 'x'
+        Success (True) or failure (False) corresponding to each value in `x`.
+        Must be same length as `x`.
     bins : int or sequence of scalars, optional
         If bins is an int, it defines the number of equal-width bins
         in the given range (10, by default). If bins is a sequence, it
         defines the bin edges, including the rightmost edge, allowing
-        for non-uniform bin widths.
+        for non-uniform bin widths (in this case, 'range' is ignored).
     range : (float, float), optional
-        The lower and upper range of the bins. If not provided, range
-        is simply (a.min(), a.max()). Values outside the range are
-        ignored.
+        The lower and upper range of the bins. If `None` (default), 
+        the range is set to (x.min(), x.max()). Values outside the
+        range are ignored.
     conf : float, optional
         Desired probability content contained in confidence interval
-        (p - perr, p + perr). Default is 0.68269.
+        (p - perr[0], p + perr[1]). Default is 0.68269.
+    interval : {'wilson', 'jeffreys'}, optional
+        Formula used for confidence interval. Default is 'wilson'.
 
     Returns
     -------
@@ -254,7 +326,6 @@ def effhist(x, success, bins=10, range=None, conf=0.68269):
 
     Examples
     --------
-
     The true probability is 0.9 for x < 5 and 0.1 at x >= 5. Estimate
     the probability as a function of x based on 100 random trials spread
     over the range 0 < x < 10.
@@ -263,16 +334,17 @@ def effhist(x, success, bins=10, range=None, conf=0.68269):
     >>> success = np.zeros(len(x), dtype=np.bool)
     >>> success[x < 5.] = np.random.rand((x < 5.).sum()) > 0.1
     >>> success[x >= 5.] = np.random.rand((x >= 5.).sum()) > 0.9
-    >>> bin_ctr, bin_hw, p, perr = effhist(x, success, bins=20)
+    >>> bin_ctr, bin_hw, p, perr = binned_efficiency(x, success, bins=20)
 
     Plot it.
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.errorbar(bin_ctr, p, xerr=bin_hw, yerr=perr, ls='none', marker='o',
-    ...              label='estimate')
+    >>> plt.errorbar(bin_ctr, p, xerr=bin_hw, yerr=perr, ls='none',
+    ...              marker='o', label='estimate')
 
-    .. image:: ../stats/images/effhist.png
-
+    .. image:: ../stats/images/binned_efficiency.png
+        :width: 640px
+        :height: 480px
     """
 
     x = np.ravel(x)
@@ -281,24 +353,24 @@ def effhist(x, success, bins=10, range=None, conf=0.68269):
         raise ValueError('Length of x and success must match')
 
     # Put all values into a histogram.
-    hist_x, bin_edges = np.histogram(x, bins=bins, range=range)
+    n, bin_edges = np.histogram(x, bins=bins, range=range)
 
     # Put only values where success = True into the *same* histogram
-    hist_success, bin_edges = np.histogram(x[success], bins=bin_edges)
+    k, bin_edges = np.histogram(x[success], bins=bin_edges)
 
     # Calculate bin centers and half-widths.
     bin_ctr = (bin_edges[:-1] + bin_edges[1:]) / 2.
-    bin_halfwidth = bins - bin_edges[:-1]
+    bin_halfwidth = bin_ctr - bin_edges[:-1]
 
     # Limit to bins with more than zero entries.
-    valid = hist_x > 0
+    valid = n > 0
     bin_ctr = bin_ctr[valid]
     bin_halfwidth = bin_halfwidth[valid]
-    hist_x = hist_x[valid]
-    hist_success = hist_success[valid]
+    n = n[valid]
+    k = k[valid]
 
-    p = hist_success.astype(np.float) / hist_x.astype(np.float)
-    interval = binom_conf_interval(hist_success, hist_x, conf=conf)
-    perr = np.abs(interval - p)
+    p = k / n
+    bounds = binom_conf_interval(k, n, conf=conf, interval=interval)
+    perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr

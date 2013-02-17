@@ -2,7 +2,7 @@
 from __future__ import division
 
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal
+from numpy.testing import assert_equal, assert_almost_equal, assert_allclose
 from ...tests.helper import pytest
 
 from .. import funcs
@@ -70,48 +70,45 @@ def test_compare_to_scipy_sigmaclip():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_binom_conf_interval():
 
-    # Test for corner cases k = 0, k = n, conf = 0., conf = 1.
+    # Corner cases k = 0, k = n, conf = 0., conf = 1.
     n = 5
     k = [0, 4, 5]
     for conf in [0., 0.5, 1.]:
-        interval = funcs.binom_conf_interval(k, n, conf=conf)
+        res = funcs.binom_conf_interval(k, n, conf=conf, interval='wilson')
+        assert ((res >= 0.) & (res <= 1.)).all()
+        res = funcs.binom_conf_interval(k, n, conf=conf, interval='jeffreys')
+        assert ((res >= 0.) & (res <= 1.)).all()
 
-    # Test that confidence interval contains the probability we request.
-    conf = 0.5
-    for k in [0, 1, 2, 3, 4, 5]:
-        lo, hi = funcs.binom_conf_interval(k, n, conf=conf)
-
-        # The posterior PDF is proportional to binom.pmf. Compare the 
-        # integratral of binom.pmf over [0, 1] to the integral over [lo, hi]
-        p_tot = quad(lambda e: stats.binom.pmf(k, n, e), 0., 1.)[0]
-        p_inside = quad(lambda e: stats.binom.pmf(k, n, e), lo, hi)[0]
-        assert_almost_equal(p_inside / p_tot, conf)
-
-        # check correct percentage below the peak
-        p_peak = k / n
-        if k == 0:
-            assert_almost_equal(lo, 0.)
-        else:
-            p_tot_below = quad(lambda e: stats.binom.pmf(k, n, e),
-                               0., p_peak)[0]
-            p_inside_below = quad(lambda e: stats.binom.pmf(k, n, e),
-                                  lo, p_peak)[0]
-            assert_almost_equal(p_inside_below / p_tot_below, conf)
-
-        if k == n:
-            assert_almost_equal(hi, 1.)
+    # Test against table in Brown et al. (2001). (See function docstring.)
+    k = [0, 1, 2, 3, 4]
+    n = 7
+    conf = 0.95
+    result = funcs.binom_conf_interval(k, n, conf=conf,
+                                       interval='jeffreys')
+    table = np.array([[   0., 0.016, 0.065, 0.139, 0.234],
+                      [0.292, 0.501, 0.648, 0.766, 0.861]])
+    assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_effhist():
+def test_binned_efficiency():
 
     # Check that it works.
     nbins = 20
-    x = 10. * np.random.rand(100)
-    success = np.zeros(len(x), dtype=np.bool)
-    success[0:50] = True
-    bin_ctr, bin_hw, p, perr = funcs.effhist(x, success, bins=nbins)
+    x = np.linspace(0., 10., 100)  # Guarantee an `x` in every bin.
+    success = np.ones(len(x), dtype=np.bool)
+    bin_ctr, bin_hw, p, perr = funcs.binned_efficiency(x, success, bins=nbins)
+
+    # Check shape of outputs
     assert bin_ctr.shape == (nbins,)
     assert bin_hw.shape == (nbins,)
     assert p.shape == (nbins,)
     assert perr.shape == (2, nbins)
+
+    # Check that p is 1 in all bins. (success = True for all `x`)
+    assert (p == 1.).all()
+
+    # Check that p is 0 in all bins if success = False for all `x`
+    success[:] = False
+    bin_ctr, bin_hw, p, perr = funcs.binned_efficiency(x, success, bins=nbins)
+    assert (p == 0.).all()
