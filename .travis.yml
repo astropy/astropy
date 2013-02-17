@@ -3,11 +3,13 @@ language: python
 
 python:
     - 2.7
-    - 3.3
-    # Note that these are *only* for the egg_info builds rather than the actual tests.
-    # The tests are run in the matrix/include section below, to give more fine-grained control.
-    # Also, Travis doesn't seem to like having nothing in the "python" or "env" sections.
+    - 3.2
+    # Note that these are *only* for the "default" versions - somthing from python 2.x and 3.x
+    # for each we do an 'egg_info' build and a build with all the optional dependencies.  We
+    # do the latter first because they take the longest.  Testing of all other versions (without
+    # optional dependencies) happens in the "include" section below
 env:
+    - NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
     - NUMPY_VERSION=1.7.0 SETUP_CMD='egg_info' OPTIONAL_DEPS=false
 
 matrix:
@@ -21,20 +23,15 @@ matrix:
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 3.2
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=false
-        #try alternate numpy versions 
+        #try alternate numpy versions
         - python: 2.7
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
         - python: 2.7
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.2 #numpy 1.6.2 w/ py3.x only seems to work in 3.2 - not 3.3
+        - python: 3.2 
           env: NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
-        # Make sure all the tests also pass with the optional dependences on both 2.x and 3.x
-        - python: 2.7
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.2 #choose *either* this or 3.3
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
-        - python: 3.3 #choose *either* this or 3.2
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='test' OPTIONAL_DEPS=true
+        # numpy < 1.6 does not work on py 3.x
+
         # Check for sphinx doc build warnings
         - python: 2.7
           env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
