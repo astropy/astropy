@@ -59,7 +59,7 @@ the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
 
 .. note::
     
-    This way of running the tests will *not* work if you do it within the
+    This way of running the tests may not work if you do it in the
     astropy source distribution.  See :ref:`sourcebuildtest` for how to
     run the tests from the source code directory, or :ref:`running-tests`
     for more details.
