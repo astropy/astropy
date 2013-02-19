@@ -1,12 +1,6 @@
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
-
-0.2rc1 (2013-02-13)
--------------------
-
 New Features
 ^^^^^^^^^^^^
 
