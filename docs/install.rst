@@ -45,8 +45,8 @@ Binary installers
 
 No binary installers are available at this time.
 
-Testing Astropy
----------------
+Testing an installed Astropy
+----------------------------
 
 The easiest way to test your installed version of astropy is running
 correctly is to use the :func:`astropy.test` function::
@@ -56,6 +56,14 @@ correctly is to use the :func:`astropy.test` function::
 
 The tests should run and print out any failures, which you can report at
 the `Astropy issue tracker <http://github.com/astropy/astropy/issues>`_.
+
+.. note::
+    
+    This way of running the tests will *not* work if you do it within the
+    astropy source distribution.  See :ref:`sourcebuildtest` for how to
+    run the tests from the source code directory, or :ref:`running-tests`
+    for more details.
+
 
 
 Building from source
@@ -240,8 +248,10 @@ Alternatively, you can do::
 And the documentation will be generated in the same location, but using the
 *installed* version of Astropy.
 
-Testing your Astropy build
---------------------------
+.. _sourcebuildtest:
+
+Testing a source code build of Astropy
+--------------------------------------
 
 The easiest way to test that your Astropy built correctly (without
 installing astropy) is to run this from the root of the source tree::
