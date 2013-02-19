@@ -331,6 +331,10 @@ class SphericalCoordinatesBase(object):
                 'tuple that can be used to instantiate a Distance object, or '
                 'None.')
 
+        # must clear the old cached cartesian point, or it won't get updated
+        # for the new distance
+        self._cartpoint = None
+
     @property
     def x(self):
         self._make_cart()
