@@ -17,8 +17,7 @@ __all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
            'spherical_to_cartesian']
 
 
-# FIXME: make this subclass Quantity once Quantity is in master
-class Distance(object):
+class Distance(u.Quantity):
     """
     A one-dimensional distance.
 
