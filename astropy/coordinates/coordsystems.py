@@ -325,11 +325,17 @@ class SphericalCoordinatesBase(object):
             self._distance = Distance(*val)
         elif isinstance(val, Distance):
             self._distance = val
+        elif isinstance(val, u.Quantity):
+            self._distance = Distance(val)
         else:
             raise TypeError(
                 'Spherical coordinate distance must be a Distance object, a '
                 'tuple that can be used to instantiate a Distance object, or '
                 'None.')
+
+        # must clear the old cached cartesian point, or it won't get updated
+        # for the new distance
+        self._cartpoint = None
 
     @property
     def x(self):
@@ -523,12 +529,12 @@ class SphericalCoordinatesBase(object):
     # Name resolve
     @classmethod
     def from_name(cls, name):
-        """ 
-        Given a name, query the CDS name resolver to attempt to retrieve 
+        """
+        Given a name, query the CDS name resolver to attempt to retrieve
         coordinate information for that object. The search database, sesame
-        url, and  query timeout can be set through configuration items in 
-        `astropy.coordinates.name_resolve` -- see docstring for 
-        `astropy.coordinates.name_resolve.get_icrs_coordinates` for more 
+        url, and  query timeout can be set through configuration items in
+        `astropy.coordinates.name_resolve` -- see docstring for
+        `astropy.coordinates.name_resolve.get_icrs_coordinates` for more
         information.
 
         Parameters
@@ -539,9 +545,9 @@ class SphericalCoordinatesBase(object):
         Returns
         -------
         coord : SphericalCoordinatesBase
-            Instance of a Coordinates class, specified by the class this is 
-            called on, e.g. if `GalacticCoordinates.from_name('m42')`, will 
-            get an instance of `GalacticCoordinates` representing the 
+            Instance of a Coordinates class, specified by the class this is
+            called on, e.g. if `GalacticCoordinates.from_name('m42')`, will
+            get an instance of `GalacticCoordinates` representing the
             position of M42.
         """
 
