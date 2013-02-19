@@ -325,6 +325,8 @@ class SphericalCoordinatesBase(object):
             self._distance = Distance(*val)
         elif isinstance(val, Distance):
             self._distance = val
+        elif isinstance(val, u.Quantity):
+            self._distance = Distance(val)
         else:
             raise TypeError(
                 'Spherical coordinate distance must be a Distance object, a '
