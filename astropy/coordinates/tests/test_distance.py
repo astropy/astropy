@@ -29,3 +29,14 @@ def test_distance_change():
     c.distance = Distance(2, unit=u.kpc)
 
     assert c.x == oldx * 2
+
+def test_distance_from_quantity():
+    from .. import RA, Dec, ICRSCoordinates, Distance
+
+    ra = RA("4:08:15.162342", unit=u.hour)
+    dec = Dec("-41:08:15.162342", unit=u.degree)
+    c = ICRSCoordinates(ra, dec)
+
+    # a Quantity object should be able to supply a distance
+    q = 2 * u.kpc
+    c.distance = q
