@@ -56,3 +56,13 @@ This is due to mutually incompatible behaviors in IPython and py.test, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
+
+Numpy 1.4.x unreliable on 64-bit Ubuntu
+---------------------------------------
+
+As of Ubuntu 12.04 (and possibly earlier), the 1.4.x versions of numpy sometimes
+cause segmentation faults.  This problem is not unique to Astropy, as the numpy
+tests themselves do not pass, but it does cause some Astropy functionality to
+fail.  
+
+The solution is to use a more recent version of Numpy.
