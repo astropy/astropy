@@ -112,6 +112,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
         return data[mask], mask.reshape(oldshape)
 
 
+#TODO Note scipy dependency
 def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
@@ -122,10 +123,11 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         Number of successes (0 <= `k` <= `n`).
     n : int or numpy.ndarray
         Number of trials (`n` > 0).
-    conf : float, optional
+    conf : float in [0, 1], optional
         Desired probability content of interval. Default is 0.68269.
     interval : {'wilson', 'jeffreys'}, optional
-        Formula used for confidence interval (see notes). Default is 'wilson'.
+        Formula used for confidence interval (see notes for details).
+        Default is 'wilson'.
 
     Returns
     -------
@@ -272,6 +274,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         raise ValueError('Unrecognized interval: {0:s}'.format(interval))
 
 
+#TODO Note scipy dependency (needed in binom_conf_interval)
 def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
                       interval='wilson'):
     """Binomial proportion (efficiency) and confidence interval in bins
@@ -287,22 +290,26 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
     x : list_like
         Values.
     success : list_like (bool)
-        Success (True) or failure (False) corresponding to each value in `x`.
-        Must be same length as `x`.
+        Success (True) or failure (False) corresponding to each value
+        in `x`.  Must be same length as `x`.
     bins : int or sequence of scalars, optional
         If bins is an int, it defines the number of equal-width bins
         in the given range (10, by default). If bins is a sequence, it
         defines the bin edges, including the rightmost edge, allowing
         for non-uniform bin widths (in this case, 'range' is ignored).
     range : (float, float), optional
-        The lower and upper range of the bins. If `None` (default), 
+        The lower and upper range of the bins. If `None` (default),
         the range is set to (x.min(), x.max()). Values outside the
         range are ignored.
-    conf : float, optional
-        Desired probability content contained in confidence interval
-        (p - perr[0], p + perr[1]). Default is 0.68269.
+    conf : float in [0, 1], optional
+        Desired probability content in the confidence
+        interval (p - perr[0], p + perr[1]) in each bin. Default is
+        0.68269.
     interval : {'wilson', 'jeffreys'}, optional
-        Formula used for confidence interval. Default is 'wilson'.
+        Formula used to calculate confidence interval on the
+        efficiency in each bin. The two intervals give similar
+        results.  See `binom_conf_interval` for definition of the
+        intervals. Default is 'wilson'.
 
     Returns
     -------
@@ -326,43 +333,59 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
 
     Examples
     --------
-    The true probability is 0.9 for x < 5 and 0.1 at x >= 5. Estimate
-    the probability as a function of x based on 100 random trials spread
-    over the range 0 < x < 10.
+    Suppose we wish to estimate the detection efficiency of an astronomical
+    source as a function of magnitude using a Monte Carlo experiment with
+    100 trials between magnitude 20. and 30. The true 50% detection magnitude
+    is 25.
+    
+    >>> from scipy.special import erf
+    >>> from scipy.stats.distributions import binom
+    >>> def true_efficiency(x):
+    ...     return 0.5 - 0.5 * erf((x - 25.) / 2.)
+    >>> mag = 20. + 10. * np.random.rand(100)
+    >>> detected = binom.rvs(1, true_efficiency(mag))
+    >>> bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20)
+    >>> plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
+    ...              label='estimate')
 
-    >>> x = 10. * np.random.rand(100)
-    >>> success = np.zeros(len(x), dtype=np.bool)
-    >>> success[x < 5.] = np.random.rand((x < 5.).sum()) > 0.1
-    >>> success[x >= 5.] = np.random.rand((x >= 5.).sum()) > 0.9
-    >>> bin_ctr, bin_hw, p, perr = binned_efficiency(x, success, bins=20)
+    .. plot::
 
-    Plot it.
+       import numpy as np
+       from scipy.special import erf
+       from scipy.stats.distributions import binom
+       import matplotlib.pyplot as plt
+       from astropy.stats import binned_efficiency
+       def true_efficiency(x):
+           return 0.5 - 0.5 * erf((x - 25.) / 2.)
+       mag = 20. + 10. * np.random.rand(100)
+       detected = binom.rvs(1, true_efficiency(mag))
+       bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20)
+       plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
+                    label='estimate')
+       X = np.linspace(20., 30., 1000)
+       plt.plot(X, true_efficiency(X), ls='-', color='r',
+                label='true efficiency')
+       plt.ylim(0., 1.)
+       plt.xlabel('Magnitude')
+       plt.ylabel('Detection efficiency')
+       plt.legend()
+       plt.show()
 
-    >>> import matplotlib.pyplot as plt
-    >>> plt.errorbar(bin_ctr, p, xerr=bin_hw, yerr=perr, ls='none',
-    ...              marker='o', label='estimate')
-
-    .. image:: ../stats/images/binned_efficiency.png
-        :width: 640px
-        :height: 480px
     """
 
     x = np.ravel(x)
     success = np.ravel(success).astype(np.bool)
     if x.shape != success.shape:
-        raise ValueError('Length of x and success must match')
+        raise ValueError('sizes of x and success must match')
 
-    # Put all values into a histogram.
+    # Put values into a histogram (`n`). Put "successful" values
+    # into a second histogram (`k`) with identical binning.
     n, bin_edges = np.histogram(x, bins=bins, range=range)
-
-    # Put only values where success = True into the *same* histogram
     k, bin_edges = np.histogram(x[success], bins=bin_edges)
-
-    # Calculate bin centers and half-widths.
     bin_ctr = (bin_edges[:-1] + bin_edges[1:]) / 2.
     bin_halfwidth = bin_ctr - bin_edges[:-1]
 
-    # Limit to bins with more than zero entries.
+    # Remove bins with zero entries.
     valid = n > 0
     bin_ctr = bin_ctr[valid]
     bin_halfwidth = bin_halfwidth[valid]
