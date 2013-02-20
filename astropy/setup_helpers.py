@@ -6,6 +6,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 from __future__ import absolute_import, print_function
 
+import collections
 import errno
 import imp
 import os
@@ -1304,7 +1305,7 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     return (old_package, shim_dir)
 
 
-class DistutilsExtensionArgs(dict):
+class DistutilsExtensionArgs(collections.defaultdict):
     """
     A special dictionary whose default values are the empty list.
 
@@ -1312,10 +1313,12 @@ class DistutilsExtensionArgs(dict):
     `distutils.Extension` without worrying whether the entry is
     already present.
     """
-    def __getitem__(self, item):
-        if item not in self:
-            dict.__setitem__(self, item, [])
-        return dict.__getitem__(self, item)
+    def __init__(self, *args, **kwargs):
+        def default_factory():
+            return []
+
+        super(DistutilsExtensionArgs, self).__init__(
+            default_factory, *args, **kwargs)
 
     def update(self, other):
         for key, val in other.items():
