@@ -45,5 +45,10 @@ def validate_schema(filename, schema_file):
     if p.returncode == 127:
         raise OSError(
             "xmllint not found, so can not validate schema")
+    elif p.returncode < 0:
+        from ..misc import signal_number_to_name
+        raise OSError(
+            "xmllint was terminated by signal '{0}'".format(
+                signal_number_to_name(-p.returncode)))
 
     return p.returncode, stdout, stderr

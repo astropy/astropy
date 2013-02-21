@@ -676,3 +676,18 @@ def find_api_page(obj, version='dev', openinbrowser=True, timeout=None):
         webbrowser.open(resurl)
 
     return resurl
+
+
+def signal_number_to_name(signum):
+    """
+    Given an OS signal number, returns a signal name.  If the signal
+    number is unknown, returns ``'UNKNOWN'``.
+    """
+    # Since these numbers and names are platform specific, we use the
+    # builtin signal module and build a reverse mapping.
+
+    import signal
+    signal_to_name_map = dict(
+        (k, v) for v, k in signal.__dict__.iteritems() if v.startswith('SIG'))
+
+    return signal_to_name_map.get(signum, 'UNKNOWN')
