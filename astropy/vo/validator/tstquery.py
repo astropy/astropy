@@ -26,6 +26,6 @@ def parse_cs(id):
         dom = minidom.parse(fd)
     tq = dom.getElementsByTagName('testQuery')
     for key in tqp:
-       d[key.upper()] = \
-           tq[0].getElementsByTagName(key)[0].firstChild.nodeValue.strip()
+        d[key.upper()] = \
+            tq[0].getElementsByTagName(key)[0].firstChild.nodeValue.strip()
     return d

@@ -93,9 +93,9 @@ class TestConeSearch(object):
 
     def test_cat_listing(self):
         assert (conesearch.list_catalogs(sort=True) ==
-            ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1'])
+                ['BROKEN', 'USNO ACT', 'USNO NOMAD', 'USNO-A2', 'USNO-B1'])
         assert (conesearch.list_catalogs(pattern='usno*a', sort=True) ==
-            ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
+                ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
     def test_one_search(self):
         """

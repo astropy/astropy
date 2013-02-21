@@ -34,13 +34,14 @@ __all__ = ['check_conesearch_sites']
 
 CS_MSTR_LIST = ConfigurationItem(
     'cs_mstr_list',
-    'http://vao.stsci.edu/directory/NVORegInt.asmx/VOTCapabilityPredOpt?' \
+    'http://vao.stsci.edu/directory/NVORegInt.asmx/VOTCapabilityPredOpt?'
     'predicate=1%3D1&capability=conesearch&VOTStyleOption=2',
     'Cone Search services master list for validation.')
 
 CS_URLS = ConfigurationItem(
     'cs_urls',
-    get_pkg_data_contents(os.path.join('data','conesearch_urls.txt')).split(),
+    get_pkg_data_contents(
+        os.path.join('data', 'conesearch_urls.txt')).split(),
     'Only check these Cone Search URLs.',
     'list')
 
@@ -355,7 +356,8 @@ def _categorize_result(r):
         r['expected'] = 'incorrect'
     else:  # pragma: no cover
         raise vos_catalog.VOSError(
-            'Unhandled validation result attributes: {0}'.format(r._attributes))
+            'Unhandled validation result attributes: '
+            '{0}'.format(r._attributes))
 
 
 def _html_subindex(args):

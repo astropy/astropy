@@ -6,7 +6,7 @@ Tests for `astropy.vo.validator`
 
     This test will fail if external URL query status
     changes. This is beyond the control of AstroPy.
-    When this happens, update the test.
+    When this happens, rerun or update the test.
 
 Examples
 --------
@@ -96,13 +96,13 @@ class TestConeSearchResults(object):
 
     def test_catkeys(self):
         assert (self.r.catkeys['good'] ==
-            ['HST Guide Star Catalog 2.3 1',
-            'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
+                ['HST Guide Star Catalog 2.3 1',
+                 'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
         assert (self.r.catkeys['warn'] == ['SDSS DR7 - '
-            'Data release 7 of Sloan Digital Sky Survey catalogs 1'])
+                'Data release 7 of Sloan Digital Sky Survey catalogs 1'])
         assert self.r.catkeys['exception'] == []
         assert (self.r.catkeys['error'] ==
-            ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1'])
+                ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1'])
 
     def gen_cmp(self, func, oname, *args, **kwargs):
         dat_file = get_pkg_data_filename(os.path.join(self.datadir, oname))

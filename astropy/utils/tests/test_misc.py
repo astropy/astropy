@@ -132,7 +132,7 @@ def test_skip_hidden():
 def test_JsonCustomEncoder():
     assert json.dumps(np.arange(3), cls=misc.JsonCustomEncoder) == '[0, 1, 2]'
     assert json.dumps(1+2j, cls=misc.JsonCustomEncoder) == '[1.0, 2.0]'
-    assert json.dumps(set([1,2,1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
+    assert json.dumps(set([1, 2, 1]), cls=misc.JsonCustomEncoder) == '[1, 2]'
     assert json.dumps(b'hello world \xc3\x85',
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},

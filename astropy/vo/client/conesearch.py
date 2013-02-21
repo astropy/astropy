@@ -264,7 +264,6 @@ def predict_search(url, *args, **kwargs):
         del kwargs['plot']
 
     ra, dec, sr = args
-    verbose = kwargs.get('verbose', True)
 
     kwargs['catalog_db'] = url
     cs_pred = RunTimePredictor(conesearch, ra, dec, **kwargs)

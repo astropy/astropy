@@ -5,9 +5,6 @@ from __future__ import print_function, division
 # STDLIB
 import sys
 
-# THIRD PARTY
-import numpy as np
-
 # LOCAL
 from ..client.vos_catalog import get_remote_catalog_db
 
