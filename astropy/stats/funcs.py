@@ -125,9 +125,12 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
         Number of trials (`n` > 0).
     conf : float in [0, 1], optional
         Desired probability content of interval. Default is 0.68269.
-    interval : {'wilson', 'jeffreys'}, optional
-        Formula used for confidence interval (see notes for details).
-        Default is 'wilson'.
+    interval : {'wilson', 'jeffreys', 'wald'}, optional
+        Formula used for confidence interval. See notes for details.
+        The 'wilson' and 'jeffreys' intervals generally give similar results.
+        'wilson' should be somewhat faster, while 'jeffreys' is marginally
+        superior. The 'wald' interval is generally not recommended.
+        It is provided for comparison purposes. Default is 'wilson'.
 
     Returns
     -------
@@ -145,7 +148,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     as a reasonable best estimate of the true probability
     :math:`\epsilon`. However, deriving an accurate confidence
     interval on :math:`\epsilon` is non-trivial. There are several
-    formulas for this interval (see [1]_). Two intervals are implemented
+    formulas for this interval (see [1]_). Three intervals are implemented
     here:
 
     **1. The Wilson Interval.** This interval, attributed to Wilson [2]_,
@@ -153,7 +156,7 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
     .. math::
 
-        CI_W = \frac{k + \kappa^2/2}{N + \kappa^2}
+        CI_{\rm Wilson} = \frac{k + \kappa^2/2}{N + \kappa^2}
         \pm \frac{\kappa n^{1/2}}{n + \kappa^2}
         ((\hat{\epsilon}(1 - \hat{\epsilon}) + \kappa^2/(4n))^{1/2}
 
@@ -187,6 +190,21 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     these cases, there is only one tail containing :math:`\alpha`/2
     and the interval itself contains 1 - :math:`\alpha`/2 rather than
     the nominal 1 - :math:`\alpha`.
+
+    **3. The Wald Interval.** This interval is given by
+
+    .. math::
+
+       CI_{\rm Wald} = \hat{\epsilon} \pm
+       \kappa \sqrt{\frac{\hat{\epsilon}(1-\hat{\epsilon})}{N}}
+
+    The Wald interval gives acceptable results in some limiting
+    cases. Particularly, when N is very large, and the true proportion
+    :math:`\epsilon` is not "too close" to 0 or 1. However, as the
+    later is not verifiable when trying to estimate :math:`\epsilon`,
+    this is not very helpful. Its use is not recommended, but it is
+    provided here for comparison purposes due to its prevalence in
+    everyday practical statistics.
 
     References
     ----------
@@ -222,14 +240,27 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     >>> binom_conf_interval([0, 1, 2, 5], 5, interval='jeffreys')
     array([[ 0.        ,  0.0842525 ,  0.21789949,  0.82788246],
            [ 0.17211754,  0.42218001,  0.61753691,  1.        ]])
+
+    In contrast, the Wald interval gives poor results for small k, N.
+    For k = 0 or k = N, the interval always has zero length.
+
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald')
+    array([[ 0.        ,  0.02111437,  0.18091075,  1.        ],
+           [ 0.        ,  0.37888563,  0.61908925,  1.        ]])
+
+    For confidence intervals approaching 1, the Wald interval for
+    0 < k < N can give intervals that extend outside [0, 1]:
+
+    >>> binom_conf_interval([0, 1, 2, 5], 5, interval='wald', conf=0.99)
+    array([[ 0.        , -0.26077835, -0.16433593,  1.        ],
+           [ 0.        ,  0.66077835,  0.96433593,  1.        ]])
+
     """
 
-    # Check conf.
     if conf < 0. or conf > 1.:
         raise ValueError('conf must be between 0. and 1.')
     alpha = 1. - conf
 
-    # Check k and n.
     k = np.asarray(k).astype(np.int)
     n = np.asarray(n).astype(np.int)
     if (n <= 0).any():
@@ -237,26 +268,29 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
     if (k < 0).any() or (k > n).any():
         raise ValueError('k must be in {0, 1, .., n}')
 
-    if interval == 'wilson':
+    if interval == 'wilson' or interval == 'wald':
         from scipy.special import erfinv
-
-        kappa = np.sqrt(2.) * erfinv(conf)
-        if kappa > 1.e10: kappa = 1.e10  # Avoid floating point overflows.
+        kappa = np.sqrt(2.) * min(erfinv(conf), 1.e10)  # Avoid overflows.
         k = k.astype(np.float)
         n = n.astype(np.float)
         p = k / n
-        midpoint = (k + kappa ** 2 / 2.) / (n + kappa ** 2)
-        halflength = (kappa * np.sqrt(n)) / (n + kappa ** 2) * \
-            np.sqrt(p * (1 - p) + kappa ** 2 / (4 * n))
-        conf_interval = np.array([midpoint - halflength,
-                                  midpoint + halflength])
 
-        # Interval can be out of range [0, 1]
-        # due to floating point errors. Correct this.
-        conf_interval[conf_interval < 0.] = 0.
-        conf_interval[conf_interval > 1.] = 1.
+        if interval == 'wilson':
+            midpoint = (k + kappa ** 2 / 2.) / (n + kappa ** 2)
+            halflength = (kappa * np.sqrt(n)) / (n + kappa ** 2) * \
+                np.sqrt(p * (1 - p) + kappa ** 2 / (4 * n))
+            conf_interval = np.array([midpoint - halflength,
+                                      midpoint + halflength])
 
-        return conf_interval
+            # Correct intervals out of range due to floating point errors.
+            conf_interval[conf_interval < 0.] = 0.
+            conf_interval[conf_interval > 1.] = 1.
+            return conf_interval
+
+        else:
+            midpoint = p
+            halflength = kappa * np.sqrt(p * (1. - p) / n)
+            return np.array([midpoint - halflength, midpoint + halflength])
 
     elif interval == 'jeffreys':
         from scipy.special import betainc, betaincinv
@@ -305,11 +339,14 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
         Desired probability content in the confidence
         interval (p - perr[0], p + perr[1]) in each bin. Default is
         0.68269.
-    interval : {'wilson', 'jeffreys'}, optional
+    interval : {'wilson', 'jeffreys', 'wald'}, optional
         Formula used to calculate confidence interval on the
-        efficiency in each bin. The two intervals give similar
-        results.  See `binom_conf_interval` for definition of the
-        intervals. Default is 'wilson'.
+        efficiency in each bin. See `binom_conf_interval` for
+        definition of the intervals.  The 'wilson' and 'jeffreys'
+        intervals generally give similar results.  'wilson' should be
+        somewhat faster, while 'jeffreys' is marginally superior.
+        The 'wald' interval is generally not recommended.
+        It is provided for comparison purposes. Default is 'wilson'.
 
     Returns
     -------
@@ -335,9 +372,9 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
     --------
     Suppose we wish to estimate the detection efficiency of an astronomical
     source as a function of magnitude using a Monte Carlo experiment with
-    100 trials between magnitude 20. and 30. The true 50% detection magnitude
-    is 25.
-    
+    100 trials between magnitude 20. and 30. Suppose the true 50% detection
+    efficiency is at magnitude 25:
+
     >>> from scipy.special import erf
     >>> from scipy.stats.distributions import binom
     >>> def true_efficiency(x):
@@ -357,9 +394,46 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
        from astropy.stats import binned_efficiency
        def true_efficiency(x):
            return 0.5 - 0.5 * erf((x - 25.) / 2.)
+       np.random.seed(400)
        mag = 20. + 10. * np.random.rand(100)
+       np.random.seed(600)
        detected = binom.rvs(1, true_efficiency(mag))
        bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20)
+       plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
+                    label='estimate')
+       X = np.linspace(20., 30., 1000)
+       plt.plot(X, true_efficiency(X), ls='-', color='r',
+                label='true efficiency')
+       plt.ylim(0., 1.)
+       plt.xlabel('Magnitude')
+       plt.ylabel('Detection efficiency')
+       plt.legend()
+       plt.show()
+
+    Using the Wald interval (a commonly used interval in everyday
+    practical statistics) gives clearly incorrect results when the
+    efficiency is near 0 or 1:
+
+    >>> bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20,
+    ...                                           interval='wald')
+    >>> plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
+    ...              label='estimate')
+
+    .. plot::
+
+       import numpy as np
+       from scipy.special import erf
+       from scipy.stats.distributions import binom
+       import matplotlib.pyplot as plt
+       from astropy.stats import binned_efficiency
+       def true_efficiency(x):
+           return 0.5 - 0.5 * erf((x - 25.) / 2.)
+       np.random.seed(400)
+       mag = 20. + 10. * np.random.rand(100)
+       np.random.seed(600)
+       detected = binom.rvs(1, true_efficiency(mag))
+       bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20,
+                                                 interval='wald')
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
