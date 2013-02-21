@@ -31,8 +31,7 @@ class VOSError(Exception):  # pragma: no cover
 
 
 class VOSCatalog(object):
-    """
-    A class to represent VO Service Catalog.
+    """A class to represent VO Service Catalog.
 
     Parameters
     ----------
@@ -56,8 +55,7 @@ class VOSCatalog(object):
 
 
 class VOSDatabase(VOSCatalog):
-    """
-    A class to represent a collection of `VOSCatalog`.
+    """A class to represent a collection of `VOSCatalog`.
 
     Parameters
     ----------
@@ -92,8 +90,7 @@ class VOSDatabase(VOSCatalog):
                 yield key, cat
 
     def get_catalog(self, name):
-        """
-        Get one catalog of given name.
+        """Get one catalog of given name.
 
         Parameters
         ----------
@@ -115,8 +112,7 @@ class VOSDatabase(VOSCatalog):
         return VOSCatalog(self._catalogs[name])
 
     def get_catalog_by_url(self, url):
-        """
-        Like `get_catalog` but using access URL look-up.
+        """Like `get_catalog` but using access URL look-up.
         On multiple matches, only first match is returned.
 
         """
@@ -129,8 +125,7 @@ class VOSDatabase(VOSCatalog):
         return out_cat
 
     def list_catalogs(self, pattern=None, sort=False):
-        """
-        List of catalog names.
+        """List of catalog names.
 
         Parameters
         ----------
@@ -163,8 +158,7 @@ class VOSDatabase(VOSCatalog):
 
 
 def get_remote_catalog_db(dbname, cache=True):
-    """
-    Get a database of VO services (which is a JSON file) from a remote
+    """Get a database of VO services (which is a JSON file) from a remote
     location.
 
     Parameters
@@ -207,8 +201,7 @@ def _vo_service_request(url, pedantic, kwargs):
 
 
 def vo_tab_parse(tab, url, kwargs):
-    """
-    In case of errors from the server, a complete and correct
+    """In case of errors from the server, a complete and correct
     'stub' VOTable file may still be returned.  This is to
     detect that case.
 
@@ -272,8 +265,7 @@ def vo_tab_parse(tab, url, kwargs):
 
 def call_vo_service(service_type, catalog_db=None, pedantic=None,
                     verbose=True, cache=True, kwargs={}):
-    """
-    Makes a generic VO service call.
+    """Makes a generic VO service call.
 
     Parameters
     ----------
@@ -375,8 +367,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
 
 def list_catalogs(service_type, cache=True, **kwargs):
-    """
-    List the catalogs available for the given service type.
+    """List the catalogs available for the given service type.
 
     Parameters
     ----------

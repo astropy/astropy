@@ -333,8 +333,7 @@ def _do_validation(url):
 
 
 def _categorize_result(r):
-    """
-    Set success codes.
+    """Set success codes.
 
     Parameters
     ----------
@@ -367,8 +366,7 @@ def _html_subindex(args):
 
 
 def _copy_r_to_db(r, db):
-    """
-    Copy validation result attributes to given JSON database entry.
+    """Copy validation result attributes to given JSON database entry.
 
     Parameters
     ----------

@@ -13,8 +13,7 @@ __all__ = ['ConeSearchResults']
 
 
 class ConeSearchResults(object):
-    """
-    A class to store Cone Search validation results.
+    """A class to store Cone Search validation results.
 
     Attributes
     ----------

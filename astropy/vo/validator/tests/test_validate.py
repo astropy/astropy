@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Tests for `astropy.vo.validator`
+"""Tests for `astropy.vo.validator`
 
 .. note::
 

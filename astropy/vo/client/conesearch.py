@@ -26,8 +26,7 @@ class ConeSearchError(Exception):  # pragma: no cover
 
 
 class AsyncConeSearch(object):
-    """
-    Perform a cone search asynchronously using
+    """Perform a cone search asynchronously using
     :py:class:`concurrent.futures.ThreadPoolExecutor`.
 
     Cone search will be forced to run in silent
@@ -91,8 +90,7 @@ class AsyncConeSearch(object):
             return getattr(self.future, what)
 
     def get(self, timeout=None):
-        """
-        Get result, if available, then shut down thread.
+        """Get result, if available, then shut down thread.
 
         Parameters
         ----------
@@ -122,8 +120,7 @@ class AsyncConeSearch(object):
 
 
 def conesearch(ra, dec, sr, verb=1, **kwargs):
-    """
-    Do a cone search on the given catalog.
+    """Do a cone search on the given catalog.
 
     Parameters
     ----------
@@ -181,8 +178,7 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
 
 
 def list_catalogs(**kwargs):
-    """
-    Return the available conesearch catalogs as a list of strings.
+    """Return the available conesearch catalogs as a list of strings.
     These can be used for the *catalog_db* argument to
     :func:`conesearch`.
 
@@ -195,8 +191,7 @@ def list_catalogs(**kwargs):
 
 
 def predict_search(url, *args, **kwargs):
-    """
-    Predict the execution time needed and the number of objects
+    """Predict the execution time needed and the number of objects
     for a cone search for the given access URL, position, and
     radius.
 

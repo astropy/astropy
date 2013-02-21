@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Tests for `astropy.vo.client`
+"""Tests for `astropy.vo.client`
 
 Examples
 --------
@@ -30,8 +29,7 @@ from ....utils.data import REMOTE_TIMEOUT
 
 @remote_data
 def test_basic_db():
-    """
-    Read dummy `basic.json` database to test underlying database
+    """Read dummy `basic.json` database to test underlying database
     functionality.
 
     """
@@ -62,8 +60,7 @@ def test_basic_db():
 
 @remote_data
 class TestConeSearch(object):
-    """
-    Test Cone Search on a pre-defined access URL.
+    """Test Cone Search on a pre-defined access URL.
 
     .. note::
 
@@ -98,8 +95,7 @@ class TestConeSearch(object):
                 ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
     def test_one_search(self):
-        """
-        This does not necessarily uses `self.url` because of
+        """This does not necessarily uses `self.url` because of
         unordered dict in JSON tree.
 
         """
