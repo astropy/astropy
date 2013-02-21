@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. _astropy-io-votable:
+
 *******************************************
 VOTable XML handling (`astropy.io.votable`)
 *******************************************
@@ -355,6 +357,9 @@ Reference/API
 
 .. automodapi:: astropy.io.votable.xmlutil
    :no-inheritance-diagram:
+
+
+.. _votable-sec-api-exceptions:
 
 astropy.io.votable.exceptions Module
 ------------------------------------

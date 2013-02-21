@@ -170,7 +170,8 @@ def get_remote_catalog_db(dbname, cache=True):
     Parameters
     ----------
     dbname : str
-        Prefix of JSON file to download from `astropy.vo.client.vos_baseurl`.
+        Prefix of JSON file to download from
+        `astropy.vo.client.vos_catalog.BASEURL`.
 
     cache : bool
         Use caching for VO Service database. Access to actual VO
@@ -287,13 +288,13 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
 
         - `None`
               A database of `service_type` catalogs is downloaded from
-              `astropy.vo.client.vos_baseurl`.  The first catalog
+              `astropy.vo.client.vos_catalog.BASEURL`.  The first catalog
               in the database to successfully return a result is used.
 
         - *catalog name*
               A name in the database of `service_type` catalogs
-              at `astropy.vo.client.vos_baseurl` is used.  For a list
-              of acceptable names, see :func:`list_catalogs`.
+              at `astropy.vo.client.vos_catalog.BASEURL` is used.
+              For a list of acceptable names, see :func:`list_catalogs`.
 
         - *url*
               The prefix of a *url* to a IVOA Service for `service_type`.

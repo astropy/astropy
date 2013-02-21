@@ -14,7 +14,6 @@ import warnings
 import numpy as np
 
 # LOCAL
-from .tstquery import parse_cs
 from ..client import vos_catalog
 from ...config.configuration import ConfigurationItem
 from ...io import votable
@@ -25,6 +24,10 @@ from ...utils.data import get_readable_fileobj, get_pkg_data_contents
 from ...utils.data import REMOTE_TIMEOUT
 from ...utils.misc import JsonCustomEncoder
 from ...utils.xml.unescaper import unescape_all
+
+# Temporary solution until STScI VAO registry formally provides
+# <testQuery> tags
+from .tstquery import parse_cs
 
 
 __all__ = ['check_conesearch_sites']
@@ -57,14 +60,21 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     .. note::
 
-        Detailed workings of this validation are explained
-        in AstroPy documentations.
+        URLs are unescaped prior to validation.
+
+        Only check queries with real matched objects.
+        Does not perform meta-data and erroneous queries.
 
     Parameters
     ----------
     destdir : string
         Directory to store output files. Will be created if does
-        not exist.
+        not exist. Existing files with these names will be deleted
+        or replaced:
+            * conesearch_good.json
+            * conesearch_warn.json
+            * conesearch_exception.json
+            * conesearch_error.json
 
     verbose : bool
         Print extra info to log.
@@ -74,9 +84,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     url_list : list of string
         Only check these access URLs against
-        `astropy.vo.validator.cs_mstr_list` and ignore the others,
+        `astropy.vo.validator.validate.CS_MSTR_LIST` and ignore the others,
         which will not appear in output files.
-        By default, check those in `astropy.vo.validator.cs_urls`.
+        By default, check those in `astropy.vo.validator.validate.CS_URLS`.
         If `None`, check everything.
 
     Raises
@@ -138,7 +148,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         tab_all.array['capabilityClass'] == b'ConeSearch')]
 
     assert arr_cone.size > 0, \
-        'astropy.vo.validator.cs_mstr_list yields no valid result'
+        'astropy.vo.validator.validate.CS_MSTR_LIST yields no valid result'
 
     fixed_urls = [unescape_all(cur_url) for cur_url in arr_cone['accessURL']]
     uniq_urls = set(fixed_urls)
@@ -151,7 +161,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         url_list = [unescape_all(cur_url) for cur_url in tmp_list]
 
         if verbose:
-            log.info('Only {0}/{1} sites are validated'.format(
+            log.info('Only {0}/{1} site(s) are validated'.format(
                 len(url_list), len(uniq_urls)))
 
     uniq_rows = len(url_list)
@@ -259,7 +269,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     if verbose:
         log.info('total: {0} catalog(s)'.format(n_tot))
-        log.info('Validation of {0} sites took {1:.3f} s'.format(
+        log.info('Validation of {0} site(s) took {1:.3f} s'.format(
             uniq_rows, t_end - t_beg))
 
     if n['good'] == 0:

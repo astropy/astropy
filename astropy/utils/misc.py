@@ -787,5 +787,5 @@ class JsonCustomEncoder(json.JSONEncoder):
         elif isinstance(obj, set):
             return list(obj)
         elif isinstance(obj, bytes):  # pragma: py3
-            return obj.decode('ascii')
+            return obj.decode()
         return json.JSONEncoder.default(self, obj)

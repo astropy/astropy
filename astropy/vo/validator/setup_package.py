@@ -4,4 +4,5 @@
 def get_package_data():
     return {
         'astropy.vo.validator': ['data/*.txt'],
-        'astropy.vo.validator.tests': ['data/*.json', 'data/*.xml', 'data/*.out']}
+        'astropy.vo.validator.tests': ['data/*.json', 'data/*.xml',
+                                       'data/*.out']}

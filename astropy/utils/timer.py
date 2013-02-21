@@ -61,7 +61,7 @@ def timefunc(num_tries=1, verbose=True):
     To run the decorated function above:
 
     >>> t, y = timed_log(100)
-    INFO: timed_log took 9.29832458496e-06 s on AVERAGE for 100 calls. [...]
+    INFO: timed_log took 9.29832458496e-06 s on AVERAGE for 100 call(s). [...]
     >>> t
     9.298324584960938e-06
     >>> y
@@ -76,7 +76,7 @@ def timefunc(num_tries=1, verbose=True):
             te = time.time()
             tt = (te - ts) / num_tries
             if verbose:  # pragma: no cover
-                log.info('{0} took {1} s on AVERAGE for {2} calls.'.format(
+                log.info('{0} took {1} s on AVERAGE for {2} call(s).'.format(
                     function.__name__, tt, num_tries))
             return tt, result
         return wrapper

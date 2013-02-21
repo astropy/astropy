@@ -63,16 +63,19 @@ class AsyncConeSearch(object):
     >>> async_search.done()
     False
 
-    Get search results after a 30-sec wait (not to be
-    confused with `astropy.utils.remote_timeout` that
-    governs individual URL queries). If still not
-    done after 30 seconds, TimeoutError is raised. Otherwise,
-    conesearch result is returned and can be manipulated as
-    above. If no `timeout` keyword given, it waits till
+
+    Get search results after a 30-second wait (not to be
+    confused with `astropy.utils.data.REMOTE_TIMEOUT` that
+    governs Cone Search queries). If search is still not
+    done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
+    Cone Search result is returned and can be manipulated as
+    above. If no `timeout` keyword given, it waits until
     completion:
 
     >>> async_result = async_search.get(timeout=30)
     >>> cone_arr = async_result.array.data
+    >>> cone_arr.size
+    36386
 
     """
     def __init__(self, *args, **kwargs):
@@ -210,7 +213,7 @@ def predict_search(url, *args, **kwargs):
 
         #. Fitted slope is negative.
         #. Any of the estimated results is negative.
-        #. Estimated runtime exceeds `astropy.utils.remote_timeout`.
+        #. Estimated runtime exceeds `astropy.utils.data.REMOTE_TIMEOUT`.
 
     .. note::
 
