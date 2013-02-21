@@ -31,7 +31,7 @@ class AsyncConeSearch(object):
     :py:class:`concurrent.futures.ThreadPoolExecutor`.
 
     Cone search will be forced to run in silent
-    mode. Warnings are controled by :mod:`warnings`
+    mode. Warnings are controled by :py:mod:`warnings`
     module.
 
     .. note::
@@ -209,7 +209,7 @@ def predict_search(url, *args, **kwargs):
     with radius, which might not be accurate for some cases. If
     there are less than 3 data points in the fit, it fails.
 
-    Warnings (controlled by :mod:`warnings`) are given upon:
+    Warnings (controlled by :py:mod:`warnings`) are given upon:
 
         #. Fitted slope is negative.
         #. Any of the estimated results is negative.
