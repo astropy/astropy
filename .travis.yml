@@ -7,7 +7,7 @@ python:
 env:
     - NUMPY_VERSION=1.6.2 SETUP_CMD='test' OPTIONAL_DEPS=false
     - NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-    - NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+    #- NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false # fails now that Travis is on 64-bit Ubuntu
 
 matrix:
     include:
@@ -24,8 +24,8 @@ matrix:
     exclude:
         - python: 3.2
           env: NUMPY_VERSION=1.5.1 SETUP_CMD='test' OPTIONAL_DEPS=false
-        - python: 3.2
-          env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
+        #- python: 3.2
+        #  env: NUMPY_VERSION=1.4.1 SETUP_CMD='test' OPTIONAL_DEPS=false
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
