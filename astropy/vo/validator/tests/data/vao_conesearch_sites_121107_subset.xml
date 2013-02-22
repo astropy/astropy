@@ -87,35 +87,6 @@ This particular record describes access specifically to the "out" table within t
           </TR>
           <TR>
             <TD>Catalog</TD>
-            <TD>sdssdr7-photoobj</TD>
-            <TD>SDSS DR7 - Data release 7 of Sloan Digital Sky Survey catalogs</TD>
-            <TD>
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.</TD>
-            <TD>Sternberg Astronomical Institute Virtual Observatory Project</TD>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/sdssdr7-photoobjall#1</TD>
-            <TD>2006-06-17T12:01:07</TD>
-            <TD>#Catalogs#</TD>
-            <TD>#Archive#</TD>
-            <TD/>
-            <TD/>
-            <TD/>
-            <TD>ivo://astronet.ru/cas/sdssdr7-photoobjall</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://vo.astronet.ru/sai_cas/conesearch?cat=sdssdr7&amp;amp;tab=photoobjall&amp;amp;</TD>
-            <TD>3</TD>
-            <TD>1000000</TD>
-            <TD>ivo://astronet.ru/organisation</TD>
-            <TD>http://vo.astronet.ru/cas/</TD>
-          </TR>
-          <TR>
-            <TD>Catalog</TD>
             <TD/>
             <TD>GSC: HST Guide Star Catalog Version 1.2 (LEDAS)</TD>
             <TD>Cone Search service for GSC: HST Guide Star Catalog Version 1.2 (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
