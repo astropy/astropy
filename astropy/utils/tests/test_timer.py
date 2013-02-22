@@ -3,16 +3,12 @@
 
 .. note::
 
-    The tests only compare fitted results rounded to
-    nearest integer. More accurate comparisons might
-    fail on some machines.
+    The tests only compare rough estimates as
+    performance is machine-dependent.
 
 """
 # STDLIB
 import time
-
-# THIRD-PARTY
-import numpy as np
 
 # LOCAL
 from ..timer import RunTimePredictor
@@ -55,11 +51,17 @@ class TestRunTimePredictor(object):
     def test_fitting(self):
         a = self.p.do_fit()
         assert self.p._power == 1
-        np.testing.assert_array_equal(np.round(np.array(a)), (1, 0))
+
+        # Perfect slope is 1, with 10% uncertainty
+        assert 0.9 <= a[0] <= 1.1
+
+        # Perfect intercept is 0, with 1-sec uncertainty
+        assert -1 <= a[1] <= 1
 
     def test_prediction(self):
+        # Perfect answer is 100, with 10% uncertainty
         t = self.p.predict_time(100)
-        assert round(t) == 100
+        assert 90 <= t <= 110
 
         # Repeated call to access cached run time
         t2 = self.p.predict_time(100)
