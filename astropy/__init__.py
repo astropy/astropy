@@ -29,10 +29,20 @@ except ImportError:
     # TODO: Issue a warning using the logging framework
     __githash__ = ''
 
+
+# The location of the online documentation for astropy
+# This location will normally point to the current released version of astropy
+if 'dev' in __version__:
+    online_docs_root = 'http://docs.astropy.org/en/latest/'
+else:
+    online_docs_root = 'http://docs.astropy.org/en/{0}/'.format(__version__)
+
+
 # set up the test command
 def _get_test_runner():
     from .tests.helper import TestRunner
     return TestRunner(__path__[0])
+
 
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, remote_data=False, pep8=False,
@@ -103,6 +113,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
         coverage=coverage, open_files=open_files)
 
+
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 if not _ASTROPY_SETUP_:
@@ -126,4 +137,3 @@ if not _ASTROPY_SETUP_:
             del e
 
     del os, warn, config_dir  # clean up namespace
-
