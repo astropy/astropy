@@ -109,7 +109,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     if (not isinstance(destdir, basestring) or len(destdir) == 0 or
             os.path.exists(destdir) and not os.path.isdir(destdir)):
-        raise IOError('Invalid destination directory')
+        raise IOError('Invalid destination directory')  # pragma: no cover
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
@@ -137,7 +137,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         # Delete existing files, if any, to be on the safe side.
         # Else can cause confusion if program exited prior to
         # new files being written but old files are still there.
-        if os.path.exists(db_file[key]):
+        if os.path.exists(db_file[key]):  # pragma: no cover
             os.remove(db_file[key])
             if verbose:
                 log.info('Existing file {0} deleted'.format(db_file[key]))
@@ -184,7 +184,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         i = fixed_urls.index(cur_url)
         n_ignored = num_match - 1
         row_d = {'duplicatesIgnored': n_ignored}
-        if verbose and n_ignored > 0:
+        if verbose and n_ignored > 0:  # pragma: no cover
             log.info('{0} has {1} ignored duplicate entries in '
                      'cs_mstr_list'.format(cur_url, n_ignored))
 
@@ -273,7 +273,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         log.info('Validation of {0} site(s) took {1:.3f} s'.format(
             uniq_rows, t_end - t_beg))
 
-    if n['good'] == 0:
+    if n['good'] == 0:  # pragma: no cover
         log.warn('No good sites available for Cone Search.')
 
 

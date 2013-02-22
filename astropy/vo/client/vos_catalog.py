@@ -120,7 +120,7 @@ class VOSDatabase(VOSCatalog):
         for key, cat in self.get_catalogs_by_url(url):
             out_cat = cat
             break
-        if out_cat is None:
+        if out_cat is None:  # pragma: no cover
             raise VOSError("No catalog with URL '{0}' found.".format(url))
         return out_cat
 
@@ -229,15 +229,15 @@ def vo_tab_parse(tab, url, kwargs):
 
     """
     for param in tab.iter_fields_and_params():
-        if param.ID.lower() == 'error':
+        if param.ID.lower() == 'error':  # pragma: no cover
             raise VOSError("Catalog server '{0}' returned error '{1}'".format(
                 url, param.value))
         break
 
-    if tab.resources == []:
+    if tab.resources == []:  # pragma: no cover
         vo_raise(E19)
 
-    for info in tab.resources[0].infos:
+    for info in tab.resources[0].infos:  # pragma: no cover
         if info.name == 'QUERY_STATUS' and info.value != 'OK':
             if info.content is not None:
                 long_descr = ':\n{0}'.format(info.content)

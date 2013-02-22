@@ -111,7 +111,7 @@ class AsyncConeSearch(object):
         """
         try:
             result = self.future.result(timeout=timeout)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             result = None
             raise e
         finally:
@@ -255,7 +255,7 @@ def predict_search(url, *args, **kwargs):
             'has to be > 0.')
 
     plot = kwargs.get('plot', False)
-    if 'plot' in kwargs:
+    if 'plot' in kwargs:  # pragma: no cover
         del kwargs['plot']
 
     ra, dec, sr = args
@@ -280,7 +280,7 @@ def predict_search(url, *args, **kwargs):
     if t_est < 0 or t_coeffs[0] < 0:
         log.warn('Estimated runtime ({0} s) is non-physical with slope of '
                  '{1}'.format(t_est, t_coeffs[0]))
-    elif t_est > REMOTE_TIMEOUT():
+    elif t_est > REMOTE_TIMEOUT():  # pragma: no cover
         log.warn('Estimated runtime is longer than timeout of '
                  '{0} s'.format(REMOTE_TIMEOUT()))
 
@@ -291,7 +291,7 @@ def predict_search(url, *args, **kwargs):
     n_fitfunc = np.poly1d(n_coeffs)
     n_est = int(round(n_fitfunc(sr)))
 
-    if n_est < 0 or n_coeffs[0] < 0:
+    if n_est < 0 or n_coeffs[0] < 0:  # pragma: no cover
         log.warn('Estimated #objects ({0}) is non-physical with slope of '
                  '{1}'.format(n_est, n_coeffs[0]))
 

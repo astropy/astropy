@@ -107,7 +107,7 @@ class ConeSearchResults(object):
             # Warning types contains None if some other Exception was thrown.
             # There should be only 1 occurence for each warning type.
             # But will put in a loop anyway, just in case.
-            while None in out_wt:
+            while None in out_wt:  # pragma: no cover
                 out_wt[out_wt.index(None)] = 'None'
 
             str_list += [cat, cat_db['url']]
@@ -172,6 +172,6 @@ def _exclude_noncrit(in_list):
         if s is not None:
             for w in NONCRIT_WARNINGS():
                 n += s.count(w)
-        if n == 0:
+        if n == 0:  # pragma: no cover
             out_list.append(s)
     return out_list
