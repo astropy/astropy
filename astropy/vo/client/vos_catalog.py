@@ -43,7 +43,7 @@ class VOSCatalog(object):
 
     def __repr__(self):
         """Pretty print."""
-        return json.dumps(self._tree, indent=4)  # pragma: no cover
+        return json.dumps(self._tree, sort_keys=True, indent=4)
 
     def __getattr__(self, what):
         """Expose dictionary attributes."""
