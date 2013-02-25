@@ -5,6 +5,7 @@
 This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
+from __future__ import unicode_literals
 
 import math
 
@@ -108,7 +109,7 @@ class Angle(object):
                 for idx, a in enumerate(angle):
                     a_unit = None
                     # order is important here - longest name first
-                    for unitStr in ["degrees", "degree", "deg", "°"]:
+                    for unitStr in ["degrees", "degree", "deg", u"°"]:
                         if unitStr in a:
                             a_unit = u.radian
                             a = angle.replace(unitStr, "")
