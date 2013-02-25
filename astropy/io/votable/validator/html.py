@@ -10,7 +10,7 @@ import re
 
 # ASTROPY
 from ....utils.xml.writer import XMLWriter, xml_escape
-from ....utils import online_docs_root
+from .... import online_docs_root
 
 # VO
 from .. import exceptions

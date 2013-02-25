@@ -11,7 +11,3 @@ compatibility and bugfixes across all versions of Python that Astropy supports.
 
 from .compat.odict import OrderedDict
 from .misc import *
-
-# The location of the online documentation for astropy
-# This location will normally point to the current released version of astropy
-online_docs_root = 'http://docs.astropy.org'
