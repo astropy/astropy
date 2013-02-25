@@ -19,7 +19,7 @@ all the objects found within the area in the given catalog.
 .. _vo-sec-default-scs-services:
 
 Default Cone Search Services
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 Currently, the default Cone Search services used are a subset of those found in
 the STScI VAO Registry. They were hand-picked to represent commonly used
@@ -43,7 +43,7 @@ service for use by AstroPy, please contact the AstroPy Team.
 
 
 Caching
-^^^^^^^
+-------
 
 Caching of downloaded contents is controlled by `astropy.utils.data`.
 To *not* use cached data, some functions in this package have a ``cache``
@@ -883,11 +883,9 @@ See Also
 
 - `NVO Directory <http://nvo.stsci.edu/vor10/index.aspx>`_
 
-- `Simple Cone Search Version 1.03 Recommendation
-<http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_
+- `Simple Cone Search Version 1.03 Recommendation <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_
 
-- `STScI VAO Registry
-<http://vao.stsci.edu/directory/NVORegInt.asmx?op=VOTCapabilityPredOpt>`_
+- `STScI VAO Registry <http://vao.stsci.edu/directory/NVORegInt.asmx?op=VOTCapabilityPredOpt>`_
 
 - `STScI VO Databases <http://stsdas.stsci.edu/astrolib/vo_databases/>`_
 

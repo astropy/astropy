@@ -72,6 +72,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         Directory to store output files. Will be created if does
         not exist. Existing files with these names will be deleted
         or replaced:
+
             * conesearch_good.json
             * conesearch_warn.json
             * conesearch_exception.json

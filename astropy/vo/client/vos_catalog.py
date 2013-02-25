@@ -132,7 +132,7 @@ class VOSDatabase(VOSCatalog):
         pattern : str or `None`
             If given string is anywhere in a catalog name, it is
             considered a matching catalog. It accepts patterns as
-            in :mod:`fnmatch` and is case-insensitive.
+            in :py:mod:`fnmatch` and is case-insensitive.
             By default, all catalogs are returned.
 
         sort : bool
@@ -278,27 +278,23 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         May be one of the following, in order from easiest to
         use to most control:
 
-        - `None`
-              A database of `service_type` catalogs is downloaded from
-              `astropy.vo.client.vos_catalog.BASEURL`.  The first catalog
-              in the database to successfully return a result is used.
+            - `None`: A database of `service_type` catalogs is downloaded
+              from `astropy.vo.client.vos_catalog.BASEURL`.  The first
+              catalog in the database to successfully return a result is used.
 
-        - *catalog name*
-              A name in the database of `service_type` catalogs
-              at `astropy.vo.client.vos_catalog.BASEURL` is used.
+            - *catalog name*: A name in the database of `service_type`
+              catalogs at `astropy.vo.client.vos_catalog.BASEURL` is used.
               For a list of acceptable names, see :func:`list_catalogs`.
 
-        - *url*
-              The prefix of a *url* to a IVOA Service for `service_type`.
-              Must end in either '?' or '&'.
+            - *url*: The prefix of a *url* to a IVOA Service for
+              `service_type`. Must end in either '?' or '&'.
 
-        - `VOSCatalog` object
-              A specific catalog manually downloaded and selected
-              from the database using the APIs in
+            - `VOSCatalog` object: A specific catalog manually downloaded and
+              selected from the database using the APIs in
               `~astropy.vo.client.vos_catalog`.
 
-        - Any of the above 3 options combined in a list, in which case
-          they are tried in order.
+            - Any of the above 3 options combined in a list, in which case
+              they are tried in order.
 
     pedantic : bool or `None`
         See  `astropy.io.votable.table.parse`.
