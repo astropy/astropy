@@ -1388,7 +1388,7 @@ naxis kwarg.
         Identical to `to_header`, but returns a string containing the
         header cards.
         """
-        return str(self.to_header(self, relax))
+        return str(self.to_header(relax))
 
     def footprint_to_file(self, filename=None, color='green', width=2):
         """
