@@ -64,7 +64,7 @@ class VOSDatabase(VOSCatalog):
     Raises
     ------
     VOSError
-        If given `tree` does not have 'catalogs' key.
+        If given ``tree`` does not have 'catalogs' key.
 
     """
     def __init__(self, tree):
@@ -84,7 +84,7 @@ class VOSDatabase(VOSCatalog):
             yield key, VOSCatalog(val)
 
     def get_catalogs_by_url(self, url):
-        """Like `get_catalogs` but using access URL look-up."""
+        """Like :func:`get_catalogs` but using access URL look-up."""
         for key, cat in self.get_catalogs():
             if cat['url'] == url:
                 yield key, cat
@@ -112,7 +112,7 @@ class VOSDatabase(VOSCatalog):
         return VOSCatalog(self._catalogs[name])
 
     def get_catalog_by_url(self, url):
-        """Like `get_catalog` but using access URL look-up.
+        """Like :func:`get_catalog` but using access URL look-up.
         On multiple matches, only first match is returned.
 
         """
@@ -125,7 +125,7 @@ class VOSDatabase(VOSCatalog):
         return out_cat
 
     def list_catalogs(self, pattern=None, sort=False):
-        """List of catalog names.
+        """List catalog names.
 
         Parameters
         ----------
@@ -138,6 +138,11 @@ class VOSDatabase(VOSCatalog):
         sort : bool
             Sort output in alphabetical order. If not sorted, the
             order depends on dictionary hashing.
+
+        Returns
+        -------
+        out_arr : list of str
+            List of catalog names.
 
         """
         all_catalogs = self._catalogs.keys()
@@ -165,7 +170,7 @@ def get_remote_catalog_db(dbname, cache=True):
     ----------
     dbname : str
         Prefix of JSON file to download from
-        `astropy.vo.client.vos_catalog.BASEURL`.
+        ``astropy.vo.client.vos_catalog.BASEURL``.
 
     cache : bool
         Use caching for VO Service database. Access to actual VO
@@ -175,6 +180,7 @@ def get_remote_catalog_db(dbname, cache=True):
     Returns
     -------
     obj : `VOSDatabase` object
+        A database of VO services.
 
     """
     with get_readable_fileobj(BASEURL() + dbname + '.json',
@@ -210,10 +216,10 @@ def vo_tab_parse(tab, url, kwargs):
     tab : `astropy.io.votable.tree.VOTableFile` object
 
     url : string
-        URL used to obtain `tab`.
+        URL used to obtain ``tab``.
 
     kwargs : dict
-        Keywords used to obtain `tab`, if any.
+        Keywords used to obtain ``tab``, if any.
 
     Returns
     -------
@@ -270,40 +276,39 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
     Parameters
     ----------
     service_type : str
-        Name of the type of service, e.g., 'conesearch'.
+        Name of the type of service, e.g., 'conesearch_good'.
         Used in error messages and to select a catalog database
-        if `catalog_db` is not provided.
+        if ``catalog_db`` is not provided.
 
     catalog_db
         May be one of the following, in order from easiest to
         use to most control:
 
-            - `None`: A database of `service_type` catalogs is downloaded
-              from `astropy.vo.client.vos_catalog.BASEURL`.  The first
+            - `None`: A database of ``service_type`` catalogs is downloaded
+              from ``astropy.vo.client.vos_catalog.BASEURL``.  The first
               catalog in the database to successfully return a result is used.
 
-            - *catalog name*: A name in the database of `service_type`
-              catalogs at `astropy.vo.client.vos_catalog.BASEURL` is used.
+            - *catalog name*: A name in the database of ``service_type``
+              catalogs at ``astropy.vo.client.vos_catalog.BASEURL`` is used.
               For a list of acceptable names, see :func:`list_catalogs`.
 
-            - *url*: The prefix of a *url* to a IVOA Service for
-              `service_type`. Must end in either '?' or '&'.
+            - *url*: The prefix of a URL to a IVOA Service for
+              ``service_type``. Must end in either '?' or '&'.
 
             - `VOSCatalog` object: A specific catalog manually downloaded and
-              selected from the database using the APIs in
-              `~astropy.vo.client.vos_catalog`.
+              selected from the database (see :ref:`vo-sec-client-vos`).
 
             - Any of the above 3 options combined in a list, in which case
               they are tried in order.
 
     pedantic : bool or `None`
-        See  `astropy.io.votable.table.parse`.
+        See  :func:`astropy.io.votable.table.parse`.
 
     verbose : bool
         Verbose output.
 
     cache : bool
-        See `get_remote_catalog_db`.
+        See :func:`get_remote_catalog_db`.
 
     kwargs : dictionary
         Keyword arguments to pass to the catalog service.
@@ -367,17 +372,18 @@ def list_catalogs(service_type, cache=True, **kwargs):
 
     Parameters
     ----------
-    service_type : {'conesearch_good', 'conesearch_warn'}
-        Only Cone Search is supported for now.
+    service_type : str
+        Name of the type of service, e.g., 'conesearch_good'.
 
     cache : bool
-        See `get_remote_catalog_db`.
+        See :func:`get_remote_catalog_db`.
 
-    kwargs : keywords for `VOSDatabase.list_catalogs`
+    kwargs : keywords for :func:`VOSDatabase.list_catalogs`
 
     Returns
     -------
     arr : list of str
+        List of catalog names.
 
     """
     return get_remote_catalog_db(service_type,

@@ -12,7 +12,7 @@ Running from top level via command line::
 
     python setup.py test -P vo.client --remote-data
 
-Running from `astropy/vo/client/tests` directory::
+Running from ``astropy/vo/client/tests`` directory::
 
     setenv ASTROPY_USE_SYSTEM_PYTEST 1
     py.test test_vo.py --remote-data
@@ -29,7 +29,7 @@ from ....utils.data import REMOTE_TIMEOUT
 
 @remote_data
 def test_basic_db():
-    """Read dummy `basic.json` database to test underlying database
+    """Read dummy ``basic.json`` database to test underlying database
     functionality.
 
     """
@@ -68,7 +68,7 @@ class TestConeSearch(object):
         which is beyond AstroPy's control. When this happens,
         change the test to use a different URL.
 
-        At the time this was written, `pedantic=True` will
+        At the time this was written, ``pedantic=True`` will
         not yield any successful search.
 
     """
@@ -95,7 +95,7 @@ class TestConeSearch(object):
                 ['USNO ACT', 'USNO NOMAD', 'USNO-A2'])
 
     def test_one_search(self):
-        """This does not necessarily uses `self.url` because of
+        """This does not necessarily uses ``self.url`` because of
         unordered dict in JSON tree.
 
         """

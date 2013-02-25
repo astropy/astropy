@@ -359,8 +359,6 @@ Reference/API
    :no-inheritance-diagram:
 
 
-.. _votable-sec-api-exceptions:
-
 astropy.io.votable.exceptions Module
 ------------------------------------
 

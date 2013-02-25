@@ -18,7 +18,7 @@ Running from top level via command line::
 
     python setup.py test -P vo.validator --remote-data
 
-Running from `astropy/vo/validator/tests` directory::
+Running from ``astropy/vo/validator/tests`` directory::
 
     setenv ASTROPY_USE_SYSTEM_PYTEST 1
     py.test test_validate.py --remote-data

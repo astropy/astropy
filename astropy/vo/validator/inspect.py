@@ -18,14 +18,14 @@ class ConeSearchResults(object):
     Attributes
     ----------
     dbtypes : list
-        Conesearch database identifiers.
+        Cone Search database identifiers.
 
     dbs : dict
         Stores `astropy.vo.client.vos_catalog.VOSDatabase`
-        for each `dbtypes`.
+        for each ``dbtypes``.
 
     catkeys : dict
-        Stores sorted catalog keys for each `dbtypes`.
+        Stores sorted catalog keys for each ``dbtypes``.
 
     Parameters
     ----------
@@ -80,14 +80,14 @@ class ConeSearchResults(object):
         Parameters
         ----------
         typ : string
-            Any value in `dbtypes`.
+            Any value in ``self.dbtypes``.
 
         fout : output stream
             Default is screen output.
 
         ignore_noncrit : bool
             Exclude warnings in
-            `astropy.vo.validator.validate.NONCRIT_WARNINGS`.
+            ``astropy.vo.validator.validate.NONCRIT_WARNINGS``.
             This is useful to see why a catalog failed validation.
 
         """
@@ -152,7 +152,7 @@ class ConeSearchResults(object):
 def _exclude_noncrit(in_list):
     """
     Exclude any items in input list containing
-    `astropy.vo.validator.validate.NONCRIT_WARNINGS`.
+    ``astropy.vo.validator.validate.NONCRIT_WARNINGS``.
 
     Parameters
     ----------

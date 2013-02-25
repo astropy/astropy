@@ -1,14 +1,14 @@
 .. _astropy_vo:
 
-************************************************
-Virtual Observatory (VO) Access (``astropy.vo``)
-************************************************
+*******************************************
+Virtual Observatory Access (``astropy.vo``)
+*******************************************
 
 Introduction
 ============
 
 The ``astropy.vo`` subpackage handles simple access for Virtual Observatory
-services.
+(VO) services.
 
 Currently, only Simple Cone Search Version 1.03 as defined in IVOA
 Recommendation (February 22, 2008) is supported. Cone Search queries an
@@ -34,12 +34,12 @@ catalogs below:
     * USNO B1
 
 This subset undergoes daily validations hosted by STScI using
-`astropy.vo.validator.validate.check_conesearch_sites`. Those that pass without
+:ref:`vo-sec-validator-validate`. Those that pass without
 critical warnings or exceptions are used by :ref:`vo-sec-client-scs` by
 default.
 
 If you are a Cone Search service provider and would like to include your
-service for use by AstroPy, please contact the AstroPy Team.
+service in the list above, please contact ``help[at]stsci.edu``.
 
 
 Caching
@@ -55,19 +55,21 @@ Getting Started
 
 This package has four main components across two subpackages:
 
-    * Client: :ref:`vo-sec-client-vos`
-    * Client: :ref:`vo-sec-client-scs`
-    * Validator: :ref:`vo-sec-validator-validate`
-    * Validator: :ref:`vo-sec-validator-inspect`
+    * ``astropy.vo.client``:
+          * :ref:`vo-sec-client-vos` (``astropy.vo.client.vos_catalog``)
+          * :ref:`vo-sec-client-scs` (``astropy.vo.client.conesearch``)
+    * ``astropy.vo.validator``:
+          * :ref:`vo-sec-validator-validate` (``astropy.vo.validator.validate``)
+          * :ref:`vo-sec-validator-inspect` (``astropy.vo.validator.inspect``)
 
 They are designed to be used in a work flow as illustrated below:
 
 .. image:: images/astropy_vo_flowchart.png
-    :width: 450px
+    :width: 500px
     :alt: VO work flow
 
 The one that a typical user needs is the :ref:`vo-sec-client-scs` component
-(see :ref:`vo-sec-scs-examples`).
+(see :ref:`Cone Search Examples <vo-sec-scs-examples>`).
 
 
 Using ``astropy.vo.client``
@@ -101,7 +103,7 @@ Examples
 >>> from astropy.vo.client import vos_catalog
 
 Get all catalogs from a database named 'conesearch_good'
-(also see :ref:`vo-sec-scs-examples`):
+(also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
 >>> my_db = vos_catalog.get_remote_catalog_db('conesearch_good')
 Downloading http://stsdas.stsci.edu/astrolib/vo_databases/conesearch_good.json
@@ -205,7 +207,7 @@ To get all catalogs in the database:
 }]
 
 To call a given VO service; In this case, a Cone Search
-(also see :ref:`vo-sec-scs-examples`):
+(also see :ref:`Cone Search Examples <vo-sec-scs-examples>`):
 
 >>> result = vos_catalog.call_vo_service(
 ...     'conesearch_good', pedantic=False,
@@ -230,23 +232,23 @@ Simple Cone Search
 Available databases are generated on the server-side hosted by STScI using
 :ref:`vo-sec-validator-validate`. The default database
 (``astropy.vo.client.conesearch.CONESEARCH_DBNAME``), which can be changed
-in :ref:`vo-sec-scs-config`, is 'conesearch_good.json'.
+in :ref:`vo-sec-scs-config` below, is 'conesearch_good.json'.
 
 In the default setting, it searches the good Cone Search services one by one,
 stops at the first one that gives non-zero matches, and returns the results.
 Since the list of services are extracted from a Python dictionary, the search
-order might differ from call to call. :ref:`vo-sec-scs-examples` also show
-how to use non-default search behaviors.
+order might differ from call to call. :ref:`vo-sec-scs-examples` below also
+show how to use non-default search behaviors.
 
 .. note::
 
-    Most services currently fail to parse when `pedantic=True`.
+    Most services currently fail to parse when ``pedantic=True``.
 
 .. warning::
 
     When Cone Search returns warnings, user should decide
     whether the results are reliable by inspecting the
-    warning codes in :ref:`votable-sec-api-exceptions`.
+    warning codes in `astropy.io.votable.exceptions`.
 
 .. _vo-sec-scs-config:
 
@@ -257,7 +259,8 @@ These parameters are set via :ref:`astropy_config`:
 
     * ``astropy.utils.data.REMOTE_TIMEOUT``
     * ``astropy.vo.client.conesearch.CONESEARCH_DBNAME``
-    * Also depends on :ref:`vo-sec-vos-config`
+    * Also depends on
+      :ref:`General VO Services Access Configurable Items <vo-sec-vos-config>`
 
 .. _vo-sec-scs-examples:
 
@@ -276,13 +279,13 @@ Shows a sorted list of Cone Search services to be searched
  u'SDSS DR7 - Sloan Digital Sky Survey Data Release 7 3', ...,
  u'USNO-A2 Catalogue 1']
 
-Perform cone search for 0.5 degree radius around 47 Tucanae
-(RA 6.088 deg, DEC -72.086 deg) with minimum verbosity,
+Perform cone search for :math:`0.5^{\circ}` radius around 47 Tucanae
+(RA :math:`6.088^{\circ}`, DEC :math:`-72.086^{\circ}`) with minimum verbosity,
 if supported. The first catalog in the database to
 successfully return a result is used. If running this for
 the first time, a copy of the catalogs database will be
 downloaded to local cache. To run this again without
-using cached data, set ``cache`` keyword to `False`:
+using cached data, set ``cache=False``:
 
 >>> result = conesearch.conesearch(6.088, -72.086, 0.5, pedantic=False)
 Trying http://wfaudata.roe.ac.uk/sdssdr7-dsa/DirectCone?DSACAT=SDSS_DR7&...
@@ -300,7 +303,7 @@ To run the command above using custom timeout of
 ...     result = conesearch.conesearch(6.088, -72.086, 0.5, pedantic=False)
 
 Extract Numpy array containing the matched objects. See
-`numpy.ndarray` for available operations:
+`numpy` for available operations:
 
 >>> cone_arr = result.array.data
 >>> cone_arr
@@ -364,10 +367,13 @@ Unit("deg")
 array([ 16075.35  ,  16088.0112,  16090.4628, ...,  27753.7104,
         27758.7432,  27758.772 ])
 
-Perform the same Cone Search as above but asynchronously.
+Perform the same Cone Search as above but asynchronously using
+`~astropy.vo.client.conesearch.AsyncConeSearch`.
 Queries to individual Cone Search services are still governed by
-``astropy.utils.data.REMOTE_TIMEOUT``. You will see some 'Downloading ...'
-messages generated by `astropy.utils.data.download_file`:
+``astropy.utils.data.REMOTE_TIMEOUT``. Although Cone Search is forced
+to run in silent mode asynchronously, you will still see some
+'Downloading ...' messages generated by
+:func:`astropy.utils.data.download_file`:
 
 >>> async_search = conesearch.AsyncConeSearch(
 ...     6.088, -72.086, 0.5, pedantic=False)
@@ -381,7 +387,7 @@ False
 
 Get search results after a 30-second wait (not to be
 confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
-governs Cone Search queries). If search is still not
+governs individual Cone Search queries). If search is still not
 done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
 Cone Search result is returned and can be manipulated as
 above. If no ``timeout`` keyword given, it waits until
@@ -395,7 +401,7 @@ completion:
 Estimate the execution time and the number of objects for
 the Cone Search service URL from above. The prediction naively
 assumes a linear model, which might not be accurate for some cases.
-It also uses the normal :func:`astropy.vo.client.conesearch.conesearch`,
+It also uses the normal :func:`~astropy.vo.client.conesearch.conesearch`,
 not the asynchronous version. This example uses a custom
 timeout of 30 seconds:
 
@@ -433,12 +439,12 @@ INFO: conesearch_timer took 9.04488611221 s on AVERAGE for 1 call(s). [...]
 36386
 
 For better control of which Cone Search service to use, one can
-utilize the *catalog_db* keyword in
-:func:`astropy.vo.client.conesearch.conesearch`.
+utilize the ``catalog_db`` keyword in
+:func:`~astropy.vo.client.conesearch.conesearch`.
 In this example, we look for those containing 'guide*star' in their titles
 and only perform Cone Search using those services. As the first catalog in
 the list to successfully return non-zero results is used, the order of
-catalog names given in *catalog_db* is important:
+catalog names given in ``catalog_db`` is important:
 
 >>> gsc_cats = conesearch.list_catalogs(pattern='guide*star', sort=True)
 >>> gsc_cats
@@ -525,8 +531,10 @@ to be validated has to be registered in STScI VAO Registry.
 Validation for Simple Cone Search
 ---------------------------------
 
-Validation is done by `astropy.vo.validator.validate.check_conesearch_sites`
-using `astropy.io.votable.validator` functions.
+`astropy.vo.validator.validate` validates VO services.
+Currently, only Cone Search validation is done using
+:func:`~astropy.vo.validator.validate.check_conesearch_sites`,
+which utilizes underlying `astropy.io.votable.validator` library.
 
 A master list of all available Cone Search services is
 obtained from ``astropy.vo.validator.validate.CS_MSTR_LIST``, which
@@ -537,14 +545,14 @@ while the rest are skipped. There are also options to validate
 a user-defined list of services or all of them.
 
 All Cone Search queries are done using RA, DEC, and SR given by
-``<testQuery>`` in the registry, and maximum verbosity.
+``<testQuery>`` XML tag in the registry, and maximum verbosity.
 
 The results are separated into 4 groups below. Each group
 is stored as a JSON database:
 
     #. *conesearch_good.json*
            Passed validation without critical warnings and
-           exceptions. This database in
+           exceptions. This database residing in
            ``astropy.vo.client.vos_catalog.BASEURL`` is the one used
            by :ref:`vo-sec-client-scs` by default.
     #. *conesearch_warn.json*
@@ -566,19 +574,19 @@ files from individual Cone Search queries.
 Warnings and Exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-A subset of :ref:`votable-sec-api-exceptions` that is considered
+A subset of `astropy.io.votable.exceptions` that is considered
 non-critical is defined by ``astropy.vo.validator.validate.NONCRIT_WARNINGS``,
 which will not be flagged as bad by the validator. However,
 this does not change the behavior of ``astropy.io.votable.table.PEDANTIC``,
 which still needs to be set to `False` for them not to be thrown out
-by `astropy.vo.client.conesearch.conesearch`.
+by :func:`~astropy.vo.client.conesearch.conesearch`.
 Despite being listed as non-critical, user is responsible
 to check whether the results are reliable; They should not be
 used blindly.
 
-Some units recognized by
-`VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_ are
-considered invalid by Cone Search standards. As a result,
+Some
+`units recognized by VizieR <http://cdsarc.u-strasbg.fr/vizier/Units.htx>`_
+are considered invalid by Cone Search standards. As a result,
 they will give the warning 'W50', which is non-critical by default.
 
 User can also modify ``astropy.vo.validator.validate.NONCRIT_WARNINGS`` to
@@ -645,7 +653,8 @@ These parameters are set via :ref:`astropy_config`:
     * ``astropy.vo.validator.validate.CS_MSTR_LIST``
     * ``astropy.vo.validator.validate.CS_URLS``
     * ``astropy.vo.validator.validate.NONCRIT_WARNINGS``
-    * Also depends on properties in :ref:`vo-sec-scs-config`
+    * Also depends on properties in
+      :ref:`Simple Cone Search Configurable Items <vo-sec-scs-config>`
 
 .. _vo-sec-validate-examples:
 
@@ -712,7 +721,7 @@ WARNING: W49: ... Empty cell illegal for integer fields...
 Downloading http://nvo.stsci.edu/vor10/getRecord.aspx?...
 # ...
 
-Add 'W24' from :ref:`votable-sec-api-exceptions` to the list of
+Add 'W24' from `astropy.io.votable.exceptions` to the list of
 non-critical warnings to be ignored and re-run default validation.
 This is *not* recommended unless you know exactly what you are doing:
 
@@ -735,28 +744,28 @@ but your own results should look similar)::
     firefox results/index.html
 
 .. image:: images/validator_html_1.png
-    :width: 450px
+    :width: 600px
     :alt: Main HTML page of validation results
 
 When you click on 'All tests' from the page above, you will see all the
 Cone Search services validated with a summary of validation results:
 
 .. image:: images/validator_html_2.png
-    :width: 450px
+    :width: 600px
     :alt: All tests HTML page
 
 When you click on any of the listed URLs from above, you will see
 detailed validation warnings and exceptions for the selected URL:
 
 .. image:: images/validator_html_3.png
-    :width: 450px
+    :width: 600px
     :alt: Detailed validation warnings HTML page
 
 When you click on the URL on top of the page above, you will see
 the actual VO Table returned by the Cone Search query:
 
 .. image:: images/validator_html_4.png
-    :width: 450px
+    :width: 600px
     :alt: VOTABLE XML page
 
 
@@ -773,7 +782,7 @@ can be changed to point to a different location.
 Configurable Items
 ^^^^^^^^^^^^^^^^^^
 
-These parameters are set via :ref:`astropy_config`:
+This parameter is set via :ref:`astropy_config`:
 
     * ``astropy.vo.client.vos_catalog.BASEURL``
 
@@ -795,7 +804,7 @@ Downloading .../conesearch_exception.json
 Downloading .../conesearch_error.json
 |============================================|   1/  1k (100.00%)        00s
 
-Print tally. This this example, there are 15 Cone Search services that
+Print tally. In this example, there are 15 Cone Search services that
 passed validation with non-critical warnings, 15 with critical warnings,
 none with exceptions, and 1 with network error:
 
@@ -806,7 +815,8 @@ exception: 0 catalog(s)
 error: 1 catalog(s)
 total: 31 catalog(s)
 
-Print a list of good Cone Search catalogs:
+Print a list of good Cone Search catalogs, each with title, access URL,
+warning codes collected, and individual warnings:
 
 >>> r.list_cats('good')
 Guide Star Catalog 2.3 1
@@ -859,7 +869,7 @@ Load Cone Search validation results from a local directory named 'subset'.
 This is useful if you ran your own :ref:`vo-sec-validator-validate`
 and wish to inspect the output databases. This example reads in
 validation of STScI Cone Search services done in
-:ref:`vo-sec-validate-examples`:
+:ref:`Validation for Simple Cone Search Examples <vo-sec-validate-examples>`:
 
 >>> from astropy.vo.client.vos_catalog import BASEURL
 >>> with BASEURL.set_temp('./subset/'):
@@ -883,7 +893,7 @@ See Also
 
 - `NVO Directory <http://nvo.stsci.edu/vor10/index.aspx>`_
 
-- `Simple Cone Search Version 1.03 Recommendation <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_
+- `Simple Cone Search Version 1.03, IVOA Recommendation (22 February 2008) <http://www.ivoa.net/Documents/REC/DAL/ConeSearch-20080222.html>`_
 
 - `STScI VAO Registry <http://vao.stsci.edu/directory/NVORegInt.asmx?op=VOTCapabilityPredOpt>`_
 
@@ -895,12 +905,9 @@ Reference/API
 
 .. automodapi:: astropy.vo.client.vos_catalog
    :no-inheritance-diagram:
-   :skip: VOSError
-   :skip: vo_tab_parse
 
 .. automodapi:: astropy.vo.client.conesearch
    :no-inheritance-diagram:
-   :skip: ConeSearchError
 
 .. automodapi:: astropy.vo.validator.validate
    :no-inheritance-diagram:

@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Temporary solution until `astropy.vo.validator.validate.CS_MSTR_LIST`
+"""Temporary solution until ``astropy.vo.validator.validate.CS_MSTR_LIST``
 includes ``<testQuery>`` fields.
 
 """

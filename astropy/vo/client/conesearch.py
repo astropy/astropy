@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Support basic VO conesearch capabilities."""
+"""Support basic VO Cone Search capabilities."""
 from __future__ import print_function, division
 
 # THIRD-PARTY
@@ -26,29 +26,29 @@ class ConeSearchError(Exception):  # pragma: no cover
 
 
 class AsyncConeSearch(object):
-    """Perform a cone search asynchronously using
+    """Perform a Cone Search asynchronously using
     :py:class:`concurrent.futures.ThreadPoolExecutor`.
 
-    Cone search will be forced to run in silent
+    Cone Search will be forced to run in silent
     mode. Warnings are controled by :py:mod:`warnings`
     module.
 
     .. note::
 
         Methods of the attributes can be accessed directly,
-        with priority given to `executor`.
+        with priority given to ``executor``.
 
     Parameters
     ----------
-    args, kwargs : see `conesearch`
+    args, kwargs : see :func:`conesearch`
 
     Attributes
     ----------
     executor : :py:class:`concurrent.futures.ThreadPoolExecutor`
-        Executor running `conesearch` on single thread.
+        Executor running :func:`conesearch` on single thread.
 
     future : :py:class:`concurrent.futures.Future`
-        Asynchronous execution created by `executor`.
+        Asynchronous execution created by ``executor``.
 
     Examples
     --------
@@ -64,12 +64,12 @@ class AsyncConeSearch(object):
 
 
     Get search results after a 30-second wait (not to be
-    confused with `astropy.utils.data.REMOTE_TIMEOUT` that
-    governs Cone Search queries). If search is still not
+    confused with ``astropy.utils.data.REMOTE_TIMEOUT`` that
+    governs individual Cone Search queries). If search is still not
     done after 30 seconds, ``TimeoutError`` is raised. Otherwise,
-    Cone Search result is returned and can be manipulated as
-    above. If no `timeout` keyword given, it waits until
-    completion:
+    Cone Search result is returned and can be manipulated as in
+    :ref:`Simple Cone Search Examples <vo-sec-scs-examples>`.
+    If no ``timeout`` keyword given, it waits until completion:
 
     >>> async_result = async_search.get(timeout=30)
     >>> cone_arr = async_result.array.data
@@ -83,7 +83,7 @@ class AsyncConeSearch(object):
         self.future = self.executor.submit(conesearch, *args, **kwargs)
 
     def __getattr__(self, what):
-        """Expose `executor` and `future` methods."""
+        """Expose ``executor`` and ``future`` methods."""
         try:
             return getattr(self.executor, what)
         except AttributeError:
@@ -101,7 +101,7 @@ class AsyncConeSearch(object):
 
         Returns
         -------
-        result : see `conesearch`
+        result : see :func:`conesearch`
 
         Raises
         ------
@@ -120,7 +120,7 @@ class AsyncConeSearch(object):
 
 
 def conesearch(ra, dec, sr, verb=1, **kwargs):
-    """Do a cone search on the given catalog.
+    """Do a Cone Search on the given catalog.
 
     Parameters
     ----------
@@ -151,16 +151,16 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
         If not supported, the service should ignore the parameter
         and always return the same columns for every request.
 
-    kwargs : keywords for `astropy.vo.client.vos_catalog.call_vo_service`
+    kwargs : keywords for :func:`astropy.vo.client.vos_catalog.call_vo_service`
 
     Returns
     -------
-    obj : see `astropy.vo.client.vos_catalog.call_vo_service`
+    obj : see :func:`astropy.vo.client.vos_catalog.call_vo_service`
 
     Raises
     ------
     ConeSearchError
-        When invalid inputs are passed into cone search.
+        When invalid inputs are passed into Cone Search.
 
     """
     # Validate arguments
@@ -178,49 +178,53 @@ def conesearch(ra, dec, sr, verb=1, **kwargs):
 
 
 def list_catalogs(**kwargs):
-    """Return the available conesearch catalogs as a list of strings.
-    These can be used for the *catalog_db* argument to
+    """Return the available Cone Search catalogs as a list of strings.
+    These can be used for the ``catalog_db`` argument to
     :func:`conesearch`.
 
     Parameters
     ----------
-    kwargs : keywords for `astropy.vo.client.vos_catalog.list_catalogs`
+    kwargs : keywords for :func:`astropy.vo.client.vos_catalog.list_catalogs`
+
+    Returns
+    -------
+    obj : see :func:`astropy.vo.client.vos_catalog.list_catalogs`
 
     """
     return vos_catalog.list_catalogs(CONESEARCH_DBNAME(), **kwargs)
 
 
 def predict_search(url, *args, **kwargs):
-    """Predict the execution time needed and the number of objects
-    for a cone search for the given access URL, position, and
+    """Predict the run time needed and the number of objects
+    for a Cone Search for the given access URL, position, and
     radius.
 
-    Baseline searches are done by `astropy.utils.timer.RunTimePredictor`
-    with starting and ending radii at 0.05 and 0.5 of the given radius,
-    respectively.
+    Run time prediction uses `astropy.utils.timer.RunTimePredictor`.
+    Baseline searches are done with starting and ending radii at
+    0.05 and 0.5 of the given radius, respectively.
 
     Extrapolation on good data uses least-square straight line fitting,
     assuming linear increase of search time and number of objects
     with radius, which might not be accurate for some cases. If
     there are less than 3 data points in the fit, it fails.
 
-    Warnings (controlled by :py:mod:`warnings`) are given upon:
+    Warnings (controlled by :py:mod:`warnings`) are given when:
 
         #. Fitted slope is negative.
         #. Any of the estimated results is negative.
-        #. Estimated runtime exceeds `astropy.utils.data.REMOTE_TIMEOUT`.
+        #. Estimated run time exceeds ``astropy.utils.data.REMOTE_TIMEOUT``.
 
     .. note::
 
-        If `verbose=True` is given, extra log info will be provided.
-        But unlike `conesearch_timer`, timer info is suppressed.
+        If ``verbose=True``, extra log info will be provided.
+        But unlike :func:`conesearch_timer`, timer info is suppressed.
 
-        If `plot=True` is given, plot will be displayed.
+        If ``plot=True``, plot will be displayed.
         Plotting uses :mod:`matplotlib`.
 
         The predicted results are just *rough* estimates.
 
-        Prediction is done using `conesearch`. Prediction for
+        Prediction is done using :func:`conesearch`. Prediction for
         `AsyncConeSearch` is not supported.
 
     Parameters
@@ -228,9 +232,9 @@ def predict_search(url, *args, **kwargs):
     url : string
         Cone Search access URL to use.
 
-    args, kwargs : see `conesearch`
-        Extra keyword `plot` is allowed and only used by this
-        function and not `conesearch`.
+    args, kwargs : see :func:`conesearch`
+        Extra keyword ``plot`` is allowed and only used by this
+        function and not :func:`conesearch`.
 
     Returns
     -------
@@ -273,7 +277,7 @@ def predict_search(url, *args, **kwargs):
     sr_arr = np.arange(sr_min, sr_max + sr_step, sr_step)
     cs_pred.time_func(sr_arr)
 
-    # Predict execution time
+    # Predict run time
     t_coeffs = cs_pred.do_fit()
     t_est = cs_pred.predict_time(sr)
 
@@ -318,26 +322,26 @@ def predict_search(url, *args, **kwargs):
 
 @timefunc(1)
 def conesearch_timer(*args, **kwargs):
-    """Time a single conesearch using `astropy.utils.timer.timefunc`
+    """Time a single Cone Search using `astropy.utils.timer.timefunc`
     with single try and verbose timer.
 
     Parameters
     ----------
-    args, kwargs : see `conesearch`
+    args, kwargs : see :func:`conesearch`
 
     Returns
     -------
     t : float
-        Execution time in seconds.
+        Run time in seconds.
 
-    obj : see `conesearch`
+    obj : see :func:`conesearch`
 
     """
     return conesearch(*args, **kwargs)
 
 
 def _local_conversion(func, x):
-    """Try `func(x)` and replace `ValueError` with `ConeSearchError`."""
+    """Try ``func(x)`` and replace ``ValueError`` with ``ConeSearchError``."""
     try:
         y = func(x)
     except ValueError as e:  # pragma: no cover

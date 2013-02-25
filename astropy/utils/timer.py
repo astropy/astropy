@@ -6,7 +6,7 @@ from __future__ import absolute_import, print_function, division
 # STDLIB
 import time
 from collections import Iterable
-from functools import partial
+from functools import partial, wraps
 
 # THIRD-PARTY
 import numpy as np
@@ -69,6 +69,7 @@ def timefunc(num_tries=1, verbose=True):
 
     """
     def real_decorator(function):
+        @wraps(function)
         def wrapper(*args, **kwargs):
             ts = time.time()
             for i in xrange(num_tries):

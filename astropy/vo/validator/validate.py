@@ -63,7 +63,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
         URLs are unescaped prior to validation.
 
-        Only check queries with real matched objects.
+        Only check queries with ``<testQuery>`` parameters.
         Does not perform meta-data and erroneous queries.
 
     Parameters
@@ -86,9 +86,9 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     url_list : list of string
         Only check these access URLs against
-        `astropy.vo.validator.validate.CS_MSTR_LIST` and ignore the others,
+        ``astropy.vo.validator.validate.CS_MSTR_LIST`` and ignore the others,
         which will not appear in output files.
-        By default, check those in `astropy.vo.validator.validate.CS_URLS`.
+        By default, check those in ``astropy.vo.validator.validate.CS_URLS``.
         If `None`, check everything.
 
     Raises
