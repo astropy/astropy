@@ -281,7 +281,7 @@ def predict_search(url, *args, **kwargs):
     t_coeffs = cs_pred.do_fit()
     t_est = cs_pred.predict_time(sr)
 
-    if t_est < 0 or t_coeffs[0] < 0:
+    if t_est < 0 or t_coeffs[0] < 0:  # pragma: no cover
         log.warn('Estimated runtime ({0} s) is non-physical with slope of '
                  '{1}'.format(t_est, t_coeffs[0]))
     elif t_est > REMOTE_TIMEOUT():  # pragma: no cover
