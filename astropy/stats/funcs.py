@@ -412,14 +412,20 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.plot(X, true_efficiency(X), ls='-', color='r',
                 label='true efficiency')
        plt.ylim(0., 1.)
+       plt.title('Detection efficiency vs magnitude')
        plt.xlabel('Magnitude')
        plt.ylabel('Detection efficiency')
        plt.legend()
        plt.show()
 
-    Using the Wald interval (a commonly used interval in everyday
-    practical statistics) gives clearly incorrect results when the
-    efficiency is near 0 or 1:
+    The above example uses the Wilson confidence interval to calculate
+    the uncertainty `perr` in each bin (see the definition of various
+    confidence intervals in `binom_conf_interval`). A commonly used
+    alternative is the Wald interval. However, the Wald interval can
+    give nonsensical uncertainties when the efficiency is near 0 or 1,
+    and is therefore **not** recommended. As an illustration, the
+    following example shows the same data as above but uses the Wald
+    interval rather than the Wilson interval to calculate `perr`:
 
     >>> bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20,
     ...                                                 interval='wald')
@@ -447,6 +453,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.plot(X, true_efficiency(X), ls='-', color='r',
                 label='true efficiency')
        plt.ylim(0., 1.)
+       plt.title('The Wald interval can give nonsensical uncertainties')
        plt.xlabel('Magnitude')
        plt.ylabel('Detection efficiency')
        plt.legend()
