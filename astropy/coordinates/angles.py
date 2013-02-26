@@ -5,6 +5,7 @@
 This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
+from __future__ import unicode_literals
 
 import math
 
