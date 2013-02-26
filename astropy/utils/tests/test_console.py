@@ -75,3 +75,15 @@ def test_progress_bar3():
 def test_zero_progress_bar():
     with console.ProgressBar(0) as bar:
         pass
+
+
+def test_progress_bar_as_generator():
+    sum = 0
+    for x in console.ProgressBar(range(50)):
+        sum += x
+    assert sum == 1225
+
+    sum = 0
+    for x in console.ProgressBar(50):
+        sum += x
+    assert sum == 1225

@@ -23,6 +23,7 @@ else:
         OutStream = None
 
 from ..config import ConfigurationItem
+from .misc import deprecated, isiterable
 
 
 __all__ = [
@@ -220,18 +221,24 @@ class ProgressBar(object):
     """
     A class to display a progress bar in the terminal.
 
-    It is designed to be used with the `with` statement::
+    It is designed to be used either with the `with` statement::
 
         with ProgressBar(len(items)) as bar:
             for item in enumerate(items):
                 bar.update()
+
+    or as a generator::
+
+        for item in ProgressBar(items):
+            item.process()
     """
-    def __init__(self, total, file=sys.stdout):
+    def __init__(self, total_or_items, file=sys.stdout):
         """
         Parameters
         ----------
-        total : int
-            The number of increments in the process being tracked.
+        total_or_items : int or sequence
+            If an int, the number of increments in the process being
+            tracked.  If a sequence, the items to iterate over.
 
         file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
@@ -245,7 +252,17 @@ class ProgressBar(object):
         else:
             self._silent = False
 
-        self._total = total
+        if isiterable(total_or_items):
+            self._items = iter(total_or_items)
+            self._total = len(total_or_items)
+        else:
+            try:
+                self._total = int(total_or_items)
+            except TypeError:
+                raise TypeError("First argument must be int or sequence")
+            else:
+                self._items = iter(xrange(self._total))
+
         self._file = file
         self._start_time = time.time()
         terminal_width = 78
@@ -282,6 +299,18 @@ class ProgressBar(object):
                 self.update(self._total)
             self._file.write('\n')
             self._file.flush()
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            return next(self._items)
+        except StopIteration:
+            self.__exit__(None, None, None)
+            raise
+        else:
+            self.update()
 
     def update(self, value=None):
         """
@@ -382,6 +411,7 @@ class ProgressBar(object):
 
         return results
 
+    @deprecated('0.3', alternative='ProgressBar')
     @classmethod
     def iterate(cls, items, file=sys.stdout):
         """
@@ -409,10 +439,7 @@ class ProgressBar(object):
         generator :
             A generator over `items`
         """
-        with cls(len(items), file=file) as bar:
-            for item in items:
-                yield item
-                bar.update()
+        return cls(items, file=file)
 
 
 class Spinner(object):
@@ -459,7 +486,7 @@ class Spinner(object):
         self._file = file
         self._step = step
         if chars is None:
-            if USE_UNICODE:
+            if USE_UNICODE():
                 chars = self._default_unicode_chars
             else:
                 chars = self._default_ascii_chars
@@ -583,7 +610,7 @@ class ProgressBarOrSpinner(object):
         given to the constructor.
         """
         if self._is_spinner:
-            self._iter.next()
+            next(self._iter)
         else:
             self._obj.update(value)
 
