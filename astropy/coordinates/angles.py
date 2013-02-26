@@ -109,7 +109,7 @@ class Angle(object):
                 for idx, a in enumerate(angle):
                     a_unit = None
                     # order is important here - longest name first
-                    for unitStr in ["degrees", "degree", "deg", u"°"]:
+                    for unitStr in ["degrees", "degree", "deg", "°"]:
                         if unitStr in a:
                             a_unit = u.radian
                             a = angle.replace(unitStr, "")
