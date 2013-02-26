@@ -1365,11 +1365,11 @@ naxis kwarg.
           8. Keyword order may be changed.
         """
 
-        do_sip = (relax is True or
-                  relax == WCSHDO_all or
-                  (relax & WCSHDO_SIP))
         if relax not in (True, False):
+            do_sip = relax & WCSHDO_SIP
             relax &= ~WCSHDO_SIP
+        else:
+            do_sip = relax
 
         if self.wcs is not None:
             header_string = self.wcs.to_header(relax)

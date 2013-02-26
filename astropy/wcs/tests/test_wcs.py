@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import glob
 import os
 import sys
 import warnings
@@ -395,3 +394,8 @@ def test_to_header_string():
 
     w = wcs.WCS()
     assert w.to_header_string().strip() == header_string.strip()
+
+
+def test_to_fits():
+    w = wcs.WCS()
+    w.to_fits()
