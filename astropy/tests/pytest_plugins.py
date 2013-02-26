@@ -118,7 +118,7 @@ if SUPPORTS_OPEN_FILE_DETECTION:
 
 def pytest_report_header(config):
     from .. import __version__
-    s = "\nTesting Astropy version {0}.\n".format(__version__)
+    s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     s += "Running tests in {0}.\n".format(" ".join(config.args))
 
     special_opts = ["remote_data", "pep8"]
