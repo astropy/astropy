@@ -6,6 +6,7 @@ setup/build/packaging that are useful to astropy as a whole.
 
 from __future__ import absolute_import, print_function
 
+import collections
 import errno
 import imp
 import os
@@ -1271,8 +1272,27 @@ def add_legacy_alias(old_package, new_package, equiv_version, extras={}):
     return (old_package, shim_dir)
 
 
-def pkg_config(packages, default_libraries, include_dirs, library_dirs,
-               libraries):
+class DistutilsExtensionArgs(collections.defaultdict):
+    """
+    A special dictionary whose default values are the empty list.
+
+    This is useful for building up a set of arguments for
+    `distutils.Extension` without worrying whether the entry is
+    already present.
+    """
+    def __init__(self, *args, **kwargs):
+        def default_factory():
+            return []
+
+        super(DistutilsExtensionArgs, self).__init__(
+            default_factory, *args, **kwargs)
+
+    def update(self, other):
+        for key, val in other.items():
+            self[key].extend(val)
+
+
+def pkg_config(packages, default_libraries):
     """
     Uses pkg-config to update a set of distutils Extension arguments
     to include the flags necessary to link against the given packages.
@@ -1288,22 +1308,26 @@ def pkg_config(packages, default_libraries, include_dirs, library_dirs,
     default_libraries : list of str
         A list of library names to use if the pkg-config lookup fails.
 
-    include_dirs : list of str
-        A list of include directories that will be updated to include
-        the results from pkg-config.
+    Returns
+    -------
+    config : dict
+        A dictionary containing keyword arguments to
+        `distutils.Extension`.  These entries include:
 
-    library_dirs : list of str
-        A list of library directories that will be updated to include
-        the results from pkg-config.
-
-    libraries : list of str
-        A list of library names that will be updated to include the
-        results from pkg-config, or if pkg-config fails, updated from
-        *default_libraries*.
+        - ``include_dirs``: A list of include directories
+        - ``library_dirs``: A list of library directories
+        - ``libraries``: A list of libraries
+        - ``define_macros``: A list of macro defines
+        - ``undef_macros``: A list of macros to undefine
+        - ``extra_compile_args``: A list of extra arguments to pass to
+          the compiler
     """
 
-    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries',
+                '-D': 'define_macros', '-U': 'undef_macros'}
     command = "pkg-config --libs --cflags {0}".format(' '.join(packages)),
+
+    result = DistutilsExtensionArgs()
 
     try:
         pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
@@ -1316,7 +1340,7 @@ def pkg_config(packages, default_libraries, include_dirs, library_dirs,
             "  output: {0}".format(e.output)
             ]
         log.warn('\n'.join(lines))
-        libraries.extend(default_libraries)
+        result['libraries'].extend(default_libraries)
     else:
         if pipe.returncode != 0:
             lines = [
@@ -1325,10 +1349,26 @@ def pkg_config(packages, default_libraries, include_dirs, library_dirs,
                 "This may cause the build to fail below."
                 ]
             log.warn('\n'.join(lines))
-            libraries.extend(default_libraries)
+            result['libraries'].extend(default_libraries)
         else:
             for token in output.split():
-                locals()[flag_map.get(token[:2])].append(token[2:])
+                # It's not clear what encoding the output of
+                # pkg-config will come to us in.  It will probably be
+                # some combination of pure ASCII (for the compiler
+                # flags) and the filesystem encoding (for any argument
+                # that includes directories or filenames), but this is
+                # just conjecture, as the pkg-config documentation
+                # doesn't seem to address it.
+                arg = token[:2].decode('ascii')
+                value = token[2:].decode(sys.getfilesystemencoding())
+                if arg in flag_map:
+                    if arg == '-D':
+                        value = tuple(value.split('=', 1))
+                    result[flag_map[arg]].append(value)
+                else:
+                    result['extra_compile_args'].append(value)
+
+    return result
 
 
 def add_external_library(library):
