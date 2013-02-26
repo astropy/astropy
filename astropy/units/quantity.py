@@ -70,8 +70,10 @@ class Quantity(object):
 
     Parameters
     ----------
-    value : number
+    value : number, `Quantity` object, or sequence of `Quantity` objects.
         The numerical value of this quantity in the units given by unit.
+        If a `Quantity` or sequence of them, creates a new `Quantity`
+        object, converting to `unit` units as needed.
     unit : `~astropy.units.UnitBase` instance, str
         An object that represents the unit associated with the input value.
         Must be an `~astropy.units.UnitBase` object or a string parseable by
@@ -87,8 +89,16 @@ class Quantity(object):
     """
 
     def __init__(self, value, unit):
-        self._value = _validate_value(value)
+        from ..utils.misc import isiterable
+
         self._unit = Unit(unit)
+
+        if isinstance(value, Quantity):
+            self._value = _validate_value(value.to(self._unit).value)
+        elif isiterable(value) and all([isinstance(v, Quantity) for v in value]):
+            self._value = _validate_value([q.to(self._unit).value for q in value])
+        else:
+            self._value = _validate_value(value)
 
     def to(self, unit, equivalencies=[]):
         """ Returns a new `Quantity` object with the specified units.
