@@ -64,7 +64,7 @@ def test_create_angles():
     a3 = Angle("54:07:26.832", unit=u.degree)
     a4 = Angle("54.12412 deg")
     a5 = Angle("54.12412 degrees")
-    a6 = Angle("54.12412°") # because we like Unicode
+    a6 = Angle(u"54.12412°") # because we like Unicode
     a7 = Angle((54, 7, 26.832), unit=u.degree)
     # (deg,min,sec) *tuples* are acceptable, but lists/arrays are *not*
     # because of the need to eventually support arrays of coordinates
@@ -786,3 +786,14 @@ def test_distances_scipy():
 
     assert abs(d4.z - 0.23) < 1e-8  # redshift, assuming "current" cosmology
     assert abs(d5.compute_z(WMAP5) - 0.23) < 1e-8 # specifying a cosmology possible
+
+
+def test_unicode():
+    """
+    This test could only possibly fail when `sys.getdefaultencoding()`
+    is not `utf-8` -- but given a recent fix, is expected to pass on
+    all platforms.
+    """
+    from .. import ICRSCoordinates
+    u = unicode("12h46m11.086s -00d30m11.99s")
+    c = ICRSCoordinates(u)
