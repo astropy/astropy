@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: tab.h,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *=============================================================================
 *
-* WCSLIB 4.16 - C routines that implement tabular coordinate systems as
+* WCSLIB 4.17 - C routines that implement tabular coordinate systems as
 * defined by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",

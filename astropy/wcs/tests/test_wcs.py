@@ -350,6 +350,7 @@ def test_shape_mismatch():
         xp, yp = w.wcs_world2pix(x, y, 1)
     assert exc.value.args[0] == "Coordinate arrays are not broadcastable to each other"
 
+
 @raises(wcs._wcs.InvalidTransformError)
 def test_find_all_wcs_crash():
     """
@@ -359,3 +360,30 @@ def test_find_all_wcs_crash():
 
     with fits.open(get_pkg_data_filename("data/too_many_pv.hdr")) as hdulist:
         wcses = wcs.find_all_wcs(hdulist[0].header)
+
+
+def test_warning_about_defunct_keywords():
+    def run():
+        header = get_pkg_data_contents(
+            'data/defunct_keywords.hdr', encoding='binary')
+        w = wcs.WCS(header)
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        run()
+        assert len(w) == 4
+        for item in w:
+            assert issubclass(item.category, wcs.FITSFixedWarning)
+            assert 'PCi_ja' in str(item.message)
+
+
+@raises(wcs.FITSFixedWarning)
+def test_warning_about_defunct_keywords_exception():
+    def run():
+        header = get_pkg_data_contents(
+            'data/defunct_keywords.hdr', encoding='binary')
+        w = wcs.WCS(header)
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("error")
+        run()
