@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.16 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2012, Mark Calabretta
+  WCSLIB 4.17 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2013, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsprintf.c,v 4.16 2012/11/07 04:42:44 cal103 Exp $
+  $Id: wcsprintf.c,v 4.17 2013/01/29 05:29:20 cal103 Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -87,6 +87,47 @@ int wcsprintf(const char *format, ...)
   if (wcsprintf_buff == 0x0 && wcsprintf_file == 0x0) {
     /* Send output to stdout if wcsprintf_set() hasn't been called. */
     wcsprintf_file = stdout;
+  }
+
+  va_start(arg_list, format);
+
+  if (wcsprintf_file) {
+    /* Output to file. */
+    nbytes = vfprintf(wcsprintf_file, format, arg_list);
+
+  } else {
+    /* Output to buffer. */
+    used = wcsprintf_bufp - wcsprintf_buff;
+    if (wcsprintf_size - used < 128) {
+      /* Expand the buffer. */
+      wcsprintf_size += 1024;
+      wcsprintf_buff = realloc(wcsprintf_buff, wcsprintf_size);
+      if (wcsprintf_buff == NULL) {
+        return 1;
+      }
+      wcsprintf_bufp = wcsprintf_buff + used;
+    }
+
+    nbytes = vsprintf(wcsprintf_bufp, format, arg_list);
+    wcsprintf_bufp += nbytes;
+  }
+
+  va_end(arg_list);
+
+  return nbytes;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int wcsfprintf(FILE *stream, const char *format, ...)
+{
+  int  nbytes;
+  size_t  used;
+  va_list arg_list;
+
+  if (wcsprintf_buff == 0x0 && wcsprintf_file == 0x0) {
+    /* Send output to stream if wcsprintf_set() hasn't been called. */
+    wcsprintf_file = stream;
   }
 
   va_start(arg_list, format);
