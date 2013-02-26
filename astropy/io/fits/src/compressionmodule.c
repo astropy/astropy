@@ -771,7 +771,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
 
     PyArrayObject* indata;
     PyArrayObject* tmp;
-    long znaxis;
+    npy_intp znaxis;
     int datatype;
     int npdatatype;
     unsigned long long heapsize;
@@ -825,7 +825,7 @@ PyObject* compression_compress_hdu(PyObject* self, PyObject* args)
     if (orig_outbuf != outbuf || orig_outbufsize != outbufsize) {
         // It's possible, albeit unlikely, that realloc can return a block of
         // memory with the same address but different size.
-        znaxis = (long) outbufsize;  // The output array is just one dimension.
+        znaxis = (npy_intp) outbufsize;  // The output array is just one dimension.
         tmp = (PyArrayObject*) PyArray_SimpleNewFromData(1, &znaxis, NPY_UBYTE,
                                                          outbuf);
         PyObject_SetAttrString(hdu, "compData", (PyObject*) tmp);
@@ -869,8 +869,8 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     PyArrayObject* outdata;
     int datatype;
     int npdatatype;
-    int zndim;
-    long* znaxis;
+    npy_intp zndim;
+    npy_intp* znaxis;
     long arrsize;
     unsigned int idx;
 
@@ -894,8 +894,8 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    zndim = fileptr->Fptr->zndim;
-    znaxis = (long*) PyMem_Malloc(sizeof(long) * zndim);
+    zndim = (npy_intp)fileptr->Fptr->zndim;
+    znaxis = (npy_intp*) PyMem_Malloc(sizeof(npy_intp) * zndim);
     arrsize = 1;
     for (idx = 0; idx < zndim; idx++) {
         znaxis[zndim - idx - 1] = fileptr->Fptr->znaxis[idx];
