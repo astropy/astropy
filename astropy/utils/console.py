@@ -261,7 +261,10 @@ class ProgressBar:
                 rows, cols = parts
                 terminal_width = int(cols)
         self._bar_length = terminal_width - 36
-        num_scale = int(math.floor(math.log(self._total) / math.log(1000)))
+        if self._total == 0:
+            num_scale = 0
+        else:
+            num_scale = int(math.floor(math.log(self._total) / math.log(1000)))
         if num_scale > 7:
             self._suffix = '?'
         else:

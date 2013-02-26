@@ -70,3 +70,8 @@ def test_progress_bar3():
         pass
 
     console.ProgressBar.map(do_nothing, range(50))
+
+
+def test_zero_progress_bar():
+    with console.ProgressBar(0) as bar:
+        pass
