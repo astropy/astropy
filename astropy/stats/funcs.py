@@ -11,7 +11,7 @@ from __future__ import division
 
 import numpy as np
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_efficiency']
+__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion']
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
@@ -309,15 +309,16 @@ def binom_conf_interval(k, n, conf=0.68269, interval='wilson'):
 
 
 #TODO Note scipy dependency (needed in binom_conf_interval)
-def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
-                      interval='wilson'):
-    """Binomial proportion (efficiency) and confidence interval in bins
-    in `x`.
+def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
+                            interval='wilson'):
+    """Binomial proportion and confidence interval in bins of a continuous
+    variable `x`.
 
-    For a set of success/failure trials, each corresponding to some
-    value of the parameter `x`, place the trials into bins and return
-    an estimate of the efficiency (number of successes / number of
-    failures) and its uncertainty in each bin.
+    Given a set of datapoint pairs where the `x` values are
+    continuously distributed and the `success` values are binomial
+    ("success / failure" or "true / false"), place the pairs into
+    bins according to `x` value and calculate the binomial proportion
+    (fraction of successes) and confidence interval in each bin.
 
     Parameters
     ----------
@@ -341,7 +342,7 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
         0.68269.
     interval : {'wilson', 'jeffreys', 'wald'}, optional
         Formula used to calculate confidence interval on the
-        efficiency in each bin. See `binom_conf_interval` for
+        binomial proportion in each bin. See `binom_conf_interval` for
         definition of the intervals.  The 'wilson' and 'jeffreys'
         intervals generally give similar results.  'wilson' should be
         somewhat faster, while 'jeffreys' is marginally superior.
@@ -370,10 +371,16 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
 
     Examples
     --------
-    Suppose we wish to estimate the detection efficiency of an astronomical
-    source as a function of magnitude using a Monte Carlo experiment with
-    100 trials between magnitude 20. and 30. Suppose the true 50% detection
-    efficiency is at magnitude 25:
+    Suppose we wish to estimate the efficiency of a survey in
+    detecting astronomical sources as a function of magnitude (i.e.,
+    the probability of detecting a source given its magnitude). In a
+    realistic case, we might prepare a large number of sources with
+    randomly selected magnitudes, inject them into simulated images,
+    and then record which were detected at the end of the reduction
+    pipeline. As a toy example, we generate 100 data points with
+    randomly selected magnitudes between 20 and 30 and "observe" them
+    with a known detection function (here, the error function, with
+    50% detection probability at magnitude 25):
 
     >>> from scipy.special import erf
     >>> from scipy.stats.distributions import binom
@@ -381,7 +388,7 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
     ...     return 0.5 - 0.5 * erf((x - 25.) / 2.)
     >>> mag = 20. + 10. * np.random.rand(100)
     >>> detected = binom.rvs(1, true_efficiency(mag))
-    >>> bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20)
+    >>> bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20)
     >>> plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
     ...              label='estimate')
 
@@ -391,14 +398,14 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
        from scipy.special import erf
        from scipy.stats.distributions import binom
        import matplotlib.pyplot as plt
-       from astropy.stats import binned_efficiency
+       from astropy.stats import binned_binom_proportion
        def true_efficiency(x):
            return 0.5 - 0.5 * erf((x - 25.) / 2.)
        np.random.seed(400)
        mag = 20. + 10. * np.random.rand(100)
        np.random.seed(600)
        detected = binom.rvs(1, true_efficiency(mag))
-       bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20)
+       bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20)
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
@@ -414,8 +421,8 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
     practical statistics) gives clearly incorrect results when the
     efficiency is near 0 or 1:
 
-    >>> bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20,
-    ...                                           interval='wald')
+    >>> bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20,
+    ...                                                 interval='wald')
     >>> plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
     ...              label='estimate')
 
@@ -425,15 +432,15 @@ def binned_efficiency(x, success, bins=10, range=None, conf=0.68269,
        from scipy.special import erf
        from scipy.stats.distributions import binom
        import matplotlib.pyplot as plt
-       from astropy.stats import binned_efficiency
+       from astropy.stats import binned_binom_proportion
        def true_efficiency(x):
            return 0.5 - 0.5 * erf((x - 25.) / 2.)
        np.random.seed(400)
        mag = 20. + 10. * np.random.rand(100)
        np.random.seed(600)
        detected = binom.rvs(1, true_efficiency(mag))
-       bins, binshw, p, perr = binned_efficiency(mag, detected, bins=20,
-                                                 interval='wald')
+       bins, binshw, p, perr = binned_binom_proportion(mag, detected, bins=20,
+                                                       interval='wald')
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
