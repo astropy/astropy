@@ -206,15 +206,31 @@ div.topbar {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
 }
 
-div.topbar .brand {
+div.topbar a.brand {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 26px;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
   float: left;
   display: block;
-  width: 130px;
   height: 32px;
-  padding: 8px 0px 0px 62px;
+  padding: 8px 12px 0px 45px;
   margin-left: -10px;
-  background: transparent url("astropy_docs_32.png") no-repeat 10px 4px;
+  background: transparent url("astropy_logo_32.png") no-repeat 10px 4px;
 }
+
+#logotext1 {
+}
+
+#logotext2 {
+    font-weight:200;
+    color: #ff5000;
+}
+#logotext3 {
+    font-weight:200;
+}
+
 div.topbar .brand:hover, div.topbar ul li a.homelink:hover {
   background-color: #333;
   background-color: rgba(255, 255, 255, 0.05);

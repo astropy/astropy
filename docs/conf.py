@@ -76,11 +76,24 @@ release = astropy.__version__
 # -- Options for HTML output ---------------------------------------------------
 
 # A NOTE ON HTML THEMES
-# The global astropy configuration uses a custom theme, 'bootstrap-astropy',
-# which is installed along with astropy. A different theme can be used or
-# the options for this theme can be modified by overriding some of the
-# variables set in the global configuration. The variables set in the
-# global configuration are listed below, commented out.
+#
+# The global astropy configuration uses a custom theme,
+# 'bootstrap-astropy', which is installed along with astropy. The
+# theme has options for controlling the text of the logo in the upper
+# left corner. This is how you would specify the options in order to
+# override the theme defaults (The following options *are* the
+# defaults, so we do not actually need to set them here.)
+
+#html_theme_options = {
+#    'logotext1': 'astro',
+#    'logotext2': 'py',
+#    'logotext3': ':docs'
+#    }
+
+# A different theme can be used, or other parts of this theme can be
+# modified, by overriding some of the variables set in the global
+# configuration. The variables set in the global configuration are
+# listed below, commented out.
 
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.

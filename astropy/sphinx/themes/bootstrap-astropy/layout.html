@@ -3,9 +3,15 @@
 {# Collapsible sidebar script from default/layout.html in Sphinx #}
 {% set script_files = script_files + ['_static/sidebar.js'] %}
 
+{# Add the google webfonts needed for the logo #}
+{% block extrahead %}
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+{% endblock %}
+
+
 {% block header %}
 <div class="topbar">
-  <a class="brand" title="{{ _('Documentation Home') }}" href="{{ pathto(master_doc) }}"></a>
+  <a class="brand" title="{{ _('Documentation Home') }}" href="{{ pathto(master_doc) }}"><span id="logotext1">{{ theme_logotext1 }}</span><span id="logotext2">{{ theme_logotext2 }}</span><span id="logotext3">{{ theme_logotext3 }}</span></a>
   <ul>
     <li><a class="homelink" title="AstroPy Homepage" href="http://www.astropy.org"></a></li>
     <li><a title="{{ _('General Index') }}" href="{{ pathto('genindex') }}">Index</a></li>
