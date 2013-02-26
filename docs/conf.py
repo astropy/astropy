@@ -85,9 +85,9 @@ release = astropy.__version__
 # defaults, so we do not actually need to set them here.)
 
 #html_theme_options = {
-#    'logotext1': 'astro',
-#    'logotext2': 'py',
-#    'logotext3': ':docs'
+#    'logotext1': 'astro',  # white,  semi-bold
+#    'logotext2': 'py',     # orange, light
+#    'logotext3': ':docs'   # white,  light
 #    }
 
 # A different theme can be used, or other parts of this theme can be
