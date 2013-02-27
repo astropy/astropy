@@ -359,6 +359,9 @@ class IpacData(fixedwidth.FixedWidthData):
         if len(line_nulls.replace("|", "").strip()) > 0:
             lines.append(line_nulls)
 
+        print line_names
+        print width
+
         for i in range(len(column)):
 
             line = ""
@@ -369,6 +372,7 @@ class IpacData(fixedwidth.FixedWidthData):
                 #    item = (("%" + column.format) % long(self.data[name][i]))
                 #else:
                 #    item = (("%" + column.format) % self.data[name][i])
+                name = column.name
                 item = ("%" + str(width[name]) + "s") % column[i]
 
                 if len(item) > width[name]:
