@@ -313,14 +313,14 @@ class TestParse:
         assert issubclass(self.array['unsignedByte'].dtype.type,
                           np.uint8)
         assert_array_equal(self.array['unsignedByte'],
-                           [128, 0, 233, 255, 0])
+                           [128, 255, 0, 255, 255])
         assert not np.any(self.mask['unsignedByte'])
 
     def test_short(self):
         assert issubclass(self.array['short'].dtype.type,
                           np.int16)
         assert_array_equal(self.array['short'],
-                           [4096, 0, -4096, -1, 0])
+                           [4096, 32767, -4096, 32767, 32767])
         assert not np.any(self.mask['short'])
 
     def test_int(self):

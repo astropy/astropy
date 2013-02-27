@@ -1000,6 +1000,15 @@ class W50(VOTableSpecWarning):
     default_args = ('x',)
 
 
+class W51(VOTableSpecWarning):
+    """
+    The integer value is out of range for the size of the field.
+    """
+
+    message = "Value '%s' is out of range for a %s integer field"
+    default_args = ('x', 'n-bit')
+
+
 class E01(VOWarning, ValueError):
     """
     The size specifier for a ``char`` or ``unicode`` field must be
