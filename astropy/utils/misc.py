@@ -9,14 +9,16 @@ from __future__ import absolute_import
 import collections
 import contextlib
 import functools
+import os
 import sys
 import textwrap
 import traceback
 import warnings
 
+
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
-           'NumpyRNGContext', 'find_api_page']
+           'NumpyRNGContext', 'find_api_page', 'is_hidden', 'walk_skip_hidden']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -691,3 +693,57 @@ def signal_number_to_name(signum):
         (k, v) for v, k in signal.__dict__.iteritems() if v.startswith('SIG'))
 
     return signal_to_name_map.get(signum, 'UNKNOWN')
+
+
+if sys.platform == 'win32':
+    import ctypes
+
+    def _has_hidden_attribute(filepath):
+        """
+        Returns True if the given filepath has the hidden attribute on
+        MS-Windows.  Based on a post here:
+        http://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
+        """
+        if isinstance(filepath, bytes):
+            filepath = filepath.decode(sys.getfilesystemencoding())
+        try:
+            attrs = ctypes.windll.kernel32.GetFileAttributesW(filepath)
+            assert attrs != -1
+            result = bool(attrs & 2)
+        except (AttributeError, AssertionError):
+            result = False
+        return result
+else:
+    def _has_hidden_attribute(filepath):
+        return False
+
+
+def is_hidden(filepath):
+    """
+    Returns `True` if the given file path refers to a hidden file or
+    directory.
+    """
+    name = os.path.basename(os.path.abspath(filepath))
+    if isinstance(name, bytes):
+        is_dotted = name.startswith(b'.')
+    else:
+        is_dotted = name.startswith(u'.')
+    return is_dotted or _has_hidden_attribute(filepath)
+
+
+def walk_skip_hidden(top, onerror=None, followlinks=False):
+    """
+    A wrapper for `os.walk` that skips hidden files and directories.
+
+    This function does not have the parameter `topdown` from
+    `os.walk`: the directories must always be recursed top-down when
+    using this function.
+    """
+    for root, dirs, files in os.walk(
+            top, topdown=True, onerror=onerror,
+            followlinks=followlinks):
+        # These lists must be updated in-place so os.walk will skip
+        # hidden directories
+        dirs[:] = [d for d in dirs if not is_hidden(d)]
+        files[:] = [f for f in files if not is_hidden(f)]
+        yield root, dirs, files
