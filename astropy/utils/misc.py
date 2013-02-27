@@ -727,7 +727,7 @@ def is_hidden(filepath):
     if isinstance(name, bytes):
         is_dotted = name.startswith(b'.')
     else:
-        is_dotted = name.startswith(u'.')
+        is_dotted = name.startswith('.')
     return is_dotted or _has_hidden_attribute(filepath)
 
 
