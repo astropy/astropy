@@ -36,6 +36,24 @@ from ...utils import OrderedDict
 
 from . import core
 from . import fixedwidth
+import numpy as np
+
+# Define type conversion from IPAC table to numpy arrays
+type_rev_dict = {}
+type_rev_dict[np.bool_] = "int"
+type_rev_dict[np.int8] = "int"
+type_rev_dict[np.int16] = "int"
+type_rev_dict[np.int32] = "int"
+type_rev_dict[np.int64] = "int"
+type_rev_dict[np.uint8] = "int"
+type_rev_dict[np.uint16] = "int"
+type_rev_dict[np.uint32] = "int"
+type_rev_dict[np.uint64] = "int"
+type_rev_dict[np.float32] = "float"
+type_rev_dict[np.float64] = "double"
+type_rev_dict[np.str] = "char"
+type_rev_dict[np.string_] = "char"
+type_rev_dict[str] = "char"
 
 class Ipac(core.BaseReader):
     """Read an IPAC format table.  See
@@ -86,9 +104,105 @@ class Ipac(core.BaseReader):
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
 
-    def write(self, table=None):
-        """Not available for the Ipac class (raises NotImplementedError)"""
-        raise NotImplementedError
+    #def write(self, table=None):
+    def write(self, lines):
+        '''
+        Write the table to an IPAC file
+        '''
+
+        # atpy leftover
+        #self._raise_vector_columns()
+
+        for key in self.keywords:
+            value = self.keywords[key]
+            lines.append("\\" + key + "=" + str(value) + "\n")
+
+        for comment in self.comments:
+            lines.append("\\ " + comment + "\n")
+
+        # Compute width of all columns
+
+        width = {}
+
+        line_names = ""
+        line_types = ""
+        line_units = ""
+        line_nulls = ""
+
+        width = {}
+
+        def format_length(format):
+            " for format length adjustment; copied from atpy helpers "
+            if '.' in format:
+                return int(format.split('.')[0])
+            else:
+                return int(format[:-1])
+
+        for name in self.names:
+
+            dtype = self.columns[name].dtype
+
+            coltype = type_rev_dict[dtype.type]
+            colunit = self.columns[name].unit
+
+            if self._masked:
+                colnull = self.data[name].fill_value
+            else:
+                colnull = self.columns[name].null
+
+            if colnull:
+                colnull = ("%" + self.columns[name].format) % colnull
+            else:
+                colnull = ''
+
+            # Adjust the format for each column
+
+            width[name] = format_length(self.columns[name].format)
+
+            max_width = max(len(name), len(coltype), len(colunit), \
+                len(colnull))
+
+            if max_width > width[name]:
+                width[name] = max_width
+
+            sf = "%" + str(width[name]) + "s"
+            line_names = line_names + "|" + (sf % name)
+            line_types = line_types + "|" + (sf % coltype)
+            line_units = line_units + "|" + (sf % colunit)
+            line_nulls = line_nulls + "|" + (sf % colnull)
+
+        line_names = line_names + "|\n"
+        line_types = line_types + "|\n"
+        line_units = line_units + "|\n"
+        line_nulls = line_nulls + "|\n"
+
+        lines.append(line_names)
+        lines.append(line_types)
+        if len(line_units.replace("|", "").strip()) > 0:
+            lines.append(line_units)
+        if len(line_nulls.replace("|", "").strip()) > 0:
+            lines.append(line_nulls)
+
+        for i in range(self.__len__()):
+
+            line = ""
+
+            for name in self.names:
+                if self.columns[name].dtype == np.uint64:
+                    item = (("%" + self.columns[name].format) % long(self.data[name][i]))
+                else:
+                    item = (("%" + self.columns[name].format) % self.data[name][i])
+                item = ("%" + str(width[name]) + "s") % item
+
+                if len(item) > width[name]:
+                    raise Exception('format for column %s (%s) is not wide enough to contain data' % (name, self.columns[name].format))
+
+                line = line + " " + item
+
+            line = line + " \n"
+
+            lines.append(line)
+        return lines
 
 
 class IpacHeader(core.BaseHeader):
