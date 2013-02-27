@@ -444,7 +444,6 @@ class IpacData(fixedwidth.FixedWidthData):
     def write(self, lines):
         """ IPAC writer, modified from FixedWidth writer """
 
-        vals_list = []
 
         with self._set_col_formats(self.cols, self.formats):
             # Col iterator does the formatting defined above so each val is a string
