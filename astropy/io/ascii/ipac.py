@@ -36,6 +36,7 @@ from ...utils import OrderedDict
 
 from . import core
 from . import fixedwidth
+from ...utils import OrderedDict
 import numpy as np
 
 # Define type conversion from IPAC table to numpy arrays
@@ -269,7 +270,10 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-    #def write(self, table=None):
+class IpacData(fixedwidth.FixedWidthData):
+    """IPAC table data reader"""
+    comment = r'[|\\]'
+
     def write(self, lines):
         '''
         Write the table to an IPAC file
@@ -287,8 +291,6 @@ class IpacHeader(core.BaseHeader):
         #    lines.append("\\ " + comment + "\n")
 
         # Compute width of all columns
-
-        width = {}
 
         line_names = ""
         line_types = ""
@@ -345,10 +347,10 @@ class IpacHeader(core.BaseHeader):
             line_units = line_units + "|" + (sf % colunit)
             line_nulls = line_nulls + "|" + (sf % colnull)
 
-        line_names = line_names + "|\n"
-        line_types = line_types + "|\n"
-        line_units = line_units + "|\n"
-        line_nulls = line_nulls + "|\n"
+        line_names = line_names + "|"
+        line_types = line_types + "|"
+        line_units = line_units + "|"
+        line_nulls = line_nulls + "|"
 
         lines.append(line_names)
         lines.append(line_types)
@@ -374,12 +376,8 @@ class IpacHeader(core.BaseHeader):
 
                 line = line + " " + item
 
-            line = line + " \n"
+            #line = line + " \n"
 
             lines.append(line)
         return lines
 
-class IpacData(core.BaseData):
-    """IPAC table data reader"""
-    splitter_class = fixedwidth.FixedWidthSplitter
-    comment = r'[|\\]'
