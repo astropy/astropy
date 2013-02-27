@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import glob
 import os
 import sys
 import warnings
@@ -387,3 +386,16 @@ def test_warning_about_defunct_keywords_exception():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("error")
         run()
+
+
+def test_to_header_string():
+    header_string = """
+    WCSAXES =                    2 / Number of coordinate axes                      CRPIX1  =                    0 / Pixel coordinate of reference point            CRPIX2  =                    0 / Pixel coordinate of reference point            CDELT1  =                    1 / Coordinate increment at reference point        CDELT2  =                    1 / Coordinate increment at reference point        CRVAL1  =                    0 / Coordinate value at reference point            CRVAL2  =                    0 / Coordinate value at reference point            LATPOLE =                   90 / [deg] Native latitude of celestial pole        RESTFRQ =                    0 / [Hz] Line rest frequency                       RESTWAV =                    0 / [Hz] Line rest wavelength                      END"""
+
+    w = wcs.WCS()
+    assert w.to_header_string().strip() == header_string.strip()
+
+
+def test_to_fits():
+    w = wcs.WCS()
+    w.to_fits()
