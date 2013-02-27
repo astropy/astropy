@@ -70,9 +70,12 @@ def _is_url(string):
 
 
 def _is_inside(path, parent_path):
-    # We have to use realpath to avoid issues with symlinks
-    return os.path.realpath(path).startswith(os.path.realpath(parent_path))
-
+    # We have to try realpath too to avoid issues with symlinks, but we leave
+    # abspath because some systems like debian have the absolute path (with no
+    # symlinks followed) match, but the real directories in different
+    # locations, so need to try both cases.
+    return os.path.abspath(path).startswith(os.path.abspath(parent_path)) \
+        or os.path.realpath(path).startswith(os.path.realpath(parent_path))
 
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False):
