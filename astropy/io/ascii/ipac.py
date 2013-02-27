@@ -89,19 +89,12 @@ class Ipac(core.BaseReader):
         core.BaseReader.__init__(self)
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
-<<<<<<< HEAD
-        # from FixedWidth, needed for writer
         self.data.header = self.header
-        # this is also defined in the header __init__
-        # Which is right?  "conventional" ?
-        # (obviously not both)
         self.header.splitter.delimiter = '|'
         self.header.splitter.bookend = True
         self.data.splitter.delimiter = ' '
         self.data.splitter.bookend = True
-=======
 
-    #def write(self, table=None):
     def write(self, lines):
         '''
         Write the table to an IPAC file
@@ -200,8 +193,6 @@ class Ipac(core.BaseReader):
 
             lines.append(line)
         return lines
->>>>>>> added ipac ascii writer
-
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
