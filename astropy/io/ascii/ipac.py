@@ -33,6 +33,7 @@ ipac.py:
 
 from . import core
 from . import fixedwidth
+from ...utils import OrderedDict
 import numpy as np
 
 # Define type conversion from IPAC table to numpy arrays
@@ -100,7 +101,7 @@ class Ipac(core.BaseReader):
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
-    comment = r'\\'
+    comment = '\\' # comment is just a single \.  r'\\' = '\\\\'
     splitter_class = core.BaseSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
@@ -134,6 +135,28 @@ class IpacHeader(core.BaseHeader):
         for line in lines:
             if line.startswith(delim) and line.endswith(delim):
                 yield line.strip(delim)
+
+    def process_meta_kw(self, lines):
+        """Generator to yield IPAC metadata lines, i.e. those starting with a
+        comment character and with an = in the middle"""
+        for line in lines:
+            if line.startswith(self.__class__.comment):
+                if "=" in line:
+                    k,v = line.lstrip(self.__class__.comment).split("=")
+                    yield k.strip(),v.strip()
+
+    def process_meta_comments(self, lines):
+        """Generator to yield IPAC comment lines"""
+        for line in lines:
+            if line.startswith(self.__class__.comment):
+                if "=" not in line:
+                    yield line.lstrip(self.__class__.comment).strip()
+
+    def get_meta(self, lines):
+        self.meta = OrderedDict()
+        for k,v in self.process_meta_kw(lines):
+            self.meta[k] = v
+        self.meta['comments'] = list(self.process_meta_comments(lines))
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -200,7 +223,10 @@ class IpacHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.index = i
 
-    #def write(self, table=None):
+class IpacData(fixedwidth.FixedWidthData):
+    """IPAC table data reader"""
+    comment = r'[|\\]'
+
     def write(self, lines):
         '''
         Write the table to an IPAC file
@@ -218,8 +244,6 @@ class IpacHeader(core.BaseHeader):
         #    lines.append("\\ " + comment + "\n")
 
         # Compute width of all columns
-
-        width = {}
 
         line_names = ""
         line_types = ""
@@ -276,10 +300,10 @@ class IpacHeader(core.BaseHeader):
             line_units = line_units + "|" + (sf % colunit)
             line_nulls = line_nulls + "|" + (sf % colnull)
 
-        line_names = line_names + "|\n"
-        line_types = line_types + "|\n"
-        line_units = line_units + "|\n"
-        line_nulls = line_nulls + "|\n"
+        line_names = line_names + "|"
+        line_types = line_types + "|"
+        line_units = line_units + "|"
+        line_nulls = line_nulls + "|"
 
         lines.append(line_names)
         lines.append(line_types)
@@ -305,12 +329,8 @@ class IpacHeader(core.BaseHeader):
 
                 line = line + " " + item
 
-            line = line + " \n"
+            #line = line + " \n"
 
             lines.append(line)
         return lines
 
-class IpacData(core.BaseData):
-    """IPAC table data reader"""
-    splitter_class = fixedwidth.FixedWidthSplitter
-    comment = r'[|\\]'
