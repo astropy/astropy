@@ -203,3 +203,13 @@ def test_precision():
         config=config)
     c = converters.get_converter(field, config=config)
     assert c.output(266.248, False) == '266.2480'
+
+
+@raises(exceptions.W51)
+def test_integer_overflow():
+    config = {'pedantic': True}
+
+    field = tree.Field(
+        None, name='c', datatype='int', config=config)
+    c = converters.get_converter(field, config=config)
+    c.parse('-2208988800', config=config)

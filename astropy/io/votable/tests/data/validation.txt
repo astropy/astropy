@@ -96,6 +96,15 @@ Validation report for regression.xml
   <TD>0123456789A</TD>
       ^
 
+138: W51: Value '256' is out of range for a 8-bit unsigned integer
+  field
+  <TD>256</TD> <!-- should overflow to 0 -->
+      ^
+
+139: W51: Value '65536' is out of range for a 16-bit integer field
+  <TD>65536</TD> <!-- should overflow to 0-->
+      ^
+
 141: W49: Empty cell illegal for integer fields.
   <TD></TD>
   ^
@@ -146,10 +155,19 @@ Validation report for regression.xml
   <TD>0123456789A</TD>
       ^
 
+168: W51: Value '-23' is out of range for a 8-bit unsigned integer
+  field
+  <TD>-23</TD> <!-- negative, should wrap around to positive -->
+      ^
+
 190: E02: Incorrect number of elements in array. Expected multiple of
   16, got 0
   <TD/>
   ^
+
+199: W51: Value '65535' is out of range for a 16-bit integer field
+  <TD>0xffff</TD> <!-- hex - negative value -->
+      ^
 
 204: W01: Array uses commas rather than whitespace
   <TD>NaN, 23</TD>
@@ -169,6 +187,15 @@ Validation report for regression.xml
   16, got 0
   <TD/>
   ^
+
+228: W51: Value '256' is out of range for a 8-bit unsigned integer
+  field
+  <TD>0x100</TD> <!-- hex, overflow -->
+      ^
+
+229: W51: Value '65536' is out of range for a 16-bit integer field
+  <TD>0x10000</TD> <!-- hex, overflow -->
+      ^
 
 234: W01: Array uses commas rather than whitespace
   <TD>31, -1</TD>

@@ -20,7 +20,7 @@ from ...utils.xml.writer import xml_escape_cdata
 
 # LOCAL
 from .exceptions import (vo_raise, vo_warn, warn_or_raise, W01,
-    W30, W31, W39, W46, W47, W49, E01, E02, E03, E04, E05, E06)
+    W30, W31, W39, W46, W47, W49, W51, E01, E02, E03, E04, E05, E06)
 from .util import IS_PY3K
 
 
@@ -693,6 +693,14 @@ class Integer(Numeric):
             value = int(value)
         if self.null is not None and value == self.null:
             mask = True
+
+        if value < self.val_range[0]:
+            warn_or_raise(W51, W51, (value, self.bit_size), config, pos)
+            value = self.val_range[0]
+        elif value > self.val_range[1]:
+            warn_or_raise(W51, W51, (value, self.bit_size), config, pos)
+            value = self.val_range[1]
+
         return value, mask
 
     def output(self, value, mask):
@@ -727,6 +735,8 @@ class UnsignedByte(Integer):
     Handles the unsignedByte datatype.  Unsigned 8-bit integer.
     """
     format = 'u1'
+    val_range = (0, 255)
+    bit_size = '8-bit unsigned'
 
 
 class Short(Integer):
@@ -734,6 +744,8 @@ class Short(Integer):
     Handles the short datatype.  Signed 16-bit integer.
     """
     format = 'i2'
+    val_range = (-32768, 32767)
+    bit_size = '16-bit'
 
 
 class Int(Integer):
@@ -741,6 +753,8 @@ class Int(Integer):
     Handles the int datatype.  Signed 32-bit integer.
     """
     format = 'i4'
+    val_range = (-2147483648, 2147483647)
+    bit_size = '32-bit'
 
 
 class Long(Integer):
@@ -748,6 +762,8 @@ class Long(Integer):
     Handles the long datatype.  Signed 64-bit integer.
     """
     format = 'i8'
+    val_range = (-9223372036854775808, 9223372036854775807)
+    bit_size = '64-bit'
 
 
 class ComplexArrayVarArray(VarArray):
