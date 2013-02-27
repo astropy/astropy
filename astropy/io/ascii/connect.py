@@ -39,6 +39,13 @@ def read_ipac(filename, **kwargs):
 
 io_registry.register_reader('ipac', Table, read_ipac)
 
+def write_ipac(table, filename, **kwargs):
+    from .ipac import Ipac
+    from .ui import write
+    write(table, filename, Writer=Ipac, **kwargs)
+
+io_registry.register_writer('ipac', Table, write_ipac)
+
 
 # CDS
 # ===
@@ -130,3 +137,5 @@ def is_rdb(origin, args, kwargs):
     return isinstance(args[0], basestring) and args[0].endswith('.rdb')
 
 io_registry.register_identifier('rdb', Table, is_rdb)
+
+
