@@ -49,7 +49,7 @@ install:
    - if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
    - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx --use-mirrors; fi
-   - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install -e git+git://github.com/matplotlib/matplotlib.git@56df9128ef03a62d8bb0934324791254d83ab957#egg=matplotlib; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install matplotlib --use-mirrors; fi #this matplotlib will *not* work with py 3.x, but our sphinx build is currently 2.7, so that's fine
    - if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
 
 script:
