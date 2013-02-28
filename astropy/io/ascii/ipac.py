@@ -153,10 +153,10 @@ class IpacHeader(core.BaseHeader):
                     yield line.lstrip(self.__class__.comment).strip()
 
     def get_meta(self, lines):
-        self.meta = OrderedDict()
+        self.table_meta = OrderedDict()
         for k,v in self.process_meta_kw(lines):
-            self.meta[k] = v
-        self.meta['comments'] = list(self.process_meta_comments(lines))
+            self.table_meta[k] = v
+        self.table_meta['comments'] = list(self.process_meta_comments(lines))
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -169,6 +169,7 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
+        self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
