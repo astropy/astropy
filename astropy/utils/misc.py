@@ -18,7 +18,8 @@ import warnings
 
 __all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
            'deprecated_attribute', 'silence', 'format_exception',
-           'NumpyRNGContext', 'find_api_page', 'is_hidden', 'walk_skip_hidden']
+           'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
+           'walk_skip_hidden']
 
 
 def find_current_module(depth=1, finddiff=False):
@@ -718,10 +719,19 @@ else:
         return False
 
 
-def is_hidden(filepath):
+def is_path_hidden(filepath):
     """
-    Returns `True` if the given file path refers to a hidden file or
-    directory.
+    Determines if a given file or directory is hidden.
+
+    Parameters
+    ----------
+    filepath : str
+        The path to a file or directory
+
+    Returns
+    -------
+    hidden : bool
+        Returns `True` if the file is hidden
     """
     name = os.path.basename(os.path.abspath(filepath))
     if isinstance(name, bytes):
@@ -738,12 +748,16 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     This function does not have the parameter `topdown` from
     `os.walk`: the directories must always be recursed top-down when
     using this function.
+
+    See also
+    --------
+    os.walk : For a description of the parameters
     """
     for root, dirs, files in os.walk(
             top, topdown=True, onerror=onerror,
             followlinks=followlinks):
         # These lists must be updated in-place so os.walk will skip
         # hidden directories
-        dirs[:] = [d for d in dirs if not is_hidden(d)]
-        files[:] = [f for f in files if not is_hidden(f)]
+        dirs[:] = [d for d in dirs if not is_path_hidden(d)]
+        files[:] = [f for f in files if not is_path_hidden(f)]
         yield root, dirs, files
