@@ -37,24 +37,8 @@ from ...utils import OrderedDict
 from . import core
 from . import fixedwidth
 from ...utils import OrderedDict
+from .core import io, next, izip, any
 import numpy as np
-
-# Define type conversion from IPAC table to numpy arrays
-type_rev_dict = {}
-type_rev_dict[np.bool_] = "int"
-type_rev_dict[np.int8] = "int"
-type_rev_dict[np.int16] = "int"
-type_rev_dict[np.int32] = "int"
-type_rev_dict[np.int64] = "int"
-type_rev_dict[np.uint8] = "int"
-type_rev_dict[np.uint16] = "int"
-type_rev_dict[np.uint32] = "int"
-type_rev_dict[np.uint64] = "int"
-type_rev_dict[np.float32] = "float"
-type_rev_dict[np.float64] = "double"
-type_rev_dict[np.str] = "char"
-type_rev_dict[np.string_] = "char"
-type_rev_dict[str] = "char"
 
 class Ipac(core.BaseReader):
     """Read an IPAC format table.  See
@@ -104,12 +88,21 @@ class Ipac(core.BaseReader):
         core.BaseReader.__init__(self)
         self.header = IpacHeader(definition=definition)
         self.data = IpacData()
+        # from FixedWidth, needed for writer
+        self.data.header = self.header
+        # this is also defined in the header __init__
+        # Which is right?  "conventional" ?
+        # (obviously not both)
+        self.header.splitter.delimiter = '|'
+        self.header.splitter.bookend = True
+        self.data.splitter.delimiter = ' '
+        self.data.splitter.bookend = True
 
 
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
     comment = '\\'
-    splitter_class = core.BaseSplitter
+    splitter_class = fixedwidth.FixedWidthSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
                     'long': core.IntType,
@@ -215,7 +208,7 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
-        self.get_meta(lines)
+        #self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
@@ -276,113 +269,26 @@ class IpacData(fixedwidth.FixedWidthData):
     comment = r'[|\\]'
 
     def write(self, lines):
-        '''
-        Write the table to an IPAC file
-        '''
+        """ IPAC writer, modified from FixedWidth writer """
 
-        # atpy leftover
-        #self._raise_vector_columns()
+        vals_list = []
 
-        # IPAC is not fully supported yet!  sheesh.
-        #for key in self.keywords:
-        #    value = self.keywords[key]
-        #    lines.append("\\" + key + "=" + str(value) + "\n")
+        with self._set_col_formats(self.cols, self.formats):
+            # Col iterator does the formatting defined above so each val is a string
+            # and vals is a tuple of strings for all columns of each row
+            col_str_iters = [col.iter_str_vals() for col in self.cols]
+            for vals in izip(*col_str_iters):
+                vals_list.append(vals)
 
-        #for comment in self.comments:
-        #    lines.append("\\ " + comment + "\n")
+        for i, col in enumerate(self.cols):
+            col.width = max([len(vals[i]) for vals in vals_list])
 
-        # Compute width of all columns
+        widths = [col.width for col in self.cols]
 
-        line_names = ""
-        line_types = ""
-        line_units = ""
-        line_nulls = ""
+        lines.append(self.header.splitter.join([col.name for col in self.cols], widths))
 
-        width = {}
+        for vals in vals_list:
+            lines.append(self.splitter.join(vals, widths))
 
-        def format_length(format):
-            " for format length adjustment; copied from atpy helpers "
-            if format is None:
-                return 
-            elif '.' in format:
-                return int(format.split('.')[0])
-            else:
-                return int(format[:-1])
-
-        for column in self.cols:
-            name=column.name
-
-            dtype = column.dtype
-
-            coltype = type_rev_dict[dtype.type]
-            colunit = column.units
-            if colunit is None: colunit=''
-
-            # not supported yet
-            # if self._masked:
-            #     colnull = self.data[name].fill_value
-            # else:
-            #     colnull = column.null
-
-            # if colnull:
-            #     colnull = ("%" + column.format) % colnull
-            # else:
-            #     colnull = ''
-            colnull = ""
-
-            # Adjust the format for each column
-
-            width[name] = format_length(column.format)
-            if width[name] is None:
-                width[name] = max([len("%s" % x) for x in column])
-
-            max_width = max(len(name), len(coltype), len(colunit), \
-                len(colnull))
-
-            if max_width > width[name]:
-                width[name] = max_width
-
-            sf = "%" + str(width[name]) + "s"
-            line_names = line_names + "|" + (sf % name)
-            line_types = line_types + "|" + (sf % coltype)
-            line_units = line_units + "|" + (sf % colunit)
-            line_nulls = line_nulls + "|" + (sf % colnull)
-
-        line_names = line_names + "|"
-        line_types = line_types + "|"
-        line_units = line_units + "|"
-        line_nulls = line_nulls + "|"
-
-        lines.append(line_names)
-        lines.append(line_types)
-        if len(line_units.replace("|", "").strip()) > 0:
-            lines.append(line_units)
-        if len(line_nulls.replace("|", "").strip()) > 0:
-            lines.append(line_nulls)
-
-        print line_names
-        print width
-
-        for i in range(len(column)):
-
-            line = ""
-
-            for column in self.cols:
-                # this way is better, but unsupported
-                #if column.dtype == np.uint64:
-                #    item = (("%" + column.format) % long(self.data[name][i]))
-                #else:
-                #    item = (("%" + column.format) % self.data[name][i])
-                name = column.name
-                item = ("%" + str(width[name]) + "s") % column[i]
-
-                if len(item) > width[name]:
-                    raise Exception('format for column %s (%s) is not wide enough to contain data' % (name, column.format))
-
-                line = line + " " + item
-
-            #line = line + " \n"
-
-            lines.append(line)
         return lines
 
