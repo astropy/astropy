@@ -1217,6 +1217,13 @@ class CompositeUnit(UnitBase):
     _simplify.__doc__ = UnitBase._simplify.__doc__
 
     def decompose(self, bases=[]):
+        for base in self.bases:
+            if (not isinstance(base, IrreducibleUnit) or
+                    (len(bases) and base not in bases)):
+                break
+        else:
+            return self
+
         x = CompositeUnit(self.scale, self.bases, self.powers)
         x._expand_and_gather(True, bases=bases)
         return x
