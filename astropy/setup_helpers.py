@@ -30,6 +30,7 @@ from setuptools.command.register import register as SetuptoolsRegister
 
 from .tests.helper import astropy_test
 from .utils import silence
+from .utils.misc import walk_skip_hidden
 
 
 try:
@@ -960,8 +961,7 @@ def iter_setup_packages(srcdir):
         `modname` is the module name for the ``setup_package.py`` modules.
 
     """
-
-    for root, dirs, files in os.walk(srcdir):
+    for root, dirs, files in walk_skip_hidden(srcdir):
         if 'setup_package.py' in files:
             filename = os.path.join(root, 'setup_package.py')
             module = import_file(filename)
@@ -981,7 +981,7 @@ def iter_pyx_files(srcdir):
         the .pyx file.
 
     """
-    for dirpath, dirnames, filenames in os.walk(srcdir):
+    for dirpath, dirnames, filenames in walk_skip_hidden(srcdir):
         modbase = dirpath.replace(os.sep, '.')
         for fn in filenames:
             if fn.endswith('.pyx'):

@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from .. import misc
+from .. import data
+
 
 #namedtuple is needed for find_mod_objs so it can have a non-local module
 from collections import namedtuple
@@ -99,3 +101,16 @@ def test_deprecated_attribute():
         dummy.set_private()
 
     assert len(w) == 0
+
+
+def test_skip_hidden():
+    import os
+
+    path = data._find_pkg_data_path('data')
+    for root, dirs, files in os.walk(path):
+        assert '.hidden_file.txt' in files
+        assert 'local.dat' in files
+
+    for root, dirs, files in misc.walk_skip_hidden(path):
+        assert '.hidden_file.txt' not in files
+        assert 'local.dat' in files

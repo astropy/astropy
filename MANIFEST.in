@@ -16,6 +16,8 @@ include astropy/extern/pyparsing_py3/*.py
 
 include astropy/table/tests/notebook_repr_html.ipynb
 
+include astropy/utils/misc/data/.hidden_file.txt
+
 recursive-include docs *
 recursive-include licenses *
 recursive-include cextern *
