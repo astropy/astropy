@@ -40,7 +40,6 @@ from ...utils import OrderedDict
 from .core import io, next, izip, any
 import numpy as np
 
-
 class Ipac(core.BaseReader):
     """Read an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
@@ -197,7 +196,7 @@ class Ipac(core.BaseReader):
 class IpacHeader(core.BaseHeader):
     """IPAC table header"""
     comment = '\\'
-    splitter_class = core.BaseSplitter
+    splitter_class = fixedwidth.FixedWidthSplitter
     col_type_map = {'int': core.IntType,
                     'integer': core.IntType,
                     'long': core.IntType,
@@ -303,7 +302,7 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
-        self.get_meta(lines)
+        #self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
@@ -364,86 +363,9 @@ class IpacData(fixedwidth.FixedWidthData):
     comment = r'[|\\]'
 
     def write(self, lines):
-        '''
-        Write the table to an IPAC file
-        '''
-
-        # atpy leftover
-        #self._raise_vector_columns()
-
-        # IPAC is not fully supported yet!  sheesh.
-        #for key in self.keywords:
-        #    value = self.keywords[key]
-        #    lines.append("\\" + key + "=" + str(value) + "\n")
-
-        #for comment in self.comments:
-        #    lines.append("\\ " + comment + "\n")
-
-        # Compute width of all columns
-
-        line_names = ""
-        line_types = ""
-        line_units = ""
-        line_nulls = ""
-
-        width = {}
-
-        def format_length(format):
-            " for format length adjustment; copied from atpy helpers "
-            if format is None:
-                return 
-            elif '.' in format:
-                return int(format.split('.')[0])
-            else:
-                return int(format[:-1])
-
-        for column in self.cols:
-            name=column.name
-
-            dtype = column.dtype
-
-            coltype = type_rev_dict[dtype.type]
-            colunit = column.units
-            if colunit is None: colunit=''
-
-            # not supported yet
-            # if self._masked:
-            #     colnull = self.data[name].fill_value
-            # else:
-            #     colnull = column.null
-
-            # if colnull:
-            #     colnull = ("%" + column.format) % colnull
-            # else:
-            #     colnull = ''
-            colnull = ""
-
-            # Adjust the format for each column
-
-            width[name] = format_length(column.format)
-            if width[name] is None:
-                width[name] = max([len("%s" % x) for x in column])
-
-            max_width = max(len(name), len(coltype), len(colunit), \
-                len(colnull))
-
-            if max_width > width[name]:
-                width[name] = max_width
-
-            sf = "%" + str(width[name]) + "s"
-            line_names = line_names + "|" + (sf % name)
-            line_types = line_types + "|" + (sf % coltype)
-            line_units = line_units + "|" + (sf % colunit)
-            line_nulls = line_nulls + "|" + (sf % colnull)
-
-        line_names = line_names + "|"
-        line_types = line_types + "|"
-        line_units = line_units + "|"
-        line_nulls = line_nulls + "|"
-
-    def write(self, lines):
         """ IPAC writer, modified from FixedWidth writer """
 
+        vals_list = []
 
         with self._set_col_formats(self.cols, self.formats):
             # Col iterator does the formatting defined above so each val is a string
