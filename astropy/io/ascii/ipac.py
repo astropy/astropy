@@ -215,6 +215,7 @@ class IpacHeader(core.BaseHeader):
         :param lines: list of table lines
         :returns: list of table Columns
         """
+        self.get_meta(lines)
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
         if len(header_vals) == 0:
