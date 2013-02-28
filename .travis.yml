@@ -41,7 +41,7 @@ before_install:
    - sudo apt-get update -qq
    - if [[ $SETUP_CMD != egg_info ]]; then sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran; fi
    - if $OPTIONAL_DEPS; then sudo apt-get install -qq python-scipy libhdf5-serial-1.8.4 libhdf5-serial-dev; fi
-   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install -qq python-sphinx graphviz texlive-latex-extra dvipng python-matplotlib; fi
 
 install:
    - export PYTHONIOENCODING=UTF8 # just in case
@@ -49,6 +49,7 @@ install:
    - if $OPTIONAL_DEPS; then pip install scipy --use-mirrors; fi # this can't be quiet because it takes so long that travis times out
    - if $OPTIONAL_DEPS; then pip install h5py -q --use-mirrors; fi
    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install sphinx --use-mirrors; fi
+   - if [[ $SETUP_CMD == build_sphinx* ]]; then pip -q install -e git+git://github.com/matplotlib/matplotlib.git@56df9128ef03a62d8bb0934324791254d83ab957#egg=matplotlib; fi
    - if [[ $SETUP_CMD != egg_info ]]; then pip -q install Cython --use-mirrors; fi
 
 script:
