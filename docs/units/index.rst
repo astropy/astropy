@@ -72,6 +72,12 @@ their units::
    >>> (3.0 * u.kilometer / (130.51 * u.meter / u.second)).decompose()
    <Quantity 22.9867443108 s>
 
+Quantities can also easily provide their values in another unit::
+
+   >>> q = 15.1 * u.meter
+   >>> q.inch
+   39.370078740157474
+
 Using `astropy.units`
 =====================
 
