@@ -34,7 +34,7 @@ matrix:
 
         # Check for sphinx doc build warnings
         - python: 2.7
-          env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=false
+          env: NUMPY_VERSION=1.7.0 SETUP_CMD='build_sphinx -w -n' OPTIONAL_DEPS=true #odeps needed because the matplotlib sphinx extension requires it
 
 before_install:
    # We do this to make sure we get the dependencies so pip works below
