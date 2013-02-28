@@ -10,10 +10,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ..utils.compat.fractions import Fraction
 
 from . import si
-from .core import UnitBase, def_unit
+from .core import UnitBase, def_unit, _UnitRegistry
 
 
-UnitBase._set_namespace(globals())
+_UnitRegistry().namespace = globals()
 
 def_unit(['cm', 'centimeter'], si.cm, register=True, prefixes=False)
 g = si.g

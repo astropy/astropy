@@ -28,6 +28,122 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit']
 
 
+class _UnitRegistry(object):
+    """
+    A singleton class to manage a registry of all defined units.
+    """
+
+    _all_units = set()
+    _non_prefix_units = set()
+    _registry = {}
+    _namespace = {}
+    _by_physical_type = {}
+
+    @property
+    def namespace(self):
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, namespace):
+        self.__class__._namespace = namespace
+
+    @property
+    def registry(self):
+        return self._registry
+
+    @property
+    def all_units(self):
+        return self._all_units
+
+    @property
+    def non_prefix_units(self):
+        return self._non_prefix_units
+
+    @classmethod
+    def register_unit(cls, unit, add_to_namespace=False):
+        """
+        Add a unit to the unit registry.
+
+        Parameters
+        ----------
+        add_to_namespace : bool, optional
+            When `True`, register the unit in the external namespace
+            last assigned to `_UnitRegistry().namespace` as well as
+            the central registry.  (Default is `False`).
+        """
+        if not unit._names:
+            raise UnitsException("unit has no string representation")
+
+        for st in unit._names:
+            if not re.match("^[A-Za-z_]+$", st):
+                # will cause problems for simple string parser in
+                # unit() factory
+                raise ValueError(
+                    "Invalid unit name {0!r}".format(st))
+
+            if add_to_namespace:
+                if st in cls._namespace:
+                    raise ValueError(
+                        "Object with name {0!r} already exists "
+                        "in namespace".format(st))
+                cls._namespace[st] = unit
+
+            cls._registry[st] = unit
+
+        cls._all_units.add(unit)
+        if not isinstance(unit, PrefixUnit):
+            cls._non_prefix_units.add(unit)
+
+        hash = unit._get_physical_type_id()
+        cls._by_physical_type.setdefault(hash, set()).add(unit)
+
+    @classmethod
+    def deregister_unit(cls, unit, remove_from_namespace=False):
+        """
+        Deregisters the unit from the unit registry.  It will no
+        longer be used in methods that search through the unit
+        registry, such as `find_equivalent_units` and `compose`.
+
+        Parameters
+        ----------
+        remove_from_namespace : bool, optional
+            When `True`, remove the unit in the external namespace
+            last assigned to `_UnitRegistry()._namespace` as well as the
+            central registry.  (Default is `False`).
+        """
+        if unit not in cls._all_units:
+            raise ValueError("unit is not already registered")
+
+        for st in unit._names:
+            if remove_from_namespace:
+                if st in cls._namespace and cls._namespace[st] is unit:
+                    del cls._namespace[st]
+
+            if st in cls._registry and cls._registry[st] is unit:
+                del cls._registry[st]
+
+        cls._all_units.remove(unit)
+        if not isinstance(unit, PrefixUnit):
+            cls._non_prefix_units.remove(unit)
+
+        hash = unit._get_physical_type_id()
+        cls._by_physical_type[hash].remove(unit)
+
+    @classmethod
+    def get_units_with_physical_type(cls, unit):
+        """
+        Get all units in the registry with the same physical type as
+        the given unit.
+
+        Parameters
+        ----------
+        unit : UnitBase instance
+        """
+        return cls._by_physical_type.get(
+            unit._get_physical_type_id(),
+            set())
+
+
 class UnitsException(Exception):
     """
     The base class for unit-specific exceptions.
@@ -51,9 +167,6 @@ class UnitBase(object):
 
     Should not be instantiated by users directly.
     """
-    _registry = {}
-    _namespace = {}
-
     # Make sure that __rmul__ of units gets called over the __mul__ of Numpy
     # arrays to avoid element-wise multiplication.
     __array_priority__ = 1000
@@ -82,6 +195,19 @@ class UnitBase(object):
     def __repr__(self):
         return 'Unit("' + str(self) + '")'
 
+    def _get_physical_type_id(self):
+        """
+        Returns an identifier that uniquely identifies the physical
+        type of this unit.  It is comprised of the bases and powers of
+        this unit, without the scale.  Since it is hashable, it is
+        useful as a dictionary key.
+        """
+        unit = self.decompose()
+        r = zip([unicode(x) for x in unit.bases], unit.powers)
+        r.sort()
+        r = tuple(r)
+        return r
+
     def to_string(self, format='generic'):
         """
         Output the unit in the given format as a string.
@@ -96,18 +222,26 @@ class UnitBase(object):
         return f.to_string(self)
 
     @staticmethod
-    def _get_namespace():
+    def _iter_equivalencies(equivalencies):
         """
-        Get the namespace that units will be registered to.
-        """
-        return UnitBase._namespace
+        Iterates through a list of equivalencies, and, regardless of
+        the length of each of the entries, always yields a 4-tuple for
+        each equivalency of the form::
 
-    @staticmethod
-    def _set_namespace(d):
+            (from_unit, to_unit, forward_func, backward_func)
         """
-        Set the namespace that units will be registered to.
-        """
-        UnitBase._namespace = d
+        for equiv in equivalencies:
+            if len(equiv) == 2:
+                funit, tunit = equiv
+                a, b = lambda x: x
+            if len(equiv) == 3:
+                funit, tunit, a = equiv
+                b = a
+            elif len(equiv) == 4:
+                funit, tunit, a, b = equiv
+            else:
+                raise ValueError("Invalid equivalence entry")
+            yield funit, tunit, a, b
 
     def __pow__(self, p):
         if isinstance(p, tuple) and len(p) == 2:
@@ -232,21 +366,20 @@ class UnitBase(object):
         if isinstance(other, UnrecognizedUnit):
             return False
 
-        try:
-            (self / other)._dimensionless_constant()
-        except UnitsException:
+        if (self._get_physical_type_id() ==
+                other._get_physical_type_id()):
+            return True
+        elif len(equivalencies):
             unit = self.decompose()
             other = other.decompose()
-            for equiv in equivalencies:
-                a = equiv[0]
-                b = equiv[1]
+            for a, b, forward, backward in self._iter_equivalencies(
+                    equivalencies):
                 if (unit.is_equivalent(a) and other.is_equivalent(b)):
                     return True
                 elif (unit.is_equivalent(b) and other.is_equivalent(a)):
                     return True
             return False
-        else:
-            return True
+        return False
 
     def _apply_equivalences(self, unit, other, equivalencies):
         """
@@ -264,17 +397,8 @@ class UnitBase(object):
         unit = self.decompose()
         other = other.decompose()
 
-        for equiv in equivalencies:
-            if len(equiv) == 2:
-                funit, tunit = equiv
-                a, b = lambda x: x
-            if len(equiv) == 3:
-                funit, tunit, a = equiv
-                b = a
-            elif len(equiv) == 4:
-                funit, tunit, a, b = equiv
-            else:
-                raise ValueError("Invalid equivalence entry")
+        for funit, tunit, a, b in self._iter_equivalencies(
+                equivalencies):
             if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
                 scale1 = (unit / funit)._dimensionless_constant()
                 scale2 = (tunit / other)._dimensionless_constant()
@@ -440,8 +564,7 @@ class UnitBase(object):
 
         # Make a list including all of the equivalent units
         units = [unit]
-        for equiv in equivalencies:
-            funit, tunit = equiv[:2]
+        for funit, tunit, a, b in equivalencies:
             if self.is_equivalent(funit):
                 units.append(tunit.decompose())
             elif self.is_equivalent(tunit):
@@ -559,13 +682,22 @@ class UnitBase(object):
             return filtered_namespace
 
         if units is None:
-            units = filter_units(UnitBase._registry.values())
+            units = filter_units(self._get_units_with_same_physical_type(
+                equivalencies=equivalencies))
+            if len(units) == 0:
+                units = _UnitRegistry().non_prefix_units
         elif isinstance(units, dict):
             units = set(units.values())
         elif inspect.ismodule(units):
             units = filter_units(vars(units).values())
         else:
             units = set(units)
+
+        if not len(units):
+            raise UnitsException("No units to compose into.")
+
+        # Pre-normalize the equivalencies list
+        equivalencies = list(self._iter_equivalencies(equivalencies))
 
         return self._compose(
             equivalencies=equivalencies, namespace=units,
@@ -619,6 +751,38 @@ class UnitBase(object):
         """
         from . import physical
         return physical.get_physical_type(self)
+
+    def _get_units_with_same_physical_type(self, equivalencies=[]):
+        """
+        Return a list of registered units with the same physical type
+        as this unit.
+
+        This function is used by Quantity to add its built-in
+        conversions to equivalent units.
+
+        This is a private method, since end users should be encouraged
+        to use the more powerful `compose` and `find_equivalent_units`
+        methods (which use this under the hood).
+
+        Parameters
+        ----------
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to also pull options from.
+            See :ref:`unit_equivalencies`.
+        """
+        if equivalencies == []:
+            return _UnitRegistry.get_units_with_physical_type(self)
+        else:
+            units = set(_UnitRegistry.get_units_with_physical_type(self))
+            for funit, tunit, a, b in self._iter_equivalencies(
+                    equivalencies):
+                if funit not in units:
+                    units.update(
+                        _UnitRegistry.get_units_with_physical_type(funit))
+                if tunit not in units:
+                    units.update(
+                        _UnitRegistry.get_units_with_physical_type(tunit))
+            return units
 
     class EquivalentUnitsList(list):
         """
@@ -741,7 +905,7 @@ class NamedUnit(UnitBase):
 
         self.__doc__ = doc
 
-        self._register_unit(register)
+        self.register(register)
 
     def _generate_doc(self):
         """
@@ -796,39 +960,37 @@ class NamedUnit(UnitBase):
         """
         return self._names[1:]
 
-    def _register_unit(self, register):
+    def register(self, add_to_namespace=False):
         """
         Registers the unit in the registry, and optionally in another
         namespace.  It is registered under all of the names and
         aliases given to the constructor.
 
-        The namespace used is set with `UnitBase._set_namespace`.
+        Parameters
+        ----------
+        add_to_namespace : bool, optional
+            When `True`, register the unit in the external namespace
+            last assigned to `_UnitRegistry().namespace` as well as the
+            central registry.  (Default is `False`).
+        """
+        _UnitRegistry().register_unit(
+            self, add_to_namespace=add_to_namespace)
+
+    def deregister(self, remove_from_namespace=False):
+        """
+        Deregisters the unit from the unit registry.  It will no
+        longer be used in methods that search through the unit
+        registry, such as `find_equivalent_units` and `compose`.
 
         Parameters
         ----------
-        register : bool
-            When `True`, register the unit in the external namespace
-            as well as the central registry.
+        remove_from_namespace : bool, optional
+            When `True`, remove the unit in the external namespace
+            last assigned to `_UnitRegistry().namespace` as well as the
+            central registry.  (Default is `False`).
         """
-        if not self._names:
-            raise UnitsException("unit has no string representation")
-
-        for st in self._names:
-            if not re.match("^[A-Za-z_]+$", st):
-                # will cause problems for simple string parser in
-                # unit() factory
-                raise ValueError(
-                    "Invalid unit name {0!r}".format(st))
-
-            if register:
-                if st in self._namespace:
-                    raise ValueError(
-                        "Object with name {0!r} already exists "
-                        "in namespace ({1})".format(
-                            st, self._namespace[st].__doc__))
-                self._namespace[st] = self
-
-            self._registry[st] = self
+        _UnitRegistry().deregister_unit(
+            self, remove_from_namespace=remove_from_namespace)
 
 
 def _recreate_irreducible_unit(names, registered):
@@ -923,7 +1085,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     def to_string(self, format='generic'):
         return self.name
 
-    def _register_unit(self, register):
+    def register(self, register):
         pass
 
     def _unrecognized_operator(self, *args, **kwargs):
@@ -1182,7 +1344,7 @@ class CompositeUnit(UnitBase):
                 return 'Unit(dimensionless)'
 
     def __hash__(self):
-        parts = zip((hash(x) for x in self._bases), self._powers)
+        parts = zip((unicode(x) for x in self._bases), self._powers)
         parts.sort()
         return hash(tuple([self._scale] + parts))
 
@@ -1209,7 +1371,7 @@ class CompositeUnit(UnitBase):
 
     def _expand_and_gather(self, decompose=False, bases=[]):
         def add_unit(unit, power, scale):
-            if len(bases) and unit not in bases:
+            if unit not in bases:
                 for base in bases:
                     if unit.is_equivalent(base):
                         scale *= unit.to(base) ** power
@@ -1223,7 +1385,7 @@ class CompositeUnit(UnitBase):
         scale = self.scale
 
         for b, p in zip(self.bases, self.powers):
-            if decompose and (not len(bases) or b not in bases):
+            if decompose and b not in bases:
                 b = b.decompose(bases=bases)
 
             if isinstance(b, CompositeUnit):

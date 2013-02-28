@@ -28,6 +28,7 @@ dimensionless_unscaled = Unit(1)
 
 # After importing the unit definitions above, set the unit namespace
 # to this top-level module so that new units are added here.
-UnitBase._set_namespace(locals())
+from core import _UnitRegistry
+_UnitRegistry().namespace = locals()
 
 del bases

@@ -191,8 +191,20 @@ def test_decompose():
 
 
 def test_equivalent_units():
-    assert u.pound in u.g.find_equivalent_units()
-    assert u.J in u.Hz.find_equivalent_units(u.spectral())
+    units = set(u.g.find_equivalent_units())
+    match = set(
+        [u.M_e, u.M_p, u.g, u.kg, u.lb, u.oz,
+         u.solMass, u.t, u.ton, u.u])
+    assert units == match
+
+
+def test_equivalent_units2():
+    units = set(u.Hz.find_equivalent_units(u.spectral()))
+    match = set(
+        [u.AU, u.Angstrom, u.BTU, u.Hz, u.J, u.Ry, u.cal, u.cm, u.eV,
+         u.erg, u.ft, u.inch, u.kcal, u.lyr, u.m, u.mi, u.micron,
+         u.pc, u.solRad, u.yd])
+    assert units == match
 
 
 def test_unknown_unit():
@@ -222,13 +234,12 @@ def test_unknown_unit3():
 
 
 def test_register():
+    from .. import core
     try:
         u.def_unit("foo", u.m ** 3, register=True)
         assert hasattr(u, 'foo')
     finally:
-        if hasattr(u, 'foo'):
-            del u.UnitBase._registry['foo']
-            del u.foo
+        u.foo.deregister(remove_from_namespace=True)
 
 
 def test_in_units():
