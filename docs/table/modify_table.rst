@@ -112,3 +112,25 @@ only a few things to keep in mind:
   depends on the detailed layout of Python objects in memory and cannot be
   reliably controlled.  In some cases it may be possible to build a table
   row by row in less than O(N**2) time but you cannot count on it.
+
+Another subtlety to keep in mind are cases where the return value of an
+operation results in a new table in memory versus a view of the existing
+table data.  As an example, imagine trying to set two table elements
+using column selection with ``t['a', 'c']`` in combination with row index selection::
+
+  >>> t = Table([[1, 2], [3, 4], [5, 6]], names=('a', 'b', 'c'))
+  >>> t['a', 'c'][1] = (100, 100)
+  >>> print t
+   a   b   c 
+  --- --- ---
+    1   3   5
+    2   4   6
+
+This might be surprising because the data values did not change and there
+was no error.  In fact what happened is that ``t['a', 'c']`` created a
+new temporary table in memory as a *copy* of the original and then updated
+row 1 of the copy.  The original ``t`` table was unaffected and the new
+temporary table disappeared once the statement was complete.  The takeaway
+is to pay attention to how certain operations are performed one step at
+a time.
+
