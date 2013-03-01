@@ -151,6 +151,14 @@ class TestReverse():
         assert np.all(t2['col0'] == np.array([1, 2, 3]))
         assert np.all(t2['col1'] == np.array(['a', 'b', 'cc']))
 
+    def test_reverse_big(self):
+        x = np.arange(10000)
+        y = x + 1
+        t = Table([x, y], names=('x', 'y'))
+        t.reverse()
+        assert np.all(t['x'] == x[::-1])
+        assert np.all(t['y'] == y[::-1])
+
 
 @pytest.mark.usefixtures('set_global_Table')
 class TestColumnAccess():
@@ -561,6 +569,16 @@ class TestSort():
         t.sort('b')
         assert np.all(t['a'] == np.array([3, 1, 2]))
         assert np.all(t['b'] == np.array([4, 5, 6]))
+
+    def test_single_big(self):
+        """Sort a big-ish table with a non-trivial sort order"""
+        x = np.arange(10000)
+        y = np.sin(x)
+        t = Table([x, y], names=('x', 'y'))
+        t.sort('y')
+        idx = np.argsort(y)
+        assert np.all(t['x'] == x[idx])
+        assert np.all(t['y'] == y[idx])
 
     def test_multiple(self):
         t = Table()
