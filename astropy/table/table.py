@@ -500,7 +500,8 @@ class Column(BaseColumn, np.ndarray):
         return self.view(np.ndarray)
 
     def copy(self, data=None, copy_data=True):
-        """Return a copy of the current Column instance.
+        """Return a copy of the current Column instance.  If ``data`` is supplied
+        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
         """
         if data is None:
             data = self.view(np.ndarray)
@@ -721,7 +722,8 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     def copy(self, data=None, copy_data=True):
         """
-        Return a copy of the current MaskedColumn instance.
+        Return a copy of the current MaskedColumn instance.  If ``data`` is supplied
+        then a view (reference) of ``data`` is used, and ``copy_data`` is ignored.
 
         Parameters
         ----------
@@ -1000,6 +1002,28 @@ class Table(object):
 
         return self._data.data if self.masked else self._data
 
+    def _rebuild_table_column_views(self):
+        """
+        Some table manipulations can corrupt the Column views of self._data.  This
+        function will cleanly rebuild the columns and self.columns.  This is a slightly
+        subtle operation, see comments.
+        """
+        cols = []
+        for col in self.columns.values():
+            # First make a new column based on the name and the original column.  This
+            # step is needed because the table manipulation may have changed the table
+            # masking so that the original data columns no longer correspond to
+            # self.ColumnClass.  This uses data refs, not copies.
+            newcol = self.ColumnClass(name=col.name, data=col)
+
+            # Now use the copy() method to copy the column and its metadata, but at
+            # the same time set the column data to a view of self._data[col.name].
+            # Somewhat confusingly in this case copy() refers to copying the
+            # column attributes, but the data are used by reference.
+            newcol = newcol.copy(data=self._data[col.name])
+            cols.append(newcol)
+
+        self.columns = TableColumns(cols)
 
     def _check_names_dtypes(self, names, dtypes, n_cols):
         """Make sure that names and dtypes are boths iterable and have
@@ -1644,12 +1668,7 @@ class Table(object):
         elif vals is not None:
             raise TypeError('Vals must be an iterable or mapping or None')
 
-        # Add_row() probably corrupted the Column views of self._data.  Rebuild
-        # self.columns.  Col.copy() takes an optional data reference that it
-        # uses in the copy.
-        cols = [self.ColumnClass(name=c.name, data=c).copy(self._data[c.name])
-                for c in self.columns.values()]
-        self.columns = TableColumns(cols)
+        self._rebuild_table_column_views()
 
     def sort(self, keys):
         '''
@@ -1664,6 +1683,7 @@ class Table(object):
         if type(keys) is not list:
             keys = [keys]
         self._data.sort(order=keys)
+        self._rebuild_table_column_views()
 
     def reverse(self):
         '''
@@ -1671,6 +1691,7 @@ class Table(object):
         in place and there are no function arguments.
         '''
         self._data[:] = self._data[::-1].copy()
+        self._rebuild_table_column_views()
 
     read = classmethod(io_registry.read)
     write = io_registry.write
