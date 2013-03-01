@@ -41,7 +41,7 @@ functions can be used to add one or multiple columns to a table.  In both cases 
 columns must be specified as |Column| or |MaskedColumn| objects.
 ::
 
-  >>> c = Column(data=np.arange(5), name='d')
+  >>> c = Column(np.arange(5), name='d')
   >>> t.add_column(c)
 
   # Make a new table with the same number of rows and add columns to original table
