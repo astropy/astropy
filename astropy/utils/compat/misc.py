@@ -18,7 +18,7 @@ from __future__ import absolute_import
 
 from sys import version_info
 
-__all__ = ['inspect_getmodule']
+__all__ = ['inspect_getmodule', 'invalidate_caches']
 
 
 def _patched_getmodule(object, _filename=None):
@@ -85,8 +85,18 @@ functionality with a bugfix for Python 3.1 and 3.2.
 
 #This assigns the stdlib inspect.getmodule to the variable name
 #`inspect_getmodule` if it's not buggy, and uses the matched version if it is.
-if version_info[0]<3 or version_info[1]>2:
+if version_info[0] < 3 or version_info[1] > 2:
     #in 2.x everythig is fine, as well as >=3.3
     from inspect import getmodule as inspect_getmodule
 else:
     inspect_getmodule = _patched_getmodule
+
+
+# Python 3.3's importlib caches filesystem reads for faster imports in the
+# general case. But sometimes it's necessary to manually invalidate those
+# caches so that the import system can pick up new generated files.  See
+# https://github.com/astropy/astropy/issues/820
+if version_info[:2] >= (3, 3):
+    from importlib import invalidate_caches
+else:
+    invalidate_caches = lambda: None
