@@ -1279,10 +1279,16 @@ class Table(object):
         elif isinstance(item, int):
             return Row(self, item)
         elif isinstance(item, tuple):
-            if any(x not in set(self.colnames) for x in item):
-                raise ValueError('Table column slice must contain only valid '
-                                 'column names')
-            return Table([self[x] for x in item], meta=deepcopy(self.meta))
+            if all(isinstance(x, np.ndarray) for x in item):
+                # Item is a tuple of ndarrays as in the output of np.where, e.g.
+                # t[np.where(t['a'] > 2)]
+                return self._new_from_slice(item)
+            elif (all(x in self.colnames for x in item)):
+                # Item is a tuple of strings that are valid column names
+                return Table([self[x] for x in item], meta=deepcopy(self.meta))
+            else:
+                raise ValueError('Illegal item for table item access')
+
         elif (isinstance(item, slice) or isinstance(item, np.ndarray)
               or isinstance(item, list)):
             return self._new_from_slice(item)
