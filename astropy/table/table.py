@@ -1321,14 +1321,15 @@ class Table(object):
             if not isinstance(value, np.ndarray):
                 value = np.array(value)
 
-            # Make new column and assign the value.  If the table currently has
-            # no rows (len=0) then define new column directly from value.  Otherwise
-            # define a new column with the right length and shape and then set
-            # it from value.  This allows for broadcasting, e.g. t['a'] = 1.
-            if len(self) == 0:
+            # Make new column and assign the value.  If the table currently has no rows
+            # (len=0) of the value is already a Column then define new column directly
+            # from value.  In the latter case this allows for propagation of Column
+            # metadata.  Otherwise define a new column with the right length and shape and
+            # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
+            if len(self) == 0 or isinstance(value, BaseColumn):
                 new_column = NewColumn(name=item, data=value)
             else:
-                new_column = NewColumn(item, length=len(self), dtype=value.dtype,
+                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
                                        shape=value.shape[1:])
                 new_column[:] = value
 

@@ -33,14 +33,15 @@ class SetupData(object):
     def a(self):
         if Column is not None:
             if not hasattr(self, '_a'):
-                self._a = Column(name='a', data=[1, 2, 3], meta={'aa': np.arange(5)})
+                self._a = Column(name='a', data=[1, 2, 3], format='%d',
+                                 meta={'aa': [0, 1, 2, 3, 4]})
             return self._a
 
     @property
     def b(self):
         if Column is not None:
             if not hasattr(self, '_b'):
-                self._b = Column(name='b', data=[4, 5, 6])
+                self._b = Column(name='b', data=[4, 5, 6], format='%d', meta={'aa': 1})
             return self._b
 
     @property
@@ -109,11 +110,15 @@ class TestSetTableColumn(SetupData):
         t['bb'] = self.b
         assert np.all(t['bb'] == self.b)
         assert t.colnames == ['a', 'bb']
+        assert t['bb'].meta == self.b.meta
+        assert t['bb'].format == self.b.format
 
         # Add another column
         t['c'] = t['a']
         assert np.all(t['c'] == t['a'])
         assert t.colnames == ['a', 'bb', 'c']
+        assert t['c'].meta == t['a'].meta
+        assert t['c'].format == t['a'].format
 
         # Add a multi-dimensional column
         t['d'] = Column('', np.arange(12).reshape(3, 2, 2))
@@ -131,6 +136,26 @@ class TestSetTableColumn(SetupData):
         # Add a column via broadcasting
         t['f'] = 10
         assert np.all(t['f'] == 10)
+
+    def test_set_new_unmasked_col_existing_table(self):
+        """Create a new column in an existing table using the item access syntax"""
+        t = Table([self.a])  # masked or unmasked
+        b = table.Column(name='b', data=[1, 2, 3])  # unmasked
+        t['b'] = b
+        assert np.all(t['b'] == b)
+
+    def test_set_new_masked_col_existing_table(self):
+        """Create a new column in an existing table using the item access syntax"""
+        t = Table([self.a])  # masked or unmasked
+        b = table.MaskedColumn(name='b', data=[1, 2, 3])  # masked
+        # If the original table is unmasked then adding a masked column raises a type error
+        if isinstance(self.a, table.Column):
+            with pytest.raises(TypeError):
+                t['b'] = b
+        else:
+            # Otherwise it should work as expected
+            t['b'] = b
+            assert np.all(t['b'] == b)
 
     def test_set_new_col_existing_table_fail(self):
         """Generate failure when creating a new column using the item access syntax"""
