@@ -209,6 +209,20 @@ class TestTableItems(BaseTestItems):
         assert np.all(self.t._data == DATA)
         assert np.any(t2['a'] != DATA['a'])
 
+    def test_np_where(self):
+        """Select rows using output of np.where"""
+        t = Table(COLS)
+        # Select last two rows
+        rows = np.where(t['a'] > 1.5)
+        t2 = t[rows]
+        assert np.all(t2['a'] == [2, 3])
+        assert np.all(t2['b'] == [5, 6])
+
+        # Select no rows
+        rows = np.where(t['a'] > 100)
+        t2 = t[rows]
+        assert len(t2) == 0
+
     def test_select_bad_column(self):
         """Select column name that does not exist"""
         self.t = Table(COLS)
