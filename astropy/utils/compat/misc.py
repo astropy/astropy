@@ -106,10 +106,10 @@ else:
 def override__dir__(f):
     """
     When overriding a __dir__ method on an object, you often want to
-    get include the "standard" set of stuff on the object as well.
-    This decorator takes care of that automatically, and all the
-    wrapped function needs to do is return a list of the "special"
-    members that wouldn't be found by the normal Python means.
+    include the "standard" members on the object as well.  This
+    decorator takes care of that automatically, and all the wrapped
+    function needs to do is return a list of the "special" members
+    that wouldn't be found by the normal Python means.
 
     Example
     -------

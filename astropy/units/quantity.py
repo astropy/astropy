@@ -83,8 +83,7 @@ class Quantity(object):
         the `units` package.
 
     equivalencies : list of equivalence pairs, optional
-        A list of equivalence pairs to allow conversions to.
-        See :ref:`unit_equivalencies`.
+        A list of equivalence pairs. See :ref:`unit_equivalencies`.
 
     Raises
     ------
@@ -102,7 +101,7 @@ class Quantity(object):
         from ..utils.misc import isiterable
 
         self._unit = Unit(unit)
-        self._equivalencies = equivalencies
+        self._equivalencies = Unit._normalize_equivalencies(equivalencies)
 
         if isinstance(value, Quantity):
             self._value = _validate_value(value.to(self._unit).value)
@@ -124,8 +123,8 @@ class Quantity(object):
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.  If
-            not provided, the any equivalencies that were provided in
-            the constructor will be used.
+            not provided, the equivalencies that were provided in the
+            constructor will be used.
         """
         if equivalencies is None:
             equivalencies = self._equivalencies

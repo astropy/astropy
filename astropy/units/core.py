@@ -222,15 +222,17 @@ class UnitBase(object):
         return f.to_string(self)
 
     @staticmethod
-    def _iter_equivalencies(equivalencies):
+    def _normalize_equivalencies(equivalencies):
         """
-        Iterates through a list of equivalencies, and, regardless of
-        the length of each of the entries, always yields a 4-tuple for
-        each equivalency of the form::
+        Normalizes a list of equivalencies, by ensuring each element
+        is a 4-tuple of the form::
 
             (from_unit, to_unit, forward_func, backward_func)
+
+        Raises a ValueError if the equivalencies list is invalid.
         """
-        for equiv in equivalencies:
+        normalized = []
+        for i, equiv in enumerate(equivalencies):
             if len(equiv) == 2:
                 funit, tunit = equiv
                 a, b = lambda x: x
@@ -240,8 +242,16 @@ class UnitBase(object):
             elif len(equiv) == 4:
                 funit, tunit, a, b = equiv
             else:
-                raise ValueError("Invalid equivalence entry")
-            yield funit, tunit, a, b
+                raise ValueError(
+                    "Invalid equivalence entry {0}".format(i))
+            if not (isinstance(funit, UnitBase) and
+                    isinstance(tunit, UnitBase) and
+                    callable(a) and
+                    callable(b)):
+                raise ValueError(
+                    "Invalid equivalence entry {0}".format(i))
+            normalized.append((funit, tunit, a, b))
+        return normalized
 
     def __pow__(self, p):
         if isinstance(p, tuple) and len(p) == 2:
@@ -362,6 +372,7 @@ class UnitBase(object):
         bool
         """
         other = Unit(other, parse_strict='silent')
+        equivalencies = self._normalize_equivalencies(equivalencies)
 
         if isinstance(other, UnrecognizedUnit):
             return False
@@ -372,8 +383,7 @@ class UnitBase(object):
         elif len(equivalencies):
             unit = self.decompose()
             other = other.decompose()
-            for a, b, forward, backward in self._iter_equivalencies(
-                    equivalencies):
+            for a, b, forward, backward in equivalencies:
                 if (unit.is_equivalent(a) and other.is_equivalent(b)):
                     return True
                 elif (unit.is_equivalent(b) and other.is_equivalent(a)):
@@ -397,8 +407,7 @@ class UnitBase(object):
         unit = self.decompose()
         other = other.decompose()
 
-        for funit, tunit, a, b in self._iter_equivalencies(
-                equivalencies):
+        for funit, tunit, a, b in equivalencies:
             if (unit.is_equivalent(funit) and other.is_equivalent(tunit)):
                 scale1 = (unit / funit)._dimensionless_constant()
                 scale2 = (tunit / other)._dimensionless_constant()
@@ -452,6 +461,8 @@ class UnitBase(object):
             If units are inconsistent
         """
         other = Unit(other)
+
+        equivalencies = self._normalize_equivalencies(equivalencies)
 
         try:
             scale = (self / other)._dimensionless_constant()
@@ -673,6 +684,9 @@ class UnitBase(object):
             automatically determine which of the candidates are
             better.
         """
+        # Pre-normalize the equivalencies list
+        equivalencies = self._normalize_equivalencies(equivalencies)
+
         def filter_units(units):
             filtered_namespace = set()
             for tunit in units:
@@ -695,9 +709,6 @@ class UnitBase(object):
 
         if not len(units):
             raise UnitsException("No units to compose into.")
-
-        # Pre-normalize the equivalencies list
-        equivalencies = list(self._iter_equivalencies(equivalencies))
 
         return self._compose(
             equivalencies=equivalencies, namespace=units,
@@ -768,21 +779,18 @@ class UnitBase(object):
         ----------
         equivalencies : list of equivalence pairs, optional
             A list of equivalence pairs to also pull options from.
-            See :ref:`unit_equivalencies`.
+            See :ref:`unit_equivalencies`.  It must already be
+            normalized using `_normalize_equivalencies`.
         """
-        if equivalencies == []:
-            return _UnitRegistry.get_units_with_physical_type(self)
-        else:
-            units = set(_UnitRegistry.get_units_with_physical_type(self))
-            for funit, tunit, a, b in self._iter_equivalencies(
-                    equivalencies):
-                if funit not in units:
-                    units.update(
-                        _UnitRegistry.get_units_with_physical_type(funit))
-                if tunit not in units:
-                    units.update(
-                        _UnitRegistry.get_units_with_physical_type(tunit))
-            return units
+        units = set(_UnitRegistry.get_units_with_physical_type(self))
+        for funit, tunit, a, b in equivalencies:
+            if funit not in units:
+                units.update(
+                    _UnitRegistry.get_units_with_physical_type(funit))
+            if tunit not in units:
+                units.update(
+                    _UnitRegistry.get_units_with_physical_type(tunit))
+        return units
 
     class EquivalentUnitsList(list):
         """
@@ -1105,9 +1113,11 @@ class UnrecognizedUnit(IrreducibleUnit):
         return not (self == other)
 
     def is_equivalent(self, other, equivalencies=[]):
+        self._normalize_equivalencies(equivalencies)
         return self == other
 
     def get_converter(self, other, equivalencies=[]):
+        self._normalize_equivalencies(equivalencies)
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "
             "to other units.".format(self.name))
