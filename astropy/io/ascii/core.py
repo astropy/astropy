@@ -113,13 +113,15 @@ class Column(object):
     * **name** : column name
     * **index** : column index (first column has index=0, second has index=1, etc)
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
+    * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
     """
     def __init__(self, name, index):
         self.name = name
         self.index = index
-        self.type = NoType
+        self.type = NoType  # Generic type (Int, Float, Str etc)
+        self.dtype = None  # Numpy dtype if available
         self.str_vals = []
         self.fill_values = {}
 
@@ -708,8 +710,13 @@ class BaseOutputter(object):
 
     def _convert_vals(self, cols):
         for col in cols:
-            converters = self.converters.get(col.name,
-                                             self.default_converters)
+            # If a specific dtype was specified for a column, then use that
+            # to set the defaults, otherwise use the generic defaults.
+            default_converters = ([convert_numpy(col.dtype)] if col.dtype
+                                  else self.default_converters)
+
+            # If the user supplied a specific convert then that takes precedence over defaults
+            converters = self.converters.get(col.name, default_converters)
             col.converters = self._validate_and_copy(col, converters)
 
             while not hasattr(col, 'data'):
@@ -751,6 +758,8 @@ class TableOutputter(BaseOutputter):
             for attr in ('format', 'units', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
+            if hasattr(col, 'meta'):
+                out_col.meta.update(col.meta)
 
         return out
 
@@ -838,6 +847,8 @@ class BaseReader(object):
 
         self.data.masks(cols)
         table = self.outputter(cols)
+        if hasattr(self.header, 'table_meta'):
+            table.meta.update(self.header.table_meta)
         self.cols = self.header.cols
 
         return table
@@ -881,6 +892,7 @@ class BaseReader(object):
         :returns: list of strings corresponding to ASCII table
         """
         # link information about the columns to the writer object (i.e. self)
+        self.header.table_meta = table.meta
         self.header.cols = table.cols
         self.data.cols = table.cols
 

@@ -43,6 +43,7 @@ from . import cds
 from . import daophot
 from . import sextractor
 from . import ipac
+from . import asciitable
 from .core import next, izip, any
 from . import latex
 
@@ -213,7 +214,7 @@ def _get_guess_kwargs_list():
                          dict(Reader=latex.Latex),
                          dict(Reader=latex.AASTex)
                          ]
-    for Reader in (basic.CommentedHeader, basic.Basic, basic.NoHeader):
+    for Reader in (asciitable.AsciiTable, basic.CommentedHeader, basic.Basic, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(
