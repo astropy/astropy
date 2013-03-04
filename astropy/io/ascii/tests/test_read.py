@@ -3,6 +3,7 @@ import re
 
 import numpy as np
 
+from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii as asciitable
 
@@ -313,6 +314,26 @@ def test_null_Ipac():
                     dtype=[('ra', '|b1'), ('dec', '|b1'), ('sai', '|b1'),
                            ('v2', '|b1'), ('sptype', '|b1')])
     assert np.all(data.mask == mask)
+
+
+@pytest.mark.xfail('numpy_lt_1p5')
+def test_Ipac_meta():
+    keywords = OrderedDict((('catalog', 'sao'),
+                            ('intval', 1),
+                            ('floatval', 2.3e3),
+                            ('date', "Wed Sp 20 09:48:36 1995"),
+                            ('mykeyword', 'Another way for defining keyvalue string'),
+                            ('key_continue', 'IPAC keywords can continue across lines')))
+    comments = ['This is an example of a valid comment.',
+                'The 2nd data line is used to verify the exact column parsing',
+                '(unclear if this is a valid for the IPAC format)']
+    f = 't/ipac.dat'
+    testfile = get_testfiles(f)
+    data = asciitable.read(f, **testfile['opts'])
+    assert data.meta['keywords'].keys() == keywords.keys()
+    for data_kv, kv in zip(data.meta['keywords'].values(), keywords.values()):
+        assert data_kv['value'] == kv
+    assert data.meta['comments'] == comments
 
 
 def test_set_guess_kwarg():

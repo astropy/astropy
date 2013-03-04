@@ -1,6 +1,10 @@
 \catalog = sao
+\intval = 1
+\floatval=2.3e3
 \date = "Wed Sp 20 09:48:36 1995"
 \mykeyword = 'Another way for defining keyvalue string'
+\key_continue = 'IPAC keywords '
+\key_continue = 'can continue across lines'
 \ This is an example of a valid comment.
 \ The 2nd data line is used to verify the exact column parsing 
 \ (unclear if this is a valid for the IPAC format)
