@@ -37,9 +37,11 @@ import csv
 import itertools
 import numpy
 from contextlib import contextmanager
+from copy import deepcopy
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
+from ...utils import OrderedDict
 
 class InconsistentTableError(ValueError):
     pass
@@ -375,6 +377,14 @@ class BaseHeader(object):
             names.difference_update(self.exclude_names)
 
         self.cols = [Column(name=x, index=i) for i, x in enumerate(self.names) if x in names]
+
+    def update_meta(self, lines, meta):
+        """
+        Extract any table-level metadata, e.g. keywords, comments, column metadata, from
+        the table ``lines`` and update the OrderedDict ``meta`` in place.  This base
+        method does nothing.
+        """
+        pass
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -737,14 +747,15 @@ class TableOutputter(BaseOutputter):
                           convert_numpy(numpy.float),
                           convert_numpy(numpy.str)]
 
-    def __call__(self, cols):
+    def __call__(self, cols, meta):
         self._convert_vals(cols)
 
         # If there are any values that were filled and tagged with a mask bit then this
         # will be a masked table.  Otherwise use a plain table.
         masked = any(hasattr(col, 'mask') and numpy.any(col.mask) for col in cols)
 
-        out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked)
+        out = Table([x.data for x in cols], names=[x.name for x in cols], masked=masked,
+                    meta=meta['table'])
         for col, out_col in zip(cols, out.columns.values()):
             if masked and hasattr(col, 'mask'):
                 out_col.data.mask = col.mask
@@ -773,12 +784,17 @@ class BaseReader(object):
         self.data = BaseData()
         self.inputter = BaseInputter()
         self.outputter = TableOutputter()
-        self.meta = {}                  # Placeholder for storing table metadata
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
         self.data.header = self.header
         self.header.data = self.data
+
+        # Metadata, consisting of table-level meta and column-level meta.  The latter
+        # could include information about column type, description, formatting, etc,
+        # depending on the table meta format.
+        self.meta = OrderedDict(table=OrderedDict(),
+                                cols=OrderedDict())
 
     def read(self, table):
         """Read the ``table`` and return the results in a format determined by
@@ -809,11 +825,20 @@ class BaseReader(object):
         self.data.header = self.header
         self.header.data = self.data
 
+        # Get a list of the lines (rows) in the table
         self.lines = self.inputter.get_lines(table)
+
+        # Set self.data.data_lines to a slice of lines contain the data rows
         self.data.get_data_lines(self.lines)
+
+        # Extract table meta values (e.g. keywords, comments, etc).  Updates self.meta.
+        self.header.update_meta(self.lines, self.meta)
+
+        # Get the table column definitions
         self.header.get_cols(self.lines)
-        cols = self.header.cols         # header.cols corresponds to *output* columns requested
-        n_data_cols = self.header.n_data_cols # number of data cols expected from splitter
+
+        cols = self.header.cols  # header.cols corresponds to *output* columns requested
+        n_data_cols = self.header.n_data_cols  # number of data cols expected from splitter
         self.data.splitter.cols = cols
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
@@ -837,7 +862,7 @@ class BaseReader(object):
                 col.str_vals.append(str_vals[col.index])
 
         self.data.masks(cols)
-        table = self.outputter(cols)
+        table = self.outputter(cols, self.meta)
         self.cols = self.header.cols
 
         return table
