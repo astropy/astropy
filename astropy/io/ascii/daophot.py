@@ -84,30 +84,6 @@ class Daophot(core.BaseReader):
         self.data.start_line = 0
         self.data.comment = r'\s*#'
 
-    def read(self, table):
-        out = core.BaseReader.read(self, table)
-
-        # Read keywords as a table embedded in the header comments
-        if len(self.comment_lines) > 0:
-            re_header_keyword = re.compile(r'[#]K'
-                                           r'\s+ (?P<name> \w+)'
-                                           r'\s* = (?P<stuff> .+) $',
-                                           re.VERBOSE)
-
-            out.meta['keywords'] = OrderedDict()
-            for line in self.comment_lines:
-                m = re_header_keyword.match(line)
-                if m:
-                    vals = m.group('stuff').strip().rsplit(None, 2)
-                    keyword_dict = {'units': vals[-2],
-                                    'format': vals[-1]}
-                    keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
-                    out.meta['keywords'][m.group('name')] = keyword_dict
-
-        self.cols = self.header.cols
-
-        return out
-
     def write(self, table=None):
         raise NotImplementedError
 
@@ -117,6 +93,30 @@ class DaophotHeader(core.BaseHeader):
     def __init__(self):
         core.BaseHeader.__init__(self)
         self.comment = r'\s*#K'
+
+    def update_meta(self, lines, meta):
+        """
+        Extract table-level keywords for DAOphot table.  These are indicated by
+        a leading '#K ' prefix.
+        """
+        table_meta = meta['table']
+        # Read keywords as a table embedded in the header comments
+        comment_lines = [line for line in lines if line.startswith('#')]
+        if len(comment_lines) > 0:
+            re_header_keyword = re.compile(r'[#]K'
+                                           r'\s+ (?P<name> \w+)'
+                                           r'\s* = (?P<stuff> .+) $',
+                                           re.VERBOSE)
+
+            table_meta['keywords'] = OrderedDict()
+            for line in comment_lines:
+                m = re_header_keyword.match(line)
+                if m:
+                    vals = m.group('stuff').strip().rsplit(None, 2)
+                    keyword_dict = {'units': vals[-2],
+                                    'format': vals[-1]}
+                    keyword_dict['value'] = (vals[0] if len(vals) > 2 else "")
+                    table_meta['keywords'][m.group('name')] = keyword_dict
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -155,7 +155,7 @@ class DaophotHeader(core.BaseHeader):
                         line_stripped = line[2:]
                         coldef_lines[i] = coldef_lines[i] + line_stripped
                         break
-        
+
         # At this point colddef_lines has three lines corresponding to column
         # names, units, and format.  Get the column names by splitting the
         # first line on whitespace.
