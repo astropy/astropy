@@ -284,7 +284,7 @@ def test_preserve_all_dtypes(tmpdir):
 
     for dtype in ALL_DTYPES:
         values = _default_values(dtype)
-        t1.add_column(Column(str(dtype), np.array(values, dtype=dtype)))
+        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
 
     t1.write(test_file, path='the_table')
 
