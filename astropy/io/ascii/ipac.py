@@ -41,8 +41,8 @@ class Ipac(core.BaseReader):
     """Read an IPAC format table.  See
     http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
 
-      \name=value
-      \ Comment
+      \\name=value
+      \\ Comment
       |  column1 |  column2 | column3 | column4  |    column5       |
       |  double  |  double  |   int   |   double |     char         |
       |   unit   |   unit   |   unit  |    unit  |     unit         |
