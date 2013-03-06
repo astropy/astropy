@@ -29,33 +29,24 @@ AUTO_COLNAME = ConfigurationItem('auto_colname', 'col{0}',
     'The template that determines the name of a column if it cannot be '
     'determined. Uses new-style (format method) string formatting')
 
-WARN_COLUMN_ARGS = ConfigurationItem("warn_column_args",
-                                     True,
-                                     "Show a warning when a Column is created "
-                                     "in a way that will break in Astropy 0.3")
-WARN_COLUMN_ARGS_MESSAGE = \
-"""In the next major release of astropy (0.3), the order of function
-arguments for creating a {class_name} will change.  Currently the order is
-{class_name}(name, data, ...), but in 0.3 and later it will be
-{class_name}(data, name, ...).  This is consistent with Table and NumPy.
-
-In order to use the same code for Astropy 0.2 and 0.3, column objects
-should be created using named keyword arguments for data and name, e.g.:
-{class_name}(name='a', data=[1, 2])."""
+ERROR_COLUMN_ARGS_MESSAGE = """
+The first argument to {class_name} is the string {first_arg}, which was probably intended
+as the column name.  Starting in Astropy 0.3 the argument order for initializing
+a {class_name} object is {class_name}(data=None, name=None, ...)."""
 
 
 def _check_column_new_args(func):
     """
-    Decorator for Column and MaskedColumn __new__(cls, ...) to check that there
-    is only one ``args`` value (which is the class).  Everything else
-    should be a keyword argument.  Otherwise the calling code will break
-    when the name and data args are swapped in 0.3.
+    Decorator for transition from 0.2 arg order (name, data, ..) to 0.3 order (data,
+    name, ...).  Check if user provided a string as the first arg (note that a string
+    cannot be valid as ``data``).  Raise an error with a useful message.
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if len(args) > 1 and WARN_COLUMN_ARGS():
+        if len(args) > 1 and isinstance(args[1], basestring):
             cls = args[0]  # Column or MaskedColumn class from __new__(cls, ..)
-            warnings.warn(WARN_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__))
+            raise ValueError(ERROR_COLUMN_ARGS_MESSAGE.format(class_name=cls.__name__,
+                                                              first_arg=repr(args[1])))
         return func(*args, **kwargs)
     return wrapper
 
@@ -386,10 +377,10 @@ class Column(BaseColumn, np.ndarray):
 
     Parameters
     ----------
-    name : str
-        Column name and key for reference within Table
     data : list, ndarray or None
         Column data values
+    name : str
+        Column name and key for reference within Table
     dtype : numpy.dtype compatible value
         Data type for column
     shape : tuple or ()
@@ -460,7 +451,7 @@ class Column(BaseColumn, np.ndarray):
     """
 
     @_check_column_new_args
-    def __new__(cls, name=None, data=None,
+    def __new__(cls, data=None, name=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 
@@ -517,10 +508,10 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
 
     Parameters
     ----------
-    name : str
-        Column name and key for reference within Table
     data : list, ndarray or None
         Column data values
+    name : str
+        Column name and key for reference within Table
     mask : list, ndarray or None
         Boolean mask for which True indicates missing or invalid data
     fill_value : float, int, str or None
@@ -598,7 +589,7 @@ class MaskedColumn(BaseColumn, ma.MaskedArray):
     """
 
     @_check_column_new_args
-    def __new__(cls, name=None, data=None, mask=None, fill_value=None,
+    def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                  dtype=None, shape=(), length=0,
                  description=None, units=None, format=None, meta=None):
 

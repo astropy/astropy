@@ -377,7 +377,7 @@ column name header::
   ...                   [30, 40]]),
   ...         np.array([[ 5,  6],
   ...                   [50, 60]]) ]
-  >>> t.add_column(Column(data=arr, name='a'))
+  >>> t.add_column(Column(arr, name='a'))
   >>> t['a'].shape
   (3, 2, 2)
   >>> t.pprint()
