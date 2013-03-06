@@ -105,7 +105,6 @@ class TestConeSearch(object):
 
         assert tab_1.array.size > 0
 
-    @pytest.mark.xfail('sys.version_info >= (3,3)')
     def test_searches(self):
         tab_2 = conesearch.conesearch(
             self.ra, self.dec, self.sr, catalog_db=self.url,
@@ -124,11 +123,11 @@ class TestConeSearch(object):
         assert tab_2.url == tab_3.url
         np.testing.assert_array_equal(tab_2.array, tab_3.array)
 
-        # Dictionary ordered differently in Python 3.3,
-        # so this test will fail because tab_4 used a
-        # different URL from tab_2.
-        assert tab_2.url == tab_4.url
-        np.testing.assert_array_equal(tab_2.array, tab_4.array)
+        # If this fails, it is because of dict hashing, no big deal.
+        if tab_2.url == tab_4.url:
+            np.testing.assert_array_equal(tab_2.array, tab_4.array)
+        else:
+            pytest.xfail('conesearch_simple.json used a different URL')
 
     def test_async(self):
         async_search = conesearch.AsyncConeSearch(

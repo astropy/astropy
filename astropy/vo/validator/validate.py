@@ -308,13 +308,13 @@ def _do_validation(url):
             try:
                 tab = vos_catalog.vo_tab_parse(votable.table.parse(
                     r.get_vo_xml_path(), pedantic=False), r.url, {})
-            except (E19, IndexError, vos_catalog.VOSError) as e:
+            except (E19, IndexError, vos_catalog.VOSError) as e:  # pragma: no cover
                 lines.append(str(e))
                 nexceptions += 1
         lines = [str(x.message) for x in warning_lines] + lines
 
         warning_types = set()
-        for line in lines:
+        for line in lines:  # pragma: no cover
             w = votable.exceptions.parse_vowarning(line)
             if w['is_warning']:
                 nwarnings += 1
@@ -341,17 +341,17 @@ def _categorize_result(r):
     r : `astropy.io.votable.validator.result.Result` object
 
     """
-    if 'network_error' in r and r['network_error'] is not None:
+    if 'network_error' in r and r['network_error'] is not None:  # pragma: no cover
         r['out_db_name'] = 'nerr'
         r['expected'] = 'broken'
     elif ((r['nexceptions'] == 0 and r['nwarnings'] == 0) or
             r['warning_types'].issubset(NONCRIT_WARNINGS())):
         r['out_db_name'] = 'good'
         r['expected'] = 'good'
-    elif r['nexceptions'] > 0:
+    elif r['nexceptions'] > 0:  # pragma: no cover
         r['out_db_name'] = 'excp'
         r['expected'] = 'incorrect'
-    elif r['nwarnings'] > 0:
+    elif r['nwarnings'] > 0:  # pragma: no cover
         r['out_db_name'] = 'warn'
         r['expected'] = 'incorrect'
     else:  # pragma: no cover

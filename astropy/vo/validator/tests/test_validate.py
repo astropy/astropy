@@ -29,6 +29,7 @@ import filecmp
 import json
 import os
 import shutil
+import sys
 import tempfile
 
 # LOCAL
@@ -56,30 +57,34 @@ class TestConeSearchValidation(object):
         REMOTE_TIMEOUT.set(30)
 
     @pytest.mark.parametrize(('parallel'), [True, False])
-    @pytest.mark.xfail('sys.version_info >= (3,3)')
     def test_validation(self, parallel):
         if os.path.exists(self.out_dir):
             shutil.rmtree(self.out_dir)
 
         # For some reason, Python 3.3 does not work
         # using multiprocessing.Pool and callback function.
-        # Maybe related to http://bugs.python.org/issue16307 ???
-        validate.check_conesearch_sites(
-            destdir=self.out_dir, parallel=parallel, url_list=None)
+        # See http://bugs.python.org/issue16307
+        try:
+            validate.check_conesearch_sites(
+                destdir=self.out_dir, parallel=parallel, url_list=None)
+        except AssertionError as e:
+            if parallel and sys.version_info >= (3,3):
+                pytest.xfail('See http://bugs.python.org/issue16307')
+            else:
+                raise
 
         for val in self.filenames.values():
             _compare_catnames(get_pkg_data_filename(
                 os.path.join(self.datadir, val)),
                 os.path.join(self.out_dir, val))
 
-    @pytest.mark.xfail('sys.version_info >= (3,3)')
     def test_url_list(self):
         local_outdir = os.path.join(self.out_dir, 'subtmp1')
         local_list = [
             'http://www.google.com/foo&',
             'http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source=I/252/out&']
         # Same multiprocessing problem in Python 3.3 as above
-        validate.check_conesearch_sites(destdir=local_outdir,
+        validate.check_conesearch_sites(destdir=local_outdir, parallel=False,
                                         url_list=local_list)
         _compare_catnames(get_pkg_data_filename(
             os.path.join(self.datadir, 'conesearch_good_subset.json')),
@@ -105,8 +110,7 @@ class TestConeSearchResults(object):
                  'The USNO-A2.0 Catalogue (Monet+ 1998) 1'])
         assert self.r.catkeys['warn'] == []
         assert self.r.catkeys['exception'] == []
-        assert (self.r.catkeys['error'] ==
-                ['GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1'])
+        assert self.r.catkeys['error'] == []
 
     def gen_cmp(self, func, oname, *args, **kwargs):
         dat_file = get_pkg_data_filename(os.path.join(self.datadir, oname))

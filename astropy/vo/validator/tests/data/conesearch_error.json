@@ -1,42 +1,4 @@
 {
     "__version__": 1, 
-    "catalogs": {
-        "GSC: HST Guide Star Catalog Version 1.2 (LEDAS) 1": {
-            "capabilityClass": "ConeSearch", 
-            "capabilityStandardID": "ivo://ivoa.net/std/ConeSearch", 
-            "capabilityValidationLevel": "", 
-            "contentLevel": "#Research#", 
-            "description": "Cone Search service for GSC: HST Guide Star Catalog Version 1.2 (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service\n\nThis particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.\n\nService details: ledas, gsc: cone search", 
-            "duplicatesIgnored": 0, 
-            "identifier": "ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc#1", 
-            "interfaceClass": "ParamHTTP", 
-            "interfaceRole": "std?", 
-            "interfaceVersion": "", 
-            "maxRadius": 0.0, 
-            "maxRecords": 50000, 
-            "publisher": "LEDAS, University of Leicester", 
-            "publisherID": "", 
-            "referenceURL": "http://www.ledas.ac.uk", 
-            "regionOfRegard": NaN, 
-            "resourceID": "ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc", 
-            "shortName": "", 
-            "subject": "#LEDAS#gsc#", 
-            "tags": "Catalog", 
-            "title": "GSC: HST Guide Star Catalog Version 1.2 (LEDAS)", 
-            "type": "#Catalog#", 
-            "updated": "2011-02-10T22:15:54", 
-            "url": "http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&DSATAB=gsc&", 
-            "validate_expected": "broken", 
-            "validate_network_error": "Timeout", 
-            "validate_nexceptions": 0, 
-            "validate_nwarnings": 0, 
-            "validate_out_db_name": "nerr", 
-            "validate_version": "", 
-            "validate_warning_types": [], 
-            "validate_warnings": [], 
-            "validate_xmllint": null, 
-            "version": "", 
-            "waveband": ""
-        }
-    }
+    "catalogs": {}
 }

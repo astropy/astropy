@@ -85,37 +85,6 @@ This particular record describes access specifically to the "out" table within t
             <TD>ivo://CDS</TD>
             <TD>http://cdsarc.u-strasbg.fr/cgi-bin/Cat?I/252</TD>
           </TR>
-          <TR>
-            <TD>Catalog</TD>
-            <TD/>
-            <TD>GSC: HST Guide Star Catalog Version 1.2 (LEDAS)</TD>
-            <TD>Cone Search service for GSC: HST Guide Star Catalog Version 1.2 (LEDAS) . Part of Catalogues hosted at Leicester Database and Archive Service
-
-This particular record describes access to the position-based catalog data in this collection through the VO-standard ConeSearch service interface.  It can be used automatically by compliant tools and applications.
-
-Service details: ledas, gsc: cone search</TD>
-            <TD>LEDAS, University of Leicester</TD>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc#1</TD>
-            <TD>2011-02-10T22:15:54</TD>
-            <TD>#LEDAS#gsc#</TD>
-            <TD>#Catalog#</TD>
-            <TD>#Research#</TD>
-            <TD/>
-            <TD/>
-            <TD>ivo://uk.ac.le.star.tmpledas/ledas/ledas/gsc</TD>
-            <TD>ConeSearch</TD>
-            <TD>ivo://ivoa.net/std/ConeSearch</TD>
-            <TD/>
-            <TD>ParamHTTP</TD>
-            <TD/>
-            <TD>std?</TD>
-            <TD>http://camelot.star.le.ac.uk:8080/dsa-catalog/SubmitCone?DSACAT=ledas&amp;amp;DSATAB=gsc&amp;amp;</TD>
-            <TD>0.0</TD>
-            <TD>50000</TD>
-            <TD/>
-            <TD>http://www.ledas.ac.uk</TD>
-          </TR>
         </TABLEDATA>
       </DATA>
     </TABLE>
