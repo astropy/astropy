@@ -9,10 +9,8 @@ from __future__ import absolute_import
 import collections
 import contextlib
 import functools
-
-import os
-import io
 import json
+import os
 import sys
 import textwrap
 import traceback
