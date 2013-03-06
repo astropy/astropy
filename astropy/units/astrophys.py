@@ -34,7 +34,8 @@ def_unit(['pc', 'parsec'], _si.pc.value * si.m, register=True, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
 def_unit(['solRad', 'R_sun'], _si.R_sun.value * si.m, register=True,
-         doc="Solar radius")
+         doc="Solar radius",
+         format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
 def_unit(['lyr', 'lightyear'], 9.460730e15 * si.m, register=True,
          doc="Light year")
 
@@ -76,7 +77,8 @@ def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, register=True,
 # ILLUMINATION
 
 def_unit(['solLum', 'L_sun'], _si.L_sun.value * si.W, register=True,
-         prefixes=True, doc="Solar luminance")
+         prefixes=True, doc="Solar luminance",
+         format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
 
 
 ###########################################################################
