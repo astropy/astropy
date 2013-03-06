@@ -35,6 +35,14 @@ automatically from Numpy arrays:
     >>> np.array([1,2,3]) * u.m
     <Quantity [1 2 3] m>
 
+:class:`~astropy.units.quantity.Quantity` objects can also be created from
+sequencies of :class:`~astropy.units.quantity.Quantity` objects, and will
+automatically convert to Numpy arrays.
+
+    >>> qlst = [60 * u.s, 120 * u.s]
+    >>> u.Quantity(qlst, u.minute)
+    <Quantity [ 1.  2.] min>
+
 Finally, the current unit and value can be accessed via the ``unit`` and
 ``value`` attributes:
 
