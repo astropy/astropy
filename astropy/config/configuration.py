@@ -299,6 +299,23 @@ class ConfigurationItem(object):
 
         baseobj[self.name] = newobj[self.name]
 
+    def __repr__(self):
+        out = '<{0}: name={1} value={2} at 0x{3:x}>'.format(
+            self.__class__.__name__, repr(self.name), repr(self.value), id(self))
+        return out
+
+    def __str__(self):
+        out = '\n'.join(('{0}: {1}',
+                         '  cfgtype={2}',
+                         '  defaultvalue={3}',
+                         '  description={4}',
+                         '  module={5}',
+                         '  value={6}'))
+        out = out.format(self.__class__.__name__, repr(self.name), repr(self.cfgtype),
+                         repr(self.defaultvalue), repr(self.description), self.module,
+                         repr(self.value))
+        return out
+
     def __call__(self):
         """ Returns the value of this `ConfigurationItem`
 
