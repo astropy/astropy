@@ -58,12 +58,12 @@ class Daophot(core.BaseReader):
       14       138.538     INDEF   15.461      0.003         34.85955       4        \\
                   -0.032      0.802       0     No_error                             
 
-    The keywords defined in the #K records are available via output table
+    The keywords defined in the #K records are available via the output table
     ``meta`` attribute::
 
       data = ascii.read('t/daophot.dat')
-      for keyword in data.meta['keywords']:
-          print keyword['name'], keyword['value'], keyword['units'], keyword['format']
+      for name, keyword in data.meta['keywords'].items():
+          print name, keyword['value'], keyword['units'], keyword['format']
 
     The units and formats are available in the output table columns::
 

@@ -64,18 +64,13 @@ class Ipac(core.BaseReader):
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
 
-    Notes
-    -----
-    Caveats:
+    The comments and keywords defined in the header are available via the output
+    table ``meta`` attribute::
 
-    * Data type, Units, and Null value specifications are ignored.
-    * Keywords are ignored.
-    * The IPAC spec requires the first two header lines but this reader only
-      requires the initial column name definition line
-
-    Overcoming these limitations would not be difficult, code contributions
-    welcome from motivated users.
-
+      data = ascii.read('t/ipac.dat')
+      print data.meta['comments']
+      for name, keyword in data.meta['keywords'].items():
+          print name, keyword['value']
     """
     def __init__(self, definition='ignore'):
         core.BaseReader.__init__(self)
