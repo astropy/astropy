@@ -1326,7 +1326,10 @@ class Table(object):
             # from value.  In the latter case this allows for propagation of Column
             # metadata.  Otherwise define a new column with the right length and shape and
             # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
-            if len(self) == 0 or isinstance(value, BaseColumn):
+            if isinstance(value, BaseColumn):
+                new_column = value.copy(copy_data=False)
+                new_column.name = item
+            elif len(self) == 0:
                 new_column = NewColumn(name=item, data=value)
             else:
                 new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,

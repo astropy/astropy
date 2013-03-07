@@ -121,7 +121,7 @@ class TestSetTableColumn(SetupData):
         assert t['c'].format == t['a'].format
 
         # Add a multi-dimensional column
-        t['d'] = Column('', np.arange(12).reshape(3, 2, 2))
+        t['d'] = Column(np.arange(12).reshape(3, 2, 2))
         assert t['d'].shape == (3, 2, 2)
         assert t['d'][0, 0, 1] == 1
 
@@ -148,14 +148,8 @@ class TestSetTableColumn(SetupData):
         """Create a new column in an existing table using the item access syntax"""
         t = Table([self.a])  # masked or unmasked
         b = table.MaskedColumn(name='b', data=[1, 2, 3])  # masked
-        # If the original table is unmasked then adding a masked column raises a type error
-        if isinstance(self.a, table.Column):
-            with pytest.raises(TypeError):
-                t['b'] = b
-        else:
-            # Otherwise it should work as expected
-            t['b'] = b
-            assert np.all(t['b'] == b)
+        t['b'] = b
+        assert np.all(t['b'] == b)
 
     def test_set_new_col_existing_table_fail(self):
         """Generate failure when creating a new column using the item access syntax"""
