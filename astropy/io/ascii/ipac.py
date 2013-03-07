@@ -54,6 +54,14 @@ class Ipac(core.BaseReader):
       |-----ra---|----dec---|---sao---|------v---|----sptype--------|
         2.09708   29.09056     73765    2.06000   B8IVpMnHg
 
+    The comments and keywords defined in the header are available via the output
+    table ``meta`` attribute::
+
+      data = ascii.read('t/ipac.dat')
+      print data.meta['comments']
+      for name, keyword in data.meta['keywords'].items():
+          print name, keyword['value']
+
     Parameters
     ----------
     definition : str, optional
@@ -64,13 +72,6 @@ class Ipac(core.BaseReader):
           * 'right' - Character is associated with the column to the right
           * 'left' - Character is associated with the column to the left
 
-    The comments and keywords defined in the header are available via the output
-    table ``meta`` attribute::
-
-      data = ascii.read('t/ipac.dat')
-      print data.meta['comments']
-      for name, keyword in data.meta['keywords'].items():
-          print name, keyword['value']
     """
     def __init__(self, definition='ignore'):
         core.BaseReader.__init__(self)
