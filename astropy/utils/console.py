@@ -13,6 +13,16 @@ import threading
 import time
 
 try:
+    import fcntl
+    import termios
+    import signal
+    _CAN_RESIZE_TERMINAL = True
+except ImportError:
+    _CAN_RESIZE_TERMNIAL = False
+
+import numpy as np
+
+try:
     get_ipython()
 except NameError:
     OutStream = None
@@ -306,21 +316,25 @@ class ProgressBar(object):
 
         self._file = file
         self._start_time = time.time()
-        terminal_width = 78
-        if sys.platform.startswith('linux'):
-            import subprocess
-            p = subprocess.Popen(
-                'stty size',
-                shell=True,
-                stdout=subprocess.PIPE)
-            stdout, stderr = p.communicate()
-            parts = stdout.split()
-            if len(parts) == 2:
-                rows, cols = parts
-                terminal_width = int(cols)
-        self._bar_length = terminal_width - 37
+
+        self._handle_resize()
+        if _CAN_RESIZE_TERMINAL:
+            signal.signal(signal.SIGWINCH, self._handle_resize)
+            self._signal_set = True
+        else:
+            self._signal_set = False
+
         self._human_total = human_file_size(self._total)
         self.update(0)
+
+    def _handle_resize(self, signum=None, frame=None):
+        if _CAN_RESIZE_TERMINAL:
+            data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
+            arr = np.fromstring(data, dtype=np.int16)
+            terminal_width = arr[1]
+        else:
+            terminal_width = os.environ.get('COLUMNS', 78)
+        self._bar_length = terminal_width - 37
 
     def __enter__(self):
         return self
@@ -331,6 +345,8 @@ class ProgressBar(object):
                 self.update(self._total)
             self._file.write('\n')
             self._file.flush()
+            if self._signal_set:
+                signal.signal(signal.SIGWINCH, signal.SIG_DFL)
 
     def __iter__(self):
         return self
