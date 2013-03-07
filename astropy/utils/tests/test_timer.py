@@ -37,11 +37,11 @@ class TestRunTimePredictor(object):
             assert str(e) == 'No fitted data for prediction'
 
     def test_baseline(self):
-        self.p.time_func([0.1, 0.2, 0.5, -1, 1.5])
+        self.p.time_func([0.1, 0.2, 0.5, 'a', 1.5])
         self.p.time_func(1.0)
 
         assert self.p._funcname == 'func_to_time'
-        assert self.p._cache_bad == [-1]
+        assert self.p._cache_bad == ['a']
         assert self.p.results == {0.1: 'Slept for 0.1 second(s)',
                                   0.2: 'Slept for 0.2 second(s)',
                                   0.5: 'Slept for 0.5 second(s)',
