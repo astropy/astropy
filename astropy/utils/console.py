@@ -27,8 +27,8 @@ from .misc import deprecated, isiterable
 
 
 __all__ = [
-    'isatty', 'color_print', 'human_time', 'ProgressBar', 'Spinner',
-    'print_code_line', 'ProgressBarOrSpinner']
+    'isatty', 'color_print', 'human_time', 'human_file_size',
+    'ProgressBar', 'Spinner', 'print_code_line', 'ProgressBarOrSpinner']
 
 
 USE_COLOR = ConfigurationItem(
@@ -217,6 +217,47 @@ def human_time(seconds):
     return u'  ~inf'
 
 
+def human_file_size(size):
+    """
+    Returns a human-friendly string representing a file size
+    that is 2-4 characters long.
+
+    For example, depending on the number of bytes given, can be one
+    of::
+
+        256b
+        64k
+        1.1G
+
+    Parameters
+    ----------
+    size : int
+        The size of the file (in bytes)
+
+    Returns
+    -------
+    size : str
+        A human-friendly representation of the size of the file
+    """
+    suffixes = u' kMGTPEH'
+    if size == 0:
+        num_scale = 0
+    else:
+        num_scale = int(math.floor(math.log(size) / math.log(1000)))
+    if num_scale > 7:
+        suffix = '?'
+    else:
+        suffix = suffixes[num_scale]
+    num_scale = int(math.pow(1000, num_scale))
+    value = size / num_scale
+    str_value = str(value)
+    if str_value[2] == '.':
+        str_value = str_value[:2]
+    else:
+        str_value = str_value[:3]
+    return "{0:>3s}{1}".format(str_value, suffix)
+
+
 class ProgressBar(object):
     """
     A class to display a progress bar in the terminal.
@@ -277,17 +318,8 @@ class ProgressBar(object):
             if len(parts) == 2:
                 rows, cols = parts
                 terminal_width = int(cols)
-        self._bar_length = terminal_width - 36
-        if self._total == 0:
-            num_scale = 0
-        else:
-            num_scale = int(math.floor(math.log(self._total) / math.log(1000)))
-        if num_scale > 7:
-            self._suffix = '?'
-        else:
-            suffixes = u' kMGTPEH'
-            self._suffix = suffixes[num_scale]
-        self._num_scale = int(math.pow(1000, num_scale))
+        self._bar_length = terminal_width - 37
+        self._human_total = human_file_size(self._total)
         self.update(0)
 
     def __enter__(self):
@@ -346,10 +378,9 @@ class ProgressBar(object):
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
             prefix = u' ETA '
-        write(u' {0:>3d}/{1:>3d}{2}'.format(
-            value // self._num_scale,
-            self._total // self._num_scale,
-            self._suffix))
+        write(u' {0:>4s}/{1:>4s}'.format(
+            human_file_size(value),
+            self._human_total))
         write(u' ({0:>6s}%)'.format(u'{0:.2f}'.format(frac * 100.0)))
         write(prefix)
         if t is not None:

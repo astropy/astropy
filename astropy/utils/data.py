@@ -17,7 +17,8 @@ from ..config.configuration import ConfigurationItem
 __all__ = ['get_readable_fileobj', 'get_file_contents', 'get_pkg_data_fileobj',
            'get_pkg_data_filename', 'get_pkg_data_contents',
            'get_pkg_data_fileobjs', 'get_pkg_data_filenames', 'compute_hash',
-           'clear_download_cache', 'CacheMissingWarning', 'download_file',
+           'clear_download_cache', 'CacheMissingWarning',
+           'get_free_space_in_dir', 'check_free_space_in_dir', 'download_file',
            'download_files_in_parallel']
 
 DATAURL = ConfigurationItem(
@@ -725,6 +726,53 @@ def _find_hash_fn(hash):
         return None
 
 
+def get_free_space_in_dir(path):
+    """
+    Given a path to a directory, returns the amount of free space (in
+    bytes) on that filesystem.
+
+    Parameters
+    ----------
+    path : str
+        The path to a directory
+
+    Returns
+    -------
+    bytes : int
+        The amount of free space on the partition that the directory
+        is on.
+    """
+    stat = os.statvfs(path)
+    return stat.f_bavail * stat.f_frsize
+
+
+def check_free_space_in_dir(path, size):
+    """
+    Determines if a given directory has enough space to hold a file of
+    a given size.  Raises an IOError if the file would be too large.
+
+    Parameters
+    ----------
+    path : str
+        The path to a directory
+
+    size : int
+        A proposed filesize (in bytes)
+
+    Raises
+    -------
+    IOError : There is not enough room on the filesystem
+    """
+    from ..utils.console import human_file_size
+
+    space = get_free_space_in_dir(path)
+    if space < size:
+        raise IOError(
+            "Not enough free space in '{0}' "
+            "to download a {1} file".format(
+                path, human_file_size(size)))
+
+
 def download_file(remote_url, cache=False):
     """
     Accepts a URL, downloads and optionally caches the result
@@ -742,7 +790,7 @@ def download_file(remote_url, cache=False):
 
     import hashlib
     from contextlib import closing
-    from tempfile import NamedTemporaryFile
+    from tempfile import NamedTemporaryFile, gettempdir
     from shutil import move
     from warnings import warn
 
@@ -778,6 +826,11 @@ def download_file(remote_url, cache=False):
                     size = None
             else:
                 size = None
+
+            if size is not None:
+                check_free_space_in_dir(gettempdir(), size)
+                if cache:
+                    check_free_space_in_dir(dldir, size)
 
             dlmsg = "Downloading {0}".format(remote_url)
             with ProgressBarOrSpinner(size, dlmsg) as p:
