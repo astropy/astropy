@@ -318,15 +318,11 @@ def test_null_Ipac():
 
 @pytest.mark.xfail('numpy_lt_1p5')
 def test_Ipac_meta():
-    keywords = OrderedDict((('catalog', 'sao'),
-                            ('intval', 1),
+    keywords = OrderedDict((('intval', 1),
                             ('floatval', 2.3e3),
                             ('date', "Wed Sp 20 09:48:36 1995"),
-                            ('mykeyword', 'Another way for defining keyvalue string'),
                             ('key_continue', 'IPAC keywords can continue across lines')))
-    comments = ['This is an example of a valid comment.',
-                'The 2nd data line is used to verify the exact column parsing',
-                '(unclear if this is a valid for the IPAC format)']
+    comments = ['This is an example of a valid comment']
     f = 't/ipac.dat'
     testfile = get_testfiles(f)
     data = asciitable.read(f, **testfile['opts'])

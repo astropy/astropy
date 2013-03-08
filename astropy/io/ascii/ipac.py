@@ -57,10 +57,18 @@ class Ipac(core.BaseReader):
     The comments and keywords defined in the header are available via the output
     table ``meta`` attribute::
 
-      data = ascii.read('t/ipac.dat')
-      print data.meta['comments']
-      for name, keyword in data.meta['keywords'].items():
-          print name, keyword['value']
+      >>> from astropy.io import ascii
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+      >>> data = ascii.read(filename)
+      >>> print data.meta['comments']
+      ['This is an example of a valid comment']
+      >>> for name, keyword in data.meta['keywords'].items():
+      ...     print name, keyword['value']
+      ...     
+      intval 1
+      floatval 2300.0
+      date Wed Sp 20 09:48:36 1995
+      key_continue IPAC keywords can continue across lines
 
     Parameters
     ----------

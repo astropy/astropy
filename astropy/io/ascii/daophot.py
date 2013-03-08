@@ -61,15 +61,27 @@ class Daophot(core.BaseReader):
     The keywords defined in the #K records are available via the output table
     ``meta`` attribute::
 
-      data = ascii.read('t/daophot.dat')
-      for name, keyword in data.meta['keywords'].items():
-          print name, keyword['value'], keyword['units'], keyword['format']
+      >>> from astropy.io import ascii
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/daophot.dat')
+      >>> data = ascii.read(filename)
+      >>> for name, keyword in data.meta['keywords'].items():
+      ...     print name, keyword['value'], keyword['units'], keyword['format']
+      ...     
+      MERGERAD INDEF scaleunit %-23.7g
+      IRAF NOAO/IRAFV2.10EXPORT version %-23s
+      USER  name %-23s
+      < etc >
 
     The units and formats are available in the output table columns::
 
-      for colname in data.colnames:
-           col = data[colname]
-           print colname, col.units, col.format
+      >>> for colname in data.colnames:
+      ...     col = data[colname]
+      ...     print colname, col.units, col.format
+      ...     
+      ID None %-9d
+      XCENTER pixels %-10.3f
+      YCENTER pixels %-10.3f
+      < etc >
 
     Any column values of INDEF are interpreted as a missing value and will be
     masked out in the resultant table.
