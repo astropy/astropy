@@ -93,13 +93,20 @@ def register_identifier(data_format, data_class, identifier, force=False):
         raise Exception("Identifier for format '{0:s}' and class '{1:s}' is already defined".format(data_format, data_class.__name__))
 
 
-def identify_format(origin, data_class_required, args, kwargs):
+def identify_format(origin, data_class_required, fileobj, args, kwargs):
     # Loop through identifiers to see which formats match
     valid_formats = []
     for data_format, data_class in _identifiers:
         if data_class is data_class_required:
-            if _identifiers[(data_format, data_class)](origin, args, kwargs):
-                valid_formats.append(data_format)
+            # We try first with the fileobj, and failing that with the
+            # original arguments
+            if (fileobj is not None and
+                _identifiers[(data_format, data_class)](
+                    origin, [fileobj] + list(args[1:]), kwargs)):
+                valid_formats.append((data_format, [fileobj] + list(args[1:])))
+            elif _identifiers[(data_format, data_class)](
+                    origin, args, kwargs):
+                valid_formats.append((data_format, args))
 
     return valid_formats
 
@@ -130,23 +137,42 @@ def read(cls, *args, **kwargs):
     else:
         format = None
 
-    if format is None:
+    fileobj = None
+    ctx = None
+    try:
+        if format is None:
+            if len(args) and isinstance(args[0], (bytes, unicode)):
+                from ..utils.data import get_readable_fileobj
+                try:
+                    ctx = get_readable_fileobj(args[0], encoding='binary')
+                    fileobj = ctx.__enter__()
+                except:
+                    ctx = None
+                    fileobj = None
 
-        valid_formats = identify_format('read', cls, args, kwargs)
+            valid_formats = identify_format('read', cls, fileobj, args, kwargs)
 
-        if len(valid_formats) == 0:
-            raise Exception("Format could not be identified")
-        elif len(valid_formats) > 1:
-            raise Exception(
-                "Format is ambiguous - options are: {0:s}".format(
-                    ', '.join(sorted(valid_formats))))
-        else:
-            format = valid_formats[0]
+            if len(valid_formats) == 0:
+                raise Exception("Format could not be identified")
+            elif len(valid_formats) > 1:
+                raise Exception(
+                    "Format is ambiguous - options are: {0:s}".format(
+                        ', '.join(sorted(x[0] for x in valid_formats))))
+            else:
+                format, args = valid_formats[0]
 
-    reader = get_reader(format, cls)
-    table = reader(*args, **kwargs)
-    if not isinstance(table, cls):
-        raise TypeError("reader should return a {0:s} instance".format(cls.__name__))
+        reader = get_reader(format, cls)
+        if fileobj is not None:
+            fileobj.seek(0)
+        table = reader(*args, **kwargs)
+
+        if not isinstance(table, cls):
+            raise TypeError(
+                "reader should return a {0:s} instance".format(cls.__name__))
+    finally:
+        if ctx is not None:
+            ctx.__exit__(None, None, None)
+
     return table
 
 
@@ -164,16 +190,16 @@ def write(data, *args, **kwargs):
 
     if format is None:
 
-        valid_formats = identify_format('write', data.__class__, args, kwargs)
+        valid_formats = identify_format('write', data.__class__, None, args, kwargs)
 
         if len(valid_formats) == 0:
             raise Exception("Format could not be identified")
         elif len(valid_formats) > 1:
             raise Exception(
                 "Format is ambiguous - options are: {0:s}".format(
-                    ', '.join(sorted(valid_formats))))
+                    ', '.join(sorted(x[0] for x in valid_formats))))
         else:
-            format = valid_formats[0]
+            format, args = valid_formats[0]
 
     writer = get_writer(format, data.__class__)
     writer(data, *args, **kwargs)
