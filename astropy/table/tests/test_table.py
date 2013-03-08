@@ -33,14 +33,15 @@ class SetupData(object):
     def a(self):
         if Column is not None:
             if not hasattr(self, '_a'):
-                self._a = Column(name='a', data=[1, 2, 3], meta={'aa': np.arange(5)})
+                self._a = Column(name='a', data=[1, 2, 3], format='%d',
+                                 meta={'aa': [0, 1, 2, 3, 4]})
             return self._a
 
     @property
     def b(self):
         if Column is not None:
             if not hasattr(self, '_b'):
-                self._b = Column(name='b', data=[4, 5, 6])
+                self._b = Column(name='b', data=[4, 5, 6], format='%d', meta={'aa': 1})
             return self._b
 
     @property
@@ -63,6 +64,99 @@ class SetupData(object):
             if not hasattr(self, '_t'):
                 self._t = Table([self.a, self.b])
             return self._t
+
+
+@pytest.mark.usefixtures('set_global_Table')
+class TestSetTableColumn(SetupData):
+
+    def test_set_row(self):
+        """Set a row from a tuple of values"""
+        t = Table([self.a, self.b])
+        t[1] = (20, 21)
+        assert t['a'][0] == 1
+        assert t['a'][1] == 20
+        assert t['a'][2] == 3
+        assert t['b'][0] == 4
+        assert t['b'][1] == 21
+        assert t['b'][2] == 6
+
+    def test_set_row_fail_1(self):
+        """Set a row from an incorrectly-sized set of values"""
+        t = Table([self.a, self.b])
+        with pytest.raises(ValueError):
+            t[1] = (20, 21, 22)
+        with pytest.raises(TypeError):
+            t[1] = 0
+
+    def test_set_row_fail_2(self):
+        """Set a row from an incorrectly-typed tuple of values"""
+        t = Table([self.a, self.b])
+        with pytest.raises(ValueError):
+            t[1] = ('abc', 'def')
+
+    def test_set_new_col_new_table(self):
+        """Create a new column in empty table using the item access syntax"""
+        t = Table()
+        t['aa'] = self.a
+        # Test that the new column name is 'aa' and that the values match
+        assert np.all(t['aa'] == self.a)
+        assert t.colnames == ['aa']
+
+    def test_set_new_col_existing_table(self):
+        """Create a new column in an existing table using the item access syntax"""
+        t = Table([self.a])
+
+        # Add a column
+        t['bb'] = self.b
+        assert np.all(t['bb'] == self.b)
+        assert t.colnames == ['a', 'bb']
+        assert t['bb'].meta == self.b.meta
+        assert t['bb'].format == self.b.format
+
+        # Add another column
+        t['c'] = t['a']
+        assert np.all(t['c'] == t['a'])
+        assert t.colnames == ['a', 'bb', 'c']
+        assert t['c'].meta == t['a'].meta
+        assert t['c'].format == t['a'].format
+
+        # Add a multi-dimensional column
+        t['d'] = Column(np.arange(12).reshape(3, 2, 2))
+        assert t['d'].shape == (3, 2, 2)
+        assert t['d'][0, 0, 1] == 1
+
+        # Add column from a list
+        t['e'] = ['hello', 'the', 'world']
+        assert np.all(t['e'] == np.array(['hello', 'the', 'world']))
+
+        # Make sure setting existing column still works
+        t['e'] = ['world', 'hello', 'the']
+        assert np.all(t['e'] == np.array(['world', 'hello', 'the']))
+
+        # Add a column via broadcasting
+        t['f'] = 10
+        assert np.all(t['f'] == 10)
+
+    def test_set_new_unmasked_col_existing_table(self):
+        """Create a new column in an existing table using the item access syntax"""
+        t = Table([self.a])  # masked or unmasked
+        b = table.Column(name='b', data=[1, 2, 3])  # unmasked
+        t['b'] = b
+        assert np.all(t['b'] == b)
+
+    def test_set_new_masked_col_existing_table(self):
+        """Create a new column in an existing table using the item access syntax"""
+        t = Table([self.a])  # masked or unmasked
+        b = table.MaskedColumn(name='b', data=[1, 2, 3])  # masked
+        t['b'] = b
+        assert np.all(t['b'] == b)
+
+    def test_set_new_col_existing_table_fail(self):
+        """Generate failure when creating a new column using the item access syntax"""
+        t = Table([self.a])
+        # Wrong size
+        with pytest.raises(ValueError):
+            t['b'] = [1, 2]
 
 
 @pytest.mark.usefixtures('set_global_Table')

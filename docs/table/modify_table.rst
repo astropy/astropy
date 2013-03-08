@@ -36,13 +36,21 @@ The code below shows the basics of modifying a table and its data.
 
 **Add a column or columns**
 
-The :func:`~astropy.table.table.add_column` and :func:`~astropy.table.table.add_columns`
-functions can be used to add one or multiple columns to a table.  In both cases the new
-columns must be specified as |Column| or |MaskedColumn| objects.
-::
+A single column can be added to a table using syntax like adding a dict value.
+The value on the right hand side can be a list or array
+of the correct size, or a scalar value that will be broadcast::
 
-  >>> c = Column(np.arange(5), name='d')
-  >>> t.add_column(c)
+  >>> t['d1'] = np.arange(5)
+  >>> t['d2'] = [1, 2, 3, 4, 5]
+  >>> t['d3'] = 6  # all 5 rows set to 6
+
+For more explicit control the :func:`~astropy.table.table.add_column` and
+:func:`~astropy.table.table.add_columns` functions can be used to add one or multiple
+columns to a table.  In both cases the new columns must be specified as |Column| or
+|MaskedColumn| objects with the ``name`` defined::
+
+  >>> aa = Column(np.arange(5), name='aa')
+  >>> t.add_column(aa, index=0)  # Insert before the first table column
 
   # Make a new table with the same number of rows and add columns to original table
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
@@ -52,7 +60,7 @@ columns must be specified as |Column| or |MaskedColumn| objects.
 ::
 
   >>> t.remove_column('f')
-  >>> t.remove_columns(['d', 'e'])
+  >>> t.remove_columns(['aa', 'd1', 'd2', 'd3', 'e'])
   >>> del t['g']
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])

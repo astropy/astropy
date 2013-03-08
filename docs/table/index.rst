@@ -132,8 +132,8 @@ Modifying table values in place is flexible and works as one would expect::
 
 Add, remove, and rename columns with the following::
 
-  >>> t.add_column(Column([1, 2, 3], name='d')))
-  >>> t.remove_column('c')
+  >>> t['d'] = [1, 2, 3]
+  >>> del t['c']
   >>> t.rename_column('a', 'A')
   >>> t.colnames
   ['A', 'b', 'd']
