@@ -347,7 +347,7 @@ class TestParse:
         assert issubclass(self.array['double'].dtype.type,
                           np.float64)
         assert_array_equal(self.array['double'],
-                           [1.0, 0.0, np.inf, np.nan, -np.inf])
+                           [8.999999, 0.0, np.inf, np.nan, -np.inf])
         assert_array_equal(self.mask['double'],
                            [False, False, False, True, False])
 
