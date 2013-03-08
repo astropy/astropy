@@ -4,6 +4,8 @@ These plugins modify the behavior of py.test and are meant to be imported
 into conftest.py in the root directory.
 """
 
+import doctest
+import fnmatch
 import io
 import locale
 import math
@@ -14,6 +16,8 @@ from .helper import pytest
 
 PY3K = sys.version_info[0] >= 3
 
+DocTestModulePlus = None
+
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
 
@@ -23,6 +27,35 @@ def pytest_addoption(parser):
                      help="run tests with online data")
     parser.addoption("--open-files", action="store_true",
                      help="fail if any test leaves files open")
+
+    parser.addoption("--doctest-plus", action="store_true",
+            help="enable running doctests with additional features not "
+                 "found in the normal doctest plugin")
+
+
+def pytest_configure(config):
+    global DocTestModulePlus
+
+    doctest_plugin = config.pluginmanager.getplugin('doctest')
+
+    if doctest_plugin is None:
+        return
+
+    class DocTestModulePlus(doctest_plugin.DoctestModule):
+        def runtest(self):
+            if self.fspath.basename == 'conftest.py':
+                module = self.config._conftest.importconftest(self.fspath)
+            else:
+                module = self.fspath.pyimport()
+
+            finder = DocTestFinderPlus(exclude_empty=False)
+            runner = doctest.DebugRunner(verbose=False,
+                                         optionflags=doctest.ELLIPSIS)
+
+            for test in finder.find(module):
+                runner.run(test)
+
+            failed, tot = doctest.TestResults(runner.failures, runner.tries)
 
 
 # Open file detection.
@@ -219,3 +252,57 @@ def modarg(request):
                 os.environ['XDG_CACHE_HOME'] = oldcachedir
 
         request.addfinalizer(teardown)
+
+
+class DocTestFinderPlus(doctest.DocTestFinder):
+    """Extension to the default `doctest.DoctestFinder` that supports
+    ``__doctest_skip`` magic.  See `pytest_collect_file` for more details.
+    """
+
+    def find(self, obj, name=None, module=None, globs=None,
+             extraglobs=None):
+        tests = doctest.DocTestFinder.find(self, obj, name, module, globs,
+                                           extraglobs)
+        if hasattr(obj, '__doctest_skip__'):
+            if name is None and hasattr(obj, '__name__'):
+                name = obj.__name__
+            else:
+               raise ValueError("DocTestFinder.find: name must be given "
+                                "when obj.__name__ doesn't exist: %r" %
+                                (type(obj),))
+
+            def test_filter(test):
+                for pat in obj.__doctest_skip__:
+                    if fnmatch.fnmatch(test.name, '.'.join((name, pat))):
+                        return False
+                return True
+
+            tests = filter(test_filter, tests)
+
+        return tests
+
+
+def pytest_collect_file(path, parent):
+    """Implements an enhanced version of the doctest module from py.test
+    (specifically, as enabled by the --doctest-modules option) which supports
+    skipping all doctests in a specific docstring by way of a special
+    ``__doctest_skip__`` module-level variable.
+
+    ``__doctest_skip__`` should be a list of functions, classes, or class
+    methods whose docstrings should be ignored when collecting doctests.
+
+    This also supports wildcard patterns.  For example, to run doctests in a
+    class's docstring, but skip all doctests in its modules use, at the module
+    level:
+
+        __doctest_skip__ = ['ClassName.*']
+
+    """
+
+    config = parent.config
+    if path.ext == '.py':
+        # Don't override the built-in doctest plugin
+        if (DocTestModulePlus is not None and
+                not config.option.doctestmodules and
+                config.option.doctest_plus):
+            return DocTestModulePlus(path, parent)
