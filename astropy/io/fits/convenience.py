@@ -7,9 +7,9 @@ Convenience functions
 The functions in this module provide shortcuts for some of the most basic
 operations on FITS files, such as reading and updating the header.  They are
 included directly in the 'astropy.io.fits' namespace so that they can be used
-like:
+like::
 
-    >>> astropy.io.fits.getheader(...)
+    astropy.io.fits.getheader(...)
 
 These functions are primarily for convenience when working with FITS files in
 the command-line interpreter.  If performing several operations on the same
@@ -30,22 +30,22 @@ explanation of all the different formats.
     arguments.  This is to avoid ambiguity and conflicts with the
     extension arguments.  For example, to set NAXIS=1 on the Primary HDU:
 
-    Wrong:
+    Wrong::
 
-        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', 1)
+        astropy.io.fits.setval('myimage.fits', 'NAXIS', 1)
 
     The above example will try to set the NAXIS value on the first extension
     HDU to blank.  That is, the argument '1' is assumed to specify an extension
     HDU.
 
-    Right:
+    Right::
 
-        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1)
+        astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1)
 
     This will set the NAXIS keyword to 1 on the primary HDU (the default).  To
-    specify the first extension HDU use:
+    specify the first extension HDU use::
 
-        >>> astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
+        astropy.io.fits.setval('myimage.fits', 'NAXIS', value=1, ext=1)
 
     This complexity arises out of the attempt to simultaneously support
     multiple argument formats that were used in past versions of PyFITS.
@@ -123,31 +123,31 @@ def getdata(filename, *args, **kwargs):
 
         No extra arguments implies the primary header::
 
-            >>> getdata('in.fits')
+            getdata('in.fits')
 
         By extension number::
 
-            >>> getdata('in.fits', 0)    # the primary header
-            >>> getdata('in.fits', 2)    # the second extension
-            >>> getdata('in.fits', ext=2) # the second extension
+            getdata('in.fits', 0)      # the primary header
+            getdata('in.fits', 2)      # the second extension
+            getdata('in.fits', ext=2)  # the second extension
 
         By name, i.e., ``EXTNAME`` value (if unique)::
 
-            >>> getdata('in.fits', 'sci')
-            >>> getdata('in.fits', extname='sci') # equivalent
+            getdata('in.fits', 'sci')
+            getdata('in.fits', extname='sci')  # equivalent
 
         Note ``EXTNAME`` values are not case sensitive
 
         By combination of ``EXTNAME`` and EXTVER`` as separate
         arguments or as a tuple::
 
-            >>> getdata('in.fits', 'sci', 2) # EXTNAME='SCI' & EXTVER=2
-            >>> getdata('in.fits', extname='sci', extver=2) # equivalent
-            >>> getdata('in.fits', ('sci', 2)) # equivalent
+            getdata('in.fits', 'sci', 2)  # EXTNAME='SCI' & EXTVER=2
+            getdata('in.fits', extname='sci', extver=2)  # equivalent
+            getdata('in.fits', ('sci', 2))  # equivalent
 
         Ambiguous or conflicting specifications will raise an exception::
 
-            >>> getdata('in.fits', ext=('sci',1), extname='err', extver=2)
+            getdata('in.fits', ext=('sci',1), extname='err', extver=2)
 
     header : bool (optional)
         If `True`, return the data and the header of the specified HDU as a
@@ -497,12 +497,12 @@ def update(filename, data, *args, **kwargs):
         assumed to be the extension specification(s).  Header and
         extension specs can also be keyword arguments.  For example::
 
-            >>> update(file, dat, hdr, 'sci')  # update the 'sci' extension
-            >>> update(file, dat, 3)  # update the 3rd extension
-            >>> update(file, dat, hdr, 3)  # update the 3rd extension
-            >>> update(file, dat, 'sci', 2)  # update the 2nd SCI extension
-            >>> update(file, dat, 3, header=hdr)  # update the 3rd extension
-            >>> update(file, dat, header=hdr, ext=5) # update the 5th extension
+            update(file, dat, hdr, 'sci')  # update the 'sci' extension
+            update(file, dat, 3)  # update the 3rd extension
+            update(file, dat, hdr, 3)  # update the 3rd extension
+            update(file, dat, 'sci', 2)  # update the 2nd SCI extension
+            update(file, dat, 3, header=hdr)  # update the 3rd extension
+            update(file, dat, header=hdr, ext=5)  # update the 5th extension
 
     kwargs
         Any additional keyword arguments to be passed to

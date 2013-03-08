@@ -32,7 +32,7 @@ from numpy import char
 from ... import __version__
 from .card import Card, BLANK_CARD
 from .header import Header
-from .hdu.hdulist import fitsopen
+from .hdu.hdulist import fitsopen, HDUList
 from .hdu.table import _TableLikeHDU
 from .util import indent, u
 
@@ -99,10 +99,12 @@ class _BaseDiff(object):
 
         For example::
 
-            >>> fd = FITSDiff('a.fits', 'b.fits', ignore_keywords=['*'])
-            >>> hd = HeaderDiff.fromdiff(fd, header_a, header_b)
+            >>> hdul1, hdul2 = HDUList(), HDUList()
+            >>> headera, headerb = Header(), Header()
+            >>> fd = FITSDiff(hdul1, hdul2, ignore_keywords=['*'])
+            >>> hd = HeaderDiff.fromdiff(fd, headera, headerb)
             >>> hd.ignore_keywords
-            ['*']
+            set(['*'])
         """
 
         args, _, _, _ = inspect.getargspec(cls.__init__)
