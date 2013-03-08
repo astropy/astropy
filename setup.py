@@ -63,7 +63,7 @@ packagenames = filter_packages(find_packages())
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
-           if fname != 'README.rst']
+           if os.path.basename(fname) != 'README.rst']
 
 # Additional C extensions that are not Cython-based should be added here.
 extensions = []
