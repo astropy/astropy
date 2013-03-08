@@ -781,15 +781,20 @@ def download_file(remote_url, cache=False):
 
             dlmsg = "Downloading {0}".format(remote_url)
             with ProgressBarOrSpinner(size, dlmsg) as p:
-                with NamedTemporaryFile(delete=False) as f:
-                    bytes_read = 0
-                    block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
-                    while block:
-                        f.write(block)
-                        hash.update(block)
-                        bytes_read += len(block)
-                        p.update(bytes_read)
+                try:
+                    with NamedTemporaryFile(delete=False) as f:
+                        bytes_read = 0
                         block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
+                        while block:
+                            f.write(block)
+                            hash.update(block)
+                            bytes_read += len(block)
+                            p.update(bytes_read)
+                            block = remote.read(DOWNLOAD_CACHE_BLOCK_SIZE())
+                except:
+                    if os.path.exists(f.name):
+                        os.remove(f.name)
+                    raise
 
         if cache:
             _acquire_download_cache_lock()
