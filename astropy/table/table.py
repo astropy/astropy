@@ -1319,7 +1319,7 @@ class Table(object):
 
             # Make sure value is an ndarray so we can get the dtype
             if not isinstance(value, np.ndarray):
-                value = np.array(value)
+                value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently has no rows
             # (len=0) of the value is already a Column then define new column directly
