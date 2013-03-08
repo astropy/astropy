@@ -16,7 +16,7 @@ The included version of `wcslib` has been upgraded to version 4.17.
 Units
 -----
 
-Quantities can no conveniently get their values in a requested unit,
+Quantities can now conveniently get their values in a requested unit,
 simply by using `quantity.SOME_UNIT`, for example::
 
     >>> q = 180.0 * u.degree
