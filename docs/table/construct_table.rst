@@ -40,9 +40,9 @@ size, columns, or data are not known.
 ::
 
   >>> t = Table()
-  >>> t.add_column(Column([1, 4], name='a'))
-  >>> t.add_column(Column([2.0, 5.0], name='b'))
-  >>> t.add_column(Column(['x', 'y'], name='c'))
+  >>> t['a'] = [1, 4]
+  >>> t['b'] = Column([2.0, 5.0], units='cm', description='Velocity')
+  >>> t['c'] = ['x', 'y']
 
   >>> t = Table(names=('a', 'b', 'c'), dtypes=('f4', 'i4', 'S2'))
   >>> t.add_row((1, 2.0, 'x'))
@@ -537,19 +537,6 @@ The column data values, shape, and data type are specified in one of two ways:
   The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the array shape of a
   single cell in the column.  The default ``shape`` is () which means a single value in
   each element.
-
-.. warning::
-
-   In the next major release of `astropy` (0.3), the order of function arguments
-   for creating a |Column| or |MaskedColumn| will change.  Currently the order
-   is ``Column(name, data, ...)``, but in 0.3 and later it will be
-   ``Column(data, name, ...)``.  This improves consistency with |Table| and `numpy`.
-
-   In order to use the same code for Astropy 0.2 and 0.3, column objects should
-   always be created using named keyword arguments for ``data`` and ``name``,
-   as demonstrated in the examples above.  When Astropy 0.3 is released then the
-   the keyword identifiers can be dropped, for instance
-   ``c = Column([1, 2], 'd')``.
 
 .. _table_format_string:
 

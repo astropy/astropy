@@ -1312,12 +1312,35 @@ class Table(object):
                              .format(type(item)))
 
     def __setitem__(self, item, value):
-        try:
+        # If the item is a string then it must be the name of a column.
+        # If that column doesn't already exist then create it now.
+        if isinstance(item, basestring) and item not in self.colnames:
+            NewColumn = MaskedColumn if self.masked else Column
+
+            # Make sure value is an ndarray so we can get the dtype
+            if not isinstance(value, np.ndarray):
+                value = np.asarray(value)
+
+            # Make new column and assign the value.  If the table currently has no rows
+            # (len=0) of the value is already a Column then define new column directly
+            # from value.  In the latter case this allows for propagation of Column
+            # metadata.  Otherwise define a new column with the right length and shape and
+            # then set it from value.  This allows for broadcasting, e.g. t['a'] = 1.
+            if isinstance(value, BaseColumn):
+                new_column = value.copy(copy_data=False)
+                new_column.name = item
+            elif len(self) == 0:
+                new_column = NewColumn(name=item, data=value)
+            else:
+                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
+                                       shape=value.shape[1:])
+                new_column[:] = value
+
+            # Now add new column to the table
+            self.add_column(new_column)
+        else:
+            # Otherwise just delegate to the numpy item setter.
             self._data[item] = value
-        except (ValueError, KeyError, TypeError):
-            raise KeyError("Column {0} does not exist".format(item))
-        except:
-            raise
 
     def __delitem__(self, item):
         if isinstance(item, basestring):

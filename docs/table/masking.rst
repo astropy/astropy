@@ -77,10 +77,9 @@ different classes for these two cases.
 
 **Add a MaskedColumn object to an existing table**
 
-  >>> a = Column([1, 2], name='a')
-  >>> b = MaskedColumn([3, 4], name='b', mask=[True, False])
-  >>> t = Table([a])
-  >>> t.add_column(b)
+  >>> t = Table([[1, 2]], names=['a'])
+  >>> b = MaskedColumn([3, 4], mask=[True, False])
+  >>> t['b'] = b
   INFO: Upgrading Table to masked Table [astropy.table.table]
 
 Note the INFO message because the underlying type of the table is modified in this operation.
