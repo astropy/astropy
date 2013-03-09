@@ -16,11 +16,11 @@ def pmapdomain(oldx, domain, window):
     
     Parameters
     ----------
-    oldx: array
+    oldx : array
           original coordinates
-    domain: list or tuple of length 2
+    domain : list or tuple of length 2
           function domain
-    window: list or tuple of length 2
+    window : list or tuple of length 2
           range into which to map the domain 
     """
     domain = np.array(domain, dtype=np.float64)

@@ -38,7 +38,7 @@ class RotateNative2Celestial(Model):
         
         Parameters
         ----------
-        phi, theta, psi - float
+        phi, theta, psi : float
             Euler angles in deg
                         
         """
@@ -103,7 +103,7 @@ class RotateCelestial2Native(Model):
         
         Parameters
         ----------
-        phi, theta, psi - float
+        phi, theta, psi : float
             Euler angles in deg
              
         """
@@ -171,9 +171,9 @@ class MatrixRotation2D(Model):
         
         Parameters
         ----------
-        rotmat: ndarray
+        rotmat : ndarray
             rotation matrix
-        angle: float
+        angle : float
             angle of rotation in deg
                   
         """
@@ -230,7 +230,7 @@ class MatrixRotation2D(Model):
         """
         Parameters
         ----------
-        x, y: 1D array or list
+        x, y : 1D array or list
               x and y coordinates
         """
         x = np.asarray(x)

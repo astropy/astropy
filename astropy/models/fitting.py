@@ -81,10 +81,10 @@ class Fitter(object):
         
         Parameters
         ----------
-        fps: list
+        fps : list
             list of parameters, fitted in a succesive iteration of the
             fitting algorithm
-        set_bounds: callable
+        set_bounds : callable
             
         """
         if any(self.model.constraints._fixed.values()) or \
@@ -210,7 +210,7 @@ class LinearLSQFitter(Fitter):
         """
         Parameters
         ----------
-        model: an instance of `fitting.models.ParametricModel`
+        model : an instance of `fitting.models.ParametricModel`
         
         """
         self.model = model
@@ -242,19 +242,18 @@ class LinearLSQFitter(Fitter):
         """
         Parameters
         ----------
-        x: array
+        x : array
             input coordinates
-        y: array
+        y : array
             input coordinates
-        z: array (optional)
+        z : array (optional)
             input coordinates
-        w: array (optional)
+        w : array (optional)
             weights
-        rcond:  float, optional
+        rcond :  float, optional
             Cut-off ratio for small singular values of `a`.
             Singular values are set to zero if they are smaller than `rcond`
             times the largest singular value of `a`.
-       
         """
         multiple = False
         x = np.asarray(x) + 0.0
@@ -360,7 +359,7 @@ class NonLinearLSQFitter(Fitter):
         """
         Parameters
         ----------
-        model: a fittable :class: `models.ParametricModel`
+        model : a fittable :class: `models.ParametricModel`
             model to fit to data
 
         
@@ -425,17 +424,17 @@ class NonLinearLSQFitter(Fitter):
         """
         Parameters
         ----------
-        x: array
+        x : array
            input coordinates
-        y: array
+        y : array
            input coordinates
-        z: array (optional)
+        z : array (optional)
            input coordinates
-        w: array (optional
+        w : array (optional
            weights
-        maxiter: int
+        maxiter : int
             maximum number of iterations
-        epsilon: float
+        epsilon : float
             A suitable step length for the forward-difference 
             approximation of the Jacobian (if model.fjac=None). If 
             epsfcn is less than the machine precision, it is 
@@ -487,7 +486,7 @@ class SLSQPFitter(Fitter):
         """
         Parameters
         ----------
-        model: a fittable :class: `models.ParametricModel`
+        model : a fittable :class: `models.ParametricModel`
             model to fit to data
         
         Raises
@@ -513,9 +512,9 @@ class SLSQPFitter(Fitter):
         
         Parameters
         ----------
-        fps: list
+        fps : list
             parameters returned by the fitter
-        args: list
+        args : list
             input coordinates
         """
         meas = args[0]
@@ -531,21 +530,21 @@ class SLSQPFitter(Fitter):
         """
         Parameters
         ----------
-        x: array
+        x : array
             input coordinates
-        y: array
+        y : array
             input coordinates
-        z: array (optional)
+        z : array (optional)
             input coordinates
-        w: array (optional)
+        w : array (optional)
             weights
-        verblevel: int
+        verblevel : int
             0-silent
             1-print summary upon completion, 
             2-print summary after each iteration
-        maxiter: int
+        maxiter : int
             maximum number of iterations
-        epsilon: float
+        epsilon : float
             the step size for finite-difference derivative estimates
             
         """
@@ -593,11 +592,11 @@ class JointFitter(object):
         """
         Parameters
         ----------
-        models: list
+        models : list
             a list of model instances
-        jointparameters: list
+        jointparameters : list
             a list of joint parameters
-        initvals: list
+        initvals : list
             a list of initial values
         """
         self.models = list(models)
@@ -626,10 +625,10 @@ class JointFitter(object):
         
     def errorfunc(self, fps, *args):
         """
-        fps: list
+        fps : list
             the fitted parameters - result of an one iteration of the 
             fitting algorithm
-        args: dict
+        args : dict
             tuple of measured and input coordinates
             args is always passed as a tuple from optimize.leastsq
         """

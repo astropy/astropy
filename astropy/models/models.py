@@ -214,8 +214,8 @@ class Model(object):
         """
         Parameters
         ----------
-        newtr: an instance of a subclass of Model
-        mode:  string
+        newtr : an instance of a subclass of Model
+        mode :  string
                'parallel', 'serial', 'p' or 's'
                a flag indicating whether to combine the models
                in series or in parallel
@@ -488,21 +488,21 @@ class IModel(ParametricModel):
         Parameters
         ----------
         
-        xdeg: int
+        xdeg : int
             degree in x
-        ydeg: int
+        ydeg : int
             degree in y
-        xdomain: list or None
+        xdomain : list or None
             domain of the x independent variable
-        ydomain: list or None
+        ydomain : list or None
             domain of the y independent variable
-        xwindow: list or None
+        xwindow : list or None
             range of the x independent variable
-        ywindow: list or None
+        ywindow : list or None
             range of the y independent variable
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        **pars : dict
             {keyword: value} pairs, representing {parameter_name: value}
         """
         self.ndim = 2
@@ -558,7 +558,7 @@ class IModel(ParametricModel):
         
         Returns
         -------
-        numc: int
+        numc : int
             number of coefficients
         
         """
@@ -647,16 +647,16 @@ class ChebyshevModel(PModel):
         """
         Parameters
         ----------
-        degree: int
+        degree : int
             degree of the series
-        domain: list or None
-        window: list or None
+        domain : list or None
+        window : list or None
             If None, it is set to [-1,1]
             Fitters will remap the domain to this window
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
-            keyword: value pairs, representing parameter_name: value
+        **pars : dict
+            keyword : value pairs, representing parameter_name: value
         """
         self.domain = domain
         self.window = window
@@ -697,7 +697,7 @@ class ChebyshevModel(PModel):
         """
         Parameters
         --------------
-        x: array, of minimum dimensions 1
+        x : array, of minimum dimensions 1
         
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -717,15 +717,15 @@ class LegendreModel(PModel):
         """
         Parameters
         ----------
-        degree: int
+        degree : int
             degree of the series
-        domain: list or None
-        window: list or None
+        domain : list or None
+        window : list or None
             If None, it is set to [-1,1]
             Fitters will remap the domain to this window
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        **pars : dict
             keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
@@ -767,7 +767,7 @@ class LegendreModel(PModel):
         """
         Parameters
         --------------
-        x: array, of minimum dimensions 1
+        x : array, of minimum dimensions 1
        
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -789,15 +789,15 @@ class Poly1DModel(PModel):
         """
         Parameters
         ----------
-        degree: int
+        degree : int
             degree of the series
-        domain: list or None
-        window: list or None
+        domain : list or None
+        window : list or None
             If None, it is set to [-1,1]
             Fitters will remap the domain to this window
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        **pars : dict
             keyword: value pairs, representing parameter_name: value
         """
         self.domain = domain
@@ -825,7 +825,7 @@ class Poly1DModel(PModel):
         """
         Parameters
         --------------
-        x: array, of minimum dimensions 1
+        x : array, of minimum dimensions 1
        
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -849,20 +849,20 @@ class Poly2DModel(PModel):
         """       
         Parameters
         ----------
-        degree: int
+        degree : int
             highest power of the polynomial, the number of terms 
             are degree+1
-        xdomain: list or None
+        xdomain : list or None
             domain of the x independent variable
-        ydomain: list or None
+        ydomain : list or None
             domain of the y independent variable
-        xwindow: list or None
+        xwindow : list or None
             range of the x independent variable
-        ywindow: list or None
+        ywindow : list or None
             range of the y independent variable
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        pars : dict
             keyword: value pairs, representing parameter_name: value
         """
         self.ndim = 2
@@ -880,8 +880,8 @@ class Poly2DModel(PModel):
         
         Parameters
         --------------
-        x, y: input arrays
-        coeff: array of coefficients in inverse lexical order
+        x, y : array
+        coeff : array of coefficients in inverse lexical order
         """
         alpha = np.array(self._invlex())
         r0 = coeff[0] 
@@ -937,7 +937,7 @@ class Poly2DModel(PModel):
         """
         Parameters
         --------------
-        x, y: arrays, of min dimensions 2
+        x, y : arrays, of min dimensions 2
         
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -964,21 +964,21 @@ class ICheb2DModel(IModel):
         Parameters
         ----------
         
-        xdeg: int
+        xdeg : int
             degree in x
-        ydeg: int
+        ydeg : int
             degree in y
-        xdomain: list or None
+        xdomain : list or None
             domain of the x independent variable
-        ydomain: list or None
+        ydomain : list or None
             domain of the y independent variable
-        xwindow: list or None
+        xwindow : list or None
             range of the x independent variable
-        ywindow: list or None
+        ywindow : list or None
             range of the y independent variable
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        pars : dict
             keyword: value pairs, representing parameter_name: value
         """
         super(ICheb2DModel, self).__init__(xdeg, ydeg,
@@ -1046,8 +1046,8 @@ class ICheb2DModel(IModel):
         """
         Parameters
         --------------
-        x,y: arrays, of min dimensions 2
-        x/ydomain: list of two numbers
+        x, y : arrays, of min dimensions 2
+        xdomain, ydomain : list of two numbers
             polynomial domain for x and y variable
                     
         Note: See the module docstring for rules for model evaluation. 
@@ -1074,21 +1074,21 @@ class ILegend2DModel(IModel):
         Parameters
         ----------
         
-        xdeg: int
+        xdeg : int
             degree in x
-        ydeg: int
+        ydeg : int
             degree in y
-        xdomain: list or None
+        xdomain : list or None
             domain of the x independent variable
-        ydomain: list or None
+        ydomain : list or None
             domain of the y independent variable
-        xwindow: list or None
+        xwindow : list or None
             range of the x independent variable
-        ywindow: list or None
+        ywindow : list or None
             range of the y independent variable
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        **pars: dict
+        pars : dict
             keyword: value pairs, representing parameter_name: value
         """
         super(ILegend2DModel, self).__init__(xdeg, ydeg,
@@ -1157,8 +1157,8 @@ class ILegend2DModel(IModel):
         """
         Parameters
         --------------
-        x,y: arrays, of min dimensions 2
-        x/ydomain: list of two numbers
+        x, y : arrays, of min dimensions 2
+        xdomain, ydomain : list of two numbers
             polynomial domain for x and y variable
                     
         Note: See the module docstring for rules for model evaluation. 
@@ -1183,16 +1183,16 @@ class Gauss1DModel(ParametricModel):
         """
         Parameters
         ----------
-        amplitude: float
+        amplitude : float
             Amplitude of the gaussian
-        xcen: float
+        xcen : float
             Center of the gaussian
-        fwhm: float
+        fwhm : float
             FWHM
-        xsigma: float
+        xsigma : float
             igma of the gaussian
             Either fwhm or xsigma must be specified
-        fjac: callable or None
+        fjac : callable or None
             if callable - a function to compute the Jacobian of 
             func with derivatives across the rows.
             if None - the Jacobian will be estimated
@@ -1245,7 +1245,7 @@ class Gauss1DModel(ParametricModel):
         """
         Parameters
         --------------
-        x: array, of minimum dimensions 1
+        x : array, of minimum dimensions 1
         
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -1266,27 +1266,27 @@ class Gauss2DModel(ParametricModel):
         """
         Parameters
         ----------
-        amplitude: float
+        amplitude : float
             Amplitude of the gaussian
-        xcen: float
+        xcen : float
             Center of the gaussian in x
-        ycen: float
+        ycen : float
             Center of the gaussian in y
-        fwhm: float
+        fwhm : float
             FWHM
-        xsigma: float
+        xsigma : float
             sigma of the gaussian in x
             Either fwhm or xsigma must be specified
-        ysigma: float
+        ysigma : float
             sigma of the gaussian in y
             Either ysigma or ratio should be given
-        ratio: float
+        ratio : float
             ysigma/xsigma 
-        fjac: callable or None
+        fjac : callable or None
             if callable - a function to compute the Jacobian of 
             func with derivatives across the rows.
             if None - the Jacobian will be estimated
-        theta: float 
+        theta : float 
             rotation angle in radians
 
         """
@@ -1335,7 +1335,7 @@ class Gauss2DModel(ParametricModel):
         """
         Parameters
         --------------
-        x, y: arrays, of min dimensions 2
+        x, y : arrays, of min dimensions 2
         
         Note: See the module docstring for rules for model evaluation. 
         """
@@ -1354,7 +1354,7 @@ class ShiftModel(Model):
         """
         Parameters
         ----------
-        offsets: float or a list of floats
+        offsets : float or a list of floats
             offsets to be applied to a coordinate
             if a list - each value in the list is an offset to be applied to a
             column in the input coordinate array
@@ -1385,7 +1385,7 @@ class ScaleModel(Model):
         """
         Parameters
         ---------------
-        factors: float or a list of floats
+        factors : float or a list of floats
             scale for a coordinate
         """
         self.ndim = 1
@@ -1568,9 +1568,9 @@ class LabeledInput(dict):
         """
         Parameters
         ----------
-        data: list 
+        data : list 
             a list of all input data
-        labels: list of strings
+        labels : list of strings
             names matching each coordinate in data
         
        """
@@ -1600,11 +1600,11 @@ class LabeledInput(dict):
         
         Parameters
         --------------
-        label: string
+        label : string
             coordinate label
-        value: numerical type
+        value : numerical type
             coordinate value
-        kw: dictionary
+        kw : dictionary
             if given this is a dictionary of {label: value} pairs
         """
         if kw:
@@ -1712,13 +1712,13 @@ class SCompositeModel(_CompositeModel):
         
         Parameters
         ----------
-        transforms list
+        transforms : list
             a list of transforms in the order to be executed
-        inmap: list of lists or None
+        inmap : list of lists or None
             labels in an input instance of LabeledInput
             if None, the number of input coordinates is exactly what
             the transforms expect 
-        outmap: list or None
+        outmap : list or None
             labels in an input instance of LabeledInput
             if None, the number of output coordinates is exactly what 
             the transforms expect
@@ -1810,9 +1810,9 @@ class PCompositeModel(_CompositeModel):
         """
         Parameters
         --------------
-        transforms: list
+        transforms : list
             transforms to be executed in parallel
-        inmap: list or None
+        inmap : list or None
             labels in an input instance of LabeledInput
             if None, the number of input coordinates is exactly what the
             transforms expect 
@@ -1897,21 +1897,21 @@ class SIPModel(SCompositeModel):
         """
         Parameters
         ----------
-        crpix: list or ndarray of length(2)
+        crpix : list or ndarray of length(2)
             CRPIX values
-        order: int
+        order : int
             SIP polynomial order
-        coeff: dict
+        coeff : dict
             SIP coefficients
-        coeffname: string: 'a', 'b', 'A' or 'B'
+        coeffname : string: 'a', 'b', 'A' or 'B'
             SIP coefficient preffix
-        aporder: int
+        aporder : int
             order for the inverse transformation
-        apcoeff: dict
+        apcoeff : dict
             coefficients for the inverse transform
-        paramdim: int
+        paramdim : int
             number of parameter sets
-        multiple: boolean
+        multiple : boolean
             when input is 2D array, if True (default) it is to be 
             treated as multiple 1D arrays
         """
