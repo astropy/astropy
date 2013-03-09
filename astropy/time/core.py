@@ -860,7 +860,7 @@ class TimeUnique(TimeFormat):
 
 class TimeDatetime(TimeUnique):
     """
-    Represent date as Python standard library datetime.datetime object
+    Represent date as Python standard library `~datetime.datetime` object
 
     Example::
 

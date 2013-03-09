@@ -95,6 +95,7 @@ Format            Class
 byear      :class:`~astropy.time.core.TimeBesselianEpoch`
 byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`
 cxcsec     :class:`~astropy.time.core.TimeCxcSec`
+datetime   :class:`~astropy.time.core.TimeDatetime`
 iso        :class:`~astropy.time.core.TimeISO`
 isot       :class:`~astropy.time.core.TimeISOT`
 jd         :class:`~astropy.time.core.TimeJD`
@@ -187,12 +188,17 @@ Inferring input format
 
 The |Time| class initializer will not accept ambiguous inputs,
 but it will make automatic inferences in cases where the inputs are
-unambiguous.  This can apply when the times are supplied as a list of strings,
-in which case it is not required to specify the format because the available
+unambiguous.  This can apply when the times are supplied as `~datetime.datetime`
+objects or strings.  In the latter case
+it is not required to specify the format because the available
 string formats have no overlap.  However, if the format is known in advance
 the string parsing will be faster if the format is provided.
 ::
 
+  >>> from datetime import datetime
+  >>> t = Time(datetime(2010, 1, 2, 1, 2, 3), scale='utc')
+  >>> t.format
+  'datetime'
   >>> t = Time('2010-01-02 01:02:03', scale='utc')
   >>> t.format
   'iso'
@@ -388,6 +394,8 @@ available format names is in the `time format`_ section.
   1262304000.0
   >>> t.plot_date # Date value for plotting with matplotlib plot_date()
   733773.0003935185
+  >>> t.datetime  # Representation as datetime.datetime object
+  datetime.datetime(2010, 1, 1, 0, 0)
 
 Example::
 
