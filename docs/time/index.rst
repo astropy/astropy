@@ -295,7 +295,7 @@ scale
 ^^^^^^^^^^^
 
 The ``scale`` argument sets the `time scale`_ and is required except for time
-formats such as 'plot_date' (:class:`~astropy.time.core.TimePlotDate`) and 'unix'
+formats such as ``plot_date`` (:class:`~astropy.time.core.TimePlotDate`) and ``unix``
 (:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
 

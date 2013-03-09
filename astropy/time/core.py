@@ -827,9 +827,9 @@ class TimeCxcSec(TimeFromEpoch):
 
 class TimePlotDate(TimeFromEpoch):
     """
-    Matplotlib date input: 1 + number of days from 0001-01-01 00:00:00 UTC
+    Matplotlib `~matplotlib.pyplot.plot_date` input: 1 + number of days from 0001-01-01 00:00:00 UTC
 
-    This can be used directly in the matplotlib `plot_date` function::
+    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
 
       >>> jyear = np.linspace(2000, 2001, 20)
       >>> t = Time(jyear, format='jyear', scale='utc')
