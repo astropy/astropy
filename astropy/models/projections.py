@@ -36,7 +36,7 @@ class Projection(Model):
         """
         Parameters
         ----------
-        parnames: list of strings
+        parnames : list of strings
             parameter names
         """
         super(Projection, self).__init__(parnames)
@@ -55,7 +55,7 @@ class Zenithal(Projection):
         """
         Parameters
         ----------
-        parnames: list of strings
+        parnames : list of strings
             parameter names
         """
         self.phi0 = 0.
@@ -75,7 +75,7 @@ class Zenithal(Projection):
         
 class Pix2Sky_AZP(Zenithal):
     """
-    AZP: Zenital perspective projection - pixel to sky
+    AZP : Zenital perspective projection - pixel to sky
     
     """
     parnames = ['mu', 'gamma']
@@ -83,10 +83,10 @@ class Pix2Sky_AZP(Zenithal):
         """
         Parameters
         --------------
-        mu: float
+        mu : float
             distance from point of projection to center of sphere
             in spherical radii, default is 0.
-        gamma - float
+        gamma : float
             look angle in deg, default is 0.
         """
         if mu == -1:
@@ -135,7 +135,7 @@ class Pix2Sky_AZP(Zenithal):
  
 class Sky2Pix_AZP(Zenithal):
     """
-    AZP: Zenital perspective projection - sky to pixel
+    AZP : Zenital perspective projection - sky to pixel
     
     """
     parnames = ['mu', 'gamma']
@@ -143,10 +143,10 @@ class Sky2Pix_AZP(Zenithal):
         """
         Parameters
         --------------
-        mu: float
+        mu : float
             distance from point of projection to center of sphere
             in spherical radii, default is 0.
-        gamma - float
+        gamma : float
             look angle in deg, default is 0.
 
         """
@@ -181,7 +181,7 @@ class Sky2Pix_AZP(Zenithal):
     
 class Pix2Sky_TAN(Zenithal):
     """
-    TAN: Gnomonic projection - pixel to sky
+    TAN : Gnomonic projection - pixel to sky
     
     """
     def __init__(self):
@@ -203,7 +203,7 @@ class Pix2Sky_TAN(Zenithal):
 
 class Sky2Pix_TAN(Zenithal):
     """
-    TAN: Gnomonic Projection - sky to pixel
+    TAN : Gnomonic Projection - sky to pixel
     
     """
     def __init__(self):
@@ -225,7 +225,7 @@ class Sky2Pix_TAN(Zenithal):
         
 class Pix2Sky_STG(Zenithal):
     """
-    STG: Stereographic Projection - pixel to sky
+    STG : Stereographic Projection - pixel to sky
     
     """
     def __init__(self):
@@ -247,7 +247,7 @@ class Pix2Sky_STG(Zenithal):
 
 class Sky2Pix_STG(Zenithal):
     """
-    STG: Stereographic Projection - sky to pixel
+    STG : Stereographic Projection - sky to pixel
 
     """
     def __init__(self):
@@ -269,7 +269,7 @@ class Sky2Pix_STG(Zenithal):
        
 class Pix2Sky_SIN(Zenithal):
     """
-    SIN: Slant orthographic projection - pixel to sky
+    SIN : Slant orthographic projection - pixel to sky
     
     """
     def __init__(self):
@@ -292,7 +292,7 @@ class Pix2Sky_SIN(Zenithal):
     
 class Sky2Pix_SIN(Zenithal):
     """
-    SIN: Slant othographic projection - sky to pixel
+    SIN : Slant othographic projection - sky to pixel
     
     """
     def __init__(self):
@@ -332,7 +332,7 @@ class Cylindrical(Projection):
     
 class Pix2Sky_CYP(Cylindrical):
     """
-    CYP: Cylindrical perspective - pixel to sky
+    CYP : Cylindrical perspective - pixel to sky
     
     """
     parnames = ['mu', 'lam']
@@ -361,7 +361,7 @@ class Pix2Sky_CYP(Cylindrical):
     
 class Sky2Pix_CYP(Cylindrical):
     """
-    CYP: Cylindrical Perspective - sky to pixel
+    CYP : Cylindrical Perspective - sky to pixel
     
     """
     parnames = ['mu', 'lam']
@@ -389,7 +389,7 @@ class Sky2Pix_CYP(Cylindrical):
     
 class Pix2Sky_CEA(Cylindrical):
     """
-    CEA: Cylindrical equal area projection - pixel to sky
+    CEA : Cylindrical equal area projection - pixel to sky
     
     """
     parnames = ['lam']
@@ -500,11 +500,11 @@ class Conic(Projection):
         """
         Parameters
         ----------
-        thetaA - float
+        thetaA : float
             angle in deg
-        eta: float
+        eta : float
         
-        parnames: list of strings
+        parnames : list of strings
             parameter names
                   
         """

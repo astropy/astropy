@@ -11,11 +11,11 @@ class Constraints(object):
         """
         Parameters
         ----------
-        fitter: object which supports fitting
-        fixed: dict
+        fitter : object which supports fitting
+        fixed : dict
             (parameter_name: True/False} 
             parameters to be held fixed during fitting
-        tied: dict
+        tied : dict
             keys are parameter names
             values are callable/function providing a relationship
             between parameters. Currently the callable takes a model 
@@ -27,14 +27,14 @@ class Constraints(object):
                return xcen
 
             tied ={'xcen':tie_center}
-        bounds: dict
-            keys: parameter names
-            values:  list of length 2 giving the desired range for hte parameter
-        eqcons: list
+        bounds : dict
+            keys : parameter names
+            values :  list of length 2 giving the desired range for hte parameter
+        eqcons : list
             A list of functions of length n such that
             eqcons[j](x0,*args) == 0.0 in a successfully optimized
             problem.
-        ineqcons: list
+        ineqcons : list
             A list of functions of length n such that
             ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
             problem.
