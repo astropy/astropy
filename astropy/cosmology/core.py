@@ -965,11 +965,12 @@ class LambdaCDM(FLRW):
 
     Examples
     --------
-    >>> from astro.cosmology import LambdaCDM
+    >>> from astropy.cosmology import LambdaCDM
     >>> cosmo = LambdaCDM(H0=70, Om0=0.3, Ode0=0.7)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 
@@ -1110,11 +1111,12 @@ class FlatLambdaCDM(LambdaCDM):
 
     Examples
     --------
-    >>> from astro.cosmology import FlatLambdaCDM
+    >>> from astropy.cosmology import FlatLambdaCDM
     >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
     def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04, name='FlatLambdaCDM'):
@@ -1211,11 +1213,12 @@ class wCDM(FLRW):
 
     Examples
     --------
-    >>> from astro.cosmology import wCDM
+    >>> from astropy.cosmology import wCDM
     >>> cosmo = wCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 
@@ -1374,11 +1377,12 @@ class FlatwCDM(wCDM):
 
     Examples
     --------
-    >>> from astro.cosmology import FlatwCDM
+    >>> from astropy.cosmology import FlatwCDM
     >>> cosmo = FlatwCDM(H0=70, Om0=0.3, w0=-0.9)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 
@@ -1485,11 +1489,12 @@ class w0waCDM(FLRW):
 
     Examples
     --------
-    >>> from astro.cosmology import w0waCDM
+    >>> from astropy.cosmology import w0waCDM
     >>> cosmo = w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.2)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 
@@ -1615,11 +1620,12 @@ class Flatw0waCDM(w0waCDM):
 
     Examples
     --------
-    >>> from astro.cosmology import Flatw0waCDM
+    >>> from astropy.cosmology import Flatw0waCDM
     >>> cosmo = Flatw0waCDM(H0=70, Om0=0.3, w0=-0.9, wa=0.2)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
@@ -1678,11 +1684,12 @@ class wpwaCDM(FLRW):
 
     Examples
     --------
-    >>> from astro.cosmology import wpwaCDM
+    >>> from astropy.cosmology import wpwaCDM
     >>> cosmo = wpwaCDM(H0=70,Om0=0.3,Ode0=0.7,wp=-0.9,wa=0.2,zp=0.4)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 
@@ -1824,11 +1831,12 @@ class w0wzCDM(FLRW):
 
     Examples
     --------
-    >>> from astro.cosmology import wawzCDM
-    >>> cosmo = wawzCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wz=0.2)
+    >>> from astropy.cosmology import w0wzCDM
+    >>> cosmo = w0wzCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wz=0.2)
 
     The comoving distance in Mpc at redshift z:
 
+    >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
     """
 

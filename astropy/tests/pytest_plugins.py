@@ -49,8 +49,8 @@ def pytest_configure(config):
                 module = self.fspath.pyimport()
 
             finder = DocTestFinderPlus(exclude_empty=False)
-            runner = doctest.DebugRunner(verbose=False,
-                                         optionflags=doctest.ELLIPSIS)
+            opts = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
 
             for test in finder.find(module):
                 runner.run(test)

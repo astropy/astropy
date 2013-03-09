@@ -16,6 +16,9 @@ __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'biweight_midvariance']
 
 
+__doctest_skip__ = ['binned_binom_proportion']
+
+
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
                axis=None, copy=True):
     """ Perform sigma-clipping on the provided data.

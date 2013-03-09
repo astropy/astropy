@@ -8,6 +8,8 @@ from ..utils import OrderedDict
 __all__ = ['register_reader', 'register_writer', 'register_identifier',
            'identify_format', 'get_reader', 'get_writer', 'read', 'write']
 
+__doctest_skip__ = ['register_identifier']
+
 _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()

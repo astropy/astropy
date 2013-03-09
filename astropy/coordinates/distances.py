@@ -50,12 +50,14 @@ class Distance(object):
     Examples
     --------
     >>> from astropy import units as u
-    >>> from astropy.cosmology import WMAP3
+    >>> from astropy import cosmology
+    >>> from astropy.cosmology import WMAP5, WMAP7
+    >>> cosmology.set_current(WMAP7)
     >>> d1 = Distance(10, u.Mpc)
     >>> d2 = Distance(40, unit=u.au)
     >>> d3 = Distance(value=5, unit=u.kpc)
     >>> d4 = Distance(z=0.23)
-    >>> d5 = Distance(z=0.23, cosmology=WMAP3)
+    >>> d5 = Distance(z=0.23, cosmology=WMAP5)
     """
 
     def __init__(self, *args, **kwargs):

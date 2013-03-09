@@ -18,10 +18,11 @@ class Unicode(console.Console):
 
     For example::
 
-      >>> print u.Ry.decompose().to_string('unicode')
-                 m² kg
-      2.18×10-¹⁸ ─────
-                  s²
+      >>> import astropy.units as u
+      >>> print(u.Ry.decompose().to_string('unicode'))
+                   m² kg
+      2.1...×10⁻¹⁸ ─────
+                    s²
     """
 
     def __init__(self):
