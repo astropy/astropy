@@ -389,6 +389,15 @@ available format names is in the `time format`_ section.
   >>> t.plot_date # Date value for plotting with matplotlib plot_date()
   733773.0003935185
 
+Example::
+
+  >>> import matplotlib.pyplt as plt
+  >>> jyear = np.linspace(2000, 2001, 20)
+  >>> t = Time(jyear, format='jyear', scale='utc')
+  >>> plt.plot_date(t.plot_date, jyear)
+  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+  >>> plt.draw()
+
 Convert time scale
 ^^^^^^^^^^^^^^^^^^^^
 
