@@ -5,14 +5,14 @@ dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
 UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
-import sys
-import warnings
+from datetime import datetime
 import time
 import itertools
 import numpy as np
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimePlotDate',
+           'TimeDatetime',
            'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
@@ -438,7 +438,14 @@ class Time(object):
 
         elif attr in self.FORMATS:
             tm = self.replicate(format=attr)
-            return (tm.vals[0].tolist() if self.is_scalar else tm.vals)
+            if self.is_scalar:
+                out = tm.vals[0]
+                # convert to native python for non-object dtypes
+                if tm.vals.dtype.kind != 'O':
+                    out = out.tolist()
+            else:
+                out = tm.vals
+            return out
 
         else:
             # Should raise AttributeError
@@ -843,6 +850,57 @@ class TimePlotDate(TimeFromEpoch):
     epoch_format = 'jd'
 
 
+class TimeDatetime(TimeFormat):
+    """
+    Python standard library datetime.datetime object
+    """
+    name = 'datetime'
+
+    def _check_val_type(self, val1, val2):
+        if not all(isinstance(val, datetime) for val in val1):
+            raise TypeError('Input values for {0} class must be datetime objects'
+                            .format(self.name))
+            # Note: don't care about val2 for this classes
+
+    def set_jds(self, val1, val2):
+        """Convert datetime object contained in val1 to jd1, jd2"""
+        n_times = len(val1)
+        iy = np.empty(n_times, dtype=np.intc)
+        im = np.empty(n_times, dtype=np.intc)
+        id = np.empty(n_times, dtype=np.intc)
+        ihr = np.empty(n_times, dtype=np.intc)
+        imin = np.empty(n_times, dtype=np.intc)
+        dsec = np.empty(n_times, dtype=np.double)
+
+        # Iterate through the datetime objects
+        for i, val in enumerate(val1):
+            iy[i] = val.year
+            im[i] = val.month
+            id[i] = val.day
+            ihr[i] = val.hour
+            imin[i] = val.minute
+            dsec[i] = val.second + val.microsecond / 1e6
+
+        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.upper().encode('utf8'),
+                                              iy, im, id, ihr, imin, dsec)
+
+    @property
+    def vals(self):
+        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
+                                                 6,  # precision = 6 for microseconds
+                                                 self.jd1, self.jd2)
+
+        out = np.empty(len(self), dtype=np.object)
+        idxs = itertools.count()
+        for idx, iy, im, id, ihmsf in itertools.izip(idxs, iys, ims, ids, ihmsfs):
+            ihr, imin, isec, ifracsec = ihmsf
+            out[idx] = datetime(int(iy), int(im), int(id),
+                                int(ihr), int(imin), int(isec), int(ifracsec))
+
+        return out
+
+
 class TimeString(TimeFormat):
     """
     Base class for string-like time represetations.
@@ -916,7 +974,6 @@ class TimeString(TimeFormat):
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
 
         if '{yday:' in str_fmt:
-            from datetime import datetime
             has_yday = True
         else:
             has_yday = False
@@ -1180,7 +1237,7 @@ def _make_1d_array(val, copy=False):
     val = np.array(val, copy=copy)
     val_ndim = val.ndim  # remember original ndim
     if val.ndim == 0:
-        val = np.asarray([val])
+        val = (val.reshape(1) if val.dtype.kind == 'O' else np.array([val]))
     elif val_ndim > 1:
         # Maybe lift this restriction later to allow multi-dim in/out?
         raise TypeError('Input val must be zero or one dimensional')
