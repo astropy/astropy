@@ -849,9 +849,27 @@ class TimePlotDate(TimeFromEpoch):
     epoch_format = 'jd'
 
 
-class TimeDatetime(TimeFormat):
+class TimeUnique(TimeFormat):
     """
-    Python standard library datetime.datetime object
+    Base class for time formats that can uniquely create a time object
+    without requiring an explicit format specifier.  This class does
+    nothing but provide inheritance to identify a class as unique.
+    """
+    pass
+
+
+class TimeDatetime(TimeUnique):
+    """
+    Represent date as Python standard library datetime.datetime object
+
+    Example::
+
+      >>> from datetime import datetime
+      >>> t = Time(datetime(2000, 1, 2, 12, 0, 0), scale='utc')
+      >>> t.iso
+      '2000-01-02 12:00:00.000'
+      >>> t.tt.datetime
+      datetime.datetime(2000, 1, 2, 12, 1, 4, 184000)
     """
     name = 'datetime'
 
@@ -900,7 +918,7 @@ class TimeDatetime(TimeFormat):
         return out
 
 
-class TimeString(TimeFormat):
+class TimeString(TimeUnique):
     """
     Base class for string-like time represetations.
 
