@@ -160,22 +160,21 @@ class Time(object):
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
-        If format is None and the input is a string-type array then guess
-        available string formats and stop when one matches.
+        If format is None and the input is a string-type or object array then guess
+        available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U'):
+        if format is None and val.dtype.kind in ('S', 'U', 'O'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
-                       if issubclass(cls, TimeString)]
-            err_msg = 'any formats that can interpret strings {0}'.format(
-                      [name for name, cls in formats])
+                       if issubclass(cls, TimeUnique)]
+            err_msg = 'any of the formats where the format keyword is optional {0}'.format(
+                [name for name, cls in formats])
         elif format not in self.FORMATS:
             if format is None:
-                raise ValueError("No time format was given, and the input is "
-                                 "not string-like")
+                raise ValueError("No time format was given, and the input is not unique")
             else:
                 raise ValueError("Format {0} is not one of the allowed "
-                    "formats {1}".format(repr(format), sorted(self.FORMATS)))
+                                 "formats {1}".format(repr(format), sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
             err_msg = 'the format class {0}'.format(format)
