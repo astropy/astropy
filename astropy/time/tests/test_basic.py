@@ -306,6 +306,12 @@ class TestSubFormat():
         t = Time(378691266.184, format='cxcsec', scale='utc')
         assert t.yday == '2010:001:00:00:00.000'
 
+        # Value from:
+        #   d = datetime.datetime(2000, 1, 1)
+        #   matplotlib.dates.date2num(d)
+        t = Time('2000-01-01 00:00:00', scale='tai')
+        assert np.allclose(t.plot_date, 730120.0, atol=1e-5, rtol=0)
+
         # Round trip through epoch time
         for scale in ('utc', 'tt'):
             t = Time('2000:001', scale=scale)
