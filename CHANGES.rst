@@ -8,6 +8,15 @@
     written out using the CDS format, to ensure compatibility with the
     standard.
 
+- ``time``
+
+  - Add ``datetime`` format (:class:`~astropy.time.core.TimeDatetime`) which
+    allows converting to and from standard library `~datetime.datetime` objects.
+
+  - Add ``plot_date`` format (:class:`~astropy.time.core.TimePlotDate``) which
+    allows converting to and from the date representation used when plotting
+    dates with matplotlib via the `~matplotlib.pyplot.plot_date` function.
+
 
 0.2.1 (unreleased)
 ------------------
