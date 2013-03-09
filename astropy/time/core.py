@@ -12,8 +12,8 @@ import itertools
 import numpy as np
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeString',
-           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimePlotDate',
+           'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
            'OperandTypeError', 'TimeEpochDateString',
@@ -817,6 +817,30 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_val2 = None
     epoch_scale = 'tt'
     epoch_format = 'iso'
+
+
+class TimePlotDate(TimeFromEpoch):
+    """
+    Matplotlib date input: 1 + number of days from 0001-01-01 00:00:00 UTC
+
+    This can be used directly in the matplotlib `plot_date` function::
+
+      >>> jyear = np.linspace(2000, 2001, 20)
+      >>> t = Time(jyear, format='jyear', scale='utc')
+      >>> plt.plot_date(t.plot_date, jyear)
+      >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+      >>> plt.draw()
+    """
+    # This corresponds to the zero reference time for matplotlib plot_date().
+    # Note that TAI and UTC are equivalent at the reference time, but
+    # specifying epoch_scale = 'utc' here generates WARNINGS when the
+    # class is first used.  Just use 'tai' instead.
+    name = 'plot_date'
+    unit = 1.0
+    epoch_val = 1721424.5  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
+    epoch_val2 = None
+    epoch_scale = 'tai'
+    epoch_format = 'jd'
 
 
 class TimeString(TimeFormat):

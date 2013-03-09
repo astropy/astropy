@@ -101,6 +101,7 @@ jd         :class:`~astropy.time.core.TimeJD`
 jyear      :class:`~astropy.time.core.TimeJulianEpoch`
 jyear_str  :class:`~astropy.time.core.TimeJulianEpochString`
 mjd        :class:`~astropy.time.core.TimeMJD`
+plot_date  :class:`~astropy.time.core.TimePlotDate`
 unix       :class:`~astropy.time.core.TimeUnix`
 yday       :class:`~astropy.time.core.TimeYearDayTime`
 =========  ====================================================
@@ -288,7 +289,7 @@ scale
 ^^^^^^^^^^^
 
 The ``scale`` argument sets the `time scale`_ and is required except for time
-formats such as 'cxcsec' (:class:`~astropy.time.core.TimeCxcSec`) and 'unix'
+formats such as 'plot_date' (:class:`~astropy.time.core.TimePlotDate`) and 'unix'
 (:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
 
@@ -385,8 +386,8 @@ available format names is in the `time format`_ section.
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
   1262304000.0
-  >>> t.cxcsec    # SI seconds since 1998.0 (TT)
-  378691266.184
+  >>> t.plot_date # Date value for plotting with matplotlib plot_date()
+  733773.0003935185
 
 Convert time scale
 ^^^^^^^^^^^^^^^^^^^^
