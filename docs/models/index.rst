@@ -2,6 +2,8 @@
 Models  (`astropy.models`)
 **************************
 
+.. currentmodule:: astropy.models
+
 Introduction
 ============
 The **`models`** and **`fitting`** modules described here are designed to work as 
@@ -43,7 +45,8 @@ All examples assume the following modules have been imported
 >>> import numpy as np
 >>> from astropy.models import models, fitting
 
-- Working with 1D models
+Working with 1D models
+======================
 
 Create data using 1D Chebyshev model
 
@@ -64,7 +67,10 @@ Parameters:
            c1:  [2.0]
            c2:  [3.0]
            c3:  [4.0]
->>> y = ch1(x)
+>>> y = ch1
+
+Add some noise
+
 >>> n=np.random.randn(90)
 >>> ny = y + n 
 
@@ -77,14 +83,35 @@ Fit a Chebyshev polynomial to the data
 >>> ch2.parameters
 [0.7863153, 1.7473515, 2.8038203, 3.9106717]
 
-- Working with 2D models
+Fit a data set with a gaussian model.
+
+>>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
+>>> g1
+<Gauss1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],paramdim=1)>
+>>> y = g1(x)
+>>> n = np.random.randn(90)
+>>> ny = y + n
+>>> gfit = fitting.NonLinearLSQFitter(g1)
+>>> gfit(x, ny)
+>>> print g1
+Model: Gauss1DModel
+Dim:   1
+Degree: N/A
+Parameter sets: 1
+Parameters: 
+           amplitude:  [10.141697966089579]
+           xcen:  [4.2140429078454309]
+           xsigma:  [2.0780002458907352]
+
+Working with 2D models
+======================
 
 First create some data to be fitted with a 2D polynomial
 
 >>> x, y = np.mgrid[:10, :10]
 >>> def poly2(x, y):
         return 1+2*x+3*x**2+4*y+5*y**2+6*x*y
-z = poly2(x, y)
+>>> z = poly2(x, y)
 
 Fit a 2D polynomial to the data
 
@@ -109,25 +136,7 @@ Parameters:
 >>> p2.parameters
 [0.6354845, 2.016544, 3.0035796, 4.0907439, 4.989999, 6.000127]
 
-Fit a data set with a gaussian model.
 
->>> g1 = models.Gauss1DModel(10., xsigma=2.1, xcen=4.2)
->>> g1
-<Gauss1DModel(amplitude= [10.0],xcen= [4.2000000000000002],xsigma= [2.1000000000000001],paramdim=1)>
->>> y = g1(x)
->>> n = np.random.randn(90)
->>> ny = y + n
->>> gfit = fitting.NonLinearLSQFitter(g1)
->>> gfit(x, ny)
->>> print g1
-Model: Gauss1DModel
-Dim:   1
-Degree: N/A
-Parameter sets: 1
-Parameters: 
-           amplitude:  [10.141697966089579]
-           xcen:  [4.2140429078454309]
-           xsigma:  [2.0780002458907352]
 
 Using `models`
 ==============
