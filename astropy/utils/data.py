@@ -812,7 +812,7 @@ def download_file(remote_url, cache=False):
                 global _tempfilestodel
                 _tempfilestodel.append(local_path)
     except urllib2.URLError as e:
-        if hasattr(e.reason, 'errno') and e.reason.errno == 8:
+        if hasattr(e, 'reason') and hasattr(e.reason, 'errno') and e.reason.errno == 8:
             e.reason.strerror = e.reason.strerror + '. requested URL: ' + remote_url
             e.reason.args = (e.reason.errno, e.reason.strerror)
         raise e
