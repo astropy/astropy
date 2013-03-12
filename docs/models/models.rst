@@ -77,7 +77,7 @@ array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  1.,  2.,  3.,  4.]])
 >>> y = p1(x)
 
-.. figure:: images/p1d_5psets.png
+.. image:: images/p1d_5psets.png
    :scale: 25 %
 
 - When passed a 2D array, the same polynomial will map parameter sets to array columns
