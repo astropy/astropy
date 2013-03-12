@@ -40,11 +40,11 @@ class Fitter(object):
     """
     Base class for all fitters.
     
-    The purpose of this class is to deal with constraints
+    The purpose of this class is to manage constraints
     """
+    __metaclass__ = abc.ABCMeta
+    
     def __init__(self, model):
-        __metaclass__ = abc.ABCMeta
-        
         self.model = model
         self._validate_constraints()
         if any(self.model.constraints._fixed.values()) or \
@@ -109,7 +109,7 @@ class Fitter(object):
         dealt with in a separate method.
         
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
     
     def _wrap_deriv(self, p, x, y, z=None):
         """
@@ -117,14 +117,14 @@ class Fitter(object):
         account for model constraints
         
         Currently the only fitter that uses a derivative is the
-        NonLinearLSQFitter. This wrapper may neeed to be revised when 
+        `NonLinearLSQFitter`. This wrapper may neeed to be revised
         when other fitters using function derivative are added or when
         the statistic is separated from the fitting routines.
         
-        optimize.leastsq expects the function derivative to have the
-        above signature (parlist, (argtuple)), but again, in order to
+        `~scipy.optimize.leastsq` expects the function derivative to have the
+        above signature (parlist, (argtuple)). In order to
         accomodate model constraints, instead of using p directly, we set
-        the parameter list in the wrapper.
+        the parameter list in this function.
         
         """
         fixed_and_tied = [name for name in self.model.constraints.fixed if
@@ -195,7 +195,7 @@ class Fitter(object):
         
     @abc.abstractmethod
     def __call__(self):
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
 
 class LinearLSQFitter(Fitter):
     """
@@ -240,6 +240,8 @@ class LinearLSQFitter(Fitter):
         
     def __call__(self, x, y, z=None, w=None, rcond=None):
         """
+        Fit data to this model.
+        
         Parameters
         ----------
         x : array
@@ -422,6 +424,8 @@ class NonLinearLSQFitter(Fitter):
 
     def __call__(self, x, y, z=None, w=None, maxiter=MAXITER, epsilon=EPS):
         """
+        Fit data to this model.
+        
         Parameters
         ----------
         x : array
@@ -528,6 +532,8 @@ class SLSQPFitter(Fitter):
     def __call__(self, x, y , z=None, w=None, verblevel=0, 
                  maxiter=MAXITER, epsilon=EPS):
         """
+        Fit data to this model.
+        
         Parameters
         ----------
         x : array
@@ -672,6 +678,10 @@ class JointFitter(object):
             assert(len(self.jointpars[j]) == len(self.initvals))
       
     def __call__(self, *args):
+        """
+        Fit data to these models keeping some of the pramaters common
+        to the two models.
+        """
         from scipy import optimize
         assert(len(args) == reduce(lambda x, y: x+1 + y+1, self.modeldims))
         self.fitpars[:], s = optimize.leastsq(self.errorfunc, self.fitpars, 
