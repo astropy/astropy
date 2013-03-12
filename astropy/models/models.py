@@ -734,8 +734,8 @@ class ChebyshevModel(PModel):
         -----
         See the module docstring for rules for model evaluation. 
         """
-        if self.domain is None:
-            self.domain = [x.min(), x.max()]
+        if self.domain is not None:
+            x = self.set_domain(x)
         x, fmt = _convert_input(x, self.paramdim)
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
@@ -814,8 +814,8 @@ class LegendreModel(PModel):
         -----
         See the module docstring for rules for model evaluation. 
         """
-        if self.domain is None:
-            self.domain = [x.min(), x.max()]
+        if self.domain is not None:
+            x = self.set_domain(x)
         x, fmt = _convert_input(x, self.paramdim)
         result = self.clenshaw(x, self.psets)
         return _convert_output(result, fmt)
