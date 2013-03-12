@@ -485,3 +485,38 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     perr = np.abs(bounds - p)
 
     return bin_ctr, bin_halfwidth, p, perr
+    
+
+def SNR(t,source_eps,sky_eps,dark_eps,rd,npix):
+    """
+    Signal to noise equation for source being observed using a CCD
+    
+    Parameters
+    ----------
+    t : float or numpy.ndarray
+        CCD integration time in seconds
+    source_eps : float
+        Number of electrons per second in the aperture from the source. 
+        Note that this should already have been scaled by the filter transmission 
+        and the quantum efficiency of the CCD
+    sky_eps : float
+        Number of electron per second per pixel from the sky background. Should be
+        already scaled by filter transmission and QE.
+    dark_eps : float
+        Number of thermal electrons per second per pixel
+    rd : float
+        Read noise of the CCD in electrons
+    npix : float
+        Size of the aperture in pixels
+        
+    Returns
+    ----------
+    SNR : float or numpy.ndarray
+        Signal to noise ratio calculated from the inputs
+    """
+    #splitting up the equation for sanity
+    signal = t*source_eps
+    noise = np.sqrt(t*(source_eps + npix*(sky_eps + dark_eps)) + npix*rd**2 )
+    return signal / noise
+     
+    
