@@ -4,6 +4,9 @@ class Constraints(object):
     """
     Fitting constraints
 
+    Should not be instanciated by users directly. 
+    Instead constraints should be passed to an instance of Model.
+    
     """
     
     def __init__(self, model, fixed={}, tied={}, bounds={},
@@ -13,31 +16,64 @@ class Constraints(object):
         ----------
         fitter : object which supports fitting
         fixed : dict
-            (parameter_name: True/False} 
-            parameters to be held fixed during fitting
+            {parameter_name: True| False}
+            Specify parameters which should be kept fixed during fitting.
+            The keys of the dictionary are parameter names. If the value is
+            True the parameter is not varied. The default is False.
         tied : dict
-            keys are parameter names
-            values are callable/function providing a relationship
+            Specify a relationship between parameters.
+            The keys of the dictionary are parameter names.
+            Values are a callable providing a relationship
             between parameters. Currently the callable takes a model 
             instance as an argument.
-            In the example below xcen is tied to the value of xsigma
-            
-            def tie_center(model):
-               xcen = 50*model.xsigma
-               return xcen
-
-            tied ={'xcen':tie_center}
         bounds : dict
-            keys : parameter names
-            values :  list of length 2 giving the desired range for hte parameter
+            Specify bounds on parameters.
+            Keys  are parameter names.
+            Values  are a list of length 2 giving the desired range for the parameter.
         eqcons : list
             A list of functions of length n such that
             eqcons[j](x0,*args) == 0.0 in a successfully optimized
             problem.
         ineqcons : list
             A list of functions of length n such that
-            ieqcons[j](x0,*args) >= 0.0 in a successfully optimized
+            ieqcons[j](x0,*args) >= 0.0 is a successfully optimized
             problem.
+            
+        Examples
+        ---------
+        >>> def tie_center(model):
+        ...         xcen = 50 * model.xsigma
+        ...         return xcen
+        >>> tied_parameters  ={'xcen': tie_center}
+        
+        Specify that 'xcen' is a tied parameter in one of two ways:
+        
+        >>> g1=models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, tied=tied)
+
+        or
+
+        >>> g1=models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
+        >>> g1.xcen.tied
+        False
+        >>> g1.xcen.tied = tie_center
+        >>> g1.xcen.tied
+        <function tie_center at 0x395ab0>
+
+        Fixed parameters:
+        
+        >>> g1=models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3, fixed={'xsigma':True})
+        >>> g1.xsigma.fixed
+        True
+
+        or
+        
+        >>> g1=models.Gauss1DModel(amplitude=10, xcen=5, xsigma=.3)
+        >>> g1.xsigma.fixed
+        False
+        >>> g1.xsigma.fixed=True
+        >>> g1.xsigma.fixed
+        True
+
         """
         self.model = model
         

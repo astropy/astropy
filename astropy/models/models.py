@@ -55,11 +55,20 @@ __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel',
 
 def _convert_input(x, pdim):
     """
-    format the input into appropriate shape
+    Format the input into appropriate shape
     
-    'N' - normal (don't do anything to the output)
-    'T' - transposed
-    'S' - scalar
+    Parameters
+    ----------
+    x : scalar, array or a sequence of numbers
+        input data
+    pdim : int
+        number of parameter sets
+        
+    The meaning of the internally used format is:
+    
+    'N' - the format of the input was not changed
+    'T' - input was transposed
+    'S' - input is a scalar
     """
     x = np.asarray(x) + 0.
     fmt = 'N'
@@ -84,6 +93,16 @@ def _convert_input(x, pdim):
             return x.T, fmt
     
 def _convert_output(x, fmt):
+    """
+    Put the output in the shpae/type of the original input
+    
+    Parameters
+    ----------
+    x : scalar, array or a sequence of numbers
+        output data
+    fmt : string
+        original format
+    """
     if fmt == 'N':
         return x
     elif fmt == 'T':
@@ -135,7 +154,7 @@ class Model(object):
     """
     Base class for all models
     
-    This is an abstract class and cannot be instanciated.
+    This is an abstract class and should not be instanciated.
     
     Notes
     -----
@@ -202,16 +221,19 @@ class Model(object):
         """
         Return a callable object which does the inverse transform
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
     
     def invert(self):
         """
         Invert coordinates iteratively if possible
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
 
     def add_model(self, newtr, mode):
         """
+        Create a CompositeModel by chaining the current model with the new one
+        using the specified mode.
+        
         Parameters
         ----------
         newtr : an instance of a subclass of Model
@@ -222,7 +244,8 @@ class Model(object):
                
         Returns
         -------
-        an instance of CompositeModel
+        model : CompositeModel
+            an instance of CompositeModel
         """
         if mode in ['parallel', 'p']:
             return PCompositeModel([self, newtr])
@@ -233,7 +256,7 @@ class Model(object):
     
     @abc.abstractmethod
     def __call__(self):
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
     
 class ParametricModel(Model):
     """
@@ -422,7 +445,6 @@ class PModel(ParametricModel):
         Set default values for coefficients
         """
         if not pars:
-            # default values
             for name in self.parnames:
                 uname = '_'+name
                 if pardim == 1:
@@ -480,6 +502,8 @@ class IModel(ParametricModel):
     """
     
     This is a base class for IRAF style 2D Chebyshev and Legendre models.
+    
+    These are polynomials which have a maximum degree in x and y.
 
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=None, ydomain=None, 
@@ -541,7 +565,6 @@ class IModel(ParametricModel):
     
     def set_coeff(self, pardim=1, **pars):
         if not pars:
-            # default values
             for name in self.parnames:
                 uname = '_'+name
                 self.__setattr__(uname, parameters._Parameter(
@@ -635,7 +658,7 @@ class IModel(ParametricModel):
         """
         To be implemented by subclasses
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
 
 class ChebyshevModel(PModel):
     """
@@ -657,6 +680,12 @@ class ChebyshevModel(PModel):
             number of parameter sets
         **pars : dict
             keyword : value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : ChebyshevModel
+            1D Chebyshev model
+            
         """
         self.domain = domain
         self.window = window
@@ -695,11 +724,15 @@ class ChebyshevModel(PModel):
  
     def __call__(self, x):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x : array, of minimum dimensions 1
         
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         if self.domain is None:
             self.domain = [x.min(), x.max()]
@@ -727,6 +760,12 @@ class LegendreModel(PModel):
             number of parameter sets
         **pars : dict
             keyword: value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : LegendreModel
+            1D Legendre model
+            
         """
         self.domain = domain
         self.window = window
@@ -765,11 +804,15 @@ class LegendreModel(PModel):
  
     def __call__(self, x):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x : array, of minimum dimensions 1
        
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         if self.domain is None:
             self.domain = [x.min(), x.max()]
@@ -799,6 +842,11 @@ class Poly1DModel(PModel):
             number of parameter sets
         **pars : dict
             keyword: value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : Poly1DModel
+            1D polynomial model
         """
         self.domain = domain
         self.window = window
@@ -823,11 +871,15 @@ class Poly1DModel(PModel):
 
     def __call__(self, x):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x : array, of minimum dimensions 1
        
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        Rules for model evaluation are described in the module docstring
         """
         x, fmt = _convert_input(x, self.paramdim)
         result = self.horner(x, self.psets)
@@ -838,9 +890,9 @@ class Poly2DModel(PModel):
     2D Polynomial  model
     
     Represents a general polynomial of degree n:
-        
-    P(x,y) = c0_0 + c1_0*x + ...+ cn_0*x**n + c0_1*y + ...+ c0_n*y**n + 
-    c1_1*x*y + c1_2*x*y**2 + ... + c1_(n-1)*x*y**(n-1)+ ... + c(n-1)_1*x**(n-1)*y
+     
+    .. math:: P(x,y) = c_{0_0} + c_{1_0}x + ...+ c_{n_0}x^n + c_{0_1}y + ...+ c_{0_n}y^n + 
+    c_{1_1}xy + c_{1_2}xy^2 + ... + c_{1_(n-1)}xy^{n-1}+ ... + c_{(n-1)_1}x^{n-1}y
         
     """
     def __init__(self, degree, xdomain=[-1, 1], ydomain=[-1, 1], 
@@ -864,6 +916,11 @@ class Poly2DModel(PModel):
             number of parameter sets
         pars : dict
             keyword: value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : Poly2DModel
+            2D polynomial model
         """
         self.ndim = 2
         self.outdim = 1
@@ -935,11 +992,15 @@ class Poly2DModel(PModel):
     
     def __call__(self, x, y):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
         
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         invcoeff = self.invlex_coeff()
         x, fmt = _convert_input(x, self.paramdim)
@@ -955,7 +1016,7 @@ class ICheb2DModel(IModel):
     Chebyshev 2D polynomial:
     
     It is defined the same way as in IRAF.
-    Pnm(x,y) = Cn_m * Tn(x) * Tm(y)
+    .. math:: P_{n_m}(x,y) = \sum C_{n_m}  T_n(x) T_m(y)
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
                             ydomain=None, ywindow=[-1,1], paramdim=1, **pars):
@@ -980,6 +1041,11 @@ class ICheb2DModel(IModel):
             number of parameter sets
         pars : dict
             keyword: value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : ICheb2DModel
+            2D Chebyshev model
         """
         super(ICheb2DModel, self).__init__(xdeg, ydeg,
                                            xdomain=xdomain, ydomain=ydomain, 
@@ -1044,13 +1110,17 @@ class ICheb2DModel(IModel):
     
     def __call__(self, x, y, xdomain=None, ydomain=None):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
         xdomain, ydomain : list of two numbers
             polynomial domain for x and y variable
                     
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
@@ -1064,8 +1134,8 @@ class ILegend2DModel(IModel):
     """
     Legendre 2D polynomial
     
-    Defines as in IRAF:
-    Pnm(x,y) = Cn_m * Ln(x )* Lm(y)
+    Defined as:
+    .. math:: P_{nm}(x,y) = C_{n_m}  L_n(x ) L_m(y)
 
     """
     def __init__(self, xdeg, ydeg, xdomain=None, xwindow=[-1, 1], 
@@ -1090,6 +1160,11 @@ class ILegend2DModel(IModel):
             number of parameter sets
         pars : dict
             keyword: value pairs, representing parameter_name: value
+            
+        Returns
+        -------
+        model : ILegendModel
+            2D Legendre model
         """
         super(ILegend2DModel, self).__init__(xdeg, ydeg,
                                              xdomain=xdomain, ydomain=ydomain, 
@@ -1155,13 +1230,17 @@ class ILegend2DModel(IModel):
     
     def __call__(self, x, y, xdomain=None, ydomain=None):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
         xdomain, ydomain : list of two numbers
             polynomial domain for x and y variable
                     
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         assert x.shape == y.shape, \
                "Expected input arrays to have the same shape"
@@ -1197,6 +1276,10 @@ class Gauss1DModel(ParametricModel):
             func with derivatives across the rows.
             if None - the Jacobian will be estimated
         
+        Returns
+        -------
+        model : Gauss1DModel
+            1D Gaussian
         """
         self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
         if xsigma is None and fwhm is None:
@@ -1243,11 +1326,15 @@ class Gauss1DModel(ParametricModel):
                                     
     def __call__(self, x):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x : array, of minimum dimensions 1
         
-        Note: See the module docstring for rules for model evaluation. 
+        Notes
+        -----
+        See the module docstring for rules for model evaluation. 
         """
         x, fmt = _convert_input(x, self.paramdim)
         result = self.eval(x, self.psets)
@@ -1288,7 +1375,11 @@ class Gauss2DModel(ParametricModel):
             if None - the Jacobian will be estimated
         theta : float 
             rotation angle in radians
-
+        
+        Returns
+        -------
+        model : Gauss2DModel
+            2D Gaussian
         """
         if ysigma is None and ratio is None:
             raise InputParametersException(
@@ -1333,6 +1424,8 @@ class Gauss2DModel(ParametricModel):
         
     def __call__(self, x, y):
         """
+        Transforms data using this model.
+        
         Parameters
         --------------
         x, y : arrays, of min dimensions 2
@@ -1358,6 +1451,11 @@ class ShiftModel(Model):
             offsets to be applied to a coordinate
             if a list - each value in the list is an offset to be applied to a
             column in the input coordinate array
+            
+        Returns
+        -------
+        model : ShiftModel
+            A model representing offset
         """
         self.ndim = 1
         self.outdim = 1
@@ -1370,6 +1468,9 @@ class ShiftModel(Model):
         super(ShiftModel, self).__init__(self.parnames, paramdim=paramdim)
 
     def __call__(self, x):
+        """
+        Transforms data using this model.
+        """
         x, fmt = _convert_input(x, self.paramdim)
         result = x + self.offsets
         return _convert_output(result, fmt)
@@ -1387,6 +1488,11 @@ class ScaleModel(Model):
         ---------------
         factors : float or a list of floats
             scale for a coordinate
+        Returns
+        -------
+        model : ScaleModel
+            Model representing scaling 
+            
         """
         self.ndim = 1
         self.outdim = 1
@@ -1399,6 +1505,9 @@ class ScaleModel(Model):
         super(ScaleModel, self).__init__(self.parnames, paramdim=paramdim)
     
     def __call__(self, x):
+        """
+        Transforms data using this model.
+        """
         x, fmt = _convert_input(x, self.paramdim)
         result = x * self.factors
         return _convert_output(result, fmt)
@@ -1573,6 +1682,10 @@ class LabeledInput(dict):
         labels : list of strings
             names matching each coordinate in data
         
+        Returns
+        -------
+        data : LabeledData
+            a dict of input data and their assigned labels
        """
         dict.__init__(self)
         assert len(labels) == len(data)
@@ -1596,7 +1709,7 @@ class LabeledInput(dict):
         
     def add(self, label=None, value=None,  **kw):
         """
-        Add a coordinate to an ADO object
+        Add input data to a LabeledInput object
         
         Parameters
         --------------
@@ -1606,6 +1719,7 @@ class LabeledInput(dict):
             coordinate value
         kw : dictionary
             if given this is a dictionary of {label: value} pairs
+            
         """
         if kw:
             if label is None or value is None:
@@ -1652,7 +1766,7 @@ class _CompositeModel(OrderedDict):
         
     def _init_comptr(self, trans, inmap, outmap):
         # implemented by subclasses
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
     
     def __repr__(self):
         transforms = self.keys()
@@ -1676,11 +1790,11 @@ class _CompositeModel(OrderedDict):
         self[transf] = [inmap, outmap]
  
     def invert(self):
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
             
     def __call__(self):
         # implemented by subclasses
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
 
 class SCompositeModel(_CompositeModel):
     """
@@ -1723,6 +1837,10 @@ class SCompositeModel(_CompositeModel):
             if None, the number of output coordinates is exactly what 
             the transforms expect
         
+        Returns
+        -------
+        model : SCompositeModel
+            Composite model which executes the comprising models in series
         """
         super(SCompositeModel, self).__init__(transforms, inmap, outmap)
         if transforms and inmap and outmap:
@@ -1758,6 +1876,9 @@ class SCompositeModel(_CompositeModel):
         return scomptr
             
     def __call__(self, x, *data):
+        """
+        Transforms data using this model.
+        """
         lendata = len(data) + 1
         if lendata == 1:
             if not isinstance(x, LabeledInput):
@@ -1816,6 +1937,11 @@ class PCompositeModel(_CompositeModel):
             labels in an input instance of LabeledInput
             if None, the number of input coordinates is exactly what the
             transforms expect 
+            
+        Returns
+        -------
+        model : PCompositeModel
+            Composite model which executes the comprising models in parallel
         """
         super(PCompositeModel, self).__init__(transforms,
                                               inmap=None, outmap=None)
@@ -1841,6 +1967,9 @@ class PCompositeModel(_CompositeModel):
         return pcomptr
     
     def __call__(self, x, *data):
+        """
+        Transforms data using this model.
+        """
         lendata = len(data) + 1
         if lendata == 1:
             if not isinstance(x, LabeledInput):
@@ -1914,6 +2043,11 @@ class SIPModel(SCompositeModel):
         multiple : boolean
             when input is 2D array, if True (default) it is to be 
             treated as multiple 1D arrays
+            
+        Returns
+        -------
+        model : SIPModel
+            A model representing the Simple Imaging Protocol
         """
         self.ndim = 2
         self.outdim = 1
@@ -1950,5 +2084,8 @@ class SIPModel(SCompositeModel):
         return fmt
     
     def __call__(self, x, y):
+        """
+        Transforms data using this model.
+        """
         ado = LabeledInput([x, y], ['x', 'y'])
         return SCompositeModel.__call__(self, ado).z
