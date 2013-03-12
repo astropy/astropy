@@ -83,7 +83,7 @@ Fit a Chebyshev polynomial to the data
 [0.957, 1.931, 3.029, 4.305]
 
 .. figure:: images/cheb_fit.png
-:scale: 25 %
+    :scale: 25 %
 
 Fit a data set with a gaussian model.
 
