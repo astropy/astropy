@@ -64,7 +64,7 @@ or two data sets (any other number would be an error)
 (90, 2)
 
 .. figure:: images/gauss1D_eval_psets.png
-   :scale: 75 %
+   :scale: 50 %
 
 - Evaluating polynomial models with multiple parameter sets with one input data set creates multiple output data sets
 
@@ -78,7 +78,7 @@ array([[ 0.,  0.,  0.,  0.,  0.],
 >>> y = p1(x)
 
 .. figure:: images/p1d_5psets.png
-   :scale: 75 %
+   :scale: 50 %
 
 - When passed a 2D array, the same polynomial will map parameter sets to array columns
 
