@@ -11,7 +11,7 @@ from __future__ import division
 
 import numpy as np
 
-__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion']
+__all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion','signal_to_noise']
 
 
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.median, varfunc=np.var,
@@ -487,7 +487,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
     
 
-def SNR(t,source_eps,sky_eps,dark_eps,rd,npix):
+def signal_to_noise(t,source_eps,sky_eps,dark_eps,rd,npix):
     """
     Signal to noise equation for source being observed using a CCD
     
@@ -500,8 +500,8 @@ def SNR(t,source_eps,sky_eps,dark_eps,rd,npix):
         Note that this should already have been scaled by the filter transmission 
         and the quantum efficiency of the CCD
     sky_eps : float
-        Number of electron per second per pixel from the sky background. Should be
-        already scaled by filter transmission and QE.
+        Number of electron per second per pixel from the sky background. Should
+        already be scaled by filter transmission and QE.
     dark_eps : float
         Number of thermal electrons per second per pixel
     rd : float
@@ -514,7 +514,6 @@ def SNR(t,source_eps,sky_eps,dark_eps,rd,npix):
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
     """
-    #splitting up the equation for sanity
     signal = t*source_eps
     noise = np.sqrt(t*(source_eps + npix*(sky_eps + dark_eps)) + npix*rd**2 )
     return signal / noise
