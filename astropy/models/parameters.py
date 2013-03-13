@@ -8,7 +8,7 @@ unless they define their own models.
 from __future__ import division, print_function
 import numpy as np
 import operator
-from .util import InputParametersException
+from .util import InputParameterError
 
 __all__ = []
 
@@ -23,15 +23,15 @@ def _tofloat(value):
         except Exception: 
             #catch arrays with strings or user errors like different 
             # types of parameters in a parameter set
-            raise InputParametersException(
+            raise InputParameterError(
                 "Parameter could not be converted to float")
     elif isinstance(value, bool):
-        raise InputParametersException(
+        raise InputParameterError(
             "Expected parameter to be of numerical type, not boolean")
     elif operator.isNumberType(value):
         _value = np.array(value, dtype=np.float)
     else:
-        raise InputParametersException(
+        raise InputParameterError(
             "Don't know how to convert parameter to float")
     return _value
     
@@ -81,8 +81,8 @@ class _Parameter(list):
                 super(_Parameter, self).__init__(val)
                 self.parshape = _tofloat(val[0]).shape
         else:
-            raise InputParametersException(
-                "Parameter %s is not a number" % name)
+            raise InputParameterError(
+                "Parameter {0} is not a number".format(name))
         self.mclass = mclass
         self.name = name
         self._fixed = fixed

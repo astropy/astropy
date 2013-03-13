@@ -30,11 +30,15 @@ constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
                   'LinearLSQFitter': ['fixed'],
                   }
 
-class ModelLinearityException(Exception):
+class ModelLinearityError(Exception):
     """
     Called when a linear model is passed to a non-linear fitter and vice versa.
     """
-    pass
+    def __init__(self, message):
+        self._message = message
+        
+    def __str__(self):
+        return self._message 
         
 class Fitter(object):
     """
@@ -162,24 +166,24 @@ class Fitter(object):
         try:
             c = constraintsdef[fname]
         except KeyError:
-            print("%s does not support fitting with constraints" % fname)
+            print("{0} does not support fitting with constraints".format(fname))
             raise
         if any(self.model.constraints._fixed.values()) and 'fixed' not in c:
-            raise ValueError("%s cannot handle fixed parameter constraints "\
-                                            % fname)
+            raise ValueError("{0} cannot handle fixed parameter", 
+                                            "constraints .".format(fname))
         if any(self.model.constraints._tied.values()) and 'tied' not in c:
-            raise ValueError("%s cannot handle tied parameter constraints "\
-                                            % fname)
+            raise ValueError("{0} cannot handle tied parameter",
+                                            "constraints ".format(fname))
         if any(c != (-1E12, 1E12) for c in
                self.model.constraints._bounds.values()) and 'bounds' not in c:
-            raise ValueError("%s cannot handle bound parameter constraints"
-                             % fname)
+            raise ValueError("{0} cannot handle bound parameter",
+                                            "constraints".format(fname))
         if self.model.constraints._eqcons and 'eqcons' not in c:
-            raise ValueError("%s cannot handle equality constraints but "
-                             "eqcons given" % fname)
+            raise ValueError("{0} cannot handle equality constraints but ",
+                                            "eqcons given".format(fname))
         if self.model.constraints._ineqcons and 'ineqcons' not in c:
-            raise ValueError("%s cannot handle inequality constraints but "
-                             "ineqcons given" % fname)
+            raise ValueError("{0} cannot handle inequality constraints but ",
+                                            "ineqcons given".format(fname))
     
     @property
     def covar(self):
@@ -212,10 +216,14 @@ class LinearLSQFitter(Fitter):
         ----------
         model : an instance of `fitting.models.ParametricModel`
         
+        Raises
+        ------
+        ModelLinearityError
+            A nonlinear model is passed to a linear fitter
         """
         self.model = model
         if not self.model.linear:
-            raise ModelLinearityException('Model is not linear in parameters, '
+            raise ModelLinearityError('Model is not linear in parameters, '
                                     'linear fit methods should not be used.')
         self.fit_info = {'residuals': None,
                          'rank': None,
@@ -363,11 +371,10 @@ class NonLinearLSQFitter(Fitter):
         ----------
         model : a fittable :class: `models.ParametricModel`
             model to fit to data
-
         
         Raises
         ------
-        ModelLinearityException 
+        ModelLinearityError
             A linear model is passed to a nonlinear fitter
             
         """
@@ -382,8 +389,8 @@ class NonLinearLSQFitter(Fitter):
                         
         super(NonLinearLSQFitter, self).__init__(model)
         if self.model.linear:
-            raise ModelLinearityException('Model is linear in parameters, '
-                            'non-linear fitting methods should not be used.')
+            raise ModelLinearityError('Model is linear in parameters, '
+                            'consider using linear fitting methods.')
             
     def errorfunc(self, fps,  *args):
         self.fitpars = fps
@@ -495,14 +502,14 @@ class SLSQPFitter(Fitter):
         
         Raises
         ------
-        ModelLinearityException
+        ModelLinearityError
             A linear model is passed to a nonlinear fitter
             
         """
         super(SLSQPFitter, self).__init__(model)
         if self.model.linear:
-            raise ModelLinearityException('Model is linear in parameters, '
-                         'non-linear fitting methods should not be used.')
+            raise ModelLinearityError('Model is linear in parameters, '
+                         'consider using linear fitting methods.')
         
         self.fit_info = {'final_func_val': None,
                          'numiter': None,

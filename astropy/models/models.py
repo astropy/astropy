@@ -46,7 +46,7 @@ from collections import OrderedDict
 import numpy as np
 from . import parameters
 from . import constraints
-from .util import pmapdomain, InputParametersException, comb
+from .util import pmapdomain, InputParameterError, comb
  
 __all__ = ['ChebyshevModel', 'Gauss1DModel', 'Gauss2DModel', 'ICheb2DModel', 
            'ILegend2DModel', 'LegendreModel', 'Poly1DModel', 'Poly2DModel', 
@@ -131,9 +131,9 @@ def setpar(self,  name, val):
         if not self._parameters._changed:
             par = parameters._Parameter(name, val, self, self.paramdim)
             if not getattr(self, name).parshape == par.parshape:
-                raise InputParametersException(
-                    "Input parameter '%s' does not "
-                    "have the required shape" % name)
+                raise InputParameterError(
+                    "Input parameter {0} does not "
+                    "have the required shape".format(name))
             else:
                 setattr(self, '_'+name, par)
             self._parameters = parameters.Parameters(self, 
@@ -144,9 +144,9 @@ def setpar(self,  name, val):
     else:
         par = parameters._Parameter(name, val, self, self.paramdim)
         if not getattr(self, name).parshape == par.parshape:
-            raise InputParametersException(
-                "Input parameter '%s' does not "
-                "have the required shape" % name)
+            raise InputParameterError(
+                "Input parameter {0} does not "
+                "have the required shape".format(name))
         else:
             setattr(self, '_'+name, par)
             
@@ -252,7 +252,7 @@ class Model(object):
         elif mode in ['serial', 's']:
             return SCompositeModel([self, newtr])
         else:
-            raise InputParametersException("Unrecognized mode %s" % mode)
+            raise InputParameterError("Unrecognized mode {0}".format(mode))
     
     @abc.abstractmethod
     def __call__(self):
@@ -359,7 +359,7 @@ class ParametricModel(Model):
             if self._parameters._is_same_length(value):
                 self._parameters = value
             else:
-                raise InputParametersException(
+                raise InputParameterError(
                     "Expected the list of parameters to be the same "
                     "length as the initial list.")
         elif isinstance(value, (list, np.ndarray)):
@@ -368,7 +368,7 @@ class ParametricModel(Model):
                 self._parameters._changed = True
                 self._parameters[:] = _val
             else:
-                raise InputParametersException(
+                raise InputParameterError(
                     "Expected the list of parameters to be the same "
                     "length as the initial list.")
         else:
@@ -1283,7 +1283,7 @@ class Gauss1DModel(ParametricModel):
         """
         self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
         if xsigma is None and fwhm is None:
-            raise InputParametersException(
+            raise InputParameterError(
                 "Either fwhm or xsigma must be specified")
         if xsigma is not None:
             xsigmaval = xsigma
@@ -1382,10 +1382,10 @@ class Gauss2DModel(ParametricModel):
             2D Gaussian
         """
         if ysigma is None and ratio is None:
-            raise InputParametersException(
+            raise InputParameterError(
                 "Either ysigma or ratio must be specified")
         elif xsigma is None and fwhm is None:
-            raise InputParametersException(
+            raise InputParameterError(
                 "Either fwhm or xsigma must be specified")
         self._amplitude = parameters._Parameter('amplitude', amplitude, self, 1)
         if xsigma is None:
@@ -1868,8 +1868,8 @@ class SCompositeModel(_CompositeModel):
         if tr.ndim != lendata:
             
             raise ValueError("Required number of coordinates not matched for "
-                             "transform # %d: %d required, %d supplied " 
-                             % (self.keys().index(tr)+1, tr.ndim, lendata))
+                             "transform # {0}: {1} required, {2} supplied ".format( 
+                             self.keys().index(tr)+1, tr.ndim, lendata))
 
     def invert(self, inmap, outmap):
         scomptr = SCompositeModel(self[::-1], inmap=inmap, outmap=outmap)

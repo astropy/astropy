@@ -21,7 +21,7 @@ import operator
 import numpy as np
 from .models import Model
 from .parameters import _Parameter
-from .util import InputParametersException
+from .util import InputParameterError
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial',
            'MatrixRotation2D']
@@ -178,7 +178,7 @@ class MatrixRotation2D(Model):
                   
         """
         if rotmat is None and angle is None:
-            raise InputParametersException("Expected at least one argument - " 
+            raise InputParameterError("Expected at least one argument - " 
                                            "a rotation matrix or an angle")
         if rotmat is not None:
             self._validate_rotmat(rotmat)

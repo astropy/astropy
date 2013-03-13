@@ -62,16 +62,13 @@ class Zenithal(Projection):
         self.theta0 = 90.
         super(Zenithal, self).__init__(parnames)
         self.has_inverse = True
-        
-    def inverse(self):
-        raise NotImplementedError
-    
+
     def _compute_rtheta(self):
         # Subclasses must implement this method
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
     
     def __call__(self, x, y):
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses should implement this")
         
 class Pix2Sky_AZP(Zenithal):
     """
@@ -325,10 +322,10 @@ class Cylindrical(Projection):
         self.has_inverse = True
         
     def inverse(self):
-        raise NotImplementedError
+        raise NotImplementedError()
     
     def __call__(self, x, y):
-        raise NotImplementedError
+        raise NotImplementedError()
     
 class Pix2Sky_CYP(Cylindrical):
     """
@@ -512,11 +509,11 @@ class Conic(Projection):
         theta1 = thetaA - eta
         theta2 = thetaA + eta
         if theta1 >= 90 or theta1 <= -90:
-            raise ValueError("Conic projection with thetaA=%d and eta=%d is not"
-                             " defined" % (thetaA, eta))
+            raise ValueError("Conic projection with thetaA={0} and eta={1} is not",
+                                            " defined".format(thetaA, eta))
         if theta2 >= 90 or theta2 <= -90:
-            raise ValueError("Conic projection with thetaA=%d and eta=%d is not"
-                             " defined" % (thetaA, eta))
+            raise ValueError("Conic projection with thetaA={0} and eta={1} is not",
+                                            " defined".format(thetaA, eta))
         self._theta1 = np.deg2rad(theta1)
         self._theta2 = np.deg2rad(theta2)
         self._thetaA = np.deg2rad(thetaA)
@@ -525,14 +522,14 @@ class Conic(Projection):
         self.has_inverse = True
         
     def inverse(self):
-        raise NotImplementedError
+        raise NotImplementedError()
     
     def _compute_rtheta(self):
         # Subclasses must implement this method
-        raise NotImplementedError
+        raise NotImplementedError()
     
     def __call__(self, x, y):
-        raise NotImplementedError
+        raise NotImplementedError()
     
 class Pix2Sky_COP(Conic):
     """
