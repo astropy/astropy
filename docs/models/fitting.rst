@@ -6,14 +6,14 @@ Fitting
 
 This module provides wrappers, called Fitters, around some Numpy and Scipy 
 fitting functions. All Fitters take an instance of
-**`models.ParametricModel`** as input and define a **__call__** method
-which fits the model to the data and changes **model.parameters**
+`models.ParametricModel` as input and define a `__call__` method
+which fits the model to the data and changes `model.parameters
 attribute. The idea is to make this extensible and allow users to easily add 
 other fitters.
 
-Linear fitting is done using Numpy's **linalg.lstsq** function.
-There are currently two non-linear fitters which use **leastsq** and **slsqp**
-in **scipy.optimize**.
+Linear fitting is done using Numpy's ~numpy.linalg.lstsq` function.
+There are currently two non-linear fitters which use `~scipy.optimize.leastsq`
+and `~scipy.optimize.slsqp`.
 
 The rules for passing input to fitters are:
 

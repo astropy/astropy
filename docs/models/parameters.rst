@@ -7,26 +7,26 @@ Parameters
 Parameters are used in three different contexts within this package: 
 communicating with fitters, model evaluation and getting values to/from users. 
 
-Models maintain a list of parameter names, **`parnames`**. Single parameters are list-like 
-objects, instances of **`parameters._Parameter`**. Simple mathematical operations can be 
+Models maintain a list of parameter names, `parnames`. Single parameters are list-like 
+objects, instances of `~astropy.models.parameters._Parameter`. Simple mathematical operations can be 
 performed with them. The preferred way for users to interact with models is through 
 individual parameters.
 
 The goal of this package is, when possible, to allow simultaneous model evaluation 
-and fitting with multiple parameter sets. Because of this, all models have a **`psets`**
-attribute, an array of shape `(len(parnames), paramdim)`, where **`paramdim`** is the number of 
+and fitting with multiple parameter sets. Because of this, all models have a `psets`
+attribute, an array of shape `(len(parnames), paramdim)`, where `paramdim` is the number of 
 parameter sets. Typically the array is of type float but can become an object array in 
-some cases. **`Psets`** is used for model evaluation.
+some cases. `Psets` is used for model evaluation.
 
-In addition, all models maintain an attribute,
-**`parameters`**, an instance of **`parameters.Parameters`**. This is a flat list of 
-parameter values which fitters update. It serves as a communication tool between fitters 
+In addition, all models maintain an attribute, `parameters`, an instance of
+`~astropy.parameters.Parameters`. This is a flat list of 
+parameter values which fitters update. It serves as a communication tool between fitters
 and models.
 
-Individual parameters, **`psets`** and the flat list of parameter values are kept in sync. 
+Individual parameters, `psets` and the flat list of parameter values are kept in sync. 
 Single parameters are updated through properties. An update to a single parameter 
-trigers an update to **`psets`** and **`parameters`**. Single parameters are updated 
-after a change to **`parameters`**. **`Psets`** are always constructed on demand from single 
+trigers an update to `psets` and `parameters`. Single parameters are updated 
+after a change to `parameters`. `Psets` are always constructed on demand from single 
 parameters and cannot be updated directly.
 
 Parameters Examples
