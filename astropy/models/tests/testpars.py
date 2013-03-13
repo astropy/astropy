@@ -4,7 +4,7 @@ Tests models.parameters
 import os.path
 from .. import models, fitting
 from . import irafutil
-from ..util import InputParametersException
+from ..util import InputParameterError
 import pytest
 import numpy as np
 from numpy.testing import utils
@@ -94,7 +94,7 @@ class ParametersTester(unittest.TestCase):
         Tests raising an error when attempting to reset the parameters
         using a list of a different size.
         """
-        with pytest.raises(InputParametersException):
+        with pytest.raises(InputParameterError):
             self.model.parameters = [1, 2, 3]
      
     def test_wrong_size2(self):
@@ -102,7 +102,7 @@ class ParametersTester(unittest.TestCase):
         Tests raising an exception when attemppting to update a model's
         parameter (in this case coeff) with a sequence of the wrong size.
         """
-        with pytest.raises(InputParametersException):
+        with pytest.raises(InputParameterError):
             self.model.c0 = [1, 2, 3]
 
     def test_wrong_shape(self):
@@ -110,7 +110,7 @@ class ParametersTester(unittest.TestCase):
         Tests raising an exception when attemppting to update a model's
         parameter and the new value has the wrong shape.
         """
-        with pytest.raises(InputParametersException):
+        with pytest.raises(InputParameterError):
             self.gmodel.amplitude = [1, 2]
     
     def test_par_nD_to_1D(self):
@@ -164,5 +164,5 @@ class ParametersTester(unittest.TestCase):
     
     def test_non_fittable_model_parameters_wrong_shape(self):
         sh1 = models.ShiftModel(2)
-        with pytest.raises(InputParametersException):
+        with pytest.raises(InputParameterError):
             sh1.offsets  = [3, 3]

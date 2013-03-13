@@ -413,7 +413,7 @@ class NonLinearLSQFitter(Fitter):
     
     def _set_bounds(self, fitpars):
         for c in self.model.constraints.bounds.values():
-            if any(c !=  (-1E12, 1E12)):
+            if c !=  (-1E12, 1E12):
                 bounds = [self.model.constraints.bounds[par] for 
                                     par in self.model.parnames]
                 for name, par, b in zip(self.model.parnames, fitpars, bounds):
