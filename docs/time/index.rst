@@ -95,12 +95,14 @@ Format            Class
 byear      :class:`~astropy.time.core.TimeBesselianEpoch`
 byear_str  :class:`~astropy.time.core.TimeBesselianEpochString`
 cxcsec     :class:`~astropy.time.core.TimeCxcSec`
+datetime   :class:`~astropy.time.core.TimeDatetime`
 iso        :class:`~astropy.time.core.TimeISO`
 isot       :class:`~astropy.time.core.TimeISOT`
 jd         :class:`~astropy.time.core.TimeJD`
 jyear      :class:`~astropy.time.core.TimeJulianEpoch`
 jyear_str  :class:`~astropy.time.core.TimeJulianEpochString`
 mjd        :class:`~astropy.time.core.TimeMJD`
+plot_date  :class:`~astropy.time.core.TimePlotDate`
 unix       :class:`~astropy.time.core.TimeUnix`
 yday       :class:`~astropy.time.core.TimeYearDayTime`
 =========  ====================================================
@@ -186,12 +188,17 @@ Inferring input format
 
 The |Time| class initializer will not accept ambiguous inputs,
 but it will make automatic inferences in cases where the inputs are
-unambiguous.  This can apply when the times are supplied as a list of strings,
-in which case it is not required to specify the format because the available
+unambiguous.  This can apply when the times are supplied as `~datetime.datetime`
+objects or strings.  In the latter case
+it is not required to specify the format because the available
 string formats have no overlap.  However, if the format is known in advance
 the string parsing will be faster if the format is provided.
 ::
 
+  >>> from datetime import datetime
+  >>> t = Time(datetime(2010, 1, 2, 1, 2, 3), scale='utc')
+  >>> t.format
+  'datetime'
   >>> t = Time('2010-01-02 01:02:03', scale='utc')
   >>> t.format
   'iso'
@@ -288,7 +295,7 @@ scale
 ^^^^^^^^^^^
 
 The ``scale`` argument sets the `time scale`_ and is required except for time
-formats such as 'cxcsec' (:class:`~astropy.time.core.TimeCxcSec`) and 'unix'
+formats such as ``plot_date`` (:class:`~astropy.time.core.TimePlotDate`) and ``unix``
 (:class:`~astropy.time.core.TimeUnix`).  These formats represent the duration
 in SI seconds since a fixed instant in time which is independent of time scale.
 
@@ -385,8 +392,19 @@ available format names is in the `time format`_ section.
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
   1262304000.0
-  >>> t.cxcsec    # SI seconds since 1998.0 (TT)
-  378691266.184
+  >>> t.plot_date # Date value for plotting with matplotlib plot_date()
+  733773.0003935185
+  >>> t.datetime  # Representation as datetime.datetime object
+  datetime.datetime(2010, 1, 1, 0, 0)
+
+Example::
+
+  >>> import matplotlib.pyplt as plt
+  >>> jyear = np.linspace(2000, 2001, 20)
+  >>> t = Time(jyear, format='jyear', scale='utc')
+  >>> plt.plot_date(t.plot_date, jyear)
+  >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+  >>> plt.draw()
 
 Convert time scale
 ^^^^^^^^^^^^^^^^^^^^

@@ -5,15 +5,15 @@ dates. Specific emphasis is placed on supporting time scales (e.g. UTC, TAI,
 UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
-import sys
-import warnings
+from datetime import datetime
 import time
 import itertools
 import numpy as np
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
-           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeString',
-           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
+           'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimePlotDate',
+           'TimeDatetime',
+           'TimeString', 'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
            'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
            'OperandTypeError', 'TimeEpochDateString',
@@ -160,22 +160,21 @@ class Time(object):
         the corresponding TimeFormat class to convert the input values into
         the internal jd1 and jd2.
 
-        If format is None and the input is a string-type array then guess
-        available string formats and stop when one matches.
+        If format is None and the input is a string-type or object array then guess
+        available formats and stop when one matches.
         """
 
-        if format is None and val.dtype.kind in ('S', 'U'):
+        if format is None and val.dtype.kind in ('S', 'U', 'O'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
-                       if issubclass(cls, TimeString)]
-            err_msg = 'any formats that can interpret strings {0}'.format(
-                      [name for name, cls in formats])
+                       if issubclass(cls, TimeUnique)]
+            err_msg = 'any of the formats where the format keyword is optional {0}'.format(
+                [name for name, cls in formats])
         elif format not in self.FORMATS:
             if format is None:
-                raise ValueError("No time format was given, and the input is "
-                                 "not string-like")
+                raise ValueError("No time format was given, and the input is not unique")
             else:
                 raise ValueError("Format {0} is not one of the allowed "
-                    "formats {1}".format(repr(format), sorted(self.FORMATS)))
+                                 "formats {1}".format(repr(format), sorted(self.FORMATS)))
         else:
             formats = [(format, self.FORMATS[format])]
             err_msg = 'the format class {0}'.format(format)
@@ -438,7 +437,14 @@ class Time(object):
 
         elif attr in self.FORMATS:
             tm = self.replicate(format=attr)
-            return (tm.vals[0].tolist() if self.is_scalar else tm.vals)
+            if self.is_scalar:
+                out = tm.vals[0]
+                # convert to native python for non-object dtypes
+                if tm.vals.dtype.kind != 'O':
+                    out = out.tolist()
+            else:
+                out = tm.vals
+            return out
 
         else:
             # Should raise AttributeError
@@ -819,7 +825,100 @@ class TimeCxcSec(TimeFromEpoch):
     epoch_format = 'iso'
 
 
-class TimeString(TimeFormat):
+class TimePlotDate(TimeFromEpoch):
+    """
+    Matplotlib `~matplotlib.pyplot.plot_date` input: 1 + number of days from 0001-01-01 00:00:00 UTC
+
+    This can be used directly in the matplotlib `~matplotlib.pyplot.plot_date` function::
+
+      >>> jyear = np.linspace(2000, 2001, 20)
+      >>> t = Time(jyear, format='jyear', scale='utc')
+      >>> plt.plot_date(t.plot_date, jyear)
+      >>> plt.gcf().autofmt_xdate()  # orient date labels at a slant
+      >>> plt.draw()
+    """
+    # This corresponds to the zero reference time for matplotlib plot_date().
+    # Note that TAI and UTC are equivalent at the reference time, but
+    # specifying epoch_scale = 'utc' here generates WARNINGS when the
+    # class is first used.  Just use 'tai' instead.
+    name = 'plot_date'
+    unit = 1.0
+    epoch_val = 1721424.5  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
+    epoch_val2 = None
+    epoch_scale = 'tai'
+    epoch_format = 'jd'
+
+
+class TimeUnique(TimeFormat):
+    """
+    Base class for time formats that can uniquely create a time object
+    without requiring an explicit format specifier.  This class does
+    nothing but provide inheritance to identify a class as unique.
+    """
+    pass
+
+
+class TimeDatetime(TimeUnique):
+    """
+    Represent date as Python standard library `~datetime.datetime` object
+
+    Example::
+
+      >>> from datetime import datetime
+      >>> t = Time(datetime(2000, 1, 2, 12, 0, 0), scale='utc')
+      >>> t.iso
+      '2000-01-02 12:00:00.000'
+      >>> t.tt.datetime
+      datetime.datetime(2000, 1, 2, 12, 1, 4, 184000)
+    """
+    name = 'datetime'
+
+    def _check_val_type(self, val1, val2):
+        if not all(isinstance(val, datetime) for val in val1):
+            raise TypeError('Input values for {0} class must be datetime objects'
+                            .format(self.name))
+            # Note: don't care about val2 for this classes
+
+    def set_jds(self, val1, val2):
+        """Convert datetime object contained in val1 to jd1, jd2"""
+        n_times = len(val1)
+        iy = np.empty(n_times, dtype=np.intc)
+        im = np.empty(n_times, dtype=np.intc)
+        id = np.empty(n_times, dtype=np.intc)
+        ihr = np.empty(n_times, dtype=np.intc)
+        imin = np.empty(n_times, dtype=np.intc)
+        dsec = np.empty(n_times, dtype=np.double)
+
+        # Iterate through the datetime objects
+        for i, val in enumerate(val1):
+            iy[i] = val.year
+            im[i] = val.month
+            id[i] = val.day
+            ihr[i] = val.hour
+            imin[i] = val.minute
+            dsec[i] = val.second + val.microsecond / 1e6
+
+        self.jd1, self.jd2 = sofa_time.dtf_jd(self.scale.upper().encode('utf8'),
+                                              iy, im, id, ihr, imin, dsec)
+
+    @property
+    def vals(self):
+        iys, ims, ids, ihmsfs = sofa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
+                                                 6,  # precision = 6 for microseconds
+                                                 self.jd1, self.jd2)
+
+        out = np.empty(len(self), dtype=np.object)
+        idxs = itertools.count()
+        for idx, iy, im, id, ihmsf in itertools.izip(idxs, iys, ims, ids, ihmsfs):
+            ihr, imin, isec, ifracsec = ihmsf
+            out[idx] = datetime(int(iy), int(im), int(id),
+                                int(ihr), int(imin), int(isec), int(ifracsec))
+
+        return out
+
+
+class TimeString(TimeUnique):
     """
     Base class for string-like time represetations.
 
@@ -892,7 +991,6 @@ class TimeString(TimeFormat):
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
 
         if '{yday:' in str_fmt:
-            from datetime import datetime
             has_yday = True
         else:
             has_yday = False
@@ -1156,7 +1254,7 @@ def _make_1d_array(val, copy=False):
     val = np.array(val, copy=copy)
     val_ndim = val.ndim  # remember original ndim
     if val.ndim == 0:
-        val = np.asarray([val])
+        val = (val.reshape(1) if val.dtype.kind == 'O' else np.array([val]))
     elif val_ndim > 1:
         # Maybe lift this restriction later to allow multi-dim in/out?
         raise TypeError('Input val must be zero or one dimensional')
