@@ -713,7 +713,7 @@ class ChebyshevModel(PModel):
         return c0 + c1*x    
     
     def deriv(self, x):
-        x = np.array(x, copy=0, ndmin=1) + 0.0
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x*0 + 1
         x2 = 2*x
@@ -794,7 +794,7 @@ class LegendreModel(PModel):
         return c0 + c1*x    
     
     def deriv(self, x):
-        x = np.array(x, copy=0, ndmin=1) + 0.0
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x*0 + 1
         v[1] = x
@@ -855,7 +855,7 @@ class Poly1DModel(PModel):
         self.outdim = 1
             
     def deriv(self, x):
-        x = np.array(x, copy=0, ndmin=1) + 0.0
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.deg + 1,) + x.shape, dtype=x.dtype)
         v[0] = x*0 + 1
         v[1] = x
@@ -1098,7 +1098,7 @@ class ICheb2DModel(IModel):
         """
         Derivative of 1D Chebyshev series
         """
-        x = np.array(x, copy=0, ndmin=1) + 0.0
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         d = np.empty((deg+1, len(x)), dtype=x.dtype)
         d[0] = x * 0 + 1
         if deg > 0 :
@@ -1218,7 +1218,7 @@ class ILegend2DModel(IModel):
         """
         Derivative of 1D Legendre polynomial
         """
-        x = np.array(x, copy=0, ndmin=1) + 0.0
+        x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         d = np.empty((deg+1, len(x)), dtype=x.dtype)
         d[0] = x*0 + 1
         if deg > 0 :
