@@ -277,8 +277,8 @@ class LinearLSQFitter(Fitter):
             times the largest singular value of `a`.
         """
         multiple = False
-        x = np.asarray(x) + 0.0
-        y = np.asarray(y) + 0.0
+        x = np.asarray(x, dtype=np.float)
+        y = np.asarray(y, dtype=np.float)
         
         if self.model.ndim == 2 and z is None:
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
@@ -335,7 +335,7 @@ class LinearLSQFitter(Fitter):
                 rhs = z.flatten()
 
         if w is not None:
-            w = np.asarray(w) + 0.0
+            w = np.asarray(w, dtype=np.float)
             if len(x) != len(y):
                 raise ValueError("x and w should have the same length")
             if rhs.ndim == 2:
@@ -464,7 +464,7 @@ class NonLinearLSQFitter(Fitter):
 
         """
         from scipy import optimize
-        x = np.asarray(x) + 0.0
+        x = np.asarray(x, dtype=np.float)
         self.weights  = w
         if self.model._parameters.paramdim != 1:
             # for now only single data sets ca be fitted
@@ -479,8 +479,8 @@ class NonLinearLSQFitter(Fitter):
         else:
             if x.shape != z.shape:
                 raise ValueError("x, y and z should have the same shape")
-            y = np.asarray(y) + 0.0
-            meas = np.asarray(z) + 0.0
+            y = np.asarray(y, np.float)
+            meas = np.asarray(z, dtype=np.float)
             farg = (meas, x, y)
  
         self.fitpars, status, dinfo, mess, ierr = optimize.leastsq(
@@ -572,7 +572,7 @@ class SLSQPFitter(Fitter):
             
         """
         from scipy import optimize
-        x = np.asarray(x) + 0.0
+        x = np.asarray(x, dtype=np.float)
         
         self._weights = w
         if self.model._parameters.paramdim != 1:
@@ -583,13 +583,13 @@ class SLSQPFitter(Fitter):
         if not z:
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y should have the same shape")
-            meas = np.asarray(y) + 0.0 
+            meas = np.asarray(y, dtype=np.float) 
             fargs = (meas, x)
         else:
             if x.shape != z.shape:
                 raise ValueError("x, y and z should have the same shape")
-            y = np.asarray(y) + 0.0
-            meas = np.asarray(z) + 0.0
+            y = np.asarray(y, dtype=np.float)
+            meas = np.asarray(z, dtype=np.float)
             fargs = (meas, x, y)
         p0 = self.model._parameters[:]
         bounds = [self.model.constraints.bounds[par] for
