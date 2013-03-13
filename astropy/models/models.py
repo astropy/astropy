@@ -83,12 +83,12 @@ def _convert_input(x, pdim):
             fmt = 'N'
             return np.array([x]).T, fmt
         elif x.ndim == 2:
-            assert x.shape[-1] == pdim, "Cannot broadcast with shape " \
-                   "(%d, %d)" % (x.shape[0], x.shape[1])
+            assert x.shape[-1] == pdim, "Cannot broadcast with shape"\
+                                            "({0}, {1})".format(x.shape[0], x.shape[1])
             return x, fmt
         elif x.ndim > 2:
             assert x.shape[0] == pdim, "Cannot broadcast with shape " \
-                   "(%d, %d, %d)" % (x.shape[0], x.shape[1], x.shape[2])
+                   "({0}, {1}, {2})".format(x.shape[0], x.shape[1], x.shape[2])
             fmt = 'T'
             return x.T, fmt
     
@@ -182,11 +182,11 @@ class Model(object):
                                                   lambda self, value, par=par: 
                                                   setpar(self, par, value)))
     def __repr__(self):
-        fmt = "%s(" % self.__class__.__name__
+        fmt = "{0}(".format(self.__class__.__name__)
         for i in range(len(self.parnames)):
             fmt1 = """
-            %s= %s,
-            """ % (self.parnames[i], repr(getattr(self, self.parnames[i])))
+            {0}= {1},
+            """.format(self.parnames[i], getattr(self, self.parnames[i]))
             fmt += fmt1
         fmt += ")"
         
@@ -195,11 +195,11 @@ class Model(object):
     def __str__(self):
         
         fmt = """
-        Model: %s
-        Parameter sets: %s
+        Model: {0}
+        Parameter sets: {1}
         Parameters: 
-                   %s
-        """ % (
+                   {2}
+        """.format(
               self.__class__.__name__,
               self.paramdim,
               "\n                   ".join(i+':  ' + 
@@ -313,16 +313,16 @@ class ParametricModel(Model):
             paramdim = " "
             
         if degree:
-            fmt = "<%s(%s," % (self.__class__.__name__, repr(self.deg))
+            fmt = "<{0}({1},".format(self.__class__.__name__, repr(self.deg))
         else:
-            fmt = "<%s(" % self.__class__.__name__
+            fmt = "<{0}(".format(self.__class__.__name__)
         for i in range(len(self.parnames)):
             fmt1 = """
-            %s= %s,
-            """ % (self.parnames[i], repr(getattr(self, self.parnames[i])))
+            {0}= {1},
+            """.format(self.parnames[i], getattr(self, self.parnames[i]))
             fmt += fmt1.strip()
         if paramdim:
-            fmt += "paramdim=%s)>" % repr(self.paramdim)
+            fmt += "paramdim={0})>".format(self.paramdim)
         
         return fmt
     
@@ -332,13 +332,13 @@ class ParametricModel(Model):
         except AttributeError:
             degree = 'N/A'
         fmt = """
-        Model: %s
-        Dim:   %d
-        Degree: %s
-        Parameter sets: %s
+        Model: {0}
+        Dim:   {1}
+        Degree: {2}
+        Parameter sets: {3}
         Parameters: 
-                   %s
-        """ % (
+                   {4}
+        """.format(
               self.__class__.__name__,
               self.ndim,
               degree,
@@ -404,7 +404,7 @@ class PModel(ParametricModel):
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print("Creating a model with %d parameter sets\n" %lenpars)
+                print("Creating a model with {0} parameter sets\n".format(lenpars))
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
@@ -424,16 +424,16 @@ class PModel(ParametricModel):
         names = []
         if self.ndim == 1:
             for n in range(ncoeff):
-                names.append('c%s' %n)
+                names.append('c{0}'.format(n))
         else:
             for i in range(self.deg+1):
-                names.append('c%s_%s' % (i, 0))
+                names.append('c{0}_{1}'.format(i, 0))
             for i in range(1, self.deg+1):
-                names.append('c%s_%s' % (0, i))
+                names.append('c{0}_{1}'.format(0, i))
             for i in range(1, self.deg):
                 for j in range(1, self.deg):
                     if i+j < self.deg+1:
-                        names.append('c%s_%s' % (i, j))
+                        names.append('c{0}_{1}'.format(i, j))
         return names
         
     def _validate_pars(self, **pars):
@@ -550,7 +550,7 @@ class IModel(ParametricModel):
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print("Creating a model with %d parameter sets\n" %lenpars)
+                print("Creating a model with {0} parameter sets\n".format(lenpars))
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)        
@@ -560,7 +560,7 @@ class IModel(ParametricModel):
         names = []
         for j in range(self.ydeg+1):
             for i in range(self.xdeg+1):
-                names.append('c%s_%s' % (i, j))
+                names.append('c{0}_{1}'.format(i, j))
         return names
     
     def set_coeff(self, pardim=1, **pars):
@@ -1530,13 +1530,13 @@ class _SIP1D(Model):
         if not pars:
             self.set_coeff(pardim=paramdim)
         else:
-            p = pars.get('%s02' %coeffname, None) 
+            p = pars.get('{0}02'.format(coeffname, None))
             if operator.isSequenceType(p):
                 lenpars = len(p)
             else:
                 lenpars = 1
             if paramdim != lenpars:
-                print("Creating a model with %d parameter sets\n" % lenpars)
+                print("Creating a model with {0} parameter sets\n".format(lenpars))
                 paramdim = lenpars
             self._validate_pars(**pars)  
             self.set_coeff(pardim=paramdim, **pars)
@@ -1545,11 +1545,11 @@ class _SIP1D(Model):
        
     def __repr__(self):
         fmt = """
-        Model: %s
-        Dim:   %d
-        Order: %s
-        Parameter sets: %d
-        """ % (
+        Model: {0}
+        Dim:   {1}
+        Order: {2}
+        Parameter sets: {3}
+        """.format(
               self.__class__.__name__,
               self.ndim,
               self.order,
@@ -1559,13 +1559,13 @@ class _SIP1D(Model):
     
     def __str__(self):
         fmt = """
-        Model: %s
-        Dim:   %d
-        Order: %s
-        Parameter sets: %d
+        Model: {0}
+        Dim:   {1}
+        Order: {2}
+        Parameter sets: {3}
         Parameters: 
-                   %s
-        """ % (
+                   {4}
+        """.format(
               self.__class__.__name__,
               self.ndim,
               self.order,
@@ -1588,13 +1588,13 @@ class _SIP1D(Model):
     def _generate_coeff_names(self, coeffname):
         names = []
         for i in range(2, self.order+1):
-            names.append('%s%s%s' % (coeffname, i, 0))
+            names.append('{0}{1}{2}'.format(coeffname, i, 0))
         for i in range(2, self.order+1):
-            names.append('%s%s%s' % (coeffname, 0, i))
+            names.append('{0}{1}{2}'.format(coeffname, 0, i))
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i+j < self.order+1:
-                    names.append('%s%s%s' % (coeffname, i, j))
+                    names.append('{0}{1}{2}'.format(coeffname, i, j))
         return names
     
     def set_coeff(self, pardim=1, **pars):
@@ -1621,13 +1621,13 @@ class _SIP1D(Model):
     def _coef_matrix(self, coeffname):
         mat = np.zeros((self.order+1, self.order+1))
         for i in range(2, self.order+1):
-            mat[i, 0] = getattr(self, '%s%s%s' % (coeffname, i, 0))[0]
+            mat[i, 0] = getattr(self, '{0}{1}{2}'.format(coeffname, i, 0))[0]
         for i in range(2, self.order+1):
-            mat[0, i] = getattr(self, '%s%s%s' % (coeffname, 0, i))[0]
+            mat[0, i] = getattr(self, '{0}{1}{2}'.format(coeffname, 0, i))[0]
         for i in range(1, self.order):
             for j in range(1, self.order):
                 if i+j < self.order+1:
-                    mat[i, j] = getattr(self, '%s%s%s' % (coeffname, i, j))[0]
+                    mat[i, j] = getattr(self, '{0}{1}{2}'.format(coeffname, i, j))[0]
         return mat
 
     def _eval_sip(self, x, y, coef):
@@ -1771,8 +1771,8 @@ class _CompositeModel(OrderedDict):
     def __repr__(self):
         transforms = self.keys()
         fmt = """
-            Model:  %s 
-            """ % (self.__class__.__name__)
+            Model:  {0} 
+            """.format(self.__class__.__name__)
         fmt1 = " %s  " * len(transforms)% tuple([repr(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
@@ -1780,8 +1780,8 @@ class _CompositeModel(OrderedDict):
     def __str__(self):
         transforms = self.keys()
         fmt = """
-            Model:  %s 
-            """ % (self.__class__.__name__)
+            Model:  {0}
+            """.format(self.__class__.__name__)
         fmt1 = " %s  " * len(transforms)% tuple([str(tr) for tr in transforms])
         fmt = fmt + fmt1
         return fmt
@@ -2066,9 +2066,9 @@ class SIPModel(SCompositeModel):
     def __repr__(self):
         models = [self.shifta, self.shiftb, self.sip1d]
         fmt = """
-            Model:  %s 
-            Coeff Prefix: %s 
-            """ % (self.__class__.__name__, self.sip1d.coeffname.upper())
+            Model:  {0} 
+            Coeff Prefix: {1}
+            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
         fmt1 = " %s  " * len(models)% tuple([repr(model) for model in models])
         fmt = fmt + fmt1
         return fmt
@@ -2076,9 +2076,9 @@ class SIPModel(SCompositeModel):
     def __str__(self):
         models = [self.shifta, self.shiftb, self.sip1d]
         fmt = """
-            Model:  %s 
-            Coeff Prefix: %s 
-            """ % (self.__class__.__name__, self.sip1d.coeffname.upper())
+            Model:  {0}
+            Coeff Prefix: {1}
+            """.format(self.__class__.__name__, self.sip1d.coeffname.upper())
         fmt1 = " %s  " * len(models)% tuple([str(model) for model in models])
         fmt = fmt + fmt1
         return fmt
