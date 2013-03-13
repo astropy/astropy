@@ -30,15 +30,26 @@ constraintsdef = {'NonLinearLSQFitter': ['fixed', 'tied', 'bounds'],
                   'LinearLSQFitter': ['fixed'],
                   }
 
-class ModelLinearityError(Exception):
+class ModelsError(Exception):
     """
-    Called when a linear model is passed to a non-linear fitter and vice versa.
+    Base Error class
     """
     def __init__(self, message):
         self._message = message
         
     def __str__(self):
         return self._message 
+
+class ModelLinearityError(ModelsError):
+    """
+    Called when a linear model is passed to a non-linear fitter and vice versa.
+    """
+    def __init__(self, message):
+        super(ModelLinearityError, self).__init__(message)
+        
+class UnsupportedConstraintError(ModelsError):
+    def __init__(self, message):
+        super(UnsupportedConstraintError, self).__init__(message)
         
 class Fitter(object):
     """
@@ -166,8 +177,8 @@ class Fitter(object):
         try:
             c = constraintsdef[fname]
         except KeyError:
-            print("{0} does not support fitting with constraints".format(fname))
-            raise
+            raise UnsupportedConstraintError("{0} does not support fitting",
+                                                                    "with constraints".format(fname))
         if any(self.model.constraints._fixed.values()) and 'fixed' not in c:
             raise ValueError("{0} cannot handle fixed parameter", 
                                             "constraints .".format(fname))
@@ -274,7 +285,7 @@ class LinearLSQFitter(Fitter):
         
         if z is None:
             if x.shape[0] != y.shape[0]:
-                raise ValueError("x and y should have the same length")
+                raise ValueError("Expected measured and model data to have the same size")
             if y.ndim == 2:
                 assert y.shape[1] == self.model._parameters.paramdim, (
                     "Number of data sets (Y array is expected to equal "
@@ -401,14 +412,13 @@ class NonLinearLSQFitter(Fitter):
             return np.ravel(self.weights * (self.model(*args[1:]) - meas))
     
     def _set_bounds(self, fitpars):
-        if any(c != (-1E12, 1E12) for c in
-               self.model.constraints.bounds.values()):
-            bounds = [self.model.constraints.bounds[par] for
-                    par in self.model.parnames]
-            [setattr(self.model, name, par if par>b[0] else b[0]) for
-             name, par, b in zip(self.model.parnames, fitpars, bounds)]
-            [setattr(self.model, name, par if par<b[1] else b[1]) for
-             name, par, b in zip(self.model.parnames, fitpars, bounds)]
+        for c in self.model.constraints.bounds.values():
+            if any(c !=  (-1E12, 1E12)):
+                bounds = [self.model.constraints.bounds[par] for 
+                                    par in self.model.parnames]
+                for name, par, b in zip(self.model.parnames, fitpars, bounds):
+                    setattr(self.model, name, par if par>b[0] else b[0])
+                    setattr(self.model, name, par if par<b[1] else b[1])
     
     @property
     def covar(self):

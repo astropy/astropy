@@ -4,21 +4,21 @@
 Models
 ******
 
-The base class of all models is **`models.Model`**, however fittable models should
-subclass **`models.ParametricModel`**. Parametric 
+The base class of all models is `~astropy.models.models.Model`, however fittable
+models should subclass `~astropy.models.models.ParametricModel`. Parametric 
 models can be linear or nonlinear in a regression analysis sense.
 
-All models provide a **`__call__`** method which performs the transformation in a 
+All models provide a `__call__` method which performs the transformation in a 
 purely mathematical way, i.e. the models are unitless. In addition, when possible the 
-transformation is done using multiple parameter sets, **`psets`**.
-The number of parameter sets is stored in an attribute **`paramdim`**. 
+transformation is done using multiple parameter sets, `psets`.
+The number of parameter sets is stored in an attribute `paramdim`. 
 
 Parametric models also store a flat list of all parameters as an instance of 
-**`parameters.Parameters`**. When fitting, this list-like object is
-modified by a subclass of **`fitting.Fitter`**. When fitting nonlinear models,
+`~astropy.models.parameters.Parameters`. When fitting, this list-like object is
+modified by a subclass of `~astropy.fitting.fitting.Fitter`. When fitting nonlinear models,
 the values of the parameters are used as initial guesses by the fitting class.
 
-Models have dimensions, **`ndim`**  attribute, which show how many coordinates the 
+Models have dimensions, `ndim` attribute, which show how many coordinates the 
 model expects as an input. All models expect coordinates as separate arguments.
 For example a 2D model expects x and y to be passed separately, 
 e.g. as two arrays or two lists. When a model has multiple parameter sets and x, y are 
@@ -28,14 +28,14 @@ of parameter sets and xsh, ysh is the shape of the input array.
 In all other cases the shape of the output array is the same as the shape of the 
 input arrays. 
 
-Models also have an attribute  **`outdim`**, which shows the number of output 
-coordinates. The **`ndim`** and **`outdim`** attributes are used to chain transforms by
+Models also have an attribute  `outdim`, which shows the number of output 
+coordinates. The `ndim` and `outdim` attributes are used to chain transforms by
 adding models (in series or in  parallel), to form an 
-instance of **`models._CompositeModel`**.  Because composite models can 
+instance of `~astropy.models.models._CompositeModel`.  Because composite models can 
 be nested within other composite models, creating 
 theoretically infinetely complex models, a mechanism to map input data to models 
-is needed. In this case the input may be wrapped in a **`models.LabeledInput`** 
-object - a dict like object whose items are {label: data} pairs.
+is needed. In this case the input may be wrapped in a
+`~astropy.models.models.LabeledInput` object - a dict like object whose items are {label: data} pairs.
 
 Models Examples
 ---------------
