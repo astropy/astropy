@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from datetime import datetime
+
 import numpy as np
 
 from ...tests.helper import pytest
@@ -78,6 +80,7 @@ class TestBasic():
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
         assert np.allclose(t.unix, 1262304000.0)
         assert np.allclose(t.cxcsec, 378691266.184)
+        assert t.datetime == datetime(2010, 1, 1)
 
     def test_precision(self):
         """Set the output precision which is used for some formats.  This is
@@ -136,6 +139,28 @@ class TestBasic():
         Time(2400000.5, 51544.0333981, format='jd', scale='tai')
         Time(0.0, 51544.0333981, format='mjd', scale='tai')
         Time('2000:001:12:23:34.0', format='yday', scale='tai')
+        dt = datetime(2000, 1, 2, 3, 4, 5, 123456)
+        Time(dt, format='datetime', scale='tai')
+        Time([dt, dt], format='datetime', scale='tai')
+
+    def test_datetime(self):
+        """
+        Test datetime format, including guessing the format from the input type
+        by not providing the format keyword to Time.
+        """
+        dt = datetime(2000, 1, 2, 3, 4, 5, 123456)
+        dt2 = datetime(2001, 1, 1)
+        t = Time(dt, scale='utc', precision=9)
+        assert t.iso == '2000-01-02 03:04:05.123456000'
+        assert t.datetime == dt
+        t2 = Time(t.iso, scale='utc')
+        assert t2.datetime == dt
+
+        t = Time([dt, dt2], scale='utc')
+        assert np.all(t.vals == [dt, dt2])
+
+        t = Time('2000-01-01 01:01:01.123456789', scale='tai')
+        assert t.datetime == datetime(2000, 1, 1, 1, 1, 1, 123457)
 
     def test_epoch_transform(self):
         """Besselian and julian epoch transforms"""
@@ -305,6 +330,12 @@ class TestSubFormat():
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
         t = Time(378691266.184, format='cxcsec', scale='utc')
         assert t.yday == '2010:001:00:00:00.000'
+
+        # Value from:
+        #   d = datetime.datetime(2000, 1, 1)
+        #   matplotlib.dates.date2num(d)
+        t = Time('2000-01-01 00:00:00', scale='tai')
+        assert np.allclose(t.plot_date, 730120.0, atol=1e-5, rtol=0)
 
         # Round trip through epoch time
         for scale in ('utc', 'tt'):
