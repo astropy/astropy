@@ -4,10 +4,17 @@ This module provides utility functions for the models package
 from __future__ import division, print_function
 import numpy as np
 
-class InputParametersException(Exception):
-    pass
+class InputParameterError(Exception):
+    """
+    Called when there's a problem with input parameters.
+    """
+    def __init__(self, message):
+        self._message = message
+        
+    def __str__(self):
+        return self._message 
 
-__all__ = ['pmapdomain', 'comb', 'InputParametersException']
+__all__ = ['pmapdomain', 'comb', 'InputParameterError']
           
 
 def pmapdomain(oldx, domain, window):
