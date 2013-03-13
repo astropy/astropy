@@ -92,37 +92,37 @@ class Constraints(object):
         fmt = ""
         if any(self._fixed.values()):
             fixedstr = [par for par in self._fixed if self._fixed[par]]
-            fmt += "fixed=%s, " % str(fixedstr)
+            fmt += "fixed={0}".format(fixedstr)
         if any(self._tied.values()):
             tiedstr = [par+": "+self._tied[par].__name__+"()" for
                        par in self._tied if self._tied[par]]
-            fmt += "tied=%s, " % str(tiedstr)
+            fmt += "tied={0}".format(tiedstr)
         if not all([(-np.inf, np.inf)==b for b in self._bounds.values()]):
             boundsstr = [par+":"+str(self._bounds[par]) for
                          par in self._bounds if
                          self._bounds[par]!= (-np.inf, np.inf)]
-            fmt += "bounds=%s, " % str(boundsstr)
+            fmt += "bounds={0}".format(boundsstr)
         if self._eqcons:
-            fmt += "eqcons=%s, " % str(self._eqcons)
+            fmt += "eqcons={0}".format(self._eqcons)
         if self._ineqcons:
-            fmt += "ineqcons=%s, " % str(self._ineqcons)
-        name = "Constraints(%s, " % self.model.__class__.__name__
+            fmt += "ineqcons={0}".format(self._ineqcons)
+        name = "Constraints({0}, ".format(self.model.__class__.__name__)
         if fmt:
             fmt = name + fmt +")"
         return fmt
     
     def __repr__(self):
-        fmt = "<Constraints(%s, " % self.model.__class__.__name__
+        fmt = "<Constraints({0}, ".format(self.model.__class__.__name__)
         if self._fixed:
-            fmt += 'fixed=%s, ' % repr(self._fixed)
+            fmt += 'fixed={0}, '.format(self._fixed)
         if self._tied:
-            fmt += 'tied=%s, ' % repr(self._tied)
+            fmt += 'tied={0}, '.format(self._tied)
         if self._bounds:
-            fmt += 'bounds=%s, ' % repr(self._bounds)
+            fmt += 'bounds={0}, '.format(self._bounds)
         if self._eqcons:
-            fmt += "eqcons=%s, " % repr(self._eqcons)
+            fmt += "eqcons={0}, ".format(self._eqcons)
         if self._ineqcons:
-            fmt += "ineqcons=%s" % repr(self._ineqcons)
+            fmt += "ineqcons={0}".format(self._ineqcons)
         fmt += ")>"
         return fmt
     
