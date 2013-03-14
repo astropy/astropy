@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import re
 import math
 import multiprocessing
+import os
 import sys
 import threading
 import time
@@ -317,8 +318,10 @@ class ProgressBar(object):
         self._file = file
         self._start_time = time.time()
 
+        self._should_handle_resize = (
+            _CAN_RESIZE_TERMINAL and isatty(self._file))
         self._handle_resize()
-        if _CAN_RESIZE_TERMINAL:
+        if self._should_handle_resize:
             signal.signal(signal.SIGWINCH, self._handle_resize)
             self._signal_set = True
         else:
@@ -328,7 +331,7 @@ class ProgressBar(object):
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
-        if _CAN_RESIZE_TERMINAL:
+        if self._should_handle_resize:
             data = fcntl.ioctl(self._file, termios.TIOCGWINSZ, '\0' * 8)
             arr = np.fromstring(data, dtype=np.int16)
             terminal_width = arr[1]
